@@ -1,0 +1,14 @@
+import observe from "../machine/observe"
+import pop from "../machine/pop"
+
+import type { Machine } from "../model"
+
+export type Input = Machine
+
+export type Output = Machine
+
+export default function (in: Input): Output {
+    const popped = pop(in)
+
+    return observe({ machine: popped.machine, value: popped.value })
+}

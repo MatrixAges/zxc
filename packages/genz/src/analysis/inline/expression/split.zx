@@ -1,0 +1,17 @@
+export type Input = { items: u32[], from: u64 }
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    const empty: u32[] = []
+
+    const result = loop({ items: in.items, position: in.from, output: empty }, {
+        while: current => current.position < current.items.length,
+        next: current => {
+            current.output = current.output.push(current.items[current.position])[0]
+            current.position += 1
+        }
+    })
+
+    return result.output
+}

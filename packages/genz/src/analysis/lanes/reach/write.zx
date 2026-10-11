@@ -1,0 +1,21 @@
+export type Input = { bits: bool[], row: bool[], first: u64 }
+
+export type Output = { bits: bool[], changed: bool }
+
+export default function (in: Input): Output {
+    const result = loop({ bits: in.bits, row: in.row, first: in.first, position: 0, changed: false }, {
+        while: current => current.position < current.row.length,
+        next: current => {
+            const position = current.first + current.position
+
+            if (current.bits[position] != current.row[current.position]) {
+                current.bits = current.bits.with(position, current.row[current.position])
+                current.changed = true
+            }
+
+            current.position += 1
+        }
+    })
+
+    return { bits: result.bits, changed: result.changed }
+}

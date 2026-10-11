@@ -1,0 +1,23 @@
+import integers from "std:integer"
+
+import children from "../ir/children"
+
+import type { Expressions } from "core/expression_table/model"
+
+export type Input = { table: Expressions, costs: u64[], limit: u64, id: u32 }
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    const nested = children({ table: in.table, id: integers.widen(in.id) })
+
+    const total = loop({ costs: in.costs, nested: nested, position: 0, total: 0 }, {
+        while: current => current.position < current.nested.length,
+        next: current => {
+            current.total = current.total + current.costs[integers.widen(current.nested[current.position])]
+            current.position += 1
+        }
+    }).total
+
+    return 1 + (total > in.limit + 1 ? in.limit + 1 : total)
+}

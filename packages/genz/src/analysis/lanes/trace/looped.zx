@@ -1,0 +1,23 @@
+import integers from "std:integer"
+
+import same from "./same"
+
+import type { Loops } from "./model"
+
+export type Input = { loops: Loops, pool: u32[], id: u64, first: u64, count: u64 }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const result = loop({ loops: in.loops, pool: in.pool, id: in.id, first: in.first, count: in.count, position: 0, found: false }, {
+        while: current => !current.found && current.position < current.loops.expressions.length,
+        next: current => {
+            const loops = current.loops
+
+            current.found = integers.widen(loops.expressions[current.position]) == current.id && same({ left: current.pool, left_first: loops.firsts[current.position], left_count: loops.counts[current.position], right: current.pool, right_first: current.first, right_count: current.count })
+            current.position += 1
+        }
+    })
+
+    return result.found
+}

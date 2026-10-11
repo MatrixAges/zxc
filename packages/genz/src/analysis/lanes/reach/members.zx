@@ -1,0 +1,33 @@
+export type Input = { stack: u64[], children: u64[], first: u64, count: u64, root: u64 }
+
+export type Output = { first: u64, items: u64[], cyclic: bool }
+
+export default function (in: Input): Output {
+    const start = loop({ stack: in.stack, root: in.root, position: in.stack.length, found: false }, {
+        while: current => !current.found && current.position != 0,
+        next: current => {
+            current.position -= 1
+            current.found = current.stack[current.position] == current.root
+        }
+    }).position
+
+    const empty: u64[] = []
+
+    const items = loop({ stack: in.stack, position: start, items: empty }, {
+        while: current => current.position < current.stack.length,
+        next: current => {
+            current.items = current.items.push(current.stack[current.position])[0]
+            current.position += 1
+        }
+    }).items
+
+    const recursive = loop({ children: in.children, root: in.root, position: in.first, end: in.first + in.count, found: false }, {
+        while: current => !current.found && current.position < current.end,
+        next: current => {
+            current.found = current.children[current.position] == current.root
+            current.position += 1
+        }
+    }).found
+
+    return { first: start, items: items, cyclic: items.length > 1 || recursive }
+}

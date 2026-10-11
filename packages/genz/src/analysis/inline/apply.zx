@@ -1,0 +1,53 @@
+import scalar from "../types/scalar"
+import rebuild from "./rebuild"
+import selection from "./selection"
+
+import type { Control } from "core/control_table/model"
+import type { Expressions } from "core/expression_table/model"
+import type { Symbols } from "core/symbol_table/model"
+import type { Table } from "core/type_table/model"
+import type { Unit } from "../unit"
+
+export type Rebuilt = { changed: bool, symbols: Symbols, expressions: Expressions, control: Control, root: u32 }
+
+export type Input = { types: Table, units: Unit[], plan: u64[] }
+
+export type Output = Rebuilt[]
+
+export default function (in: Input): Output {
+    const results: Rebuilt[] = []
+    const limit = 4096
+
+    if (in.units.length == 1) {
+        return results
+    }
+
+    const void_type = scalar({ kinds: in.types.kinds, first: in.types.first, scalar: 0 })
+    const bool_type = scalar({ kinds: in.types.kinds, first: in.types.first, scalar: 1 })
+
+    const applied = loop({ types: in.types, units: in.units, plan: in.plan, limit: limit, void_type: void_type, bool_type: bool_type, results: results, index: 0 }, {
+        while: current => current.index < current.units.length,
+        next: current => {
+            const unit = current.units[current.index]
+            const unchanged: Rebuilt = { changed: false, symbols: unit.symbols, expressions: unit.expressions, control: unit.control, root: 0 }
+
+            if (unit.stores.paths.length != 0) {
+                current.results = current.results.push(unchanged)[0]
+            } else {
+                const selected = selection({ types: current.types, unit: unit, costs: current.plan, limit: current.limit })
+
+                if (!selected.selected) {
+                    current.results = current.results.push(unchanged)[0]
+                } else {
+                    const rebuilt = rebuild({ types: current.types, units: current.units, plan: current.plan, limit: current.limit, void_type: current.void_type, bool_type: current.bool_type, unit: current.index, marked: selected.marked })
+
+                    current.results = current.results.push(rebuilt.failed ? unchanged : { changed: true, symbols: rebuilt.symbols, expressions: rebuilt.expressions, control: rebuilt.control, root: rebuilt.root })[0]
+                }
+            }
+
+            current.index += 1
+        }
+    })
+
+    return applied.results
+}

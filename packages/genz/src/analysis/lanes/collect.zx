@@ -1,0 +1,39 @@
+import integers from "std:integer"
+
+import analyze from "./analyze"
+
+import type { Lanes } from "../unit"
+import type { Machine } from "./reach/model"
+
+export type Input = { machine: Machine, values: bool[], pure: bool[], readers: bool[] }
+
+export type Output = { lanes: Lanes[], codes: u8[][] }
+
+export default function (in: Input): Output {
+    const codes: u8[][] = []
+
+    const result = loop({ machine: in.machine, values: in.values, pure: in.pure, readers: in.readers, codes: codes, position: 0 }, {
+        while: current => current.position < current.values.length,
+        next: current => {
+            const position = current.position
+            const unit = current.machine.units[position]
+            const list = current.machine.types.kinds[integers.widen(unit.output_type)] == 3
+            const empty: Lanes = []
+            const empty_codes: u8[] = []
+
+            if (current.values[position] || (current.pure[position] && !unit.external && list)) {
+                const analyzed = analyze({ machine: current.machine, readers: current.readers, unit: position, limit: position })
+
+                current.machine = { ...analyzed.machine, summaries: analyzed.machine.summaries.push(analyzed.lanes)[0] }
+                current.codes = current.codes.push(analyzed.codes)[0]
+            } else {
+                current.machine = { ...current.machine, summaries: current.machine.summaries.push(empty)[0] }
+                current.codes = current.codes.push(empty_codes)[0]
+            }
+
+            current.position += 1
+        }
+    })
+
+    return { lanes: result.machine.summaries, codes: result.codes }
+}

@@ -1,0 +1,20 @@
+import type { Expressions } from "core/expression_table/model"
+
+export type Input = { table: Expressions, first: u64, count: u64, wanted: u32 }
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    const result = loop({ table: in.table, first: in.first, count: in.count, wanted: in.wanted, position: 0, found: in.count }, {
+        while: current => current.found == current.count && current.position < current.count,
+        next: current => {
+            if (current.table.object_field_indices[current.first + current.position] == current.wanted) {
+                current.found = current.position
+            }
+
+            current.position += 1
+        }
+    })
+
+    return result.found
+}

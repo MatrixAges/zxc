@@ -1,0 +1,23 @@
+import integers from "std:integer"
+import binary from "core/expression_table/append/binary"
+import { BinaryOperator } from "core/expression_table/kinds"
+
+import append from "../append"
+import { InlineOp } from "../model"
+
+import type { Inline, Step } from "../model"
+
+export type Input = Step
+
+export type Output = Inline
+
+export default function (in: Input): Output {
+    const state = in.state
+    const stack = state.stack
+    const value = stack[stack.length - 1]
+    const body = stack[stack.length - 2]
+    const made = binary({ table: state.tables.expressions, metadata: { type_id: state.bool_type, span_start: in.frame.d, span_end: in.frame.e }, operator: BinaryOperator.Equal, left: integers.narrow(in.frame.i), right: integers.narrow(value) })
+    const counted = append({ state: { ...state, stack: stack.pop()[0].pop()[0], tables: { ...state.tables, expressions: made.table } }, id: made.id })
+
+    return { ...counted, pool: counted.pool.push(integers.widen(made.id))[0].push(body)[0], frames: counted.frames.push({ ...in.frame, op: InlineOp.SwitchCase, n: in.frame.n + 1 })[0] }
+}

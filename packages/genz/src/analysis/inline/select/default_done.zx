@@ -1,0 +1,14 @@
+import { InlineOp } from "../model"
+
+import type { Inline, Step } from "../model"
+
+export type Input = Step
+
+export type Output = Inline
+
+export default function (in: Input): Output {
+    const state = in.state
+    const fallback = state.stack[state.stack.length - 1]
+
+    return { ...state, stack: state.stack.pop()[0], frames: state.frames.push({ ...in.frame, op: InlineOp.SwitchDefault, k: fallback + 1, n: in.frame.n + 1 })[0] }
+}

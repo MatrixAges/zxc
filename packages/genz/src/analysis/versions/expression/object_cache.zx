@@ -1,0 +1,35 @@
+import integers from "std:integer"
+
+import frame from "../frame"
+import cache from "../machine/cache"
+import expressions from "../machine/expressions"
+import pop from "../machine/pop"
+import schedule from "../machine/schedule"
+import { Op } from "../model"
+import build from "./object_build"
+
+import type { Machine, Step } from "../model"
+
+export type Input = Step
+
+export type Output = Machine
+
+export default function (in: Input): Output {
+    const value = pop(in.machine)
+    const table = expressions(value.machine)
+    const payload = integers.widen(table.payloads[in.frame.id])
+    const first = integers.widen(table.object_evaluation_first[payload])
+    const item = integers.widen(table.object_evaluation_values[first + in.frame.a])
+    const machine = cache({ machine: value.machine, id: item, value: value.value })
+    const next = in.frame.a + 1
+
+    if (next < integers.widen(table.object_evaluation_count[payload])) {
+        return schedule({ machine: machine, next: frame({ op: Op.ObjectCache, id: in.frame.id, a: next, b: 0 }), id: table.object_evaluation_values[first + next] })
+    }
+
+    if (table.object_count[payload] != 0) {
+        return schedule({ machine: machine, next: frame({ op: Op.ObjectField, id: in.frame.id, a: 0, b: 0 }), id: table.object_field_values[integers.widen(table.object_first[payload])] })
+    }
+
+    return build({ machine: machine, id: in.frame.id })
+}

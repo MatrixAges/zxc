@@ -1,0 +1,26 @@
+import same from "../trace/same"
+
+import type { Dependencies } from "./model"
+
+export type Input = { dependencies: Dependencies, pool: u32[], callee: u64, first: u64, count: u64 }
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    const total = in.dependencies.callees.length
+
+    const result = loop({ dependencies: in.dependencies, pool: in.pool, callee: in.callee, first: in.first, count: in.count, position: 0, found: total, total: total }, {
+        while: current => current.found == current.total && current.position < current.total,
+        next: current => {
+            const items = current.dependencies
+
+            if (items.callees[current.position] == current.callee && same({ left: current.pool, left_first: items.firsts[current.position], left_count: items.counts[current.position], right: current.pool, right_first: current.first, right_count: current.count })) {
+                current.found = current.position
+            }
+
+            current.position += 1
+        }
+    })
+
+    return result.found
+}

@@ -1,0 +1,20 @@
+import integers from "std:integer"
+
+import type { Machine } from "../model"
+
+export type Input = { machine: Machine, id: u64 }
+
+export type Output = { initial: u64, condition_parameter: u64, parameter: u64, condition: u64, body: u64 }
+
+export default function (in: Input): Output {
+    const table = in.machine.units[in.machine.context.unit].expressions
+    const payload = integers.widen(table.payloads[in.id])
+
+    return {
+        initial: integers.widen(table.iteration_initials[payload]),
+        condition_parameter: integers.widen(table.iteration_condition_parameters[payload]),
+        parameter: integers.widen(table.iteration_parameters[payload]),
+        condition: integers.widen(table.iteration_conditions[payload]),
+        body: integers.widen(table.iteration_bodies[payload])
+    }
+}

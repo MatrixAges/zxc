@@ -34,6 +34,8 @@ pub fn analyze(allocator: std.mem.Allocator, program: ir.Program, iteration: ir.
 
 /// Workspace backs the temporary analysis state; only the returned updates and calls use the output allocator.
 pub fn analyzeWithCalls(allocator: std.mem.Allocator, workspace: std.mem.Allocator, program: ir.Program, iteration: ir.Iteration, path: []const usize, calls: ?Calls) Error!?Result {
+    if (@import("genz_options").generated_analysis) return @import("generated.zig").analyze(allocator, workspace, program, iteration, path, calls);
+
     var arena = std.heap.ArenaAllocator.init(workspace);
 
     defer arena.deinit();

@@ -1,0 +1,156 @@
+import integers from "std:integer"
+import { CollectionKind, ExpressionKind } from "core/expression_table/kinds"
+
+import prefix from "../../calls/prefix"
+import called from "./called"
+import field from "./field"
+import missing from "./missing"
+import { TraceOp } from "./model"
+import lane from "./output_lane"
+import prepend from "./prepend"
+import remember from "./remember"
+
+import type { Trace, TraceFrame } from "./model"
+
+export type Input = { trace: Trace, frame: TraceFrame }
+
+export type Output = Trace
+
+export default function (in: Input): Output {
+    const trace = in.trace
+    const table = trace.unit.expressions
+    const frame = in.frame
+    const id = frame.id
+    const kind = table.kinds[id]
+    const payload = integers.widen(table.payloads[id])
+    const evaluate = TraceOp.Evaluate
+
+    if (kind == ExpressionKind.Scope) {
+        return { ...trace, frames: trace.frames.push({ ...frame, id: integers.widen(table.scope_results[payload]) })[0] }
+    }
+
+    if (kind == ExpressionKind.Reference) {
+        const symbol = integers.widen(table.references[payload])
+
+        if (symbol == 0) {
+            return { ...trace, stack: trace.stack.push({ present: true, first: frame.first, count: frame.count })[0] }
+        }
+
+        const binding = trace.facts.bindings[symbol]
+
+        if (binding != 0) {
+            return { ...trace, frames: trace.frames.push({ ...frame, id: binding - 1 })[0] }
+        }
+
+        const iteration = trace.facts.iterations[symbol]
+
+        if (iteration == 0) {
+            return missing(trace)
+        }
+
+        return { ...trace, frames: trace.frames.push({ ...frame, id: integers.widen(table.iteration_initials[integers.widen(table.payloads[iteration - 1])]) })[0] }
+    }
+
+    if (kind == ExpressionKind.Field || kind == ExpressionKind.TupleField) {
+        const target = integers.widen(table.projection_targets[payload])
+        const index = table.projection_indices[payload]
+
+        if (table.kinds[target] == ExpressionKind.ListOperation) {
+            const operation = table.collection_kinds[integers.widen(table.payloads[target])]
+
+            if (operation != CollectionKind.Pop && operation != CollectionKind.Splice) {
+                if (frame.count != 0 || index != 0 || (operation != CollectionKind.Push && operation != CollectionKind.Concat)) {
+                    return missing(trace)
+                }
+
+                return { ...trace, appends: remember({ items: trace.appends, id: integers.narrow(id) }), frames: trace.frames.push({ ...frame, id: integers.widen(table.collection_targets[integers.widen(table.payloads[target])]), first: 0, count: 0 })[0] }
+            }
+        }
+
+        const first = trace.pool.length
+
+        return { ...trace, pool: prepend({ pool: trace.pool, index: index, first: frame.first, count: frame.count }), frames: trace.frames.push({ ...frame, id: target, first: first, count: frame.count + 1 })[0] }
+    }
+
+    if (kind == ExpressionKind.Object) {
+        if (frame.count == 0) {
+            return missing(trace)
+        }
+
+        const first = integers.widen(table.object_first[payload])
+        const count = integers.widen(table.object_count[payload])
+        const found = field({ table: table, first: first, count: count, wanted: trace.pool[frame.first] })
+
+        if (found == count) {
+            return missing(trace)
+        }
+
+        return { ...trace, frames: trace.frames.push({ ...frame, id: integers.widen(table.object_field_values[first + found]), first: frame.first + 1, count: frame.count - 1 })[0] }
+    }
+
+    if (kind == ExpressionKind.Tuple) {
+        if (frame.count == 0 || integers.widen(trace.pool[frame.first]) >= integers.widen(table.sequence_count[payload])) {
+            return missing(trace)
+        }
+
+        return { ...trace, frames: trace.frames.push({ ...frame, id: integers.widen(table.sequence_items[integers.widen(table.sequence_first[payload]) + integers.widen(trace.pool[frame.first])]), first: frame.first + 1, count: frame.count - 1 })[0] }
+    }
+
+    if (kind == ExpressionKind.Iteration) {
+        return { ...trace, frames: trace.frames.concat([{ ...frame, op: TraceOp.IterationInitial }, { ...frame, op: evaluate, id: integers.widen(table.iteration_initials[payload]) }])[0] }
+    }
+
+    if (kind == ExpressionKind.ListUpdate) {
+        if (frame.count != 0) {
+            return missing(trace)
+        }
+
+        return { ...trace, updates: remember({ items: trace.updates, id: integers.narrow(id) }), frames: trace.frames.push({ ...frame, id: integers.widen(table.update_targets[payload]) })[0] }
+    }
+
+    if (kind == ExpressionKind.ListOperation) {
+        const target = integers.widen(table.collection_targets[payload])
+
+        if (frame.count == 1 && trace.pool[frame.first] == 1 && prefix({ expressions: table, id: id })) {
+            return { ...trace, frames: trace.frames.push({ ...frame, id: target, first: 0, count: 0 })[0] }
+        }
+
+        if (table.collection_kinds[payload] != CollectionKind.Pop || frame.count != 1 || trace.pool[frame.first] != 0) {
+            return missing(trace)
+        }
+
+        return { ...trace, pops: remember({ items: trace.pops, id: integers.narrow(id) }), frames: trace.frames.push({ ...frame, id: target, first: 0, count: 0 })[0] }
+    }
+
+    if (kind == ExpressionKind.Conditional) {
+        return { ...trace, frames: trace.frames.concat([{ ...frame, op: TraceOp.JoinFirst, other: integers.widen(table.conditional_no[payload]) }, { ...frame, id: integers.widen(table.conditional_yes[payload]) }])[0] }
+    }
+
+    if (kind == ExpressionKind.Match) {
+        return { ...trace, frames: trace.frames.concat([{ ...frame, op: TraceOp.MatchArm, index: 0 }, { ...frame, id: integers.widen(table.match_fallbacks[payload]) }])[0] }
+    }
+
+    if (kind == ExpressionKind.Call) {
+        const callee = integers.widen(table.call_functions[payload])
+
+        if (callee >= trace.limit) {
+            return missing(trace)
+        }
+
+        const lanes = trace.summaries[callee]
+        const selected = lane({ lanes: lanes, pool: trace.pool, first: frame.first, count: frame.count })
+
+        if (selected == lanes.length) {
+            return missing(trace)
+        }
+
+        const input = lanes[selected].input
+        const known = called({ calls: trace.calls, id: id, lane: selected })
+        const calls = known ? trace.calls : { expressions: trace.calls.expressions.push(integers.narrow(id))[0], lanes: trace.calls.lanes.push(selected)[0] }
+        const first = trace.pool.length
+
+        return { ...trace, calls: calls, pool: trace.pool.concat(input)[0], frames: trace.frames.push({ ...frame, id: integers.widen(table.call_arguments[payload]), first: first, count: input.length })[0] }
+    }
+
+    return missing(trace)
+}

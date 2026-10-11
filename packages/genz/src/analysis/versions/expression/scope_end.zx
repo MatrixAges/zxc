@@ -1,0 +1,36 @@
+import integers from "std:integer"
+
+import bind from "../machine/bind"
+import expressions from "../machine/expressions"
+import pop from "../machine/pop"
+import push from "../machine/push"
+import take from "../machine/take"
+
+import type { Machine, Step } from "../model"
+
+export type Input = Step
+
+export type Output = Machine
+
+export default function (in: Input): Output {
+    const result = pop(in.machine)
+    const table = expressions(result.machine)
+    const payload = integers.widen(table.payloads[in.frame.id])
+    const first = integers.widen(table.scope_first[payload])
+    const saved = take({ machine: result.machine, count: integers.widen(table.scope_count[payload]) })
+
+    const restored = loop({ machine: saved.machine, table: table, first: first, values: saved.values, position: 0 }, {
+        while: current => current.position < current.values.length,
+        next: current => {
+            const symbol = current.table.scope_symbols[current.first + current.position]
+
+            if (symbol != null) {
+                current.machine = bind({ machine: current.machine, symbol: integers.widen(symbol), value: current.values[current.position] })
+            }
+
+            current.position += 1
+        }
+    }).machine
+
+    return push({ machine: restored, value: result.value })
+}

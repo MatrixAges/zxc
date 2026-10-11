@@ -1,0 +1,16 @@
+import copyBack from "./copy_back"
+import release from "./release"
+
+import type { Machine } from "../model"
+
+export type Input = Machine
+
+export type Output = Machine
+
+export default function (in: Input): Output {
+    const position = in.snapshots.firsts.length - 1
+    const from = in.snapshots.firsts[position] + in.symbols.length - in.context.symbol_base
+    const cached = copyBack({ target: in.cached, saved: in.saved, base: in.context.cached_base, from: from })
+
+    return release({ machine: { ...in, cached: cached }, count: 1 })
+}

@@ -1,0 +1,19 @@
+import integers from "std:integer"
+
+import type { Calls } from "./model"
+
+export type Input = { calls: Calls, id: u64, lane: u64 }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const result = loop({ expressions: in.calls.expressions, lanes: in.calls.lanes, id: in.id, lane: in.lane, position: 0, found: false }, {
+        while: current => !current.found && current.position < current.expressions.length,
+        next: current => {
+            current.found = integers.widen(current.expressions[current.position]) == current.id && current.lanes[current.position] == current.lane
+            current.position += 1
+        }
+    })
+
+    return result.found
+}

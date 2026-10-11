@@ -1,0 +1,50 @@
+import integers from "std:integer"
+
+import children from "../types/children"
+import closure from "../types/closure"
+
+import type { Table } from "core/type_table/model"
+
+export type Input = { types: Table, boxed: bool[], root: u32 }
+
+export type Output = bool[]
+
+export default function (in: Input): Output {
+    const seen = in.types.kinds.map(kind => false)
+    const stack: u32[] = [in.root]
+
+    const result = loop({ types: in.types, boxed: in.boxed, seen: seen, stack: stack }, {
+        while: current => current.stack.length != 0,
+        next: current => {
+            const id = current.stack[current.stack.length - 1]
+            const index = integers.widen(id)
+            const kind = current.types.kinds[index]
+
+            current.stack = current.stack.pop()[0]
+
+            if (!current.boxed[index]) {
+                const aggregate = kind == 1 || kind == 4
+
+                if (aggregate && current.seen[index]) {
+                    current.boxed = closure({ types: current.types, boxed: current.boxed, roots: [id] })
+                } else {
+                    if (aggregate) {
+                        current.seen[index] = true
+                    }
+
+                    const next = children({ types: current.types, id: id, deep: false })
+
+                    current.stack = loop({ stack: current.stack, next: next, remaining: next.length }, {
+                        while: pending => pending.remaining != 0,
+                        next: pending => {
+                            pending.remaining -= 1
+                            pending.stack = pending.stack.push(pending.next[pending.remaining])[0]
+                        }
+                    }).stack
+                }
+            }
+        }
+    })
+
+    return result.boxed
+}

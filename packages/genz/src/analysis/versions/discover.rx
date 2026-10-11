@@ -1,0 +1,11 @@
+<Module>
+    <Call fn="machine/create" in={{ types: $in.types, units: $in.units, summaries: $in.summaries, readers: $in.readers, selected: $in.selected, loops: [], unit: $in.unit, limit: $in.units.length - 1, settings: { enabled: $in.calls, summaries: $in.summaries.length, readers: $in.readers.length, discover: $in.discover, selecting: true, looping: false } }} />
+    <Call fn="machine/iteration" in={{ machine: $ctx.create, id: $in.iteration }} />
+    <Call fn="value/seed" in={{ types: $ctx.create.types, arena: $ctx.create.arena, type_id: $ctx.create.units[$in.unit].expressions.types[$ctx.iteration.initial], path: $in.path, current: 0 }} />
+    <Call fn="machine/bind" in={{ machine: { ...$ctx.create, arena: $ctx.seed.arena, paths: $in.path }, symbol: $ctx.iteration.condition_parameter, value: $ctx.seed.value }} />
+    <Call fn="start" in={{ machine: $ctx.bind, iteration: $in.iteration, condition: $ctx.iteration.condition, value: $ctx.seed.value, count: $in.path.length }} />
+    <Call fn="run" in={$ctx.start} />
+    <Call fn="finish" in={$ctx.run} />
+
+    <Return value={$ctx.finish} />
+</Module>

@@ -1,0 +1,35 @@
+import same from "../trace/same"
+import hash from "./hash"
+
+import type { Nodes } from "./model"
+
+export type Input = { slots: u64[], nodes: Nodes, pool: u32[], instance: u64, id: u64, first: u64, count: u64 }
+
+export type Output = { slot: u64, node: u64 }
+
+export default function (in: Input): Output {
+    const start = hash({ instance: in.instance, id: in.id, pool: in.pool, first: in.first, count: in.count }) % in.slots.length
+
+    const result = loop({ slots: in.slots, nodes: in.nodes, pool: in.pool, instance: in.instance, id: in.id, first: in.first, count: in.count, slot: start, node: 0, done: false }, {
+        while: current => !current.done,
+        next: current => {
+            const occupant = current.slots[current.slot]
+
+            if (occupant == 0) {
+                current.done = true
+            } else {
+                const index = occupant - 1
+                const nodes = current.nodes
+
+                if (nodes.instances[index] == current.instance && nodes.expressions[index] == current.id && same({ left: current.pool, left_first: nodes.firsts[index], left_count: nodes.counts[index], right: current.pool, right_first: current.first, right_count: current.count })) {
+                    current.node = occupant
+                    current.done = true
+                } else {
+                    current.slot = (current.slot + 1) % current.slots.length
+                }
+            }
+        }
+    })
+
+    return { slot: result.slot, node: result.node }
+}

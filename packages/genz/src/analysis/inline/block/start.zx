@@ -1,0 +1,11 @@
+import { InlineOp } from "../model"
+
+import type { Inline, Step } from "../model"
+
+export type Input = Step
+
+export type Output = Inline
+
+export default function (in: Input): Output {
+    return { ...in.state, frames: in.state.frames.push({ ...in.frame, op: InlineOp.BlockNext, a: 0, start: in.state.pool.length })[0] }
+}

@@ -1,0 +1,18 @@
+import integers from "std:integer"
+
+import bound from "./bound"
+
+import type { Inline, Step } from "../model"
+
+export type Input = Step
+
+export type Output = Inline
+
+export default function (in: Input): Output {
+    const state = in.state
+    const value = state.stack[state.stack.length - 1]
+    const control = state.units[state.mappings.units[in.frame.mapping]].control
+    const symbol: u32? = integers.narrow(integers.widen(control.constant_symbols[in.frame.f]) + state.mappings.offsets[in.frame.mapping])
+
+    return bound({ state: { ...state, stack: state.stack.pop()[0] }, frame: in.frame, symbol: symbol, value: value })
+}

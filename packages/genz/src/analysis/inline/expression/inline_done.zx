@@ -1,0 +1,27 @@
+import integers from "std:integer"
+
+import bind from "../bind"
+import fail from "../fail"
+import memo from "../memo"
+
+import type { Inline, Step } from "../model"
+
+export type Input = Step
+
+export type Output = Inline
+
+export default function (in: Input): Output {
+    const state = in.state
+    const returned = state.stack[state.stack.length - 1]
+    const argument = state.stack[state.stack.length - 2]
+
+    if (state.costs[returned] > state.limit) {
+        return fail(state)
+    }
+
+    const table = state.units[state.mappings.units[in.frame.mapping]].expressions
+    const popped = { ...state, stack: state.stack.pop()[0].pop()[0] }
+    const bound = bind({ state: popped, symbol: integers.narrow(state.mappings.offsets[in.frame.a]), value: integers.narrow(argument), result: integers.narrow(returned), type_id: table.types[in.frame.id], span_start: table.span_start[in.frame.id], span_end: table.span_end[in.frame.id] })
+
+    return memo({ state: { ...bound.state, depth: bound.state.depth - 1 }, mapping: in.frame.mapping, id: in.frame.id, value: integers.widen(bound.id) })
+}

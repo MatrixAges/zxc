@@ -1,0 +1,29 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import supported from "../types/list_supported"
+import productList from "../types/product_list"
+
+import type { Expressions } from "core/expression_table/model"
+import type { Table } from "core/type_table/model"
+
+export type Input = { types: Table, table: Expressions, id: u64 }
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    const empty: u32[] = []
+
+    if (in.table.kinds[in.id] != ExpressionKind.Iteration) {
+        return empty
+    }
+
+    const payload = integers.widen(in.table.payloads[in.id])
+    const type_id = in.table.types[integers.widen(in.table.iteration_initials[payload])]
+
+    if (!supported({ types: in.types, id: type_id }) || !productList({ types: in.types, id: type_id })) {
+        return empty
+    }
+
+    return [in.table.iteration_conditions[payload], in.table.iteration_bodies[payload]]
+}

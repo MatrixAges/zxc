@@ -1,0 +1,25 @@
+import integers from "std:integer"
+
+import frame from "../frame"
+import expressions from "../machine/expressions"
+import schedule from "../machine/schedule"
+import { Op } from "../model"
+
+import type { Machine, Step } from "../model"
+
+export type Input = Step
+
+export type Output = Machine
+
+export default function (in: Input): Output {
+    const table = expressions(in.machine)
+    const payload = integers.widen(table.payloads[in.frame.id])
+    const next = in.frame.op == Op.CollectionTarget ? Op.CollectionArgument : Op.OperationArgument
+    const finish = in.frame.op == Op.CollectionTarget ? Op.CollectionFinish : Op.OperationFinish
+
+    if (table.collection_count[payload] == 0) {
+        return { ...in.machine, frames: in.machine.frames.push(frame({ op: finish, id: in.frame.id, a: in.frame.a, b: 0 }))[0] }
+    }
+
+    return schedule({ machine: in.machine, next: frame({ op: next, id: in.frame.id, a: in.frame.a, b: 0 }), id: table.collection_arguments[integers.widen(table.collection_first[payload])] })
+}

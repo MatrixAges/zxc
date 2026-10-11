@@ -54,7 +54,10 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
         }));
     }
 
-    const genz = b.dependency("genz", .{ .target = target, .optimize = optimize, .generated_printer = parser != null }).module("genz");
+    const native_genz = parser != null and (b.option(bool, "native_genz", "Keep the hand-written genz analyses and printer in generated builds") orelse false);
+    // The RX/ZX analyses stay opt-in until their generated output matches the hand-written analyses.
+    const rx_analysis = parser != null and (b.option(bool, "genz_rx_analysis", "Run the RX/ZX function facts, iteration versions and inline preparation in generated builds") orelse false);
+    const genz = b.dependency("genz", .{ .target = target, .optimize = optimize, .generated = parser != null and !native_genz, .generated_analysis = parser != null and !native_genz and rx_analysis }).module("genz");
 
     const module = b.createModule(.{
         .root_source_file = b.path("src/root.zig"),
@@ -72,7 +75,7 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
     if (parser) |generated| {
         inline for (entries.main) |entry| {
             if (entry.owner == .compiler) module.addImport(entry.importName(), @field(generated, entry.name));
-            if (entry.owner == .genz) genz.addImport(entry.importName(), @field(generated, entry.name));
+            if (entry.owner == .genz and !native_genz) genz.addImport(entry.importName(), @field(generated, entry.name));
         }
     }
 

@@ -1,0 +1,16 @@
+import type { Table } from "core/type_table/model"
+import type { Lanes, Unit } from "../../unit"
+import type { Facts, Origin, Trace, TraceFrame } from "./model"
+
+export type Input = { types: Table, unit: Unit, facts: Facts, summaries: Lanes[], limit: u64 }
+
+export type Output = Trace
+
+export default function (in: Input): Output {
+    const frames: TraceFrame[] = []
+    const stack: Origin[] = []
+    const ids: u32[] = []
+    const numbers: u64[] = []
+
+    return { types: in.types, unit: in.unit, summaries: in.summaries, limit: in.limit, facts: in.facts, frames: frames, stack: stack, pool: ids, appends: ids, pops: ids, updates: ids, loops: { expressions: ids, firsts: numbers, counts: numbers }, calls: { expressions: ids, lanes: numbers } }
+}

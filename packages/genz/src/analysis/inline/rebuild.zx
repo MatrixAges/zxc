@@ -1,0 +1,61 @@
+import integers from "std:integer"
+import emptyControl from "core/control_table/empty"
+import emptyExpressions from "core/expression_table/empty"
+
+import frame from "./frame"
+import { InlineOp } from "./model"
+import run from "./run"
+
+import type { Control } from "core/control_table/model"
+import type { Expressions } from "core/expression_table/model"
+import type { Symbols } from "core/symbol_table/model"
+import type { Table } from "core/type_table/model"
+import type { Unit } from "../unit"
+import type { Inline, InlineFrame, Mappings } from "./model"
+
+export type Input = { types: Table, units: Unit[], plan: u64[], limit: u64, void_type: u32, bool_type: u32, unit: u64, marked: bool[] }
+
+export type Output = { failed: bool, symbols: Symbols, expressions: Expressions, control: Control, root: u32 }
+
+export default function (in: Input): Output {
+    const unit = in.units[in.unit]
+    const mappings: Mappings = { units: [in.unit], bases: [0], offsets: [0], all: [false] }
+    const pool: u64[] = []
+    const frames: InlineFrame[] = []
+    const stack: u64[] = []
+    const costs: u64[] = []
+    const root = unit.root
+    const tail = frame({ op: InlineOp.BlockStart, mapping: 0, id: root == null ? 0 : integers.widen(root) + 1 })
+
+    const scheduled = loop({ frames: frames.push(tail)[0], remaining: unit.expressions.kinds.length }, {
+        while: current => current.remaining != 0,
+        next: current => {
+            current.remaining -= 1
+            current.frames = current.frames.concat([frame({ op: InlineOp.Discard, mapping: 0, id: 0 }), frame({ op: InlineOp.Map, mapping: 0, id: current.remaining })])[0]
+        }
+    }).frames
+
+    const state: Inline = {
+        types: in.types,
+        units: in.units,
+        plan: in.plan,
+        limit: in.limit,
+        void_type: in.void_type,
+        bool_type: in.bool_type,
+        selected: in.marked,
+        tables: { expressions: emptyExpressions(), control: emptyControl(), symbols: unit.symbols },
+        costs: costs,
+        depth: 0,
+        failed: false,
+        mappings: mappings,
+        ids: unit.expressions.kinds.map(kind => 0),
+        frames: scheduled,
+        stack: stack,
+        pool: pool
+    }
+
+    const finished = run(state)
+    const tables = finished.tables
+
+    return { failed: finished.failed, symbols: tables.symbols, expressions: tables.expressions, control: tables.control, root: finished.failed ? 0 : integers.narrow(finished.stack[finished.stack.length - 1]) }
+}

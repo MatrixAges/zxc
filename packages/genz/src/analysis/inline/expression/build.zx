@@ -1,0 +1,27 @@
+import integers from "std:integer"
+
+import children from "../../ir/children"
+import append from "../append"
+import memo from "../memo"
+import truncate from "../truncate"
+import copy from "./copy"
+import mapped from "./mapped"
+
+import type { Inline, Step } from "../model"
+
+export type Input = Step
+
+export type Output = Inline
+
+export default function (in: Input): Output {
+    const state = in.state
+    const mapping = in.frame.mapping
+    const source = state.units[state.mappings.units[mapping]].expressions
+    const count = children({ table: source, id: in.frame.id }).length
+    const start = state.stack.length - count
+    const values = mapped({ stack: state.stack, start: start })
+    const made = copy({ target: state.tables.expressions, source: source, id: in.frame.id, mapped: values, offset: state.mappings.offsets[mapping] })
+    const updated = { ...state, tables: { ...state.tables, expressions: made.table }, stack: truncate({ items: state.stack, length: start }), depth: state.depth - 1 }
+
+    return memo({ state: append({ state: updated, id: made.id }), mapping: mapping, id: in.frame.id, value: integers.widen(made.id) })
+}

@@ -1,0 +1,44 @@
+import comparisons from "./comparisons"
+import contractComparisons from "./contract_comparisons"
+
+import type { Program } from "../model"
+
+export type Input = Program
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    const empty: u32[] = []
+
+    const containers = loop({ types: in.types, index: 0, roots: empty }, {
+        while: current => current.index < current.types.kinds.length,
+        next: current => {
+            const kind = current.types.kinds[current.index]
+
+            if (kind == 3 || kind == 6) {
+                current.roots = current.roots.push(current.types.first[current.index])[0]
+            }
+
+            current.index += 1
+        }
+    }).roots
+
+    const program = containers.concat(in.stores.types)[0].concat(comparisons(in.expressions))[0].concat(contractComparisons(in.contracts))[0]
+
+    const result = loop({ functions: in.functions, index: 0, roots: program }, {
+        while: current => current.index < current.functions.output_types.length,
+        next: current => {
+            const position = current.index
+
+            current.roots = current.roots.concat(comparisons(current.functions.expressions[position]))[0].concat(contractComparisons(current.functions.contracts[position]))[0].concat(current.functions.stores[position].types)[0]
+
+            if (current.functions.native_modules[position] != null) {
+                current.roots = current.roots.concat([current.functions.input_types[position], current.functions.output_types[position]])[0]
+            }
+
+            current.index += 1
+        }
+    })
+
+    return result.roots
+}

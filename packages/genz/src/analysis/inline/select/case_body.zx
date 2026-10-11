@@ -1,0 +1,29 @@
+import integers from "std:integer"
+
+import frame from "../frame"
+import { InlineOp } from "../model"
+
+import type { Inline, Step } from "../model"
+
+export type Input = Step
+
+export type Output = Inline
+
+export default function (in: Input): Output {
+    const state = in.state
+    const control = state.units[state.mappings.units[in.frame.mapping]].control
+    const payload = in.frame.f
+    const index = in.frame.n
+    const last = index + 1 == integers.widen(control.selection_count[payload])
+
+    if (in.frame.k == 0 && control.selection_exhaustive[payload] && last) {
+        const body = state.stack[state.stack.length - 1]
+
+        return { ...state, stack: state.stack.pop()[0], frames: state.frames.push({ ...in.frame, op: InlineOp.SwitchCase, k: body + 1, n: index + 1 })[0] }
+    }
+
+    const value = control.case_values[integers.widen(control.selection_first[payload]) + index]
+    const target = value == null ? 0 : integers.widen(value)
+
+    return { ...state, frames: state.frames.concat([{ ...in.frame, op: InlineOp.SwitchCaseCondition }, frame({ op: InlineOp.Map, mapping: in.frame.mapping, id: target })])[0] }
+}

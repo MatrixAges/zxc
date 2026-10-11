@@ -1,0 +1,20 @@
+import type { Call } from "../unit"
+import type { Inferred } from "./model"
+
+export type Input = Inferred
+
+export type Output = Call[]
+
+export default function (in: Input): Output {
+    const calls: Call[] = []
+
+    const result = loop({ expressions: in.expressions, lanes: in.lanes, calls: calls, position: 0 }, {
+        while: current => current.position < current.expressions.length,
+        next: current => {
+            current.calls = current.calls.push({ expression: current.expressions[current.position], lane: current.lanes[current.position] })[0]
+            current.position += 1
+        }
+    })
+
+    return result.calls
+}

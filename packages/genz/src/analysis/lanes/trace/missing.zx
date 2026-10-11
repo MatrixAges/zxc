@@ -1,0 +1,11 @@
+import type { Origin, Trace } from "./model"
+
+export type Input = Trace
+
+export type Output = Trace
+
+export default function (in: Input): Output {
+    const absent: Origin = { present: false, first: 0, count: 0 }
+
+    return { ...in, stack: in.stack.push(absent)[0] }
+}

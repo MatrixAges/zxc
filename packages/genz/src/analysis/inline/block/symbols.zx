@@ -1,0 +1,22 @@
+import integers from "std:integer"
+
+export type Input = { symbols: u32?[], first: u64, count: u64, offset: u64 }
+
+export type Output = u32?[]
+
+export default function (in: Input): Output {
+    const empty: u32?[] = []
+
+    const result = loop({ symbols: in.symbols, offset: in.offset, position: in.first, end: in.first + in.count, items: empty }, {
+        while: current => current.position < current.end,
+        next: current => {
+            const symbol = current.symbols[current.position]
+            const shifted: u32? = symbol == null ? null : integers.narrow(integers.widen(symbol) + current.offset)
+
+            current.items = current.items.push(shifted)[0]
+            current.position += 1
+        }
+    })
+
+    return result.items
+}

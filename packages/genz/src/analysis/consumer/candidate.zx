@@ -1,0 +1,98 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import children from "../ir/children"
+import primitive from "../types/primitive"
+import independent from "./independent"
+import path from "./path"
+import projection from "./projection"
+
+import type { Expressions } from "core/expression_table/model"
+import type { Table } from "core/type_table/model"
+
+export type Input = { types: Table, table: Expressions, symbol: u64, result: u64 }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const type_id = in.table.types[in.result]
+    const index = integers.widen(type_id)
+    const kind = in.types.kinds[index]
+    const scalar = (kind == 0 && in.types.first[index] != 10 && in.types.first[index] != 0) || kind == 5 || kind == 7
+
+    if (scalar) {
+        return projection({ table: in.table, result: in.result, symbol: in.symbol })
+    }
+
+    if (primitive({ types: in.types, id: type_id })) {
+        return false
+    }
+
+    const stack: u64[] = [in.result]
+
+    const none: u64[] = []
+
+    const result = loop({ types: in.types, table: in.table, symbol: in.symbol, stack: stack, none: none, seen: in.table.kinds.map(kind => false), valid: true }, {
+        while: current => current.valid && current.stack.length != 0,
+        next: current => {
+            const id = current.stack[current.stack.length - 1]
+            const table = current.table
+            const kind = table.kinds[id]
+            const payload = integers.widen(table.payloads[id])
+
+            current.stack = current.stack.pop()[0]
+
+            if (!independent({ table: table, id: id, symbol: current.symbol }) && !current.seen[id]) {
+                current.seen[id] = true
+
+                if (!(primitive({ types: current.types, id: table.types[id] }) && projection({ table: table, result: id, symbol: current.symbol }))) {
+                    if (kind == ExpressionKind.Object) {
+                        const nested = children({ table: table, id: id })
+                        const fields = integers.widen(table.object_count[payload])
+                        const ordered = loop({ nested: nested, fields: fields, items: current.none, position: fields }, {
+                            while: items => items.position < items.nested.length,
+                            next: items => {
+                                items.items = items.items.push(integers.widen(items.nested[items.position]))[0]
+                                items.position += 1
+                            }
+                        }).items
+                        const all = loop({ nested: nested, fields: fields, items: ordered, position: 0 }, {
+                            while: items => items.position < items.fields,
+                            next: items => {
+                                items.items = items.items.push(integers.widen(items.nested[items.position]))[0]
+                                items.position += 1
+                            }
+                        }).items
+
+                        current.stack = loop({ stack: current.stack, all: all, remaining: all.length }, {
+                            while: pending => pending.remaining != 0,
+                            next: pending => {
+                                pending.remaining -= 1
+                                pending.stack = pending.stack.push(pending.all[pending.remaining])[0]
+                            }
+                        }).stack
+                    } else if (kind == ExpressionKind.Tuple) {
+                        const items = children({ table: table, id: id })
+
+                        current.stack = loop({ stack: current.stack, items: items, remaining: items.length }, {
+                            while: pending => pending.remaining != 0,
+                            next: pending => {
+                                pending.remaining -= 1
+                                pending.stack = pending.stack.push(integers.widen(pending.items[pending.remaining]))[0]
+                            }
+                        }).stack
+                    } else if (kind == ExpressionKind.Field || kind == ExpressionKind.TupleField || kind == ExpressionKind.Reference) {
+                        const type_index = integers.widen(table.types[id])
+                        const list = current.types.kinds[type_index] == 3 && primitive({ types: current.types, id: current.types.first[type_index] })
+
+                        current.valid = list && path({ table: table, id: id, symbol: current.symbol })
+                    } else {
+                        current.valid = kind == ExpressionKind.Integer || kind == ExpressionKind.NegativeInteger || kind == ExpressionKind.Float || kind == ExpressionKind.String || kind == ExpressionKind.Boolean || kind == ExpressionKind.None || kind == ExpressionKind.Unit || kind == ExpressionKind.EnumValue || kind == ExpressionKind.ErrorValue
+                    }
+                }
+            }
+        }
+    })
+
+    return result.valid
+}

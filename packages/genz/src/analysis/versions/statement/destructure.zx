@@ -1,0 +1,32 @@
+import integers from "std:integer"
+
+import bind from "../machine/bind"
+import pop from "../machine/pop"
+import field from "../value/field"
+
+import type { Machine, Step } from "../model"
+
+export type Input = Step
+
+export type Output = Machine
+
+export default function (in: Input): Output {
+    const value = pop(in.machine)
+    const control = value.machine.units[value.machine.context.unit].control
+    const first = integers.widen(control.destructure_first[in.frame.a])
+
+    const result = loop({ machine: value.machine, control: control, value: value.value, first: first, index: 0, count: integers.widen(control.destructure_count[in.frame.a]) }, {
+        while: current => current.index < current.count,
+        next: current => {
+            const symbol = current.control.destructure_symbols[current.first + current.index]
+
+            if (symbol != null) {
+                current.machine = bind({ machine: current.machine, symbol: integers.widen(symbol), value: field({ arena: current.machine.arena, value: current.value, index: current.index }) })
+            }
+
+            current.index += 1
+        }
+    })
+
+    return result.machine
+}

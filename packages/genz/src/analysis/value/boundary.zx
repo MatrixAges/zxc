@@ -1,0 +1,45 @@
+import integers from "std:integer"
+
+import inputLeaf from "../types/input_leaf"
+import outputLeaf from "../types/output_leaf"
+
+import type { Program } from "../model"
+
+export type Input = { program: Program, position: u64, borrowed: bool }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const functions = in.program.functions
+    const types = in.program.types
+
+    if (in.borrowed && (functions.native_io[in.position] || functions.native_process[in.position])) {
+        return false
+    }
+
+    if (functions.stores[in.position].paths.length != 0 || !outputLeaf({ types: types, id: functions.output_types[in.position] })) {
+        return false
+    }
+
+    const input = functions.input_types[in.position]
+
+    if (!functions.native_tuples[in.position]) {
+        return inputLeaf({ types: types, id: input, borrowed: in.borrowed })
+    }
+
+    const index = integers.widen(input)
+
+    if (types.kinds[index] != 4) {
+        return false
+    }
+
+    const result = loop({ types: types, borrowed: in.borrowed, position: integers.widen(types.first[index]), end: integers.widen(types.first[index]) + integers.widen(types.second[index]), valid: true }, {
+        while: current => current.valid && current.position < current.end,
+        next: current => {
+            current.valid = inputLeaf({ types: current.types, id: current.types.children[current.position], borrowed: current.borrowed })
+            current.position += 1
+        }
+    })
+
+    return result.valid
+}

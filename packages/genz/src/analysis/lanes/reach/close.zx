@@ -1,0 +1,47 @@
+import members from "./members"
+import store from "./store"
+
+import type { Machine } from "./model"
+
+export type Input = { machine: Machine, root: u64 }
+
+export type Output = Machine
+
+export default function (in: Input): Output {
+    const machine = in.machine
+    const group = members({ stack: machine.stack, children: machine.children, first: machine.nodes.children_first[in.root], count: machine.nodes.children_count[in.root], root: in.root })
+
+    const settled = group.cyclic ? loop({ machine: machine, items: group.items, changed: true }, {
+        while: current => current.changed,
+        next: current => {
+            const pass = loop({ machine: current.machine, items: current.items, position: 0, changed: false }, {
+                while: items => items.position < items.items.length,
+                next: items => {
+                    const stored = store({ machine: items.machine, index: items.items[items.position] })
+
+                    items.machine = stored.machine
+                    items.changed = stored.changed || items.changed
+                    items.position += 1
+                }
+            })
+
+            current.machine = pass.machine
+            current.changed = pass.changed
+        }
+    }).machine : machine
+
+    const inactive = loop({ active: settled.nodes.active, items: group.items, position: 0 }, {
+        while: current => current.position < current.items.length,
+        next: current => {
+            current.active = current.active.with(current.items[current.position], false)
+            current.position += 1
+        }
+    }).active
+
+    const stack = loop({ stack: settled.stack, length: group.first }, {
+        while: current => current.stack.length > current.length,
+        next: current => { current.stack = current.stack.pop()[0] }
+    }).stack
+
+    return { ...settled, nodes: { ...settled.nodes, active: inactive }, stack: stack }
+}

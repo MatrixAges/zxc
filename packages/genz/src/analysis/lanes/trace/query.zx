@@ -1,0 +1,35 @@
+import continueTrace from "./continue"
+import evaluate from "./evaluate"
+import { TraceOp } from "./model"
+
+import type { Origin, Trace } from "./model"
+
+export type Input = { trace: Trace, id: u64, first: u64, count: u64 }
+
+export type Output = { trace: Trace, origin: Origin }
+
+export default function (in: Input): Output {
+    const started = { ...in.trace, frames: in.trace.frames.push({ op: TraceOp.Evaluate, id: in.id, first: in.first, count: in.count, index: 0, other: 0 })[0] }
+
+    const finished = loop(started, {
+        while: current => current.frames.length != 0,
+        next: current => {
+            const frame = current.frames[current.frames.length - 1]
+            const step = { trace: { ...current, frames: current.frames.pop()[0] }, frame: frame }
+            const next = frame.op == TraceOp.Evaluate ? evaluate(step) : continueTrace(step)
+
+            current.frames = next.frames
+            current.stack = next.stack
+            current.pool = next.pool
+            current.appends = next.appends
+            current.pops = next.pops
+            current.updates = next.updates
+            current.loops = next.loops
+            current.calls = next.calls
+        }
+    })
+
+    const origin = finished.stack[finished.stack.length - 1]
+
+    return { trace: { ...finished, stack: finished.stack.pop()[0] }, origin: origin }
+}

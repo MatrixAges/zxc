@@ -1,0 +1,7 @@
+export type Input = { pool: u32[], path: u32[] }
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    return in.pool.concat(in.path)[0]
+}

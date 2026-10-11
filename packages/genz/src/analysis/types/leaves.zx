@@ -1,0 +1,43 @@
+import integers from "std:integer"
+
+import type { Table } from "core/type_table/model"
+
+export type Input = { types: Table, id: u32, optional: bool }
+
+export type Output = u32[][]
+
+export type Pending = { id: u32, path: u32[] }
+
+export default function (in: Input): Output {
+    const empty: u32[] = []
+    const pending: Pending[] = [{ id: in.id, path: empty }]
+    const leaves: u32[][] = []
+
+    const result = loop({ types: in.types, optional: in.optional, pending: pending, leaves: leaves }, {
+        while: current => current.pending.length != 0,
+        next: current => {
+            const item = current.pending[current.pending.length - 1]
+            const index = integers.widen(item.id)
+            const kind = current.types.kinds[index]
+
+            current.pending = current.pending.pop()[0]
+
+            if (kind == 3 || (kind == 2 && current.optional)) {
+                current.leaves = current.leaves.push(item.path)[0]
+            } else if (kind == 1 || kind == 4) {
+                current.pending = loop({ types: current.types, pending: current.pending, object: kind == 1, first: integers.widen(current.types.first[index]), path: item.path, remaining: integers.widen(current.types.second[index]) }, {
+                    while: members => members.remaining != 0,
+                    next: members => {
+                        members.remaining -= 1
+
+                        const child = members.object ? members.types.field_types[members.first + members.remaining] : members.types.children[members.first + members.remaining]
+
+                        members.pending = members.pending.push({ id: child, path: members.path.push(integers.narrow(members.remaining))[0] })[0]
+                    }
+                }).pending
+            }
+        }
+    })
+
+    return result.leaves
+}

@@ -1,0 +1,41 @@
+import integers from "std:integer"
+
+import advance from "../machine/advance"
+import invalid from "../machine/invalid"
+import observe from "../machine/observe"
+import push from "../machine/push"
+import contains from "../value/contains"
+import count from "../value/count"
+import seed from "../value/seed"
+import select from "../value/select"
+import choose from "./choose"
+import inferred from "./inferred"
+
+import type { Machine } from "../model"
+
+export type Input = { machine: Machine, id: u64, callee: u64, argument: u64 }
+
+export type Output = { machine: Machine, found: bool }
+
+export default function (in: Input): Output {
+    const lanes = in.machine.summaries[in.callee]
+
+    const chosen = choose({ arena: in.machine.arena, lanes: lanes, argument: in.argument })
+
+    if (chosen == lanes.length) {
+        return { machine: in.machine, found: false }
+    }
+
+    const lane = lanes[chosen]
+    const observed = observe({ machine: in.machine, value: in.argument })
+    const checked = invalid({ machine: observed, valid: count({ arena: observed.arena, value: in.argument }) == 1 })
+    const advanced = advance({ machine: checked, id: in.id, target: select({ arena: checked.arena, value: in.argument, path: lane.input }) }).machine
+
+    const present = inferred({ calls: advanced.inferred, id: in.id, lane: chosen })
+
+    const recorded = present ? advanced : { ...advanced, inferred: { expressions: advanced.inferred.expressions.push(integers.narrow(in.id))[0], lanes: advanced.inferred.lanes.push(chosen)[0] } }
+    const unit = recorded.units[in.callee]
+    const seeded = seed({ types: recorded.types, arena: recorded.arena, type_id: unit.output_type, path: lane.output, current: recorded.context.current })
+
+    return { machine: push({ machine: { ...recorded, arena: seeded.arena }, value: seeded.value }), found: true }
+}

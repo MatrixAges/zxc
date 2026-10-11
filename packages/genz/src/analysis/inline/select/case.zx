@@ -1,0 +1,32 @@
+import integers from "std:integer"
+
+import { InlineOp } from "../model"
+import next from "./next_case"
+
+import type { Inline, Step } from "../model"
+
+export type Input = Step
+
+export type Output = Inline
+
+export default function (in: Input): Output {
+    const state = in.state
+    const control = state.units[state.mappings.units[in.frame.mapping]].control
+    const payload = in.frame.f
+    const index = next({ control: control, payload: payload, from: in.frame.n, valued: true })
+
+    if (index == integers.widen(control.selection_count[payload])) {
+        if (in.frame.k == 0) {
+            const start = { ...in.frame, op: InlineOp.LowerStart, id: 0, b: 0, c: in.frame.l }
+
+            return { ...state, frames: state.frames.concat([{ ...in.frame, op: InlineOp.SwitchFinish }, start])[0] }
+        }
+
+        return { ...state, stack: state.stack.push(in.frame.k - 1)[0], frames: state.frames.push({ ...in.frame, op: InlineOp.SwitchFinish })[0] }
+    }
+
+    const body = control.case_bodies[integers.widen(control.selection_first[payload]) + index]
+    const start = { ...in.frame, op: InlineOp.LowerStart, id: integers.widen(body) + 1, b: in.frame.j, c: in.frame.l }
+
+    return { ...state, frames: state.frames.concat([{ ...in.frame, op: InlineOp.SwitchCaseBody, n: index }, start])[0] }
+}

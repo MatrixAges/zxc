@@ -1,0 +1,50 @@
+import integers from "std:integer"
+
+import aggregate from "./aggregate"
+import make from "./make"
+import { ValueKind } from "./model"
+
+import type { Table } from "core/type_table/model"
+import type { Arena, Made } from "./model"
+
+export type Input = { types: Table, arena: Arena, type_id: u32, path: u32[], current: u64 }
+
+export type Output = Made
+
+export default function (in: Input): Output {
+    const sizes: u64[] = []
+
+    const levels = loop({ types: in.types, id: integers.widen(in.type_id), path: in.path, depth: 0, sizes: sizes }, {
+        while: current => current.depth < current.path.length,
+        next: current => {
+            const object = current.types.kinds[current.id] == 1
+            const first = integers.widen(current.types.first[current.id])
+            const part = integers.widen(current.path[current.depth])
+
+            current.sizes = current.sizes.push(integers.widen(current.types.second[current.id]))[0]
+            current.id = integers.widen(object ? current.types.field_types[first + part] : current.types.children[first + part])
+            current.depth += 1
+        }
+    })
+
+    const leaf = make({ arena: in.arena, kind: ValueKind.Version, number: in.current })
+
+    const built = loop({ arena: leaf.arena, value: leaf.value, sizes: levels.sizes, path: in.path, depth: levels.sizes.length, empty: sizes }, {
+        while: current => current.depth != 0,
+        next: current => {
+            current.depth -= 1
+
+            const selected = integers.widen(current.path[current.depth])
+            const values = loop({ items: current.empty, size: current.sizes[current.depth], selected: selected, value: current.value }, {
+                while: items => items.items.length < items.size,
+                next: items => { items.items = items.items.push(items.items.length == items.selected ? items.value : 0)[0] }
+            }).items
+            const made = aggregate({ arena: current.arena, children: values })
+
+            current.arena = made.arena
+            current.value = made.value
+        }
+    })
+
+    return { arena: built.arena, value: built.value }
+}

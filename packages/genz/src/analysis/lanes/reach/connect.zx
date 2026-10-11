@@ -1,0 +1,13 @@
+import type { Nodes } from "./model"
+
+export type Input = { nodes: Nodes, caller: u64, low: u64 }
+
+export type Output = Nodes
+
+export default function (in: Input): Output {
+    if (in.nodes.lows[in.caller] <= in.low) {
+        return in.nodes
+    }
+
+    return { ...in.nodes, lows: in.nodes.lows.with(in.caller, in.low) }
+}

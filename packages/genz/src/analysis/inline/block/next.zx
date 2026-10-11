@@ -1,0 +1,80 @@
+import integers from "std:integer"
+import { StatementKind } from "core/control_table/model"
+
+import frame from "../frame"
+import { InlineOp } from "../model"
+import finish from "./finish"
+
+import type { Inline, InlineFrame, Step } from "../model"
+
+export type Input = Step
+
+export type Output = Inline
+
+export default function (in: Input): Output {
+    const state = in.state
+    const control = state.units[state.mappings.units[in.frame.mapping]].control
+    const count = in.frame.id == 0 ? 0 : integers.widen(control.block_count[in.frame.id - 1])
+
+    if (in.frame.a == count) {
+        return finish({ state: state, frame: in.frame })
+    }
+
+    const position = integers.widen(control.block_first[in.frame.id - 1]) + in.frame.a
+    const kind = control.statement_kinds[position]
+    const payload = integers.widen(control.statement_payloads[position])
+    const collect = { ...in.frame, op: InlineOp.BlockCollect, f: payload }
+    const map = InlineOp.Map
+    const scheduled: InlineFrame[] = [collect]
+
+    const pending = match kind {
+        StatementKind.Evaluate => scheduled.push(frame({ op: map, mapping: in.frame.mapping, id: integers.widen(control.evaluations[payload]) }))[0],
+        StatementKind.Constant => scheduled.push(frame({ op: map, mapping: in.frame.mapping, id: integers.widen(control.constant_values[payload]) }))[0],
+        StatementKind.Destructure => scheduled.push(frame({ op: map, mapping: in.frame.mapping, id: integers.widen(control.destructure_values[payload]) }))[0],
+        StatementKind.StoreSet => scheduled.push(frame({ op: map, mapping: in.frame.mapping, id: integers.widen(control.setter_values[payload]) }))[0],
+        StatementKind.Branch => scheduled.concat([frame({ op: InlineOp.BlockStart, mapping: in.frame.mapping, id: integers.widen(control.branch_no[payload]) + 1 }), frame({ op: InlineOp.BlockStart, mapping: in.frame.mapping, id: integers.widen(control.branch_yes[payload]) + 1 }), frame({ op: map, mapping: in.frame.mapping, id: integers.widen(control.branch_conditions[payload]) })])[0],
+        _ => scheduled,
+    }
+
+    if (kind == StatementKind.Result) {
+        const value = control.results[payload]
+
+        return { ...state, frames: state.frames.concat(value == null ? pending : pending.push(frame({ op: map, mapping: in.frame.mapping, id: integers.widen(value) }))[0])[0] }
+    }
+
+    if (kind == StatementKind.Parallel) {
+        const values = loop({ control: control, frames: pending, mapping: in.frame.mapping, first: integers.widen(control.parallel_first[payload]), remaining: integers.widen(control.parallel_count[payload]) }, {
+            while: current => current.remaining != 0,
+            next: current => {
+                current.remaining -= 1
+                current.frames = current.frames.push(frame({ op: InlineOp.Map, mapping: current.mapping, id: integers.widen(current.control.parallel_values[current.first + current.remaining]) }))[0]
+            }
+        }).frames
+
+        return { ...state, frames: state.frames.concat(values)[0] }
+    }
+
+    if (kind == StatementKind.Switch) {
+        const subject = pending.push(frame({ op: map, mapping: in.frame.mapping, id: integers.widen(control.selection_subjects[payload]) }))[0]
+
+        const cases = loop({ control: control, frames: subject, mapping: in.frame.mapping, first: integers.widen(control.selection_first[payload]), remaining: integers.widen(control.selection_count[payload]) }, {
+            while: current => current.remaining != 0,
+            next: current => {
+                current.remaining -= 1
+
+                const position = current.first + current.remaining
+                const value = current.control.case_values[position]
+
+                current.frames = current.frames.push(frame({ op: InlineOp.BlockStart, mapping: current.mapping, id: integers.widen(current.control.case_bodies[position]) + 1 }))[0]
+
+                if (value != null) {
+                    current.frames = current.frames.push(frame({ op: InlineOp.Map, mapping: current.mapping, id: integers.widen(value) }))[0]
+                }
+            }
+        }).frames
+
+        return { ...state, frames: state.frames.concat(cases)[0] }
+    }
+
+    return { ...state, frames: state.frames.concat(pending)[0] }
+}

@@ -1,0 +1,13 @@
+import contains from "../value/contains"
+
+import type { Machine } from "../model"
+
+export type Input = { machine: Machine, value: u64 }
+
+export type Output = Machine
+
+export default function (in: Input): Output {
+    const valid = in.machine.context.valid && !contains({ arena: in.machine.arena, value: in.value })
+
+    return { ...in.machine, context: { ...in.machine.context, valid: valid } }
+}

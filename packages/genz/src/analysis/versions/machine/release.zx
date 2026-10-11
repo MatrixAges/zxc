@@ -1,0 +1,28 @@
+import type { Machine } from "../model"
+
+export type Input = { machine: Machine, count: u64 }
+
+export type Output = Machine
+
+export default function (in: Input): Output {
+    const machine = in.machine
+    const keep = machine.snapshots.firsts.length - in.count
+    const length = machine.snapshots.firsts[keep]
+
+    const saved = loop({ saved: machine.saved, length: length }, {
+        while: current => current.saved.length > current.length,
+        next: current => { current.saved = current.saved.pop()[0] }
+    }).saved
+
+    const firsts = loop({ firsts: machine.snapshots.firsts, keep: keep }, {
+        while: current => current.firsts.length > current.keep,
+        next: current => { current.firsts = current.firsts.pop()[0] }
+    }).firsts
+
+    const currents = loop({ currents: machine.snapshots.currents, keep: keep }, {
+        while: current => current.currents.length > current.keep,
+        next: current => { current.currents = current.currents.pop()[0] }
+    }).currents
+
+    return { ...machine, saved: saved, snapshots: { firsts: firsts, currents: currents } }
+}

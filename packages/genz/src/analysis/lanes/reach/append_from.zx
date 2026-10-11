@@ -1,0 +1,15 @@
+export type Input = { target: u64[], source: u64[], start: u64 }
+
+export type Output = u64[]
+
+export default function (in: Input): Output {
+    const result = loop({ target: in.target, source: in.source, position: in.start }, {
+        while: current => current.position < current.source.length,
+        next: current => {
+            current.target = current.target.push(current.source[current.position])[0]
+            current.position += 1
+        }
+    })
+
+    return result.target
+}

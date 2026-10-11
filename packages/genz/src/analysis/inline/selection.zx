@@ -1,0 +1,179 @@
+import integers from "std:integer"
+import { StatementKind } from "core/control_table/model"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import children from "../ir/children"
+import consume from "./consume"
+import iteration from "./iteration"
+
+import type { Table } from "core/type_table/model"
+import type { Unit } from "../unit"
+
+export type Input = { types: Table, unit: Unit, costs: u64[], limit: u64 }
+
+export type Output = { selected: bool, marked: bool[] }
+
+export default function (in: Input): Output {
+    const table = in.unit.expressions
+    const control = in.unit.control
+    const root = in.unit.root
+    const blocks: u32[] = []
+    const ids: u32[] = []
+    const start = root == null ? blocks : blocks.push(root)[0]
+
+    const walked = loop({ types: in.types, table: table, control: control, blocks: start, finds: ids, marks: ids }, {
+        while: current => current.blocks.length != 0,
+        next: current => {
+            const block = integers.widen(current.blocks[current.blocks.length - 1])
+            const control = current.control
+            const first = integers.widen(control.block_first[block])
+            const count = integers.widen(control.block_count[block])
+
+            current.blocks = current.blocks.pop()[0]
+
+            if (count >= 2 && control.statement_kinds[first + count - 1] == StatementKind.Result && control.statement_kinds[first + count - 2] == StatementKind.Constant) {
+                const returned = control.results[integers.widen(control.statement_payloads[first + count - 1])]
+                const binding = integers.widen(control.statement_payloads[first + count - 2])
+
+                if (returned != null) {
+                    current.marks = current.marks.concat(consume({ types: current.types, table: current.table, symbol: integers.widen(control.constant_symbols[binding]), value: integers.widen(control.constant_values[binding]), result: integers.widen(returned) }))[0]
+                }
+            }
+
+            const scanned = loop({ types: current.types, table: current.table, control: control, blocks: current.blocks, finds: current.finds, marks: current.marks, position: first, end: first + count }, {
+                while: statements => statements.position < statements.end,
+                next: statements => {
+                    const control = statements.control
+                    const kind = control.statement_kinds[statements.position]
+                    const payload = integers.widen(control.statement_payloads[statements.position])
+
+                    if (kind == StatementKind.Evaluate) {
+                        statements.marks = statements.marks.concat(iteration({ types: statements.types, table: statements.table, id: integers.widen(control.evaluations[payload]) }))[0]
+                        statements.finds = statements.finds.push(control.evaluations[payload])[0]
+                    } else if (kind == StatementKind.Branch) {
+                        statements.finds = statements.finds.push(control.branch_conditions[payload])[0]
+                        statements.blocks = statements.blocks.concat([control.branch_yes[payload], control.branch_no[payload]])[0]
+                    } else if (kind == StatementKind.Switch) {
+                        statements.finds = statements.finds.push(control.selection_subjects[payload])[0]
+
+                        const cases = loop({ control: control, finds: statements.finds, blocks: statements.blocks, item: integers.widen(control.selection_first[payload]), end: integers.widen(control.selection_first[payload]) + integers.widen(control.selection_count[payload]) }, {
+                            while: items => items.item < items.end,
+                            next: items => {
+                                const value = items.control.case_values[items.item]
+
+                                if (value != null) {
+                                    items.finds = items.finds.push(value)[0]
+                                }
+
+                                items.blocks = items.blocks.push(items.control.case_bodies[items.item])[0]
+                                items.item += 1
+                            }
+                        })
+
+                        statements.finds = cases.finds
+                        statements.blocks = cases.blocks
+                    } else if (kind == StatementKind.Constant) {
+                        statements.finds = statements.finds.push(control.constant_values[payload])[0]
+                    } else if (kind == StatementKind.Parallel) {
+                        statements.finds = loop({ control: control, finds: statements.finds, item: integers.widen(control.parallel_first[payload]), end: integers.widen(control.parallel_first[payload]) + integers.widen(control.parallel_count[payload]) }, {
+                            while: items => items.item < items.end,
+                            next: items => {
+                                items.finds = items.finds.push(items.control.parallel_values[items.item])[0]
+                                items.item += 1
+                            }
+                        }).finds
+                    } else if (kind == StatementKind.Destructure) {
+                        statements.finds = statements.finds.push(control.destructure_values[payload])[0]
+                    } else if (kind == StatementKind.StoreSet) {
+                        statements.finds = statements.finds.push(control.setter_values[payload])[0]
+                    } else {
+                        const value = control.results[payload]
+
+                        if (value != null) {
+                            statements.finds = statements.finds.push(value)[0]
+                        }
+                    }
+
+                    statements.position += 1
+                }
+            })
+
+            current.blocks = scanned.blocks
+            current.finds = scanned.finds
+            current.marks = scanned.marks
+        }
+    })
+
+    const found = loop({ types: in.types, table: table, finds: walked.finds, marks: walked.marks, seen: table.kinds.map(kind => false) }, {
+        while: current => current.finds.length != 0,
+        next: current => {
+            const id = integers.widen(current.finds[current.finds.length - 1])
+            const table = current.table
+            const kind = table.kinds[id]
+
+            current.finds = current.finds.pop()[0]
+
+            if (!current.seen[id]) {
+                current.seen[id] = true
+
+                if (kind == ExpressionKind.Scope) {
+                    const payload = integers.widen(table.payloads[id])
+                    const first = integers.widen(table.scope_first[payload])
+                    const count = integers.widen(table.scope_count[payload])
+
+                    if (count != 0) {
+                        const symbol = table.scope_symbols[first + count - 1]
+
+                        if (symbol != null) {
+                            current.marks = current.marks.concat(consume({ types: current.types, table: table, symbol: integers.widen(symbol), value: integers.widen(table.scope_values[first + count - 1]), result: integers.widen(table.scope_results[payload]) }))[0]
+                        }
+                    }
+
+                    current.marks = loop({ types: current.types, table: table, marks: current.marks, position: first, end: first + count }, {
+                        while: bindings => bindings.position < bindings.end,
+                        next: bindings => {
+                            if (bindings.table.scope_symbols[bindings.position] == null) {
+                                bindings.marks = bindings.marks.concat(iteration({ types: bindings.types, table: bindings.table, id: integers.widen(bindings.table.scope_values[bindings.position]) }))[0]
+                            }
+
+                            bindings.position += 1
+                        }
+                    }).marks
+                }
+
+                if (kind != ExpressionKind.Iteration && kind != ExpressionKind.Capture && kind != ExpressionKind.Task && kind != ExpressionKind.Transform) {
+                    current.finds = current.finds.concat(children({ table: table, id: id }))[0]
+                }
+            }
+        }
+    })
+
+    const marked = loop({ table: table, marks: found.marks, marked: table.kinds.map(kind => false) }, {
+        while: current => current.marks.length != 0,
+        next: current => {
+            const id = integers.widen(current.marks[current.marks.length - 1])
+
+            current.marks = current.marks.pop()[0]
+
+            if (!current.marked[id]) {
+                current.marked[id] = true
+                current.marks = current.marks.concat(children({ table: current.table, id: id }))[0]
+            }
+        }
+    }).marked
+
+    const cost = loop({ table: table, marked: marked, costs: in.costs, limit: in.limit, position: 0, cost: 0 }, {
+        while: current => current.position < current.marked.length,
+        next: current => {
+            if (current.marked[current.position] && current.table.kinds[current.position] == ExpressionKind.Call) {
+                const callee = integers.widen(current.table.call_functions[integers.widen(current.table.payloads[current.position])])
+
+                current.cost = current.cost > current.limit ? current.cost : current.cost + current.costs[callee]
+            }
+
+            current.position += 1
+        }
+    }).cost
+
+    return { selected: cost != 0 && cost <= in.limit, marked: marked }
+}

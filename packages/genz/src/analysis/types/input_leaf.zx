@@ -1,0 +1,33 @@
+import integers from "std:integer"
+
+import type { Table } from "core/type_table/model"
+
+export type Input = { types: Table, id: u32, borrowed: bool }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const base = loop({ types: in.types, id: in.id, borrowed: in.borrowed, valid: true }, {
+        while: current => current.valid && (current.types.kinds[integers.widen(current.id)] == 2 || current.types.kinds[integers.widen(current.id)] == 3),
+        next: current => {
+            if (current.types.kinds[integers.widen(current.id)] == 3 && !current.borrowed) {
+                current.valid = false
+            } else {
+                current.id = current.types.first[integers.widen(current.id)]
+            }
+        }
+    })
+
+    if (!base.valid) {
+        return false
+    }
+
+    const index = integers.widen(base.id)
+    const kind = in.types.kinds[index]
+
+    if (kind == 0) {
+        return base.borrowed || in.types.first[index] != 10
+    }
+
+    return kind == 5 || kind == 7 || kind == 8
+}

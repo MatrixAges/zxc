@@ -1,0 +1,57 @@
+import leaves from "../types/leaves"
+import check from "./audit/check"
+import lane from "./lane"
+import instance from "./reach/instance"
+import rejected from "./rejected"
+import create from "./trace/create"
+import unique from "./unique"
+
+import type { Iteration, Lane, Lanes } from "../unit"
+import type { Machine } from "./reach/model"
+
+export type Input = { machine: Machine, readers: bool[], unit: u64, limit: u64 }
+
+export type Output = { machine: Machine, lanes: Lanes, codes: u8[] }
+
+export default function (in: Input): Output {
+    const machine = in.machine
+    const unit = machine.units[in.unit]
+    const trace = create({ types: machine.types, unit: unit, facts: machine.facts[in.unit], summaries: machine.summaries, limit: in.limit })
+    const paths = leaves({ types: machine.types, id: unit.output_type, optional: false })
+    const found: Lane[] = []
+
+    const traced = loop({ trace: trace, paths: paths, position: 0, lanes: found }, {
+        while: current => current.position < current.paths.length,
+        next: current => {
+            const result = lane({ trace: current.trace, output: current.paths[current.position] })
+
+            current.trace = result.trace
+
+            if (result.present) {
+                current.lanes = current.lanes.push(result.lane)[0]
+            }
+
+            current.position += 1
+        }
+    })
+
+    const selected = unique(traced.lanes)
+    const origins = selected.map(item => item.input)
+    const loops: Iteration[][] = selected.map(item => item.iterations)
+    const batch = instance({ machine: machine, unit: in.unit, limit: in.limit, origins: origins, loops: loops })
+    const codes: u8[] = []
+
+    const audited = loop({ machine: batch, trace: traced.trace, readers: in.readers, unit: in.unit, instance: batch.instances.units.length - 1, lanes: selected, position: 0, codes: codes }, {
+        while: current => current.position < current.lanes.length,
+        next: current => {
+            const result = check({ audit: { machine: current.machine, trace: current.trace, instance: current.instance, slot: current.position, lane: current.lanes[current.position], readers: current.readers, code: 0 }, units: current.machine.units, summaries: current.machine.summaries, unit: current.unit })
+
+            current.machine = result.machine
+            current.trace = result.trace
+            current.codes = current.codes.push(result.code)[0]
+            current.position += 1
+        }
+    })
+
+    return { machine: audited.machine, lanes: rejected({ lanes: selected, codes: audited.codes }), codes: audited.codes }
+}

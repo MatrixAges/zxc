@@ -1,0 +1,17 @@
+import integers from "std:integer"
+
+export type Input = { ids: u32[], offset: u64 }
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    const result = loop({ ids: in.ids, offset: in.offset, position: 0 }, {
+        while: current => current.position < current.ids.length,
+        next: current => {
+            current.ids[current.position] = integers.narrow(integers.widen(current.ids[current.position]) + current.offset)
+            current.position += 1
+        }
+    })
+
+    return result.ids
+}

@@ -1,0 +1,34 @@
+import integers from "std:integer"
+
+import key from "./key"
+
+import type { Table } from "core/type_table/model"
+
+export type Input = { types: Table, keys: u8[], bytes: u8[], index: u64, chosen: bool }
+
+export type Output = u8[]
+
+export default function (in: Input): Output {
+    const kind = in.types.kinds[in.index]
+    const first = integers.widen(in.types.first[in.index])
+
+    if (kind == 2) {
+        return key({ keys: in.keys, bytes: in.bytes, id: first })
+    }
+
+    if (!in.chosen) {
+        return in.bytes
+    }
+
+    const result = loop({ types: in.types, keys: in.keys, bytes: in.bytes, object: kind == 1, first: first, count: integers.widen(in.types.second[in.index]), position: 0 }, {
+        while: current => current.position < current.count,
+        next: current => {
+            const child = current.object ? current.types.field_types[current.first + current.position] : current.types.children[current.first + current.position]
+
+            current.bytes = key({ keys: current.keys, bytes: current.bytes, id: integers.widen(child) })
+            current.position += 1
+        }
+    })
+
+    return result.bytes
+}

@@ -1,0 +1,20 @@
+import integers from "std:integer"
+
+export type Input = { kinds: u8[], first: u32[], scalar: u32 }
+
+export type Output = u32
+
+export default function (in: Input): Output {
+    const result = loop({ kinds: in.kinds, first: in.first, scalar: in.scalar, position: 0, found: false }, {
+        while: current => !current.found && current.position < current.kinds.length,
+        next: current => {
+            if (current.kinds[current.position] == 0 && current.first[current.position] == current.scalar) {
+                current.found = true
+            } else {
+                current.position += 1
+            }
+        }
+    })
+
+    return integers.narrow(result.position)
+}

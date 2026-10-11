@@ -1,0 +1,9 @@
+import type { Machine } from "../model"
+
+export type Input = { machine: Machine, symbol: u64, value: u64 }
+
+export type Output = Machine
+
+export default function (in: Input): Output {
+    return { ...in.machine, symbols: in.machine.symbols.with(in.machine.context.symbol_base + in.symbol, in.value) }
+}

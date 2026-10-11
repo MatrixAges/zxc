@@ -1,0 +1,23 @@
+import append from "core/symbol_table/append"
+
+import type { Inline } from "../model"
+
+export type Input = { state: Inline, unit: u64 }
+
+export type Output = Inline
+
+export default function (in: Input): Output {
+    const source = in.state.units[in.unit].symbols
+
+    const result = loop({ symbols: in.state.tables.symbols, source: source, position: 0 }, {
+        while: current => current.position < current.source.names.length,
+        next: current => {
+            const source = current.source
+
+            current.symbols = append({ table: current.symbols, name: source.names[current.position], type_id: source.types[current.position], span_start: source.span_start[current.position], span_end: source.span_end[current.position], ownership: source.ownership[current.position] }).table
+            current.position += 1
+        }
+    })
+
+    return { ...in.state, tables: { ...in.state.tables, symbols: result.symbols } }
+}

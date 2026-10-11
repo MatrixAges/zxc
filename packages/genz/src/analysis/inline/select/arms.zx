@@ -1,0 +1,20 @@
+import integers from "std:integer"
+
+export type Input = { pool: u64[], start: u64 }
+
+export type Output = { conditions: u32[], results: u32[] }
+
+export default function (in: Input): Output {
+    const none: u32[] = []
+
+    const result = loop({ pool: in.pool, position: in.start, conditions: none, results: none }, {
+        while: current => current.position < current.pool.length,
+        next: current => {
+            current.conditions = current.conditions.push(integers.narrow(current.pool[current.position]))[0]
+            current.results = current.results.push(integers.narrow(current.pool[current.position + 1]))[0]
+            current.position += 2
+        }
+    })
+
+    return { conditions: result.conditions, results: result.results }
+}

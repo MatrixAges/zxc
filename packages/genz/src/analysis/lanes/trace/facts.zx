@@ -1,0 +1,99 @@
+import integers from "std:integer"
+import { StatementKind } from "core/control_table/model"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import type { Unit } from "../../unit"
+import type { Facts } from "./model"
+
+export type Input = Unit
+
+export type Output = Facts
+
+export type Cursor = { block: u64, position: u64 }
+
+export default function (in: Input): Output {
+    const bindings = in.symbols.names.map(name => 0)
+    const iterations = in.symbols.names.map(name => 0)
+    const results: u32[] = []
+    const root = in.root
+    const cursors: Cursor[] = []
+    const start = root == null ? cursors : cursors.push({ block: integers.widen(root), position: 0 })[0]
+
+    const walked = loop({ control: in.control, cursors: start, bindings: bindings, results: results }, {
+        while: current => current.cursors.length != 0,
+        next: current => {
+            const cursor = current.cursors[current.cursors.length - 1]
+
+            current.cursors = current.cursors.pop()[0]
+
+            if (cursor.position < integers.widen(current.control.block_count[cursor.block])) {
+                const position = integers.widen(current.control.block_first[cursor.block]) + cursor.position
+                const kind = current.control.statement_kinds[position]
+                const payload = integers.widen(current.control.statement_payloads[position])
+
+                current.cursors = current.cursors.push({ block: cursor.block, position: cursor.position + 1 })[0]
+
+                if (kind == StatementKind.Constant) {
+                    current.bindings[integers.widen(current.control.constant_symbols[payload])] = integers.widen(current.control.constant_values[payload]) + 1
+                } else if (kind == StatementKind.Result) {
+                    const value = current.control.results[payload]
+
+                    if (value != null) {
+                        current.results = current.results.push(value)[0]
+                    }
+                } else if (kind == StatementKind.Branch) {
+                    current.cursors = current.cursors.concat([{ block: integers.widen(current.control.branch_no[payload]), position: 0 }, { block: integers.widen(current.control.branch_yes[payload]), position: 0 }])[0]
+                } else if (kind == StatementKind.Switch) {
+                    current.cursors = loop({ control: current.control, cursors: current.cursors, first: integers.widen(current.control.selection_first[payload]), remaining: integers.widen(current.control.selection_count[payload]) }, {
+                        while: cases => cases.remaining != 0,
+                        next: cases => {
+                            cases.remaining -= 1
+                            cases.cursors = cases.cursors.push({ block: integers.widen(cases.control.case_bodies[cases.first + cases.remaining]), position: 0 })[0]
+                        }
+                    }).cursors
+                }
+            }
+        }
+    })
+
+    const scanned = loop({ expressions: in.expressions, bindings: walked.bindings, iterations: iterations, index: 0 }, {
+        while: current => current.index < current.expressions.kinds.length,
+        next: current => {
+            const kind = current.expressions.kinds[current.index]
+            const payload = integers.widen(current.expressions.payloads[current.index])
+
+            if (kind == ExpressionKind.Scope) {
+                current.bindings = loop({ expressions: current.expressions, bindings: current.bindings, position: integers.widen(current.expressions.scope_first[payload]), end: integers.widen(current.expressions.scope_first[payload]) + integers.widen(current.expressions.scope_count[payload]) }, {
+                    while: scope => scope.position < scope.end,
+                    next: scope => {
+                        const symbol = scope.expressions.scope_symbols[scope.position]
+
+                        if (symbol != null) {
+                            scope.bindings[integers.widen(symbol)] = integers.widen(scope.expressions.scope_values[scope.position]) + 1
+                        }
+
+                        scope.position += 1
+                    }
+                }).bindings
+            }
+
+            current.index += 1
+        }
+    })
+
+    const looped = loop({ expressions: in.expressions, iterations: scanned.iterations, index: 0 }, {
+        while: current => current.index < current.expressions.kinds.length,
+        next: current => {
+            if (current.expressions.kinds[current.index] == ExpressionKind.Iteration) {
+                const payload = integers.widen(current.expressions.payloads[current.index])
+
+                current.iterations[integers.widen(current.expressions.iteration_condition_parameters[payload])] = current.index + 1
+                current.iterations[integers.widen(current.expressions.iteration_parameters[payload])] = current.index + 1
+            }
+
+            current.index += 1
+        }
+    })
+
+    return { bindings: scanned.bindings, iterations: looped.iterations, results: walked.results }
+}

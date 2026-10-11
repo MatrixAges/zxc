@@ -1,0 +1,19 @@
+import type { Origins } from "./model"
+
+export type Input = { origins: Origins, first: u64, width: u64, selected: u32 }
+
+export type Output = bool[]
+
+export default function (in: Input): Output {
+    const mask: bool[] = []
+
+    const result = loop({ owners: in.origins.owners, first: in.first, width: in.width, selected: in.selected, mask: mask, position: 0 }, {
+        while: current => current.position < current.width,
+        next: current => {
+            current.mask = current.mask.push(current.owners[current.first + current.position] == current.selected)[0]
+            current.position += 1
+        }
+    })
+
+    return result.mask
+}

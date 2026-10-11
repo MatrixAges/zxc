@@ -1,0 +1,22 @@
+import integers from "std:integer"
+
+import type { Iteration } from "../../unit"
+
+export type Input = { loops: Iteration[], id: u64 }
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    const result = loop({ loops: in.loops, id: in.id, position: 0, found: in.loops.length }, {
+        while: current => current.found == current.loops.length && current.position < current.loops.length,
+        next: current => {
+            if (integers.widen(current.loops[current.position].expression) == current.id) {
+                current.found = current.position
+            }
+
+            current.position += 1
+        }
+    })
+
+    return result.found
+}

@@ -1,0 +1,18 @@
+import copyBack from "./copy_back"
+
+import type { Machine } from "../model"
+
+export type Input = { machine: Machine, depth: u64 }
+
+export type Output = Machine
+
+export default function (in: Input): Output {
+    const machine = in.machine
+    const position = machine.snapshots.firsts.length - 1 - in.depth
+    const first = machine.snapshots.firsts[position]
+    const width = machine.symbols.length - machine.context.symbol_base
+    const symbols = copyBack({ target: machine.symbols, saved: machine.saved, base: machine.context.symbol_base, from: first })
+    const cached = copyBack({ target: machine.cached, saved: machine.saved, base: machine.context.cached_base, from: first + width })
+
+    return { ...machine, symbols: symbols, cached: cached, context: { ...machine.context, current: machine.snapshots.currents[position] } }
+}

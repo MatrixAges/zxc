@@ -1,0 +1,28 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import members from "./members"
+
+import type { Expressions } from "core/expression_table/model"
+
+export type Input = { table: Expressions, id: u64 }
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    const table = in.table
+    const kind = table.kinds[in.id]
+    const payload = integers.widen(table.payloads[in.id])
+    const empty: u32[] = []
+
+    return match kind {
+        ExpressionKind.Some => empty.push(table.some[payload])[0],
+        ExpressionKind.OptionalValue => empty.push(table.optional_values[payload])[0],
+        ExpressionKind.List => members({ table: table, ids: table.sequence_items, first: integers.widen(table.sequence_first[payload]), count: integers.widen(table.sequence_count[payload]) }),
+        ExpressionKind.Template => members({ table: table, ids: table.sequence_items, first: integers.widen(table.sequence_first[payload]), count: integers.widen(table.sequence_count[payload]) }),
+        ExpressionKind.Binary => [table.binary_left[payload], table.binary_right[payload]],
+        ExpressionKind.Unary => empty.push(table.unary_operands[payload])[0],
+        ExpressionKind.ListOperation => members({ table: table, ids: table.collection_arguments, first: integers.widen(table.collection_first[payload]), count: integers.widen(table.collection_count[payload]) }),
+        _ => empty,
+    }
+}

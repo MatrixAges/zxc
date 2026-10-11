@@ -1,0 +1,55 @@
+import integers from "std:integer"
+import { ValueKind } from "core/expression_table/append/model"
+import projection from "core/expression_table/append/projection"
+import value from "core/expression_table/append/value"
+import append from "core/symbol_table/append"
+import { Ownership } from "core/symbol_table/model"
+
+import cost from "../append"
+import bind from "../bind"
+import { InlineOp } from "../model"
+
+import type { Inline, Step } from "../model"
+
+export type Input = Step
+
+export type Output = Inline
+
+export default function (in: Input): Output {
+    const state = in.state
+    const assigned = state.stack[state.stack.length - 1]
+    const unit = state.units[state.mappings.units[in.frame.mapping]]
+    const control = unit.control
+    const payload = in.frame.f
+    const tuple_type = unit.expressions.types[integers.widen(control.destructure_values[payload])]
+    const symbol = append({ table: state.tables.symbols, name: "inline_tuple", type_id: tuple_type, span_start: in.frame.d, span_end: in.frame.e, ownership: Ownership.Copy })
+    const metadata = { type_id: tuple_type, span_start: in.frame.d, span_end: in.frame.e }
+    const reference = value({ table: state.tables.expressions, metadata: metadata, kind: ValueKind.Reference, value: symbol.id })
+    const prepared = cost({ state: { ...state, stack: state.stack.pop()[0], tables: { ...state.tables, symbols: symbol.table, expressions: reference.table } }, id: reference.id })
+    const first = integers.widen(control.destructure_first[payload])
+    const tuple = integers.widen(tuple_type)
+
+    const fields = loop({ state: prepared, control: control, first: first, offset: prepared.mappings.offsets[in.frame.mapping], reference: reference.id, tuple: tuple, frame: in.frame, result: in.frame.b - 1, position: integers.widen(control.destructure_count[payload]) }, {
+        while: current => current.position != 0,
+        next: current => {
+            current.position -= 1
+
+            const target = current.control.destructure_symbols[current.first + current.position]
+
+            if (target != null) {
+                const types = current.state.types
+                const element = types.children[integers.widen(types.first[current.tuple]) + current.position]
+                const field = projection({ table: current.state.tables.expressions, metadata: { type_id: element, span_start: current.frame.d, span_end: current.frame.e }, target: current.reference, index: integers.narrow(current.position), tuple: true })
+                const counted = cost({ state: { ...current.state, tables: { ...current.state.tables, expressions: field.table } }, id: field.id })
+                const bound = bind({ state: counted, symbol: integers.narrow(integers.widen(target) + current.offset), value: field.id, result: integers.narrow(current.result), type_id: integers.narrow(current.frame.c), span_start: current.frame.d, span_end: current.frame.e })
+
+                current.state = bound.state
+                current.result = integers.widen(bound.id)
+            }
+        }
+    })
+
+    const result = bind({ state: fields.state, symbol: symbol.id, value: integers.narrow(assigned), result: integers.narrow(fields.result), type_id: integers.narrow(in.frame.c), span_start: in.frame.d, span_end: in.frame.e })
+
+    return { ...result.state, frames: result.state.frames.push({ ...in.frame, op: InlineOp.LowerStep, b: integers.widen(result.id) + 1 })[0] }
+}

@@ -1,0 +1,10 @@
+import type { Expressions } from "core/expression_table/model"
+import type { Machine } from "../model"
+
+export type Input = Machine
+
+export type Output = Expressions
+
+export default function (in: Input): Output {
+    return in.units[in.context.unit].expressions
+}

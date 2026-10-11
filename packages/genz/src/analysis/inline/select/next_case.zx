@@ -1,0 +1,25 @@
+import integers from "std:integer"
+
+import type { Control } from "core/control_table/model"
+
+export type Input = { control: Control, payload: u64, from: u64, valued: bool }
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    const first = integers.widen(in.control.selection_first[in.payload])
+    const count = integers.widen(in.control.selection_count[in.payload])
+
+    const result = loop({ control: in.control, first: first, count: count, valued: in.valued, position: in.from, found: count }, {
+        while: current => current.found == current.count && current.position < current.count,
+        next: current => {
+            if ((current.control.case_values[current.first + current.position] != null) == current.valued) {
+                current.found = current.position
+            }
+
+            current.position += 1
+        }
+    })
+
+    return result.found
+}

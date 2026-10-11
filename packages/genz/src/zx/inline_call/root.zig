@@ -12,6 +12,8 @@ control: ir.ControlStorage = .{},
 costs: std.ArrayList(usize) = .empty,
 symbols: ir.SymbolStorage = .{},
 pub fn prepare(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!ir.Program {
+    if (@import("genz_options").generated_analysis) return @import("generated.zig").prepare(allocator, program);
+
     if (program.functions.count() == 0) return program;
 
     const plan = try Plan.init(allocator, program);

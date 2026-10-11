@@ -1,0 +1,22 @@
+import integers from "std:integer"
+
+import type { Table } from "core/type_table/model"
+
+export type Input = { types: Table, input: u32, pool: u32[], first: u64, count: u64 }
+
+export type Output = u32
+
+export default function (in: Input): Output {
+    const result = loop({ types: in.types, id: in.input, pool: in.pool, position: in.first, end: in.first + in.count }, {
+        while: current => current.position < current.end,
+        next: current => {
+            const index = integers.widen(current.id)
+            const first = integers.widen(current.types.first[index]) + integers.widen(current.pool[current.position])
+
+            current.id = current.types.kinds[index] == 1 ? current.types.field_types[first] : current.types.children[first]
+            current.position += 1
+        }
+    })
+
+    return result.id
+}

@@ -1,0 +1,28 @@
+import integers from "std:integer"
+
+import frame from "../frame"
+import expressions from "../machine/expressions"
+import release from "../machine/release"
+import restore from "../machine/restore"
+import schedule from "../machine/schedule"
+import snapshot from "../machine/snapshot"
+import { Op } from "../model"
+
+import type { Machine, Step } from "../model"
+
+export type Input = Step
+
+export type Output = Machine
+
+export default function (in: Input): Output {
+    const table = expressions(in.machine)
+    const payload = integers.widen(table.payloads[in.frame.id])
+
+    if (in.frame.a == integers.widen(table.match_count[payload])) {
+        return release({ machine: in.machine, count: 1 })
+    }
+
+    const machine = restore({ machine: snapshot(in.machine), depth: 1 })
+
+    return schedule({ machine: machine, next: frame({ op: Op.MatchJoin, id: in.frame.id, a: in.frame.a, b: 0 }), id: table.match_results[integers.widen(table.match_first[payload]) + in.frame.a] })
+}

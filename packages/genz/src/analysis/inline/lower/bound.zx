@@ -1,0 +1,16 @@
+import integers from "std:integer"
+
+import bind from "../bind"
+import { InlineOp } from "../model"
+
+import type { Inline, InlineFrame } from "../model"
+
+export type Input = { state: Inline, frame: InlineFrame, symbol: u32?, value: u64 }
+
+export type Output = Inline
+
+export default function (in: Input): Output {
+    const bound = bind({ state: in.state, symbol: in.symbol, value: integers.narrow(in.value), result: integers.narrow(in.frame.b - 1), type_id: integers.narrow(in.frame.c), span_start: in.frame.d, span_end: in.frame.e })
+
+    return { ...bound.state, frames: bound.state.frames.push({ ...in.frame, op: InlineOp.LowerStep, b: integers.widen(bound.id) + 1 })[0] }
+}

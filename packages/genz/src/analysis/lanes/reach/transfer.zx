@@ -1,0 +1,17 @@
+import appendFrom from "./append_from"
+
+export type Input = { results: u64[], children: u64[], count: u64 }
+
+export type Output = { results: u64[], children: u64[] }
+
+export default function (in: Input): Output {
+    const start = in.results.length - in.count
+    const children = appendFrom({ target: in.children, source: in.results, start: start })
+
+    const results = loop({ results: in.results, length: start }, {
+        while: current => current.results.length > current.length,
+        next: current => { current.results = current.results.pop()[0] }
+    }).results
+
+    return { results: results, children: children }
+}

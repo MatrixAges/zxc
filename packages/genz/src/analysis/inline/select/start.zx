@@ -1,0 +1,43 @@
+import integers from "std:integer"
+import { ValueKind } from "core/expression_table/append/model"
+import value from "core/expression_table/append/value"
+import append from "core/symbol_table/append"
+import { Ownership } from "core/symbol_table/model"
+
+import returns from "../../control/returns"
+import cost from "../append"
+import { InlineOp } from "../model"
+
+import type { Inline, Step } from "../model"
+
+export type Input = Step
+
+export type Output = Inline
+
+export default function (in: Input): Output {
+    const state = in.state
+    const subject = state.stack[state.stack.length - 1]
+    const unit = state.units[state.mappings.units[in.frame.mapping]]
+    const control = unit.control
+    const payload = in.frame.f
+    const first = integers.widen(control.selection_first[payload])
+
+    const returning = loop({ control: control, position: first, end: first + integers.widen(control.selection_count[payload]), found: false }, {
+        while: current => !current.found && current.position < current.end,
+        next: current => {
+            current.found = returns({ control: current.control, block: current.control.case_bodies[current.position] })
+            current.position += 1
+        }
+    }).found
+
+    const continuing = !returning
+    const selected_type = continuing ? integers.widen(state.void_type) : in.frame.c
+    const continuation = continuing ? 0 : in.frame.b
+    const subject_type = unit.expressions.types[integers.widen(control.selection_subjects[payload])]
+    const symbol = append({ table: state.tables.symbols, name: "inline_subject", type_id: subject_type, span_start: in.frame.d, span_end: in.frame.e, ownership: Ownership.Copy })
+    const reference = value({ table: state.tables.expressions, metadata: { type_id: subject_type, span_start: in.frame.d, span_end: in.frame.e }, kind: ValueKind.Reference, value: symbol.id })
+    const counted = cost({ state: { ...state, stack: state.stack.pop()[0], tables: { ...state.tables, symbols: symbol.table, expressions: reference.table } }, id: reference.id })
+    const header = { ...in.frame, op: InlineOp.SwitchDefault, g: subject, h: integers.widen(symbol.id), i: integers.widen(reference.id), j: continuation, k: 0, l: selected_type, m: continuing ? 1 : 0, n: 0, start: counted.pool.length }
+
+    return { ...counted, frames: counted.frames.push(header)[0] }
+}

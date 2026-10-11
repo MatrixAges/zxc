@@ -1,0 +1,24 @@
+import integers from "std:integer"
+
+import classify from "./classify"
+
+import type { Audit } from "./context"
+
+export type Input = { audit: Audit, ids: u32[] }
+
+export type Output = { audit: Audit, found: bool }
+
+export default function (in: Input): Output {
+    const result = loop({ audit: in.audit, ids: in.ids, position: 0, found: false }, {
+        while: current => !current.found && current.position < current.ids.length,
+        next: current => {
+            const classified = classify({ audit: current.audit, id: integers.widen(current.ids[current.position]) })
+
+            current.audit = classified.audit
+            current.found = classified.count != 0
+            current.position += 1
+        }
+    })
+
+    return { audit: result.audit, found: result.found }
+}

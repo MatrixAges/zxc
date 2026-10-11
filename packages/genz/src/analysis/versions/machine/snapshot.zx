@@ -1,0 +1,15 @@
+import segment from "./segment"
+
+import type { Machine } from "../model"
+
+export type Input = Machine
+
+export type Output = Machine
+
+export default function (in: Input): Output {
+    const first = in.saved.length
+    const symbols = segment({ saved: in.saved, values: in.symbols, from: in.context.symbol_base })
+    const saved = segment({ saved: symbols, values: in.cached, from: in.context.cached_base })
+
+    return { ...in, saved: saved, snapshots: { firsts: in.snapshots.firsts.push(first)[0], currents: in.snapshots.currents.push(in.context.current)[0] } }
+}

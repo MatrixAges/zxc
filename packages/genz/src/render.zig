@@ -3,7 +3,7 @@ const node = @import("node.zig");
 const Printer = @import("printer.zig");
 
 pub fn render(allocator: std.mem.Allocator, nodes: *@import("node/storage.zig"), declarations: []const node.Declaration) std.mem.Allocator.Error![]u8 {
-    if (@import("genz_options").generated_printer) return @import("printer/host.zig").render(allocator, nodes, declarations);
+    if (@import("genz_options").generated) return @import("printer/host.zig").render(allocator, nodes, declarations);
 
     var printer = Printer{ .allocator = allocator, .nodes = nodes };
 

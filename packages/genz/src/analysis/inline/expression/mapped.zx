@@ -1,0 +1,19 @@
+import integers from "std:integer"
+
+export type Input = { stack: u64[], start: u64 }
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    const none: u32[] = []
+
+    const result = loop({ stack: in.stack, position: in.start, mapped: none }, {
+        while: current => current.position < current.stack.length,
+        next: current => {
+            current.mapped = current.mapped.push(integers.narrow(current.stack[current.position]))[0]
+            current.position += 1
+        }
+    })
+
+    return result.mapped
+}

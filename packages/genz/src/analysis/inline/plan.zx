@@ -1,0 +1,50 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import simple from "../control/simple"
+import primitive from "../types/primitive"
+
+import type { Table } from "core/type_table/model"
+import type { Unit } from "../unit"
+
+export type Input = { types: Table, units: Unit[], pure: bool[], limit: u64 }
+
+export type Output = u64[]
+
+export default function (in: Input): Output {
+    const result = loop({ types: in.types, units: in.units, pure: in.pure, limit: in.limit, costs: in.pure.map(value => 0), index: 0 }, {
+        while: current => current.index < current.pure.length,
+        next: current => {
+            const unit = current.units[current.index]
+            const input = integers.widen(unit.input_type)
+            const eligible = current.pure[current.index] && !unit.external && unit.stores.paths.length == 0 && unit.contracts.kinds.length == 0
+            const primitives = primitive({ types: current.types, id: unit.input_type }) && primitive({ types: current.types, id: unit.output_type })
+            const empty = current.types.kinds[input] == 0 && current.types.first[input] == 0
+
+            if (eligible && !primitives && !empty && simple({ control: unit.control, root: unit.root })) {
+                const table = unit.expressions
+
+                const counted = loop({ table: table, costs: current.costs, index: current.index, limit: current.limit, cost: table.kinds.length + unit.symbols.names.length + 1, position: 0 }, {
+                    while: items => items.cost <= items.limit && items.position < items.table.kinds.length,
+                    next: items => {
+                        if (items.table.kinds[items.position] == ExpressionKind.Call) {
+                            const child = integers.widen(items.table.call_functions[integers.widen(items.table.payloads[items.position])])
+
+                            items.cost = child >= items.index ? items.limit + 1 : items.cost + items.costs[child]
+                        }
+
+                        items.position += 1
+                    }
+                }).cost
+
+                if (counted <= current.limit) {
+                    current.costs[current.index] = counted
+                }
+            }
+
+            current.index += 1
+        }
+    })
+
+    return result.costs
+}

@@ -1,0 +1,21 @@
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import candidate from "../consumer/candidate"
+import iteration from "./iteration"
+
+import type { Expressions } from "core/expression_table/model"
+import type { Table } from "core/type_table/model"
+
+export type Input = { types: Table, table: Expressions, symbol: u64, value: u64, result: u64 }
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    const empty: u32[] = []
+
+    if (in.table.kinds[in.value] != ExpressionKind.Iteration || !candidate({ types: in.types, table: in.table, symbol: in.symbol, result: in.result })) {
+        return empty
+    }
+
+    return iteration({ types: in.types, table: in.table, id: in.value })
+}

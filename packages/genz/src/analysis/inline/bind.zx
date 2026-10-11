@@ -1,0 +1,24 @@
+import integers from "std:integer"
+import scope from "core/expression_table/append/scope"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import append from "./append"
+import bindings from "./bindings"
+
+import type { Inline } from "./model"
+
+export type Input = { state: Inline, symbol: u32?, value: u32, result: u32, type_id: u32, span_start: u64, span_end: u64 }
+
+export type Output = { state: Inline, id: u32 }
+
+export default function (in: Input): Output {
+    const table = in.state.tables.expressions
+    const index = integers.widen(in.result)
+    const nested = table.kinds[index] == ExpressionKind.Scope
+    const result = nested ? table.scope_results[integers.widen(table.payloads[index])] : in.result
+    const previous = bindings({ table: table, id: index, nested: nested, symbol: in.symbol, value: in.value })
+    const made = scope({ table: table, metadata: { type_id: in.type_id, span_start: in.span_start, span_end: in.span_end }, result: result, symbols: previous.symbols, values: previous.values, borrows: previous.borrows })
+    const state = { ...in.state, tables: { ...in.state.tables, expressions: made.table } }
+
+    return { state: append({ state: state, id: made.id }), id: made.id }
+}

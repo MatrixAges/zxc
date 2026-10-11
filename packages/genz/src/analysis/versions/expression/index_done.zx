@@ -1,0 +1,16 @@
+import observe from "../machine/observe"
+import pop from "../machine/pop"
+import push from "../machine/push"
+
+import type { Machine, Step } from "../model"
+
+export type Input = Step
+
+export type Output = Machine
+
+export default function (in: Input): Output {
+    const index = pop(in.machine)
+    const target = pop(observe({ machine: index.machine, value: index.value }))
+
+    return push({ machine: observe({ machine: target.machine, value: target.value }), value: 0 })
+}

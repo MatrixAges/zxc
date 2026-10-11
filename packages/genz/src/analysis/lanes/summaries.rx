@@ -1,0 +1,7 @@
+<Module>
+    <Call fn="readers" in={{ types: $in.types, units: $in.units, pure: $in.pure }} />
+    <Call fn="machine" in={{ types: $in.types, units: $in.units }} />
+    <Call fn="collect" in={{ machine: $ctx.machine, values: $in.values, pure: $in.pure, readers: $ctx.readers }} />
+
+    <Return value={{ lanes: $ctx.collect.lanes, codes: $ctx.collect.codes, readers: $ctx.readers }} />
+</Module>

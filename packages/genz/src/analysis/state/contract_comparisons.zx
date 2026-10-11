@@ -1,0 +1,21 @@
+import comparisons from "./comparisons"
+
+import type { Contracts } from "core/contract_table/model"
+
+export type Input = Contracts
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    const empty: u32[] = []
+
+    const result = loop({ contracts: in, index: 0, types: empty }, {
+        while: current => current.index < current.contracts.expressions.length,
+        next: current => {
+            current.types = current.types.concat(comparisons(current.contracts.expressions[current.index]))[0]
+            current.index += 1
+        }
+    })
+
+    return result.types
+}

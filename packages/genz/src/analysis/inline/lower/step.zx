@@ -1,0 +1,65 @@
+import integers from "std:integer"
+import { StatementKind } from "core/control_table/model"
+
+import frame from "../frame"
+import { InlineOp } from "../model"
+import unit from "./unit"
+
+import type { Inline, Step } from "../model"
+
+export type Input = Step
+
+export type Output = Inline
+
+export default function (in: Input): Output {
+    const state = in.state
+    const current = in.frame
+
+    if (current.a == 0) {
+        if (current.b != 0) {
+            return { ...state, depth: state.depth - 1, stack: state.stack.push(current.b - 1)[0] }
+        }
+
+        const made = unit({ state: state, type_id: integers.narrow(current.c), span_start: current.d, span_end: current.e })
+
+        return { ...made.state, depth: made.state.depth - 1, stack: made.state.stack.push(integers.widen(made.id))[0] }
+    }
+
+    const control = state.units[state.mappings.units[current.mapping]].control
+    const position = current.a - 1
+    const statement = integers.widen(control.block_first[current.id - 1]) + position
+    const kind = control.statement_kinds[statement]
+    const payload = integers.widen(control.statement_payloads[statement])
+    const next = { ...current, a: position, f: payload }
+    const map = InlineOp.Map
+
+    if (kind == StatementKind.Result) {
+        const value = control.results[payload]
+
+        if (value == null) {
+            const made = unit({ state: state, type_id: integers.narrow(current.c), span_start: current.d, span_end: current.e })
+
+            return { ...made.state, frames: made.state.frames.push({ ...next, b: integers.widen(made.id) + 1 })[0] }
+        }
+
+        return { ...state, frames: state.frames.concat([{ ...next, op: InlineOp.LowerResult }, frame({ op: map, mapping: current.mapping, id: integers.widen(value) })])[0] }
+    }
+
+    if (kind == StatementKind.Constant) {
+        return { ...state, frames: state.frames.concat([{ ...next, op: InlineOp.LowerConstant }, frame({ op: map, mapping: current.mapping, id: integers.widen(control.constant_values[payload]) })])[0] }
+    }
+
+    if (kind == StatementKind.Evaluate) {
+        return { ...state, frames: state.frames.concat([{ ...next, op: InlineOp.LowerEvaluate }, frame({ op: map, mapping: current.mapping, id: integers.widen(control.evaluations[payload]) })])[0] }
+    }
+
+    if (kind == StatementKind.Destructure) {
+        return { ...state, frames: state.frames.concat([{ ...next, op: InlineOp.LowerDestructure }, frame({ op: map, mapping: current.mapping, id: integers.widen(control.destructure_values[payload]) })])[0] }
+    }
+
+    if (kind == StatementKind.Branch) {
+        return { ...state, frames: state.frames.concat([{ ...next, op: InlineOp.LowerBranch }, frame({ op: map, mapping: current.mapping, id: integers.widen(control.branch_conditions[payload]) })])[0] }
+    }
+
+    return { ...state, frames: state.frames.concat([{ ...next, op: InlineOp.LowerSwitch }, frame({ op: map, mapping: current.mapping, id: integers.widen(control.selection_subjects[payload]) })])[0] }
+}

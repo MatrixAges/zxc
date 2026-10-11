@@ -1,0 +1,9 @@
+<Module>
+    <Call fn="../types/unmarked" in={$in.types} />
+    <Call fn="roots" in={$in} />
+    <Call fn="../types/closure" in={{ types: $in.types, boxed: $ctx.unmarked, roots: $ctx.roots }} />
+    <Call fn="duplicates" in={{ program: $in, boxed: $ctx.closure }} />
+    <Call fn="keys" in={{ types: $in.types, boxed: $ctx.duplicates }} />
+
+    <Return value={$ctx.keys} />
+</Module>

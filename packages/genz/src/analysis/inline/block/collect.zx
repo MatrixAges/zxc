@@ -1,0 +1,56 @@
+import integers from "std:integer"
+import { StatementKind } from "core/control_table/model"
+
+import { InlineOp } from "../model"
+import truncate from "../truncate"
+import append from "./append"
+import copy from "./copy"
+
+import type { Inline, Step } from "../model"
+
+export type Input = Step
+
+export type Output = Inline
+
+export default function (in: Input): Output {
+    const state = in.state
+    const control = state.units[state.mappings.units[in.frame.mapping]].control
+    const payload = in.frame.f
+    const position = integers.widen(control.block_first[in.frame.id - 1]) + in.frame.a
+    const kind = control.statement_kinds[position]
+
+    const code: u64 = match kind {
+        StatementKind.Evaluate => 0,
+        StatementKind.Constant => 1,
+        StatementKind.Parallel => 2,
+        StatementKind.Destructure => 3,
+        StatementKind.Branch => 4,
+        StatementKind.Switch => 5,
+        StatementKind.StoreSet => 6,
+        _ => 7,
+    }
+
+    const count = match kind {
+        StatementKind.Parallel => integers.widen(control.parallel_count[payload]),
+        StatementKind.Branch => 3,
+        StatementKind.Switch => 1 + integers.widen(control.selection_count[payload]) + loop({ control: control, position: integers.widen(control.selection_first[payload]), end: integers.widen(control.selection_first[payload]) + integers.widen(control.selection_count[payload]), valued: 0 }, {
+            while: current => current.position < current.end,
+            next: current => {
+                if (current.control.case_values[current.position] != null) {
+                    current.valued += 1
+                }
+
+                current.position += 1
+            }
+        }).valued,
+        StatementKind.Result => control.results[payload] == null ? 0 : 1,
+        _ => 1,
+    }
+
+    const start = state.stack.length - count
+    const header: u64[] = [code, payload, count]
+    const described = append({ pool: state.pool, items: header })
+    const pool = copy({ pool: described, stack: state.stack, start: start })
+
+    return { ...state, pool: pool, stack: truncate({ items: state.stack, length: start }), frames: state.frames.push({ ...in.frame, op: InlineOp.BlockNext, a: in.frame.a + 1 })[0] }
+}

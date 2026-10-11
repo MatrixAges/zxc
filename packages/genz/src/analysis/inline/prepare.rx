@@ -1,0 +1,9 @@
+<Module>
+    <Call module="../state/select" in={$in.program} />
+
+    <Call fn="../value/summary" in={{ program: $in.program, selected: $ctx.select.selected }} />
+    <Call fn="plan" in={{ types: $in.program.types, units: $in.units, pure: $ctx.summary.pure, limit: 4096 }} />
+    <Call fn="apply" in={{ types: $in.program.types, units: $in.units, plan: $ctx.plan }} />
+
+    <Return value={$ctx.apply} />
+</Module>

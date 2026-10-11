@@ -1,0 +1,25 @@
+import integers from "std:integer"
+
+import frame from "../frame"
+import expressions from "../machine/expressions"
+import schedule from "../machine/schedule"
+import { Op } from "../model"
+import build from "./object_build"
+
+import type { Machine, Step } from "../model"
+
+export type Input = Step
+
+export type Output = Machine
+
+export default function (in: Input): Output {
+    const table = expressions(in.machine)
+    const payload = integers.widen(table.payloads[in.frame.id])
+    const next = in.frame.a + 1
+
+    if (next < integers.widen(table.object_count[payload])) {
+        return schedule({ machine: in.machine, next: frame({ op: Op.ObjectField, id: in.frame.id, a: next, b: 0 }), id: table.object_field_values[integers.widen(table.object_first[payload]) + next] })
+    }
+
+    return build({ machine: in.machine, id: in.frame.id })
+}

@@ -1,0 +1,15 @@
+import pop from "../machine/pop"
+import push from "../machine/push"
+import field from "../value/field"
+
+import type { Machine, Step } from "../model"
+
+export type Input = Step
+
+export type Output = Machine
+
+export default function (in: Input): Output {
+    const popped = pop(in.machine)
+
+    return push({ machine: popped.machine, value: field({ arena: popped.machine.arena, value: popped.value, index: in.frame.a }) })
+}

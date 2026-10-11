@@ -1,0 +1,20 @@
+import type { Call } from "../../unit"
+import type { Calls } from "./model"
+
+export type Input = Calls
+
+export type Output = Call[]
+
+export default function (in: Input): Output {
+    const items: Call[] = []
+
+    const result = loop({ expressions: in.expressions, lanes: in.lanes, items: items, position: 0 }, {
+        while: current => current.position < current.expressions.length,
+        next: current => {
+            current.items = current.items.push({ expression: current.expressions[current.position], lane: current.lanes[current.position] })[0]
+            current.position += 1
+        }
+    })
+
+    return result.items
+}

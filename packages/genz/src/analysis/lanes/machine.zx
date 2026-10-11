@@ -1,0 +1,45 @@
+import { NodeKind } from "./reach/model"
+import facts from "./trace/facts"
+
+import type { Table } from "core/type_table/model"
+import type { Lanes, Unit } from "../unit"
+import type { Machine, ReachFrame } from "./reach/model"
+
+export type Input = { types: Table, units: Unit[] }
+
+export type Output = Machine
+
+export default function (in: Input): Output {
+    const summaries: Lanes[] = []
+    const numbers: u64[] = []
+    const ids: u32[] = []
+    const flags: bool[] = []
+    const kinds: NodeKind[] = []
+    const frames: ReachFrame[] = []
+
+    const slots = loop({ slots: numbers }, {
+        while: current => current.slots.length < 64,
+        next: current => { current.slots = current.slots.push(0)[0] }
+    }).slots
+
+    return {
+        types: in.types,
+        units: in.units,
+        facts: in.units.map(unit => facts(unit)),
+        summaries: summaries,
+        instances: { units: numbers, limits: numbers, widths: numbers, origins: numbers, loops_first: numbers, loops_count: numbers, currents: numbers },
+        origins: { firsts: numbers, counts: numbers, owners: ids },
+        loops: { origins: numbers, expressions: ids, firsts: numbers, counts: numbers },
+        nodes: { instances: numbers, expressions: numbers, firsts: numbers, counts: numbers, lows: numbers, active: flags, kinds: kinds, lanes: numbers, masks: numbers, owned: numbers, bases: numbers, children_first: numbers, children_count: numbers, rows: numbers },
+        slots: slots,
+        used: 0,
+        bits: flags,
+        children: numbers,
+        pool: ids,
+        stack: numbers,
+        dependencies: { instances: numbers, callees: numbers, firsts: numbers, counts: numbers, inputs_first: numbers, inputs_count: numbers, input_firsts: numbers, input_counts: numbers },
+        callee_instances: in.units.map(unit => 0),
+        frames: frames,
+        results: numbers
+    }
+}

@@ -1,0 +1,43 @@
+import integers from "std:integer"
+
+import body from "../calls/body"
+import parallel from "../control/parallel"
+import represented from "../types/represented"
+import boundary from "./boundary"
+
+import type { Program, Values } from "../model"
+
+export type Input = { program: Program, selected: bool[] }
+
+export type Output = Values
+
+export default function (in: Input): Output {
+    const pure = in.program.functions.output_types.map(id => false)
+    const local = in.program.functions.output_types.map(id => false)
+    const values = in.program.functions.output_types.map(id => false)
+
+    const result = loop({ program: in.program, selected: in.selected, pure: pure, local: local, values: values, index: 0 }, {
+        while: current => current.index < current.program.functions.output_types.length,
+        next: current => {
+            const index = current.index
+            const functions = current.program.functions
+
+            if (functions.native_modules[index] != null) {
+                current.pure[index] = boundary({ program: current.program, position: index, borrowed: false })
+                current.local[index] = boundary({ program: current.program, position: index, borrowed: true })
+            } else {
+                const plain = functions.stores[index].paths.length == 0 && !parallel({ control: functions.control[index], root: functions.roots[index] })
+
+                current.pure[index] = plain && body({ expressions: functions.expressions[index], contracts: functions.contracts[index], allowed: current.pure, limit: index })
+                current.local[index] = plain && body({ expressions: functions.expressions[index], contracts: functions.contracts[index], allowed: current.local, limit: index })
+            }
+
+            const output = functions.output_types[index]
+
+            current.values[index] = current.local[index] && (current.program.types.kinds[integers.widen(output)] == 1 || represented({ types: current.program.types, selected: current.selected, id: output }))
+            current.index += 1
+        }
+    })
+
+    return { pure: result.pure, local: result.local, values: result.values }
+}

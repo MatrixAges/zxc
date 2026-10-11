@@ -1,0 +1,38 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import children from "../ir/children"
+
+import type { Expressions } from "core/expression_table/model"
+
+export type Input = { table: Expressions, id: u64, symbol: u64 }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const stack: u64[] = [in.id]
+
+    const result = loop({ table: in.table, symbol: in.symbol, stack: stack, valid: true }, {
+        while: current => current.valid && current.stack.length != 0,
+        next: current => {
+            const id = current.stack[current.stack.length - 1]
+            const table = current.table
+            const kind = table.kinds[id]
+            const payload = integers.widen(table.payloads[id])
+
+            current.stack = current.stack.pop()[0]
+
+            if (kind == ExpressionKind.Reference) {
+                current.valid = integers.widen(table.references[payload]) != current.symbol
+            } else if (kind == ExpressionKind.Integer || kind == ExpressionKind.NegativeInteger || kind == ExpressionKind.Float || kind == ExpressionKind.String || kind == ExpressionKind.Boolean || kind == ExpressionKind.None || kind == ExpressionKind.Unit || kind == ExpressionKind.EnumValue || kind == ExpressionKind.ErrorValue) {
+                current.valid = true
+            } else if (kind == ExpressionKind.Some || kind == ExpressionKind.OptionalValue || kind == ExpressionKind.Length || kind == ExpressionKind.Field || kind == ExpressionKind.TupleField || kind == ExpressionKind.Index || kind == ExpressionKind.Unary || kind == ExpressionKind.Binary || kind == ExpressionKind.Conditional || kind == ExpressionKind.Call || kind == ExpressionKind.Object || kind == ExpressionKind.List || kind == ExpressionKind.Tuple || kind == ExpressionKind.Template) {
+                current.stack = current.stack.concat(children({ table: table, id: id }).map(child => integers.widen(child)))[0]
+            } else {
+                current.valid = false
+            }
+        }
+    })
+
+    return result.valid
+}

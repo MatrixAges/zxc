@@ -1,0 +1,18 @@
+import integers from "std:integer"
+
+import { InlineOp } from "../model"
+
+import type { Inline, Step } from "../model"
+
+export type Input = Step
+
+export type Output = Inline
+
+export default function (in: Input): Output {
+    const state = in.state
+    const control = state.units[state.mappings.units[in.frame.mapping]].control
+    const no = control.branch_no[in.frame.f]
+    const start = { ...in.frame, op: InlineOp.LowerStart, id: integers.widen(no) + 1, b: in.frame.i, c: in.frame.h }
+
+    return { ...state, frames: state.frames.concat([{ ...in.frame, op: InlineOp.LowerNo }, start])[0] }
+}

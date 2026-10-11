@@ -1,0 +1,17 @@
+export type Input = { pool: u32[], first: u64, count: u64 }
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    const empty: u32[] = []
+
+    const result = loop({ pool: in.pool, position: in.first, end: in.first + in.count, items: empty }, {
+        while: current => current.position < current.end,
+        next: current => {
+            current.items = current.items.push(current.pool[current.position])[0]
+            current.position += 1
+        }
+    })
+
+    return result.items
+}

@@ -1,0 +1,44 @@
+import type { Table } from "core/type_table/model"
+import type { Lanes, Unit } from "../../unit"
+import type { Facts } from "../trace/model"
+
+export enum NodeKind { None, All, Base, Join, Call, Iteration }
+
+export enum ReachOp { Visit, Finish, CallDependencies, DependencyCollect }
+
+export type ReachFrame = { op: ReachOp, instance: u64, id: u64, first: u64, count: u64, index: u64, parent: u64, total: u64, callee: u64, argument: u64 }
+
+export type Instances = { units: u64[], limits: u64[], widths: u64[], origins: u64[], loops_first: u64[], loops_count: u64[], currents: u64[] }
+
+export type Origins = { firsts: u64[], counts: u64[], owners: u32[] }
+
+export type Loops = { origins: u64[], expressions: u32[], firsts: u64[], counts: u64[] }
+
+export type Nodes = { instances: u64[], expressions: u64[], firsts: u64[], counts: u64[], lows: u64[], active: bool[], kinds: NodeKind[], lanes: u64[], masks: u64[], owned: u64[], bases: u64[], children_first: u64[], children_count: u64[], rows: u64[] }
+
+export type Dependencies = { instances: u64[], callees: u64[], firsts: u64[], counts: u64[], inputs_first: u64[], inputs_count: u64[], input_firsts: u64[], input_counts: u64[] }
+
+export type Machine = {
+    types: Table
+    units: Unit[]
+    facts: Facts[]
+    summaries: Lanes[]
+    instances: Instances
+    origins: Origins
+    loops: Loops
+    nodes: Nodes
+    slots: u64[]
+    used: u64
+    bits: bool[]
+    children: u64[]
+    pool: u32[]
+    stack: u64[]
+    dependencies: Dependencies
+    callee_instances: u64[]
+    frames: ReachFrame[]
+    results: u64[]
+}
+
+export type Request = { id: u64, mode: u8, first: u64, count: u64, index: u32, path: u32[] }
+
+export type Plan = { kind: NodeKind, lanes: u64, mask: bool[], owned: bool[], base: bool[], requests: Request[], call: bool, callee: u64, argument: u64 }

@@ -1,0 +1,11 @@
+import type { Inline } from "./model"
+
+export type Input = { state: Inline, mapping: u64, id: u64, value: u64 }
+
+export type Output = Inline
+
+export default function (in: Input): Output {
+    const position = in.state.mappings.bases[in.mapping] + in.id
+
+    return { ...in.state, ids: in.state.ids.with(position, in.value + 1), stack: in.state.stack.push(in.value)[0] }
+}

@@ -1,0 +1,32 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import make from "../value/make"
+import { ValueKind } from "../value/model"
+import recorded from "./recorded"
+
+import type { Machine } from "../model"
+
+export type Input = { machine: Machine, id: u64, target: u64 }
+
+export type Output = { machine: Machine, value: u64 }
+
+export default function (in: Input): Output {
+    const machine = in.machine
+    const kind = machine.arena.kinds[in.target]
+    const context = machine.context
+
+    if (kind == ValueKind.None) {
+        return { machine: machine, value: 0 }
+    }
+
+    if (kind != ValueKind.Version || machine.arena.numbers[in.target] != context.current) {
+        return { machine: { ...machine, context: { ...context, valid: false } }, value: 0 }
+    }
+
+    const skip = machine.units[context.unit].expressions.kinds[in.id] == ExpressionKind.Call || recorded({ updates: machine.updates, id: in.id })
+    const serial = context.serial + 1
+    const made = make({ arena: machine.arena, kind: ValueKind.Version, number: serial })
+
+    return { machine: { ...machine, arena: made.arena, updates: skip ? machine.updates : machine.updates.push(integers.narrow(in.id))[0], context: { ...context, serial: serial, current: serial } }, value: made.value }
+}

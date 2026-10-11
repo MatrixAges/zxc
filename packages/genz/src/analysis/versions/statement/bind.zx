@@ -1,0 +1,14 @@
+import bind from "../machine/bind"
+import pop from "../machine/pop"
+
+import type { Machine, Step } from "../model"
+
+export type Input = Step
+
+export type Output = Machine
+
+export default function (in: Input): Output {
+    const value = pop(in.machine)
+
+    return bind({ machine: value.machine, symbol: in.frame.a, value: value.value })
+}

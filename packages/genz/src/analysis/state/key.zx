@@ -1,0 +1,15 @@
+export type Input = { keys: u8[], bytes: u8[], id: u64 }
+
+export type Output = u8[]
+
+export default function (in: Input): Output {
+    const result = loop({ keys: in.keys, bytes: in.bytes, position: in.id * 32, end: in.id * 32 + 32 }, {
+        while: current => current.position < current.end,
+        next: current => {
+            current.bytes = current.bytes.push(current.keys[current.position])[0]
+            current.position += 1
+        }
+    })
+
+    return result.bytes
+}

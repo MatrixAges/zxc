@@ -1,0 +1,13 @@
+import cost from "./cost"
+
+import type { Inline } from "./model"
+
+export type Input = { state: Inline, id: u32 }
+
+export type Output = Inline
+
+export default function (in: Input): Output {
+    const value = cost({ table: in.state.tables.expressions, costs: in.state.costs, limit: in.state.limit, id: in.id })
+
+    return { ...in.state, costs: in.state.costs.push(value)[0] }
+}

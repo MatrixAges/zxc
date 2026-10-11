@@ -1,0 +1,11 @@
+import type { Inline, InlineFrame } from "./model"
+
+export type Input = Inline
+
+export type Output = Inline
+
+export default function (in: Input): Output {
+    const frames: InlineFrame[] = []
+
+    return { ...in, failed: true, frames: frames }
+}

@@ -1,0 +1,56 @@
+import integers from "std:integer"
+import { StatementKind } from "core/control_table/model"
+
+import type { Control } from "core/control_table/model"
+
+export type Input = { control: Control, root: u32? }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const root = in.root
+
+    if (root == null) {
+        return false
+    }
+
+    const blocks: u32[] = [root]
+
+    const result = loop({ control: in.control, blocks: blocks, found: false }, {
+        while: current => !current.found && current.blocks.length != 0,
+        next: current => {
+            const block = integers.widen(current.blocks[current.blocks.length - 1])
+
+            current.blocks = current.blocks.pop()[0]
+
+            const scanned = loop({ control: current.control, blocks: current.blocks, position: integers.widen(current.control.block_first[block]), end: integers.widen(current.control.block_first[block]) + integers.widen(current.control.block_count[block]), found: false }, {
+                while: statements => !statements.found && statements.position < statements.end,
+                next: statements => {
+                    const kind = statements.control.statement_kinds[statements.position]
+                    const payload = integers.widen(statements.control.statement_payloads[statements.position])
+
+                    if (kind == StatementKind.Parallel) {
+                        statements.found = true
+                    } else if (kind == StatementKind.Branch) {
+                        statements.blocks = statements.blocks.concat([statements.control.branch_no[payload], statements.control.branch_yes[payload]])[0]
+                    } else if (kind == StatementKind.Switch) {
+                        statements.blocks = loop({ control: statements.control, blocks: statements.blocks, item: integers.widen(statements.control.selection_first[payload]), end: integers.widen(statements.control.selection_first[payload]) + integers.widen(statements.control.selection_count[payload]) }, {
+                            while: cases => cases.item < cases.end,
+                            next: cases => {
+                                cases.blocks = cases.blocks.push(cases.control.case_bodies[cases.item])[0]
+                                cases.item += 1
+                            }
+                        }).blocks
+                    }
+
+                    statements.position += 1
+                }
+            })
+
+            current.blocks = scanned.blocks
+            current.found = scanned.found
+        }
+    })
+
+    return result.found
+}

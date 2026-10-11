@@ -1,0 +1,34 @@
+import type { Control } from "core/control_table/model"
+import type { Expressions } from "core/expression_table/model"
+import type { Symbols } from "core/symbol_table/model"
+import type { Table } from "core/type_table/model"
+import type { Unit } from "../unit"
+
+export enum InlineOp { Map, Build, Inline, InlineDone, LowerStart, LowerStep, LowerResult, LowerConstant, LowerEvaluate, LowerDestructure, LowerBranch, LowerYes, LowerNo, LowerSwitch, SwitchDefault, SwitchDefaultDone, SwitchCase, SwitchCaseBody, SwitchCaseCondition, SwitchFinish, BlockStart, BlockNext, BlockCollect, Discard }
+
+export type InlineFrame = { op: InlineOp, mapping: u64, id: u64, a: u64, b: u64, c: u64, d: u64, e: u64, f: u64, g: u64, h: u64, i: u64, j: u64, k: u64, l: u64, m: u64, n: u64, start: u64 }
+
+export type Tables = { expressions: Expressions, control: Control, symbols: Symbols }
+
+export type Mappings = { units: u64[], bases: u64[], offsets: u64[], all: bool[] }
+
+export type Inline = {
+    types: Table
+    units: Unit[]
+    plan: u64[]
+    limit: u64
+    void_type: u32
+    bool_type: u32
+    selected: bool[]
+    tables: Tables
+    costs: u64[]
+    depth: u64
+    failed: bool
+    mappings: Mappings
+    ids: u64[]
+    frames: InlineFrame[]
+    stack: u64[]
+    pool: u64[]
+}
+
+export type Step = { state: Inline, frame: InlineFrame }

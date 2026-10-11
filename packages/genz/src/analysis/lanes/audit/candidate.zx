@@ -1,0 +1,34 @@
+import query from "../trace/query"
+import same from "../trace/same"
+
+import type { Lane } from "../../unit"
+import type { Trace } from "../trace/model"
+
+export type Input = { trace: Trace, lanes: Lane[], argument: u64, input: u32[] }
+
+export type Output = { trace: Trace, lane: u64 }
+
+export default function (in: Input): Output {
+    const result = loop({ trace: in.trace, lanes: in.lanes, argument: in.argument, input: in.input, position: 0, found: in.lanes.length }, {
+        while: current => current.found == current.lanes.length && current.position < current.lanes.length,
+        next: current => {
+            const lane = current.lanes[current.position]
+
+            if (!lane.rejected) {
+                const first = current.trace.pool.length
+                const stored = { ...current.trace, pool: current.trace.pool.concat(lane.input)[0] }
+                const traced = query({ trace: stored, id: current.argument, first: first, count: lane.input.length })
+
+                current.trace = traced.trace
+
+                if (traced.origin.present && same({ left: current.trace.pool, left_first: traced.origin.first, left_count: traced.origin.count, right: current.input, right_first: 0, right_count: current.input.length })) {
+                    current.found = current.position
+                }
+            }
+
+            current.position += 1
+        }
+    })
+
+    return { trace: result.trace, lane: result.found }
+}

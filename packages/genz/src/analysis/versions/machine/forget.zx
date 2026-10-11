@@ -1,0 +1,25 @@
+import type { Contexts } from "../model"
+
+export type Input = Contexts
+
+export type Output = Contexts
+
+export default function (in: Input): Output {
+    return {
+        units: in.units.pop()[0],
+        limits: in.limits.pop()[0],
+        currents: in.currents.pop()[0],
+        serials: in.serials.pop()[0],
+        valid: in.valid.pop()[0],
+        borrowing: in.borrowing.pop()[0],
+        enabled: in.enabled.pop()[0],
+        summaries: in.summaries.pop()[0],
+        readers: in.readers.pop()[0],
+        discover: in.discover.pop()[0],
+        selecting: in.selecting.pop()[0],
+        looping: in.looping.pop()[0],
+        symbol_bases: in.symbol_bases.pop()[0],
+        cached_bases: in.cached_bases.pop()[0],
+        result_bases: in.result_bases.pop()[0]
+    }
+}

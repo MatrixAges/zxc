@@ -1,0 +1,37 @@
+import integers from "std:integer"
+
+import { InlineOp } from "../model"
+import symbols from "./symbols"
+
+import type { Inline, Step } from "../model"
+
+export type Input = Step
+
+export type Output = Inline
+
+export default function (in: Input): Output {
+    const state = in.state
+    const table = state.units[state.mappings.units[in.frame.mapping]].expressions
+    const id = in.frame.id
+    const callee = integers.widen(table.call_functions[integers.widen(table.payloads[id])])
+    const unit = state.units[callee]
+    const offset = state.tables.symbols.names.length
+    const base = state.ids.length
+    const child = state.mappings.units.length
+    const extended = symbols({ state: state, unit: callee })
+    const root = unit.root
+
+    const ids = loop({ ids: extended.ids, remaining: unit.expressions.kinds.length }, {
+        while: current => current.remaining != 0,
+        next: current => {
+            current.ids = current.ids.push(0)[0]
+            current.remaining -= 1
+        }
+    }).ids
+
+    const mappings = { units: extended.mappings.units.push(callee)[0], bases: extended.mappings.bases.push(base)[0], offsets: extended.mappings.offsets.push(offset)[0], all: extended.mappings.all.push(true)[0] }
+    const done = { ...in.frame, op: InlineOp.InlineDone, a: child }
+    const start = { ...in.frame, op: InlineOp.LowerStart, mapping: child, id: root == null ? 0 : integers.widen(root) + 1, b: 0, c: integers.widen(unit.output_type), d: table.span_start[id], e: table.span_end[id] }
+
+    return { ...extended, ids: ids, mappings: mappings, frames: extended.frames.concat([done, start])[0] }
+}

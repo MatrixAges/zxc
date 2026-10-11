@@ -1,0 +1,25 @@
+import invalid from "../machine/invalid"
+import pop from "../machine/pop"
+import push from "../machine/push"
+import snapshot from "../machine/snapshot"
+import { Op } from "../model"
+import retains from "../value/retains"
+
+import type { Machine, Step } from "../model"
+
+export type Input = Step
+
+export type Output = Machine
+
+export default function (in: Input): Output {
+    const initial = pop(in.machine)
+    const machine = initial.machine
+
+    if (!retains({ arena: machine.arena, value: initial.value, paths: machine.paths, first: in.frame.first, count: in.frame.count, current: machine.context.current })) {
+        return push({ machine: invalid({ machine: machine, valid: false }), value: 0 })
+    }
+
+    const saved = snapshot(machine)
+
+    return { ...saved, frames: saved.frames.push({ ...in.frame, op: Op.UpdatingRound, a: 0, b: initial.value, c: initial.value })[0] }
+}

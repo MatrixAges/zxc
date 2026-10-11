@@ -66,6 +66,9 @@ pub const main = [_]Entry{
     .{ .path = "verification/query/build.rx", .name = "verification_query", .owner = .compiler },
     .{ .path = "lint/naming/check.rx", .name = "naming", .owner = .lint },
     .{ .path = "genz/printer/render.rx", .name = "printer", .owner = .genz },
+    .{ .path = "genz/analysis/facts/analyze.rx", .name = "function_facts", .owner = .genz },
+    .{ .path = "genz/analysis/versions/discover.rx", .name = "iteration_discover", .owner = .genz },
+    .{ .path = "genz/analysis/inline/prepare.rx", .name = "inline_prepare", .owner = .genz },
 };
 
 /// Individual checkers that zxc reaches through the unified IR validation instead; only test builds import them.

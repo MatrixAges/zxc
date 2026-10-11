@@ -1,0 +1,88 @@
+import integers from "std:integer"
+import branch from "core/control_table/append/branch"
+import constant from "core/control_table/append/constant"
+import destructure from "core/control_table/append/destructure"
+import evaluate from "core/control_table/append/evaluate"
+import parallel from "core/control_table/append/parallel"
+import result from "core/control_table/append/result"
+import selection from "core/control_table/append/selection"
+import setter from "core/control_table/append/setter"
+
+import symbols from "./symbols"
+
+import type { Control } from "core/control_table/model"
+
+export type Input = { source: Control, offset: u64, table: Control, pool: u64[], start: u64 }
+
+export type Output = Control
+
+export default function (in: Input): Output {
+    const source = in.source
+    const none: u32[] = []
+    const optional: u32?[] = []
+
+    const appended = loop({ source: source, offset: in.offset, table: in.table, list: in.pool, position: in.start, none: none, optional: optional }, {
+        while: current => current.position < current.list.length,
+        next: current => {
+            const list = current.list
+            const code = list[current.position]
+            const payload = list[current.position + 1]
+            const count = list[current.position + 2]
+            const values = current.position + 3
+            const source = current.source
+
+            if (code == 0) {
+                current.table = evaluate({ table: current.table, value: integers.narrow(list[values]) })
+            } else if (code == 1) {
+                current.table = constant({ table: current.table, symbol: integers.narrow(integers.widen(source.constant_symbols[payload]) + current.offset), value: integers.narrow(list[values]) })
+            } else if (code == 2) {
+                const shifted = symbols({ symbols: source.parallel_symbols, first: integers.widen(source.parallel_first[payload]), count: count, offset: current.offset })
+                const mapped = loop({ list: list, position: values, end: values + count, items: current.none }, {
+                    while: items => items.position < items.end,
+                    next: items => {
+                        items.items = items.items.push(integers.narrow(items.list[items.position]))[0]
+                        items.position += 1
+                    }
+                }).items
+
+                current.table = parallel({ table: current.table, symbols: shifted, values: mapped })
+            } else if (code == 3) {
+                current.table = destructure({ table: current.table, value: integers.narrow(list[values]), symbols: symbols({ symbols: source.destructure_symbols, first: integers.widen(source.destructure_first[payload]), count: integers.widen(source.destructure_count[payload]), offset: current.offset }) })
+            } else if (code == 4) {
+                current.table = branch({ table: current.table, condition: integers.narrow(list[values]), yes: integers.narrow(list[values + 1]), no: integers.narrow(list[values + 2]) })
+            } else if (code == 5) {
+                const cases = loop({ source: source, list: list, position: integers.widen(source.selection_first[payload]), end: integers.widen(source.selection_first[payload]) + integers.widen(source.selection_count[payload]), index: values, values: current.optional, bodies: current.none }, {
+                    while: items => items.position < items.end,
+                    next: items => {
+                        if (items.source.case_values[items.position] != null) {
+                            const value: u32? = integers.narrow(items.list[items.index])
+
+                            items.values = items.values.push(value)[0]
+                            items.index += 1
+                        } else {
+                            const value: u32? = null
+
+                            items.values = items.values.push(value)[0]
+                        }
+
+                        items.bodies = items.bodies.push(integers.narrow(items.list[items.index]))[0]
+                        items.index += 1
+                        items.position += 1
+                    }
+                })
+
+                current.table = selection({ table: current.table, subject: integers.narrow(list[cases.index]), exhaustive: source.selection_exhaustive[payload], values: cases.values, bodies: cases.bodies })
+            } else if (code == 6) {
+                current.table = setter({ table: current.table, slot: source.setter_slots[payload], value: integers.narrow(list[values]) })
+            } else {
+                const value: u32? = count == 0 ? null : integers.narrow(list[values])
+
+                current.table = result({ table: current.table, value: value })
+            }
+
+            current.position = values + count
+        }
+    }).table
+
+    return appended
+}

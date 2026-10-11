@@ -1,0 +1,56 @@
+import { NodeKind } from "./model"
+
+import type { Nodes } from "./model"
+
+export type Input = { nodes: Nodes, bits: bool[], children: u64[], index: u64, width: u64 }
+
+export type Output = bool[]
+
+export default function (in: Input): Output {
+    const nodes = in.nodes
+    const index = in.index
+    const kind = nodes.kinds[index]
+    const mask = nodes.masks[index]
+    const owned = nodes.owned[index]
+    const base = nodes.bases[index]
+    const first = nodes.children_first[index]
+    const count = nodes.children_count[index]
+    const empty: bool[] = []
+
+    const result = loop({ nodes: nodes, bits: in.bits, children: in.children, kind: kind, mask: mask, owned: owned, base: base, first: first, count: count, lanes: nodes.lanes[index], width: in.width, row: empty, bit: 0 }, {
+        while: current => current.bit < current.width,
+        next: current => {
+            const bit = current.bit
+            const bits = current.bits
+            const nodes = current.nodes
+
+            const joined = loop({ nodes: nodes, bits: bits, children: current.children, position: current.first, end: current.first + current.count, bit: bit, value: false }, {
+                while: items => !items.value && items.position < items.end,
+                next: items => {
+                    items.value = items.bits[items.nodes.rows[items.children[items.position]] + items.bit]
+                    items.position += 1
+                }
+            }).value
+
+            const leading = current.count == 0 ? false : bits[nodes.rows[current.children[current.first]] + bit]
+            const second = current.count < 2 ? false : bits[nodes.rows[current.children[current.first + 1]] + bit]
+            const chosen = current.owned != 0 && bits[current.owned - 1 + bit]
+
+            const value = match current.kind {
+                NodeKind.None => false,
+                NodeKind.All => true,
+                NodeKind.Base => bits[current.base - 1 + bit],
+                NodeKind.Iteration => leading || (second && !chosen),
+                NodeKind.Call => current.lanes != 0 && chosen ? leading : joined,
+                _ => joined,
+            }
+
+            const kept = current.mask == 0 || bits[current.mask - 1 + bit]
+
+            current.row = current.row.push(value && kept)[0]
+            current.bit += 1
+        }
+    })
+
+    return result.row
+}

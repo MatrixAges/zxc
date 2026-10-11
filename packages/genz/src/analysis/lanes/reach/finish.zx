@@ -1,0 +1,25 @@
+import close from "./close"
+import connect from "./connect"
+import store from "./store"
+import transfer from "./transfer"
+
+import type { Machine, ReachFrame } from "./model"
+
+export type Input = { machine: Machine, frame: ReachFrame }
+
+export type Output = Machine
+
+export default function (in: Input): Output {
+    const machine = in.machine
+    const frame = in.frame
+    const index = frame.index
+    const children_first = machine.children.length
+    const moved = transfer({ results: machine.results, children: machine.children, count: frame.total })
+    const linked = { ...machine, results: moved.results, children: moved.children, nodes: { ...machine.nodes, children_first: machine.nodes.children_first.with(index, children_first), children_count: machine.nodes.children_count.with(index, frame.total) } }
+    const stored = store({ machine: linked, index: index }).machine
+    const closed = stored.nodes.lows[index] == index ? close({ machine: stored, root: index }) : stored
+    const low = closed.nodes.lows[index]
+    const nodes = frame.parent != 0 ? connect({ nodes: closed.nodes, caller: frame.parent - 1, low: low }) : closed.nodes
+
+    return { ...closed, nodes: nodes, instances: { ...closed.instances, currents: closed.instances.currents.with(frame.instance, frame.parent) }, results: closed.results.push(index)[0] }
+}

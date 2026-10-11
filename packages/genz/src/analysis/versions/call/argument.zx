@@ -1,0 +1,69 @@
+import integers from "std:integer"
+
+import hasList from "../../types/has_list"
+import advance from "../machine/advance"
+import expressions from "../machine/expressions"
+import invalid from "../machine/invalid"
+import observe from "../machine/observe"
+import pop from "../machine/pop"
+import push from "../machine/push"
+import contains from "../value/contains"
+import count from "../value/count"
+import seed from "../value/seed"
+import select from "../value/select"
+import borrow from "./borrow"
+import discover from "./discover"
+import selected from "./selected"
+
+import type { Machine, Step } from "../model"
+
+export type Input = Step
+
+export type Output = Machine
+
+export default function (in: Input): Output {
+    const argument = pop(in.machine)
+    const machine = argument.machine
+    const value = argument.value
+    const table = expressions(machine)
+    const payload = integers.widen(table.payloads[in.frame.id])
+    const callee = integers.widen(table.call_functions[payload])
+
+    if (machine.context.borrowing) {
+        return borrow({ machine: machine, id: in.frame.id, argument: value })
+    }
+
+    const unit = machine.units[callee]
+
+    if (!machine.context.enabled) {
+        const observed = observe({ machine: machine, value: value })
+        const escapes = contains({ arena: observed.arena, value: value }) && (unit.external || hasList({ types: observed.types, id: unit.output_type }))
+
+        return push({ machine: invalid({ machine: observed, valid: !escapes }), value: 0 })
+    }
+
+    if (!contains({ arena: machine.arena, value: value })) {
+        return push({ machine: machine, value: 0 })
+    }
+
+    const chosen = machine.context.selecting ? selected({ calls: machine.selected, id: in.frame.id }) : machine.selected.length
+
+    if (chosen != machine.selected.length) {
+        const lane = machine.summaries[callee][machine.selected[chosen].lane]
+        const observed = observe({ machine: machine, value: value })
+        const checked = invalid({ machine: observed, valid: count({ arena: observed.arena, value: value }) == 1 && !lane.rejected })
+        const target = select({ arena: checked.arena, value: value, path: lane.input })
+        const advanced = advance({ machine: checked, id: in.frame.id, target: target }).machine
+        const seeded = seed({ types: advanced.types, arena: advanced.arena, type_id: unit.output_type, path: lane.output, current: advanced.context.current })
+
+        return push({ machine: { ...advanced, arena: seeded.arena }, value: seeded.value })
+    }
+
+    if (machine.context.discover && callee < machine.context.summaries && table.call_store_count[payload] == 0) {
+        const discovered = discover({ machine: machine, id: in.frame.id, callee: callee, argument: value })
+
+        return discovered.found ? discovered.machine : borrow({ machine: discovered.machine, id: in.frame.id, argument: value })
+    }
+
+    return borrow({ machine: machine, id: in.frame.id, argument: value })
+}

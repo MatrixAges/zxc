@@ -1,0 +1,81 @@
+import aggregate from "./aggregate"
+import children from "./children"
+import contains from "./contains"
+import make from "./make"
+import { ValueKind } from "./model"
+
+import type { Arena, Made } from "./model"
+
+export type Input = { arena: Arena, left: u64, right: u64, left_version: u64, right_version: u64, joined: u64 }
+
+export type Output = Made
+
+export type Frame = { build: bool, left: u64, right: u64, left_version: u64, right_version: u64, count: u64 }
+
+export default function (in: Input): Output {
+    const frames: Frame[] = [{ build: false, left: in.left, right: in.right, left_version: in.left_version, right_version: in.right_version, count: 0 }]
+    const results: u64[] = []
+
+    const state = loop({ arena: in.arena, joined: in.joined, frames: frames, results: results, empty: results }, {
+        while: current => current.frames.length != 0,
+        next: current => {
+            const frame = current.frames[current.frames.length - 1]
+
+            current.frames = current.frames.pop()[0]
+
+            if (frame.build) {
+                const start = current.results.length - frame.count
+                const collected = loop({ results: current.results, position: start, items: current.empty }, {
+                    while: items => items.position < items.results.length,
+                    next: items => {
+                        items.items = items.items.push(items.results[items.position])[0]
+                        items.position += 1
+                    }
+                }).items
+                const made = aggregate({ arena: current.arena, children: collected })
+
+                current.results = current.results.splice(start, frame.count, [made.value])[0]
+                current.arena = made.arena
+            } else {
+                const arena = current.arena
+                const left = arena.kinds[frame.left]
+                const right = arena.kinds[frame.right]
+                const left_contains = contains({ arena: arena, value: frame.left })
+                const right_contains = contains({ arena: arena, value: frame.right })
+                const left_readable = left == ValueKind.None || ((left == ValueKind.Version || left == ValueKind.Borrowed) && arena.numbers[frame.left] == frame.left_version)
+                const right_readable = right == ValueKind.None || ((right == ValueKind.Version || right == ValueKind.Borrowed) && arena.numbers[frame.right] == frame.right_version)
+
+                if (!left_contains && !right_contains) {
+                    current.results = current.results.push(0)[0]
+                } else if (left == ValueKind.Version && right == ValueKind.Version && arena.numbers[frame.left] == frame.left_version && arena.numbers[frame.right] == frame.right_version) {
+                    const made = make({ arena: arena, kind: ValueKind.Version, number: current.joined })
+
+                    current.arena = made.arena
+                    current.results = current.results.push(made.value)[0]
+                } else if (left_readable && right_readable) {
+                    const made = make({ arena: arena, kind: ValueKind.Borrowed, number: current.joined })
+
+                    current.arena = made.arena
+                    current.results = current.results.push(made.value)[0]
+                } else if (left == ValueKind.Aggregate && (right == ValueKind.None || (right == ValueKind.Aggregate && arena.count[frame.left] == arena.count[frame.right]))) {
+                    const lefts = children({ arena: arena, value: frame.left })
+                    const rights = right == ValueKind.None ? lefts.map(value => 0) : children({ arena: arena, value: frame.right })
+
+                    current.frames = loop({ frames: current.frames.push({ ...frame, build: true, count: lefts.length })[0], frame: frame, lefts: lefts, rights: rights, remaining: lefts.length }, {
+                        while: pending => pending.remaining != 0,
+                        next: pending => {
+                            pending.remaining -= 1
+                            pending.frames = pending.frames.push({ ...pending.frame, left: pending.lefts[pending.remaining], right: pending.rights[pending.remaining] })[0]
+                        }
+                    }).frames
+                } else if (left == ValueKind.None && right == ValueKind.Aggregate) {
+                    current.frames = current.frames.push({ ...frame, left: frame.right, right: frame.left, left_version: frame.right_version, right_version: frame.left_version })[0]
+                } else {
+                    current.results = current.results.push(1)[0]
+                }
+            }
+        }
+    })
+
+    return { arena: state.arena, value: state.results[0] }
+}

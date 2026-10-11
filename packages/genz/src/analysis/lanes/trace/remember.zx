@@ -1,0 +1,9 @@
+import contains from "./contains"
+
+export type Input = { items: u32[], id: u32 }
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    return contains({ items: in.items, id: in.id }) ? in.items : in.items.push(in.id)[0]
+}

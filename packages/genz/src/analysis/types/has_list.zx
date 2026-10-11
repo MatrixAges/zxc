@@ -1,0 +1,39 @@
+import integers from "std:integer"
+
+import type { Table } from "core/type_table/model"
+
+export type Input = { types: Table, id: u32 }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const stack: u32[] = [in.id]
+
+    const result = loop({ types: in.types, stack: stack, found: false }, {
+        while: current => !current.found && current.stack.length != 0,
+        next: current => {
+            const index = integers.widen(current.stack[current.stack.length - 1])
+            const kind = current.types.kinds[index]
+            const first = integers.widen(current.types.first[index])
+            const count = integers.widen(current.types.second[index])
+
+            current.stack = current.stack.pop()[0]
+
+            if (kind == 3) {
+                current.found = true
+            } else if (kind == 2) {
+                current.stack = current.stack.push(current.types.first[index])[0]
+            } else if (kind == 1 || kind == 4) {
+                current.stack = loop({ types: current.types, stack: current.stack, object: kind == 1, position: first, end: first + count }, {
+                    while: members => members.position < members.end,
+                    next: members => {
+                        members.stack = members.stack.push(members.object ? members.types.field_types[members.position] : members.types.children[members.position])[0]
+                        members.position += 1
+                    }
+                }).stack
+            }
+        }
+    })
+
+    return result.found
+}

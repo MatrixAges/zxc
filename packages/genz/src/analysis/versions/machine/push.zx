@@ -1,0 +1,9 @@
+import type { Machine } from "../model"
+
+export type Input = { machine: Machine, value: u64 }
+
+export type Output = Machine
+
+export default function (in: Input): Output {
+    return { ...in.machine, stack: in.machine.stack.push(in.value)[0] }
+}

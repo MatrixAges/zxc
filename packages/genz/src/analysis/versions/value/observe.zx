@@ -1,0 +1,37 @@
+import { ValueKind } from "./model"
+
+import type { Arena } from "./model"
+
+export type Input = { arena: Arena, value: u64, current: u64 }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const stack: u64[] = [in.value]
+
+    const result = loop({ arena: in.arena, current: in.current, stack: stack, valid: true }, {
+        while: state => state.valid && state.stack.length != 0,
+        next: state => {
+            const value = state.stack[state.stack.length - 1]
+            const kind = state.arena.kinds[value]
+
+            state.stack = state.stack.pop()[0]
+
+            if (kind == ValueKind.Aggregate) {
+                state.stack = loop({ arena: state.arena, stack: state.stack, position: state.arena.first[value], end: state.arena.first[value] + state.arena.count[value] }, {
+                    while: children => children.position < children.end,
+                    next: children => {
+                        children.stack = children.stack.push(children.arena.items[children.position])[0]
+                        children.position += 1
+                    }
+                }).stack
+            } else if (kind == ValueKind.Stale) {
+                state.valid = false
+            } else if (kind == ValueKind.Version || kind == ValueKind.Borrowed) {
+                state.valid = state.arena.numbers[value] == state.current
+            }
+        }
+    })
+
+    return result.valid
+}

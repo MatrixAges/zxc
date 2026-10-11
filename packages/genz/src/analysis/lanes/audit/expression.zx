@@ -1,0 +1,145 @@
+import integers from "std:integer"
+import { CollectionKind, ExpressionKind } from "core/expression_table/kinds"
+
+import detached from "../../types/detached"
+import query from "../reach/query"
+import any from "./any"
+import appended from "./appended"
+import call from "./call"
+import classify from "./classify"
+import operands from "./operands"
+
+import type { Audit } from "./context"
+
+export type Input = { audit: Audit, id: u64 }
+
+export type Output = Audit
+
+export default function (in: Input): Output {
+    const audit = in.audit
+    const table = audit.trace.unit.expressions
+    const id = in.id
+    const kind = table.kinds[id]
+    const payload = integers.widen(table.payloads[id])
+
+    if (kind == ExpressionKind.Transform) {
+        return { ...audit, code: 4 }
+    }
+
+    if (kind == ExpressionKind.Capture || kind == ExpressionKind.Task || kind == ExpressionKind.AwaitTask || kind == ExpressionKind.CancelTask || kind == ExpressionKind.Parallel) {
+        return { ...audit, code: 9 }
+    }
+
+    if (kind == ExpressionKind.Iteration) {
+        const selected = loop({ iterations: audit.lane.iterations, id: id, position: 0, found: false }, {
+            while: current => !current.found && current.position < current.iterations.length,
+            next: current => {
+                current.found = integers.widen(current.iterations[current.position].expression) == current.id
+                current.position += 1
+            }
+        }).found
+
+        if (selected) {
+            return audit
+        }
+
+        const visited = query({ machine: audit.machine, instance: audit.instance, id: id, first: 0, count: 0 })
+        const dependent = visited.machine.bits[visited.machine.nodes.rows[visited.index] + audit.slot]
+
+        return { ...audit, machine: visited.machine, code: dependent ? 4 : 0 }
+    }
+
+    if (kind == ExpressionKind.ListUpdate) {
+        const value = classify({ audit: audit, id: integers.widen(table.update_values[payload]) })
+
+        if (value.count != 0) {
+            return { ...value.audit, code: 6 }
+        }
+
+        const target = classify({ audit: value.audit, id: integers.widen(table.update_targets[payload]) })
+
+        const recorded = loop({ updates: audit.lane.updates, id: id, position: 0, found: false }, {
+            while: current => !current.found && current.position < current.updates.length,
+            next: current => {
+                current.found = integers.widen(current.updates[current.position]) == current.id
+                current.position += 1
+            }
+        }).found
+
+        return { ...target.audit, code: target.count != 0 && !recorded ? 9 : 0 }
+    }
+
+    if (kind == ExpressionKind.Index) {
+        if (detached({ types: audit.machine.types, id: table.types[id] })) {
+            return audit
+        }
+
+        const target = classify({ audit: audit, id: integers.widen(table.index_targets[payload]) })
+
+        return { ...target.audit, code: target.count != 0 ? 7 : 0 }
+    }
+
+    if (kind == ExpressionKind.Some || kind == ExpressionKind.OptionalValue || kind == ExpressionKind.List) {
+        const found = any({ audit: audit, ids: operands({ table: table, id: id }) })
+
+        return { ...found.audit, code: found.found ? 6 : 0 }
+    }
+
+    if (kind == ExpressionKind.Binary || kind == ExpressionKind.Unary || kind == ExpressionKind.Template) {
+        const found = any({ audit: audit, ids: operands({ table: table, id: id }) })
+
+        return { ...found.audit, code: found.found ? 8 : 0 }
+    }
+
+    if (kind == ExpressionKind.Object) {
+        const cached = loop({ table: table, appends: audit.lane.appends, position: integers.widen(table.object_evaluation_first[payload]), end: integers.widen(table.object_evaluation_first[payload]) + integers.widen(table.object_evaluation_count[payload]), found: false }, {
+            while: current => !current.found && current.position < current.end,
+            next: current => {
+                current.found = appended({ table: current.table, appends: current.appends, target: integers.widen(current.table.object_evaluation_values[current.position]) })
+                current.position += 1
+            }
+        }).found
+
+        return { ...audit, code: cached ? 12 : 0 }
+    }
+
+    if (kind == ExpressionKind.ListOperation) {
+        const found = any({ audit: audit, ids: operands({ table: table, id: id }) })
+
+        if (found.found) {
+            return { ...found.audit, code: 6 }
+        }
+
+        const target = classify({ audit: found.audit, id: integers.widen(table.collection_targets[payload]) })
+        const operation = table.collection_kinds[payload]
+        const checked = target.audit
+
+        if (target.count == 0 || operation == CollectionKind.Splice) {
+            return checked
+        }
+
+        if (operation == CollectionKind.Pop) {
+            const popped = loop({ pops: audit.lane.pops, id: id, position: 0, found: false }, {
+                while: current => !current.found && current.position < current.pops.length,
+                next: current => {
+                    current.found = integers.widen(current.pops[current.position]) == current.id
+                    current.position += 1
+                }
+            }).found
+
+            return { ...checked, code: popped ? 0 : 11 }
+        }
+
+        if (operation != CollectionKind.Push && operation != CollectionKind.Concat) {
+            return { ...checked, code: 9 }
+        }
+
+        return { ...checked, code: appended({ table: table, appends: audit.lane.appends, target: id }) ? 0 : 10 }
+    }
+
+    if (kind == ExpressionKind.Call) {
+        return call({ audit: audit, id: id })
+    }
+
+    return audit
+}

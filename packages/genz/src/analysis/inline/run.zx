@@ -1,0 +1,77 @@
+import collect from "./block/collect"
+import next from "./block/next"
+import blockStart from "./block/start"
+import build from "./expression/build"
+import inline from "./expression/inline"
+import inlineDone from "./expression/inline_done"
+import map from "./expression/map"
+import branch from "./lower/branch"
+import constant from "./lower/constant"
+import destructure from "./lower/destructure"
+import evaluate from "./lower/evaluate"
+import no from "./lower/no"
+import result from "./lower/result"
+import start from "./lower/start"
+import step from "./lower/step"
+import yes from "./lower/yes"
+import { InlineOp } from "./model"
+import switchCase from "./select/case"
+import caseBody from "./select/case_body"
+import caseCondition from "./select/case_condition"
+import switchDefault from "./select/default"
+import defaultDone from "./select/default_done"
+import finish from "./select/finish"
+import subject from "./select/start"
+
+import type { Inline } from "./model"
+
+export type Input = Inline
+
+export type Output = Inline
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: current => current.frames.length != 0,
+        next: current => {
+            const frame = current.frames[current.frames.length - 1]
+            const step_input = { state: { ...current, frames: current.frames.pop()[0] }, frame: frame }
+
+            const following = match frame.op {
+                InlineOp.Map => map(step_input),
+                InlineOp.Build => build(step_input),
+                InlineOp.Inline => inline(step_input),
+                InlineOp.InlineDone => inlineDone(step_input),
+                InlineOp.LowerStart => start(step_input),
+                InlineOp.LowerStep => step(step_input),
+                InlineOp.LowerResult => result(step_input),
+                InlineOp.LowerConstant => constant(step_input),
+                InlineOp.LowerEvaluate => evaluate(step_input),
+                InlineOp.LowerDestructure => destructure(step_input),
+                InlineOp.LowerBranch => branch(step_input),
+                InlineOp.LowerYes => yes(step_input),
+                InlineOp.LowerNo => no(step_input),
+                InlineOp.LowerSwitch => subject(step_input),
+                InlineOp.SwitchDefault => switchDefault(step_input),
+                InlineOp.SwitchDefaultDone => defaultDone(step_input),
+                InlineOp.SwitchCase => switchCase(step_input),
+                InlineOp.SwitchCaseBody => caseBody(step_input),
+                InlineOp.SwitchCaseCondition => caseCondition(step_input),
+                InlineOp.SwitchFinish => finish(step_input),
+                InlineOp.BlockStart => blockStart(step_input),
+                InlineOp.BlockNext => next(step_input),
+                InlineOp.BlockCollect => collect(step_input),
+                _ => { ...step_input.state, stack: step_input.state.stack.pop()[0] },
+            }
+
+            current.tables = following.tables
+            current.costs = following.costs
+            current.depth = following.depth
+            current.failed = following.failed
+            current.mappings = following.mappings
+            current.ids = following.ids
+            current.pool = following.pool
+            current.frames = following.frames
+            current.stack = following.stack
+        }
+    })
+}

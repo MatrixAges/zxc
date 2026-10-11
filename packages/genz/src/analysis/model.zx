@@ -1,0 +1,36 @@
+import type { Contracts } from "core/contract_table/model"
+import type { Control } from "core/control_table/model"
+import type { Expressions } from "core/expression_table/model"
+import type { Stores } from "core/store_table/model"
+import type { Table } from "core/type_table/model"
+
+export type Functions = {
+    input_types: u32[]
+    output_types: u32[]
+    stores: Stores[]
+    expressions: Expressions[]
+    control: Control[]
+    roots: u32?[]
+    contracts: Contracts[]
+    native_modules: u32?[]
+    native_io: bool[]
+    native_process: bool[]
+    native_tuples: bool[]
+}
+
+export type Program = {
+    types: Table
+    functions: Functions
+    stores: Stores
+    expressions: Expressions
+    contracts: Contracts
+    control: Control
+    root: u32?
+        output_type: u32
+}
+
+export type State = { selected: bool[], keys: u8[] }
+
+export type Values = { pure: bool[], local: bool[], values: bool[] }
+
+export type Facts = { pure: bool[], local: bool[], values: bool[], selected: bool[], keys: u8[], io: bool[], process: bool[] }

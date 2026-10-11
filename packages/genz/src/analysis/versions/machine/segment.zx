@@ -1,0 +1,15 @@
+export type Input = { saved: u64[], values: u64[], from: u64 }
+
+export type Output = u64[]
+
+export default function (in: Input): Output {
+    const result = loop({ saved: in.saved, values: in.values, position: in.from }, {
+        while: current => current.position < current.values.length,
+        next: current => {
+            current.saved = current.saved.push(current.values[current.position])[0]
+            current.position += 1
+        }
+    })
+
+    return result.saved
+}

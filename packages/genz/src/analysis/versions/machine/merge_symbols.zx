@@ -1,0 +1,22 @@
+import merge from "../value/merge"
+
+import type { Arena } from "../value/model"
+
+export type Input = { arena: Arena, symbols: u64[], saved: u64[], base: u64, from: u64, left: u64, right: u64, joined: u64 }
+
+export type Output = { arena: Arena, symbols: u64[] }
+
+export default function (in: Input): Output {
+    const result = loop({ arena: in.arena, symbols: in.symbols, saved: in.saved, base: in.base, from: in.from, left: in.left, right: in.right, joined: in.joined, index: 0 }, {
+        while: current => current.base + current.index < current.symbols.length,
+        next: current => {
+            const made = merge({ arena: current.arena, left: current.saved[current.from + current.index], right: current.symbols[current.base + current.index], left_version: current.left, right_version: current.right, joined: current.joined })
+
+            current.arena = made.arena
+            current.symbols = current.symbols.with(current.base + current.index, made.value)
+            current.index += 1
+        }
+    })
+
+    return { arena: result.arena, symbols: result.symbols }
+}

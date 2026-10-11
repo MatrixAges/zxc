@@ -1,0 +1,33 @@
+import invalid from "../machine/invalid"
+import pop from "../machine/pop"
+import push from "../machine/push"
+import release from "../machine/release"
+import restore from "../machine/restore"
+import { Op } from "../model"
+import equal from "../value/equal"
+import merge from "../value/merge"
+
+import type { Machine, Step } from "../model"
+
+export type Input = Step
+
+export type Output = Machine
+
+export default function (in: Input): Output {
+    const result = pop(in.machine)
+    const before = result.machine.snapshots.currents[result.machine.snapshots.currents.length - 1]
+    const machine = invalid({ machine: result.machine, valid: result.machine.context.current == before && result.machine.context.serial == in.frame.c })
+
+    if (!machine.context.valid) {
+        return push({ machine: release({ machine: restore({ machine: machine, depth: 0 }), count: 1 }), value: 0 })
+    }
+
+    const next = merge({ arena: machine.arena, left: in.frame.b, right: result.value, left_version: before, right_version: before, joined: before })
+    const merged = { ...machine, arena: next.arena }
+
+    if (equal({ arena: merged.arena, left: in.frame.b, right: next.value })) {
+        return push({ machine: release({ machine: restore({ machine: merged, depth: 0 }), count: 1 }), value: next.value })
+    }
+
+    return { ...merged, frames: merged.frames.push({ ...in.frame, op: Op.BorrowRound, b: next.value })[0] }
+}

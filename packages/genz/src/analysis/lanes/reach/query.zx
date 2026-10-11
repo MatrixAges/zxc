@@ -1,0 +1,16 @@
+import frame from "./frame"
+import { ReachOp } from "./model"
+import run from "./run"
+
+import type { Machine } from "./model"
+
+export type Input = { machine: Machine, instance: u64, id: u64, first: u64, count: u64 }
+
+export type Output = { machine: Machine, index: u64 }
+
+export default function (in: Input): Output {
+    const finished = run({ ...in.machine, frames: in.machine.frames.push(frame({ op: ReachOp.Visit, instance: in.instance, id: in.id, first: in.first, count: in.count }))[0] })
+    const index = finished.results[finished.results.length - 1]
+
+    return { machine: { ...finished, results: finished.results.pop()[0] }, index: index }
+}

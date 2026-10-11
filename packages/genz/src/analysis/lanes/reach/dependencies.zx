@@ -1,0 +1,53 @@
+import integers from "std:integer"
+
+import leaves from "../../types/leaves"
+import cached from "./cached"
+import inputs from "./inputs"
+import instance from "./instance"
+import { ReachOp } from "./model"
+
+import type { Iteration } from "../../unit"
+import type { Machine, ReachFrame } from "./model"
+
+export type Input = { machine: Machine, frame: ReachFrame }
+
+export type Output = Machine
+
+export default function (in: Input): Output {
+    const machine = in.machine
+    const frame = in.frame
+    const callee = machine.units[frame.callee]
+    const finish = machine.frames[machine.frames.length - 1]
+    const visit = { ...frame, op: ReachOp.Visit, id: frame.argument }
+
+    if (callee.external || callee.stores.paths.length != 0 || frame.callee >= machine.instances.limits[frame.instance]) {
+        return { ...machine, frames: machine.frames.with(machine.frames.length - 1, { ...finish, total: finish.total + 1 }).push({ ...visit, first: 0, count: 0 })[0] }
+    }
+
+    const entry = cached({ dependencies: machine.dependencies, pool: machine.pool, callee: frame.callee, first: frame.first, count: frame.count })
+
+    if (entry != machine.dependencies.callees.length) {
+        const counted = machine.frames.with(machine.frames.length - 1, { ...finish, total: finish.total + machine.dependencies.inputs_count[entry] })
+
+        return { ...machine, frames: inputs({ frames: counted, visit: visit, dependencies: machine.dependencies, entry: entry }) }
+    }
+
+    const known = machine.callee_instances[frame.callee]
+    const origins = leaves({ types: machine.types, id: callee.input_type, optional: true })
+    const loops: Iteration[][] = []
+    const created = known == 0 ? instance({ machine: machine, unit: frame.callee, limit: frame.callee, origins: origins, loops: loops }) : machine
+    const target = known == 0 ? created.instances.units.length - 1 : known - 1
+    const recorded = known == 0 ? { ...created, callee_instances: created.callee_instances.with(frame.callee, target + 1) } : created
+    const results = recorded.facts[frame.callee].results
+    const collect = { ...frame, op: ReachOp.DependencyCollect, instance: target, total: results.length }
+
+    const scheduled = loop({ frames: recorded.frames.concat([frame, collect])[0], frame: collect, results: results, remaining: results.length }, {
+        while: current => current.remaining != 0,
+        next: current => {
+            current.remaining -= 1
+            current.frames = current.frames.push({ ...current.frame, op: ReachOp.Visit, id: integers.widen(current.results[current.remaining]) })[0]
+        }
+    }).frames
+
+    return { ...recorded, frames: scheduled }
+}

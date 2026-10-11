@@ -1,0 +1,24 @@
+import expressions from "../calls/expressions"
+
+import type { Contracts } from "core/contract_table/model"
+import type { Expressions } from "core/expression_table/model"
+
+export type Input = { expressions: Expressions, contracts: Contracts, required: bool[], limit: u64, tasks: bool }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    if (!expressions({ expressions: in.expressions, allowed: in.required.map(value => !value), limit: in.limit, tasks: in.tasks })) {
+        return true
+    }
+
+    const result = loop({ contracts: in.contracts, excluded: in.required.map(value => !value), limit: in.limit, index: 0, found: false }, {
+        while: current => !current.found && current.index < current.contracts.expressions.length,
+        next: current => {
+            current.found = !expressions({ expressions: current.contracts.expressions[current.index], allowed: current.excluded, limit: current.limit, tasks: false })
+            current.index += 1
+        }
+    })
+
+    return result.found
+}

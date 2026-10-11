@@ -1,0 +1,39 @@
+import parallel from "../../control/parallel"
+import versions from "../../versions/check"
+import expression from "./expression"
+
+import type { Lanes, Unit } from "../../unit"
+import type { Audit } from "./context"
+
+export type Input = { audit: Audit, units: Unit[], summaries: Lanes[], unit: u64 }
+
+export type Output = Audit
+
+export default function (in: Input): Output {
+    const audit = in.audit
+    const unit = audit.trace.unit
+
+    if (unit.contracts.kinds.length != 0) {
+        return { ...audit, code: 2 }
+    }
+
+    if (parallel({ control: unit.control, root: unit.root })) {
+        return { ...audit, code: 3 }
+    }
+
+    const checked = loop({ audit: audit, position: 0 }, {
+        while: current => current.audit.code == 0 && current.position < current.audit.trace.unit.expressions.kinds.length,
+        next: current => {
+            current.audit = expression({ audit: current.audit, id: current.position })
+            current.position += 1
+        }
+    }).audit
+
+    if (checked.code != 0) {
+        return checked
+    }
+
+    const fresh = versions({ types: checked.machine.types, units: in.units, summaries: in.summaries, readers: checked.readers, unit: in.unit, limit: checked.trace.limit, lane: checked.lane })
+
+    return { ...checked, code: fresh ? 0 : 1 }
+}

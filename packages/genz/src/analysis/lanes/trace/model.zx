@@ -1,0 +1,30 @@
+import type { Table } from "core/type_table/model"
+import type { Lanes, Unit } from "../../unit"
+
+export enum TraceOp { Evaluate, IterationInitial, IterationBody, JoinFirst, JoinSecond, MatchArm, MatchCheck }
+
+export type TraceFrame = { op: TraceOp, id: u64, first: u64, count: u64, index: u64, other: u64 }
+
+export type Origin = { present: bool, first: u64, count: u64 }
+
+export type Facts = { bindings: u64[], iterations: u64[], results: u32[] }
+
+export type Loops = { expressions: u32[], firsts: u64[], counts: u64[] }
+
+export type Calls = { expressions: u32[], lanes: u64[] }
+
+export type Trace = {
+    types: Table
+    unit: Unit
+    summaries: Lanes[]
+    limit: u64
+    facts: Facts
+    frames: TraceFrame[]
+    stack: Origin[]
+    pool: u32[]
+    appends: u32[]
+    pops: u32[]
+    updates: u32[]
+    loops: Loops
+    calls: Calls
+}

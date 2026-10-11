@@ -1,0 +1,24 @@
+import same from "./same"
+
+import type { Lane } from "../../unit"
+
+export type Input = { lanes: Lane[], pool: u32[], first: u64, count: u64 }
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    const result = loop({ lanes: in.lanes, pool: in.pool, first: in.first, count: in.count, position: 0, found: in.lanes.length }, {
+        while: current => current.found == current.lanes.length && current.position < current.lanes.length,
+        next: current => {
+            const output = current.lanes[current.position].output
+
+            if (same({ left: output, left_first: 0, left_count: output.length, right: current.pool, right_first: current.first, right_count: current.count })) {
+                current.found = current.position
+            }
+
+            current.position += 1
+        }
+    })
+
+    return result.found
+}

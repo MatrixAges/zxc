@@ -1,0 +1,210 @@
+import integers from "std:integer"
+import binary from "core/expression_table/append/binary"
+import boolean from "core/expression_table/append/boolean"
+import call from "core/expression_table/append/call"
+import collection from "core/expression_table/append/collection"
+import conditional from "core/expression_table/append/conditional"
+import empty from "core/expression_table/append/empty"
+import float from "core/expression_table/append/float"
+import index from "core/expression_table/append/index"
+import integer from "core/expression_table/append/integer"
+import iteration from "core/expression_table/append/iteration"
+import matched from "core/expression_table/append/match"
+import { SequenceKind, ValueKind } from "core/expression_table/append/model"
+import object from "core/expression_table/append/object"
+import parallel from "core/expression_table/append/parallel"
+import projection from "core/expression_table/append/projection"
+import scope from "core/expression_table/append/scope"
+import sequence from "core/expression_table/append/sequence"
+import string from "core/expression_table/append/string"
+import task from "core/expression_table/append/task"
+import transform from "core/expression_table/append/transform"
+import unary from "core/expression_table/append/unary"
+import update from "core/expression_table/append/update"
+import value from "core/expression_table/append/value"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import range from "../../ir/range"
+import shift from "./shift"
+import split from "./split"
+
+import type { Result } from "core/expression_table/append/model"
+import type { Expressions } from "core/expression_table/model"
+
+export type Input = { target: Expressions, source: Expressions, id: u64, mapped: u32[], offset: u64 }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const source = in.source
+    const target = in.target
+    const id = in.id
+    const kind = source.kinds[id]
+    const payload = integers.widen(source.payloads[id])
+    const mapped = in.mapped
+    const metadata = { type_id: source.types[id], span_start: source.span_start[id], span_end: source.span_end[id] }
+    const none: u32[] = []
+    const optional: u32?[] = []
+    const flags: bool[] = []
+
+    if (kind == ExpressionKind.Integer || kind == ExpressionKind.NegativeInteger) {
+        const negative = kind == ExpressionKind.NegativeInteger
+
+        return integer({ table: target, metadata: metadata, value: negative ? source.negative_integers[payload] : source.integers[payload], negative: negative })
+    }
+
+    if (kind == ExpressionKind.Float) {
+        return float({ table: target, metadata: metadata, value: source.floats[payload] })
+    }
+
+    if (kind == ExpressionKind.String) {
+        return string({ table: target, metadata: metadata, value: source.strings[payload] })
+    }
+
+    if (kind == ExpressionKind.Boolean) {
+        return boolean({ table: target, metadata: metadata, value: source.booleans[payload] })
+    }
+
+    if (kind == ExpressionKind.None || kind == ExpressionKind.Unit) {
+        return empty({ table: target, metadata: metadata, optional: kind == ExpressionKind.None })
+    }
+
+    if (kind == ExpressionKind.Some || kind == ExpressionKind.Capture || kind == ExpressionKind.AwaitTask || kind == ExpressionKind.CancelTask || kind == ExpressionKind.OptionalValue || kind == ExpressionKind.Length) {
+        const selected = match kind {
+            ExpressionKind.Some => ValueKind.Some,
+            ExpressionKind.Capture => ValueKind.Capture,
+            ExpressionKind.AwaitTask => ValueKind.AwaitTask,
+            ExpressionKind.CancelTask => ValueKind.CancelTask,
+            ExpressionKind.OptionalValue => ValueKind.OptionalValue,
+            _ => ValueKind.Length,
+        }
+
+        return value({ table: target, metadata: metadata, kind: selected, value: mapped[0] })
+    }
+
+    if (kind == ExpressionKind.EnumValue) {
+        return value({ table: target, metadata: metadata, kind: ValueKind.EnumValue, value: source.enumerations[payload] })
+    }
+
+    if (kind == ExpressionKind.ErrorValue) {
+        return value({ table: target, metadata: metadata, kind: ValueKind.ErrorValue, value: source.errors[payload] })
+    }
+
+    if (kind == ExpressionKind.Reference) {
+        return value({ table: target, metadata: metadata, kind: ValueKind.Reference, value: integers.narrow(integers.widen(source.references[payload]) + in.offset) })
+    }
+
+    if (kind == ExpressionKind.StoreGet) {
+        return value({ table: target, metadata: metadata, kind: ValueKind.StoreGet, value: source.stores[payload] })
+    }
+
+    if (kind == ExpressionKind.Task) {
+        return task({ table: target, metadata: metadata, body: mapped[0], captures: shift({ ids: range({ items: source.task_captures, first: integers.widen(source.task_capture_first[payload]), count: integers.widen(source.task_capture_count[payload]), prefix: none }), offset: in.offset }) })
+    }
+
+    if (kind == ExpressionKind.Parallel) {
+        const first = integers.widen(source.parallel_first[payload])
+
+        const fields = loop({ fields: source.parallel_fields, position: first, end: first + integers.widen(source.parallel_count[payload]), items: optional }, {
+            while: current => current.position < current.end,
+            next: current => {
+                current.items = current.items.push(current.fields[current.position])[0]
+                current.position += 1
+            }
+        }).items
+
+        return parallel({ table: target, metadata: metadata, tasks: mapped, fields: fields })
+    }
+
+    if (kind == ExpressionKind.Field || kind == ExpressionKind.TupleField) {
+        return projection({ table: target, metadata: metadata, target: mapped[0], index: source.projection_indices[payload], tuple: kind == ExpressionKind.TupleField })
+    }
+
+    if (kind == ExpressionKind.Index) {
+        return index({ table: target, metadata: metadata, target: mapped[0], index: mapped[1] })
+    }
+
+    if (kind == ExpressionKind.List || kind == ExpressionKind.Tuple || kind == ExpressionKind.Template) {
+        const selected = match kind {
+            ExpressionKind.List => SequenceKind.List,
+            ExpressionKind.Tuple => SequenceKind.Tuple,
+            _ => SequenceKind.Template,
+        }
+
+        return sequence({ table: target, metadata: metadata, kind: selected, values: mapped })
+    }
+
+    if (kind == ExpressionKind.ListOperation) {
+        return collection({ table: target, metadata: metadata, kind: source.collection_kinds[payload], target: mapped[0], arguments: split({ items: mapped, from: 1 }) })
+    }
+
+    if (kind == ExpressionKind.Transform) {
+        const initial: u32? = mapped.length > 2 ? mapped[2] : null
+
+        return transform({ table: target, metadata: metadata, kind: source.transform_kinds[payload], target: mapped[0], body: mapped[1], initial: initial, parameters: shift({ ids: range({ items: source.transform_parameters, first: integers.widen(source.transform_first[payload]), count: integers.widen(source.transform_count[payload]), prefix: none }), offset: in.offset }) })
+    }
+
+    if (kind == ExpressionKind.Scope) {
+        const first = integers.widen(source.scope_first[payload])
+        const count = integers.widen(source.scope_count[payload])
+
+        const bindings = loop({ source: source, offset: in.offset, position: first, end: first + count, symbols: optional, borrows: flags }, {
+            while: current => current.position < current.end,
+            next: current => {
+                const symbol = current.source.scope_symbols[current.position]
+                const shifted: u32? = symbol == null ? null : integers.narrow(integers.widen(symbol) + current.offset)
+
+                current.symbols = current.symbols.push(shifted)[0]
+                current.borrows = current.borrows.push(current.source.scope_borrows[current.position])[0]
+                current.position += 1
+            }
+        })
+
+        return scope({ table: target, metadata: metadata, result: mapped[mapped.length - 1], symbols: bindings.symbols, values: split({ items: mapped, from: 0 }).splice(count, 1, [])[0], borrows: bindings.borrows })
+    }
+
+    if (kind == ExpressionKind.Iteration) {
+        return iteration({ table: target, metadata: metadata, initial: mapped[0], condition_parameter: integers.narrow(integers.widen(source.iteration_condition_parameters[payload]) + in.offset), parameter: integers.narrow(integers.widen(source.iteration_parameters[payload]) + in.offset), condition: mapped[1], body: mapped[2], postcondition: source.iteration_postconditions[payload] })
+    }
+
+    if (kind == ExpressionKind.ListUpdate) {
+        return update({ table: target, metadata: metadata, target: mapped[0], index: mapped[1], value: mapped[2] })
+    }
+
+    if (kind == ExpressionKind.Call) {
+        return call({ table: target, metadata: metadata, function_id: source.call_functions[payload], argument: mapped[0], stores: range({ items: source.call_stores, first: integers.widen(source.call_store_first[payload]), count: integers.widen(source.call_store_count[payload]), prefix: none }) })
+    }
+
+    if (kind == ExpressionKind.Unary) {
+        return unary({ table: target, metadata: metadata, operator: source.unary_operators[payload], operand: mapped[0] })
+    }
+
+    if (kind == ExpressionKind.Binary) {
+        return binary({ table: target, metadata: metadata, operator: source.binary_operators[payload], left: mapped[0], right: mapped[1] })
+    }
+
+    if (kind == ExpressionKind.Conditional) {
+        return conditional({ table: target, metadata: metadata, condition: mapped[0], yes: mapped[1], no: mapped[2] })
+    }
+
+    if (kind == ExpressionKind.Match) {
+        const subject: u32? = source.match_subjects[payload] == null ? null : mapped[0]
+        const start = subject == null ? 0 : 1
+
+        const arms = loop({ mapped: mapped, position: start, end: mapped.length - 1, conditions: none, results: none }, {
+            while: current => current.position < current.end,
+            next: current => {
+                current.conditions = current.conditions.push(current.mapped[current.position])[0]
+                current.results = current.results.push(current.mapped[current.position + 1])[0]
+                current.position += 2
+            }
+        })
+
+        return matched({ table: target, metadata: metadata, subject: subject, fallback: mapped[mapped.length - 1], conditions: arms.conditions, results: arms.results })
+    }
+
+    const fields = integers.widen(source.object_count[payload])
+    const indices = range({ items: source.object_field_indices, first: integers.widen(source.object_first[payload]), count: fields, prefix: none })
+
+    return object({ table: target, metadata: metadata, indices: indices, values: split({ items: mapped, from: 0 }).splice(fields, mapped.length - fields, [])[0], evaluation: split({ items: mapped, from: fields }) })
+}

@@ -1,0 +1,22 @@
+import integers from "std:integer"
+
+import frame from "../frame"
+import expressions from "../machine/expressions"
+import observe from "../machine/observe"
+import pop from "../machine/pop"
+import schedule from "../machine/schedule"
+import { Op } from "../model"
+
+import type { Machine, Step } from "../model"
+
+export type Input = Step
+
+export type Output = Machine
+
+export default function (in: Input): Output {
+    const index = pop(in.machine)
+    const machine = observe({ machine: index.machine, value: index.value })
+    const table = expressions(machine)
+
+    return schedule({ machine: machine, next: frame({ op: Op.CollectionValue, id: in.frame.id, a: in.frame.a, b: 0 }), id: table.update_values[integers.widen(table.payloads[in.frame.id])] })
+}

@@ -1,0 +1,15 @@
+import bound from "./bound"
+
+import type { Inline, Step } from "../model"
+
+export type Input = Step
+
+export type Output = Inline
+
+export default function (in: Input): Output {
+    const state = in.state
+    const value = state.stack[state.stack.length - 1]
+    const symbol: u32? = null
+
+    return bound({ state: { ...state, stack: state.stack.pop()[0] }, frame: in.frame, symbol: symbol, value: value })
+}

@@ -1,0 +1,32 @@
+import integers from "std:integer"
+
+import frame from "../frame"
+import push from "../machine/push"
+import { Op } from "../model"
+
+import type { Expressions } from "core/expression_table/model"
+import type { Machine } from "../model"
+
+export type Input = { machine: Machine, expressions: Expressions, payload: u64 }
+
+export type Output = Machine
+
+export default function (in: Input): Output {
+    const first = integers.widen(in.expressions.sequence_first[in.payload])
+    const count = integers.widen(in.expressions.sequence_count[in.payload])
+
+    if (count == 0) {
+        return push({ machine: in.machine, value: 0 })
+    }
+
+    const scheduled = loop({ frames: in.machine.frames, expressions: in.expressions, first: first, remaining: count, last: true }, {
+        while: current => current.remaining != 0,
+        next: current => {
+            current.remaining -= 1
+            current.frames = current.frames.concat([frame({ op: Op.Reject, id: 0, a: current.last ? 1 : 0, b: 0 }), frame({ op: Op.Expression, id: integers.widen(current.expressions.sequence_items[current.first + current.remaining]), a: 0, b: 0 })])[0]
+            current.last = false
+        }
+    })
+
+    return { ...in.machine, frames: scheduled.frames }
+}

@@ -1,0 +1,28 @@
+import integers from "std:integer"
+
+import children from "./children"
+
+import type { Table } from "core/type_table/model"
+
+export type Input = { types: Table, boxed: bool[], roots: u32[] }
+
+export type Output = bool[]
+
+export default function (in: Input): Output {
+    const result = loop({ types: in.types, boxed: in.boxed, stack: in.roots }, {
+        while: current => current.stack.length != 0,
+        next: current => {
+            const id = current.stack[current.stack.length - 1]
+            const index = integers.widen(id)
+
+            current.stack = current.stack.pop()[0]
+
+            if (!current.boxed[index]) {
+                current.boxed[index] = true
+                current.stack = current.stack.concat(children({ types: current.types, id: id, deep: true }))[0]
+            }
+        }
+    })
+
+    return result.boxed
+}

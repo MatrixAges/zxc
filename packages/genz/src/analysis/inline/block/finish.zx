@@ -1,0 +1,21 @@
+import integers from "std:integer"
+import block from "core/control_table/append/block"
+
+import truncate from "../truncate"
+import describe from "./describe"
+
+import type { Inline, InlineFrame } from "../model"
+
+export type Input = { state: Inline, frame: InlineFrame }
+
+export type Output = Inline
+
+export default function (in: Input): Output {
+    const state = in.state
+    const source = state.units[state.mappings.units[in.frame.mapping]].control
+    const first = state.tables.control.statement_kinds.length
+    const appended = describe({ source: source, offset: state.mappings.offsets[in.frame.mapping], table: state.tables.control, pool: state.pool, start: in.frame.start })
+    const made = block({ table: appended, first: first })
+
+    return { ...state, pool: truncate({ items: state.pool, length: in.frame.start }), tables: { ...state.tables, control: made.table }, stack: state.stack.push(integers.widen(made.id))[0] }
+}

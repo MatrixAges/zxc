@@ -12,6 +12,7 @@ pub const state_value = @import("state_value/root.zig");
 pub const capabilities = @import("capabilities.zig");
 pub const tasks = @import("tasks/root.zig");
 pub const prepare = @import("inline_call/root.zig").prepare;
+pub const function_analysis = @import("function_analysis.zig");
 
 pub fn emit(allocator: std.mem.Allocator, program: zx.ir.Program) std.mem.Allocator.Error![]u8 {
     var arena = std.heap.ArenaAllocator.init(allocator);

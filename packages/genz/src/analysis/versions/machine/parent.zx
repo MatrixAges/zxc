@@ -1,0 +1,27 @@
+import type { Context, Contexts } from "../model"
+
+export type Input = Contexts
+
+export type Output = Context
+
+export default function (in: Input): Output {
+    const last = in.units.length - 1
+
+    return {
+        unit: in.units[last],
+        limit: in.limits[last],
+        current: in.currents[last],
+        serial: in.serials[last],
+        valid: in.valid[last],
+        borrowing: in.borrowing[last],
+        enabled: in.enabled[last],
+        summaries: in.summaries[last],
+        readers: in.readers[last],
+        discover: in.discover[last],
+        selecting: in.selecting[last],
+        looping: in.looping[last],
+        symbol_base: in.symbol_bases[last],
+        cached_base: in.cached_bases[last],
+        result_base: in.result_bases[last]
+    }
+}

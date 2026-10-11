@@ -1,0 +1,25 @@
+import { ValueKind } from "./model"
+
+import type { Arena } from "./model"
+
+export type Input = { arena: Arena, value: u64 }
+
+export type Output = u64[]
+
+export default function (in: Input): Output {
+    const empty: u64[] = []
+
+    if (in.arena.kinds[in.value] != ValueKind.Aggregate) {
+        return empty
+    }
+
+    const result = loop({ arena: in.arena, position: in.arena.first[in.value], end: in.arena.first[in.value] + in.arena.count[in.value], children: empty }, {
+        while: current => current.position < current.end,
+        next: current => {
+            current.children = current.children.push(current.arena.items[current.position])[0]
+            current.position += 1
+        }
+    })
+
+    return result.children
+}

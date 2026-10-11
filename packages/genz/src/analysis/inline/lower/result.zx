@@ -1,0 +1,14 @@
+import { InlineOp } from "../model"
+
+import type { Inline, Step } from "../model"
+
+export type Input = Step
+
+export type Output = Inline
+
+export default function (in: Input): Output {
+    const state = in.state
+    const value = state.stack[state.stack.length - 1]
+
+    return { ...state, stack: state.stack.pop()[0], frames: state.frames.push({ ...in.frame, op: InlineOp.LowerStep, b: value + 1 })[0] }
+}

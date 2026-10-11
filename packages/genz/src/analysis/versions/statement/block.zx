@@ -1,0 +1,65 @@
+import integers from "std:integer"
+import { StatementKind } from "core/control_table/model"
+
+import frame from "../frame"
+import invalid from "../machine/invalid"
+import push from "../machine/push"
+import { Op } from "../model"
+
+import type { Machine, Step } from "../model"
+
+export type Input = Step
+
+export type Output = Machine
+
+export default function (in: Input): Output {
+    const machine = in.machine
+    const control = machine.units[machine.context.unit].control
+    const block = in.frame.id
+
+    if (in.frame.a >= integers.widen(control.block_count[block])) {
+        return push({ machine: machine, value: 0 })
+    }
+
+    if (!machine.context.valid) {
+        return push({ machine: machine, value: 1 })
+    }
+
+    const position = integers.widen(control.block_first[block]) + in.frame.a
+    const kind = control.statement_kinds[position]
+    const payload = integers.widen(control.statement_payloads[position])
+    const next = frame({ op: Op.Block, id: block, a: in.frame.a + 1, b: 0 })
+    const evaluate = Op.Expression
+
+    if (kind == StatementKind.Evaluate) {
+        return { ...machine, frames: machine.frames.concat([next, frame({ op: Op.Discard, id: 0, a: 0, b: 0 }), frame({ op: evaluate, id: integers.widen(control.evaluations[payload]), a: 0, b: 0 })])[0] }
+    }
+
+    if (kind == StatementKind.Constant) {
+        return { ...machine, frames: machine.frames.concat([next, frame({ op: Op.Bind, id: 0, a: integers.widen(control.constant_symbols[payload]), b: 0 }), frame({ op: evaluate, id: integers.widen(control.constant_values[payload]), a: 0, b: 0 })])[0] }
+    }
+
+    if (kind == StatementKind.Destructure) {
+        return { ...machine, frames: machine.frames.concat([next, frame({ op: Op.Destructure, id: 0, a: payload, b: 0 }), frame({ op: evaluate, id: integers.widen(control.destructure_values[payload]), a: 0, b: 0 })])[0] }
+    }
+
+    if (kind == StatementKind.Result) {
+        const value = control.results[payload]
+
+        if (value == null) {
+            return push({ machine: { ...machine, results: { values: machine.results.values.push(0)[0], versions: machine.results.versions.push(machine.context.current)[0] } }, value: 1 })
+        }
+
+        return { ...machine, frames: machine.frames.concat([frame({ op: Op.StatementResult, id: 0, a: 0, b: 0 }), frame({ op: evaluate, id: integers.widen(value), a: 0, b: 0 })])[0] }
+    }
+
+    if (kind == StatementKind.Branch) {
+        return { ...machine, frames: machine.frames.concat([frame({ op: Op.BranchCondition, id: block, a: in.frame.a, b: payload }), frame({ op: evaluate, id: integers.widen(control.branch_conditions[payload]), a: 0, b: 0 })])[0] }
+    }
+
+    if (kind == StatementKind.Switch) {
+        return { ...machine, frames: machine.frames.concat([frame({ op: Op.SwitchSubject, id: block, a: in.frame.a, b: payload }), frame({ op: evaluate, id: integers.widen(control.selection_subjects[payload]), a: 0, b: 0 })])[0] }
+    }
+
+    return push({ machine: invalid({ machine: machine, valid: false }), value: 1 })
+}

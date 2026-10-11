@@ -1,0 +1,53 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import type { Unit } from "../unit"
+
+export type Input = Unit
+
+export type Output = u64[]
+
+export default function (in: Input): Output {
+    const scoped = loop({ expressions: in.expressions, bindings: in.symbols.names.map(name => 0), declared: in.symbols.names.map(name => false), index: 0 }, {
+        while: current => current.index < current.expressions.kinds.length,
+        next: current => {
+            if (current.expressions.kinds[current.index] == ExpressionKind.Scope) {
+                const payload = integers.widen(current.expressions.payloads[current.index])
+
+                const bound = loop({ expressions: current.expressions, bindings: current.bindings, declared: current.declared, position: integers.widen(current.expressions.scope_first[payload]), end: integers.widen(current.expressions.scope_first[payload]) + integers.widen(current.expressions.scope_count[payload]) }, {
+                    while: scope => scope.position < scope.end,
+                    next: scope => {
+                        const symbol = scope.expressions.scope_symbols[scope.position]
+
+                        if (symbol != null) {
+                            const index = integers.widen(symbol)
+
+                            scope.bindings[index] = scope.declared[index] ? 0 : integers.widen(scope.expressions.scope_values[scope.position]) + 1
+                            scope.declared[index] = true
+                        }
+
+                        scope.position += 1
+                    }
+                })
+
+                current.bindings = bound.bindings
+                current.declared = bound.declared
+            }
+
+            current.index += 1
+        }
+    })
+
+    const constants = loop({ control: in.control, bindings: scoped.bindings, declared: scoped.declared, position: 0 }, {
+        while: current => current.position < current.control.constant_symbols.length,
+        next: current => {
+            const index = integers.widen(current.control.constant_symbols[current.position])
+
+            current.bindings[index] = current.declared[index] ? 0 : integers.widen(current.control.constant_values[current.position]) + 1
+            current.declared[index] = true
+            current.position += 1
+        }
+    })
+
+    return constants.bindings
+}

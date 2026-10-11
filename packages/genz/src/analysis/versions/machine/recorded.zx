@@ -1,0 +1,17 @@
+import integers from "std:integer"
+
+export type Input = { updates: u32[], id: u64 }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const result = loop({ updates: in.updates, id: in.id, position: 0, found: false }, {
+        while: current => !current.found && current.position < current.updates.length,
+        next: current => {
+            current.found = integers.widen(current.updates[current.position]) == current.id
+            current.position += 1
+        }
+    })
+
+    return result.found
+}

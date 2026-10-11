@@ -1,0 +1,21 @@
+import integers from "std:integer"
+
+import field from "./field"
+
+import type { Arena } from "./model"
+
+export type Input = { arena: Arena, value: u64, path: u32[] }
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    const result = loop({ arena: in.arena, value: in.value, path: in.path, position: 0 }, {
+        while: current => current.position < current.path.length,
+        next: current => {
+            current.value = field({ arena: current.arena, value: current.value, index: integers.widen(current.path[current.position]) })
+            current.position += 1
+        }
+    })
+
+    return result.value
+}

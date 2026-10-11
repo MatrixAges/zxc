@@ -1,0 +1,21 @@
+import integers from "std:integer"
+
+import type { Call } from "../../unit"
+
+export type Input = { calls: Call[], id: u64, lane: u64, any: bool }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const result = loop({ calls: in.calls, id: in.id, lane: in.lane, any: in.any, position: 0, found: false }, {
+        while: current => !current.found && current.position < current.calls.length,
+        next: current => {
+            const call = current.calls[current.position]
+
+            current.found = integers.widen(call.expression) == current.id && (current.any || call.lane == current.lane)
+            current.position += 1
+        }
+    })
+
+    return result.found
+}

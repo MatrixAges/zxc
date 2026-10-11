@@ -1,0 +1,11 @@
+import type { Machine } from "../model"
+
+export type Input = { machine: Machine, depth: u64, symbol: u64 }
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    const position = in.machine.snapshots.firsts.length - 1 - in.depth
+
+    return in.machine.saved[in.machine.snapshots.firsts[position] + in.symbol]
+}

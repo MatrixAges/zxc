@@ -1,0 +1,34 @@
+import integers from "std:integer"
+import matched from "core/expression_table/append/match"
+
+import append from "../append"
+import bind from "../bind"
+import bound from "../lower/bound"
+import { InlineOp } from "../model"
+import truncate from "../truncate"
+import arms from "./arms"
+
+import type { Inline, Step } from "../model"
+
+export type Input = Step
+
+export type Output = Inline
+
+export default function (in: Input): Output {
+    const state = in.state
+    const fallback = state.stack[state.stack.length - 1]
+    const pairs = arms({ pool: state.pool, start: in.frame.start })
+    const subject: u32? = null
+    const metadata = { type_id: integers.narrow(in.frame.l), span_start: in.frame.d, span_end: in.frame.e }
+    const made = matched({ table: state.tables.expressions, metadata: metadata, subject: subject, fallback: integers.narrow(fallback), conditions: pairs.conditions, results: pairs.results })
+    const counted = append({ state: { ...state, stack: state.stack.pop()[0], pool: truncate({ items: state.pool, length: in.frame.start }), tables: { ...state.tables, expressions: made.table } }, id: made.id })
+    const selected = bind({ state: counted, symbol: integers.narrow(in.frame.h), value: integers.narrow(in.frame.g), result: made.id, type_id: integers.narrow(in.frame.l), span_start: in.frame.d, span_end: in.frame.e })
+
+    if (in.frame.m == 1) {
+        const symbol: u32? = null
+
+        return bound({ state: selected.state, frame: in.frame, symbol: symbol, value: integers.widen(selected.id) })
+    }
+
+    return { ...selected.state, frames: selected.state.frames.push({ ...in.frame, op: InlineOp.LowerStep, b: integers.widen(selected.id) + 1 })[0] }
+}

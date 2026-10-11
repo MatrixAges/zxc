@@ -1,0 +1,123 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import range from "./range"
+
+import type { Expressions } from "core/expression_table/model"
+
+export type Input = { table: Expressions, id: u64 }
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    const table = in.table
+    const kind = table.kinds[in.id]
+    const payload = integers.widen(table.payloads[in.id])
+    const empty: u32[] = []
+
+    if (kind == ExpressionKind.Some) {
+        return [table.some[payload]]
+    }
+
+    if (kind == ExpressionKind.Capture) {
+        return [table.captures[payload]]
+    }
+
+    if (kind == ExpressionKind.AwaitTask) {
+        return [table.awaits[payload]]
+    }
+
+    if (kind == ExpressionKind.CancelTask) {
+        return [table.cancellations[payload]]
+    }
+
+    if (kind == ExpressionKind.OptionalValue) {
+        return [table.optional_values[payload]]
+    }
+
+    if (kind == ExpressionKind.Length) {
+        return [table.lengths[payload]]
+    }
+
+    if (kind == ExpressionKind.Field || kind == ExpressionKind.TupleField) {
+        return [table.projection_targets[payload]]
+    }
+
+    if (kind == ExpressionKind.Task) {
+        return [table.task_bodies[payload]]
+    }
+
+    if (kind == ExpressionKind.Call) {
+        return [table.call_arguments[payload]]
+    }
+
+    if (kind == ExpressionKind.Unary) {
+        return [table.unary_operands[payload]]
+    }
+
+    if (kind == ExpressionKind.Index) {
+        return [table.index_targets[payload], table.index_values[payload]]
+    }
+
+    if (kind == ExpressionKind.Binary) {
+        return [table.binary_left[payload], table.binary_right[payload]]
+    }
+
+    if (kind == ExpressionKind.Iteration) {
+        return [table.iteration_initials[payload], table.iteration_conditions[payload], table.iteration_bodies[payload]]
+    }
+
+    if (kind == ExpressionKind.ListUpdate) {
+        return [table.update_targets[payload], table.update_indices[payload], table.update_values[payload]]
+    }
+
+    if (kind == ExpressionKind.Conditional) {
+        return [table.conditional_conditions[payload], table.conditional_yes[payload], table.conditional_no[payload]]
+    }
+
+    if (kind == ExpressionKind.Parallel) {
+        return range({ items: table.parallel_tasks, first: integers.widen(table.parallel_first[payload]), count: integers.widen(table.parallel_count[payload]), prefix: empty })
+    }
+
+    if (kind == ExpressionKind.List || kind == ExpressionKind.Tuple || kind == ExpressionKind.Template) {
+        return range({ items: table.sequence_items, first: integers.widen(table.sequence_first[payload]), count: integers.widen(table.sequence_count[payload]), prefix: empty })
+    }
+
+    if (kind == ExpressionKind.ListOperation) {
+        return range({ items: table.collection_arguments, first: integers.widen(table.collection_first[payload]), count: integers.widen(table.collection_count[payload]), prefix: [table.collection_targets[payload]] })
+    }
+
+    if (kind == ExpressionKind.Transform) {
+        const initial = table.transform_initials[payload]
+        const pair: u32[] = [table.transform_targets[payload], table.transform_bodies[payload]]
+
+        return initial == null ? pair : pair.push(initial)[0]
+    }
+
+    if (kind == ExpressionKind.Scope) {
+        return range({ items: table.scope_values, first: integers.widen(table.scope_first[payload]), count: integers.widen(table.scope_count[payload]), prefix: empty }).push(table.scope_results[payload])[0]
+    }
+
+    if (kind == ExpressionKind.Match) {
+        const subject = table.match_subjects[payload]
+        const prefix = subject == null ? empty : empty.push(subject)[0]
+
+        const arms = loop({ table: table, items: prefix, position: integers.widen(table.match_first[payload]), end: integers.widen(table.match_first[payload]) + integers.widen(table.match_count[payload]) }, {
+            while: current => current.position < current.end,
+            next: current => {
+                current.items = current.items.concat([current.table.match_conditions[current.position], current.table.match_results[current.position]])[0]
+                current.position += 1
+            }
+        }).items
+
+        return arms.push(table.match_fallbacks[payload])[0]
+    }
+
+    if (kind == ExpressionKind.Object) {
+        const fields = range({ items: table.object_field_values, first: integers.widen(table.object_first[payload]), count: integers.widen(table.object_count[payload]), prefix: empty })
+
+        return range({ items: table.object_evaluation_values, first: integers.widen(table.object_evaluation_first[payload]), count: integers.widen(table.object_evaluation_count[payload]), prefix: fields })
+    }
+
+    return empty
+}

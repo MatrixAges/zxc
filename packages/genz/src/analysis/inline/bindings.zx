@@ -1,0 +1,31 @@
+import integers from "std:integer"
+
+import type { Expressions } from "core/expression_table/model"
+
+export type Input = { table: Expressions, id: u64, nested: bool, symbol: u32?, value: u32 }
+
+export type Output = { symbols: u32?[], values: u32[], borrows: bool[] }
+
+export default function (in: Input): Output {
+    const symbols: u32?[] = [in.symbol]
+    const values: u32[] = [in.value]
+    const borrows: bool[] = [false]
+
+    if (!in.nested) {
+        return { symbols: symbols, values: values, borrows: borrows }
+    }
+
+    const payload = integers.widen(in.table.payloads[in.id])
+
+    const result = loop({ table: in.table, symbols: symbols, values: values, borrows: borrows, position: integers.widen(in.table.scope_first[payload]), end: integers.widen(in.table.scope_first[payload]) + integers.widen(in.table.scope_count[payload]) }, {
+        while: current => current.position < current.end,
+        next: current => {
+            current.symbols = current.symbols.push(current.table.scope_symbols[current.position])[0]
+            current.values = current.values.push(current.table.scope_values[current.position])[0]
+            current.borrows = current.borrows.push(current.table.scope_borrows[current.position])[0]
+            current.position += 1
+        }
+    })
+
+    return { symbols: result.symbols, values: result.values, borrows: result.borrows }
+}

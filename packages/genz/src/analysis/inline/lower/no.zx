@@ -1,0 +1,31 @@
+import integers from "std:integer"
+import conditional from "core/expression_table/append/conditional"
+
+import append from "../append"
+import { InlineOp } from "../model"
+import bound from "./bound"
+
+import type { Inline, Step } from "../model"
+
+export type Input = Step
+
+export type Output = Inline
+
+export default function (in: Input): Output {
+    const state = in.state
+    const stack = state.stack
+    const no = stack[stack.length - 1]
+    const yes = stack[stack.length - 2]
+    const condition = stack[stack.length - 3]
+    const popped = { ...state, stack: stack.splice(stack.length - 3, 3, [])[0] }
+    const made = conditional({ table: popped.tables.expressions, metadata: { type_id: integers.narrow(in.frame.h), span_start: in.frame.d, span_end: in.frame.e }, condition: integers.narrow(condition), yes: integers.narrow(yes), no: integers.narrow(no) })
+    const counted = append({ state: { ...popped, tables: { ...popped.tables, expressions: made.table } }, id: made.id })
+
+    if (in.frame.g == 1) {
+        const symbol: u32? = null
+
+        return bound({ state: counted, frame: in.frame, symbol: symbol, value: integers.widen(made.id) })
+    }
+
+    return { ...counted, frames: counted.frames.push({ ...in.frame, op: InlineOp.LowerStep, b: integers.widen(made.id) + 1 })[0] }
+}

@@ -1,0 +1,44 @@
+import integers from "std:integer"
+
+import contains from "./contains"
+import { ValueKind } from "./model"
+
+import type { Arena } from "./model"
+
+export type Input = { arena: Arena, value: u64, paths: u32[], first: u64, count: u64, current: u64 }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const result = loop({ arena: in.arena, value: in.value, paths: in.paths, first: in.first, count: in.count, depth: 0, valid: true, done: false }, {
+        while: state => state.valid && !state.done,
+        next: state => {
+            if (state.depth == state.count) {
+                state.done = true
+            } else {
+                const selected = integers.widen(state.paths[state.first + state.depth])
+
+                if (state.arena.kinds[state.value] != ValueKind.Aggregate || selected >= state.arena.count[state.value]) {
+                    state.valid = false
+                } else {
+                    const scanned = loop({ arena: state.arena, first: state.arena.first[state.value], position: 0, count: state.arena.count[state.value], selected: selected, valid: true }, {
+                        while: children => children.valid && children.position < children.count,
+                        next: children => {
+                            if (children.position != children.selected) {
+                                children.valid = !contains({ arena: children.arena, value: children.arena.items[children.first + children.position] })
+                            }
+
+                            children.position += 1
+                        }
+                    })
+
+                    state.valid = scanned.valid
+                    state.value = state.arena.items[state.arena.first[state.value] + selected]
+                    state.depth += 1
+                }
+            }
+        }
+    })
+
+    return result.valid && in.arena.kinds[result.value] == ValueKind.Version && in.arena.numbers[result.value] == in.current
+}

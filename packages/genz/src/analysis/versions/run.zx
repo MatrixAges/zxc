@@ -1,0 +1,154 @@
+import callArgument from "./call/argument"
+import childReturn from "./call/child_return"
+import discoverBody from "./drive/discover_body"
+import discoverCondition from "./drive/discover_condition"
+import discoverFinal from "./drive/discover_final"
+import binaryLeft from "./expression/binary_left"
+import binaryRight from "./expression/binary_right"
+import collectionArgument from "./expression/collection_argument"
+import collectionFinish from "./expression/collection_finish"
+import collectionIndex from "./expression/collection_index"
+import collectionTarget from "./expression/collection_target"
+import collectionValue from "./expression/collection_value"
+import conditionalCondition from "./expression/conditional_condition"
+import conditionalNo from "./expression/conditional_no"
+import conditionalYes from "./expression/conditional_yes"
+import field from "./expression/field"
+import indexDone from "./expression/index_done"
+import indexTarget from "./expression/index_target"
+import matchArm from "./expression/match_arm"
+import matchCondition from "./expression/match_condition"
+import matchJoin from "./expression/match_join"
+import matchSubject from "./expression/match_subject"
+import objectCache from "./expression/object_cache"
+import objectField from "./expression/object_field"
+import observe from "./expression/observe"
+import operationArgument from "./expression/operation_argument"
+import operationFinish from "./expression/operation_finish"
+import operationTarget from "./expression/operation_target"
+import reject from "./expression/reject"
+import replace from "./expression/replace"
+import scopeBind from "./expression/scope_bind"
+import scopeEnd from "./expression/scope_end"
+import start from "./expression/start"
+import tupleItem from "./expression/tuple_item"
+import updateIndex from "./expression/update_index"
+import updateTarget from "./expression/update_target"
+import updateValue from "./expression/update_value"
+import borrowBody from "./iteration/borrow_body"
+import borrowCondition from "./iteration/borrow_condition"
+import borrowInitial from "./iteration/borrow_initial"
+import borrowRound from "./iteration/borrow_round"
+import independentBody from "./iteration/independent_body"
+import independentCondition from "./iteration/independent_condition"
+import independentInitial from "./iteration/independent_initial"
+import updatingBody from "./iteration/updating_body"
+import updatingCondition from "./iteration/updating_condition"
+import updatingFinal from "./iteration/updating_final"
+import updatingInitial from "./iteration/updating_initial"
+import updatingRound from "./iteration/updating_round"
+import { Op } from "./model"
+import bind from "./statement/bind"
+import block from "./statement/block"
+import branchCondition from "./statement/branch_condition"
+import branchNo from "./statement/branch_no"
+import branchYes from "./statement/branch_yes"
+import destructure from "./statement/destructure"
+import discard from "./statement/discard"
+import result from "./statement/result"
+import switchCase from "./statement/switch_case"
+import switchCaseDone from "./statement/switch_case_done"
+import switchSubject from "./statement/switch_subject"
+
+import type { Machine } from "./model"
+
+export type Input = Machine
+
+export type Output = Machine
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: current => current.frames.length != 0,
+        next: current => {
+            const frame = current.frames[current.frames.length - 1]
+            const step = { machine: { ...current, frames: current.frames.pop()[0] }, frame: frame }
+
+            const next = match frame.op {
+                Op.Expression => start(step),
+                Op.Discard => discard(step),
+                Op.Field => field(step),
+                Op.Replace => replace(step),
+                Op.IndexTarget => indexTarget(step),
+                Op.IndexDone => indexDone(step),
+                Op.UpdateTarget => updateTarget(step),
+                Op.UpdateIndex => updateIndex(step),
+                Op.UpdateValue => updateValue(step),
+                Op.ScopeBind => scopeBind(step),
+                Op.ScopeEnd => scopeEnd(step),
+                Op.ObjectCache => objectCache(step),
+                Op.ObjectField => objectField(step),
+                Op.TupleItem => tupleItem(step),
+                Op.ConditionalCondition => conditionalCondition(step),
+                Op.ConditionalYes => conditionalYes(step),
+                Op.ConditionalNo => conditionalNo(step),
+                Op.MatchSubject => matchSubject(step),
+                Op.MatchCondition => matchCondition(step),
+                Op.MatchArm => matchArm(step),
+                Op.MatchJoin => matchJoin(step),
+                Op.CallArgument => callArgument(step),
+                Op.ChildReturn => childReturn(step),
+                Op.Reject => reject(step),
+                Op.OperationTarget => operationTarget(step),
+                Op.OperationArgument => operationArgument(step),
+                Op.OperationFinish => operationFinish(step),
+                Op.Observe => observe(step),
+                Op.BinaryLeft => binaryLeft(step),
+                Op.BinaryRight => binaryRight(step),
+                Op.UpdatingInitial => updatingInitial(step),
+                Op.UpdatingRound => updatingRound(step),
+                Op.UpdatingCondition => updatingCondition(step),
+                Op.UpdatingBody => updatingBody(step),
+                Op.UpdatingFinal => updatingFinal(step),
+                Op.BorrowInitial => borrowInitial(step),
+                Op.BorrowRound => borrowRound(step),
+                Op.BorrowCondition => borrowCondition(step),
+                Op.BorrowBody => borrowBody(step),
+                Op.IndependentInitial => independentInitial(step),
+                Op.IndependentCondition => independentCondition(step),
+                Op.IndependentBody => independentBody(step),
+                Op.CollectionTarget => collectionTarget(step),
+                Op.CollectionIndex => collectionIndex(step),
+                Op.CollectionValue => collectionValue(step),
+                Op.CollectionArgument => collectionArgument(step),
+                Op.CollectionFinish => collectionFinish(step),
+                Op.Block => block(step),
+                Op.Bind => bind(step),
+                Op.Destructure => destructure(step),
+                Op.StatementResult => result(step),
+                Op.BranchCondition => branchCondition(step),
+                Op.BranchYes => branchYes(step),
+                Op.BranchNo => branchNo(step),
+                Op.SwitchSubject => switchSubject(step),
+                Op.SwitchCase => switchCase(step),
+                Op.SwitchCaseDone => switchCaseDone(step),
+                Op.DiscoverCondition => discoverCondition(step),
+                Op.DiscoverBody => discoverBody(step),
+                _ => discoverFinal(step),
+            }
+
+            current.arena = next.arena
+            current.context = next.context
+            current.parents = next.parents
+            current.symbols = next.symbols
+            current.cached = next.cached
+            current.saved = next.saved
+            current.snapshots = next.snapshots
+            current.results = next.results
+            current.updates = next.updates
+            current.inferred = next.inferred
+            current.frames = next.frames
+            current.paths = next.paths
+            current.stack = next.stack
+        }
+    })
+}

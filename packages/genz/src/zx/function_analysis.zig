@@ -65,6 +65,19 @@ pub fn create(backing: std.mem.Allocator, program: ir.Program) std.mem.Allocator
 }
 
 pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!Self {
+    if (@import("genz_options").generated_analysis) {
+        const facts = try @import("function_analysis/generated.zig").analyze(allocator, workspace, program);
+
+        return .{
+            .value = facts.value,
+            .buffers = facts.buffers,
+            .allocated = facts.allocated,
+            .transfers = facts.transfers,
+            .io = facts.io,
+            .process = facts.process,
+        };
+    }
+
     const value = try @import("value_call/analysis.zig").analyze(allocator, program);
     const buffers = try buffer.analysis.functions(allocator, workspace, program, value.values, value.pure);
 

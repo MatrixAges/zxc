@@ -1,0 +1,15 @@
+export type Input = { pool: u64[], stack: u64[], start: u64 }
+
+export type Output = u64[]
+
+export default function (in: Input): Output {
+    const result = loop({ pool: in.pool, stack: in.stack, position: in.start }, {
+        while: current => current.position < current.stack.length,
+        next: current => {
+            current.pool = current.pool.push(current.stack[current.position])[0]
+            current.position += 1
+        }
+    })
+
+    return result.pool
+}

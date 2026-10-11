@@ -1,0 +1,52 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import children from "../../ir/children"
+import fail from "../fail"
+import frame from "../frame"
+import { InlineOp } from "../model"
+
+import type { Inline, Step } from "../model"
+
+export type Input = Step
+
+export type Output = Inline
+
+export default function (in: Input): Output {
+    const state = in.state
+    const mapping = in.frame.mapping
+    const known = state.ids[state.mappings.bases[mapping] + in.frame.id]
+
+    if (known != 0) {
+        return { ...state, stack: state.stack.push(known - 1)[0] }
+    }
+
+    if (state.depth == 128) {
+        return fail(state)
+    }
+
+    const table = state.units[state.mappings.units[mapping]].expressions
+    const id = in.frame.id
+    const selected = state.mappings.all[mapping] || state.selected[id]
+
+    if (selected && table.kinds[id] == ExpressionKind.Call) {
+        const payload = integers.widen(table.payloads[id])
+        const callee = integers.widen(table.call_functions[payload])
+
+        if (state.plan[callee] != 0) {
+            return { ...state, depth: state.depth + 1, frames: state.frames.concat([frame({ op: InlineOp.Inline, mapping: mapping, id: id }), frame({ op: InlineOp.Map, mapping: mapping, id: integers.widen(table.call_arguments[payload]) })])[0] }
+        }
+    }
+
+    const nested = children({ table: table, id: id })
+
+    const scheduled = loop({ frames: state.frames.push(frame({ op: InlineOp.Build, mapping: mapping, id: id }))[0], mapping: mapping, nested: nested, remaining: nested.length }, {
+        while: current => current.remaining != 0,
+        next: current => {
+            current.remaining -= 1
+            current.frames = current.frames.push(frame({ op: InlineOp.Map, mapping: current.mapping, id: integers.widen(current.nested[current.remaining]) }))[0]
+        }
+    }).frames
+
+    return { ...state, depth: state.depth + 1, frames: scheduled }
+}

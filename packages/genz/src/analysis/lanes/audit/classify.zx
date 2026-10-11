@@ -1,0 +1,35 @@
+import leaves from "../../types/leaves"
+import query from "../reach/query"
+import paths from "./paths"
+
+import type { Audit } from "./context"
+
+export type Input = { audit: Audit, id: u64 }
+
+export type Output = { audit: Audit, count: u64 }
+
+export default function (in: Input): Output {
+    const audit = in.audit
+    const machine = audit.machine
+    const table = machine.units[machine.instances.units[audit.instance]].expressions
+    const stored = paths({ pool: machine.pool, paths: leaves({ types: machine.types, id: table.types[in.id], optional: true }) })
+    const prepared = { ...audit, machine: { ...machine, pool: stored.pool } }
+
+    const result = loop({ audit: prepared, firsts: stored.firsts, counts: stored.counts, id: in.id, position: 0, count: 0 }, {
+        while: current => current.count < 2 && current.position < current.firsts.length,
+        next: current => {
+            const visited = query({ machine: current.audit.machine, instance: current.audit.instance, id: current.id, first: current.firsts[current.position], count: current.counts[current.position] })
+            const machine = visited.machine
+
+            current.audit = { ...current.audit, machine: machine }
+
+            if (machine.bits[machine.nodes.rows[visited.index] + current.audit.slot]) {
+                current.count += 1
+            }
+
+            current.position += 1
+        }
+    })
+
+    return { audit: result.audit, count: result.count }
+}

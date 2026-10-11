@@ -1,0 +1,12 @@
+export type Input = { slots: u64[], slot: u64 }
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    const result = loop({ slots: in.slots, slot: in.slot }, {
+        while: current => current.slots[current.slot] != 0,
+        next: current => { current.slot = (current.slot + 1) % current.slots.length }
+    })
+
+    return result.slot
+}
