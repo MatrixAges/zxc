@@ -3,7 +3,7 @@ const ir = @import("zx").ir;
 const Function = @import("function.zig");
 const Level = @import("level.zig").Level;
 const Summaries = @import("summaries.zig");
-const Hash = std.crypto.hash.Blake3;
+const Hash = std.crypto.hash.sha2.Sha256;
 const Self = @This();
 
 /// Results of body analyses by the exact state they read: the body's identity, its own input summary, the output
@@ -39,6 +39,8 @@ demanded: std.AutoHashMapUnmanaged(Digest, Demanded) = .empty,
 planned: std.AutoHashMapUnmanaged(Digest, Planned) = .empty,
 key: Digest = undefined,
 order: std.ArrayList(Record) = .empty,
+/// The bytes the next key digests, gathered so they are hashed in one call.
+encoded: std.ArrayList(u8) = .empty,
 /// Whether bodies carry content identities, as records that outlive this program need.
 persistent: bool,
 /// Whether this run added records; `stale` reports whether it also left loaded ones unused.
@@ -54,10 +56,8 @@ pub fn deinit(self: *Self) void {
 }
 
 pub fn getSettled(self: *Self, summaries: *const Summaries, state: State) std.mem.Allocator.Error!?Settled {
-    var hash = try self.encode(summaries, state);
-
-    hash.update("settled");
-    hash.final(&self.key);
+    try self.encode(summaries, state);
+    try self.digest("settled");
 
     return use(Settled, &self.settled, self.key);
 }
@@ -75,13 +75,12 @@ pub fn putSettled(self: *Self, passed: []const Function.Contribution, output: []
 }
 
 pub fn getDemanded(self: *Self, summaries: *const Summaries, state: State) std.mem.Allocator.Error!?Demanded {
-    var hash = try self.encode(summaries, state);
+    try self.encode(summaries, state);
 
-    for (state.callees) |callee| levels(&hash, summaries.inputs[callee]);
+    for (state.callees) |callee| try self.levels(summaries.inputs[callee]);
 
-    levels(&hash, if (state.index < summaries.outputs.len) summaries.outputs[state.index] else &.{});
-    hash.update("demanded");
-    hash.final(&self.key);
+    try self.levels(if (state.index < summaries.outputs.len) summaries.outputs[state.index] else &.{});
+    try self.digest("demanded");
 
     return use(Demanded, &self.demanded, self.key);
 }
@@ -111,10 +110,8 @@ pub fn putDemanded(self: *Self, marks: []const Function.Mark, state: State, grew
 }
 
 pub fn getPlanned(self: *Self, summaries: *const Summaries, state: State) std.mem.Allocator.Error!?Planned {
-    var hash = try self.encode(summaries, state);
-
-    hash.update("planned");
-    hash.final(&self.key);
+    try self.encode(summaries, state);
+    try self.digest("planned");
 
     return use(Planned, &self.planned, self.key);
 }
@@ -138,28 +135,33 @@ fn use(comptime Value: type, map: *std.AutoHashMapUnmanaged(Digest, Value), key:
     return entry.*;
 }
 
-fn encode(self: *Self, summaries: *const Summaries, state: State) std.mem.Allocator.Error!Hash {
-    var hash = Hash.init(.{});
+fn encode(self: *Self, summaries: *const Summaries, state: State) std.mem.Allocator.Error!void {
+    self.encoded.clearRetainingCapacity();
 
-    hash.update(&state.identity);
-    int(&hash, state.index);
-    levels(&hash, state.input);
+    try self.encoded.appendSlice(self.arena.allocator(), &state.identity);
+    try self.int(state.index);
+    try self.levels(state.input);
 
     for (state.callees) |callee| {
-        int(&hash, callee);
-        levels(&hash, summaries.output[callee]);
+        try self.int(callee);
+        try self.levels(summaries.output[callee]);
     }
 
-    try self.entries(ir.ExprId, &hash, state.normalized);
-    try self.entries(u64, &hash, state.renewed);
+    try self.entries(ir.ExprId, state.normalized);
+    try self.entries(u64, state.renewed);
+}
 
-    return hash;
+/// Sets `key` to the digest of the encoded state followed by `kind`.
+fn digest(self: *Self, kind: []const u8) std.mem.Allocator.Error!void {
+    try self.encoded.appendSlice(self.arena.allocator(), kind);
+
+    Hash.hash(self.encoded.items, &self.key, .{});
 }
 
 const Record = struct { key: u64, level: Level };
 
 /// Map entries in key order, so equal contents encode equally whatever order they were added in.
-fn entries(self: *Self, comptime Key: type, hash: *Hash, map: *const std.AutoHashMap(Key, Level)) std.mem.Allocator.Error!void {
+fn entries(self: *Self, comptime Key: type, map: *const std.AutoHashMap(Key, Level)) std.mem.Allocator.Error!void {
     self.order.clearRetainingCapacity();
 
     var values = map.iterator();
@@ -172,11 +174,11 @@ fn entries(self: *Self, comptime Key: type, hash: *Hash, map: *const std.AutoHas
         }
     }.less);
 
-    int(hash, self.order.items.len);
+    try self.int(self.order.items.len);
 
     for (self.order.items) |record| {
-        int(hash, record.key);
-        hash.update(&.{@as(u8, @as(u2, @bitCast(record.level)))});
+        try self.int(record.key);
+        try self.encoded.append(self.arena.allocator(), @as(u2, @bitCast(record.level)));
     }
 }
 
@@ -185,33 +187,24 @@ fn entryKey(comptime Key: type, key: Key) u64 {
 }
 
 /// The levels four to a byte; the count goes first, so the padding of the last byte is unambiguous.
-fn levels(hash: *Hash, values: []const Level) void {
-    int(hash, values.len);
+fn levels(self: *Self, values: []const Level) std.mem.Allocator.Error!void {
+    try self.int(values.len);
 
-    var buffer: [256]u8 = undefined;
-    var rest = values;
+    const bytes = try self.encoded.addManyAsSlice(self.arena.allocator(), (values.len + 3) / 4);
 
-    while (rest.len != 0) {
-        const chunk = rest[0..@min(rest.len, buffer.len * 4)];
-        const packed_length = (chunk.len + 3) / 4;
+    @memset(bytes, 0);
 
-        @memset(buffer[0..packed_length], 0);
-
-        for (chunk, 0..) |value, index| buffer[index / 4] |= @as(u8, @as(u2, @bitCast(value))) << @intCast(index % 4 * 2);
-
-        hash.update(buffer[0..packed_length]);
-        rest = rest[chunk.len..];
-    }
+    for (values, 0..) |value, index| bytes[index / 4] |= @as(u8, @as(u2, @bitCast(value))) << @intCast(index % 4 * 2);
 }
 
-fn int(hash: *Hash, value: u64) void {
+fn int(self: *Self, value: u64) std.mem.Allocator.Error!void {
     var bytes: [8]u8 = undefined;
 
     std.mem.writeInt(u64, &bytes, value, .little);
-    hash.update(&bytes);
+    try self.encoded.appendSlice(self.arena.allocator(), &bytes);
 }
 
-const magic = "zxc.uniqueness.memo.v2";
+const magic = "zxc.uniqueness.memo.v3";
 
 /// Whether `save` would differ from what was loaded.
 pub fn stale(self: *const Self) bool {
