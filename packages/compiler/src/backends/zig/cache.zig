@@ -2,6 +2,7 @@ const std = @import("std");
 const Storage = @import("cache/storage.zig");
 const Self = @This();
 const Entry = struct { key: [32]u8, source: []u8 };
+const Memo = @import("genz").zx.function_analysis.Uniqueness.Memo;
 
 allocator: std.mem.Allocator,
 entries: std.StringHashMapUnmanaged(Entry) = .empty,
@@ -13,6 +14,10 @@ written: usize = 0,
 discarded: usize = 0,
 io_errors: usize = 0,
 last_io_error: ?anyerror = null,
+/// Keeps the uniqueness memo in `memo` across generations instead of reading and writing it for each one; `flushMemo`
+/// writes it to storage.
+keeps_memo: bool = false,
+memo: ?Memo = null,
 pub fn init(allocator: std.mem.Allocator) Self {
     return .{ .allocator = allocator };
 }
@@ -30,6 +35,8 @@ pub fn deinit(self: *Self) void {
     }
 
     self.entries.deinit(self.allocator);
+
+    if (self.memo) |*memo| memo.deinit();
 
     if (self.storage) |storage| self.allocator.free(storage.directory);
 
@@ -119,6 +126,11 @@ pub fn put(self: *Self, name: []const u8, key: [32]u8, source: []const u8) std.m
 
         if (written) self.written += 1;
     }
+}
+
+/// Writes the memo this cache keeps to storage, so later generations in other processes reuse it.
+pub fn flushMemo(self: *Self) std.mem.Allocator.Error!void {
+    if (self.memo) |*memo| try @import("uniqueness_memo.zig").save(self.allocator, self, memo);
 }
 
 fn store(self: *Self, name: []const u8, key: [32]u8, source: []u8) std.mem.Allocator.Error!void {

@@ -23,6 +23,7 @@ pub fn run(init: std.process.Init, request: Request) !void {
     var resident = try Resident.init(init.io, init.gpa);
     const summary = try generator.generate(init.io, allocator, &resident, request);
 
+    resident.persist();
     try print(init.io, summary);
 
     if (enabled) start(init, allocator, request.cache) catch {};
@@ -42,7 +43,7 @@ pub fn serve(init: std.process.Init, cache: []const u8) !void {
 
     var resident = try Resident.init(io, init.gpa);
     const identity = try Identity.own(io, init.arena.allocator());
-    var watch = Watch{ .io = io, .path = path, .last = std.Io.Timestamp.now(io, .awake) };
+    var watch = Watch{ .io = io, .path = path, .resident = &resident, .last = std.Io.Timestamp.now(io, .awake) };
 
     _ = try std.Thread.spawn(.{}, Watch.run, .{&watch});
 
@@ -146,6 +147,7 @@ fn start(init: std.process.Init, allocator: std.mem.Allocator, cache: []const u8
 const Watch = struct {
     io: std.Io,
     path: []const u8,
+    resident: *Resident,
     last: std.Io.Timestamp,
 
     fn run(self: *Watch) void {
@@ -155,6 +157,7 @@ const Watch = struct {
             if (self.last.durationTo(std.Io.Timestamp.now(self.io, .awake)).nanoseconds < idle_limit.nanoseconds) continue;
 
             std.Io.Dir.cwd().deleteFile(self.io, self.path) catch {};
+            self.resident.persist();
             std.process.exit(0);
         }
     }

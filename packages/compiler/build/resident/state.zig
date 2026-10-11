@@ -60,8 +60,14 @@ pub fn generationCache(self: *Self, io: std.Io, path: []const u8) !*compiler.zig
     errdefer self.gpa.free(owned);
 
     self.generation = .{ .path = owned, .cache = try compiler.zig.GenerationCache.initPersistent(self.gpa, io, path, self.digest) };
+    self.generation.?.cache.keeps_memo = true;
 
     return &self.generation.?.cache;
+}
+
+/// Writes what later processes reuse from this one to the cache directory.
+pub fn persist(self: *Self) void {
+    if (self.generation) |*generation| generation.cache.flushMemo() catch {};
 }
 
 /// An arena for one request's inputs; it is kept when the analysis of that request is.
