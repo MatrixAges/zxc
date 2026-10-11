@@ -15,7 +15,7 @@ export default function (in: Input): Output {
     const frame = in.frames.parallels[position]
     const field = in.source.tree.fields[frame.fields[frame.index]]
     const span = in.source.tree.nodes[field.value].span
-    const result = finish({ state: in.state, functions: in.functions, concurrent: in.concurrent, first: frame.first, symbol_count: frame.symbol_count, body: in.value, span: span })
+    const result = finish({ state: in.state, functions: in.functions, first: frame.first, symbol_count: frame.symbol_count, body: in.value, span: span })
 
     if (result.state.diagnostic.message != "") {
         return { ...in, state: result.state }

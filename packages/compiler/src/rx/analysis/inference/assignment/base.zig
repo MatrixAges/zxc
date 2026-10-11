@@ -49,7 +49,12 @@ pub fn deinit(self: Self, allocator: std.mem.Allocator) void {
 pub fn root(self: Self, index: usize) usize {
     var current = index;
 
-    while (self.parents[current] != current) current = self.parents[current];
+    while (self.parents[current] != current) {
+        const grandparent = self.parents[self.parents[current]];
+
+        self.parents[current] = grandparent;
+        current = grandparent;
+    }
 
     return current;
 }

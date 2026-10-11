@@ -22,6 +22,7 @@ value_uses: std.ArrayList(ValueUse) = .empty,
 binding_collisions: std.ArrayList(@import("bindings.zig").Collision) = .empty,
 binding_lookups: std.ArrayList(@import("bindings.zig").Lookup) = .empty,
 assignments: std.ArrayList(Assignment.Edge) = .empty,
+assignment_keys: std.AutoHashMapUnmanaged([2]Id, void) = .empty,
 constructions: std.ArrayList(@import("construction.zig").Object) = .empty,
 sequences: std.ArrayList(@import("sequences.zig").Sequence) = .empty,
 nonnull: std.ArrayList(@import("non_null.zig").Projection) = .empty,
@@ -60,12 +61,21 @@ pub fn scalar(self: *Self, value: zx.ir.Scalar, span: zx.Span) zx.Error!Id {
     return self.known(Types.scalarId(value), span);
 }
 
+/// Path halving keeps union-find chains short; parent links are a cache, so a const receiver may rewrite them.
 pub fn root(self: *const Self, id: Id) Id {
+    const nodes = self.nodes.items;
     var current = id;
 
-    while (self.nodes.items[@backingInt(current)].parent != current) current = self.nodes.items[@backingInt(current)].parent;
+    while (true) {
+        const parent = nodes[@backingInt(current)].parent;
 
-    return current;
+        if (parent == current) return current;
+
+        const grandparent = nodes[@backingInt(parent)].parent;
+
+        nodes[@backingInt(current)].parent = grandparent;
+        current = grandparent;
+    }
 }
 
 pub fn shape(self: *const Self, id: Id) Shape {
@@ -76,12 +86,12 @@ pub fn unify(self: *Self, left: Id, right: Id, span: zx.Span) zx.Error!void {
     return @import("unify.zig").merge(self, left, right, span, 0);
 }
 
+/// Keys are root pairs at insertion time; a union may leave a stale key and admit one duplicate edge, which only costs another fixpoint round.
 pub fn expect(self: *Self, value: Id, expected: Id, span: zx.Span) zx.Error!void {
-    if (self.root(value) == self.root(expected)) return;
+    const key = [2]Id{ self.root(value), self.root(expected) };
 
-    for (self.assignments.items) |item| {
-        if (self.root(item.value) == self.root(value) and self.root(item.expected) == self.root(expected)) return;
-    }
+    if (key[0] == key[1]) return;
+    if ((try self.assignment_keys.getOrPut(self.allocator, key)).found_existing) return;
 
     try self.assignments.append(self.allocator, .{ .value = value, .expected = expected, .span = span });
 

@@ -2,6 +2,7 @@ import integers from "std:integer"
 import append from "core/expression_table/append/task"
 import { Kind } from "core/type_table/model"
 
+import concurrency from "../../../../ir/canonical/functions/analyze"
 import construct from "../../types/construct"
 import errors from "../errors"
 import captures from "./captures"
@@ -11,12 +12,13 @@ import type { Functions } from "../../functions"
 import type { Prepared } from "../../model"
 import type { Result } from "../model"
 
-export type Input = { state: Prepared, functions: Functions, concurrent: bool[], first: u64, symbol_count: u64, body: u32, span: Span }
+export type Input = { state: Prepared, functions: Functions, first: u64, symbol_count: u64, body: u32, span: Span }
 
 export type Output = Result
 
 export default function (in: Input): Output {
-    const captured = captures({ state: in.state, first: in.first, symbol_count: in.symbol_count, concurrent: in.concurrent, span: in.span })
+    const concurrent = concurrency({ functions: { native_modules: in.functions.native_modules, native_concurrent: in.functions.native_concurrent, stores: in.functions.stores, expressions: in.functions.expressions }, concurrent: true })
+    const captured = captures({ state: in.state, first: in.first, symbol_count: in.symbol_count, concurrent: concurrent, span: in.span })
 
     if (captured.state.diagnostic.message != "") {
         return { state: captured.state, value: 0 }
