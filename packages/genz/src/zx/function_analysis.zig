@@ -122,16 +122,44 @@ pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, progr
     return value;
 }
 
+/// Each function's output holds no part of its input when the input is no descendant of it; every function walks the
+/// types under its output once, marking them with its own round.
 fn freshOutputs(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error![]const bool {
     const result = try allocator.alloc(bool, program.functions.count());
+    const seen = try allocator.alloc(u32, program.types.count());
+    var pending: std.ArrayList(ir.TypeId) = .empty;
 
-    for (result, 0..) |*fresh, index| {
-        const function = program.functions.at(index);
+    defer allocator.free(seen);
+    defer pending.deinit(allocator);
+    @memset(seen, 0);
 
-        fresh.* = !@import("value_call/analysis.zig").containsDescendant(program, function.output_type, function.input_type);
+    for (result, 1..) |*fresh, round| {
+        const function = program.functions.at(round - 1);
+
+        pending.clearRetainingCapacity();
+
+        try children(allocator, program, function.output_type, &pending);
+
+        fresh.* = while (pending.pop()) |id| {
+            if (id == function.input_type) break false;
+            if (seen[@backingInt(id)] == round) continue;
+
+            seen[@backingInt(id)] = @intCast(round);
+
+            try children(allocator, program, id, &pending);
+        } else true;
     }
 
     return result;
+}
+
+fn children(allocator: std.mem.Allocator, program: ir.Program, id: ir.TypeId, pending: *std.ArrayList(ir.TypeId)) std.mem.Allocator.Error!void {
+    switch (program.typeOf(id)) {
+        .optional, .list => |child| try pending.append(allocator, child),
+        .tuple => |items| for (0..items.len) |index| try pending.append(allocator, items.at(index)),
+        .object => |fields| for (0..fields.len) |index| try pending.append(allocator, fields.at(index).type_id),
+        else => {},
+    }
 }
 
 /// Every fact but the uniqueness plans.
