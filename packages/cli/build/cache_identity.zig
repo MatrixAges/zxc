@@ -1,117 +1,66 @@
 const std = @import("std");
 
-/// The digest, and the options module that embeds it in a Zig unit.
-pub const Identity = struct { digest: [32]u8, options: *std.Build.Step.Options };
+/// The directory holding the identity as `digest.zig` and `cache_identity.s` (see `cache_identity/digest.zig`).
+pub const Identity = struct {
+    directory: std.Build.LazyPath,
 
+    /// A module declaring `digest`, for units that embed the identity.
+    pub fn module(self: Identity, b: *std.Build) *std.Build.Module {
+        return b.createModule(.{ .root_source_file = self.directory.path(b, "digest.zig") });
+    }
+
+    /// An assembly source defining the `zxc_cache_identity` symbol, for a platform link.
+    pub fn assembly(self: Identity, b: *std.Build) std.Build.LazyPath {
+        return self.directory.path(b, "cache_identity.s");
+    }
+};
+
+/// Fingerprints the compiler sources in a build step, so editing them leaves the build configuration cached.
 pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, compiler: *std.Build.Dependency) Identity {
-    return generate(b, target, optimize, compiler) catch @panic("cannot fingerprint compiler sources");
-}
+    const tool = b.addExecutable(.{ .name = "cache-identity", .root_module = b.createModule(.{
+        .root_source_file = b.path("build/cache_identity/digest.zig"),
+        .target = b.graph.host,
+        .optimize = .ReleaseFast,
+    }) });
 
-fn generate(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, compiler: *std.Build.Dependency) !Identity {
-    var hash = std.crypto.hash.sha2.Sha256.init(.{});
+    const run = b.addRunArtifact(tool);
+    const directory = run.addOutputDirectoryArg("identity");
 
-    field(&hash, "zxc.semantic.cache.v1");
-    field(&hash, @import("builtin").zig_version_string);
-    field(&hash, try target.result.zigTriple(b.allocator));
-    field(&hash, @tagName(optimize));
+    run.addArgs(&.{ "text", @import("builtin").zig_version_string, "text", target.result.zigTriple(b.allocator) catch @panic("out of memory"), "text", @tagName(optimize) });
 
-    try directory(b, &hash, "cli", try b.root.joinString(b.allocator, "src"));
-    try directory(b, &hash, "cli-build", try b.root.joinString(b.allocator, "build"));
-    try file(b, &hash, "cli/build.zig", try b.root.joinString(b.allocator, "build.zig"));
-    try file(b, &hash, "cli/build.zig.zon", try b.root.joinString(b.allocator, "build.zig.zon"));
-    try file(b, &hash, "standard/modules.json", try compiler.builder.root.joinString(b.allocator, "standard/modules.json"));
-    try directory(b, &hash, "standard/interfaces", try compiler.builder.root.joinString(b.allocator, "standard/interfaces"));
+    source(run, "directory", "cli", b.path("src"));
+    source(run, "directory", "cli-build", b.path("build"));
+    source(run, "file", "cli/build.zig", b.path("build.zig"));
+    source(run, "file", "cli/build.zig.zon", b.path("build.zig.zon"));
+    source(run, "file", "standard/modules.json", compiler.path("standard/modules.json"));
+    source(run, "directory", "standard/interfaces", compiler.path("standard/interfaces"));
 
     for ([_][]const u8{ "compiler", "core", "dsl", "lint", "genz", "pkgs", "napi" }) |name| {
         const dependency = if (std.mem.eql(u8, name, "compiler")) compiler else if (std.mem.eql(u8, name, "lint"))
             b.dependency("lint", .{ .target = target, .optimize = optimize, .generated_name = compiler.namedLazyPath("naming") })
-
         else
             b.dependency(name, .{ .target = target, .optimize = optimize });
 
-        try directory(b, &hash, name, try dependency.builder.root.joinString(b.allocator, "src"));
-        try file(b, &hash, b.fmt("{s}/build.zig", .{name}), try dependency.builder.root.joinString(b.allocator, "build.zig"));
-        try file(b, &hash, b.fmt("{s}/build.zig.zon", .{name}), try dependency.builder.root.joinString(b.allocator, "build.zig.zon"));
-        if (std.mem.eql(u8, name, "lint")) try directory(b, &hash, "lint-bootstrap", try dependency.builder.root.joinString(b.allocator, "bootstrap"));
+        source(run, "directory", name, dependency.path("src"));
+        source(run, "file", b.fmt("{s}/build.zig", .{name}), dependency.path("build.zig"));
+        source(run, "file", b.fmt("{s}/build.zig.zon", .{name}), dependency.path("build.zig.zon"));
+
+        if (std.mem.eql(u8, name, "lint")) source(run, "directory", "lint-bootstrap", dependency.path("bootstrap"));
 
         if (std.mem.eql(u8, name, "compiler")) {
-            try directory(b, &hash, "compiler-build", try dependency.builder.root.joinString(b.allocator, "build"));
-            try directory(b, &hash, "compiler-bootstrap", try dependency.builder.root.joinString(b.allocator, "bootstrap"));
+            source(run, "directory", "compiler-build", dependency.path("build"));
+            source(run, "directory", "compiler-bootstrap", dependency.path("bootstrap"));
         }
     }
 
-    var digest: [32]u8 = undefined;
+    // The tool reads the sources itself on every build; hashing about 10 MB on every core takes milliseconds.
+    run.has_side_effects = true;
 
-    hash.final(&digest);
-
-    const options = b.addOptions();
-
-    options.addOption([32]u8, "digest", digest);
-
-    return .{ .digest = digest, .options = options };
+    return .{ .directory = directory };
 }
 
-fn directory(b: *std.Build, hash: *std.crypto.hash.sha2.Sha256, name: []const u8, path: []const u8) !void {
-    b.dependOnDirectoryContents(.{ .cwd_relative = path });
+fn source(run: *std.Build.Step.Run, kind: []const u8, name: []const u8, path: std.Build.LazyPath) void {
+    run.addArgs(&.{ kind, name });
 
-    var dir = try std.Io.Dir.cwd().openDir(b.graph.io, path, .{ .iterate = true });
-
-    defer dir.close(b.graph.io);
-
-    var walker = try dir.walk(b.allocator);
-
-    defer walker.deinit();
-
-    var paths: std.ArrayList([]const u8) = .empty;
-
-    while (try walker.next(b.graph.io)) |entry| {
-        if (entry.kind == .directory) {
-            b.dependOnDirectoryContents(.{ .cwd_relative = try std.fs.path.join(b.allocator, &.{ path, entry.path }) });
-
-            continue;
-        }
-
-        if (entry.kind != .file) return error.UnsupportedSourceFile;
-        try paths.append(b.allocator, try b.allocator.dupe(u8, entry.path));
-    }
-
-    std.mem.sort([]const u8, paths.items, {}, lessThan);
-    field(hash, name);
-
-    var count: [8]u8 = undefined;
-
-    std.mem.writeInt(u64, &count, @intCast(paths.items.len), .little);
-    field(hash, &count);
-
-    for (paths.items) |relative| {
-        b.dependOnFileContents(.{ .cwd_relative = try std.fs.path.join(b.allocator, &.{ path, relative }) });
-
-        const content = try dir.readFileAlloc(b.graph.io, relative, b.allocator, .unlimited);
-
-        field(hash, relative);
-        field(hash, content);
-        b.allocator.free(content);
-    }
-}
-
-fn file(b: *std.Build, hash: *std.crypto.hash.sha2.Sha256, name: []const u8, path: []const u8) !void {
-    b.dependOnFileContents(.{ .cwd_relative = path });
-
-    const content = try std.Io.Dir.cwd().readFileAlloc(b.graph.io, path, b.allocator, .unlimited);
-
-    defer b.allocator.free(content);
-    field(hash, name);
-    field(hash, content);
-}
-
-fn field(hash: *std.crypto.hash.sha2.Sha256, bytes: []const u8) void {
-    var length: [8]u8 = undefined;
-
-    std.mem.writeInt(u64, &length, @intCast(bytes.len), .little);
-    hash.update(&length);
-    hash.update(bytes);
-}
-
-fn lessThan(_: void, left: []const u8, right: []const u8) bool {
-    return std.mem.lessThan(u8, left, right);
+    if (std.mem.eql(u8, kind, "directory")) run.addDirectoryArg(path) else run.addFileArg(path);
 }

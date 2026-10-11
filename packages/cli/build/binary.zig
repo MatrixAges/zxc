@@ -68,7 +68,7 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
     const start = b.createModule(.{ .root_source_file = b.path("src/host/start.zig"), .target = target, .optimize = optimize, .link_libc = true });
 
     // The platform link defines the identity in an object of its own, so the entry unit stays cached across edits.
-    start.addOptions("cache_identity", if (system_link.available(b, target)) b.addOptions() else inputs.cache_identity.options);
+    if (system_link.available(b, target)) start.addOptions("cache_identity", b.addOptions()) else start.addImport("cache_identity", inputs.cache_identity.module(b));
 
     const entry = b.addLibrary(.{ .name = "zxc_start", .linkage = .static, .root_module = start });
     var linked: std.ArrayList(*std.Build.Step.Compile) = .empty;
@@ -90,7 +90,7 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
 
     linked.append(b.allocator, inputs.yaml) catch @panic("OOM");
 
-    if (system_link.available(b, target)) return .{ .file = system_link.link(b, target, entry, linked.items, files.items, inputs.cache_identity.digest, self_hosted) };
+    if (system_link.available(b, target)) return .{ .file = system_link.link(b, target, entry, linked.items, files.items, inputs.cache_identity.assembly(b), self_hosted) };
 
     start.addObject(host);
     start.linkLibrary(inputs.yaml);
