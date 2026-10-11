@@ -22,8 +22,8 @@ pub fn plan(allocator: std.mem.Allocator, functions: []const File, top: []const 
 
     for (functions) |function| try scopes.owners.put(allocator, function.path, .{ .partition = partition(function.path, count), .source = function.source });
 
-    for (functions) |function| try scopes.demand(scopes.owners.get(function.path).?.partition, function.source);
-    for (top) |file| try scopes.demand(count, file.source);
+    for (functions) |function| try scopes.demand(scopes.owners.get(function.path).?.partition, try scopes.references(function.path, function.source));
+    for (top) |file| try scopes.demand(count, try scan(allocator, file.source));
 
     const owners = scopes.owners;
     var exports = scopes.exports;
@@ -97,6 +97,16 @@ const Scopes = struct {
     copies: []Copies,
     exports: Demands = .empty,
     inline_variants: std.StringHashMapUnmanaged([]const []const u8) = .empty,
+    scanned: std.StringHashMapUnmanaged([]const Reference) = .empty,
+
+    /// The calls of a function file, scanned once however many scopes receive an inline copy of it.
+    fn references(self: *Scopes, name: []const u8, source: []const u8) ![]const Reference {
+        const entry = try self.scanned.getOrPut(self.allocator, name);
+
+        if (!entry.found_existing) entry.value_ptr.* = try scan(self.allocator, source);
+
+        return entry.value_ptr.*;
+    }
 
     fn inlined(self: *Scopes, callee: []const u8, source: []const u8, variant: []const u8) !bool {
         const entry = try self.inline_variants.getOrPut(self.allocator, callee);
@@ -109,45 +119,54 @@ const Scopes = struct {
     }
 
     /// Records every call from `scope` into a function owned by another scope.
-    fn demand(self: *Scopes, scope: u32, source: []const u8) !void {
-        var cursor: usize = 0;
-
-        while (std.mem.indexOfPos(u8, source, cursor, import_prefix)) |at| {
-            const name_start = at + "@import(\"".len;
-            const quote = std.mem.indexOfScalarPos(u8, source, name_start, '"') orelse return error.UnterminatedImport;
-            const callee = source[name_start..quote];
-            var member = quote + 1;
-
-            while (member < source.len and source[member] == ')') member += 1;
-
-            if (member >= source.len or source[member] != '.') return error.UnsupportedFunctionReference;
-
-            const variant_start = member + 1;
-            var variant_end = variant_start;
-
-            while (variant_end < source.len and (std.ascii.isAlphanumeric(source[variant_end]) or source[variant_end] == '_')) variant_end += 1;
-
-            cursor = variant_end;
-
-            const owner = self.owners.get(callee) orelse return error.MissingFunctionFile;
+    fn demand(self: *Scopes, scope: u32, calls: []const Reference) !void {
+        for (calls) |call| {
+            const owner = self.owners.get(call.callee) orelse return error.MissingFunctionFile;
 
             if (owner.partition == scope) continue;
 
-            const variant = source[variant_start..variant_end];
+            if (try self.inlined(call.callee, owner.source, call.variant)) {
+                if ((try self.copies[scope].getOrPut(self.allocator, call.callee)).found_existing) continue;
 
-            if (try self.inlined(callee, owner.source, variant)) {
-                if ((try self.copies[scope].getOrPut(self.allocator, callee)).found_existing) continue;
-
-                try self.demand(scope, owner.source);
+                try self.demand(scope, try self.references(call.callee, owner.source));
 
                 continue;
             }
 
-            try add(self.allocator, &self.stubs[scope], callee, variant);
-            try add(self.allocator, &self.exports, callee, variant);
+            try add(self.allocator, &self.stubs[scope], call.callee, call.variant);
+            try add(self.allocator, &self.exports, call.callee, call.variant);
         }
     }
 };
+
+/// One reference `@import("callee").variant` in generated source.
+const Reference = struct { callee: []const u8, variant: []const u8 };
+
+fn scan(allocator: std.mem.Allocator, source: []const u8) ![]const Reference {
+    var result: std.ArrayList(Reference) = .empty;
+    var cursor: usize = 0;
+
+    while (@import("search.zig").find(source, cursor, import_prefix)) |at| {
+        const name_start = at + "@import(\"".len;
+        const quote = std.mem.indexOfScalarPos(u8, source, name_start, '"') orelse return error.UnterminatedImport;
+        var member = quote + 1;
+
+        while (member < source.len and source[member] == ')') member += 1;
+
+        if (member >= source.len or source[member] != '.') return error.UnsupportedFunctionReference;
+
+        const variant_start = member + 1;
+        var variant_end = variant_start;
+
+        while (variant_end < source.len and (std.ascii.isAlphanumeric(source[variant_end]) or source[variant_end] == '_')) variant_end += 1;
+
+        cursor = variant_end;
+
+        try result.append(allocator, .{ .callee = source[name_start..quote], .variant = source[variant_start..variant_end] });
+    }
+
+    return result.items;
+}
 
 fn add(allocator: std.mem.Allocator, demands: *Demands, callee: []const u8, variant: []const u8) !void {
     const entry = try demands.getOrPut(allocator, callee);

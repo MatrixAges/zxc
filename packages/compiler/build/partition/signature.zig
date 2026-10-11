@@ -54,7 +54,7 @@ pub fn inlineNames(allocator: std.mem.Allocator, source: []const u8) ![]const []
     var names: std.ArrayList([]const u8) = .empty;
     var cursor: usize = 0;
 
-    while (std.mem.indexOfPos(u8, source, cursor, marker)) |at| {
+    while (@import("search.zig").find(source, cursor, marker)) |at| {
         cursor = at + marker.len;
 
         if (at != 0 and source[at - 1] != '\n') continue;
