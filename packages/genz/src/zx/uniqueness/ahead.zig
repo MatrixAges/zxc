@@ -3,130 +3,144 @@ const ir = @import("zx").ir;
 const Function = @import("function.zig");
 const Level = @import("level.zig").Level;
 const Memo = @import("memo.zig");
-const Rounds = @import("rounds.zig");
+const Pool = @import("pool.zig");
 const Slots = @import("slots.zig");
 const Summaries = @import("summaries.zig");
 const Unit = @import("root.zig").Unit;
 const Self = @This();
 
-/// Body analyses run ahead of the worklist on all cores. The worklist visits one body at a time, and a visit may
-/// weaken what later visits read, so the next bodies of the queue are analyzed together against the summaries as they
-/// stand, and each result lists the summary levels it read. A visit uses the result only while every level it read
-/// still holds, which keeps every result and the order of the worklist those of visiting one body at a time; when the
-/// next body has no such result, the bodies ahead of the queue that lack one are analyzed again. A body that calls
-/// itself reads what its own visit changes, so it is never analyzed ahead.
-rounds: *Rounds,
-/// Holds the lists of bodies each round analyzes.
-scratch: std.mem.Allocator,
+/// Body analyses run ahead of the worklist on background threads. The worklist visits one body at a time, and a visit
+/// may weaken what later visits read, so background threads analyze the next bodies of the queue against the summaries
+/// as they stand while the worklist goes on, and each result lists the summary levels it read. A visit uses the result
+/// only if every level it read still holds: the analysis reads nothing else that changes, so it would read the same
+/// levels and reach the same result again, which keeps every result and the order of the worklist those of visiting
+/// one body at a time. A body that calls itself reads what its own visit changes, so it is never analyzed ahead.
+pool: *Pool,
 functions: ir.FunctionTable,
 slots: Slots,
 summaries: *Summaries,
 units: []const ?*Unit,
-settled: []?Entry(Settled),
-demanded: []?Entry(Demanded),
-planned: []?Entry(Planned),
+/// Where each body's analysis ahead stands; a background thread owns the body while it runs.
+states: []std.atomic.Value(State),
+/// Bodies whose summaries changed since their analysis ahead was requested, so that it is likely stale.
+dirty: []bool,
+settled: []Settled,
+demanded: []Demanded,
+planned: []Planned,
 pub const Settled = struct { passed: []const Function.Contribution, output: []const Level, reads: []const Function.Read };
 
 pub const Demanded = struct { marks: []const Function.Mark, grew: bool, normalized: []const Memo.Normalized, renewed: []const Memo.Renewed, reads: []const Function.Read };
 pub const Planned = struct { flags: []const Function.Flags, renewals: []const Function.Renewal };
+const State = enum(u8) { idle, queued, running, ready, failed, held };
 
-/// A result analyzed ahead, or null where the memo already holds one.
-fn Entry(comptime Result: type) type {
-    return struct { found: ?Result };
-}
+/// Queued bodies looked at ahead per thread: enough to keep the threads busy while the worklist waits on a chain of
+/// changes, few enough that a weakened summary wastes little.
+const per_thread = 16;
 
-/// Queued bodies looked at ahead per core: enough to keep the cores busy, few enough that a weakened summary wastes
-/// little.
-const per_core = 4;
+pub fn init(allocator: std.mem.Allocator, pool: *Pool, functions: ir.FunctionTable, slots: Slots, summaries: *Summaries, units: []const ?*Unit) std.mem.Allocator.Error!Self {
+    const states = try allocator.alloc(std.atomic.Value(State), units.len);
+    const dirty = try allocator.alloc(bool, units.len);
 
-pub fn init(allocator: std.mem.Allocator, rounds: *Rounds, functions: ir.FunctionTable, slots: Slots, summaries: *Summaries, units: []const ?*Unit) std.mem.Allocator.Error!Self {
-    var self = Self{
-        .rounds = rounds,
-        .scratch = allocator,
+    @memset(states, .init(.idle));
+    @memset(dirty, false);
+
+    return .{
+        .pool = pool,
         .functions = functions,
         .slots = slots,
         .summaries = summaries,
         .units = units,
-        .settled = try allocator.alloc(?Entry(Settled), units.len),
-        .demanded = try allocator.alloc(?Entry(Demanded), units.len),
-        .planned = try allocator.alloc(?Entry(Planned), units.len),
+        .states = states,
+        .dirty = dirty,
+        .settled = try allocator.alloc(Settled, units.len),
+        .demanded = try allocator.alloc(Demanded, units.len),
+        .planned = try allocator.alloc(Planned, units.len),
     };
-
-    self.reset();
-
-    return self;
 }
 
-/// Drops every result not visited yet.
-pub fn reset(self: *Self) void {
-    @memset(self.settled, null);
-    @memset(self.demanded, null);
-    @memset(self.planned, null);
-    self.rounds.forget();
+/// Starts analyzing ahead for the visits of `kind`.
+pub fn begin(self: *Self, comptime kind: Memo.Kind) void {
+    self.pool.serve(Self, Task(kind).run, self);
 }
 
-/// How many queued bodies a round looks at.
+/// Waits for the analyses ahead still running and drops every result not visited, before the summaries change
+/// outside the worklist.
+pub fn finish(self: *Self) void {
+    self.pool.drain();
+    self.pool.forget();
+    @memset(self.states, .init(.idle));
+    @memset(self.dirty, false);
+}
+
+/// Notes that a summary body `index` reads changed, so that its analysis ahead runs again before its visit.
+pub fn invalidate(self: *Self, index: usize) void {
+    self.dirty[index] = true;
+}
+
+/// How many queued bodies are looked at ahead.
 pub fn width(self: *const Self) usize {
-    return self.rounds.count() * per_core;
+    return self.pool.count() * per_thread;
 }
 
-/// Analyzes the bodies of `indices` that lack a current result once the first of them was never analyzed ahead: a
-/// body whose result went stale is visited on the calling thread instead, as its summaries changed only now and the
-/// bodies after it may still change them again.
-pub fn prepare(self: *Self, comptime kind: Memo.Kind, memo: *Memo, indices: []const usize) std.mem.Allocator.Error!void {
-    const first = indices[0];
-
-    if (@field(self, @tagName(kind))[first] != null or self.recursive(first)) return;
-
-    var pending: std.ArrayList(usize) = .empty;
-
+/// Queues the bodies of `indices` that have no analysis ahead or one that a summary change made stale, skipping those
+/// whose result the memo already holds.
+pub fn request(self: *Self, comptime kind: Memo.Kind, memo: *Memo, indices: []const usize) std.mem.Allocator.Error!void {
     for (indices) |index| {
-        if (self.current(kind, index) or self.recursive(index)) continue;
+        const state = &self.states[index];
 
-        const slots = @field(self, @tagName(kind));
+        switch (state.load(.monotonic)) {
+            .idle => {},
+            .ready, .held => if (!self.dirty[index]) continue,
+            .queued => {
+                self.dirty[index] = false;
+
+                continue;
+            },
+            .running, .failed => continue,
+        }
+
+        if (self.units[index].?.recursive(index)) continue;
+
+        self.dirty[index] = false;
 
         if (try memo.holds(kind, self.summaries, self.units[index].?.state(index))) {
-            slots[index] = .{ .found = null };
+            state.store(.held, .monotonic);
 
             continue;
         }
 
-        slots[index] = null;
+        state.store(.queued, .monotonic);
 
-        try pending.append(self.scratch, index);
+        if (!self.pool.submit(@intCast(index))) return state.store(.idle, .monotonic);
+    }
+}
+
+/// The result analyzed ahead for body `index` if every level it read still holds; waits while it is analyzed.
+pub fn take(self: *Self, comptime kind: Memo.Kind, index: usize) std.mem.Allocator.Error!?Found(kind) {
+    const state = &self.states[index];
+
+    self.dirty[index] = false;
+
+    defer state.store(.idle, .monotonic);
+
+    while (true) {
+        switch (state.load(.acquire)) {
+            .idle, .held => return null,
+            .queued => if (state.cmpxchgWeak(.queued, .idle, .monotonic, .monotonic) == null) return null,
+            .running => std.atomic.spinLoopHint(),
+            .ready => break,
+            .failed => return error.OutOfMemory,
+        }
     }
 
-    var task = Task(kind){ .ahead = self, .indices = pending.items };
+    const found = @field(self, @tagName(kind))[index];
 
-    try self.rounds.each(Task(kind), &task, pending.items.len);
+    return if (kind == .planned or Function.unchanged(self.summaries, found.reads)) found else null;
 }
 
-/// The result analyzed ahead for body `index` while nothing it reads changed since; once.
-pub fn take(self: *Self, comptime kind: Memo.Kind, index: usize) ?Found(kind) {
-    const fresh = self.current(kind, index);
-    const slot = &@field(self, @tagName(kind))[index];
-    const entry = slot.* orelse return null;
-    slot.* = null;
-
-    return if (fresh) entry.found else null;
-}
-
-/// Where a body analyzed on the calling thread builds the passes it keeps; the calling thread is also the first core
-/// of every round, so the passes stay where rounds build them.
+/// Where the calling thread builds the passes over a body it analyzes itself.
 pub fn kept(self: *const Self) std.mem.Allocator {
-    return self.rounds.workers[0].lasting.allocator();
-}
-
-/// Whether body `index` has a result whose reads still hold; the plan pass reads summaries that no longer change.
-fn current(self: *const Self, comptime kind: Memo.Kind, index: usize) bool {
-    const entry = @field(self, @tagName(kind))[index] orelse return false;
-    const found = entry.found orelse return false;
-
-    return kind == .planned or Function.unchanged(self.summaries, found.reads);
-}
-
-fn recursive(self: *const Self, index: usize) bool {
-    return self.units[index].?.recursive(index);
+    return self.pool.workers[0].lasting.allocator();
 }
 
 fn Found(comptime kind: Memo.Kind) type {
@@ -139,11 +153,15 @@ fn Found(comptime kind: Memo.Kind) type {
 
 fn Task(comptime kind: Memo.Kind) type {
     return struct {
-        ahead: *Self,
-        indices: []const usize,
-        pub fn run(self: *@This(), position: usize, worker: *Rounds.Worker) std.mem.Allocator.Error!void {
-            const ahead = self.ahead;
-            const index = self.indices[position];
+        fn run(self: *Self, worker: *Pool.Worker, index: u32) void {
+            const state = &self.states[index];
+
+            if (state.cmpxchgStrong(.queued, .running, .acquire, .monotonic) != null) return;
+
+            @field(self, @tagName(kind))[index] = analyze(self, worker, index) catch return state.store(.failed, .release);
+            state.store(.ready, .release);
+        }
+        fn analyze(ahead: *Self, worker: *Pool.Worker, index: usize) std.mem.Allocator.Error!Found(kind) {
             const unit = ahead.units[index].?;
             const summaries = ahead.summaries;
             const scratch = worker.scratch.allocator();
@@ -152,8 +170,8 @@ fn Task(comptime kind: Memo.Kind) type {
             var changed: std.ArrayList(usize) = .empty;
             var reads: std.ArrayList(Function.Read) = .empty;
 
-            const found: Found(kind) = switch (kind) {
-                .settled => found: {
+            switch (kind) {
+                .settled => {
                     var analysis = try unit.analyze(scratch, lasting, ahead.functions, ahead.slots, summaries, null);
                     var passed: std.ArrayList(Function.Contribution) = .empty;
                     const output = try keep.alloc(Level, if (index < summaries.output.len) summaries.output[index].len else 0);
@@ -167,9 +185,9 @@ fn Task(comptime kind: Memo.Kind) type {
 
                     for (passed.items, contributions) |contribution, *target| target.* = .{ .callee = contribution.callee, .levels = try keep.dupe(Level, contribution.levels) };
 
-                    break :found .{ .passed = contributions, .output = output, .reads = try keep.dupe(Function.Read, reads.items) };
+                    return .{ .passed = contributions, .output = output, .reads = try keep.dupe(Function.Read, reads.items) };
                 },
-                .demanded => found: {
+                .demanded => {
                     // The growth copies a demand pass leaves are its own; the body's stay as they were until its visit.
                     var normalized = try unit.normalized.cloneWithAllocator(scratch);
                     var renewed = try unit.renewed.cloneWithAllocator(scratch);
@@ -180,19 +198,17 @@ fn Task(comptime kind: Memo.Kind) type {
 
                     try analysis.demand(&changed, &marked);
 
-                    break :found .{ .marks = try keep.dupe(Function.Mark, marked.items), .grew = analysis.grew, .normalized = try entries(Memo.Normalized, keep, &normalized), .renewed = try entries(Memo.Renewed, keep, &renewed), .reads = try keep.dupe(Function.Read, reads.items) };
+                    return .{ .marks = try keep.dupe(Function.Mark, marked.items), .grew = analysis.grew, .normalized = try entries(Memo.Normalized, keep, &normalized), .renewed = try entries(Memo.Renewed, keep, &renewed), .reads = try keep.dupe(Function.Read, reads.items) };
                 },
-                .planned => found: {
+                .planned => {
                     var analysis = try unit.analyze(scratch, lasting, ahead.functions, ahead.slots, summaries, null);
                     const flags = try keep.alloc(Function.Flags, unit.unit.expressions.count());
 
                     try analysis.flags(flags);
 
-                    break :found .{ .flags = flags, .renewals = try analysis.renewals(keep) };
+                    return .{ .flags = flags, .renewals = try analysis.renewals(keep) };
                 },
-            };
-
-            @field(ahead, @tagName(kind))[index] = .{ .found = found };
+            }
         }
     };
 }

@@ -164,13 +164,16 @@ pub fn unchanged(summaries: *const Summaries, reads: []const Read) bool {
             .outputs => summaries.outputs[entry.function],
         };
 
-        if (values[entry.slot] != entry.value) return false;
+        if (Level.load(&values[entry.slot]) != entry.value) return false;
     }
 
     return true;
 }
 
-fn read(self: *Self, table: Table, function: usize, slot: u32, value: Level) std.mem.Allocator.Error!Level {
+/// Reads one summary level, which a background analysis reads while the worklist may store it.
+fn read(self: *Self, table: Table, function: usize, values: []const Level, slot: u32) std.mem.Allocator.Error!Level {
+    const value = Level.load(&values[slot]);
+
     if (self.reads) |list| try list.append(self.allocator, .{ .table = table, .function = @intCast(function), .slot = slot, .value = value });
 
     return value;
@@ -189,7 +192,7 @@ fn meet(allocator: std.mem.Allocator, summaries: *Summaries, callee: u32, slot: 
 
     if (met == value.*) return;
 
-    value.* = met;
+    Level.store(value, met);
 
     try changed.append(allocator, callee);
 }
@@ -354,7 +357,7 @@ fn raw(self: *Self, id: ir.ExprId, slot: u32) std.mem.Allocator.Error!Level {
 
 fn definition(self: *Self, symbol: ir.SymbolId, slot: u32) std.mem.Allocator.Error!Level {
     return switch (self.order.defs[@backingInt(symbol)]) {
-        .input => if (slot < self.input.len) try self.read(.input, self.function.?, slot, self.input[slot]) else .none,
+        .input => if (slot < self.input.len) try self.read(.input, self.function.?, self.input, slot) else .none,
         .value => |id| self.level(id, slot),
         .part => |part| self.level(part.value, self.slots.member(self.row(part.value).type_id, part.index).offset + slot),
         .carried, .condition => |id| self.carried.get(id).?[slot],
@@ -409,7 +412,7 @@ fn node(self: *Self, id: ir.ExprId, slot: u32) std.mem.Allocator.Error!Level {
             const callee = @backingInt(invocation.function);
             const outputs = self.summaries.output[callee];
 
-            break :blk if (slot < outputs.len) try self.read(.output, callee, slot, outputs[slot]) else .none;
+            break :blk if (slot < outputs.len) try self.read(.output, callee, outputs, slot) else .none;
         },
         else => .none,
     };
@@ -438,8 +441,14 @@ pub fn demand(self: *Self, changed: *std.ArrayList(usize), marked: *std.ArrayLis
                 .pop, .splice => {},
             },
             .list_update => |update| try self.trace(update.target, 0, null, false, .fresh),
-            .call => |invocation| for (self.summaries.inputs[@backingInt(invocation.function)], 0..) |want, slot| {
-                if (try self.read(.inputs, @backingInt(invocation.function), @intCast(slot), want) != Level.none) try self.trace(invocation.argument, @intCast(slot), null, false, want);
+            .call => |invocation| {
+                const callee = @backingInt(invocation.function);
+
+                for (0..self.summaries.inputs[callee].len) |slot| {
+                    const want = try self.read(.inputs, callee, self.summaries.inputs[callee], @intCast(slot));
+
+                    if (want != Level.none) try self.trace(invocation.argument, @intCast(slot), null, false, want);
+                }
             },
             else => {},
         }
@@ -447,8 +456,10 @@ pub fn demand(self: *Self, changed: *std.ArrayList(usize), marked: *std.ArrayLis
 
     const function = self.function orelse return;
 
-    for (self.summaries.outputs[function], 0..) |want, slot| {
-        if (try self.read(.outputs, function, @intCast(slot), want) == Level.none) continue;
+    for (0..self.summaries.outputs[function].len) |slot| {
+        const want = try self.read(.outputs, function, self.summaries.outputs[function], @intCast(slot));
+
+        if (want == Level.none) continue;
         for (self.order.results.items) |result| try self.trace(result, @intCast(slot), null, false, want);
     }
 }
@@ -553,7 +564,7 @@ pub fn applyMark(allocator: std.mem.Allocator, summaries: *Summaries, value: Mar
 
     if (next == values[value.slot]) return;
 
-    values[value.slot] = next;
+    Level.store(&values[value.slot], next);
 
     try changed.append(allocator, value.function);
 }
