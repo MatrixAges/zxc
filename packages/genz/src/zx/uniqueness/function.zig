@@ -73,6 +73,10 @@ grew: bool = false,
 /// Records contributions and demands without meeting them into the summaries, which other bodies of the same round
 /// read; the round applies them once every body ran.
 deferred: bool = false,
+
+/// Every summary level the analysis read, when given: an analysis that reads the same levels again reaches the same
+/// result, so the list tells whether a result still holds without analyzing the body again.
+reads: ?*std.ArrayList(Read) = null,
 pub fn analyze(allocator: std.mem.Allocator, functions: ir.FunctionTable, unit: Unit, order: *const Order, sites: *Sites, slots: Slots, summaries: *Summaries) std.mem.Allocator.Error!Self {
     const levels = try allocator.alloc(Known, sites.slot_first[sites.slot_first.len - 1] - sites.slot_first[unit.symbols.count()]);
     var self = Self{ .allocator = allocator, .functions = functions, .expressions = unit.expressions, .order = order, .sites = sites, .slots = slots, .summaries = summaries, .input = unit.input, .function = unit.function, .normalized = unit.normalized, .renewed = unit.renewed, .operations = unit.operations, .rows = unit.rows, .levels = levels };
@@ -144,6 +148,32 @@ pub fn arguments(self: *Self, changed: *std.ArrayList(usize), passed: *std.Array
 
         try passed.append(self.allocator, .{ .callee = @intCast(callee), .levels = levels });
     }
+}
+
+/// One summary level an analysis read.
+pub const Read = struct { table: Table, function: u32, slot: u32, value: Level };
+pub const Table = enum(u8) { input, output, inputs, outputs };
+
+/// Whether every level `reads` lists still holds in `summaries`.
+pub fn unchanged(summaries: *const Summaries, reads: []const Read) bool {
+    for (reads) |entry| {
+        const values = switch (entry.table) {
+            .input => summaries.input[entry.function],
+            .output => summaries.output[entry.function],
+            .inputs => summaries.inputs[entry.function],
+            .outputs => summaries.outputs[entry.function],
+        };
+
+        if (values[entry.slot] != entry.value) return false;
+    }
+
+    return true;
+}
+
+fn read(self: *Self, table: Table, function: usize, slot: u32, value: Level) std.mem.Allocator.Error!Level {
+    if (self.reads) |list| try list.append(self.allocator, .{ .table = table, .function = @intCast(function), .slot = slot, .value = value });
+
+    return value;
 }
 
 /// What one call passes into each input slot of its callee, met in slot order.
@@ -324,7 +354,7 @@ fn raw(self: *Self, id: ir.ExprId, slot: u32) std.mem.Allocator.Error!Level {
 
 fn definition(self: *Self, symbol: ir.SymbolId, slot: u32) std.mem.Allocator.Error!Level {
     return switch (self.order.defs[@backingInt(symbol)]) {
-        .input => if (slot < self.input.len) self.input[slot] else .none,
+        .input => if (slot < self.input.len) try self.read(.input, self.function.?, slot, self.input[slot]) else .none,
         .value => |id| self.level(id, slot),
         .part => |part| self.level(part.value, self.slots.member(self.row(part.value).type_id, part.index).offset + slot),
         .carried, .condition => |id| self.carried.get(id).?[slot],
@@ -376,9 +406,10 @@ fn node(self: *Self, id: ir.ExprId, slot: u32) std.mem.Allocator.Error!Level {
             break :blk result;
         },
         .call => |invocation| blk: {
-            const outputs = self.summaries.output[@backingInt(invocation.function)];
+            const callee = @backingInt(invocation.function);
+            const outputs = self.summaries.output[callee];
 
-            break :blk if (slot < outputs.len) outputs[slot] else .none;
+            break :blk if (slot < outputs.len) try self.read(.output, callee, slot, outputs[slot]) else .none;
         },
         else => .none,
     };
@@ -408,7 +439,7 @@ pub fn demand(self: *Self, changed: *std.ArrayList(usize), marked: *std.ArrayLis
             },
             .list_update => |update| try self.trace(update.target, 0, null, false, .fresh),
             .call => |invocation| for (self.summaries.inputs[@backingInt(invocation.function)], 0..) |want, slot| {
-                if (want != Level.none) try self.trace(invocation.argument, @intCast(slot), null, false, want);
+                if (try self.read(.inputs, @backingInt(invocation.function), @intCast(slot), want) != Level.none) try self.trace(invocation.argument, @intCast(slot), null, false, want);
             },
             else => {},
         }
@@ -417,7 +448,7 @@ pub fn demand(self: *Self, changed: *std.ArrayList(usize), marked: *std.ArrayLis
     const function = self.function orelse return;
 
     for (self.summaries.outputs[function], 0..) |want, slot| {
-        if (want == Level.none) continue;
+        if (try self.read(.outputs, function, @intCast(slot), want) == Level.none) continue;
         for (self.order.results.items) |result| try self.trace(result, @intCast(slot), null, false, want);
     }
 }

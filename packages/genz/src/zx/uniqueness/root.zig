@@ -44,6 +44,11 @@ pub const Unit = struct {
     /// Growth copies a demand pass grows apart from the body's own.
     pub const Growth = struct { normalized: *std.AutoHashMap(ir.ExprId, Level), renewed: *std.AutoHashMap(u64, Level) };
 
+    /// Whether the body calls itself, so that its visit changes what it reads.
+    pub fn recursive(self: *const Unit, index: usize) bool {
+        return std.mem.indexOfScalar(u32, self.callees, @intCast(index)) != null;
+    }
+
     pub fn state(self: *const Unit, index: usize) Memo.State {
         return .{ .identity = self.identity, .index = index, .input = self.unit.input, .callees = self.callees, .normalized = &self.normalized, .renewed = &self.renewed };
     }
@@ -266,6 +271,9 @@ const Work = struct {
     }
 };
 
+/// The last settled result of a body and the summary levels it read.
+const Last = struct { passed: []const Function.Contribution, output: []const Level, reads: []const Function.Read };
+
 /// Analyzes ahead the bodies at the front of the queue that lack a current result, unless the worklist follows a
 /// trace, whose visits are recalled instead of analyzed.
 fn lookAhead(comptime kind: Memo.Kind, work: *const Work, memo: *Memo, replay: *const Trace.Replay, ahead: *Ahead) std.mem.Allocator.Error!void {
@@ -282,17 +290,22 @@ fn restoreGrowth(unit: *Unit, normalized: []const Memo.Normalized, renewed: []co
 }
 
 /// The greatest fixpoint of the summaries for the current growth copies, or no facts if it does not settle in time. A
-/// body is analyzed again only when a callee output it reads or its own input weakened.
+/// body is analyzed again only when a callee output it reads or its own input weakened, and its last result stands
+/// while every level that result read still holds.
 fn settle(workspace: std.mem.Allocator, work: *Work, program: ir.Program, slots: Slots, summaries: *Summaries, units: []const ?*Unit, callers: []const std.ArrayList(usize), memo: *Memo, replay: *Trace.Replay, ahead: *Ahead) std.mem.Allocator.Error!void {
     const count = program.functions.count();
     var round = std.heap.ArenaAllocator.init(workspace);
+    var phase = std.heap.ArenaAllocator.init(workspace);
 
     defer round.deinit();
+    defer phase.deinit();
 
     try work.fill(workspace, units);
 
     var remaining = budget * units.len;
+    const last = try phase.allocator().alloc(?Last, units.len);
 
+    @memset(last, null);
     ahead.reset();
 
     while (true) {
@@ -309,7 +322,13 @@ fn settle(workspace: std.mem.Allocator, work: *Work, program: ir.Program, slots:
         const output = try round.allocator().alloc(Level, if (index == count) 0 else summaries.output[index].len);
         const recalled = replay.recall(.settled, index) orelse try memo.getSettled(summaries, unit.state(index));
         const early = ahead.take(.settled, index);
-        const known = recalled orelse if (early) |found| try memo.putSettled(memo.key, found.passed, found.output) else null;
+        const kept = if (recalled != null or early != null) null else if (last[index]) |result| if (Function.unchanged(summaries, result.reads)) result else null else null;
+        var reads: []const Function.Read = &.{};
+
+        if (early) |found| reads = found.reads;
+        if (kept) |result| reads = result.reads;
+
+        const known = recalled orelse if (early) |found| try memo.putSettled(memo.key, found.passed, found.output) else if (kept) |result| try memo.putSettled(memo.key, result.passed, result.output) else null;
 
         const settled = if (known) |settled| replayed: {
             for (settled.passed) |contribution| try Function.replay(round.allocator(), summaries, contribution, &changed);
@@ -317,25 +336,26 @@ fn settle(workspace: std.mem.Allocator, work: *Work, program: ir.Program, slots:
             break :replayed settled;
         } else analyzed: {
             var passed: std.ArrayList(Function.Contribution) = .empty;
+            var read: std.ArrayList(Function.Read) = .empty;
             var analysis = try unit.analyze(round.allocator(), ahead.kept(), program.functions, slots, summaries, null);
 
-            try analysis.arguments(&changed, &passed);
+            analysis.reads = &read;
 
+            try analysis.arguments(&changed, &passed);
             if (index != count) try analysis.output(output);
+
+            reads = try phase.allocator().dupe(Function.Read, read.items);
 
             break :analyzed try memo.putSettled(memo.key, passed.items, output);
         };
+
+        last[index] = if (recalled != null or unit.recursive(index)) null else .{ .passed = settled.passed, .output = settled.output, .reads = reads };
 
         try replay.met(.settled, index, settled, memo);
 
         @memcpy(output, settled.output);
 
-        for (changed.items) |callee| if (units[callee] != null) {
-            ahead.touch(callee);
-
-            try work.push(workspace, callee);
-        };
-
+        for (changed.items) |callee| if (units[callee] != null) try work.push(workspace, callee);
         if (index == count) continue;
 
         var weakened = false;
@@ -350,9 +370,6 @@ fn settle(workspace: std.mem.Allocator, work: *Work, program: ir.Program, slots:
         }
 
         if (!weakened) continue;
-
-        ahead.touch(index);
-
         for (callers[index].items) |caller| try work.push(workspace, caller);
     }
 }
@@ -404,8 +421,6 @@ fn demand(workspace: std.mem.Allocator, work: *Work, program: ir.Program, slots:
         if (demanded.grew) added = true;
 
         for (changed.items) |function| {
-            ahead.touch(function);
-
             if (function == index) {
                 for (callers[function].items) |caller| try work.push(workspace, caller);
             } else if (units[function] != null) try work.push(workspace, function);
