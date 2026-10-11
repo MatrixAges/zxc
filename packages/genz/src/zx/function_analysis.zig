@@ -13,6 +13,8 @@ errors: []const ?[]const []const u8 = &.{},
 
 /// The pure functions that compare no represented aggregates by identity, themselves or through their callees.
 identity_free: []const bool = &.{},
+/// The functions whose output holds no part of their input.
+fresh_outputs: []const bool = &.{},
 uniqueness: Uniqueness.Result,
 basis: *const Uniqueness.Basis,
 /// Shared by every `reentry` into the same functions.
@@ -82,6 +84,7 @@ pub fn createRemembered(backing: std.mem.Allocator, program: ir.Program, exporte
         .tasks = try owned.dupe(bool, facts.tasks),
         .errors = try copyErrors(owned, facts.errors),
         .identity_free = try owned.dupe(bool, facts.identity_free),
+        .fresh_outputs = try owned.dupe(bool, facts.fresh_outputs),
         .uniqueness = try copyPlans(owned, facts.uniqueness),
         .basis = basis,
         .entry_summaries = try owned.create(Uniqueness.Summaries),
@@ -104,7 +107,7 @@ pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, progr
 
     const others = remaining(allocator, workspace, program);
     const errors = @import("zx").error_effects.perFunction(allocator, program.types, program.functions);
-    const identity_free = if (others) |value| @import("iteration_layout.zig").identityFreeFunctions(allocator, program, value.value.pure) else |err| err;
+    const identity_free = if (others) |value| @import("iteration_layout/identity_free.zig").functions(allocator, program, value.value.pure) else |err| err;
 
     if (thread) |running| running.join();
 
@@ -112,10 +115,23 @@ pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, progr
 
     value.errors = try errors;
     value.identity_free = try identity_free;
+    value.fresh_outputs = try freshOutputs(allocator, program);
     value.uniqueness = try copyPlans(allocator, try uniqueness.result);
     value.basis = basis;
 
     return value;
+}
+
+fn freshOutputs(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error![]const bool {
+    const result = try allocator.alloc(bool, program.functions.count());
+
+    for (result, 0..) |*fresh, index| {
+        const function = program.functions.at(index);
+
+        fresh.* = !@import("value_call/analysis.zig").containsDescendant(program, function.output_type, function.input_type);
+    }
+
+    return result;
 }
 
 /// Every fact but the uniqueness plans.
