@@ -2,6 +2,8 @@ const std = @import("std");
 const entries = @import("entries.zig");
 
 pub const Sources = struct {
+    project_binding: std.Build.LazyPath,
+    project_binding_abi: std.Build.LazyPath,
     standard_abi: std.Build.LazyPath,
     native_restore: std.Build.LazyPath,
     native_restore_abi: std.Build.LazyPath,
@@ -406,6 +408,17 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
         },
     });
 
+    const project_binding = b.createModule(.{
+        .root_source_file = source.project_binding,
+        .strip = strip,
+        .target = target,
+        .optimize = optimize,
+        .imports = &.{
+            .{ .name = "zxc_standard", .module = natives.standard },
+            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.project_binding_abi, .target = target, .optimize = optimize, .strip = strip }) },
+        },
+    });
+
     const refinement_mark = b.createModule(.{
         .root_source_file = source.refinement_mark,
         .strip = strip,
@@ -505,6 +518,7 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
     });
 
     return .{
+        .project_binding = project_binding,
         .native_restore = native_restore,
         .compiled_library = compiled_library,
         .ir_validation = ir_validation,

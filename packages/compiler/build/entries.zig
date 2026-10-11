@@ -16,6 +16,7 @@ pub const main = [_]Entry{
     .{ .path = "rx/path_kind/validate.rx", .name = "path_kind" },
     .{ .path = "rx/schema/file/classify.rx", .name = "file_kind" },
     .{ .path = "zx/modules/specifier/classify.rx", .name = "specifier" },
+    .{ .path = "zx/modules/binding/bind.rx", .name = "project_binding", .abi = "project_binding_abi" },
     .{ .path = "zx/analysis/integer/decode.rx", .name = "integer" },
     .{ .path = "zx/analysis/semantic/origins.rx", .name = "origin_validation", .abi = "origins_abi" },
     .{ .path = "zx/analysis/semantic/produce.rx", .name = "origin_production", .abi = "production_abi" },

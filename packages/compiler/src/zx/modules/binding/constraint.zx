@@ -1,0 +1,27 @@
+import { ImportKind } from "../../frontend/parser/imports/model"
+import { Target } from "./model"
+
+import type { Diagnostic } from "../../analysis/semantic/resolving/model"
+import type { Request } from "./model"
+
+export type Input = Request
+
+export type Output = { callable: bool, diagnostic: Diagnostic }
+
+export default function (in: Input): Output {
+    const callable = in.kind == ImportKind.Function
+
+    if (callable) {
+        if (in.target == Target.Native) {
+            if (in.names.values.length != 1 || in.members.names.length == 0) {
+                return { callable: callable, diagnostic: { code: "module", message: "native namespaces require one binding and callable exports", start: in.start, end: in.end } }
+            }
+        } else if (in.type_only || in.names.values.length != 1) {
+            return { callable: callable, diagnostic: { code: "module", message: "default imports must refer to an executable module", start: in.start, end: in.end } }
+        }
+    } else if (in.target == Target.Source && !in.type_only) {
+        return { callable: callable, diagnostic: { code: "module", message: "type and enum imports must refer to a pure type module", start: in.start, end: in.end } }
+    }
+
+    return { callable: callable, diagnostic: { code: "", message: "", start: 0, end: 0 } }
+}

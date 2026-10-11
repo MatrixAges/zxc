@@ -199,33 +199,15 @@ const Project = struct {
             };
 
             frame.pending = null;
-
-            const module = imported;
             self.current_source = index;
 
-            if (item.kind == .function) {
-                if (module.type_only or item.nameCount() != 1) return self.reporter.fail(.module, item.span, "default imports must refer to an executable module");
-                try imports.append(self.allocator, .{ .name = try self.allocator.dupe(u8, item.nameAt(0).text), .id = imported.function.?, .input_type = module.input_type, .output_type = module.output_type });
-            } else {
-                if (!module.type_only and target == .source) return self.reporter.fail(.module, item.span, "type and enum imports must refer to a pure type module");
-
-                for (0..item.nameCount()) |name_index| {
-                    const name = item.nameAt(name_index);
-                    var found = false;
-
-                    for (module.exports) |exported| {
-                        if (!std.mem.eql(u8, name.text, exported.name)) continue;
-                        if (item.kind == .enumeration and self.types.get(exported.type_id) != .enumeration) return self.reporter.fail(.module, name.span, "value imports from a type module must name an enum");
-                        try aliases.append(self.allocator, .{ .name = try self.allocator.dupe(u8, name.text), .type_id = exported.type_id });
-
-                        found = true;
-
-                        break;
-                    }
-
-                    if (!found) return self.reporter.fail(.module, name.span, "the imported name is not exported by the module");
-                }
-            }
+            try @import("binding.zig").apply(self.allocator, item, .{
+                .target = if (target == .source) .source else .compiled,
+                .type_only = imported.type_only,
+                .types = self.types.view(),
+                .exports = imported.exports,
+                .members = if (imported.function) |id| &.{.{ .name = "", .id = id, .input_type = imported.input_type, .output_type = imported.output_type }} else &.{},
+            }, self.reporter, aliases, imports);
 
             try dependencies.append(self.allocator, try ModuleRecord.copyImport(self.allocator, item, switch (target) {
                 .source => |path| .{ .source = path },
@@ -463,31 +445,13 @@ const Project = struct {
             break :blk result;
         };
 
-        if (item.kind == .function) {
-            if (item.nameCount() != 1 or unit.members.len == 0) return self.reporter.fail(.module, item.span, "native namespaces require one binding and callable exports");
-
-            for (unit.members) |member| {
-                var binding = member;
-                binding.namespace = try self.allocator.dupe(u8, item.nameAt(0).text);
-
-                try imports.append(self.allocator, binding);
-            }
-        } else for (0..item.nameCount()) |name_index| {
-            const name = item.nameAt(name_index);
-            var matched = false;
-
-            for (unit.exports) |exported| {
-                if (!std.mem.eql(u8, name.text, exported.name)) continue;
-                if (item.kind == .enumeration and self.types.get(exported.type_id) != .enumeration) return self.reporter.fail(.module, name.span, "native value imports must name an enum");
-                try aliases.append(self.allocator, .{ .name = try self.allocator.dupe(u8, name.text), .type_id = exported.type_id });
-
-                matched = true;
-
-                break;
-            }
-
-            if (!matched) return self.reporter.fail(.module, name.span, "native interface does not export this type");
-        }
+        try @import("binding.zig").apply(self.allocator, item, .{
+            .target = .native,
+            .type_only = unit.members.len == 0,
+            .types = self.types.view(),
+            .exports = unit.exports,
+            .members = unit.members,
+        }, self.reporter, aliases, imports);
 
         return entry.key();
     }

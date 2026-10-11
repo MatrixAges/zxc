@@ -1,0 +1,26 @@
+import { Target } from "./model"
+
+import type { Imports } from "../function_import"
+import type { Request } from "./model"
+
+export type Input = Request
+
+export type Output = Imports
+
+export default function (in: Input): Output {
+    if (in.target != Target.Native) {
+        return { namespaces: [null], names: [in.names.values[0]], ids: in.members.ids, input_types: in.members.input_types, output_types: in.members.output_types }
+    }
+
+    const namespaces: string?[] = []
+
+    const result = loop({ name: in.names.values[0], count: in.members.names.length, index: 0, namespaces: namespaces }, {
+        while: current => current.index < current.count,
+        next: current => {
+            current.namespaces = current.namespaces.push(current.name)[0]
+            current.index += 1
+        }
+    })
+
+    return { namespaces: result.namespaces, names: in.members.names, ids: in.members.ids, input_types: in.members.input_types, output_types: in.members.output_types }
+}

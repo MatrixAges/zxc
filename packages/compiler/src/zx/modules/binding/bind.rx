@@ -1,0 +1,23 @@
+<Module>
+    <Call fn="constraint" in={$in} />
+
+    <Switch on={$ctx.constraint.diagnostic.message != ""}>
+        <Case value={true}>
+            <Return value={{ aliases: { names: [], ids: [] }, imports: { namespaces: [], names: [], ids: [], input_types: [], output_types: [] }, diagnostic: $ctx.constraint.diagnostic }} />
+        </Case>
+    </Switch>
+
+    <Switch on={$ctx.constraint.callable}>
+        <Case value={true}>
+            <Call fn="functions" in={$in} />
+
+            <Return value={{ aliases: { names: [], ids: [] }, imports: $ctx.functions, diagnostic: $ctx.constraint.diagnostic }} />
+        </Case>
+
+        <Default>
+            <Call fn="aliases" in={$in} />
+
+            <Return value={{ aliases: $ctx.aliases.aliases, imports: { namespaces: [], names: [], ids: [], input_types: [], output_types: [] }, diagnostic: $ctx.aliases.diagnostic }} />
+        </Default>
+    </Switch>
+</Module>

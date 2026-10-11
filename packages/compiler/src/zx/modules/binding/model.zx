@@ -1,0 +1,23 @@
+import type { Cache, Diagnostic } from "../../analysis/semantic/resolving/model"
+import type { ImportKind } from "../../frontend/parser/imports/model"
+import type { Imports } from "../function_import"
+
+export enum Target { Source, Compiled, Native }
+
+export type Names = { values: string[], starts: u64[], ends: u64[] }
+
+export type Members = { names: string[], ids: u32[], input_types: u32[], output_types: u32[] }
+
+export type Request = {
+    target: Target
+    kind: ImportKind
+    start: u64
+    end: u64
+    names: Names
+    type_only: bool
+    type_kinds: u8[]
+    exports: Cache
+    members: Members
+}
+
+export type Result = { aliases: Cache, imports: Imports, diagnostic: Diagnostic }

@@ -1,0 +1,61 @@
+import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import { ImportKind } from "../../frontend/parser/imports/model"
+import { Target } from "./model"
+
+import type { Cache, Diagnostic } from "../../analysis/semantic/resolving/model"
+import type { Request } from "./model"
+
+export type Input = Request
+
+export type Output = { aliases: Cache, diagnostic: Diagnostic }
+
+export default function (in: Input): Output {
+    const aliases: Cache = { names: [], ids: [] }
+    const diagnostic: Diagnostic = { code: "", message: "", start: 0, end: 0 }
+
+    const result = loop({ names: in.names, exports: in.exports, type_kinds: in.type_kinds, check_enum: in.kind == ImportKind.Enumeration, native: in.target == Target.Native, index: 0, aliases: aliases, diagnostic: diagnostic }, {
+        while: current => current.diagnostic.message == "" && current.index < current.names.values.length,
+        next: current => {
+            const name = current.names.values[current.index]
+            const position: u64? = null
+            const selected = loop({ exports: current.exports, name: name, index: 0, position: position }, {
+                while: candidate => candidate.position == null && candidate.index < candidate.exports.names.length,
+                next: candidate => {
+                    if (candidate.exports.names[candidate.index] == candidate.name) {
+                        candidate.position = candidate.index
+                    }
+
+                    candidate.index += 1
+                }
+            }).position
+            if (selected == null) {
+                current.diagnostic = {
+                    code: "module",
+                    message: current.native ? "native interface does not export this type" : "the imported name is not exported by the module",
+                    start: current.names.starts[current.index],
+                    end: current.names.ends[current.index]
+                }
+            } else {
+                const id = current.exports.ids[selected]
+
+                if (current.check_enum && kind(current.type_kinds[integers.widen(id)]) != Kind.Enumeration) {
+                    current.diagnostic = {
+                        code: "module",
+                        message: current.native ? "native value imports must name an enum" : "value imports from a type module must name an enum",
+                        start: current.names.starts[current.index],
+                        end: current.names.ends[current.index]
+                    }
+                } else {
+                    current.aliases = { names: current.aliases.names.push(name)[0], ids: current.aliases.ids.push(id)[0] }
+                }
+            }
+
+            current.index += 1
+        }
+    })
+
+    return { aliases: result.aliases, diagnostic: result.diagnostic }
+}
