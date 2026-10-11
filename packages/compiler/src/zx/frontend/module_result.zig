@@ -39,6 +39,13 @@ pub const Result = union(enum) {
         };
     }
 
+    /// The source text the result was parsed from; a result keeps its own copy unless parsing failed.
+    pub fn text(self: *const Self) ?[]const u8 {
+        return switch (self.*) {
+            .native => |result| if (result.value == .diagnostic) null else result.value.parsed.source,
+            .indexed => |result| if (indexed_enabled) result.source else unreachable,
+        };
+    }
     /// Where the default function's body block opens, when the module parsed and has one.
     pub fn bodyStart(self: *const Self) ?usize {
         return switch (self.*) {

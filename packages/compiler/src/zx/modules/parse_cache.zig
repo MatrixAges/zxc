@@ -76,11 +76,9 @@ pub fn prefetch(self: *Self, requests: []const Request) std.mem.Allocator.Error!
 
                 const request = work.requests[index];
 
-                std.crypto.hash.sha2.Sha256.hash(request.source, &work.digests[index], .{});
-
                 work.results[index] = null;
 
-                if (work.cache.entries.get(request.path)) |entry| if (std.mem.eql(u8, &entry.digest, &work.digests[index])) continue;
+                if (unchanged(work.cache.entries.get(request.path), request.source, &work.digests[index])) continue;
 
                 work.results[index] = parser.parseModule(std.heap.smp_allocator, request.source, request.path) catch {
                     work.failed.store(true, .monotonic);
@@ -161,11 +159,11 @@ fn replace(self: *Self, result: ModuleResult) std.mem.Allocator.Error!void {
 
 fn getEntry(self: *Self, comptime native: bool, source: []const u8, path: []const u8) std.mem.Allocator.Error!*Entry {
     var digest: [32]u8 = undefined;
+    const found = self.entries.get(path);
+    const same = unchanged(found, source, &digest);
 
-    std.crypto.hash.sha2.Sha256.hash(source, &digest, .{});
-
-    if (self.entries.get(path)) |entry| {
-        if (std.mem.eql(u8, &entry.digest, &digest)) {
+    if (found) |entry| {
+        if (same) {
             if (native and entry.result == .indexed) {
                 const result = try parser.parse(self.allocator, source, path);
 
@@ -205,4 +203,14 @@ fn getEntry(self: *Self, comptime native: bool, source: []const u8, path: []cons
     self.parsed += 1;
 
     return entry;
+}
+
+/// Whether `entry` holds the result for `source`. A result keeps a copy of its text, so comparing the texts settles it
+/// without hashing; otherwise `digest` receives the digest of `source`.
+fn unchanged(entry: ?*const Entry, source: []const u8, digest: *[32]u8) bool {
+    if (entry) |kept| if (kept.result.text()) |text| if (@import("zx").bytes.equal(text, source)) return true;
+
+    std.crypto.hash.sha2.Sha256.hash(source, digest, .{});
+
+    return if (entry) |kept| std.mem.eql(u8, &kept.digest, digest) else false;
 }
