@@ -60,9 +60,15 @@ fn create(allocator: std.mem.Allocator, library: *const model.Result, cache: ?*C
         exported_count += 1;
     };
 
-    var batch = try modules.Batch.createExported(allocator, program, identities, cache, exported_functions[0..exported_count]);
+    var memo = try @import("uniqueness_memo.zig").load(allocator, cache);
+
+    defer if (memo) |*value| value.deinit();
+
+    var batch = try modules.Batch.createRemembered(allocator, program, identities, cache, exported_functions[0..exported_count], if (memo) |*value| value else null);
 
     defer batch.deinit();
+
+    if (memo) |*value| try @import("uniqueness_memo.zig").save(allocator, cache, value);
 
     var prepared_library = library.*;
 

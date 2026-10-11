@@ -34,6 +34,11 @@ pub fn create(backing: std.mem.Allocator, program: ir.Program) std.mem.Allocator
 
 /// Facts for a program whose `exported` functions the host also calls directly.
 pub fn createExported(backing: std.mem.Allocator, program: ir.Program, exported: []const ir.FunctionId) std.mem.Allocator.Error!Owned {
+    return createRemembered(backing, program, exported, null);
+}
+
+/// Facts that also reuse and extend the body analyses `memo` remembers from earlier programs.
+pub fn createRemembered(backing: std.mem.Allocator, program: ir.Program, exported: []const ir.FunctionId, memo: ?*Uniqueness.Memo) std.mem.Allocator.Error!Owned {
     var arena = std.heap.ArenaAllocator.init(backing);
 
     errdefer arena.deinit();
@@ -47,7 +52,7 @@ pub fn createExported(backing: std.mem.Allocator, program: ir.Program, exported:
 
     defer scratch.deinit();
 
-    const facts = try analyze(scratch.allocator(), backing, program, exported, basis);
+    const facts = try analyze(scratch.allocator(), backing, program, exported, basis, memo);
 
     const value: Self = .{
         .value = .{
@@ -68,7 +73,7 @@ pub fn createExported(backing: std.mem.Allocator, program: ir.Program, exported:
     return .{ .arena = arena, .value = value };
 }
 
-pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, program: ir.Program, exported: []const ir.FunctionId, basis: *const Uniqueness.Basis) std.mem.Allocator.Error!Self {
+pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, program: ir.Program, exported: []const ir.FunctionId, basis: *const Uniqueness.Basis, memo: ?*Uniqueness.Memo) std.mem.Allocator.Error!Self {
     if (@import("genz_options").generated_analysis) {
         const facts = try @import("function_analysis/generated.zig").analyze(allocator, workspace, program);
 
@@ -76,7 +81,7 @@ pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, progr
             .value = facts.value,
             .io = facts.io,
             .process = facts.process,
-            .uniqueness = try Uniqueness.analyze(allocator, workspace, program, exported, basis),
+            .uniqueness = try Uniqueness.analyze(allocator, workspace, program, exported, basis, memo),
             .basis = basis,
         };
     }
@@ -85,7 +90,7 @@ pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, progr
         .value = try @import("value_call/analysis.zig").analyze(allocator, program),
         .io = try @import("io.zig").functions(allocator, program),
         .process = try @import("capabilities.zig").functions(allocator, program, .process),
-        .uniqueness = try Uniqueness.analyze(allocator, workspace, program, exported, basis),
+        .uniqueness = try Uniqueness.analyze(allocator, workspace, program, exported, basis, memo),
         .basis = basis,
     };
 }

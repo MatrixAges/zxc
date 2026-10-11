@@ -59,7 +59,7 @@ pub fn initializePrepared(temporary: std.mem.Allocator, workspace: std.mem.Alloc
 
     basis.* = try .create(temporary, program);
 
-    return initializeAnalyzed(temporary, workspace, program, try Analysis.analyze(temporary, workspace, program, &.{}, basis));
+    return initializeAnalyzed(temporary, workspace, program, try Analysis.analyze(temporary, workspace, program, &.{}, basis, null));
 }
 
 pub fn initializeAnalyzed(temporary: std.mem.Allocator, workspace: std.mem.Allocator, program: zx.ir.Program, facts: @import("function_analysis.zig")) std.mem.Allocator.Error!Lower {

@@ -17,7 +17,12 @@ pub fn create(backing: std.mem.Allocator, program: ir.Program, names: generating
 
 /// A batch whose `exported` functions the host also calls directly.
 pub fn createExported(backing: std.mem.Allocator, program: ir.Program, names: generating.Names, cache: ?*Cache, exported: []const ir.FunctionId) std.mem.Allocator.Error!Self {
-    return .{ .backing = backing, .program = program, .names = names, .analysis = try generating.Analysis.createExported(backing, program, exported), .cache = cache };
+    return createRemembered(backing, program, names, cache, exported, null);
+}
+
+/// A batch whose uniqueness analysis also reuses and extends the body analyses `memo` remembers.
+pub fn createRemembered(backing: std.mem.Allocator, program: ir.Program, names: generating.Names, cache: ?*Cache, exported: []const ir.FunctionId, memo: ?*generating.Analysis.Uniqueness.Memo) std.mem.Allocator.Error!Self {
+    return .{ .backing = backing, .program = program, .names = names, .analysis = try generating.Analysis.createRemembered(backing, program, exported, memo), .cache = cache };
 }
 
 pub fn deinit(self: *Self) void {

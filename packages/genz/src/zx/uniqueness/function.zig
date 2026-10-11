@@ -68,6 +68,7 @@ carried: std.AutoHashMapUnmanaged(ir.ExprId, []Level) = .empty,
 levels: []Known,
 traced: std.AutoHashMapUnmanaged(u64, void) = .empty,
 changed: ?*std.ArrayList(usize) = null,
+marked: ?*std.ArrayList(Mark) = null,
 grew: bool = false,
 pub fn analyze(allocator: std.mem.Allocator, functions: ir.FunctionTable, unit: Unit, order: *const Order, sites: *Sites, slots: Slots, summaries: *Summaries) std.mem.Allocator.Error!Self {
     const levels = try allocator.alloc(Known, sites.slot_first[sites.slot_first.len - 1] - sites.slot_first[unit.symbols.count()]);
@@ -120,7 +121,8 @@ pub fn output(self: *Self, values: []Level) std.mem.Allocator.Error!void {
 }
 
 /// Meets what each call in this body passes into every callee input summary; lists the callees that weakened.
-pub fn arguments(self: *Self, changed: *std.ArrayList(usize)) std.mem.Allocator.Error!void {
+/// Lists every contribution in `passed`, in the order it was met, so a later analysis of the same state can replay it.
+pub fn arguments(self: *Self, changed: *std.ArrayList(usize), passed: *std.ArrayList(Contribution)) std.mem.Allocator.Error!void {
     for (self.operations) |id| {
         const invocation = switch (self.row(id).value) {
             .call => |invocation| invocation,
@@ -128,15 +130,33 @@ pub fn arguments(self: *Self, changed: *std.ArrayList(usize)) std.mem.Allocator.
         };
         const callee = @backingInt(invocation.function);
 
-        for (self.summaries.input[callee], 0..) |*value, slot| {
-            const met = value.meet(try self.level(invocation.argument, @intCast(slot)));
+        const levels = try self.allocator.alloc(Level, self.summaries.input[callee].len);
 
-            if (met == value.*) continue;
+        for (levels, 0..) |*value, slot| {
+            value.* = try self.level(invocation.argument, @intCast(slot));
 
-            value.* = met;
-            try changed.append(self.allocator, callee);
+            try meet(self.allocator, self.summaries, @intCast(callee), @intCast(slot), value.*, changed);
         }
+
+        try passed.append(self.allocator, .{ .callee = @intCast(callee), .levels = levels });
     }
+}
+
+/// What one call passes into each input slot of its callee, met in slot order.
+pub const Contribution = struct { callee: u32, levels: []const Level };
+
+pub fn replay(allocator: std.mem.Allocator, summaries: *Summaries, contribution: Contribution, changed: *std.ArrayList(usize)) std.mem.Allocator.Error!void {
+    for (contribution.levels, 0..) |value, slot| try meet(allocator, summaries, contribution.callee, @intCast(slot), value, changed);
+}
+
+fn meet(allocator: std.mem.Allocator, summaries: *Summaries, callee: u32, slot: u32, level_value: Level, changed: *std.ArrayList(usize)) std.mem.Allocator.Error!void {
+    const value = &summaries.input[callee][slot];
+    const met = value.meet(level_value);
+
+    if (met == value.*) return;
+
+    value.* = met;
+    try changed.append(allocator, callee);
 }
 
 /// The level a loop slot starts with: its initial value's, or a fresh growth buffer where the loop renews the slot.
@@ -371,8 +391,9 @@ fn written(target: Level) Level {
 /// where a plain or shared list enters, through inputs to the callers and through outputs to the callees. A loop's
 /// initial state, a plain input or an opaque producer then gets one growth copy there, so the updates that follow work
 /// in place instead of copying on every step. Lists the functions whose demand grew.
-pub fn demand(self: *Self, changed: *std.ArrayList(usize)) std.mem.Allocator.Error!void {
+pub fn demand(self: *Self, changed: *std.ArrayList(usize), marked: *std.ArrayList(Mark)) std.mem.Allocator.Error!void {
     self.changed = changed;
+    self.marked = marked;
 
     self.traced.clearRetainingCapacity();
 
@@ -423,7 +444,7 @@ fn trace(self: *Self, id: ir.ExprId, slot: u32, outer: ?ir.ExprId, repeat: bool,
         .optional_value => |child| try self.trace(child, slot, leaf, repeat, want),
         .reference => |symbol| switch (self.order.defs[@backingInt(symbol)]) {
             .input => {
-                if (self.function) |function| try self.mark(self.summaries.inputs[function], slot, function, want);
+                if (self.function) |function| try self.mark(.{ .output = false, .function = @intCast(function), .slot = slot, .want = want });
 
                 try self.normalize(leaf, want);
             },
@@ -460,7 +481,7 @@ fn trace(self: *Self, id: ir.ExprId, slot: u32, outer: ?ir.ExprId, repeat: bool,
         .call => |invocation| {
             const callee = @backingInt(invocation.function);
 
-            if (self.functions.at(callee).external == null) try self.mark(self.summaries.outputs[callee], slot, callee, want);
+            if (self.functions.at(callee).external == null) try self.mark(.{ .output = true, .function = @intCast(callee), .slot = slot, .want = want });
 
             try self.normalize(leaf, want);
         },
@@ -491,13 +512,22 @@ fn carry(self: *Self, owner: ir.ExprId, slot: u32, wanted: Level) std.mem.Alloca
     try self.trace(carried.body, slot, null, false, want);
 }
 
-fn mark(self: *Self, values: []Level, slot: u32, function: usize, want: Level) std.mem.Allocator.Error!void {
-    const next = values[slot].join(want);
+/// A demand for the `want` properties of one input or output slot of a function.
+pub const Mark = struct { output: bool, function: u32, slot: u32, want: Level };
 
-    if (next == values[slot]) return;
+fn mark(self: *Self, value: Mark) std.mem.Allocator.Error!void {
+    try self.marked.?.append(self.allocator, value);
+    try applyMark(self.allocator, self.summaries, value, self.changed.?);
+}
 
-    values[slot] = next;
-    try self.changed.?.append(self.allocator, function);
+pub fn applyMark(allocator: std.mem.Allocator, summaries: *Summaries, value: Mark, changed: *std.ArrayList(usize)) std.mem.Allocator.Error!void {
+    const values = if (value.output) summaries.outputs[value.function] else summaries.inputs[value.function];
+    const next = values[value.slot].join(value.want);
+
+    if (next == values[value.slot]) return;
+
+    values[value.slot] = next;
+    try changed.append(allocator, value.function);
 }
 
 fn renew(self: *Self, owner: ir.ExprId, slot: u32, want: Level) std.mem.Allocator.Error!void {
