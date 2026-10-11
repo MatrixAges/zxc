@@ -2,6 +2,7 @@ const std = @import("std");
 const zx = @import("zx");
 const Parser = @import("parser.zig");
 const lex = @import("lexer").lex;
+const compact = @import("compact_output.zig");
 
 pub const Parsed = struct {
     source: []const u8,
@@ -44,10 +45,9 @@ fn parseWithMode(comptime retain_indexed: bool, allocator: std.mem.Allocator, so
     if (@import("parser_options").generated_parser) {
         const generated = @import("generated_parser");
         const adapter = @import("program_adapter/root.zig");
-        var temporary = std.heap.ArenaAllocator.init(allocator);
-        var retained = false;
+        var temporary = std.heap.ArenaAllocator.init(compact.scratch_backing);
 
-        defer if (!retained) temporary.deinit();
+        defer temporary.deinit();
 
         const output = generated.execute(&temporary, owned_source) catch |err| switch (err) {
             error.OutOfMemory, error.Overflow => return error.OutOfMemory,
@@ -73,14 +73,18 @@ fn parseWithMode(comptime retain_indexed: bool, allocator: std.mem.Allocator, so
         }
 
         if (retain_indexed) {
-            retained = true;
+            var syntax = std.heap.ArenaAllocator.init(allocator);
+
+            errdefer syntax.deinit();
+
+            const retained = try compact.copy(syntax.allocator(), owned_source, output);
 
             return .{ .indexed = .{
                 .arena = arena,
-                .syntax_arena = temporary,
+                .syntax_arena = syntax,
                 .source = owned_source,
                 .file_name = owned_name,
-                .output = output,
+                .output = retained,
             } };
         }
 

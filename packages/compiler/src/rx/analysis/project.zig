@@ -25,12 +25,12 @@ pub fn infer(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.E
 
     errdefer arena.deinit();
 
-    const value = try inferIn(arena.allocator(), options);
+    const value = try inferIn(arena.allocator(), allocator, options);
 
     return .{ .arena = arena, .value = value };
 }
 
-fn inferIn(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.Error!Module.Value {
+fn inferIn(allocator: std.mem.Allocator, backing: std.mem.Allocator, options: Options) std.mem.Allocator.Error!Module.Value {
     const registered = try allocator.dupe(rx.ModuleSource, options.modules);
 
     for (registered) |*source| {
@@ -121,7 +121,7 @@ fn inferIn(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.Err
 
     graph.finish() catch |err| return report(allocator, source_map, reporter, err);
 
-    var result = @import("project/mixed.zig").compile(&graph, prepared.loaded, states, dependencies.value.graph, signatures.value.data, options.sources, modules, options.exports) catch |err| return report(allocator, source_map, reporter, err);
+    var result = @import("project/mixed.zig").compile(&graph, backing, prepared.loaded, states, dependencies.value.graph, signatures.value.data, options.sources, modules, options.exports) catch |err| return report(allocator, source_map, reporter, err);
 
     if (result == .diagnostic) return result;
 

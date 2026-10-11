@@ -23,10 +23,10 @@ libraries: std.AutoHashMapUnmanaged(usize, []const frontend.project.compiled.Exp
 finished: []?Source.Loaded,
 owner: usize = 0,
 issue: ?target.Diagnostic = null,
-pub fn init(allocator: std.mem.Allocator, graph: SourceGraph, signatures: frontend.project.signature_project.Data, types: ir.TypeTable, options: frontend.project.Options) Error!Self {
+pub fn init(allocator: std.mem.Allocator, backing: std.mem.Allocator, graph: SourceGraph, signatures: frontend.project.signature_project.Data, types: ir.TypeTable, options: frontend.project.Options) Error!Self {
     var self = Self{
         .allocator = allocator,
-        .scratch = std.heap.ArenaAllocator.init(allocator),
+        .scratch = std.heap.ArenaAllocator.init(backing),
         .options = options,
         .graph = graph,
         .signatures = signatures,

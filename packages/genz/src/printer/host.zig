@@ -24,14 +24,15 @@ pub fn render(allocator: std.mem.Allocator, nodes: *Storage, declarations: []con
         .count = selected.len,
     };
 
-    var scratch = std.heap.ArenaAllocator.init(allocator);
+    const workspace = nodes.allocator;
+    var scratch = std.heap.ArenaAllocator.init(workspace);
 
     defer scratch.deinit();
 
     var output: std.ArrayList(u8) = .empty;
     var started = false;
 
-    errdefer output.deinit(allocator);
+    defer output.deinit(workspace);
 
     const Buffers = @typeInfo(@TypeOf(generated.executeBuffered)).@"fn".param_types[2].?;
     var buffers: Buffers = undefined;
@@ -40,14 +41,14 @@ pub fn render(allocator: std.mem.Allocator, nodes: *Storage, declarations: []con
 
     const lane = comptime outputLane();
 
-    @field(buffers, lane) = .{ .buffer = &output, .started = &started, .allocator = allocator };
+    @field(buffers, lane) = .{ .buffer = &output, .started = &started, .allocator = workspace };
 
     _ = generated.executeBuffered(scratch.allocator(), &.{ .source = &source, .output = &.{} }, buffers) catch |err| switch (err) {
         error.OutOfMemory, error.Overflow => return error.OutOfMemory,
         else => unreachable,
     };
 
-    return output.toOwnedSlice(allocator);
+    return allocator.dupe(u8, output.items);
 }
 
 fn outputLane() []const u8 {

@@ -1,3 +1,4 @@
+const std = @import("std");
 const frontend = @import("frontend");
 const rx = @import("rx");
 const zx = @import("zx");
@@ -7,10 +8,10 @@ const Prepared = @import("prepare.zig");
 const SourceGraph = @import("source_graph.zig").Graph;
 const State = @import("mixed/state.zig");
 
-pub fn compile(graph: *Graph, loaded: Prepared.Loaded, states: []const @import("constraints.zig").State, dependencies: SourceGraph, signatures: frontend.project.signature_project.Data, sources: []const frontend.project.Source, modules: []const rx.ModuleSource, exports: []const @import("../project.zig").Export) zx.Error!Module.Value {
+pub fn compile(graph: *Graph, backing: std.mem.Allocator, loaded: Prepared.Loaded, states: []const @import("constraints.zig").State, dependencies: SourceGraph, signatures: frontend.project.signature_project.Data, sources: []const frontend.project.Source, modules: []const rx.ModuleSource, exports: []const @import("../project.zig").Export) zx.Error!Module.Value {
     const resolved = try @import("signatures.zig").resolve(graph, states);
 
-    var state = State.init(graph.allocator, dependencies, signatures, graph.types.items.view(), loaded.project) catch |err| {
+    var state = State.init(graph.allocator, backing, dependencies, signatures, graph.types.items.view(), loaded.project) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 
         return .{ .diagnostic = .{ .path = dependencies.modules[dependencies.entry].path, .location = .{ .offset = 0, .line = 1, .column = 1 }, .code = "contract", .message = "source signatures cannot initialize the shared compilation context" } };
