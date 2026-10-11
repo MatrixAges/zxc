@@ -6,6 +6,9 @@ const Self = @This();
 pub const Unit = @import("genz").zx.modules.Unit;
 
 hash: Hash = .init(.{}),
+/// Bytes not yet hashed; fields are small, so they are gathered and hashed in large pieces.
+pending: [4096]u8 = undefined,
+used: usize = 0,
 program: ir.Program,
 names: Names,
 value_functions: []const bool,
@@ -66,7 +69,7 @@ fn finish(self: *Self, unit: Unit) [32]u8 {
         .types => {
             self.write(state_plan.keys.len);
 
-            for (state_plan.keys) |key| self.hash.update(&key);
+            for (state_plan.keys) |key| self.update(&key);
 
             self.write(names.types);
             self.write(program.types);
@@ -96,13 +99,14 @@ fn finish(self: *Self, unit: Unit) [32]u8 {
 
     var result: [32]u8 = undefined;
 
+    self.hash.update(self.pending[0..self.used]);
     self.hash.final(&result);
 
     return result;
 }
 
 fn plan(self: *Self, value: @import("genz").zx.function_analysis.Uniqueness.Plan) void {
-    self.hash.update(std.mem.sliceAsBytes(value.flags));
+    self.update(std.mem.sliceAsBytes(value.flags));
     self.write(value.renewals.len);
 
     for (value.renewals) |renewal| {
@@ -135,7 +139,7 @@ fn write(self: *Self, value: anytype) void {
 
     if (T == ir.TypeId) {
         self.bytes(self.names.types[@backingInt(value)]);
-        self.hash.update(&self.state_plan.keys[@backingInt(value)]);
+        self.update(&self.state_plan.keys[@backingInt(value)]);
 
         return;
     }
@@ -186,13 +190,13 @@ fn write(self: *Self, value: anytype) void {
 
             for (value) |item| self.write(item);
         },
-        .bool => self.hash.update(&.{@intFromBool(value)}),
+        .bool => self.update(&.{@intFromBool(value)}),
         .int => |info| {
             const Wide = if (info.signedness == .signed) i64 else u64;
             var encoded: [8]u8 = undefined;
 
             std.mem.writeInt(u64, &encoded, @bitCast(@as(Wide, value)), .little);
-            self.hash.update(&encoded);
+            self.update(&encoded);
         },
         .float => self.write(@as(@Int(.unsigned, @bitSizeOf(T)), @bitCast(value))),
         .void => {},
@@ -202,5 +206,17 @@ fn write(self: *Self, value: anytype) void {
 
 fn bytes(self: *Self, value: []const u8) void {
     self.write(value.len);
-    self.hash.update(value);
+    self.update(value);
+}
+
+fn update(self: *Self, value: []const u8) void {
+    if (self.used + value.len > self.pending.len) {
+        self.hash.update(self.pending[0..self.used]);
+        self.used = 0;
+
+        if (value.len > self.pending.len) return self.hash.update(value);
+    }
+
+    @memcpy(self.pending[self.used..][0..value.len], value);
+    self.used += value.len;
 }
