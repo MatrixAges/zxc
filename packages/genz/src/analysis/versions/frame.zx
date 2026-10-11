@@ -1,9 +1,0 @@
-import type { Frame, Op } from "./model"
-
-export type Input = { op: Op, id: u64, a: u64, b: u64 }
-
-export type Output = Frame
-
-export default function (in: Input): Output {
-    return { op: in.op, id: in.id, a: in.a, b: in.b, c: 0, d: 0, first: 0, count: 0 }
-}

@@ -55,8 +55,8 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
     }
 
     const native_genz = parser != null and (b.option(bool, "native_genz", "Keep the hand-written genz analyses and printer in generated builds") orelse false);
-    // The RX/ZX analyses stay opt-in until their generated output matches the hand-written analyses.
-    const rx_analysis = parser != null and (b.option(bool, "genz_rx_analysis", "Run the RX/ZX function facts, iteration versions and inline preparation in generated builds") orelse false);
+    // Generated builds run the RX/ZX analyses; the hand-written ones remain for the seed and can be selected here.
+    const rx_analysis = parser != null and (b.option(bool, "genz_rx_analysis", "Run the RX/ZX function facts and inline preparation in generated builds") orelse true);
     // Each compiler instance owns its genz module: the generated imports below must not leak into another
     // instance that shares the genz dependency but generates its own modules.
     const genz_options = b.addOptions();

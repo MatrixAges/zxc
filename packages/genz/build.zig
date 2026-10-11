@@ -6,7 +6,7 @@ pub fn build(b: *std.Build) void {
     const options = b.addOptions();
 
     options.addOption(bool, "generated", b.option(bool, "generated", "Use the generated RX/ZX implementations") orelse false);
-    options.addOption(bool, "generated_analysis", b.option(bool, "generated_analysis", "Use the generated RX/ZX function facts, iteration versions and inline preparation") orelse false);
+    options.addOption(bool, "generated_analysis", b.option(bool, "generated_analysis", "Use the generated RX/ZX function facts and inline preparation") orelse false);
 
     const module = b.addModule("genz", .{
         .root_source_file = b.path("src/root.zig"),

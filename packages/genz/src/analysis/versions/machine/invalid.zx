@@ -1,9 +1,0 @@
-import type { Machine } from "../model"
-
-export type Input = { machine: Machine, valid: bool }
-
-export type Output = Machine
-
-export default function (in: Input): Output {
-    return { ...in.machine, context: { ...in.machine.context, valid: in.machine.context.valid && in.valid } }
-}

@@ -1,7 +1,0 @@
-export enum ValueKind { None, Stale, Version, Borrowed, Aggregate }
-
-export type Arena = { kinds: ValueKind[], numbers: u64[], first: u64[], count: u64[], items: u64[] }
-
-export type Made = { arena: Arena, value: u64 }
-
-export type Pair = { left: u64, right: u64 }

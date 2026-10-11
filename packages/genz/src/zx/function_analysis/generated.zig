@@ -6,7 +6,6 @@ const generated = @import("generated_function_facts");
 const Input = std.meta.Child(generated.Input);
 const Program = std.meta.Child(@FieldType(Input, "program"));
 const Functions = std.meta.Child(@FieldType(Program, "functions"));
-const Unit = std.meta.Child(@typeInfo(@FieldType(Input, "units")).pointer.child);
 
 pub const Facts = struct {
     value: @import("../value_call/analysis.zig").Summary,
@@ -38,12 +37,7 @@ pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, progr
         .output_type = @backingInt(program.output_type),
     };
 
-    const units = try @import("units.zig").build(Unit, scratch.allocator(), &program);
-    const pointers = try scratch.allocator().alloc(*const Unit, units.len);
-
-    for (units, pointers) |*unit, *pointer| pointer.* = unit;
-
-    const input = Input{ .program = &view, .units = columns.slice(@FieldType(Input, "units"), @as([]const *const Unit, pointers)) };
+    const input = Input{ .program = &view };
 
     const output = generated.execute(&scratch, &input) catch |err| switch (err) {
         error.OutOfMemory => return error.OutOfMemory,
