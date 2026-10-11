@@ -58,7 +58,7 @@ pub fn generate(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, r
     var sources: std.ArrayList(compiler.project.Source) = .empty;
     var modules: std.ArrayList(rx.TextSource) = .empty;
 
-    for (project.roots) |root| try collection.collect(io, allocator, root.path, root.prefix, &sources, &modules);
+    for (project.roots) |root| try collection.collect(io, allocator, &resident.files, root.path, root.prefix, &sources, &modules);
 
     std.mem.sort(compiler.project.Source, sources.items, {}, collection.lessSource);
     std.mem.sort(rx.TextSource, modules.items, {}, collection.lessModule);

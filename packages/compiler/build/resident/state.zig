@@ -4,6 +4,7 @@
 const std = @import("std");
 const compiler = @import("compiler");
 const History = @import("rx_analysis").project.History;
+const Files = @import("files.zig");
 const Self = @This();
 
 /// Past this much retained memory the next analysis starts over, so the memory it no longer needs is freed.
@@ -13,6 +14,8 @@ gpa: std.mem.Allocator,
 /// The generator's executable digest, which names its outputs and cache records.
 digest: [32]u8,
 parse_cache: compiler.project.ParseCache,
+/// The sources read so far, so unchanged ones keep their texts.
+files: Files,
 generation: ?Generation = null,
 history: History = .{ .frame = @splat(0) },
 /// The analyses and request inputs the last analysis may point into: every one since the last analysis that reused
@@ -30,7 +33,7 @@ pub fn init(io: std.Io, gpa: std.mem.Allocator) !Self {
 
     defer scratch.deinit();
 
-    return .{ .gpa = gpa, .digest = try @import("../generator_digest.zig").create(io, scratch.allocator()), .parse_cache = .{ .allocator = gpa, .keeps_replaced = true } };
+    return .{ .gpa = gpa, .digest = try @import("../generator_digest.zig").create(io, scratch.allocator()), .parse_cache = .{ .allocator = gpa, .keeps_replaced = true }, .files = .{ .gpa = gpa } };
 }
 
 pub fn deinit(self: *Self) void {
@@ -43,6 +46,7 @@ pub fn deinit(self: *Self) void {
     self.release();
     self.epochs.deinit(self.gpa);
     self.parse_cache.deinit();
+    self.files.deinit();
 }
 
 /// The generation cache persisted under `path`, kept across requests that name the same directory.
@@ -124,6 +128,7 @@ fn release(self: *Self) void {
     self.epochs.clearRetainingCapacity();
     self.history.previous = null;
     self.parse_cache.release();
+    self.files.release();
 }
 
 fn retained(self: *const Self) usize {

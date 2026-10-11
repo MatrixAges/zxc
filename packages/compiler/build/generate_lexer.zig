@@ -17,7 +17,7 @@ pub fn generate(init: std.process.Init, source_root: []const u8, output_path: []
     var sources: std.ArrayList(compiler.project.Source) = .empty;
     var modules: std.ArrayList(rx.TextSource) = .empty;
 
-    try collection.collect(init.io, allocator, source_root, "", &sources, &modules);
+    try collection.collect(init.io, allocator, null, source_root, "", &sources, &modules);
 
     std.mem.sort(compiler.project.Source, sources.items, {}, collection.lessSource);
     std.mem.sort(rx.TextSource, modules.items, {}, collection.lessModule);

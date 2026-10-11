@@ -81,6 +81,7 @@ pub const History = struct {
 
         for (earlier.sources, sources) |before, after| {
             if (!std.mem.eql(u8, before.path, after.path)) return false;
+            if (before.source.ptr == after.source.ptr and before.source.len == after.source.len) continue;
             if (std.mem.eql(u8, before.source, after.source)) continue;
 
             const parsed = try cache.getModule(after.source, after.path);

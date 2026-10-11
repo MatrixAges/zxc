@@ -1,6 +1,7 @@
 const std = @import("std");
 const compiler = @import("compiler");
 const rx = @import("rx");
+const Files = @import("resident/files.zig");
 
 pub fn lessSource(_: void, left: compiler.project.Source, right: compiler.project.Source) bool {
     return std.mem.lessThan(u8, left.path, right.path);
@@ -10,7 +11,8 @@ pub fn lessModule(_: void, left: rx.TextSource, right: rx.TextSource) bool {
     return std.mem.lessThan(u8, left.path, right.path);
 }
 
-pub fn collect(io: std.Io, allocator: std.mem.Allocator, root: []const u8, prefix: []const u8, sources: *std.ArrayList(compiler.project.Source), modules: *std.ArrayList(rx.TextSource)) !void {
+/// Appends the ZX and RX sources under `root`, named with `prefix`; `files`, when given, owns their texts.
+pub fn collect(io: std.Io, allocator: std.mem.Allocator, files: ?*Files, root: []const u8, prefix: []const u8, sources: *std.ArrayList(compiler.project.Source), modules: *std.ArrayList(rx.TextSource)) !void {
     var directory = try std.Io.Dir.cwd().openDir(io, root, .{ .iterate = true });
 
     defer directory.close(io);
@@ -33,7 +35,7 @@ pub fn collect(io: std.Io, allocator: std.mem.Allocator, root: []const u8, prefi
             byte.* = '/';
         };
 
-        const source = try directory.readFileAlloc(io, entry.path, allocator, .unlimited);
+        const source = if (files) |kept| try kept.read(io, directory, entry.path, path) else try directory.readFileAlloc(io, entry.path, allocator, .unlimited);
 
         if (is_zx) try sources.append(allocator, .{ .path = path, .source = source }) else try modules.append(allocator, .{ .path = path, .source = source });
     }
