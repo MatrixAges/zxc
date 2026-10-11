@@ -36,18 +36,6 @@ pub fn main(init: std.process.Init) !void {
 
     for (inputs, modules.items, parsed.parsed) |*item, source, module| item.* = .{ .path = source.path, .node = module.value.node };
 
-    const interfaces = [_]compiler.project.NativeInterface{ .{
-        .specifier = "zig:floats",
-        .path = "zx/analysis/semantic/native/floats.d.zx",
-        .source = @embedFile("semantic_floats"),
-        .module = "floats",
-    }, .{
-        .specifier = "zig:integers",
-        .path = "zx/analysis/semantic/native/integers.d.zx",
-        .source = @embedFile("semantic_integers"),
-        .module = "integers",
-    } };
-
     const selected = entries.of(set);
     const jobs = try allocator.alloc(Job, selected.len);
     var next: usize = 5;
@@ -58,7 +46,7 @@ pub fn main(init: std.process.Init) !void {
     }
 
     if (next != args.len) return error.OutputCountMismatch;
-    try @import("parallel_generation.zig").run(init, jobs, .{ .modules = inputs, .sources = sources.items, .interfaces = &interfaces }, generate);
+    try @import("parallel_generation.zig").run(init, jobs, .{ .modules = inputs, .sources = sources.items, .interfaces = &.{} }, generate);
 }
 
 pub const Job = @import("parallel_generation.zig").Job;

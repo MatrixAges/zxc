@@ -127,8 +127,7 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode) Sources {
         .imports = &.{ .{ .name = "compiler", .module = seed.compiler }, .{ .name = "rx", .module = flow.syntax }, .{ .name = "rx_analysis", .module = flow.analysis } },
     }) });
 
-    executable.root_module.addAnonymousImport("semantic_floats", .{ .root_source_file = b.path("src/zx/analysis/semantic/native/floats.d.zx") });
-    executable.root_module.addAnonymousImport("semantic_integers", .{ .root_source_file = b.path("src/zx/analysis/semantic/native/integers.d.zx") });
+    @import("compiler_rt.zig").configure(b, executable);
 
     const standard = b.addRunArtifact(executable);
 
@@ -199,12 +198,10 @@ fn lessThan(_: void, left: []const u8, right: []const u8) bool {
 
 /// Generated bootstrap modules omit debug information when strip is set; hand-written host modules keep theirs.
 /// Native and standard modules every generated module shares; create them once per build so no file lands in two modules.
-pub const Shared = struct { integers: *std.Build.Module, floats: *std.Build.Module, standard: *std.Build.Module };
+pub const Shared = struct { standard: *std.Build.Module };
 
 pub fn shared(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, source: Sources, strip: ?bool) Shared {
     return .{
-        .integers = b.createModule(.{ .root_source_file = b.path("src/zx/analysis/semantic/native/integers.zig"), .target = target, .optimize = optimize }),
-        .floats = b.createModule(.{ .root_source_file = b.path("src/zx/analysis/semantic/native/floats.zig"), .target = target, .optimize = optimize }),
         .standard = b.createModule(.{
             .root_source_file = b.path("standard/src/root.zig"),
             .target = target,
@@ -215,54 +212,52 @@ pub fn shared(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
 }
 
 pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, source: Sources, natives: Shared, strip: ?bool) @import("compiler.zig").ParserModules {
-    const integers = natives.integers;
-    const floats = natives.floats;
     const origins = b.createModule(.{ .root_source_file = source.origin_validation, .target = target, .optimize = optimize, .strip = strip });
 
-    origins.addImport("integers", integers);
+    origins.addImport("zxc_standard", natives.standard);
     origins.addImport("zxc_abi", b.createModule(.{ .root_source_file = source.origins_abi, .target = target, .optimize = optimize, .strip = strip }));
 
     const nominal_data = @import("compiler.zig").nominalData(b, target, optimize);
     const production_abi = b.createModule(.{ .root_source_file = source.production_abi, .target = target, .optimize = optimize, .strip = strip });
     const production = b.createModule(.{ .root_source_file = source.origin_production, .target = target, .optimize = optimize, .strip = strip });
 
-    production.addImport("integers", integers);
+    production.addImport("zxc_standard", natives.standard);
     production.addImport("zxc_abi", production_abi);
 
     const preflight_abi = b.createModule(.{ .root_source_file = source.preflight_abi, .target = target, .optimize = optimize, .strip = strip });
     const preflight = b.createModule(.{ .root_source_file = source.merge_preflight, .target = target, .optimize = optimize, .strip = strip });
 
-    preflight.addImport("integers", integers);
+    preflight.addImport("zxc_standard", natives.standard);
     preflight.addImport("zxc_abi", preflight_abi);
 
     const artifact_roots_abi = b.createModule(.{ .root_source_file = source.artifact_roots_abi, .target = target, .optimize = optimize, .strip = strip });
     const artifact_roots = b.createModule(.{ .root_source_file = source.artifact_roots, .target = target, .optimize = optimize, .strip = strip });
 
-    artifact_roots.addImport("integers", integers);
+    artifact_roots.addImport("zxc_standard", natives.standard);
     artifact_roots.addImport("zxc_abi", artifact_roots_abi);
 
     const artifact_prepare_abi = b.createModule(.{ .root_source_file = source.artifact_prepare_abi, .target = target, .optimize = optimize, .strip = strip });
     const artifact_prepare = b.createModule(.{ .root_source_file = source.artifact_prepare, .target = target, .optimize = optimize, .strip = strip });
 
-    artifact_prepare.addImport("integers", integers);
+    artifact_prepare.addImport("zxc_standard", natives.standard);
     artifact_prepare.addImport("zxc_abi", artifact_prepare_abi);
 
     const artifact_remap_abi = b.createModule(.{ .root_source_file = source.artifact_remap_abi, .target = target, .optimize = optimize, .strip = strip });
     const artifact_remap = b.createModule(.{ .root_source_file = source.artifact_remap, .target = target, .optimize = optimize, .strip = strip });
 
-    artifact_remap.addImport("integers", integers);
+    artifact_remap.addImport("zxc_standard", natives.standard);
     artifact_remap.addImport("zxc_abi", artifact_remap_abi);
 
     const merge_abi = b.createModule(.{ .root_source_file = source.merge_abi, .target = target, .optimize = optimize, .strip = strip });
     const merge = b.createModule(.{ .root_source_file = source.type_merge, .target = target, .optimize = optimize, .strip = strip });
 
-    merge.addImport("integers", integers);
+    merge.addImport("zxc_standard", natives.standard);
     merge.addImport("zxc_abi", merge_abi);
 
     const validation_abi = b.createModule(.{ .root_source_file = source.validation_abi, .target = target, .optimize = optimize, .strip = strip });
     const type_validation = b.createModule(.{ .root_source_file = source.type_validation, .target = target, .optimize = optimize, .strip = strip });
 
-    type_validation.addImport("integers", integers);
+    type_validation.addImport("zxc_standard", natives.standard);
     type_validation.addImport("zxc_abi", validation_abi);
 
     const program = b.createModule(.{ .root_source_file = source.program, .target = target, .optimize = optimize, .strip = strip });
@@ -279,7 +274,6 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
         .imports = &.{
             .{ .name = "zxc_standard", .module = resolution_standard },
             .{ .name = "zxc_abi", .module = resolution_abi },
-            .{ .name = "integers", .module = integers },
         },
     });
 
@@ -292,7 +286,7 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
         .optimize = optimize,
         .imports = &.{
             .{ .name = "zxc_abi", .module = construction_abi },
-            .{ .name = "integers", .module = integers },
+            .{ .name = "zxc_standard", .module = natives.standard },
         },
     });
 
@@ -303,7 +297,7 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
         .optimize = optimize,
         .imports = &.{
             .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.query_abi, .target = target, .optimize = optimize, .strip = strip }) },
-            .{ .name = "integers", .module = integers },
+            .{ .name = "zxc_standard", .module = natives.standard },
         },
     });
 
@@ -317,8 +311,6 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
         .imports = &.{
             .{ .name = "zxc_abi", .module = analyzer_abi },
             .{ .name = "zxc_standard", .module = resolution_standard },
-            .{ .name = "integers", .module = integers },
-            .{ .name = "floats", .module = floats },
         },
     });
 
@@ -330,7 +322,6 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
         .imports = &.{
             .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.source_signature_abi, .target = target, .optimize = optimize, .strip = strip }) },
             .{ .name = "zxc_standard", .module = resolution_standard },
-            .{ .name = "integers", .module = integers },
         },
     });
 
@@ -342,8 +333,6 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
         .imports = &.{
             .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.expression_analysis_abi, .target = target, .optimize = optimize, .strip = strip }) },
             .{ .name = "zxc_standard", .module = resolution_standard },
-            .{ .name = "integers", .module = integers },
-            .{ .name = "floats", .module = floats },
         },
     });
 
@@ -354,8 +343,7 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
         .optimize = optimize,
         .imports = &.{
             .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.ir_validation_abi, .target = target, .optimize = optimize, .strip = strip }) },
-            .{ .name = "integers", .module = integers },
-            .{ .name = "floats", .module = floats },
+            .{ .name = "zxc_standard", .module = natives.standard },
         },
     });
 
@@ -367,8 +355,6 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
         .imports = &.{
             .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.compiled_library_abi, .target = target, .optimize = optimize, .strip = strip }) },
             .{ .name = "zxc_standard", .module = resolution_standard },
-            .{ .name = "integers", .module = integers },
-            .{ .name = "floats", .module = floats },
         },
     });
 
@@ -380,8 +366,6 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
         .imports = &.{
             .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.native_restore_abi, .target = target, .optimize = optimize, .strip = strip }) },
             .{ .name = "zxc_standard", .module = resolution_standard },
-            .{ .name = "integers", .module = integers },
-            .{ .name = "floats", .module = floats },
         },
     });
 
@@ -392,7 +376,7 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
         .optimize = optimize,
         .imports = &.{
             .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.ownership_abi, .target = target, .optimize = optimize, .strip = strip }) },
-            .{ .name = "integers", .module = integers },
+            .{ .name = "zxc_standard", .module = natives.standard },
         },
     });
 
@@ -402,7 +386,6 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
         .target = target,
         .optimize = optimize,
         .imports = &.{
-            .{ .name = "integers", .module = integers },
             .{ .name = "zxc_standard", .module = resolution_standard },
             .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.native_interface_abi, .target = target, .optimize = optimize, .strip = strip }) },
         },
@@ -415,7 +398,7 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
         .optimize = optimize,
         .imports = &.{
             .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.native_modules_abi, .target = target, .optimize = optimize, .strip = strip }) },
-            .{ .name = "integers", .module = integers },
+            .{ .name = "zxc_standard", .module = natives.standard },
         },
     });
 
@@ -447,7 +430,7 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
         .optimize = optimize,
         .imports = &.{
             .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.refinement_assume_abi, .target = target, .optimize = optimize, .strip = strip }) },
-            .{ .name = "integers", .module = integers },
+            .{ .name = "zxc_standard", .module = natives.standard },
         },
     });
 
@@ -458,7 +441,7 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
         .optimize = optimize,
         .imports = &.{
             .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.refinement_bind_abi, .target = target, .optimize = optimize, .strip = strip }) },
-            .{ .name = "integers", .module = integers },
+            .{ .name = "zxc_standard", .module = natives.standard },
         },
     });
 
@@ -469,7 +452,7 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
         .optimize = optimize,
         .imports = &.{
             .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.refinement_type_abi, .target = target, .optimize = optimize, .strip = strip }) },
-            .{ .name = "integers", .module = integers },
+            .{ .name = "zxc_standard", .module = natives.standard },
         },
     });
 
@@ -480,7 +463,7 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
         .optimize = optimize,
         .imports = &.{
             .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.ir_task_call_abi, .target = target, .optimize = optimize, .strip = strip }) },
-            .{ .name = "integers", .module = integers },
+            .{ .name = "zxc_standard", .module = natives.standard },
         },
     });
 
@@ -491,7 +474,7 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
         .optimize = optimize,
         .imports = &.{
             .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.ir_program_pure_abi, .target = target, .optimize = optimize, .strip = strip }) },
-            .{ .name = "integers", .module = integers },
+            .{ .name = "zxc_standard", .module = natives.standard },
         },
     });
 
@@ -547,8 +530,6 @@ pub fn checks(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
             .imports = &.{
                 .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = @field(source, entry.abi.?), .target = target, .optimize = optimize, .strip = strip }) },
                 .{ .name = "zxc_standard", .module = natives.standard },
-                .{ .name = "integers", .module = natives.integers },
-                .{ .name = "floats", .module = natives.floats },
             },
         }));
     }
