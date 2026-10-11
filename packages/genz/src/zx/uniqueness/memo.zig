@@ -308,6 +308,20 @@ fn writeValue(writer: *std.Io.Writer, value: anytype) std.Io.Writer.Error!void {
     }
 }
 
+/// The backing integer of a packed struct stored as one byte.
+fn Byte(comptime T: type) ?type {
+    const info = switch (@typeInfo(T)) {
+        .@"struct" => |value| value,
+        else => return null,
+    };
+
+    if (info.layout != .@"packed") return null;
+
+    const backing = info.backing_integer.?;
+
+    return if (@typeInfo(backing).int.bits <= 8 and @typeInfo(backing).int.signedness == .unsigned) backing else null;
+}
+
 /// The whole-byte integer a narrower one is stored as.
 fn Whole(comptime info: std.builtin.Type.Int) type {
     return @Int(info.signedness, (info.bits + 7) / 8 * 8);
@@ -326,6 +340,13 @@ fn readValue(comptime T: type, allocator: std.mem.Allocator, reader: *std.Io.Rea
         },
         .pointer => |info| {
             const values = try allocator.alloc(info.child, try readValue(u32, allocator, reader));
+
+            // Level and flag lists make up most of a memo; their elements are single bytes, read in one take.
+            if (comptime Byte(info.child)) |Backing| {
+                for (values, try reader.take(values.len)) |*item, byte| item.* = @bitCast(std.math.cast(Backing, byte) orelse return error.InvalidMemo);
+
+                return values;
+            }
 
             for (values) |*item| item.* = try readValue(info.child, allocator, reader);
 

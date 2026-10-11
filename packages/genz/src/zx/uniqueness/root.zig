@@ -30,16 +30,38 @@ pub const Plan = struct {
 pub const Result = struct { functions: []const Plan, entry: Plan };
 
 const Unit = struct {
+    allocator: std.mem.Allocator,
     unit: Function.Unit,
-    order: Order,
-    sites: Sites,
+    body: ir.Block,
+    /// Built on the body's first analysis; a build that replays every state of the body never needs them.
+    passes: ?Passes = null,
     normalized: std.AutoHashMap(ir.ExprId, Level),
     renewed: std.AutoHashMap(u64, Level),
     callees: []const u32,
     identity: [32]u8 = @splat(0),
 
+    const Passes = struct { order: Order, sites: Sites };
+
     fn state(self: *const Unit, index: usize) Memo.State {
         return .{ .identity = self.identity, .index = index, .input = self.unit.input, .callees = self.callees, .normalized = &self.normalized, .renewed = &self.renewed };
+    }
+
+    fn analyze(self: *Unit, allocator: std.mem.Allocator, functions: ir.FunctionTable, slots: Slots, summaries: *Summaries) std.mem.Allocator.Error!Function {
+        if (self.passes == null) {
+            const order = try Order.create(self.allocator, self.unit.symbols, self.unit.expressions, self.body);
+
+            self.passes = .{ .order = order, .sites = undefined };
+
+            const passes = &self.passes.?;
+
+            passes.sites = try Sites.create(self.allocator, &passes.order, slots, self.unit.symbols, self.unit.expressions, summaries);
+            self.unit.operations = try Function.collectOperations(self.allocator, &passes.order, self.unit.expressions);
+            self.unit.rows = try Function.readRows(self.allocator, self.unit.expressions);
+        }
+
+        const passes = &self.passes.?;
+
+        return Function.analyze(allocator, functions, self.unit, &passes.order, &passes.sites, slots, summaries);
     }
 };
 
@@ -72,10 +94,10 @@ pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, progr
     for (0..count) |index| {
         const function = program.functions.at(index);
 
-        units[index] = if (function.external != null) null else try prepare(temporary, slots, .{ .symbols = function.symbols, .expressions = function.expressions, .input_type = function.input_type, .output_type = function.output_type, .input = summaries.input[index], .function = index, .normalized = undefined, .renewed = undefined }, function.body.block(), &summaries);
+        units[index] = if (function.external != null) null else try prepare(temporary, .{ .symbols = function.symbols, .expressions = function.expressions, .input_type = function.input_type, .output_type = function.output_type, .input = summaries.input[index], .function = index, .normalized = undefined, .renewed = undefined }, function.body.block());
     }
 
-    units[count] = if (program.type_only) null else try prepare(temporary, slots, .{ .symbols = program.symbols, .expressions = program.expressions, .input_type = program.input_type, .output_type = program.output_type, .input = &.{}, .function = null, .normalized = undefined, .renewed = undefined }, program.body.block(), &summaries);
+    units[count] = if (program.type_only) null else try prepare(temporary, .{ .symbols = program.symbols, .expressions = program.expressions, .input_type = program.input_type, .output_type = program.output_type, .input = &.{}, .function = null, .normalized = undefined, .renewed = undefined }, program.body.block());
 
     if (memo.persistent) {
         const shared = Identity.program(program, basis);
@@ -91,14 +113,7 @@ pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, progr
     for (units, 0..) |entry, caller| {
         const unit = entry orelse continue;
 
-        for (0..unit.unit.expressions.count()) |expression| switch (unit.unit.expressions.get(@fromBackingInt(@intCast(expression))).value) {
-            .call => |invocation| {
-                const list = &callers[@backingInt(invocation.function)];
-
-                if (list.items.len == 0 or list.items[list.items.len - 1] != caller) try list.append(temporary, caller);
-            },
-            else => {},
-        };
+        for (unit.callees) |callee| try callers[callee].append(temporary, caller);
     }
 
     for (callers, known) |list, *reached| reached.* = list.items.len != 0;
@@ -129,7 +144,7 @@ pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, progr
         const plan: Plan = if (try memo.getPlanned(&summaries, unit.state(index))) |planned|
             .{ .flags = try allocator.dupe(Flags, planned.flags), .renewals = try copyRenewals(allocator, planned.renewals) }
         else planned: {
-            var analysis = try Function.analyze(temporary, program.functions, unit.unit, &unit.order, &unit.sites, slots, &summaries);
+            var analysis = try unit.analyze(temporary, program.functions, slots, &summaries);
             const flags = try allocator.alloc(Flags, unit.unit.expressions.count());
 
             try analysis.flags(flags);
@@ -162,12 +177,12 @@ pub fn analyzeEntry(allocator: std.mem.Allocator, workspace: std.mem.Allocator, 
 
     summaries.clear();
 
-    const unit = try prepare(temporary, slots, .{ .symbols = program.symbols, .expressions = program.expressions, .input_type = program.input_type, .output_type = program.output_type, .input = &.{}, .function = null, .normalized = undefined, .renewed = undefined }, program.body.block(), &summaries);
+    const unit = try prepare(temporary, .{ .symbols = program.symbols, .expressions = program.expressions, .input_type = program.input_type, .output_type = program.output_type, .input = &.{}, .function = null, .normalized = undefined, .renewed = undefined }, program.body.block());
 
     while (true) {
         var changed: std.ArrayList(usize) = .empty;
 
-        var analysis = try Function.analyze(temporary, program.functions, unit.unit, &unit.order, &unit.sites, slots, &summaries);
+        var analysis = try unit.analyze(temporary, program.functions, slots, &summaries);
 
         var marked: std.ArrayList(Function.Mark) = .empty;
 
@@ -176,7 +191,7 @@ pub fn analyzeEntry(allocator: std.mem.Allocator, workspace: std.mem.Allocator, 
         if (!analysis.grew) break;
     }
 
-    var analysis = try Function.analyze(temporary, program.functions, unit.unit, &unit.order, &unit.sites, slots, &summaries);
+    var analysis = try unit.analyze(temporary, program.functions, slots, &summaries);
     const flags = try allocator.alloc(Flags, program.expressions.count());
 
     try analysis.flags(flags);
@@ -245,7 +260,7 @@ fn settle(workspace: std.mem.Allocator, work: *Work, program: ir.Program, slots:
             @memcpy(output, settled.output);
         } else {
             var passed: std.ArrayList(Function.Contribution) = .empty;
-            var analysis = try Function.analyze(round.allocator(), program.functions, unit.unit, &unit.order, &unit.sites, slots, summaries);
+            var analysis = try unit.analyze(round.allocator(), program.functions, slots, summaries);
 
             try analysis.arguments(&changed, &passed);
 
@@ -302,7 +317,7 @@ fn demand(workspace: std.mem.Allocator, work: *Work, program: ir.Program, slots:
             if (demanded.grew) added = true;
         } else {
             var marked: std.ArrayList(Function.Mark) = .empty;
-            var analysis = try Function.analyze(round.allocator(), program.functions, unit.unit, &unit.order, &unit.sites, slots, summaries);
+            var analysis = try unit.analyze(round.allocator(), program.functions, slots, summaries);
 
             try analysis.demand(&changed, &marked);
             try memo.putDemanded(marked.items, state, analysis.grew);
@@ -320,19 +335,12 @@ fn demand(workspace: std.mem.Allocator, work: *Work, program: ir.Program, slots:
     return added;
 }
 
-fn prepare(allocator: std.mem.Allocator, slots: Slots, unit: Function.Unit, body: ir.Block, summaries: *const Summaries) std.mem.Allocator.Error!*Unit {
+fn prepare(allocator: std.mem.Allocator, unit: Function.Unit, body: ir.Block) std.mem.Allocator.Error!*Unit {
     const result = try allocator.create(Unit);
 
-    result.unit = unit;
-    result.normalized = .init(allocator);
-    result.renewed = .init(allocator);
+    result.* = .{ .allocator = allocator, .unit = unit, .body = body, .normalized = .init(allocator), .renewed = .init(allocator), .callees = try callees(allocator, unit.expressions) };
     result.unit.normalized = &result.normalized;
     result.unit.renewed = &result.renewed;
-    result.order = try Order.create(allocator, unit.symbols, unit.expressions, body);
-    result.sites = try Sites.create(allocator, &result.order, slots, unit.symbols, unit.expressions, summaries);
-    result.unit.operations = try Function.collectOperations(allocator, &result.order, unit.expressions);
-    result.unit.rows = try Function.readRows(allocator, unit.expressions);
-    result.callees = try callees(allocator, result.unit.rows);
 
     return result;
 }
@@ -346,10 +354,10 @@ fn copyRenewals(allocator: std.mem.Allocator, renewals: []const Renewal) std.mem
 }
 
 /// The functions a body calls, each once in order of first call.
-fn callees(allocator: std.mem.Allocator, rows: []const ir.ExpressionRow) std.mem.Allocator.Error![]const u32 {
+fn callees(allocator: std.mem.Allocator, expressions: ir.ExpressionTable) std.mem.Allocator.Error![]const u32 {
     var result: std.ArrayList(u32) = .empty;
 
-    for (rows) |row| switch (row.value) {
+    for (0..expressions.count()) |index| switch (expressions.at(index).value) {
         .call => |invocation| if (std.mem.indexOfScalar(u32, result.items, @backingInt(invocation.function)) == null) try result.append(allocator, @backingInt(invocation.function)),
         else => {},
     };
