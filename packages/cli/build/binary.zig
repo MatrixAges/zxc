@@ -6,6 +6,8 @@ pub const Inputs = struct {
     cache_identity: *std.Build.Step.Options,
     /// The module carrying the generated partition objects, or null when generated code is one unit.
     partitions: ?*std.Build.Module,
+    /// The same partitions from Zig's own backend, when the compiler package offers them for this build.
+    self_hosted_partitions: ?*std.Build.Module = null,
 };
 
 /// The zxc executable: a Zig artifact, or a file linked by the platform toolchain.
@@ -42,14 +44,21 @@ pub const Binary = union(enum) {
 };
 
 pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, inputs: Inputs) Binary {
-    const objects = inputs.partitions orelse {
+    const llvm_objects = inputs.partitions orelse {
         inputs.host.linkLibrary(inputs.yaml);
 
         return .{ .artifact = b.addExecutable(.{ .name = "zxc", .root_module = inputs.host }) };
     };
 
+    // Zig's own backend needs Apple's linker for a runnable result, and the host object calling into its partitions
+    // must come from the same backend. The entry library stays on LLVM: it only exports C symbols, and Apple's linker
+    // rejects Zig's own archives.
+    const system_link = @import("system_link.zig");
+    const self_hosted = inputs.self_hosted_partitions != null and system_link.available(b, target);
+    const objects = if (self_hosted) inputs.self_hosted_partitions.? else llvm_objects;
+
     // With partitioned generated code the CLI is its own object as well, so a changed partition only relinks.
-    const host = b.addObject(.{ .name = "zxc_host", .root_module = b.createModule(.{
+    const host = b.addObject(.{ .name = "zxc_host", .use_llvm = if (self_hosted) false else null, .root_module = b.createModule(.{
         .root_source_file = b.path("src/host/export.zig"),
         .target = target,
         .optimize = optimize,
@@ -76,7 +85,7 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
 
     linked.append(b.allocator, inputs.yaml) catch @panic("OOM");
 
-    if (@import("system_link.zig").link(b, target, entry, linked.items)) |file| return .{ .file = file };
+    if (system_link.available(b, target)) return .{ .file = system_link.link(b, target, entry, linked.items, self_hosted) };
 
     start.addObject(host);
     start.linkLibrary(inputs.yaml);

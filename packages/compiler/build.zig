@@ -32,6 +32,7 @@ pub fn build(b: *std.Build) void {
     b.modules.put(b.allocator, "frontend_checks", parser.checks(b, target, optimize, parser_source, natives, generated_strip)) catch @panic("out of memory");
 
     if (natives.objects) |objects| b.modules.put(b.allocator, "generated_objects", objects) catch @panic("out of memory");
+    if (natives.self_hosted_objects) |objects| b.modules.put(b.allocator, "generated_objects_self_hosted", objects) catch @panic("out of memory");
 
     const rx = b.addModule("rx", .{
         .root_source_file = b.path("src/rx/root.zig"),

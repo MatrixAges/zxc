@@ -41,7 +41,13 @@ pub fn build(b: *std.Build) void {
 
     host.addImport("bundle", @import("build/toolchain.zig").create(b, target, pkgs_index, compiler.builder.root.join(b.allocator, "standard/src") catch @panic("OOM")));
 
-    const binary = @import("build/binary.zig").create(b, target, optimize, .{ .host = host, .yaml = yaml, .cache_identity = cache_identity, .partitions = if (partitions == 0) null else generated_objects.? });
+    const binary = @import("build/binary.zig").create(b, target, optimize, .{
+        .host = host,
+        .yaml = yaml,
+        .cache_identity = cache_identity,
+        .partitions = if (partitions == 0) null else generated_objects.?,
+        .self_hosted_partitions = compiler.builder.modules.get("generated_objects_self_hosted"),
+    });
 
     b.addNamedLazyPath("pkgs_index", pkgs_index);
     b.addNamedLazyPath("zxc", binary.path());

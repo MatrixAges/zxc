@@ -25,19 +25,19 @@ pub fn build(b: *std.Build) void {
     const partitions = b.option(u32, "generated-partitions", "Compile generated bootstrap functions as this many separately cached objects (default 64 in Debug, 0 = one unit)") orelse @as(u32, if (optimize == .debug) 64 else 0);
     const rx_dependency = b.dependency("compiler", .{ .target = target, .optimize = optimize, .stage0 = stage0, .@"generated-partitions" = partitions });
 
-    const rx_tests = b.addTest(.{
-        .root_module = b.createModule(.{
-            .root_source_file = rx_dependency.path("tests/rx/root.zig"),
-            .target = target,
-            .optimize = optimize,
-            .imports = &.{.{ .name = "rx", .module = rx_dependency.module("rx") }},
-        }),
-    });
+    const rx_tests_options: std.Build.Module.CreateOptions = .{
+        .root_source_file = rx_dependency.path("tests/rx/root.zig"),
+        .target = target,
+        .optimize = optimize,
+        .imports = &.{.{ .name = "rx", .module = rx_dependency.module("rx") }},
+    };
+    const rx_tests = b.addTest(.{ .root_module = b.createModule(rx_tests_options) });
 
     if (rx_dependency.builder.modules.get("generated_objects")) |objects| rx_tests.root_module.addImport("zxc_generated_objects", objects);
 
-    // Installing only checks that the RX tests compile; without a binary nothing is generated or linked.
-    b.getInstallStep().dependOn(&b.addTest(.{ .name = "rx-tests-check", .root_module = rx_tests.root_module }).step);
+    // Installing only checks that the RX tests compile; without a binary nothing is generated or linked, so the
+    // check leaves out the partition objects and never waits for them.
+    b.getInstallStep().dependOn(&b.addTest(.{ .name = "rx-tests-check", .root_module = b.createModule(rx_tests_options) }).step);
 
     const run_rx_tests = b.addRunArtifact(rx_tests);
     const test_step = b.step("test", "Run package unit tests");

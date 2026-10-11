@@ -147,7 +147,11 @@ fn lessThan(_: void, left: []const u8, right: []const u8) bool {
 /// Generated bootstrap modules omit debug information when strip is set; hand-written host modules keep theirs.
 /// Native and standard modules every generated module shares; create them once per build so no file lands in two modules.
 /// `objects` links the partition objects into an artifact that imports it; null when generated code is one unit.
-pub const Shared = struct { generated: *std.Build.Module, checks: *std.Build.Module, objects: ?*std.Build.Module };
+/// `self_hosted_objects` are the same partitions compiled by Zig's own backend, which compiles an edited partition in
+/// about 0.4 s instead of 1.5 s on x86_64 Debug. Code calling into them has to come from that backend too, since the
+/// layout of Zig's own types only agrees within one backend, and only Apple's linker turns them into a runnable
+/// executable on macOS; artifacts that cannot meet both keep `objects`. Each set compiles only when an artifact uses it.
+pub const Shared = struct { generated: *std.Build.Module, checks: *std.Build.Module, objects: ?*std.Build.Module, self_hosted_objects: ?*std.Build.Module };
 
 pub fn shared(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, source: Sources, strip: ?bool, partitions: u32) Shared {
     const abi = b.createModule(.{ .root_source_file = source.main.path(b, "types.zig"), .target = target, .optimize = optimize, .strip = strip });
@@ -174,31 +178,22 @@ pub fn shared(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
     });
 
     var objects: ?*std.Build.Module = null;
+    var self_hosted_objects: ?*std.Build.Module = null;
 
     if (partitions != 0) {
         const bridge = b.createModule(.{ .root_source_file = source.main.path(b, "bridge.zig"), .target = target, .optimize = optimize, .strip = strip });
+        const imports: []const std.Build.Module.Import = &.{
+            .{ .name = "zxc_abi", .module = abi },
+            .{ .name = "zxc_standard", .module = standard },
+            .{ .name = "zxc_string", .module = string },
+            .{ .name = "zxc_bridge", .module = bridge },
+        };
 
         generated.addImport("zxc_bridge", bridge);
 
-        objects = b.createModule(.{ .root_source_file = b.path("build/partition/objects.zig"), .target = target, .optimize = optimize });
+        objects = partitionObjects(b, target, optimize, source, partitions, imports, null);
 
-        // Each partition is its own compilation unit; final artifacts link them by importing `objects`.
-        // Partition objects keep their debug information: stripped ones crashed zxc at runtime once linked
-        // (Zig 0.17, macOS), while the same objects with debug information run identically to one unit.
-        for (0..partitions) |index| {
-            objects.?.addObject(b.addObject(.{ .name = b.fmt("zxc_partition_{d}", .{index}), .root_module = b.createModule(.{
-                .root_source_file = source.main.path(b, b.fmt("part_{d}/root.zig", .{index})),
-                .target = target,
-                .optimize = optimize,
-                .strip = false,
-                .imports = &.{
-                    .{ .name = "zxc_abi", .module = abi },
-                    .{ .name = "zxc_standard", .module = standard },
-                    .{ .name = "zxc_string", .module = string },
-                    .{ .name = "zxc_bridge", .module = bridge },
-                },
-            }) }));
-        }
+        if (optimize == .debug and target.result.cpu.arch == .x86_64) self_hosted_objects = partitionObjects(b, target, optimize, source, partitions, imports, false);
     }
 
     const check_modules = b.createModule(.{
@@ -212,7 +207,27 @@ pub fn shared(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
         },
     });
 
-    return .{ .generated = generated, .checks = check_modules, .objects = objects };
+    return .{ .generated = generated, .checks = check_modules, .objects = objects, .self_hosted_objects = self_hosted_objects };
+}
+
+/// Each partition is its own compilation unit; final artifacts link them by importing the returned module.
+/// Partition objects keep their debug information: stripped ones crashed zxc at runtime once linked
+/// (Zig 0.17, macOS), while the same objects with debug information run identically to one unit.
+fn partitionObjects(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, source: Sources, partitions: u32, imports: []const std.Build.Module.Import, use_llvm: ?bool) *std.Build.Module {
+    const objects = b.createModule(.{ .root_source_file = b.path("build/partition/objects.zig"), .target = target, .optimize = optimize });
+    const suffix = if (use_llvm == false) "_self_hosted" else "";
+
+    for (0..partitions) |index| {
+        objects.addObject(b.addObject(.{ .name = b.fmt("zxc_partition_{d}{s}", .{ index, suffix }), .use_llvm = use_llvm, .root_module = b.createModule(.{
+            .root_source_file = source.main.path(b, b.fmt("part_{d}/root.zig", .{index})),
+            .target = target,
+            .optimize = optimize,
+            .strip = false,
+            .imports = imports,
+        }) }));
+    }
+
+    return objects;
 }
 
 pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, source: Sources, natives: Shared, strip: ?bool) @import("compiler.zig").ParserModules {
