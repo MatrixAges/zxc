@@ -153,23 +153,22 @@ pub fn nested(self: Self, program: ir.Program, id: ir.TypeId) bool {
     };
 }
 
+/// Boxes the types compared for equality against anything but `none`; reads the kind and binary columns directly.
 fn comparisons(program: ir.Program, boxed: []bool, expressions: ir.ExpressionTable, contracts: ir.ContractTable) void {
-    for (0..expressions.count()) |expression_index| {
-        const expression = expressions.at(expression_index);
+    for (expressions.kinds, expressions.payloads) |kind, payload| {
+        if (kind != .Binary) continue;
 
-        if (expression.value == .binary) {
-            const binary = expression.value.binary;
+        const operator = expressions.binary_operators[payload];
 
-            if (binary.operator != .equal and binary.operator != .not_equal) continue;
+        if (operator != .Equal and operator != .NotEqual) continue;
 
-            const left = expressions.at(@backingInt(binary.left));
-            const right = expressions.at(@backingInt(binary.right));
+        const left = expressions.binary_left[payload];
+        const right = expressions.binary_right[payload];
 
-            if (left.value == .none or right.value == .none) continue;
+        if (expressions.kinds[left] == .None or expressions.kinds[right] == .None) continue;
 
-            mark(program, boxed, left.type_id);
-            mark(program, boxed, right.type_id);
-        }
+        mark(program, boxed, @fromBackingInt(expressions.types[left]));
+        mark(program, boxed, @fromBackingInt(expressions.types[right]));
     }
 
     for (contracts.expressions) |expressions_table| comparisons(program, boxed, expressions_table.*, .{});
