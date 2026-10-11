@@ -18,7 +18,7 @@ pub fn complete(owned: std.mem.Allocator, batch: *const Batch, roots: []const []
     const temporary = scratch.allocator();
     const values = batch.analysis.value.value.values;
     const wanted = try temporary.alloc(bool, values.len);
-    var modules: std.StringHashMapUnmanaged(u32) = .empty;
+    var modules: @import("zx").bytes.Map(u32) = .empty;
 
     @memset(wanted, false);
 
@@ -59,7 +59,7 @@ pub fn complete(owned: std.mem.Allocator, batch: *const Batch, roots: []const []
 /// Marks the value functions each source calls through `call`, on all cores.
 const Scan = struct {
     sources: []const []const u8,
-    modules: *const std.StringHashMapUnmanaged(u32),
+    modules: *const @import("zx").bytes.Map(u32),
     wanted: []bool,
     next: std.atomic.Value(usize) = .init(0),
     failure: std.atomic.Value(u16) = .init(0),

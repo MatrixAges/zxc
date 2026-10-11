@@ -5,7 +5,7 @@ const Entry = struct { key: [32]u8, source: []u8 };
 const Memo = @import("genz").zx.function_analysis.Uniqueness.Memo;
 
 allocator: std.mem.Allocator,
-entries: std.StringHashMapUnmanaged(Entry) = .empty,
+entries: @import("zx").bytes.Map(Entry) = .empty,
 storage: ?Storage = null,
 generated: usize = 0,
 reused: usize = 0,

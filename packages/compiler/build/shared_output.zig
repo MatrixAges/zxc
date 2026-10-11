@@ -68,11 +68,11 @@ fn mirror(io: std.Io, allocator: std.mem.Allocator, output: []const u8, files: [
 
     const previous = try recorded(io, allocator, directory);
     var manifest: std.Io.Writer.Allocating = .init(allocator);
-    var parents: std.StringHashMapUnmanaged(void) = .empty;
+    var parents: compiler.bytes.Map(void) = .empty;
     // Runs list the same files in the same order, so the previous hash is usually found at the same position;
     // paths are looked up only when the lists differ.
     var aligned = if (previous) |known| known.paths.len == files.len else false;
-    var by_path: ?std.StringHashMapUnmanaged(u64) = null;
+    var by_path: ?compiler.bytes.Map(u64) = null;
 
     try remove(io, directory, manifest_name);
 
@@ -136,7 +136,7 @@ const Hashing = struct {
     files: []const layout.File,
     hashes: []u64,
     pub fn step(self: *const Hashing, _: std.mem.Allocator, index: usize) !void {
-        self.hashes[index] = std.hash.Wyhash.hash(0, self.files[index].source);
+        self.hashes[index] = compiler.bytes.hash(0, self.files[index].source);
     }
 };
 
@@ -149,8 +149,8 @@ fn recorded(io: std.Io, allocator: std.mem.Allocator, directory: std.Io.Dir) !?f
     return try file_manifest.list(allocator, text);
 }
 
-fn byPath(allocator: std.mem.Allocator, listed: file_manifest.Listed) !std.StringHashMapUnmanaged(u64) {
-    var result: std.StringHashMapUnmanaged(u64) = .empty;
+fn byPath(allocator: std.mem.Allocator, listed: file_manifest.Listed) !compiler.bytes.Map(u64) {
+    var result: compiler.bytes.Map(u64) = .empty;
 
     try result.ensureTotalCapacity(allocator, @intCast(listed.paths.len));
     for (listed.paths, listed.hashes) |path, hash| result.putAssumeCapacity(path, hash);
@@ -158,8 +158,8 @@ fn byPath(allocator: std.mem.Allocator, listed: file_manifest.Listed) !std.Strin
     return result;
 }
 
-fn generated(allocator: std.mem.Allocator, files: []const layout.File) !std.StringHashMapUnmanaged(void) {
-    var result: std.StringHashMapUnmanaged(void) = .empty;
+fn generated(allocator: std.mem.Allocator, files: []const layout.File) !compiler.bytes.Map(void) {
+    var result: compiler.bytes.Map(void) = .empty;
 
     try result.ensureTotalCapacity(allocator, @intCast(files.len));
     for (files) |file| result.putAssumeCapacity(file.path, {});

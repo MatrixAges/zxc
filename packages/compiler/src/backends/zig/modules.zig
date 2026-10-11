@@ -84,7 +84,7 @@ pub fn functionFilesAnalyzed(owned: std.mem.Allocator, batch: *const Batch, need
     const program = batch.program;
     const identities = batch.names;
     var files: std.ArrayList(File) = .empty;
-    var seen: std.StringHashMapUnmanaged(usize) = .empty;
+    var seen: @import("zx").bytes.Map(usize) = .empty;
     var units: std.ArrayList(generating.Unit) = .empty;
 
     defer units.deinit(owned);
@@ -102,6 +102,7 @@ pub fn functionFilesAnalyzed(owned: std.mem.Allocator, batch: *const Batch, need
             .function, .regular => |id| id,
             else => unreachable,
         });
+
         const function = program.functions.at(index);
 
         const file = File{
@@ -137,7 +138,7 @@ pub fn typeNames(owned: std.mem.Allocator, program: @import("zx").ir.Program, id
 
 pub fn typeNamesAnalyzed(owned: std.mem.Allocator, program: @import("zx").ir.Program, identities: generating.Names, state_plan: @import("genz").zx.state_value.Analysis) std.mem.Allocator.Error![]const []const u8 {
     var type_names: std.ArrayList([]const u8) = .empty;
-    var type_set: std.StringHashMapUnmanaged(void) = .empty;
+    var type_set: @import("zx").bytes.Map(void) = .empty;
 
     for (0..program.types.count(), identities.types, 0..) |view_index, name, index| {
         const value = program.types.at(view_index);

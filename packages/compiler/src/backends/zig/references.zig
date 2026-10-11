@@ -41,7 +41,7 @@ fn mark(needed: []bool, expressions: ir.ExpressionTable, contracts: ir.ContractT
 
 /// The names of the functions a body calls, each once, in name order.
 pub fn imports(allocator: std.mem.Allocator, expressions: ir.ExpressionTable, contracts: ir.ContractTable, function_names: []const []const u8) std.mem.Allocator.Error![]const []const u8 {
-    var seen: std.StringHashMapUnmanaged(void) = .empty;
+    var seen: @import("zx").bytes.Map(void) = .empty;
     var output: std.ArrayList([]const u8) = .empty;
 
     try called(allocator, &seen, &output, expressions, contracts, function_names);
@@ -51,7 +51,7 @@ pub fn imports(allocator: std.mem.Allocator, expressions: ir.ExpressionTable, co
     return output.toOwnedSlice(allocator);
 }
 
-fn called(allocator: std.mem.Allocator, seen: *std.StringHashMapUnmanaged(void), output: *std.ArrayList([]const u8), expressions: ir.ExpressionTable, contracts: ir.ContractTable, function_names: []const []const u8) std.mem.Allocator.Error!void {
+fn called(allocator: std.mem.Allocator, seen: *@import("zx").bytes.Map(void), output: *std.ArrayList([]const u8), expressions: ir.ExpressionTable, contracts: ir.ContractTable, function_names: []const []const u8) std.mem.Allocator.Error!void {
     for (0..expressions.count()) |expression_index| {
         const function = expressions.callee(expression_index) orelse continue;
         const name = function_names[@backingInt(function)];
