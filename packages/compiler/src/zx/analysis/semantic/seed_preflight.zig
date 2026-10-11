@@ -34,14 +34,13 @@ pub fn prepare(allocator: std.mem.Allocator, temporary: std.mem.Allocator, value
 
     errdefer allocator.free(mapping);
 
-    for (0..first) |index| {
-        const value = values.at(index);
-        const existing = target.at(index);
+    // Tables extending this one (`first` > 0) come from the project's own analysis or from the table itself, so as
+    // with their type rules only internal builds check that their prefix still matches.
+    if (@import("../../ir/validate.zig").internal) for (0..first) |index| {
+        if (!sameType(values.at(index), target.at(index))) return error.InvalidModule;
+    };
 
-        if (!sameType(value, existing)) return error.InvalidModule;
-
-        mapping[index] = @fromBackingInt(@intCast(index));
-    }
+    for (mapping[0..first], 0..) |*id, index| id.* = @fromBackingInt(@intCast(index));
 
     return .{ .origins = origins, .mapping = mapping, .arena = arena };
 }
