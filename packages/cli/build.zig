@@ -46,7 +46,8 @@ pub fn build(b: *std.Build) void {
         .yaml = yaml,
         .cache_identity = cache_identity,
         .partitions = if (partitions == 0) null else generated_objects.?,
-        .self_hosted_partitions = compiler.builder.modules.get("generated_objects_self_hosted"),
+        .self_hosted_partitions = compiler.builder.named_lazy_paths.get("generated_objects_self_hosted"),
+        .partition_count = partitions,
     });
 
     b.addNamedLazyPath("pkgs_index", pkgs_index);

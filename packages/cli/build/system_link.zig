@@ -10,7 +10,7 @@ const driver = "/usr/bin/xcrun";
 /// drops those warnings.
 /// `identity` becomes the `zxc_cache_identity` symbol through an assembly source the driver assembles in the same
 /// command.
-pub fn link(b: *std.Build, target: std.Build.ResolvedTarget, entry: *std.Build.Step.Compile, inputs: []const *std.Build.Step.Compile, identity: [32]u8, quiet: bool) std.Build.LazyPath {
+pub fn link(b: *std.Build, target: std.Build.ResolvedTarget, entry: *std.Build.Step.Compile, inputs: []const *std.Build.Step.Compile, objects: []const std.Build.LazyPath, identity: [32]u8, quiet: bool) std.Build.LazyPath {
     const minimum = target.result.os.version_range.semver.min;
     const command = b.addSystemCommand(&.{
         driver,
@@ -30,6 +30,7 @@ pub fn link(b: *std.Build, target: std.Build.ResolvedTarget, entry: *std.Build.S
     command.addArtifactArg(entry);
 
     for (inputs) |input| command.addArtifactArg(input);
+    for (objects) |object| command.addFileArg(object);
 
     command.addFileArg(b.addWriteFiles().add("cache_identity.s", assembly(b, identity)));
 

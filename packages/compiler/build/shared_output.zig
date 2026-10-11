@@ -51,7 +51,7 @@ pub fn write(io: std.Io, allocator: std.mem.Allocator, output: []const u8, bundl
 
 pub const fingerprint_name = ".zxc-inputs";
 
-const manifest_name = ".zxc-files";
+const manifest_name = @import("partition/file_manifest.zig").name;
 
 /// Records the content hash of every written file in a manifest, so a later run compares hashes instead of
 /// reading files back, and removes exactly the files the previous run wrote and this one does not. Without a
@@ -132,16 +132,7 @@ fn recorded(io: std.Io, allocator: std.mem.Allocator, directory: std.Io.Dir) !?s
         else => return err,
     };
 
-    var known: std.StringHashMapUnmanaged(u64) = .empty;
-    var lines = std.mem.splitScalar(u8, text, '\n');
-
-    while (lines.next()) |line| {
-        if (line.len < 18) continue;
-
-        try known.put(allocator, line[17..], try std.fmt.parseInt(u64, line[0..16], 16));
-    }
-
-    return known;
+    return try @import("partition/file_manifest.zig").parse(allocator, text);
 }
 
 fn remove(io: std.Io, directory: std.Io.Dir, path: []const u8) !void {

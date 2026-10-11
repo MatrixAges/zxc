@@ -151,7 +151,8 @@ fn lessThan(_: void, left: []const u8, right: []const u8) bool {
 /// about 0.4 s instead of 1.5 s on x86_64 Debug. Code calling into them has to come from that backend too, since the
 /// layout of Zig's own types only agrees within one backend, and only Apple's linker turns them into a runnable
 /// executable on macOS; artifacts that cannot meet both keep `objects`. Each set compiles only when an artifact uses it.
-pub const Shared = struct { generated: *std.Build.Module, checks: *std.Build.Module, objects: ?*std.Build.Module, self_hosted_objects: ?*std.Build.Module };
+/// They come as one directory holding `zxc_partition_<n>.o` for each partition.
+pub const Shared = struct { generated: *std.Build.Module, checks: *std.Build.Module, objects: ?*std.Build.Module, self_hosted_objects: ?std.Build.LazyPath };
 
 pub fn shared(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, source: Sources, strip: ?bool, partitions: u32) Shared {
     const abi = b.createModule(.{ .root_source_file = source.main.path(b, "types.zig"), .target = target, .optimize = optimize, .strip = strip });
@@ -178,7 +179,7 @@ pub fn shared(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
     });
 
     var objects: ?*std.Build.Module = null;
-    var self_hosted_objects: ?*std.Build.Module = null;
+    var self_hosted_objects: ?std.Build.LazyPath = null;
 
     if (partitions != 0) {
         const bridge = b.createModule(.{ .root_source_file = source.main.path(b, "bridge.zig"), .target = target, .optimize = optimize, .strip = strip });
@@ -193,7 +194,7 @@ pub fn shared(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
 
         objects = partitionObjects(b, target, optimize, source, partitions, imports, null);
 
-        if (optimize == .debug and target.result.cpu.arch == .x86_64) self_hosted_objects = partitionObjects(b, target, optimize, source, partitions, imports, false);
+        if (optimize == .debug and target.result.cpu.arch == .x86_64 and target.query.isNative()) self_hosted_objects = selfHostedObjects(b, optimize, source, partitions, strip);
     }
 
     const check_modules = b.createModule(.{
@@ -226,6 +227,42 @@ fn partitionObjects(b: *std.Build, target: std.Build.ResolvedTarget, optimize: s
             .imports = imports,
         }) }));
     }
+
+    return objects;
+}
+
+/// Compiles the partitions with Zig's own backend through one step that runs `zig build-obj` only for partitions whose
+/// generated files changed (see `partition/compile.zig`), instead of one compile step per partition that each start a
+/// Zig process to check its cache. The arguments mirror the modules `shared` gives `partitionObjects`.
+fn selfHostedObjects(b: *std.Build, optimize: std.builtin.OptimizeMode, source: Sources, partitions: u32, strip: ?bool) std.Build.LazyPath {
+    const tool = b.addExecutable(.{ .name = "partition-objects", .root_module = b.createModule(.{
+        .root_source_file = b.path("build/partition/compile.zig"),
+        .target = b.graph.host,
+        .optimize = .ReleaseFast,
+    }) });
+
+    const run = b.addRunArtifact(tool);
+    const level = b.fmt("-O{s}", .{@tagName(optimize)});
+    const stripped: []const []const u8 = if (strip) |value| &.{if (value) "-fstrip" else "-fno-strip"} else &.{};
+
+    run.addArg(b.graph.zig_exe);
+    run.addDirectoryArg(source.main);
+
+    const objects = run.addOutputDirectoryArg("objects");
+
+    run.addArg(b.fmt("{d}", .{partitions}));
+    run.addDirectoryArg(b.path("standard/src"));
+    run.addArgs(&.{ "--", "build-obj", "-fno-llvm", "-fno-strip", level, "--dep", "zxc_abi", "--dep", "zxc_standard", "--dep", "zxc_string", "--dep", "zxc_bridge", "-Mroot=%generated%/part_%index%/root.zig" });
+    run.addArgs(stripped);
+    run.addArgs(&.{ level, "-Mzxc_abi=%generated%/types.zig", level, "--dep", "zxc_abi", b.fmt("-Mzxc_standard={s}", .{b.root.joinString(b.allocator, "standard/src/root.zig") catch @panic("out of memory")}) });
+    run.addArgs(stripped);
+    run.addArgs(&.{ level, b.fmt("-Mzxc_string={s}", .{b.root.joinString(b.allocator, "standard/src/string.zig") catch @panic("out of memory")}) });
+    run.addArgs(stripped);
+    run.addArgs(&.{ level, "-Mzxc_bridge=%generated%/bridge.zig" });
+    run.addArgs(&.{ "--name", "zxc_partition_%index%_self_hosted", "-femit-bin=%objects%/zxc_partition_%index%.o" });
+
+    // The object directory persists across runs, so unchanged partitions keep their objects.
+    run.has_side_effects = true;
 
     return objects;
 }
