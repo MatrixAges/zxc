@@ -32,7 +32,7 @@ pub fn createFilesCached(allocator: std.mem.Allocator, library: *const model.Res
 }
 
 fn create(allocator: std.mem.Allocator, library: *const model.Result, cache: ?*Cache, file_imports: bool) Error!Bundle {
-    try validation.validate(allocator, library);
+    if (@import("frontend").checks_internal_ir) try validation.validate(allocator, library);
 
     var arena = std.heap.ArenaAllocator.init(allocator);
 

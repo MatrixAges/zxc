@@ -19,6 +19,7 @@ pub const AnalysisResult = @import("analysis/analyze.zig").Result;
 pub const NominalType = @import("modules/nominal_origins.zig").Item;
 pub const validateIr = @import("ir/validate.zig").validate;
 pub const validateIrExtending = @import("ir/validate.zig").validateExtending;
+pub const checks_internal_ir = @import("ir/validate.zig").internal;
 pub const isParallelSafe = @import("ir/parallel.zig").programPure;
 pub const analyzeWithContext = @import("analysis/analyze.zig").analyzeWithContext;
 pub const Context = @import("analysis/analyze.zig").Context;

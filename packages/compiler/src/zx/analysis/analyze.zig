@@ -130,7 +130,7 @@ fn analyzeInputIn(allocator: std.mem.Allocator, input: anytype, file_name: []con
     };
 
     if (resolved) |bindings| {
-        if (try @import("../ir/validate.zig").validateExtending(allocator, program, bindings.verified_functions)) |issue| return .{ .value = .{ .diagnostic = issue } };
+        if (@import("../ir/validate.zig").internal) if (try @import("../ir/validate.zig").validateExtending(allocator, program, bindings.verified_functions)) |issue| return .{ .value = .{ .diagnostic = issue } };
     }
 
     const initializers = if (resolved) |bindings| bindings.store_initializers else &.{};

@@ -1,5 +1,7 @@
 const std = @import("std");
 const zx = @import("zx");
+/// IR produced inside this process is trusted; only debug builds re-check it. Loaded libraries and caches are validated at their boundary.
+pub const internal = @import("builtin").mode == .debug;
 
 pub fn validate(allocator: std.mem.Allocator, program: zx.ir.Program) std.mem.Allocator.Error!?zx.Diagnostic {
     return validateExtending(allocator, program, .{});
