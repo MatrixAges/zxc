@@ -5,14 +5,14 @@ const Context = @import("root.zig");
 const Lower = @import("../lower.zig");
 const aggregate = @import("../aggregate.zig");
 
-pub fn lower(self: *Context, id: ir.ExprId) Lower.Error!*const node.Expression {
+pub fn lower(self: *Context, id: ir.ExprId) Lower.Error!node.ExpressionId {
     const lowering = self.lowering;
     const expression = lowering.program.expression(id);
     const type_expr = try @import("types.zig").get(self, expression.type_id);
     var body: std.ArrayList(node.Statement) = .empty;
 
     if (expression.value == .tuple) {
-        const items = try lowering.allocator.alloc(*const node.Expression, expression.value.tuple.len);
+        const items = try lowering.allocator.alloc(node.ExpressionId, expression.value.tuple.len);
 
         for (expression.value.tuple, items) |item, *value| value.* = try aggregate.bind(lowering, &body, try lowering.expr(item));
 
@@ -20,8 +20,8 @@ pub fn lower(self: *Context, id: ir.ExprId) Lower.Error!*const node.Expression {
     }
 
     const object = expression.value.object;
-    const saved = try lowering.allocator.alloc(?*const node.Expression, object.evaluation.len);
-    const values = try lowering.allocator.alloc(*const node.Expression, object.evaluation.len);
+    const saved = try lowering.allocator.alloc(?node.ExpressionId, object.evaluation.len);
+    const values = try lowering.allocator.alloc(node.ExpressionId, object.evaluation.len);
     const counts = try lowering.allocator.alloc(usize, object.evaluation.len);
 
     for (object.evaluation, saved) |item, *previous| previous.* = self.cache.get(item);

@@ -10,10 +10,10 @@ lowering: *Lower,
 transform: ir.Transform,
 dependencies: []const bool,
 has_append: bool = false,
-buffer: *const node.Expression = undefined,
-started: *const node.Expression = undefined,
-initial: *const node.Expression = undefined,
-pub fn lower(lowering: *Lower, transform: ir.Transform) Lower.Error!?*const node.Expression {
+buffer: node.ExpressionId = undefined,
+started: node.ExpressionId = undefined,
+initial: node.ExpressionId = undefined,
+pub fn lower(lowering: *Lower, transform: ir.Transform) Lower.Error!?node.ExpressionId {
     if (transform.kind != .reduce or lowering.program.typeOf(lowering.program.expression(transform.body).type_id) != .list) return null;
 
     const dependencies = try @import("dependencies.zig").analyze(lowering.allocator, lowering.program.expressions, transform.parameters[0]);
@@ -31,7 +31,7 @@ pub fn lower(lowering: *Lower, transform: ir.Transform) Lower.Error!?*const node
     const name = try lowering.fresh("append_items");
     const started_name = try lowering.fresh("append_started");
     const child = lowering.program.typeOf(lowering.program.expression(transform.body).type_id).list;
-    const buffer_type = try lowering.call(try lowering.field(try lowering.builder.identifier("std"), "ArrayList"), &.{lowering.types[@intFromEnum(child)]}, false);
+    const buffer_type = try lowering.call(try lowering.field(try lowering.builder.identifier("std"), "ArrayList"), &.{lowering.types[@backingInt(child)]}, false);
     self.buffer = try lowering.builder.identifier(name);
     self.started = try lowering.builder.identifier(started_name);
 
@@ -42,7 +42,7 @@ pub fn lower(lowering: *Lower, transform: ir.Transform) Lower.Error!?*const node
     const loop = try self.statements(transform.body);
     const element = transform.parameters[1];
 
-    try body.append(lowering.allocator, .{ .for_loop = .{ .iterable = source, .capture = if (lowering.used[@intFromEnum(element)]) lowering.names[@intFromEnum(element)] else "_", .body = loop } });
+    try body.append(lowering.allocator, .{ .for_loop = .{ .iterable = source, .capture = if (lowering.used[@backingInt(element)]) lowering.names[@backingInt(element)] else "_", .body = try lowering.builder.statements(loop) } });
 
     const result = try lowering.builder.expression(.{ .conditional = .{ .condition = self.started, .yes = try self.method("toOwnedSlice", &.{}, true), .no = self.initial } });
 
@@ -52,7 +52,7 @@ pub fn lower(lowering: *Lower, transform: ir.Transform) Lower.Error!?*const node
 fn matches(self: *Self, id: ir.ExprId) bool {
     return switch (self.lowering.program.expression(id).value) {
         .reference => |symbol| symbol == self.transform.parameters[0],
-        .conditional => |value| !self.dependencies[@intFromEnum(value.condition)] and self.matches(value.yes) and self.matches(value.no),
+        .conditional => |value| !self.dependencies[@backingInt(value.condition)] and self.matches(value.yes) and self.matches(value.no),
         .match_expr => |selection| blk: {
             if (selection.subject) |subject| if (self.dependencies[@backingInt(subject)]) break :blk false;
 
@@ -73,7 +73,7 @@ fn matches(self: *Self, id: ir.ExprId) bool {
 
             const operation = value.list_operation;
             const target = self.lowering.program.expression(operation.target).value;
-            const eligible = (operation.kind == .push or operation.kind == .concat) and target == .reference and target.reference == self.transform.parameters[0] and !self.dependencies[@intFromEnum(operation.arguments[0])];
+            const eligible = (operation.kind == .push or operation.kind == .concat) and target == .reference and target.reference == self.transform.parameters[0] and !self.dependencies[@backingInt(operation.arguments[0])];
 
             if (eligible) self.has_append = true;
 
@@ -89,7 +89,7 @@ fn statements(self: Self, id: ir.ExprId) Lower.Error![]const node.Statement {
 
     switch (lowering.program.expression(id).value) {
         .reference => {},
-        .conditional => |value| try body.append(lowering.allocator, .{ .branch = .{ .condition = try lowering.expr(value.condition), .yes = try self.statements(value.yes), .no = try self.statements(value.no) } }),
+        .conditional => |value| try body.append(lowering.allocator, .{ .branch = .{ .condition = try lowering.expr(value.condition), .yes = try lowering.builder.statements(try self.statements(value.yes)), .no = try lowering.builder.statements(try self.statements(value.no)) } }),
         .match_expr => |selection| return self.matchStatements(selection),
         .tuple_field => |projection| {
             const operation = lowering.program.expression(projection.target).value.list_operation;
@@ -100,10 +100,10 @@ fn statements(self: Self, id: ir.ExprId) Lower.Error![]const node.Statement {
 
             try body.append(lowering.allocator, .{ .discard = length });
 
-            try body.append(lowering.allocator, .{ .branch = .{ .condition = try lowering.builder.expression(.{ .unary = .{ .operator = .not, .operand = self.started } }), .yes = try lowering.allocator.dupe(node.Statement, &.{
+            try body.append(lowering.allocator, .{ .branch = .{ .condition = try lowering.builder.expression(.{ .unary = .{ .operator = .not, .operand = self.started } }), .yes = try lowering.builder.statements(&.{
                 .{ .expression = try self.method("appendSlice", &.{self.initial}, true) },
                 .{ .assignment = .{ .target = self.started, .value = try lowering.builder.expression(.{ .boolean = true }) } },
-            }), .no = &.{} } });
+            }), .no = .{} } });
 
             try body.append(lowering.allocator, .{ .expression = try self.method(if (operation.kind == .push) "append" else "appendSlice", &.{argument}, true) });
         },
@@ -144,7 +144,7 @@ fn matchStatements(self: Self, selection: ir.MatchRow) Lower.Error![]const node.
         else
             try lowering.expr(arm.condition);
 
-        tail = try lowering.allocator.dupe(node.Statement, &.{.{ .branch = .{ .condition = condition, .yes = try self.statements(arm.result), .no = tail } }});
+        tail = try lowering.allocator.dupe(node.Statement, &.{.{ .branch = .{ .condition = condition, .yes = try lowering.builder.statements(try self.statements(arm.result)), .no = try lowering.builder.statements(tail) } }});
     }
 
     try body.appendSlice(lowering.allocator, tail);
@@ -152,8 +152,8 @@ fn matchStatements(self: Self, selection: ir.MatchRow) Lower.Error![]const node.
     return body.toOwnedSlice(lowering.allocator);
 }
 
-fn method(self: Self, name: []const u8, arguments: []const *const node.Expression, fallible: bool) Lower.Error!*const node.Expression {
-    const values = try self.lowering.allocator.alloc(*const node.Expression, arguments.len + 1);
+fn method(self: Self, name: []const u8, arguments: []const node.ExpressionId, fallible: bool) Lower.Error!node.ExpressionId {
+    const values = try self.lowering.allocator.alloc(node.ExpressionId, arguments.len + 1);
 
     values[0] = try self.lowering.builder.identifier("allocator");
 

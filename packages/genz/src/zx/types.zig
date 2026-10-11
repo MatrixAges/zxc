@@ -38,7 +38,7 @@ pub fn lower(self: *Lower, output: *std.ArrayList(node.Declaration), exported: b
                     .native_reference => try self.builder.expression(.opaque_type),
                     .enumeration => |enumeration| try self.builder.expression(.{ .enum_type = enumeration.members }),
                     .tuple => |children| tuple: {
-                        const items = try self.allocator.alloc(*const node.Expression, children.len);
+                        const items = try self.allocator.alloc(node.ExpressionId, children.len);
 
                         for (0..children.len, 0..) |view_index, child_index| {
                             const child = children.at(view_index);

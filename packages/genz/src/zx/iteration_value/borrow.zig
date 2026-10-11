@@ -5,11 +5,11 @@ const Context = @import("root.zig");
 const Lower = @import("../lower.zig");
 const aggregate = @import("../aggregate.zig");
 
-pub fn lower(self: *Context, body: *std.ArrayList(node.Statement), id: ir.TypeId, value: *const node.Expression) Lower.Error!*const node.Expression {
+pub fn lower(self: *Context, body: *std.ArrayList(node.Statement), id: ir.TypeId, value: node.ExpressionId) Lower.Error!node.ExpressionId {
     return borrow(self, body, id, value, null);
 }
 
-fn borrow(self: *Context, body: *std.ArrayList(node.Statement), id: ir.TypeId, value: *const node.Expression, guard: ?*const node.Expression) Lower.Error!*const node.Expression {
+fn borrow(self: *Context, body: *std.ArrayList(node.Statement), id: ir.TypeId, value: node.ExpressionId, guard: ?node.ExpressionId) Lower.Error!node.ExpressionId {
     const lowering = self.lowering;
     const layout = lowering.layouts[@backingInt(id)];
 
@@ -42,7 +42,7 @@ fn borrow(self: *Context, body: *std.ArrayList(node.Statement), id: ir.TypeId, v
             break :blk try lowering.builder.expression(.{ .object = .{ .type_expr = layout, .fields = items } });
         },
         .tuple => |children| blk: {
-            const items = try lowering.allocator.alloc(*const node.Expression, children.len);
+            const items = try lowering.allocator.alloc(node.ExpressionId, children.len);
 
             for (items, 0..) |*item, index| {
                 const child = children.at(index);

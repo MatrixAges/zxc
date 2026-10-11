@@ -11,7 +11,7 @@ pub fn lower(types: Types, id: ir.TypeId, scalar: ir.Scalar) std.mem.Allocator.E
     const result = try builder.identifier("result");
     const target = try types.typeExpression(id);
 
-    if (scalar == .u64 or scalar == .i64) return builder.statements(&.{
+    if (scalar == .u64 or scalar == .i64) return builder.allocator.dupe(node.Statement, &.{
         .{ .variable = .{ .name = "result", .type_expr = target, .value = try builder.expression(.undefined_value) } },
         .{ .variable = .{ .name = "lossless", .value = try builder.expression(.{ .boolean = false }) } },
         try common.check(builder, if (scalar == .i64) "napi_get_value_bigint_int64" else "napi_get_value_bigint_uint64", &.{ env, value, try common.address(builder, "result"), try common.address(builder, "lossless") }),

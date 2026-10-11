@@ -55,7 +55,7 @@ fn entryPrepared(allocator: std.mem.Allocator, backing: std.mem.Allocator, progr
 
     var lower = try initialize(arena.allocator(), backing, program, names, facts);
 
-    return render(allocator, try lower.declarations());
+    return render(allocator, lower.builder.nodes, try lower.declarations());
 }
 
 fn typesPrepared(allocator: std.mem.Allocator, backing: std.mem.Allocator, program: ir.Program, names: Names, facts: Analysis) Error![]u8 {
@@ -67,7 +67,7 @@ fn typesPrepared(allocator: std.mem.Allocator, backing: std.mem.Allocator, progr
 
     lower.shared_types = false;
 
-    return render(allocator, try @import("type_bundle.zig").declarations(&lower));
+    return render(allocator, lower.builder.nodes, try @import("type_bundle.zig").declarations(&lower));
 }
 
 fn functionPrepared(allocator: std.mem.Allocator, backing: std.mem.Allocator, program: ir.Program, id: ir.FunctionId, names: Names, facts: Analysis) Error![]u8 {
@@ -123,7 +123,10 @@ fn functionPrepared(allocator: std.mem.Allocator, backing: std.mem.Allocator, pr
     try output.append(temporary, declaration);
 
     if (lower.value_functions[@backingInt(id)]) {
-        var value_declaration = try lower.functionValue("callValue");
+        var value_declaration = if (@import("buffer_call/root.zig").available(lower.buffer_functions[@backingInt(id)]))
+            try @import("buffer_call/value.zig").declaration(&lower, "callValue", try lower.builder.identifier("callBuffered"), lower.buffer_functions[@backingInt(id)])
+        else
+            try lower.functionValue("callValue");
 
         value_declaration.function.exported = true;
 
@@ -147,7 +150,7 @@ fn functionPrepared(allocator: std.mem.Allocator, backing: std.mem.Allocator, pr
     try output.appendSlice(temporary, task_declarations.items);
     for (comparisons.items) |type_id| try output.append(temporary, try @import("comparison.zig").ordering(&lower, type_id));
 
-    return render(allocator, try output.toOwnedSlice(temporary));
+    return render(allocator, lower.builder.nodes, try output.toOwnedSlice(temporary));
 }
 
 fn initialize(allocator: std.mem.Allocator, backing: std.mem.Allocator, program: ir.Program, names: Names, facts: Analysis) Error!Lower {

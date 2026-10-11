@@ -12,7 +12,7 @@ pub fn lower(self: *Lower, function: ir.Function, index: usize) Lower.Error!node
     for (implementation.member) |part| callee = try self.field(callee, part);
 
     const allocator = try self.builder.identifier("allocator");
-    var arguments: std.ArrayList(*const node.Expression) = .empty;
+    var arguments: std.ArrayList(node.ExpressionId) = .empty;
 
     if (implementation.allocator_argument) try arguments.append(self.allocator, allocator);
     if (implementation.io_argument) try arguments.append(self.allocator, try self.builder.identifier("io"));
@@ -54,5 +54,5 @@ pub fn lower(self: *Lower, function: ir.Function, index: usize) Lower.Error!node
     if (implementation.io_argument) parameters[2] = .{ .name = "io", .value = try @import("intrinsics.zig").standardField(self, &.{"Io"}) };
     if (implementation.process_argument) parameters[parameters.len - 1] = .{ .name = "process", .value = try @import("intrinsics.zig").standardField(self, &.{ "process", "Init", "Minimal" }) };
 
-    return .{ .function = .{ .name = try std.fmt.allocPrint(self.allocator, "function_{d}", .{index}), .parameters = parameters, .return_type = try self.builder.expression(.{ .error_union = .{ .payload = self.types[@backingInt(function.output_type)], .errors = if (implementation.fallible) implementation.errors else &.{} } }), .body = try body.toOwnedSlice(self.allocator) } };
+    return .{ .function = .{ .name = try std.fmt.allocPrint(self.allocator, "function_{d}", .{index}), .parameters = parameters, .return_type = try self.builder.expression(.{ .error_union = .{ .payload = self.types[@backingInt(function.output_type)], .errors = if (implementation.fallible) implementation.errors else &.{} } }), .body = try self.builder.statements(body.items) } };
 }

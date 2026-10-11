@@ -5,7 +5,7 @@ const Lower = @import("../lower.zig");
 const aggregate = @import("../aggregate.zig");
 pub const Mode = enum { value, value_layout, pointer, layout, borrow };
 
-pub fn convert(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.TypeId, value: *const node.Expression, mode: Mode) Lower.Error!*const node.Expression {
+pub fn convert(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.TypeId, value: node.ExpressionId, mode: Mode) Lower.Error!node.ExpressionId {
     if (!self.state_plan.represented(self.program, id)) return value;
     if (mode == .borrow) return @import("borrow.zig").lower(self, body, body, id, value);
 
@@ -47,7 +47,7 @@ pub fn convert(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.TypeId
             break :blk try self.builder.expression(.{ .object = .{ .type_expr = layout, .fields = items } });
         },
         .tuple => |children| blk: {
-            const items = try self.allocator.alloc(*const node.Expression, children.len + @intFromBool(input));
+            const items = try self.allocator.alloc(node.ExpressionId, children.len + @intFromBool(input));
 
             for (items[0..children.len], 0..) |*item, position| {
                 const child = children.at(position);

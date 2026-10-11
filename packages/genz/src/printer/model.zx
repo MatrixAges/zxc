@@ -1,0 +1,38 @@
+import type { Declarations } from "./model/declarations"
+import type { Expressions } from "./model/expressions"
+import type { Fields, Arms } from "./model/members"
+import type { Statements } from "./model/statements"
+import type { Token } from "./model/token"
+
+export type Source = {
+    expressions: Expressions
+    statements: Statements
+    declarations: Declarations
+    fields: Fields
+    arms: Arms
+    first: u32
+    count: u32
+}
+
+export enum Action { Text, Identifier, BindingIdentifier, Quoted, Integer, Expression, Statement, Block, Declaration, Field, Parameter, ObjectField, Arm, Indent, Enter, Leave }
+
+export enum ByteSource { None, ExpressionIdentifier, ExpressionString, EnumLiteral, ErrorValue, FieldName, BlockLabel, CatchCapture, CatchLabel, CatchScopeCapture, ConditionalCapture, ConditionalErrorCapture, EnumMember, ErrorMember, ErrorUnionMember, MemberName, ArmCapture, StatementConstant, StatementVariable, DeclarationConstant, DeclarationVariable, DeclarationField, FunctionName, ForCapture, ForIndexCapture, WhileCapture, BranchCapture, BranchErrorCapture, BreakLabel }
+
+export type Frame = {
+    action: Action
+    id: u32
+    count: u32
+    token: Token
+    bytes: ByteSource
+    index: u64
+    number: u64
+}
+
+export type State = {
+    source: Source
+    stack: Frame[]
+    output: u8[]
+    depth: u32
+}
+
+export type Step = { source: Source, frame: Frame }

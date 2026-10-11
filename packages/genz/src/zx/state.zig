@@ -24,12 +24,12 @@ fn renderConfigured(allocator: std.mem.Allocator, objects: []const Object, requi
     defer arena.deinit();
 
     const temporary = arena.allocator();
-    const builder = @import("../builder.zig"){ .allocator = temporary };
+    const builder = try @import("../builder.zig").init(temporary);
     var declarations: std.ArrayList(@import("../node.zig").Declaration) = .empty;
 
     try @import("state/storage.zig").lower(builder, &declarations, objects);
     try @import("state/lifecycle.zig").lower(builder, &declarations, objects);
     try @import("state/request.zig").lower(builder, &declarations, objects, requirements, execute);
 
-    return @import("../render.zig").render(allocator, declarations.items);
+    return @import("../render.zig").render(allocator, builder.nodes, declarations.items);
 }

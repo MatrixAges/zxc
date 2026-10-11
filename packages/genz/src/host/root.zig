@@ -13,9 +13,9 @@ pub fn result(allocator: std.mem.Allocator, emit: bool) std.mem.Allocator.Error!
 
     defer arena.deinit();
 
-    const builder = Builder{ .allocator = arena.allocator() };
+    const builder = try Builder.init(arena.allocator());
 
-    return @import("../render.zig").render(allocator, &.{.{ .constant = .{ .name = "emit", .value = try builder.expression(.{ .boolean = emit }), .exported = true } }});
+    return @import("../render.zig").render(allocator, builder.nodes, &.{.{ .constant = .{ .name = "emit", .value = try builder.expression(.{ .boolean = emit }), .exported = true } }});
 }
 
 pub fn cAdapter(allocator: std.mem.Allocator) std.mem.Allocator.Error![]u8 {
@@ -23,7 +23,7 @@ pub fn cAdapter(allocator: std.mem.Allocator) std.mem.Allocator.Error![]u8 {
 
     defer arena.deinit();
 
-    const builder = Builder{ .allocator = arena.allocator() };
+    const builder = try Builder.init(arena.allocator());
 
-    return @import("../render.zig").render(allocator, &.{.{ .constant = .{ .name = "c", .value = try builder.builtin(.import, &.{try builder.string("zxc_c")}), .exported = true } }});
+    return @import("../render.zig").render(allocator, builder.nodes, &.{.{ .constant = .{ .name = "c", .value = try builder.builtin(.import, &.{try builder.string("zxc_c")}), .exported = true } }});
 }

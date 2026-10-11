@@ -6,7 +6,7 @@ const aggregate = @import("../aggregate.zig");
 const intrinsic = @import("../intrinsics.zig");
 const expression = @import("expression.zig");
 
-pub fn lower(self: *Lower, id: ir.ExprId, value: ir.Transform) Lower.Error!?*const node.Expression {
+pub fn lower(self: *Lower, id: ir.ExprId, value: ir.Transform) Lower.Error!?node.ExpressionId {
     if (value.kind != .map or value.initial != null) return null;
 
     const input = self.program.typeOf(self.program.expression(value.target).type_id).list;
@@ -19,10 +19,10 @@ pub fn lower(self: *Lower, id: ir.ExprId, value: ir.Transform) Lower.Error!?*con
 
     if (!expression.supported(self.program, value.body, context, input)) return null;
 
-    return emit(self, value.target, value.body, input, context);
+    return try emit(self, value.target, value.body, input, context);
 }
 
-pub fn emit(self: *Lower, target: ir.ExprId, callback: ir.ExprId, input: ir.TypeId, context: expression.Context) Lower.Error!*const node.Expression {
+pub fn emit(self: *Lower, target: ir.ExprId, callback: ir.ExprId, input: ir.TypeId, context: expression.Context) Lower.Error!node.ExpressionId {
     var body: std.ArrayList(node.Statement) = .empty;
     const source = try aggregate.bind(self, &body, try self.expr(target));
     const element_type = self.types[@backingInt(input)];
@@ -45,7 +45,7 @@ pub fn emit(self: *Lower, target: ir.ExprId, callback: ir.ExprId, input: ir.Type
     try body.append(self.allocator, .{ .for_loop = .{
         .iterable = try self.builder.expression(.{ .range = .{ .start = try self.builder.integer(0), .end = chunks } }),
         .capture = chunk_name,
-        .body = try vector_body.toOwnedSlice(self.allocator),
+        .body = try self.builder.statements(vector_body.items),
     } });
 
     const tail = try aggregate.bind(self, &body, try intrinsic.binary(self, .multiply, chunks, width));
@@ -62,13 +62,13 @@ pub fn emit(self: *Lower, target: ir.ExprId, callback: ir.ExprId, input: ir.Type
         .iterable = try self.builder.expression(.{ .slice = .{ .target = source, .start = tail } }),
         .capture = if (expression.usesElement(self.program, callback, context)) element_name else "_",
         .index_capture = index_name,
-        .body = try self.allocator.dupe(node.Statement, &.{assignment}),
+        .body = try self.builder.statements(&.{assignment}),
     } });
 
     return try aggregate.finish(self, &body, result);
 }
 
-fn chunk(self: *Lower, target: *const node.Expression, offset: *const node.Expression, width: *const node.Expression) Lower.Error!*const node.Expression {
+fn chunk(self: *Lower, target: node.ExpressionId, offset: node.ExpressionId, width: node.ExpressionId) Lower.Error!node.ExpressionId {
     const remaining = try self.builder.expression(.{ .slice = .{ .target = target, .start = offset } });
     const values = try self.builder.expression(.{ .slice = .{ .target = remaining, .start = try self.builder.integer(0), .end = width } });
 

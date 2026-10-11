@@ -1,0 +1,28 @@
+import { ExpressionsPrimitive } from "../model/expressions"
+import { Token } from "../model/token"
+
+export type Input = ExpressionsPrimitive
+
+export type Output = Token
+
+export default function (in: Input): Output {
+    return match in {
+        ExpressionsPrimitive.Anytype => Token.Anytype,
+        ExpressionsPrimitive.Type => Token.Type,
+        ExpressionsPrimitive.Anyerror => Token.Anyerror,
+        ExpressionsPrimitive.Anyopaque => Token.Anyopaque,
+        ExpressionsPrimitive.Void => Token.Void,
+        ExpressionsPrimitive.Bool => Token.Bool,
+        ExpressionsPrimitive.U8 => Token.U8,
+        ExpressionsPrimitive.U16 => Token.U16,
+        ExpressionsPrimitive.U32 => Token.U32,
+        ExpressionsPrimitive.U64 => Token.U64,
+        ExpressionsPrimitive.Usize => Token.Usize,
+        ExpressionsPrimitive.I32 => Token.I32,
+        ExpressionsPrimitive.I33 => Token.I33,
+        ExpressionsPrimitive.I64 => Token.I64,
+        ExpressionsPrimitive.I65 => Token.I65,
+        ExpressionsPrimitive.F32 => Token.F32,
+        _ => Token.F64,
+    }
+}

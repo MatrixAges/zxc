@@ -9,7 +9,7 @@ pub fn render(allocator: std.mem.Allocator, stateful: bool) std.mem.Allocator.Er
 
     defer arena.deinit();
 
-    const builder = Builder{ .allocator = arena.allocator() };
+    const builder = try Builder.init(arena.allocator());
     const memory = builder.allocator;
     const nil = try builder.expression(.null_value);
     const void_type = try builder.expression(.{ .primitive = .void });
@@ -49,7 +49,7 @@ pub fn render(allocator: std.mem.Allocator, stateful: bool) std.mem.Allocator.Er
         try @import("settle.zig").lower(builder),
     });
 
-    return @import("../../../render.zig").render(allocator, declarations.items);
+    return @import("../../../render.zig").render(allocator, builder.nodes, declarations.items);
 }
 
 fn selfParameters(builder: Builder) std.mem.Allocator.Error![]const node.Field {
@@ -75,7 +75,7 @@ fn destroy(builder: Builder, stateful: bool) std.mem.Allocator.Error!node.Declar
         .capture = "request",
         .capture_reference = true,
         .yes = try builder.statements(&.{.{ .expression = try builder.call(try builder.path(&.{ "request", "deinit" }), &.{}) }}),
-        .no = &.{},
+        .no = .{},
     } });
 
     try body.appendSlice(builder.allocator, &.{
@@ -84,7 +84,7 @@ fn destroy(builder: Builder, stateful: bool) std.mem.Allocator.Error!node.Declar
         .{ .expression = try builder.call(try builder.path(&.{ "context", "release" }), &.{}) },
     });
 
-    return .{ .function = .{ .name = "destroy", .exported = true, .parameters = try selfParameters(builder), .return_type = try builder.expression(.{ .primitive = .void }), .body = try body.toOwnedSlice(builder.allocator) } };
+    return .{ .function = .{ .name = "destroy", .exported = true, .parameters = try selfParameters(builder), .return_type = try builder.expression(.{ .primitive = .void }), .body = try builder.statements(body.items) } };
 }
 
 fn execute(builder: Builder, stateful: bool) std.mem.Allocator.Error!node.Declaration {
@@ -116,6 +116,6 @@ fn execute(builder: Builder, stateful: bool) std.mem.Allocator.Error!node.Declar
             .{ .name = "data", .value = try common.dataType(builder) },
         }),
         .return_type = try builder.expression(.{ .primitive = .void }),
-        .body = try body.toOwnedSlice(builder.allocator),
+        .body = try builder.statements(body.items),
     } };
 }

@@ -1,0 +1,46 @@
+import integers from "std:integer"
+
+import { Action, ByteSource } from "../model"
+import { ExpressionsKind } from "../model/expressions"
+import { StatementsKind } from "../model/statements"
+import { Token } from "../model/token"
+
+import type { Step, Frame } from "../model"
+
+export type Input = Step
+
+export type Output = Frame[]
+
+export default function (in: Input): Output {
+    const tree = in.source.statements
+    const kind = tree.tags[integers.widen(in.frame.id)]
+    const id = tree.offsets[integers.widen(in.frame.id)]
+    const row = integers.widen(id)
+    const frame: Frame = { action: Action.Text, token: Token.Empty, bytes: ByteSource.None, id: id, count: 0, index: 0, number: 0 }
+
+    if (kind == StatementsKind.BreakLoop || kind == StatementsKind.ContinueLoop || kind == StatementsKind.UnreachableStmt) {
+        return [{ ...frame, token: match kind { StatementsKind.BreakLoop => Token.Break, StatementsKind.ContinueLoop => Token.Continue, _ => Token.UnreachableStatement, } }]
+    }
+
+    if (kind == StatementsKind.Expression || kind == StatementsKind.Discard) {
+        const value = kind == StatementsKind.Expression ? tree.expression[row] : tree.discard[row]
+        const block = kind == StatementsKind.Expression && in.source.expressions.tags[integers.widen(value)] == ExpressionsKind.Block
+        const prefix: Frame[] = kind == StatementsKind.Discard ? [{ ...frame, token: Token.Discard }] : []
+
+        return prefix.concat([{ ...frame, action: Action.Expression, id: value }, { ...frame, token: block ? Token.Newline : Token.StatementEnd }])[0]
+    }
+
+    if (kind == StatementsKind.Assignment) {
+        return [{ ...frame, action: Action.Expression, id: tree.assignment_target[row] }, { ...frame, token: Token.Assignment }, { ...frame, action: Action.Expression, id: tree.assignment_value[row] }, { ...frame, token: Token.StatementEnd }]
+    }
+
+    if (kind == StatementsKind.BreakValue) {
+        return [{ ...frame, token: Token.BreakLabel }, { ...frame, action: Action.Identifier, bytes: ByteSource.BreakLabel }, { ...frame, token: Token.Space }, { ...frame, action: Action.Expression, id: tree.break_value_value[row] }, { ...frame, token: Token.StatementEnd }]
+    }
+
+    const value = tree.result[row]
+    const prefix: Frame[] = [{ ...frame, token: Token.Return }]
+    const returned = value == null ? prefix : prefix.concat([{ ...frame, token: Token.Space }, { ...frame, action: Action.Expression, id: value }])[0]
+
+    return returned.push({ ...frame, token: Token.StatementEnd })[0]
+}

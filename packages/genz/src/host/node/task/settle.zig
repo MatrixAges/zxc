@@ -60,6 +60,6 @@ pub fn lower(builder: Builder) std.mem.Allocator.Error!node.Declaration {
             .{ .name = "env", .value = try builder.path(&.{ "api", "Env" }) },
         }),
         .return_type = try builder.expression(.{ .error_union = .{ .inferred = true, .payload = try builder.expression(.{ .primitive = .void }) } }),
-        .body = try body.toOwnedSlice(builder.allocator),
+        .body = try builder.statements(body.items),
     } };
 }

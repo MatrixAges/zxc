@@ -4,7 +4,7 @@ const node = @import("../../node.zig");
 const Context = @import("root.zig");
 const Lower = @import("../lower.zig");
 
-pub fn lower(self: *Context, scope: ir.ScopeRow) Lower.Error!*const node.Expression {
+pub fn lower(self: *Context, scope: ir.ScopeRow) Lower.Error!node.ExpressionId {
     const lowering = self.lowering;
     var symbols: std.ArrayList(ir.SymbolId) = .empty;
 

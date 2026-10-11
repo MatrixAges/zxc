@@ -9,13 +9,13 @@ pub fn lower(self: *Lower, output: *std.ArrayList(node.Declaration)) Lower.Error
     for (output.items) |declaration| {
         if (declaration != .constant) continue;
 
-        const value = declaration.constant.value;
+        const value = self.builder.nodes.get(declaration.constant.value);
 
-        if (value.* != .builtin or value.builtin.name != .import or value.builtin.arguments.len != 1) continue;
+        if (value != .builtin or value.builtin.name != .import or value.builtin.arguments.len != 1) continue;
 
-        const argument = value.builtin.arguments[0];
+        const argument = self.builder.nodes.get(value.builtin.arguments[0]);
 
-        if (argument.* == .string) try imported.put(self.allocator, argument.string, declaration.constant.name);
+        if (argument == .string) try imported.put(self.allocator, argument.string, declaration.constant.name);
     }
 
     for (0..self.program.native_modules.count(), names, 0..) |module_row, *name, index| {

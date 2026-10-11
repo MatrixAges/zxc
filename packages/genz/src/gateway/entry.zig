@@ -11,7 +11,7 @@ pub fn render(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.
 
     defer arena.deinit();
 
-    const builder = Builder{ .allocator = arena.allocator() };
+    const builder = try Builder.init(arena.allocator());
     var declarations: std.ArrayList(node.Declaration) = .empty;
 
     try declarations.appendSlice(builder.allocator, &.{
@@ -42,7 +42,7 @@ pub fn render(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.
         try @import("head.zig").lower(builder),
     });
 
-    return @import("../render.zig").render(allocator, declarations.items);
+    return @import("../render.zig").render(allocator, builder.nodes, declarations.items);
 }
 
 fn dispatch(builder: Builder, routes: []const model.Route) std.mem.Allocator.Error!node.Declaration {
@@ -106,12 +106,12 @@ fn dispatch(builder: Builder, routes: []const model.Route) std.mem.Allocator.Err
         .name = "dispatch",
         .parameters = try invoke.parameters(builder),
         .return_type = try builder.expression(.{ .error_union = .{ .inferred = true, .payload = try builder.expression(.{ .primitive = .void }) } }),
-        .body = try body.toOwnedSlice(allocator),
+        .body = try builder.statements(body.items),
         .exported = true,
     } };
 }
 
-fn callService(builder: Builder, index: usize) std.mem.Allocator.Error!*const node.Expression {
+fn callService(builder: Builder, index: usize) std.mem.Allocator.Error!node.ExpressionId {
     return builder.call(try builder.identifier(try std.fmt.allocPrint(builder.allocator, "invoke_{d}", .{index})), &.{
         try builder.identifier("scope"),
         try builder.identifier("io"),

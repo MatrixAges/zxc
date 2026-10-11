@@ -72,7 +72,7 @@ pub fn supported(program: ir.Program, id: ir.ExprId, context: Context, type_id: 
     };
 }
 
-pub fn lower(self: *Lower, id: ir.ExprId, context: Context, vector_type: ?*const node.Expression, element: *const node.Expression) Lower.Error!*const node.Expression {
+pub fn lower(self: *Lower, id: ir.ExprId, context: Context, vector_type: ?node.ExpressionId, element: node.ExpressionId) Lower.Error!node.ExpressionId {
     const resolved = context.resolve(self.program, id);
 
     if (context.isElement(self.program, resolved)) return element;

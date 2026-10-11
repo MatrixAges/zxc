@@ -37,16 +37,16 @@ pub fn statement(self: *Lower, statements: ir.Block, index: usize) Lower.Error!?
     return try invoke(self, try self.builder.identifier("context"), try array(self, slots.items));
 }
 
-pub fn invoke(self: *Lower, context: *const node.Expression, slots: *const node.Expression) Lower.Error!node.Statement {
+pub fn invoke(self: *Lower, context: node.ExpressionId, slots: node.ExpressionId) Lower.Error!node.Statement {
     const meta = try self.field(try self.builder.identifier("std"), "meta");
     const supported = try self.call(try self.field(meta, "hasMethod"), &.{ try self.builtin(.TypeOf, &.{context}), try self.builder.string("begin") }, false);
     const call = try self.call(try self.field(context, "begin"), &.{slots}, true);
 
-    return .{ .branch = .{ .condition = try self.builder.expression(.{ .comptime_value = supported }), .yes = try self.allocator.dupe(node.Statement, &.{.{ .expression = call }}), .no = &.{} } };
+    return .{ .branch = .{ .condition = try self.builder.expression(.{ .comptime_value = supported }), .yes = try self.builder.statements(&.{.{ .expression = call }}), .no = .{} } };
 }
 
-pub fn array(self: *Lower, slots: []const u32) Lower.Error!*const node.Expression {
-    const values = try self.allocator.alloc(*const node.Expression, slots.len);
+pub fn array(self: *Lower, slots: []const u32) Lower.Error!node.ExpressionId {
+    const values = try self.allocator.alloc(node.ExpressionId, slots.len);
 
     for (slots, values) |slot, *item| item.* = try self.builder.expression(.{ .integer = slot });
 

@@ -40,7 +40,7 @@ pub fn lower(builder: Builder, service: Service, index: usize) std.mem.Allocator
 
     try statements.append(allocator, .{ .constant = .{ .name = "input", .type_expr = input_type, .value = try builder.expression(.{ .conditional = .{ .condition = try builder.binary(.equal, input_type, void_type), .yes = empty_input, .no = parsed_input } }) } });
 
-    var arguments: std.ArrayList(*const node.Expression) = .empty;
+    var arguments: std.ArrayList(node.ExpressionId) = .empty;
 
     try arguments.appendSlice(allocator, &.{ try builder.expression(.{ .address_of = arena }), input });
 
@@ -86,7 +86,7 @@ pub fn lower(builder: Builder, service: Service, index: usize) std.mem.Allocator
         .name = try std.fmt.allocPrint(allocator, "invoke_{d}", .{index}),
         .parameters = try parameters(builder),
         .return_type = try builder.expression(.{ .error_union = .{ .inferred = true, .payload = void_type } }),
-        .body = try statements.toOwnedSlice(allocator),
+        .body = try builder.statements(statements.items),
     } };
 }
 
@@ -99,7 +99,7 @@ pub fn parameters(builder: Builder) std.mem.Allocator.Error![]const node.Field {
     });
 }
 
-pub fn response(builder: Builder, status: []const u8, body: *const node.Expression, headers: []const *const node.Expression) std.mem.Allocator.Error!*const node.Expression {
+pub fn response(builder: Builder, status: []const u8, body: node.ExpressionId, headers: []const node.ExpressionId) std.mem.Allocator.Error!node.ExpressionId {
     return builder.call(try builder.identifier("respond"), &.{
         try builder.identifier("request"),
         try builder.expression(.{ .enum_literal = status }),

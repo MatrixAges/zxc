@@ -5,7 +5,7 @@ const Context = @import("root.zig");
 const Lower = @import("../lower.zig");
 const aggregate = @import("../aggregate.zig");
 
-pub fn lower(self: *Context, id: ir.ExprId, argument: ir.ExprId) Lower.Error!*const node.Expression {
+pub fn lower(self: *Context, id: ir.ExprId, argument: ir.ExprId) Lower.Error!node.ExpressionId {
     const lowering = self.lowering;
     var body: std.ArrayList(node.Statement) = .empty;
     const input = try aggregate.bind(lowering, &body, try lowering.expr(argument));

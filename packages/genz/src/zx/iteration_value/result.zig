@@ -9,7 +9,7 @@ const Self = @This();
 
 allocator: std.mem.Allocator,
 program: ir.Program,
-cache: ?*const std.AutoHashMapUnmanaged(ir.ExprId, *const node.Expression) = null,
+cache: ?*const std.AutoHashMapUnmanaged(ir.ExprId, node.ExpressionId) = null,
 selected: consumer.Consumer,
 projections: std.ArrayList(ir.ExprId) = .empty,
 paths: std.ArrayList([]const usize) = .empty,
@@ -106,7 +106,7 @@ fn collectPath(self: *Self, id: ir.ExprId, output: *std.ArrayList(usize)) Lower.
     };
 }
 
-pub fn lower(lowering: *Lower, selected: consumer.Consumer, buffers: *const Buffers, body: *std.ArrayList(node.Statement), state: *const node.Expression, type_id: ir.TypeId) Lower.Error!*const node.Expression {
+pub fn lower(lowering: *Lower, selected: consumer.Consumer, buffers: *const Buffers, body: *std.ArrayList(node.Statement), state: node.ExpressionId, type_id: ir.TypeId) Lower.Error!node.ExpressionId {
     if (primitive(lowering.program, lowering.program.expression(selected.result).type_id)) return consumer.read(lowering, selected, selected.result, state);
 
     var self = Self{ .allocator = lowering.allocator, .program = lowering.program, .cache = &lowering.cache, .selected = selected };

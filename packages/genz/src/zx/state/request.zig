@@ -42,13 +42,13 @@ pub fn lower(builder: Builder, declarations: *std.ArrayList(node.Declaration), o
         .name = "request",
         .parameters = try allocator.dupe(node.Field, &.{.{ .name = "self", .value = self_pointer }}),
         .return_type = try builder.identifier("Request"),
-        .body = try allocator.dupe(node.Statement, &.{.{ .result = try builder.expression(.{ .object = .{ .fields = try initial.toOwnedSlice(allocator) } }) }}),
+        .body = try builder.statements(&.{.{ .result = try builder.expression(.{ .object = .{ .fields = try initial.toOwnedSlice(allocator) } }) }}),
         .exported = true,
     } });
 
     if (execute) {
         var parameters: std.ArrayList(node.Field) = .empty;
-        var arguments: std.ArrayList(*const node.Expression) = .empty;
+        var arguments: std.ArrayList(node.ExpressionId) = .empty;
 
         try parameters.appendSlice(allocator, request_parameters);
         try parameters.append(allocator, .{ .name = "input", .value = try builder.path(&.{ "application", "Input" }) });
@@ -68,7 +68,7 @@ pub fn lower(builder: Builder, declarations: *std.ArrayList(node.Declaration), o
             .name = "execute",
             .parameters = try parameters.toOwnedSlice(allocator),
             .return_type = try builder.expression(.{ .error_union = .{ .inferred = true, .payload = try builder.path(&.{ "application", "Output" }) } }),
-            .body = try allocator.dupe(node.Statement, &.{.{ .result = try builder.call(try builder.path(&.{ "application", "execute" }), arguments.items) }}),
+            .body = try builder.statements(&.{.{ .result = try builder.call(try builder.path(&.{ "application", "execute" }), arguments.items) }}),
             .exported = true,
         } });
     }
@@ -78,15 +78,15 @@ pub fn lower(builder: Builder, declarations: *std.ArrayList(node.Declaration), o
     const cleanup = if (writable) node.Statement{ .branch = .{
         .condition = try builder.field(self, "retained"),
         .capture = "region",
-        .yes = try allocator.dupe(node.Statement, &.{.{ .assignment = .{ .target = try builder.path(&.{ "region", "arena" }), .value = try builder.field(self, "arena") } }}),
-        .no = try allocator.dupe(node.Statement, &.{release}),
+        .yes = try builder.statements(&.{.{ .assignment = .{ .target = try builder.path(&.{ "region", "arena" }), .value = try builder.field(self, "arena") } }}),
+        .no = try builder.statements(&.{release}),
     } } else release;
 
     try methods.append(allocator, .{ .function = .{
         .name = "deinit",
         .parameters = request_parameters,
         .return_type = try builder.expression(.{ .primitive = .void }),
-        .body = try allocator.dupe(node.Statement, &.{ cleanup, .{ .assignment = .{ .target = try builder.expression(.{ .dereference = self }), .value = try builder.expression(.undefined_value) } } }),
+        .body = try builder.statements(&.{ cleanup, .{ .assignment = .{ .target = try builder.expression(.{ .dereference = self }), .value = try builder.expression(.undefined_value) } } }),
         .exported = true,
     } });
 

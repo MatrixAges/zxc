@@ -7,7 +7,7 @@ pub fn render(allocator: std.mem.Allocator, stateful: bool, output: @import("../
 
     defer arena.deinit();
 
-    const builder = Builder{ .allocator = arena.allocator() };
+    const builder = try Builder.init(arena.allocator());
     var declarations: std.ArrayList(node.Declaration) = .empty;
     var body: std.ArrayList(node.Statement) = .empty;
     const memory = builder.allocator;
@@ -46,15 +46,15 @@ pub fn render(allocator: std.mem.Allocator, stateful: bool, output: @import("../
         .name = "main",
         .parameters = try memory.dupe(node.Field, &.{.{ .name = "init", .value = try builder.path(&.{ "std", "process", "Init" }) }}),
         .return_type = try builder.expression(.{ .error_union = .{ .inferred = true, .payload = try builder.expression(.{ .primitive = .void }) } }),
-        .body = try body.toOwnedSlice(memory),
+        .body = try builder.statements(body.items),
         .exported = true,
     } });
 
-    return @import("../../render.zig").render(allocator, declarations.items);
+    return @import("../../render.zig").render(allocator, builder.nodes, declarations.items);
 }
 
-fn execute(builder: Builder, stateful: bool, io: bool, process: bool) std.mem.Allocator.Error!*const node.Expression {
-    var arguments: std.ArrayList(*const node.Expression) = .empty;
+fn execute(builder: Builder, stateful: bool, io: bool, process: bool) std.mem.Allocator.Error!node.ExpressionId {
+    var arguments: std.ArrayList(node.ExpressionId) = .empty;
 
     if (!stateful) try arguments.append(builder.allocator, try builder.path(&.{ "init", "arena" }));
     try arguments.append(builder.allocator, try builder.identifier("input"));

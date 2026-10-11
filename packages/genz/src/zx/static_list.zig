@@ -2,7 +2,7 @@ const ir = @import("zx").ir;
 const node = @import("../node.zig");
 const Lower = @import("lower.zig");
 
-pub fn lower(self: *Lower, value: ir.ExpressionRow, items: []const ir.ExprId) Lower.Error!?*const node.Expression {
+pub fn lower(self: *Lower, value: ir.ExpressionRow, items: []const ir.ExprId) Lower.Error!?node.ExpressionId {
     if (!@import("value_call/analysis.zig").scalarLocals(self.program, self.pure_functions)) return null;
 
     const element = self.program.typeOf(value.type_id).list;
@@ -17,12 +17,12 @@ pub fn lower(self: *Lower, value: ir.ExpressionRow, items: []const ir.ExprId) Lo
         else => return null,
     };
 
-    const expressions = try self.allocator.alloc(*const node.Expression, items.len);
+    const expressions = try self.allocator.alloc(node.ExpressionId, items.len);
 
     for (items, expressions) |item, *expression| expression.* = try self.expr(item);
 
     const array = try self.builder.expression(.{ .array = .{ .element_type = self.types[@backingInt(element)], .values = expressions } });
     const address = try self.builder.expression(.{ .comptime_value = try self.builder.expression(.{ .address_of = array }) });
 
-    return self.cast(self.types[@backingInt(value.type_id)], address);
+    return try self.cast(self.types[@backingInt(value.type_id)], address);
 }

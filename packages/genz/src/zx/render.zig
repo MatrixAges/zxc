@@ -21,7 +21,7 @@ pub fn emit(allocator: std.mem.Allocator, program: zx.ir.Program) std.mem.Alloca
     const temporary = arena.allocator();
     var lower = try initialize(temporary, allocator, program);
 
-    return render(allocator, try lower.declarations());
+    return render(allocator, lower.builder.nodes, try lower.declarations());
 }
 
 pub fn bundle(allocator: std.mem.Allocator, program: zx.ir.Program) std.mem.Allocator.Error!Bundle {
@@ -30,13 +30,13 @@ pub fn bundle(allocator: std.mem.Allocator, program: zx.ir.Program) std.mem.Allo
     defer arena.deinit();
 
     var lower = try initialize(arena.allocator(), allocator, program);
-    const types = try render(allocator, try @import("type_bundle.zig").declarations(&lower));
+    const types = try render(allocator, lower.builder.nodes, try @import("type_bundle.zig").declarations(&lower));
 
     errdefer allocator.free(types);
 
     lower.shared_types = true;
 
-    return .{ .source = try render(allocator, try lower.declarations()), .types = types };
+    return .{ .source = try render(allocator, lower.builder.nodes, try lower.declarations()), .types = types };
 }
 
 pub const Bundle = struct {
@@ -62,9 +62,9 @@ pub fn initializeAnalyzed(temporary: std.mem.Allocator, workspace: std.mem.Alloc
         .allocator = temporary,
         .workspace = workspace,
         .program = program,
-        .builder = .{ .allocator = temporary },
-        .types = try temporary.alloc(*const node.Expression, program.types.count()),
-        .layouts = try temporary.alloc(*const node.Expression, program.types.count()),
+        .builder = try @import("../builder.zig").init(temporary),
+        .types = try temporary.alloc(node.ExpressionId, program.types.count()),
+        .layouts = try temporary.alloc(node.ExpressionId, program.types.count()),
         .state_plan = facts.value.state,
         .names = try temporary.alloc([]const u8, program.symbols.count()),
         .cache_reads = try temporary.alloc(usize, program.expressions.count()),

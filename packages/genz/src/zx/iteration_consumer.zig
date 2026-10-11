@@ -5,7 +5,7 @@ const Lower = @import("lower.zig");
 
 pub const Consumer = struct { symbol: ir.SymbolId, result: ir.ExprId, layout: bool = false };
 
-pub fn lower(self: *Lower, symbol: ir.SymbolId, value: ir.ExprId, result: ir.ExprId, layout: bool) Lower.Error!?*const node.Expression {
+pub fn lower(self: *Lower, symbol: ir.SymbolId, value: ir.ExprId, result: ir.ExprId, layout: bool) Lower.Error!?node.ExpressionId {
     if (self.cache.contains(value)) return null;
     if (self.program.expression(value).value != .iteration) return null;
 
@@ -90,7 +90,7 @@ pub fn independent(program: ir.Program, id: ir.ExprId, symbol: ir.SymbolId) bool
     };
 }
 
-pub fn read(self: *Lower, consumer: Consumer, id: ir.ExprId, state: *const node.Expression) Lower.Error!*const node.Expression {
+pub fn read(self: *Lower, consumer: Consumer, id: ir.ExprId, state: node.ExpressionId) Lower.Error!node.ExpressionId {
     const expression = self.program.expression(id);
 
     return switch (expression.value) {

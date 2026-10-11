@@ -3,16 +3,16 @@ const ir = @import("zx").ir;
 const node = @import("../node.zig");
 const Lower = @import("lower.zig");
 
-pub fn object(self: *Lower, id: ir.ExprId, value: @FieldType(@FieldType(ir.ExpressionRow, "value"), "object")) Lower.Error!*const node.Expression {
+pub fn object(self: *Lower, id: ir.ExprId, value: @FieldType(@FieldType(ir.ExpressionRow, "value"), "object")) Lower.Error!node.ExpressionId {
     return objectMode(self, id, value, false);
 }
 
-pub fn objectValue(self: *Lower, id: ir.ExprId) Lower.Error!*const node.Expression {
+pub fn objectValue(self: *Lower, id: ir.ExprId) Lower.Error!node.ExpressionId {
     return objectMode(self, id, self.program.expression(id).value.object, true);
 }
 
-fn objectMode(self: *Lower, id: ir.ExprId, value: @FieldType(@FieldType(ir.ExpressionRow, "value"), "object"), layout: bool) Lower.Error!*const node.Expression {
-    const saved = try self.allocator.alloc(?*const node.Expression, value.evaluation.len);
+fn objectMode(self: *Lower, id: ir.ExprId, value: @FieldType(@FieldType(ir.ExpressionRow, "value"), "object"), layout: bool) Lower.Error!node.ExpressionId {
+    const saved = try self.allocator.alloc(?node.ExpressionId, value.evaluation.len);
 
     for (value.evaluation, 0..) |item, index| saved[index] = self.cache.get(item);
 
@@ -57,19 +57,19 @@ fn objectMode(self: *Lower, id: ir.ExprId, value: @FieldType(@FieldType(ir.Expre
     return finish(self, &body, if (layout) result else try self.construct(type_id, result));
 }
 
-pub fn sequence(self: *Lower, value: ir.ExpressionRow, items: []const ir.ExprId) Lower.Error!*const node.Expression {
+pub fn sequence(self: *Lower, value: ir.ExpressionRow, items: []const ir.ExprId) Lower.Error!node.ExpressionId {
     return sequenceMode(self, value, items, false);
 }
 
-pub fn tupleValue(self: *Lower, value: ir.ExpressionRow, items: []const ir.ExprId) Lower.Error!*const node.Expression {
+pub fn tupleValue(self: *Lower, value: ir.ExpressionRow, items: []const ir.ExprId) Lower.Error!node.ExpressionId {
     return sequenceMode(self, value, items, true);
 }
 
-fn sequenceMode(self: *Lower, value: ir.ExpressionRow, items: []const ir.ExprId, layout: bool) Lower.Error!*const node.Expression {
+fn sequenceMode(self: *Lower, value: ir.ExpressionRow, items: []const ir.ExprId, layout: bool) Lower.Error!node.ExpressionId {
     if (value.value == .list) if (try @import("static_list.zig").lower(self, value, items)) |literal| return literal;
 
     var body: std.ArrayList(node.Statement) = .empty;
-    const expressions = try self.allocator.alloc(*const node.Expression, items.len);
+    const expressions = try self.allocator.alloc(node.ExpressionId, items.len);
 
     for (items, 0..) |item, index| expressions[index] = try bind(self, &body, try self.expr(item));
 
@@ -92,7 +92,7 @@ fn sequenceMode(self: *Lower, value: ir.ExpressionRow, items: []const ir.ExprId,
     return finish(self, &body, result);
 }
 
-pub fn bind(self: *Lower, body: *std.ArrayList(node.Statement), expression: *const node.Expression) Lower.Error!*const node.Expression {
+pub fn bind(self: *Lower, body: *std.ArrayList(node.Statement), expression: node.ExpressionId) Lower.Error!node.ExpressionId {
     const name = try self.fresh("operand");
 
     try body.append(self.allocator, .{ .constant = .{ .name = name, .value = expression } });
@@ -100,10 +100,10 @@ pub fn bind(self: *Lower, body: *std.ArrayList(node.Statement), expression: *con
     return self.builder.identifier(name);
 }
 
-pub fn finish(self: *Lower, body: *std.ArrayList(node.Statement), result: *const node.Expression) Lower.Error!*const node.Expression {
+pub fn finish(self: *Lower, body: *std.ArrayList(node.Statement), result: node.ExpressionId) Lower.Error!node.ExpressionId {
     const label = try self.fresh("block");
 
     try body.append(self.allocator, .{ .break_value = .{ .label = label, .value = result } });
 
-    return self.builder.expression(.{ .block = .{ .label = label, .statements = try body.toOwnedSlice(self.allocator) } });
+    return self.builder.expression(.{ .block = .{ .label = label, .statements = try self.builder.statements(body.items) } });
 }

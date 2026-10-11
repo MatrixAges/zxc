@@ -11,7 +11,7 @@ pub fn render(allocator: std.mem.Allocator, values: ir.TypeTable, input: ir.Type
 
     defer arena.deinit();
 
-    const builder = Builder{ .allocator = arena.allocator() };
+    const builder = try Builder.init(arena.allocator());
     const types = try Types.init(builder, values);
     var declarations: std.ArrayList(node.Declaration) = .empty;
 
@@ -52,5 +52,5 @@ pub fn render(allocator: std.mem.Allocator, values: ir.TypeTable, input: ir.Type
 
     try declarations.appendSlice(builder.allocator, &.{ read, write });
 
-    return @import("../../../render.zig").render(allocator, declarations.items);
+    return @import("../../../render.zig").render(allocator, builder.nodes, declarations.items);
 }

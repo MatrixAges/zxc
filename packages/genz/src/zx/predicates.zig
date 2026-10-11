@@ -5,7 +5,7 @@ const Lower = @import("lower.zig");
 const aggregate = @import("aggregate.zig");
 const intrinsic = @import("intrinsics.zig");
 
-pub fn lower(self: *Lower, value: ir.Transform) Lower.Error!*const node.Expression {
+pub fn lower(self: *Lower, value: ir.Transform) Lower.Error!node.ExpressionId {
     var body: std.ArrayList(node.Statement) = .empty;
     const source = try aggregate.bind(self, &body, try self.expr(value.target));
     const label = try self.fresh("predicate");
@@ -16,8 +16,8 @@ pub fn lower(self: *Lower, value: ir.Transform) Lower.Error!*const node.Expressi
 
     const decision = node.Statement{ .branch = .{
         .condition = try intrinsic.binary(self, .not_equal, callback, try self.builder.expression(.{ .boolean = identity })),
-        .yes = try self.allocator.dupe(node.Statement, &.{stop}),
-        .no = &.{},
+        .yes = try self.builder.statements(&.{stop}),
+        .no = .{},
     } };
 
     try @import("transform/context.zig").bind(self, &body, value);
@@ -25,10 +25,10 @@ pub fn lower(self: *Lower, value: ir.Transform) Lower.Error!*const node.Expressi
     try body.append(self.allocator, .{ .for_loop = .{
         .iterable = source,
         .capture = if (self.used[@backingInt(element)]) self.names[@backingInt(element)] else "_",
-        .body = try self.allocator.dupe(node.Statement, &.{decision}),
+        .body = try self.builder.statements(&.{decision}),
     } });
 
     try body.append(self.allocator, .{ .break_value = .{ .label = label, .value = try self.builder.expression(.{ .boolean = identity }) } });
 
-    return self.builder.expression(.{ .block = .{ .label = label, .statements = try body.toOwnedSlice(self.allocator) } });
+    return self.builder.expression(.{ .block = .{ .label = label, .statements = try self.builder.statements(body.items) } });
 }

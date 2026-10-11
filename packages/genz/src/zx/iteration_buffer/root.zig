@@ -18,8 +18,8 @@ readers: []const bool = &.{},
 columns: ?Capacity.Group = null,
 mutable_state: bool,
 iteration: ir.Iteration,
-initial: *const node.Expression,
-pub fn init(lowering: *Lower, iteration: ir.Iteration, initial: *const node.Expression, body: *std.ArrayList(node.Statement), enabled: bool, mutable_state: bool) Lower.Error!Self {
+initial: node.ExpressionId,
+pub fn init(lowering: *Lower, iteration: ir.Iteration, initial: node.ExpressionId, body: *std.ArrayList(node.Statement), enabled: bool, mutable_state: bool) Lower.Error!Self {
     var self = Self{ .lowering = lowering, .mutable_state = mutable_state, .iteration = iteration, .initial = initial };
 
     errdefer self.restore();
@@ -31,7 +31,12 @@ pub fn init(lowering: *Lower, iteration: ir.Iteration, initial: *const node.Expr
     var path: std.ArrayList(usize) = .empty;
 
     try self.collect(iteration, body, lowering.program.expression(iteration.initial).type_id, &path);
-    if (self.columns) |*columns| try columns.seal(lowering, body, .always);
+
+    if (self.columns) |*columns| {
+        columns.position = body.items.len;
+
+        try columns.seal(lowering, body, .always);
+    }
 
     return self;
 }
@@ -165,7 +170,7 @@ fn installCapacity(self: *Self, body: *std.ArrayList(node.Statement), child: ir.
     }
 }
 
-pub fn finish(self: Self, body: *std.ArrayList(node.Statement), state: *const node.Expression, type_id: ir.TypeId, deep: bool) Lower.Error!void {
+pub fn finish(self: Self, body: *std.ArrayList(node.Statement), state: node.ExpressionId, type_id: ir.TypeId, deep: bool) Lower.Error!void {
     const lowering = self.lowering;
     const batch = @import("../object_reduce/append/writeback/batch.zig");
     var changes: std.ArrayList(batch.Change) = .empty;
@@ -189,8 +194,8 @@ pub fn finish(self: Self, body: *std.ArrayList(node.Statement), state: *const no
 
             try body.append(lowering.allocator, .{ .branch = .{
                 .condition = field.storage.started,
-                .yes = try writeback.assignLayout(lowering, type_id, state, path, owned),
-                .no = &.{},
+                .yes = try lowering.builder.statements(try writeback.assignLayout(lowering, type_id, state, path, owned)),
+                .no = .{},
             } });
 
             continue;
@@ -220,8 +225,8 @@ pub fn finish(self: Self, body: *std.ArrayList(node.Statement), state: *const no
 
         if (invalidation.items.len != 0) try body.append(lowering.allocator, .{ .branch = .{
             .condition = field.storage.started,
-            .yes = try invalidation.toOwnedSlice(lowering.allocator),
-            .no = &.{},
+            .yes = try lowering.builder.statements(invalidation.items),
+            .no = .{},
         } });
     }
 

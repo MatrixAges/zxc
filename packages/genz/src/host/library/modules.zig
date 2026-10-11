@@ -3,7 +3,7 @@ const node = @import("../../node.zig");
 const Builder = @import("../../builder.zig");
 const Native = @import("root.zig").Native;
 
-pub fn create(builder: Builder, path: []const u8, public_name: ?[]const u8, link_libc: ?bool) std.mem.Allocator.Error!*const node.Expression {
+pub fn create(builder: Builder, path: []const u8, public_name: ?[]const u8, link_libc: ?bool) std.mem.Allocator.Error!node.ExpressionId {
     var fields: std.ArrayList(node.Field) = .empty;
 
     try fields.appendSlice(builder.allocator, &.{
@@ -21,7 +21,7 @@ pub fn create(builder: Builder, path: []const u8, public_name: ?[]const u8, link
     return builder.call(try builder.path(&.{ "b", "createModule" }), &.{options});
 }
 
-pub fn native(builder: Builder, body: *std.ArrayList(node.Statement), value: Native, index: usize, module: *const node.Expression, abi: *const node.Expression) std.mem.Allocator.Error!void {
+pub fn native(builder: Builder, body: *std.ArrayList(node.Statement), value: Native, index: usize, module: node.ExpressionId, abi: node.ExpressionId) std.mem.Allocator.Error!void {
     const allocator = builder.allocator;
 
     if (value.header != null and value.path == null) {
@@ -52,15 +52,15 @@ pub fn native(builder: Builder, body: *std.ArrayList(node.Statement), value: Nat
     try includes(builder, body, module, value.include_paths);
 }
 
-pub fn addImport(builder: Builder, module: *const node.Expression, name: []const u8, target: *const node.Expression) std.mem.Allocator.Error!node.Statement {
+pub fn addImport(builder: Builder, module: node.ExpressionId, name: []const u8, target: node.ExpressionId) std.mem.Allocator.Error!node.Statement {
     return .{ .expression = try builder.call(try builder.field(module, "addImport"), &.{ try builder.string(name), target }) };
 }
 
-fn buildPath(builder: Builder, path: []const u8) std.mem.Allocator.Error!*const node.Expression {
+fn buildPath(builder: Builder, path: []const u8) std.mem.Allocator.Error!node.ExpressionId {
     return builder.call(try builder.path(&.{ "b", "path" }), &.{try builder.string(path)});
 }
 
-fn includes(builder: Builder, body: *std.ArrayList(node.Statement), module: *const node.Expression, paths: []const []const u8) std.mem.Allocator.Error!void {
+fn includes(builder: Builder, body: *std.ArrayList(node.Statement), module: node.ExpressionId, paths: []const []const u8) std.mem.Allocator.Error!void {
     for (paths) |path| {
         const value = if (std.fs.path.isAbsolute(path)) try builder.object(&.{.{ .name = "cwd_relative", .value = try builder.string(path) }}) else try buildPath(builder, path);
 

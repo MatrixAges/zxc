@@ -4,15 +4,15 @@ const node = @import("../node.zig");
 const Lower = @import("lower.zig");
 const aggregate = @import("aggregate.zig");
 
-pub fn lower(self: *Lower, id: ir.ExprId, iteration: ir.Iteration) Lower.Error!*const node.Expression {
+pub fn lower(self: *Lower, id: ir.ExprId, iteration: ir.Iteration) Lower.Error!node.ExpressionId {
     return (try lowerMode(self, id, iteration, .reference, null)).?;
 }
 
-pub fn lowerValue(self: *Lower, id: ir.ExprId, iteration: ir.Iteration) Lower.Error!*const node.Expression {
+pub fn lowerValue(self: *Lower, id: ir.ExprId, iteration: ir.Iteration) Lower.Error!node.ExpressionId {
     return (try lowerMode(self, id, iteration, .value, null)).?;
 }
 
-pub fn discard(self: *Lower, id: ir.ExprId) Lower.Error!*const node.Expression {
+pub fn discard(self: *Lower, id: ir.ExprId) Lower.Error!node.ExpressionId {
     const value = self.program.expression(id).value;
 
     if (value != .iteration) return self.expr(id);
@@ -20,13 +20,13 @@ pub fn discard(self: *Lower, id: ir.ExprId) Lower.Error!*const node.Expression {
     return (try lowerMode(self, id, value.iteration, .discard, null)).?;
 }
 
-pub fn consume(self: *Lower, id: ir.ExprId, consumer: @import("iteration_consumer.zig").Consumer) Lower.Error!?*const node.Expression {
+pub fn consume(self: *Lower, id: ir.ExprId, consumer: @import("iteration_consumer.zig").Consumer) Lower.Error!?node.ExpressionId {
     return lowerMode(self, id, self.program.expression(id).value.iteration, .consume, consumer);
 }
 
 const Mode = enum { reference, value, discard, consume };
 
-fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, consumer: ?@import("iteration_consumer.zig").Consumer) Lower.Error!?*const node.Expression {
+fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, consumer: ?@import("iteration_consumer.zig").Consumer) Lower.Error!?node.ExpressionId {
     const projected_output = if (consumer) |selected| try @import("iteration_value/result.zig").candidate(self.allocator, self.program, selected) else false;
 
     if (mode == .consume or mode == .discard) {
@@ -49,7 +49,7 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
     const layout = !deep and (selected_state or selected_call != null or ((local_calls or try layout_analysis.shallow(self.allocator, self.program, iteration)) and layout_analysis.aggregate(self.program, type_id)));
     const by_value = mode != .reference and layout;
 
-    if (mode == .value and !layout) return self.builder.expression(.{ .dereference = try lower(self, id, iteration) });
+    if (mode == .value and !layout) return try self.builder.expression(.{ .dereference = try lower(self, id, iteration) });
     if (mode == .consume and ((!layout and !deep) or selected_call != null)) return null;
     if (consumer) |selected| if (!deep and !@import("iteration_consumer.zig").projection(self.program, selected.result, selected.symbol)) return null;
 
@@ -150,21 +150,21 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
     if (iteration.postcondition) {
         try loop.append(self.allocator, .{ .branch = .{
             .condition = try self.builder.expression(.{ .unary = .{ .operator = .not, .operand = condition } }),
-            .yes = try self.allocator.dupe(node.Statement, &.{.break_loop}),
-            .no = &.{},
+            .yes = try self.builder.statements(&.{.break_loop}),
+            .no = .{},
         } });
     }
 
     try body.append(self.allocator, .{ .while_loop = .{
         .condition = if (iteration.postcondition) try self.builder.expression(.{ .boolean = true }) else condition,
-        .body = try loop.toOwnedSlice(self.allocator),
+        .body = try self.builder.statements(loop.items),
     } });
 
     if (consumer) |selected| {
         if (deep) {
             const result = try @import("iteration_value/result.zig").lower(self, selected, &buffers, &body, state, type_id);
 
-            return aggregate.finish(self, &body, result);
+            return try aggregate.finish(self, &body, result);
         }
 
         if (self.program.typeOf(self.program.expression(selected.result).type_id) == .list) {
@@ -174,12 +174,12 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
 
         const result = try @import("iteration_consumer.zig").read(self, selected, selected.result, state);
 
-        return aggregate.finish(self, &body, result);
+        return try aggregate.finish(self, &body, result);
     }
 
     try buffers.finish(&body, state, type_id, deep);
     try calls.finish(&body, state, type_id);
-    if (mode == .discard) return aggregate.finish(self, &body, try self.builder.expression(.unit));
+    if (mode == .discard) return try aggregate.finish(self, &body, try self.builder.expression(.unit));
 
     var converted_body: std.ArrayList(node.Statement) = .empty;
     const converted_state = if (state_scope != null) try @import("state_value/conversion.zig").convert(self, &converted_body, type_id, state, if (by_value) .layout else .pointer) else state;
@@ -191,5 +191,5 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
         .no = initial,
     } }) else state;
 
-    return aggregate.finish(self, &body, result);
+    return try aggregate.finish(self, &body, result);
 }

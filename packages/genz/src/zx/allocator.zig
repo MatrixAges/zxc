@@ -3,7 +3,7 @@ const node = @import("../node.zig");
 const Lower = @import("lower.zig");
 const standardField = @import("intrinsics.zig").standardField;
 
-pub fn lower(self: *Lower, with_io: bool) Lower.Error!*const node.Expression {
+pub fn lower(self: *Lower, with_io: bool) Lower.Error!node.ExpressionId {
     var fields: std.ArrayList(node.Field) = .empty;
 
     try fields.append(self.allocator, .{ .name = "child", .value = try standardField(self, &.{ "mem", "Allocator" }) });
@@ -27,7 +27,7 @@ pub fn lower(self: *Lower, with_io: bool) Lower.Error!*const node.Expression {
         .name = "allocator",
         .parameters = try self.allocator.dupe(node.Field, &.{.{ .name = "self", .value = try self.builder.expression(.{ .pointer = try self.builtin(.This, &.{}) }) }}),
         .return_type = try standardField(self, &.{ "mem", "Allocator" }),
-        .body = try self.allocator.dupe(node.Statement, &.{.{ .result = result }}),
+        .body = try self.builder.statements(&.{.{ .result = result }}),
     } });
 
     return self.builder.expression(.{ .container_type = .{ .fields = try fields.toOwnedSlice(self.allocator), .declarations = try declarations.toOwnedSlice(self.allocator) } });
@@ -40,7 +40,7 @@ fn operation(self: *Lower, name: []const u8, with_io: bool) Lower.Error!node.Dec
     const usize_type = try self.builder.expression(.{ .primitive = .usize });
     const u8_type = try self.builder.expression(.{ .primitive = .u8 });
     var parameters: std.ArrayList(node.Field) = .empty;
-    var arguments: std.ArrayList(*const node.Expression) = .empty;
+    var arguments: std.ArrayList(node.ExpressionId) = .empty;
 
     try parameters.append(self.allocator, .{ .name = "context", .value = try self.builder.expression(.{ .pointer = try self.builder.expression(.{ .primitive = .anyopaque }) }) });
     try parameters.append(self.allocator, .{ .name = if (allocate) "len" else "memory", .value = if (allocate) usize_type else try self.builder.expression(.{ .mutable_slice = u8_type }) });
@@ -64,5 +64,5 @@ fn operation(self: *Lower, name: []const u8, with_io: bool) Lower.Error!node.Dec
 
     const result_type = if (release) try self.builder.expression(.{ .primitive = .void }) else if (resize) try self.builder.expression(.{ .primitive = .bool }) else try self.builder.expression(.{ .optional_type = try self.builder.expression(.{ .many_pointer = u8_type }) });
 
-    return .{ .function = .{ .name = name, .parameters = try parameters.toOwnedSlice(self.allocator), .return_type = result_type, .body = body } };
+    return .{ .function = .{ .name = name, .parameters = try parameters.toOwnedSlice(self.allocator), .return_type = result_type, .body = try self.builder.statements(body) } };
 }

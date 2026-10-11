@@ -6,7 +6,7 @@ const aggregate = @import("../aggregate.zig");
 const context = @import("context.zig");
 const Call = @FieldType(@FieldType(ir.ExpressionRow, "value"), "call");
 
-pub fn invocation(lowering: *Lower, id: ir.ExprId) Lower.Error!*const node.Expression {
+pub fn invocation(lowering: *Lower, id: ir.ExprId) Lower.Error!node.ExpressionId {
     const call = lowering.program.expression(id).value.call;
     const lanes = lowering.buffer_functions[@backingInt(call.function)];
     const buffers = try context.argument(lowering, lowering.program.functions.at(@backingInt(call.function)).output_type, lanes, lowering.buffer_calls.get(id).?);
@@ -15,7 +15,7 @@ pub fn invocation(lowering: *Lower, id: ir.ExprId) Lower.Error!*const node.Expre
     return invoke(lowering, call.function, argument, buffers);
 }
 
-pub fn transfer(lowering: *Lower, call: Call, selected: []const bool) Lower.Error!*const node.Expression {
+pub fn transfer(lowering: *Lower, call: Call, selected: []const bool) Lower.Error!node.ExpressionId {
     var body: std.ArrayList(node.Statement) = .empty;
     var argument = try lowering.expr(call.argument);
     const buffers = try @import("transfer/root.zig").prepare(lowering, &body, call, &argument, selected);
@@ -24,7 +24,7 @@ pub fn transfer(lowering: *Lower, call: Call, selected: []const bool) Lower.Erro
     return aggregate.finish(lowering, &body, result);
 }
 
-fn invoke(lowering: *Lower, function: ir.FunctionId, argument: *const node.Expression, buffers: *const node.Expression) Lower.Error!*const node.Expression {
+fn invoke(lowering: *Lower, function: ir.FunctionId, argument: node.ExpressionId, buffers: node.ExpressionId) Lower.Error!node.ExpressionId {
     const callee = try lowering.requestFunction(function, .buffered_pointer);
 
     return lowering.call(callee, &.{ try lowering.builder.identifier("allocator"), argument, buffers }, true);

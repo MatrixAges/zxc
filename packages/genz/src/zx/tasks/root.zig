@@ -4,9 +4,9 @@ const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
 pub const required = @import("allocator.zig").required;
 
-pub fn start(self: *Lower, id: ir.ExprId, concurrent: bool) Lower.Error!*const node.Expression {
+pub fn start(self: *Lower, id: ir.ExprId, concurrent: bool) Lower.Error!node.ExpressionId {
     const task = self.program.expression(id).value.task;
-    var arguments: std.ArrayList(*const node.Expression) = .empty;
+    var arguments: std.ArrayList(node.ExpressionId) = .empty;
     self.uses_allocator = true;
     self.uses_io = true;
 
@@ -39,10 +39,10 @@ pub fn bind(self: *Lower, output: *std.ArrayList(node.Statement), name: []const 
 
     const cleanup = try self.call(try self.field(try self.builder.identifier(name), "cancel"), &.{try self.builder.identifier("io")}, false);
 
-    try output.append(self.allocator, .{ .defer_scope = try self.allocator.dupe(node.Statement, &.{.{ .discard_error = cleanup }}) });
+    try output.append(self.allocator, .{ .defer_scope = try self.builder.statements(&.{.{ .discard_error = cleanup }}) });
 }
 
-pub fn wait(self: *Lower, child: ir.ExprId) Lower.Error!*const node.Expression {
+pub fn wait(self: *Lower, child: ir.ExprId) Lower.Error!node.ExpressionId {
     self.uses_io = true;
 
     if (self.program.expression(child).value != .task) return self.call(try self.field(try self.expr(child), "await"), &.{try self.builder.identifier("io")}, true);
@@ -55,7 +55,7 @@ pub fn wait(self: *Lower, child: ir.ExprId) Lower.Error!*const node.Expression {
     return @import("../aggregate.zig").finish(self, &body, try self.call(try self.field(try self.builder.identifier(name), "await"), &.{try self.builder.identifier("io")}, true));
 }
 
-pub fn parallel(self: *Lower, type_id: ir.TypeId, branches: @FieldType(@FieldType(ir.ExpressionRow, "value"), "parallel")) Lower.Error!*const node.Expression {
+pub fn parallel(self: *Lower, type_id: ir.TypeId, branches: @FieldType(@FieldType(ir.ExpressionRow, "value"), "parallel")) Lower.Error!node.ExpressionId {
     var body: std.ArrayList(node.Statement) = .empty;
     const futures = try self.allocator.alloc([]const u8, branches.len);
     const results = try self.allocator.alloc([]const u8, branches.len);
@@ -92,7 +92,7 @@ pub fn parallel(self: *Lower, type_id: ir.TypeId, branches: @FieldType(@FieldTyp
     return @import("../aggregate.zig").finish(self, &body, result);
 }
 
-pub fn cancel(self: *Lower, child: ir.ExprId) Lower.Error!*const node.Expression {
+pub fn cancel(self: *Lower, child: ir.ExprId) Lower.Error!node.ExpressionId {
     self.uses_io = true;
 
     var body: std.ArrayList(node.Statement) = .empty;

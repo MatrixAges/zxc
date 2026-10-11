@@ -6,12 +6,13 @@ const aggregate = @import("../../aggregate.zig");
 const intrinsic = @import("../../intrinsics.zig");
 const Self = @This();
 
-buffer: *const node.Expression,
-started: *const node.Expression,
-enabled: ?*const node.Expression = null,
-slot: ?*const node.Expression = null,
+buffer: node.ExpressionId,
+started: node.ExpressionId,
+allocator: ?node.ExpressionId = null,
+enabled: ?node.ExpressionId = null,
+slot: ?node.ExpressionId = null,
 lane: ?usize = null,
-pub fn lower(self: Self, lowering: *Lower, id: ir.ExprId) Lower.Error!*const node.Expression {
+pub fn lower(self: Self, lowering: *Lower, id: ir.ExprId) Lower.Error!node.ExpressionId {
     if (self.enabled) |enabled| {
         lowering.uses_buffers = true;
 
@@ -40,10 +41,10 @@ pub fn lower(self: Self, lowering: *Lower, id: ir.ExprId) Lower.Error!*const nod
 
     try body.append(lowering.allocator, .{ .discard = length });
 
-    try body.append(lowering.allocator, .{ .branch = .{ .condition = try lowering.builder.expression(.{ .unary = .{ .operator = .not, .operand = self.started } }), .yes = try lowering.allocator.dupe(node.Statement, &.{
+    try body.append(lowering.allocator, .{ .branch = .{ .condition = try lowering.builder.expression(.{ .unary = .{ .operator = .not, .operand = self.started } }), .yes = try lowering.builder.statements(&.{
         .{ .expression = try self.method(lowering, "appendSlice", &.{source}, true) },
         .{ .assignment = .{ .target = self.started, .value = try lowering.builder.expression(.{ .boolean = true }) } },
-    }), .no = try lowering.allocator.dupe(node.Statement, &.{.{ .assignment = .{
+    }), .no = try lowering.builder.statements(&.{.{ .assignment = .{
         .target = try lowering.field(try lowering.field(self.buffer, "items"), "len"),
         .value = try lowering.field(source, "len"),
     } }}) } });
@@ -53,9 +54,10 @@ pub fn lower(self: Self, lowering: *Lower, id: ir.ExprId) Lower.Error!*const nod
     return aggregate.finish(lowering, &body, try lowering.field(self.buffer, "items"));
 }
 
-pub fn method(self: Self, lowering: *Lower, name: []const u8, arguments: []const *const node.Expression, fallible: bool) Lower.Error!*const node.Expression {
-    const values = try lowering.allocator.alloc(*const node.Expression, arguments.len + 1);
-    values[0] = try lowering.builder.identifier("allocator");
+pub fn method(self: Self, lowering: *Lower, name: []const u8, arguments: []const node.ExpressionId, fallible: bool) Lower.Error!node.ExpressionId {
+    const values = try lowering.allocator.alloc(node.ExpressionId, arguments.len + 1);
+
+    values[0] = self.allocator orelse try lowering.builder.identifier("allocator");
 
     @memcpy(values[1..], arguments);
 

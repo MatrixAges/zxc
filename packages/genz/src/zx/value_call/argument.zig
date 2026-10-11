@@ -4,7 +4,7 @@ const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
 const aggregate = @import("../aggregate.zig");
 
-pub fn borrow(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId) Lower.Error!*const node.Expression {
+pub fn borrow(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId) Lower.Error!node.ExpressionId {
     if (self.cache.contains(id)) return existing(self, body, id);
 
     const expression = self.program.expression(id);
@@ -12,7 +12,7 @@ pub fn borrow(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId)
     switch (expression.value) {
         .object => return object(self, body, id),
         .tuple => |items| {
-            const values = try self.allocator.alloc(*const node.Expression, items.len);
+            const values = try self.allocator.alloc(node.ExpressionId, items.len);
 
             for (items, values) |item, *value| value.* = try aggregate.bind(self, body, try borrow(self, body, item));
 
@@ -52,10 +52,10 @@ pub fn borrow(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId)
     }
 }
 
-fn object(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId) Lower.Error!*const node.Expression {
+fn object(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId) Lower.Error!node.ExpressionId {
     const expression = self.program.expression(id);
     const value = expression.value.object;
-    const saved = try self.allocator.alloc(?*const node.Expression, value.evaluation.len);
+    const saved = try self.allocator.alloc(?node.ExpressionId, value.evaluation.len);
 
     for (value.evaluation, 0..) |item, index| saved[index] = self.cache.get(item);
 
@@ -66,7 +66,7 @@ fn object(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId) Low
     }
 
     const counts = try self.allocator.alloc(usize, value.evaluation.len);
-    const evaluated = try self.allocator.alloc(*const node.Expression, value.evaluation.len);
+    const evaluated = try self.allocator.alloc(node.ExpressionId, value.evaluation.len);
 
     for (value.evaluation, 0..) |item, index| {
         evaluated[index] = try aggregate.bind(self, body, try borrow(self, body, item));
@@ -101,7 +101,7 @@ fn object(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId) Low
     return self.builder.expression(.{ .address_of = result });
 }
 
-fn existing(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId) Lower.Error!*const node.Expression {
+fn existing(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId) Lower.Error!node.ExpressionId {
     const value = try self.expr(id);
     const type_id = self.program.expression(id).type_id;
 

@@ -2,8 +2,10 @@ const std = @import("std");
 const node = @import("node.zig");
 const Self = @This();
 const Error = std.mem.Allocator.Error;
+const stored = @import("node/stored.zig");
 
 allocator: std.mem.Allocator,
+nodes: *const @import("node/storage.zig"),
 output: std.ArrayList(u8) = .empty,
 depth: usize = 0,
 pub fn write(self: *Self, text: []const u8) Error!void {
@@ -60,8 +62,8 @@ fn errorSet(self: *Self, members: []const []const u8) Error!void {
     try self.write("}");
 }
 
-pub fn expression(self: *Self, value: *const node.Expression) Error!void {
-    switch (value.*) {
+pub fn expression(self: *Self, value: node.ExpressionId) Error!void {
+    switch (self.nodes.get(value)) {
         .unreachable_value => try self.write("unreachable"),
         .unit => try self.write("{}"),
         .return_value => |result| {
@@ -203,7 +205,7 @@ pub fn expression(self: *Self, value: *const node.Expression) Error!void {
         },
         .identifier => |name| try self.identifier(name),
         .integer => |number| try self.output.print(self.allocator, "{d}", .{number}),
-        .float => |number| try self.output.print(self.allocator, "@as(f64, @bitCast(@as(u64, {d})))", .{@as(u64, @bitCast(number))}),
+        .float => |bits| try self.output.print(self.allocator, "@as(f64, @bitCast(@as(u64, {d})))", .{bits}),
         .string => |text| try self.quoted(text),
         .boolean => |boolean| try self.write(if (boolean) "true" else "false"),
         .primitive => |primitive| try self.write(@tagName(primitive)),
@@ -237,7 +239,9 @@ pub fn expression(self: *Self, value: *const node.Expression) Error!void {
 
             self.depth += 1;
 
-            for (declarations) |item| {
+            for (0..declarations.len) |index| {
+                const item = self.nodes.declaration_rows.get(declarations.start + @as(u32, @intCast(index)));
+
                 try self.indent();
                 try self.declaration(item);
             }
@@ -252,7 +256,9 @@ pub fn expression(self: *Self, value: *const node.Expression) Error!void {
 
             self.depth += 1;
 
-            for (container.fields) |field| {
+            for (0..container.fields.len) |index| {
+                const field = self.nodes.field_columns.get(container.fields.start + index);
+
                 try self.indent();
                 try self.identifier(field.name);
                 try self.write(": ");
@@ -266,7 +272,9 @@ pub fn expression(self: *Self, value: *const node.Expression) Error!void {
                 try self.write(",\n");
             }
 
-            for (container.declarations) |item| {
+            for (0..container.declarations.len) |index| {
+                const item = self.nodes.declaration_rows.get(container.declarations.start + @as(u32, @intCast(index)));
+
                 try self.indent();
                 try self.declaration(item);
             }
@@ -282,7 +290,9 @@ pub fn expression(self: *Self, value: *const node.Expression) Error!void {
 
             self.depth += 1;
 
-            for (fields) |field| {
+            for (0..fields.len) |index| {
+                const field = self.nodes.field_columns.get(fields.start + index);
+
                 try self.indent();
                 try self.identifier(field.name);
                 try self.write(": ");
@@ -367,7 +377,9 @@ pub fn expression(self: *Self, value: *const node.Expression) Error!void {
             try self.expression(selection.subject);
             try self.write(") { ");
 
-            for (selection.arms) |arm| {
+            for (0..selection.arms.len) |index| {
+                const arm = self.nodes.arm_columns.get(selection.arms.start + index);
+
                 if (arm.value) |tag| try self.expression(tag) else try self.write("else");
                 try self.write(" => ");
 
@@ -387,7 +399,9 @@ pub fn expression(self: *Self, value: *const node.Expression) Error!void {
             if (object.type_expr) |type_expr| try self.expression(type_expr) else try self.write(".");
             try self.write("{");
 
-            for (object.fields) |field| {
+            for (0..object.fields.len) |index| {
+                const field = self.nodes.field_columns.get(object.fields.start + index);
+
                 try self.write(" .");
                 try self.identifier(field.name);
                 try self.write(" = ");
@@ -400,7 +414,7 @@ pub fn expression(self: *Self, value: *const node.Expression) Error!void {
     }
 }
 
-fn arguments(self: *Self, values: []const *const node.Expression) Error!void {
+fn arguments(self: *Self, values: []const node.ExpressionId) Error!void {
     try self.write("(");
 
     for (values, 0..) |value, index| {
@@ -440,13 +454,15 @@ fn variable(self: *Self, value: node.Constant) Error!void {
     try self.write(";\n");
 }
 
-fn block(self: *Self, statements: []const node.Statement) Error!void {
+fn block(self: *Self, statements: node.Block) Error!void {
     try self.write("{\n");
 
     self.depth += 1;
 
-    for (statements, 0..) |statement, index| {
-        if (index > 0 and (statements[index - 1] != .constant or statement != .constant)) try self.write("\n");
+    for (0..statements.len) |index| {
+        const statement = self.nodes.statement(statements, index);
+
+        if (index > 0 and (self.nodes.statement(statements, index - 1) != .constant or statement != .constant)) try self.write("\n");
         try self.indent();
 
         switch (statement) {
@@ -559,7 +575,7 @@ fn block(self: *Self, statements: []const node.Statement) Error!void {
             .discard, .expression => |value| {
                 if (statement == .discard) try self.write("_ = ");
                 try self.expression(value);
-                try self.write(if (statement == .expression and value.* == .block) "\n" else ";\n");
+                try self.write(if (statement == .expression and self.nodes.get(value) == .block) "\n" else ";\n");
             },
         }
     }
@@ -570,7 +586,7 @@ fn block(self: *Self, statements: []const node.Statement) Error!void {
     try self.write("}");
 }
 
-pub fn declaration(self: *Self, value: node.Declaration) Error!void {
+pub fn declaration(self: *Self, value: stored.Value(node.Declaration)) Error!void {
     switch (value) {
         .constant => |item| try self.constant(item),
         .variable => |item| {
@@ -597,11 +613,14 @@ pub fn declaration(self: *Self, value: node.Declaration) Error!void {
         .function => |function| {
             if (function.exported) try self.write("pub ");
             if (function.abi_export) try self.write("export ");
+            if (function.inlined) try self.write("inline ");
             try self.write("fn ");
             try self.identifier(function.name);
             try self.write("(");
 
-            for (function.parameters, 0..) |parameter, index| {
+            for (0..function.parameters.len) |index| {
+                const parameter = self.nodes.field_columns.get(function.parameters.start + index);
+
                 if (index != 0) try self.write(", ");
                 if (parameter.comptime_parameter) try self.write("comptime ");
                 if (std.mem.eql(u8, parameter.name, "_")) try self.write("_") else try self.identifier(parameter.name);

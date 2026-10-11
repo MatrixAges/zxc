@@ -1,0 +1,64 @@
+import integers from "std:integer"
+
+import { Action, ByteSource } from "../model"
+import { ExpressionsKind, ExpressionsUnaryOperator } from "../model/expressions"
+import { Token } from "../model/token"
+
+import type { Step, Frame } from "../model"
+
+export type Input = Step
+
+export type Output = Frame[]
+
+export default function (in: Input): Output {
+    const tree = in.source.expressions
+    const kind = tree.tags[integers.widen(in.frame.id)]
+    const id = tree.offsets[integers.widen(in.frame.id)]
+    const row = integers.widen(id)
+    const frame: Frame = { action: Action.Text, token: Token.Empty, bytes: ByteSource.None, id: 0, count: 0, index: 0, number: 0 }
+
+    const child = match kind {
+        ExpressionsKind.OptionalType => tree.optional_type[row],
+        ExpressionsKind.AddressOf => tree.address_of[row],
+        ExpressionsKind.TryValue => tree.try_value[row],
+        ExpressionsKind.ComptimeValue => tree.comptime_value[row],
+        ExpressionsKind.Dereference => tree.dereference[row],
+        ExpressionsKind.OptionalUnwrap => tree.optional_unwrap[row],
+        ExpressionsKind.Pointer => tree.pointer[row],
+        ExpressionsKind.ConstPointer => tree.const_pointer[row],
+        ExpressionsKind.ConstSlice => tree.const_slice[row],
+        ExpressionsKind.MutableSlice => tree.mutable_slice[row],
+        ExpressionsKind.ManyPointer => tree.many_pointer[row],
+        _ => tree.unary_operand[row],
+    }
+
+    const prefix = match kind {
+        ExpressionsKind.OptionalType => Token.Optional,
+        ExpressionsKind.AddressOf => Token.AddressOpen,
+        ExpressionsKind.TryValue => Token.TryOpen,
+        ExpressionsKind.ComptimeValue => Token.ComptimeOpen,
+        ExpressionsKind.Dereference => Token.Open,
+        ExpressionsKind.OptionalUnwrap => Token.Empty,
+        ExpressionsKind.Pointer => Token.Multiply,
+        ExpressionsKind.ConstPointer => Token.ConstPointer,
+        ExpressionsKind.ConstSlice => Token.ConstSlice,
+        ExpressionsKind.MutableSlice => Token.Slice,
+        ExpressionsKind.ManyPointer => Token.ManyPointer,
+        _ => tree.unary_operator[row] == ExpressionsUnaryOperator.Negate ? Token.NegateOpen : Token.NotOpen,
+    }
+
+    const suffix = match kind {
+        ExpressionsKind.AddressOf => Token.Close,
+        ExpressionsKind.TryValue => Token.Close,
+        ExpressionsKind.ComptimeValue => Token.Close,
+        ExpressionsKind.Unary => Token.Close,
+        ExpressionsKind.Dereference => Token.Dereference,
+        ExpressionsKind.OptionalUnwrap => Token.OptionalValue,
+        _ => Token.Empty,
+    }
+
+    const opening: Frame[] = prefix == Token.Empty ? [] : [{ ...frame, token: prefix }]
+    const operand = opening.push({ ...frame, action: Action.Expression, id: child })[0]
+
+    return suffix == Token.Empty ? operand : operand.push({ ...frame, token: suffix })[0]
+}

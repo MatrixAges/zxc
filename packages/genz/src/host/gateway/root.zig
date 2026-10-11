@@ -7,7 +7,7 @@ pub fn render(allocator: std.mem.Allocator) std.mem.Allocator.Error![]u8 {
 
     defer arena.deinit();
 
-    const builder = Builder{ .allocator = arena.allocator() };
+    const builder = try Builder.init(arena.allocator());
     const io = try builder.path(&.{ "init", "io" });
     const gpa = try builder.path(&.{ "init", "gpa" });
     const state = try builder.identifier("state");
@@ -47,7 +47,7 @@ pub fn render(allocator: std.mem.Allocator) std.mem.Allocator.Error![]u8 {
         .exported = true,
     } };
 
-    return @import("../../render.zig").render(allocator, &.{
+    return @import("../../render.zig").render(allocator, builder.nodes, &.{
         .{ .constant = .{ .name = "std", .value = try builder.builtin(.import, &.{try builder.string("std")}) } },
         .{ .constant = .{ .name = "application", .value = try builder.builtin(.import, &.{try builder.string("application")}) } },
         main,

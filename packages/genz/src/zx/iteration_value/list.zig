@@ -5,11 +5,11 @@ const Context = @import("root.zig");
 const Lower = @import("../lower.zig");
 const aggregate = @import("../aggregate.zig");
 
-pub fn lower(self: *Context, id: ir.TypeId, items: []const ir.ExprId) Lower.Error!*const node.Expression {
+pub fn lower(self: *Context, id: ir.TypeId, items: []const ir.ExprId) Lower.Error!node.ExpressionId {
     const lowering = self.lowering;
     const element = try @import("types.zig").get(self, lowering.program.typeOf(id).list);
     var body: std.ArrayList(node.Statement) = .empty;
-    const values = try lowering.allocator.alloc(*const node.Expression, items.len);
+    const values = try lowering.allocator.alloc(node.ExpressionId, items.len);
 
     for (items, values) |item, *value| value.* = try aggregate.bind(lowering, &body, try lowering.expr(item));
 

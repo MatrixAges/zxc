@@ -1,0 +1,63 @@
+export type Input = u8[]
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    if (in.length == 0 || (in.length == 1 && in[0] == 95)) {
+        return false
+    }
+
+    const first = in[0]
+
+    if (first != 95 && !(first >= 65 && first <= 90) && !(first >= 97 && first <= 122)) {
+        return false
+    }
+
+    if (!in.every(byte => byte == 95 || (byte >= 65 && byte <= 90) || (byte >= 97 && byte <= 122) || (byte >= 48 && byte <= 57))) {
+        return false
+    }
+
+    const candidates: string[] = match first {
+        97 => ["addrspace", "align", "allowzero", "and", "anyframe", "anytype", "asm"],
+        98 => ["break"],
+        99 => ["callconv", "catch", "comptime", "const", "continue"],
+        100 => ["defer"],
+        101 => ["else", "enum", "errdefer", "error", "export", "extern"],
+        102 => ["fn", "for"],
+        105 => ["if", "inline"],
+        108 => ["linksection"],
+        110 => ["noalias", "noinline", "nosuspend"],
+        111 => ["opaque", "or", "orelse"],
+        112 => ["packed", "pub"],
+        114 => ["resume", "return"],
+        115 => ["struct", "suspend", "switch"],
+        116 => ["test", "threadlocal", "try"],
+        117 => ["union", "unreachable"],
+        118 => ["var", "volatile"],
+        119 => ["while"],
+        _ => [],
+    }
+
+    const found = loop({ bytes: in, candidates: candidates, index: 0, keyword: false }, {
+        while: current => current.index < current.candidates.length && !current.keyword,
+        next: current => {
+            const word = current.candidates[current.index]
+
+            if (word.length == current.bytes.length) {
+                const compared = loop({ bytes: current.bytes, word: word, index: 0, equal: true }, {
+                    while: comparison => comparison.index < comparison.bytes.length && comparison.equal,
+                    next: comparison => {
+                        comparison.equal = comparison.bytes[comparison.index] == comparison.word[comparison.index]
+                        comparison.index += 1
+                    }
+                })
+
+                current.keyword = compared.equal
+            }
+
+            current.index += 1
+        }
+    })
+
+    return !found.keyword
+}

@@ -2,11 +2,11 @@ const std = @import("std");
 const node = @import("../../node.zig");
 const Builder = @import("../../builder.zig");
 
-pub fn select(builder: Builder, type_expr: *const node.Expression, arms: []const node.SelectionArm) std.mem.Allocator.Error!*const node.Expression {
+pub fn select(builder: Builder, type_expr: node.ExpressionId, arms: []const node.SelectionArm) std.mem.Allocator.Error!node.ExpressionId {
     return builder.expression(.{ .selection = .{ .subject = try builder.builtin(.typeInfo, &.{type_expr}), .arms = try builder.allocator.dupe(node.SelectionArm, arms) } });
 }
 
-pub fn arm(builder: Builder, name: []const u8, capture: ?[]const u8, result: *const node.Expression) std.mem.Allocator.Error!node.SelectionArm {
+pub fn arm(builder: Builder, name: []const u8, capture: ?[]const u8, result: node.ExpressionId) std.mem.Allocator.Error!node.SelectionArm {
     return .{ .value = try builder.expression(.{ .enum_literal = name }), .capture = capture, .result = result };
 }
 

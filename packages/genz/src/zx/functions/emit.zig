@@ -50,7 +50,10 @@ pub fn append(self: *Lower, output: *std.ArrayList(node.Declaration), request: R
 
     const declaration = switch (request.variant) {
         .regular => try helper.function(name, false),
-        .value => try helper.functionValue(name),
+        .value => if (@import("../buffer_call/root.zig").available(self.buffer_functions[index]))
+            try @import("../buffer_call/value.zig").declaration(&helper, name, try self.requestFunction(request.id, .buffered), self.buffer_functions[index])
+        else
+            try helper.functionValue(name),
         .buffered => try @import("../buffer_call/root.zig").declaration(&helper, name, self.buffer_functions[index], .value),
         .buffered_pointer => try @import("../buffer_call/root.zig").declaration(&helper, name, self.buffer_functions[index], .pointer),
     };

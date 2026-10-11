@@ -2,19 +2,19 @@ const std = @import("std");
 const node = @import("../../../node.zig");
 const Builder = @import("../../../builder.zig");
 
-pub fn check(builder: Builder, name: []const u8, arguments: []const *const node.Expression) std.mem.Allocator.Error!node.Statement {
+pub fn check(builder: Builder, name: []const u8, arguments: []const node.ExpressionId) std.mem.Allocator.Error!node.Statement {
     return .{ .expression = try builder.expression(.{ .try_value = try builder.call(try builder.identifier("check"), &.{try builder.call(try builder.path(&.{ "api", name }), arguments)}) }) };
 }
 
-pub fn address(builder: Builder, name: []const u8) std.mem.Allocator.Error!*const node.Expression {
+pub fn address(builder: Builder, name: []const u8) std.mem.Allocator.Error!node.ExpressionId {
     return builder.expression(.{ .address_of = try builder.identifier(name) });
 }
 
-pub fn failure(builder: Builder, condition: *const node.Expression, name: []const u8) std.mem.Allocator.Error!node.Statement {
+pub fn failure(builder: Builder, condition: node.ExpressionId, name: []const u8) std.mem.Allocator.Error!node.Statement {
     return builder.branch(condition, &.{.{ .result = try builder.expression(.{ .error_value = name }) }}, &.{});
 }
 
-pub fn invocation(builder: Builder, name: []const u8, arguments: []const *const node.Expression) std.mem.Allocator.Error!*const node.Expression {
+pub fn invocation(builder: Builder, name: []const u8, arguments: []const node.ExpressionId) std.mem.Allocator.Error!node.ExpressionId {
     return builder.expression(.{ .try_value = try builder.call(try builder.identifier(name), arguments) });
 }
 
@@ -31,6 +31,6 @@ pub fn parameters(builder: Builder, allocator: bool) std.mem.Allocator.Error![]c
     return fields.toOwnedSlice(builder.allocator);
 }
 
-pub fn function(builder: Builder, name: []const u8, params: []const node.Field, result: *const node.Expression, body: []const node.Statement) std.mem.Allocator.Error!node.Declaration {
+pub fn function(builder: Builder, name: []const u8, params: []const node.Field, result: node.ExpressionId, body: []const node.Statement) std.mem.Allocator.Error!node.Declaration {
     return .{ .function = .{ .name = name, .parameters = params, .return_type = try builder.expression(.{ .error_union = .{ .payload = result } }), .body = try builder.statements(body) } };
 }

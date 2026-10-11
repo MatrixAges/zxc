@@ -4,7 +4,7 @@ const node = @import("../node.zig");
 const Lower = @import("lower.zig");
 const aggregate = @import("aggregate.zig");
 
-pub fn lower(self: *Lower, id: ir.ExprId, value: ir.Transform) Lower.Error!*const node.Expression {
+pub fn lower(self: *Lower, id: ir.ExprId, value: ir.Transform) Lower.Error!node.ExpressionId {
     const state_symbols = try @import("state_value/locals.zig").parameters(self, value.parameters);
 
     defer for (state_symbols) |symbol| {
@@ -23,7 +23,7 @@ pub fn lower(self: *Lower, id: ir.ExprId, value: ir.Transform) Lower.Error!*cons
     const element = value.parameters[if (value.kind == .reduce) @as(usize, 1) else 0];
     const capture = self.names[@backingInt(element)];
     var loop: std.ArrayList(node.Statement) = .empty;
-    var result: *const node.Expression = undefined;
+    var result: node.ExpressionId = undefined;
     var index_capture: ?[]const u8 = null;
 
     try @import("transform/context.zig").bind(self, &body, value);
@@ -57,12 +57,12 @@ pub fn lower(self: *Lower, id: ir.ExprId, value: ir.Transform) Lower.Error!*cons
 
         self.used[@backingInt(element)] = true;
 
-        try loop.append(self.allocator, .{ .branch = .{ .condition = callback, .yes = try self.allocator.dupe(node.Statement, &.{append}), .no = &.{} } });
+        try loop.append(self.allocator, .{ .branch = .{ .condition = callback, .yes = try self.builder.statements(&.{append}), .no = .{} } });
 
         result = try self.call(try self.field(try self.builder.identifier(name), "toOwnedSlice"), &.{try self.builder.identifier("allocator")}, true);
     }
 
-    try body.append(self.allocator, .{ .for_loop = .{ .iterable = source, .capture = if (self.used[@backingInt(element)]) capture else "_", .body = try loop.toOwnedSlice(self.allocator), .index_capture = index_capture } });
+    try body.append(self.allocator, .{ .for_loop = .{ .iterable = source, .capture = if (self.used[@backingInt(element)]) capture else "_", .body = try self.builder.statements(loop.items), .index_capture = index_capture } });
 
     return aggregate.finish(self, &body, result);
 }

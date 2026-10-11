@@ -1,0 +1,52 @@
+import integers from "std:integer"
+
+import { Action, ByteSource } from "../model"
+import { ExpressionsKind } from "../model/expressions"
+import { Token } from "../model/token"
+import builtin from "./builtin"
+
+import type { Step, Frame } from "../model"
+
+export type Input = Step
+
+export type Output = Frame[]
+
+export default function (in: Input): Output {
+    const tree = in.source.expressions
+    const kind = tree.tags[integers.widen(in.frame.id)]
+    const id = tree.offsets[integers.widen(in.frame.id)]
+    const row = integers.widen(id)
+    const arguments = kind == ExpressionsKind.Builtin || kind == ExpressionsKind.Call
+
+    const values = match kind {
+        ExpressionsKind.TupleType => tree.tuple_type[row],
+        ExpressionsKind.Array => tree.array_values[row],
+        ExpressionsKind.Tuple => tree.tuple[row],
+        ExpressionsKind.Builtin => tree.builtin_arguments[row],
+        _ => tree.call_arguments[row],
+    }
+
+    const frame: Frame = { action: Action.Text, token: Token.Empty, bytes: ByteSource.None, id: 0, count: 0, index: 0, number: 0 }
+
+    const opening: Frame[] = match kind {
+        ExpressionsKind.TupleType => [{ ...frame, token: Token.TupleTypeOpen }],
+        ExpressionsKind.Tuple => [{ ...frame, token: Token.TupleOpen }],
+        ExpressionsKind.Array => [{ ...frame, token: Token.InferredArray }, { ...frame, action: Action.Expression, id: tree.array_element_type[row] }, { ...frame, token: Token.BraceOpen }],
+        ExpressionsKind.Builtin => [{ ...frame, token: Token.Builtin }, { ...frame, token: builtin(tree.builtin_name[row]) }, { ...frame, token: Token.Open }],
+        _ => [{ ...frame, action: Action.Expression, id: tree.call_callee[row] }, { ...frame, token: Token.Open }],
+    }
+
+    const expanded = loop({ frames: opening, index: 0, values: values, arguments: arguments, frame: frame }, {
+        while: current => current.index < current.values.length,
+        next: current => {
+            current.frames = current.frames.push({ ...current.frame, action: Action.Expression, id: current.values[current.index] })[0]
+            current.index += 1
+
+            if (!current.arguments || current.index != current.values.length) {
+                current.frames = current.frames.push({ ...current.frame, token: Token.CommaSpace })[0]
+            }
+        }
+    })
+
+    return expanded.frames.push({ ...frame, token: arguments ? Token.Close : Token.BraceClose })[0]
+}

@@ -1,0 +1,81 @@
+import integers from "std:integer"
+
+import { Action, ByteSource } from "../model"
+import { ExpressionsKind } from "../model/expressions"
+import { Token } from "../model/token"
+import operator from "./operator"
+
+import type { Step, Frame } from "../model"
+
+export type Input = Step
+
+export type Output = Frame[]
+
+export default function (in: Input): Output {
+    const tree = in.source.expressions
+    const kind = tree.tags[integers.widen(in.frame.id)]
+    const id = tree.offsets[integers.widen(in.frame.id)]
+    const row = integers.widen(id)
+    const frame: Frame = { action: Action.Text, token: Token.Empty, bytes: ByteSource.None, id: id, count: 0, index: 0, number: 0 }
+
+    if (kind == ExpressionsKind.Binary) {
+        return [
+            { ...frame, token: Token.Open },
+            { ...frame, action: Action.Expression, id: tree.binary_left[row] },
+            { ...frame, token: Token.Space },
+            { ...frame, token: operator(tree.binary_operator[row]) },
+            { ...frame, token: Token.Space },
+            { ...frame, action: Action.Expression, id: tree.binary_right[row] },
+            { ...frame, token: Token.Close }
+        ]
+    }
+
+    if (kind == ExpressionsKind.Field) {
+        return [
+            { ...frame, token: Token.Open },
+            { ...frame, action: Action.Expression, id: tree.field_target[row] },
+            { ...frame, token: Token.Field },
+            { ...frame, action: Action.Identifier, bytes: ByteSource.FieldName }
+        ]
+    }
+
+    if (kind == ExpressionsKind.Slice) {
+        const first = tree.slice_start[row]
+        const end = tree.slice_end[row]
+
+        const prefix: Frame[] = [
+            { ...frame, token: Token.Open },
+            { ...frame, action: Action.Expression, id: tree.slice_target[row] },
+            { ...frame, token: Token.Index },
+            first == null ? { ...frame, token: Token.Zero } : { ...frame, action: Action.Expression, id: first },
+            { ...frame, token: Token.Range }
+        ]
+
+        const bounded = end == null ? prefix : prefix.push({ ...frame, action: Action.Expression, id: end })[0]
+
+        return bounded.push({ ...frame, token: Token.ArrayClose })[0]
+    }
+
+    const left = match kind {
+        ExpressionsKind.FixedArrayType => tree.fixed_array_type_length[row],
+        ExpressionsKind.Index => tree.index_target[row],
+        _ => tree.range_start[row],
+    }
+
+    const right = match kind {
+        ExpressionsKind.FixedArrayType => tree.fixed_array_type_element[row],
+        ExpressionsKind.Index => tree.index_index[row],
+        _ => tree.range_end[row],
+    }
+
+    const opening = kind == ExpressionsKind.FixedArrayType ? Token.ArrayOpen : Token.Open
+    const prefix: Frame[] = kind == ExpressionsKind.Range ? [] : [{ ...frame, token: opening }]
+
+    const operands = prefix.concat([
+        { ...frame, action: Action.Expression, id: left },
+        { ...frame, token: match kind { ExpressionsKind.FixedArrayType => Token.ArrayClose, ExpressionsKind.Index => Token.Index, _ => Token.Range, } },
+        { ...frame, action: Action.Expression, id: right }
+    ])[0]
+
+    return kind == ExpressionsKind.Index ? operands.push({ ...frame, token: Token.ArrayClose })[0] : operands
+}

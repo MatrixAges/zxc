@@ -3,7 +3,7 @@ const ir = @import("zx").ir;
 const node = @import("../../../node.zig");
 const Lower = @import("../../lower.zig");
 
-pub fn project(lowering: *Lower, type_id: ir.TypeId, source: *const node.Expression, path: []const u32) Lower.Error!*const node.Expression {
+pub fn project(lowering: *Lower, type_id: ir.TypeId, source: node.ExpressionId, path: []const u32) Lower.Error!node.ExpressionId {
     var result = source;
     var selected = type_id;
 
@@ -22,13 +22,13 @@ pub fn project(lowering: *Lower, type_id: ir.TypeId, source: *const node.Express
     return result;
 }
 
-pub fn replace(lowering: *Lower, type_id: ir.TypeId, source: *const node.Expression, path: []const u32, value: *const node.Expression) Lower.Error!*const node.Expression {
+pub fn replace(lowering: *Lower, type_id: ir.TypeId, source: node.ExpressionId, path: []const u32, value: node.ExpressionId) Lower.Error!node.ExpressionId {
     if (path.len == 0) return value;
 
     return lowering.construct(type_id, try replaceLayout(lowering, type_id, source, path, value));
 }
 
-pub fn assignLayout(lowering: *Lower, type_id: ir.TypeId, state: *const node.Expression, path: []const u32, value: *const node.Expression) Lower.Error![]const node.Statement {
+pub fn assignLayout(lowering: *Lower, type_id: ir.TypeId, state: node.ExpressionId, path: []const u32, value: node.ExpressionId) Lower.Error![]const node.Statement {
     if (path.len == 0) return lowering.allocator.dupe(node.Statement, &.{.{ .assignment = .{ .target = state, .value = value } }});
 
     const selected = switch (lowering.program.typeOf(type_id)) {
@@ -47,7 +47,7 @@ pub fn assignLayout(lowering: *Lower, type_id: ir.TypeId, state: *const node.Exp
     return body.toOwnedSlice(lowering.allocator);
 }
 
-pub fn replaceLayout(lowering: *Lower, type_id: ir.TypeId, source: *const node.Expression, path: []const u32, value: *const node.Expression) Lower.Error!*const node.Expression {
+pub fn replaceLayout(lowering: *Lower, type_id: ir.TypeId, source: node.ExpressionId, path: []const u32, value: node.ExpressionId) Lower.Error!node.ExpressionId {
     if (path.len == 0) return value;
 
     const updated = switch (lowering.program.typeOf(type_id)) {
@@ -63,7 +63,7 @@ pub fn replaceLayout(lowering: *Lower, type_id: ir.TypeId, source: *const node.E
             break :blk try lowering.builder.expression(.{ .object = .{ .type_expr = lowering.layouts[@backingInt(type_id)], .fields = result } });
         },
         .tuple => |items| blk: {
-            const result = try lowering.allocator.alloc(*const node.Expression, items.len);
+            const result = try lowering.allocator.alloc(node.ExpressionId, items.len);
 
             for (0..items.len, 0..) |item_index, index| {
                 const item = items.at(item_index);

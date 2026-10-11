@@ -1,0 +1,38 @@
+import integers from "std:integer"
+
+import { Action, ByteSource } from "../model"
+import { ExpressionsKind } from "../model/expressions"
+import { Token } from "../model/token"
+
+import type { Step, Frame } from "../model"
+
+export type Input = Step
+
+export type Output = Frame[]
+
+export default function (in: Input): Output {
+    const tree = in.source.expressions
+    const kind = tree.tags[integers.widen(in.frame.id)]
+    const id = tree.offsets[integers.widen(in.frame.id)]
+    const row = integers.widen(id)
+    const frame: Frame = { action: Action.Text, token: Token.Empty, bytes: ByteSource.None, id: id, count: 0, index: 0, number: 0 }
+
+    if (kind == ExpressionsKind.CatchValue) {
+        return [
+            { ...frame, token: Token.Open },
+            { ...frame, action: Action.Expression, id: tree.catch_value_value[row] },
+            { ...frame, token: Token.CatchCapture },
+            { ...frame, action: Action.Identifier, bytes: ByteSource.CatchCapture },
+            { ...frame, token: Token.CatchBreak },
+            { ...frame, action: Action.Identifier, bytes: ByteSource.CatchLabel },
+            { ...frame, token: Token.Space },
+            { ...frame, action: Action.Expression, id: tree.catch_value_result[row] },
+            { ...frame, token: Token.Close }
+        ]
+    }
+
+    const opening: Frame[] = [{ ...frame, token: Token.Open }, { ...frame, action: Action.Expression, id: tree.catch_scope_value[row] }, { ...frame, token: Token.Catch }]
+    const captured = tree.catch_scope_capture[row] == null ? opening : opening.concat([{ ...frame, token: Token.CaptureOpen }, { ...frame, action: Action.Identifier, bytes: ByteSource.CatchScopeCapture }, { ...frame, token: Token.CaptureClose }])[0]
+
+    return captured.concat([{ ...frame, action: Action.Block, id: tree.catch_scope_body_start[row], count: tree.catch_scope_body_len[row] }, { ...frame, token: Token.Close }])[0]
+}

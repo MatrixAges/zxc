@@ -6,7 +6,7 @@ const Context = @import("root.zig");
 const aggregate = @import("../aggregate.zig");
 const Consumer = @import("../iteration_consumer.zig").Consumer;
 
-pub fn lower(self: *Lower, iteration: ir.Iteration, consumer: ?Consumer) Lower.Error!?*const node.Expression {
+pub fn lower(self: *Lower, iteration: ir.Iteration, consumer: ?Consumer) Lower.Error!?node.ExpressionId {
     if (self.state_active or self.iteration_value != null or self.transaction()) return null;
     if (!try @import("list_plan.zig").eligible(self, iteration)) return null;
 
@@ -54,13 +54,13 @@ pub fn lower(self: *Lower, iteration: ir.Iteration, consumer: ?Consumer) Lower.E
 
     if (iteration.postcondition) try loop.append(self.allocator, .{ .branch = .{
         .condition = try self.builder.expression(.{ .unary = .{ .operator = .not, .operand = condition } }),
-        .yes = try self.allocator.dupe(node.Statement, &.{.break_loop}),
-        .no = &.{},
+        .yes = try self.builder.statements(&.{.break_loop}),
+        .no = .{},
     } });
 
     try body.append(self.allocator, .{ .while_loop = .{
         .condition = if (iteration.postcondition) try self.builder.expression(.{ .boolean = true }) else condition,
-        .body = try loop.toOwnedSlice(self.allocator),
+        .body = try self.builder.statements(loop.items),
     } });
 
     self.iteration_value = previous;

@@ -1,0 +1,47 @@
+import integers from "std:integer"
+
+import { Action, ByteSource } from "../model"
+import { ExpressionsKind } from "../model/expressions"
+import { Token } from "../model/token"
+
+import type { Step, Frame } from "../model"
+
+export type Input = Step
+
+export type Output = Frame[]
+
+export default function (in: Input): Output {
+    const tree = in.source.expressions
+    const kind = tree.tags[integers.widen(in.frame.id)]
+    const id = tree.offsets[integers.widen(in.frame.id)]
+    const row = integers.widen(id)
+    const frame: Frame = { action: Action.Text, token: Token.Empty, bytes: ByteSource.None, id: id, count: 0, index: 0, number: 0 }
+
+    if (kind == ExpressionsKind.ErrorUnion && tree.error_union_errors[row] == null) {
+        const prefix: Frame[] = tree.error_union_inferred[row] ? [] : [{ ...frame, token: Token.Anyerror }]
+
+        return prefix.concat([{ ...frame, token: Token.ErrorUnion }, { ...frame, action: Action.Expression, id: tree.error_union_payload[row] }])[0]
+    }
+
+    const names = match kind {
+        ExpressionsKind.EnumType => tree.enum_type[row],
+        ExpressionsKind.ErrorSet => tree.error_set[row],
+        _ => tree.error_union_errors[row] ?? [],
+    }
+
+    const bytes = match kind { ExpressionsKind.EnumType => ByteSource.EnumMember, ExpressionsKind.ErrorSet => ByteSource.ErrorMember, _ => ByteSource.ErrorUnionMember, }
+    const opening: Frame[] = [{ ...frame, token: kind == ExpressionsKind.EnumType ? Token.EnumOpen : Token.ErrorSetOpen }]
+
+    const expanded = loop({ frames: opening, index: 0, names: names, bytes: bytes, frame: frame }, {
+        while: current => current.index < current.names.length,
+        next: current => {
+            current.frames = current.frames.push({ ...current.frame, action: Action.Identifier, bytes: current.bytes, index: current.index })[0]
+            current.frames = current.frames.push({ ...current.frame, token: Token.CommaSpace })[0]
+            current.index += 1
+        }
+    })
+
+    const closed = expanded.frames.push({ ...frame, token: Token.BraceClose })[0]
+
+    return kind == ExpressionsKind.ErrorUnion ? closed.concat([{ ...frame, token: Token.ErrorUnion }, { ...frame, action: Action.Expression, id: tree.error_union_payload[row] }])[0] : closed
+}

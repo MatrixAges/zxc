@@ -1,0 +1,35 @@
+import integers from "std:integer"
+
+import { Action, ByteSource } from "./model"
+import { StatementsKind } from "./model/statements"
+import { Token } from "./model/token"
+
+import type { Step, Frame } from "./model"
+
+export type Input = Step
+
+export type Output = Frame[]
+
+export default function (in: Input): Output {
+    const frame: Frame = { action: Action.Text, token: Token.Empty, bytes: ByteSource.None, id: 0, count: 0, index: 0, number: 0 }
+    const opening: Frame[] = [{ ...frame, token: Token.BraceOpen }, { ...frame, token: Token.Newline }, { ...frame, action: Action.Enter }]
+
+    const zero: u32 = 0
+
+    const expanded = loop({ frames: opening, index: zero, source: in.source, block: in.frame, frame: frame }, {
+        while: current => current.index < current.block.count,
+        next: current => {
+            const id = current.block.id + current.index
+
+            if (current.index != 0 && (current.source.statements.tags[integers.widen(id - 1)] != StatementsKind.Constant || current.source.statements.tags[integers.widen(id)] != StatementsKind.Constant)) {
+                current.frames = current.frames.push({ ...current.frame, token: Token.Newline })[0]
+            }
+
+            current.frames = current.frames.push({ ...current.frame, action: Action.Indent })[0]
+            current.frames = current.frames.push({ ...current.frame, action: Action.Statement, id: id })[0]
+            current.index += 1
+        }
+    })
+
+    return expanded.frames.concat([{ ...frame, action: Action.Leave }, { ...frame, action: Action.Indent }, { ...frame, token: Token.BraceClose }])[0]
+}

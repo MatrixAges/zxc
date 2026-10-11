@@ -1,0 +1,46 @@
+import integers from "std:integer"
+
+import { ByteSource } from "../model"
+
+import type { Source, Frame } from "../model"
+
+export type Input = { source: Source, frame: Frame }
+
+export type Output = u8[]
+
+export default function (in: Input): Output {
+    const id = integers.widen(in.frame.id)
+    const source = in.source
+
+    return match in.frame.bytes {
+        ByteSource.ExpressionIdentifier => source.expressions.identifier[id],
+        ByteSource.ExpressionString => source.expressions.string[id],
+        ByteSource.EnumLiteral => source.expressions.enum_literal[id],
+        ByteSource.ErrorValue => source.expressions.error_value[id],
+        ByteSource.FieldName => source.expressions.field_name[id],
+        ByteSource.BlockLabel => source.expressions.block_label[id],
+        ByteSource.CatchCapture => source.expressions.catch_value_capture[id],
+        ByteSource.CatchLabel => source.expressions.catch_value_label[id],
+        ByteSource.CatchScopeCapture => source.expressions.catch_scope_capture[id] ?? [],
+        ByteSource.ConditionalCapture => source.expressions.conditional_capture[id] ?? [],
+        ByteSource.ConditionalErrorCapture => source.expressions.conditional_error_capture[id] ?? [],
+        ByteSource.EnumMember => source.expressions.enum_type[id][in.frame.index],
+        ByteSource.ErrorMember => source.expressions.error_set[id][in.frame.index],
+        ByteSource.ErrorUnionMember => (source.expressions.error_union_errors[id] ?? [])[in.frame.index],
+        ByteSource.MemberName => source.fields.name[id],
+        ByteSource.ArmCapture => source.arms.capture[id] ?? [],
+        ByteSource.StatementConstant => source.statements.constant_name[id],
+        ByteSource.StatementVariable => source.statements.variable_name[id],
+        ByteSource.DeclarationConstant => source.declarations.constant_name[id],
+        ByteSource.DeclarationVariable => source.declarations.variable_name[id],
+        ByteSource.DeclarationField => source.declarations.field_name[id],
+        ByteSource.FunctionName => source.declarations.function_name[id],
+        ByteSource.ForCapture => source.statements.for_loop_capture[id],
+        ByteSource.ForIndexCapture => source.statements.for_loop_index_capture[id] ?? [],
+        ByteSource.WhileCapture => source.statements.while_loop_capture[id] ?? [],
+        ByteSource.BranchCapture => source.statements.branch_capture[id] ?? [],
+        ByteSource.BranchErrorCapture => source.statements.branch_error_capture[id] ?? [],
+        ByteSource.BreakLabel => source.statements.break_value_label[id],
+        _ => [],
+    }
+}

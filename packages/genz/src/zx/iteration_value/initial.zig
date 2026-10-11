@@ -6,7 +6,7 @@ const Lower = @import("../lower.zig");
 const Buffers = @import("../iteration_buffer/root.zig");
 const aggregate = @import("../aggregate.zig");
 
-pub fn convert(self: *Context, buffers: *const Buffers, id: ir.TypeId, value: *const node.Expression, path: *std.ArrayList(usize)) Lower.Error!*const node.Expression {
+pub fn convert(self: *Context, buffers: *const Buffers, id: ir.TypeId, value: node.ExpressionId, path: *std.ArrayList(usize)) Lower.Error!node.ExpressionId {
     const lowering = self.lowering;
     const layout = try @import("types.zig").get(self, id);
 
@@ -26,7 +26,7 @@ pub fn convert(self: *Context, buffers: *const Buffers, id: ir.TypeId, value: *c
             break :blk try lowering.builder.expression(.{ .object = .{ .type_expr = layout, .fields = items } });
         },
         .tuple => |children| blk: {
-            const items = try lowering.allocator.alloc(*const node.Expression, children.len);
+            const items = try lowering.allocator.alloc(node.ExpressionId, children.len);
 
             for (items, 0..) |*item, index| {
                 try path.append(lowering.allocator, index);
@@ -60,7 +60,7 @@ pub fn convert(self: *Context, buffers: *const Buffers, id: ir.TypeId, value: *c
                 .iterable = source,
                 .capture = capture,
                 .index_capture = index,
-                .body = try lowering.allocator.dupe(node.Statement, &.{.{ .assignment = .{ .target = target, .value = converted } }}),
+                .body = try lowering.builder.statements(&.{.{ .assignment = .{ .target = target, .value = converted } }}),
             } });
 
             try self.declarations.append(lowering.allocator, .{ .assignment = .{ .target = storage.started, .value = try lowering.builder.expression(.{ .boolean = true }) } });

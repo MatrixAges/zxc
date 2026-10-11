@@ -45,7 +45,7 @@ pub fn run(builder: Builder, stateful: bool, output: @import("../json_output.zig
         .{ .constant = .{ .name = "allocator", .value = try builder.call(try builder.path(&.{ "current", "arena", "allocator" }), &.{}) } },
         .{ .constant = .{ .name = "value", .type_expr = input_type, .value = try builder.expression(.{ .conditional = .{ .condition = try builder.binary(.equal, input_type, void_type), .yes = empty, .no = try builder.expression(.{ .try_value = parse }) } }) } },
         .{ .constant = .{ .name = "output", .value = try builder.expression(.{ .try_value = try common.execute(builder, stateful) }) } },
-        try builder.branch(emit, try @import("../json_output.zig").lower(builder, output), &.{}),
+        .{ .branch = .{ .condition = emit, .yes = try @import("../json_output.zig").lower(builder, output), .no = .{} } },
         try common.assign(builder, "result", try builder.expression(.{ .conditional = .{ .condition = emit, .yes = encoded, .no = try builder.string("") } })),
     }, false);
 }

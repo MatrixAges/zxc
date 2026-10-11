@@ -66,7 +66,7 @@ pub fn lower(self: *Lower, values: ir.Block) Lower.Error![]const node.Statement 
                 if (!used) try output.append(self.allocator, .{ .discard = try self.builder.identifier(name) });
             },
             .result => |value| {
-                var returned: ?*const node.Expression = null;
+                var returned: ?node.ExpressionId = null;
 
                 if (value) |id| {
                     if (offset + 1 == values.len and offset != 0 and values.at(offset - 1) == .constant) {
@@ -92,7 +92,7 @@ pub fn lower(self: *Lower, values: ir.Block) Lower.Error![]const node.Statement 
 
                 try output.append(self.allocator, .{ .result = returned });
             },
-            .branch => |branch| try output.append(self.allocator, .{ .branch = .{ .condition = try self.expr(branch.condition), .yes = try lower(self, branch.yes), .no = try lower(self, branch.no) } }),
+            .branch => |branch| try output.append(self.allocator, .{ .branch = .{ .condition = try self.expr(branch.condition), .yes = try self.builder.statements(try lower(self, branch.yes)), .no = try self.builder.statements(try lower(self, branch.no)) } }),
             .switch_stmt => |selection| try output.appendSlice(self.allocator, try switchStatement(self, selection)),
             .store_set => |setter| {
                 const name = try std.fmt.allocPrint(self.allocator, "store_{d}", .{setter.slot});
@@ -144,7 +144,7 @@ fn switchStatement(self: *Lower, selection: @FieldType(ir.StatementRow, "switch_
         const case = selection.cases.at(index);
 
         if (case.value) |label| {
-            tail = try self.allocator.dupe(node.Statement, &.{.{ .branch = .{ .condition = try self.binary(.{ .operator = .equal, .left = selection.subject, .right = label }), .yes = try lower(self, case.body), .no = tail } }});
+            tail = try self.allocator.dupe(node.Statement, &.{.{ .branch = .{ .condition = try self.binary(.{ .operator = .equal, .left = selection.subject, .right = label }), .yes = try self.builder.statements(try lower(self, case.body)), .no = try self.builder.statements(tail) } }});
         }
     }
 

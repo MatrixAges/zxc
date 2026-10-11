@@ -1,0 +1,55 @@
+import integers from "std:integer"
+
+import { Action, ByteSource } from "./model"
+import { Token } from "./model/token"
+
+import type { Step, Frame } from "./model"
+
+export type Input = Step
+
+export type Output = Frame[]
+
+export default function (in: Input): Output {
+    const id = in.frame.id
+    const row = integers.widen(id)
+    const frame: Frame = { action: Action.Text, token: Token.Empty, bytes: ByteSource.None, id: id, count: 0, index: 0, number: 0 }
+
+    if (in.frame.action == Action.Arm) {
+        const arms = in.source.arms
+        const value = arms.value[row]
+        const opening: Frame[] = [value == null ? { ...frame, token: Token.Else } : { ...frame, action: Action.Expression, id: value }, { ...frame, token: Token.ArmArrow }]
+        const captured = arms.capture[row] == null ? opening : opening.concat([{ ...frame, token: Token.CaptureOpen }, { ...frame, action: Action.Identifier, bytes: ByteSource.ArmCapture }, { ...frame, token: Token.CaptureClose }])[0]
+
+        return captured.concat([{ ...frame, action: Action.Expression, id: arms.result[row] }, { ...frame, token: Token.CommaSpace }])[0]
+    }
+
+    const fields = in.source.fields
+
+    if (in.frame.action == Action.ObjectField) {
+        return [
+            { ...frame, token: Token.ObjectField },
+            { ...frame, action: Action.Identifier, bytes: ByteSource.MemberName },
+            { ...frame, token: Token.Assignment },
+            { ...frame, action: Action.Expression, id: fields.value[row] },
+            { ...frame, token: Token.Comma }
+        ]
+    }
+
+    const parameter = in.frame.action == Action.Parameter
+    const opening: Frame[] = parameter && fields.comptime_parameter[row] ? [{ ...frame, token: Token.ComptimePrefix }] : []
+
+    const typed = opening.concat([
+        { ...frame, action: parameter ? Action.BindingIdentifier : Action.Identifier, bytes: ByteSource.MemberName },
+        { ...frame, token: Token.Colon },
+        { ...frame, action: Action.Expression, id: fields.value[row] }
+    ])[0]
+
+    if (parameter) {
+        return typed
+    }
+
+    const initial = fields.default_value[row]
+    const initialized = initial == null ? typed : typed.concat([{ ...frame, token: Token.Assignment }, { ...frame, action: Action.Expression, id: initial }])[0]
+
+    return initialized.push({ ...frame, token: Token.FieldEnd })[0]
+}

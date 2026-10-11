@@ -84,7 +84,7 @@ pub fn restore(self: *Self) void {
     self.saved.clearRetainingCapacity();
 }
 
-pub fn finish(self: Self, body: *std.ArrayList(node.Statement), accumulator: *const node.Expression) Lower.Error!void {
+pub fn finish(self: Self, body: *std.ArrayList(node.Statement), accumulator: node.ExpressionId) Lower.Error!void {
     const lowering = self.lowering;
     var owned_group = try Capacity.Group.init(lowering, body, "state_owned");
 
@@ -103,7 +103,7 @@ pub fn finish(self: Self, body: *std.ArrayList(node.Statement), accumulator: *co
         } });
 
         try @import("../../state_value/origin.zig").clear(lowering, &writes, self.type_id, accumulator);
-        try body.append(lowering.allocator, .{ .branch = .{ .condition = field.builder.started, .yes = try writes.toOwnedSlice(lowering.allocator), .no = &.{} } });
+        try body.append(lowering.allocator, .{ .branch = .{ .condition = field.builder.started, .yes = try lowering.builder.statements(writes.items), .no = .{} } });
     }
 
     try owned_group.seal(lowering, body, .on_error);

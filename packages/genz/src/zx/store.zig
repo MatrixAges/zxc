@@ -16,7 +16,7 @@ pub fn declaration(self: *Lower, output: *std.ArrayList(node.Declaration)) Lower
     try output.append(self.allocator, .{ .constant = .{ .name = self.pending_name, .value = try self.builder.expression(.{ .struct_type = fields }), .exported = true } });
 }
 
-pub fn adapter(self: *Lower, invocation: @FieldType(@FieldType(ir.ExpressionRow, "value"), "call")) Lower.Error!*const node.Expression {
+pub fn adapter(self: *Lower, invocation: @FieldType(@FieldType(ir.ExpressionRow, "value"), "call")) Lower.Error!node.ExpressionId {
     self.uses_context = true;
     const mapping = invocation.stores;
     const slots = self.program.functions.at(@backingInt(invocation.function)).stores;
@@ -64,7 +64,7 @@ pub fn adapter(self: *Lower, invocation: @FieldType(@FieldType(ir.ExpressionRow,
         .name = "commit",
         .parameters = parameters,
         .return_type = try self.builder.expression(.{ .error_union = .{ .payload = try self.builder.expression(.{ .primitive = .void }) } }),
-        .body = try self.allocator.dupe(node.Statement, &.{.{ .result = commit }}),
+        .body = try self.builder.statements(&.{.{ .result = commit }}),
         .exported = true,
     } }, try @import("store/begin_adapter.zig").declaration(self, mapping) });
 
@@ -72,7 +72,7 @@ pub fn adapter(self: *Lower, invocation: @FieldType(@FieldType(ir.ExpressionRow,
     const result = try self.builder.expression(.{ .object = .{ .type_expr = try self.builder.identifier(name), .fields = values } });
     const label = try self.fresh("store_context");
 
-    return self.builder.expression(.{ .block = .{ .label = label, .statements = try self.allocator.dupe(node.Statement, &.{
+    return self.builder.expression(.{ .block = .{ .label = label, .statements = try self.builder.statements(&.{
         .{ .constant = .{ .name = name, .value = try self.builder.expression(.{ .container_type = .{ .fields = fields, .declarations = declarations } }) } },
         .{ .break_value = .{ .label = label, .value = result } },
     }) } });

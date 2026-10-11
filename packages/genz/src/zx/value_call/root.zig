@@ -7,7 +7,7 @@ pub const analysis = @import("analysis.zig");
 pub const functions = analysis.functions;
 pub const containsDescendant = analysis.containsDescendant;
 
-pub fn expression(self: *Lower, id: ir.ExprId) Lower.Error!*const node.Expression {
+pub fn expression(self: *Lower, id: ir.ExprId) Lower.Error!node.ExpressionId {
     if (self.state_active and self.state_plan.represented(self.program, self.program.expression(id).type_id)) return self.expr(id);
     if (self.cache.contains(id)) return dereference(self, id);
 
@@ -37,29 +37,29 @@ pub fn expression(self: *Lower, id: ir.ExprId) Lower.Error!*const node.Expressio
     };
 }
 
-fn dereference(self: *Lower, id: ir.ExprId) Lower.Error!*const node.Expression {
+fn dereference(self: *Lower, id: ir.ExprId) Lower.Error!node.ExpressionId {
     return self.builder.expression(.{ .dereference = try self.expr(id) });
 }
 
-pub fn invocation(self: *Lower, value: @FieldType(@FieldType(ir.ExpressionRow, "value"), "call"), buffers: ?*const node.Expression) Lower.Error!*const node.Expression {
+pub fn invocation(self: *Lower, value: @FieldType(@FieldType(ir.ExpressionRow, "value"), "call"), buffers: ?node.ExpressionId) Lower.Error!node.ExpressionId {
     var body: std.ArrayList(node.Statement) = .empty;
     const result = try lowerInvocation(self, &body, value, buffers, false, .layout);
 
     return aggregate.finish(self, &body, result);
 }
 
-pub fn borrowInvocation(self: *Lower, body: *std.ArrayList(node.Statement), value: @FieldType(@FieldType(ir.ExpressionRow, "value"), "call")) Lower.Error!*const node.Expression {
+pub fn borrowInvocation(self: *Lower, body: *std.ArrayList(node.Statement), value: @FieldType(@FieldType(ir.ExpressionRow, "value"), "call")) Lower.Error!node.ExpressionId {
     return lowerInvocation(self, body, value, null, true, .layout);
 }
 
-pub fn pointerInvocation(self: *Lower, value: @FieldType(@FieldType(ir.ExpressionRow, "value"), "call")) Lower.Error!*const node.Expression {
+pub fn pointerInvocation(self: *Lower, value: @FieldType(@FieldType(ir.ExpressionRow, "value"), "call")) Lower.Error!node.ExpressionId {
     var body: std.ArrayList(node.Statement) = .empty;
     const result = try lowerInvocation(self, &body, value, null, false, .pointer);
 
     return aggregate.finish(self, &body, result);
 }
 
-fn lowerInvocation(self: *Lower, body: *std.ArrayList(node.Statement), value: @FieldType(@FieldType(ir.ExpressionRow, "value"), "call"), buffers: ?*const node.Expression, borrowed: bool, result_mode: @import("../state_value/conversion.zig").Mode) Lower.Error!*const node.Expression {
+fn lowerInvocation(self: *Lower, body: *std.ArrayList(node.Statement), value: @FieldType(@FieldType(ir.ExpressionRow, "value"), "call"), buffers: ?node.ExpressionId, borrowed: bool, result_mode: @import("../state_value/conversion.zig").Mode) Lower.Error!node.ExpressionId {
     const function = self.program.functions.at(@backingInt(value.function));
     const can_stack = !containsDescendant(self.program, function.output_type, function.input_type);
 
@@ -91,7 +91,7 @@ fn lowerInvocation(self: *Lower, body: *std.ArrayList(node.Statement), value: @F
 
     const selected_buffers = if (buffers) |ready| ready else if (selected) |slots| try transfer.prepare(self, body, value, &argument, slots) else null;
     const callee = try self.requestFunction(value.function, if (selected_buffers != null) .buffered else .value);
-    const arguments = try self.allocator.alloc(*const node.Expression, if (selected_buffers != null) 3 else 2);
+    const arguments = try self.allocator.alloc(node.ExpressionId, if (selected_buffers != null) 3 else 2);
     arguments[0] = try self.builder.identifier("allocator");
     arguments[1] = argument;
 

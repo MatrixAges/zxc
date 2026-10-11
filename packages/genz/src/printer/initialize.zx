@@ -1,0 +1,24 @@
+import { Action, ByteSource } from "./model"
+import { Token } from "./model/token"
+
+import type { Source, State, Frame } from "./model"
+
+export type Input = { source: Source, output: u8[] }
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const initial: State = { source: in.source, stack: [], output: in.output, depth: 0 }
+    const frame: Frame = { action: Action.Declaration, token: Token.Empty, bytes: ByteSource.None, id: 0, count: 0, index: 0, number: 0 }
+
+    const result = loop({ state: initial, remaining: in.source.count, frame: frame }, {
+        while: current => current.remaining != 0,
+        next: current => {
+            current.remaining -= 1
+            current.state.stack = current.state.stack.push({ ...current.frame, action: Action.Text, token: Token.Newline })[0]
+            current.state.stack = current.state.stack.push({ ...current.frame, id: current.state.source.first + current.remaining })[0]
+        }
+    })
+
+    return result.state
+}

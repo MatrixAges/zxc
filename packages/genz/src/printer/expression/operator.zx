@@ -1,0 +1,26 @@
+import { ExpressionsBinaryOperator } from "../model/expressions"
+import { Token } from "../model/token"
+
+export type Input = ExpressionsBinaryOperator
+
+export type Output = Token
+
+export default function (in: Input): Output {
+    return match in {
+        ExpressionsBinaryOperator.Add => Token.Add,
+        ExpressionsBinaryOperator.SaturatingAdd => Token.SaturatingAdd,
+        ExpressionsBinaryOperator.ShiftLeft => Token.ShiftLeft,
+        ExpressionsBinaryOperator.Subtract => Token.Subtract,
+        ExpressionsBinaryOperator.Multiply => Token.Multiply,
+        ExpressionsBinaryOperator.Divide => Token.Divide,
+        ExpressionsBinaryOperator.Equal => Token.Equal,
+        ExpressionsBinaryOperator.NotEqual => Token.NotEqual,
+        ExpressionsBinaryOperator.Less => Token.Less,
+        ExpressionsBinaryOperator.LessEqual => Token.LessEqual,
+        ExpressionsBinaryOperator.Greater => Token.Greater,
+        ExpressionsBinaryOperator.GreaterEqual => Token.GreaterEqual,
+        ExpressionsBinaryOperator.LogicalAnd => Token.And,
+        ExpressionsBinaryOperator.LogicalOr => Token.Or,
+        _ => Token.Orelse,
+    }
+}

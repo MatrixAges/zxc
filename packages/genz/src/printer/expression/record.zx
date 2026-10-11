@@ -1,0 +1,65 @@
+import integers from "std:integer"
+
+import { Action, ByteSource } from "../model"
+import { ExpressionsKind } from "../model/expressions"
+import { Token } from "../model/token"
+
+import type { Step, Frame } from "../model"
+
+export type Input = Step
+
+export type Output = Frame[]
+
+export default function (in: Input): Output {
+    const tree = in.source.expressions
+    const kind = tree.tags[integers.widen(in.frame.id)]
+    const id = tree.offsets[integers.widen(in.frame.id)]
+    const row = integers.widen(id)
+    const object = kind == ExpressionsKind.Object
+    const frame: Frame = { action: Action.Text, token: Token.Empty, bytes: ByteSource.None, id: 0, count: 0, index: 0, number: 0 }
+    const type_expr = object ? tree.object_type_expr[row] : null
+    const object_type: Frame = type_expr == null ? { ...frame, token: Token.Dot } : { ...frame, action: Action.Expression, id: type_expr }
+    const opening: Frame[] = object ? [object_type, { ...frame, token: Token.BraceOpen }] : [{ ...frame, token: Token.StructOpen }, { ...frame, action: Action.Enter }]
+
+    const field_first = match kind {
+        ExpressionsKind.Object => tree.object_fields_start[row],
+        ExpressionsKind.StructType => tree.struct_type_start[row],
+        ExpressionsKind.ContainerType => tree.container_type_fields_start[row],
+        _ => 0,
+    }
+
+    const field_count = match kind {
+        ExpressionsKind.Object => tree.object_fields_len[row],
+        ExpressionsKind.StructType => tree.struct_type_len[row],
+        ExpressionsKind.ContainerType => tree.container_type_fields_len[row],
+        _ => 0,
+    }
+
+    const zero: u32 = 0
+
+    const fields = loop({ frames: opening, index: zero, object: object, first: field_first, count: field_count, frame: frame }, {
+        while: current => current.index < current.count,
+        next: current => {
+            if (!current.object) {
+                current.frames = current.frames.push({ ...current.frame, action: Action.Indent })[0]
+            }
+
+            current.frames = current.frames.push({ ...current.frame, action: current.object ? Action.ObjectField : Action.Field, id: current.first + current.index })[0]
+            current.index += 1
+        }
+    })
+
+    const declaration_first = match kind { ExpressionsKind.NamespaceType => tree.namespace_type_start[row], ExpressionsKind.ContainerType => tree.container_type_declarations_start[row], _ => 0, }
+    const declaration_count = match kind { ExpressionsKind.NamespaceType => tree.namespace_type_len[row], ExpressionsKind.ContainerType => tree.container_type_declarations_len[row], _ => 0, }
+
+    const declarations = loop({ frames: fields.frames, index: zero, first: declaration_first, count: declaration_count, frame: frame }, {
+        while: current => current.index < current.count,
+        next: current => {
+            current.frames = current.frames.push({ ...current.frame, action: Action.Indent })[0]
+            current.frames = current.frames.push({ ...current.frame, action: Action.Declaration, id: current.first + current.index })[0]
+            current.index += 1
+        }
+    })
+
+    return object ? declarations.frames.push({ ...frame, token: Token.ObjectClose })[0] : declarations.frames.concat([{ ...frame, action: Action.Leave }, { ...frame, action: Action.Indent }, { ...frame, token: Token.BraceClose }])[0]
+}

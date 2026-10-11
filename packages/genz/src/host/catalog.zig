@@ -17,17 +17,17 @@ pub fn render(allocator: std.mem.Allocator, modules: []const Module) std.mem.All
 
     defer arena.deinit();
 
-    const builder = Builder{ .allocator = arena.allocator() };
+    const builder = try Builder.init(arena.allocator());
     const string = try builder.expression(.{ .const_slice = try builder.expression(.{ .primitive = .u8 }) });
     var fields: std.ArrayList(node.Field) = .empty;
-    var values: std.ArrayList(*const node.Expression) = .empty;
+    var values: std.ArrayList(node.ExpressionId) = .empty;
 
     inline for (.{ "specifier", "path", "source", "module", "namespace", "implementation_path" }) |name| {
         try fields.append(builder.allocator, .{ .name = name, .value = if (comptime std.mem.eql(u8, name, "namespace")) try builder.expression(.{ .const_slice = string }) else string });
     }
 
     for (modules) |module| {
-        var namespace: std.ArrayList(*const node.Expression) = .empty;
+        var namespace: std.ArrayList(node.ExpressionId) = .empty;
 
         for (module.namespace) |part| try namespace.append(builder.allocator, try builder.string(part));
 
@@ -41,7 +41,7 @@ pub fn render(allocator: std.mem.Allocator, modules: []const Module) std.mem.All
         }));
     }
 
-    return @import("../render.zig").render(allocator, &.{
+    return @import("../render.zig").render(allocator, builder.nodes, &.{
         .{ .constant = .{ .name = "Source", .value = try builder.expression(.{ .struct_type = try fields.toOwnedSlice(builder.allocator) }), .exported = true } },
         .{ .constant = .{ .name = "modules", .type_expr = try builder.expression(.{ .const_slice = try builder.identifier("Source") }), .value = try builder.expression(.{ .address_of = try builder.tuple(values.items) }), .exported = true } },
     });

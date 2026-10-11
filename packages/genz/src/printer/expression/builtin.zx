@@ -1,0 +1,43 @@
+import { ExpressionsBuiltinName } from "../model/expressions"
+import { Token } from "../model/token"
+
+export type Input = ExpressionsBuiltinName
+
+export type Output = Token
+
+export default function (in: Input): Output {
+    return match in {
+        ExpressionsBuiltinName.DivTrunc => Token.DivTrunc,
+        ExpressionsBuiltinName.Rem => Token.Rem,
+        ExpressionsBuiltinName.As => Token.As,
+        ExpressionsBuiltinName.SetRuntimeSafety => Token.SetRuntimeSafety,
+        ExpressionsBuiltinName.Import => Token.Import,
+        ExpressionsBuiltinName.EmbedFile => Token.EmbedFile,
+        ExpressionsBuiltinName.IntCast => Token.IntCast,
+        ExpressionsBuiltinName.FloatCast => Token.FloatCast,
+        ExpressionsBuiltinName.FloatFromInt => Token.FloatFromInt,
+        ExpressionsBuiltinName.IntFromFloat => Token.IntFromFloat,
+        ExpressionsBuiltinName.Trunc => Token.Trunc,
+        ExpressionsBuiltinName.TagName => Token.TagName,
+        ExpressionsBuiltinName.EnumFromInt => Token.EnumFromInt,
+        ExpressionsBuiltinName.IntFromEnum => Token.IntFromEnum,
+        ExpressionsBuiltinName.TypeOf => Token.TypeOf,
+        ExpressionsBuiltinName.FieldType => Token.FieldType,
+        ExpressionsBuiltinName.TypeInfo => Token.TypeInfo,
+        ExpressionsBuiltinName.SizeOf => Token.SizeOf,
+        ExpressionsBuiltinName.Max => Token.Max,
+        ExpressionsBuiltinName.IntFromPtr => Token.IntFromPtr,
+        ExpressionsBuiltinName.Int => Token.Int,
+        ExpressionsBuiltinName.Export => Token.Export,
+        ExpressionsBuiltinName.CompileError => Token.CompileError,
+        ExpressionsBuiltinName.IntFromBool => Token.IntFromBool,
+        ExpressionsBuiltinName.ErrorName => Token.ErrorName,
+        ExpressionsBuiltinName.This => Token.This,
+        ExpressionsBuiltinName.ConstCast => Token.ConstCast,
+        ExpressionsBuiltinName.PtrCast => Token.PtrCast,
+        ExpressionsBuiltinName.AlignCast => Token.AlignCast,
+        ExpressionsBuiltinName.Memcpy => Token.Memcpy,
+        ExpressionsBuiltinName.Vector => Token.Vector,
+        _ => Token.Splat,
+    }
+}

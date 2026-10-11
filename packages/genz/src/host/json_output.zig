@@ -5,17 +5,17 @@ const Builder = @import("../builder.zig");
 
 pub const Output = struct { types: ir.TypeTable, id: ir.TypeId };
 
-pub fn lower(builder: Builder, output: Output) std.mem.Allocator.Error![]const node.Statement {
+pub fn lower(builder: Builder, output: Output) std.mem.Allocator.Error!node.Block {
     return lowerFailure(builder, output, &.{.{ .result = try builder.expression(.{ .error_value = "NonFiniteJsonNumber" }) }});
 }
 
-pub fn lowerFailure(builder: Builder, output: Output, failure: []const node.Statement) std.mem.Allocator.Error![]const node.Statement {
+pub fn lowerFailure(builder: Builder, output: Output, failure: []const node.Statement) std.mem.Allocator.Error!node.Block {
     var sequence: usize = 0;
 
-    return check(builder, output.types, output.id, try builder.identifier("output"), &sequence, failure);
+    return builder.statements(try check(builder, output.types, output.id, try builder.identifier("output"), &sequence, failure));
 }
 
-fn check(builder: Builder, types: ir.TypeTable, id: ir.TypeId, value: *const node.Expression, sequence: *usize, failure: []const node.Statement) std.mem.Allocator.Error![]const node.Statement {
+fn check(builder: Builder, types: ir.TypeTable, id: ir.TypeId, value: node.ExpressionId, sequence: *usize, failure: []const node.Statement) std.mem.Allocator.Error![]const node.Statement {
     var body: std.ArrayList(node.Statement) = .empty;
 
     switch (types.at(@backingInt(id))) {
@@ -31,9 +31,9 @@ fn check(builder: Builder, types: ir.TypeTable, id: ir.TypeId, value: *const nod
             const nested = try check(builder, types, child, try builder.identifier(name), sequence, failure);
 
             if (nested.len != 0) try body.append(builder.allocator, if (types.at(@backingInt(id)) == .optional)
-                .{ .branch = .{ .condition = value, .capture = name, .yes = nested, .no = &.{} } }
+                .{ .branch = .{ .condition = value, .capture = name, .yes = try builder.statements(nested), .no = .{} } }
             else
-                .{ .for_loop = .{ .iterable = value, .capture = name, .body = nested } });
+                .{ .for_loop = .{ .iterable = value, .capture = name, .body = try builder.statements(nested) } });
         },
         .object => |fields| for (0..fields.len) |view_index| {
             const field = fields.at(view_index);

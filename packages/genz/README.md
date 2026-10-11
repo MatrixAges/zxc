@@ -11,14 +11,14 @@ Zig 代码生成包，包含独立的结构化生成原语与 ZX IR lowering。�
 - `node.Expression`：标识符、整数字面量、浮点位模式、字符串、布尔值、类型、指针、可选值、枚举、元组、数组、成员、索引、一元/二元运算、调用、错误传播、条件、对象与有标签表达式块；`container_type` 组合结构体字段与方法声明。
 - `node.Statement`：常量、局部变量、赋值、循环、返回、分支、块结果、丢弃值及表达式语句。
 - `node.Declaration`：常量和函数声明。
-- `Builder`：在调用者提供的 allocator 中构造表达式，提供 identifier/integer/string 便捷函数；其他原语直接通过 `expression` 接收结构化联合值。
-- `render(allocator, declarations)`：生成调用方拥有的 Zig 源码，使用同一 allocator.free 释放。
+- `Builder.init(allocator)`：在调用者提供的 arena 中建立共享 AST 存储。表达式构造返回 `node.ExpressionId`；`statements` 返回 `node.Block` 范围。节点按种类保存有效负载，复制 Builder 或 Lower 时共享同一存储。
+- `render(allocator, builder.nodes, declarations)`：读取同一 AST 存储，生成调用方拥有的 Zig 源码，使用同一 allocator.free 释放。不同 Builder 的节点 ID 不可混用。
 - `zx.emit(allocator, program)`：将已校验的 ZX IR 生成 Zig 源码。
 - `zx.bundle(allocator, program)`：生成应用源码与共享类型源码，返回 `Bundle`，使用 `deinit(allocator)` 释放两者。
 - `zx.modules.entry`、`zx.modules.function`、`zx.modules.types`：使用完整已校验 IR 和 `Names{ types, functions }` 生成独立入口、选定 FunctionId 的真实函数或共享 ABI；返回源码由调用方释放。名称数组分别对应完整类型表和函数表，函数名称作为 Zig import key。
 
 ```zig
-const builder = genz.Builder{ .allocator = arena.allocator() };
+const builder = try genz.Builder.init(arena.allocator());
 const left = try builder.identifier("left");
 const right = try builder.integer(2);
 

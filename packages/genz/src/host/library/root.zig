@@ -28,10 +28,10 @@ pub fn render(allocator: std.mem.Allocator, options: Options) Error![]u8 {
 
     defer arena.deinit();
 
-    const builder = Builder{ .allocator = arena.allocator() };
+    const builder = try Builder.init(arena.allocator());
     const memory = builder.allocator;
     var body: std.ArrayList(node.Statement) = .empty;
-    var names: std.StringHashMapUnmanaged(*const node.Expression) = .empty;
+    var names: std.StringHashMapUnmanaged(node.ExpressionId) = .empty;
     const abi = try builder.identifier("abi");
 
     try body.appendSlice(memory, &.{
@@ -73,19 +73,19 @@ pub fn render(allocator: std.mem.Allocator, options: Options) Error![]u8 {
         for (options.library_paths) |path| try body.append(memory, .{ .expression = try builder.call(try builder.field(module, "addLibraryPath"), &.{try builder.object(&.{.{ .name = "cwd_relative", .value = try builder.string(path) }})}) });
     }
 
-    return @import("../../render.zig").render(allocator, &.{
+    return @import("../../render.zig").render(allocator, builder.nodes, &.{
         .{ .constant = .{ .name = "std", .value = try builder.builtin(.import, &.{try builder.string("std")}) } },
         .{ .function = .{
             .name = "build",
             .parameters = try memory.dupe(node.Field, &.{.{ .name = "b", .value = try builder.expression(.{ .pointer = try builder.path(&.{ "std", "Build" }) }) }}),
             .return_type = try builder.expression(.{ .primitive = .void }),
-            .body = try body.toOwnedSlice(memory),
+            .body = try builder.statements(body.items),
             .exported = true,
         } },
     });
 }
 
-fn dependencies(builder: Builder, body: *std.ArrayList(node.Statement), names: std.StringHashMapUnmanaged(*const node.Expression), module: *const node.Expression, values: []const []const u8, aliases: bool) Error!void {
+fn dependencies(builder: Builder, body: *std.ArrayList(node.Statement), names: std.StringHashMapUnmanaged(node.ExpressionId), module: node.ExpressionId, values: []const []const u8, aliases: bool) Error!void {
     for (values) |value| {
         const separator = if (aliases) std.mem.indexOfScalar(u8, value, '=') else null;
         const alias = if (separator) |index| value[0..index] else value;

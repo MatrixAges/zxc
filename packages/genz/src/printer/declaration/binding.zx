@@ -1,0 +1,18 @@
+import { Action, ByteSource } from "../model"
+import { Token } from "../model/token"
+
+import type { Frame } from "../model"
+
+export type Input = { name: Frame, type_expr: u32?, value: u32, exported: bool, mutable: bool }
+
+export type Output = Frame[]
+
+export default function (in: Input): Output {
+    const frame: Frame = { action: Action.Text, token: Token.Empty, bytes: ByteSource.None, id: 0, count: 0, index: 0, number: 0 }
+    const visibility: Frame[] = in.exported ? [{ ...frame, token: Token.PubPrefix }] : []
+    const binding = visibility.concat([{ ...frame, token: in.mutable ? Token.VarPrefix : Token.ConstPrefix }, in.name])[0]
+    const annotation = in.type_expr
+    const typed = annotation == null ? binding : binding.concat([{ ...frame, token: Token.Colon }, { ...frame, action: Action.Expression, id: annotation }])[0]
+
+    return typed.concat([{ ...frame, token: Token.Assignment }, { ...frame, action: Action.Expression, id: in.value }, { ...frame, token: Token.StatementEnd }])[0]
+}

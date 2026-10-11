@@ -5,12 +5,12 @@ const Builder = @import("../object_reduce/append/builder.zig");
 const Lane = @import("analysis/flow.zig").Lane;
 const ir = @import("zx").ir;
 
-pub fn typeOf(lowering: *Lower, lanes: []const Lane) Lower.Error!*const node.Expression {
+pub fn typeOf(lowering: *Lower, lanes: []const Lane) Lower.Error!node.ExpressionId {
     return typeFor(lowering, lowering.program.output_type, lanes);
 }
 
 /// Buffers parameter type of a function with the given output type and lanes.
-pub fn typeFor(lowering: *Lower, output_type: ir.TypeId, lanes: []const Lane) Lower.Error!*const node.Expression {
+pub fn typeFor(lowering: *Lower, output_type: ir.TypeId, lanes: []const Lane) Lower.Error!node.ExpressionId {
     var fields: std.ArrayList(node.Field) = .empty;
     var key: std.ArrayList(u8) = .empty;
 
@@ -45,13 +45,14 @@ pub fn builder(lowering: *Lower, index: usize) Lower.Error!Builder {
     return .{
         .buffer = try lowering.builder.expression(.{ .dereference = try lowering.field(payload, "buffer") }),
         .started = try lowering.builder.expression(.{ .dereference = try lowering.field(payload, "started") }),
+        .allocator = try lowering.builder.binary(.coalesce, try lowering.field(payload, "allocator"), try lowering.builder.identifier("allocator")),
         .enabled = try lowering.builder.expression(.{ .binary = .{ .operator = .not_equal, .left = slot, .right = try lowering.builder.expression(.null_value) } }),
         .slot = slot,
         .lane = index,
     };
 }
 
-pub fn argument(lowering: *Lower, output_type: ir.TypeId, lanes: []const Lane, slots: []const ?Builder) Lower.Error!*const node.Expression {
+pub fn argument(lowering: *Lower, output_type: ir.TypeId, lanes: []const Lane, slots: []const ?Builder) Lower.Error!node.ExpressionId {
     if (try forwardsAll(lowering, output_type, lanes, slots)) {
         lowering.uses_buffers = true;
 
@@ -73,6 +74,7 @@ pub fn argument(lowering: *Lower, output_type: ir.TypeId, lanes: []const Lane, s
             const members = try lowering.allocator.dupe(node.Field, &.{
                 .{ .name = "buffer", .value = try lowering.builder.expression(.{ .address_of = source.buffer }) },
                 .{ .name = "started", .value = try lowering.builder.expression(.{ .address_of = source.started }) },
+                .{ .name = "allocator", .value = source.allocator orelse try lowering.builder.expression(.null_value) },
             });
 
             const payload = try lowering.builder.expression(.{ .object = .{ .fields = members } });
@@ -98,9 +100,9 @@ pub fn name(lowering: *Lower, index: usize) Lower.Error![]const u8 {
 
 /// True when every lane of the callee receives the caller's slot of the same lane and both share one named buffers type.
 fn forwardsAll(lowering: *Lower, output_type: ir.TypeId, lanes: []const Lane, slots: []const ?Builder) Lower.Error!bool {
-    const current = lowering.buffered_type orelse return false;
+    const current = lowering.builder.nodes.get(lowering.buffered_type orelse return false);
 
-    if (lowering.function_modules != null or current.* != .identifier) return false;
+    if (lowering.function_modules != null or current != .identifier) return false;
 
     for (lanes, slots, 0..) |lane, slot, index| {
         if (lane.rejection != null) continue;
@@ -110,7 +112,7 @@ fn forwardsAll(lowering: *Lower, output_type: ir.TypeId, lanes: []const Lane, sl
         if (source.slot == null or source.lane != index) return false;
     }
 
-    const callee = try typeFor(lowering, output_type, lanes);
+    const callee = lowering.builder.nodes.get(try typeFor(lowering, output_type, lanes));
 
     return std.mem.eql(u8, callee.identifier, current.identifier);
 }

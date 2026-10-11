@@ -1,0 +1,30 @@
+import integers from "std:integer"
+
+export type Input = { output: u8[], bytes: u8[] }
+
+export type Output = u8[]
+
+export default function (in: Input): Output {
+    const digits: u8[] = [48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 97, 98, 99, 100, 101, 102]
+
+    const result = loop({ output: in.output.push(34)[0], index: 0, bytes: in.bytes, digits: digits }, {
+        while: current => current.index < current.bytes.length,
+        next: current => {
+            const byte = current.bytes[current.index]
+
+            if (byte == 34 || byte == 92) {
+                current.output = current.output.concat([92, byte])[0]
+            } else if (byte == 10 || byte == 13 || byte == 9) {
+                current.output = current.output.concat([92, match byte { 10 => 110, 13 => 114, _ => 116, }])[0]
+            } else if (byte >= 32 && byte <= 126) {
+                current.output = current.output.push(byte)[0]
+            } else {
+                current.output = current.output.concat([92, 120, current.digits[integers.widenByte(byte / 16)], current.digits[integers.widenByte(byte % 16)]])[0]
+            }
+
+            current.index += 1
+        }
+    })
+
+    return result.output.push(34)[0]
+}

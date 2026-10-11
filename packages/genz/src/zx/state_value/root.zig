@@ -7,9 +7,9 @@ pub const conversion = @import("conversion.zig");
 const Self = @This();
 
 lowering: *Lower,
-types: []*const node.Expression,
-layouts: []*const node.Expression,
-cache: std.AutoHashMapUnmanaged(ir.ExprId, *const node.Expression),
+types: []node.ExpressionId,
+layouts: []node.ExpressionId,
+cache: std.AutoHashMapUnmanaged(ir.ExprId, node.ExpressionId),
 active: bool,
 buffer_pointer: bool,
 pub fn enter(lowering: *Lower) Lower.Error!Self {
@@ -17,7 +17,7 @@ pub fn enter(lowering: *Lower) Lower.Error!Self {
 
     if (self.active) return self;
 
-    var cache: std.AutoHashMapUnmanaged(ir.ExprId, *const node.Expression) = .empty;
+    var cache: std.AutoHashMapUnmanaged(ir.ExprId, node.ExpressionId) = .empty;
     var entries = self.cache.iterator();
 
     while (entries.next()) |entry| {

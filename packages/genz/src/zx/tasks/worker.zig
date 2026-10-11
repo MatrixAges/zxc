@@ -4,7 +4,7 @@ const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
 const standardField = @import("../intrinsics.zig").standardField;
 
-pub fn lower(self: *Lower, id: ir.ExprId, process: bool) Lower.Error!*const node.Expression {
+pub fn lower(self: *Lower, id: ir.ExprId, process: bool) Lower.Error!node.ExpressionId {
     const declaration_index = self.task_declarations.items.len;
     const name = try std.fmt.allocPrint(self.allocator, "zx_task_worker_{d}", .{declaration_index});
 
@@ -58,7 +58,7 @@ pub fn lower(self: *Lower, id: ir.ExprId, process: bool) Lower.Error!*const node
 
     try body.append(self.allocator, .{ .result = result });
 
-    const function: node.Declaration = .{ .function = .{ .name = "run", .parameters = try parameters.toOwnedSlice(self.allocator), .return_type = try self.builder.expression(.{ .error_union = .{ .payload = self.types[@backingInt(task_type.result)], .errors = self.program.typeOf(task_type.errors).error_set } }), .body = try body.toOwnedSlice(self.allocator) } };
+    const function: node.Declaration = .{ .function = .{ .name = "run", .parameters = try parameters.toOwnedSlice(self.allocator), .return_type = try self.builder.expression(.{ .error_union = .{ .payload = self.types[@backingInt(task_type.result)], .errors = self.program.typeOf(task_type.errors).error_set } }), .body = try self.builder.statements(body.items) } };
     self.task_declarations.items[declaration_index] = .{ .constant = .{ .name = name, .value = try self.builder.expression(.{ .namespace_type = try self.allocator.dupe(node.Declaration, &.{function}) }) } };
 
     return self.builder.identifier(name);

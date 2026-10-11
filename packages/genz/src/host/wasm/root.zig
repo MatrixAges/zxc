@@ -8,7 +8,7 @@ pub fn render(allocator: std.mem.Allocator, stateful: bool, output: @import("../
 
     defer arena.deinit();
 
-    const builder = Builder{ .allocator = arena.allocator() };
+    const builder = try Builder.init(arena.allocator());
     var declarations: std.ArrayList(node.Declaration) = .empty;
     const u32_type = try builder.expression(.{ .primitive = .u32 });
 
@@ -27,5 +27,5 @@ pub fn render(allocator: std.mem.Allocator, stateful: bool, output: @import("../
 
     try declarations.appendSlice(builder.allocator, try @import("scalar.zig").lower(builder, stateful));
 
-    return @import("../../render.zig").render(allocator, declarations.items);
+    return @import("../../render.zig").render(allocator, builder.nodes, declarations.items);
 }

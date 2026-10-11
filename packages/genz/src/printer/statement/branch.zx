@@ -1,0 +1,30 @@
+import integers from "std:integer"
+
+import { Action, ByteSource } from "../model"
+import { Token } from "../model/token"
+
+import type { Step, Frame } from "../model"
+
+export type Input = Step
+
+export type Output = Frame[]
+
+export default function (in: Input): Output {
+    const tree = in.source.statements
+    const id = tree.offsets[integers.widen(in.frame.id)]
+    const row = integers.widen(id)
+    const frame: Frame = { action: Action.Text, token: Token.Empty, bytes: ByteSource.None, id: id, count: 0, index: 0, number: 0 }
+    const opening: Frame[] = [{ ...frame, token: Token.IfOpen }, { ...frame, action: Action.Expression, id: tree.branch_condition[row] }, { ...frame, token: Token.CloseSpace }]
+    const capture_prefix = tree.branch_capture_reference[row] ? Token.ReferenceCapture : Token.CaptureOpen
+    const captured = tree.branch_capture[row] == null ? opening : opening.concat([{ ...frame, token: capture_prefix }, { ...frame, action: Action.Identifier, bytes: ByteSource.BranchCapture }, { ...frame, token: Token.CaptureClose }])[0]
+    const yes = captured.push({ ...frame, action: Action.Block, id: tree.branch_yes_start[row], count: tree.branch_yes_len[row] })[0]
+
+    if (tree.branch_no_len[row] == 0 && tree.branch_error_capture[row] == null) {
+        return yes.push({ ...frame, token: Token.Newline })[0]
+    }
+
+    const alternative = yes.push({ ...frame, token: Token.ElseSeparator })[0]
+    const failed = tree.branch_error_capture[row] == null ? alternative : alternative.concat([{ ...frame, token: Token.CaptureOpen }, { ...frame, action: Action.Identifier, bytes: ByteSource.BranchErrorCapture }, { ...frame, token: Token.CaptureClose }])[0]
+
+    return failed.concat([{ ...frame, action: Action.Block, id: tree.branch_no_start[row], count: tree.branch_no_len[row] }, { ...frame, token: Token.Newline }])[0]
+}

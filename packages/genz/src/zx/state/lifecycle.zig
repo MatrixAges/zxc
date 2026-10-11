@@ -46,27 +46,27 @@ pub fn lower(builder: Builder, declarations: *std.ArrayList(node.Declaration), o
         const present = try builder.expression(.{ .binary = .{ .operator = .not_equal, .left = source, .right = try builder.expression(.null_value) } });
         const increment = try builder.expression(.{ .binary = .{ .operator = .add, .left = try builder.identifier("count"), .right = try builder.integer(1) } });
 
-        try validate.append(allocator, .{ .branch = .{ .condition = present, .yes = try allocator.dupe(node.Statement, &.{.{ .assignment = .{ .target = try builder.identifier("count"), .value = increment } }}), .no = &.{} } });
-        if (object.writable) try apply.append(allocator, .{ .branch = .{ .condition = source, .capture = "value", .yes = try allocator.dupe(node.Statement, &.{.{ .assignment = .{ .target = target, .value = try builder.identifier("value") } }}), .no = &.{} } });
+        try validate.append(allocator, .{ .branch = .{ .condition = present, .yes = try builder.statements(&.{.{ .assignment = .{ .target = try builder.identifier("count"), .value = increment } }}), .no = .{} } });
+        if (object.writable) try apply.append(allocator, .{ .branch = .{ .condition = source, .capture = "value", .yes = try builder.statements(&.{.{ .assignment = .{ .target = target, .value = try builder.identifier("value") } }}), .no = .{} } });
     }
 
     const multiple = try builder.expression(.{ .binary = .{ .operator = .greater, .left = try builder.identifier("count"), .right = try builder.integer(1) } });
 
-    try validate.append(allocator, .{ .branch = .{ .condition = multiple, .yes = try allocator.dupe(node.Statement, &.{.{ .result = try builder.expression(.{ .error_value = "MultipleStoreObjects" }) }}), .no = &.{} } });
+    try validate.append(allocator, .{ .branch = .{ .condition = multiple, .yes = try builder.statements(&.{.{ .result = try builder.expression(.{ .error_value = "MultipleStoreObjects" }) }}), .no = .{} } });
 
     for (objects, 0..) |object, index| {
         if (object.writable) continue;
 
         const present = try builder.expression(.{ .binary = .{ .operator = .not_equal, .left = try builder.field(changes, try std.fmt.allocPrint(allocator, "store_{d}", .{index})), .right = try builder.expression(.null_value) } });
 
-        try validate.append(allocator, .{ .branch = .{ .condition = present, .yes = try allocator.dupe(node.Statement, &.{.{ .result = try builder.expression(.{ .error_value = "StoreNotWritable" }) }}), .no = &.{} } });
+        try validate.append(allocator, .{ .branch = .{ .condition = present, .yes = try builder.statements(&.{.{ .result = try builder.expression(.{ .error_value = "StoreNotWritable" }) }}), .no = .{} } });
     }
 
     try validate.append(allocator, .{ .result = try builder.expression(.{ .binary = .{ .operator = .not_equal, .left = try builder.identifier("count"), .right = try builder.integer(0) } }) });
 
     const valid = try builder.expression(.{ .try_value = try builder.call(try builder.identifier("validate"), &.{changes}) });
 
-    try commit.append(allocator, .{ .branch = .{ .condition = try builder.expression(.{ .unary = .{ .operator = .not, .operand = valid } }), .yes = try allocator.dupe(node.Statement, &.{.{ .result = null }}), .no = &.{} } });
+    try commit.append(allocator, .{ .branch = .{ .condition = try builder.expression(.{ .unary = .{ .operator = .not, .operand = valid } }), .yes = try builder.statements(&.{.{ .result = null }}), .no = .{} } });
     if (storage.reclaimable(objects)) try commit.append(allocator, .{ .assignment = .{ .target = try builder.field(self, "release_disabled"), .value = try builder.expression(.{ .boolean = true }) } });
     try commit.append(allocator, .{ .expression = try builder.call(try builder.field(self, "apply"), &.{changes}) });
 
@@ -74,9 +74,9 @@ pub fn lower(builder: Builder, declarations: *std.ArrayList(node.Declaration), o
     const update_parameters = try allocator.dupe(node.Field, &.{ self_parameter, changes_parameter });
 
     try declarations.appendSlice(allocator, &.{
-        .{ .function = .{ .name = "initialize", .parameters = self_parameters, .return_type = fallible, .body = try initialize.toOwnedSlice(allocator), .exported = true } },
-        .{ .function = .{ .name = "commit", .parameters = update_parameters, .return_type = fallible, .body = try commit.toOwnedSlice(allocator), .exported = true } },
-        .{ .function = .{ .name = "validate", .parameters = try allocator.dupe(node.Field, &.{changes_parameter}), .return_type = try builder.expression(.{ .error_union = .{ .inferred = true, .payload = try builder.expression(.{ .primitive = .bool }) } }), .body = try validate.toOwnedSlice(allocator) } },
-        .{ .function = .{ .name = "apply", .parameters = update_parameters, .return_type = unit, .body = try apply.toOwnedSlice(allocator) } },
+        .{ .function = .{ .name = "initialize", .parameters = self_parameters, .return_type = fallible, .body = try builder.statements(initialize.items), .exported = true } },
+        .{ .function = .{ .name = "commit", .parameters = update_parameters, .return_type = fallible, .body = try builder.statements(commit.items), .exported = true } },
+        .{ .function = .{ .name = "validate", .parameters = try allocator.dupe(node.Field, &.{changes_parameter}), .return_type = try builder.expression(.{ .error_union = .{ .inferred = true, .payload = try builder.expression(.{ .primitive = .bool }) } }), .body = try builder.statements(validate.items) } },
+        .{ .function = .{ .name = "apply", .parameters = update_parameters, .return_type = unit, .body = try builder.statements(apply.items) } },
     });
 }

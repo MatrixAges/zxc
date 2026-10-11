@@ -9,16 +9,16 @@ const Self = @This();
 lowering: *Lower,
 declarations: *std.ArrayList(node.Statement),
 inline_lists: bool = false,
-types: std.AutoHashMapUnmanaged(ir.TypeId, *const node.Expression) = .empty,
+types: std.AutoHashMapUnmanaged(ir.TypeId, node.ExpressionId) = .empty,
 symbols: std.AutoHashMapUnmanaged(ir.SymbolId, void) = .empty,
-cache: std.AutoHashMapUnmanaged(ir.ExprId, *const node.Expression) = .empty,
+cache: std.AutoHashMapUnmanaged(ir.ExprId, node.ExpressionId) = .empty,
 reads: std.AutoHashMapUnmanaged(ir.ExprId, usize) = .empty,
-argument: ?struct { id: ir.ExprId, value: *const node.Expression } = null,
+argument: ?struct { id: ir.ExprId, value: node.ExpressionId } = null,
 pub fn represented(self: *const Self, id: ir.TypeId) bool {
     return analysis.represented(self.lowering.program, id) or (self.inline_lists and self.lowering.program.typeOf(id) == .list);
 }
 
-pub fn expression(self: *Self, id: ir.ExprId) Lower.Error!?*const node.Expression {
+pub fn expression(self: *Self, id: ir.ExprId) Lower.Error!?node.ExpressionId {
     const lowering = self.lowering;
     const value = lowering.program.expression(id);
 
@@ -85,7 +85,7 @@ pub fn expression(self: *Self, id: ir.ExprId) Lower.Error!?*const node.Expressio
     };
 }
 
-fn unpack(self: *Self, id: ir.ExprId) Lower.Error!*const node.Expression {
+fn unpack(self: *Self, id: ir.ExprId) Lower.Error!node.ExpressionId {
     const lowering = self.lowering;
     var body: std.ArrayList(node.Statement) = .empty;
     const value = try aggregate.bind(lowering, &body, try lowering.regular(id));

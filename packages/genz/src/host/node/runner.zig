@@ -8,7 +8,7 @@ pub fn render(allocator: std.mem.Allocator, stateful: bool) std.mem.Allocator.Er
 
     defer arena.deinit();
 
-    const builder = Builder{ .allocator = arena.allocator() };
+    const builder = try Builder.init(arena.allocator());
     const memory = builder.allocator;
     const napi = try builder.identifier("napi");
     var declarations: std.ArrayList(node.Declaration) = .empty;
@@ -44,5 +44,5 @@ pub fn render(allocator: std.mem.Allocator, stateful: bool) std.mem.Allocator.Er
         try @import("execute.zig").lower(builder, stateful),
     });
 
-    return @import("../../render.zig").render(allocator, declarations.items);
+    return @import("../../render.zig").render(allocator, builder.nodes, declarations.items);
 }

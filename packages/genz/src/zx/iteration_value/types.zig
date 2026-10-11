@@ -3,7 +3,7 @@ const node = @import("../../node.zig");
 const Context = @import("root.zig");
 const Lower = @import("../lower.zig");
 
-pub fn get(self: *Context, id: ir.TypeId) Lower.Error!*const node.Expression {
+pub fn get(self: *Context, id: ir.TypeId) Lower.Error!node.ExpressionId {
     const lowering = self.lowering;
 
     if (self.types.get(id)) |value| return value;
@@ -23,7 +23,7 @@ pub fn get(self: *Context, id: ir.TypeId) Lower.Error!*const node.Expression {
             break :blk try lowering.builder.expression(.{ .struct_type = items });
         },
         .tuple => |children| blk: {
-            const items = try lowering.allocator.alloc(*const node.Expression, children.len);
+            const items = try lowering.allocator.alloc(node.ExpressionId, children.len);
 
             for (0..children.len, items) |item_index, *item| {
                 const child = children.at(item_index);
@@ -44,7 +44,7 @@ pub fn get(self: *Context, id: ir.TypeId) Lower.Error!*const node.Expression {
     return value;
 }
 
-pub fn element(lowering: *Lower, id: ir.TypeId) Lower.Error!*const node.Expression {
+pub fn element(lowering: *Lower, id: ir.TypeId) Lower.Error!node.ExpressionId {
     if (lowering.iteration_value) |context| if (context.inline_lists and @import("../iteration_layout.zig").represented(lowering.program, id)) return get(context, id);
 
     return lowering.types[@backingInt(id)];

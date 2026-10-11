@@ -34,14 +34,14 @@ pub fn lower(self: *Lower, invocations: @FieldType(ir.StatementRow, "parallel"))
         try output.append(self.allocator, .{ .variable = .{ .name = worker.*, .value = try self.builder.expression(.{ .object = .{ .type_expr = try self.builder.identifier(type_name), .fields = fields } }) } });
 
         const thread = try self.fresh("parallel_thread");
-        const arguments = try self.builder.expression(.{ .tuple = try self.allocator.dupe(*const node.Expression, &.{try self.builder.expression(.{ .address_of = try self.builder.identifier(worker.*) })}) });
+        const arguments = try self.builder.expression(.{ .tuple = try self.allocator.dupe(node.ExpressionId, &.{try self.builder.expression(.{ .address_of = try self.builder.identifier(worker.*) })}) });
         const spawn = try self.call(try standardField(self, &.{ "Thread", "spawn" }), &.{ try self.builder.expression(.{ .object = .{ .fields = &.{} } }), try self.field(try self.builder.identifier(type_name), "run"), arguments }, true);
 
         try spawning.append(self.allocator, .{ .constant = .{ .name = thread, .value = spawn } });
         try spawning.append(self.allocator, .{ .defer_expression = try self.call(try self.field(try self.builder.identifier(thread), "join"), &.{}, false) });
     }
 
-    try output.append(self.allocator, .{ .scope = try spawning.toOwnedSlice(self.allocator) });
+    try output.append(self.allocator, .{ .scope = try self.builder.statements(spawning.items) });
 
     for (0..invocations.len, workers) |invocation_index, worker| {
         const invocation = invocations.at(invocation_index);
@@ -54,7 +54,7 @@ pub fn lower(self: *Lower, invocations: @FieldType(ir.StatementRow, "parallel"))
     return output.toOwnedSlice(self.allocator);
 }
 
-fn workerType(self: *Lower, id: ir.FunctionId) Lower.Error!*const node.Expression {
+fn workerType(self: *Lower, id: ir.FunctionId) Lower.Error!node.ExpressionId {
     const function = self.program.functions.at(@backingInt(id));
     const instance = try self.builder.identifier("self");
 
@@ -71,7 +71,7 @@ fn workerType(self: *Lower, id: ir.FunctionId) Lower.Error!*const node.Expressio
         .value = try self.call(try self.functionReference(id), &.{ try self.field(instance, "allocator"), try self.field(instance, "input") }, false),
     } }});
 
-    const declarations = try self.allocator.dupe(node.Declaration, &.{.{ .function = .{ .name = "run", .parameters = parameters, .return_type = try self.builder.expression(.{ .primitive = .void }), .body = body } }});
+    const declarations = try self.allocator.dupe(node.Declaration, &.{.{ .function = .{ .name = "run", .parameters = parameters, .return_type = try self.builder.expression(.{ .primitive = .void }), .body = try self.builder.statements(body) } }});
 
     return self.builder.expression(.{ .container_type = .{ .fields = fields, .declarations = declarations } });
 }

@@ -4,7 +4,34 @@ const node = @import("../node.zig");
 const Lower = @import("lower.zig");
 
 pub fn lower(self: *Lower, output: *std.ArrayList(node.Declaration)) Lower.Error!void {
+    const selected = try self.allocator.alloc(bool, self.program.types.count());
+
+    @memset(selected, false);
+    selected[@backingInt(self.program.input_type)] = true;
+    selected[@backingInt(self.program.output_type)] = true;
+
+    var remaining = selected.len;
+
+    while (remaining > 0) {
+        remaining -= 1;
+
+        if (!selected[remaining]) continue;
+
+        switch (self.program.types.at(remaining)) {
+            .list, .optional => |child| selected[@backingInt(child)] = true,
+            .object => |fields| for (0..fields.len) |index| {
+                selected[@backingInt(fields.at(index).type_id)] = true;
+            },
+            .tuple => |items| for (0..items.len) |index| {
+                selected[@backingInt(items.at(index))] = true;
+            },
+            else => {},
+        }
+    }
+
     for (0..self.program.types.count()) |index| {
+        if (!selected[index]) continue;
+
         const value = self.program.types.at(index);
 
         if (value == .task) continue;
@@ -57,6 +84,6 @@ pub fn lower(self: *Lower, output: *std.ArrayList(node.Declaration)) Lower.Error
     try output.append(self.allocator, .{ .constant = .{ .name = "output_shape", .value = try reference(self, self.program.output_type), .exported = true } });
 }
 
-fn reference(self: *Lower, id: ir.TypeId) Lower.Error!*const node.Expression {
+fn reference(self: *Lower, id: ir.TypeId) Lower.Error!node.ExpressionId {
     return self.builder.identifier(try std.fmt.allocPrint(self.allocator, "zx_shape_{d}", .{@backingInt(id)}));
 }

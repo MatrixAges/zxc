@@ -34,7 +34,7 @@ pub fn readBody(builder: Builder) std.mem.Allocator.Error!node.Declaration {
             .{ .branch = .{ .condition = expect, .capture = "expect", .yes = try builder.statements(&.{
                 try reject(builder, try builder.expression(.{ .unary = .{ .operator = .not, .operand = expected } }), "expectation_failed", "unsupported expectation"),
                 .{ .assignment = .{ .target = expect, .value = try builder.string("100-continue") } },
-            }), .no = &.{} } },
+            }), .no = .{} } },
             try reject(builder, try builder.binary(.not_equal, try builder.field(head, "transfer_compression"), try builder.expression(.{ .enum_literal = "identity" })), "unsupported_media_type", "compressed input is unsupported"),
             try reject(builder, try builder.binary(.greater, length, maximum), "payload_too_large", "request body too large"),
             .{ .constant = .{ .name = "flush", .value = try builder.binary(.not_equal, expect, try builder.expression(.null_value)) } },
@@ -78,7 +78,7 @@ pub fn respond(builder: Builder) std.mem.Allocator.Error!node.Declaration {
     } };
 }
 
-fn requestType(builder: Builder) std.mem.Allocator.Error!*const node.Expression {
+fn requestType(builder: Builder) std.mem.Allocator.Error!node.ExpressionId {
     return builder.expression(.{ .pointer = try builder.path(&.{ "std", "http", "Server", "Request" }) });
 }
 
@@ -86,6 +86,6 @@ fn reply(builder: Builder, status: []const u8, message: []const u8) std.mem.Allo
     return .{ .expression = try builder.expression(.{ .try_value = try invoke.response(builder, status, try builder.string(message), &.{}) }) };
 }
 
-fn reject(builder: Builder, condition: *const node.Expression, status: []const u8, message: []const u8) std.mem.Allocator.Error!node.Statement {
+fn reject(builder: Builder, condition: node.ExpressionId, status: []const u8, message: []const u8) std.mem.Allocator.Error!node.Statement {
     return builder.branch(condition, &.{ try reply(builder, status, message), .{ .result = try builder.expression(.null_value) } }, &.{});
 }

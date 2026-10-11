@@ -99,7 +99,7 @@ pub fn lower(builder: Builder, stateful: bool) std.mem.Allocator.Error![]const n
     return declarations.toOwnedSlice(allocator);
 }
 
-fn exports(builder: Builder, input: *const node.Expression, output: *const node.Expression, void_type: *const node.Expression) std.mem.Allocator.Error!node.Declaration {
+fn exports(builder: Builder, input: node.ExpressionId, output: node.ExpressionId, void_type: node.ExpressionId) std.mem.Allocator.Error!node.Declaration {
     const supported = try builder.identifier("isScalar");
 
     const call = try builder.expression(.{ .conditional = .{

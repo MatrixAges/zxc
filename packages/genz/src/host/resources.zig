@@ -17,7 +17,7 @@ pub fn render(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.
 
     defer arena.deinit();
 
-    const builder = Builder{ .allocator = arena.allocator() };
+    const builder = try Builder.init(arena.allocator());
     var declarations: std.ArrayList(node.Declaration) = .empty;
 
     for ([_]struct { name: []const u8, file: []const u8 }{
@@ -34,5 +34,5 @@ pub fn render(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.
 
     try declarations.append(builder.allocator, .{ .constant = .{ .name = "zig_format", .value = try builder.expression(.{ .enum_literal = @tagName(options.zig_format) }), .exported = true } });
 
-    return @import("../render.zig").render(allocator, declarations.items);
+    return @import("../render.zig").render(allocator, builder.nodes, declarations.items);
 }

@@ -44,7 +44,7 @@ pub fn declaration(lowering: *Lower, name: []const u8, lanes: []const Lane, mode
         for (lane.appends) |id| try lowering.append_overrides.put(lowering.allocator, id, builder);
 
         for (lane.updates) |id| {
-            const capacity = @import("../iteration_buffer/capacity.zig"){ .buffer = builder.buffer, .started = builder.started };
+            const capacity = @import("../iteration_buffer/capacity.zig"){ .buffer = builder.buffer, .started = builder.started, .allocator = builder.allocator };
 
             try lowering.list_update_buffers.put(lowering.allocator, id, .{ .buffer = try capacity.items(lowering), .started = builder.started, .capacity = capacity, .enabled = builder.enabled });
         }
@@ -68,7 +68,7 @@ pub fn bind(lowering: *Lower, id: ir.ExprId, index: usize, builder: Builder) Low
     try lowering.buffer_calls.put(lowering.allocator, id, slots);
 }
 
-pub fn invocation(lowering: *Lower, id: ir.ExprId) Lower.Error!*const node.Expression {
+pub fn invocation(lowering: *Lower, id: ir.ExprId) Lower.Error!node.ExpressionId {
     const call = lowering.program.expression(id).value.call;
     const lanes = lowering.buffer_functions[@backingInt(call.function)];
     const argument = try context.argument(lowering, lowering.program.functions.at(@backingInt(call.function)).output_type, lanes, lowering.buffer_calls.get(id).?);

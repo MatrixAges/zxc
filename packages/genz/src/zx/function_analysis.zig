@@ -9,6 +9,16 @@ allocated: []const bool,
 transfers: []const []const buffer.transfer_analysis.Capability,
 io: []const bool,
 process: []const bool,
+pub fn hasValueEntry(self: Self, program: ir.Program) bool {
+    return @import("value_call/analysis.zig").eligibleEntry(program, self.value.local);
+}
+
+pub fn hasBufferedEntry(self: Self, allocator: std.mem.Allocator, workspace: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!bool {
+    if (!self.hasValueEntry(program) or !@import("value_call/analysis.zig").eligibleEntry(program, self.value.pure)) return false;
+
+    return buffer.available(try buffer.analysis.entry(allocator, workspace, program, self.buffers, self.value.pure));
+}
+
 pub const Owned = struct {
     arena: std.heap.ArenaAllocator,
     value: Self,

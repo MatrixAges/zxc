@@ -57,7 +57,7 @@ pub fn lower(builder: Builder, stateful: bool) std.mem.Allocator.Error!node.Decl
         .name = "register",
         .parameters = try parameters(builder),
         .return_type = try builder.expression(.{ .error_union = .{ .inferred = true, .payload = try builder.path(&.{ "api", "Value" }) } }),
-        .body = try body.toOwnedSlice(memory),
+        .body = try builder.statements(body.items),
     } };
 }
 

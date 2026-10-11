@@ -2,7 +2,7 @@ const std = @import("std");
 const node = @import("../../node.zig");
 const Builder = @import("../../builder.zig");
 
-pub fn check(builder: Builder, name: []const u8, arguments: []const *const node.Expression) std.mem.Allocator.Error!node.Statement {
+pub fn check(builder: Builder, name: []const u8, arguments: []const node.ExpressionId) std.mem.Allocator.Error!node.Statement {
     const call = try builder.call(try builder.path(&.{ "api", name }), arguments);
 
     return .{ .expression = try builder.expression(.{ .try_value = try builder.call(try builder.path(&.{ "napi", "check" }), &.{call}) }) };
@@ -14,7 +14,7 @@ pub fn context(builder: Builder) std.mem.Allocator.Error!node.Statement {
     return .{ .constant = .{ .name = "context", .type_expr = try builder.expression(.{ .pointer = try builder.identifier("Context") }), .value = value } };
 }
 
-pub fn dataType(builder: Builder) std.mem.Allocator.Error!*const node.Expression {
+pub fn dataType(builder: Builder) std.mem.Allocator.Error!node.ExpressionId {
     return builder.expression(.{ .optional_type = try builder.expression(.{ .pointer = try builder.expression(.{ .primitive = .anyopaque }) }) });
 }
 

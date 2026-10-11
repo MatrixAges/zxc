@@ -29,7 +29,7 @@ pub fn select(lowering: *Lower, call: Call) Lower.Error!?[]const bool {
     return selected;
 }
 
-pub fn prepare(lowering: *Lower, body: *std.ArrayList(node.Statement), call: Call, argument: **const node.Expression, selected: []const bool) Lower.Error!*const node.Expression {
+pub fn prepare(lowering: *Lower, body: *std.ArrayList(node.Statement), call: Call, argument: *node.ExpressionId, selected: []const bool) Lower.Error!node.ExpressionId {
     const lanes = lowering.buffer_functions[@backingInt(call.function)];
     const input = lowering.program.functions.at(@backingInt(call.function)).input_type;
     const slots = try lowering.allocator.alloc(?Builder, lanes.len);

@@ -7,7 +7,7 @@ pub fn render(allocator: std.mem.Allocator, stateful: bool) std.mem.Allocator.Er
 
     defer arena.deinit();
 
-    const builder = Builder{ .allocator = arena.allocator() };
+    const builder = try Builder.init(arena.allocator());
     const memory = builder.allocator;
     const self = try builder.identifier("self");
     const references = try builder.field(self, "references");
@@ -32,7 +32,7 @@ pub fn render(allocator: std.mem.Allocator, stateful: bool) std.mem.Allocator.Er
         .{ .expression = try builder.call(try builder.path(&.{ "std", "heap", "page_allocator", "destroy" }), &.{self}) },
     });
 
-    return @import("../../render.zig").render(allocator, &.{
+    return @import("../../render.zig").render(allocator, builder.nodes, &.{
         .{ .constant = .{ .name = "std", .value = try builder.builtin(.import, &.{try builder.string("std")}) } },
         .{ .constant = .{ .name = "api", .value = try builder.field(try builder.builtin(.import, &.{try builder.string("zxc_napi")}), "api") } },
         .{ .constant = .{ .name = "State", .value = if (stateful) try builder.builtin(.import, &.{try builder.string("zxc_state")}) else void_type } },
@@ -55,7 +55,7 @@ pub fn render(allocator: std.mem.Allocator, stateful: bool) std.mem.Allocator.Er
             .exported = true,
             .body = try builder.statements(&.{.{ .assignment = .{ .target = references, .value = try builder.binary(.add, references, try builder.integer(1)) } }}),
         } },
-        .{ .function = .{ .name = "release", .parameters = parameters, .return_type = void_type, .body = try release.toOwnedSlice(memory), .exported = true } },
+        .{ .function = .{ .name = "release", .parameters = parameters, .return_type = void_type, .body = try builder.statements(release.items), .exported = true } },
         .{ .function = .{
             .name = "close",
             .parameters = parameters,

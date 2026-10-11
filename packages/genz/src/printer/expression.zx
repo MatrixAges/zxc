@@ -1,0 +1,71 @@
+import integers from "std:integer"
+
+import binary from "./expression/binary"
+import catching from "./expression/catch"
+import control from "./expression/control"
+import literal from "./expression/literal"
+import names from "./expression/names"
+import record from "./expression/record"
+import sequence from "./expression/sequence"
+import unary from "./expression/unary"
+import { ExpressionsKind } from "./model/expressions"
+
+import type { Step, Frame } from "./model"
+
+export type Input = Step
+
+export type Output = Frame[]
+
+export default function (in: Input): Output {
+    return match in.source.expressions.tags[integers.widen(in.frame.id)] {
+        ExpressionsKind.Identifier => literal(in),
+        ExpressionsKind.NullValue => literal(in),
+        ExpressionsKind.Unit => literal(in),
+        ExpressionsKind.UndefinedValue => literal(in),
+        ExpressionsKind.UnreachableValue => literal(in),
+        ExpressionsKind.EnumLiteral => literal(in),
+        ExpressionsKind.ErrorValue => literal(in),
+        ExpressionsKind.Integer => literal(in),
+        ExpressionsKind.Float => literal(in),
+        ExpressionsKind.String => literal(in),
+        ExpressionsKind.Boolean => literal(in),
+        ExpressionsKind.Primitive => literal(in),
+        ExpressionsKind.OpaqueType => literal(in),
+        ExpressionsKind.OptionalType => unary(in),
+        ExpressionsKind.AddressOf => unary(in),
+        ExpressionsKind.TryValue => unary(in),
+        ExpressionsKind.ComptimeValue => unary(in),
+        ExpressionsKind.Dereference => unary(in),
+        ExpressionsKind.OptionalUnwrap => unary(in),
+        ExpressionsKind.Pointer => unary(in),
+        ExpressionsKind.ConstPointer => unary(in),
+        ExpressionsKind.ConstSlice => unary(in),
+        ExpressionsKind.MutableSlice => unary(in),
+        ExpressionsKind.ManyPointer => unary(in),
+        ExpressionsKind.Unary => unary(in),
+        ExpressionsKind.FixedArrayType => binary(in),
+        ExpressionsKind.Index => binary(in),
+        ExpressionsKind.Slice => binary(in),
+        ExpressionsKind.Range => binary(in),
+        ExpressionsKind.Field => binary(in),
+        ExpressionsKind.Binary => binary(in),
+        ExpressionsKind.TupleType => sequence(in),
+        ExpressionsKind.Array => sequence(in),
+        ExpressionsKind.Tuple => sequence(in),
+        ExpressionsKind.Builtin => sequence(in),
+        ExpressionsKind.Call => sequence(in),
+        ExpressionsKind.EnumType => names(in),
+        ExpressionsKind.ErrorSet => names(in),
+        ExpressionsKind.ErrorUnion => names(in),
+        ExpressionsKind.StructType => record(in),
+        ExpressionsKind.NamespaceType => record(in),
+        ExpressionsKind.ContainerType => record(in),
+        ExpressionsKind.Object => record(in),
+        ExpressionsKind.CatchScope => catching(in),
+        ExpressionsKind.CatchValue => catching(in),
+        ExpressionsKind.ReturnValue => control(in),
+        ExpressionsKind.Block => control(in),
+        ExpressionsKind.Selection => control(in),
+        _ => control(in),
+    }
+}

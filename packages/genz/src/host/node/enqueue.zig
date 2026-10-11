@@ -8,7 +8,7 @@ pub fn render(allocator: std.mem.Allocator, stateful: bool) std.mem.Allocator.Er
 
     defer arena.deinit();
 
-    const builder = Builder{ .allocator = arena.allocator() };
+    const builder = try Builder.init(arena.allocator());
     var declarations: std.ArrayList(node.Declaration) = .empty;
 
     for ([_][]const u8{ "std", "application", "zxc_napi", "context.zig", "task.zig" }, [_][]const u8{ "std", "application", "napi", "Context", "Task" }) |module, name| {
@@ -21,7 +21,7 @@ pub fn render(allocator: std.mem.Allocator, stateful: bool) std.mem.Allocator.Er
         try lower(builder, stateful),
     });
 
-    return @import("../../render.zig").render(allocator, declarations.items);
+    return @import("../../render.zig").render(allocator, builder.nodes, declarations.items);
 }
 
 fn lower(builder: Builder, stateful: bool) std.mem.Allocator.Error!node.Declaration {
@@ -96,5 +96,5 @@ fn lower(builder: Builder, stateful: bool) std.mem.Allocator.Error!node.Declarat
 
     try body.append(builder.allocator, .{ .result = try builder.identifier("undefined_value") });
 
-    return .{ .function = .{ .name = "enqueue", .parameters = try common.parameters(builder), .return_type = try builder.expression(.{ .error_union = .{ .inferred = true, .payload = api_value } }), .body = try body.toOwnedSlice(builder.allocator) } };
+    return .{ .function = .{ .name = "enqueue", .parameters = try common.parameters(builder), .return_type = try builder.expression(.{ .error_union = .{ .inferred = true, .payload = api_value } }), .body = try builder.statements(body.items) } };
 }

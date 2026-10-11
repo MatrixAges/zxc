@@ -9,12 +9,12 @@ pub fn render(allocator: std.mem.Allocator, type_names: []const []const u8, alia
     defer arena.deinit();
 
     const temporary = arena.allocator();
-    const builder = Builder{ .allocator = temporary };
+    const builder = try Builder.init(temporary);
     var declarations: std.ArrayList(node.Declaration) = .empty;
     const canonical = try builder.identifier("canonical");
 
     if (imported) {
-        try declarations.append(temporary, .{ .constant = .{ .name = "canonical", .value = try builder.expression(.{ .builtin = .{ .name = .import, .arguments = try temporary.dupe(*const node.Expression, &.{try builder.string("zxc_abi_canonical")}) } }) } });
+        try declarations.append(temporary, .{ .constant = .{ .name = "canonical", .value = try builder.expression(.{ .builtin = .{ .name = .import, .arguments = try temporary.dupe(node.ExpressionId, &.{try builder.string("zxc_abi_canonical")}) } }) } });
         for (type_names) |name| try declarations.append(temporary, .{ .constant = .{ .name = name, .value = try builder.expression(.{ .field = .{ .target = canonical, .name = name } }), .exported = true } });
     }
 
@@ -27,5 +27,5 @@ pub fn render(allocator: std.mem.Allocator, type_names: []const []const u8, alia
         try declarations.append(temporary, .{ .constant = .{ .name = namespace, .value = try builder.expression(.{ .namespace_type = members }), .exported = true } });
     }
 
-    return @import("../render.zig").render(allocator, declarations.items);
+    return @import("../render.zig").render(allocator, builder.nodes, declarations.items);
 }

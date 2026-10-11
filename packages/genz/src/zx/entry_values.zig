@@ -29,8 +29,8 @@ pub fn declarations(lowering: *Lower, output: *std.ArrayList(node.Declaration)) 
     try output.append(lowering.allocator, .{ .constant = .{ .name = "buffer_lanes", .value = try metadata(lowering, lanes), .exported = true } });
 }
 
-fn metadata(lowering: *Lower, lanes: []const buffers.Lane) Lower.Error!*const node.Expression {
-    var entries: std.ArrayList(*const node.Expression) = .empty;
+fn metadata(lowering: *Lower, lanes: []const buffers.Lane) Lower.Error!node.ExpressionId {
+    var entries: std.ArrayList(node.ExpressionId) = .empty;
 
     for (lanes, 0..) |lane, index| {
         if (lane.rejection != null) continue;
@@ -47,8 +47,8 @@ fn metadata(lowering: *Lower, lanes: []const buffers.Lane) Lower.Error!*const no
     return lowering.builder.expression(.{ .tuple = try entries.toOwnedSlice(lowering.allocator) });
 }
 
-fn path(lowering: *Lower, root: ir.TypeId, indices: []const u32) Lower.Error!*const node.Expression {
-    const names = try lowering.allocator.alloc(*const node.Expression, indices.len);
+fn path(lowering: *Lower, root: ir.TypeId, indices: []const u32) Lower.Error!node.ExpressionId {
+    const names = try lowering.allocator.alloc(node.ExpressionId, indices.len);
     var selected = root;
 
     for (indices, names) |index, *name| switch (lowering.program.typeOf(selected)) {

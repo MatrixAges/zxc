@@ -65,8 +65,8 @@ pub fn checkCanceled(builder: Builder) std.mem.Allocator.Error!node.Declaration 
         .parameters = try builder.allocator.dupe(node.Field, &.{ .{ .name = "input", .value = error_type }, .{ .name = "output", .value = error_type } }),
         .return_type = try builder.expression(.{ .error_union = .{ .errors = &.{"Canceled"}, .payload = try builder.expression(.{ .primitive = .void }) } }),
         .body = try builder.statements(&.{
-            .{ .branch = .{ .condition = try builder.identifier("input"), .capture = "err", .yes = failure, .no = &.{} } },
-            .{ .branch = .{ .condition = try builder.identifier("output"), .capture = "err", .yes = failure, .no = &.{} } },
+            .{ .branch = .{ .condition = try builder.identifier("input"), .capture = "err", .yes = failure, .no = .{} } },
+            .{ .branch = .{ .condition = try builder.identifier("output"), .capture = "err", .yes = failure, .no = .{} } },
         }),
     } };
 }

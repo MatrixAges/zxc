@@ -3,7 +3,7 @@ const ir = @import("zx").ir;
 const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
 
-pub fn lower(self: *Lower, storage: *std.ArrayList(node.Statement), body: *std.ArrayList(node.Statement), id: ir.TypeId, value: *const node.Expression) Lower.Error!*const node.Expression {
+pub fn lower(self: *Lower, storage: *std.ArrayList(node.Statement), body: *std.ArrayList(node.Statement), id: ir.TypeId, value: node.ExpressionId) Lower.Error!node.ExpressionId {
     if (!self.state_plan.represented(self.program, id)) return value;
 
     const layout = self.abi_layouts[@backingInt(id)];
@@ -35,7 +35,7 @@ pub fn lower(self: *Lower, storage: *std.ArrayList(node.Statement), body: *std.A
             break :blk try self.builder.expression(.{ .object = .{ .type_expr = layout, .fields = items } });
         },
         .tuple => |children| blk: {
-            const items = try self.allocator.alloc(*const node.Expression, children.len);
+            const items = try self.allocator.alloc(node.ExpressionId, children.len);
 
             for (items, 0..) |*item, index| item.* = try lower(self, storage, body, children.at(index), try self.field(value, try std.fmt.allocPrint(self.allocator, "{d}", .{index})));
 

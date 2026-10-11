@@ -1,0 +1,30 @@
+export type Input = { output: u8[], value: u64 }
+
+export type Output = u8[]
+
+export default function (in: Input): Output {
+    const digits: u8[] = [48, 49, 50, 51, 52, 53, 54, 55, 56, 57]
+    const first = in.output.length
+
+    const written = loop({ output: in.output, value: in.value, digits: digits }, {
+        do: current => {
+            current.output = current.output.push(current.digits[current.value % 10])[0]
+            current.value = current.value / 10
+        },
+        while: current => current.value != 0
+    })
+
+    const reversed = loop({ output: written.output, left: first, right: written.output.length - 1 }, {
+        while: current => current.left < current.right,
+        next: current => {
+            const left = current.output[current.left]
+
+            current.output[current.left] = current.output[current.right]
+            current.output[current.right] = left
+            current.left += 1
+            current.right -= 1
+        }
+    })
+
+    return reversed.output
+}

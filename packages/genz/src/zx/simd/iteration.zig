@@ -5,7 +5,7 @@ const Consumer = @import("../iteration_consumer.zig").Consumer;
 const expression = @import("expression.zig");
 const proof = @import("iteration_proof.zig");
 
-pub fn lower(self: *Lower, value: ir.Iteration, consumer: Consumer) Lower.Error!?*const node.Expression {
+pub fn lower(self: *Lower, value: ir.Iteration, consumer: Consumer) Lower.Error!?node.ExpressionId {
     const program = self.program;
     const output = program.typeOf(program.expression(consumer.result).type_id);
 
@@ -97,5 +97,5 @@ pub fn lower(self: *Lower, value: ir.Iteration, consumer: Consumer) Lower.Error!
 
     if (!proof.evaluation(program, value.initial) or !proof.evaluation(program, body.scope.result)) return null;
 
-    return @import("root.zig").emit(self, source, callback, output.list, context);
+    return try @import("root.zig").emit(self, source, callback, output.list, context);
 }

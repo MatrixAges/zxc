@@ -1,0 +1,52 @@
+import integers from "std:integer"
+
+import { Action, ByteSource } from "../model"
+import { ExpressionsKind } from "../model/expressions"
+import { Token } from "../model/token"
+
+import type { Step, Frame } from "../model"
+
+export type Input = Step
+
+export type Output = Frame[]
+
+export default function (in: Input): Output {
+    const tree = in.source.expressions
+    const kind = tree.tags[integers.widen(in.frame.id)]
+    const id = tree.offsets[integers.widen(in.frame.id)]
+    const row = integers.widen(id)
+    const frame: Frame = { action: Action.Text, token: Token.Empty, bytes: ByteSource.None, id: id, count: 0, index: 0, number: 0 }
+
+    if (kind == ExpressionsKind.ReturnValue) {
+        const value = tree.return_value[row]
+        const prefix: Frame[] = [{ ...frame, token: Token.Return }]
+
+        return value == null ? prefix : prefix.concat([{ ...frame, token: Token.Space }, { ...frame, action: Action.Expression, id: value }])[0]
+    }
+
+    if (kind == ExpressionsKind.Block) {
+        return [{ ...frame, action: Action.Identifier, bytes: ByteSource.BlockLabel }, { ...frame, token: Token.Colon }, { ...frame, action: Action.Block, id: tree.block_statements_start[row], count: tree.block_statements_len[row] }]
+    }
+
+    if (kind == ExpressionsKind.Selection) {
+        const opening: Frame[] = [{ ...frame, token: Token.SwitchOpen }, { ...frame, action: Action.Expression, id: tree.selection_subject[row] }, { ...frame, token: Token.SelectionBody }]
+        const zero: u32 = 0
+
+        const arms = loop({ frames: opening, index: zero, first: tree.selection_arms_start[row], count: tree.selection_arms_len[row], frame: frame }, {
+            while: current => current.index < current.count,
+            next: current => {
+                current.frames = current.frames.push({ ...current.frame, action: Action.Arm, id: current.first + current.index })[0]
+                current.index += 1
+            }
+        })
+
+        return arms.frames.push({ ...frame, token: Token.BraceClose })[0]
+    }
+
+    const opening: Frame[] = [{ ...frame, token: Token.ConditionalOpen }, { ...frame, action: Action.Expression, id: tree.conditional_condition[row] }, { ...frame, token: Token.CloseSpace }]
+    const captured = tree.conditional_capture[row] == null ? opening : opening.concat([{ ...frame, token: Token.CaptureOpen }, { ...frame, action: Action.Identifier, bytes: ByteSource.ConditionalCapture }, { ...frame, token: Token.CaptureClose }])[0]
+    const yes = captured.concat([{ ...frame, action: Action.Expression, id: tree.conditional_yes[row] }, { ...frame, token: Token.ElseSeparator }])[0]
+    const failed = tree.conditional_error_capture[row] == null ? yes : yes.concat([{ ...frame, token: Token.CaptureOpen }, { ...frame, action: Action.Identifier, bytes: ByteSource.ConditionalErrorCapture }, { ...frame, token: Token.CaptureClose }])[0]
+
+    return failed.concat([{ ...frame, action: Action.Expression, id: tree.conditional_no[row] }, { ...frame, token: Token.Close }])[0]
+}

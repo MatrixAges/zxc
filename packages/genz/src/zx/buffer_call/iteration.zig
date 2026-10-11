@@ -91,7 +91,7 @@ fn forwardedCall(program: ir.Program, root: ir.ExprId) ?ir.ExprId {
     };
 }
 
-pub fn finish(self: Self, body: *std.ArrayList(node.Statement), state: *const node.Expression, type_id: ir.TypeId) Lower.Error!void {
+pub fn finish(self: Self, body: *std.ArrayList(node.Statement), state: node.ExpressionId, type_id: ir.TypeId) Lower.Error!void {
     const lowering = self.lowering;
     const batch = @import("../object_reduce/append/writeback/batch.zig");
     var changes: std.ArrayList(batch.Change) = .empty;
@@ -110,8 +110,8 @@ pub fn finish(self: Self, body: *std.ArrayList(node.Statement), state: *const no
 
         try body.append(lowering.allocator, .{ .branch = .{
             .condition = field.capacity.started,
-            .yes = try writeback.assignLayout(lowering, type_id, state, field.path, owned),
-            .no = &.{},
+            .yes = try lowering.builder.statements(try writeback.assignLayout(lowering, type_id, state, field.path, owned)),
+            .no = .{},
         } });
     }
 

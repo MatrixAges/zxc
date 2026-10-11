@@ -119,7 +119,13 @@ pub fn represented(self: Self, program: ir.Program, id: ir.TypeId) bool {
 }
 
 pub fn name(self: Self, allocator: std.mem.Allocator, id: ir.TypeId, base: []const u8) std.mem.Allocator.Error![]const u8 {
-    return std.fmt.allocPrint(allocator, "value_{s}_{x}", .{ base, self.keys[@backingInt(id)] });
+    var hash = std.crypto.hash.sha2.Sha256.init(.{});
+
+    hash.update(base);
+    hash.update(&.{0});
+    hash.update(&self.keys[@backingInt(id)]);
+
+    return std.fmt.allocPrint(allocator, "value_{x}", .{hash.finalResult()});
 }
 
 pub fn nested(self: Self, program: ir.Program, id: ir.TypeId) bool {

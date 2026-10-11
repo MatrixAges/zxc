@@ -1,0 +1,31 @@
+import integers from "std:integer"
+
+import { Action, ByteSource } from "../model"
+import { StatementsKind } from "../model/statements"
+import { Token } from "../model/token"
+
+import type { Step, Frame } from "../model"
+
+export type Input = Step
+
+export type Output = Frame[]
+
+export default function (in: Input): Output {
+    const tree = in.source.statements
+    const kind = tree.tags[integers.widen(in.frame.id)]
+    const id = tree.offsets[integers.widen(in.frame.id)]
+    const row = integers.widen(id)
+    const frame: Frame = { action: Action.Text, token: Token.Empty, bytes: ByteSource.None, id: id, count: 0, index: 0, number: 0 }
+
+    if (kind == StatementsKind.Scope || kind == StatementsKind.DeferScope) {
+        const opening: Frame[] = kind == StatementsKind.DeferScope ? [{ ...frame, token: Token.DeferPrefix }] : []
+
+        return opening.concat([{ ...frame, action: Action.Block, id: kind == StatementsKind.Scope ? tree.scope_start[row] : tree.defer_scope_start[row], count: kind == StatementsKind.Scope ? tree.scope_len[row] : tree.defer_scope_len[row] }, { ...frame, token: Token.Newline }])[0]
+    }
+
+    if (kind == StatementsKind.DiscardError) {
+        return [{ ...frame, token: Token.IfOpen }, { ...frame, action: Action.Expression, id: tree.discard_error[row] }, { ...frame, token: Token.DiscardError }]
+    }
+
+    return [{ ...frame, token: kind == StatementsKind.DeferExpression ? Token.DeferPrefix : Token.ErrdeferPrefix }, { ...frame, action: Action.Expression, id: kind == StatementsKind.DeferExpression ? tree.defer_expression[row] : tree.errdefer_expression[row] }, { ...frame, token: Token.StatementEnd }]
+}

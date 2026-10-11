@@ -9,7 +9,7 @@ pub fn reset(builder: Builder) std.mem.Allocator.Error!node.Declaration {
 
     return common.function(builder, "zxc_reset", try builder.expression(.{ .primitive = .void }), &.{
         try builder.branch(try builder.identifier("executing"), &.{.{ .result = null }}, &.{}),
-        .{ .branch = .{ .condition = try builder.identifier("request"), .capture = "value", .capture_reference = true, .yes = try builder.statements(&.{.{ .expression = try builder.call(try builder.path(&.{ "value", "deinit" }), &.{}) }}), .no = &.{} } },
+        .{ .branch = .{ .condition = try builder.identifier("request"), .capture = "value", .capture_reference = true, .yes = try builder.statements(&.{.{ .expression = try builder.call(try builder.path(&.{ "value", "deinit" }), &.{}) }}), .no = .{} } },
         .{ .expression = try builder.call(try builder.path(&.{ "std", "heap", "wasm_allocator", "free" }), &.{try builder.identifier("input_storage")}) },
         try common.assign(builder, "request", try builder.expression(.null_value)),
         try common.assign(builder, "input_storage", empty),

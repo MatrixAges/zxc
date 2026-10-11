@@ -4,7 +4,7 @@ const node = @import("../../node.zig");
 const Context = @import("root.zig");
 const Lower = @import("../lower.zig");
 
-pub fn convert(self: *Context, id: ir.TypeId, value: *const node.Expression, output: bool) Lower.Error!*const node.Expression {
+pub fn convert(self: *Context, id: ir.TypeId, value: node.ExpressionId, output: bool) Lower.Error!node.ExpressionId {
     const lowering = self.lowering;
     const layout = if (output) lowering.layouts[@backingInt(id)] else try @import("types.zig").get(self, id);
 
@@ -35,7 +35,7 @@ pub fn convert(self: *Context, id: ir.TypeId, value: *const node.Expression, out
             break :blk try lowering.builder.expression(.{ .object = .{ .type_expr = layout, .fields = items } });
         },
         .tuple => |children| blk: {
-            const items = try lowering.allocator.alloc(*const node.Expression, children.len);
+            const items = try lowering.allocator.alloc(node.ExpressionId, children.len);
 
             for (items, 0..) |*item, index| {
                 const child = children.at(index);

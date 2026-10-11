@@ -6,9 +6,9 @@ const aggregate = @import("../aggregate.zig");
 const Self = @This();
 
 lowering: *Lower,
-accumulator: *const node.Expression,
-changed: *const node.Expression,
-pub fn lower(lowering: *Lower, transform: ir.Transform) Lower.Error!?*const node.Expression {
+accumulator: node.ExpressionId,
+changed: node.ExpressionId,
+pub fn lower(lowering: *Lower, transform: ir.Transform) Lower.Error!?node.ExpressionId {
     const type_id = lowering.program.expression(transform.body).type_id;
 
     if (transform.kind != .reduce or lowering.program.typeOf(type_id) != .object) return null;
@@ -55,7 +55,7 @@ pub fn lower(lowering: *Lower, transform: ir.Transform) Lower.Error!?*const node
 
     const element = transform.parameters[1];
 
-    try body.append(lowering.allocator, .{ .for_loop = .{ .iterable = source, .capture = if (lowering.used[@backingInt(element)]) lowering.names[@backingInt(element)] else "_", .body = loop } });
+    try body.append(lowering.allocator, .{ .for_loop = .{ .iterable = source, .capture = if (lowering.used[@backingInt(element)]) lowering.names[@backingInt(element)] else "_", .body = try lowering.builder.statements(loop) } });
     try appends.finish(&body, self.accumulator);
 
     var converted_body: std.ArrayList(node.Statement) = .empty;
@@ -72,7 +72,7 @@ fn statements(self: Self, id: ir.ExprId) Lower.Error![]const node.Statement {
     switch (lowering.program.expression(id).value) {
         .reference => {},
         .match_expr => |value| return self.selection(value),
-        .conditional => |value| try body.append(lowering.allocator, .{ .branch = .{ .condition = try lowering.expr(value.condition), .yes = try self.statements(value.yes), .no = try self.statements(value.no) } }),
+        .conditional => |value| try body.append(lowering.allocator, .{ .branch = .{ .condition = try lowering.expr(value.condition), .yes = try lowering.builder.statements(try self.statements(value.yes)), .no = try lowering.builder.statements(try self.statements(value.no)) } }),
         .object, .call => {
             const next = try @import("../value_call/root.zig").expression(lowering, id);
 
@@ -116,7 +116,7 @@ fn selection(self: Self, value: ir.MatchRow) Lower.Error![]const node.Statement 
         else
             try lowering.expr(arm.condition);
 
-        tail = try lowering.allocator.dupe(node.Statement, &.{.{ .branch = .{ .condition = condition, .yes = try self.statements(arm.result), .no = tail } }});
+        tail = try lowering.allocator.dupe(node.Statement, &.{.{ .branch = .{ .condition = condition, .yes = try lowering.builder.statements(try self.statements(arm.result)), .no = try lowering.builder.statements(tail) } }});
     }
 
     try body.appendSlice(lowering.allocator, tail);

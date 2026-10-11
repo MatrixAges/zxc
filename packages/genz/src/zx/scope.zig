@@ -3,15 +3,15 @@ const ir = @import("zx").ir;
 const node = @import("../node.zig");
 const Lower = @import("lower.zig");
 
-pub fn lower(self: *Lower, scope: ir.ScopeRow) Lower.Error!*const node.Expression {
+pub fn lower(self: *Lower, scope: ir.ScopeRow) Lower.Error!node.ExpressionId {
     return lowerMode(self, scope, false);
 }
 
-pub fn lowerValue(self: *Lower, scope: ir.ScopeRow) Lower.Error!*const node.Expression {
+pub fn lowerValue(self: *Lower, scope: ir.ScopeRow) Lower.Error!node.ExpressionId {
     return lowerMode(self, scope, true);
 }
 
-fn lowerMode(self: *Lower, scope: ir.ScopeRow, layout: bool) Lower.Error!*const node.Expression {
+fn lowerMode(self: *Lower, scope: ir.ScopeRow, layout: bool) Lower.Error!node.ExpressionId {
     const state_symbols = try @import("state_value/locals.zig").scope(self, scope);
 
     defer for (state_symbols) |symbol| {
@@ -50,7 +50,7 @@ fn lowerMode(self: *Lower, scope: ir.ScopeRow, layout: bool) Lower.Error!*const 
     }
 
     var consumed_last = false;
-    var result: ?*const node.Expression = null;
+    var result: ?node.ExpressionId = null;
 
     if (scope.bindings.len != 0) {
         const binding = scope.bindings.at(scope.bindings.len - 1);

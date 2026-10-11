@@ -53,7 +53,7 @@ pub fn lower(builder: Builder, stateful: bool) std.mem.Allocator.Error!node.Decl
             .{ .name = "data", .value = try common.dataType(builder) },
         }),
         .return_type = try builder.expression(.{ .primitive = .void }),
-        .body = try body.toOwnedSlice(builder.allocator),
+        .body = try builder.statements(body.items),
     } };
 }
 

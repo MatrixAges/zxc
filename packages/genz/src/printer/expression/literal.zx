@@ -1,0 +1,49 @@
+import integers from "std:integer"
+
+import { Action, ByteSource } from "../model"
+import { ExpressionsKind } from "../model/expressions"
+import { Token } from "../model/token"
+import primitive from "./primitive"
+
+import type { Step, Frame } from "../model"
+
+export type Input = Step
+
+export type Output = Frame[]
+
+export default function (in: Input): Output {
+    const tree = in.source.expressions
+    const kind = tree.tags[integers.widen(in.frame.id)]
+    const id = tree.offsets[integers.widen(in.frame.id)]
+    const row = integers.widen(id)
+    const frame: Frame = { action: Action.Text, token: Token.Empty, bytes: ByteSource.None, id: id, count: 0, index: 0, number: 0 }
+
+    if (kind == ExpressionsKind.Identifier || kind == ExpressionsKind.String || kind == ExpressionsKind.EnumLiteral || kind == ExpressionsKind.ErrorValue) {
+        const leaf: Frame = { ...frame, action: kind == ExpressionsKind.String ? Action.Quoted : Action.Identifier, bytes: match kind {
+            ExpressionsKind.Identifier => ByteSource.ExpressionIdentifier,
+            ExpressionsKind.String => ByteSource.ExpressionString,
+            ExpressionsKind.EnumLiteral => ByteSource.EnumLiteral,
+            _ => ByteSource.ErrorValue,
+        } }
+
+        const prefix = kind == ExpressionsKind.EnumLiteral ? Token.Dot : Token.ErrorValue
+
+        return kind == ExpressionsKind.EnumLiteral || kind == ExpressionsKind.ErrorValue ? [{ ...frame, token: prefix }, leaf] : [leaf]
+    }
+
+    if (kind == ExpressionsKind.Integer || kind == ExpressionsKind.Float) {
+        const number: Frame = { ...frame, action: Action.Integer, number: kind == ExpressionsKind.Integer ? tree.integer[row] : tree.float[row] }
+
+        return kind == ExpressionsKind.Float ? [{ ...frame, token: Token.FloatOpen }, number, { ...frame, token: Token.FloatClose }] : [number]
+    }
+
+    return [{ ...frame, token: match kind {
+        ExpressionsKind.NullValue => Token.Null,
+        ExpressionsKind.Unit => Token.Unit,
+        ExpressionsKind.UndefinedValue => Token.Undefined,
+        ExpressionsKind.UnreachableValue => Token.Unreachable,
+        ExpressionsKind.OpaqueType => Token.Opaque,
+        ExpressionsKind.Boolean => tree.boolean[row] ? Token.True : Token.False,
+        _ => primitive(tree.primitive[row]),
+    } }]
+}

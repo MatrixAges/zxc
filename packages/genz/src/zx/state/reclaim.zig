@@ -11,12 +11,12 @@ pub fn lower(builder: Builder, objects: []const Object, enabled: bool) std.mem.A
     if (!enabled) {
         try body.append(allocator, .{ .discard = self });
     } else {
-        try body.append(allocator, .{ .branch = .{ .condition = try builder.field(self, "release_disabled"), .yes = try allocator.dupe(node.Statement, &.{.{ .result = null }}), .no = &.{} } });
+        try body.append(allocator, .{ .branch = .{ .condition = try builder.field(self, "release_disabled"), .yes = try builder.statements(&.{.{ .result = null }}), .no = .{} } });
         try body.append(allocator, .{ .variable = .{ .name = "link", .value = try builder.expression(.{ .address_of = try builder.field(self, "retained") }) } });
 
         const region = try builder.identifier("region");
         const link = try builder.identifier("link");
-        var owned: ?*const node.Expression = null;
+        var owned: ?node.ExpressionId = null;
 
         for (objects, 0..) |object, index| {
             if (!object.writable) continue;
@@ -31,20 +31,20 @@ pub fn lower(builder: Builder, objects: []const Object, enabled: bool) std.mem.A
         });
 
         const loop = try allocator.dupe(node.Statement, &.{
-            .{ .branch = .{ .condition = owned.?, .yes = retained, .no = &.{} } },
+            .{ .branch = .{ .condition = owned.?, .yes = try builder.statements(retained), .no = .{} } },
             .{ .assignment = .{ .target = try builder.expression(.{ .dereference = link }), .value = try builder.field(region, "next") } },
             .{ .expression = try builder.call(try builder.path(&.{ "region", "arena", "deinit" }), &.{}) },
             .{ .expression = try builder.call(try builder.path(&.{ "self", "arena", "child_allocator", "destroy" }), &.{region}) },
         });
 
-        try body.append(allocator, .{ .while_loop = .{ .condition = try builder.expression(.{ .dereference = link }), .capture = "region", .body = loop } });
+        try body.append(allocator, .{ .while_loop = .{ .condition = try builder.expression(.{ .dereference = link }), .capture = "region", .body = try builder.statements(loop) } });
     }
 
     return .{ .function = .{
         .name = "releaseRetired",
         .parameters = try allocator.dupe(node.Field, &.{.{ .name = "self", .value = try builder.expression(.{ .pointer = try builder.identifier("Self") }) }}),
         .return_type = try builder.expression(.{ .primitive = .void }),
-        .body = try body.toOwnedSlice(allocator),
+        .body = try builder.statements(body.items),
         .exported = true,
     } };
 }

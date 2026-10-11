@@ -74,7 +74,7 @@ pub fn write(types: Types, id: ir.TypeId) std.mem.Allocator.Error![]const node.S
             });
         }
 
-        try body.append(builder.allocator, .{ .scope = try field.toOwnedSlice(builder.allocator) });
+        try body.append(builder.allocator, .{ .scope = try builder.statements(field.items) });
     }
 
     return body.toOwnedSlice(builder.allocator);

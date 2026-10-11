@@ -4,9 +4,9 @@ const node = @import("../node.zig");
 const Lower = @import("lower.zig");
 const aggregate = @import("aggregate.zig");
 const intrinsics = @import("intrinsics.zig");
-pub const Storage = struct { buffer: *const node.Expression, started: *const node.Expression, capacity: ?@import("iteration_buffer/capacity.zig") = null, enabled: ?*const node.Expression = null, fallback_capacity: ?@import("iteration_buffer/capacity.zig") = null, transfer: bool = false };
+pub const Storage = struct { buffer: node.ExpressionId, started: node.ExpressionId, capacity: ?@import("iteration_buffer/capacity.zig") = null, enabled: ?node.ExpressionId = null, fallback_capacity: ?@import("iteration_buffer/capacity.zig") = null, transfer: bool = false };
 
-pub fn lower(self: *Lower, update: ir.ListUpdate, storage: ?Storage) Lower.Error!*const node.Expression {
+pub fn lower(self: *Lower, update: ir.ListUpdate, storage: ?Storage) Lower.Error!node.ExpressionId {
     var body: std.ArrayList(node.Statement) = .empty;
     const source = try aggregate.bind(self, &body, try self.expr(update.target));
     const index = try aggregate.bind(self, &body, try self.expr(update.index));
@@ -34,7 +34,7 @@ pub fn lower(self: *Lower, update: ir.ListUpdate, storage: ?Storage) Lower.Error
     return aggregate.finish(self, &body, try write(self, source, index, value, element, storage));
 }
 
-fn write(self: *Lower, source: *const node.Expression, index: *const node.Expression, value: *const node.Expression, element: ir.TypeId, storage: ?Storage) Lower.Error!*const node.Expression {
+fn write(self: *Lower, source: node.ExpressionId, index: node.ExpressionId, value: node.ExpressionId, element: ir.TypeId, storage: ?Storage) Lower.Error!node.ExpressionId {
     var body: std.ArrayList(node.Statement) = .empty;
     const initial = if (storage != null and storage.?.transfer) try self.builtin(.constCast, &.{source}) else try self.call(try self.field(try self.builder.identifier("allocator"), "dupe"), &.{ try @import("iteration_value/types.zig").element(self, element), source }, true);
 
@@ -47,11 +47,11 @@ fn write(self: *Lower, source: *const node.Expression, index: *const node.Expres
 
         try body.append(self.allocator, .{ .branch = .{
             .condition = try self.builder.expression(.{ .unary = .{ .operator = .not, .operand = shared.started } }),
-            .yes = try self.allocator.dupe(node.Statement, &.{
+            .yes = try self.builder.statements(&.{
                 .{ .assignment = .{ .target = shared.buffer, .value = initial } },
                 .{ .assignment = .{ .target = shared.started, .value = try self.builder.expression(.{ .boolean = true }) } },
             }),
-            .no = &.{},
+            .no = .{},
         } });
 
         break :blk shared.buffer;

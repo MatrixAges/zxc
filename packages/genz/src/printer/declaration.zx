@@ -1,0 +1,43 @@
+import integers from "std:integer"
+
+import binding from "./declaration/binding"
+import functionDeclaration from "./declaration/function"
+import { Action, ByteSource } from "./model"
+import { DeclarationsKind } from "./model/declarations"
+import { Token } from "./model/token"
+
+import type { Step, Frame } from "./model"
+
+export type Input = Step
+
+export type Output = Frame[]
+
+export default function (in: Input): Output {
+    const tree = in.source.declarations
+    const kind = tree.tags[integers.widen(in.frame.id)]
+    const id = tree.offsets[integers.widen(in.frame.id)]
+    const row = integers.widen(id)
+    const frame: Frame = { action: Action.Text, token: Token.Empty, bytes: ByteSource.None, id: id, count: 0, index: 0, number: 0 }
+
+    if (kind == DeclarationsKind.Constant) {
+        return binding({ name: { ...frame, action: Action.Identifier, bytes: ByteSource.DeclarationConstant }, type_expr: tree.constant_type_expr[row], value: tree.constant_value[row], exported: tree.constant_exported[row], mutable: false })
+    }
+
+    if (kind == DeclarationsKind.Variable) {
+        return binding({ name: { ...frame, action: Action.Identifier, bytes: ByteSource.DeclarationVariable }, type_expr: tree.variable_type_expr[row], value: tree.variable_value[row], exported: tree.variable_exported[row], mutable: true })
+    }
+
+    if (kind == DeclarationsKind.Function) {
+        return functionDeclaration(in)
+    }
+
+    if (kind == DeclarationsKind.ComptimeScope) {
+        return [{ ...frame, token: Token.ComptimePrefix }, { ...frame, action: Action.Block, id: tree.comptime_scope_start[row], count: tree.comptime_scope_len[row] }, { ...frame, token: Token.Newline }]
+    }
+
+    const initial = tree.field_default_value[row]
+    const typed: Frame[] = [{ ...frame, action: Action.Identifier, bytes: ByteSource.DeclarationField }, { ...frame, token: Token.Colon }, { ...frame, action: Action.Expression, id: tree.field_value[row] }]
+    const initialized = initial == null ? typed : typed.concat([{ ...frame, token: Token.Assignment }, { ...frame, action: Action.Expression, id: initial }])[0]
+
+    return initialized.push({ ...frame, token: Token.FieldEnd })[0]
+}

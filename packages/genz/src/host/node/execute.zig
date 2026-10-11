@@ -77,6 +77,6 @@ pub fn lower(builder: Builder, stateful: bool) std.mem.Allocator.Error!node.Decl
         .name = "execute",
         .parameters = try common.parameters(builder),
         .return_type = try builder.expression(.{ .error_union = .{ .inferred = true, .payload = api_value } }),
-        .body = try body.toOwnedSlice(memory),
+        .body = try builder.statements(body.items),
     } };
 }

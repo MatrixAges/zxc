@@ -6,15 +6,15 @@ const aggregate = @import("aggregate.zig");
 const intrinsic = @import("intrinsics.zig");
 const Capacity = @import("iteration_buffer/capacity.zig");
 
-pub fn lower(self: *Lower, type_id: ir.TypeId, operation: @FieldType(@FieldType(ir.ExpressionRow, "value"), "list_operation"), storage: ?Capacity) Lower.Error!*const node.Expression {
+pub fn lower(self: *Lower, type_id: ir.TypeId, operation: @FieldType(@FieldType(ir.ExpressionRow, "value"), "list_operation"), storage: ?Capacity) Lower.Error!node.ExpressionId {
     return lowerMode(self, type_id, operation, null, storage, false);
 }
 
-pub fn lowerValue(self: *Lower, type_id: ir.TypeId, operation: @FieldType(@FieldType(ir.ExpressionRow, "value"), "list_operation"), layout: *const node.Expression, storage: ?Capacity) Lower.Error!*const node.Expression {
+pub fn lowerValue(self: *Lower, type_id: ir.TypeId, operation: @FieldType(@FieldType(ir.ExpressionRow, "value"), "list_operation"), layout: node.ExpressionId, storage: ?Capacity) Lower.Error!node.ExpressionId {
     return lowerMode(self, type_id, operation, layout, storage, false);
 }
 
-pub fn projection(self: *Lower, target: ir.ExprId, index: usize) Lower.Error!?*const node.Expression {
+pub fn projection(self: *Lower, target: ir.ExprId, index: usize) Lower.Error!?node.ExpressionId {
     if (index != 1 or self.cache.contains(target)) return null;
     if (self.iteration_value) |context| if (context.cache.contains(target)) return null;
 
@@ -25,10 +25,10 @@ pub fn projection(self: *Lower, target: ir.ExprId, index: usize) Lower.Error!?*c
     return try lowerMode(self, value.type_id, value.value.list_operation, null, null, true);
 }
 
-fn lowerMode(self: *Lower, type_id: ir.TypeId, operation: @FieldType(@FieldType(ir.ExpressionRow, "value"), "list_operation"), layout: ?*const node.Expression, storage: ?Capacity, removed_only: bool) Lower.Error!*const node.Expression {
+fn lowerMode(self: *Lower, type_id: ir.TypeId, operation: @FieldType(@FieldType(ir.ExpressionRow, "value"), "list_operation"), layout: ?node.ExpressionId, storage: ?Capacity, removed_only: bool) Lower.Error!node.ExpressionId {
     var body: std.ArrayList(node.Statement) = .empty;
     const source = try aggregate.bind(self, &body, try self.expr(operation.target));
-    const arguments = try self.allocator.alloc(*const node.Expression, operation.arguments.len);
+    const arguments = try self.allocator.alloc(node.ExpressionId, operation.arguments.len);
 
     for (operation.arguments, arguments) |argument, *value| value.* = try aggregate.bind(self, &body, try self.expr(argument));
 
@@ -36,7 +36,7 @@ fn lowerMode(self: *Lower, type_id: ir.TypeId, operation: @FieldType(@FieldType(
     const child_type = try @import("iteration_value/types.zig").element(self, child);
     const length = try self.field(source, "len");
     const unit = try self.builder.expression(.unit);
-    var result: *const node.Expression = undefined;
+    var result: node.ExpressionId = undefined;
 
     switch (operation.kind) {
         .pop => {
@@ -128,22 +128,22 @@ fn lowerMode(self: *Lower, type_id: ir.TypeId, operation: @FieldType(@FieldType(
     return aggregate.finish(self, &body, if (layout) |target| try self.cast(target, try @import("state_value/origin.zig").tuple(self, type_id, result)) else try self.construct(type_id, result));
 }
 
-fn slice(self: *Lower, target: *const node.Expression, start: ?*const node.Expression, end: ?*const node.Expression) Lower.Error!*const node.Expression {
+fn slice(self: *Lower, target: node.ExpressionId, start: ?node.ExpressionId, end: ?node.ExpressionId) Lower.Error!node.ExpressionId {
     return self.builder.expression(.{ .slice = .{ .target = target, .start = start, .end = end } });
 }
 
-fn pair(self: *Lower, left: *const node.Expression, right: *const node.Expression) Lower.Error!*const node.Expression {
-    return self.builder.expression(.{ .tuple = try self.allocator.dupe(*const node.Expression, &.{ left, right }) });
+fn pair(self: *Lower, left: node.ExpressionId, right: node.ExpressionId) Lower.Error!node.ExpressionId {
+    return self.builder.expression(.{ .tuple = try self.allocator.dupe(node.ExpressionId, &.{ left, right }) });
 }
 
-fn addLength(self: *Lower, left: *const node.Expression, right: *const node.Expression) Lower.Error!*const node.Expression {
+fn addLength(self: *Lower, left: node.ExpressionId, right: node.ExpressionId) Lower.Error!node.ExpressionId {
     return intrinsic.standard(self, &.{ "math", "add" }, &.{ try self.builder.expression(.{ .primitive = .usize }), left, right }, true);
 }
 
-fn allocate(self: *Lower, body: *std.ArrayList(node.Statement), element: *const node.Expression, length: *const node.Expression) Lower.Error!*const node.Expression {
+fn allocate(self: *Lower, body: *std.ArrayList(node.Statement), element: node.ExpressionId, length: node.ExpressionId) Lower.Error!node.ExpressionId {
     return aggregate.bind(self, body, try self.call(try self.field(try self.builder.identifier("allocator"), "alloc"), &.{ element, length }, true));
 }
 
-fn copy(self: *Lower, body: *std.ArrayList(node.Statement), target: *const node.Expression, source: *const node.Expression) Lower.Error!void {
+fn copy(self: *Lower, body: *std.ArrayList(node.Statement), target: node.ExpressionId, source: node.ExpressionId) Lower.Error!void {
     try body.append(self.allocator, .{ .expression = try self.builtin(.memcpy, &.{ target, source }) });
 }

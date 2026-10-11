@@ -10,12 +10,12 @@ allocator: std.mem.Allocator,
 workspace: std.mem.Allocator,
 program: ir.Program,
 builder: Builder,
-types: []*const node.Expression,
-layouts: []*const node.Expression,
-abi_types: []*const node.Expression = &.{},
-abi_layouts: []*const node.Expression = &.{},
-state_types: []*const node.Expression = &.{},
-state_layouts: []*const node.Expression = &.{},
+types: []node.ExpressionId,
+layouts: []node.ExpressionId,
+abi_types: []node.ExpressionId = &.{},
+abi_layouts: []node.ExpressionId = &.{},
+state_types: []node.ExpressionId = &.{},
+state_layouts: []node.ExpressionId = &.{},
 state_plan: @import("state_value/analysis.zig"),
 state_active: bool = false,
 state_symbols: std.AutoHashMapUnmanaged(ir.SymbolId, void) = .empty,
@@ -23,7 +23,7 @@ names: [][]const u8,
 native_names: []const []const u8 = &.{},
 used: []bool,
 cache_reads: []usize,
-cache: std.AutoHashMapUnmanaged(ir.ExprId, *const node.Expression) = .empty,
+cache: std.AutoHashMapUnmanaged(ir.ExprId, node.ExpressionId) = .empty,
 append_overrides: std.AutoHashMapUnmanaged(ir.ExprId, @import("object_reduce/append/builder.zig")) = .empty,
 list_update_buffers: std.AutoHashMapUnmanaged(ir.ExprId, @import("list_update.zig").Storage) = .empty,
 collection_buffers: std.AutoHashMapUnmanaged(ir.ExprId, @import("iteration_buffer/capacity.zig")) = .empty,
@@ -32,7 +32,7 @@ iteration_analyses: @import("iteration_buffer/memo.zig") = .{},
 buffer_types: @import("buffer_call/types.zig") = .{},
 buffer_functions: []const []const @import("buffer_call/root.zig").Lane = &.{},
 transfer_functions: []const []const @import("buffer_call/transfer/analysis.zig").Capability = &.{},
-buffered_type: ?*const node.Expression = null,
+buffered_type: ?node.ExpressionId = null,
 buffer_pointer: bool = false,
 uses_buffers: bool = false,
 serial: usize = 0,
@@ -190,16 +190,16 @@ pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declar
     if (needs_process) parameters[parameters.len - 1] = .{ .name = "process", .value = try @import("intrinsics.zig").standardField(self, &.{ "process", "Init", "Minimal" }) };
     if (self.buffered_type) |buffered_type| parameters[parameters.len - 1] = .{ .name = "buffers", .value = buffered_type };
 
-    return .{ .function = .{ .name = name, .parameters = parameters, .return_type = try self.builder.expression(.{ .error_union = .{ .payload = if (self.value_output) self.layouts[@backingInt(self.program.output_type)] else self.types[@backingInt(self.program.output_type)], .errors = errors } }), .body = try body.toOwnedSlice(self.allocator), .exported = exported } };
+    return .{ .function = .{ .name = name, .parameters = parameters, .return_type = try self.builder.expression(.{ .error_union = .{ .payload = if (self.value_output) self.layouts[@backingInt(self.program.output_type)] else self.types[@backingInt(self.program.output_type)], .errors = errors } }), .body = try self.builder.statements(body.items), .exported = exported } };
 }
 
-pub fn expr(self: *Self, id: ir.ExprId) Error!*const node.Expression {
+pub fn expr(self: *Self, id: ir.ExprId) Error!node.ExpressionId {
     if (self.iteration_value) |context| if (try context.expression(id)) |value| return value;
 
     return self.regular(id);
 }
 
-pub fn regular(self: *Self, id: ir.ExprId) Error!*const node.Expression {
+pub fn regular(self: *Self, id: ir.ExprId) Error!node.ExpressionId {
     if (self.cache.get(id)) |cached| {
         self.cache_reads[@backingInt(id)] += 1;
 
@@ -300,7 +300,8 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!*const node.Expression {
 
             const needs_io = self.io_functions[@backingInt(invocation.function)];
             const needs_process = self.process_functions[@backingInt(invocation.function)];
-            const arguments = try self.allocator.alloc(*const node.Expression, 2 + @as(usize, @intFromBool(invocation.stores.len > 0)) + @as(usize, @intFromBool(needs_io)) + @as(usize, @intFromBool(needs_process)));
+            const arguments = try self.allocator.alloc(node.ExpressionId, 2 + @as(usize, @intFromBool(invocation.stores.len > 0)) + @as(usize, @intFromBool(needs_io)) + @as(usize, @intFromBool(needs_process)));
+
             arguments[0] = try self.builder.identifier("allocator");
 
             arguments[1] = if (callee_function.external != null and callee_function.external.?.expand_tuple and self.program.expression(invocation.argument).value == .tuple and !self.cache.contains(invocation.argument)) temporary: {
@@ -343,7 +344,7 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!*const node.Expression {
     };
 }
 
-fn projection(self: *Self, id: ir.ExprId) Error!*const node.Expression {
+fn projection(self: *Self, id: ir.ExprId) Error!node.ExpressionId {
     switch (self.program.expression(id).value) {
         .iteration, .list_operation => return @import("value_call/root.zig").expression(self, id),
         .call => |value| if (self.value_functions[@backingInt(value.function)]) return @import("value_call/root.zig").expression(self, id),
@@ -353,18 +354,18 @@ fn projection(self: *Self, id: ir.ExprId) Error!*const node.Expression {
     return self.expr(id);
 }
 
-pub fn functionReference(self: *Self, id: ir.FunctionId) Error!*const node.Expression {
+pub fn functionReference(self: *Self, id: ir.FunctionId) Error!node.ExpressionId {
     return self.requestFunction(id, .regular);
 }
 
-pub fn requestFunction(self: *Self, id: ir.FunctionId, variant: @import("functions/requests.zig").Variant) Error!*const node.Expression {
+pub fn requestFunction(self: *Self, id: ir.FunctionId, variant: @import("functions/requests.zig").Variant) Error!node.ExpressionId {
     if (self.function_modules) |modules| return self.field(try self.builtin(.import, &.{try self.builder.string(modules[@backingInt(id)])}), variant.member());
     try self.function_requests.add(self.allocator, id, variant);
 
     return self.builder.identifier(try variant.name(self.allocator, id));
 }
 
-pub fn binary(self: *Self, value: @FieldType(@FieldType(ir.ExpressionRow, "value"), "binary")) Error!*const node.Expression {
+pub fn binary(self: *Self, value: @FieldType(@FieldType(ir.ExpressionRow, "value"), "binary")) Error!node.ExpressionId {
     const left = try self.expr(value.left);
     const right = try self.expr(value.right);
     const type_id = self.program.expression(value.left).type_id;
@@ -394,18 +395,26 @@ pub fn binary(self: *Self, value: @FieldType(@FieldType(ir.ExpressionRow, "value
     return self.builder.expression(.{ .binary = .{ .operator = std.meta.stringToEnum(node.BinaryOperator, @tagName(value.operator)).?, .left = left, .right = right } });
 }
 
-pub fn field(self: *Self, target: *const node.Expression, name: []const u8) Error!*const node.Expression {
+pub fn field(self: *Self, target: node.ExpressionId, name: []const u8) Error!node.ExpressionId {
     return self.builder.expression(.{ .field = .{ .target = target, .name = name } });
 }
 
-pub fn call(self: *Self, callee: *const node.Expression, arguments: []const *const node.Expression, fallible: bool) Error!*const node.Expression {
-    if (callee.* == .field and callee.field.target.* == .identifier and std.mem.eql(u8, callee.field.target.identifier, "allocator")) self.uses_allocator = true;
+pub fn call(self: *Self, callee: node.ExpressionId, arguments: []const node.ExpressionId, fallible: bool) Error!node.ExpressionId {
+    const target = self.builder.nodes.get(callee);
 
-    for (arguments) |argument| {
-        if (argument.* == .identifier and std.mem.eql(u8, argument.identifier, "allocator")) self.uses_allocator = true;
+    if (target == .field) {
+        const owner = self.builder.nodes.get(target.field.target);
+
+        if (owner == .identifier and std.mem.eql(u8, owner.identifier, "allocator")) self.uses_allocator = true;
     }
 
-    const result = try self.builder.expression(.{ .call = .{ .callee = callee, .arguments = try self.allocator.dupe(*const node.Expression, arguments) } });
+    for (arguments) |argument_id| {
+        const argument = self.builder.nodes.get(argument_id);
+
+        if (argument == .identifier and std.mem.eql(u8, argument.identifier, "allocator")) self.uses_allocator = true;
+    }
+
+    const result = try self.builder.expression(.{ .call = .{ .callee = callee, .arguments = try self.allocator.dupe(node.ExpressionId, arguments) } });
 
     if (!fallible) return result;
     if (self.capture) |boundary| return self.builder.expression(.{ .catch_value = .{ .value = result, .capture = boundary.name, .label = boundary.label, .result = boundary.failure } });
@@ -413,15 +422,15 @@ pub fn call(self: *Self, callee: *const node.Expression, arguments: []const *con
     return self.builder.expression(.{ .try_value = result });
 }
 
-pub fn builtin(self: *Self, name: @FieldType(@FieldType(node.Expression, "builtin"), "name"), arguments: []const *const node.Expression) Error!*const node.Expression {
-    return self.builder.expression(.{ .builtin = .{ .name = name, .arguments = try self.allocator.dupe(*const node.Expression, arguments) } });
+pub fn builtin(self: *Self, name: @FieldType(@FieldType(node.Expression, "builtin"), "name"), arguments: []const node.ExpressionId) Error!node.ExpressionId {
+    return self.builder.expression(.{ .builtin = .{ .name = name, .arguments = try self.allocator.dupe(node.ExpressionId, arguments) } });
 }
 
-pub fn cast(self: *Self, type_expr: *const node.Expression, value: *const node.Expression) Error!*const node.Expression {
+pub fn cast(self: *Self, type_expr: node.ExpressionId, value: node.ExpressionId) Error!node.ExpressionId {
     return self.builtin(.as, &.{ type_expr, value });
 }
 
-pub fn construct(self: *Self, type_id: ir.TypeId, value: *const node.Expression) Error!*const node.Expression {
+pub fn construct(self: *Self, type_id: ir.TypeId, value: node.ExpressionId) Error!node.ExpressionId {
     if (@import("state_value/root.zig").selected(self, type_id)) return self.cast(self.types[@backingInt(type_id)], try @import("state_value/origin.zig").tuple(self, type_id, value));
 
     var body: std.ArrayList(node.Statement) = .empty;
@@ -447,6 +456,6 @@ pub fn transaction(self: *const Self) bool {
     return self.program.stores.count() > 0 and self.program.store_mode == .transaction;
 }
 
-pub fn commit(self: *Self) Error!*const node.Expression {
+pub fn commit(self: *Self) Error!node.ExpressionId {
     return self.call(try self.field(try self.builder.identifier("context"), "commit"), &.{try self.builder.identifier("pending")}, true);
 }

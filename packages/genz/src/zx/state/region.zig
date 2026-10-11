@@ -15,7 +15,7 @@ pub fn lower(builder: Builder, declarations: *std.ArrayList(node.Declaration), w
         try declarations.append(allocator, .{ .constant = .{ .name = "Region", .value = try builder.expression(.{ .struct_type = fields }) } });
         try body.append(allocator, .{ .variable = .{ .name = "region", .value = try builder.path(&.{ "self", "retained" }) } });
 
-        try body.append(allocator, .{ .while_loop = .{ .condition = try builder.identifier("region"), .capture = "current", .body = try allocator.dupe(node.Statement, &.{
+        try body.append(allocator, .{ .while_loop = .{ .condition = try builder.identifier("region"), .capture = "current", .body = try builder.statements(&.{
             .{ .constant = .{ .name = "next", .value = try builder.path(&.{ "current", "next" }) } },
             .{ .expression = try builder.call(try builder.path(&.{ "current", "arena", "deinit" }), &.{}) },
             .{ .expression = try builder.call(try builder.path(&.{ "self", "arena", "child_allocator", "destroy" }), &.{try builder.identifier("current")}) },
@@ -29,7 +29,7 @@ pub fn lower(builder: Builder, declarations: *std.ArrayList(node.Declaration), w
         .name = "deinit",
         .parameters = try allocator.dupe(node.Field, &.{.{ .name = "self", .value = try builder.expression(.{ .pointer = try builder.identifier("Self") }) }}),
         .return_type = try builder.expression(.{ .primitive = .void }),
-        .body = try body.toOwnedSlice(allocator),
+        .body = try builder.statements(body.items),
         .exported = true,
     } });
 }

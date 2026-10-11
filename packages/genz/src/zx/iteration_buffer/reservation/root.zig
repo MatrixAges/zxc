@@ -4,7 +4,7 @@ const node = @import("../../../node.zig");
 const Lower = @import("../../lower.zig");
 const shape = @import("shape.zig");
 
-pub fn limit(lowering: *Lower, iteration: ir.Iteration, initial: *const node.Expression, output: []const usize, updates: []const ir.ExprId) Lower.Error!?*const node.Expression {
+pub fn limit(lowering: *Lower, iteration: ir.Iteration, initial: node.ExpressionId, output: []const usize, updates: []const ir.ExprId) Lower.Error!?node.ExpressionId {
     const program = lowering.program;
 
     if (iteration.postcondition or updates.len != 1) return null;

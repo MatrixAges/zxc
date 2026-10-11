@@ -1,0 +1,45 @@
+import integers from "std:integer"
+
+import { Action, ByteSource } from "../model"
+import { Token } from "../model/token"
+
+import type { Step, Frame } from "../model"
+
+export type Input = Step
+
+export type Output = Frame[]
+
+export default function (in: Input): Output {
+    const tree = in.source.declarations
+    const id = tree.offsets[integers.widen(in.frame.id)]
+    const row = integers.widen(id)
+    const frame: Frame = { action: Action.Text, token: Token.Empty, bytes: ByteSource.None, id: id, count: 0, index: 0, number: 0 }
+    const visible: Frame[] = tree.function_exported[row] ? [{ ...frame, token: Token.PubPrefix }] : []
+    const exported = tree.function_abi_export[row] ? visible.push({ ...frame, token: Token.ExportPrefix })[0] : visible
+    const inlined = tree.function_inlined[row] ? exported.push({ ...frame, token: Token.InlinePrefix })[0] : exported
+    const opening = inlined.concat([{ ...frame, token: Token.FnPrefix }, { ...frame, action: Action.Identifier, bytes: ByteSource.FunctionName }, { ...frame, token: Token.Open }])[0]
+    const zero: u32 = 0
+
+    const parameters = loop({ frames: opening, index: zero, first: tree.function_parameters_start[row], count: tree.function_parameters_len[row], frame: frame }, {
+        while: current => current.index < current.count,
+        next: current => {
+            if (current.index != 0) {
+                current.frames = current.frames.push({ ...current.frame, token: Token.CommaSpace })[0]
+            }
+
+            current.frames = current.frames.push({ ...current.frame, action: Action.Parameter, id: current.first + current.index })[0]
+            current.index += 1
+        }
+    })
+
+    const signature = parameters.frames.push({ ...frame, token: Token.CloseSpace })[0]
+    const convention = tree.function_calling_convention[row]
+    const calling = convention == null ? signature : signature.concat([{ ...frame, token: Token.CallConvention }, { ...frame, action: Action.Expression, id: convention }, { ...frame, token: Token.CloseSpace }])[0]
+
+    return calling.concat([
+        { ...frame, action: Action.Expression, id: tree.function_return_type[row] },
+        { ...frame, token: Token.Space },
+        { ...frame, action: Action.Block, id: tree.function_body_start[row], count: tree.function_body_len[row] },
+        { ...frame, token: Token.Newline }
+    ])[0]
+}

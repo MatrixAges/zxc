@@ -4,15 +4,15 @@ const node = @import("../node.zig");
 const Lower = @import("lower.zig");
 const aggregate = @import("aggregate.zig");
 
-pub fn lower(self: *Lower, selection: ir.MatchRow) Lower.Error!*const node.Expression {
+pub fn lower(self: *Lower, selection: ir.MatchRow) Lower.Error!node.ExpressionId {
     return lowerMode(self, selection, false);
 }
 
-pub fn lowerValue(self: *Lower, selection: ir.MatchRow) Lower.Error!*const node.Expression {
+pub fn lowerValue(self: *Lower, selection: ir.MatchRow) Lower.Error!node.ExpressionId {
     return lowerMode(self, selection, true);
 }
 
-fn lowerMode(self: *Lower, selection: ir.MatchRow, layout: bool) Lower.Error!*const node.Expression {
+fn lowerMode(self: *Lower, selection: ir.MatchRow, layout: bool) Lower.Error!node.ExpressionId {
     var body: std.ArrayList(node.Statement) = .empty;
     const previous = if (selection.subject) |subject| self.cache.get(subject) else null;
 

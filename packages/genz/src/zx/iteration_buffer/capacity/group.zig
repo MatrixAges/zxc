@@ -4,7 +4,7 @@ const Lower = @import("../../lower.zig");
 const Self = @This();
 /// Locals that share one cleanup: each member becomes a field of one struct variable whose release method
 /// frees every member, so a single defer or errdefer runs per scope exit instead of one per member.
-pub const Member = struct { name: []const u8, type_expr: *const node.Expression, initial: *const node.Expression, release: ?*const node.Expression = null };
+pub const Member = struct { name: []const u8, type_expr: node.ExpressionId, initial: node.ExpressionId, release: ?node.ExpressionId = null };
 
 name: []const u8,
 position: usize,
@@ -14,7 +14,7 @@ pub fn init(lowering: *Lower, body: *const std.ArrayList(node.Statement), prefix
 }
 
 /// Field access on the shared variable for the next member.
-pub fn field(self: *const Self, lowering: *Lower, name: []const u8) Lower.Error!*const node.Expression {
+pub fn field(self: *const Self, lowering: *Lower, name: []const u8) Lower.Error!node.ExpressionId {
     return lowering.field(try lowering.builder.identifier(self.name), name);
 }
 
@@ -42,7 +42,7 @@ pub fn seal(self: *const Self, lowering: *Lower, body: *std.ArrayList(node.State
             .{ .name = "zx_allocator", .value = try @import("../../intrinsics.zig").standardField(lowering, &.{ "mem", "Allocator" }) },
         }),
         .return_type = try lowering.builder.expression(.{ .primitive = .void }),
-        .body = try releases.toOwnedSlice(lowering.allocator),
+        .body = try lowering.builder.statements(releases.items),
     } };
 
     const container = try lowering.builder.expression(.{ .container_type = .{ .fields = fields, .declarations = try lowering.allocator.dupe(node.Declaration, &.{method}) } });
@@ -57,6 +57,6 @@ pub fn seal(self: *const Self, lowering: *Lower, body: *std.ArrayList(node.State
 }
 
 /// `zx_self.<field>` inside the release method.
-pub fn own(lowering: *Lower, name: []const u8) Lower.Error!*const node.Expression {
+pub fn own(lowering: *Lower, name: []const u8) Lower.Error!node.ExpressionId {
     return lowering.field(try lowering.builder.identifier("zx_self"), name);
 }

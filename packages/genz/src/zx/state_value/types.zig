@@ -6,8 +6,8 @@ const Lower = @import("../lower.zig");
 pub fn lower(self: *Lower, output: *std.ArrayList(node.Declaration), exported: bool) Lower.Error!void {
     self.abi_types = self.types;
     self.abi_layouts = self.layouts;
-    self.state_types = try self.allocator.dupe(*const node.Expression, self.types);
-    self.state_layouts = try self.allocator.dupe(*const node.Expression, self.layouts);
+    self.state_types = try self.allocator.dupe(node.ExpressionId, self.types);
+    self.state_layouts = try self.allocator.dupe(node.ExpressionId, self.layouts);
 
     var declared: std.StringHashMapUnmanaged(void) = .empty;
 
@@ -47,7 +47,7 @@ pub fn lower(self: *Lower, output: *std.ArrayList(node.Declaration), exported: b
                     break :object try self.builder.expression(.{ .struct_type = items });
                 },
                 .tuple => |children| tuple: {
-                    const items = try self.allocator.alloc(*const node.Expression, children.len + 1);
+                    const items = try self.allocator.alloc(node.ExpressionId, children.len + 1);
 
                     for (0..children.len, items[0..children.len]) |item_index, *item| {
                         const child = children.at(item_index);

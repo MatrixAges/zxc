@@ -12,7 +12,7 @@ pub fn lower(builder: Builder, objects: []const Object) std.mem.Allocator.Error!
     if (storage.writable(objects)) {
         const valid = try builder.expression(.{ .try_value = try builder.call(try builder.path(&.{ "Self", "validate" }), &.{changes}) });
 
-        try body.append(allocator, .{ .branch = .{ .condition = try builder.expression(.{ .unary = .{ .operator = .not, .operand = valid } }), .yes = try allocator.dupe(node.Statement, &.{.{ .result = null }}), .no = &.{} } });
+        try body.append(allocator, .{ .branch = .{ .condition = try builder.expression(.{ .unary = .{ .operator = .not, .operand = valid } }), .yes = try builder.statements(&.{.{ .result = null }}), .no = .{} } });
 
         const retained = try builder.path(&.{ "self", "retained" });
         const region = try builder.identifier("region");
@@ -30,7 +30,7 @@ pub fn lower(builder: Builder, objects: []const Object) std.mem.Allocator.Error!
             .{ .assignment = .{ .target = retained, .value = region } },
         });
 
-        try body.append(allocator, .{ .branch = .{ .condition = try builder.expression(.{ .binary = .{ .operator = .equal, .left = retained, .right = try builder.expression(.null_value) } }), .yes = create, .no = &.{} } });
+        try body.append(allocator, .{ .branch = .{ .condition = try builder.expression(.{ .binary = .{ .operator = .equal, .left = retained, .right = try builder.expression(.null_value) } }), .yes = try builder.statements(create), .no = .{} } });
         try body.append(allocator, .{ .expression = try builder.call(try builder.path(&.{ "self", "parent", "apply" }), &.{changes}) });
 
         if (storage.reclaimable(objects)) for (objects, 0..) |object, index| {
@@ -39,7 +39,7 @@ pub fn lower(builder: Builder, objects: []const Object) std.mem.Allocator.Error!
             const present = try builder.expression(.{ .binary = .{ .operator = .not_equal, .left = try builder.field(changes, try std.fmt.allocPrint(allocator, "store_{d}", .{index})), .right = try builder.expression(.null_value) } });
             const assign = try allocator.dupe(node.Statement, &.{.{ .assignment = .{ .target = try builder.field(try builder.path(&.{ "self", "parent" }), try std.fmt.allocPrint(allocator, "owner_{d}", .{index})), .value = retained } }});
 
-            try body.append(allocator, .{ .branch = .{ .condition = present, .yes = assign, .no = &.{} } });
+            try body.append(allocator, .{ .branch = .{ .condition = present, .yes = try builder.statements(assign), .no = .{} } });
         };
     } else try body.append(allocator, .{ .expression = try builder.expression(.{ .try_value = try builder.call(try builder.path(&.{ "self", "parent", "commit" }), &.{changes}) }) });
 
@@ -50,7 +50,7 @@ pub fn lower(builder: Builder, objects: []const Object) std.mem.Allocator.Error!
             .{ .name = "changes", .value = try builder.path(&.{ "application", "zx_pending" }) },
         }),
         .return_type = try builder.expression(.{ .error_union = .{ .inferred = true, .payload = try builder.expression(.{ .primitive = .void }) } }),
-        .body = try body.toOwnedSlice(allocator),
+        .body = try builder.statements(body.items),
         .exported = true,
     } };
 }

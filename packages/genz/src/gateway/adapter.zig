@@ -33,7 +33,7 @@ pub fn lower(builder: Builder, service: Service, index: usize) std.mem.Allocator
             const failure = try allocator.dupe(node.Statement, &.{.{ .result = try builder.expression(.{ .error_value = "StoreNotWritable" }) }});
             const condition = try builder.expression(.{ .binary = .{ .operator = .not_equal, .left = change, .right = try builder.expression(.null_value) } });
 
-            try body.append(allocator, .{ .branch = .{ .condition = condition, .yes = failure, .no = &.{} } });
+            try body.append(allocator, .{ .branch = .{ .condition = condition, .yes = try builder.statements(failure), .no = .{} } });
         }
     }
 
@@ -47,7 +47,7 @@ pub fn lower(builder: Builder, service: Service, index: usize) std.mem.Allocator
             .name = "init",
             .parameters = try allocator.dupe(node.Field, &.{.{ .name = "request", .value = request_pointer }}),
             .return_type = this,
-            .body = try allocator.dupe(node.Statement, &.{.{ .result = try builder.expression(.{ .object = .{ .fields = try initial.toOwnedSlice(allocator) } }) }}),
+            .body = try builder.statements(&.{.{ .result = try builder.expression(.{ .object = .{ .fields = try initial.toOwnedSlice(allocator) } }) }}),
         } },
         .{ .function = .{
             .name = "commit",
@@ -56,7 +56,7 @@ pub fn lower(builder: Builder, service: Service, index: usize) std.mem.Allocator
                 .{ .name = "changes", .value = try builder.field(try builder.identifier(try std.fmt.allocPrint(allocator, "service_{d}", .{index})), "zx_pending") },
             }),
             .return_type = try builder.expression(.{ .error_union = .{ .inferred = true, .payload = try builder.expression(.{ .primitive = .void }) } }),
-            .body = try body.toOwnedSlice(allocator),
+            .body = try builder.statements(body.items),
             .exported = true,
         } },
     });

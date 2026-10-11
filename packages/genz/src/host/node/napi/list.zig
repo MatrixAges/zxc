@@ -52,7 +52,7 @@ fn bytes(types: Types) std.mem.Allocator.Error![]const node.Statement {
     const byte = try builder.expression(.{ .primitive = .u8 });
     const usize_type = try builder.expression(.{ .primitive = .usize });
 
-    return builder.statements(&.{
+    return builder.allocator.dupe(node.Statement, &.{
         .{ .variable = .{ .name = "array_kind", .type_expr = try builder.identifier("c_int"), .value = zero } },
         .{ .variable = .{ .name = "byte_count", .type_expr = usize_type, .value = zero } },
         .{ .variable = .{ .name = "bytes", .type_expr = try builder.expression(.{ .optional_type = try builder.expression(.{ .many_pointer = byte }) }), .value = nil } },
