@@ -10,9 +10,17 @@ process: []const bool,
 tasks: []const bool,
 uniqueness: Uniqueness.Result,
 basis: *const Uniqueness.Basis,
+/// Shared by every `reentry` into the same functions.
+entry_summaries: ?*Uniqueness.Summaries = null,
 /// Replaces the entry plan with one for `program`, an entry body over the same types and functions the facts were
 /// computed for.
 pub fn reentry(self: *Self, allocator: std.mem.Allocator, workspace: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!void {
+    if (self.entry_summaries) |summaries| if (summaries.input.len == program.functions.count()) {
+        self.uniqueness.entry = try Uniqueness.analyzeEntryWith(allocator, workspace, program, self.basis, summaries);
+
+        return;
+    };
+
     self.uniqueness.entry = try Uniqueness.analyzeEntry(allocator, workspace, program, self.basis);
 }
 
@@ -71,7 +79,10 @@ pub fn createRemembered(backing: std.mem.Allocator, program: ir.Program, exporte
         .tasks = try owned.dupe(bool, facts.tasks),
         .uniqueness = try copyPlans(owned, facts.uniqueness),
         .basis = basis,
+        .entry_summaries = try owned.create(Uniqueness.Summaries),
     };
+
+    value.entry_summaries.?.* = try .create(owned, program, basis);
 
     return .{ .arena = arena, .value = value };
 }

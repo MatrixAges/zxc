@@ -62,3 +62,9 @@ pub fn clear(self: Self) void {
     for (self.input) |values| @memset(values, .none);
     for (self.output) |values| @memset(values, .none);
 }
+
+/// Forgets what updates downstream of each slot want, as `create` leaves it.
+pub fn clearWants(self: Self) void {
+    for (self.inputs) |values| @memset(values, .none);
+    for (self.outputs) |values| @memset(values, .none);
+}

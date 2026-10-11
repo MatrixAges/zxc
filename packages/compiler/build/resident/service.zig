@@ -10,6 +10,8 @@ const Request = generator.Request;
 
 const socket_name = "generator.sock";
 const idle_limit = std.Io.Duration.fromSeconds(15 * 60);
+/// Seconds a build waits for the resident generator before generating itself; a cold generation takes a few.
+const reply_limit = 120;
 
 const Status = enum(u8) { done, failed, stale, declined };
 
@@ -100,6 +102,13 @@ fn forward(io: std.Io, allocator: std.mem.Allocator, request: Request) !?[]const
     const stream = address.connect(io) catch return null;
 
     defer stream.close(io);
+
+    // A resident generator that stops answering must not hold up the build: past the limit the request runs here.
+    for ([_]u32{ std.c.SO.RCVTIMEO, std.c.SO.SNDTIMEO }) |option| {
+        const limit = std.c.timeval{ .sec = reply_limit, .usec = 0 };
+
+        std.posix.setsockopt(stream.socket.handle, std.c.SOL.SOCKET, option, std.mem.asBytes(&limit)) catch return null;
+    }
 
     const identity = try Identity.own(io, allocator);
     var input_buffer: [4096]u8 = undefined;

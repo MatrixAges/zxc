@@ -5,21 +5,30 @@ pub fn reachable(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allo
     const needed = try allocator.alloc(bool, program.functions.count());
 
     @memset(needed, false);
-    mark(needed, program.expressions, program.contracts);
+    markRoot(needed, program);
+    close(needed, program.functions);
 
-    var index = program.functions.count();
+    return needed;
+}
+
+/// Marks the functions `program`'s own body calls.
+pub fn markRoot(needed: []bool, program: ir.Program) void {
+    mark(needed, program.expressions, program.contracts);
+}
+
+/// Extends `needed` to every function a needed function calls; callees precede their callers.
+pub fn close(needed: []bool, functions: ir.FunctionTable) void {
+    var index = functions.count();
 
     while (index != 0) {
         index -= 1;
 
         if (!needed[index]) continue;
 
-        const function = program.functions.at(index);
+        const function = functions.at(index);
 
         mark(needed, function.expressions, function.contracts);
     }
-
-    return needed;
 }
 
 fn mark(needed: []bool, expressions: ir.ExpressionTable, contracts: ir.ContractTable) void {

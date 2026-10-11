@@ -5,7 +5,16 @@ const Names = @import("genz").zx.modules.Names;
 const Hash = std.crypto.hash.sha2.Sha256;
 pub const Error = std.mem.Allocator.Error || error{ MissingNominalOrigin, InvalidNominalOrigin };
 
-pub fn create(allocator: std.mem.Allocator, program: ir.Program, origins: @FieldType(@import("frontend").AnalysisResult, "nominal_types")) Error!Names {
+const Origins = @FieldType(@import("frontend").AnalysisResult, "nominal_types");
+
+/// Which functions take `std.Io` and the process arguments, when the caller already has them.
+pub const Capabilities = struct { io: []const bool, process: []const bool };
+
+pub fn create(allocator: std.mem.Allocator, program: ir.Program, origins: Origins) Error!Names {
+    return createWith(allocator, program, origins, null);
+}
+
+pub fn createWith(allocator: std.mem.Allocator, program: ir.Program, origins: Origins, known: ?Capabilities) Error!Names {
     if (!origins.hasValidShape()) return error.InvalidNominalOrigin;
 
     const type_names = try allocator.alloc([]const u8, program.types.count());
@@ -81,13 +90,13 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program, origins: @Field
     }
 
     const functions = try allocator.alloc([]const u8, program.functions.count());
-    const io_functions = try @import("genz").zx.io.functions(allocator, program);
+    const io_functions = if (known) |facts| facts.io else try @import("genz").zx.io.functions(allocator, program);
 
-    defer allocator.free(io_functions);
+    defer if (known == null) allocator.free(io_functions);
 
-    const process_functions = try @import("genz").zx.capabilities.functions(allocator, program, .process);
+    const process_functions = if (known) |facts| facts.process else try @import("genz").zx.capabilities.functions(allocator, program, .process);
 
-    defer allocator.free(process_functions);
+    defer if (known == null) allocator.free(process_functions);
 
     for (0..program.functions.count(), functions, io_functions, process_functions) |function_row, *name, needs_io, needs_process| {
         const function = program.functions.at(function_row);

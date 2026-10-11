@@ -162,18 +162,32 @@ pub fn analyzeEntry(allocator: std.mem.Allocator, workspace: std.mem.Allocator, 
 
     defer scratch.deinit();
 
+    var summaries = try Summaries.create(scratch.allocator(), program, basis);
+
+    return analyzeEntryWith(allocator, workspace, program, basis, &summaries);
+}
+
+/// `analyzeEntry` over summaries created once for the program's functions, so entries into the same functions share
+/// them; they are cleared first.
+pub fn analyzeEntryWith(allocator: std.mem.Allocator, workspace: std.mem.Allocator, program: ir.Program, basis: *const Basis, summaries: *Summaries) std.mem.Allocator.Error!Plan {
+    if (program.type_only) return .{ .flags = &.{} };
+
+    var scratch = std.heap.ArenaAllocator.init(workspace);
+
+    defer scratch.deinit();
+
     const temporary = scratch.allocator();
     const slots = basis.slots;
-    var summaries = try Summaries.create(temporary, program, basis);
 
     summaries.clear();
+    summaries.clearWants();
 
     const unit = try prepare(temporary, .{ .symbols = program.symbols, .expressions = program.expressions, .input_type = program.input_type, .output_type = program.output_type, .input = &.{}, .function = null, .normalized = undefined, .renewed = undefined }, program.body.block());
 
     while (true) {
         var changed: std.ArrayList(usize) = .empty;
 
-        var analysis = try unit.analyze(temporary, program.functions, slots, &summaries);
+        var analysis = try unit.analyze(temporary, program.functions, slots, summaries);
 
         var marked: std.ArrayList(Function.Mark) = .empty;
 
@@ -182,7 +196,7 @@ pub fn analyzeEntry(allocator: std.mem.Allocator, workspace: std.mem.Allocator, 
         if (!analysis.grew) break;
     }
 
-    var analysis = try unit.analyze(temporary, program.functions, slots, &summaries);
+    var analysis = try unit.analyze(temporary, program.functions, slots, summaries);
     const flags = try allocator.alloc(Flags, program.expressions.count());
 
     try analysis.flags(flags);

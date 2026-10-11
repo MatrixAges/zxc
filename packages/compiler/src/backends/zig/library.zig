@@ -40,16 +40,6 @@ fn create(allocator: std.mem.Allocator, library: *const model.Result, cache: ?*C
 
     const owned = arena.allocator();
     const program = try @import("genz").zx.prepare(owned, library.program);
-    var identities = try names.create(owned, program, library.nominal_types);
-
-    if (file_imports) {
-        const functions = try owned.alloc([]const u8, identities.functions.len);
-
-        for (identities.functions, functions) |name, *path| path.* = try std.fmt.allocPrint(owned, "{s}.zig", .{name});
-
-        identities.functions = functions;
-    }
-
     const needed = try owned.alloc(bool, program.functions.count());
     const public_modules = try owned.alloc(PublicModule, library.exports.len);
     const exported_functions = try owned.alloc(@import("zx").ir.FunctionId, library.exports.len);
@@ -68,7 +58,24 @@ fn create(allocator: std.mem.Allocator, library: *const model.Result, cache: ?*C
 
     const memo = if (loaded) |*value| value else if (keeps_memo) try memos.kept(cache.?) else null;
 
-    var batch = try modules.Batch.createRemembered(allocator, program, identities, cache, exported_functions[0..exported_count], memo);
+    var analysis = try @import("genz").zx.modules.Analysis.createRemembered(allocator, program, exported_functions[0..exported_count], memo);
+
+    // Names take the capabilities the analysis already found instead of tracing the call graph again.
+    var identities = names.createWith(owned, program, library.nominal_types, .{ .io = analysis.value.io, .process = analysis.value.process }) catch |err| {
+        analysis.deinit();
+
+        return err;
+    };
+
+    if (file_imports) {
+        const functions = try owned.alloc([]const u8, identities.functions.len);
+
+        for (identities.functions, functions) |name, *path| path.* = try std.fmt.allocPrint(owned, "{s}.zig", .{name});
+
+        identities.functions = functions;
+    }
+
+    var batch = modules.Batch.fromAnalysis(allocator, program, identities, cache, analysis);
 
     defer batch.deinit();
 
@@ -86,11 +93,7 @@ fn create(allocator: std.mem.Allocator, library: *const model.Result, cache: ?*C
         else
             try prepared_library.module(index);
 
-        const reachable = try references.reachable(owned, view);
-
-        for (needed, reachable) |*required, used| required.* = required.* or used;
-
-        owned.free(reachable);
+        references.markRoot(needed, view);
 
         var digest: [32]u8 = undefined;
 
@@ -111,6 +114,8 @@ fn create(allocator: std.mem.Allocator, library: *const model.Result, cache: ?*C
             },
         };
     }
+
+    references.close(needed, program.functions);
 
     const type_source = try batch.emit(owned, .types);
     const functions = try modules.functionFilesAnalyzed(owned, &batch, needed);

@@ -25,6 +25,11 @@ pub fn createRemembered(backing: std.mem.Allocator, program: ir.Program, names: 
     return .{ .backing = backing, .program = program, .names = names, .analysis = try generating.Analysis.createRemembered(backing, program, exported, memo), .cache = cache };
 }
 
+/// A batch over facts already computed for `program`, which it takes ownership of.
+pub fn fromAnalysis(backing: std.mem.Allocator, program: ir.Program, names: generating.Names, cache: ?*Cache, analysis: generating.Analysis.Owned) Self {
+    return .{ .backing = backing, .program = program, .names = names, .analysis = analysis, .cache = cache };
+}
+
 pub fn deinit(self: *Self) void {
     self.analysis.deinit();
 
