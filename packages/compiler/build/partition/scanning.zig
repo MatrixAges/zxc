@@ -2,20 +2,19 @@ const std = @import("std");
 const parallel = @import("../parallel.zig");
 const signature = @import("signature.zig");
 const File = @import("layout.zig").File;
+const Indices = @import("compiler").bytes.Map(u32);
 const Self = @This();
-
 /// One reference `@import("callee").variant` in generated source, by the callee's index among the planned functions.
 pub const Reference = struct { callee: u32, variant: []const u8 };
-
 const import_prefix = "@import(\"zxc_module_";
 
 functions: []const File,
-indices: *const std.StringHashMapUnmanaged(u32),
+indices: *const Indices,
 references: [][]const Reference,
 inline_names: [][]const []const u8,
 
 /// Scans the references and inline functions of every function file on all cores; the results live in `arenas`.
-pub fn run(allocator: std.mem.Allocator, arenas: parallel.Arenas, functions: []const File, indices: *const std.StringHashMapUnmanaged(u32)) !Self {
+pub fn run(allocator: std.mem.Allocator, arenas: parallel.Arenas, functions: []const File, indices: *const Indices) !Self {
     const self = Self{
         .functions = functions,
         .indices = indices,
@@ -30,13 +29,12 @@ pub fn run(allocator: std.mem.Allocator, arenas: parallel.Arenas, functions: []c
 
 pub fn step(self: *const Self, allocator: std.mem.Allocator, index: usize) !void {
     const source = self.functions[index].source;
-
     self.references[index] = try scan(allocator, source, self.indices);
     self.inline_names[index] = try signature.inlineNames(allocator, source);
 }
 
 /// The function references in `source`, in order.
-pub fn scan(allocator: std.mem.Allocator, source: []const u8, indices: *const std.StringHashMapUnmanaged(u32)) ![]const Reference {
+pub fn scan(allocator: std.mem.Allocator, source: []const u8, indices: *const Indices) ![]const Reference {
     var result: std.ArrayList(Reference) = .empty;
     var cursor: usize = 0;
 
@@ -46,7 +44,6 @@ pub fn scan(allocator: std.mem.Allocator, source: []const u8, indices: *const st
         var member = quote + 1;
 
         while (member < source.len and source[member] == ')') member += 1;
-
         if (member >= source.len or source[member] != '.') return error.UnsupportedFunctionReference;
 
         const variant_start = member + 1;

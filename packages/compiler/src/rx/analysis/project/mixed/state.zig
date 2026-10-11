@@ -73,7 +73,7 @@ pub fn signature(self: *const Self, index: usize) ?frontend.project.signature_pr
 
 /// For each graph module, the first signature module with its path.
 fn signatureIndices(allocator: std.mem.Allocator, graph: SourceGraph, signatures: frontend.project.signature_project.Data) std.mem.Allocator.Error![]const ?usize {
-    var paths: std.StringHashMapUnmanaged(usize) = .empty;
+    var paths: @import("zx").bytes.Map(usize) = .empty;
 
     defer paths.deinit(allocator);
 

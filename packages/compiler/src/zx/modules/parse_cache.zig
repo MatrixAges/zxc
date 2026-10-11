@@ -7,7 +7,7 @@ pub const indexed_enabled = @import("../frontend/module_result.zig").indexed_ena
 const Entry = struct { digest: [32]u8, result: ModuleResult };
 
 allocator: std.mem.Allocator,
-entries: std.StringHashMapUnmanaged(*Entry) = .empty,
+entries: @import("zx").bytes.Map(*Entry) = .empty,
 parsed: usize = 0,
 reused: usize = 0,
 /// Keeps replaced results until `release` instead of freeing them, for analyses that still point into them.

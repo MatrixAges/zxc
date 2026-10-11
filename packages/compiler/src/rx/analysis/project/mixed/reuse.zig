@@ -13,16 +13,17 @@ const Self = @This();
 
 record: ?*history.History,
 previous: ?*const history.Retained = null,
+
 aligned: bool = false,
 initial: history.Checkpoint,
 redone: []bool,
 digests: []?[32]u8,
 before: []history.Checkpoint,
 after: []history.Checkpoint,
-
 pub fn begin(state: *const State, cache: *const ParseCache, record: ?*history.History) std.mem.Allocator.Error!Self {
     const count = state.graph.modules.len;
     const initial = checkpoint(state);
+
     var self = Self{
         .record = record,
         .initial = initial,
@@ -145,8 +146,7 @@ fn unchanged(self: *const Self, state: *const State, index: usize) bool {
 /// Whether this analysis starts from the tables the earlier one started from, over the same modules.
 fn matches(state: *const State, previous: *const history.Retained, frame: [32]u8, initial: history.Checkpoint) bool {
     if (!std.mem.eql(u8, &previous.frame, &frame) or !previous.initial.eql(initial) or previous.paths.len != state.graph.modules.len) return false;
-
-    for (previous.paths, state.graph.modules) |path, module| if (!std.mem.eql(u8, path, module.path)) return false;
+    for (previous.paths, state.graph.modules) |path, module| if (!@import("zx").bytes.equal(path, module.path)) return false;
 
     const types: @TypeOf(initial.types) = @splat(0);
     const origins: @TypeOf(initial.origins) = @splat(0);

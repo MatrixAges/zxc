@@ -2,13 +2,10 @@ const std = @import("std");
 const signature = @import("signature.zig");
 const Scanning = @import("scanning.zig");
 const parallel = @import("../parallel.zig");
-
 pub const File = struct { path: []const u8, source: []const u8 };
-
 const Variants = std.ArrayList([]const u8);
 const Demands = std.AutoArrayHashMapUnmanaged(u32, Variants);
 const Copies = std.AutoArrayHashMapUnmanaged(u32, void);
-
 pub const bridge_source = @embedFile("bridge.zig");
 
 /// Places generated function files into `count` separately compiled partitions. A function lives in the
@@ -17,10 +14,9 @@ pub const bridge_source = @embedFile("bridge.zig");
 /// partition exports exactly the entries called from outside it. Inline functions expand in their caller's
 /// unit, as in a single-unit build, so a caller's scope receives a copy of every file it calls inline.
 pub fn plan(io: std.Io, allocator: std.mem.Allocator, functions: []const File, top: []const File, count: u32) ![]File {
-    var indices: std.StringHashMapUnmanaged(u32) = .empty;
+    var indices: @import("compiler").bytes.Map(u32) = .empty;
 
     try indices.ensureTotalCapacity(allocator, @intCast(functions.len));
-
     for (functions, 0..) |function, index| indices.putAssumeCapacity(function.path, @intCast(index));
 
     const partitions = try allocator.alloc(u32, functions.len);
@@ -52,7 +48,6 @@ pub fn plan(io: std.Io, allocator: std.mem.Allocator, functions: []const File, t
     var files: std.ArrayList(File) = .empty;
 
     try files.append(allocator, .{ .path = "bridge.zig", .source = bridge_source });
-
     for (functions, partitions) |function, owner| try files.append(allocator, .{ .path = try directory(allocator, owner, count, function.path), .source = function.source });
 
     for (scopes.copies, 0..) |copies, index| {
@@ -96,7 +91,6 @@ const Signatures = struct {
     functions: []const File,
     exports: *const Demands,
     found: [][]const ?[]const u8,
-
     pub fn step(self: *const Signatures, allocator: std.mem.Allocator, index: usize) !void {
         const source = self.functions[self.exports.keys()[index]].source;
         const variants = self.exports.values()[index].items;
@@ -114,7 +108,6 @@ const Roots = struct {
     partitions: []const u32,
     exports: *const Demands,
     sources: [][]const u8,
-
     pub fn step(self: *const Roots, allocator: std.mem.Allocator, index: usize) !void {
         var root: std.Io.Writer.Allocating = .init(allocator);
 
@@ -129,6 +122,7 @@ const Roots = struct {
         }
 
         try root.writer.writeAll("}\n");
+
         self.sources[index] = root.written();
     }
 };
@@ -157,7 +151,6 @@ const Scopes = struct {
     stubs: []Demands,
     copies: []Copies,
     exports: Demands = .empty,
-
     /// Records every call from `scope` into a function owned by another scope.
     fn demand(self: *Scopes, scope: u32, calls: []const Scanning.Reference) !void {
         for (calls) |call| {
@@ -165,7 +158,6 @@ const Scopes = struct {
 
             if (inlined(self.inline_names[call.callee], call.variant)) {
                 if ((try self.copies[scope].getOrPut(self.allocator, call.callee)).found_existing) continue;
-
                 try self.demand(scope, self.references[call.callee]);
 
                 continue;
@@ -187,9 +179,7 @@ fn add(allocator: std.mem.Allocator, demands: *Demands, callee: u32, variant: []
     const entry = try demands.getOrPut(allocator, callee);
 
     if (!entry.found_existing) entry.value_ptr.* = .empty;
-
     for (entry.value_ptr.items) |known| if (std.mem.eql(u8, known, variant)) return;
-
     try entry.value_ptr.append(allocator, variant);
 }
 

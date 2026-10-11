@@ -42,18 +42,15 @@ pub fn write(io: std.Io, allocator: std.mem.Allocator, output: []const u8, bundl
     }
 
     try files.appendSlice(allocator, top.items);
+
     // Partitions forward their panics to a handler the shared top level defines.
     if (partitions != 0) try root.writer.writeAll("\ncomptime {\n    @import(\"zxc_bridge\").exportPanic();\n}\n");
-
     try files.append(allocator, .{ .path = "root.zig", .source = root.written() });
-
     if (partitions == 0) try files.appendSlice(allocator, functions.items) else try files.appendSlice(allocator, try layout.plan(io, allocator, functions.items, top.items, partitions));
-
     try mirror(io, allocator, output, files.items);
 }
 
 pub const fingerprint_name = ".zxc-inputs";
-
 const file_manifest = @import("partition/file_manifest.zig");
 const manifest_name = file_manifest.name;
 
@@ -86,14 +83,13 @@ fn mirror(io: std.Io, allocator: std.mem.Allocator, output: []const u8, files: [
     const hashing = Hashing{ .files = files, .hashes = try allocator.alloc(u64, files.len) };
 
     try parallel.each(arenas, files.len, &hashing);
-
     try manifest.writer.ensureUnusedCapacity(files.len * 64);
 
     for (files, hashing.hashes, 0..) |file, hash, index| {
         try manifest.writer.print("{x:0>16} {s}\n", .{ hash, file.path });
 
         if (previous) |known| {
-            const before = if (index < known.paths.len and std.mem.eql(u8, known.paths[index], file.path)) known.hashes[index] else found: {
+            const before = if (index < known.paths.len and compiler.bytes.equal(known.paths[index], file.path)) known.hashes[index] else found: {
                 aligned = false;
 
                 if (by_path == null) by_path = try byPath(allocator, known);
@@ -127,13 +123,11 @@ fn mirror(io: std.Io, allocator: std.mem.Allocator, output: []const u8, files: [
 
         while (try walker.next(io)) |entry| {
             if (entry.kind != .file or std.mem.eql(u8, entry.path, fingerprint_name) or wanted.contains(entry.path)) continue;
-
             try stale.append(allocator, try allocator.dupe(u8, entry.path));
         }
     }
 
     for (stale.items) |path| try remove(io, directory, path);
-
     try directory.writeFile(io, .{ .sub_path = manifest_name, .data = manifest.written() });
 }
 
@@ -141,7 +135,6 @@ fn mirror(io: std.Io, allocator: std.mem.Allocator, output: []const u8, files: [
 const Hashing = struct {
     files: []const layout.File,
     hashes: []u64,
-
     pub fn step(self: *const Hashing, _: std.mem.Allocator, index: usize) !void {
         self.hashes[index] = std.hash.Wyhash.hash(0, self.files[index].source);
     }
@@ -160,7 +153,6 @@ fn byPath(allocator: std.mem.Allocator, listed: file_manifest.Listed) !std.Strin
     var result: std.StringHashMapUnmanaged(u64) = .empty;
 
     try result.ensureTotalCapacity(allocator, @intCast(listed.paths.len));
-
     for (listed.paths, listed.hashes) |path, hash| result.putAssumeCapacity(path, hash);
 
     return result;
@@ -170,7 +162,6 @@ fn generated(allocator: std.mem.Allocator, files: []const layout.File) !std.Stri
     var result: std.StringHashMapUnmanaged(void) = .empty;
 
     try result.ensureTotalCapacity(allocator, @intCast(files.len));
-
     for (files) |file| result.putAssumeCapacity(file.path, {});
 
     return result;

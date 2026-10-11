@@ -5,14 +5,12 @@
 //! to its read is read again. Replaced texts stay alive until `release`, since analyses may point into them.
 const std = @import("std");
 const Self = @This();
-
 /// How much older than the read a file's last change must be for its metadata to vouch for its contents.
 const settled = std.time.ns_per_s;
 
 gpa: std.mem.Allocator,
-entries: std.StringHashMapUnmanaged(Entry) = .empty,
+entries: @import("compiler").bytes.Map(Entry) = .empty,
 replaced: std.ArrayList([]u8) = .empty,
-
 const Entry = struct { inode: std.Io.File.INode, size: u64, mtime: i96, ctime: i96, read: i96, text: []u8, digest: ?[32]u8 = null };
 
 pub fn deinit(self: *Self) void {

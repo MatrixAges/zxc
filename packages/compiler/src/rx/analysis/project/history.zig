@@ -9,6 +9,7 @@
 const std = @import("std");
 const ir = @import("zx").ir;
 const frontend = @import("frontend");
+const bytes = @import("zx").bytes;
 const columns = @import("history/columns.zig");
 const Types = frontend.project.artifact.type_link.Table;
 const Source = frontend.project.artifact.source_link;
@@ -34,7 +35,6 @@ pub const Checkpoint = struct {
     native_modules: usize,
     initializers: usize,
     libraries: usize,
-
     pub fn eql(self: Checkpoint, other: Checkpoint) bool {
         return std.meta.eql(self, other);
     }
@@ -70,7 +70,6 @@ pub const History = struct {
     analyzed: usize = 0,
     /// Set by the caller when `bodiesOnly` holds, so the analysis takes the earlier `Frame`.
     bodies_only: bool = false,
-
     /// Whether `sources` differ from the earlier analysis's only inside ZX function bodies: the same files, and each
     /// changed one identical up to and including its body's opening brace. Nothing may follow a body, so the rest of
     /// such a file is that body.
@@ -80,9 +79,9 @@ pub const History = struct {
         if (!std.mem.eql(u8, &earlier.frame, &self.frame) or earlier.sources.len != sources.len) return false;
 
         for (earlier.sources, sources) |before, after| {
-            if (!std.mem.eql(u8, before.path, after.path)) return false;
+            if (!bytes.equal(before.path, after.path)) return false;
             if (before.source.ptr == after.source.ptr and before.source.len == after.source.len) continue;
-            if (std.mem.eql(u8, before.source, after.source)) continue;
+            if (bytes.equal(before.source, after.source)) continue;
 
             const parsed = try cache.getModule(after.source, after.path);
             const body = parsed.bodyStart() orelse return false;

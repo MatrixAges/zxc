@@ -1,9 +1,7 @@
 const std = @import("std");
 const ir = @import("zx").ir;
 const Value = @import("lookup.zig").Value;
-
 const lanes = 16;
-
 /// The row columns every match of a value agrees on: its kind, and `first` or `second` where they hold the value's
 /// child, scalar or length.
 const Key = struct { kind: u8, first: ?u32 = null, second: ?u32 = null };
@@ -84,5 +82,5 @@ fn equalNames(left: []const []const u8, right: []const []const u8) bool {
 }
 
 fn equalFields(left: ir.TypeFields, right: ir.TypeFields) bool {
-    return std.mem.eql(u32, left.types, right.types) and equalNames(left.names, right.names);
+    return @import("zx").bytes.equal(std.mem.sliceAsBytes(left.types), std.mem.sliceAsBytes(right.types)) and equalNames(left.names, right.names);
 }

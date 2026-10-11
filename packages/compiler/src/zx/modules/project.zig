@@ -59,7 +59,7 @@ const Project = struct {
     phase: enum { body, signature } = .body,
     units: []Unit,
     /// Each unit path to the first unit with it.
-    unit_indices: std.StringHashMapUnmanaged(usize) = .empty,
+    unit_indices: @import("zx").bytes.Map(usize) = .empty,
     options: Options,
     reporter: *zx.Reporter,
     types: ir.TypeStorage = .{},

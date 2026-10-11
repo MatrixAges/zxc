@@ -55,7 +55,7 @@ pub fn load(state: *State, cache: *frontend.project.ParseCache, sources: []const
 
 fn find(state: *const State, path: []const u8) ?usize {
     for (state.graph.modules, 0..) |module, index| {
-        if (std.mem.eql(u8, module.path, path)) return index;
+        if (@import("zx").bytes.equal(module.path, path)) return index;
     }
 
     return null;

@@ -27,7 +27,7 @@ pub fn build(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.E
 
 fn buildIn(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.Error!model.Value {
     const modules = try allocator.alloc(model.Module, options.sources.len + options.modules.len);
-    var paths: std.StringHashMapUnmanaged(usize) = .empty;
+    var paths: @import("zx").bytes.Map(usize) = .empty;
 
     defer paths.deinit(allocator);
 
