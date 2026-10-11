@@ -66,7 +66,7 @@ pub fn generate(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, r
     std.mem.sort(compiler.project.Source, sources.items, {}, collection.lessSource);
     std.mem.sort(rx.TextSource, modules.items, {}, collection.lessModule);
 
-    const parsed = try rx.parseModules(allocator, modules.items);
+    const parsed = try resident.modules.parse(modules.items);
 
     if (parsed.value == .diagnostic) {
         std.debug.print("{s}: {s}\n", .{ modules.items[parsed.value.diagnostic.source_index].path, parsed.value.diagnostic.issue.message });
