@@ -16,6 +16,8 @@ pure_functions: []const bool,
 local_functions: []const bool,
 uniqueness: @import("genz").zx.function_analysis.Uniqueness.Result,
 task_functions: []const bool,
+/// A caller's signature lists the errors of the functions it calls, so a call covers the callee's set.
+errors: []const ?[]const []const u8,
 state_plan: @import("genz").zx.state_value.Analysis,
 pub fn createAnalyzed(program: ir.Program, names: Names, unit: Unit, facts: @import("genz").zx.modules.Analysis) [32]u8 {
     var self = Self{
@@ -26,6 +28,7 @@ pub fn createAnalyzed(program: ir.Program, names: Names, unit: Unit, facts: @imp
         .local_functions = facts.value.local,
         .uniqueness = facts.uniqueness,
         .task_functions = facts.tasks,
+        .errors = facts.errors,
         .state_plan = facts.value.state,
     };
 
@@ -38,7 +41,7 @@ fn finish(self: *Self, unit: Unit) [32]u8 {
     const value_functions = self.value_functions;
     const state_plan = self.state_plan;
 
-    self.bytes("zxc.zig.input.v45");
+    self.bytes("zxc.zig.input.v46");
     self.bytes(@tagName(unit));
     self.write(program.version);
 
@@ -150,6 +153,7 @@ fn write(self: *Self, value: anytype) void {
         self.write(self.value_functions[@backingInt(value)]);
         self.write(self.pure_functions[@backingInt(value)]);
         self.write(self.local_functions[@backingInt(value)]);
+        self.write(self.errors[@backingInt(value)]);
 
         const function = self.program.functions.at(@backingInt(value));
 

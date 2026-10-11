@@ -77,6 +77,7 @@ pub fn initializeAnalyzed(temporary: std.mem.Allocator, workspace: std.mem.Alloc
         .io_functions = facts.io,
         .process_functions = facts.process,
         .task_functions = facts.tasks,
+        .function_errors = if (facts.errors.len == program.functions.count()) facts.errors else null,
         .value_functions = facts.value.values,
         .pure_functions = facts.value.pure,
         .local_functions = facts.value.local,

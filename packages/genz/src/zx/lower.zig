@@ -36,6 +36,8 @@ io_functions: []const bool = &.{},
 process_functions: []const bool = &.{},
 task_functions: []const bool,
 value_functions: []const bool = &.{},
+/// The errors each function raises, joined at calls instead of visiting the callee; null visits callees.
+function_errors: ?[]const ?[]const []const u8 = null,
 pure_functions: []const bool = &.{},
 local_functions: []const bool = &.{},
 value_output: bool = false,
@@ -120,7 +122,7 @@ pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declar
     self.uses_io = false;
     self.uses_process = false;
 
-    const errors = try @import("zx").error_effects.program(self.allocator, self.program);
+    const errors = try @import("zx").error_effects.programWith(self.allocator, self.program, self.function_errors);
 
     self.allows_allocation = if (errors) |names| for (names) |error_name| {
         if (std.mem.eql(u8, error_name, "OutOfMemory")) break true;

@@ -5,15 +5,29 @@ const Self = @This();
 allocator: std.mem.Allocator,
 types: ir.TypeTable,
 functions: ir.FunctionTable,
-names: std.StringHashMapUnmanaged(void) = .empty,
+/// Distinct names in the order first raised; a body raises few, mostly the same literals.
+names: std.ArrayList([]const u8) = .empty,
+/// The table of the body analyzed, whose expressions are marked in `seen`; other tables are marked in `visited`.
+home: ?ir.ExpressionTable = null,
+seen: std.DynamicBitSetUnmanaged = .{},
 visited: std.AutoHashMapUnmanaged(usize, void) = .empty,
 called: std.AutoHashMapUnmanaged(ir.FunctionId, void) = .empty,
 unknown: bool = false,
+/// The error set of every function, null where unknown: a call then joins the callee's set instead of visiting it.
+known: ?[]const ?[]const []const u8 = null,
+/// Collects the source functions a body calls instead of visiting them.
+callees: ?*std.ArrayList(ir.FunctionId) = null,
 pub fn program(allocator: std.mem.Allocator, value: ir.Program) std.mem.Allocator.Error!?[]const []const u8 {
-    var self = Self{ .allocator = allocator, .types = value.types, .functions = value.functions };
+    return programWith(allocator, value, null);
+}
+
+/// The errors `value`'s body raises, joining the sets in `known` at calls when given.
+pub fn programWith(allocator: std.mem.Allocator, value: ir.Program, known: ?[]const ?[]const []const u8) std.mem.Allocator.Error!?[]const []const u8 {
+    var self = Self{ .allocator = allocator, .types = value.types, .functions = value.functions, .known = known };
 
     defer self.deinit();
 
+    try self.enter(value.expressions);
     if (value.stores.count() != 0) self.unknown = true;
     try self.contracts(value.contracts);
     try self.statements(value.expressions, value.body.block());
@@ -26,24 +40,26 @@ pub fn expression(allocator: std.mem.Allocator, types: ir.TypeTable, functions: 
 
     defer self.deinit();
 
+    try self.enter(values);
     try self.visit(values, id);
 
     return self.finish();
 }
 
-fn deinit(self: *Self) void {
+/// The error set of every function at once; see `error_effects/functions.zig`.
+pub const perFunction = @import("error_effects/functions.zig").all;
+
+pub fn deinit(self: *Self) void {
     self.names.deinit(self.allocator);
+    self.seen.deinit(self.allocator);
     self.visited.deinit(self.allocator);
     self.called.deinit(self.allocator);
 }
 
-fn finish(self: *Self) std.mem.Allocator.Error!?[]const []const u8 {
+pub fn finish(self: *Self) std.mem.Allocator.Error!?[]const []const u8 {
     if (self.unknown) return null;
 
-    const result = try self.allocator.alloc([]const u8, self.names.count());
-    var iterator = self.names.keyIterator();
-
-    for (result) |*name| name.* = (iterator.next().?).*;
+    const result = try self.allocator.dupe([]const u8, self.names.items);
 
     std.mem.sort([]const u8, result, {}, lessThan);
 
@@ -55,16 +71,32 @@ fn lessThan(_: void, left: []const u8, right: []const u8) bool {
 }
 
 pub fn add(self: *Self, name: []const u8) std.mem.Allocator.Error!void {
-    try self.names.put(self.allocator, name, {});
+    for (self.names.items) |existing| {
+        if (existing.ptr == name.ptr and existing.len == name.len) return;
+        if (std.mem.eql(u8, existing, name)) return;
+    }
+
+    try self.names.append(self.allocator, name);
 }
 
 pub fn visit(self: *Self, values: ir.ExpressionTable, id: ir.ExprId) std.mem.Allocator.Error!void {
-    const value = values.get(id);
-    const entry = try self.visited.getOrPut(self.allocator, @intFromPtr(&values.kinds[@backingInt(id)]));
+    const index = @backingInt(id);
 
-    if (entry.found_existing) return;
+    if (self.home != null and values.kinds.ptr == self.home.?.kinds.ptr) {
+        if (self.seen.isSet(index)) return;
 
-    try @import("error_effects/expression.zig").visit(self, values, value);
+        self.seen.set(index);
+    } else if ((try self.visited.getOrPut(self.allocator, @intFromPtr(&values.kinds[index]))).found_existing) return;
+
+    try @import("error_effects/expression.zig").visit(self, values, values.get(id));
+}
+
+/// Marks the expressions of `values` by index from now on, unless a body's table is marked already.
+fn enter(self: *Self, values: ir.ExpressionTable) std.mem.Allocator.Error!void {
+    if (self.home != null) return;
+
+    self.home = values;
+    self.seen = try .initEmpty(self.allocator, values.count());
 }
 
 pub fn call(self: *Self, id: ir.FunctionId) std.mem.Allocator.Error!void {
@@ -84,6 +116,22 @@ pub fn call(self: *Self, id: ir.FunctionId) std.mem.Allocator.Error!void {
         return;
     }
 
+    if (self.known) |known| {
+        if (known[@backingInt(id)]) |names| {
+            for (names) |name| try self.add(name);
+        } else self.unknown = true;
+
+        return;
+    }
+
+    if (self.callees) |list| return list.append(self.allocator, id);
+
+    try self.raises(function);
+}
+
+/// What one source function's own body raises.
+pub fn raises(self: *Self, function: ir.Function) std.mem.Allocator.Error!void {
+    try self.enter(function.expressions);
     if (function.stores.count() != 0) self.unknown = true;
     try self.contracts(function.contracts);
     try self.statements(function.expressions, function.body.block());

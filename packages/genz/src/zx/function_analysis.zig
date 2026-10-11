@@ -8,6 +8,8 @@ io: []const bool,
 process: []const bool,
 /// Functions that start tasks, themselves or through their callees.
 tasks: []const bool,
+/// The errors each function raises, null where unknown.
+errors: []const ?[]const []const u8 = &.{},
 uniqueness: Uniqueness.Result,
 basis: *const Uniqueness.Basis,
 /// Shared by every `reentry` into the same functions.
@@ -77,6 +79,7 @@ pub fn createRemembered(backing: std.mem.Allocator, program: ir.Program, exporte
         .io = try owned.dupe(bool, facts.io),
         .process = try owned.dupe(bool, facts.process),
         .tasks = try owned.dupe(bool, facts.tasks),
+        .errors = try copyErrors(owned, facts.errors),
         .uniqueness = try copyPlans(owned, facts.uniqueness),
         .basis = basis,
         .entry_summaries = try owned.create(Uniqueness.Summaries),
@@ -98,11 +101,13 @@ pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, progr
     if (thread == null) uniqueness.run();
 
     const others = remaining(allocator, workspace, program);
+    const errors = @import("zx").error_effects.perFunction(allocator, program.types, program.functions);
 
     if (thread) |running| running.join();
 
     var value = try others;
 
+    value.errors = try errors;
     value.uniqueness = try copyPlans(allocator, try uniqueness.result);
     value.basis = basis;
 
@@ -147,6 +152,15 @@ const Concurrent = struct {
         self.result = Uniqueness.analyze(self.arena.allocator(), self.workspace, self.program, self.exported, self.basis, self.memo);
     }
 };
+
+/// The names live in the program, which outlives its facts.
+fn copyErrors(allocator: std.mem.Allocator, source: []const ?[]const []const u8) std.mem.Allocator.Error![]const ?[]const []const u8 {
+    const errors = try allocator.alloc(?[]const []const u8, source.len);
+
+    for (source, errors) |names, *target| target.* = if (names) |value| try allocator.dupe([]const u8, value) else null;
+
+    return errors;
+}
 
 fn copyPlans(allocator: std.mem.Allocator, source: Uniqueness.Result) std.mem.Allocator.Error!Uniqueness.Result {
     const functions = try allocator.alloc(Uniqueness.Plan, source.functions.len);
