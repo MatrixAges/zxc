@@ -36,7 +36,8 @@ pub fn build(b: *std.Build) void {
 
     if (rx_dependency.builder.modules.get("generated_objects")) |objects| rx_tests.root_module.addImport("zxc_generated_objects", objects);
 
-    b.getInstallStep().dependOn(&rx_tests.step);
+    // Installing only checks that the RX tests compile; without a binary nothing is generated or linked.
+    b.getInstallStep().dependOn(&b.addTest(.{ .name = "rx-tests-check", .root_module = rx_tests.root_module }).step);
 
     const run_rx_tests = b.addRunArtifact(rx_tests);
     const test_step = b.step("test", "Run package unit tests");
@@ -53,13 +54,13 @@ pub fn build(b: *std.Build) void {
     const conformance = if (zig_archive) |path| b.dependency("conformance", .{ .target = target, .optimize = optimize, .@"zig-archive" = path }) else b.dependency("conformance", .{ .target = target, .optimize = optimize });
 
     test_step.dependOn(&conformance.builder.top_level_steps.get("test").?.step);
-    b.installArtifact(cli_dependency.artifact("zxc"));
+    b.getInstallStep().dependOn(&b.addInstallBinFile(cli_dependency.namedLazyPath("zxc"), "zxc").step);
     b.getInstallStep().dependOn(&b.addInstallFile(cli_dependency.namedLazyPath("yaml_license"), "share/zxc/licenses/libyaml.txt").step);
     b.getInstallStep().dependOn(&b.addInstallFile(cli_dependency.namedLazyPath("zig_license"), "share/zxc/licenses/zig.txt").step);
 
     const dist_step = b.step("dist", "Install the standalone compiler and licenses");
 
-    dist_step.dependOn(&b.addInstallArtifact(cli_dependency.artifact("zxc"), .{}).step);
+    dist_step.dependOn(&b.addInstallBinFile(cli_dependency.namedLazyPath("zxc"), "zxc").step);
     dist_step.dependOn(&b.addInstallFile(cli_dependency.namedLazyPath("yaml_license"), "share/zxc/licenses/libyaml.txt").step);
     dist_step.dependOn(&b.addInstallFile(cli_dependency.namedLazyPath("zig_license"), "share/zxc/licenses/zig.txt").step);
     dist_step.dependOn(&b.addInstallFile(b.path("LICENSE"), "LICENSE").step);

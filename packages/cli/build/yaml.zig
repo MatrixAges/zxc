@@ -1,6 +1,8 @@
 const std = @import("std");
 
-pub fn link(b: *std.Build, consumer: *std.Build.Module, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) void {
+/// Gives `consumer` the libyaml declarations and returns the library for the final artifact to link; linking it
+/// into a separately compiled object would merge it there and drop that object's debug information.
+pub fn link(b: *std.Build, consumer: *std.Build.Module, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) *std.Build.Step.Compile {
     const source = b.dependency("libyaml", .{});
 
     b.addNamedLazyPath("yaml_license", source.path("License"));
@@ -23,9 +25,10 @@ pub fn link(b: *std.Build, consumer: *std.Build.Module, target: std.Build.Resolv
     if (target.result.os.tag == .windows) translated.defineCMacro("_FORTIFY_SOURCE", "0");
 
     consumer.addImport("yaml", translated.createModule());
-    consumer.linkLibrary(library);
 
     const license = b.addInstallFile(source.path("License"), "share/zxc/licenses/libyaml.txt");
 
     b.getInstallStep().dependOn(&license.step);
+
+    return library;
 }

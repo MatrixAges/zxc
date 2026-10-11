@@ -26,7 +26,7 @@ pub fn build(b: *std.Build) void {
         },
     });
 
-    @import("build/yaml.zig").link(b, host, target, optimize);
+    const yaml = @import("build/yaml.zig").link(b, host, target, optimize);
 
     if (b.option(bool, "strip", "Omit debug information from hand-written zxc code as well (generated modules already omit it); faster and lighter to compile, without source locations in stack traces")) |strip| host.strip = strip;
 
@@ -41,31 +41,16 @@ pub fn build(b: *std.Build) void {
 
     host.addImport("bundle", @import("build/toolchain.zig").create(b, target, pkgs_index, compiler.builder.root.join(b.allocator, "standard/src") catch @panic("OOM")));
 
-    const executable = b.addExecutable(.{ .name = "zxc", .root_module = if (partitions == 0) host else entry: {
-        // With partitioned generated code the CLI is its own object as well, so a changed partition only relinks.
-        const object = b.addObject(.{ .name = "zxc_host", .root_module = b.createModule(.{
-            .root_source_file = b.path("src/host/export.zig"),
-            .target = target,
-            .optimize = optimize,
-            .imports = &.{.{ .name = "main", .module = host }},
-        }) });
-
-        const start = b.createModule(.{ .root_source_file = b.path("src/host/start.zig"), .target = target, .optimize = optimize, .link_libc = true });
-
-        start.addObject(object);
-        start.addImport("zxc_generated_objects", generated_objects.?);
-        start.addOptions("cache_identity", cache_identity);
-
-        break :entry start;
-    } });
+    const binary = @import("build/binary.zig").create(b, target, optimize, .{ .host = host, .yaml = yaml, .cache_identity = cache_identity, .partitions = if (partitions == 0) null else generated_objects.? });
 
     b.addNamedLazyPath("pkgs_index", pkgs_index);
-    b.installArtifact(executable);
+    b.addNamedLazyPath("zxc", binary.path());
+    binary.install(b);
 
     const runtime_tests_module = b.createModule(.{ .root_source_file = b.path("tests/runtime/generated_test.zig"), .target = target, .optimize = optimize });
 
     for ([_][]const u8{ "collections", "transforms", "optional", "enums", "spread", "index", "modules", "splice", "arithmetic", "short_circuit", "operators", "control_flow", "aggregate_values", "string_values", "collection_boundaries", "void_return", "splice_ranges", "overwritten_evaluation", "numeric_u8", "numeric_u16", "numeric_u32", "numeric_u64", "numeric_i32", "numeric_i64", "numeric_f32", "numeric_f64" }) |case_name| {
-        const compile_case = b.addRunArtifact(executable);
+        const compile_case = binary.run(b);
 
         compile_case.setCwd(b.path("."));
         compile_case.addFileArg(b.path(b.fmt("tests/runtime/cases/{s}.zx", .{case_name})));
@@ -164,7 +149,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_runtime_tests.step);
     test_step.dependOn(&run_store_tests.step);
 
-    const generate = b.addRunArtifact(executable);
+    const generate = binary.run(b);
 
     generate.addFileArg(b.path("examples/quote.zx"));
     generate.addArg("--out");
