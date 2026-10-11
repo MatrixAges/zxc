@@ -11,7 +11,9 @@ pub fn init(io: std.Io, allocator: std.mem.Allocator, root: []const u8) std.mem.
     return Cache.initPersistent(allocator, io, directory, identity);
 }
 
-pub fn report(cache: *const Cache, options: Options, writer: *std.Io.Writer) std.Io.Writer.Error!void {
+pub fn report(cache: *Cache, options: Options, writer: *std.Io.Writer) std.Io.Writer.Error!void {
+    cache.flush();
+
     if (cache.last_io_error) |err| try writer.print("zxc generation cache IO: {s} ({d} errors)\n", .{ @errorName(err), cache.io_errors });
     if (!options.cache_stats) return;
     if (!options.cache) return writer.writeAll("zxc generation: disabled\n");

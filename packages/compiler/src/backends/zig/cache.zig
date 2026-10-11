@@ -17,7 +17,20 @@ last_io_error: ?anyerror = null,
 /// Keeps the uniqueness memo in `memo` across generations instead of reading and writing it for each one; `flushMemo`
 /// writes it to storage.
 keeps_memo: bool = false,
+
 memo: ?Memo = null,
+/// Sources put since storage was last written. `put` only collects them, and `startWriting` stores them on another
+/// thread while the build goes on; every later change to the cache waits for that thread first.
+unwritten: std.ArrayList(Unwritten) = .empty,
+/// Sources replaced while their write was pending, freed once it finished.
+retired: std.ArrayList([]u8) = .empty,
+writer: ?std.Thread = null,
+writing: Writing = .{},
+const Unwritten = struct { key: [32]u8, source: []const u8 };
+
+/// What the writer thread did, read once it was joined.
+const Writing = struct { items: []const Unwritten = &.{}, written: usize = 0, io_errors: usize = 0, last_io_error: ?anyerror = null };
+
 pub fn init(allocator: std.mem.Allocator) Self {
     return .{ .allocator = allocator };
 }
@@ -27,6 +40,10 @@ pub fn initPersistent(allocator: std.mem.Allocator, io: std.Io, directory: []con
 }
 
 pub fn deinit(self: *Self) void {
+    self.flush();
+    self.unwritten.deinit(self.allocator);
+    self.retired.deinit(self.allocator);
+
     var iterator = self.entries.iterator();
 
     while (iterator.next()) |entry| {
@@ -37,7 +54,6 @@ pub fn deinit(self: *Self) void {
     self.entries.deinit(self.allocator);
 
     if (self.memo) |*memo| memo.deinit();
-
     if (self.storage) |storage| self.allocator.free(storage.directory);
 
     self.* = undefined;
@@ -115,16 +131,73 @@ pub fn put(self: *Self, name: []const u8, key: [32]u8, source: []const u8) std.m
         return err;
     };
 
-    if (self.storage) |storage| {
-        const written = storage.write(self.allocator, key, owned) catch |err| {
-            if (err == error.OutOfMemory) return error.OutOfMemory;
+    if (self.storage != null) try self.unwritten.append(self.allocator, .{ .key = key, .source = owned });
+}
 
-            self.recordError(err);
+/// Writes the sources put so far to storage on another thread, or here when no thread starts.
+pub fn startWriting(self: *Self) void {
+    self.finishWriting();
 
-            return;
+    if (self.unwritten.items.len == 0) return;
+
+    self.writing = .{ .items = self.unwritten.toOwnedSlice(self.allocator) catch return };
+
+    self.writer = std.Thread.spawn(.{}, writeAllInto, .{ self.storage.?, &self.writing }) catch {
+        self.finishWriting();
+
+        return;
+    };
+}
+
+/// Writes every source put so far before returning, as counting what was written expects.
+pub fn flush(self: *Self) void {
+    self.finishWriting();
+    self.writeAll(self.unwritten.items);
+}
+
+/// Waits for the writes `startWriting` began and accounts for them.
+pub fn finishWriting(self: *Self) void {
+    if (self.writer) |thread| {
+        thread.join();
+
+        self.writer = null;
+    } else if (self.writing.items.len != 0) writeAllInto(self.storage.?, &self.writing);
+
+    if (self.writing.items.len == 0) return;
+
+    self.written += self.writing.written;
+    self.io_errors += self.writing.io_errors;
+
+    if (self.writing.last_io_error) |err| self.last_io_error = err;
+
+    self.allocator.free(self.writing.items);
+
+    self.writing = .{};
+
+    for (self.retired.items) |source| self.allocator.free(source);
+
+    self.retired.clearRetainingCapacity();
+}
+
+fn writeAll(self: *Self, items: []const Unwritten) void {
+    if (items.len == 0) return;
+
+    self.writing = .{ .items = self.allocator.dupe(Unwritten, items) catch return };
+
+    self.unwritten.clearRetainingCapacity();
+    self.finishWriting();
+}
+
+fn writeAllInto(storage: Storage, writing: *Writing) void {
+    for (writing.items) |item| {
+        const written = storage.write(std.heap.smp_allocator, item.key, item.source) catch |err| {
+            writing.io_errors += 1;
+            writing.last_io_error = err;
+
+            continue;
         };
 
-        if (written) self.written += 1;
+        if (written) writing.written += 1;
     }
 }
 
@@ -134,8 +207,10 @@ pub fn flushMemo(self: *Self) std.mem.Allocator.Error!void {
 }
 
 fn store(self: *Self, name: []const u8, key: [32]u8, source: []u8) std.mem.Allocator.Error!void {
+    self.finishWriting();
+
     if (self.entries.getPtr(name)) |entry| {
-        self.allocator.free(entry.source);
+        if (self.pending(entry.source)) try self.retired.append(self.allocator, entry.source) else self.allocator.free(entry.source);
 
         entry.* = .{ .key = key, .source = source };
 
@@ -147,6 +222,13 @@ fn store(self: *Self, name: []const u8, key: [32]u8, source: []u8) std.mem.Alloc
     errdefer self.allocator.free(owned_name);
 
     try self.entries.put(self.allocator, owned_name, .{ .key = key, .source = source });
+}
+
+/// Whether `source` waits to be written.
+fn pending(self: *const Self, source: []const u8) bool {
+    for (self.unwritten.items) |item| if (item.source.ptr == source.ptr) return true;
+
+    return false;
 }
 
 fn recordError(self: *Self, err: anyerror) void {
