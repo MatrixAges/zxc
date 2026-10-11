@@ -70,6 +70,9 @@ traced: std.AutoHashMapUnmanaged(u64, void) = .empty,
 changed: ?*std.ArrayList(usize) = null,
 marked: ?*std.ArrayList(Mark) = null,
 grew: bool = false,
+/// Records contributions and demands without meeting them into the summaries, which other bodies of the same round
+/// read; the round applies them once every body ran.
+deferred: bool = false,
 pub fn analyze(allocator: std.mem.Allocator, functions: ir.FunctionTable, unit: Unit, order: *const Order, sites: *Sites, slots: Slots, summaries: *Summaries) std.mem.Allocator.Error!Self {
     const levels = try allocator.alloc(Known, sites.slot_first[sites.slot_first.len - 1] - sites.slot_first[unit.symbols.count()]);
     var self = Self{ .allocator = allocator, .functions = functions, .expressions = unit.expressions, .order = order, .sites = sites, .slots = slots, .summaries = summaries, .input = unit.input, .function = unit.function, .normalized = unit.normalized, .renewed = unit.renewed, .operations = unit.operations, .rows = unit.rows, .levels = levels };
@@ -90,6 +93,7 @@ pub fn analyze(allocator: std.mem.Allocator, functions: ir.FunctionTable, unit: 
 
     while (changed) {
         changed = false;
+
         @memset(self.levels, .unknown);
 
         var entries = self.carried.iterator();
@@ -128,14 +132,14 @@ pub fn arguments(self: *Self, changed: *std.ArrayList(usize), passed: *std.Array
             .call => |invocation| invocation,
             else => continue,
         };
-        const callee = @backingInt(invocation.function);
 
+        const callee = @backingInt(invocation.function);
         const levels = try self.allocator.alloc(Level, self.summaries.input[callee].len);
 
         for (levels, 0..) |*value, slot| {
             value.* = try self.level(invocation.argument, @intCast(slot));
 
-            try meet(self.allocator, self.summaries, @intCast(callee), @intCast(slot), value.*, changed);
+            if (!self.deferred) try meet(self.allocator, self.summaries, @intCast(callee), @intCast(slot), value.*, changed);
         }
 
         try passed.append(self.allocator, .{ .callee = @intCast(callee), .levels = levels });
@@ -156,6 +160,7 @@ fn meet(allocator: std.mem.Allocator, summaries: *Summaries, callee: u32, slot: 
     if (met == value.*) return;
 
     value.* = met;
+
     try changed.append(allocator, callee);
 }
 
@@ -188,7 +193,6 @@ pub fn renewals(self: *Self, allocator: std.mem.Allocator) std.mem.Allocator.Err
 
         if (self.order.time[@backingInt(owner)] == Order.none) continue;
         if (!lacks(try self.level(self.carriedState(owner).?.initial, slot), entry.value_ptr.*)) continue;
-
         try result.append(allocator, .{ .owner = owner, .path = try self.slots.path(allocator, self.row(owner).type_id, slot) });
     }
 
@@ -305,14 +309,12 @@ fn raw(self: *Self, id: ir.ExprId, slot: u32) std.mem.Allocator.Error!Level {
             if (self.order.crossesConcurrent(self.order.loop[@backingInt(id)], self.order.def_loop[index])) return .none;
 
             var result = try self.definition(symbol, slot);
-
             result.unique = result.unique and self.sites.linear(Sites.symbolRoot(symbol), slot);
 
             return result;
         },
         else => {
             var result = try self.node(id, slot);
-
             result.unique = result.unique and self.sites.linear(self.sites.nodeRoot(id), slot);
 
             return result;
@@ -416,7 +418,6 @@ pub fn demand(self: *Self, changed: *std.ArrayList(usize), marked: *std.ArrayLis
 
     for (self.summaries.outputs[function], 0..) |want, slot| {
         if (want == Level.none) continue;
-
         for (self.order.results.items) |result| try self.trace(result, @intCast(slot), null, false, want);
     }
 }
@@ -426,7 +427,6 @@ pub fn demand(self: *Self, changed: *std.ArrayList(usize), marked: *std.ArrayLis
 fn trace(self: *Self, id: ir.ExprId, slot: u32, outer: ?ir.ExprId, repeat: bool, wanted: Level) std.mem.Allocator.Error!void {
     const current = try self.level(id, slot);
     var want = wanted;
-
     want.headered = want.headered and !current.headered;
     want.unique = want.unique and !current.unique and try self.linearAt(id, slot);
 
@@ -445,7 +445,6 @@ fn trace(self: *Self, id: ir.ExprId, slot: u32, outer: ?ir.ExprId, repeat: bool,
         .reference => |symbol| switch (self.order.defs[@backingInt(symbol)]) {
             .input => {
                 if (self.function) |function| try self.mark(.{ .output = false, .function = @intCast(function), .slot = slot, .want = want });
-
                 try self.normalize(leaf, want);
             },
             .value => |bound| try self.trace(bound, slot, leaf, repeat, want),
@@ -472,7 +471,6 @@ fn trace(self: *Self, id: ir.ExprId, slot: u32, outer: ?ir.ExprId, repeat: bool,
         },
         .match_expr => |selection| {
             for (0..selection.arms.len) |item| try self.trace(selection.arms.at(item).result, slot, null, repeat, want);
-
             try self.trace(selection.fallback, slot, null, repeat, want);
         },
         .list_operation => |operation| if (operation.kind == .pop) try self.trace(operation.target, 0, leaf, repeat, want) else if (repeat) try self.normalize(leaf, want),
@@ -482,7 +480,6 @@ fn trace(self: *Self, id: ir.ExprId, slot: u32, outer: ?ir.ExprId, repeat: bool,
             const callee = @backingInt(invocation.function);
 
             if (self.functions.at(callee).external == null) try self.mark(.{ .output = true, .function = @intCast(callee), .slot = slot, .want = want });
-
             try self.normalize(leaf, want);
         },
         else => if (repeat) try self.normalize(leaf, want),
@@ -507,7 +504,6 @@ fn carry(self: *Self, owner: ir.ExprId, slot: u32, wanted: Level) std.mem.Alloca
     if (want.unique) want.unique = self.sites.linear(Sites.symbolRoot(carried.parameter), slot) and (carried.condition == null or self.sites.observed(Sites.symbolRoot(carried.condition.?), slot));
     if (want == Level.none) return;
     if (self.row(owner).value == .iteration) try self.renew(owner, slot, want);
-
     try self.trace(carried.initial, slot, null, true, want);
     try self.trace(carried.body, slot, null, false, want);
 }
@@ -517,7 +513,7 @@ pub const Mark = struct { output: bool, function: u32, slot: u32, want: Level };
 
 fn mark(self: *Self, value: Mark) std.mem.Allocator.Error!void {
     try self.marked.?.append(self.allocator, value);
-    try applyMark(self.allocator, self.summaries, value, self.changed.?);
+    if (!self.deferred) try applyMark(self.allocator, self.summaries, value, self.changed.?);
 }
 
 pub fn applyMark(allocator: std.mem.Allocator, summaries: *Summaries, value: Mark, changed: *std.ArrayList(usize)) std.mem.Allocator.Error!void {
@@ -527,6 +523,7 @@ pub fn applyMark(allocator: std.mem.Allocator, summaries: *Summaries, value: Mar
     if (next == values[value.slot]) return;
 
     values[value.slot] = next;
+
     try changed.append(allocator, value.function);
 }
 

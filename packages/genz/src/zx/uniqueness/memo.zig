@@ -5,19 +5,16 @@ const Level = @import("level.zig").Level;
 const Summaries = @import("summaries.zig");
 const Hash = std.crypto.hash.sha2.Sha256;
 const Self = @This();
-
 /// Results of body analyses by the exact state they read: the body's identity, its own input summary, the output
 /// summaries of its callees, and its growth copies. An analysis is a pure function of that state, so a body met again
 /// in the same state replays what it passed on instead of being analyzed again; the replay meets the same
 /// contributions in the same order, which keeps the worklist order and the result unchanged. Records persist across
 /// builds by `save` and `load`, so an edit only analyzes the bodies whose state it changes.
 pub const Settled = struct { passed: []const Function.Contribution, output: []const Level, used: bool = true };
-
 /// A demand pass also reads the demands on its callees' inputs and its own output, and leaves its growth copies.
 pub const Demanded = struct { marks: []const Function.Mark, normalized: []const Normalized, renewed: []const Renewed, grew: bool, used: bool = true };
 pub const Normalized = struct { id: ir.ExprId, want: Level };
 pub const Renewed = struct { key: u64, want: Level };
-
 /// The plan of a body once every fact settled.
 pub const Planned = struct { flags: []const Function.Flags, renewals: []const Function.Renewal, used: bool = true };
 
@@ -31,7 +28,7 @@ pub const State = struct {
     renewed: *const std.AutoHashMap(u64, Level),
 };
 
-const Digest = [32]u8;
+pub const Digest = [32]u8;
 const Trace = @import("trace.zig");
 
 arena: std.heap.ArenaAllocator,
@@ -90,16 +87,33 @@ pub fn lastState(self: *const Self) []const u8 {
 }
 
 pub fn getSettled(self: *Self, summaries: *const Summaries, state: State) std.mem.Allocator.Error!?Settled {
-    try self.encode(summaries, state);
-    try self.digest("settled");
+    try self.keyed(.settled, summaries, state);
 
     return use(Settled, &self.settled, self.key);
 }
 
-/// Records the analysis of the state last passed to `getSettled`.
-pub fn putSettled(self: *Self, passed: []const Function.Contribution, output: []const Level) std.mem.Allocator.Error!Settled {
-    const allocator = self.arena.allocator();
+/// Whether a record of `kind` covers `state`, without marking it used.
+pub fn holds(self: *Self, comptime kind: Kind, summaries: *const Summaries, state: State) std.mem.Allocator.Error!bool {
+    try self.keyed(kind, summaries, state);
 
+    return @field(self, @tagName(kind)).contains(self.key);
+}
+
+/// Sets `key` to the digest of what a body of `kind` reads in `state`.
+fn keyed(self: *Self, comptime kind: Kind, summaries: *const Summaries, state: State) std.mem.Allocator.Error!void {
+    try self.encode(summaries, state);
+
+    if (kind == .demanded) {
+        for (state.callees) |callee| try self.levels(summaries.inputs[callee]);
+        try self.levels(if (state.index < summaries.outputs.len) summaries.outputs[state.index] else &.{});
+    }
+
+    try self.digest(@tagName(kind));
+}
+
+/// Records the analysis of the state `getSettled` digested into `key`.
+pub fn putSettled(self: *Self, key: Digest, passed: []const Function.Contribution, output: []const Level) std.mem.Allocator.Error!Settled {
+    const allocator = self.arena.allocator();
     const owned = try allocator.alloc(Function.Contribution, passed.len);
 
     for (passed, owned) |contribution, *target| target.* = .{ .callee = contribution.callee, .levels = try allocator.dupe(Level, contribution.levels) };
@@ -107,24 +121,20 @@ pub fn putSettled(self: *Self, passed: []const Function.Contribution, output: []
     const value = Settled{ .passed = owned, .output = try allocator.dupe(Level, output) };
 
     self.changed = true;
-    try self.settled.put(allocator, self.key, value);
+
+    try self.settled.put(allocator, key, value);
 
     return value;
 }
 
 pub fn getDemanded(self: *Self, summaries: *const Summaries, state: State) std.mem.Allocator.Error!?Demanded {
-    try self.encode(summaries, state);
-
-    for (state.callees) |callee| try self.levels(summaries.inputs[callee]);
-
-    try self.levels(if (state.index < summaries.outputs.len) summaries.outputs[state.index] else &.{});
-    try self.digest("demanded");
+    try self.keyed(.demanded, summaries, state);
 
     return use(Demanded, &self.demanded, self.key);
 }
 
-/// Records the demand pass of the state last passed to `getDemanded`, with the growth copies it left.
-pub fn putDemanded(self: *Self, marks: []const Function.Mark, state: State, grew: bool) std.mem.Allocator.Error!Demanded {
+/// Records the demand pass of the state `getDemanded` digested into `key`, with the growth copies it left.
+pub fn putDemanded(self: *Self, key: Digest, marks: []const Function.Mark, state: State, grew: bool) std.mem.Allocator.Error!Demanded {
     const allocator = self.arena.allocator();
     const normalized = try allocator.alloc(Normalized, state.normalized.count());
     const renewed = try allocator.alloc(Renewed, state.renewed.count());
@@ -146,20 +156,20 @@ pub fn putDemanded(self: *Self, marks: []const Function.Mark, state: State, grew
     const value = Demanded{ .marks = try allocator.dupe(Function.Mark, marks), .normalized = normalized, .renewed = renewed, .grew = grew };
 
     self.changed = true;
-    try self.demanded.put(allocator, self.key, value);
+
+    try self.demanded.put(allocator, key, value);
 
     return value;
 }
 
 pub fn getPlanned(self: *Self, summaries: *const Summaries, state: State) std.mem.Allocator.Error!?Planned {
-    try self.encode(summaries, state);
-    try self.digest("planned");
+    try self.keyed(.planned, summaries, state);
 
     return use(Planned, &self.planned, self.key);
 }
 
-/// Records the plan of the state last passed to `getPlanned`.
-pub fn putPlanned(self: *Self, flags: []const Function.Flags, renewals: []const Function.Renewal) std.mem.Allocator.Error!Planned {
+/// Records the plan of the state `getPlanned` digested into `key`.
+pub fn putPlanned(self: *Self, key: Digest, flags: []const Function.Flags, renewals: []const Function.Renewal) std.mem.Allocator.Error!Planned {
     const allocator = self.arena.allocator();
     const owned = try allocator.alloc(Function.Renewal, renewals.len);
 
@@ -168,7 +178,8 @@ pub fn putPlanned(self: *Self, flags: []const Function.Flags, renewals: []const 
     const value = Planned{ .flags = try allocator.dupe(Function.Flags, flags), .renewals = owned };
 
     self.changed = true;
-    try self.planned.put(allocator, self.key, value);
+
+    try self.planned.put(allocator, key, value);
 
     return value;
 }
@@ -187,10 +198,8 @@ fn encode(self: *Self, summaries: *const Summaries, state: State) std.mem.Alloca
     try self.encoded.appendSlice(self.arena.allocator(), &state.identity);
     try self.int(u32, @intCast(state.index));
     try self.levels(state.input);
-
     // The identity covers which functions the body calls and their signatures, so only their summaries follow.
     for (state.callees) |callee| try self.levels(summaries.output[callee]);
-
     try self.entries(ir.ExprId, state.normalized);
     try self.entries(u64, state.renewed);
 }
@@ -242,7 +251,6 @@ fn levels(self: *Self, values: []const Level) std.mem.Allocator.Error!void {
     // Each level sits in its own byte; four bytes read as one word fold into one byte with three shifts.
     for (bytes[0..whole], 0..) |*byte, index| {
         const word = std.mem.readInt(u32, @ptrCast(values[index * 4 ..][0..4]), .little) & 0x03030303;
-
         byte.* = @truncate(word | word >> 6 | word >> 12 | word >> 18);
     }
 
@@ -257,6 +265,7 @@ fn int(self: *Self, comptime T: type, value: T) std.mem.Allocator.Error!void {
     var bytes: [@sizeOf(T)]u8 = undefined;
 
     std.mem.writeInt(T, &bytes, value, .little);
+
     try self.encoded.appendSlice(self.arena.allocator(), &bytes);
 }
 
@@ -273,17 +282,13 @@ pub fn restore(comptime kind: Kind, state: []const u8, summaries: *Summaries, in
 
 fn restoreFrom(comptime kind: Kind, reader: *std.Io.Reader, summaries: *Summaries, index: usize, callees: []const u32, normalized: *std.AutoHashMap(ir.ExprId, Level), renewed: *std.AutoHashMap(u64, Level)) !bool {
     if (try reader.takeInt(u32, .little) != index) return false;
-
     try readLevels(reader, if (index < summaries.input.len) summaries.input[index] else &.{});
-
     for (callees) |callee| try readLevels(reader, summaries.output[callee]);
-
     try readEntries(ir.ExprId, reader, normalized);
     try readEntries(u64, reader, renewed);
 
     if (kind == .demanded) {
         for (callees) |callee| try readLevels(reader, summaries.inputs[callee]);
-
         try readLevels(reader, if (index < summaries.outputs.len) summaries.outputs[index] else &.{});
     }
 
@@ -333,6 +338,7 @@ pub fn save(self: *const Self, allocator: std.mem.Allocator) std.mem.Allocator.E
     const writer = &out.writer;
 
     writer.writeAll(magic) catch return error.OutOfMemory;
+
     try writeMap(Settled, writer, &self.settled);
     try writeMap(Demanded, writer, &self.demanded);
     try writeMap(Planned, writer, &self.planned);
@@ -358,11 +364,9 @@ fn loadFrom(self: *Self, reader: *std.Io.Reader) !void {
     const header = try reader.take(magic.len);
 
     if (!std.mem.eql(u8, header, magic)) return error.InvalidMemo;
-
     try self.readMap(Settled, reader, &self.settled);
     try self.readMap(Demanded, reader, &self.demanded);
     try self.readMap(Planned, reader, &self.planned);
-
     if (reader.seek != reader.end) return error.InvalidMemo;
 }
 
@@ -395,6 +399,7 @@ fn readMap(self: *Self, comptime Value: type, reader: *std.Io.Reader, map: *std.
         var value = try readValue(Value, allocator, reader);
 
         value.used = false;
+
         map.putAssumeCapacity(key, value);
     }
 }
@@ -410,7 +415,6 @@ fn writeValue(writer: *std.Io.Writer, value: anytype) std.Io.Writer.Error!void {
         },
         .pointer => {
             try writer.writeInt(u32, @intCast(value.len), .little);
-
             for (value) |item| try writeValue(writer, item);
         },
         .bool => try writer.writeByte(@intFromBool(value)),
