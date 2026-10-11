@@ -32,6 +32,7 @@ pub const State = struct {
 };
 
 const Digest = [32]u8;
+const Trace = @import("trace.zig");
 
 arena: std.heap.ArenaAllocator,
 settled: std.AutoHashMapUnmanaged(Digest, Settled) = .empty,
@@ -45,11 +46,15 @@ encoded: std.ArrayList(u8) = .empty,
 persistent: bool,
 /// Whether this run added records; `stale` reports whether it also left loaded ones unused.
 changed: bool = false,
+/// The visits of the last analysis, which the next analysis of the same program follows; it is not saved.
+trace: ?Trace = null,
 pub fn init(backing: std.mem.Allocator, persistent: bool) Self {
     return .{ .arena = .init(backing), .persistent = persistent };
 }
 
 pub fn deinit(self: *Self) void {
+    if (self.trace) |*trace| trace.deinit();
+
     self.arena.deinit();
 
     self.* = undefined;
@@ -63,15 +68,19 @@ pub fn getSettled(self: *Self, summaries: *const Summaries, state: State) std.me
 }
 
 /// Records the analysis of the state last passed to `getSettled`.
-pub fn putSettled(self: *Self, passed: []const Function.Contribution, output: []const Level) std.mem.Allocator.Error!void {
+pub fn putSettled(self: *Self, passed: []const Function.Contribution, output: []const Level) std.mem.Allocator.Error!Settled {
     const allocator = self.arena.allocator();
 
     const owned = try allocator.alloc(Function.Contribution, passed.len);
 
     for (passed, owned) |contribution, *target| target.* = .{ .callee = contribution.callee, .levels = try allocator.dupe(Level, contribution.levels) };
 
+    const value = Settled{ .passed = owned, .output = try allocator.dupe(Level, output) };
+
     self.changed = true;
-    try self.settled.put(allocator, self.key, .{ .passed = owned, .output = try allocator.dupe(Level, output) });
+    try self.settled.put(allocator, self.key, value);
+
+    return value;
 }
 
 pub fn getDemanded(self: *Self, summaries: *const Summaries, state: State) std.mem.Allocator.Error!?Demanded {
@@ -86,7 +95,7 @@ pub fn getDemanded(self: *Self, summaries: *const Summaries, state: State) std.m
 }
 
 /// Records the demand pass of the state last passed to `getDemanded`, with the growth copies it left.
-pub fn putDemanded(self: *Self, marks: []const Function.Mark, state: State, grew: bool) std.mem.Allocator.Error!void {
+pub fn putDemanded(self: *Self, marks: []const Function.Mark, state: State, grew: bool) std.mem.Allocator.Error!Demanded {
     const allocator = self.arena.allocator();
     const normalized = try allocator.alloc(Normalized, state.normalized.count());
     const renewed = try allocator.alloc(Renewed, state.renewed.count());
@@ -105,8 +114,12 @@ pub fn putDemanded(self: *Self, marks: []const Function.Mark, state: State, grew
         target.* = .{ .key = entry.key_ptr.*, .want = entry.value_ptr.* };
     }
 
+    const value = Demanded{ .marks = try allocator.dupe(Function.Mark, marks), .normalized = normalized, .renewed = renewed, .grew = grew };
+
     self.changed = true;
-    try self.demanded.put(allocator, self.key, .{ .marks = try allocator.dupe(Function.Mark, marks), .normalized = normalized, .renewed = renewed, .grew = grew });
+    try self.demanded.put(allocator, self.key, value);
+
+    return value;
 }
 
 pub fn getPlanned(self: *Self, summaries: *const Summaries, state: State) std.mem.Allocator.Error!?Planned {
@@ -117,14 +130,18 @@ pub fn getPlanned(self: *Self, summaries: *const Summaries, state: State) std.me
 }
 
 /// Records the plan of the state last passed to `getPlanned`.
-pub fn putPlanned(self: *Self, flags: []const Function.Flags, renewals: []const Function.Renewal) std.mem.Allocator.Error!void {
+pub fn putPlanned(self: *Self, flags: []const Function.Flags, renewals: []const Function.Renewal) std.mem.Allocator.Error!Planned {
     const allocator = self.arena.allocator();
     const owned = try allocator.alloc(Function.Renewal, renewals.len);
 
     for (renewals, owned) |renewal, *target| target.* = .{ .owner = renewal.owner, .path = try allocator.dupe(u32, renewal.path) };
 
+    const value = Planned{ .flags = try allocator.dupe(Function.Flags, flags), .renewals = owned };
+
     self.changed = true;
-    try self.planned.put(allocator, self.key, .{ .flags = try allocator.dupe(Function.Flags, flags), .renewals = owned });
+    try self.planned.put(allocator, self.key, value);
+
+    return value;
 }
 
 fn use(comptime Value: type, map: *std.AutoHashMapUnmanaged(Digest, Value), key: Digest) ?Value {
@@ -139,13 +156,11 @@ fn encode(self: *Self, summaries: *const Summaries, state: State) std.mem.Alloca
     self.encoded.clearRetainingCapacity();
 
     try self.encoded.appendSlice(self.arena.allocator(), &state.identity);
-    try self.int(state.index);
+    try self.int(u32, @intCast(state.index));
     try self.levels(state.input);
 
-    for (state.callees) |callee| {
-        try self.int(callee);
-        try self.levels(summaries.output[callee]);
-    }
+    // The identity covers which functions the body calls and their signatures, so only their summaries follow.
+    for (state.callees) |callee| try self.levels(summaries.output[callee]);
 
     try self.entries(ir.ExprId, state.normalized);
     try self.entries(u64, state.renewed);
@@ -168,16 +183,16 @@ fn entries(self: *Self, comptime Key: type, map: *const std.AutoHashMap(Key, Lev
 
     while (values.next()) |entry| try self.order.append(self.arena.allocator(), .{ .key = entryKey(Key, entry.key_ptr.*), .level = entry.value_ptr.* });
 
-    std.mem.sort(Record, self.order.items, {}, struct {
+    std.mem.sortUnstable(Record, self.order.items, {}, struct {
         fn less(_: void, left: Record, right: Record) bool {
             return left.key < right.key;
         }
     }.less);
 
-    try self.int(self.order.items.len);
+    try self.int(u32, @intCast(self.order.items.len));
 
     for (self.order.items) |record| {
-        try self.int(record.key);
+        try self.int(if (Key == u64) u64 else u32, @intCast(record.key));
         try self.encoded.append(self.arena.allocator(), @as(u2, @bitCast(record.level)));
     }
 }
@@ -188,23 +203,33 @@ fn entryKey(comptime Key: type, key: Key) u64 {
 
 /// The levels four to a byte; the count goes first, so the padding of the last byte is unambiguous.
 fn levels(self: *Self, values: []const Level) std.mem.Allocator.Error!void {
-    try self.int(values.len);
+    try self.int(u32, @intCast(values.len));
 
     const bytes = try self.encoded.addManyAsSlice(self.arena.allocator(), (values.len + 3) / 4);
+    const whole = values.len / 4;
 
-    @memset(bytes, 0);
+    // Each level sits in its own byte; four bytes read as one word fold into one byte with three shifts.
+    for (bytes[0..whole], 0..) |*byte, index| {
+        const word = std.mem.readInt(u32, @ptrCast(values[index * 4 ..][0..4]), .little) & 0x03030303;
 
-    for (values, 0..) |value, index| bytes[index / 4] |= @as(u8, @as(u2, @bitCast(value))) << @intCast(index % 4 * 2);
+        byte.* = @truncate(word | word >> 6 | word >> 12 | word >> 18);
+    }
+
+    if (whole == bytes.len) return;
+
+    bytes[whole] = 0;
+
+    for (values[whole * 4 ..], 0..) |value, index| bytes[whole] |= @as(u8, @as(u2, @bitCast(value))) << @intCast(index * 2);
 }
 
-fn int(self: *Self, value: u64) std.mem.Allocator.Error!void {
-    var bytes: [8]u8 = undefined;
+fn int(self: *Self, comptime T: type, value: T) std.mem.Allocator.Error!void {
+    var bytes: [@sizeOf(T)]u8 = undefined;
 
-    std.mem.writeInt(u64, &bytes, value, .little);
+    std.mem.writeInt(T, &bytes, value, .little);
     try self.encoded.appendSlice(self.arena.allocator(), &bytes);
 }
 
-const magic = "zxc.uniqueness.memo.v3";
+const magic = "zxc.uniqueness.memo.v4";
 
 /// Whether `save` would differ from what was loaded.
 pub fn stale(self: *const Self) bool {
