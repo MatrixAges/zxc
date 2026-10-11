@@ -69,12 +69,11 @@ fn write(self: *Self, value: anytype) void {
 
     switch (@typeInfo(T)) {
         .@"struct" => |info| inline for (info.field_names) |field| self.write(@field(value, field)),
-        .@"union" => |info| {
-            self.bytes(@tagName(value));
-
-            inline for (info.field_names) |field| if (std.mem.eql(u8, @tagName(value), field)) {
-                self.write(@field(value, field));
-            };
+        .@"union" => switch (value) {
+            inline else => |payload, tag| {
+                self.bytes(@tagName(tag));
+                self.write(payload);
+            },
         },
         .@"enum" => self.write(@backingInt(value)),
         .optional => {

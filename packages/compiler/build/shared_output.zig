@@ -47,7 +47,7 @@ pub fn write(io: std.Io, allocator: std.mem.Allocator, output: []const u8, bundl
 
     try files.append(allocator, .{ .path = "root.zig", .source = root.written() });
 
-    if (partitions == 0) try files.appendSlice(allocator, functions.items) else try files.appendSlice(allocator, try layout.plan(allocator, functions.items, top.items, partitions));
+    if (partitions == 0) try files.appendSlice(allocator, functions.items) else try files.appendSlice(allocator, try layout.plan(io, allocator, functions.items, top.items, partitions));
 
     try mirror(io, allocator, output, files.items);
 }
@@ -75,7 +75,7 @@ fn mirror(io: std.Io, allocator: std.mem.Allocator, output: []const u8, files: [
 
     try remove(io, directory, manifest_name);
 
-    const arenas = try parallel.Arenas.init(allocator, files.len);
+    const arenas = try parallel.Arenas.init(io, allocator, files.len);
 
     defer arenas.deinit();
 

@@ -1,16 +1,17 @@
 const std = @import("std");
 
-/// One arena per worker thread, so steps running at once never share an allocator.
+/// One arena per worker, so steps running at once never share an allocator; the workers are `io`'s pooled threads.
 pub const Arenas = struct {
+    io: std.Io,
     items: []std.heap.ArenaAllocator,
 
     /// Workers for `jobs` steps: at most one per core, and at least one.
-    pub fn init(allocator: std.mem.Allocator, jobs: usize) std.mem.Allocator.Error!Arenas {
+    pub fn init(io: std.Io, allocator: std.mem.Allocator, jobs: usize) std.mem.Allocator.Error!Arenas {
         const items = try allocator.alloc(std.heap.ArenaAllocator, @max(@min(std.Thread.getCpuCount() catch 1, jobs), 1));
 
         for (items) |*arena| arena.* = .init(std.heap.smp_allocator);
 
-        return .{ .items = items };
+        return .{ .io = io, .items = items };
     }
 
     pub fn deinit(self: Arenas) void {
@@ -18,8 +19,8 @@ pub const Arenas = struct {
     }
 };
 
-/// Runs `context.step(allocator, index)` for every index below `count`, spread over one thread per arena; a step
-/// allocates from its thread's arena. Returns the first error a step reports.
+/// Runs `context.step(allocator, index)` for every index below `count`, spread over one worker per arena; a step
+/// allocates from its worker's arena. Returns the first error a step reports.
 pub fn each(arenas: Arenas, count: usize, context: anytype) !void {
     const Context = @TypeOf(context);
     const Work = struct {
@@ -44,16 +45,12 @@ pub fn each(arenas: Arenas, count: usize, context: anytype) !void {
     };
 
     var work = Work{ .context = context, .count = count };
-    var threads: [256]std.Thread = undefined;
-    var started: usize = 0;
+    var group: std.Io.Group = .init;
 
-    for (arenas.items[1..@min(arenas.items.len, threads.len + 1)]) |*arena| {
-        threads[started] = std.Thread.spawn(.{}, Work.run, .{ &work, arena }) catch break;
-        started += 1;
-    }
+    for (arenas.items[1..]) |*arena| group.async(arenas.io, Work.run, .{ &work, arena });
 
     work.run(&arenas.items[0]);
+    group.await(arenas.io) catch {};
 
-    for (threads[0..started]) |thread| thread.join();
     if (work.failure.load(.monotonic) != 0) return @errorCast(@errorFromInt(work.failure.load(.monotonic)));
 }

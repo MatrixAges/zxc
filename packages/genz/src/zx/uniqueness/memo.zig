@@ -184,6 +184,7 @@ fn entryKey(comptime Key: type, key: Key) u64 {
     return if (Key == u64) key else @backingInt(key);
 }
 
+/// The levels four to a byte; the count goes first, so the padding of the last byte is unambiguous.
 fn levels(hash: *Hash, values: []const Level) void {
     int(hash, values.len);
 
@@ -191,11 +192,14 @@ fn levels(hash: *Hash, values: []const Level) void {
     var rest = values;
 
     while (rest.len != 0) {
-        const chunk = rest[0..@min(rest.len, buffer.len)];
+        const chunk = rest[0..@min(rest.len, buffer.len * 4)];
+        const packed_length = (chunk.len + 3) / 4;
 
-        for (chunk, buffer[0..chunk.len]) |value, *byte| byte.* = @as(u2, @bitCast(value));
+        @memset(buffer[0..packed_length], 0);
 
-        hash.update(buffer[0..chunk.len]);
+        for (chunk, 0..) |value, index| buffer[index / 4] |= @as(u8, @as(u2, @bitCast(value))) << @intCast(index % 4 * 2);
+
+        hash.update(buffer[0..packed_length]);
         rest = rest[chunk.len..];
     }
 }
@@ -207,7 +211,7 @@ fn int(hash: *Hash, value: u64) void {
     hash.update(&bytes);
 }
 
-const magic = "zxc.uniqueness.memo.v1";
+const magic = "zxc.uniqueness.memo.v2";
 
 /// Whether `save` would differ from what was loaded.
 pub fn stale(self: *const Self) bool {

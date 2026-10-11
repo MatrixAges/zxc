@@ -106,12 +106,8 @@ pub fn value(self: *Self, comptime T: type, source: T) Error!T {
 
             break :blk result;
         },
-        .@"union" => |info| blk: {
-            inline for (info.field_names) |name| if (std.mem.eql(u8, @tagName(source), name)) {
-                break :blk @unionInit(T, name, try self.value(@FieldType(T, name), @field(source, name)));
-            };
-
-            unreachable;
+        .@"union" => switch (source) {
+            inline else => |payload, tag| @unionInit(T, @tagName(tag), try self.value(@TypeOf(payload), payload)),
         },
         .optional => |info| if (source) |child| try self.value(info.child, child) else null,
         .pointer => |info| blk: {

@@ -16,7 +16,7 @@ pub const bridge_source = @embedFile("bridge.zig");
 /// partition, or from the shared top level, imports a forwarding stub of the same file name, and the owning
 /// partition exports exactly the entries called from outside it. Inline functions expand in their caller's
 /// unit, as in a single-unit build, so a caller's scope receives a copy of every file it calls inline.
-pub fn plan(allocator: std.mem.Allocator, functions: []const File, top: []const File, count: u32) ![]File {
+pub fn plan(io: std.Io, allocator: std.mem.Allocator, functions: []const File, top: []const File, count: u32) ![]File {
     var indices: std.StringHashMapUnmanaged(u32) = .empty;
 
     try indices.ensureTotalCapacity(allocator, @intCast(functions.len));
@@ -27,7 +27,7 @@ pub fn plan(allocator: std.mem.Allocator, functions: []const File, top: []const 
 
     for (functions, partitions) |function, *owner| owner.* = partition(function.path, count);
 
-    const arenas = try parallel.Arenas.init(allocator, functions.len);
+    const arenas = try parallel.Arenas.init(io, allocator, functions.len);
 
     defer arenas.deinit();
 
