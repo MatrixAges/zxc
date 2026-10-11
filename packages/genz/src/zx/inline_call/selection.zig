@@ -31,6 +31,39 @@ pub fn create(allocator: std.mem.Allocator, expressions: ir.ExpressionTable, bod
     return if (cost != 0 and cost <= Plan.limit) marked else null;
 }
 
+/// The selection of every function of `program`, or null for one that keeps its calls; functions select
+/// independently, so all cores share the work, each participant allocating from its own of `arenas`.
+pub fn functions(allocator: std.mem.Allocator, arenas: []std.heap.ArenaAllocator, program: ir.Program, plan: Plan) Error![]?[]bool {
+    const Selecting = struct {
+        program: ir.Program,
+        plan: Plan,
+        arenas: []std.heap.ArenaAllocator,
+        selections: []?[]bool,
+        next: std.atomic.Value(usize) = .init(0),
+        failed: std.atomic.Value(bool) = .init(false),
+        fn run(work: *@This(), participant: usize) void {
+            const arena = work.arenas[participant].allocator();
+
+            while (!work.failed.load(.monotonic)) {
+                const index = work.next.fetchAdd(1, .monotonic);
+
+                if (index >= work.selections.len) return;
+
+                const function = work.program.functions.at(index);
+                work.selections[index] = if (function.stores.count() != 0) null else create(arena, function.expressions, function.body, work.plan) catch return work.failed.store(true, .monotonic);
+            }
+        }
+    };
+
+    var work = Selecting{ .program = program, .plan = plan, .arenas = arenas, .selections = try allocator.alloc(?[]bool, program.functions.count()) };
+
+    @import("zx").parallel.spread(Selecting, &work, Selecting.run, @min(arenas.len, work.selections.len));
+
+    if (work.failed.load(.monotonic)) return error.OutOfMemory;
+
+    return work.selections;
+}
+
 fn statements(self: *Self, items: ir.Block) Error!void {
     if (items.len >= 2 and items.at(items.len - 1) == .result and items.at(items.len - 2) == .constant) {
         if (items.at(items.len - 1).result) |result| {

@@ -41,15 +41,18 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocat
         }
     }
 
-    const seen = try allocator.alloc(bool, program.types.count());
+    // Each output is walked in its own round; a type seen in the current round shows up twice within one output. A
+    // type an earlier round reached was walked through or boxed, so whatever shows up twice within it is boxed already.
+    const seen = try allocator.alloc(u32, program.types.count());
 
     defer allocator.free(seen);
-    @memset(seen, false);
-    duplicates(program, boxed, seen, program.output_type);
+    @memset(seen, 0);
+    duplicates(program, boxed, seen, 1, program.output_type);
 
     for (0..program.functions.count()) |index| {
-        @memset(seen, false);
-        duplicates(program, boxed, seen, program.functions.at(index).output_type);
+        const output = program.functions.at(index).output_type;
+
+        if (seen[@backingInt(output)] == 0) duplicates(program, boxed, seen, @intCast(index + 2), output);
     }
 
     const selected = try allocator.alloc(bool, program.types.count());
@@ -85,28 +88,28 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocat
     return .{ .selected = selected, .keys = keys };
 }
 
-fn duplicates(program: ir.Program, boxed: []bool, seen: []bool, id: ir.TypeId) void {
+fn duplicates(program: ir.Program, boxed: []bool, seen: []u32, round: u32, id: ir.TypeId) void {
     const index = @backingInt(id);
 
     if (boxed[index]) return;
 
     switch (program.typeOf(id)) {
         .object, .tuple => {
-            if (seen[index]) {
+            if (seen[index] == round) {
                 mark(program, boxed, id);
 
                 return;
             }
 
-            seen[index] = true;
+            seen[index] = round;
         },
         else => {},
     }
 
     switch (program.typeOf(id)) {
-        .optional => |child| duplicates(program, boxed, seen, child),
-        .object => |fields| for (0..fields.len) |position| duplicates(program, boxed, seen, fields.at(position).type_id),
-        .tuple => |items| for (0..items.len) |position| duplicates(program, boxed, seen, items.at(position)),
+        .optional => |child| duplicates(program, boxed, seen, round, child),
+        .object => |fields| for (0..fields.len) |position| duplicates(program, boxed, seen, round, fields.at(position).type_id),
+        .tuple => |items| for (0..items.len) |position| duplicates(program, boxed, seen, round, items.at(position)),
         else => {},
     }
 }

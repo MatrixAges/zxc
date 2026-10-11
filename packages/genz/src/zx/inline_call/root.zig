@@ -13,7 +13,6 @@ costs: std.ArrayList(usize) = .empty,
 symbols: ir.SymbolStorage = .{},
 pub fn prepare(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!ir.Program {
     if (@import("genz_options").generated_analysis) return @import("generated.zig").prepare(allocator, program);
-
     if (program.functions.count() == 0) return program;
 
     const plan = try Plan.init(allocator, program);
@@ -22,13 +21,19 @@ pub fn prepare(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloca
 
     errdefer functions.deinit(allocator);
 
-    for (0..program.functions.count()) |index| {
+    const arenas = try allocator.alloc(std.heap.ArenaAllocator, @import("zx").parallel.width());
+
+    for (arenas) |*arena| arena.* = .init(std.heap.smp_allocator);
+
+    defer for (arenas) |*arena| arena.deinit();
+
+    const selections = try @import("selection.zig").functions(allocator, arenas, program, plan);
+
+    for (0..program.functions.count(), selections) |index, selection| {
         var function = program.functions.at(index);
 
         transform: {
-            if (function.stores.count() != 0) break :transform;
-
-            const selected = try @import("selection.zig").create(allocator, function.expressions, function.body, plan) orelse break :transform;
+            const selected = selection orelse break :transform;
 
             const transformed = rebuild(allocator, plan, function.symbols, function.expressions, function.body, selected) catch |err| switch (err) {
                 error.ExpansionLimit => break :transform,

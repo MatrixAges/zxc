@@ -55,44 +55,12 @@ pub fn condition(allocator: std.mem.Allocator, program: ir.Program, iteration: i
     return analyze(allocator, program, &.{iteration.condition}, functions, false, null);
 }
 
-/// `safe` holds the `identityFreeFunctions` of the program.
+/// `safe` holds the `identity_free.functions` of the program.
 pub fn deep(allocator: std.mem.Allocator, program: ir.Program, iteration: ir.Iteration, safe: []const bool) std.mem.Allocator.Error!bool {
     return analyze(allocator, program, &.{ iteration.condition, iteration.body }, safe, true, null);
 }
 
-/// The pure `functions` that compare no represented aggregates by identity, themselves or through their callees; a
-/// fact of the whole program, computed once.
-pub fn identityFreeFunctions(allocator: std.mem.Allocator, program: ir.Program, functions: []const bool) std.mem.Allocator.Error![]bool {
-    const safe = try allocator.dupe(bool, functions);
-
-    for (0..program.functions.count()) |index| {
-        const function = program.functions.at(index);
-        safe[index] = safe[index] and identityFree(program, function.expressions, function.contracts, safe[0..index]);
-    }
-
-    return safe;
-}
-
-fn identityFree(program: ir.Program, expressions: ir.ExpressionTable, contracts: ir.ContractTable, functions: []const bool) bool {
-    for (0..expressions.count()) |index| switch (expressions.at(index).value) {
-        .call => |call| if (@backingInt(call.function) >= functions.len or !functions[@backingInt(call.function)]) return false,
-        .binary => |binary| {
-            if (binary.operator != .equal and binary.operator != .not_equal) continue;
-
-            const left = expressions.at(@backingInt(binary.left));
-            const right = expressions.at(@backingInt(binary.right));
-
-            if (left.value != .none and right.value != .none and (represented(program, left.type_id) or represented(program, right.type_id))) return false;
-        },
-        else => {},
-    };
-
-    for (contracts.expressions) |table| if (!identityFree(program, table.*, .{}, functions)) return false;
-
-    return true;
-}
-
-/// `safe` holds the `identityFreeFunctions` of the program.
+/// `safe` holds the `identity_free.functions` of the program.
 pub fn initialValue(allocator: std.mem.Allocator, program: ir.Program, value: ir.ExprId, safe: []const bool) std.mem.Allocator.Error!bool {
     return analyze(allocator, program, &.{value}, safe, true, null);
 }
