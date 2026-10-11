@@ -63,6 +63,8 @@ pub fn representative(self: Self, graph: *Graph, id: Graph.Id) zx.Error!?Graph.I
     return self.representatives[self.root(@intFromEnum(try payload(graph, id)))];
 }
 
+/// Unifies every root with its class representative in one pass instead of one pair per rebuilt base. A
+/// representative whose payload changed during the pass waits for the next round's fresh base.
 pub fn propagate(self: Self, graph: *Graph) zx.Error!void {
     for (0..self.parents.len) |index| {
         const id: Graph.Id = @enumFromInt(index);
@@ -77,9 +79,8 @@ pub fn propagate(self: Self, graph: *Graph) zx.Error!void {
         const other = self.representatives[self.root(index)] orelse continue;
 
         if (graph.root(other) == id) continue;
+        if (try payload(graph, other) != graph.root(other)) continue;
         try graph.unify(id, other, node.span);
-
-        return;
     }
 }
 
