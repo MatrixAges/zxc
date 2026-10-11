@@ -59,7 +59,7 @@ pub fn plan(io: std.Io, allocator: std.mem.Allocator, functions: []const File, t
         for (copies.keys()) |callee| try files.append(allocator, .{ .path = try directory(allocator, @intCast(index), count, functions[callee].path), .source = functions[callee].source });
     }
 
-    exports.sort(SortByName{ .keys = exports.keys(), .functions = functions });
+    exports.sortUnstable(SortByName{ .keys = exports.keys(), .functions = functions });
 
     // Every stubbed variant is exported by its owner, so the signatures of the exports serve all stubs.
     const signatures = Signatures{ .functions = functions, .exports = &exports, .found = try allocator.alloc([]const ?[]const u8, exports.count()) };

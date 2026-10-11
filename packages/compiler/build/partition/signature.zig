@@ -89,7 +89,7 @@ fn parameters(allocator: std.mem.Allocator, source: []const u8, keywords: []cons
 
     if (std.mem.startsWith(u8, source, marker[1..])) return marker.len - 2;
 
-    const at = std.mem.indexOf(u8, source, marker) orelse return null;
+    const at = @import("search.zig").find(source, 0, marker) orelse return null;
 
     return at + marker.len - 1;
 }
