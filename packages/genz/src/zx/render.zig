@@ -56,7 +56,6 @@ pub fn initialize(temporary: std.mem.Allocator, workspace: std.mem.Allocator, so
 pub fn initializePrepared(temporary: std.mem.Allocator, workspace: std.mem.Allocator, program: zx.ir.Program) std.mem.Allocator.Error!Lower {
     const Analysis = @import("function_analysis.zig");
     const basis = try temporary.create(Analysis.Uniqueness.Basis);
-
     basis.* = try .create(temporary, program);
 
     return initializeAnalyzed(temporary, workspace, program, try Analysis.analyze(temporary, workspace, program, &.{}, basis, null));
@@ -80,6 +79,7 @@ pub fn initializeAnalyzed(temporary: std.mem.Allocator, workspace: std.mem.Alloc
         .function_errors = if (facts.errors.len == program.functions.count()) facts.errors else null,
         .value_functions = facts.value.values,
         .pure_functions = facts.value.pure,
+        .identity_free_functions = facts.identity_free,
         .local_functions = facts.value.local,
         .plans = facts.uniqueness.functions,
         .plan = facts.uniqueness.entry,

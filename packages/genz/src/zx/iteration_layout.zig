@@ -55,15 +55,14 @@ pub fn condition(allocator: std.mem.Allocator, program: ir.Program, iteration: i
     return analyze(allocator, program, &.{iteration.condition}, functions, false, null);
 }
 
-pub fn deep(allocator: std.mem.Allocator, program: ir.Program, iteration: ir.Iteration, functions: []const bool) std.mem.Allocator.Error!bool {
-    const safe = try identityFreeFunctions(allocator, program, functions);
-
-    defer allocator.free(safe);
-
+/// `safe` holds the `identityFreeFunctions` of the program.
+pub fn deep(allocator: std.mem.Allocator, program: ir.Program, iteration: ir.Iteration, safe: []const bool) std.mem.Allocator.Error!bool {
     return analyze(allocator, program, &.{ iteration.condition, iteration.body }, safe, true, null);
 }
 
-fn identityFreeFunctions(allocator: std.mem.Allocator, program: ir.Program, functions: []const bool) std.mem.Allocator.Error![]bool {
+/// The pure `functions` that compare no represented aggregates by identity, themselves or through their callees; a
+/// fact of the whole program, computed once.
+pub fn identityFreeFunctions(allocator: std.mem.Allocator, program: ir.Program, functions: []const bool) std.mem.Allocator.Error![]bool {
     const safe = try allocator.dupe(bool, functions);
 
     for (0..program.functions.count()) |index| {
@@ -93,11 +92,8 @@ fn identityFree(program: ir.Program, expressions: ir.ExpressionTable, contracts:
     return true;
 }
 
-pub fn initialValue(allocator: std.mem.Allocator, program: ir.Program, value: ir.ExprId, functions: []const bool) std.mem.Allocator.Error!bool {
-    const safe = try identityFreeFunctions(allocator, program, functions);
-
-    defer allocator.free(safe);
-
+/// `safe` holds the `identityFreeFunctions` of the program.
+pub fn initialValue(allocator: std.mem.Allocator, program: ir.Program, value: ir.ExprId, safe: []const bool) std.mem.Allocator.Error!bool {
     return analyze(allocator, program, &.{value}, safe, true, null);
 }
 

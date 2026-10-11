@@ -18,6 +18,9 @@ uniqueness: @import("genz").zx.function_analysis.Uniqueness.Result,
 task_functions: []const bool,
 /// A caller's signature lists the errors of the functions it calls, so a call covers the callee's set.
 errors: []const ?[]const []const u8,
+
+/// A loop that calls a function lowers in place only when the callee compares no aggregates by identity.
+identity_free: []const bool,
 state_plan: @import("genz").zx.state_value.Analysis,
 pub fn createAnalyzed(program: ir.Program, names: Names, unit: Unit, facts: @import("genz").zx.modules.Analysis) [32]u8 {
     var self = Self{
@@ -29,6 +32,7 @@ pub fn createAnalyzed(program: ir.Program, names: Names, unit: Unit, facts: @imp
         .uniqueness = facts.uniqueness,
         .task_functions = facts.tasks,
         .errors = facts.errors,
+        .identity_free = facts.identity_free,
         .state_plan = facts.value.state,
     };
 
@@ -41,7 +45,7 @@ fn finish(self: *Self, unit: Unit) [32]u8 {
     const value_functions = self.value_functions;
     const state_plan = self.state_plan;
 
-    self.bytes("zxc.zig.input.v46");
+    self.bytes("zxc.zig.input.v47");
     self.bytes(@tagName(unit));
     self.write(program.version);
 
@@ -55,6 +59,7 @@ fn finish(self: *Self, unit: Unit) [32]u8 {
         },
         .entry => {
             self.plan(self.uniqueness.entry);
+
             self.write(.{
                 .file_name = program.file_name,
                 .input_type = program.input_type,
@@ -154,6 +159,7 @@ fn write(self: *Self, value: anytype) void {
         self.write(self.pure_functions[@backingInt(value)]);
         self.write(self.local_functions[@backingInt(value)]);
         self.write(self.errors[@backingInt(value)]);
+        self.write(self.identity_free[@backingInt(value)]);
 
         const function = self.program.functions.at(@backingInt(value));
 
@@ -216,11 +222,13 @@ fn bytes(self: *Self, value: []const u8) void {
 fn update(self: *Self, value: []const u8) void {
     if (self.used + value.len > self.pending.len) {
         self.hash.update(self.pending[0..self.used]);
+
         self.used = 0;
 
         if (value.len > self.pending.len) return self.hash.update(value);
     }
 
     @memcpy(self.pending[self.used..][0..value.len], value);
+
     self.used += value.len;
 }

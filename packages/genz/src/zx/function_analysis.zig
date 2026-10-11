@@ -10,6 +10,9 @@ process: []const bool,
 tasks: []const bool,
 /// The errors each function raises, null where unknown.
 errors: []const ?[]const []const u8 = &.{},
+
+/// The pure functions that compare no represented aggregates by identity, themselves or through their callees.
+identity_free: []const bool = &.{},
 uniqueness: Uniqueness.Result,
 basis: *const Uniqueness.Basis,
 /// Shared by every `reentry` into the same functions.
@@ -78,6 +81,7 @@ pub fn createRemembered(backing: std.mem.Allocator, program: ir.Program, exporte
         .process = try owned.dupe(bool, facts.process),
         .tasks = try owned.dupe(bool, facts.tasks),
         .errors = try copyErrors(owned, facts.errors),
+        .identity_free = try owned.dupe(bool, facts.identity_free),
         .uniqueness = try copyPlans(owned, facts.uniqueness),
         .basis = basis,
         .entry_summaries = try owned.create(Uniqueness.Summaries),
@@ -100,12 +104,14 @@ pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, progr
 
     const others = remaining(allocator, workspace, program);
     const errors = @import("zx").error_effects.perFunction(allocator, program.types, program.functions);
+    const identity_free = if (others) |value| @import("iteration_layout.zig").identityFreeFunctions(allocator, program, value.value.pure) else |err| err;
 
     if (thread) |running| running.join();
 
     var value = try others;
 
     value.errors = try errors;
+    value.identity_free = try identity_free;
     value.uniqueness = try copyPlans(allocator, try uniqueness.result);
     value.basis = basis;
 

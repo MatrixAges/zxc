@@ -28,7 +28,6 @@ const Mode = enum { reference, value, discard, consume };
 
 fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, consumer: ?@import("iteration_consumer.zig").Consumer) Lower.Error!?node.ExpressionId {
     const projected_output = if (consumer) |selected| try @import("iteration_value/result.zig").candidate(self.allocator, self.program, selected) else false;
-
     var body: std.ArrayList(node.Statement) = .empty;
     var loop: std.ArrayList(node.Statement) = .empty;
     const name = try self.fresh("state");
@@ -38,7 +37,7 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
     const local_calls = pure or try layout_analysis.eligible(self.allocator, self.program, iteration, self.local_functions);
     const selected_call = try forwarded(self, iteration);
     const type_id = self.program.expression(id).type_id;
-    const deep = !self.state_active and (projected_output or mode == .discard) and pure and !layout_analysis.flat(self.program, type_id) and layout_analysis.represented(self.program, type_id) and try layout_analysis.deep(self.allocator, self.program, iteration, self.pure_functions);
+    const deep = !self.state_active and (projected_output or mode == .discard) and pure and !layout_analysis.flat(self.program, type_id) and layout_analysis.represented(self.program, type_id) and try layout_analysis.deep(self.allocator, self.program, iteration, self.identity_free_functions);
     const selected_state = !deep and self.state_plan.represented(self.program, type_id) and (self.state_active or selected_call != null or local_calls);
     const layout = !deep and (selected_state or selected_call != null or ((local_calls or try layout_analysis.shallow(self.allocator, self.program, iteration)) and layout_analysis.aggregate(self.program, type_id)));
     const by_value = mode != .reference and layout;
@@ -49,7 +48,7 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
 
     const local = layout or deep;
     var context = @import("iteration_value/root.zig"){ .lowering = self, .declarations = &body };
-    const direct_initial = deep and try layout_analysis.initialValue(self.allocator, self.program, iteration.initial, self.pure_functions);
+    const direct_initial = deep and try layout_analysis.initialValue(self.allocator, self.program, iteration.initial, self.identity_free_functions);
 
     const initial_expression = if (direct_initial) initial: {
         const previous = self.iteration_value;
@@ -65,7 +64,6 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
     defer if (state_scope) |scope| scope.restore();
 
     const changed_name = if (local and !by_value and mode != .discard) try self.fresh("state_changed") else "";
-
     const condition_index = @backingInt(iteration.condition_parameter);
     const step_index = @backingInt(iteration.parameter);
     const condition_name = self.names[condition_index];

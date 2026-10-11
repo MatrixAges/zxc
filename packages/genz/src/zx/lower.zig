@@ -39,6 +39,8 @@ value_functions: []const bool = &.{},
 /// The errors each function raises, joined at calls instead of visiting the callee; null visits callees.
 function_errors: ?[]const ?[]const []const u8 = null,
 pure_functions: []const bool = &.{},
+/// The pure functions that compare no represented aggregates by identity, themselves or through their callees.
+identity_free_functions: []const bool = &.{},
 local_functions: []const bool = &.{},
 value_output: bool = false,
 stack_symbols: std.AutoHashMapUnmanaged(ir.SymbolId, void) = .empty,
