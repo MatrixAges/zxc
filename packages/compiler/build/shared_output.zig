@@ -1,6 +1,7 @@
 const std = @import("std");
 const compiler = @import("compiler");
 const layout = @import("partition/layout.zig");
+const parallel = @import("parallel.zig");
 
 /// Writes the generated tree. With `partitions` set, function files are spread over that many separately
 /// compiled partitions. Only changed files are rewritten and files no longer generated are removed, so an
@@ -71,9 +72,15 @@ fn mirror(io: std.Io, allocator: std.mem.Allocator, output: []const u8, files: [
 
     try remove(io, directory, manifest_name);
 
-    for (files) |file| {
-        const hash = std.hash.Wyhash.hash(0, file.source);
+    const arenas = try parallel.Arenas.init(allocator, files.len);
 
+    defer arenas.deinit();
+
+    const hashing = Hashing{ .files = files, .hashes = try allocator.alloc(u64, files.len) };
+
+    try parallel.each(arenas, files.len, &hashing);
+
+    for (files, hashing.hashes) |file, hash| {
         try wanted.put(allocator, file.path, {});
         try manifest.writer.print("{x:0>16} {s}\n", .{ hash, file.path });
 
@@ -108,6 +115,16 @@ fn mirror(io: std.Io, allocator: std.mem.Allocator, output: []const u8, files: [
 
     try directory.writeFile(io, .{ .sub_path = manifest_name, .data = manifest.written() });
 }
+
+/// The content hash of every file, computed on all cores.
+const Hashing = struct {
+    files: []const layout.File,
+    hashes: []u64,
+
+    pub fn step(self: *const Hashing, _: std.mem.Allocator, index: usize) !void {
+        self.hashes[index] = std.hash.Wyhash.hash(0, self.files[index].source);
+    }
+};
 
 fn recorded(io: std.Io, allocator: std.mem.Allocator, directory: std.Io.Dir) !?std.StringHashMapUnmanaged(u64) {
     const text = directory.readFileAlloc(io, manifest_name, allocator, .unlimited) catch |err| switch (err) {
