@@ -16,6 +16,8 @@ pub const Options = struct {
     stores: []const rx.ModuleSource = &.{},
     sources: []const frontend.project.Source,
     project: frontend.project.Options = .{ .entry = "" },
+    /// Shared with earlier source graph passes so each module is parsed once; it must outlive the result.
+    parse_cache: ?*frontend.project.ParseCache = null,
 };
 
 pub const Export = struct { name: []const u8, path: []const u8 };
@@ -31,6 +33,11 @@ pub fn infer(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.E
 }
 
 fn inferIn(allocator: std.mem.Allocator, backing: std.mem.Allocator, options: Options) std.mem.Allocator.Error!Module.Value {
+    var local = frontend.project.ParseCache{ .allocator = allocator };
+
+    defer local.deinit();
+
+    const cache = options.parse_cache orelse &local;
     const registered = try allocator.dupe(rx.ModuleSource, options.modules);
 
     for (registered) |*source| {
@@ -69,6 +76,7 @@ fn inferIn(allocator: std.mem.Allocator, backing: std.mem.Allocator, options: Op
         .sources = options.sources,
         .modules = modules,
         .project = options.project,
+        .parse_cache = cache,
     });
 
     defer dependencies.deinit();
@@ -90,7 +98,7 @@ fn inferIn(allocator: std.mem.Allocator, backing: std.mem.Allocator, options: Op
         if (source == .zx) try signature_entries.append(allocator, options.sources[source.zx].path);
     }
 
-    const signatures = try frontend.project.analyzeSignatures(allocator, options.sources, signature_entries.items, project);
+    const signatures = try frontend.project.analyzeSignaturesWithCache(allocator, options.sources, signature_entries.items, project, cache);
 
     if (signatures.value == .diagnostic) {
         const issue = signatures.value.diagnostic;
@@ -121,7 +129,7 @@ fn inferIn(allocator: std.mem.Allocator, backing: std.mem.Allocator, options: Op
 
     graph.finish() catch |err| return report(allocator, source_map, reporter, err);
 
-    var result = @import("project/mixed.zig").compile(&graph, backing, prepared.loaded, states, dependencies.value.graph, signatures.value.data, options.sources, modules, options.exports) catch |err| return report(allocator, source_map, reporter, err);
+    var result = @import("project/mixed.zig").compile(&graph, backing, prepared.loaded, states, dependencies.value.graph, signatures.value.data, options.sources, modules, options.exports, cache) catch |err| return report(allocator, source_map, reporter, err);
 
     if (result == .diagnostic) return result;
 

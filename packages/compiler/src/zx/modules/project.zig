@@ -512,21 +512,27 @@ pub fn analyzeIncremental(allocator: std.mem.Allocator, sources: []const Source,
 }
 
 pub fn analyzeSignatures(allocator: std.mem.Allocator, sources: []const Source, entries: []const []const u8, options: Options) std.mem.Allocator.Error!signature_project.Result {
+    return analyzeSignaturesWithCache(allocator, sources, entries, options, null);
+}
+
+/// A shared cache must outlive the returned signatures, since they may borrow parsed syntax.
+pub fn analyzeSignaturesWithCache(allocator: std.mem.Allocator, sources: []const Source, entries: []const []const u8, options: Options, shared: ?*ParseCache) std.mem.Allocator.Error!signature_project.Result {
     var arena = std.heap.ArenaAllocator.init(allocator);
 
     errdefer arena.deinit();
 
     const owned = arena.allocator();
-    var cache = ParseCache{ .allocator = owned };
+    var local = ParseCache{ .allocator = owned };
 
-    defer cache.deinit();
+    defer local.deinit();
 
+    const cache = shared orelse &local;
     var reporter: zx.Reporter = .{};
     const units = try owned.alloc(Unit, sources.len);
 
     for (sources, 0..) |source, index| units[index] = .{ .path = try std.fs.path.resolve(owned, &.{ options.root_dir, source.path }) };
 
-    var project = Project{ .arena = &arena, .allocator = owned, .sources = sources, .parse_cache = &cache, .phase = .signature, .units = units, .options = options, .reporter = &reporter, .nominal_origins = .{ .allocator = owned } };
+    var project = Project{ .arena = &arena, .allocator = owned, .sources = sources, .parse_cache = cache, .phase = .signature, .units = units, .options = options, .reporter = &reporter, .nominal_origins = .{ .allocator = owned } };
 
     if (options.context.types.count() != 0 and !@import("../ir/type_rules.zig").validate(options.context.types)) return .{ .arena = arena, .value = .{ .diagnostic = .{ .code = .contract, .span = .{ .start = 0, .end = 0 }, .message = "invalid shared type table" } } };
     if (!@import("native_context.zig").valid(options.context.types, options.context.native_modules)) return .{ .arena = arena, .value = .{ .diagnostic = .{ .code = .contract, .span = .{ .start = 0, .end = 0 }, .message = "invalid shared native module table" } } };

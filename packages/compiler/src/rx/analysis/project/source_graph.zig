@@ -12,6 +12,7 @@ pub const Options = struct {
     sources: []const frontend.project.Source,
     modules: []const rx.ModuleSource,
     project: frontend.project.Options,
+    parse_cache: ?*frontend.project.ParseCache = null,
 };
 
 pub fn build(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.Error!Result {
@@ -69,7 +70,7 @@ fn buildIn(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.Err
 
     var collector = Collector{ .allocator = allocator, .options = options.project, .modules = modules, .paths = paths };
 
-    @import("source_graph/scan.zig").run(&collector, roots, options.sources, options.modules) catch |err| {
+    @import("source_graph/scan.zig").run(&collector, roots, options.sources, options.modules, options.parse_cache) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 
         return .{ .diagnostic = collector.issue.? };

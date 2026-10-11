@@ -4,11 +4,12 @@ const zx = @import("zx");
 const project = @import("frontend").project;
 const Collector = @import("collect.zig");
 
-pub fn run(collector: *Collector, roots: []const usize, sources: []const project.Source, modules: []const rx.ModuleSource) Collector.Error!void {
-    var cache = project.ParseCache{ .allocator = collector.allocator };
+pub fn run(collector: *Collector, roots: []const usize, sources: []const project.Source, modules: []const rx.ModuleSource, shared: ?*project.ParseCache) Collector.Error!void {
+    var local = project.ParseCache{ .allocator = collector.allocator };
 
-    defer cache.deinit();
+    defer local.deinit();
 
+    const cache = shared orelse &local;
     const queued = try collector.allocator.alloc(bool, collector.modules.len);
 
     defer collector.allocator.free(queued);

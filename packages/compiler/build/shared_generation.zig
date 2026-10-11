@@ -22,7 +22,8 @@ pub fn run(init: std.process.Init, entries: []const Entry, inputs: Inputs, outpu
     }
 
     const project = compiler.project.Options{ .entry = "", .native_interfaces = inputs.interfaces, .packages = inputs.packages };
-    const selected = try @import("source_inputs.zig").reachable(allocator, inputs.modules, inputs.sources, roots, project);
+    var parse_cache = compiler.project.ParseCache{ .allocator = allocator };
+    const selected = try @import("source_inputs.zig").reachable(allocator, inputs.modules, inputs.sources, roots, project, &parse_cache);
 
     var analyzed = try analysis.project.infer(init.gpa, .{
         .entry = roots[0],
@@ -30,6 +31,7 @@ pub fn run(init: std.process.Init, entries: []const Entry, inputs: Inputs, outpu
         .modules = selected,
         .sources = inputs.sources,
         .project = project,
+        .parse_cache = &parse_cache,
     });
 
     defer analyzed.deinit();

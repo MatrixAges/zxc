@@ -8,7 +8,7 @@ const Prepared = @import("prepare.zig");
 const SourceGraph = @import("source_graph.zig").Graph;
 const State = @import("mixed/state.zig");
 
-pub fn compile(graph: *Graph, backing: std.mem.Allocator, loaded: Prepared.Loaded, states: []const @import("constraints.zig").State, dependencies: SourceGraph, signatures: frontend.project.signature_project.Data, sources: []const frontend.project.Source, modules: []const rx.ModuleSource, exports: []const @import("../project.zig").Export) zx.Error!Module.Value {
+pub fn compile(graph: *Graph, backing: std.mem.Allocator, loaded: Prepared.Loaded, states: []const @import("constraints.zig").State, dependencies: SourceGraph, signatures: frontend.project.signature_project.Data, sources: []const frontend.project.Source, modules: []const rx.ModuleSource, exports: []const @import("../project.zig").Export, cache: *frontend.project.ParseCache) zx.Error!Module.Value {
     const resolved = try @import("signatures.zig").resolve(graph, states);
 
     var state = State.init(graph.allocator, backing, dependencies, signatures, graph.types.items.view(), loaded.project) catch |err| {
@@ -18,10 +18,6 @@ pub fn compile(graph: *Graph, backing: std.mem.Allocator, loaded: Prepared.Loade
     };
 
     defer state.scratch.deinit();
-
-    var cache = frontend.project.ParseCache{ .allocator = graph.allocator };
-
-    defer cache.deinit();
 
     var entry: ?Module.Contract = null;
 
@@ -36,14 +32,14 @@ pub fn compile(graph: *Graph, backing: std.mem.Allocator, loaded: Prepared.Loade
 
                 if (signature.signature.has_store) continue;
 
-                state.finished[index] = @import("mixed/zx.zig").compile(&state, &cache, sources, index, null) catch |err| {
+                state.finished[index] = @import("mixed/zx.zig").compile(&state, cache, sources, index, null) catch |err| {
                     if (err == error.OutOfMemory) return error.OutOfMemory;
 
                     return .{ .diagnostic = state.issue.? };
                 };
             },
             .rx => |source| {
-                const result = @import("mixed/rx.zig").compile(&state, &cache, sources, modules, index, loaded.modules[source], resolved[source]) catch |err| {
+                const result = @import("mixed/rx.zig").compile(&state, cache, sources, modules, index, loaded.modules[source], resolved[source]) catch |err| {
                     if (err == error.OutOfMemory) return error.OutOfMemory;
 
                     return .{ .diagnostic = state.issue.? };
