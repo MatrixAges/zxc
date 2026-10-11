@@ -10,6 +10,8 @@ pub fn run(collector: *Collector, roots: []const usize, sources: []const project
     defer local.deinit();
 
     const cache = shared orelse &local;
+
+    try prefetch(collector, sources, cache);
     const queued = try collector.allocator.alloc(bool, collector.modules.len);
 
     defer collector.allocator.free(queued);
@@ -71,4 +73,18 @@ pub fn run(collector: *Collector, roots: []const usize, sources: []const project
             try pending.append(collector.allocator, edge.target.source);
         }
     }
+}
+
+/// Parses every ZX module of the graph on all cores before the walk reads them in import order.
+fn prefetch(collector: *Collector, sources: []const project.Source, cache: *project.ParseCache) Collector.Error!void {
+    var requests: std.ArrayList(project.ParseCache.Request) = .empty;
+
+    defer requests.deinit(collector.allocator);
+
+    for (collector.modules) |module| switch (module.source) {
+        .zx => |source_index| try requests.append(collector.allocator, .{ .source = sources[source_index].source, .path = module.path }),
+        .rx => {},
+    };
+
+    try cache.prefetch(requests.items);
 }
