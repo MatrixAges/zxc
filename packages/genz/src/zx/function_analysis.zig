@@ -77,16 +77,39 @@ pub fn createRemembered(backing: std.mem.Allocator, program: ir.Program, exporte
 }
 
 pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, program: ir.Program, exported: []const ir.FunctionId, basis: *const Uniqueness.Basis, memo: ?*Uniqueness.Memo) std.mem.Allocator.Error!Self {
+    // Uniqueness, the costliest pass, reads only the program and the basis, so it runs beside the others.
+    var uniqueness = Concurrent{ .arena = .init(workspace), .workspace = workspace, .program = program, .exported = exported, .basis = basis, .memo = memo };
+
+    defer uniqueness.arena.deinit();
+
+    const thread = std.Thread.spawn(.{}, Concurrent.run, .{&uniqueness}) catch null;
+
+    if (thread == null) uniqueness.run();
+
+    const others = remaining(allocator, workspace, program);
+
+    if (thread) |running| running.join();
+
+    var value = try others;
+
+    value.uniqueness = try copyPlans(allocator, try uniqueness.result);
+    value.basis = basis;
+
+    return value;
+}
+
+/// Every fact but the uniqueness plans.
+fn remaining(allocator: std.mem.Allocator, workspace: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!Self {
     if (@import("genz_options").generated_analysis) {
-        const facts = try @import("function_analysis/generated.zig").analyze(allocator, workspace, program);
+        const generated = try @import("function_analysis/generated.zig").analyze(allocator, workspace, program);
 
         return .{
-            .value = facts.value,
-            .io = facts.io,
-            .process = facts.process,
+            .value = generated.value,
+            .io = generated.io,
+            .process = generated.process,
             .tasks = try @import("tasks/allocator.zig").functions(allocator, program),
-            .uniqueness = try Uniqueness.analyze(allocator, workspace, program, exported, basis, memo),
-            .basis = basis,
+            .uniqueness = undefined,
+            .basis = undefined,
         };
     }
 
@@ -95,10 +118,24 @@ pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, progr
         .io = try @import("io.zig").functions(allocator, program),
         .process = try @import("capabilities.zig").functions(allocator, program, .process),
         .tasks = try @import("tasks/allocator.zig").functions(allocator, program),
-        .uniqueness = try Uniqueness.analyze(allocator, workspace, program, exported, basis, memo),
-        .basis = basis,
+        .uniqueness = undefined,
+        .basis = undefined,
     };
 }
+
+const Concurrent = struct {
+    arena: std.heap.ArenaAllocator,
+    workspace: std.mem.Allocator,
+    program: ir.Program,
+    exported: []const ir.FunctionId,
+    basis: *const Uniqueness.Basis,
+    memo: ?*Uniqueness.Memo,
+    result: std.mem.Allocator.Error!Uniqueness.Result = error.OutOfMemory,
+
+    fn run(self: *Concurrent) void {
+        self.result = Uniqueness.analyze(self.arena.allocator(), self.workspace, self.program, self.exported, self.basis, self.memo);
+    }
+};
 
 fn copyPlans(allocator: std.mem.Allocator, source: Uniqueness.Result) std.mem.Allocator.Error!Uniqueness.Result {
     const functions = try allocator.alloc(Uniqueness.Plan, source.functions.len);
