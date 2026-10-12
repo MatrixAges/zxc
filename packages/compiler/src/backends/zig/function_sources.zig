@@ -2,11 +2,12 @@ const std = @import("std");
 const generating = @import("genz").zx.modules;
 const Batch = @import("batch.zig");
 const Cache = @import("cache.zig");
+/// One unit to generate and the batch whose program and facts it comes from.
+pub const Job = struct { batch: *const Batch, unit: generating.Unit };
 
 /// Identifies every unit and fetches its cached source.
 const Search = struct {
-    batch: *const Batch,
-    units: []const generating.Unit,
+    jobs: []const Job,
     lookups: []Batch.Lookup,
     fetched: []Cache.Fetched,
     next: std.atomic.Value(usize) = .init(0),
@@ -15,7 +16,7 @@ const Search = struct {
         while (self.failure.load(.monotonic) == 0) {
             const position = self.next.fetchAdd(1, .monotonic);
 
-            if (position >= self.units.len) return;
+            if (position >= self.jobs.len) return;
 
             self.step(arena.allocator(), position) catch |err| {
                 _ = self.failure.cmpxchgStrong(0, @intFromError(err), .monotonic, .monotonic);
@@ -25,16 +26,16 @@ const Search = struct {
         }
     }
     fn step(self: *Search, allocator: std.mem.Allocator, position: usize) generating.Error!void {
-        const found = try self.batch.identify(allocator, self.units[position]);
+        const job = self.jobs[position];
+        const found = try job.batch.identify(allocator, job.unit);
         self.lookups[position] = found;
-        self.fetched[position] = if (self.batch.cache) |cache| try cache.fetch(allocator, found.name, found.key) else .absent;
+        self.fetched[position] = if (job.batch.cache) |cache| try cache.fetch(allocator, found.name, found.key) else .absent;
     }
 };
 
 /// Generates every unit no cached source covers.
 const Work = struct {
-    batch: *const Batch,
-    pending: []const generating.Unit,
+    pending: []const Job,
     results: [][]const u8,
     next: std.atomic.Value(usize) = .init(0),
     failure: std.atomic.Value(u16) = .init(0),
@@ -51,8 +52,9 @@ const Work = struct {
             if (position >= self.pending.len) return;
 
             defer _ = scratch.reset(.{ .retain_with_limit = 32 << 20 });
+            const job = self.pending[position];
 
-            self.results[position] = self.batch.generate(arena.allocator(), scratch.allocator(), self.pending[position]) catch |err| {
+            self.results[position] = job.batch.generate(arena.allocator(), scratch.allocator(), job.unit) catch |err| {
                 _ = self.failure.cmpxchgStrong(0, @intFromError(err), .monotonic, .monotonic);
 
                 return;
@@ -78,24 +80,35 @@ const Copying = struct {
     }
 };
 
-/// Sources of function `units` in order: cached units are copied into one buffer, the rest are generated; the search,
-/// the copies and the generation run on all cores.
+/// Sources of function `units` in order.
 pub fn create(owned: std.mem.Allocator, batch: *const Batch, units: []const generating.Unit) generating.Error![][]const u8 {
-    var scratch = std.heap.ArenaAllocator.init(batch.backing);
+    const jobs = try batch.backing.alloc(Job, units.len);
+
+    defer batch.backing.free(jobs);
+
+    for (units, jobs) |unit, *job| job.* = .{ .batch = batch, .unit = unit };
+
+    return createJobs(owned, batch.backing, jobs);
+}
+
+/// Sources of `jobs` in order: cached units are copied into one buffer, the rest are generated; the search, the copies
+/// and the generation run on all cores.
+pub fn createJobs(owned: std.mem.Allocator, backing: std.mem.Allocator, jobs: []const Job) generating.Error![][]const u8 {
+    var scratch = std.heap.ArenaAllocator.init(backing);
 
     defer scratch.deinit();
 
     const temporary = scratch.allocator();
-    const sources = try owned.alloc([]const u8, units.len);
+    const sources = try owned.alloc([]const u8, jobs.len);
     const arenas = try temporary.alloc(std.heap.ArenaAllocator, @import("zx").parallel.width());
 
     for (arenas) |*arena| arena.* = .init(std.heap.smp_allocator);
 
     defer for (arenas) |*arena| arena.deinit();
 
-    var search = Search{ .batch = batch, .units = units, .lookups = try temporary.alloc(Batch.Lookup, units.len), .fetched = try temporary.alloc(Cache.Fetched, units.len) };
+    var search = Search{ .jobs = jobs, .lookups = try temporary.alloc(Batch.Lookup, jobs.len), .fetched = try temporary.alloc(Cache.Fetched, jobs.len) };
 
-    try spread(Search, &search, arenas[0..@min(arenas.len, units.len)]);
+    try spread(Search, &search, arenas[0..@min(arenas.len, jobs.len)]);
 
     // Reused sources are copied straight from what the search fetched, before recording can replace cache entries.
     var reused: std.ArrayList([]const u8) = .empty;
@@ -120,12 +133,12 @@ pub fn create(owned: std.mem.Allocator, batch: *const Batch, units: []const gene
 
     try spread(Copying, &copying, arenas[0..@min(arenas.len, reused.items.len)]);
 
-    var pending: std.ArrayList(generating.Unit) = .empty;
+    var pending: std.ArrayList(Job) = .empty;
     var positions: std.ArrayList(usize) = .empty;
     var next: usize = 0;
 
-    for (units, search.lookups, search.fetched, sources, 0..) |unit, found, fetched, *source, position| {
-        if (batch.cache) |cache| _ = try cache.record(found.name, found.key, fetched);
+    for (jobs, search.lookups, search.fetched, sources, 0..) |job, found, fetched, *source, position| {
+        if (job.batch.cache) |cache| _ = try cache.record(found.name, found.key, fetched);
 
         if (reusable(fetched) != null) {
             source.* = copies[next];
@@ -134,18 +147,18 @@ pub fn create(owned: std.mem.Allocator, batch: *const Batch, units: []const gene
             continue;
         }
 
-        try pending.append(temporary, unit);
+        try pending.append(temporary, job);
         try positions.append(temporary, position);
     }
 
-    var work = Work{ .batch = batch, .pending = pending.items, .results = try temporary.alloc([]const u8, pending.items.len) };
+    var work = Work{ .pending = pending.items, .results = try temporary.alloc([]const u8, pending.items.len) };
 
     try spread(Work, &work, arenas[0..@min(arenas.len, pending.items.len)]);
 
     for (positions.items, work.results) |position, generated| {
         sources[position] = try owned.dupe(u8, generated);
 
-        try batch.remember(search.lookups[position], sources[position]);
+        try jobs[position].batch.remember(search.lookups[position], sources[position]);
     }
 
     return sources;

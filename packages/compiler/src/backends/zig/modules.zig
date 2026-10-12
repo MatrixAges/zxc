@@ -81,23 +81,33 @@ pub fn emitPrepared(allocator: std.mem.Allocator, program: @import("zx").ir.Prog
 
 /// The files of the `needed` functions; `roots` are the other generated sources that call into them.
 pub fn functionFilesAnalyzed(owned: std.mem.Allocator, batch: *const Batch, needed: []const bool, roots: []const []const u8) Error![]const File {
-    const program = batch.program;
-    const identities = batch.names;
-    var files: std.ArrayList(File) = .empty;
-    var seen: @import("zx").bytes.Map(usize) = .empty;
-    var units: std.ArrayList(generating.Unit) = .empty;
+    const units = try functionUnits(owned, needed);
+    const sources = try @import("function_sources.zig").create(owned, batch, units);
 
-    defer units.deinit(owned);
+    return functionFilesFrom(owned, batch, units, sources, roots);
+}
+
+/// The units of the `needed` functions.
+pub fn functionUnits(owned: std.mem.Allocator, needed: []const bool) std.mem.Allocator.Error![]generating.Unit {
+    var units: std.ArrayList(generating.Unit) = .empty;
 
     for (needed, 0..) |wanted, index| {
         if (wanted) try units.append(owned, .{ .function = @fromBackingInt(@intCast(index)) });
     }
 
-    const sources = try @import("function_sources.zig").create(owned, batch, units.items);
+    return units.toOwnedSlice(owned);
+}
 
-    try @import("regular_calls.zig").complete(owned, batch, roots, units.items, sources);
+/// The files of function `units` from their generated `sources`, once the `roots` that call them are known.
+pub fn functionFilesFrom(owned: std.mem.Allocator, batch: *const Batch, units: []generating.Unit, sources: [][]const u8, roots: []const []const u8) Error![]const File {
+    const program = batch.program;
+    const identities = batch.names;
+    var files: std.ArrayList(File) = .empty;
+    var seen: @import("zx").bytes.Map(usize) = .empty;
 
-    for (units.items, sources) |unit, source| {
+    try @import("regular_calls.zig").complete(owned, batch, roots, units, sources);
+
+    for (units, sources) |unit, source| {
         const index = @backingInt(switch (unit) {
             .function, .regular => |id| id,
             else => unreachable,

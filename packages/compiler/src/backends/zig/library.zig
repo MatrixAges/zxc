@@ -86,7 +86,11 @@ fn create(allocator: std.mem.Allocator, library: *const model.Result, cache: ?*C
 
     @memset(needed, false);
 
-    for (library.exports, public_modules, 0..) |exported, *public_module, index| {
+    // Each export reenters the analysis with its own entry plan; their entries, the types and every needed function
+    // are then generated together on all cores.
+    const public_batches = try owned.alloc(modules.Batch, library.exports.len);
+
+    for (library.exports, public_modules, public_batches, 0..) |exported, *public_module, *public_batch, index| {
         const view = if (file_imports)
             try @import("library_entry.zig").create(owned, &prepared_library, index)
         else
@@ -97,8 +101,7 @@ fn create(allocator: std.mem.Allocator, library: *const model.Result, cache: ?*C
         var digest: [32]u8 = undefined;
 
         @import("zx").Sha256.hash(exported.name, &digest, .{});
-
-        var public_batch = batch;
+        public_batch.* = batch;
         public_batch.program = view;
 
         try public_batch.analysis.value.reentry(owned, allocator, view);
@@ -108,7 +111,7 @@ fn create(allocator: std.mem.Allocator, library: *const model.Result, cache: ?*C
             .value_entry = public_batch.analysis.value.hasValueEntry(view),
             .file = .{
                 .name = try std.fmt.allocPrint(owned, "public_{s}", .{std.fmt.bytesToHex(digest, .lower)}),
-                .source = try public_batch.emit(owned, .entry),
+                .source = &.{},
                 .imports = try references.imports(owned, view.expressions, view.contracts, identities.functions),
             },
         };
@@ -116,14 +119,28 @@ fn create(allocator: std.mem.Allocator, library: *const model.Result, cache: ?*C
 
     references.close(needed, program.functions);
 
-    const type_source = try batch.emit(owned, .types);
+    const units = try modules.functionUnits(owned, needed);
+    const Job = @import("function_sources.zig").Job;
+    const jobs = try owned.alloc(Job, public_batches.len + 1 + units.len);
+
+    for (jobs[0..public_batches.len], public_batches) |*job, *public_batch| job.* = .{ .batch = public_batch, .unit = .entry };
+
+    jobs[public_batches.len] = .{ .batch = &batch, .unit = .types };
+
+    for (jobs[public_batches.len + 1 ..], units) |*job, unit| job.* = .{ .batch = &batch, .unit = unit };
+
+    const generated = try @import("function_sources.zig").createJobs(owned, allocator, jobs);
+
+    for (public_modules, generated[0..public_batches.len]) |*public_module, source| public_module.file.source = source;
+
+    const type_source = generated[public_batches.len];
     const initializers = try @import("library_initializers.zig").createBacked(owned, allocator, library, identities, cache);
     const roots = try owned.alloc([]const u8, public_modules.len + initializers.files.len);
 
     for (roots[0..public_modules.len], public_modules) |*root, public_module| root.* = public_module.file.source;
     for (roots[public_modules.len..], initializers.files) |*root, file| root.* = file.source;
 
-    const functions = try modules.functionFilesAnalyzed(owned, &batch, needed, roots);
+    const functions = try modules.functionFilesFrom(owned, &batch, units, generated[public_batches.len + 1 ..], roots);
     const files = try std.mem.concat(owned, modules.File, &.{ functions, initializers.files });
     const type_names = try modules.typeNamesAnalyzed(owned, program, identities, batch.analysis.value.value.state);
     const native_modules = try modules.nativeModules(owned, program);
