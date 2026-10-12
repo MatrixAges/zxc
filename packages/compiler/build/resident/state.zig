@@ -7,8 +7,10 @@ const History = @import("rx_analysis").project.History;
 const Files = @import("files.zig");
 const Modules = @import("modules.zig");
 const Self = @This();
-/// Past this much retained memory the next analysis starts over, so the memory it no longer needs is freed.
-const retained_limit = 3 << 29;
+/// Past this much retained memory the next analysis starts over, so the memory it no longer needs is freed. Each
+/// analysis that reuses modules keeps the ones before it, a little over 100 MB for the compiler itself, so this allows
+/// about two dozen such edits between full analyses while staying well inside the memory budget.
+const retained_limit = 3 << 30;
 
 gpa: std.mem.Allocator,
 /// The generator's executable digest, which names its outputs and cache records.
