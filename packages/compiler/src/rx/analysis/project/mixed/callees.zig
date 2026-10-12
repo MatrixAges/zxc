@@ -53,6 +53,21 @@ pub fn load(state: *State, cache: *frontend.project.ParseCache, sources: []const
     return ids;
 }
 
+/// Whether every call of `module` binds a source function the shared tables already hold, so loading them changes
+/// nothing: no compiled library to load and no Store setter to analyze.
+pub fn local(state: *const State, modules: []const rx.ModuleSource, module: Prepared.Module) std.mem.Allocator.Error!bool {
+    for (module.calls) |call| {
+        if (call.setter != null) return false;
+
+        switch (try @import("../reference.zig").resolve(state.allocator, module.source.path, call.node, modules, state.options)) {
+            .source, .module => {},
+            .compiled, .diagnostic => return false,
+        }
+    }
+
+    return true;
+}
+
 fn find(state: *const State, path: []const u8) ?usize {
     for (state.graph.modules, 0..) |module, index| {
         if (@import("zx").bytes.equal(module.path, path)) return index;

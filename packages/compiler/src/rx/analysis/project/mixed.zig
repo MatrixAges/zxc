@@ -38,7 +38,7 @@ pub fn compile(allocator: std.mem.Allocator, backing: std.mem.Allocator, derived
 
             while (end < dependencies.order.len and depths[dependencies.order[end]] == depths[index]) end += 1;
 
-            try ahead.analyze(&state, cache, sources, &reuse, dependencies.order[start..end]);
+            try ahead.analyze(&state, cache, sources, derived, &reuse, dependencies.order[start..end]);
 
             start = end;
         }
@@ -74,7 +74,15 @@ pub fn compile(allocator: std.mem.Allocator, backing: std.mem.Allocator, derived
                 reuse.analyzed(&state, index);
             },
             .rx => |source| {
-                const result = @import("mixed/rx.zig").compile(&state, cache, sources, modules, index, loaded.modules[source], resolved[source]) catch |err| {
+                const rx_module = @import("mixed/rx.zig");
+
+                const linked = if (ahead.lowered(&state, index)) |lowered| ready: {
+                    _ = state.scratch.reset(.retain_capacity);
+
+                    break :ready rx_module.link(&state, state.scratch.allocator(), lowered.prepared, lowered.contract);
+                } else rx_module.compile(&state, cache, sources, modules, index, loaded.modules[source], resolved[source]);
+
+                const result = linked catch |err| {
                     if (err == error.OutOfMemory) return error.OutOfMemory;
 
                     return .{ .diagnostic = state.issue.? };
