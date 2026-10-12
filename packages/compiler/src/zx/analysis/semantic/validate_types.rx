@@ -1,4 +1,10 @@
 <Module>
+    <Switch on={$in.trusted}>
+        <Case value={true}>
+            <Return value={true} />
+        </Case>
+    </Switch>
+
     <Call fn="types/validation/shape" in={{ table: $in.table, scalar_count: $in.scalar_count, maximum_count: $in.maximum_count }} />
 
     <Switch on={$ctx.shape}>

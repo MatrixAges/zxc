@@ -15,7 +15,7 @@
 
     <Switch on={$in.context.type_base.kinds.length > 0}>
         <Case value={true}>
-            <Call module="../semantic/validate_types" in={{ table: $in.context.type_base, scalar_count: $in.context.scalar_count, maximum_count: $in.context.maximum_count }} />
+            <Call module="../semantic/validate_types" in={{ table: $in.context.type_base, scalar_count: $in.context.scalar_count, maximum_count: $in.context.maximum_count, trusted: $ctx.mode.resolved }} />
 
             <Switch on={!$ctx.validate_types}>
                 <Case value={true}>

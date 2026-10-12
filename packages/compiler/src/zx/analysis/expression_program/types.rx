@@ -1,5 +1,6 @@
 <Module>
-    <Call module="../semantic/validate_types" in={{ table: $in.input.type_base, scalar_count: $in.input.scalar_count, maximum_count: $in.input.maximum_type_count }} />
+    <Call fn="types/trusted" in={$in.input.mode} />
+    <Call module="../semantic/validate_types" in={{ table: $in.input.type_base, scalar_count: $in.input.scalar_count, maximum_count: $in.input.maximum_type_count, trusted: $ctx.trusted }} />
 
     <Switch on={$in.input.type_base.kinds.length == 0 || $ctx.validate_types}>
         <Case value={true}>

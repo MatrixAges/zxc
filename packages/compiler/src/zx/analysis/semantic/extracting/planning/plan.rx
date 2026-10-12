@@ -1,5 +1,5 @@
 <Module>
-    <Call module="../../validate_types" in={{ table: $in.table, scalar_count: $in.scalar_count, maximum_count: $in.maximum_count }} />
+    <Call module="../../validate_types" in={{ table: $in.table, scalar_count: $in.scalar_count, maximum_count: $in.maximum_count, trusted: false }} />
     <Call fn="valid" in={$in} />
 
     <Switch on={$ctx.validate_types && $ctx.valid}>

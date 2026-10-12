@@ -7,7 +7,7 @@
         </Case>
     </Switch>
 
-    <Call module="../../../analysis/semantic/validate_types" in={{ table: $in.context.table, scalar_count: $in.context.scalar_count, maximum_count: $in.context.maximum_count }} />
+    <Call module="../../../analysis/semantic/validate_types" in={{ table: $in.context.table, scalar_count: $in.context.scalar_count, maximum_count: $in.context.maximum_count, trusted: false }} />
 
     <Switch on={$ctx.validate_types}>
         <Case value={false}>

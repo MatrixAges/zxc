@@ -8,7 +8,7 @@ pub fn validate(types: ir.TypeTable) bool {
     const Input = @typeInfo(generated.Input).pointer.child;
     const Table = @typeInfo(@FieldType(Input, "table")).pointer.child;
     const table = ir.TypeTable.borrow(Table, types);
-    const input: Input = .{ .table = &table, .scalar_count = std.enums.values(ir.Scalar).len, .maximum_count = std.math.maxInt(u32) };
+    const input: Input = .{ .table = &table, .scalar_count = std.enums.values(ir.Scalar).len, .maximum_count = std.math.maxInt(u32), .trusted = false };
     var storage: [0]u8 = undefined;
     var fixed = std.heap.FixedBufferAllocator.init(&storage);
     var arena = std.heap.ArenaAllocator.init(fixed.allocator());
