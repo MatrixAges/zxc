@@ -4,15 +4,53 @@ const Order = @import("order.zig");
 const Slots = @import("slots.zig");
 const Summaries = @import("summaries.zig");
 const Self = @This();
-
 /// Every read of a root (a symbol, or an expression node), followed through projections, the aggregates and bindings
 /// that carry it, and whether a list slot of that root is used linearly: at most one consuming read on any path, no
 /// consuming read repeated by a loop the root lives outside of, and every observation before the consuming read.
 /// Lengths are read from the list value itself, so they never conflict with an update.
 /// Root slot `r` of a site is slot `r + delta` of its `top` value; `region` is the deepest arm the path to it runs
-/// through, which decides exclusivity once the walk has climbed out of the arms the value was carried in.
+/// through, which decides exclusivity once the walk has climbed out of the arms the value was carried in, and `arms` the
+/// last arms it entered, which tell apart a value carried out of one branch into the arms of a later one. A path only
+/// runs when every arm on it does, so any pair of them in exclusive arms keeps two sites apart.
 /// Paths that end on the same consuming `edge` at the same `delta` met at an alternative, so only one of them runs.
-pub const Site = struct { lo: u32, hi: u32, delta: i32, top: ir.ExprId, region: u32, edge: u32, parent: u32, role: Order.Role };
+pub const Site = struct { lo: u32, hi: u32, delta: i32, top: ir.ExprId, region: u32, arms: Arms, edge: u32, parent: u32, role: Order.Role };
+
+/// The most recent arms a path entered, leaving out an arm that only encloses the one before it.
+pub const Arms = struct {
+    items: [4]u32 = @splat(0),
+    len: u8 = 0,
+    fn enter(self: Arms, regions: []const Order.Region, region: u32) Arms {
+        if (regions[region].depth == 0) return self;
+
+        if (self.len != 0) {
+            var last = self.items[self.len - 1];
+
+            while (regions[last].depth > regions[region].depth) last = regions[last].parent;
+            if (last == region) return self;
+        }
+
+        var next = self;
+
+        if (next.len == next.items.len) {
+            std.mem.copyForwards(u32, next.items[0 .. next.items.len - 1], next.items[1..]);
+
+            next.len -= 1;
+        }
+
+        next.items[next.len] = region;
+        next.len += 1;
+
+        return next;
+    }
+
+    fn apart(self: Arms, order: *const Order, time: u32, other: Arms, other_time: u32) bool {
+        for (self.items[0..self.len]) |left| for (other.items[0..other.len]) |right| {
+            if (order.apart(left, time, right, other_time)) return true;
+        };
+
+        return false;
+    }
+};
 
 order: *const Order,
 slots: Slots,
@@ -47,8 +85,8 @@ pub fn create(allocator: std.mem.Allocator, order: *const Order, slots: Slots, s
 
         switch (value.value) {
             .field, .tuple_field, .optional_value => {},
-            .reference => |symbol| try walker.walk(@backingInt(symbol), id, 0, 0, 0, size),
-            else => try walker.walk(symbol_count + index, id, 0, 0, 0, size),
+            .reference => |symbol| try walker.walk(@backingInt(symbol), id, 0, .{}, 0, 0, size),
+            else => try walker.walk(symbol_count + index, id, 0, .{}, 0, 0, size),
         }
     }
 
@@ -107,7 +145,7 @@ fn defLoop(self: Self, root: u32) u32 {
 pub fn observed(self: *Self, root: u32, slot: u32) bool {
     for (self.sites[self.first[root]..self.first[root + 1]]) |site| {
         if (slot < site.lo or slot >= site.hi) continue;
-        if (self.role(root, site, slot) != .observe) return false;
+        if (self.role(site, slot) != .observe) return false;
     }
 
     return true;
@@ -137,13 +175,14 @@ fn decide(self: *Self, root: u32, slot: u32) bool {
     const order = self.order;
 
     for (range, 0..) |site, index| {
-        if (slot < site.lo or slot >= site.hi or self.role(root, site, slot) == .observe) continue;
+        if (slot < site.lo or slot >= site.hi or self.role(site, slot) == .observe) continue;
         if (order.loop[@backingInt(site.top)] != home) return false;
 
         for (range, 0..) |other, other_index| {
             if (other_index == index or slot < other.lo or slot >= other.hi or (other.edge == site.edge and other.delta == site.delta)) continue;
             if (order.apart(site.region, order.time[@backingInt(site.top)], other.region, order.time[@backingInt(other.top)])) continue;
-            if (self.role(root, other, slot) != .observe) return false;
+            if (site.arms.apart(order, order.time[@backingInt(site.top)], other.arms, order.time[@backingInt(other.top)])) continue;
+            if (self.role(other, slot) != .observe) return false;
             if (!before(order, other, site)) return false;
         }
     }
@@ -151,23 +190,27 @@ fn decide(self: *Self, root: u32, slot: u32) bool {
     return true;
 }
 
+/// An observation comes first when its value is read before the consumed one, inside the consuming node, or, for a value
+/// both read through one shared node, when the observing node finishes before the consuming node starts. A statement
+/// consumes its value once the value is built, so whatever the building reads comes first.
 fn before(order: *const Order, observation: Site, consumer: Site) bool {
     const seen = order.time[@backingInt(observation.top)];
 
     if (seen < order.time[@backingInt(consumer.top)]) return true;
-    if (consumer.parent == Order.none) return false;
+    if (consumer.parent == Order.none) return seen < order.finish[@backingInt(consumer.top)];
+    if (observation.parent != Order.none and order.finish[observation.parent] <= order.time[consumer.parent]) return true;
 
     return seen > order.time[consumer.parent] and seen < order.finish[consumer.parent];
 }
 
-/// A call argument slot only observes unless the callee may write that list type in place or return it.
-pub fn role(self: Self, root: u32, site: Site, slot: u32) Order.Role {
+/// A call argument slot only observes unless the callee may write that input slot in place or return it.
+pub fn role(self: Self, site: Site, slot: u32) Order.Role {
     if (site.role != .argument) return site.role;
 
     const callee = self.expressions.get(@fromBackingInt(site.parent)).value.call.function;
-    const list = self.slots.listType(self.rootType(root), slot);
+    const input: u32 = @intCast(@as(i64, slot) + site.delta);
 
-    return if (self.summaries.mayHold(callee, list) or self.summaries.mayMutate(callee, list)) .use else .observe;
+    return if (self.summaries.mayHold(callee, input) or self.summaries.mayMutate(callee, input)) .use else .observe;
 }
 
 const Walker = struct {
@@ -178,18 +221,18 @@ const Walker = struct {
     consumers: Consumers,
     references: Consumers,
     buckets: []std.ArrayList(Site),
-
-    fn walk(self: *Walker, root: usize, node: ir.ExprId, outer: u32, delta: i32, lo: u32, hi: u32) std.mem.Allocator.Error!void {
+    fn walk(self: *Walker, root: usize, node: ir.ExprId, outer: u32, entered: Arms, delta: i32, lo: u32, hi: u32) std.mem.Allocator.Error!void {
         const index = @backingInt(node);
         const regions = self.order.regions.items;
 
         for (self.consumers.edges[self.consumers.first[index]..self.consumers.first[index + 1]], self.consumers.first[index]..) |edge, position| {
             const anchor = if (regions[edge.region].depth > regions[outer].depth) edge.region else outer;
+            const arms = entered.enter(regions, edge.region);
 
             switch (edge.role) {
                 .evaluation => continue,
                 .flow => {
-                    try self.walk(root, @fromBackingInt(edge.parent), anchor, delta, lo, hi);
+                    try self.walk(root, @fromBackingInt(edge.parent), anchor, arms, delta, lo, hi);
 
                     continue;
                 },
@@ -197,12 +240,12 @@ const Walker = struct {
                     const parent: ir.ExprId = @fromBackingInt(edge.parent);
                     const member = self.slots.member(self.expressions.get(parent).type_id, edge.index);
 
-                    try self.walk(root, parent, anchor, delta + @as(i32, @intCast(member.offset)), lo, hi);
+                    try self.walk(root, parent, anchor, arms, delta + @as(i32, @intCast(member.offset)), lo, hi);
 
                     continue;
                 },
                 .bind => {
-                    for (self.references.edges[self.references.first[edge.index]..self.references.first[edge.index + 1]]) |reference| try self.walk(root, reference.child, anchor, delta, lo, hi);
+                    for (self.references.edges[self.references.first[edge.index]..self.references.first[edge.index + 1]]) |reference| try self.walk(root, reference.child, anchor, arms, delta, lo, hi);
 
                     continue;
                 },
@@ -219,12 +262,12 @@ const Walker = struct {
                         const first: u32 = @intCast(@max(offset, lo));
                         const last: u32 = @intCast(@max(@min(offset + self.slots.count(member.type_id), hi), first));
 
-                        if (first < last) try self.walk(root, parent, anchor, delta - @as(i32, @intCast(member.offset)), first, last);
+                        if (first < last) try self.walk(root, parent, anchor, arms, delta - @as(i32, @intCast(member.offset)), first, last);
 
                         continue;
                     },
                     .optional_value => {
-                        try self.walk(root, parent, anchor, delta, lo, hi);
+                        try self.walk(root, parent, anchor, arms, delta, lo, hi);
 
                         continue;
                     },
@@ -233,7 +276,7 @@ const Walker = struct {
                 }
             }
 
-            try self.buckets[root].append(self.allocator, .{ .lo = lo, .hi = hi, .delta = delta, .top = node, .region = anchor, .edge = @intCast(position), .parent = edge.parent, .role = edge.role });
+            try self.buckets[root].append(self.allocator, .{ .lo = lo, .hi = hi, .delta = delta, .top = node, .region = anchor, .arms = arms, .edge = @intCast(position), .parent = edge.parent, .role = edge.role });
         }
     }
 };
@@ -251,6 +294,7 @@ fn references(allocator: std.mem.Allocator, order: *const Order, expressions: ir
         switch (expressions.get(@fromBackingInt(@intCast(index))).value) {
             .reference => |symbol| {
                 first[@backingInt(symbol) + 1] += 1;
+
                 total += 1;
             },
             else => {},

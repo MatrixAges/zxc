@@ -249,10 +249,11 @@ pub fn renewals(self: *Self, allocator: std.mem.Allocator) std.mem.Allocator.Err
     return result.items;
 }
 
-pub const Flags = packed struct(u8) { frontier: bool = false, retract: bool = false, in_place: bool = false, normalize: bool = false, renew: bool = false, padding: u3 = 0 };
+pub const Flags = packed struct(u8) { frontier: bool = false, retract: bool = false, in_place: bool = false, normalize: bool = false, renew: bool = false, grow: bool = false, padding: u2 = 0 };
 
 /// How each list update lowers: appends check the frontier of a headered target, pops of a unique headered target hand
-/// the frontier back, element writes of a unique target happen in place, and a demanded plain list gets a growth copy.
+/// the frontier back, element writes of a unique target happen in place and those of a shared headered target copy into
+/// a growth buffer, and a demanded plain list gets a growth copy.
 pub fn flags(self: *Self, values: []Flags) std.mem.Allocator.Error!void {
     @memset(values, .{});
 
@@ -290,11 +291,19 @@ pub fn flags(self: *Self, values: []Flags) std.mem.Allocator.Error!void {
                 switch (operation.kind) {
                     .push, .concat => value.frontier = target.headered,
                     .pop => value.retract = target.headered and target.unique,
-                    .sort, .reverse => value.in_place = target.unique,
-                    .splice => {},
+                    .sort, .reverse => {
+                        value.in_place = target.unique;
+                        value.grow = !target.unique and target.headered;
+                    },
+                    .splice => value.retract = self.prefix(operation) and target.headered and target.unique,
                 }
             },
-            .list_update => |update| value.in_place = (try self.level(update.target, 0)).unique,
+            .list_update => |update| {
+                const target = try self.level(update.target, 0);
+
+                value.in_place = target.unique;
+                value.grow = !target.unique and target.headered;
+            },
             else => {},
         }
     }
@@ -365,17 +374,35 @@ fn raw(self: *Self, id: ir.ExprId, slot: u32) std.mem.Allocator.Error!Level {
             if (self.order.crossesConcurrent(self.order.loop[@backingInt(id)], self.order.def_loop[index])) return .none;
 
             var result = try self.definition(symbol, slot);
-            result.unique = result.unique and self.sites.linear(Sites.symbolRoot(symbol), slot);
+            result.unique = result.unique and (self.empty(symbol) or self.sites.linear(Sites.symbolRoot(symbol), slot));
 
             return result;
         },
         else => {
             var result = try self.node(id, slot);
-            result.unique = result.unique and self.sites.linear(self.sites.nodeRoot(id), slot);
+
+            result.unique = result.unique and (self.emptyList(id) or self.sites.linear(self.sites.nodeRoot(id), slot));
 
             return result;
         },
     }
+}
+
+/// Whether a symbol is bound to an empty list literal, whose uses may share it as `emptyList` says.
+fn empty(self: Self, symbol: ir.SymbolId) bool {
+    return switch (self.order.defs[@backingInt(symbol)]) {
+        .value => |id| self.emptyList(id),
+        else => false,
+    };
+}
+
+/// Whether an expression is an empty list literal. Its uses may share the buffer: nothing is ever written in place into
+/// an empty list, since appends to one allocate and it has no elements to update, pop or splice.
+fn emptyList(self: Self, id: ir.ExprId) bool {
+    return switch (self.row(id).value) {
+        .list => |items| items.len == 0,
+        else => false,
+    };
 }
 
 fn definition(self: *Self, symbol: ir.SymbolId, slot: u32) std.mem.Allocator.Error!Level {
@@ -405,7 +432,7 @@ fn node(self: *Self, id: ir.ExprId, slot: u32) std.mem.Allocator.Error!Level {
         } else .none,
         .some => |child| self.level(child, slot),
         .list => |items| if (items.len == 0) .all else .none,
-        .list_operation => |operation| if (slot != 0) .none else switch (operation.kind) {
+        .list_operation => |operation| if (slot != 0) (if (slot == 1 and self.prefix(operation)) self.level(operation.target, 0) else .none) else switch (operation.kind) {
             .push, .concat => blk: {
                 const target = try self.level(operation.target, 0);
 
@@ -442,9 +469,16 @@ fn node(self: *Self, id: ir.ExprId, slot: u32) std.mem.Allocator.Error!Level {
     };
 }
 
-/// An element write keeps a unique target's buffer and otherwise copies into a fresh one.
+/// Whether a splice starts at the front, so the part it removes is a prefix of the target's own buffer, as a pop's rest
+/// is.
+fn prefix(self: Self, operation: anytype) bool {
+    return @import("basis.zig").prefix(self.expressions, operation);
+}
+
+/// An element write keeps a unique target's buffer and otherwise copies into a fresh one, with a header when the target
+/// had one.
 fn written(target: Level) Level {
-    return if (target.unique) target else .fresh;
+    return if (target.unique) target else .{ .headered = target.headered, .unique = true };
 }
 
 /// Demand for growth copies: appends want a header and element writes want a unique buffer. Each demand traces back to
@@ -545,8 +579,9 @@ fn trace(self: *Self, id: ir.ExprId, slot: u32, outer: ?ir.ExprId, repeat: bool,
             try self.trace(binary.left, slot, null, repeat, want);
             try self.trace(binary.right, slot, null, repeat, want);
         },
-        // The rest of the list keeps the target's buffer; the popped element is read out of it like any element.
-        .list_operation => |operation| if (operation.kind == .pop and slot == 0) try self.trace(operation.target, 0, leaf, repeat, want) else if (repeat) try self.provide(id, slot, leaf, want),
+        // The rest of a pop and the prefix a splice removes from the front keep the target's buffer; the popped element
+        // is read out of it like any element.
+        .list_operation => |operation| if ((operation.kind == .pop and slot == 0) or (slot == 1 and self.prefix(operation))) try self.trace(operation.target, 0, leaf, repeat, want) else if (repeat) try self.provide(id, slot, leaf, want),
         .iteration => try self.carry(id, slot, want),
         .transform => |transform| if (transform.kind == .reduce) try self.carry(id, slot, want) else if (repeat) try self.normalize(leaf, want),
         .call => |invocation| {

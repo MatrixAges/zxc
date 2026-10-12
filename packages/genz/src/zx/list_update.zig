@@ -5,7 +5,8 @@ const Lower = @import("lower.zig");
 const aggregate = @import("aggregate.zig");
 const intrinsics = @import("intrinsics.zig");
 
-/// Writes one element: in place when the plan proves the target unique, into a copy otherwise.
+/// Writes one element: in place when the plan proves the target unique, into a copy otherwise, which keeps the header of
+/// a headered target.
 pub fn lower(self: *Lower, id: ir.ExprId) Lower.Error!node.ExpressionId {
     const update = self.program.expression(id).value.list_update;
     var body: std.ArrayList(node.Statement) = .empty;
@@ -16,7 +17,16 @@ pub fn lower(self: *Lower, id: ir.ExprId) Lower.Error!node.ExpressionId {
 
     const value = try aggregate.bind(self, &body, try self.expr(update.value));
     const element = try @import("iteration_value/types.zig").element(self, self.program.typeOf(self.program.expression(update.target).type_id).list);
-    const buffer = if (self.plan.get(id).in_place) try aggregate.bind(self, &body, try self.builtin(.constCast, &.{source})) else try aggregate.bind(self, &body, try self.call(try self.field(try self.builder.identifier("allocator"), "dupe"), &.{ element, source }, true));
+    const flags = self.plan.get(id);
+
+    const buffer = if (flags.in_place)
+        try aggregate.bind(self, &body, try self.builtin(.constCast, &.{source}))
+
+    else if (flags.grow)
+        try @import("growth.zig").reserve(self, &body, element, source, try self.field(source, "len"), false)
+    else
+        try aggregate.bind(self, &body, try self.call(try self.field(try self.builder.identifier("allocator"), "dupe"), &.{ element, source }, true));
+
     const slot = try self.builder.expression(.{ .index = .{ .target = buffer, .index = try self.builtin(.intCast, &.{index}) } });
 
     try body.append(self.allocator, .{ .assignment = .{ .target = slot, .value = value } });

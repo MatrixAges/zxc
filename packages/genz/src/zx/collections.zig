@@ -58,9 +58,15 @@ fn lowerMode(self: *Lower, id: ir.ExprId, layout: ?node.ExpressionId, removed_on
             result = try self.builder.expression(.{ .conditional = .{ .condition = try intrinsic.binary(self, .equal, length, try self.builder.integer(0)), .yes = try pair(self, source, try self.builder.expression(.null_value)), .no = nonempty } });
         },
         .reverse, .sort => {
-            const mutable = if (flags.in_place) try self.builtin(.constCast, &.{source}) else try allocate(self, &body, child_type, length);
+            const mutable = if (flags.in_place)
+                try self.builtin(.constCast, &.{source})
 
-            if (!flags.in_place) try copy(self, &body, mutable, source);
+            else if (flags.grow)
+                try growth.reserve(self, &body, child_type, source, length, false)
+            else
+                try allocate(self, &body, child_type, length);
+
+            if (!flags.in_place and !flags.grow) try copy(self, &body, mutable, source);
 
             const call = if (operation.kind == .reverse) try intrinsic.standard(self, &.{ "mem", "reverse" }, &.{ child_type, mutable }, false) else blk: {
                 var found = false;
@@ -105,6 +111,13 @@ fn lowerMode(self: *Lower, id: ir.ExprId, layout: ?node.ExpressionId, removed_on
             const end = try intrinsic.binary(self, .add, begin, removed);
             const inserted = try self.field(replacement, "len");
             const total = try addLength(self, try intrinsic.binary(self, .subtract, length, removed), inserted);
+
+            if (flags.retract) {
+                var retract: std.ArrayList(node.Statement) = .empty;
+
+                try growth.retract(self, &retract, child_type, source, end);
+                try body.append(self.allocator, try self.builder.branch(try intrinsic.binary(self, .not_equal, length, try self.builder.integer(0)), retract.items, &.{}));
+            }
 
             if (removed_only) {
                 try body.append(self.allocator, .{ .discard = total });

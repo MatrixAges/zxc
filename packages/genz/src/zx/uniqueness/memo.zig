@@ -314,7 +314,7 @@ fn readEntries(comptime Key: type, reader: *std.Io.Reader, map: *std.AutoHashMap
     }
 }
 
-const magic = "zxc.uniqueness.memo.v5";
+const magic = "zxc.uniqueness.memo.v9";
 
 /// Whether `save` would differ from what was loaded.
 pub fn stale(self: *const Self) bool {

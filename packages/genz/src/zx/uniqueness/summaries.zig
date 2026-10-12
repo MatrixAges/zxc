@@ -5,14 +5,14 @@ const Basis = @import("basis.zig");
 const Self = @This();
 
 /// Per function: what every caller guarantees about each input list slot, what every return guarantees about each
-/// output list slot, the list types the output can hold, and the list types the function may write in place.
+/// output list slot, which input slots the output can hold, and which input slots the function may write in place.
 /// `inputs` and `outputs` hold the properties some update downstream of each slot wants, so a growth copy pays off.
 input: [][]Level,
 output: [][]Level,
 inputs: [][]Level,
 outputs: [][]Level,
-holds: []const []const ir.TypeId,
-mutates: []const []const ir.TypeId,
+held: []const []const bool,
+written: []const []const bool,
 pub fn create(allocator: std.mem.Allocator, program: ir.Program, basis: *const Basis) std.mem.Allocator.Error!Self {
     const slots = basis.slots;
     const count = program.functions.count();
@@ -23,7 +23,6 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program, basis: *const B
 
     for (0..count) |index| {
         const function = program.functions.at(index);
-
         input[index] = try allocator.alloc(Level, slots.count(function.input_type));
         output[index] = try allocator.alloc(Level, slots.count(function.output_type));
 
@@ -37,15 +36,19 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program, basis: *const B
         @memset(outputs[index], .none);
     }
 
-    return .{ .input = input, .output = output, .inputs = inputs, .outputs = outputs, .holds = basis.holds, .mutates = basis.mutates };
+    return .{ .input = input, .output = output, .inputs = inputs, .outputs = outputs, .held = basis.flow.held, .written = basis.flow.written };
 }
 
-pub fn mayHold(self: Self, function: ir.FunctionId, list: ir.TypeId) bool {
-    return std.mem.indexOfScalar(ir.TypeId, self.holds[@backingInt(function)], list) != null;
+pub fn mayHold(self: Self, function: ir.FunctionId, slot: u32) bool {
+    const values = self.held[@backingInt(function)];
+
+    return slot >= values.len or values[slot];
 }
 
-pub fn mayMutate(self: Self, function: ir.FunctionId, list: ir.TypeId) bool {
-    return std.mem.indexOfScalar(ir.TypeId, self.mutates[@backingInt(function)], list) != null;
+pub fn mayMutate(self: Self, function: ir.FunctionId, slot: u32) bool {
+    const values = self.written[@backingInt(function)];
+
+    return slot >= values.len or values[slot];
 }
 
 /// Optimistic facts for every body; inputs stay unknown unless every caller is a known call site.
