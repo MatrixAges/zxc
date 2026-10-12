@@ -92,7 +92,11 @@ pub fn generate(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, r
 
     for (project.packages, packages) |package, *target| target.* = .{ .specifier = package.specifier, .entry = package.entry };
 
-    const frame = frameDigest(resident.digest, manifest_source, modules.items, interfaces);
+    const rx_digests = try allocator.alloc(analysis.project.ModuleDigest, modules.items.len);
+
+    for (modules.items, rx_digests) |module, *item| item.* = .{ .path = module.path, .digest = resident.files.digest(module.path, module.source) };
+
+    const frame = frameDigest(resident.digest, manifest_source, rx_digests, interfaces, true);
     const inputs_digest = fingerprint(frame, partitions, sources.items, &resident.files);
 
     // An output directory reused across runs already holds the result when nothing it depends on changed.
@@ -111,6 +115,8 @@ pub fn generate(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, r
         .interfaces = interfaces,
         .packages = packages,
         .frame = frame,
+        .shape = frameDigest(resident.digest, manifest_source, rx_digests, interfaces, false),
+        .rx_digests = rx_digests,
     }, if (request.write) output else null, request.cache, partitions);
 
     if (request.write) try std.Io.Dir.cwd().writeFile(io, .{ .sub_path = recorded, .data = &std.fmt.bytesToHex(inputs_digest, .lower) });
@@ -120,30 +126,29 @@ pub fn generate(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, r
 
 const shared_output = @import("shared_output.zig");
 
-/// Everything a generation reads besides the ZX sources.
-fn frameDigest(generator: [32]u8, manifest_source: []const u8, modules: []const rx.TextSource, interfaces: []const compiler.project.NativeInterface) [32]u8 {
-    var hash = std.crypto.hash.Blake3.init(.{});
+/// Everything a generation reads besides the ZX sources; RX sources enter by their digests, or by their paths alone for
+/// the shape an analysis reuses RX modules within.
+fn frameDigest(generator: [32]u8, manifest_source: []const u8, modules: []const analysis.project.ModuleDigest, interfaces: []const compiler.project.NativeInterface, comptime texts: bool) [32]u8 {
+    var hash = compiler.Sha256.init(.{});
 
     hash.update(&generator);
+    field(&hash, if (texts) "frame" else "shape");
     field(&hash, manifest_source);
 
     for (modules) |module| {
         field(&hash, module.path);
-        field(&hash, module.source);
+
+        if (texts) hash.update(&module.digest);
     }
 
     for (interfaces) |interface| field(&hash, interface.source);
 
-    var digest: [32]u8 = undefined;
-
-    hash.final(&digest);
-
-    return digest;
+    return hash.finalResult();
 }
 
 /// The frame and every ZX source; sources enter by their digests, which `files` keeps for unchanged texts.
 fn fingerprint(frame: [32]u8, partitions: u32, sources: []const compiler.project.Source, files: *Files) [32]u8 {
-    var hash = std.crypto.hash.Blake3.init(.{});
+    var hash = compiler.Sha256.init(.{});
 
     hash.update(&frame);
     hash.update(std.mem.asBytes(&partitions));
@@ -160,7 +165,7 @@ fn fingerprint(frame: [32]u8, partitions: u32, sources: []const compiler.project
     return digest;
 }
 
-fn field(hash: *std.crypto.hash.Blake3, bytes: []const u8) void {
+fn field(hash: *compiler.Sha256, bytes: []const u8) void {
     hash.update(std.mem.asBytes(&bytes.len));
     hash.update(bytes);
 }

@@ -5,6 +5,7 @@ const frontend = @import("frontend");
 pub const ir = zx.ir;
 pub const bytes = zx.bytes;
 pub const parallel = zx.parallel;
+pub const Sha256 = zx.Sha256;
 pub const parse = frontend.parse;
 pub const ParseResult = frontend.ParseResult;
 pub const parseExpression = frontend.parseExpression;

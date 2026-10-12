@@ -113,9 +113,11 @@ pub fn endRequest(self: *Self) void {
     self.keeps_request = false;
 }
 
-/// The history for an analysis of inputs identified by `frame`.
-pub fn startAnalysis(self: *Self, frame: [32]u8) *History {
+/// The history for an analysis of inputs identified by `frame`, whose RX sources have `rx_digests` within `shape`.
+pub fn startAnalysis(self: *Self, frame: [32]u8, shape: [32]u8, rx_digests: []const @import("rx_analysis").project.ModuleDigest) *History {
     self.history.frame = frame;
+    self.history.shape = shape;
+    self.history.rx_digests = rx_digests;
     self.history.next = null;
     self.history.reused = 0;
     self.history.analyzed = 0;

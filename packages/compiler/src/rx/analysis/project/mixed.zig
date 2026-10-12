@@ -22,7 +22,7 @@ pub fn compile(allocator: std.mem.Allocator, backing: std.mem.Allocator, derived
     defer state.scratch.deinit();
 
     var entry: ?Module.Contract = null;
-    var reuse = try @import("mixed/reuse.zig").begin(&state, cache, record);
+    var reuse = try @import("mixed/reuse.zig").begin(&state, cache, record, derived);
 
     for (dependencies.order) |index| {
         const module = dependencies.modules[index];

@@ -11,6 +11,9 @@ const Inputs = struct {
     packages: []const compiler.project.Package,
     /// Identifies every input besides the ZX sources.
     frame: [32]u8,
+    /// The frame without the RX sources' texts, and their digests by path.
+    shape: [32]u8,
+    rx_digests: []const analysis.project.ModuleDigest,
 };
 
 /// Generates the tree for `entries` into `output`, unless it is null, and returns its summary line. Parsed modules,
@@ -27,7 +30,7 @@ pub fn run(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, entrie
 
     const project = compiler.project.Options{ .entry = "", .native_interfaces = inputs.interfaces, .packages = inputs.packages };
     const parse_cache = &resident.parse_cache;
-    const history = resident.startAnalysis(inputs.frame);
+    const history = resident.startAnalysis(inputs.frame, inputs.shape, inputs.rx_digests);
 
     // When only function bodies changed, the earlier analysis already found the reachable modules.
     history.bodies_only = try history.bodiesOnly(inputs.sources, parse_cache);

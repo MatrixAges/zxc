@@ -43,13 +43,14 @@ pub const Checkpoint = struct {
 /// One finished analysis: its tables and, for each source graph module, where its rows start and end.
 pub const Retained = struct {
     frame: [32]u8,
+    shape: [32]u8,
     /// The inputs the analysis read: the selected RX modules and every source.
     modules: []const @import("rx").ModuleSource,
     sources: []const frontend.project.Source,
     derived: Frame,
     initial: Checkpoint,
     paths: []const []const u8,
-    /// Each ZX module's source digest; RX sources are covered by `frame`.
+    /// Each module's source digest.
     digests: []const ?[32]u8,
     before: []const Checkpoint,
     after: []const Checkpoint,
@@ -59,10 +60,18 @@ pub const Retained = struct {
     functions: ir.FunctionTable,
 };
 
+/// An RX module's source digest, listed by path.
+pub const Digest = struct { path: []const u8, digest: [32]u8 };
+
 /// Carries one analysis to the next.
 pub const History = struct {
     /// Everything the analysis reads besides ZX sources: RX sources, entries, packages and interfaces.
     frame: [32]u8,
+    /// The frame without the RX sources' texts: an analysis with the same shape reuses each RX module whose own text,
+    /// dependencies and resolved signature are unchanged.
+    shape: [32]u8 = @splat(0),
+    /// The digests of the RX sources, ordered by path.
+    rx_digests: []const Digest = &.{},
     previous: ?Retained = null,
     /// Set by an analysis that succeeds, for the caller to pass on as `previous`.
     next: ?Retained = null,
@@ -91,5 +100,14 @@ pub const History = struct {
         }
 
         return true;
+    }
+    /// The digest of the RX source at `path`.
+    pub fn rxDigest(self: *const History, path: []const u8) ?[32]u8 {
+        const index = std.sort.binarySearch(Digest, self.rx_digests, path, order) orelse return null;
+
+        return self.rx_digests[index].digest;
+    }
+    fn order(path: []const u8, item: Digest) std.math.Order {
+        return std.mem.order(u8, path, item.path);
     }
 };

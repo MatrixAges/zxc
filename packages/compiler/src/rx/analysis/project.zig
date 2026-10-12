@@ -9,6 +9,7 @@ const prepare = @import("project/prepare.zig");
 const target = @import("call/target.zig");
 pub const source_graph = @import("project/source_graph.zig");
 pub const History = @import("project/history.zig").History;
+pub const ModuleDigest = @import("project/history.zig").Digest;
 
 pub const Options = struct {
     entry: []const u8,

@@ -13,19 +13,20 @@ const Self = @This();
 
 record: ?*history.History,
 previous: ?*const history.Retained = null,
-
+derived: history.Frame,
 aligned: bool = false,
 initial: history.Checkpoint,
 redone: []bool,
 digests: []?[32]u8,
 before: []history.Checkpoint,
 after: []history.Checkpoint,
-pub fn begin(state: *const State, cache: *const ParseCache, record: ?*history.History) std.mem.Allocator.Error!Self {
+pub fn begin(state: *const State, cache: *const ParseCache, record: ?*history.History, derived: history.Frame) std.mem.Allocator.Error!Self {
     const count = state.graph.modules.len;
     const initial = checkpoint(state);
 
     var self = Self{
         .record = record,
+        .derived = derived,
         .initial = initial,
         .redone = try state.allocator.alloc(bool, count),
         .digests = try state.allocator.alloc(?[32]u8, count),
@@ -37,13 +38,16 @@ pub fn begin(state: *const State, cache: *const ParseCache, record: ?*history.Hi
     @memset(self.before, initial);
     @memset(self.after, initial);
 
-    for (state.graph.modules, self.digests) |module, *digest| digest.* = if (module.source == .zx) cache.sourceDigest(module.path) else null;
+    for (state.graph.modules, self.digests) |module, *digest| digest.* = switch (module.source) {
+        .zx => cache.sourceDigest(module.path),
+        .rx => if (record) |owner| owner.rxDigest(module.path) else null,
+    };
 
     const owner = record orelse return self;
     const previous = if (owner.previous) |*value| value else return self;
 
     self.previous = previous;
-    self.aligned = matches(state, previous, owner.frame, initial);
+    self.aligned = matches(state, previous, owner.shape, initial);
 
     return self;
 }
@@ -105,6 +109,7 @@ pub fn finish(self: *const Self, state: *const State, derived: history.Frame, se
 
     owner.next = .{
         .frame = owner.frame,
+        .shape = owner.shape,
         .modules = selected,
         .sources = sources,
         .derived = derived,
@@ -120,18 +125,24 @@ pub fn finish(self: *const Self, state: *const State, derived: history.Frame, se
     };
 }
 
-/// A module is unchanged when its source is: aligned tables imply an unchanged frame, which covers every RX source.
-/// The entry is always lowered again, since its contract is built while lowering it.
+/// A module is unchanged when its source is and so are its dependencies; aligned tables imply an unchanged shape. An RX
+/// module's signature is resolved over every RX module at once, so it must also have resolved as before. The entry is
+/// always lowered again, since its contract is built while lowering it.
 fn unchanged(self: *const Self, state: *const State, index: usize) bool {
     const module = state.graph.modules[index];
+    const previous = self.previous.?;
 
     if (index == state.graph.entry) return false;
 
-    if (module.source == .zx) {
-        const earlier = self.previous.?.digests[index] orelse return false;
-        const current = self.digests[index] orelse return false;
+    const earlier = previous.digests[index] orelse return false;
+    const current = self.digests[index] orelse return false;
 
-        if (!std.mem.eql(u8, &earlier, &current)) return false;
+    if (!std.mem.eql(u8, &earlier, &current)) return false;
+
+    if (module.source == .rx) {
+        const before = previous.derived.dependencies.modules[index].source;
+
+        if (before != .rx or !columns.same(previous.derived.resolved[before.rx], self.derived.resolved[module.source.rx])) return false;
     }
 
     for (module.dependencies) |edge| switch (edge.target) {
@@ -143,9 +154,10 @@ fn unchanged(self: *const Self, state: *const State, index: usize) bool {
     return true;
 }
 
-/// Whether this analysis starts from the tables the earlier one started from, over the same modules.
-fn matches(state: *const State, previous: *const history.Retained, frame: [32]u8, initial: history.Checkpoint) bool {
-    if (!std.mem.eql(u8, &previous.frame, &frame) or !previous.initial.eql(initial) or previous.paths.len != state.graph.modules.len) return false;
+/// Whether this analysis starts from the tables the earlier one started from, over the same modules in the same order.
+fn matches(state: *const State, previous: *const history.Retained, shape: [32]u8, initial: history.Checkpoint) bool {
+    if (!std.mem.eql(u8, &previous.shape, &shape) or !previous.initial.eql(initial) or previous.paths.len != state.graph.modules.len) return false;
+    if (!std.mem.eql(usize, previous.derived.dependencies.order, state.graph.order)) return false;
     for (previous.paths, state.graph.modules) |path, module| if (!@import("zx").bytes.equal(path, module.path)) return false;
 
     const types: @TypeOf(initial.types) = @splat(0);
