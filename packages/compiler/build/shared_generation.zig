@@ -87,14 +87,17 @@ pub fn run(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, entrie
     const bundle = try compiler.zig.emitLibraryFilesCached(resident.gpa, &library, cache);
 
     defer resident.discard(bundle.arena);
-    // The generated sources reach the cache directory while the output is written and Zig compiles it.
-    cache.startWriting();
 
     const emitted = std.Io.Timestamp.now(io, .awake);
 
     if (output) |path| try @import("shared_output.zig").write(io, allocator, path, bundle, partitions);
 
     const written = std.Io.Timestamp.now(io, .awake);
+
+    // The generated sources reach the cache directory while Zig compiles the output; written beside the output, the
+    // two sets of files would contend for the file system.
+    cache.startWriting();
+
     const modules_reused = history.reused;
     const modules_analyzed = history.analyzed;
     const frame_reused = history.bodies_only;

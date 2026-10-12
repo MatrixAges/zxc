@@ -46,21 +46,30 @@ pub fn write(self: Self, allocator: std.mem.Allocator, key: [32]u8, source: []co
 
     defer allocator.free(path);
 
-    var file = try std.Io.Dir.cwd().createFileAtomic(self.io, path, .{ .make_path = true, .replace = true });
+    const directory = std.Io.Dir.cwd();
 
-    defer file.deinit(self.io);
+    const file = directory.createFile(self.io, path, .{}) catch |err| switch (err) {
+        error.FileNotFound => created: {
+            try directory.createDirPath(self.io, self.directory);
+
+            break :created try directory.createFile(self.io, path, .{});
+        },
+        else => return err,
+    };
+
+    defer file.close(self.io);
 
     var buffer: [header_size]u8 = undefined;
 
-    try file.file.writeStreamingAll(self.io, self.header(&buffer, key, source));
-    try file.file.writeStreamingAll(self.io, source);
-    try file.replace(self.io);
+    try file.writeStreamingAll(self.io, self.header(&buffer, key, source));
+    try file.writeStreamingAll(self.io, source);
 
     return true;
 }
 
-/// Records are replaced atomically, so one is whole or absent; the length guards against a record cut short by other
-/// means without hashing every source each build.
+/// A record is written in place rather than through a temporary file and a rename, which cost more than the write
+/// itself. Every record of a key holds the same bytes, and the header holds the source length, so a record cut short
+/// or caught mid-write reads as invalid and is generated again.
 fn header(self: Self, buffer: *[header_size]u8, key: [32]u8, source: []const u8) []const u8 {
     return std.fmt.bufPrint(buffer, marker ++ "{s}\n{s}\n{x:0>16}\n", .{ std.fmt.bytesToHex(self.compiler_digest, .lower), std.fmt.bytesToHex(key, .lower), source.len }) catch unreachable;
 }
