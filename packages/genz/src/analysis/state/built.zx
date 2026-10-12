@@ -1,0 +1,23 @@
+import constructed from "./constructed"
+
+import type { Program } from "../model"
+
+export type Input = Program
+
+export type Output = bool[]
+
+export default function (in: Input): Output {
+    const own = constructed({ built: in.types.kinds.map(kind => false), tables: [in.expressions].concat(in.contracts.expressions)[0] })
+
+    const result = loop({ functions: in.functions, built: own, index: 0 }, {
+        while: current => current.index < current.functions.expressions.length,
+        next: current => {
+            const tables = [current.functions.expressions[current.index]].concat(current.functions.contracts[current.index].expressions)[0]
+
+            current.built = constructed({ built: current.built, tables: tables })
+            current.index += 1
+        }
+    })
+
+    return result.built
+}

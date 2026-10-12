@@ -55,6 +55,8 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocat
         if (seen[@backingInt(output)] == 0) duplicates(program, boxed, seen, @intCast(index + 2), output);
     }
 
+    try @import("frozen.zig").mark(allocator, program, boxed);
+
     const selected = try allocator.alloc(bool, program.types.count());
 
     errdefer allocator.free(selected);
@@ -177,7 +179,7 @@ fn comparisons(program: ir.Program, boxed: []bool, expressions: ir.ExpressionTab
     for (contracts.expressions) |expressions_table| comparisons(program, boxed, expressions_table.*, .{});
 }
 
-fn mark(program: ir.Program, boxed: []bool, id: ir.TypeId) void {
+pub fn mark(program: ir.Program, boxed: []bool, id: ir.TypeId) void {
     const index = @backingInt(id);
 
     if (boxed[index]) return;

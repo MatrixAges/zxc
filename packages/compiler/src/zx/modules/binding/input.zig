@@ -2,9 +2,10 @@ const std = @import("std");
 const Context = @import("context.zig");
 const generated = @import("generated_project_binding");
 pub const Input = @typeInfo(@TypeOf(generated.executeValue)).@"fn".param_types[1].?;
-const Names = @FieldType(Input, "names");
-const Exports = @FieldType(Input, "exports");
-const Members = @FieldType(Input, "members");
+const Record = if (@typeInfo(Input) == .pointer) @typeInfo(Input).pointer.child else Input;
+const Names = @FieldType(Record, "names");
+const Exports = @FieldType(Record, "exports");
+const Members = @FieldType(Record, "members");
 
 pub fn init(allocator: std.mem.Allocator, item: anytype, context: Context) std.mem.Allocator.Error!Input {
     const values = try allocator.alloc([]const u8, item.nameCount());
@@ -45,7 +46,7 @@ pub fn init(allocator: std.mem.Allocator, item: anytype, context: Context) std.m
 
     const members = try record(Members, allocator, .{ .names = member_names, .ids = ids, .input_types = input_types, .output_types = output_types });
 
-    return .{
+    const value: Record = .{
         .target = switch (context.target) {
             .source => .Source,
             .compiled => .Compiled,
@@ -64,6 +65,14 @@ pub fn init(allocator: std.mem.Allocator, item: anytype, context: Context) std.m
         .exports = exports,
         .members = members,
     };
+
+    if (Record == Input) return value;
+
+    const owned = try allocator.create(Record);
+
+    owned.* = value;
+
+    return owned;
 }
 
 inline fn record(comptime Target: type, allocator: std.mem.Allocator, fields: anytype) std.mem.Allocator.Error!Target {

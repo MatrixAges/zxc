@@ -68,13 +68,17 @@ pub fn generate(self: *Self) zx.Error!Query {
     }
 
     const query_module = if (@import("parser_options").generated_parser) @import("generated_verification_query") else @import("query/seed.zig");
+    const Request = @typeInfo(@TypeOf(query_module.executeValue)).@"fn".param_types[1].?;
+    const Record = if (@typeInfo(Request) == .pointer) @typeInfo(Request).pointer.child else Request;
 
-    const query = try query_module.executeValue(self.allocator, .{
+    const input: Record = .{
         .declarations = self.declarations.items,
         .definitions = try self.graph.?.declarations(),
         .violations = self.violations.items,
         .precondition = precondition,
-    });
+    };
+
+    const query = try query_module.executeValue(self.allocator, if (Record == Request) input else &(try self.allocator.dupe(Record, &.{input}))[0]);
 
     return .{
         .feasibility = query.feasibility,

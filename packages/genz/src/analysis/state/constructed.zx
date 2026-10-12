@@ -1,0 +1,32 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import type { Expressions } from "core/expression_table/model"
+
+export type Input = { built: bool[], tables: Expressions[] }
+
+export type Output = bool[]
+
+export default function (in: Input): Output {
+    const result = loop({ tables: in.tables, built: in.built, table: 0, index: 0 }, {
+        while: current => current.table < current.tables.length,
+        next: current => {
+            const expressions = current.tables[current.table]
+
+            if (current.index < expressions.kinds.length) {
+                const kind = expressions.kinds[current.index]
+
+                if (kind == ExpressionKind.Object || kind == ExpressionKind.Tuple) {
+                    current.built[integers.widen(expressions.types[current.index])] = true
+                }
+
+                current.index += 1
+            } else {
+                current.table += 1
+                current.index = 0
+            }
+        }
+    })
+
+    return result.built
+}

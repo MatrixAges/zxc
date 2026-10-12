@@ -1,0 +1,37 @@
+import integers from "std:integer"
+
+import closure from "../types/closure"
+import written from "./written"
+
+import type { Table } from "core/type_table/model"
+
+export type Input = { types: Table, boxed: bool[], built: bool[] }
+
+export type Output = bool[]
+
+export default function (in: Input): Output {
+    const settled = loop({ types: in.types, boxed: in.boxed, built: in.built, written: in.types.kinds.map(kind => false), changed: true }, {
+        while: current => current.changed,
+        next: current => {
+            const pass = written({ types: current.types, boxed: current.boxed, built: current.built, written: current.written })
+
+            current.written = pass.written
+            current.changed = pass.changed
+        }
+    })
+
+    const empty: u32[] = []
+
+    const roots = loop({ types: in.types, boxed: in.boxed, written: settled.written, roots: empty, index: 0 }, {
+        while: current => current.index < current.types.kinds.length,
+        next: current => {
+            if (current.types.kinds[current.index] == 1 && !current.boxed[current.index] && !current.written[current.index]) {
+                current.roots = current.roots.push(integers.narrow(current.index))[0]
+            }
+
+            current.index += 1
+        }
+    })
+
+    return closure({ types: in.types, boxed: in.boxed, roots: roots.roots })
+}
