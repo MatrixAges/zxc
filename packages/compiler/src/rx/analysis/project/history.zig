@@ -79,6 +79,8 @@ pub const History = struct {
     analyzed: usize = 0,
     /// Set by the caller when `bodiesOnly` holds, so the analysis takes the earlier `Frame`.
     bodies_only: bool = false,
+    /// Set when the analysis takes the earlier signatures, which then outlive it.
+    signatures_reused: bool = false,
     /// Whether `sources` differ from the earlier analysis's only inside ZX function bodies: the same files, and each
     /// changed one identical up to and including its body's opening brace. Nothing may follow a body, so the rest of
     /// such a file is that body.
@@ -100,6 +102,32 @@ pub const History = struct {
         }
 
         return true;
+    }
+
+    /// The earlier analysis's signatures when they hold again: the same shape, the same ZX sources, and `entries`, the
+    /// modules signed, in the same order. An edit to RX sources alone keeps them.
+    pub fn signatures(self: *const History, sources: []const frontend.project.Source, entries: []const []const u8) ?frontend.project.signature_project.Data {
+        const earlier = if (self.previous) |*value| value else return null;
+
+        if (!std.mem.eql(u8, &earlier.shape, &self.shape) or earlier.sources.len != sources.len) return null;
+
+        for (earlier.sources, sources) |before, after| {
+            if (!bytes.equal(before.path, after.path)) return null;
+            if (before.source.ptr != after.source.ptr or before.source.len != after.source.len) if (!bytes.equal(before.source, after.source)) return null;
+        }
+
+        var position: usize = 0;
+
+        for (earlier.derived.dependencies.order) |index| switch (earlier.derived.dependencies.modules[index].source) {
+            .zx => |source| {
+                if (position == entries.len or !bytes.equal(earlier.sources[source].path, entries[position])) return null;
+
+                position += 1;
+            },
+            else => {},
+        };
+
+        return if (position == entries.len) earlier.derived.signatures else null;
     }
     /// The digest of the RX source at `path`.
     pub fn rxDigest(self: *const History, path: []const u8) ?[32]u8 {

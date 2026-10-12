@@ -132,22 +132,30 @@ fn derive(allocator: std.mem.Allocator, options: Options, cache: *frontend.proje
         if (source == .zx) try signature_entries.append(allocator, options.sources[source.zx].path);
     }
 
-    const signatures = try frontend.project.analyzeSignaturesWithCache(allocator, options.sources, signature_entries.items, project, cache);
+    const earlier = if (options.history) |record| if (options.stores.len == 0) record.signatures(options.sources, signature_entries.items) else null else null;
 
-    if (signatures.value == .diagnostic) {
-        const issue = signatures.value.diagnostic;
-        const source = if (issue.source_index) |index| options.sources[index] else null;
-        const location: zx.source.Location = if (source) |value| zx.source.locate(value.source, issue.span.start) else .{ .line = 1, .column = 1 };
+    const signatures = earlier orelse analyzed: {
+        const result = try frontend.project.analyzeSignaturesWithCache(allocator, options.sources, signature_entries.items, project, cache);
 
-        return failed(allocator, .{
-            .path = if (source) |value| value.path else entry,
-            .location = .{ .offset = issue.span.start, .line = location.line, .column = location.column },
-            .code = @tagName(issue.code),
-            .message = issue.message,
-        });
-    }
+        if (result.value == .diagnostic) {
+            const issue = result.value.diagnostic;
+            const source = if (issue.source_index) |index| options.sources[index] else null;
+            const location: zx.source.Location = if (source) |value| zx.source.locate(value.source, issue.span.start) else .{ .line = 1, .column = 1 };
 
-    const prepared = try prepare.loadSignatures(allocator, modules, options.sources, project, registry.data.definitions, signatures.value.data);
+            return failed(allocator, .{
+                .path = if (source) |value| value.path else entry,
+                .location = .{ .offset = issue.span.start, .line = location.line, .column = location.column },
+                .code = @tagName(issue.code),
+                .message = issue.message,
+            });
+        }
+
+        break :analyzed result.value.data;
+    };
+
+    if (earlier != null) options.history.?.signatures_reused = true;
+
+    const prepared = try prepare.loadSignatures(allocator, modules, options.sources, project, registry.data.definitions, signatures);
 
     if (prepared == .diagnostic) return .{ .diagnostic = prepared.diagnostic };
 
@@ -170,7 +178,7 @@ fn derive(allocator: std.mem.Allocator, options: Options, cache: *frontend.proje
         .dependencies = dependencies.value.graph,
         .definitions = registry.data.definitions,
         .loaded = prepared.loaded,
-        .signatures = signatures.value.data,
+        .signatures = signatures,
         .resolved = resolved,
         .types = graph.types.items.view(),
     } };

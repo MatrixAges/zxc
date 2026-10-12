@@ -122,6 +122,7 @@ pub fn startAnalysis(self: *Self, frame: [32]u8, shape: [32]u8, rx_digests: []co
     self.history.reused = 0;
     self.history.analyzed = 0;
     self.history.bodies_only = false;
+    self.history.signatures_reused = false;
 
     if (self.retained() > retained_limit) self.history.previous = null;
 
@@ -135,7 +136,7 @@ pub fn keepAnalysis(self: *Self, analysis: std.heap.ArenaAllocator) std.mem.Allo
     errdefer owned.deinit();
 
     // An analysis that reused neither modules nor the earlier frame points into nothing older.
-    if (self.history.reused == 0 and !self.history.bodies_only) self.release();
+    if (self.history.reused == 0 and !self.history.bodies_only and !self.history.signatures_reused) self.release();
     try self.epochs.ensureUnusedCapacity(self.gpa, 2);
 
     self.history.previous = self.history.next;
