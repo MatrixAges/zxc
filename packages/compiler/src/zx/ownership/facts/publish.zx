@@ -19,15 +19,17 @@ export default function (in: Input): Output {
         }
     })
 
+    const fact = result.forest.types.length + 5
+
     return {
         forest: {
-            types: in.forest.types.push(in.type_id)[0],
-            first: in.forest.first.push(in.first)[0],
-            count: in.forest.count.push(in.count)[0],
-            shells: in.forest.shells.push(in.shell)[0],
-            states: in.forest.states.push(result.state)[0],
-            children: in.forest.children
+            types: result.forest.types.push(in.type_id)[0],
+            first: result.forest.first.push(in.first)[0],
+            count: result.forest.count.push(in.count)[0],
+            shells: result.forest.shells.push(in.shell)[0],
+            states: result.forest.states.push(result.state)[0],
+            children: result.forest.children
         },
-        fact: in.forest.types.length + 5
+        fact: fact
     }
 }

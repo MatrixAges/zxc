@@ -11,5 +11,5 @@ export type Output = Session
 export default function (in: Input): Output {
     const memory = place({ types: in.types, references: in.references, layout: in.layout.tree, memory: { forest: in.forest, facts: in.facts, states: in.states, memo: in.memo, trail: in.trail }, id: in.root, operation: in.permanent ? Operation.Freeze : Operation.Borrow, fact: 0 })
 
-    return { ...in, forest: memory.forest, facts: memory.facts, states: memory.states, phase: Phase.Done }
+    return { ...in, forest: memory.forest, facts: memory.facts, states: memory.states, memo: memory.memo, trail: memory.trail, phase: Phase.Done }
 }

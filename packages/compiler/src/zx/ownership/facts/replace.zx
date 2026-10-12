@@ -34,7 +34,7 @@ export default function (in: Input): Output {
         }
     })
 
-    const shell = in.fact < 5 ? summary({ forest: in.forest, fact: in.fact }) : in.forest.shells[in.fact - 5]
+    const shell = in.fact < 5 ? summary({ forest: result.forest, fact: in.fact }) : result.forest.shells[in.fact - 5]
 
-    return product({ forest: in.forest, type_id: in.type_id, shell: shell, children: result.children, first: 0, count: result.children.length })
+    return product({ forest: result.forest, type_id: in.type_id, shell: shell, children: result.children, first: 0, count: result.children.length })
 }

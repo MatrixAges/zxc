@@ -26,5 +26,5 @@ export default function (in: Input): Output {
         }
     })
 
-    return { memory: { ...in.memory, forest: result.forest }, snapshots: { ...in.stack, facts: result.saved } }
+    return { memory: { ...in.memory, forest: result.forest, facts: result.source }, snapshots: { ...in.stack, facts: result.saved } }
 }

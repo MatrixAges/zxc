@@ -21,8 +21,8 @@ export default function (in: Input): Output {
 
     if (in.kind == ExpressionKind.Object) {
         const count = integers.widen(row({ tables: in.machine.program.types, id: in.machine.program.expressions.types[in.frame.subject] }).second)
-        const builder = begin({ forest: in.machine.memory.forest, builders: in.machine.builders, count: count })
         const captured = save({ memory: in.machine.memory, stack: in.machine.snapshots, capture: Capture.Memo })
+        const builder = begin({ forest: in.machine.memory.forest, builders: in.machine.builders, count: count })
         const work = push({ work: in.machine.work, frame: { action: WorkAction.ObjectFinish, subject: in.frame.subject, moving: false, index: captured.frame } })
 
         return { ...in.machine, snapshots: captured.stack, builders: builder.builders, memory: { ...in.machine.memory, forest: builder.forest }, work: push({ work: work, frame: { action: WorkAction.ObjectEvaluation, subject: in.frame.subject, moving: in.frame.moving, index: 0 } }) }
