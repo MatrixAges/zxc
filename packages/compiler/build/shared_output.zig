@@ -85,6 +85,8 @@ fn mirror(io: std.Io, allocator: std.mem.Allocator, output: []const u8, files: [
     try parallel.each(arenas, files.len, &hashing);
     try manifest.writer.ensureUnusedCapacity(files.len * 64);
 
+    var changed: std.ArrayList(u32) = try .initCapacity(allocator, files.len);
+
     for (files, hashing.hashes, 0..) |file, hash, index| {
         try manifest.writer.print("{x:0>16} {s}\n", .{ hash, file.path });
 
@@ -104,8 +106,10 @@ fn mirror(io: std.Io, allocator: std.mem.Allocator, output: []const u8, files: [
             if (!(try parents.getOrPut(allocator, parent)).found_existing) try directory.createDirPath(io, parent);
         }
 
-        try directory.writeFile(io, .{ .sub_path = file.path, .data = file.source });
+        changed.appendAssumeCapacity(@intCast(index));
     }
+
+    try parallel.each(arenas, changed.items.len, &Writing{ .io = io, .directory = directory, .files = files, .changed = changed.items });
 
     var stale: std.ArrayList([]const u8) = .empty;
 
@@ -130,6 +134,19 @@ fn mirror(io: std.Io, allocator: std.mem.Allocator, output: []const u8, files: [
     for (stale.items) |path| try remove(io, directory, path);
     try directory.writeFile(io, .{ .sub_path = manifest_name, .data = manifest.written() });
 }
+
+/// Writes the files whose content changed on all cores; their parent directories exist already.
+const Writing = struct {
+    io: std.Io,
+    directory: std.Io.Dir,
+    files: []const layout.File,
+    changed: []const u32,
+    pub fn step(self: *const Writing, _: std.mem.Allocator, index: usize) !void {
+        const file = self.files[self.changed[index]];
+
+        try self.directory.writeFile(self.io, .{ .sub_path = file.path, .data = file.source });
+    }
+};
 
 /// The content hash of every file, computed on all cores.
 const Hashing = struct {
