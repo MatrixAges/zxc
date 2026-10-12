@@ -62,12 +62,11 @@ pub fn createRemembered(backing: std.mem.Allocator, program: ir.Program, exporte
 
     const owned = arena.allocator();
     const basis = try owned.create(Uniqueness.Basis);
-    basis.* = try .create(owned, program);
     var scratch = std.heap.ArenaAllocator.init(backing);
 
     defer scratch.deinit();
 
-    const facts = try analyze(scratch.allocator(), backing, program, exported, basis, memo);
+    const facts = try analyzeFrom(scratch.allocator(), backing, program, exported, .{ .build = .{ .allocator = owned, .basis = basis } }, memo);
 
     const value: Self = .{
         .value = .{
@@ -96,8 +95,25 @@ pub fn createRemembered(backing: std.mem.Allocator, program: ir.Program, exporte
 }
 
 pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, program: ir.Program, exported: []const ir.FunctionId, basis: *const Uniqueness.Basis, memo: ?*Uniqueness.Memo) std.mem.Allocator.Error!Self {
+    return analyzeFrom(allocator, workspace, program, exported, .{ .ready = basis }, memo);
+}
+
+/// The basis uniqueness reads, or where to build it: building it first on the uniqueness thread overlaps it with the
+/// other passes, which read no basis.
+const Source = union(enum) {
+    ready: *const Uniqueness.Basis,
+    build: struct { allocator: std.mem.Allocator, basis: *Uniqueness.Basis },
+    fn basis(self: Source) *const Uniqueness.Basis {
+        return switch (self) {
+            .ready => |value| value,
+            .build => |value| value.basis,
+        };
+    }
+};
+
+fn analyzeFrom(allocator: std.mem.Allocator, workspace: std.mem.Allocator, program: ir.Program, exported: []const ir.FunctionId, source: Source, memo: ?*Uniqueness.Memo) std.mem.Allocator.Error!Self {
     // Uniqueness, the costliest pass, reads only the program and the basis, so it runs beside the others.
-    var uniqueness = Concurrent{ .arena = .init(workspace), .workspace = workspace, .program = program, .exported = exported, .basis = basis, .memo = memo };
+    var uniqueness = Concurrent{ .arena = .init(workspace), .workspace = workspace, .program = program, .exported = exported, .source = source, .memo = memo };
 
     defer uniqueness.arena.deinit();
 
@@ -117,7 +133,7 @@ pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, progr
     value.identity_free = try identity_free;
     value.fresh_outputs = try freshOutputs(allocator, program);
     value.uniqueness = try copyPlans(allocator, try uniqueness.result);
-    value.basis = basis;
+    value.basis = source.basis();
 
     return value;
 }
@@ -192,11 +208,21 @@ const Concurrent = struct {
     workspace: std.mem.Allocator,
     program: ir.Program,
     exported: []const ir.FunctionId,
-    basis: *const Uniqueness.Basis,
+    source: Source,
     memo: ?*Uniqueness.Memo,
     result: std.mem.Allocator.Error!Uniqueness.Result = error.OutOfMemory,
     fn run(self: *Concurrent) void {
-        self.result = Uniqueness.analyze(self.arena.allocator(), self.workspace, self.program, self.exported, self.basis, self.memo);
+        if (self.source == .build) {
+            const build = self.source.build;
+
+            build.basis.* = Uniqueness.Basis.create(build.allocator, self.program) catch |err| {
+                self.result = err;
+
+                return;
+            };
+        }
+
+        self.result = Uniqueness.analyze(self.arena.allocator(), self.workspace, self.program, self.exported, self.source.basis(), self.memo);
     }
 };
 
