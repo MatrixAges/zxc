@@ -5,6 +5,7 @@ import row from "../entries/row"
 import kind from "../types/kind"
 import { Status } from "../types/nominal/model"
 import equal from "./equal"
+import reference from "./reference"
 
 import type { Tables } from "core/type_table/model"
 import type { Origins, Origin } from "core/type_table/nominal"
@@ -20,8 +21,11 @@ export default function (in: Input): Output {
     const nominal = in.source.kind == Kind.Enumeration || in.source.kind == Kind.NativeReference
     const count = nominal ? in.origins.base.ids.length + in.origins.delta.ids.length : in.tables.base.kinds.length + in.tables.delta.kinds.length
     const id: u32 = 0
+    const direct = in.source.kind == Kind.Scalar || in.source.kind == Kind.Optional || in.source.kind == Kind.List || in.source.kind == Kind.Task
+    const known = integers.widen(in.source.first) < in.mapping.first + in.mapping.ids.length
+    const mapped = direct && known ? reference({ mapping: in.mapping, id: in.source.first }) : 0
 
-    const state = loop({ input: in, nominal: nominal, count: count, index: 0, status: Status.Missing, id: id }, {
+    const state = loop({ input: in, nominal: nominal, direct: direct, known: known, mapped: mapped, count: count, index: 0, status: Status.Missing, id: id }, {
         while: current => current.status == Status.Missing && current.index < current.count,
         next: current => {
             const origin_count = current.input.origins.base.ids.length
@@ -34,13 +38,13 @@ export default function (in: Input): Output {
             const delta = index >= base_count
             const table = delta ? current.input.tables.delta : current.input.tables.base
             const local = delta ? index - base_count : index
-            const candidate = current.nominal || kind(table.kinds[local]) == current.input.source.kind
-            const target = row({ table: table, index: local })
+            const shape = current.direct ? current.known && table.first[local] == current.mapped : integers.widen(table.second[local]) == current.input.source.count
+            const candidate = current.nominal || (kind(table.kinds[local]) == current.input.source.kind && shape)
             const identity = candidate && (!current.nominal || (bindings.kinds[position] == current.input.origin.kind &&
-                bindings.owners[position] == current.input.origin.owner && bindings.members[position] == current.input.origin.member && target.label == current.input.source.label))
+                bindings.owners[position] == current.input.origin.owner && bindings.members[position] == current.input.origin.member && table.labels[local] == current.input.source.label))
 
             if (identity) {
-                const matches = equal({ source: current.input.source, target: target, mapping: current.input.mapping })
+                const matches = equal({ source: current.input.source, target: row({ table: table, index: local }), mapping: current.input.mapping })
 
                 current.status = match {
                     matches => Status.Found,
