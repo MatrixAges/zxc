@@ -15,15 +15,11 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program, slots: Slots) s
     const count = program.functions.count();
     const held = try allocator.alloc([]bool, count);
     const written = try allocator.alloc([]bool, count);
-    const bodies = try allocator.alloc(?Body, count);
-    const callers = try allocator.alloc(std.ArrayList(u32), count);
     var scratch = std.heap.ArenaAllocator.init(allocator);
 
     defer scratch.deinit();
 
     const temporary = scratch.allocator();
-
-    for (callers) |*list| list.* = .empty;
 
     for (0..count) |index| {
         const function = program.functions.at(index);
@@ -31,31 +27,167 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program, slots: Slots) s
         held[index] = try allocator.alloc(bool, size);
         written[index] = try allocator.alloc(bool, size);
 
+        @memset(held[index], false);
         @memset(written[index], false);
 
-        if (function.external != null) {
-            const outputs = try @import("basis.zig").lists(temporary, slots, function.output_type);
+        if (function.external == null) continue;
 
-            for (held[index], 0..) |*value, slot| value.* = std.mem.indexOfScalar(ir.TypeId, outputs, slots.listType(function.input_type, @intCast(slot))) != null;
+        const outputs = try @import("basis.zig").lists(temporary, slots, function.output_type);
 
-            bodies[index] = null;
+        for (held[index], 0..) |*value, slot| value.* = std.mem.indexOfScalar(ir.TypeId, outputs, slots.listType(function.input_type, @intCast(slot))) != null;
+    }
 
-            continue;
+    const self = Self{ .held = held, .written = written };
+
+    if (try layers(temporary, program)) |found| {
+        try self.layered(program, slots, found);
+    } else try self.settle(temporary, program, slots);
+
+    return self;
+}
+
+/// Functions grouped by call depth when every call goes to a function earlier in the table, as the table orders them
+/// unless bodies recurse: a function's callees then sit in earlier layers, so each body is walked once, after the
+/// summaries it reads are final, and the bodies of one layer are walked on all cores.
+const Layers = struct { order: []const u32, ends: []const usize };
+
+fn layers(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!?Layers {
+    const count = program.functions.count();
+    const depths = try allocator.alloc(u32, count);
+    var deepest: u32 = 0;
+
+    for (depths, 0..) |*depth, index| {
+        const function = program.functions.at(index);
+
+        depth.* = 0;
+
+        if (function.external != null) continue;
+
+        for (function.expressions.kinds, 0..) |_, expression| {
+            const callee = @backingInt(function.expressions.callee(expression) orelse continue);
+
+            if (callee >= index) return null;
+
+            depth.* = @max(depth.*, depths[callee] + 1);
         }
 
-        @memset(held[index], false);
+        deepest = @max(deepest, depth.*);
+    }
 
-        bodies[index] = try Body.create(temporary, function, slots);
+    const ends = try allocator.alloc(usize, deepest + 1);
+    const order = try allocator.alloc(u32, count);
+
+    @memset(ends, 0);
+
+    for (depths) |depth| ends[depth] += 1;
+
+    var total: usize = 0;
+
+    for (ends) |*end| {
+        total += end.*;
+        end.* = total - end.*;
+    }
+
+    for (depths, 0..) |depth, index| {
+        order[ends[depth]] = @intCast(index);
+        ends[depth] += 1;
+    }
+
+    return .{ .order = order, .ends = ends };
+}
+
+fn layered(self: Self, program: ir.Program, slots: Slots, found: Layers) std.mem.Allocator.Error!void {
+    const width = @import("zx").parallel.width();
+    const walkers = try std.heap.page_allocator.alloc(Walker, width);
+
+    defer std.heap.page_allocator.free(walkers);
+
+    for (walkers) |*walker| walker.* = .{ .bodies = .init(std.heap.page_allocator), .lasting = .init(std.heap.page_allocator) };
+
+    defer for (walkers) |*walker| {
+        walker.bodies.deinit();
+        walker.lasting.deinit();
+    };
+
+    var start: usize = 0;
+
+    for (found.ends) |end| {
+        var layer = Layer{ .flow = self, .program = program, .slots = slots, .functions = found.order[start..end], .walkers = walkers };
+
+        start = end;
+
+        @import("zx").parallel.spread(Layer, &layer, Layer.run, @min(width, layer.functions.len));
+
+        if (layer.failed.load(.monotonic)) return error.OutOfMemory;
+    }
+}
+
+const Walker = struct { bodies: std.heap.ArenaAllocator, lasting: std.heap.ArenaAllocator, walk: ?Walk = null };
+
+/// Walks the bodies of one layer, each participant with its own arenas.
+const Layer = struct {
+    flow: Self,
+    program: ir.Program,
+    slots: Slots,
+    functions: []const u32,
+    walkers: []Walker,
+    next: std.atomic.Value(usize) = .init(0),
+    failed: std.atomic.Value(bool) = .init(false),
+    fn run(self: *Layer, participant: usize) void {
+        const walker = &self.walkers[participant];
+
+        if (walker.walk == null) walker.walk = .{ .allocator = walker.lasting.allocator(), .flow = self.flow, .slots = self.slots };
+
+        while (true) {
+            const position = self.next.fetchAdd(1, .monotonic);
+
+            if (position >= self.functions.len) return;
+
+            const index = self.functions[position];
+
+            self.step(walker, index) catch {
+                self.failed.store(true, .monotonic);
+
+                return;
+            };
+        }
+    }
+    fn step(self: *Layer, walker: *Walker, index: u32) std.mem.Allocator.Error!void {
+        const function = self.program.functions.at(index);
+
+        if (function.external != null) return;
+
+        defer _ = walker.bodies.reset(.retain_capacity);
+        const body = try Body.create(walker.bodies.allocator(), function, self.slots);
+        const walk = &walker.walk.?;
+        _ = try walk.held(&body, @constCast(self.flow.held[index]));
+        _ = try walk.written(&body, @constCast(self.flow.written[index]));
+    }
+};
+
+/// Settles summaries over a call graph with cycles: a body is walked again whenever a callee's summary grows.
+fn settle(self: Self, allocator: std.mem.Allocator, program: ir.Program, slots: Slots) std.mem.Allocator.Error!void {
+    const count = program.functions.count();
+    const bodies = try allocator.alloc(?Body, count);
+    const callers = try allocator.alloc(std.ArrayList(u32), count);
+
+    for (callers) |*list| list.* = .empty;
+
+    for (0..count) |index| {
+        const function = program.functions.at(index);
+
+        bodies[index] = if (function.external == null) try Body.create(allocator, function, slots) else null;
+
+        if (function.external != null) continue;
 
         for (function.expressions.kinds, 0..) |_, expression| {
             const callee = function.expressions.callee(expression) orelse continue;
 
-            try callers[@backingInt(callee)].append(temporary, @intCast(index));
+            try callers[@backingInt(callee)].append(allocator, @intCast(index));
         }
     }
 
-    const self = Self{ .held = held, .written = written };
-    var queued = try temporary.alloc(bool, count);
+    var queued = try allocator.alloc(bool, count);
     var queue: std.ArrayList(u32) = .empty;
 
     // Callees come before their callers in the table, and the queue pops from its end, so it starts with the first
@@ -65,28 +197,27 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program, slots: Slots) s
 
         queued[index] = bodies[index] != null;
 
-        if (queued[index]) try queue.append(temporary, @intCast(index));
+        if (queued[index]) try queue.append(allocator, @intCast(index));
     }
 
-    var walk = Walk{ .allocator = temporary, .flow = self, .slots = slots };
+    var walk = Walk{ .allocator = allocator, .flow = self, .slots = slots };
 
     while (queue.pop()) |index| {
         queued[index] = false;
         const body = &bodies[index].?;
-        const grew = try walk.held(body, held[index]) or try walk.written(body, written[index]);
+        const holds = try walk.held(body, @constCast(self.held[index]));
+        const writes = try walk.written(body, @constCast(self.written[index]));
 
-        if (!grew) continue;
+        if (!holds and !writes) continue;
 
         for (callers[index].items) |caller| {
             if (queued[caller]) continue;
 
             queued[caller] = true;
 
-            try queue.append(temporary, caller);
+            try queue.append(allocator, caller);
         }
     }
-
-    return self;
 }
 
 const Body = struct {
