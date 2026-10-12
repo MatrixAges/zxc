@@ -8,14 +8,14 @@ export type Input = { expressions: Expressions, contracts: Contracts, allowed: b
 export type Output = bool
 
 export default function (in: Input): Output {
-    if (!expressions({ expressions: in.expressions, allowed: in.allowed, limit: in.limit, tasks: true })) {
+    if (!expressions({ expressions: in.expressions, allowed: in.allowed, expected: true, limit: in.limit, tasks: true })) {
         return false
     }
 
     const result = loop({ contracts: in.contracts, allowed: in.allowed, limit: in.limit, index: 0, valid: true }, {
         while: current => current.valid && current.index < current.contracts.expressions.length,
         next: current => {
-            current.valid = expressions({ expressions: current.contracts.expressions[current.index], allowed: current.allowed, limit: current.limit, tasks: true })
+            current.valid = expressions({ expressions: current.contracts.expressions[current.index], allowed: current.allowed, expected: true, limit: current.limit, tasks: true })
             current.index += 1
         }
     })

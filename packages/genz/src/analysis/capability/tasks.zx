@@ -14,7 +14,7 @@ export default function (in: Input): Output {
         next: current => {
             const index = current.index
 
-            current.required[index] = !expressions({ expressions: current.functions.expressions[index], allowed: current.required.map(value => !value), limit: index, tasks: true })
+            current.required[index] = !expressions({ expressions: current.functions.expressions[index], allowed: current.required, expected: false, limit: index, tasks: true })
             current.index += 1
         }
     })
