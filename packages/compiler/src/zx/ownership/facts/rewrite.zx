@@ -22,8 +22,17 @@ export type Output = Result
 export default function (in: Input): Output {
     const empty: u64[] = []
     const paired = in.action == RewriteAction.Join || in.action == RewriteAction.ReleaseNewLoans
+    const right = paired ? in.right : 0
 
-    const result = loop({ types: in.types, references: in.references, forest: in.forest, action: in.action, paired: paired, left: [in.left], right: [paired ? in.right : 0], indices: [0], first: [0], children: empty, cache: { left: empty, right: empty, values: empty, slots: empty }, value: 0 }, {
+    if ((paired && in.left == right) || (in.action == RewriteAction.ReleaseNewLoans && ((in.left < 5 && in.left != 2) || right == 2))) {
+        return { forest: in.forest, fact: in.left }
+    }
+
+    if (in.left < 5 && right < 5) {
+        return { forest: in.forest, fact: uniform(state({ left: summary({ forest: in.forest, fact: in.left }), right: summary({ forest: in.forest, fact: right }), action: in.action })) }
+    }
+
+    const result = loop({ types: in.types, references: in.references, forest: in.forest, action: in.action, paired: paired, left: [in.left], right: [right], indices: [0], first: [0], children: empty, cache: { left: empty, right: empty, values: empty, slots: empty }, value: 0 }, {
         while: current => current.left.length != 0,
         next: current => {
             const top = current.left.length - 1

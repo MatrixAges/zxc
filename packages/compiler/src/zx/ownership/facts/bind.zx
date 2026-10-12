@@ -13,6 +13,10 @@ export type Output = Storage
 export default function (in: Input): Output {
     const fact = in.layout.references[in.id] || in.fact == 4 ? in.fact : 0
 
+    if (in.storage.facts[in.id] == fact) {
+        return in.storage
+    }
+
     const result = loop({ types: in.types, references: in.references, layout: in.layout, forest: in.storage.forest, facts: in.storage.facts, states: in.storage.states, id: in.id, root: in.id, fact: fact, ascending: true, leaving: false, active: true }, {
         while: current => current.active,
         next: current => {
