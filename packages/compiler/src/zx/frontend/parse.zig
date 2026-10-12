@@ -24,16 +24,32 @@ pub const Result = struct {
 pub const ModuleResult = @import("module_result.zig").Result;
 
 pub fn parse(allocator: std.mem.Allocator, source: []const u8, file_name: []const u8) std.mem.Allocator.Error!Result {
-    const result = try parseWithMode(false, allocator, source, file_name);
+    var scratch = std.heap.ArenaAllocator.init(compact.scratch_backing);
+
+    defer scratch.deinit();
+
+    const result = try parseWithMode(false, allocator, &scratch, source, file_name);
 
     return result.native;
 }
 
 pub fn parseModule(allocator: std.mem.Allocator, source: []const u8, file_name: []const u8) std.mem.Allocator.Error!ModuleResult {
-    return parseWithMode(true, allocator, source, file_name);
+    var scratch = std.heap.ArenaAllocator.init(compact.scratch_backing);
+
+    defer scratch.deinit();
+
+    return parseModuleIn(allocator, &scratch, source, file_name);
 }
 
-fn parseWithMode(comptime retain_indexed: bool, allocator: std.mem.Allocator, source: []const u8, file_name: []const u8) std.mem.Allocator.Error!ModuleResult {
+/// Parses with the generated parser's working memory in `scratch`, which is reset afterwards but keeps its pages, so a
+/// thread parsing module after module reuses them instead of mapping and faulting fresh ones.
+pub fn parseModuleIn(allocator: std.mem.Allocator, scratch: *std.heap.ArenaAllocator, source: []const u8, file_name: []const u8) std.mem.Allocator.Error!ModuleResult {
+    return parseWithMode(true, allocator, scratch, source, file_name);
+}
+
+const scratch_limit = 16 << 20;
+
+fn parseWithMode(comptime retain_indexed: bool, allocator: std.mem.Allocator, scratch: *std.heap.ArenaAllocator, source: []const u8, file_name: []const u8) std.mem.Allocator.Error!ModuleResult {
     var arena = std.heap.ArenaAllocator.init(allocator);
 
     errdefer arena.deinit();
@@ -45,11 +61,9 @@ fn parseWithMode(comptime retain_indexed: bool, allocator: std.mem.Allocator, so
     if (@import("parser_options").generated_parser) {
         const generated = @import("generated_parser");
         const adapter = @import("program_adapter/root.zig");
-        var temporary = std.heap.ArenaAllocator.init(compact.scratch_backing);
+        defer _ = scratch.reset(.{ .retain_with_limit = scratch_limit });
 
-        defer temporary.deinit();
-
-        const output = generated.execute(&temporary, owned_source) catch |err| switch (err) {
+        const output = generated.execute(scratch, owned_source) catch |err| switch (err) {
             error.OutOfMemory, error.Overflow => return error.OutOfMemory,
             else => {
                 const message = try std.fmt.allocPrint(arena.allocator(), "internal compiler error: generated parser failed with {s}", .{@errorName(err)});

@@ -69,6 +69,10 @@ pub fn prefetch(self: *Self, requests: []const Request) std.mem.Allocator.Error!
         next: std.atomic.Value(usize) = .init(0),
         failed: std.atomic.Value(bool) = .init(false),
         fn run(work: *@This(), _: usize) void {
+            var scratch = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+
+            defer scratch.deinit();
+
             while (!work.failed.load(.monotonic)) {
                 const index = work.next.fetchAdd(1, .monotonic);
 
@@ -80,7 +84,7 @@ pub fn prefetch(self: *Self, requests: []const Request) std.mem.Allocator.Error!
 
                 if (unchanged(work.cache.entries.get(request.path), request.source, &work.digests[index])) continue;
 
-                work.results[index] = parser.parseModule(std.heap.smp_allocator, request.source, request.path) catch {
+                work.results[index] = parser.parseModuleIn(std.heap.smp_allocator, &scratch, request.source, request.path) catch {
                     work.failed.store(true, .monotonic);
 
                     return;

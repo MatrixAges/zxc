@@ -38,13 +38,21 @@ const Work = struct {
     results: [][]const u8,
     next: std.atomic.Value(usize) = .init(0),
     failure: std.atomic.Value(u16) = .init(0),
+    /// Each unit's working memory comes from one scratch arena per worker, reset after the unit with its pages kept, so
+    /// generating unit after unit reuses them instead of mapping and faulting fresh ones.
     fn run(self: *Work, arena: *std.heap.ArenaAllocator) void {
+        var scratch = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+
+        defer scratch.deinit();
+
         while (self.failure.load(.monotonic) == 0) {
             const position = self.next.fetchAdd(1, .monotonic);
 
             if (position >= self.pending.len) return;
 
-            self.results[position] = self.batch.generate(arena.allocator(), std.heap.smp_allocator, self.pending[position]) catch |err| {
+            defer _ = scratch.reset(.{ .retain_with_limit = 32 << 20 });
+
+            self.results[position] = self.batch.generate(arena.allocator(), scratch.allocator(), self.pending[position]) catch |err| {
                 _ = self.failure.cmpxchgStrong(0, @intFromError(err), .monotonic, .monotonic);
 
                 return;
