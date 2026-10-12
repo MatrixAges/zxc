@@ -57,14 +57,11 @@ pub fn begin(state: *const State, cache: *const ParseCache, record: ?*history.Hi
 pub fn reuse(self: *Self, state: *State, index: usize) std.mem.Allocator.Error!bool {
     self.before[index] = checkpoint(state);
 
-    const previous = self.previous orelse return false;
+    if (!self.reusable(state, index)) return false;
 
-    if (!self.aligned or !self.unchanged(state, index)) return false;
-
+    const previous = self.previous.?;
     const start = previous.before[index];
     const end = previous.after[index];
-
-    if (start.native_modules != end.native_modules or start.initializers != end.initializers or start.libraries != end.libraries) return false;
 
     try columns.transplant(state.allocator, &state.types.items, previous.types, start.types, end.types);
     try columns.transplant(state.allocator, &state.types.origins.items, previous.origins, start.origins, end.origins);
@@ -77,6 +74,19 @@ pub fn reuse(self: *Self, state: *State, index: usize) std.mem.Allocator.Error!b
     if (self.record) |owner| owner.reused += 1;
 
     return true;
+}
+
+/// Whether `reuse` copies `index`'s rows while the tables stay aligned until its turn; they only ever fall out of line,
+/// so a module this rejects is analyzed whatever the modules before it do.
+pub fn reusable(self: *const Self, state: *const State, index: usize) bool {
+    const previous = self.previous orelse return false;
+
+    if (!self.aligned or !self.unchanged(state, index)) return false;
+
+    const start = previous.before[index];
+    const end = previous.after[index];
+
+    return start.native_modules == end.native_modules and start.initializers == end.initializers and start.libraries == end.libraries;
 }
 
 /// Records that `index` was analyzed, and whether the tables still match the earlier analysis after it.

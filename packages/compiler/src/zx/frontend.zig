@@ -4,6 +4,7 @@ pub const Parser = @import("frontend/parser.zig");
 pub const parse = @import("frontend/parse.zig").parse;
 pub const parseModule = @import("frontend/parse.zig").parseModule;
 pub const analyzeResolvedIn = @import("analysis/analyze.zig").analyzeResolvedIn;
+pub const ResolvedResult = @import("analysis/analyze.zig").ResolvedResult;
 pub const ResolvedImports = @import("modules/resolved.zig").Input;
 pub const analyzeModule = @import("analysis/analyze.zig").analyzeModule;
 pub const ParseResult = @import("frontend/parse.zig").Result;

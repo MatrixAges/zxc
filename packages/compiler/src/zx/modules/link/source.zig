@@ -11,6 +11,9 @@ pub const Input = struct {
     verified_functions: ir.FunctionTable = .{},
     nominal_types: Origins.Table,
     store_initializers: []const Initializer = &.{},
+    /// The length of the shared type table the body was analyzed against, when the tables grew since; its base
+    /// functions are then a prefix of the shared ones rather than all of them.
+    base_types: ?usize = null,
 };
 
 pub const Loaded = struct {
@@ -30,12 +33,13 @@ pub fn append(input: Input, destination: program_link.Destination) program_link.
 pub fn appendBody(input: Input, destination: program_link.Destination) program_link.Error!Loaded {
     const program = input.program;
     const base = input.base_functions orelse program.functions;
+    const shared = if (input.base_types == null) sameView(base, destination.functions.view()) else base.count() <= destination.functions.count();
 
-    if (!sameView(base, destination.functions.view()) or !sameView(program.native_modules, destination.native_modules.view())) return error.InvalidModule;
+    if (!shared or !sameView(program.native_modules, destination.native_modules.view())) return error.InvalidModule;
     if (!@import("function_table.zig").hasPrefix(program.functions, base)) return error.InvalidModule;
     if (@import("../../ir/validate.zig").internal and try @import("../../ir/validate.zig").validateExtending(destination.temporary, program, input.verified_functions) != null) return error.InvalidIr;
 
-    const mapping = try destination.types.appendFrom(destination.temporary, program.types, input.nominal_types, destination.types.items.count());
+    const mapping = try destination.types.appendFrom(destination.temporary, program.types, input.nominal_types, input.base_types orelse destination.types.items.count());
     const functions = try destination.temporary.alloc(?ir.FunctionId, program.functions.count());
     const native_modules = try destination.temporary.alloc(?ir.NativeModuleId, program.native_modules.count());
 

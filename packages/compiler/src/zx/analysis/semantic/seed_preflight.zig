@@ -28,7 +28,7 @@ pub fn prepare(allocator: std.mem.Allocator, temporary: std.mem.Allocator, value
         origins[index] = origin_index + 1;
     }
 
-    if (first > values.count() or (first != 0 and first != target.count())) return error.InvalidModule;
+    if (first > values.count() or first > target.count()) return error.InvalidModule;
 
     const mapping = try allocator.alloc(ir.TypeId, values.count());
 

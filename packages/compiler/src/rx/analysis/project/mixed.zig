@@ -23,9 +23,25 @@ pub fn compile(allocator: std.mem.Allocator, backing: std.mem.Allocator, derived
 
     var entry: ?Module.Contract = null;
     var reuse = try @import("mixed/reuse.zig").begin(&state, cache, record, derived);
+    var ahead = try @import("mixed/ahead.zig").init(allocator, dependencies.modules.len);
 
-    for (dependencies.order) |index| {
+    defer ahead.deinit();
+
+    const depths = try @import("source_graph/order.zig").depth(allocator, dependencies.modules, dependencies.order);
+    var start: usize = 0;
+
+    for (dependencies.order, 0..) |index, position| {
         const module = dependencies.modules[index];
+
+        if (position == start) {
+            var end = start + 1;
+
+            while (end < dependencies.order.len and depths[dependencies.order[end]] == depths[index]) end += 1;
+
+            try ahead.analyze(&state, cache, sources, &reuse, dependencies.order[start..end]);
+
+            start = end;
+        }
 
         state.owner = index;
 
@@ -41,7 +57,15 @@ pub fn compile(allocator: std.mem.Allocator, backing: std.mem.Allocator, derived
                     continue;
                 }
 
-                state.finished[index] = @import("mixed/zx.zig").compile(&state, cache, sources, index, null) catch |err| {
+                const zx_module = @import("mixed/zx.zig");
+
+                const body = if (ahead.take(&state, index)) |analyzed| linked: {
+                    _ = state.scratch.reset(.retain_capacity);
+
+                    break :linked zx_module.link(&state, state.scratch.allocator(), analyzed);
+                } else zx_module.compile(&state, cache, sources, index, null);
+
+                state.finished[index] = body catch |err| {
                     if (err == error.OutOfMemory) return error.OutOfMemory;
 
                     return .{ .diagnostic = state.issue.? };
