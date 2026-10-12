@@ -46,6 +46,19 @@ pub fn renew(self: *Lower, body: *std.ArrayList(node.Statement), type_id: ir.Typ
     try body.append(self.allocator, .{ .expression = try self.call(try reference(self, "zxRenew"), &.{ try self.builder.identifier("allocator"), try self.builder.expression(.{ .address_of = state }), names }, true) });
 }
 
+/// The value of `id` with the lists the plan renews in it moved to growth buffers of their own, where a value read out of
+/// a list or another opaque source enters the values that later appends extend.
+pub fn renewValue(self: *Lower, id: ir.ExprId, value: node.ExpressionId) Lower.Error!node.ExpressionId {
+    var body: std.ArrayList(node.Statement) = .empty;
+    const name = try self.fresh("renewed");
+    const renewed = try self.builder.identifier(name);
+
+    try body.append(self.allocator, .{ .variable = .{ .name = name, .value = value } });
+    for (self.plan.renewals) |renewal| if (renewal.owner == id and renewal.value) try renew(self, &body, self.program.expression(id).type_id, renewed, renewal.path);
+
+    return aggregate.finish(self, &body, renewed);
+}
+
 /// A growable buffer of `count` elements holding `source` as its prefix; `frontier` reuses a headered source in place.
 pub fn reserve(self: *Lower, body: *std.ArrayList(node.Statement), element: node.ExpressionId, source: node.ExpressionId, count: node.ExpressionId, frontier: bool) Lower.Error!node.ExpressionId {
     const arguments = [_]node.ExpressionId{ element, try self.builder.identifier("allocator"), source, count, try self.builder.expression(.{ .boolean = frontier }) };
@@ -76,7 +89,6 @@ fn reference(self: *Lower, name: []const u8) Lower.Error!node.ExpressionId {
 
 const Emitter = struct {
     lowering: *Lower,
-
     fn header(self: Emitter) Lower.Error!node.ExpressionId {
         const size = try self.primitive(.usize);
 
@@ -85,7 +97,6 @@ const Emitter = struct {
             .{ .name = "committed", .value = size },
         }) });
     }
-
     fn reserve(self: Emitter, exported: bool) Lower.Error!node.Function {
         const lowering = self.lowering;
         const items = try self.id("items");
@@ -108,11 +119,13 @@ const Emitter = struct {
 
         const alignment = try lowering.call(try lowering.field(try lowering.call(try self.standard(&.{ "mem", "Alignment", "of" }), &.{element}, false), "max"), &.{try lowering.call(try self.standard(&.{ "mem", "Alignment", "of" }), &.{header_type}, false)}, false);
         const offset = try lowering.call(try lowering.field(try lowering.call(try self.standard(&.{ "mem", "Alignment", "of" }), &.{element}, false), "forward"), &.{header_size}, false);
+
         const capacity = try lowering.builder.expression(.{ .conditional = .{
             .condition = try self.binary(.equal, count, try lowering.builder.integer(0)),
             .yes = try lowering.builder.integer(0),
             .no = try lowering.call(try self.standard(&.{ "math", "ceilPowerOfTwoAssert" }), &.{ try self.primitive(.usize), try lowering.builtin(.max, &.{ count, try lowering.builder.integer(8) }) }, false),
         } });
+
         const length = try self.binary(.add, try self.id("offset"), try self.binary(.multiply, try self.id("capacity"), try lowering.builtin(.sizeOf, &.{element})));
         const bytes = try lowering.call(try lowering.field(try self.id("allocator"), "alignedAlloc"), &.{ try self.primitive(.u8), try lowering.builder.expression(.{ .comptime_value = alignment }), length }, true);
         const start = try self.binary(.add, try lowering.field(try self.id("bytes"), "ptr"), try self.id("offset"));
@@ -183,6 +196,7 @@ const Emitter = struct {
         const field_name = try lowering.builder.expression(.{ .index = .{ .target = step, .index = try lowering.builder.integer(0) } });
         const origin_name = try lowering.builder.expression(.{ .index = .{ .target = step, .index = try lowering.builder.integer(1) } });
         const child = try lowering.field(try lowering.field(info, "pointer"), "child");
+
         const recurse = struct {
             fn call(emitter: Emitter, argument: node.ExpressionId, rest: node.ExpressionId) Lower.Error!node.Statement {
                 return .{ .expression = try emitter.lowering.call(try emitter.id("zxRenew"), &.{ try emitter.id("allocator"), argument, rest }, true) };
@@ -192,25 +206,31 @@ const Emitter = struct {
         const optional = [_]node.Statement{
             .{ .branch = .{ .condition = value, .yes = try lowering.builder.statements(&.{try recurse(self, try self.id("inner"), path)}), .no = .{}, .capture = "inner", .capture_reference = true } },
         };
+
         const list = [_]node.Statement{
             .{ .assignment = .{ .target = value, .value = try lowering.call(try self.id("zxReserve"), &.{ child, allocator, value, try lowering.field(value, "len"), try lowering.builder.expression(.{ .boolean = false }) }, true) } },
         };
+
         const record = [_]node.Statement{
             .{ .constant = .{ .name = "fresh", .value = try lowering.call(try lowering.field(allocator, "create"), &.{child}, true) } },
             .{ .assignment = .{ .target = try lowering.builder.expression(.{ .dereference = try self.id("fresh") }), .value = try lowering.builder.expression(.{ .dereference = value }) } },
             try recurse(self, try self.id("fresh"), path),
             .{ .assignment = .{ .target = value, .value = try self.id("fresh") } },
         };
+
         const pointer = [_]node.Statement{
             try lowering.builder.branch(try self.binary(.equal, try lowering.field(try lowering.field(info, "pointer"), "size"), try lowering.builder.expression(.{ .enum_literal = "slice" })), &list, &record),
         };
+
         const fields = [_]node.Statement{
             try lowering.builder.branch(try lowering.builtin(.hasField, &.{ try self.id("V"), origin_name }), &.{.{ .assignment = .{ .target = try lowering.builtin(.field, &.{ value, origin_name }), .value = try lowering.builder.expression(.null_value) } }}, &.{}),
             try recurse(self, try lowering.builder.expression(.{ .address_of = try lowering.builtin(.field, &.{ value, field_name }) }), try lowering.builder.expression(.{ .slice = .{ .target = path, .start = try lowering.builder.integer(1) } })),
         };
+
         const nonoptional = [_]node.Statement{
             try lowering.builder.branch(try self.binary(.equal, info, try lowering.builder.expression(.{ .enum_literal = "pointer" })), &pointer, &fields),
         };
+
         const statements = [_]node.Statement{
             .{ .constant = .{ .name = "V", .value = try lowering.builtin(.TypeOf, &.{value}) } },
             .{ .constant = .{ .name = "info", .value = try lowering.builtin(.typeInfo, &.{try self.id("V")}) } },
@@ -237,11 +257,9 @@ const Emitter = struct {
 
         return lowering.builtin(.ptrCast, &.{try lowering.builtin(.alignCast, &.{try self.binary(.subtract, bytes, header_size)})});
     }
-
     fn headerType(self: Emitter) Lower.Error!node.ExpressionId {
         return reference(self.lowering, "ZxHeader");
     }
-
     fn standard(self: Emitter, path: []const []const u8) Lower.Error!node.ExpressionId {
         var expression = try self.lowering.builtin(.import, &.{try self.lowering.builder.string("std")});
 
@@ -249,7 +267,6 @@ const Emitter = struct {
 
         return expression;
     }
-
     fn id(self: Emitter, name: []const u8) Lower.Error!node.ExpressionId {
         return self.lowering.builder.identifier(name);
     }
@@ -257,7 +274,6 @@ const Emitter = struct {
     fn primitive(self: Emitter, value: @FieldType(node.Expression, "primitive")) Lower.Error!node.ExpressionId {
         return self.lowering.builder.expression(.{ .primitive = value });
     }
-
     fn binary(self: Emitter, operator: node.BinaryOperator, left: node.ExpressionId, right: node.ExpressionId) Lower.Error!node.ExpressionId {
         return self.lowering.builder.binary(operator, left, right);
     }

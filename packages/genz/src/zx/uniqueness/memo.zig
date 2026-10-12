@@ -173,7 +173,7 @@ pub fn putPlanned(self: *Self, key: Digest, flags: []const Function.Flags, renew
     const allocator = self.arena.allocator();
     const owned = try allocator.alloc(Function.Renewal, renewals.len);
 
-    for (renewals, owned) |renewal, *target| target.* = .{ .owner = renewal.owner, .path = try allocator.dupe(u32, renewal.path) };
+    for (renewals, owned) |renewal, *target| target.* = .{ .owner = renewal.owner, .path = try allocator.dupe(u32, renewal.path), .value = renewal.value };
 
     const value = Planned{ .flags = try allocator.dupe(Function.Flags, flags), .renewals = owned };
 
@@ -314,7 +314,7 @@ fn readEntries(comptime Key: type, reader: *std.Io.Reader, map: *std.AutoHashMap
     }
 }
 
-const magic = "zxc.uniqueness.memo.v4";
+const magic = "zxc.uniqueness.memo.v5";
 
 /// Whether `save` would differ from what was loaded.
 pub fn stale(self: *const Self) bool {

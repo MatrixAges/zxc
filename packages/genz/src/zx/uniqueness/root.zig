@@ -580,7 +580,7 @@ fn identify(shared: [32]u8, units: []const ?*Unit) void {
 fn copyRenewals(allocator: std.mem.Allocator, renewals: []const Renewal) std.mem.Allocator.Error![]const Renewal {
     const result = try allocator.alloc(Renewal, renewals.len);
 
-    for (renewals, result) |renewal, *target| target.* = .{ .owner = renewal.owner, .path = try allocator.dupe(u32, renewal.path) };
+    for (renewals, result) |renewal, *target| target.* = .{ .owner = renewal.owner, .path = try allocator.dupe(u32, renewal.path), .value = renewal.value };
 
     return result;
 }

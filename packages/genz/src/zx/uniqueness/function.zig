@@ -209,29 +209,38 @@ fn renewal(owner: ir.ExprId, slot: u32) u64 {
     return (@as(u64, @backingInt(owner)) << 32) | slot;
 }
 
+/// Marks a key whose growth copy renews the value of its expression rather than the state a loop enters with.
+const value_renewal: u64 = 1 << 63;
+
 fn lacks(level_value: Level, want: Level) bool {
     return (want.headered and !level_value.headered) or (want.unique and !level_value.unique);
 }
 
-pub const Renewal = struct { owner: ir.ExprId, path: []const u32 };
+/// A list slot of a loop state, or of an expression's own value when `value` is set, that starts from a growth copy.
+pub const Renewal = struct { owner: ir.ExprId, path: []const u32, value: bool = false };
 
-/// The loop slots that start from a growth copy of their initial value, by member path from the loop state.
+/// The slots that start from a growth copy, by member path from the loop state or the renewed value.
 pub fn renewals(self: *Self, allocator: std.mem.Allocator) std.mem.Allocator.Error![]const Renewal {
     var result: std.ArrayList(Renewal) = .empty;
     var entries = self.renewed.iterator();
 
     while (entries.next()) |entry| {
-        const owner: ir.ExprId = @fromBackingInt(@intCast(entry.key_ptr.* >> 32));
+        const value = entry.key_ptr.* & value_renewal != 0;
+        const owner: ir.ExprId = @fromBackingInt(@intCast((entry.key_ptr.* & ~value_renewal) >> 32));
         const slot: u32 = @truncate(entry.key_ptr.*);
 
         if (self.order.time[@backingInt(owner)] == Order.none) continue;
-        if (!lacks(try self.level(self.carriedState(owner).?.initial, slot), entry.value_ptr.*)) continue;
-        try result.append(allocator, .{ .owner = owner, .path = try self.slots.path(allocator, self.row(owner).type_id, slot) });
+
+        const start = if (value) try self.raw(owner, slot) else try self.level(self.carriedState(owner).?.initial, slot);
+
+        if (!lacks(start, entry.value_ptr.*)) continue;
+        try result.append(allocator, .{ .owner = owner, .path = try self.slots.path(allocator, self.row(owner).type_id, slot), .value = value });
     }
 
     std.mem.sort(Renewal, result.items, {}, struct {
         fn less(_: void, left: Renewal, right: Renewal) bool {
             if (left.owner != right.owner) return @backingInt(left.owner) < @backingInt(right.owner);
+            if (left.value != right.value) return !left.value;
 
             return std.mem.order(u32, left.path, right.path) == .lt;
         }
@@ -240,7 +249,7 @@ pub fn renewals(self: *Self, allocator: std.mem.Allocator) std.mem.Allocator.Err
     return result.items;
 }
 
-pub const Flags = packed struct(u8) { frontier: bool = false, retract: bool = false, in_place: bool = false, normalize: bool = false, padding: u4 = 0 };
+pub const Flags = packed struct(u8) { frontier: bool = false, retract: bool = false, in_place: bool = false, normalize: bool = false, renew: bool = false, padding: u3 = 0 };
 
 /// How each list update lowers: appends check the frontier of a headered target, pops of a unique headered target hand
 /// the frontier back, element writes of a unique target happen in place, and a demanded plain list gets a growth copy.
@@ -258,6 +267,17 @@ pub fn flags(self: *Self, values: []Flags) std.mem.Allocator.Error!void {
         const raw_level = try self.raw(id, 0);
 
         values[@backingInt(id)].normalize = (want.headered and !raw_level.headered) or (want.unique and !raw_level.unique);
+    }
+
+    var renewed = self.renewed.iterator();
+
+    while (renewed.next()) |entry| {
+        if (entry.key_ptr.* & value_renewal == 0) continue;
+
+        const id: ir.ExprId = @fromBackingInt(@intCast((entry.key_ptr.* & ~value_renewal) >> 32));
+
+        if (self.order.time[@backingInt(id)] == Order.none) continue;
+        if (lacks(try self.raw(id, @truncate(entry.key_ptr.*)), entry.value_ptr.*)) values[@backingInt(id)].renew = true;
     }
 
     for (self.operations) |id| {
@@ -305,25 +325,28 @@ pub fn level(self: *Self, id: ir.ExprId, slot: u32) std.mem.Allocator.Error!Leve
 
     const entry = &self.levels[index - base];
 
-    if (entry.* != .unknown) return @bitCast(@as(u2, @intCast(@intFromEnum(entry.*))));
+    if (entry.* != .unknown) return @bitCast(@as(u2, @intCast(@backingInt(entry.*))));
 
     const result = try self.compute(id, slot);
 
-    entry.* = @enumFromInt(@as(u2, @bitCast(result)));
+    entry.* = @fromBackingInt(@intCast(@as(u2, @bitCast(result))));
 
     return result;
 }
 
 fn compute(self: *Self, id: ir.ExprId, slot: u32) std.mem.Allocator.Error!Level {
     const result = try self.raw(id, slot);
+    const want = (if (slot == 0) self.normalized.get(id) else null) orelse self.renewed.get(renewal(id, slot) | value_renewal) orelse return result;
 
-    if (slot != 0) return result;
+    if (!lacks(result, want)) return result;
 
-    const want = self.normalized.get(id) orelse return result;
+    return .{ .headered = true, .unique = self.copyLinear(id, slot) };
+}
 
-    if ((!want.headered or result.headered) and (!want.unique or result.unique)) return result;
-
-    return .{ .headered = true, .unique = self.sites.linear(self.sites.nodeRoot(id), 0) };
+/// Whether a growth copy made at `id` stays unique: its uses must be linear, and a symbol's uses are tracked on the
+/// symbol, not on each reference to it.
+fn copyLinear(self: *Self, id: ir.ExprId, slot: u32) bool {
+    return self.row(id).value != .reference and self.sites.linear(self.sites.nodeRoot(id), slot);
 }
 
 fn raw(self: *Self, id: ir.ExprId, slot: u32) std.mem.Allocator.Error!Level {
@@ -399,6 +422,7 @@ fn node(self: *Self, id: ir.ExprId, slot: u32) std.mem.Allocator.Error!Level {
             .every, .some => .none,
         },
         .scope => |scope| self.level(scope.result, slot),
+        .binary => |binary| if (binary.operator == .coalesce) (try self.level(binary.left, slot)).meet(try self.level(binary.right, slot)) else .none,
         .iteration => self.carried.get(id).?[slot],
         .conditional => |conditional| (try self.level(conditional.yes, slot)).meet(try self.level(conditional.no, slot)),
         .match_expr => |selection| blk: {
@@ -447,7 +471,7 @@ pub fn demand(self: *Self, changed: *std.ArrayList(usize), marked: *std.ArrayLis
                 for (0..self.summaries.inputs[callee].len) |slot| {
                     const want = try self.read(.inputs, callee, self.summaries.inputs[callee], @intCast(slot));
 
-                    if (want != Level.none) try self.trace(invocation.argument, @intCast(slot), null, false, want);
+                    if (want != Level.none) try self.trace(invocation.argument, @intCast(slot), null, true, want);
                 }
             },
             else => {},
@@ -460,12 +484,14 @@ pub fn demand(self: *Self, changed: *std.ArrayList(usize), marked: *std.ArrayLis
         const want = try self.read(.outputs, function, self.summaries.outputs[function], @intCast(slot));
 
         if (want == Level.none) continue;
-        for (self.order.results.items) |result| try self.trace(result, @intCast(slot), null, false, want);
+        for (self.order.results.items) |result| try self.trace(result, @intCast(slot), null, true, want);
     }
 }
 
 /// Follows a demand for the `wanted` properties of one list slot back to where a growth copy can provide them; only the
 /// properties the value lacks and could keep count, so a unique buffer is never demanded of a value used twice.
+/// `repeat` places the copy where the value enters even when no update follows it here: a loop's initial value, or a
+/// value a callee or caller wants, since a summary that lacks the property makes every other caller copy on each call.
 fn trace(self: *Self, id: ir.ExprId, slot: u32, outer: ?ir.ExprId, repeat: bool, wanted: Level) std.mem.Allocator.Error!void {
     const current = try self.level(id, slot);
     var want = wanted;
@@ -492,7 +518,7 @@ fn trace(self: *Self, id: ir.ExprId, slot: u32, outer: ?ir.ExprId, repeat: bool,
             .value => |bound| try self.trace(bound, slot, leaf, repeat, want),
             .part => |part| try self.trace(part.value, self.slots.member(self.row(part.value).type_id, part.index).offset + slot, leaf, repeat, want),
             .carried, .condition => |owner| try self.carry(owner, slot, want),
-            .element, .unknown => if (repeat) try self.normalize(leaf, want),
+            .element, .unknown => if (repeat) try self.provide(id, slot, leaf, want),
         },
         .object => |object| for (0..object.fields.len) |item| {
             const field = object.fields.at(item);
@@ -515,7 +541,12 @@ fn trace(self: *Self, id: ir.ExprId, slot: u32, outer: ?ir.ExprId, repeat: bool,
             for (0..selection.arms.len) |item| try self.trace(selection.arms.at(item).result, slot, null, repeat, want);
             try self.trace(selection.fallback, slot, null, repeat, want);
         },
-        .list_operation => |operation| if (operation.kind == .pop) try self.trace(operation.target, 0, leaf, repeat, want) else if (repeat) try self.normalize(leaf, want),
+        .binary => |binary| if (binary.operator == .coalesce) {
+            try self.trace(binary.left, slot, null, repeat, want);
+            try self.trace(binary.right, slot, null, repeat, want);
+        },
+        // The rest of the list keeps the target's buffer; the popped element is read out of it like any element.
+        .list_operation => |operation| if (operation.kind == .pop and slot == 0) try self.trace(operation.target, 0, leaf, repeat, want) else if (repeat) try self.provide(id, slot, leaf, want),
         .iteration => try self.carry(id, slot, want),
         .transform => |transform| if (transform.kind == .reduce) try self.carry(id, slot, want) else if (repeat) try self.normalize(leaf, want),
         .call => |invocation| {
@@ -524,8 +555,27 @@ fn trace(self: *Self, id: ir.ExprId, slot: u32, outer: ?ir.ExprId, repeat: bool,
             if (self.functions.at(callee).external == null) try self.mark(.{ .output = true, .function = @intCast(callee), .slot = slot, .want = want });
             try self.normalize(leaf, want);
         },
-        else => if (repeat) try self.normalize(leaf, want),
+        else => if (repeat) try self.provide(id, slot, leaf, want),
     }
+}
+
+/// A growth copy where a value enters: of the list itself when the demand reached one, or else of the value `id`
+/// holding the slot, renewed along the member path to it.
+fn provide(self: *Self, id: ir.ExprId, slot: u32, leaf: ?ir.ExprId, wanted: Level) std.mem.Allocator.Error!void {
+    if (leaf) |list| return self.normalize(list, wanted);
+
+    var want = wanted;
+
+    if (want.unique) want.unique = self.copyLinear(id, slot);
+    if (want == Level.none) return;
+
+    const entry = try self.renewed.getOrPut(renewal(id, slot) | value_renewal);
+    const next = if (entry.found_existing) entry.value_ptr.join(want) else want;
+
+    if (entry.found_existing and next == entry.value_ptr.*) return;
+
+    entry.value_ptr.* = next;
+    self.grew = true;
 }
 
 /// Whether a value used here could stay unique: a projection defers to its target, a reference to its symbol.
@@ -545,7 +595,7 @@ fn carry(self: *Self, owner: ir.ExprId, slot: u32, wanted: Level) std.mem.Alloca
 
     if (want.unique) want.unique = self.sites.linear(Sites.symbolRoot(carried.parameter), slot) and (carried.condition == null or self.sites.observed(Sites.symbolRoot(carried.condition.?), slot));
     if (want == Level.none) return;
-    if (self.row(owner).value == .iteration) try self.renew(owner, slot, want);
+    try self.renew(owner, slot, want);
     try self.trace(carried.initial, slot, null, true, want);
     try self.trace(carried.body, slot, null, false, want);
 }
@@ -594,4 +644,3 @@ fn normalize(self: *Self, leaf: ?ir.ExprId, wanted: Level) std.mem.Allocator.Err
     entry.value_ptr.* = next;
     self.grew = true;
 }
-

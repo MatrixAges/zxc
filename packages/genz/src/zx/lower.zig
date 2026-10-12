@@ -186,8 +186,12 @@ pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declar
 
 pub fn expr(self: *Self, id: ir.ExprId) Error!node.ExpressionId {
     const value = if (self.iteration_value) |context| try context.expression(id) orelse try self.regular(id) else try self.regular(id);
+    const flags = self.plan.get(id);
 
-    return if (self.plan.get(id).normalize) @import("growth.zig").normalize(self, id, value) else value;
+    if (flags.normalize) return @import("growth.zig").normalize(self, id, value);
+    if (flags.renew) return @import("growth.zig").renewValue(self, id, value);
+
+    return value;
 }
 
 pub fn regular(self: *Self, id: ir.ExprId) Error!node.ExpressionId {

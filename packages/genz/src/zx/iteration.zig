@@ -118,7 +118,7 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
 
     var renewed = false;
 
-    for (self.plan.renewals) |renewal| if (renewal.owner == id) {
+    for (self.plan.renewals) |renewal| if (renewal.owner == id and !renewal.value) {
         try @import("growth.zig").renew(self, &body, type_id, state, renewal.path);
 
         renewed = true;

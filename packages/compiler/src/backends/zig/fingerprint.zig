@@ -122,6 +122,7 @@ fn plan(self: *Self, value: @import("genz").zx.function_analysis.Uniqueness.Plan
     for (value.renewals) |renewal| {
         self.write(@backingInt(renewal.owner));
         self.write(renewal.path);
+        self.write(renewal.value);
     }
 }
 
@@ -184,7 +185,7 @@ fn write(self: *Self, value: anytype) void {
         .@"struct" => |info| inline for (info.field_names) |field| self.write(@field(value, field)),
         .@"union" => switch (value) {
             inline else => |payload, tag| {
-                self.write(@intFromEnum(tag));
+                self.write(@backingInt(tag));
                 self.write(payload);
             },
         },

@@ -9,6 +9,12 @@ pub const containsDescendant = analysis.containsDescendant;
 
 pub fn expression(self: *Lower, id: ir.ExprId) Lower.Error!node.ExpressionId {
     if (self.plan.get(id).normalize) return self.expr(id);
+
+    if (self.plan.get(id).renew) return switch (self.program.typeOf(self.program.expression(id).type_id)) {
+        .object, .tuple => dereference(self, id),
+        else => self.expr(id),
+    };
+
     if (self.state_active and self.state_plan.represented(self.program, self.program.expression(id).type_id)) return self.expr(id);
     if (self.cache.contains(id)) return dereference(self, id);
 

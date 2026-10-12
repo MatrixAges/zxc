@@ -30,6 +30,11 @@ pub fn lower(self: *Lower, id: ir.ExprId, value: ir.Transform) Lower.Error!node.
         const accumulator = self.names[@backingInt(value.parameters[0])];
 
         try body.append(self.allocator, .{ .variable = .{ .name = accumulator, .type_expr = result_type, .value = try self.expr(value.initial.?) } });
+
+        for (self.plan.renewals) |renewal| if (renewal.owner == id and !renewal.value) {
+            try @import("growth.zig").renew(self, &body, self.program.expression(id).type_id, try self.builder.identifier(accumulator), renewal.path);
+        };
+
         try loop.append(self.allocator, .{ .assignment = .{ .target = try self.builder.identifier(accumulator), .value = callback } });
 
         result = try self.builder.identifier(accumulator);
