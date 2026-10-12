@@ -17,6 +17,8 @@ pub const Normalized = struct { id: ir.ExprId, want: Level };
 pub const Renewed = struct { key: u64, want: Level };
 /// The plan of a body once every fact settled.
 pub const Planned = struct { flags: []const Function.Flags, renewals: []const Function.Renewal, used: bool = true };
+/// Which input slots a body's output holds and its updates write, by the body and its callees' own.
+pub const Flowed = struct { held: []const bool, written: []const bool, used: bool = true };
 
 /// What one body reads beyond the facts other bodies hand it.
 pub const State = struct {
@@ -35,6 +37,7 @@ arena: std.heap.ArenaAllocator,
 settled: std.AutoHashMapUnmanaged(Digest, Settled) = .empty,
 demanded: std.AutoHashMapUnmanaged(Digest, Demanded) = .empty,
 planned: std.AutoHashMapUnmanaged(Digest, Planned) = .empty,
+flowed: std.AutoHashMapUnmanaged(Digest, Flowed) = .empty,
 key: Digest = undefined,
 order: std.ArrayList(Record) = .empty,
 /// The bytes the next key digests, gathered so they are hashed in one call.
@@ -184,6 +187,24 @@ pub fn putPlanned(self: *Self, key: Digest, flags: []const Function.Flags, renew
     return value;
 }
 
+/// The flow of the body `key` names; it only reads, so the bodies of one layer look up at once.
+pub fn getFlowed(self: *const Self, key: Digest) ?Flowed {
+    return self.flowed.get(key);
+}
+
+/// Keeps the flow `getFlowed` found for a later run.
+pub fn keepFlowed(self: *Self, key: Digest) void {
+    if (self.flowed.getPtr(key)) |entry| entry.used = true;
+}
+
+pub fn putFlowed(self: *Self, key: Digest, held: []const bool, written: []const bool) std.mem.Allocator.Error!void {
+    const allocator = self.arena.allocator();
+
+    self.changed = true;
+
+    try self.flowed.put(allocator, key, .{ .held = try allocator.dupe(bool, held), .written = try allocator.dupe(bool, written) });
+}
+
 fn use(comptime Value: type, map: *std.AutoHashMapUnmanaged(Digest, Value), key: Digest) ?Value {
     const entry = map.getPtr(key) orelse return null;
 
@@ -314,13 +335,13 @@ fn readEntries(comptime Key: type, reader: *std.Io.Reader, map: *std.AutoHashMap
     }
 }
 
-const magic = "zxc.uniqueness.memo.v9";
+const magic = "zxc.uniqueness.memo.v10";
 
 /// Whether `save` would differ from what was loaded.
 pub fn stale(self: *const Self) bool {
     if (self.changed) return true;
 
-    inline for (.{ &self.settled, &self.demanded, &self.planned }) |map| {
+    inline for (.{ &self.settled, &self.demanded, &self.planned, &self.flowed }) |map| {
         var values = map.iterator();
 
         while (values.next()) |entry| if (!entry.value_ptr.used) return true;
@@ -342,6 +363,7 @@ pub fn save(self: *const Self, allocator: std.mem.Allocator) std.mem.Allocator.E
     try writeMap(Settled, writer, &self.settled);
     try writeMap(Demanded, writer, &self.demanded);
     try writeMap(Planned, writer, &self.planned);
+    try writeMap(Flowed, writer, &self.flowed);
 
     return out.toOwnedSlice();
 }
@@ -356,6 +378,7 @@ pub fn load(self: *Self, bytes: []const u8) std.mem.Allocator.Error!void {
             self.settled.clearRetainingCapacity();
             self.demanded.clearRetainingCapacity();
             self.planned.clearRetainingCapacity();
+            self.flowed.clearRetainingCapacity();
         },
     };
 }
@@ -367,6 +390,7 @@ fn loadFrom(self: *Self, reader: *std.Io.Reader) !void {
     try self.readMap(Settled, reader, &self.settled);
     try self.readMap(Demanded, reader, &self.demanded);
     try self.readMap(Planned, reader, &self.planned);
+    try self.readMap(Flowed, reader, &self.flowed);
     if (reader.seek != reader.end) return error.InvalidMemo;
 }
 

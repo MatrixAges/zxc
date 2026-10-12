@@ -86,7 +86,7 @@ pub fn declarations(self: *Self) Error![]const node.Declaration {
     }
 
     try @import("store.zig").declaration(self, &output);
-    try output.append(self.allocator, try self.function("execute", true));
+    try @import("entry.zig").declarations(self, &output);
     try @import("entry_values.zig").declarations(self, &output);
 
     var function_index: usize = 0;

@@ -2,6 +2,7 @@ const std = @import("std");
 const ir = @import("zx").ir;
 const Order = @import("order.zig");
 const Slots = @import("slots.zig");
+const Memo = @import("memo.zig");
 const Self = @This();
 
 /// Which input slots of each function its output may hold and its updates may write in place, closed over the call
@@ -11,7 +12,9 @@ const Self = @This();
 /// value whose origin the walk cannot follow counts as every input slot.
 held: []const []const bool,
 written: []const []const bool,
-pub fn create(allocator: std.mem.Allocator, program: ir.Program, slots: Slots) std.mem.Allocator.Error!Self {
+/// `memo` keeps the summaries of each body by its `contents` and its callees' summaries, so a later program walks only
+/// the bodies whose content or callees changed.
+pub fn create(allocator: std.mem.Allocator, program: ir.Program, slots: Slots, contents: []const [32]u8, types: [32]u8, memo: ?*Memo) std.mem.Allocator.Error!Self {
     const count = program.functions.count();
     const held = try allocator.alloc([]bool, count);
     const written = try allocator.alloc([]bool, count);
@@ -40,7 +43,15 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program, slots: Slots) s
     const self = Self{ .held = held, .written = written };
 
     if (try layers(temporary, program)) |found| {
-        try self.layered(program, slots, found);
+        const remembered: ?Remembered = if (memo) |value| .{
+            .memo = value,
+            .types = types,
+            .contents = contents,
+            .keys = try temporary.alloc(Memo.Digest, count),
+            .found = try temporary.alloc(bool, count),
+        } else null;
+
+        try self.layered(program, slots, found, remembered);
     } else try self.settle(temporary, program, slots);
 
     return self;
@@ -96,7 +107,37 @@ fn layers(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.E
     return .{ .order = order, .ends = ends };
 }
 
-fn layered(self: Self, program: ir.Program, slots: Slots, found: Layers) std.mem.Allocator.Error!void {
+/// What looking bodies up in a memo needs: the digests of the types and of each body, and per body its key and whether
+/// the memo held it.
+const Remembered = struct {
+    memo: *Memo,
+    types: [32]u8,
+    contents: []const [32]u8,
+    keys: []Memo.Digest,
+    found: []bool,
+    /// The key of a body: its content within the types, and the summaries of each function it calls.
+    fn key(self: Remembered, flow: Self, function: ir.Function, index: usize) Memo.Digest {
+        var hash = @import("zx").Sha256.init(.{});
+        var result: Memo.Digest = undefined;
+
+        hash.update(&self.types);
+        hash.update(&self.contents[index]);
+
+        for (function.expressions.kinds, 0..) |_, expression| {
+            const callee = @backingInt(function.expressions.callee(expression) orelse continue);
+
+            hash.update(std.mem.asBytes(&@as(u32, @intCast(flow.held[callee].len))));
+            hash.update(std.mem.sliceAsBytes(flow.held[callee]));
+            hash.update(std.mem.sliceAsBytes(flow.written[callee]));
+        }
+
+        hash.final(&result);
+
+        return result;
+    }
+};
+
+fn layered(self: Self, program: ir.Program, slots: Slots, found: Layers, remembered: ?Remembered) std.mem.Allocator.Error!void {
     const width = @import("zx").parallel.width();
     const walkers = try std.heap.page_allocator.alloc(Walker, width);
 
@@ -112,13 +153,20 @@ fn layered(self: Self, program: ir.Program, slots: Slots, found: Layers) std.mem
     var start: usize = 0;
 
     for (found.ends) |end| {
-        var layer = Layer{ .flow = self, .program = program, .slots = slots, .functions = found.order[start..end], .walkers = walkers };
+        var layer = Layer{ .flow = self, .program = program, .slots = slots, .functions = found.order[start..end], .walkers = walkers, .remembered = remembered };
 
         start = end;
 
         @import("zx").parallel.spread(Layer, &layer, Layer.run, @min(width, layer.functions.len));
 
         if (layer.failed.load(.monotonic)) return error.OutOfMemory;
+
+        const kept = remembered orelse continue;
+
+        for (layer.functions) |index| {
+            if (program.functions.at(index).external != null) continue;
+            if (kept.found[index]) kept.memo.keepFlowed(kept.keys[index]) else try kept.memo.putFlowed(kept.keys[index], self.held[index], self.written[index]);
+        }
     }
 }
 
@@ -131,6 +179,7 @@ const Layer = struct {
     slots: Slots,
     functions: []const u32,
     walkers: []Walker,
+    remembered: ?Remembered,
     next: std.atomic.Value(usize) = .init(0),
     failed: std.atomic.Value(bool) = .init(false),
     fn run(self: *Layer, participant: usize) void {
@@ -157,11 +206,28 @@ const Layer = struct {
 
         if (function.external != null) return;
 
+        const held = @constCast(self.flow.held[index]);
+        const written = @constCast(self.flow.written[index]);
+
+        if (self.remembered) |kept| {
+            kept.keys[index] = kept.key(self.flow, function, index);
+            kept.found[index] = false;
+
+            if (kept.memo.getFlowed(kept.keys[index])) |value| if (value.held.len == held.len and value.written.len == written.len) {
+                @memcpy(held, value.held);
+                @memcpy(written, value.written);
+
+                kept.found[index] = true;
+
+                return;
+            };
+        }
+
         defer _ = walker.bodies.reset(.retain_capacity);
         const body = try Body.create(walker.bodies.allocator(), function, self.slots);
         const walk = &walker.walk.?;
-        _ = try walk.held(&body, @constCast(self.flow.held[index]));
-        _ = try walk.written(&body, @constCast(self.flow.written[index]));
+        _ = try walk.held(&body, held);
+        _ = try walk.written(&body, written);
     }
 };
 

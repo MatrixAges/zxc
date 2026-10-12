@@ -1,0 +1,33 @@
+import body from "../calls/body"
+import parallel from "../control/parallel"
+import boundary from "./boundary"
+
+import type { Program } from "../model"
+
+export type Input = { program: Program }
+
+export type Output = bool[]
+
+export default function (in: Input): Output {
+    const pure = in.program.functions.output_types.map(id => false)
+
+    const result = loop({ program: in.program, pure: pure, index: 0 }, {
+        while: current => current.index < current.program.functions.output_types.length,
+        next: current => {
+            const index = current.index
+            const functions = current.program.functions
+
+            if (functions.native_modules[index] != null) {
+                current.pure[index] = boundary({ program: current.program, position: index, borrowed: false })
+            } else {
+                const plain = functions.stores[index].paths.length == 0 && !parallel({ control: functions.control[index], root: functions.roots[index] })
+
+                current.pure[index] = plain && body({ expressions: functions.expressions[index], contracts: functions.contracts[index], allowed: current.pure, limit: index })
+            }
+
+            current.index += 1
+        }
+    })
+
+    return result.pure
+}

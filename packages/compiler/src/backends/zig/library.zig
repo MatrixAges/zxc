@@ -6,7 +6,7 @@ const names = @import("names.zig");
 const references = @import("references.zig");
 const Cache = @import("cache.zig");
 pub const Error = modules.Error || validation.Error || error{InvalidModule};
-pub const PublicModule = struct { name: []const u8, file: modules.File, value_entry: bool = false };
+pub const PublicModule = struct { name: []const u8, file: modules.File, value_entry: bool = false, allocator_entry: bool = false };
 
 pub const Bundle = struct {
     arena: std.heap.ArenaAllocator,
@@ -24,17 +24,19 @@ pub const Bundle = struct {
 };
 
 pub fn createCached(allocator: std.mem.Allocator, library: *const model.Result, cache: ?*Cache) Error!Bundle {
-    return create(allocator, library, cache, false);
+    return create(allocator, allocator, library, cache, false);
 }
 
-pub fn createFilesCached(allocator: std.mem.Allocator, library: *const model.Result, cache: ?*Cache) Error!Bundle {
-    return create(allocator, library, cache, true);
+/// A bundle of files that import each other, held in memory from `output`; what building it needs only meanwhile
+/// comes from `allocator`.
+pub fn createFilesCached(allocator: std.mem.Allocator, output: std.mem.Allocator, library: *const model.Result, cache: ?*Cache) Error!Bundle {
+    return create(allocator, output, library, cache, true);
 }
 
-fn create(allocator: std.mem.Allocator, library: *const model.Result, cache: ?*Cache, file_imports: bool) Error!Bundle {
+fn create(allocator: std.mem.Allocator, output: std.mem.Allocator, library: *const model.Result, cache: ?*Cache, file_imports: bool) Error!Bundle {
     if (@import("frontend").checks_internal_ir) try validation.validate(allocator, library);
 
-    var arena = std.heap.ArenaAllocator.init(allocator);
+    var arena = std.heap.ArenaAllocator.init(output);
 
     errdefer arena.deinit();
 
@@ -109,6 +111,7 @@ fn create(allocator: std.mem.Allocator, library: *const model.Result, cache: ?*C
         public_module.* = .{
             .name = try owned.dupe(u8, exported.name),
             .value_entry = public_batch.analysis.value.hasValueEntry(view),
+            .allocator_entry = public_batch.analysis.value.hasAllocatorEntry(view),
             .file = .{
                 .name = try std.fmt.allocPrint(owned, "public_{s}", .{std.fmt.bytesToHex(digest, .lower)}),
                 .source = &.{},

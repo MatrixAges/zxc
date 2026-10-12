@@ -10,7 +10,7 @@ const Expressions = std.meta.Child(@FieldType(Input, "expressions"));
 const Control = std.meta.Child(@FieldType(Input, "control"));
 const Functions = std.meta.Child(@FieldType(Input, "functions"));
 
-pub fn execute(arena: *std.heap.ArenaAllocator, program: ir.Program) !generated.Output {
+pub fn execute(allocator: std.mem.Allocator, program: ir.Program) !generated.Output {
     const base = ir.TypeTable.borrow(Table, program.types);
     const delta = ir.TypeTable.borrow(Table, .{});
     const types: Types = .{ .base = &base, .delta = &delta };
@@ -33,5 +33,5 @@ pub fn execute(arena: *std.heap.ArenaAllocator, program: ir.Program) !generated.
         .type_only = program.type_only,
     };
 
-    return generated.execute(arena, &input);
+    return generated.executeIn(allocator, &input);
 }

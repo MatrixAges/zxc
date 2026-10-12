@@ -56,7 +56,7 @@ pub fn initialize(temporary: std.mem.Allocator, workspace: std.mem.Allocator, so
 pub fn initializePrepared(temporary: std.mem.Allocator, workspace: std.mem.Allocator, program: zx.ir.Program) std.mem.Allocator.Error!Lower {
     const Analysis = @import("function_analysis.zig");
     const basis = try temporary.create(Analysis.Uniqueness.Basis);
-    basis.* = try .create(temporary, program);
+    basis.* = try .create(temporary, program, null);
 
     return initializeAnalyzed(temporary, workspace, program, try Analysis.analyze(temporary, workspace, program, &.{}, basis, null));
 }

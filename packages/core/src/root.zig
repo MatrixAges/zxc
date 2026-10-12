@@ -5,6 +5,7 @@ pub const ir = @import("ir.zig");
 pub const columns = @import("columns.zig");
 pub const error_effects = @import("error_effects.zig");
 pub const parallel = @import("parallel.zig");
+pub const Arena = @import("arena.zig");
 pub const bytes = @import("bytes.zig");
 pub const Sha256 = @import("sha256.zig").Sha256;
 pub const Refinement = @import("refinement.zig");

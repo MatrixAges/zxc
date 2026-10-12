@@ -1,8 +1,10 @@
 //! Reuses the modules of an earlier analysis (see `../history.zig`). While every module so far appended the same
 //! rows as before, the tables stay aligned with the earlier ones, and a module whose source is unchanged and whose
-//! dependencies were all reused copies its earlier rows. Analysis reads callee bodies, not only their signatures, so
-//! a module depending on one analyzed again is analyzed again too. Once a module appends different types, or a
-//! different number of rows, every later module is analyzed.
+//! dependencies were all reused copies its earlier rows. Analysis reads callee bodies, not only their signatures, and
+//! some facts follow calls through every body reached, so a module depending on one whose rows changed, directly or
+//! through its own dependencies, is analyzed again too. A module analyzed again into the very rows and link it had
+//! before, whose dependencies changed nothing either, changes nothing its dependents read, so they stay reusable. Once a
+//! module appends different types, or a different number of rows, every later module is analyzed.
 const std = @import("std");
 const ir = @import("zx").ir;
 const State = @import("state.zig");
@@ -16,6 +18,7 @@ previous: ?*const history.Retained = null,
 derived: history.Frame,
 aligned: bool = false,
 initial: history.Checkpoint,
+/// Modules whose rows or link differ from the earlier ones, or that depend on such a module.
 redone: []bool,
 digests: []?[32]u8,
 before: []history.Checkpoint,
@@ -108,6 +111,44 @@ pub fn analyzed(self: *Self, state: *const State, index: usize) void {
     self.aligned = end.functions == earlier.functions and end.native_modules == earlier.native_modules and end.initializers == earlier.initializers and end.libraries == earlier.libraries and
         columns.equal(previous.types, start.types, earlier.types, state.types.items.view(), start.types, end.types) and
         columns.equal(previous.origins, start.origins, earlier.origins, state.types.origins.items.view(), start.origins, end.origins);
+
+    if (self.aligned and !self.reaches(state, index) and repeated(state, previous, index, start.functions)) self.redone[index] = false;
+}
+
+/// Whether a dependency of `index` changed.
+fn reaches(self: *const Self, state: *const State, index: usize) bool {
+    for (state.graph.modules[index].dependencies) |edge| switch (edge.target) {
+        .source => |dependency| if (self.redone[dependency]) return true,
+        .compiled => return true,
+        .native => {},
+    };
+
+    return false;
+}
+
+/// Whether `index`, analyzed again into tables still aligned, appended the very function rows and produced the very
+/// link it had before, down to the bodies they point to.
+fn repeated(state: *const State, previous: *const history.Retained, index: usize, start: usize) bool {
+    const current = state.finished[index] orelse return false;
+    const earlier = previous.finished[index] orelse return false;
+    const end = state.functions.count();
+
+    if (previous.before[index].functions != start or previous.after[index].functions != end) return false;
+    if (!columns.same(current, earlier)) return false;
+
+    const left = previous.functions;
+    const right = state.functions.view();
+
+    inline for (@typeInfo(ir.FunctionTable).@"struct".field_names) |name| {
+        const Element = std.meta.Elem(@FieldType(ir.FunctionTable, name));
+        const shared = comptime @typeInfo(Element) == .pointer and @typeInfo(Element).pointer.size == .one;
+
+        if (shared) {
+            for (@field(left, name)[start..end], @field(right, name)[start..end]) |a, b| if (!columns.same(a.*, b.*)) return false;
+        } else if (!columns.same(@field(left, name)[start..end], @field(right, name)[start..end])) return false;
+    }
+
+    return true;
 }
 
 /// Leaves this analysis for the next one.
@@ -155,13 +196,7 @@ fn unchanged(self: *const Self, state: *const State, index: usize) bool {
         if (before != .rx or !columns.same(previous.derived.resolved[before.rx], self.derived.resolved[module.source.rx])) return false;
     }
 
-    for (module.dependencies) |edge| switch (edge.target) {
-        .source => |dependency| if (self.redone[dependency]) return false,
-        .compiled => return false,
-        .native => {},
-    };
-
-    return true;
+    return !self.reaches(state, index);
 }
 
 /// Whether this analysis starts from the tables the earlier one started from, over the same modules in the same order.

@@ -7,7 +7,7 @@ const generated = @import("generated_analyzer");
 const borrow = @import("../../../ir/canonical/borrow.zig");
 
 pub fn analyze(analyzer: *Context, source: []const u8, syntax: anytype, file_name: []const u8) zx.Error!zx.ir.Program {
-    var arena = std.heap.ArenaAllocator.init(analyzer.allocator);
+    var arena = zx.Arena.init(analyzer.allocator);
 
     defer arena.deinit();
 
@@ -15,7 +15,7 @@ pub fn analyze(analyzer: *Context, source: []const u8, syntax: anytype, file_nam
 }
 
 pub fn analyzeNative(analyzer: *Context, source: []const u8, program: zx.ast.Program, file_name: []const u8) zx.Error!zx.ir.Program {
-    var arena = std.heap.ArenaAllocator.init(analyzer.allocator);
+    var arena = zx.Arena.init(analyzer.allocator);
 
     defer arena.deinit();
 
@@ -24,7 +24,7 @@ pub fn analyzeNative(analyzer: *Context, source: []const u8, program: zx.ast.Pro
     return run(analyzer, &arena, source, input.syntax, input.native, file_name);
 }
 
-fn run(analyzer: *Context, arena: *std.heap.ArenaAllocator, source: []const u8, syntax: @FieldType(model.Input, "syntax"), native: @FieldType(model.Input, "native"), file_name: []const u8) zx.Error!zx.ir.Program {
+fn run(analyzer: *Context, arena: *zx.Arena, source: []const u8, syntax: @FieldType(model.Input, "syntax"), native: @FieldType(model.Input, "native"), file_name: []const u8) zx.Error!zx.ir.Program {
     const prepared = try Input.init(arena.allocator(), analyzer);
     const context = prepared.context(analyzer);
 
@@ -37,7 +37,7 @@ fn run(analyzer: *Context, arena: *std.heap.ArenaAllocator, source: []const u8, 
         .context = &context,
     };
 
-    const output = generated.execute(arena, &input) catch |err| switch (err) {
+    const output = generated.executeIn(arena.allocator(), &input) catch |err| switch (err) {
         error.OutOfMemory, error.IntegerOverflow, error.Overflow => return error.OutOfMemory,
         else => return analyzer.reporter.fail(.contract, .{ .start = 0, .end = 0 }, try std.fmt.allocPrint(analyzer.allocator, "internal compiler error: generated analyzer failed with {s}", .{@errorName(err)})),
     };

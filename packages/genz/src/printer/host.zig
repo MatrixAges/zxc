@@ -24,11 +24,11 @@ pub fn render(allocator: std.mem.Allocator, nodes: *Storage, declarations: []con
         .count = selected.len,
     };
 
-    var arena = std.heap.ArenaAllocator.init(nodes.allocator);
+    var arena = @import("zx").Arena.init(nodes.allocator);
 
     defer arena.deinit();
 
-    const output = generated.execute(&arena, &.{ .source = &source, .output = &.{} }) catch |err| switch (err) {
+    const output = generated.executeIn(arena.allocator(), &.{ .source = &source, .output = &.{} }) catch |err| switch (err) {
         error.OutOfMemory, error.Overflow => return error.OutOfMemory,
         else => unreachable,
     };

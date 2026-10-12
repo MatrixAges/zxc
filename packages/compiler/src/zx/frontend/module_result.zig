@@ -6,7 +6,7 @@ pub const indexed_enabled = @import("parser_options").generated_parser;
 
 pub const Indexed = if (indexed_enabled) struct {
     arena: std.heap.ArenaAllocator,
-    syntax_arena: std.heap.ArenaAllocator,
+    syntax_arena: zx.Arena,
     source: []const u8,
     file_name: []const u8,
     output: @import("generated_parser").Output,

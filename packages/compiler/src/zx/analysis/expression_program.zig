@@ -45,7 +45,6 @@ fn compileStage(allocator: std.mem.Allocator, parsed: anytype, options: Options,
 
 fn build(allocator: std.mem.Allocator, parsed: anytype, options: Options, reporter: *zx.Reporter, comptime linking: bool) zx.Error!ir.Program {
     const span = parsed.expression.span;
-
     const trusted = options.borrow_types and !@import("../ir/validate.zig").internal;
 
     if (!trusted and options.types.count() != 0 and !@import("../ir/type_rules.zig").validate(options.types)) return reporter.fail(.contract, span, "invalid shared type table");
@@ -56,7 +55,14 @@ fn build(allocator: std.mem.Allocator, parsed: anytype, options: Options, report
         .types = .{ .allocator = allocator, .reporter = reporter, .declarations = &.{} },
     };
 
-    try analyzer.types.items.appendDelta(allocator, if (options.borrow_types) options.types else try @import("type_table.zig").copy(allocator, options.types));
+    if (options.type_storage) |storage| {
+        analyzer.types.items = storage.*;
+    } else try analyzer.types.items.appendDelta(allocator, if (options.borrow_types) options.types else try @import("type_table.zig").copy(allocator, options.types));
+
+    defer if (options.type_storage) |storage| {
+        storage.* = analyzer.types.items;
+    };
+
     try analyzer.types.initialize();
 
     const children = try allocator.alloc(ir.TypeId, options.bindings.len);
@@ -102,7 +108,7 @@ fn build(allocator: std.mem.Allocator, parsed: anytype, options: Options, report
 
     var program = ir.Program{
         .file_name = try allocator.dupe(u8, parsed.file_name),
-        .types = try analyzer.types.items.finish(allocator),
+        .types = if (options.type_storage != null) analyzer.types.items.view() else try analyzer.types.items.finish(allocator),
         .native_modules = try @import("../modules/native_context.zig").copy(allocator, options.native_modules),
         .symbols = try analyzer.symbols.finish(allocator),
         .expressions = try analyzer.nodes.finish(allocator),

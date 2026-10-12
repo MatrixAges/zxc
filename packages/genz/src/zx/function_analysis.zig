@@ -35,6 +35,12 @@ pub fn hasValueEntry(self: Self, program: ir.Program) bool {
     return @import("value_call/analysis.zig").eligibleEntry(program, self.value.local);
 }
 
+/// Whether the entry of `program` has `executeIn`: a body that starts tasks shares its allocator between threads, so
+/// it runs in the arena `execute` lends alone.
+pub fn hasAllocatorEntry(self: Self, program: ir.Program) bool {
+    return !@import("tasks/allocator.zig").required(program, self.tasks);
+}
+
 pub const Owned = struct {
     arena: std.heap.ArenaAllocator,
     value: Self,
@@ -124,6 +130,7 @@ fn analyzeFrom(allocator: std.mem.Allocator, workspace: std.mem.Allocator, progr
     const others = remaining(allocator, workspace, program);
     const errors = @import("zx").error_effects.perFunction(allocator, program.types, program.functions);
     const identity_free = if (others) |value| @import("iteration_layout/identity_free.zig").functions(allocator, program, value.value.pure) else |err| err;
+    const fresh_outputs = freshOutputs(allocator, program);
 
     if (thread) |running| running.join();
 
@@ -131,7 +138,7 @@ fn analyzeFrom(allocator: std.mem.Allocator, workspace: std.mem.Allocator, progr
 
     value.errors = try errors;
     value.identity_free = try identity_free;
-    value.fresh_outputs = try freshOutputs(allocator, program);
+    value.fresh_outputs = try fresh_outputs;
     value.uniqueness = try copyPlans(allocator, try uniqueness.result);
     value.basis = source.basis();
 
@@ -215,7 +222,7 @@ const Concurrent = struct {
         if (self.source == .build) {
             const build = self.source.build;
 
-            build.basis.* = Uniqueness.Basis.create(build.allocator, self.program) catch |err| {
+            build.basis.* = Uniqueness.Basis.create(build.allocator, self.program, self.memo) catch |err| {
                 self.result = err;
 
                 return;

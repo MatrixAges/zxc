@@ -8,7 +8,7 @@ const borrow = @import("../../ir/canonical/borrow.zig");
 const Input = std.meta.Child(generated.Input);
 
 pub fn analyze(types: *Types, source: []const u8, syntax: anytype) zx.Error!Signature.Result {
-    var arena = std.heap.ArenaAllocator.init(types.allocator);
+    var arena = zx.Arena.init(types.allocator);
 
     defer arena.deinit();
 
@@ -16,7 +16,7 @@ pub fn analyze(types: *Types, source: []const u8, syntax: anytype) zx.Error!Sign
 }
 
 pub fn analyzeNative(types: *Types, source: []const u8, program: zx.ast.Program) zx.Error!Signature.Result {
-    var arena = std.heap.ArenaAllocator.init(types.allocator);
+    var arena = zx.Arena.init(types.allocator);
 
     defer arena.deinit();
 
@@ -25,7 +25,7 @@ pub fn analyzeNative(types: *Types, source: []const u8, program: zx.ast.Program)
     return run(types, &arena, source, borrow.pointer(@FieldType(Input, "syntax"), input.syntax), borrow.pointer(@typeInfo(@FieldType(Input, "native")).optional.child, input.native.types));
 }
 
-fn run(types: *Types, arena: *std.heap.ArenaAllocator, source: []const u8, syntax: @FieldType(Input, "syntax"), native: @FieldType(Input, "native")) zx.Error!Signature.Result {
+fn run(types: *Types, arena: *zx.Arena, source: []const u8, syntax: @FieldType(Input, "syntax"), native: @FieldType(Input, "native")) zx.Error!Signature.Result {
     const allocator = arena.allocator();
     const type_base = zx.ir.TypeTable.borrow(std.meta.Child(@FieldType(Input, "type_base")), types.items.view());
     const nominal_base = Origins.Table.borrow(std.meta.Child(@FieldType(Input, "nominal_base")), if (types.shared) |shared| shared.origins.items.view() else .{});
@@ -65,7 +65,7 @@ fn run(types: *Types, arena: *std.heap.ArenaAllocator, source: []const u8, synta
         .shared = types.shared != null,
     };
 
-    const output = generated.execute(arena, &input) catch |err| switch (err) {
+    const output = generated.executeIn(allocator, &input) catch |err| switch (err) {
         error.OutOfMemory, error.IntegerOverflow, error.Overflow => return error.OutOfMemory,
         else => return types.reporter.fail(.contract, .{ .start = 0, .end = 0 }, try std.fmt.allocPrint(types.allocator, "internal compiler error: generated signature analysis failed with {s}", .{@errorName(err)})),
     };

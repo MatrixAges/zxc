@@ -77,6 +77,9 @@ deferred: bool = false,
 /// Every summary level the analysis read, when given: an analysis that reads the same levels again reaches the same
 /// result, so the list tells whether a result still holds without analyzing the body again.
 reads: ?*std.ArrayList(Read) = null,
+/// Set when recording a read ran out of memory. Levels recurse deeply and only that record allocates, so they return
+/// plain levels and each public step reports the failure once it returns.
+failed: bool = false,
 pub fn analyze(allocator: std.mem.Allocator, functions: ir.FunctionTable, unit: Unit, order: *const Order, sites: *Sites, slots: Slots, summaries: *Summaries) std.mem.Allocator.Error!Self {
     const levels = try allocator.alloc(Known, sites.slot_first[sites.slot_first.len - 1] - sites.slot_first[unit.symbols.count()]);
     var self = Self{ .allocator = allocator, .functions = functions, .expressions = unit.expressions, .order = order, .sites = sites, .slots = slots, .summaries = summaries, .input = unit.input, .function = unit.function, .normalized = unit.normalized, .renewed = unit.renewed, .operations = unit.operations, .rows = unit.rows, .levels = levels };
@@ -106,7 +109,7 @@ pub fn analyze(allocator: std.mem.Allocator, functions: ir.FunctionTable, unit: 
             const state = self.carriedState(entry.key_ptr.*).?;
 
             for (entry.value_ptr.*, 0..) |*value, slot| {
-                const next = value.meet(try self.entering(entry.key_ptr.*, state.initial, @intCast(slot))).meet(try self.level(state.body, @intCast(slot)));
+                const next = value.meet(self.entering(entry.key_ptr.*, state.initial, @intCast(slot))).meet(self.level(state.body, @intCast(slot)));
 
                 if (next == value.*) continue;
 
@@ -116,7 +119,13 @@ pub fn analyze(allocator: std.mem.Allocator, functions: ir.FunctionTable, unit: 
         }
     }
 
+    try self.settled();
+
     return self;
+}
+
+fn settled(self: Self) std.mem.Allocator.Error!void {
+    if (self.failed) return error.OutOfMemory;
 }
 
 /// The output slots every return guarantees.
@@ -124,8 +133,10 @@ pub fn output(self: *Self, values: []Level) std.mem.Allocator.Error!void {
     @memset(values, if (self.order.results.items.len == 0) .none else .all);
 
     for (self.order.results.items) |result| {
-        for (values, 0..) |*value, slot| value.* = value.meet(try self.level(result, @intCast(slot)));
+        for (values, 0..) |*value, slot| value.* = value.meet(self.level(result, @intCast(slot)));
     }
+
+    return self.settled();
 }
 
 /// Meets what each call in this body passes into every callee input summary; lists the callees that weakened.
@@ -141,13 +152,15 @@ pub fn arguments(self: *Self, changed: *std.ArrayList(usize), passed: *std.Array
         const levels = try self.allocator.alloc(Level, self.summaries.input[callee].len);
 
         for (levels, 0..) |*value, slot| {
-            value.* = try self.level(invocation.argument, @intCast(slot));
+            value.* = self.level(invocation.argument, @intCast(slot));
 
             if (!self.deferred) try meet(self.allocator, self.summaries, @intCast(callee), @intCast(slot), value.*, changed);
         }
 
         try passed.append(self.allocator, .{ .callee = @intCast(callee), .levels = levels });
     }
+
+    return self.settled();
 }
 
 /// One summary level an analysis read.
@@ -171,10 +184,12 @@ pub fn unchanged(summaries: *const Summaries, reads: []const Read) bool {
 }
 
 /// Reads one summary level, which a background analysis reads while the worklist may store it.
-fn read(self: *Self, table: Table, function: usize, values: []const Level, slot: u32) std.mem.Allocator.Error!Level {
+fn read(self: *Self, table: Table, function: usize, values: []const Level, slot: u32) Level {
     const value = Level.load(&values[slot]);
 
-    if (self.reads) |list| try list.append(self.allocator, .{ .table = table, .function = @intCast(function), .slot = slot, .value = value });
+    if (self.reads) |list| list.append(self.allocator, .{ .table = table, .function = @intCast(function), .slot = slot, .value = value }) catch {
+        self.failed = true;
+    };
 
     return value;
 }
@@ -198,8 +213,8 @@ fn meet(allocator: std.mem.Allocator, summaries: *Summaries, callee: u32, slot: 
 }
 
 /// The level a loop slot starts with: its initial value's, or a fresh growth buffer where the loop renews the slot.
-fn entering(self: *Self, owner: ir.ExprId, initial: ir.ExprId, slot: u32) std.mem.Allocator.Error!Level {
-    const result = try self.level(initial, slot);
+fn entering(self: *Self, owner: ir.ExprId, initial: ir.ExprId, slot: u32) Level {
+    const result = self.level(initial, slot);
     const want = self.renewed.get(renewal(owner, slot)) orelse return result;
 
     return if (lacks(result, want)) .all else result;
@@ -231,7 +246,7 @@ pub fn renewals(self: *Self, allocator: std.mem.Allocator) std.mem.Allocator.Err
 
         if (self.order.time[@backingInt(owner)] == Order.none) continue;
 
-        const start = if (value) try self.raw(owner, slot) else try self.level(self.carriedState(owner).?.initial, slot);
+        const start = if (value) self.raw(owner, slot) else self.level(self.carriedState(owner).?.initial, slot);
 
         if (!lacks(start, entry.value_ptr.*)) continue;
         try result.append(allocator, .{ .owner = owner, .path = try self.slots.path(allocator, self.row(owner).type_id, slot), .value = value });
@@ -245,6 +260,8 @@ pub fn renewals(self: *Self, allocator: std.mem.Allocator) std.mem.Allocator.Err
             return std.mem.order(u32, left.path, right.path) == .lt;
         }
     }.less);
+
+    try self.settled();
 
     return result.items;
 }
@@ -265,7 +282,7 @@ pub fn flags(self: *Self, values: []Flags) std.mem.Allocator.Error!void {
 
         if (self.order.time[@backingInt(id)] == Order.none) continue;
 
-        const raw_level = try self.raw(id, 0);
+        const raw_level = self.raw(id, 0);
 
         values[@backingInt(id)].normalize = (want.headered and !raw_level.headered) or (want.unique and !raw_level.unique);
     }
@@ -278,7 +295,7 @@ pub fn flags(self: *Self, values: []Flags) std.mem.Allocator.Error!void {
         const id: ir.ExprId = @fromBackingInt(@intCast((entry.key_ptr.* & ~value_renewal) >> 32));
 
         if (self.order.time[@backingInt(id)] == Order.none) continue;
-        if (lacks(try self.raw(id, @truncate(entry.key_ptr.*)), entry.value_ptr.*)) values[@backingInt(id)].renew = true;
+        if (lacks(self.raw(id, @truncate(entry.key_ptr.*)), entry.value_ptr.*)) values[@backingInt(id)].renew = true;
     }
 
     for (self.operations) |id| {
@@ -286,7 +303,7 @@ pub fn flags(self: *Self, values: []Flags) std.mem.Allocator.Error!void {
 
         switch (self.row(id).value) {
             .list_operation => |operation| {
-                const target = try self.level(operation.target, 0);
+                const target = self.level(operation.target, 0);
 
                 switch (operation.kind) {
                     .push, .concat => value.frontier = target.headered,
@@ -299,7 +316,7 @@ pub fn flags(self: *Self, values: []Flags) std.mem.Allocator.Error!void {
                 }
             },
             .list_update => |update| {
-                const target = try self.level(update.target, 0);
+                const target = self.level(update.target, 0);
 
                 value.in_place = target.unique;
                 value.grow = !target.unique and target.headered;
@@ -307,6 +324,8 @@ pub fn flags(self: *Self, values: []Flags) std.mem.Allocator.Error!void {
             else => {},
         }
     }
+
+    return self.settled();
 }
 
 const State = struct { parameter: ir.SymbolId, condition: ?ir.SymbolId, initial: ir.ExprId, body: ir.ExprId };
@@ -325,7 +344,7 @@ fn row(self: Self, id: ir.ExprId) *const ir.ExpressionRow {
 
 const Known = enum(u8) { unknown = 0xff, _ };
 
-pub fn level(self: *Self, id: ir.ExprId, slot: u32) std.mem.Allocator.Error!Level {
+pub fn level(self: *Self, id: ir.ExprId, slot: u32) Level {
     const root = self.sites.nodeRoot(id);
     const base = self.sites.slot_first[self.sites.symbols.count()];
     const index = self.sites.slot_first[root] + slot;
@@ -336,15 +355,15 @@ pub fn level(self: *Self, id: ir.ExprId, slot: u32) std.mem.Allocator.Error!Leve
 
     if (entry.* != .unknown) return @bitCast(@as(u2, @intCast(@backingInt(entry.*))));
 
-    const result = try self.compute(id, slot);
+    const result = self.compute(id, slot);
 
     entry.* = @fromBackingInt(@intCast(@as(u2, @bitCast(result))));
 
     return result;
 }
 
-fn compute(self: *Self, id: ir.ExprId, slot: u32) std.mem.Allocator.Error!Level {
-    const result = try self.raw(id, slot);
+fn compute(self: *Self, id: ir.ExprId, slot: u32) Level {
+    const result = self.raw(id, slot);
     const want = (if (slot == 0) self.normalized.get(id) else null) orelse self.renewed.get(renewal(id, slot) | value_renewal) orelse return result;
 
     if (!lacks(result, want)) return result;
@@ -358,7 +377,7 @@ fn copyLinear(self: *Self, id: ir.ExprId, slot: u32) bool {
     return self.row(id).value != .reference and self.sites.linear(self.sites.nodeRoot(id), slot);
 }
 
-fn raw(self: *Self, id: ir.ExprId, slot: u32) std.mem.Allocator.Error!Level {
+fn raw(self: *Self, id: ir.ExprId, slot: u32) Level {
     const value = self.row(id);
 
     switch (value.value) {
@@ -373,13 +392,13 @@ fn raw(self: *Self, id: ir.ExprId, slot: u32) std.mem.Allocator.Error!Level {
 
             if (self.order.crossesConcurrent(self.order.loop[@backingInt(id)], self.order.def_loop[index])) return .none;
 
-            var result = try self.definition(symbol, slot);
+            var result = self.definition(symbol, slot);
             result.unique = result.unique and (self.empty(symbol) or self.sites.linear(Sites.symbolRoot(symbol), slot));
 
             return result;
         },
         else => {
-            var result = try self.node(id, slot);
+            var result = self.node(id, slot);
 
             result.unique = result.unique and (self.emptyList(id) or self.sites.linear(self.sites.nodeRoot(id), slot));
 
@@ -405,9 +424,9 @@ fn emptyList(self: Self, id: ir.ExprId) bool {
     };
 }
 
-fn definition(self: *Self, symbol: ir.SymbolId, slot: u32) std.mem.Allocator.Error!Level {
+fn definition(self: *Self, symbol: ir.SymbolId, slot: u32) Level {
     return switch (self.order.defs[@backingInt(symbol)]) {
-        .input => if (slot < self.input.len) try self.read(.input, self.function.?, self.input, slot) else .none,
+        .input => if (slot < self.input.len) self.read(.input, self.function.?, self.input, slot) else .none,
         .value => |id| self.level(id, slot),
         .part => |part| self.level(part.value, self.slots.member(self.row(part.value).type_id, part.index).offset + slot),
         .carried, .condition => |id| self.carried.get(id).?[slot],
@@ -415,7 +434,7 @@ fn definition(self: *Self, symbol: ir.SymbolId, slot: u32) std.mem.Allocator.Err
     };
 }
 
-fn node(self: *Self, id: ir.ExprId, slot: u32) std.mem.Allocator.Error!Level {
+fn node(self: *Self, id: ir.ExprId, slot: u32) Level {
     const value = self.row(id);
 
     return switch (value.value) {
@@ -434,28 +453,28 @@ fn node(self: *Self, id: ir.ExprId, slot: u32) std.mem.Allocator.Error!Level {
         .list => |items| if (items.len == 0) .all else .none,
         .list_operation => |operation| if (slot != 0) (if (slot == 1 and self.prefix(operation)) self.level(operation.target, 0) else .none) else switch (operation.kind) {
             .push, .concat => blk: {
-                const target = try self.level(operation.target, 0);
+                const target = self.level(operation.target, 0);
 
                 break :blk .{ .headered = true, .unique = !target.headered or target.unique };
             },
             .pop => self.level(operation.target, 0),
-            .sort, .reverse => written(try self.level(operation.target, 0)),
+            .sort, .reverse => written(self.level(operation.target, 0)),
             .splice => .fresh,
         },
-        .list_update => |update| written(try self.level(update.target, 0)),
+        .list_update => |update| written(self.level(update.target, 0)),
         .transform => |transform| switch (transform.kind) {
             .map, .filter => .fresh,
             .reduce => self.carried.get(id).?[slot],
             .every, .some => .none,
         },
         .scope => |scope| self.level(scope.result, slot),
-        .binary => |binary| if (binary.operator == .coalesce) (try self.level(binary.left, slot)).meet(try self.level(binary.right, slot)) else .none,
+        .binary => |binary| if (binary.operator == .coalesce) (self.level(binary.left, slot)).meet(self.level(binary.right, slot)) else .none,
         .iteration => self.carried.get(id).?[slot],
-        .conditional => |conditional| (try self.level(conditional.yes, slot)).meet(try self.level(conditional.no, slot)),
+        .conditional => |conditional| (self.level(conditional.yes, slot)).meet(self.level(conditional.no, slot)),
         .match_expr => |selection| blk: {
-            var result = try self.level(selection.fallback, slot);
+            var result = self.level(selection.fallback, slot);
 
-            for (0..selection.arms.len) |item| result = result.meet(try self.level(selection.arms.at(item).result, slot));
+            for (0..selection.arms.len) |item| result = result.meet(self.level(selection.arms.at(item).result, slot));
 
             break :blk result;
         },
@@ -463,7 +482,7 @@ fn node(self: *Self, id: ir.ExprId, slot: u32) std.mem.Allocator.Error!Level {
             const callee = @backingInt(invocation.function);
             const outputs = self.summaries.output[callee];
 
-            break :blk if (slot < outputs.len) try self.read(.output, callee, outputs, slot) else .none;
+            break :blk if (slot < outputs.len) self.read(.output, callee, outputs, slot) else .none;
         },
         else => .none,
     };
@@ -503,7 +522,7 @@ pub fn demand(self: *Self, changed: *std.ArrayList(usize), marked: *std.ArrayLis
                 const callee = @backingInt(invocation.function);
 
                 for (0..self.summaries.inputs[callee].len) |slot| {
-                    const want = try self.read(.inputs, callee, self.summaries.inputs[callee], @intCast(slot));
+                    const want = self.read(.inputs, callee, self.summaries.inputs[callee], @intCast(slot));
 
                     if (want != Level.none) try self.trace(invocation.argument, @intCast(slot), null, true, want);
                 }
@@ -512,14 +531,16 @@ pub fn demand(self: *Self, changed: *std.ArrayList(usize), marked: *std.ArrayLis
         }
     }
 
-    const function = self.function orelse return;
+    const function = self.function orelse return self.settled();
 
     for (0..self.summaries.outputs[function].len) |slot| {
-        const want = try self.read(.outputs, function, self.summaries.outputs[function], @intCast(slot));
+        const want = self.read(.outputs, function, self.summaries.outputs[function], @intCast(slot));
 
         if (want == Level.none) continue;
         for (self.order.results.items) |result| try self.trace(result, @intCast(slot), null, true, want);
     }
+
+    return self.settled();
 }
 
 /// Follows a demand for the `wanted` properties of one list slot back to where a growth copy can provide them; only the
@@ -527,10 +548,10 @@ pub fn demand(self: *Self, changed: *std.ArrayList(usize), marked: *std.ArrayLis
 /// `repeat` places the copy where the value enters even when no update follows it here: a loop's initial value, or a
 /// value a callee or caller wants, since a summary that lacks the property makes every other caller copy on each call.
 fn trace(self: *Self, id: ir.ExprId, slot: u32, outer: ?ir.ExprId, repeat: bool, wanted: Level) std.mem.Allocator.Error!void {
-    const current = try self.level(id, slot);
+    const current = self.level(id, slot);
     var want = wanted;
     want.headered = want.headered and !current.headered;
-    want.unique = want.unique and !current.unique and try self.linearAt(id, slot);
+    want.unique = want.unique and !current.unique and self.linearAt(id, slot);
 
     if (want == Level.none) return;
 
@@ -614,7 +635,7 @@ fn provide(self: *Self, id: ir.ExprId, slot: u32, leaf: ?ir.ExprId, wanted: Leve
 }
 
 /// Whether a value used here could stay unique: a projection defers to its target, a reference to its symbol.
-fn linearAt(self: *Self, id: ir.ExprId, slot: u32) std.mem.Allocator.Error!bool {
+fn linearAt(self: *Self, id: ir.ExprId, slot: u32) bool {
     return switch (self.row(id).value) {
         .field, .tuple_field, .optional_value => true,
         .reference => |symbol| self.sites.linear(Sites.symbolRoot(symbol), slot),

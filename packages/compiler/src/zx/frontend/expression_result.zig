@@ -6,7 +6,7 @@ pub const View = if (indexed_enabled) @import("syntax/program.zig").View(@import
 
 pub const Indexed = if (indexed_enabled) struct {
     arena: std.heap.ArenaAllocator,
-    syntax_arena: std.heap.ArenaAllocator,
+    syntax_arena: zx.Arena,
     source: []const u8,
     file_name: []const u8,
     output: @import("generated_expression").Output,

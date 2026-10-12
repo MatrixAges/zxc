@@ -30,6 +30,9 @@ request: ?std.heap.ArenaAllocator = null,
 keeps_request: bool = false,
 /// Memory the current request no longer needs, freed once it ends so that freeing it does not hold up the answer.
 discarded: ?std.heap.ArenaAllocator = null,
+/// What each request's output is built in, reset rather than freed between requests so that its pages stay mapped:
+/// copying the reused sources into fresh pages costs more in page faults than in copying.
+emission: std.heap.ArenaAllocator,
 const Generation = struct { path: []u8, cache: compiler.zig.GenerationCache };
 
 pub fn init(io: std.Io, gpa: std.mem.Allocator) !Self {
@@ -37,7 +40,7 @@ pub fn init(io: std.Io, gpa: std.mem.Allocator) !Self {
 
     defer scratch.deinit();
 
-    return .{ .gpa = gpa, .digest = try @import("../generator_digest.zig").create(io, scratch.allocator()), .parse_cache = .{ .allocator = gpa, .keeps_replaced = true }, .files = .{ .gpa = gpa }, .modules = .{ .gpa = gpa } };
+    return .{ .gpa = gpa, .digest = try @import("../generator_digest.zig").create(io, scratch.allocator()), .parse_cache = .{ .allocator = gpa, .keeps_replaced = true }, .files = .{ .gpa = gpa }, .modules = .{ .gpa = gpa }, .emission = .init(gpa) };
 }
 
 pub fn deinit(self: *Self) void {
@@ -49,6 +52,7 @@ pub fn deinit(self: *Self) void {
     self.endRequest();
     self.release();
     self.epochs.deinit(self.gpa);
+    self.emission.deinit();
     self.parse_cache.deinit();
     self.files.deinit();
     self.modules.deinit();
@@ -90,6 +94,13 @@ pub fn requestAllocator(self: *Self) std.mem.Allocator {
     self.request = .init(self.gpa);
 
     return self.request.?.allocator();
+}
+
+/// The allocator the current request's output is built in; what the previous request built there must be discarded.
+pub fn emissionAllocator(self: *Self) std.mem.Allocator {
+    _ = self.emission.reset(.retain_capacity);
+
+    return self.emission.allocator();
 }
 
 /// Frees `arena` once the current request ends; it must hold nothing the request still reads.

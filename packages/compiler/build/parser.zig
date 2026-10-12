@@ -30,6 +30,7 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode, stage0: []con
         .root_source_file = b.path("build/generate_parser.zig"),
         .target = target,
         .optimize = generator_root,
+        .strip = false,
         .imports = &.{ .{ .name = "compiler", .module = seed.compiler }, .{ .name = "rx", .module = flow.syntax }, .{ .name = "rx_analysis", .module = flow.analysis } },
     }) });
 
@@ -183,6 +184,7 @@ pub fn shared(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
 
     if (partitions != 0) {
         const bridge = b.createModule(.{ .root_source_file = source.main.path(b, "bridge.zig"), .target = target, .optimize = optimize, .strip = strip });
+
         const imports: []const std.Build.Module.Import = &.{
             .{ .name = "zxc_abi", .module = abi },
             .{ .name = "zxc_standard", .module = standard },

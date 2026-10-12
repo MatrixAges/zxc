@@ -69,7 +69,7 @@ pub fn prefetch(self: *Self, requests: []const Request) std.mem.Allocator.Error!
         next: std.atomic.Value(usize) = .init(0),
         failed: std.atomic.Value(bool) = .init(false),
         fn run(work: *@This(), _: usize) void {
-            var scratch = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+            var scratch = @import("zx").Arena.init(std.heap.page_allocator);
 
             defer scratch.deinit();
 

@@ -46,11 +46,11 @@ fn parseWithMode(comptime indexed: bool, allocator: std.mem.Allocator, source: [
     if (@import("parser_options").generated_parser) {
         const generated = @import("generated_expression");
         const adapter = @import("program_adapter/root.zig");
-        var scratch = std.heap.ArenaAllocator.init(compact.scratch_backing);
+        var scratch = zx.Arena.init(compact.scratch_backing);
 
         defer scratch.deinit();
 
-        const output = generated.execute(&scratch, owned_source) catch |err| switch (err) {
+        const output = generated.executeIn(scratch.allocator(), owned_source) catch |err| switch (err) {
             error.OutOfMemory, error.Overflow => return error.OutOfMemory,
             else => {
                 const message = try std.fmt.allocPrint(temporary, "internal compiler error: generated expression parser failed with {s}", .{@errorName(err)});
@@ -76,7 +76,7 @@ fn parseWithMode(comptime indexed: bool, allocator: std.mem.Allocator, source: [
         }
 
         if (indexed) {
-            var syntax = std.heap.ArenaAllocator.init(allocator);
+            var syntax = try zx.Arena.initCapacity(allocator, compact.size(owned_source, output));
 
             errdefer syntax.deinit();
 

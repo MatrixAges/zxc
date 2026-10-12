@@ -111,7 +111,7 @@ pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, progr
 
     const shared = if (memo.persistent) Identity.program(program, basis) else @as([32]u8, @splat(0));
 
-    if (memo.persistent) identify(shared, units);
+    if (memo.persistent) identify(shared, basis.contents, units);
 
     var replay = try follow(temporary, memo, shared, exported, units);
 
@@ -554,10 +554,12 @@ fn prepare(allocator: std.mem.Allocator, unit: Function.Unit, body: ir.Block) st
     return result;
 }
 
-/// Gives every body its content identity; bodies hash independently, so all cores share the work.
-fn identify(shared: [32]u8, units: []const ?*Unit) void {
+/// Gives every body its identity, from the content the basis hashed where it did; bodies hash independently, so all
+/// cores share the work.
+fn identify(shared: [32]u8, contents: []const [32]u8, units: []const ?*Unit) void {
     const Hashing = struct {
         shared: [32]u8,
+        contents: []const [32]u8,
         units: []const ?*Unit,
         next: std.atomic.Value(usize) = .init(0),
         fn run(work: *@This(), _: usize) void {
@@ -567,12 +569,13 @@ fn identify(shared: [32]u8, units: []const ?*Unit) void {
                 if (index >= work.units.len) return;
 
                 const unit = work.units[index] orelse continue;
-                unit.identity = Identity.body(work.shared, unit.unit.symbols, unit.unit.expressions, unit.body, unit.unit.input_type, unit.unit.output_type);
+                const content = if (index < work.contents.len) work.contents[index] else Identity.content(unit.unit.symbols, unit.unit.expressions, unit.body, unit.unit.input_type, unit.unit.output_type);
+                unit.identity = Identity.body(work.shared, content);
             }
         }
     };
 
-    var work = Hashing{ .shared = shared, .units = units };
+    var work = Hashing{ .shared = shared, .contents = contents, .units = units };
 
     @import("zx").parallel.spread(Hashing, &work, Hashing.run, units.len);
 }

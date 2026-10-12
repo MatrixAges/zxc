@@ -38,6 +38,10 @@ pub fn write(io: std.Io, allocator: std.mem.Allocator, output: []const u8, bundl
             try adapter.writer.writeAll("pub const executeValue = entry.executeValue;\n");
         }
 
+        if (module.allocator_entry) {
+            try adapter.writer.writeAll("pub const executeIn = entry.executeIn;\n");
+        }
+
         try files.append(allocator, .{ .path = try std.fmt.allocPrint(allocator, "{s}.zig", .{module.name}), .source = adapter.written() });
     }
 

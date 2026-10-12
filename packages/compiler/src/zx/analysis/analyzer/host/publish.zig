@@ -10,7 +10,10 @@ pub fn apply(analyzer: *Context, output: *const model.Output, file_name: []const
     const allocator = analyzer.allocator;
 
     if (analyzer.mode != .project) {
-        analyzer.types.* = try @import("../../type_table.zig").storage(allocator, analyzer.base_types);
+        const type_table = @import("../../type_table.zig");
+
+        // A resolved body's base table outlives its program, so the program borrows its names, as `analyze` does.
+        analyzer.types.* = try if (analyzer.mode == .resolved) type_table.columns(allocator, analyzer.base_types) else type_table.storage(allocator, analyzer.base_types);
 
         try analyzer.origins.copyValidated(analyzer.types.view(), analyzer.base_origins);
     }

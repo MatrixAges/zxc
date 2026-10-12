@@ -11,8 +11,8 @@ hash: Hash = .init(.{}),
 pub fn program(value: ir.Program, basis: *const Basis) [32]u8 {
     var self = Self{};
 
-    self.bytes("zxc.uniqueness.program.v5");
-    self.write(value.types);
+    self.bytes("zxc.uniqueness.program.v7");
+    self.bytes(&basis.types);
     self.write(value.functions.count());
 
     for (0..value.functions.count()) |index| {
@@ -27,14 +27,60 @@ pub fn program(value: ir.Program, basis: *const Basis) [32]u8 {
     return self.finish();
 }
 
-/// A body within `shared`, the digest of its program shape.
-pub fn body(shared: [32]u8, symbols: ir.SymbolTable, expressions: ir.ExpressionTable, block: ir.Block, input_type: ir.TypeId, output_type: ir.TypeId) [32]u8 {
+/// The types every list slot derives from.
+pub fn types(value: ir.TypeTable) [32]u8 {
     var self = Self{};
 
-    self.hash.update(&shared);
+    self.bytes("zxc.uniqueness.types.v1");
+    self.write(value);
+
+    return self.finish();
+}
+
+/// A body by itself, apart from the program it sits in.
+pub fn content(symbols: ir.SymbolTable, expressions: ir.ExpressionTable, block: ir.Block, input_type: ir.TypeId, output_type: ir.TypeId) [32]u8 {
+    var self = Self{};
+
     self.write(.{ .symbols = symbols, .expressions = expressions, .block = block, .input_type = input_type, .output_type = output_type });
 
     return self.finish();
+}
+
+/// The content of every function body, hashed on all cores; external functions have none.
+pub fn contents(allocator: std.mem.Allocator, value: ir.Program) std.mem.Allocator.Error![]const [32]u8 {
+    const Hashing = struct {
+        program: ir.Program,
+        result: [][32]u8,
+        next: std.atomic.Value(usize) = .init(0),
+        fn run(work: *@This(), _: usize) void {
+            while (true) {
+                const index = work.next.fetchAdd(1, .monotonic);
+
+                if (index >= work.result.len) return;
+
+                const function = work.program.functions.at(index);
+                work.result[index] = if (function.external != null) @splat(0) else content(function.symbols, function.expressions, function.body.block(), function.input_type, function.output_type);
+            }
+        }
+    };
+
+    var work = Hashing{ .program = value, .result = try allocator.alloc([32]u8, value.functions.count()) };
+
+    @import("zx").parallel.spread(Hashing, &work, Hashing.run, work.result.len);
+
+    return work.result;
+}
+
+/// A body of `digest` within `shared`, the digest of its program shape.
+pub fn body(shared: [32]u8, digest: [32]u8) [32]u8 {
+    var hash = Hash.init(.{});
+    var result: [32]u8 = undefined;
+
+    hash.update(&shared);
+    hash.update(&digest);
+    hash.final(&result);
+
+    return result;
 }
 
 fn finish(self: *Self) [32]u8 {

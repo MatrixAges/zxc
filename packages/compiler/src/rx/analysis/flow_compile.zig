@@ -14,6 +14,8 @@ pub const Error = std.mem.Allocator.Error || error{InvalidFlow};
 allocator: std.mem.Allocator,
 owner: []const u8,
 types: zx.ir.TypeTable,
+/// What the expressions extend in place while `types` views it whole.
+type_storage: zx.ir.TypeStorage = .{},
 native_modules: zx.ir.NativeModuleTable = .{},
 shared_functions: ?zx.ir.FunctionTable = null,
 verified_functions: zx.ir.FunctionTable = .{},
@@ -129,7 +131,13 @@ pub fn steps(self: *Self, sequence: []const Prepared.Step) Error![]const Flow.St
 }
 
 fn value(self: *Self, attribute: rx.ast.Attribute, expected: ?zx.ir.TypeId) Error!zx.ir.Program {
-    const compiled = try expression.compileForLinking(self.allocator, self.owner, attribute, .{ .types = self.types, .borrow_types = true, .native_modules = self.native_modules, .bindings = self.bindings.items, .nonnull_bindings = self.nonnull.items, .unit_bindings = if (self.unit_input) &.{"$in"} else &.{}, .expected = expected });
+    if (!viewed(self.type_storage, self.types)) {
+        self.type_storage = .{};
+
+        try self.type_storage.appendDelta(self.allocator, self.types);
+    }
+
+    const compiled = try expression.compileForLinking(self.allocator, self.owner, attribute, .{ .types = self.types, .borrow_types = true, .type_storage = &self.type_storage, .native_modules = self.native_modules, .bindings = self.bindings.items, .nonnull_bindings = self.nonnull.items, .unit_bindings = if (self.unit_input) &.{"$in"} else &.{}, .expected = expected });
 
     if (compiled.value == .diagnostic) {
         self.issue = compiled.value.diagnostic;
@@ -140,6 +148,17 @@ fn value(self: *Self, attribute: rx.ast.Attribute, expected: ?zx.ir.TypeId) Erro
     self.types = compiled.value.ir.types;
 
     return compiled.value.ir;
+}
+
+/// Whether `types` is the whole of `storage`; a parallel task replaces the table with one of its own.
+fn viewed(storage: zx.ir.TypeStorage, types: zx.ir.TypeTable) bool {
+    inline for (@typeInfo(zx.ir.TypeStorage).@"struct".field_names) |name| {
+        const column = @field(storage, name).items;
+
+        if (column.ptr != @field(types, name).ptr or column.len != @field(types, name).len) return false;
+    }
+
+    return true;
 }
 
 fn call(self: *Self, loaded: Module.Loaded) Error!usize {

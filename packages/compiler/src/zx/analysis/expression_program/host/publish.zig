@@ -7,16 +7,12 @@ const own = @import("../../../modules/artifact/nodes/columns.zig").own;
 const type_table = @import("../../type_table.zig");
 
 pub fn apply(allocator: std.mem.Allocator, output: *const Output, options: Options, file_name: []const u8) std.mem.Allocator.Error!ir.Program {
-    var types = if (options.borrow_types) try type_table.columns(allocator, options.types) else try type_table.storage(allocator, options.types);
-
-    try types.appendDelta(allocator, try type_table.copy(allocator, borrow.columns(ir.TypeTable, output.type_delta.*)));
-
     const control = try allocator.create(ir.ControlTable);
     control.* = try own(allocator, borrow.columns(ir.ControlTable, output.body.control.*), .{});
 
     return .{
         .file_name = try allocator.dupe(u8, file_name),
-        .types = types.view(),
+        .types = try extended(allocator, output, options),
         .native_modules = try @import("../../../modules/native_context.zig").copy(allocator, options.native_modules),
         .input_type = @fromBackingInt(output.input_type),
         .output_type = @fromBackingInt(output.output_type),
@@ -33,14 +29,20 @@ pub fn apply(allocator: std.mem.Allocator, output: *const Output, options: Optio
 }
 
 pub fn expression(allocator: std.mem.Allocator, output: *const Output, options: Options) std.mem.Allocator.Error!@import("../../expression.zig").Expression {
-    var types = if (options.borrow_types) try type_table.columns(allocator, options.types) else try type_table.storage(allocator, options.types);
-
-    try types.appendDelta(allocator, try type_table.copy(allocator, borrow.columns(ir.TypeTable, output.type_delta.*)));
-
     return .{
-        .types = types.view(),
+        .types = try extended(allocator, output, options),
         .symbols = try own(allocator, borrow.columns(ir.SymbolTable, output.body.symbols.*), .{}),
         .expressions = try own(allocator, borrow.columns(ir.ExpressionTable, output.body.expressions.*), .{}),
         .value = @fromBackingInt(output.value),
     };
+}
+
+/// The table of `options` with the types the expression added: in the storage the caller lends, or in a copy.
+fn extended(allocator: std.mem.Allocator, output: *const Output, options: Options) std.mem.Allocator.Error!ir.TypeTable {
+    var types = if (options.type_storage) |storage| storage.* else if (options.borrow_types) try type_table.columns(allocator, options.types) else try type_table.storage(allocator, options.types);
+
+    try types.appendDelta(allocator, try type_table.copy(allocator, borrow.columns(ir.TypeTable, output.type_delta.*)));
+    if (options.type_storage) |storage| storage.* = types;
+
+    return types.view();
 }

@@ -1,6 +1,7 @@
 const std = @import("std");
 const ir = @import("zx").ir;
 const Flow = @import("flow.zig");
+const Memo = @import("memo.zig");
 const Slots = @import("slots.zig");
 const Self = @This();
 
@@ -9,10 +10,17 @@ const Self = @This();
 /// bodies, so one basis serves the whole program and every entry body later analyzed against it.
 slots: Slots,
 flow: Flow,
-pub fn create(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!Self {
+/// The content of each function body, hashed when `memo` keeps analyses across programs; empty otherwise.
+contents: []const [32]u8 = &.{},
+/// The digest of the type table, taken with `contents`.
+types: [32]u8 = @splat(0),
+pub fn create(allocator: std.mem.Allocator, program: ir.Program, memo: ?*Memo) std.mem.Allocator.Error!Self {
     const slots = try Slots.init(allocator, program.types);
+    const kept = if (memo) |value| if (value.persistent) value else null else null;
+    const contents = if (kept != null) try @import("identity.zig").contents(allocator, program) else &.{};
+    const types: [32]u8 = if (kept != null) @import("identity.zig").types(program.types) else @splat(0);
 
-    return .{ .slots = slots, .flow = try .create(allocator, program, slots) };
+    return .{ .slots = slots, .flow = try .create(allocator, program, slots, contents, types, kept), .contents = contents, .types = types };
 }
 
 pub fn lists(allocator: std.mem.Allocator, slots: Slots, type_id: ir.TypeId) std.mem.Allocator.Error![]const ir.TypeId {
