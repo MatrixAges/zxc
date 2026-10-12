@@ -1,16 +1,7 @@
 const std = @import("std");
 const f = @import("fixture.zig");
 const modules = f.checks.modules;
-
-fn names(allocator: std.mem.Allocator, program: f.ir.Program) !modules.Names {
-    const functions = try allocator.alloc([]const u8, program.functions.count());
-    const types = try allocator.alloc([]const u8, program.types.count());
-
-    for (functions, 0..) |*name, index| name.* = try std.fmt.allocPrint(allocator, "function_{d}", .{index});
-    for (types, 0..) |*name, index| name.* = try std.fmt.allocPrint(allocator, "type_{d}", .{index});
-
-    return .{ .types = types, .functions = functions };
-}
+const names = @import("names.zig").create;
 
 test "reused function summaries preserve independent entry function and type generation" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);

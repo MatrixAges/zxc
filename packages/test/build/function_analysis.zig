@@ -13,6 +13,8 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
         .imports = &.{.{ .name = "zx", .module = core }},
     });
 
+    step.dependOn(@import("function_analysis_runtime.zig").add(b, checks, core, target, optimize));
+
     for ([_][]const u8{ "summary", "lanes", "resources", "emission", "buffer" }) |name| {
         const tests = b.addTest(.{
             .name = b.fmt("function-analysis-{s}", .{name}),
