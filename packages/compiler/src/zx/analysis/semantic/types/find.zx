@@ -1,7 +1,10 @@
 import integers from "std:integer"
 import { Kind } from "core/type_table/model"
 
-import equal from "./equal"
+import candidate from "../entries/candidate"
+import equal from "../entries/equal"
+import row from "../entries/row"
+import kind from "./kind"
 
 import type { Tables } from "core/type_table/model"
 import type { Candidate, Search } from "./model"
@@ -15,16 +18,26 @@ export default function (in: Input): Output {
         return { found: false, id: 0 }
     }
 
+    const entry = candidate(in.candidate)
+    const direct = entry.kind == Kind.Scalar || entry.kind == Kind.Optional || entry.kind == Kind.List || entry.kind == Kind.Task
     const initial_id: u32 = 0
     const count = in.tables.base.kinds.length + in.tables.delta.kinds.length
 
-    const state = loop({ tables: in.tables, candidate: in.candidate, count: count, index: 0, found: false, id: initial_id }, {
+    const state = loop({ tables: in.tables, entry: entry, direct: direct, count: count, index: 0, found: false, id: initial_id }, {
         while: current => !current.found && current.index < current.count,
         next: current => {
-            const id = integers.narrow(current.index)
-            const found = equal({ tables: current.tables, id: id, candidate: current.candidate })
+            const base_count = current.tables.base.kinds.length
+            const delta = current.index >= base_count
+            const table = delta ? current.tables.delta : current.tables.base
+            const position = delta ? current.index - base_count : current.index
+            const shape = current.direct ? table.first[position] == current.entry.first : integers.widen(table.second[position]) == current.entry.count
 
-            current = { ...current, index: current.index + 1, found: found, id: id }
+            if (kind(table.kinds[position]) == current.entry.kind && shape) {
+                current.found = equal({ left: row({ table: table, index: position }), right: current.entry })
+                current.id = integers.narrow(current.index)
+            }
+
+            current.index += 1
         }
     })
 
