@@ -1,0 +1,21 @@
+<Module>
+    <Switch on={$in.maximum != null && $in.maximum == 0}>
+        <Case value={true}>
+            <Return value={null} />
+        </Case>
+
+        <Default>
+            <Call fn="count" in={$in.text} />
+
+            <Switch on={$in.maximum == null || $ctx.count > $in.maximum}>
+                <Case value={true}>
+                    <Return value={$ctx.count} />
+                </Case>
+
+                <Default>
+                    <Return value={null} />
+                </Default>
+            </Switch>
+        </Default>
+    </Switch>
+</Module>

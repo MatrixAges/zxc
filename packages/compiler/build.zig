@@ -14,14 +14,21 @@ pub fn build(b: *std.Build) void {
     const generated_strip: ?bool = if (generated_debug) null else true;
 
     b.addNamedLazyPath("naming", parser_source.main.path(b, "naming.zig"));
+    b.addNamedLazyPath("length", parser_source.main.path(b, "length.zig"));
 
-    const lint = b.dependency("lint", .{ .target = target, .optimize = optimize, .generated_name = parser_source.main.path(b, "naming.zig") }).module("lint");
+    const lint = b.dependency("lint", .{
+        .target = target,
+        .optimize = optimize,
+        .generated_name = parser_source.main.path(b, "naming.zig"),
+        .generated_length = parser_source.main.path(b, "length.zig"),
+    }).module("lint");
 
     b.modules.put(b.allocator, "lint", lint) catch @panic("out of memory");
 
     const natives = parser.shared(b, target, optimize, parser_source, generated_strip, generated_partitions);
 
     lint.import_table.get("naming").?.import_table.get("generated").?.addImport("generated", natives.generated);
+    lint.import_table.get("length").?.import_table.get("generated").?.addImport("generated", natives.generated);
 
     const modules = @import("build/compiler.zig").create(b, target, optimize, lexer.module(b, target, optimize, lexer_source, generated_strip), parser.modules(b, target, optimize, parser_source, natives, generated_strip), lint);
     const frontend = modules.frontend;
@@ -84,8 +91,8 @@ pub fn build(b: *std.Build) void {
     }) });
 
     @import("build/compiler_rt.zig").configure(b, bootstrap_tool);
-    linkGenerated(bootstrap_tool, natives);
 
+    linkGenerated(bootstrap_tool, natives);
     b.step("bootstrap-stage", "Build the next bootstrap generator using the selected stage0").dependOn(&b.addInstallArtifact(bootstrap_tool, .{}).step);
 
     const rx_tests = b.addTest(.{ .root_module = b.createModule(.{

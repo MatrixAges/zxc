@@ -100,8 +100,8 @@ export default function (in: Input): Output {
 
 实现与验证范围见 [表达式风格与四空格实施计划](../../docs/2026-10-06/表达式风格与四空格/实施计划.md)。
 
-## 命名规则实现与引导
+## 命名与物理行数规则实现与引导
 
-三类命名规则统一由 `src/naming/check.rx` 和 `check.zx` 实现。编译器类型表校验通过普通 ZX 模块引用复用同一规则，`checkName` 的 Zig API 静态调用生成代码；字符串借用及标量循环不需要临时堆分配。
+三类命名规则由 `src/naming/check.rx` 和 `check.zx` 实现，ZX 源码物理行数规则由 `src/length/check.rx` 和 `count.zx` 实现。编译器类型表校验通过普通 ZX 模块引用复用命名规则，`checkName` 与 `length.check` / `length.count` 的 Zig API 静态调用生成代码；字符串借用、标量循环与字节扫描不需要临时堆分配。
 
-构建编排由 compiler 提供生成文件，以 `generated_name` LazyPath 参数传给 lint；其他仓库调用者使用 compiler 导出的 lint 模块。lint 不依赖 compiler 包。只有最初的生成宿主显式设置 `seed = true`，使用 `bootstrap/naming.zig`；正式构建缺少生成输入时直接报错，不自动退回 seed。其余 lint 的 AST 遍历及格式处理仍待迁移，不能据此宣称整个 lint 已完成自举。
+构建编排由 compiler 提供生成文件，以 `generated_name` 和 `generated_length` LazyPath 参数传给 lint；其他仓库调用者使用 compiler 导出的 lint 模块。lint 不依赖 compiler 包。只有最初的生成宿主显式设置 `seed = true`，使用 `bootstrap/naming.zig` 与 `bootstrap/length.zig`；正式构建缺少生成输入时直接报错，不自动退回 seed。其余 lint 的 AST 遍历及格式处理仍待迁移，不能据此宣称整个 lint 已完成自举。

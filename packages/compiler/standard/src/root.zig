@@ -15,3 +15,4 @@ pub const process = @import("process.zig");
 pub const http = @import("http/root.zig");
 pub const integer = @import("integer.zig");
 pub const float = @import("float.zig");
+pub const bytes = @import("bytes.zig");

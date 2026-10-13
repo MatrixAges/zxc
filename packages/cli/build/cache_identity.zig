@@ -3,12 +3,10 @@ const std = @import("std");
 /// The directory holding the identity as `digest.zig` and `cache_identity.s` (see `cache_identity/digest.zig`).
 pub const Identity = struct {
     directory: std.Build.LazyPath,
-
     /// A module declaring `digest`, for units that embed the identity.
     pub fn module(self: Identity, b: *std.Build) *std.Build.Module {
         return b.createModule(.{ .root_source_file = self.directory.path(b, "digest.zig") });
     }
-
     /// An assembly source defining the `zxc_cache_identity` symbol, for a platform link.
     pub fn assembly(self: Identity, b: *std.Build) std.Build.LazyPath {
         return self.directory.path(b, "cache_identity.s");
@@ -27,7 +25,6 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
     const directory = run.addOutputDirectoryArg("identity");
 
     run.addArgs(&.{ "text", @import("builtin").zig_version_string, "text", target.result.zigTriple(b.allocator) catch @panic("out of memory"), "text", @tagName(optimize) });
-
     source(run, "directory", "cli", b.path("src"));
     source(run, "directory", "cli-build", b.path("build"));
     source(run, "file", "cli/build.zig", b.path("build.zig"));
@@ -37,7 +34,8 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
 
     for ([_][]const u8{ "compiler", "core", "dsl", "lint", "genz", "pkgs", "napi" }) |name| {
         const dependency = if (std.mem.eql(u8, name, "compiler")) compiler else if (std.mem.eql(u8, name, "lint"))
-            b.dependency("lint", .{ .target = target, .optimize = optimize, .generated_name = compiler.namedLazyPath("naming") })
+            b.dependency("lint", .{ .target = target, .optimize = optimize, .generated_name = compiler.namedLazyPath("naming"), .generated_length = compiler.namedLazyPath("length") })
+
         else
             b.dependency(name, .{ .target = target, .optimize = optimize });
 

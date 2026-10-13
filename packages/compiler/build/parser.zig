@@ -42,11 +42,11 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode, stage0: []con
 
     const standard_abi = standard.addOutputFileArg("standard_abi.zig");
     const genz_dependency = b.dependency("genz", .{ .target = target, .optimize = generator_optimize });
-    const roots = [_]std.Build.LazyPath{ b.path("src"), lint_dependency.path("src/naming"), core_dependency.path("src"), genz_dependency.path("src") };
+    const roots = [_]std.Build.LazyPath{ b.path("src"), lint_dependency.path("src"), core_dependency.path("src"), genz_dependency.path("src") };
 
     const directories = [_][]const u8{
         b.root.joinString(b.allocator, "src") catch @panic("out of memory"),
-        lint_dependency.builder.root.joinString(b.allocator, "src/naming") catch @panic("out of memory"),
+        lint_dependency.builder.root.joinString(b.allocator, "src") catch @panic("out of memory"),
         core_dependency.builder.root.joinString(b.allocator, "src") catch @panic("out of memory"),
         genz_dependency.builder.root.joinString(b.allocator, "src") catch @panic("out of memory"),
     };
@@ -59,7 +59,7 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode, stage0: []con
 
     const manifest_roots = [_]manifest.Root{
         .{ .path = directories[0] },
-        .{ .path = directories[1], .prefix = "lint/naming/" },
+        .{ .path = directories[1], .prefix = "lint/" },
         .{ .path = directories[2], .prefix = "core/" },
         .{ .path = directories[3], .prefix = "genz/" },
     };

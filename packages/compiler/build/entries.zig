@@ -65,6 +65,7 @@ pub const main = [_]Entry{
     .{ .path = "zx/modules/semantic_cache/restoring/native/restore.rx", .name = "native_restore" },
     .{ .path = "verification/query/build.rx", .name = "verification_query", .owner = .compiler },
     .{ .path = "lint/naming/check.rx", .name = "naming", .owner = .lint },
+    .{ .path = "lint/length/check.rx", .name = "length", .owner = .lint },
     .{ .path = "genz/printer/render.rx", .name = "printer", .owner = .genz },
     .{ .path = "genz/analysis/facts/analyze.rx", .name = "function_facts", .owner = .genz },
     .{ .path = "genz/analysis/inline/prepare.rx", .name = "inline_prepare", .owner = .genz },

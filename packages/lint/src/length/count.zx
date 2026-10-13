@@ -1,0 +1,15 @@
+import bytes from "std:bytes"
+
+export type Input = u8[]
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    if (in.length == 0) {
+        return 0
+    }
+
+    const tail: u64 = in[in.length - 1] != 10 ? 1 : 0
+
+    return bytes.count(in, 10) + tail
+}
