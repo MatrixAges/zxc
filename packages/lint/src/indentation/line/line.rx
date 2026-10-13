@@ -1,0 +1,15 @@
+<Module>
+    <Call fn="scan" in={$in} />
+
+    <Switch on={$ctx.scan.at_line_start}>
+        <Case value={false}>
+            <Return value={{ needs_edit: false, start: 0, end: 0, count: 0 }} />
+        </Case>
+
+        <Default>
+            <Call fn="check" in={{ scanned: $ctx.scan, offset: $in.offset, level: $in.level }} />
+
+            <Return value={$ctx.check} />
+        </Default>
+    </Switch>
+</Module>

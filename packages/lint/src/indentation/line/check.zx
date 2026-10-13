@@ -1,0 +1,15 @@
+import type { Output, Scanned } from "./model"
+
+export type Input = { scanned: Scanned, offset: u64, level: u64 }
+
+export default function (in: Input): Output {
+    const count = in.level * 4
+    const needs_edit = in.offset - in.scanned.start != count || in.scanned.has_tab
+
+    return {
+        needs_edit: needs_edit,
+        start: in.scanned.start,
+        end: in.offset,
+        count: count
+    }
+}

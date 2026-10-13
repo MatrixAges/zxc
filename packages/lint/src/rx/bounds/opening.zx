@@ -1,0 +1,10 @@
+import type { Output } from "./model"
+
+export type Input = { source: u8[], end: u64 }
+
+export default function (in: Input): Output {
+    const self_closing = in.end >= 2 && in.source[in.end - 2] == 47
+    const marker = in.end - (self_closing ? 2 : 1)
+
+    return { start: marker, end: in.end, self_closing: self_closing }
+}

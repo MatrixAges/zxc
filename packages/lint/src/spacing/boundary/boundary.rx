@@ -1,0 +1,15 @@
+<Module>
+    <Call fn="scan" in={$in} />
+
+    <Switch on={$ctx.scan.has_newline}>
+        <Case value={false}>
+            <Return value={{ needs_edit: false, start: 0, end: 0, crlf: false, separate: false }} />
+        </Case>
+
+        <Default>
+            <Call fn="check" in={{ gap: $in.gap, scanned: $ctx.scan }} />
+
+            <Return value={$ctx.check} />
+        </Default>
+    </Switch>
+</Module>

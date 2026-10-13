@@ -1,7 +1,7 @@
 const std = @import("std");
 const zx = @import("zx");
 const spacing = @import("../spacing.zig");
-const order = @import("order.zig");
+const order = @import("import_order");
 const Header = zx.syntax.header;
 const Unit = struct { declaration: Header.Import, end: usize };
 
@@ -78,7 +78,7 @@ fn section(allocator: std.mem.Allocator, source: []const u8, comments: anytype, 
 
         if (index > 0) {
             try replacement.appendSlice(allocator, newline);
-            if (order.group(sorted[index - 1].declaration) != order.group(item)) try replacement.appendSlice(allocator, newline);
+            if (!order.sameGroup(sorted[index - 1].declaration, item)) try replacement.appendSlice(allocator, newline);
         }
 
         try replacement.appendSlice(allocator, source[item.span.start..unit.end]);

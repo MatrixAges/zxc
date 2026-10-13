@@ -13,22 +13,23 @@ pub fn build(b: *std.Build) void {
     const generated_debug = b.option(bool, "generated-debug", "Keep debug information in generated bootstrap modules (slower and heavier zxc compiles)") orelse false;
     const generated_strip: ?bool = if (generated_debug) null else true;
 
-    b.addNamedLazyPath("naming", parser_source.main.path(b, "naming.zig"));
-    b.addNamedLazyPath("length", parser_source.main.path(b, "length.zig"));
+    b.addNamedLazyPath("generated", parser_source.main);
 
     const lint = b.dependency("lint", .{
         .target = target,
         .optimize = optimize,
-        .generated_name = parser_source.main.path(b, "naming.zig"),
-        .generated_length = parser_source.main.path(b, "length.zig"),
+        .generated = parser_source.main,
     }).module("lint");
 
     b.modules.put(b.allocator, "lint", lint) catch @panic("out of memory");
 
     const natives = parser.shared(b, target, optimize, parser_source, generated_strip, generated_partitions);
 
-    lint.import_table.get("naming").?.import_table.get("generated").?.addImport("generated", natives.generated);
-    lint.import_table.get("length").?.import_table.get("generated").?.addImport("generated", natives.generated);
+    inline for (@import("build/entries.zig").main) |entry| {
+        if (entry.owner == .lint) {
+            lint.import_table.get(entry.name).?.import_table.get("generated").?.addImport("generated", natives.generated);
+        }
+    }
 
     const modules = @import("build/compiler.zig").create(b, target, optimize, lexer.module(b, target, optimize, lexer_source, generated_strip), parser.modules(b, target, optimize, parser_source, natives, generated_strip), lint);
     const frontend = modules.frontend;

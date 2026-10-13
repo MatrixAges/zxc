@@ -34,7 +34,7 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
 
     for ([_][]const u8{ "compiler", "core", "dsl", "lint", "genz", "pkgs", "napi" }) |name| {
         const dependency = if (std.mem.eql(u8, name, "compiler")) compiler else if (std.mem.eql(u8, name, "lint"))
-            b.dependency("lint", .{ .target = target, .optimize = optimize, .generated_name = compiler.namedLazyPath("naming"), .generated_length = compiler.namedLazyPath("length") })
+            b.dependency("lint", .{ .target = target, .optimize = optimize, .generated = compiler.namedLazyPath("generated") })
 
         else
             b.dependency(name, .{ .target = target, .optimize = optimize });

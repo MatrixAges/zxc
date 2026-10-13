@@ -1,0 +1,16 @@
+import category from "./category"
+
+import type { Input, Pair } from "./model"
+
+export type Output = Pair
+
+export default function (in: Input): Output {
+    const left = category(in.left)
+    const right = category(in.right)
+
+    return {
+        left_category: left.category,
+        right_category: right.category,
+        same_group: left.group == right.group
+    }
+}

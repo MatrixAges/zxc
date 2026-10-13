@@ -1,0 +1,28 @@
+export type Input = { source: u8[], start: u64 }
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    const zero: u8 = 0
+
+    const result = loop({ source: in.source, offset: in.start, quote: zero, done: false }, {
+        while: current => !current.done && current.offset < current.source.length,
+        next: current => {
+            const byte = current.source[current.offset]
+
+            if (current.quote != 0) {
+                if (byte == current.quote) {
+                    current.quote = 0
+                }
+            } else if (byte == 39 || byte == 34) {
+                current.quote = byte
+            } else if (byte == 62) {
+                current.done = true
+            }
+
+            current.offset += 1
+        }
+    })
+
+    return result.offset
+}

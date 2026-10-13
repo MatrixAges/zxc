@@ -1,0 +1,5 @@
+export type Input = { source: u8[], offset: u64, level: u64 }
+
+export type Scanned = { start: u64, at_line_start: bool, has_tab: bool }
+
+export type Output = { needs_edit: bool, start: u64, end: u64, count: u64 }

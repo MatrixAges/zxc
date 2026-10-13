@@ -13,6 +13,10 @@ pub fn group(item: anytype) u8 {
     return if (value >= 7) 3 else if (value >= 6) 2 else if (value >= 4) 1 else 0;
 }
 
+pub fn sameGroup(left: anytype, right: @TypeOf(left)) bool {
+    return group(left) == group(right);
+}
+
 pub fn lessThan(_: void, left: anytype, right: @TypeOf(left)) bool {
     const a = category(left);
     const b = category(right);

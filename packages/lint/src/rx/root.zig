@@ -2,7 +2,7 @@ const std = @import("std");
 const dsl = @import("dsl");
 const zx = @import("zx");
 const spacing = @import("../spacing.zig");
-const bounds = @import("bounds.zig");
+const bounds = @import("rx_bounds");
 const indentation = @import("../indentation/root.zig");
 
 pub fn format(allocator: std.mem.Allocator, source: []const u8, node: dsl.ast.Node) std.mem.Allocator.Error![]u8 {
@@ -39,11 +39,10 @@ const Planner = struct {
             break :block last.value_location.offset + last.raw_value.?.len + 1;
         };
 
-        const opening_end = bounds.tagEnd(self.source, after_attributes);
-        const marker = opening_end - if (self.source[opening_end - 2] == '/') @as(usize, 2) else 1;
+        const open = bounds.opening(self.source, after_attributes);
 
-        try self.indent(marker, level);
-        if (self.source[opening_end - 2] == '/') return .{ .start = start, .end = opening_end };
+        try self.indent(open.marker, level);
+        if (open.self_closing) return .{ .start = start, .end = open.end };
 
         var whitespace_only = true;
 
@@ -51,8 +50,8 @@ const Planner = struct {
             if (std.mem.trim(u8, text.value, " \t\r\n").len != 0) whitespace_only = false;
         }
 
-        var previous_end = opening_end;
-        var previous_span: zx.Span = .{ .start = start, .end = opening_end };
+        var previous_end = open.end;
+        var previous_span: zx.Span = .{ .start = start, .end = open.end };
 
         for (node.children, 0..) |child, index| {
             const span = try self.element(child, level + 1, whitespace_only);
@@ -64,14 +63,14 @@ const Planner = struct {
             previous_span = span;
         }
 
-        const closing_start = bounds.closingStart(self.source, previous_end);
+        const close = bounds.closing(self.source, previous_end);
 
         if (whitespace_only) {
-            try self.gap(previous_end, closing_start, false, level + 1);
-            try self.indent(closing_start, level);
+            try self.gap(previous_end, close.start, false, level + 1);
+            try self.indent(close.start, level);
         }
 
-        return .{ .start = start, .end = bounds.tagEnd(self.source, closing_start) };
+        return .{ .start = start, .end = close.end };
     }
     fn indent(self: *Planner, offset: usize, level: usize) std.mem.Allocator.Error!void {
         if (try indentation.line(self.allocator, self.source, offset, level)) |edit| try self.edits.append(self.allocator, edit);

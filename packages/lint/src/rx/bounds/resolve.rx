@@ -1,0 +1,37 @@
+<Module>
+    <Switch on={$in.kind == 0}>
+        <Case value={true}>
+            <Call fn="tag_end" in={{ source: $in.source, start: $in.start }} />
+            <Call fn="opening" in={{ source: $in.source, end: $ctx.tag_end }} />
+
+            <Return value={$ctx.opening} />
+        </Case>
+
+        <Default>
+            <Switch on={$in.kind == 1}>
+                <Case value={true}>
+                    <Call fn="closing_start" in={{ source: $in.source, start: $in.start }} />
+                    <Call fn="tag_end" in={{ source: $in.source, start: $ctx.closing_start }} />
+
+                    <Return value={{ start: $ctx.closing_start, end: $ctx.tag_end, self_closing: false }} />
+                </Case>
+
+                <Default>
+                    <Switch on={$in.kind == 2}>
+                        <Case value={true}>
+                            <Call fn="comment_end" in={{ source: $in.source, start: $in.start }} />
+
+                            <Return value={{ start: $in.start, end: $ctx.comment_end, self_closing: false }} />
+                        </Case>
+
+                        <Default>
+                            <Call fn="tag_end" in={{ source: $in.source, start: $in.start }} />
+
+                            <Return value={{ start: $in.start, end: $ctx.tag_end, self_closing: false }} />
+                        </Default>
+                    </Switch>
+                </Default>
+            </Switch>
+        </Default>
+    </Switch>
+</Module>

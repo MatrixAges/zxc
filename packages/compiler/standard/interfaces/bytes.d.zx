@@ -1,1 +1,17 @@
 export declare function count(haystack: u8[], needle: u8): u64 concurrent
+
+export declare function indexOfScalar(haystack: u8[], start: u64, needle: u8): u64? concurrent
+
+export declare function lastIndexOfScalar(haystack: u8[], needle: u8): u64? concurrent
+
+export declare function indexOfSlice(haystack: u8[], start: u64, needle: u8[]): u64? concurrent
+
+export declare function indexOfText(haystack: u8[], start: u64, needle: string): u64? concurrent
+
+export declare function startsWith(haystack: u8[], start: u64, prefix: u8[]): bool concurrent
+
+export declare function startsWithText(haystack: u8[], start: u64, prefix: string): bool concurrent
+
+export declare function equals(left: u8[], right: u8[]): bool concurrent
+
+export declare function lessThan(left: u8[], right: u8[]): bool concurrent

@@ -1,4 +1,19 @@
 const std = @import("std");
+pub const Opening = struct { marker: usize, end: usize, self_closing: bool };
+pub const Closing = struct { start: usize, end: usize };
+
+pub fn opening(source: []const u8, start: usize) Opening {
+    const end = tagEnd(source, start);
+    const self_closing = source[end - 2] == '/';
+
+    return .{ .marker = end - if (self_closing) @as(usize, 2) else 1, .end = end, .self_closing = self_closing };
+}
+
+pub fn closing(source: []const u8, start: usize) Closing {
+    const tag_start = closingStart(source, start);
+
+    return .{ .start = tag_start, .end = tagEnd(source, tag_start) };
+}
 
 pub fn tagEnd(source: []const u8, start: usize) usize {
     var offset = start;

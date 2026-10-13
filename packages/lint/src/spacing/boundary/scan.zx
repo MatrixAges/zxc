@@ -1,0 +1,33 @@
+import bytes from "std:bytes"
+
+import type { Input, Scanned } from "./model"
+
+export type Output = Scanned
+
+export default function (in: Input): Output {
+    const first = bytes.indexOfScalar(in.gap, 0, 10)
+
+    if (first == null) {
+        return {
+            has_newline: false,
+            start: in.start,
+            newline_start: 0,
+            last_end: 0,
+            crlf: false,
+            separate: in.separate
+        }
+    }
+
+    const last = bytes.lastIndexOfScalar(in.gap, 10) ?? first
+    const crlf = first > 0 && in.gap[first - 1] == 13
+    const newline_start = first - (crlf ? 1 : 0)
+
+    return {
+        has_newline: true,
+        start: in.start,
+        newline_start: newline_start,
+        last_end: last + 1,
+        crlf: crlf,
+        separate: in.separate
+    }
+}

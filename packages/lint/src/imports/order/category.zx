@@ -1,0 +1,29 @@
+import bytes from "std:bytes"
+
+import type { Classified, Item } from "./model"
+
+export type Input = Item
+
+export type Output = Classified
+
+export default function (in: Input): Output {
+    const kind: u8 = match {
+        bytes.startsWithText(in.path, 0, "std:") => 0,
+        bytes.startsWithText(in.path, 0, "zig:") => 1,
+        bytes.startsWithText(in.path, 0, "c:") => 2,
+        bytes.startsWithText(in.path, 0, "@/") => 4,
+        bytes.startsWithText(in.path, 0, "./") || bytes.startsWithText(in.path, 0, "../") => 6,
+        _ => 3
+    }
+
+    const category: u8 = kind + (in.type_only ? 7 : 0)
+
+    const group: u8 = match {
+        category >= 7 => 3,
+        category >= 6 => 2,
+        category >= 4 => 1,
+        _ => 0
+    }
+
+    return { category: category, group: group }
+}

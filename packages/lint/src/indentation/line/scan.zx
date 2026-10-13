@@ -1,0 +1,22 @@
+import type { Input, Scanned } from "./model"
+
+export type Output = Scanned
+
+export default function (in: Input): Output {
+    const scanned = loop({ source: in.source, start: in.offset, has_tab: false }, {
+        while: current => current.start > 0 && (current.source[current.start - 1] == 32 || current.source[current.start - 1] == 9),
+        next: current => {
+            if (current.source[current.start - 1] == 9) {
+                current.has_tab = true
+            }
+
+            current.start -= 1
+        }
+    })
+
+    return {
+        start: scanned.start,
+        at_line_start: scanned.start == 0 || in.source[scanned.start - 1] == 10,
+        has_tab: scanned.has_tab
+    }
+}

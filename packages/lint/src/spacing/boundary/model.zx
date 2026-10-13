@@ -1,0 +1,18 @@
+export type Input = { gap: u8[], start: u64, separate: bool }
+
+export type Scanned = {
+    has_newline: bool,
+    start: u64,
+    newline_start: u64,
+    last_end: u64,
+    crlf: bool,
+    separate: bool
+}
+
+export type Output = {
+    needs_edit: bool,
+    start: u64,
+    end: u64,
+    crlf: bool,
+    separate: bool
+}

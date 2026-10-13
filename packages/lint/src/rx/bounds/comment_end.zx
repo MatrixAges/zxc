@@ -1,0 +1,11 @@
+import bytes from "std:bytes"
+
+export type Input = { source: u8[], start: u64 }
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    const found = bytes.indexOfText(in.source, in.start + 4, "-->") ?? in.source.length
+
+    return found + 3
+}

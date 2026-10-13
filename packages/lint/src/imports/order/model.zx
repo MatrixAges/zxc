@@ -1,0 +1,9 @@
+export type Item = { path: u8[], type_only: bool, start: u64 }
+
+export type Input = { left: Item, right: Item }
+
+export type Classified = { category: u8, group: u8 }
+
+export type Pair = { left_category: u8, right_category: u8, same_group: bool }
+
+export type Output = { less_than: bool, same_group: bool }

@@ -1,0 +1,25 @@
+import bytes from "std:bytes"
+
+export type Input = { source: u8[], start: u64 }
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    const result = loop({ source: in.source, offset: in.start, done: false }, {
+        while: current => !current.done && current.offset < current.source.length,
+        next: current => {
+            const tag = bytes.indexOfScalar(current.source, current.offset, 60) ?? current.source.length
+
+            if (bytes.startsWithText(current.source, tag, "<!--")) {
+                current.offset = (bytes.indexOfText(current.source, tag + 4, "-->") ?? current.source.length) + 3
+            } else if (bytes.startsWithText(current.source, tag, "<![CDATA[")) {
+                current.offset = (bytes.indexOfText(current.source, tag + 9, "]]>") ?? current.source.length) + 3
+            } else {
+                current.offset = tag
+                current.done = true
+            }
+        }
+    })
+
+    return result.offset
+}

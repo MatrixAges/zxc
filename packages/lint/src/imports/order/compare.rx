@@ -1,0 +1,15 @@
+<Module>
+    <Call fn="classify" in={$in} />
+
+    <Switch on={$ctx.classify.left_category != $ctx.classify.right_category}>
+        <Case value={true}>
+            <Return value={{ less_than: $ctx.classify.left_category < $ctx.classify.right_category, same_group: $ctx.classify.same_group }} />
+        </Case>
+
+        <Default>
+            <Call fn="path_order" in={$in} />
+
+            <Return value={{ less_than: $ctx.path_order, same_group: true }} />
+        </Default>
+    </Switch>
+</Module>
