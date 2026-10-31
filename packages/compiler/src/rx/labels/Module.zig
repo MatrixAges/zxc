@@ -2,6 +2,8 @@ const std = @import("std");
 const dsl = @import("dsl");
 const checks = @import("../checks.zig");
 const Import = @import("Import.zig").Import;
+const Input = @import("Input.zig").Input;
+const Output = @import("Output.zig").Output;
 const Call = @import("Call.zig").Call;
 const Task = @import("Task.zig").Sequential;
 const Parallel = @import("Parallel.zig").Parallel;
@@ -14,6 +16,8 @@ const ModuleBase = dsl.element("Module", struct {
     in: ?[]const u8 = null,
     out: ?[]const u8 = null,
 }, dsl.list(dsl.choice(.{
+    .input = Input,
+    .output = Output,
     .store = StoreReference,
     .import = Import,
     .call = Call,
@@ -30,6 +34,24 @@ fn checkModule(_: ModuleBase.Data, node: dsl.ast.Node, _: anytype, reporter: *ds
     try checks.nonEmpty(node, reporter);
 
     for (node.children, 0..) |child, index| {
+        if (std.mem.eql(u8, child.name, "Input") and index != 0) {
+            return reporter.fail(.{
+                .code = .context,
+                .location = child.location,
+                .element = child.name,
+                .message = "Input must be the first Module child and may appear only once",
+            });
+        }
+
+        if (std.mem.eql(u8, child.name, "Output") and index + 1 != node.children.len) {
+            return reporter.fail(.{
+                .code = .context,
+                .location = child.location,
+                .element = child.name,
+                .message = "Output must be the last Module child and may appear only once",
+            });
+        }
+
         if (!std.mem.eql(u8, child.name, "Store")) continue;
 
         const alias = checks.attribute(child, "as") orelse checks.attribute(child, "from").?;

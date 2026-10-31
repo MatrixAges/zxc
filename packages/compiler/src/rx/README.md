@@ -43,6 +43,26 @@ RX 测试位于 compiler 包的 `tests/rx/`，实现文件不包含内嵌 test�
 
 不进行按名称搜索、目录 index 猜测或扩展名候选搜索。绝对路径、越出项目根的路径和特殊 RX 文件不能作为普通模块依赖。
 
+## 输入输出契约
+
+Input 必须是 Module 的第一个子元素，Output 必须是最后一个，各最多声明一次。对象用 Field 声明字段和普通 ZX 类型；整值类型使用 type 属性：
+
+```xml
+<Module>
+    <Input>
+        <Field name="value" type="u64" />
+    </Input>
+
+    <Return value={$in.value} />
+
+    <Output type="u64" />
+</Module>
+```
+
+Input 与 Output 的 type 属性和 Field 子元素不能混用；无字段且无 type 表示空对象 `{}`，无输入或输出使用 `type="void"`。字段类型不能是 void。声明保留未使用字段，字段访问、调用参数和各条返回路径均须满足声明，不能靠后续推导增加字段或更改类型。
+
+未声明的端口继续兼容现有推导。Module.in/out 保留旧名称标注，不会解析为实际类型，也不能替代 Input/Output。类型名只按普通 ZX 类型环境解析；RX Import 当前不导入 ZX 类型名称，不会从其他模块按名称猜测类型。
+
 ## 属性值
 
 属性使用引号或花括号区分值的语义：`value="hello"` 是字符串，`value={expression}` 使用 ZX 表达式。`value="$in"` 返回字符串 `$in`；读取输入应写 `value={$in}`。对象表达式外面仍需属性花括号，例如 `in={{user: $in.user}}`。

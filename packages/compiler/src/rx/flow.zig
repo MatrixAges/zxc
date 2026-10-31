@@ -1,4 +1,7 @@
 pub const Module = @import("labels/Module.zig").Module;
+pub const Input = @import("labels/Input.zig").Input;
+pub const Output = @import("labels/Output.zig").Output;
+pub const Field = @import("labels/Field.zig").Field;
 pub const Import = @import("labels/Import.zig").Import;
 pub const Call = @import("labels/Call.zig").Call;
 pub const Return = @import("labels/Return.zig").Return;

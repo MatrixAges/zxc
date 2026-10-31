@@ -8,17 +8,32 @@ const SourceMap = @import("../source_map.zig");
 const Prepared = @import("prepare.zig");
 const target = @import("../call/target.zig");
 const paths = frontend.binding_path;
-pub const State = struct { input: Graph.Id, output: Graph.Id, input_used: bool = false, bindings: []const Expression.Binding = &.{}, tasks: []const Task = &.{} };
+pub const State = struct { input: Graph.Id, output: Graph.Id, input_declared: bool = false, input_used: bool = false, bindings: []const Expression.Binding = &.{}, tasks: []const Task = &.{} };
 pub const Task = struct { id: usize, output: Graph.Id };
 
 pub fn collect(graph: *Graph, modules: []const Prepared.Module, source_map: SourceMap) zx.Error![]const State {
     const states = try graph.allocator.alloc(State, modules.len);
+    const declared = try @import("contracts.zig").resolve(graph, modules, source_map);
+    var port: usize = 0;
 
     for (modules, states, 0..) |module, *state, index| {
         const offset = source_map.base(index) + module.source.node.location.offset;
         const span = zx.Span{ .start = offset, .end = offset };
+        var input: ?zx.ir.TypeId = null;
+        var output: ?zx.ir.TypeId = null;
 
-        state.* = .{ .input = try graph.add(.unknown, span), .output = try graph.add(.unknown, span) };
+        while (port < declared.len and declared[port].module == index) : (port += 1) {
+            switch (declared[port].kind) {
+                .input => input = declared[port].type_id,
+                .output => output = declared[port].type_id,
+            }
+        }
+
+        state.* = .{
+            .input = if (input) |id| try graph.known(id, span) else try graph.add(.unknown, span),
+            .output = if (output) |id| try graph.known(id, span) else try graph.add(.unknown, span),
+            .input_declared = input != null,
+        };
     }
 
     for (modules, states, 0..) |module, *state, index| {
@@ -47,7 +62,7 @@ pub fn collect(graph: *Graph, modules: []const Prepared.Module, source_map: Sour
     }
 
     for (states) |state| {
-        if (state.input_used) continue;
+        if (state.input_declared or state.input_used) continue;
 
         var referenced = false;
 

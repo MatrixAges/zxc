@@ -67,7 +67,7 @@ const Loader = struct {
         var terminated = false;
 
         for (nodes) |node| {
-            if (std.mem.eql(u8, node.name, "Import") or std.mem.eql(u8, node.name, "Store")) continue;
+            if (std.mem.eql(u8, node.name, "Import") or std.mem.eql(u8, node.name, "Store") or std.mem.eql(u8, node.name, "Input") or std.mem.eql(u8, node.name, "Output")) continue;
             if (terminated) return self.fail(node.location, "return_path", "steps after a terminating Return or Switch are unreachable");
 
             const value: @FieldType(Flow.Step, "value") = if (std.mem.eql(u8, node.name, "Return"))

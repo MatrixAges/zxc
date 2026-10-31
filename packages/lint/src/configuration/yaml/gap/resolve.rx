@@ -1,4 +1,11 @@
 <Module>
+    <Input>
+        <Field name="gap" type="u8[]" />
+        <Field name="left" type="u8[]" />
+        <Field name="right" type="u8[]" />
+        <Field name="preserve_trailing" type="bool" />
+    </Input>
+
     <Switch on={$in.preserve_trailing}>
         <Case value={true}>
             <Return value={{ needs_edit: false, start: 0, end: 0, crlf: false, separate: false }} />
@@ -21,4 +28,12 @@
             </Switch>
         </Default>
     </Switch>
+
+    <Output>
+        <Field name="needs_edit" type="bool" />
+        <Field name="start" type="u64" />
+        <Field name="end" type="u64" />
+        <Field name="crlf" type="bool" />
+        <Field name="separate" type="bool" />
+    </Output>
 </Module>
