@@ -40,6 +40,10 @@ pub fn checkHeaderNames(view: anytype) ?zx.Diagnostic {
         if (checkBinding(view.declarationAt(index).name, .type_decl)) |issue| return issue;
     }
 
+    for (0..view.constantCount()) |index| {
+        if (checkBinding(view.constantAt(index).name, .value)) |issue| return issue;
+    }
+
     return null;
 }
 

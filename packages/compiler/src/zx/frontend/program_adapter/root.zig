@@ -48,6 +48,22 @@ pub fn convert(allocator: std.mem.Allocator, source: []const u8, output: anytype
     }
 
     const contracts = try allocator.alloc(zx.ast.Contract, program.contracts.len);
+    const constants = try allocator.alloc(zx.ast.Constant, program.constants.len);
+
+    for (program.constants, constants) |item, *value| {
+        const constant = try Context.init(allocator, source, item);
+
+        try @import("types.zig").fill(constant);
+        try @import("blocks.zig").fill(constant);
+        try @import("expressions.zig").fill(constant);
+
+        value.* = .{
+            .name = constant.name(item.name),
+            .annotation = constant.typeValue(item.annotation),
+            .value = constant.expression(item.value),
+            .span = Context.span(item.span),
+        };
+    }
 
     for (program.contracts, contracts) |item, *value| value.* = .{
         .kind = if (item.ensures) .ensures else .requires,
@@ -58,6 +74,7 @@ pub fn convert(allocator: std.mem.Allocator, source: []const u8, output: anytype
     return .{
         .imports = imports,
         .declarations = declarations,
+        .constants = constants,
         .contracts = contracts,
         .has_store = program.has_store,
         .function_start = @intCast(program.function_start),

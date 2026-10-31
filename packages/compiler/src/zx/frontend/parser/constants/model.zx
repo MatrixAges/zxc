@@ -1,0 +1,44 @@
+import type { Diagnostic } from "../../lexer/model"
+import type { Span } from "../../lexer/token_model"
+import type { BlockTree } from "../body/model"
+import type { PreparedInput } from "../expressions/prepare/model"
+import type { ExprTree } from "../expressions/state/model"
+import type { State, TypeTree, Order } from "../types/model"
+
+export type Constant = {
+    name: Span,
+    span: Span,
+    annotation: u64,
+    value: u64,
+    types: TypeTree,
+    type_order: Order,
+    expressions: ExprTree,
+    blocks: BlockTree
+}
+
+export type Request = {
+    prepared: PreparedInput,
+    start: u64
+}
+
+export type Result = {
+    constant: Constant?,
+    index: u64,
+    diagnostic: Diagnostic
+}
+
+export type Header = {
+    request: Request,
+    name: Span,
+    opening: u64,
+    index: u64,
+    diagnostic: Diagnostic
+}
+
+export type Annotation = {
+    header: Header,
+    types: State,
+    annotation: u64,
+    index: u64,
+    diagnostic: Diagnostic
+}

@@ -9,15 +9,17 @@ export type Input = ImportStage
 export type Output = DeclarationStage
 
 export default function (in: Input): Output {
-  const state = initial({ start: in.imports.control.index, depth: 0 })
-  const index = state.control.start
-  const failed = in.prepared.lexical.lexed.diagnostic.message != "" || in.imports.control.diagnostic.message != ""
+    const state = initial({ start: in.imports.control.index, depth: 0 })
+    const index = state.control.start
+    const failed = in.prepared.lexical.lexed.diagnostic.message != "" || in.imports.control.diagnostic.message != ""
 
-  return {
-    prefix: in,
-    declarations: {
-      declarations: state.declarations, members: state.members, types: state.types,
-      control: { ...state.control, index: index, phase: failed ? Phase.Done : Phase.Start }
+    return {
+        prefix: in,
+        constants: [],
+        finished: failed,
+        declarations: {
+            declarations: state.declarations, members: state.members, types: state.types,
+            control: { ...state.control, index: index, phase: failed ? Phase.Done : Phase.Start }
+        }
     }
-  }
 }

@@ -25,17 +25,24 @@ pub fn viewEdits(allocator: std.mem.Allocator, source: []const u8, comments: any
 
     for (0..view.importCount()) |index| {
         const item = view.importAt(index);
-        const next = if (index + 1 < view.importCount()) view.importAt(index + 1).span.start else if (view.declarationCount() > 0) view.declarationAt(0).span.start else view.functionStart();
+        const next = if (index + 1 < view.importCount()) view.importAt(index + 1).span.start else exportStart(view, 0, 0);
         const separate = index + 1 == view.importCount() or shape.multiline(source, item.span) or shape.multiline(source, view.importAt(index + 1).span);
 
         try planner.appendBoundary(item.span.end, next, separate);
     }
 
-    for (0..view.declarationCount()) |index| {
-        const declaration = view.declarationAt(index);
-        const next = if (index + 1 < view.declarationCount()) view.declarationAt(index + 1).span.start else view.functionStart();
+    var declaration_index: usize = 0;
+    var constant_index: usize = 0;
 
-        try planner.appendBoundary(declaration.span.end, next, index + 1 < view.declarationCount() or view.hasBody());
+    while (declaration_index < view.declarationCount() or constant_index < view.constantCount()) {
+        const constant = constant_index < view.constantCount() and (declaration_index == view.declarationCount() or view.constantAt(constant_index).span.start < view.declarationAt(declaration_index).span.start);
+        const item = if (constant) view.constantAt(constant_index) else view.declarationAt(declaration_index);
+
+        if (constant) constant_index += 1 else declaration_index += 1;
+
+        const more = declaration_index < view.declarationCount() or constant_index < view.constantCount();
+
+        try planner.appendBoundary(item.span.end, exportStart(view, declaration_index, constant_index), more or view.hasBody());
     }
 
     if (body) |value| try planner.block(value);
@@ -47,6 +54,13 @@ pub fn viewEdits(allocator: std.mem.Allocator, source: []const u8, comments: any
     }.lessThan);
 
     return planner.result.toOwnedSlice(allocator);
+}
+
+fn exportStart(view: anytype, declaration_index: usize, constant_index: usize) usize {
+    const declaration = if (declaration_index < view.declarationCount()) view.declarationAt(declaration_index).span.start else view.functionStart();
+    const constant = if (constant_index < view.constantCount()) view.constantAt(constant_index).span.start else view.functionStart();
+
+    return @min(declaration, constant);
 }
 
 pub fn format(allocator: std.mem.Allocator, source: []const u8, changes: []const Edit) std.mem.Allocator.Error![]u8 {

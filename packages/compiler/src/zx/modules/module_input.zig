@@ -15,8 +15,8 @@ pub const Native = struct {
     pub fn header(self: Native) zx.syntax.header.Native {
         return .{ .program = self.value.ast };
     }
-
     pub fn signature(self: Native, types: *Types) zx.Error!Signature.Result {
+        try checkConstants(self.header(), types.reporter);
         if (module_result.indexed_enabled) return @import("source_signature/host.zig").analyzeNative(types, self.value.source, self.value.ast);
 
         types.declarations = self.value.ast.declarations;
@@ -64,10 +64,15 @@ pub const Indexed = if (module_result.indexed_enabled) struct {
     }
 
     pub fn signature(self: Self, types: *Types) zx.Error!Signature.Result {
+        try checkConstants(self.header(), types.reporter);
+
         return @import("source_signature/host.zig").analyze(types, self.value.source, self.value.output);
     }
-
     pub fn analyze(self: Self, analyzer: *Context, file_name: []const u8) zx.Error!zx.ir.Program {
         return @import("../analysis/analyzer/host/root.zig").analyze(analyzer, self.value.source, self.value.output, file_name);
     }
 } else void;
+
+pub fn checkConstants(header: anytype, reporter: *zx.Reporter) zx.Error!void {
+    if (header.constantCount() != 0) return reporter.fail(.unsupported, header.constantAt(0).span, "export const declarations are parsed; constant analysis is not yet available");
+}

@@ -24,14 +24,14 @@ pub fn resolve(graph: *Graph, modules: []const Prepared.Module, source_map: Sour
         .native => |native| {
             const program = native.value.parsed.ast;
 
-            if (program.imports.len != 0 or program.body != null or program.contracts.len != 0 or program.has_store) return invalid(graph, source, source_map);
+            if (program.imports.len != 0 or program.constants.len != 0 or program.body != null or program.contracts.len != 0 or program.has_store) return invalid(graph, source, source_map);
 
             return resolveDeclarations(graph, modules, source, source_map, frontend.type_views.Native{ .items = program.declarations });
         },
         .indexed => |indexed| if (comptime @TypeOf(indexed) != void) {
             const output = indexed.output;
 
-            if (output.imports.len != 0 or output.body != null or output.contracts.len != 0 or output.has_store) return invalid(graph, source, source_map);
+            if (output.imports.len != 0 or output.constants.len != 0 or output.body != null or output.contracts.len != 0 or output.has_store) return invalid(graph, source, source_map);
 
             return resolveDeclarations(graph, modules, source, source_map, frontend.type_views.Indexed(@TypeOf(output)){ .source = indexed.source, .storage = output });
         } else unreachable,

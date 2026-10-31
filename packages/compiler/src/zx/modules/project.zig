@@ -128,6 +128,9 @@ const Project = struct {
         const index = frame.index;
         const unit = &self.units[index];
         const header = input.header();
+
+        try Input.checkConstants(header, self.reporter);
+
         const aliases = &frame.aliases;
         const imported_names = &frame.imported_names;
         const imports = &frame.imports;

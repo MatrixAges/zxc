@@ -1,6 +1,7 @@
 import type { Diagnostic } from "../../lexer/model"
 import type { Span, Token } from "../../lexer/token_model"
 import type { BlockTree } from "../body/model"
+import type { Constant } from "../constants/model"
 import type { Declaration } from "../declarations/model"
 import type { ExprTree } from "../expressions/state/model"
 import type { Contract } from "../header/model"
@@ -17,6 +18,7 @@ export type Program = {
     imports: Import[]
     import_names: Span[]
     declarations: Declaration[]
+    constants: Constant[]
     members: Span[]
     contracts: Contract[]
     has_store: bool

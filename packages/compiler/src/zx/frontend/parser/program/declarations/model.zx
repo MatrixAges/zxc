@@ -1,4 +1,10 @@
+import type { Constant } from "../../constants/model"
 import type { State } from "../../declarations/model"
 import type { ImportStage } from "../imports/model"
 
-export type DeclarationStage = { prefix: ImportStage, declarations: State }
+export type DeclarationStage = {
+    prefix: ImportStage,
+    declarations: State,
+    constants: Constant[],
+    finished: bool
+}

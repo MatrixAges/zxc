@@ -58,14 +58,14 @@ pub fn resolve(allocator: std.mem.Allocator, owner: []const u8, node: rx.ast.Nod
         .native => |native| native: {
             const program = native.value.parsed.ast;
 
-            if (program.imports.len != 0 or program.body != null or program.contracts.len != 0 or program.has_store) break :native invalid(allocator, entries.items);
+            if (program.imports.len != 0 or program.constants.len != 0 or program.body != null or program.contracts.len != 0 or program.has_store) break :native invalid(allocator, entries.items);
 
             break :native resolveDeclarations(allocator, entries.items, context, aliases, frontend.type_views.Native{ .items = program.declarations });
         },
         .indexed => |indexed| if (comptime @TypeOf(indexed) != void) indexed: {
             const output = indexed.output;
 
-            if (output.imports.len != 0 or output.body != null or output.contracts.len != 0 or output.has_store) break :indexed invalid(allocator, entries.items);
+            if (output.imports.len != 0 or output.constants.len != 0 or output.body != null or output.contracts.len != 0 or output.has_store) break :indexed invalid(allocator, entries.items);
 
             break :indexed resolveDeclarations(allocator, entries.items, context, aliases, frontend.type_views.Indexed(@TypeOf(output)){ .source = indexed.source, .storage = output });
         } else unreachable,

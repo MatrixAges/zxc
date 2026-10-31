@@ -1,0 +1,74 @@
+import { Keyword } from "../../lexer/keyword_model"
+import { Kind, Symbol } from "../../lexer/token_model"
+
+import type { Header, Request } from "./model"
+
+export enum Part { Export, Const, Name, Colon, Done }
+
+export type Input = Request
+
+export type Output = Header
+
+export default function (in: Input): Output {
+    const tokens = in.prepared.lexical.lexed.tokens
+    const token = tokens[in.start]
+
+    const checked = loop({
+        tokens: tokens,
+        part: Part.Export,
+        index: in.start,
+        name: token.span,
+        valid: true
+    }, {
+        while: current => current.valid && current.part != Part.Done,
+        next: current => {
+            const at = current.tokens[current.index < current.tokens.length ? current.index : current.tokens.length - 1]
+
+            current.valid = match {
+                current.part == Part.Export => at.word == Keyword.Export,
+                current.part == Part.Const => at.word == Keyword.Const,
+                current.part == Part.Name => at.kind == Kind.Identifier,
+                _ => at.symbol == Symbol.Colon
+            }
+
+            if (current.valid) {
+                if (current.part == Part.Name) {
+                    current.name = at.span
+                }
+
+                current.part = match {
+                    current.part == Part.Export => Part.Const,
+                    current.part == Part.Const => Part.Name,
+                    current.part == Part.Name => Part.Colon,
+                    _ => Part.Done
+                }
+                current.index += 1
+            }
+        }
+    })
+
+    const at = tokens[checked.index < tokens.length ? checked.index : tokens.length - 1]
+
+    return {
+        request: in,
+        name: checked.name,
+        opening: token.span.start,
+        index: checked.index,
+        diagnostic: checked.valid ? {
+            code: "",
+            start: 0,
+            end: 0,
+            message: ""
+        } : {
+            code: "syntax",
+            start: at.span.start,
+            end: at.span.end,
+            message: match {
+                checked.part == Part.Export => "expected export",
+                checked.part == Part.Const => "expected const",
+                checked.part == Part.Name => "expected an identifier",
+                _ => "expected :"
+            }
+        }
+    }
+}

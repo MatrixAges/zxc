@@ -1,0 +1,60 @@
+import { Symbol } from "../../lexer/token_model"
+import done from "../types/done"
+import initial from "../types/initial"
+import step from "../types/step"
+
+import type { Annotation, Header } from "./model"
+
+export type Input = Header
+
+export type Output = Annotation
+
+export default function (in: Input): Output {
+    const tokens = in.request.prepared.lexical.lexed.tokens
+
+    const start = initial({
+        start: in.index,
+        depth: 0
+    })
+
+    const parsed = loop({
+        tokens: tokens,
+        state: {
+            ...start,
+            control: {
+                ...start.control,
+                index: in.index
+            }
+        }
+    }, {
+        while: current => !done(current.state.control.phase) && current.state.control.index < current.tokens.length,
+        next: current => {
+            current.state = step({
+                state: current.state,
+                token: current.tokens[current.state.control.index]
+            })
+        }
+    }).state
+
+    const index = parsed.control.index
+    const at = tokens[index < tokens.length ? index : tokens.length - 1]
+
+    const diagnostic = match {
+        parsed.control.diagnostic.message != "" => parsed.control.diagnostic,
+        at.symbol == Symbol.Assign => in.diagnostic,
+        _ => {
+            code: "syntax",
+            start: at.span.start,
+            end: at.span.end,
+            message: "expected ="
+        }
+    }
+
+    return {
+        header: in,
+        types: parsed,
+        annotation: parsed.control.result,
+        index: diagnostic.message == "" ? index + 1 : index,
+        diagnostic: diagnostic
+    }
+}

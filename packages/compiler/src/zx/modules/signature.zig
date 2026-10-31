@@ -17,7 +17,7 @@ pub fn resolve(allocator: std.mem.Allocator, entry: External, span: zx.Span, exi
             else => return invalid(reporter, span),
         };
 
-        if (output.diagnostic.message.len != 0 or output.body != null or output.imports.len != 0) return invalid(reporter, span);
+        if (output.diagnostic.message.len != 0 or output.body != null or output.imports.len != 0 or output.constants.len != 0) return invalid(reporter, span);
 
         const View = @import("type_views").Indexed(@TypeOf(output));
 
@@ -33,7 +33,7 @@ pub fn resolve(allocator: std.mem.Allocator, entry: External, span: zx.Span, exi
 
     defer parsed.deinit();
 
-    if (parsed.value == .diagnostic or parsed.value.parsed.ast.body != null or parsed.value.parsed.ast.imports.len != 0) return invalid(reporter, span);
+    if (parsed.value == .diagnostic or parsed.value.parsed.ast.body != null or parsed.value.parsed.ast.imports.len != 0 or parsed.value.parsed.ast.constants.len != 0) return invalid(reporter, span);
 
     const view = @import("type_views").Native{ .items = parsed.value.parsed.ast.declarations };
 

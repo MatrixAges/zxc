@@ -54,6 +54,7 @@ pub fn convert(comptime contents: enum { header, full }, allocator: std.mem.Allo
         .imports = imports,
         .import_names = import_spans.items,
         .declarations = &.{},
+        .constants = &.{},
         .members = &.{},
         .contracts = contracts,
         .has_store = program.has_store,

@@ -1,0 +1,37 @@
+import parse from "../body/expression"
+import emptyBody from "../body/state/empty_tree"
+import emptyTree from "../expressions/state/empty_tree"
+import start from "../expressions/state/start"
+
+import type { Parsed } from "../expressions/result"
+import type { Annotation } from "./model"
+
+export type Input = Annotation
+
+export type Output = Parsed
+
+export default function (in: Input): Output {
+    const parsed = parse({
+        expression: start({
+            prepared: in.header.request.prepared,
+            tree: emptyTree(),
+            types: in.types,
+            start: in.index,
+            depth: 0,
+            minimum: 0,
+            allow_lambda: true
+        }),
+        tree: emptyBody()
+    })
+
+    const control = parsed.control.diagnostic.message != "" ? {
+        ...parsed.expression.control,
+        diagnostic: parsed.control.diagnostic
+    } : parsed.expression.control
+
+    return {
+        ...parsed.expression,
+        control: control,
+        body: parsed.tree
+    }
+}

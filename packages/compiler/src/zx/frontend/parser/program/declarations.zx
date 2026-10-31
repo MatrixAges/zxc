@@ -1,4 +1,3 @@
-import { Phase } from "../declarations/model"
 import initial from "./declarations/initial"
 import advance from "./declarations/step"
 
@@ -10,10 +9,10 @@ export type Input = ImportStage
 export type Output = DeclarationStage
 
 export default function (in: Input): Output {
-  return loop(initial(in), {
-    while: value => value.declarations.control.phase != Phase.Done && value.declarations.control.index < value.prefix.prepared.lexical.lexed.tokens.length,
-    next: value => {
-      value = advance(value)
-    }
-  })
+    return loop(initial(in), {
+        while: value => !value.finished && value.declarations.control.index < value.prefix.prepared.lexical.lexed.tokens.length,
+        next: value => {
+            value = advance(value)
+        }
+    })
 }

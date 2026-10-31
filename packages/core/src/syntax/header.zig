@@ -36,6 +36,15 @@ pub const Native = struct {
 
         return .{ .name = item.name, .span = item.span };
     }
+
+    pub fn constantCount(self: Native) usize {
+        return self.program.constants.len;
+    }
+    pub fn constantAt(self: Native, index: usize) Declaration {
+        const item = self.program.constants[index];
+
+        return .{ .name = item.name, .span = item.span };
+    }
     pub fn functionStart(self: Native) usize {
         return self.program.function_start;
     }

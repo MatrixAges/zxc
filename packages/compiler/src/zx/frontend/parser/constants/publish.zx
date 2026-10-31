@@ -1,0 +1,68 @@
+import { Kind, Symbol } from "../../lexer/token_model"
+
+import type { Parsed } from "../expressions/result"
+import type { Order } from "../types/model"
+import type { Annotation } from "./model"
+import type { Result } from "./model"
+
+export type Input = {
+    annotation: Annotation,
+    parsed: Parsed,
+    order: Order
+}
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const parsed = in.parsed
+    const control = parsed.control
+    const tokens = parsed.prepared.lexical.lexed.tokens
+    const token = tokens[control.index < tokens.length ? control.index : tokens.length - 1]
+    const lexical = control.lexical_diagnostic
+
+    const diagnostic = match {
+        lexical == 1 => parsed.prepared.lexical.lexed.diagnostic,
+        lexical != 0 => parsed.prepared.lexical.interpolations[lexical - 2].lexed.diagnostic,
+        control.type_diagnostic => parsed.types.control.diagnostic,
+        _ => control.diagnostic
+    }
+
+    if (diagnostic.message != "") {
+        return {
+            constant: null,
+            index: control.index,
+            diagnostic: diagnostic
+        }
+    }
+
+    if (token.symbol == Symbol.Semicolon || (token.kind != Kind.Eof && token.symbol != Symbol.CloseBrace && !token.line_break)) {
+        return {
+            constant: null,
+            index: control.index,
+            diagnostic: {
+                code: "syntax",
+                start: token.span.start,
+                end: token.span.end,
+                message: token.symbol == Symbol.Semicolon ? "semicolons are not allowed in ZX" : "expected a newline, closing block or end of source"
+            }
+        }
+    }
+
+    return {
+        constant: {
+            name: in.annotation.header.name,
+            span: {
+                start: in.annotation.header.opening,
+                end: control.last_end
+            },
+            annotation: in.annotation.annotation,
+            value: control.result,
+            types: parsed.types.tree,
+            type_order: in.order,
+            expressions: parsed.tree,
+            blocks: parsed.body
+        },
+        index: control.index,
+        diagnostic: diagnostic
+    }
+}

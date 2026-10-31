@@ -39,6 +39,14 @@ pub fn View(comptime Storage: type) type {
 
             return .{ .name = self.named(item.name), .span = Header.span(item.span) };
         }
+        pub fn constantCount(self: Self) usize {
+            return self.storage.constants.len;
+        }
+        pub fn constantAt(self: Self, index: usize) Header.Declaration {
+            const item = self.storage.constants[index];
+
+            return .{ .name = self.named(item.name), .span = Header.span(item.span) };
+        }
         pub fn functionStart(self: Self) usize {
             return @intCast(self.storage.function_start);
         }

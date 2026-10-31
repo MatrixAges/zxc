@@ -1,0 +1,44 @@
+<Module>
+    <Type from="./model" as="Model" />
+
+    <Args in={Model.Request} out={Model.Result} />
+
+    <Call fn="header" in={$in} />
+
+    <Switch on={$ctx.header.diagnostic.message == ""}>
+        <Case value={true}>
+            <Call fn="annotation" in={$ctx.header} />
+
+            <Switch on={$ctx.annotation.diagnostic.message == ""}>
+                <Case value={true}>
+                    <Call fn="initializer" in={$ctx.annotation} />
+                    <Call fn="../types/order" in={$ctx.initializer.types.tree} />
+
+                    <Call fn="publish" in={{
+                        annotation: $ctx.annotation,
+                        parsed: $ctx.initializer,
+                        order: $ctx.order
+                    }} />
+
+                    <Return value={$ctx.publish} />
+                </Case>
+
+                <Default>
+                    <Return value={{
+                        constant: null,
+                        index: $ctx.annotation.index,
+                        diagnostic: $ctx.annotation.diagnostic
+                    }} />
+                </Default>
+            </Switch>
+        </Case>
+
+        <Default>
+            <Return value={{
+                constant: null,
+                index: $ctx.header.index,
+                diagnostic: $ctx.header.diagnostic
+            }} />
+        </Default>
+    </Switch>
+</Module>

@@ -14,6 +14,7 @@ pub const Type = union(enum) {
 
 pub const TypeField = struct { name: Name, value: *const Type };
 pub const Declaration = struct { name: Name, value: *const Type, span: Span };
+pub const Constant = struct { name: Name, annotation: *const Type, value: *const Expression, span: Span };
 pub const Match = struct { subject: ?*const Expression, arms: []const MatchArm, fallback: *const Expression };
 pub const MatchArm = struct { condition: *const Expression, result: *const Expression };
 
@@ -80,6 +81,7 @@ pub const Contract = struct {
 
 pub const Program = struct {
     declarations: []const Declaration,
+    constants: []const Constant = &.{},
     imports: []const Import = &.{},
     has_store: bool = false,
     contracts: []const Contract = &.{},
