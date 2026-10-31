@@ -1,7 +1,9 @@
 {
 	"terminal.integrated.env.osx": {
-		"PATH": "/Users/xiewendao/.homebrew/bin:${env:PATH}"
+		"PATH": "${env:HOMEBREW_PREFIX}/bin:${env:PATH}"
 	},
-	"zig.path": "/Users/xiewendao/.homebrew/bin/zig",
-	"zig.zls.enabled": "on"
+	"zig.path": "${env:HOMEBREW_PREFIX}/bin/zig",
+	"zig.zls.enabled": "off",
+	"zig.buildOnSaveProvider": "off",
+	"zig.formattingProvider": "off"
 }
