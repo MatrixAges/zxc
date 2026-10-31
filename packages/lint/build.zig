@@ -13,6 +13,7 @@ const rules = [_]Rule{
     .{ .name = "spacing_boundary", .seed_path = "bootstrap/spacing_boundary.zig", .root_path = "src/spacing/boundary/root.zig" },
     .{ .name = "rx_bounds", .seed_path = "bootstrap/rx_bounds.zig", .root_path = "src/rx/bounds/root.zig" },
     .{ .name = "import_order", .seed_path = "bootstrap/import_order.zig", .root_path = "src/imports/order/root.zig" },
+    .{ .name = "yaml_gap", .seed_path = "bootstrap/yaml_gap.zig", .root_path = "src/configuration/yaml/gap/root.zig" },
 };
 
 pub fn build(b: *std.Build) void {

@@ -1,0 +1,24 @@
+<Module>
+    <Switch on={$in.preserve_trailing}>
+        <Case value={true}>
+            <Return value={{ needs_edit: false, start: 0, end: 0, crlf: false, separate: false }} />
+        </Case>
+
+        <Default>
+            <Call fn="scan" in={$in.gap} />
+
+            <Switch on={$ctx.scan.valid && $ctx.scan.has_newline}>
+                <Case value={false}>
+                    <Return value={{ needs_edit: false, start: 0, end: 0, crlf: false, separate: false }} />
+                </Case>
+
+                <Default>
+                    <Call fn="multiline" in={$in} />
+                    <Call fn="../../../spacing/boundary/check" in={{ gap: $in.gap, scanned: { has_newline: true, start: 0, newline_start: $ctx.scan.newline_start, last_end: $ctx.scan.last_end, crlf: $ctx.scan.crlf, separate: $ctx.multiline } }} />
+
+                    <Return value={$ctx.check} />
+                </Default>
+            </Switch>
+        </Default>
+    </Switch>
+</Module>

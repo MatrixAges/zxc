@@ -70,6 +70,7 @@ pub const main = [_]Entry{
     .{ .path = "lint/spacing/boundary/boundary.rx", .name = "spacing_boundary", .owner = .lint },
     .{ .path = "lint/rx/bounds/resolve.rx", .name = "rx_bounds", .owner = .lint },
     .{ .path = "lint/imports/order/compare.rx", .name = "import_order", .owner = .lint },
+    .{ .path = "lint/configuration/yaml/gap/resolve.rx", .name = "yaml_gap", .owner = .lint },
     .{ .path = "genz/printer/render.rx", .name = "printer", .owner = .genz },
     .{ .path = "genz/analysis/facts/analyze.rx", .name = "function_facts", .owner = .genz },
     .{ .path = "genz/analysis/inline/prepare.rx", .name = "inline_prepare", .owner = .genz },
