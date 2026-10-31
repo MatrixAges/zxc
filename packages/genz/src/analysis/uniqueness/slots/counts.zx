@@ -1,0 +1,37 @@
+import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import sum from "./sum"
+
+import type { Types } from "./model"
+
+export type Input = Types
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    const counts: u32[] = in.kinds.map(code => 0)
+
+    const result = loop({ types: in, counts: counts, index: 0 }, {
+        while: current => current.index < current.types.kinds.length,
+        next: current => {
+            const target = kind(current.types.kinds[current.index])
+            const first = integers.widen(current.types.first[current.index])
+
+            if (target == Kind.List) {
+                current.counts[current.index] = 1
+            } else if (target == Kind.Optional) {
+                current.counts[current.index] = current.counts[first]
+            } else if (target == Kind.Object || target == Kind.Tuple) {
+                const total = sum({ counts: current.counts, members: target == Kind.Object ? current.types.field_types : current.types.children, first: first, count: integers.widen(current.types.second[current.index]) })
+
+                current.counts[current.index] = total
+            }
+
+            current.index += 1
+        }
+    })
+
+    return result.counts
+}

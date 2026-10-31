@@ -1,7 +1,6 @@
 const std = @import("std");
 const ir = @import("zx").ir;
 const Self = @This();
-
 /// Numbers the list positions of every type depth first, so a sub-value at a path covers a contiguous slot range.
 pub const Range = struct { lo: u32, hi: u32 };
 
@@ -11,6 +10,12 @@ offsets: []const []const u32,
 members: []const []const ir.TypeId,
 unwrapped: []const ir.TypeId,
 pub fn init(allocator: std.mem.Allocator, types: ir.TypeTable) std.mem.Allocator.Error!Self {
+    if (@import("genz_options").generated_analysis) return @import("slots/generated.zig").build(allocator, types);
+
+    return seed(allocator, types);
+}
+
+fn seed(allocator: std.mem.Allocator, types: ir.TypeTable) std.mem.Allocator.Error!Self {
     const counts = try allocator.alloc(u32, types.count());
     const offsets = try allocator.alloc([]const u32, types.count());
     const members = try allocator.alloc([]const ir.TypeId, types.count());
@@ -27,6 +32,7 @@ pub fn init(allocator: std.mem.Allocator, types: ir.TypeTable) std.mem.Allocator
             .tuple => |items| items.len,
             else => 0,
         };
+
         const values = try allocator.alloc(u32, len);
         const member_values = try allocator.alloc(ir.TypeId, len);
         var total: u32 = 0;

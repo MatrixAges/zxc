@@ -73,6 +73,7 @@ pub const main = [_]Entry{
     .{ .path = "lint/configuration/yaml/gap/resolve.rx", .name = "yaml_gap", .owner = .lint },
     .{ .path = "genz/printer/render.rx", .name = "printer", .owner = .genz },
     .{ .path = "genz/analysis/facts/analyze.rx", .name = "function_facts", .owner = .genz },
+    .{ .path = "genz/analysis/uniqueness/slots/build.rx", .name = "uniqueness_slots", .owner = .genz },
     .{ .path = "genz/analysis/inline/prepare.rx", .name = "inline_prepare", .owner = .genz },
 };
 

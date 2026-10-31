@@ -1,0 +1,21 @@
+<Module>
+    <Input>
+        <Field name="kinds" type="u8[]" />
+        <Field name="first" type="u32[]" />
+        <Field name="second" type="u32[]" />
+        <Field name="children" type="u32[]" />
+        <Field name="field_types" type="u32[]" />
+    </Input>
+
+    <Call fn="counts" in={$in} />
+    <Call fn="layout" in={{ types: $in, counts: $ctx.counts }} />
+
+    <Return value={{ counts: $ctx.counts, offsets: $ctx.layout.offsets, members: $ctx.layout.members, unwrapped: $ctx.layout.unwrapped }} />
+
+    <Output>
+        <Field name="counts" type="u32[]" />
+        <Field name="offsets" type="u32[][]" />
+        <Field name="members" type="u32[][]" />
+        <Field name="unwrapped" type="u32[]" />
+    </Output>
+</Module>

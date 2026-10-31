@@ -1,0 +1,19 @@
+import integers from "std:integer"
+
+export type Input = { counts: u32[], members: u32[], first: u64, count: u64 }
+
+export type Output = u32
+
+export default function (in: Input): Output {
+    const zero: u32 = 0
+
+    return loop({ counts: in.counts, members: in.members, first: in.first, count: in.count, index: 0, total: zero }, {
+        while: current => current.index < current.count,
+        next: current => {
+            const child = current.members[current.first + current.index]
+
+            current.total += current.counts[integers.widen(child)]
+            current.index += 1
+        }
+    }).total
+}
