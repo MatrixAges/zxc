@@ -20,7 +20,13 @@
                         </Case>
 
                         <Default>
-                            <Call fn="types/check" in={{ analysis: $ctx.values, binding_types: [], expected: $in.input.expected }} />
+                            <Call fn="types/check" in={{
+                                analysis: $ctx.values,
+                                binding_types: [],
+                                alias_types: [],
+                                expected: $in.input.expected,
+                                check_bindings: true
+                            }} />
 
                             <Return value={$ctx.check} />
                         </Default>

@@ -52,7 +52,7 @@ fn build(allocator: std.mem.Allocator, parsed: anytype, options: Options, report
     var analyzer = Analyzer{
         .allocator = allocator,
         .reporter = reporter,
-        .types = .{ .allocator = allocator, .reporter = reporter, .declarations = &.{} },
+        .types = .{ .allocator = allocator, .reporter = reporter, .declarations = &.{}, .aliases = options.aliases },
     };
 
     if (options.type_storage) |storage| {
@@ -64,6 +64,7 @@ fn build(allocator: std.mem.Allocator, parsed: anytype, options: Options, report
     };
 
     try analyzer.types.initialize();
+    try @import("expression.zig").checkAliases(options.aliases, analyzer.types.items.count(), reporter, span);
 
     const children = try allocator.alloc(ir.TypeId, options.bindings.len);
 

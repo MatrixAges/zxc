@@ -13,6 +13,8 @@ pub const Error = std.mem.Allocator.Error || error{InvalidFlow};
 
 allocator: std.mem.Allocator,
 owner: []const u8,
+
+aliases: []const zx.ir.Export = &.{},
 types: zx.ir.TypeTable,
 /// What the expressions extend in place while `types` views it whole.
 type_storage: zx.ir.TypeStorage = .{},
@@ -137,7 +139,7 @@ fn value(self: *Self, attribute: rx.ast.Attribute, expected: ?zx.ir.TypeId) Erro
         try self.type_storage.appendDelta(self.allocator, self.types);
     }
 
-    const compiled = try expression.compileForLinking(self.allocator, self.owner, attribute, .{ .types = self.types, .borrow_types = true, .type_storage = &self.type_storage, .native_modules = self.native_modules, .bindings = self.bindings.items, .nonnull_bindings = self.nonnull.items, .unit_bindings = if (self.unit_input) &.{"$in"} else &.{}, .expected = expected });
+    const compiled = try expression.compileForLinking(self.allocator, self.owner, attribute, .{ .types = self.types, .borrow_types = true, .type_storage = &self.type_storage, .native_modules = self.native_modules, .aliases = self.aliases, .bindings = self.bindings.items, .nonnull_bindings = self.nonnull.items, .unit_bindings = if (self.unit_input) &.{"$in"} else &.{}, .expected = expected });
 
     if (compiled.value == .diagnostic) {
         self.issue = compiled.value.diagnostic;

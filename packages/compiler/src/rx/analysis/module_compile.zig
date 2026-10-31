@@ -8,6 +8,7 @@ const target = @import("call/target.zig");
 
 pub const Options = struct {
     owner: []const u8,
+    aliases: []const zx.ir.Export = &.{},
     module: rx.ast.Node,
     calls: []const Module.Loaded,
     steps: []const @import("project/flow.zig").Step,
@@ -27,6 +28,7 @@ pub fn compile(allocator: std.mem.Allocator, options: Options) std.mem.Allocator
     var flow = @import("flow_compile.zig"){
         .allocator = allocator,
         .owner = options.owner,
+        .aliases = options.aliases,
         .types = options.types,
         .native_modules = options.native_modules,
         .shared_functions = options.shared_functions,

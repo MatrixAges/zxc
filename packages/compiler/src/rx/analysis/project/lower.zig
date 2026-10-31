@@ -33,6 +33,7 @@ pub fn compile(graph: *Graph, loaded: Prepared.Loaded, states: []const State, or
 
         const result = try @import("../module_compile.zig").compile(allocator, .{
             .owner = module.source.path,
+            .aliases = module.value_imports,
             .module = module.source.node,
             .calls = calls,
             .steps = module.steps,

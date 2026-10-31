@@ -2,7 +2,13 @@ import integers from "std:integer"
 
 import type { Analysis } from "../model"
 
-export type Input = { analysis: Analysis, binding_types: u32[], expected: u32? }
+export type Input = {
+    analysis: Analysis,
+    binding_types: u32[],
+    alias_types: u32[],
+    expected: u32?,
+    check_bindings: bool
+}
 
 export type Output = Analysis
 
@@ -12,6 +18,38 @@ export default function (in: Input): Output {
     }
 
     const count = in.analysis.state.types.context.base.kinds.length + in.analysis.state.types.delta.kinds.length
+
+    const aliases_valid = loop({
+        types: in.alias_types,
+        count: count,
+        index: 0,
+        valid: true
+    }, {
+        while: current => current.valid && current.index < current.types.length,
+        next: current => {
+            current.valid = integers.widen(current.types[current.index]) < current.count
+            current.index += 1
+        }
+    }).valid
+
+    if (!aliases_valid) {
+        return {
+            ...in.analysis,
+            state: {
+                ...in.analysis.state,
+                diagnostic: {
+                    code: "contract",
+                    message: "expression type alias is missing from the shared type table",
+                    start: in.analysis.span.start,
+                    end: in.analysis.span.end
+                }
+            }
+        }
+    }
+
+    if (!in.check_bindings) {
+        return in.analysis
+    }
 
     const valid = loop({ types: in.binding_types, count: count, index: 0, valid: true }, {
         while: current => current.valid && current.index < current.types.length,

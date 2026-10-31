@@ -50,10 +50,17 @@ fn run(comptime mode: Mode, allocator: std.mem.Allocator, parsed: anytype, optio
 fn execute(comptime mode: Mode, scratch: *std.heap.ArenaAllocator, allocator: std.mem.Allocator, parsed: anytype, options: Options, reporter: *zx.Reporter) zx.Error!generated.Output {
     const names = try scratch.allocator().alloc([]const u8, options.bindings.len);
     const ids = try scratch.allocator().alloc(u32, options.bindings.len);
+    const alias_names = try scratch.allocator().alloc([]const u8, options.aliases.len);
+    const alias_ids = try scratch.allocator().alloc(u32, options.aliases.len);
 
     for (options.bindings, names, ids) |binding, *name, *id| {
         name.* = binding.name;
         id.* = @backingInt(binding.type_id);
+    }
+
+    for (options.aliases, alias_names, alias_ids) |alias, *name, *id| {
+        name.* = alias.name;
+        id.* = @backingInt(alias.type_id);
     }
 
     const types = zx.ir.TypeTable.borrow(std.meta.Child(@FieldType(Input, "type_base")), options.types);
@@ -71,6 +78,8 @@ fn execute(comptime mode: Mode, scratch: *std.heap.ArenaAllocator, allocator: st
         .type_base = &types,
         .binding_names = names,
         .binding_types = ids,
+        .alias_names = alias_names,
+        .alias_types = alias_ids,
         .unit_bindings = options.unit_bindings,
         .nonnull_bindings = options.nonnull_bindings,
         .expected = if (options.expected) |expected| @backingInt(expected) else null,

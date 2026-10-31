@@ -6,9 +6,9 @@ import lookup from "../../bindings/lookup"
 import { NameKind } from "../../source/model"
 import readName from "../../source/name"
 import readStore from "../../stores/read"
-import named from "../../types/named"
 import payload from "../../types/payload"
 import injected from "../injected/lookup"
+import enumOwner from "./enum_owner"
 import member from "./member"
 
 import type { Result } from "../model"
@@ -24,6 +24,32 @@ export default function (in: Input): Output {
     const unhandled: Output = { handled: false, result: { state: in.state, value: 0 } }
 
     if (owner.kind != ExprKind.Identifier) {
+        if (owner.kind != ExprKind.Field || in.source.tree.nodes[owner.first].kind != ExprKind.Identifier || in.state.types.context.aliases.names.length == 0) {
+            return unhandled
+        }
+
+        const type_id = enumOwner({
+            ...in,
+            node: node.first
+        })
+
+        if (type_id.found) {
+            return {
+                handled: true,
+                result: member({
+                    state: in.state,
+                    type_id: type_id.id,
+                    name: readName({
+                        source: in.source,
+                        kind: NameKind.Expression,
+                        index: in.node
+                    }),
+                    span: node.span,
+                    error_member: false
+                })
+            }
+        }
+
         return unhandled
     }
 
@@ -47,7 +73,10 @@ export default function (in: Input): Output {
         return { handled: true, result: member({ state: in.state, type_id: expected, name: name, span: node.span, error_member: true }) }
     }
 
-    const type_id = named({ types: in.state.types, name: root.text })
+    const type_id = enumOwner({
+        ...in,
+        node: node.first
+    })
 
     if (type_id.found && row({ tables: tables, id: type_id.id }).kind == Kind.Enumeration) {
         return { handled: true, result: member({ state: in.state, type_id: type_id.id, name: name, span: node.span, error_member: false }) }

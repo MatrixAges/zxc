@@ -6,6 +6,7 @@ import lookup from "../../bindings/lookup"
 import { NameKind } from "../../source/model"
 import readName from "../../source/name"
 import injected from "../injected/lookup"
+import enumOwner from "../projections/enum_owner"
 import call from "./call"
 
 import type { Context } from "./model"
@@ -44,6 +45,22 @@ export default function (in: Input): Output {
 
     if (node.kind == ExprKind.Call) {
         return { handled: true, type_id: call({ context: in.context, callee: node.first }) }
+    }
+
+    if (node.kind == ExprKind.Field && (source.tree.nodes[node.first].kind == ExprKind.Identifier || (source.tree.nodes[node.first].kind == ExprKind.Field && state.types.context.aliases.names.length != 0 && source.tree.nodes[source.tree.nodes[node.first].first].kind == ExprKind.Identifier))) {
+        const type_id = enumOwner({
+            state: state,
+            source: source,
+            node: node.first,
+            expected: null
+        })
+
+        if (type_id.found) {
+            return {
+                handled: true,
+                type_id: type_id.id
+            }
+        }
     }
 
     if (node.kind == ExprKind.Field && source.tree.nodes[node.first].kind == ExprKind.Identifier) {

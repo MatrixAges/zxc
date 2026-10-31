@@ -55,6 +55,7 @@ fn analyzeIn(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.E
     if (resolved == .diagnostic) return diagnostic(allocator, path, resolved.diagnostic);
 
     var types = resolved.resolved.types;
+    const values = try @import("project/type_imports.zig").values(allocator, types, options.aliases);
     var objects: std.ArrayList(Object) = .empty;
 
     for (options.node.children) |node| {
@@ -74,7 +75,7 @@ fn analyzeIn(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.E
         for (resolved.resolved.fields) |field| {
             if (!std.mem.eql(u8, field.object, name)) continue;
 
-            const initial = try expression.compile(allocator, path, target.attribute(field.node, "value"), .{ .types = types, .native_modules = options.native_modules, .expected = field.type_id });
+            const initial = try expression.compile(allocator, path, target.attribute(field.node, "value"), .{ .types = types, .native_modules = options.native_modules, .aliases = values, .expected = field.type_id });
 
             if (initial.value == .diagnostic) return diagnostic(allocator, path, initial.value.diagnostic);
 

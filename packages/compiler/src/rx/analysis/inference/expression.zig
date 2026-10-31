@@ -8,6 +8,7 @@ const Self = @This();
 pub const Binding = struct { name: []const u8, value: Graph.Id, span: zx.Span = .{ .start = 0, .end = 0 } };
 
 graph: *Graph,
+aliases: []const zx.ir.Export = &.{},
 input: Graph.Id,
 input_used: bool = false,
 bindings: std.ArrayList(Binding) = .empty,
@@ -39,7 +40,7 @@ pub fn infer(self: *Self, expression: anytype, expected: ?Graph.Id) zx.Error!Gra
 
             return self.graph.reporter.fail(.name, span, "flow value is not defined in this scope");
         },
-        .field => |field| try self.graph.field(try self.infer(field.target, null), field.name.text, span),
+        .field => |field| (try self.enumMember(field.target, field.name, span)) orelse try self.graph.field(try self.infer(field.target, null), field.name.text, span),
         .number => |text| try self.graph.number(text, false, span),
         .boolean => try self.graph.scalar(.bool, span),
         .string, .template => block: {
@@ -133,7 +134,7 @@ pub fn declared(self: *Self, expression: anytype) zx.Error!Graph.Id {
         return self.input;
     }
 
-    if (node == .field) return self.graph.field(try self.infer(node.field.target, null), node.field.name.text, span);
+    if (node == .field) return (try self.enumMember(node.field.target, node.field.name, span)) orelse try self.graph.field(try self.infer(node.field.target, null), node.field.name.text, span);
 
     return self.infer(expression, null);
 }
@@ -214,4 +215,31 @@ fn refined(self: *Self, expression: anytype, value: Graph.Id) zx.Error!Graph.Id 
     }
 
     return value;
+}
+
+fn enumMember(self: *Self, owner: anytype, name: zx.ast.Name, span: zx.Span) zx.Error!?Graph.Id {
+    const value = syntax.value(owner);
+
+    if (value != .field or syntax.value(value.field.target) != .identifier or self.aliases.len == 0) return null;
+    if (@import("../condition.zig").rooted(owner, "$in")) return null;
+
+    for (self.bindings.items) |binding| {
+        if (@import("../condition.zig").rooted(owner, binding.name)) return null;
+    }
+
+    for (self.aliases) |alias| {
+        if (!@import("../condition.zig").matches(owner, alias.name)) continue;
+
+        const target = self.graph.types.get(alias.type_id);
+
+        if (target != .enumeration) return null;
+
+        for (target.enumeration.members) |member| {
+            if (std.mem.eql(u8, member, name.text)) return try self.graph.known(alias.type_id, span);
+        }
+
+        return self.graph.reporter.fail(.name, self.sourceSpan(name.span), "unknown enum member");
+    }
+
+    return null;
 }

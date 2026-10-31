@@ -38,18 +38,14 @@ pub fn analyze(self: *Analyzer, expression: anytype, expected: ?ir.TypeId) zx.Er
                 const name = target_value.identifier.text;
 
                 if (std.mem.eql(u8, name, "error") and self.lookup(name) == null) return @import("capture.zig").member(self, field.name, span, aggregates.payload(self, expected));
+            }
 
-                if (self.types.resolved.get(name) orelse aliasType(self, name)) |type_id| {
-                    const named_type = self.types.get(type_id);
-
-                    if (named_type == .enumeration) {
-                        for (named_type.enumeration.members, 0..) |member, index| {
-                            if (std.mem.eql(u8, member, field.name.text)) return self.append(.{ .span = span, .type_id = type_id, .value = .{ .enum_value = @intCast(index) } });
-                        }
-
-                        return self.reporter.fail(.name, field.name.span, "unknown enum member");
-                    }
+            if (@import("enum_owner.zig").resolve(self, field.target)) |type_id| {
+                for (self.types.get(type_id).enumeration.members, 0..) |member, index| {
+                    if (std.mem.eql(u8, member, field.name.text)) return self.append(.{ .span = span, .type_id = type_id, .value = .{ .enum_value = @intCast(index) } });
                 }
+
+                return self.reporter.fail(.name, field.name.span, "unknown enum member");
             }
 
             const target = try self.expression(field.target, null);
@@ -216,6 +212,8 @@ fn probeType(self: *const Analyzer, value: anytype, declared: bool) ?ir.TypeId {
         .field => |field| blk: {
             const target_value = syntax.value(field.target);
 
+            if (@import("enum_owner.zig").resolve(self, field.target)) |id| break :blk id;
+
             if (target_value == .identifier and std.mem.startsWith(u8, target_value.identifier.text, "$")) {
                 for (0..self.stores.count()) |store_index| {
                     const slot = self.stores.at(store_index);
@@ -312,14 +310,6 @@ pub fn literalHint(left: anytype, right: @TypeOf(left)) ?ir.TypeId {
     }
 
     return if (signed) Types.scalarId(.i64) else null;
-}
-
-fn aliasType(self: *const Analyzer, name: []const u8) ?ir.TypeId {
-    for (self.types.aliases) |alias| if (std.mem.eql(u8, alias.name, name)) {
-        return alias.type_id;
-    };
-
-    return null;
 }
 
 fn comparable(self: *const Analyzer, id: ir.TypeId) bool {

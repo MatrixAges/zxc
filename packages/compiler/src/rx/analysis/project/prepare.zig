@@ -5,7 +5,7 @@ const target = @import("../call/target.zig");
 const Store = @import("../store.zig");
 const Flow = @import("flow.zig");
 pub const Call = struct { setter: ?target.Setter = null, getters: []const Store.Binding = &.{}, node: rx.ast.Node, callee: union(enum) { function: target.Function, module: usize, signature: frontend.project.signature_project.Ports } };
-pub const Module = struct { source: rx.ModuleSource, calls: []const Call, steps: []const Flow.Step, type_imports: []const @import("zx").ir.Export = &.{} };
+pub const Module = struct { source: rx.ModuleSource, calls: []const Call, steps: []const Flow.Step, type_imports: []const @import("zx").ir.Export = &.{}, value_imports: []const @import("zx").ir.Export = &.{} };
 pub const Loaded = struct { modules: []const Module, project: frontend.project.Options };
 pub const Value = union(enum) { loaded: Loaded, diagnostic: target.Diagnostic };
 
@@ -45,7 +45,7 @@ fn loadWithSignatures(allocator: std.mem.Allocator, modules: []const rx.ModuleSo
 
         if (imported == .diagnostic) return .{ .diagnostic = imported.diagnostic };
 
-        plan.* = .{ .source = source, .calls = loader.calls.items, .steps = steps, .type_imports = imported.imports };
+        plan.* = .{ .source = source, .calls = loader.calls.items, .steps = steps, .type_imports = imported.imports, .value_imports = try @import("type_imports.zig").values(allocator, loader.project.context.types, imported.imports) };
     }
 
     return .{ .loaded = .{ .modules = plans, .project = loader.project } };

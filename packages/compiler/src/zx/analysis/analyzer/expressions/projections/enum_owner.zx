@@ -1,0 +1,118 @@
+import { Kind } from "core/type_table/model"
+
+import { ExprKind } from "../../../../frontend/parser/expressions/state/model"
+import row from "../../../semantic/types/row"
+import lookup from "../../bindings/lookup"
+import { NameKind } from "../../source/model"
+import readName from "../../source/name"
+import named from "../../types/named"
+import injected from "../injected/lookup"
+import matches from "../injected/matches"
+
+import type { Search } from "../../../semantic/types/model"
+import type { Request } from "../request"
+
+export type Input = Request
+
+export type Output = Search
+
+export default function (in: Input): Output {
+    const owner = in.source.tree.nodes[in.node]
+    const qualified = owner.kind == ExprKind.Field
+
+    const missing: Search = {
+        found: false,
+        id: 0
+    }
+
+    if (owner.kind != ExprKind.Identifier && !qualified) {
+        return missing
+    }
+
+    if (qualified && (in.state.types.context.aliases.names.length == 0 || in.source.tree.nodes[owner.first].kind != ExprKind.Identifier)) {
+        return missing
+    }
+
+    const root_index = qualified ? owner.first : in.node
+
+    const root = readName({
+        source: in.source,
+        kind: NameKind.Expression,
+        index: root_index
+    })
+
+    if (lookup({
+        active: in.state.local.active,
+        names: in.state.local.symbols.names,
+        scope_floor: 0,
+        name: root.text
+    }) != null) {
+        return missing
+    }
+
+    if (in.state.local.expression_bindings.length != 0 || in.state.local.expression_units.length != 0) {
+        const root_binding = injected({
+            local: in.state.local,
+            source: in.source,
+            node: root_index
+        })
+
+        const owner_binding = qualified ? injected({
+            local: in.state.local,
+            source: in.source,
+            node: in.node
+        }) : root_binding
+
+        if (root_binding.unit || root_binding.symbol != null || owner_binding.unit || owner_binding.symbol != null) {
+            return missing
+        }
+    }
+
+    const tables = {
+        base: in.state.types.context.base,
+        delta: in.state.types.delta
+    }
+
+    if (!qualified) {
+        const type_id = named({
+            types: in.state.types,
+            name: root.text
+        })
+
+        return type_id.found && row({
+            tables: tables,
+            id: type_id.id
+        }).kind == Kind.Enumeration ? type_id : missing
+    }
+
+    const candidate = loop({
+        source: in.source,
+        node: in.node,
+        aliases: in.state.types.context.aliases,
+        index: 0,
+        found: false,
+        id: missing.id
+    }, {
+        while: current => current.index < current.aliases.names.length && !current.found,
+        next: current => {
+            if (matches({
+                source: current.source,
+                node: current.node,
+                path: current.aliases.names[current.index]
+            })) {
+                current.found = true
+                current.id = current.aliases.ids[current.index]
+            }
+
+            current.index += 1
+        }
+    })
+
+    return candidate.found && row({
+        tables: tables,
+        id: candidate.id
+    }).kind == Kind.Enumeration ? {
+        found: true,
+        id: candidate.id
+    } : missing
+}

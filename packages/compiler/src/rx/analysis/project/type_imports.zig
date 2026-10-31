@@ -6,6 +6,16 @@ const target = @import("../call/target.zig");
 
 pub const Value = union(enum) { imports: []const zx.ir.Export, diagnostic: target.Diagnostic };
 
+pub fn values(allocator: std.mem.Allocator, types: zx.ir.TypeTable, imports: []const zx.ir.Export) std.mem.Allocator.Error![]const zx.ir.Export {
+    var result: std.ArrayList(zx.ir.Export) = .empty;
+
+    for (imports) |alias| {
+        if (types.at(@backingInt(alias.type_id)) == .enumeration) try result.append(allocator, alias);
+    }
+
+    return result.items;
+}
+
 pub fn collect(allocator: std.mem.Allocator, source: rx.ModuleSource, project: frontend.project.Options, signatures: frontend.project.signature_project.Data) std.mem.Allocator.Error!Value {
     var imports: std.ArrayList(zx.ir.Export) = .empty;
 

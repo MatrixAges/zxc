@@ -41,6 +41,7 @@ pub fn collect(graph: *Graph, modules: []const Prepared.Module, source_map: Sour
 
         var expression = Expression{
             .graph = graph,
+            .aliases = module.value_imports,
             .input = state.input,
             .attribute = .{ .name = "", .value = "", .location = location, .value_location = location },
             .span_offset = source_map.base(index),

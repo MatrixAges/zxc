@@ -22,7 +22,10 @@ export default function (in: Input): Output {
             source: { indexed: { bytes: in.bytes, types: in.syntax.types, order: in.syntax.type_order, declarations: [], members: [] }, native: native != null ? native.types : null },
             base: in.type_base,
             resolved: { names: [], ids: [] },
-            aliases: { names: [], ids: [] },
+            aliases: {
+                names: in.alias_names,
+                ids: in.alias_types
+            },
             visiting: [],
             native_interface: false
         },

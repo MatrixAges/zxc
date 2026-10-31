@@ -69,7 +69,9 @@ Type 声明 ZX 公开类型的来源，as 必填且在当前 Module 内唯一；
 <Module fn="./calculate_total" />
 ```
 
-简写继承目标函数的 Input/Output，并处理 void 边界；fn 与任何子声明或步骤互斥。参数组装、多阶段处理和结果汇合使用完整 Module。Type 只引入类型，不调用函数；文件装载及混合依赖图仍检查未使用的 Type 引用和跨 RX/ZX 循环。
+简写继承目标函数的 Input/Output，并处理 void 边界；fn 与任何子声明或步骤互斥。参数组装、多阶段处理和结果汇合使用完整 Module。Type 只声明静态类型来源，不调用函数；文件装载及混合依赖图仍检查未使用的 Type 引用和跨 RX/ZX 循环。
+
+若来源还导出 Status 枚举，可在 Call.in、Return.value、Case.value 等值属性中写 `Total.Status.Ready`。Store 初值使用当前 Store 自己声明的 Type 别名；别名不跨定义泄漏，其他文件导出的同名枚举也不能互换。
 
 ## 属性值
 

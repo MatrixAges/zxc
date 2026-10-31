@@ -33,7 +33,7 @@ pub fn lookup(self: *const Analyzer, expression: anytype) ?zx.ir.SymbolId {
     return null;
 }
 
-fn matches(expression: anytype, path: []const u8) bool {
+pub fn matches(expression: anytype, path: []const u8) bool {
     if (syntax.value(expression) == .identifier) return std.mem.eql(u8, syntax.value(expression).identifier.text, path);
     if (syntax.value(expression) != .field) return false;
 
