@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./model" as="Model" />
+
+    <Args in={u8[]} out={Model.Result} />
+
     <Call fn="utf8/validate" in={$in} />
 
     <Switch on={$ctx.validate}>

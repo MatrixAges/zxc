@@ -1,4 +1,6 @@
 <Module>
+    <Args in={{ declarations: string[], definitions: string, precondition: string, violations: string[] }} out={{ correctness: string, feasibility: string }} />
+
     <Call fn="declarations" in={$in.declarations} />
 
     <Call module="failures" in={$in.violations} />

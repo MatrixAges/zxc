@@ -1,4 +1,15 @@
 <Module>
+    <Type from="../../frontend/lexer/initial" as="Initial" />
+    <Type from="../../frontend/parser/native/model" as="Model" />
+    <Type from="./signatures/check" as="Check" />
+    <Type from="../../analysis/semantic/resolving/model" as="ResolvingModel" />
+    <Type from="../../analysis/semantic/constructing/delta" as="Delta" />
+    <Type from="../../frontend/lexer/model" as="LexerModel" />
+    <Type from="./interface/exports" as="Exports" />
+    <Type from="./interface/members" as="Members" />
+
+    <Args in={{ errors: Initial.Input[], functions: Model.Function[], namespace: u8[][], parameters: Model.Parameter[], resolution: Check.Output }} out={{ cache: ResolvingModel.Cache, delta: Delta.Output, diagnostic: LexerModel.Diagnostic, exports: Exports.Export[], members: Members.Output }} />
+
     <Call fn="interface/namespace" in={$in.namespace} />
 
     <Switch on={$ctx.namespace}>

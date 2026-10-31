@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./constructing/delta" as="Delta" />
+
+    <Args in={{ maximum_count: u64, scalar_count: u64, table: Delta.Output, trusted: bool }} out={bool} />
+
     <Switch on={$in.trusted}>
         <Case value={true}>
             <Return value={true} />

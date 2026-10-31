@@ -18,6 +18,7 @@ pub const Result = struct {
 pub fn checkValues(allocator: std.mem.Allocator, node: rx.ast.Node, owner: []const u8) std.mem.Allocator.Error!?Diagnostic {
     for (node.attributes) |attribute| {
         if (attribute.kind != .expression) continue;
+        if (rx.isTypeAttribute(node.name, attribute.name)) continue;
 
         var parsed = try @import("attribute.zig").parse(allocator, attribute, owner);
 

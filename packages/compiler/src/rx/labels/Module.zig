@@ -2,8 +2,8 @@ const std = @import("std");
 const dsl = @import("dsl");
 const checks = @import("../checks.zig");
 const Import = @import("Import.zig").Import;
-const Input = @import("Input.zig").Input;
-const Output = @import("Output.zig").Output;
+const Type = @import("Type.zig").Type;
+const Args = @import("Args.zig").Args;
 const Call = @import("Call.zig").Call;
 const Task = @import("Task.zig").Sequential;
 const Parallel = @import("Parallel.zig").Parallel;
@@ -13,11 +13,10 @@ const Return = @import("Return.zig").Return;
 const StoreReference = @import("../features/store/root.zig").StoreReference;
 
 const ModuleBase = dsl.element("Module", struct {
-    in: ?[]const u8 = null,
-    out: ?[]const u8 = null,
+    @"fn": ?[]const u8 = null,
 }, dsl.list(dsl.choice(.{
-    .input = Input,
-    .output = Output,
+    .type = Type,
+    .args = Args,
     .store = StoreReference,
     .import = Import,
     .call = Call,
@@ -30,27 +29,37 @@ const ModuleBase = dsl.element("Module", struct {
 
 pub const Module = dsl.refine(ModuleBase, checkModule);
 
-fn checkModule(_: ModuleBase.Data, node: dsl.ast.Node, _: anytype, reporter: *dsl.Reporter) dsl.Error!void {
+fn checkModule(data: ModuleBase.Data, node: dsl.ast.Node, _: anytype, reporter: *dsl.Reporter) dsl.Error!void {
     try checks.nonEmpty(node, reporter);
 
+    if (data.attributes.@"fn") |reference| {
+        if (node.children.len != 0) return checks.fail(node, "fn", "Module.fn cannot be combined with child declarations or steps", reporter);
+        if (!@import("../paths.zig").isFunctionReference(reference)) return checks.fail(node, "fn", "Module.fn must reference a ZX source file", reporter);
+
+        return;
+    }
+
+    try checks.uniqueChildren(node, "Type", "as", reporter);
+
+    var has_args = false;
+    var has_steps = false;
+
     for (node.children, 0..) |child, index| {
-        if (std.mem.eql(u8, child.name, "Input") and index != 0) {
-            return reporter.fail(.{
-                .code = .context,
-                .location = child.location,
-                .element = child.name,
-                .message = "Input must be the first Module child and may appear only once",
-            });
+        if (std.mem.eql(u8, child.name, "Type")) {
+            if (has_args or has_steps) return checks.fail(child, "from", "Type declarations must precede Args and module steps", reporter);
+
+            continue;
         }
 
-        if (std.mem.eql(u8, child.name, "Output") and index + 1 != node.children.len) {
-            return reporter.fail(.{
-                .code = .context,
-                .location = child.location,
-                .element = child.name,
-                .message = "Output must be the last Module child and may appear only once",
-            });
+        if (std.mem.eql(u8, child.name, "Args")) {
+            if (has_args or has_steps) return checks.fail(child, "in", "Args must appear once after Type declarations and before module steps", reporter);
+
+            has_args = true;
+
+            continue;
         }
+
+        has_steps = true;
 
         if (!std.mem.eql(u8, child.name, "Store")) continue;
 

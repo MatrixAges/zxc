@@ -1,4 +1,10 @@
 <Module>
+    <Type from="./expressions/validation/payloads" as="Payloads" />
+    <Type from="./functions/model" as="Model" />
+    <Type from="./stores/absent" as="Absent" />
+
+    <Args in={{ expressions: Payloads.Input, functions: Model.Functions, stores: Absent.Input }} out={bool} />
+
     <Call fn="./stores/absent" in={$in.stores} />
 
     <Switch on={$ctx.absent}>

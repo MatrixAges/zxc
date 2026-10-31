@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./model" as="Model" />
+
+    <Args in={Model.Input} out={Model.Result} />
+
     <Call fn="loading/type_base" in={{ table: $in.destination.types, scalar_count: $in.graph.program.context.scalar_count }} />
     <Call fn="loading/origins" in={{ instance: $in.instance, origins: $in.graph.origins, modules: $in.graph.program.context.modules }} />
 

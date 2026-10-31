@@ -1,4 +1,9 @@
 <Module>
+    <Type from="./signature/initial" as="Initial" />
+    <Type from="./signature/model" as="Model" />
+
+    <Args in={Initial.Input} out={Model.Signature} />
+
     <Call fn="signature/initial" in={$in} />
 
     <Switch on={$in.syntax.body != null}>

@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./model" as="Model" />
+
+    <Args in={Model.PredicateInput} out={Model.PredicateOutput} />
+
     <Call fn="initial" in={$in} />
 
     <Call module="bind" in={{ state: $ctx.initial, contract: $in.contract, output_type: $in.output_type }} />

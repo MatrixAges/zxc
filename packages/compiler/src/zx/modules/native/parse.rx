@@ -1,4 +1,8 @@
 <Module>
+    <Type from="../../frontend/parser/native/model" as="Model" />
+
+    <Args in={u8[]} out={Model.NativeOutput} />
+
     <Call module="../../frontend/parser/native" in={$in} />
 
     <Switch on={$ctx.native.diagnostic.message == ""}>

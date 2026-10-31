@@ -26,6 +26,7 @@ pub const analyzeWithContext = @import("analysis/analyze.zig").analyzeWithContex
 pub const Context = @import("analysis/analyze.zig").Context;
 pub const project = @import("modules/project.zig");
 pub const types = @import("analysis/types.zig");
+pub const type_views = @import("type_views");
 pub const type_table = @import("analysis/type_table.zig");
 pub const validateTypes = @import("ir/type_rules.zig").validate;
 pub const binding_path = @import("analysis/binding_path.zig");

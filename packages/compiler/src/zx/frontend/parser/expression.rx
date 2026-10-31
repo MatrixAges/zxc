@@ -1,7 +1,11 @@
 <Module>
-  <Call module="prepare" in={$in.source} />
+    <Type from="./expressions/parse" as="Parse" />
 
-  <Call fn="expressions/parse" in={{prepared: $ctx.prepare, start: $in.start, depth: $in.depth, minimum: $in.minimum, allow_lambda: $in.allow_lambda}} />
+    <Args in={{ allow_lambda: bool, depth: u64, minimum: u8, source: u8[], start: u64 }} out={Parse.Output} />
 
-  <Return value={$ctx.parse} />
+    <Call module="prepare" in={$in.source} />
+
+    <Call fn="expressions/parse" in={{prepared: $ctx.prepare, start: $in.start, depth: $in.depth, minimum: $in.minimum, allow_lambda: $in.allow_lambda}} />
+
+    <Return value={$ctx.parse} />
 </Module>

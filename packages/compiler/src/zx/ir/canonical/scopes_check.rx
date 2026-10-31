@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./scopes/model" as="Model" />
+
+    <Args in={Model.Program} out={bool} />
+
     <Call module="./scopes/prepare" in={$in} />
     <Call module="./scopes/check" in={{ program: $in, prepared: $ctx.prepare }} />
 

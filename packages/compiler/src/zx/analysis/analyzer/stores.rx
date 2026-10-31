@@ -1,4 +1,10 @@
 <Module>
+    <Type from="./context" as="Context" />
+    <Type from="./signature/model" as="Model" />
+    <Type from="./stores/authorize" as="Authorize" />
+
+    <Args in={{ context: Context.Context, has_store: bool, signature: Model.Signature }} out={Authorize.Output} />
+
     <Call fn="stores/resolve" in={{ context: $in.context, signature: $in.signature }} />
 
     <Switch on={$ctx.resolve.diagnostic.message == ""}>

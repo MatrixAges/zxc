@@ -1,10 +1,8 @@
 <Module>
-    <Input>
-        <Field name="gap" type="u8[]" />
-        <Field name="left" type="u8[]" />
-        <Field name="right" type="u8[]" />
-        <Field name="preserve_trailing" type="bool" />
-    </Input>
+    <Type from="./model" as="Gap" />
+    <Type from="../../../spacing/boundary/model" as="Boundary" />
+
+    <Args in={Gap.Input} out={Boundary.Output} />
 
     <Switch on={$in.preserve_trailing}>
         <Case value={true}>
@@ -28,12 +26,4 @@
             </Switch>
         </Default>
     </Switch>
-
-    <Output>
-        <Field name="needs_edit" type="bool" />
-        <Field name="start" type="u64" />
-        <Field name="end" type="u64" />
-        <Field name="crlf" type="bool" />
-        <Field name="separate" type="bool" />
-    </Output>
 </Module>

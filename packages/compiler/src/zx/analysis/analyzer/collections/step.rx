@@ -1,4 +1,9 @@
 <Module>
+    <Type from="./step/bindings" as="Bindings" />
+    <Type from="./building/integer" as="Integer" />
+
+    <Args in={Bindings.Input} out={Integer.Output} />
+
     <Call fn="step/bindings" in={$in} />
     <Call fn="step/result" in={{ state: $ctx.bindings.state, kind: $in.kind, previous: $ctx.bindings.previous, item: $ctx.bindings.item, value: $ctx.bindings.value, span: $in.span }} />
 

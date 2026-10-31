@@ -1,27 +1,27 @@
 [
     {
-        "name": "module-in-string",
-        "source": "<Module in=\"Input\"/>",
-        "path": "flow.rx"
-    },
-    {
-        "name": "module-in-expression",
-        "source": "<Module in={Input}/>",
+        "name": "args-in-string",
+        "source": "<Module><Args in=\"u64\" out={bool}/></Module>",
         "path": "flow.rx",
         "attribute": "in",
-        "offset": 12
+        "offset": 18
     },
     {
-        "name": "module-out-string",
-        "source": "<Module out=\"Output\"/>",
+        "name": "args-in-expression",
+        "source": "<Module><Args in={u64} out={bool}/></Module>",
         "path": "flow.rx"
     },
     {
-        "name": "module-out-expression",
-        "source": "<Module out={Output}/>",
+        "name": "args-out-string",
+        "source": "<Module><Args in={u64} out=\"bool\"/></Module>",
         "path": "flow.rx",
         "attribute": "out",
-        "offset": 13
+        "offset": 28
+    },
+    {
+        "name": "args-out-expression",
+        "source": "<Module><Args in={u64} out={bool}/></Module>",
+        "path": "flow.rx"
     },
     {
         "name": "import-string",

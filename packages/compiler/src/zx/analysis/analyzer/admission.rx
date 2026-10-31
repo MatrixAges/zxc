@@ -1,4 +1,9 @@
 <Module>
+    <Type from="./context" as="Context" />
+    <Type from="../semantic/resolving/model" as="Model" />
+
+    <Args in={Context.ModuleInput} out={Model.Diagnostic} />
+
     <Call fn="admission/mode" in={$in.context.mode} />
 
     <Switch on={!$ctx.mode.validate}>

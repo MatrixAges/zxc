@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./merging/model" as="Model" />
+
+    <Args in={Model.Input} out={Model.State} />
+
     <Switch on={$in.request.checked}>
         <Case value={true}>
             <Call fn="merging/preflight/prefix" in={{ source: $in.request.source, target: $in.request.base, first: $in.request.first }} />

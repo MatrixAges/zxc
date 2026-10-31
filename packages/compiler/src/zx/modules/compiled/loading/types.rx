@@ -1,4 +1,9 @@
 <Module>
+    <Type from="./types/model" as="Model" />
+    <Type from="./types/initial" as="Initial" />
+
+    <Args in={Model.Request} out={Initial.Output} />
+
     <Call fn="types/initial" in={$in} />
 
     <Call module="../../../analysis/semantic/preflight" in={{ source: $in.source, target: $in.base, origins: $in.origins, names: $in.names, first: 0 }} />

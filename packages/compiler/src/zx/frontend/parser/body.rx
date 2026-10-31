@@ -1,7 +1,11 @@
 <Module>
-  <Call module="prepare" in={$in.source} />
+    <Type from="./body/model" as="Model" />
 
-  <Call fn="body/parse" in={{prepared: $ctx.prepare, start: $in.start, depth: $in.depth, state_block: $in.state_block}} />
+    <Args in={{ depth: u64, source: u8[], start: u64, state_block: bool }} out={Model.State} />
 
-  <Return value={$ctx.parse} />
+    <Call module="prepare" in={$in.source} />
+
+    <Call fn="body/parse" in={{prepared: $ctx.prepare, start: $in.start, depth: $in.depth, state_block: $in.state_block}} />
+
+    <Return value={$ctx.parse} />
 </Module>

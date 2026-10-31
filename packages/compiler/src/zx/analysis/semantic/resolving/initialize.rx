@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./model" as="Model" />
+
+    <Args in={Model.State} out={Model.State} />
+
     <Call fn="initializing/aliases" in={$in} />
 
     <Switch on={$ctx.aliases.diagnostic.message == ""}>

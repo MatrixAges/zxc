@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./model" as="Model" />
+
+    <Args in={Model.Selection} out={bool[]?} />
+
     <Call fn="collect" in={$in} />
 
     <Switch on={$ctx.collect.valid}>

@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./legacy" as="Legacy" />
+
+    <Args in={u8[]} out={Legacy.Output} />
+
     <Call module="scan" in={$in} />
 
     <Call fn="legacy" in={$ctx.scan} />

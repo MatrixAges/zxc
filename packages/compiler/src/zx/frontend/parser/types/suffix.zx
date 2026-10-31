@@ -13,6 +13,10 @@ export type Input = State
 export type Output = State
 
 export default function (in: Input): Output {
+  if (in.control.phase == Phase.Name && in.control.token.symbol == Symbol.Dot) {
+    return consume({ state: in, phase: Phase.NamePart })
+  }
+
   if (in.control.phase == Phase.ListEnd) {
     if (in.control.token.symbol != Symbol.CloseBracket) {
       return fail({ state: in, code: "syntax", message: "expected ]" })

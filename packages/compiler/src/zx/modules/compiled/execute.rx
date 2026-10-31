@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./model" as="Model" />
+
+    <Args in={Model.Input} out={Model.Result} />
+
     <Call module="destination" in={{ seed: $in.seed, destination: $in.destination }} />
 
     <Switch on={$ctx.destination}>

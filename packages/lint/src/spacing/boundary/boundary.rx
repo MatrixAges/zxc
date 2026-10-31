@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./model" as="Model" />
+
+    <Args in={Model.Input} out={Model.Output} />
+
     <Call fn="scan" in={$in} />
 
     <Switch on={$ctx.scan.has_newline}>

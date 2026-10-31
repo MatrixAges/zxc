@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./model" as="Model" />
+
+    <Args in={Model.Request} out={bool} />
+
     <Call module="../../stores_check" in={{ table: $in.context.table, paths: $in.unit.body.stores.paths, slot_types: $in.unit.body.stores.types, type_only: $in.unit.type_only }} />
 
     <Switch on={$ctx.stores_check}>

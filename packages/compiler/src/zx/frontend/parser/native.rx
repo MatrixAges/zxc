@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./native/model" as="Model" />
+
+    <Args in={u8[]} out={Model.NativeOutput} />
+
     <Call module="../lexer/scan" in={$in} />
 
     <Call fn="native/parse" in={$ctx.scan} />

@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./forward" as="Forward" />
+
+    <Args in={Forward.Input} out={bool} />
+
     <Call fn="forward" in={$in} />
 
     <Switch on={$ctx.forward}>

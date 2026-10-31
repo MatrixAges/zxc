@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./model" as="Model" />
+
+    <Args in={Model.Request} out={bool[]?} />
+
     <Switch on={$in.record.has_body}>
         <Case value={true}>
             <Switch on={$in.record.body_function == null}>
@@ -24,6 +28,7 @@
                     <Switch on={$ctx.function_source}>
                         <Case value={true}>
                             <Call fn="function_body" in={{ functions: $in.functions, index: $in.record.body_function ?? 0 }} />
+
                             <Call module="with_body" in={{ request: $in, body: $ctx.function_body }} />
 
                             <Return value={$ctx.with_body} />

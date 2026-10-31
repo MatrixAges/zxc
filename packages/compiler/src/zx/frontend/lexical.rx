@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./parser/templates/model" as="Model" />
+
+    <Args in={u8[]} out={Model.Prepared} />
+
     <Call module="parser/templates/prepare" in={$in} />
 
     <Return value={$ctx.prepare} />

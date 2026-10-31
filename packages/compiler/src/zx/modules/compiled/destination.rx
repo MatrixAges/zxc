@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./model" as="Model" />
+
+    <Args in={{ destination: Model.Destination, seed: bool }} out={bool} />
+
     <Switch on={$in.seed}>
         <Case value={true}>
             <Call module="../../analysis/semantic/origins" in={{ table: $in.destination.types, origins: $in.destination.origins, names: $in.destination.origin_names }} />

@@ -8,7 +8,7 @@ const Field = grammar.sequence(.{ Name, grammar.optional(grammar.token("?")), gr
 const Object = grammar.sequence(.{ grammar.token("{"), grammar.reference([]const ast.TypeField, fields), grammar.required(grammar.token("}"), "expected }") });
 const Tuple = grammar.sequence(.{ grammar.token("["), grammar.separated(Type, ",", "]"), grammar.required(grammar.token("]"), "expected ]") });
 const Argument = grammar.sequence(.{ grammar.token("<"), Type, grammar.required(grammar.token(">"), "expected >") });
-const Named = grammar.sequence(.{ Name, grammar.optional(Argument) });
+const Named = grammar.sequence(.{ grammar.reference(ast.Name, qualifiedName), grammar.optional(Argument) });
 const Primary = grammar.choice(.{ grammar.map(Object, ast.Type, object), grammar.map(Tuple, ast.Type, tuple), grammar.map(Named, ast.Type, named) });
 
 const Suffix = grammar.choice(.{
@@ -34,6 +34,15 @@ pub fn parse(parser: *Parser) zx.Error!*const ast.Type {
     }
 
     return result;
+}
+
+fn qualifiedName(parser: *Parser) zx.Error!ast.Name {
+    const first = try parser.name();
+    var span = first.span;
+
+    while (parser.take(".")) span.end = (try parser.name()).span.end;
+
+    return .{ .text = parser.source[span.start..span.end], .span = span };
 }
 
 fn object(_: *Parser, values: Object.Value) zx.Error!ast.Type {

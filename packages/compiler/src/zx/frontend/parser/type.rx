@@ -1,17 +1,21 @@
 <Module>
-  <Call module="../lexical" in={$in.source} />
+    <Type from="./types/model" as="Model" />
 
-  <Switch on={$ctx.lexical.lexed.diagnostic.message == ""}>
-    <Case value={true}>
-      <Call fn="types/parse" in={{tokens: $ctx.lexical.lexed.tokens, start: $in.start, depth: $in.depth}} />
+    <Args in={{ depth: u64, source: u8[], start: u64 }} out={Model.State} />
 
-      <Return value={$ctx.parse} />
-    </Case>
+    <Call module="../lexical" in={$in.source} />
 
-    <Default>
-      <Call fn="types/lexical_failure" in={{start: $in.start, depth: $in.depth, diagnostic: $ctx.lexical.lexed.diagnostic}} />
+    <Switch on={$ctx.lexical.lexed.diagnostic.message == ""}>
+        <Case value={true}>
+            <Call fn="types/parse" in={{tokens: $ctx.lexical.lexed.tokens, start: $in.start, depth: $in.depth}} />
 
-      <Return value={$ctx.lexical_failure} />
-    </Default>
-  </Switch>
+            <Return value={$ctx.parse} />
+        </Case>
+
+        <Default>
+            <Call fn="types/lexical_failure" in={{start: $in.start, depth: $in.depth, diagnostic: $ctx.lexical.lexed.diagnostic}} />
+
+            <Return value={$ctx.lexical_failure} />
+        </Default>
+    </Switch>
 </Module>

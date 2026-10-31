@@ -1,26 +1,26 @@
 const fixture = @import("fixture.zig");
 
-test "module-in-string" {
+test "args-in-string" {
     try fixture.check(
-        \\{"source":"<Module in=\"Input\"/>","path":"flow.rx"}
+        \\{"source":"<Module><Args in=\"u64\" out={bool}/></Module>","path":"flow.rx","attribute":"in","offset":18}
     );
 }
 
-test "module-in-expression" {
+test "args-in-expression" {
     try fixture.check(
-        \\{"source":"<Module in={Input}/>","path":"flow.rx","attribute":"in","offset":12}
+        \\{"source":"<Module><Args in={u64} out={bool}/></Module>","path":"flow.rx"}
     );
 }
 
-test "module-out-string" {
+test "args-out-string" {
     try fixture.check(
-        \\{"source":"<Module out=\"Output\"/>","path":"flow.rx"}
+        \\{"source":"<Module><Args in={u64} out=\"bool\"/></Module>","path":"flow.rx","attribute":"out","offset":28}
     );
 }
 
-test "module-out-expression" {
+test "args-out-expression" {
     try fixture.check(
-        \\{"source":"<Module out={Output}/>","path":"flow.rx","attribute":"out","offset":13}
+        \\{"source":"<Module><Args in={u64} out={bool}/></Module>","path":"flow.rx"}
     );
 }
 

@@ -3,7 +3,7 @@ import type { Span, Token } from "../../lexer/token_model"
 
 export enum TypeKind { Named, Object, Optional, List, Tuple, Application }
 
-export enum Phase { Start, Name, Suffix, ListEnd, Field, FieldOptional, FieldColon, TupleItem, Done }
+export enum Phase { Start, Name, NamePart, Suffix, ListEnd, Field, FieldOptional, FieldColon, TupleItem, Done }
 
 export type Node = { kind: TypeKind, name: Span, child: u64, head: u64, count: u64 }
 

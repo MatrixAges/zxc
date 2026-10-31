@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./references/control" as="Control" />
+
+    <Args in={{ body: Control.Input, max_offset: u64 }} out={bool} />
+
     <Task name="stores" out={$ctx.validate}>
         <Call fn="../stores/validate" in={$in.body.stores} />
     </Task>

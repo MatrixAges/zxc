@@ -1,4 +1,9 @@
 <Module>
+    <Type from="./ownership/request" as="Request" />
+    <Type from="./ownership/finish" as="Finish" />
+
+    <Args in={Request.Input} out={Finish.Output} />
+
     <Call fn="ownership/request" in={$in} />
 
     <Call module="../../ownership/check" in={$ctx.request} />

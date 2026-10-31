@@ -16,40 +16,21 @@ entries: std.ArrayList(Entry) = .empty,
 mappings: std.ArrayList(Mapping) = .empty,
 pub fn collect(self: *Self, modules: []const Prepared.Module) std.mem.Allocator.Error!void {
     for (modules, 0..) |module, index| {
-        const children = module.source.node.children;
-
-        if (children.len == 0) continue;
-        if (std.mem.eql(u8, children[0].name, "Input")) try self.append(index, module.source.path, children[0], .input);
-        if (std.mem.eql(u8, children[children.len - 1].name, "Output")) try self.append(index, module.source.path, children[children.len - 1], .output);
+        for (module.source.node.children) |node| {
+            if (!std.mem.eql(u8, node.name, "Args")) continue;
+            try self.append(index, node, .input);
+            try self.append(index, node, .output);
+        }
     }
 }
 
-fn append(self: *Self, module: usize, path: []const u8, node: rx.ast.Node, kind: Kind) std.mem.Allocator.Error!void {
-    var digest: [32]u8 = undefined;
-
-    std.crypto.hash.sha2.Sha256.hash(path, &digest, .{});
-
-    const name = try std.fmt.allocPrint(self.allocator, "Rx{s}{s}", .{ if (kind == .input) "Input" else "Output", std.fmt.bytesToHex(digest, .lower) });
+fn append(self: *Self, module: usize, node: rx.ast.Node, kind: Kind) std.mem.Allocator.Error!void {
+    const name = try std.fmt.allocPrint(self.allocator, "Rx{s}{d}", .{ if (kind == .input) "Input" else "Output", module });
 
     try self.text.appendSlice(self.allocator, "export type ");
     try self.text.appendSlice(self.allocator, name);
     try self.text.appendSlice(self.allocator, " = ");
-
-    if (target.optionalAttribute(node, "type")) |attribute| {
-        try self.appendAttribute(module, attribute);
-    } else {
-        try self.text.appendSlice(self.allocator, "{ ");
-
-        for (node.children) |field| {
-            try self.appendAttribute(module, target.attribute(field, "name"));
-            try self.text.appendSlice(self.allocator, ": ");
-            try self.appendAttribute(module, target.attribute(field, "type"));
-            try self.text.appendSlice(self.allocator, ", ");
-        }
-
-        try self.text.appendSlice(self.allocator, "}");
-    }
-
+    try self.appendAttribute(module, target.attribute(node, if (kind == .input) "in" else "out"));
     try self.text.append(self.allocator, '\n');
     try self.entries.append(self.allocator, .{ .module = module, .kind = kind, .node = node, .name = name, .end = self.text.items.len });
 }
@@ -61,17 +42,15 @@ fn appendAttribute(self: *Self, module: usize, value: rx.ast.Attribute) std.mem.
     try self.mappings.append(self.allocator, .{ .module = module, .attribute = value, .start = start, .end = self.text.items.len });
 }
 
-pub fn valid(self: Self, program: zx.ast.Program) bool {
-    if (program.imports.len != 0 or program.body != null or program.contracts.len != 0 or program.has_store or program.declarations.len != self.entries.items.len) return false;
+pub fn valid(self: Self, view: anytype) bool {
+    const declarations = view.declarations();
 
-    for (program.declarations, self.entries.items) |declaration, entry| {
-        if (!std.mem.eql(u8, declaration.name.text, entry.name)) return false;
-        if (target.optionalAttribute(entry.node, "type") != null) continue;
-        if (declaration.value.* != .object or declaration.value.object.len != entry.node.children.len) return false;
+    if (declarations.count() != self.entries.items.len) return false;
 
-        for (declaration.value.object, entry.node.children) |field, child| {
-            if (!std.mem.eql(u8, field.name.text, target.attribute(child, "name").value)) return false;
-        }
+    var iterator = declarations.iterator();
+
+    for (self.entries.items) |entry| {
+        if (!std.mem.eql(u8, iterator.next().?.name.text, entry.name)) return false;
     }
 
     return true;

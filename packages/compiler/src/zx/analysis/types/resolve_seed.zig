@@ -45,13 +45,15 @@ pub fn initialize(self: *Types, view: anytype) zx.Error!void {
     if (self.shared) |shared| try @import("shared_seed.zig").resolve(self, first, shared);
 }
 
-pub fn named(self: *Types, view: anytype, name: zx.ast.Name) zx.Error!ir.TypeId {
-    if (builtin(name.text)) |scalar| return Types.scalarId(scalar);
-    if (self.resolved.get(name.text)) |id| return id;
+pub fn named(self: *Types, view: anytype, raw_name: zx.ast.Name) zx.Error!ir.TypeId {
+    if (builtin(raw_name.text)) |scalar| return Types.scalarId(scalar);
+    if (self.resolved.get(raw_name.text)) |id| return id;
 
     for (self.aliases) |alias| {
-        if (std.mem.eql(u8, alias.name, name.text)) return alias.type_id;
+        if (std.mem.eql(u8, alias.name, raw_name.text)) return alias.type_id;
     }
+
+    const name = raw_name;
 
     if (self.visiting.contains(name.text)) return self.reporter.fail(.type_mismatch, name.span, "recursive type aliases are not supported");
     if (self.visiting.count() >= 256) return self.reporter.fail(.unsupported, name.span, "type alias nesting exceeds 256 levels");
@@ -77,6 +79,10 @@ pub fn named(self: *Types, view: anytype, name: zx.ast.Name) zx.Error!ir.TypeId 
 
         return id;
     }
+
+    const normalized = try @import("name_seed.zig").normalize(self.allocator, name);
+
+    if (!std.mem.eql(u8, normalized.text, name.text)) return named(self, view, normalized);
 
     return self.reporter.fail(.name, name.span, "unknown or unsupported type");
 }

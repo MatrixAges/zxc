@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./model" as="Model" />
+
+    <Args in={Model.ExternalInput} out={Model.Result} />
+
     <Call module="../../frontend/parser/program" in={$in.bytes} />
 
     <Switch on={$ctx.program.diagnostic.message == "" && $ctx.program.body == null && $ctx.program.imports.length == 0}>

@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./model" as="Model" />
+
+    <Args in={Model.Request} out={bool} />
+
     <Call fn="header" in={$in} />
 
     <Switch on={$ctx.header}>

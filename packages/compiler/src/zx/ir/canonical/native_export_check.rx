@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./native/model" as="Model" />
+
+    <Args in={Model.ExportContext} out={bool} />
+
     <Call fn="./native/exports/owner" in={$in} />
 
     <Switch on={$ctx.owner != null}>

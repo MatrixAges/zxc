@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./model" as="Model" />
+
+    <Args in={{ analysis: Model.Analysis, input: Model.ExternalInput }} out={Model.Analysis} />
+
     <Switch on={$in.analysis.diagnostic.message == ""}>
         <Case value={true}>
             <Call fn="implementation/tuple" in={{ tables: { base: $in.analysis.types.context.base, delta: $in.analysis.types.delta }, input_type: $in.analysis.input_type, expand_tuple: $in.input.expand_tuple, span: $in.input.span }} />

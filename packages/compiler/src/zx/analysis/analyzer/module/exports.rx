@@ -1,4 +1,9 @@
 <Module>
+    <Type from="./model" as="Model" />
+    <Type from="../context" as="Context" />
+
+    <Args in={{ analysis: Model.Analysis, module: Context.ModuleInput }} out={Model.Analysis} />
+
     <Switch on={$in.analysis.state.diagnostic.message == ""}>
         <Case value={true}>
             <Call fn="../exports" in={{ state: { types: $in.analysis.state.types, diagnostic: $in.analysis.state.diagnostic } }} />

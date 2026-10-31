@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./model" as="Model" />
+
+    <Args in={u8[]} out={Model.Prepared} />
+
     <Call module="boundary/scan" in={$in} />
 
     <Switch on={$ctx.scan.lexed.diagnostic.message == "" && $ctx.scan.templates.length != 0}>

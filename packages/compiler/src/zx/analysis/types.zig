@@ -35,6 +35,10 @@ pub fn resolve(self: *Self, value: *const zx.ast.Type) zx.Error!ir.TypeId {
     return resolution.node(self, NativeView{ .items = self.declarations }, value);
 }
 
+pub fn resolveView(self: *Self, view: anytype, value: @TypeOf(view).Ref) zx.Error!ir.TypeId {
+    return resolution.node(self, view, value);
+}
+
 pub fn wrap(self: *Self, kind: enum { optional, list }, child: ir.TypeId) zx.Error!ir.TypeId {
     if (!@import("parser_options").generated_parser) return seed.wrap(self, kind, child);
 

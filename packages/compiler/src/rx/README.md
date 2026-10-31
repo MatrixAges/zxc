@@ -45,23 +45,31 @@ RX 测试位于 compiler 包的 `tests/rx/`，实现文件不包含内嵌 test�
 
 ## 输入输出契约
 
-Input 必须是 Module 的第一个子元素，Output 必须是最后一个，各最多声明一次。对象用 Field 声明字段和普通 ZX 类型；整值类型使用 type 属性：
+Type 声明 ZX 公开类型的来源，as 必填且在当前 Module 内唯一；from 通常省略 .zx。Args 放在 Type 声明之后、编排之前，in/out 使用普通 ZX 类型表达式，不使用字符串类型或重复的 Field 列表。
 
 ```xml
 <Module>
-    <Input>
-        <Field name="value" type="u64" />
-    </Input>
+    <Type from="./calculate_total" as="Total" />
 
-    <Return value={$in.value} />
+    <Args in={Total.Input} out={Total.Output} />
 
-    <Output type="u64" />
+    <Call fn="./calculate_total" in={$in} />
+
+    <Return value={$ctx.calculate_total} />
 </Module>
 ```
 
-Input 与 Output 的 type 属性和 Field 子元素不能混用；无字段且无 type 表示空对象 `{}`，无输入或输出使用 `type="void"`。字段类型不能是 void。声明保留未使用字段，字段访问、调用参数和各条返回路径均须满足声明，不能靠后续推导增加字段或更改类型。
+复杂对象只在 ZX 中定义；引用保留既有类型身份，枚举和原生引用不会按字段重建。多个 RX 可以各自使用同一个别名，不共享类型名称作用域。Type 可以多个且必须位于 Args 前，Args 最多一次；标量可直接使用 u64、bool 等内建类型，无输入或输出使用 void。
 
-未声明的端口继续兼容现有推导。Module.in/out 保留旧名称标注，不会解析为实际类型，也不能替代 Input/Output。类型名只按普通 ZX 类型环境解析；RX Import 当前不导入 ZX 类型名称，不会从其他模块按名称猜测类型。
+声明保留未使用字段，字段访问、调用参数及各条返回路径均须满足契约。新编排模块应明确声明 Args；没有显式契约的旧模块仍可推导。Module 不接受旧 in/out 名称标注，不保留 Input/Output 标签。
+
+如果模块仅把完整输入交给一个 ZX 函数并直接返回其结果，可以简写：
+
+```xml
+<Module fn="./calculate_total" />
+```
+
+简写继承目标函数的 Input/Output，并处理 void 边界；fn 与任何子声明或步骤互斥。参数组装、多阶段处理和结果汇合使用完整 Module。Type 只引入类型，不调用函数；文件装载及混合依赖图仍检查未使用的 Type 引用和跨 RX/ZX 循环。
 
 ## 属性值
 
@@ -77,12 +85,16 @@ Call 使用 in 传参；读取输入写 `in={$in}`，字符串写 `in="$in"`；�
 
 ## 调用与组合
 
-每个 Module 自身就是流程。可选的 in/out 用于命名推导后的类型契约，不是需要另行提供的类型文件；Schema 入口仅保留名称，`rx_analysis.module.infer` 从函数调用与返回表达式推导顺序模块的实际类型。
+每个 Module 自身就是流程。Args 约束模块接口，`rx_analysis.module.infer` 连接声明、函数签名和实际返回路径；类型来源通过 Type 明确引入。
 
 `checkout.rx` 可以通过调用多个子模块形成新的模块：
 
 ```xml
-<Module in="CheckoutInput" out="CheckoutOutput">
+<Module>
+  <Type from="./checkout_types" as="Checkout" />
+
+  <Args in={Checkout.Input} out={void} />
+
   <Call module="users" in={$in.user} />
   <Call module="orders" in={{user:$ctx.users,items:$in.items}} />
   <Emit event="order.created" value={$ctx.orders} />
@@ -121,27 +133,29 @@ module 的 Input 为 void 时可省略 in；非 void 输入省略时在推导阶
 
 属性默认必填，`?` 表示可以省略。
 
-| 标签       | 属性                                                                   | 直属子标签                                                     |
-| ---------- | ---------------------------------------------------------------------- | -------------------------------------------------------------- |
-| Module     | `in?`、`out?`                                                          | Import、Store 引用、Task、Call、Parallel、Switch、Emit、Return |
-| Import     | `from`                                                                 | 无                                                             |
-| Call       | `fn?` / `module?` 二选一、`in?`、`setter?`                             | 无                                                             |
-| Return     | `value`                                                                | 无                                                             |
-| Task       | `name`、`out?`                                                         | Call、Parallel、Switch、Emit、Return                           |
-| Parallel   | 无                                                                     | Task、Call                                                     |
-| Switch     | `on`                                                                   | Case、Default                                                  |
-| Case       | `value`                                                                | Task、Call、Parallel、Switch、Emit、Return                     |
-| Default    | 无                                                                     | Task、Call、Parallel、Switch、Emit、Return                     |
-| Emit       | `event`、`value`                                                       | 无                                                             |
-| Store 引用 | `from`、`as?`                                                          | 无                                                             |
-| Gateway    | `name`、`protocol?`、`listen?`、`max_header_bytes?`、`max_body_bytes?` | Group、Route                                                   |
-| Group      | `prefix`                                                               | Group、Route                                                   |
-| Route      | `path`、`service`、`method?`                                           | 无                                                             |
-| Store 定义 | `name`、`version`                                                      | Object                                                         |
-| Object     | `name`                                                                 | Field                                                          |
-| Field      | `name`、`type`、`value`                                                | 无                                                             |
+| 标签       | 属性                                                                   | 直属子标签                                                                                  |
+| ---------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Module     | `fn?`                                                                  | Type、Args、Import、Store 引用、Task、Call、Parallel、Switch、Emit、Return；fn 简写无子标签 |
+| Type       | `from`、`as`                                                           | 无                                                                                          |
+| Args       | `in`、`out`，类型表达式                                                | 无                                                                                          |
+| Import     | `from`                                                                 | 无                                                                                          |
+| Call       | `fn?` / `module?` 二选一、`in?`、`setter?`                             | 无                                                                                          |
+| Return     | `value`                                                                | 无                                                                                          |
+| Task       | `name`、`out?`                                                         | Call、Parallel、Switch、Emit、Return                                                        |
+| Parallel   | 无                                                                     | Task、Call                                                                                  |
+| Switch     | `on`                                                                   | Case、Default                                                                               |
+| Case       | `value`                                                                | Task、Call、Parallel、Switch、Emit、Return                                                  |
+| Default    | 无                                                                     | Task、Call、Parallel、Switch、Emit、Return                                                  |
+| Emit       | `event`、`value`                                                       | 无                                                                                          |
+| Store 引用 | `from`、`as?`                                                          | 无                                                                                          |
+| Gateway    | `name`、`protocol?`、`listen?`、`max_header_bytes?`、`max_body_bytes?` | Group、Route                                                                                |
+| Group      | `prefix`                                                               | Group、Route                                                                                |
+| Route      | `path`、`service`、`method?`                                           | 无                                                                                          |
+| Store 定义 | `name`、`version`                                                      | Object                                                                                      |
+| Object     | `name`                                                                 | Field                                                                                       |
+| Field      | `name`、`type`、`value`                                                | 无                                                                                          |
 
-共 **16 个不同标签名**，Store 在两种文件上下文中具有不同 Schema。Store 引用中的 as 只沿用原设计的 Store 数据命名空间，不是模块别名；Gateway/Store 的 name 是领域配置名称，也不充当模块注册标识。
+共 **18 个不同标签名**，Store 在两种文件上下文中具有不同 Schema。Store 引用中的 as 只沿用原设计的 Store 数据命名空间，不是模块别名；Gateway/Store 的 name 是领域配置名称，也不充当模块注册标识。
 
 Task、Parallel、Switch、Case、Default、Group、Store 定义、Object 均至少有一个子元素。Module 和 Gateway 允许空内容。Task 不能直接嵌套 Task，其他递归嵌套遵循表格。Switch 的 Case 值不能重复，最多一个 Default，不强制 Default 位置。
 

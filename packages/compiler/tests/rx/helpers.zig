@@ -28,6 +28,7 @@ pub fn node(comptime name: []const u8, comptime attributes: anytype, children: [
 fn expressionAttribute(comptime name: []const u8, comptime field: []const u8) bool {
     if (std.mem.eql(u8, name, "Call")) return std.mem.eql(u8, field, "in") or std.mem.eql(u8, field, "setter");
     if (std.mem.eql(u8, name, "Switch")) return std.mem.eql(u8, field, "on");
+    if (std.mem.eql(u8, name, "Args")) return std.mem.eql(u8, field, "in") or std.mem.eql(u8, field, "out");
     if (std.mem.eql(u8, name, "Store")) return std.mem.eql(u8, field, "version");
     if (std.mem.eql(u8, name, "Gateway")) return std.mem.eql(u8, field, "max_header_bytes") or std.mem.eql(u8, field, "max_body_bytes");
 
@@ -39,7 +40,7 @@ fn expressionAttribute(comptime name: []const u8, comptime field: []const u8) bo
 }
 
 pub fn module(children: []const rx.ast.Node) rx.ast.Node {
-    return node("Module", .{ .in = "Input", .out = "Output" }, children);
+    return node("Module", .{}, children);
 }
 
 pub fn call() rx.ast.Node {

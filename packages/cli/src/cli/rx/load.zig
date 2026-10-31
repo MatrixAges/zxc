@@ -18,7 +18,15 @@ pub fn load(io: std.Io, allocator: std.mem.Allocator, entry: []const u8, config_
 
     defer loaded.deinit();
 
-    for (loaded.data.functions) |function| {
+    const functions = try @import("type_sources.zig").collect(allocator, .{
+        .io = io,
+        .project = project.project,
+        .modules = loaded.data.modules,
+        .functions = loaded.data.functions,
+        .writer = writer,
+    }) orelse return null;
+
+    for (functions) |function| {
         const path = try std.fs.path.resolve(allocator, &.{ root, function.path });
 
         if (!try @import("function.zig").validate(io, allocator, path, function.source, config_path, writer)) return null;

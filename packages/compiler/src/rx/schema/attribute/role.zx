@@ -24,6 +24,8 @@ export default function (in: Input): Output {
             return in.attribute == "value" ? Role.Value : Role.Static
         case "Task":
             return in.attribute == "out" ? Role.Expression : Role.Static
+        case "Args":
+            return in.attribute == "in" || in.attribute == "out" ? Role.Type : Role.Static
         case "Store":
             return in.attribute == "version" ? Role.Expression : Role.Static
         case "Gateway":

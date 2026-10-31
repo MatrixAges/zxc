@@ -5,7 +5,7 @@ const target = @import("../call/target.zig");
 const Store = @import("../store.zig");
 const Flow = @import("flow.zig");
 pub const Call = struct { setter: ?target.Setter = null, getters: []const Store.Binding = &.{}, node: rx.ast.Node, callee: union(enum) { function: target.Function, module: usize, signature: frontend.project.signature_project.Ports } };
-pub const Module = struct { source: rx.ModuleSource, calls: []const Call, steps: []const Flow.Step };
+pub const Module = struct { source: rx.ModuleSource, calls: []const Call, steps: []const Flow.Step, type_imports: []const @import("zx").ir.Export = &.{} };
 pub const Loaded = struct { modules: []const Module, project: frontend.project.Options };
 pub const Value = union(enum) { loaded: Loaded, diagnostic: target.Diagnostic };
 
@@ -37,13 +37,20 @@ fn loadWithSignatures(allocator: std.mem.Allocator, modules: []const rx.ModuleSo
 
         loader.stores = references.bindings;
 
-        const steps = loader.steps(source.node.children) catch |err| {
+        const steps = (if (target.optionalAttribute(source.node, "fn") != null)
+            loader.shortcut(source.node)
+        else
+            loader.steps(source.node.children)) catch |err| {
             if (err == error.OutOfMemory) return error.OutOfMemory;
 
             return .{ .diagnostic = loader.issue.? };
         };
 
-        plan.* = .{ .source = source, .calls = loader.calls.items, .steps = steps };
+        const imported: @import("type_imports.zig").Value = if (signatures) |signed| try @import("type_imports.zig").collect(allocator, source, loader.project, signed) else .{ .imports = &.{} };
+
+        if (imported == .diagnostic) return .{ .diagnostic = imported.diagnostic };
+
+        plan.* = .{ .source = source, .calls = loader.calls.items, .steps = steps, .type_imports = imported.imports };
     }
 
     return .{ .loaded = .{ .modules = plans, .project = loader.project } };
@@ -62,12 +69,34 @@ const Loader = struct {
     issue: ?target.Diagnostic = null,
     const Error = std.mem.Allocator.Error || error{InvalidFlow};
 
+    fn shortcut(self: *Loader, node: rx.ast.Node) Error![]const Flow.Step {
+        const shorthand = @import("shorthand.zig");
+        const index = try self.call(try shorthand.call(self.allocator, node, false));
+        const callee = self.calls.items[index].callee;
+
+        const ports = switch (callee) {
+            .signature => |signature| signature,
+            .function => |function| frontend.project.signature_project.Ports{ .input_type = function.program.input_type, .output_type = function.program.output_type },
+            .module => unreachable,
+        };
+
+        const void_type = frontend.types.scalarId(.void);
+        const invocation = try shorthand.call(self.allocator, node, ports.input_type != void_type);
+        const sequence = try self.allocator.alloc(Flow.Step, if (ports.output_type == void_type) 1 else 2);
+
+        self.calls.items[index].node = invocation;
+        sequence[0] = .{ .value = .{ .call = index } };
+
+        if (sequence.len == 2) sequence[1] = .{ .value = .{ .result = try shorthand.result(self.allocator, invocation) } };
+
+        return sequence;
+    }
     fn steps(self: *Loader, nodes: []const rx.ast.Node) Error![]const Flow.Step {
         var result: std.ArrayList(Flow.Step) = .empty;
         var terminated = false;
 
         for (nodes) |node| {
-            if (std.mem.eql(u8, node.name, "Import") or std.mem.eql(u8, node.name, "Store") or std.mem.eql(u8, node.name, "Input") or std.mem.eql(u8, node.name, "Output")) continue;
+            if (std.mem.eql(u8, node.name, "Import") or std.mem.eql(u8, node.name, "Store") or std.mem.eql(u8, node.name, "Type") or std.mem.eql(u8, node.name, "Args")) continue;
             if (terminated) return self.fail(node.location, "return_path", "steps after a terminating Return or Switch are unreachable");
 
             const value: @FieldType(Flow.Step, "value") = if (std.mem.eql(u8, node.name, "Return"))

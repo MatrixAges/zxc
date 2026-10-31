@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./initialize" as="Initialize" />
+
+    <Args in={Initialize.Input} out={u8[]} />
+
     <Call fn="initialize" in={$in} />
     <Call fn="walk" in={$ctx.initialize} />
 

@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./model" as="Model" />
+
+    <Args in={Model.Program} out={bool} />
+
     <Call fn="structure/header" in={$in} />
 
     <Switch on={$ctx.header}>

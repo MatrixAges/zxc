@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./pack" as="Pack" />
+
+    <Args in={{ function_mapping: u64[], functions: u32[], type_mapping: u64[], types: u32[] }} out={Pack.Output} />
+
     <Task name="types" out={$ctx.ids}>
         <Call fn="ids" in={{ values: $in.types, mapping: $in.type_mapping }} />
     </Task>

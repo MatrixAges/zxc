@@ -1,4 +1,9 @@
 <Module>
+    <Type from="./built" as="Built" />
+    <Type from="./keys" as="Keys" />
+
+    <Args in={Built.Input} out={Keys.Output} />
+
     <Call fn="../types/unmarked" in={$in.types} />
     <Call fn="roots" in={$in} />
     <Call fn="../types/closure" in={{ types: $in.types, boxed: $ctx.unmarked, roots: $ctx.roots }} />

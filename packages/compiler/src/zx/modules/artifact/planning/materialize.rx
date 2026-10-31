@@ -1,5 +1,18 @@
 <Module>
+    <Type from="../../semantic_cache/restoring/functions/model" as="Model" />
+    <Type from="./model" as="PlanningModel" />
+    <Type from="./functions/model" as="FunctionsModel" />
+    <Type from="../../../ir/canonical/native/structure" as="Structure" />
+    <Type from="../../../analysis/semantic/extracting/planning/model" as="ExtractingPlanningModel" />
+    <Type from="../materializing/natives" as="Natives" />
+    <Type from="../materializing/signatures" as="Signatures" />
+    <Type from="../../../analysis/semantic/extracting/materializing/nominal" as="Nominal" />
+    <Type from="../../../analysis/semantic/extracting/materializing/rows" as="Rows" />
+
+    <Args in={{ declarations: Model.Signatures, dependencies: PlanningModel.Dependencies, function_imports: FunctionsModel.Imports, modules: Structure.Input, request: ExtractingPlanningModel.Request, signatures: FunctionsModel.Signatures, type_imports: u32[] }} out={{ natives: Natives.Output, plan: FunctionsModel.Plan, signatures: Signatures.Output, value: { origins: Nominal.Output, table: Rows.Output }? }} />
+
     <Call module="plan" in={$in} />
+
     <Call fn="../../../analysis/semantic/extracting/planning/ready" in={$ctx.plan.state} />
 
     <Switch on={$ctx.ready}>

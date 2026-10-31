@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./types/nominal/validate" as="Validate" />
+
+    <Args in={Validate.Input} out={bool} />
+
     <Call fn="types/nominal/shape" in={{ origins: $in.origins, names: $in.names }} />
 
     <Switch on={$ctx.shape}>

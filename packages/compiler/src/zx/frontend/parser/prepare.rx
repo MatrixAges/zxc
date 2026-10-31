@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./expressions/prepare/model" as="Model" />
+
+    <Args in={u8[]} out={Model.PreparedInput} />
+
     <Call module="../lexical" in={$in} />
 
     <Call fn="expressions/prepare/scan" in={$ctx.lexical.lexed.tokens} />

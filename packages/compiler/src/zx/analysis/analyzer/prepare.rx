@@ -1,4 +1,9 @@
 <Module>
+    <Type from="./context" as="Context" />
+    <Type from="./model" as="Model" />
+
+    <Args in={Context.ModuleInput} out={Model.Prepared} />
+
     <Call module="declarations" in={{ bytes: $in.bytes, syntax: $in.syntax, native: $in.native == null ? null : $in.native.types, type_base: $in.context.type_base, aliases: $in.context.aliases, nominal_base: $in.context.nominal_base, nominal_origin: $in.context.nominal_origin, shared: $in.context.shared }} />
 
     <Switch on={$ctx.declarations.diagnostic.message == ""}>

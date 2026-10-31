@@ -51,14 +51,7 @@ fn render(allocator: std.mem.Allocator, options: Options, program: compiler.ir.P
         return .{ .source = bundle.source };
     }
 
-    if (requiresVerification(program, options.solver)) return .{ .source = if (options.concurrent_analysis) try @import("genz").zx.emitConcurrent(allocator, program) else try @import("genz").zx.emit(allocator, program) };
-
-    const source = if (options.concurrent_analysis) compiler.zig.emitConcurrent(allocator, program) else compiler.zig.emit(allocator, program);
-
-    return .{ .source = source catch |err| switch (err) {
-        error.OutOfMemory => return error.OutOfMemory,
-        error.InvalidIr, error.UnverifiedContracts, error.NativeRequiresBundle => return .{ .diagnostic = .{ .code = .contract, .span = .{ .start = 0, .end = 0 }, .message = "invalid or unverified project IR" } },
-    } };
+    return .{ .source = if (options.concurrent_analysis) try @import("genz").zx.emitConcurrent(allocator, program) else try @import("genz").zx.emit(allocator, program) };
 }
 
 pub const ModuleResult = union(enum) {

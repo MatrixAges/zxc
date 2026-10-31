@@ -1,4 +1,9 @@
 <Module>
+    <Type from="../analyzer/declarations/request" as="Request" />
+    <Type from="../../modules/external/model" as="Model" />
+
+    <Args in={Request.Output} out={Model.Resolution} />
+
     <Call module="resolving/resolve" in={$in.request} />
 
     <Switch on={$in.request.initialize && $in.shared && $ctx.resolve.diagnostic.message == ""}>

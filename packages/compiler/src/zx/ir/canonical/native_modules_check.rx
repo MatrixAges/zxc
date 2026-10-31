@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./native/model" as="Model" />
+
+    <Args in={Model.Context} out={bool} />
+
     <Call fn="./native/structure" in={$in.modules} />
 
     <Switch on={$ctx.structure}>

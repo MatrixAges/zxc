@@ -14,47 +14,83 @@ pub fn resolve(graph: *Graph, modules: []const Prepared.Module, source_map: Sour
 
     if (source.entries.items.len == 0) return &.{};
 
-    var parsed = try frontend.parse(graph.allocator, source.text.items, modules[source.entries.items[0].module].source.path);
+    var parsed = try frontend.parseModule(graph.allocator, source.text.items, modules[source.entries.items[0].module].source.path);
 
     defer parsed.deinit();
 
-    if (parsed.value == .diagnostic) return fail(graph, source, source_map, parsed.value.diagnostic);
+    if (parsed.diagnostic()) |issue| return fail(graph, source, source_map, issue);
 
-    const program = parsed.value.parsed.ast;
+    switch (parsed) {
+        .native => |native| {
+            const program = native.value.parsed.ast;
 
-    if (!source.valid(program)) return graph.reporter.fail(.syntax, source.span(source_map, 0), "Input and Output declarations must contain only ZX types");
+            if (program.imports.len != 0 or program.body != null or program.contracts.len != 0 or program.has_store) return invalid(graph, source, source_map);
 
-    const previous_declarations = graph.types.declarations;
-    const previous_resolved = graph.types.resolved;
+            return resolveDeclarations(graph, modules, source, source_map, frontend.type_views.Native{ .items = program.declarations });
+        },
+        .indexed => |indexed| if (comptime @TypeOf(indexed) != void) {
+            const output = indexed.output;
+
+            if (output.imports.len != 0 or output.body != null or output.contracts.len != 0 or output.has_store) return invalid(graph, source, source_map);
+
+            return resolveDeclarations(graph, modules, source, source_map, frontend.type_views.Indexed(@TypeOf(output)){ .source = indexed.source, .storage = output });
+        } else unreachable,
+    }
+}
+
+fn resolveDeclarations(graph: *Graph, modules: []const Prepared.Module, source: Source, source_map: SourceMap, view: anytype) zx.Error![]const Port {
+    if (!source.valid(view)) return invalid(graph, source, source_map);
+
+    const storage = if (comptime @hasField(@TypeOf(view), "storage")) .{ .types = view.storage.types, .type_order = view.storage.type_order } else .{};
+
+    const resolving = if (comptime @hasField(@TypeOf(view), "storage"))
+        frontend.type_views.Indexed(@TypeOf(storage)){ .source = view.source, .storage = storage }
+
+    else
+        frontend.type_views.Native{ .items = &.{} };
+
     const previous_reporter = graph.types.reporter;
+    const previous_aliases = graph.types.aliases;
     var reporter: zx.Reporter = .{};
-
-    graph.types.declarations = program.declarations;
-    graph.types.resolved = .empty;
     graph.types.reporter = &reporter;
 
     defer {
-        graph.types.declarations = previous_declarations;
-
-        graph.types.resolved.deinit(graph.allocator);
-
-        graph.types.resolved = previous_resolved;
         graph.types.reporter = previous_reporter;
+        graph.types.aliases = previous_aliases;
     }
 
-    graph.types.initialize() catch |err| {
-        if (err == error.OutOfMemory) return error.OutOfMemory;
-
-        return fail(graph, source, source_map, reporter.diagnostic.?);
-    };
-
     const ports = try graph.allocator.alloc(Port, source.entries.items.len);
+    var declarations = view.declarations().iterator();
+    var start: usize = 0;
 
-    for (source.entries.items, ports) |entry, *port| {
-        port.* = .{ .module = entry.module, .kind = entry.kind, .type_id = graph.types.resolved.get(entry.name).? };
+    while (start < source.entries.items.len) {
+        const owner = source.entries.items[start].module;
+        var end = start + 1;
+
+        while (end < source.entries.items.len and source.entries.items[end].module == owner) : (end += 1) {}
+
+        graph.types.aliases = modules[owner].type_imports;
+
+        for (source.entries.items[start..end], ports[start..end]) |entry, *port| {
+            const declaration = declarations.next().?;
+
+            const type_id = graph.types.resolveView(resolving, declaration.value) catch |err| {
+                if (err == error.OutOfMemory) return error.OutOfMemory;
+
+                return fail(graph, source, source_map, reporter.diagnostic.?);
+            };
+
+            port.* = .{ .module = entry.module, .kind = entry.kind, .type_id = type_id };
+        }
+
+        start = end;
     }
 
     return ports;
+}
+
+fn invalid(graph: *Graph, source: Source, source_map: SourceMap) zx.Error {
+    return graph.reporter.fail(.syntax, source.span(source_map, 0), "Args declarations must contain only ZX types");
 }
 
 fn fail(graph: *Graph, source: Source, source_map: SourceMap, issue: zx.Diagnostic) zx.Error {

@@ -1,9 +1,12 @@
 <Module>
-  <Call fn="prepare" in={$in} />
+    <Type from="./prepare" as="Prepare" />
+    <Type from="./document/model" as="Model" />
 
-  <Call fn="validate" in={$ctx.prepare.source} />
+    <Args in={Prepare.Input} out={Model.State} />
 
-  <Call fn="document/parse" in={{source: $ctx.prepare.source, message: $ctx.validate, expressions: $ctx.prepare.expressions}} />
+    <Call fn="prepare" in={$in} />
+    <Call fn="validate" in={$ctx.prepare.source} />
+    <Call fn="document/parse" in={{source: $ctx.prepare.source, message: $ctx.validate, expressions: $ctx.prepare.expressions}} />
 
-  <Return value={$ctx.parse} />
+    <Return value={$ctx.parse} />
 </Module>

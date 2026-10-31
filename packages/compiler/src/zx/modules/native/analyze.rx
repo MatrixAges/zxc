@@ -1,4 +1,16 @@
 <Module>
+    <Type from="../../analysis/semantic/resolving/model" as="Model" />
+    <Type from="../../frontend/lexer/initial" as="Initial" />
+    <Type from="../../frontend/parser/native/model" as="NativeModel" />
+    <Type from="core/type_table/nominal" as="Nominal" />
+    <Type from="../../analysis/semantic/merging/origin" as="Origin" />
+    <Type from="../../analysis/semantic/constructing/delta" as="Delta" />
+    <Type from="../../frontend/lexer/model" as="LexerModel" />
+    <Type from="./interface/exports" as="Exports" />
+    <Type from="./interface/members" as="Members" />
+
+    <Args in={{ context: Model.Context, errors: Initial.Input[], functions: NativeModel.Function[], namespace: u8[][], origin: Nominal.Origin, origins: Origin.Output, parameters: NativeModel.Parameter[], shared: bool }} out={{ cache: Model.Cache, delta: Delta.Output, diagnostic: LexerModel.Diagnostic, exports: Exports.Export[], members: Members.Output, origins: Origin.Output }} />
+
     <Call module="prepare" in={{ context: $in.context, shared: $in.shared, origins: $in.origins, origin: $in.origin }} />
 
     <Switch on={$ctx.prepare.resolution.diagnostic.message == ""}>

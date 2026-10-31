@@ -41,7 +41,16 @@ pub fn run(allocator: std.mem.Allocator, options: Options) !?Result {
 
     defer seen.deinit(allocator);
 
-    for (loaded.data.functions) |function| {
+    const functions = try @import("type_sources.zig").collect(allocator, .{
+        .io = io,
+        .project = project,
+        .modules = loaded.data.modules,
+        .functions = loaded.data.functions,
+        .writer = options.writer,
+        .inputs = options.inputs,
+    }) orelse return null;
+
+    for (functions) |function| {
         const path = try std.fs.path.resolve(allocator, &.{ root, function.path });
 
         try validatePath(allocator, options, path);

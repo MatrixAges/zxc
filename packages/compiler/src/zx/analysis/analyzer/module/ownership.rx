@@ -1,4 +1,9 @@
 <Module>
+    <Type from="./model" as="Model" />
+    <Type from="../context" as="Context" />
+
+    <Args in={{ analysis: Model.Analysis, module: Context.ModuleInput }} out={Model.Analysis} />
+
     <Switch on={$in.analysis.state.diagnostic.message == ""}>
         <Case value={true}>
             <Call module="../ownership" in={{ state: $in.analysis.state, root: $in.analysis.root, functions: $in.module.context.functions, type_only: $in.analysis.type_only }} />

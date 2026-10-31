@@ -122,17 +122,21 @@ pub fn resolveStore(allocator: std.mem.Allocator, owner: []const u8, reference: 
     return normalizeStore(allocator, joined);
 }
 
-pub fn resolveFunction(allocator: std.mem.Allocator, owner: []const u8, reference: []const u8) Error![]const u8 {
+pub fn isFunctionReference(reference: []const u8) bool {
     if (@import("rx_options").generated_paths) {
-        if (!@import("path_kind/adapter.zig").check(reference, &.{}, .FunctionReference)) return error.InvalidPath;
-    } else {
-        const name = std.fs.path.basename(reference);
-
-        if (reference.len == 0 or reference[0] == '/' or reference[reference.len - 1] == '/' or
-            std.mem.indexOfAny(u8, reference, "\\:\x00") != null or
-            std.mem.eql(u8, name, ".") or std.mem.eql(u8, name, "..") or
-            std.mem.endsWith(u8, reference, ".rx")) return error.InvalidPath;
+        return @import("path_kind/adapter.zig").check(reference, &.{}, .FunctionReference);
     }
+
+    const name = std.fs.path.basename(reference);
+
+    return reference.len != 0 and reference[0] != '/' and reference[reference.len - 1] != '/' and
+        std.mem.indexOfAny(u8, reference, "\\:\x00") == null and
+        !std.mem.eql(u8, name, ".") and !std.mem.eql(u8, name, "..") and
+        !std.mem.endsWith(u8, reference, ".rx");
+}
+
+pub fn resolveFunction(allocator: std.mem.Allocator, owner: []const u8, reference: []const u8) Error![]const u8 {
+    if (!isFunctionReference(reference)) return error.InvalidPath;
 
     const joined = try std.fmt.allocPrint(allocator, "{s}/{s}{s}", .{
         std.fs.path.dirname(owner) orelse ".",

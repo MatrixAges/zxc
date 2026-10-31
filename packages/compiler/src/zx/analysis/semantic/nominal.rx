@@ -1,6 +1,10 @@
 <Module>
-  <Call fn="types/nominal/find" in={$in} />
-  <Call fn="types/nominal/encode" in={$ctx.find} />
+    <Type from="./types/nominal/find" as="Find" />
 
-  <Return value={$ctx.encode} />
+    <Args in={Find.Input} out={u64} />
+
+    <Call fn="types/nominal/find" in={$in} />
+    <Call fn="types/nominal/encode" in={$ctx.find} />
+
+    <Return value={$ctx.encode} />
 </Module>

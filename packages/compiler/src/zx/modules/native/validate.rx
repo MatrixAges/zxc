@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./validation/model" as="Model" />
+
+    <Args in={Model.Input} out={Model.Output} />
+
     <Call fn="validation/declarations" in={$in} />
 
     <Switch on={$ctx.declarations.message == ""}>

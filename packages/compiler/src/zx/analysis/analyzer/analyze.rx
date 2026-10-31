@@ -1,4 +1,9 @@
 <Module>
+    <Type from="./context" as="Context" />
+    <Type from="./output" as="Output" />
+
+    <Args in={Context.ModuleInput} out={Output.ModuleOutput} />
+
     <Call module="admission" in={$in} />
 
     <Switch on={$ctx.admission.message != ""}>

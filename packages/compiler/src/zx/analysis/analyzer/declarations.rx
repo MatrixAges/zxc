@@ -1,4 +1,9 @@
 <Module>
+    <Type from="./declarations/model" as="Model" />
+    <Type from="./exports" as="Exports" />
+
+    <Args in={Model.DeclarationInput} out={Exports.State} />
+
     <Call fn="declarations/request" in={$in} />
 
     <Call module="../semantic/resolve" in={$ctx.request} />

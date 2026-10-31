@@ -1,4 +1,10 @@
 <Module>
+    <Type from="./nominal" as="Nominal" />
+    <Type from="../planning/model" as="Model" />
+    <Type from="./rows" as="Rows" />
+
+    <Args in={{ origins: Nominal.Output, plan: Model.State, table: Rows.Output }} out={{ origins: Nominal.Output, table: Rows.Output }} />
+
     <Call fn="rows" in={{ table: $in.table, plan: $in.plan }} />
     <Call fn="nominal" in={{ origins: $in.origins, plan: $in.plan }} />
 

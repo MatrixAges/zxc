@@ -1,4 +1,9 @@
 <Module>
+    <Type from="./initial" as="Initial" />
+    <Type from="./model" as="Model" />
+
+    <Args in={Initial.Input} out={Model.Result} />
+
     <Call fn="initial" in={$in} />
 
     <Call module="types" in={{ input: $in, analysis: $ctx.initial }} />

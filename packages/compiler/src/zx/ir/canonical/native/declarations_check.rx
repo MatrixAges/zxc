@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./declarations/declarations" as="Declarations" />
+
+    <Args in={Declarations.Input} out={bool} />
+
     <Call fn="./declarations/declarations" in={$in} />
 
     <Switch on={$ctx.declarations}>

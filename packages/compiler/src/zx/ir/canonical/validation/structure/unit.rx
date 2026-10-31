@@ -1,4 +1,8 @@
 <Module>
+    <Type from="../model" as="Model" />
+
+    <Args in={{ max_offset: u64, unit: Model.Unit }} out={bool} />
+
     <Call module="../../body_check" in={{ body: $in.unit.body, max_offset: $in.max_offset }} />
 
     <Switch on={$ctx.body_check}>

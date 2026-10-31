@@ -1,4 +1,10 @@
 <Module>
+    <Type from="./references" as="References" />
+    <Type from="../loops/model" as="Model" />
+    <Type from="../layout/model" as="LayoutModel" />
+
+    <Args in={References.Input} out={{ domains: Model.Domains, layout: LayoutModel.Built, references: bool[], returns: bool[] }} />
+
     <Call fn="./references" in={$in} />
     <Call fn="../../ir/canonical/control/terminates" in={$in.control} />
     <Call fn="../loops/domains" in={$in} />

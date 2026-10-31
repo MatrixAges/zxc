@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./model" as="Model" />
+
+    <Args in={{ analysis: Model.Analysis }} out={Model.Analysis} />
+
     <Switch on={$in.analysis.program && !$in.analysis.linking && $in.analysis.state.diagnostic.message == ""}>
         <Case value={true}>
             <Call fn="ownership/request" in={$in.analysis} />

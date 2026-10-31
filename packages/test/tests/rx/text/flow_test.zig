@@ -116,7 +116,8 @@ test "RX text Return rejects text" {
 
 test "RX text preserves composed flow data" {
     const source =
-        \\<Module in="Input" out="Output">
+        \\<Module>
+        \\  <Args in={u64} out={bool}/>
         \\  <Store from="scheduler" as="jobs"/>
         \\  <Task name="validate">
         \\    <Switch on={$ctx.status}>
@@ -143,13 +144,13 @@ test "RX text preserves composed flow data" {
 
     const data = result.value.data.module;
 
-    try std.testing.expectEqualStrings("Input", data.attributes.in.?);
-    try std.testing.expectEqualStrings("Output", data.attributes.out.?);
-    try std.testing.expectEqualStrings("jobs", data.children[0].store.attributes.as.?);
-    try std.testing.expectEqualStrings("$ctx.status", data.children[1].task.children[0].@"switch".attributes.on);
-    try std.testing.expectEqual(@as(usize, 2), data.children[2].parallel.children.len);
-    try std.testing.expectEqualStrings("order.created", data.children[3].emit.attributes.event);
-    try std.testing.expectEqualStrings("[store.jobs.dispatcher]", data.children[4].call.attributes.setter.?);
+    try std.testing.expectEqualStrings("u64", data.children[0].args.attributes.in);
+    try std.testing.expectEqualStrings("bool", data.children[0].args.attributes.out);
+    try std.testing.expectEqualStrings("jobs", data.children[1].store.attributes.as.?);
+    try std.testing.expectEqualStrings("$ctx.status", data.children[2].task.children[0].@"switch".attributes.on);
+    try std.testing.expectEqual(@as(usize, 2), data.children[3].parallel.children.len);
+    try std.testing.expectEqualStrings("order.created", data.children[4].emit.attributes.event);
+    try std.testing.expectEqualStrings("[store.jobs.dispatcher]", data.children[5].call.attributes.setter.?);
 }
 
 test "RX text empty attribute reports original value position" {

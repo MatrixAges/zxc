@@ -1,4 +1,9 @@
 <Module>
+    <Type from="./evaluate/request" as="Request" />
+    <Type from="./model" as="Model" />
+
+    <Args in={Request.Input} out={Model.Analysis} />
+
     <Switch on={$in.analysis.program && $in.analysis.state.diagnostic.message == "" && $in.input.nonnull_bindings.length != 0}>
         <Case value={true}>
             <Switch on={$in.analysis.linking}>

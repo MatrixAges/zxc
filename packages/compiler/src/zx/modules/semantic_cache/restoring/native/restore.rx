@@ -1,4 +1,11 @@
 <Module>
+    <Type from="../../../compiled/loading/type_base" as="TypeBase" />
+    <Type from="../../../../analysis/semantic/merging/origin" as="Origin" />
+    <Type from="./program" as="Program" />
+    <Type from="./failed" as="Failed" />
+
+    <Args in={{ base: TypeBase.Output, base_origins: Origin.Output, module_id: u32, origin_names: string[], validation: Program.Input }} out={Failed.Output} />
+
     <Call module="eligible" in={$in.validation.request} />
 
     <Switch on={$ctx.eligible}>

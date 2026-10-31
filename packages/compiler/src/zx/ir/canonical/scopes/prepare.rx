@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./model" as="Model" />
+
+    <Args in={Model.Program} out={Model.Prepared} />
+
     <Call fn="../control/terminates" in={$in.body.control} />
 
     <Task name="pure" out={$ctx.conditional}>

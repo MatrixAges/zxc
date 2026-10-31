@@ -1,4 +1,9 @@
 <Module>
+    <Type from="./header" as="Header" />
+    <Type from="./model" as="Model" />
+
+    <Args in={Header.Input} out={Model.Mapped} />
+
     <Call fn="header" in={$in} />
     <Call fn="../remap/symbols" in={{ source: $in.request.source.symbols[$in.index], mapping: $in.request.types }} />
     <Call fn="../remap/expressions" in={{ source: $in.request.source.expressions[$in.index], mapping: $in.request.types, first: $in.request.first }} />

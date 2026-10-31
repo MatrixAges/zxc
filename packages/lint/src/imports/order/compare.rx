@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./model" as="Model" />
+
+    <Args in={Model.Input} out={Model.Output} />
+
     <Call fn="classify" in={$in} />
 
     <Switch on={$ctx.classify.left_category != $ctx.classify.right_category}>

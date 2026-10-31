@@ -1,4 +1,9 @@
 <Module>
+    <Type from="./contracts/initial" as="Initial" />
+    <Type from="./contracts/walk" as="Walk" />
+
+    <Args in={Initial.Input} out={Walk.Output} />
+
     <Call fn="contracts/initial" in={$in} />
     <Call fn="contracts/walk" in={$ctx.initial} />
 

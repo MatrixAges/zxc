@@ -5,6 +5,7 @@ pub const parseXml = @import("frontend").parseExpressionXml;
 pub const XmlResult = dsl.XmlResult;
 pub const attributeLocation = dsl.attributeLocation;
 pub const attributeEndLocation = dsl.attributeEndLocation;
+pub const isTypeAttribute = @import("attribute_kind.zig").typeValue;
 pub const TextSource = @import("text.zig").Source;
 pub const TextResult = @import("text.zig").Result;
 pub const parseModules = @import("text.zig").parseModules;

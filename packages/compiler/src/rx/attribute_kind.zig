@@ -1,9 +1,13 @@
 const std = @import("std");
 const dsl = @import("dsl");
-const Role = if (@import("rx_options").generated_rules) @import("generated_attribute_role").Output else enum { Static, Value, Expression };
+const Role = if (@import("rx_options").generated_rules) @import("generated_attribute_role").Output else enum { Static, Value, Expression, Type };
 
 pub fn value(element: []const u8, attribute: []const u8) bool {
     return role(element, attribute) == .Value;
+}
+
+pub fn typeValue(element: []const u8, attribute: []const u8) bool {
+    return role(element, attribute) == .Type;
 }
 
 fn nativeValue(element: []const u8, attribute: []const u8) bool {
@@ -23,7 +27,7 @@ pub fn validate(node: dsl.ast.Node, reporter: *dsl.Reporter) dsl.Error!void {
 
         if (selected == .Value) continue;
 
-        const expression = selected == .Expression;
+        const expression = selected == .Expression or selected == .Type;
 
         if ((attribute.kind == .expression) != expression) return reporter.fail(.{
             .code = .invalid_attribute,
@@ -38,6 +42,7 @@ pub fn validate(node: dsl.ast.Node, reporter: *dsl.Reporter) dsl.Error!void {
 fn role(element: []const u8, attribute: []const u8) Role {
     if (@import("rx_options").generated_rules) return @import("schema/scalar.zig").execute(@import("generated_attribute_role"), &.{ .element = element, .attribute = attribute });
     if (nativeValue(element, attribute)) return .Value;
+    if (std.mem.eql(u8, element, "Args") and (std.mem.eql(u8, attribute, "in") or std.mem.eql(u8, attribute, "out"))) return .Type;
 
     const expression = (std.mem.eql(u8, element, "Task") and std.mem.eql(u8, attribute, "out")) or
         (std.mem.eql(u8, element, "Call") and std.mem.eql(u8, attribute, "setter")) or

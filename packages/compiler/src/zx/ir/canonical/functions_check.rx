@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./functions/model" as="Model" />
+
+    <Args in={Model.Functions} out={bool[]} />
+
     <Call fn="./functions/analyze" in={{ functions: $in, concurrent: false }} />
 
     <Return value={$ctx.analyze} />

@@ -1,4 +1,10 @@
 <Module>
+    <Type from="../../analysis/semantic/resolving/model" as="Model" />
+    <Type from="core/type_table/nominal" as="Nominal" />
+    <Type from="../../analysis/semantic/merging/origin" as="Origin" />
+
+    <Args in={{ context: Model.Context, origin: Nominal.Origin, origins: Origin.Output, shared: bool }} out={{ origins: Origin.Output, resolution: Model.State }} />
+
     <Call module="declarations" in={$in.context} />
 
     <Switch on={$ctx.declarations.diagnostic.message == "" && $in.shared}>

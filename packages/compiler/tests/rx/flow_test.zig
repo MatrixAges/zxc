@@ -9,6 +9,7 @@ test "ordinary RX tags compose directly inside a typed Module" {
     });
 
     const root = h.module(&.{
+        h.node("Args", .{ .in = "u64", .out = "bool" }, &.{}),
         h.node("Store", .{ .from = "scheduler", .as = "jobs" }, &.{}),
         h.node("Task", .{ .name = "validate" }, &.{branch}),
         h.node("Parallel", .{}, &.{ h.call(), h.node("Task", .{ .name = "query" }, &.{h.call()}) }),
@@ -24,10 +25,11 @@ test "ordinary RX tags compose directly inside a typed Module" {
 
     const data = result.value.data.module;
 
-    try std.testing.expectEqualStrings("Input", data.attributes.in.?);
-    try std.testing.expectEqualStrings("jobs", data.children[0].store.attributes.as.?);
-    try std.testing.expectEqualStrings("$ctx.status", data.children[1].task.children[0].@"switch".attributes.on);
-    try std.testing.expectEqualStrings("[store.jobs.dispatcher]", data.children[4].call.attributes.setter.?);
+    try std.testing.expectEqualStrings("u64", data.children[0].args.attributes.in);
+    try std.testing.expectEqualStrings("bool", data.children[0].args.attributes.out);
+    try std.testing.expectEqualStrings("jobs", data.children[1].store.attributes.as.?);
+    try std.testing.expectEqualStrings("$ctx.status", data.children[2].task.children[0].@"switch".attributes.on);
+    try std.testing.expectEqualStrings("[store.jobs.dispatcher]", data.children[5].call.attributes.setter.?);
 }
 
 test "nesting table rejects misplaced flow elements" {

@@ -1,0 +1,18 @@
+<Module>
+    <Args in={string} out={string} />
+
+    <Call fn="prepare" in={$in} />
+
+    <Switch on={$ctx.prepare.has_trivia}>
+        <Case value={false}>
+            <Return value={$in} />
+        </Case>
+
+        <Default>
+            <Call module="../lexer/scan" in={$ctx.prepare.bytes} />
+            <Call fn="compact" in={{ source: $in, lexed: $ctx.scan }} />
+
+            <Return value={$ctx.compact} />
+        </Default>
+    </Switch>
+</Module>

@@ -369,3 +369,18 @@
 {"time": "2026-10-31", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "codex", "text": "import强制需要as 避免出现那种不明表达类型 如Input Output"}
 {"time": "2026-10-31", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "codex", "text": "可以 按这个调整实现"}
 {"time": "2026-10-31", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "codex", "text": "Import 改成 Type 标签 这样更直观 不会混入其他语义"}
+{"time": "2026-10-31", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "codex", "text": "from 无需 .zx后缀"}
+{"time": "2026-10-31", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "codex", "text": "<Module>\n    <Type from=\"./calculate_total\" as=\"Total\" />\n\n    <Args in={Total.Input} out={Total.Output} />\n\n    <Call fn=\"./calculate_total\" in={$in} />\n\n    <Return value={$ctx.calculate_total} />\n</Module>\n只有一个fn时应该可以简化表达 <Module fn=\"./calculate_total\" />"}
+{"time": "2026-10-31", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "codex", "text": "按照这个新的标准 把之前的代码对齐"}
+{"time": "2026-10-31", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "codex", "text": "rx标签 超过内容区域宽度（定为120或是其他更好的方案）自动换行 多行显示\nzx的换行也是 目前我经常看到一大坨对象表达式 很丑陋"}
+{"time": "2026-10-31", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "codex", "text": "更新lint规则到我要求的 然后按照这个标准对齐（格式化）之前的代码"}
+{"time": "2026-10-31", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "codex", "text": "还有添加 barrel export支持，像ts那样 可以创建 index.zx 用来合并导出 但是要注意不能出现循环依赖，这样设计的目的是让代码更整洁，当一个目录下多个文件都有导出给其他目录消费时， barrel export能让代码更优雅"}
+{"time": "2026-10-31", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "codex", "text": "index.zx 同目录的含义和 nodejs一致，都是代表那个目录"}
+{"time": "2026-10-31", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "codex", "text": "还有 添加 If 标签 用于简化 Switch Case表达"}
+{"time": "2026-10-31", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "codex", "text": "支持pipeline语法\nconst result = x\n  -> double(_)\n  -> add(3, _)\n  -> console.log(_);"}
+{"time": "2026-10-31", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "codex", "text": "把我前面说的几个需求 记下来 一一实现之后 继续自举"}
+{"time": "2026-10-31", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "codex", "text": "对象只能垂直多行显示，统一风格\nconst obj = {\n   prev:,\n   next:\n}"}
+{"time": "2026-10-31", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "codex", "text": "4294967295 我为什么在代码逻辑里看到了硬编码的固定数值 怎么回事"}
+{"time": "2026-10-31", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "codex", "text": "这种应该全局 const.zx中申明常量 然后统一使用这个常量 而不是导出使用裸值"}
+{"time": "2026-10-31", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "codex", "text": "类似的裸值 都不要直接在业务逻辑中用 而是统一定义 引入常量使用"}
+{"time": "2026-10-31", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "codex", "text": "显示导入使用为啥还申明一遍 直接使用max_u32不就行了"}

@@ -1,4 +1,5 @@
 import integers from "std:integer"
+import normalize from "compiler/type_name"
 import { Kind } from "core/type_table/model"
 
 import builtin from "./builtin"
@@ -25,26 +26,27 @@ export type Output = State
 
 export default function (in: Input): Output {
     const head = current(in.frames)
-    const scalar = builtin(head.name.text)
+    const name = head.name.text
+    const scalar = builtin(name)
 
     if (scalar != 0) {
         return { ...in, result: integers.narrow(scalar - 1), frames: in.frames.pop()[0] }
     }
 
-    const completed = lookup({ cache: in.cache, name: head.name.text })
-    const resolved = completed.found ? completed : lookup({ cache: in.context.resolved, name: head.name.text })
+    const completed = lookup({ cache: in.cache, name: name })
+    const resolved = completed.found ? completed : lookup({ cache: in.context.resolved, name: name })
 
     if (resolved.found) {
         return { ...in, result: resolved.id, frames: in.frames.pop()[0] }
     }
 
-    const alias = lookup({ cache: in.context.aliases, name: head.name.text })
+    const alias = lookup({ cache: in.context.aliases, name: name })
 
     if (alias.found) {
         return { ...in, result: alias.id, frames: in.frames.pop()[0] }
     }
 
-    if (contains({ names: in.active, name: head.name.text }) || contains({ names: in.context.visiting, name: head.name.text })) {
+    if (contains({ names: in.active, name: name }) || contains({ names: in.context.visiting, name: name })) {
         return fail({ state: in, code: "type_mismatch", message: "recursive type aliases are not supported", name: head.name })
     }
 
@@ -52,14 +54,20 @@ export default function (in: Input): Output {
         return fail({ state: in, code: "unsupported", message: "type alias nesting exceeds 256 levels", name: head.name })
     }
 
-    const selected = find({ source: in.context.source, name: head.name.text, limit: count(in.context.source) })
+    const selected = find({ source: in.context.source, name: name, limit: count(in.context.source) })
 
     if (!selected.found) {
+        const normalized = normalize(name)
+
+        if (normalized != name) {
+            return replace({ state: in, frame: { ...head, name: { ...head.name, text: normalized } } })
+        }
+
         return fail({ state: in, code: "name", message: "unknown or unsupported type", name: head.name })
     }
 
     const declared = declaration({ source: in.context.source, index: selected.index })
-    const entered = replace({ state: { ...in, active: in.active.push(head.name.text)[0] }, frame: { ...head, operation: Operation.FinishName, reference: declared.value, declaration: declared.name } })
+    const entered = replace({ state: { ...in, active: in.active.push(name)[0] }, frame: { ...head, operation: Operation.FinishName, reference: declared.value, declaration: declared.name } })
     const value = node({ source: in.context.source, reference: declared.value })
 
     if (in.context.native_interface && value.kind == NodeKind.Named && value.name.text == "opaque") {

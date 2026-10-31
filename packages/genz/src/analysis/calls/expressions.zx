@@ -3,20 +3,36 @@ import { ExpressionKind } from "core/expression_table/kinds"
 
 import type { Expressions } from "core/expression_table/model"
 
-export type Input = { expressions: Expressions, allowed: bool[], expected: bool, limit: u64, tasks: bool }
+export type Input = {
+    expressions: Expressions,
+    allowed: bool[],
+    expected: bool,
+    limit: u64,
+    tasks: bool
+}
 
 export type Output = bool
 
 export default function (in: Input): Output {
-    const result = loop({ expressions: in.expressions, allowed: in.allowed, expected: in.expected, limit: in.limit, tasks: in.tasks, index: 0, valid: true }, {
-        while: current => current.valid && current.index < current.expressions.kinds.length,
+    const result = loop({
+        kinds: in.expressions.kinds,
+        payloads: in.expressions.payloads,
+        call_functions: in.expressions.call_functions,
+        allowed: in.allowed,
+        expected: in.expected,
+        limit: in.limit,
+        tasks: in.tasks,
+        index: 0,
+        valid: true
+    }, {
+        while: current => current.valid && current.index < current.kinds.length,
         next: current => {
-            const kind = current.expressions.kinds[current.index]
+            const kind = current.kinds[current.index]
 
             if (current.tasks && (kind == ExpressionKind.Task || kind == ExpressionKind.AwaitTask || kind == ExpressionKind.CancelTask || kind == ExpressionKind.Parallel)) {
                 current.valid = false
             } else if (kind == ExpressionKind.Call) {
-                const target = integers.widen(current.expressions.call_functions[integers.widen(current.expressions.payloads[current.index])])
+                const target = integers.widen(current.call_functions[integers.widen(current.payloads[current.index])])
 
                 current.valid = target < current.limit && current.allowed[target] == current.expected
             }

@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./model" as="Model" />
+
+    <Args in={{ concurrent: bool, enabled: bool, functions: Model.Functions }} out={bool[]} />
+
     <Switch on={$in.enabled}>
         <Case value={true}>
             <Call fn="./analyze" in={{ functions: $in.functions, concurrent: $in.concurrent }} />

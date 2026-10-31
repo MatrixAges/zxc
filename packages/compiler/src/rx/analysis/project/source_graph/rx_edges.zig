@@ -33,10 +33,12 @@ pub fn collect(collector: *Collector, source: rx.ModuleSource) Collector.Error!v
 fn reference(collector: *Collector, owner: []const u8, node: rx.ast.Node) Collector.Error!void {
     const is_import = std.mem.eql(u8, node.name, "Import");
     const is_call = std.mem.eql(u8, node.name, "Call");
+    const is_type = std.mem.eql(u8, node.name, "Type");
+    const is_shortcut = std.mem.eql(u8, node.name, "Module") and target.optionalAttribute(node, "fn") != null;
 
-    if (!is_import and !is_call) return;
+    if (!is_import and !is_call and !is_type and !is_shortcut) return;
 
-    const attribute = if (is_import)
+    const attribute = if (is_import or is_type)
         target.optionalAttribute(node, "from")
 
     else
@@ -45,11 +47,11 @@ fn reference(collector: *Collector, owner: []const u8, node: rx.ast.Node) Collec
     const value = attribute orelse return collector.fail(node.location, "source dependency requires an explicit target");
     const packages = rx.module_reference.dependencies(collector.options, collector.modules[collector.owner].path);
 
-    if (std.mem.eql(u8, value.name, "module") and rx.module_reference.isPackage(value.value, packages)) {
+    if ((is_type or std.mem.eql(u8, value.name, "module")) and rx.module_reference.isPackage(value.value, packages)) {
         return collector.import(value.value, value.value_location);
     }
 
-    const path = if (std.mem.eql(u8, value.name, "fn"))
+    const path = if (is_type or std.mem.eql(u8, value.name, "fn"))
         rx.resolveFunctionPath(collector.allocator, owner, value.value)
 
     else

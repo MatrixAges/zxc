@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./empty" as="Empty" />
+
+    <Args in={u8[]} out={Empty.Output} />
+
     <Call fn="../../../lexer/utf8/validate" in={$in} />
 
     <Switch on={$ctx.validate}>

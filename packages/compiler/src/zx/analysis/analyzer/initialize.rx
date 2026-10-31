@@ -1,4 +1,11 @@
 <Module>
+    <Type from="./signature/model" as="Model" />
+    <Type from="../../ir/canonical/stores/absent" as="Absent" />
+    <Type from="../semantic/resolving/model" as="ResolvingModel" />
+    <Type from="./local" as="Local" />
+
+    <Args in={{ allow_store: bool, has_body: bool, signature: Model.Signature, stores: Absent.Input }} out={{ diagnostic: ResolvingModel.Diagnostic, local: Local.Local }} />
+
     <Call fn="local/initial" in={{ signature: $in.signature, stores: $in.stores, allow_store: $in.allow_store }} />
 
     <Switch on={$in.has_body}>

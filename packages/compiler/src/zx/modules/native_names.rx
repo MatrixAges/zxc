@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./native_names/model" as="Model" />
+
+    <Args in={Model.Input} out={Model.Result} />
+
     <Call fn="native_names/initial" in={$in} />
     <Call fn="native_names/walk" in={$ctx.initial} />
 

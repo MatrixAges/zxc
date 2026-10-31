@@ -1,4 +1,9 @@
 <Module>
+    <Type from="./ir/references" as="References" />
+    <Type from="./runtime/execute" as="Execute" />
+
+    <Args in={References.Input} out={Execute.Output} />
+
     <Call module="./initialize" in={$in} />
 
     <Call fn="./runtime/execute" in={{ program: $in, references: $ctx.initialize.prepared.references, returns: $ctx.initialize.prepared.returns, domains: $ctx.initialize.prepared.domains, layout: $ctx.initialize.prepared.layout, runtime: { memory: $ctx.initialize.memory, snapshots: $ctx.initialize.snapshots } }} />

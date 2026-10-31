@@ -1,4 +1,11 @@
 <Module>
+    <Type from="../../../compiled/loading/type_base" as="TypeBase" />
+    <Type from="../../../../analysis/semantic/merging/origin" as="Origin" />
+    <Type from="./program" as="Program" />
+    <Type from="./failed" as="Failed" />
+
+    <Args in={{ input: { base: TypeBase.Output, base_origins: Origin.Output, module_id: u32, origin_names: string[], validation: Program.Input }, program: Program.Output }} out={Failed.Output} />
+
     <Call fn="../../../compiled/loading/type_base" in={{ table: $in.input.base, scalar_count: $in.input.validation.scalar_count }} />
 
     <Call module="../../../compiled/loading/types" in={{ source: $in.input.validation.types, origins: $in.input.validation.request.origins, names: $in.input.origin_names, base: $ctx.type_base, base_origins: $in.input.base_origins }} />

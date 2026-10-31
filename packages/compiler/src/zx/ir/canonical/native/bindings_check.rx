@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./model" as="Model" />
+
+    <Args in={Model.Context} out={bool} />
+
     <Call fn="./bindings/binding_values" in={$in} />
 
     <Switch on={$ctx.binding_values}>

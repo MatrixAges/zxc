@@ -1,4 +1,14 @@
 <Module>
+    <Type from="../../analysis/semantic/constructing/delta" as="Delta" />
+    <Type from="core/type_table/nominal" as="Nominal" />
+    <Type from="../../analysis/semantic/merging/origin" as="Origin" />
+    <Type from="../../analysis/semantic/resolving/model" as="Model" />
+    <Type from="./validation/model" as="ValidationModel" />
+    <Type from="./interface/exports" as="Exports" />
+    <Type from="./interface/members" as="Members" />
+
+    <Args in={{ base: Delta.Output, namespace: u8[][], origin: Nominal.Origin, origins: Origin.Output, shared: bool, source: u8[] }} out={{ cache: Model.Cache, delta: Delta.Output, diagnostic: ValidationModel.Output, exports: Exports.Export[], members: Members.Output, origins: Origin.Output }} />
+
     <Call module="parse" in={$in.source} />
 
     <Switch on={$ctx.parse.diagnostic.message == ""}>

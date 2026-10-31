@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./model" as="Model" />
+
+    <Args in={Model.Analysis} out={Model.Analysis} />
+
     <Switch on={$in.program && $in.state.diagnostic.message == ""}>
         <Case value={true}>
             <Call fn="finish" in={$in} />

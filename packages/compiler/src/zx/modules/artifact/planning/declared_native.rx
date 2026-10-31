@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./native_dependencies" as="NativeDependencies" />
+
+    <Args in={NativeDependencies.Input} out={NativeDependencies.Output} />
+
     <Call fn="../../../analysis/semantic/extracting/planning/ready" in={$in.state} />
 
     <Switch on={$ctx.ready}>

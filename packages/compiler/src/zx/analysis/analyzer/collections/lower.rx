@@ -1,4 +1,9 @@
 <Module>
+    <Type from="./model" as="Model" />
+    <Type from="./building/integer" as="Integer" />
+
+    <Args in={Model.Options} out={Integer.Output} />
+
     <Call fn="lowering/source" in={$in} />
     <Call fn="lowering/initial_result" in={{ state: $ctx.source.state, span: $in.span, kind: $in.kind, source: $ctx.source.source, initial: $in.initial, result_type: $in.result_type }} />
     <Call fn="lowering/initial_state" in={{ state: $ctx.initial_result.state, span: $in.span, kind: $in.kind, source: $ctx.source.source, result: $ctx.initial_result.value, initial: $in.initial, captures: $in.callback.captures.values }} />

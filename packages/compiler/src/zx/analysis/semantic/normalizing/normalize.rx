@@ -1,4 +1,12 @@
 <Module>
+    <Type from="./append" as="Append" />
+    <Type from="./cache" as="Cache" />
+    <Type from="core/type_table/nominal" as="Nominal" />
+    <Type from="../merging/origin" as="Origin" />
+    <Type from="../resolving/model" as="Model" />
+
+    <Args in={{ base: Append.Output, cache: Cache.Output, delta: Append.Output, id: u32, origin: Nominal.Origin, origins: Origin.Output }} out={{ cache: Cache.Output, delta: Append.Output, diagnostic: Model.Diagnostic, id: u32, origins: Origin.Output }} />
+
     <Call fn="normalize" in={{ base: $in.base, delta: $in.delta, origins: $in.origins, origin: $in.origin }} />
 
     <Switch on={$ctx.normalize.conflict}>

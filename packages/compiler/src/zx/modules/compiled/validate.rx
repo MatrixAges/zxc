@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./model" as="Model" />
+
+    <Args in={Model.Graph} out={bool} />
+
     <Call fn="validation/header" in={$in} />
 
     <Switch on={$ctx.header}>

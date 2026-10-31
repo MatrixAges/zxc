@@ -1,4 +1,9 @@
 <Module>
+    <Type from="../../analysis/analyzer/declarations/model" as="Model" />
+    <Type from="./model" as="SourceSignatureModel" />
+
+    <Args in={Model.DeclarationInput} out={SourceSignatureModel.Result} />
+
     <Call module="../../analysis/analyzer/declarations" in={$in} />
 
     <Call fn="initial" in={{ syntax: $in.syntax, types: $ctx.declarations.types, diagnostic: $ctx.declarations.diagnostic }} />

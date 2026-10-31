@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./model" as="Model" />
+
+    <Args in={{ kind: u64, source: u8[], start: u64 }} out={Model.Output} />
+
     <Switch on={$in.kind == 0}>
         <Case value={true}>
             <Call fn="tag_end" in={{ source: $in.source, start: $in.start }} />

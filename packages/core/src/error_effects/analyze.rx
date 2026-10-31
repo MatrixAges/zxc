@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./model" as="Model" />
+
+    <Args in={Model.Request} out={string[]?} />
+
     <Call fn="initial" in={$in} />
     <Call fn="walk" in={$ctx.initial} />
     <Call fn="finish" in={$ctx.walk} />

@@ -1,4 +1,11 @@
 <Module>
+    <Type from="./type_delta" as="TypeDelta" />
+    <Type from="../model" as="Model" />
+    <Type from="./types/initial" as="Initial" />
+    <Type from="./native/model" as="NativeModel" />
+
+    <Args in={{ base: TypeDelta.Output, input: Model.Input, merged: Initial.Output, native: NativeModel.State }} out={Model.Result} />
+
     <Call fn="functions/walk" in={{ source: $in.input.graph.program.context.functions, types: $in.merged.mapping, natives: $in.native.mapping, first: $in.input.destination.function_count, instance: $in.input.instance }} />
     <Call fn="exports" in={{ source: $in.input.graph.exports, mapping: $in.merged.mapping, first: $in.input.destination.function_count, instance: $in.input.instance }} />
     <Call fn="initializers" in={{ source: $in.input.graph.initializers, first: $in.input.destination.function_count, instance: $in.input.instance }} />

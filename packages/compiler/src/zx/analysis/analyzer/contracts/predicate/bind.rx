@@ -1,4 +1,9 @@
 <Module>
+    <Type from="../../../../frontend/parser/header/model" as="Model" />
+    <Type from="./failed" as="Failed" />
+
+    <Args in={{ contract: Model.Contract, output_type: u32, state: Failed.Input }} out={Failed.Input} />
+
     <Task name="input" out={$ctx.append}>
         <Call fn="../../bindings/append" in={{ local: $in.state.local, name: { text: "in", start: $in.contract.span.start, end: $in.contract.span.end }, type_id: $in.state.input_type, scope_start: 0 }} />
     </Task>

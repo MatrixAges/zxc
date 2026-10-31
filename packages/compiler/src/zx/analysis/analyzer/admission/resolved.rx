@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./resolved/model" as="Model" />
+
+    <Args in={Model.Request} out={bool} />
+
     <Call fn="../../../ir/canonical/validation/structure/functions" in={{ functions: $in.functions, maximum_count: $in.maximum_count }} />
 
     <Switch on={!$ctx.functions}>

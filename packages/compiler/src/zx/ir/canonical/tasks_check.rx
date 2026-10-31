@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./tasks/model" as="Model" />
+
+    <Args in={Model.Program} out={bool} />
+
     <Call fn="./tasks/interface" in={$in} />
 
     <Switch on={$ctx.interface}>

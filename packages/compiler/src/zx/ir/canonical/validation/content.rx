@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./model" as="Model" />
+
+    <Args in={Model.Program} out={bool} />
+
     <Call module="unit/check" in={{ context: $in.context, unit: $in.unit }} />
 
     <Switch on={$ctx.check}>

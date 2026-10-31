@@ -1,4 +1,9 @@
 <Module>
+    <Type from="./merging/origin" as="Origin" />
+    <Type from="./constructing/delta" as="Delta" />
+
+    <Args in={{ first: u64, names: string[], origins: Origin.Output, source: Delta.Output, target: Delta.Output }} out={u64[]?} />
+
     <Call fn="types/nominal/shape" in={{ origins: $in.origins, names: $in.names }} />
 
     <Switch on={$ctx.shape}>

@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./model" as="Model" />
+
+    <Args in={Model.Context} out={bool} />
+
     <Call fn="./initialize" in={$in.program} />
 
     <Switch on={$ctx.initialize.valid}>

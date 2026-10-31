@@ -1,21 +1,10 @@
 <Module>
-    <Input>
-        <Field name="kinds" type="u8[]" />
-        <Field name="first" type="u32[]" />
-        <Field name="second" type="u32[]" />
-        <Field name="children" type="u32[]" />
-        <Field name="field_types" type="u32[]" />
-        <Field name="input" type="u32" />
-        <Field name="output" type="u32" />
-    </Input>
+    <Type from="./model" as="Shape" />
+
+    <Args in={Shape.Request} out={Shape.Plan} />
 
     <Call fn="initial" in={$in} />
     <Call fn="walk" in={$ctx.initial} />
 
     <Return value={$ctx.walk} />
-
-    <Output>
-        <Field name="type_ids" type="u32[]" />
-        <Field name="numbers" type="u32[]" />
-    </Output>
 </Module>

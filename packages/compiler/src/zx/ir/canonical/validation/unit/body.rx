@@ -1,4 +1,8 @@
 <Module>
+    <Type from="./model" as="Model" />
+
+    <Args in={Model.Request} out={bool} />
+
     <Call module="../../contracts_check" in={{ table: $in.context.table, contracts: $in.unit.contracts, input_type: $in.unit.input_type, output_type: $in.unit.output_type, max_offset: $in.context.max_offset }} />
 
     <Switch on={$ctx.contracts_check}>
