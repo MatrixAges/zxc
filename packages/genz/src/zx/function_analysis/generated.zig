@@ -13,6 +13,7 @@ pub const Facts = struct {
     process: []bool,
     tasks: []bool,
     fresh_outputs: []bool,
+    identity_free: []bool,
 };
 
 /// Borrows the program columns for the generated facts and copies the results into the caller allocator.
@@ -60,5 +61,6 @@ pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, progr
         .process = try allocator.dupe(bool, output.process),
         .tasks = try allocator.dupe(bool, output.tasks),
         .fresh_outputs = try allocator.dupe(bool, output.fresh_outputs),
+        .identity_free = try allocator.dupe(bool, output.identity_free),
     };
 }
