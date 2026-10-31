@@ -5,6 +5,7 @@
     <Call fn="../capability/io" in={$in.program} />
     <Call fn="../capability/process" in={$in.program} />
     <Call fn="../capability/tasks" in={$in.program} />
+    <Call fn="../types/fresh_outputs" in={$in.program} />
 
-    <Return value={{ pure: $ctx.summary.pure, local: $ctx.summary.local, values: $ctx.summary.values, selected: $ctx.select.selected, keys: $ctx.select.keys, io: $ctx.io, process: $ctx.process, tasks: $ctx.tasks }} />
+    <Return value={{ pure: $ctx.summary.pure, local: $ctx.summary.local, values: $ctx.summary.values, selected: $ctx.select.selected, keys: $ctx.select.keys, io: $ctx.io, process: $ctx.process, tasks: $ctx.tasks, fresh_outputs: $ctx.fresh_outputs }} />
 </Module>
