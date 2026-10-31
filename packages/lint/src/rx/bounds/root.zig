@@ -3,15 +3,15 @@ const generated = @import("generated");
 pub const Opening = struct { marker: usize, end: usize, self_closing: bool };
 pub const Closing = struct { start: usize, end: usize };
 
-fn call(kind: u8, source: []const u8, start: usize) generated.Output {
+fn call(kind: u8, source: []const u8, start: usize) std.meta.Child(generated.Output) {
     var storage: [256]u8 = undefined;
     var fixed = std.heap.FixedBufferAllocator.init(&storage);
 
-    return generated.executeIn(fixed.allocator(), &.{
+    return (generated.executeIn(fixed.allocator(), &.{
         .kind = kind,
         .source = source,
         .start = start,
-    }) catch unreachable;
+    }) catch unreachable).*;
 }
 
 pub fn opening(source: []const u8, start: usize) Opening {
