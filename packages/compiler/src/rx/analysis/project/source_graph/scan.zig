@@ -4,7 +4,7 @@ const zx = @import("zx");
 const project = @import("frontend").project;
 const Collector = @import("collect.zig");
 
-pub fn run(collector: *Collector, roots: []const usize, sources: []const project.Source, modules: []const rx.ModuleSource, shared: ?*project.ParseCache) Collector.Error!void {
+pub fn run(collector: *Collector, roots: []const usize, sources: []const project.Source, modules: []const rx.ModuleSource, stores: []const rx.ModuleSource, shared: ?*project.ParseCache) Collector.Error!void {
     var local = project.ParseCache{ .allocator = collector.allocator };
 
     defer local.deinit();
@@ -12,6 +12,7 @@ pub fn run(collector: *Collector, roots: []const usize, sources: []const project
     const cache = shared orelse &local;
 
     try prefetch(collector, sources, cache);
+
     const queued = try collector.allocator.alloc(bool, collector.modules.len);
 
     defer collector.allocator.free(queued);
@@ -37,6 +38,7 @@ pub fn run(collector: *Collector, roots: []const usize, sources: []const project
 
         switch (collector.modules[index].source) {
             .rx => |source_index| try @import("rx_edges.zig").collect(collector, modules[source_index]),
+            .store => |source_index| try @import("rx_edges.zig").collect(collector, stores[source_index]),
             .zx => |source_index| {
                 const source = sources[source_index];
                 const parsed = try cache.getModule(source.source, collector.modules[index].path);
@@ -83,7 +85,7 @@ fn prefetch(collector: *Collector, sources: []const project.Source, cache: *proj
 
     for (collector.modules) |module| switch (module.source) {
         .zx => |source_index| try requests.append(collector.allocator, .{ .source = sources[source_index].source, .path = module.path }),
-        .rx => {},
+        .rx, .store => {},
     };
 
     try cache.prefetch(requests.items);

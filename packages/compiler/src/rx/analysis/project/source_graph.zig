@@ -11,6 +11,7 @@ pub const Options = struct {
     additional_roots: []const []const u8 = &.{},
     sources: []const frontend.project.Source,
     modules: []const rx.ModuleSource,
+    stores: []const rx.ModuleSource = &.{},
     project: frontend.project.Options,
     parse_cache: ?*frontend.project.ParseCache = null,
 };
@@ -26,22 +27,24 @@ pub fn build(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.E
 }
 
 fn buildIn(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.Error!model.Value {
-    const modules = try allocator.alloc(model.Module, options.sources.len + options.modules.len);
+    const modules = try allocator.alloc(model.Module, options.sources.len + options.modules.len + options.stores.len);
     var paths: @import("zx").bytes.Map(usize) = .empty;
 
     defer paths.deinit(allocator);
 
     for (modules, 0..) |*module, index| {
         const is_zx = index < options.sources.len;
-        const source_index = if (is_zx) index else index - options.sources.len;
-        const source_path = if (is_zx) options.sources[source_index].path else options.modules[source_index].path;
-        const location: rx.ast.Location = if (is_zx) .{ .offset = 0, .line = 1, .column = 1 } else options.modules[source_index].node.location;
+        const is_store = index >= options.sources.len + options.modules.len;
+        const source_index = if (is_zx) index else if (is_store) index - options.sources.len - options.modules.len else index - options.sources.len;
+        const source: ?rx.ModuleSource = if (is_zx) null else if (is_store) options.stores[source_index] else options.modules[source_index];
+        const source_path = if (source) |item| item.path else options.sources[source_index].path;
+        const location: rx.ast.Location = if (source) |item| item.node.location else .{ .offset = 0, .line = 1, .column = 1 };
 
         if (!is_zx) {
-            const normalized = rx.normalizeModulePath(allocator, source_path) catch |err| {
+            const normalized = (if (is_store) rx.normalizeStorePath(allocator, source_path) else rx.normalizeModulePath(allocator, source_path)) catch |err| {
                 if (err == error.OutOfMemory) return error.OutOfMemory;
 
-                return failure(allocator, source_path, location, "RX module registration requires a project relative ordinary module path");
+                return failure(allocator, source_path, location, "RX source registration requires a project relative path of the expected module kind");
             };
 
             allocator.free(normalized);
@@ -50,27 +53,29 @@ fn buildIn(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.Err
         const path = try std.fs.path.resolve(allocator, &.{ options.project.root_dir, source_path });
         const registered = try paths.getOrPut(allocator, path);
 
-        if (registered.found_existing) return failure(allocator, path, location, "source module paths must be unique after normalization across RX and ZX");
+        if (registered.found_existing) return failure(allocator, if (is_store) source_path else path, location, if (is_store) "Store definition path is already registered" else "source paths must be unique after normalization across RX, ZX and Store definitions");
 
         registered.value_ptr.* = index;
-        module.* = .{ .path = path, .source = if (is_zx) .{ .zx = source_index } else .{ .rx = source_index } };
+        module.* = .{ .path = path, .source = if (is_zx) .{ .zx = source_index } else if (is_store) .{ .store = source_index } else .{ .rx = source_index } };
     }
 
     const path = try std.fs.path.resolve(allocator, &.{ options.project.root_dir, options.entry });
     const entry = paths.get(path) orelse return failure(allocator, path, .{ .offset = 0, .line = 1, .column = 1 }, "entry module is missing from the registered source set");
-    const roots = try allocator.alloc(usize, options.additional_roots.len + 1);
+    const roots = try allocator.alloc(usize, options.additional_roots.len + options.stores.len + 1);
 
     roots[0] = entry;
 
-    for (options.additional_roots, roots[1..]) |source_path, *root| {
+    for (options.additional_roots, roots[1..][0..options.additional_roots.len]) |source_path, *root| {
         const resolved = try std.fs.path.resolve(allocator, &.{ options.project.root_dir, source_path });
 
         root.* = paths.get(resolved) orelse return failure(allocator, resolved, .{ .offset = 0, .line = 1, .column = 1 }, "source graph root is missing from the registered input set");
     }
 
+    for (roots[1 + options.additional_roots.len ..], 0..) |*root, index| root.* = options.sources.len + options.modules.len + index;
+
     var collector = Collector{ .allocator = allocator, .options = options.project, .modules = modules, .paths = paths };
 
-    @import("source_graph/scan.zig").run(&collector, roots, options.sources, options.modules, options.parse_cache) catch |err| {
+    @import("source_graph/scan.zig").run(&collector, roots, options.sources, options.modules, options.stores, options.parse_cache) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 
         return .{ .diagnostic = collector.issue.? };

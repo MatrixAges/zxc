@@ -230,49 +230,49 @@ test "route-method-expression" {
 
 test "store-name-string" {
     try fixture.check(
-        \\{"source":"<Store name=\"jobs\" version={1}><Object name=\"state\"><Field name=\"value\" type=\"string\" value=\"\"/></Object></Store>","path":"flow.store.rx"}
+        \\{"source":"<Store name=\"jobs\" version={1}><Object name=\"state\"><Field name=\"value\" type={string} value=\"\"/></Object></Store>","path":"flow.store.rx"}
     );
 }
 
 test "store-name-expression" {
     try fixture.check(
-        \\{"source":"<Store name={jobs} version={1}><Object name=\"state\"><Field name=\"value\" type=\"string\" value=\"\"/></Object></Store>","path":"flow.store.rx","attribute":"name","offset":13}
+        \\{"source":"<Store name={jobs} version={1}><Object name=\"state\"><Field name=\"value\" type={string} value=\"\"/></Object></Store>","path":"flow.store.rx","attribute":"name","offset":13}
     );
 }
 
 test "object-name-string" {
     try fixture.check(
-        \\{"source":"<Store name=\"jobs\" version={1}><Object name=\"state\"><Field name=\"value\" type=\"string\" value=\"\"/></Object></Store>","path":"flow.store.rx"}
+        \\{"source":"<Store name=\"jobs\" version={1}><Object name=\"state\"><Field name=\"value\" type={string} value=\"\"/></Object></Store>","path":"flow.store.rx"}
     );
 }
 
 test "object-name-expression" {
     try fixture.check(
-        \\{"source":"<Store name=\"jobs\" version={1}><Object name={state}><Field name=\"value\" type=\"string\" value=\"\"/></Object></Store>","path":"flow.store.rx","attribute":"name","offset":45}
+        \\{"source":"<Store name=\"jobs\" version={1}><Object name={state}><Field name=\"value\" type={string} value=\"\"/></Object></Store>","path":"flow.store.rx","attribute":"name","offset":45}
     );
 }
 
 test "field-name-string" {
     try fixture.check(
-        \\{"source":"<Store name=\"jobs\" version={1}><Object name=\"state\"><Field name=\"value\" type=\"string\" value=\"\"/></Object></Store>","path":"flow.store.rx"}
+        \\{"source":"<Store name=\"jobs\" version={1}><Object name=\"state\"><Field name=\"value\" type={string} value=\"\"/></Object></Store>","path":"flow.store.rx"}
     );
 }
 
 test "field-name-expression" {
     try fixture.check(
-        \\{"source":"<Store name=\"jobs\" version={1}><Object name=\"state\"><Field name={value} type=\"string\" value=\"\"/></Object></Store>","path":"flow.store.rx","attribute":"name","offset":65}
+        \\{"source":"<Store name=\"jobs\" version={1}><Object name=\"state\"><Field name={value} type={string} value=\"\"/></Object></Store>","path":"flow.store.rx","attribute":"name","offset":65}
     );
 }
 
 test "field-type-string" {
     try fixture.check(
-        \\{"source":"<Store name=\"jobs\" version={1}><Object name=\"state\"><Field name=\"value\" type=\"string\" value=\"\"/></Object></Store>","path":"flow.store.rx"}
+        \\{"source":"<Store name=\"jobs\" version={1}><Object name=\"state\"><Field name=\"value\" type=\"string\" value=\"\"/></Object></Store>","path":"flow.store.rx","attribute":"type","offset":78}
     );
 }
 
 test "field-type-expression" {
     try fixture.check(
-        \\{"source":"<Store name=\"jobs\" version={1}><Object name=\"state\"><Field name=\"value\" type={string} value=\"\"/></Object></Store>","path":"flow.store.rx","attribute":"type","offset":78}
+        \\{"source":"<Store name=\"jobs\" version={1}><Object name=\"state\"><Field name=\"value\" type={string} value=\"\"/></Object></Store>","path":"flow.store.rx"}
     );
 }
 
@@ -290,13 +290,13 @@ test "setter-expression" {
 
 test "version-string" {
     try fixture.check(
-        \\{"source":"<Store name=\"jobs\" version=\"1\"><Object name=\"state\"><Field name=\"value\" type=\"string\" value=\"\"/></Object></Store>","path":"flow.store.rx","attribute":"version","offset":28}
+        \\{"source":"<Store name=\"jobs\" version=\"1\"><Object name=\"state\"><Field name=\"value\" type={string} value=\"\"/></Object></Store>","path":"flow.store.rx","attribute":"version","offset":28}
     );
 }
 
 test "version-expression" {
     try fixture.check(
-        \\{"source":"<Store name=\"jobs\" version={1}><Object name=\"state\"><Field name=\"value\" type=\"string\" value=\"\"/></Object></Store>","path":"flow.store.rx"}
+        \\{"source":"<Store name=\"jobs\" version={1}><Object name=\"state\"><Field name=\"value\" type={string} value=\"\"/></Object></Store>","path":"flow.store.rx"}
     );
 }
 
@@ -446,24 +446,24 @@ test "emit-value-73" {
 
 test "field-value-74" {
     try fixture.check(
-        \\{"source":"<Store name=\"jobs\" version={1}><Object name=\"state\"><Field name=\"value\" type=\"string\" value=\"literal\"/></Object></Store>","path":"flow.store.rx"}
+        \\{"source":"<Store name=\"jobs\" version={1}><Object name=\"state\"><Field name=\"value\" type={string} value=\"literal\"/></Object></Store>","path":"flow.store.rx"}
     );
 }
 
 test "field-value-75" {
     try fixture.check(
-        \\{"source":"<Store name=\"jobs\" version={1}><Object name=\"state\"><Field name=\"value\" type=\"string\" value=\"\"/></Object></Store>","path":"flow.store.rx"}
+        \\{"source":"<Store name=\"jobs\" version={1}><Object name=\"state\"><Field name=\"value\" type={string} value=\"\"/></Object></Store>","path":"flow.store.rx"}
     );
 }
 
 test "field-value-76" {
     try fixture.check(
-        \\{"source":"<Store name=\"jobs\" version={1}><Object name=\"state\"><Field name=\"value\" type=\"string\" value={$in}/></Object></Store>","path":"flow.store.rx"}
+        \\{"source":"<Store name=\"jobs\" version={1}><Object name=\"state\"><Field name=\"value\" type={string} value={$in}/></Object></Store>","path":"flow.store.rx"}
     );
 }
 
 test "field-value-77" {
     try fixture.check(
-        \\{"source":"<Store name=\"jobs\" version={1}><Object name=\"state\"><Field name=\"value\" type=\"string\" value={{value: 1}}/></Object></Store>","path":"flow.store.rx"}
+        \\{"source":"<Store name=\"jobs\" version={1}><Object name=\"state\"><Field name=\"value\" type={string} value={{value: 1}}/></Object></Store>","path":"flow.store.rx"}
     );
 }

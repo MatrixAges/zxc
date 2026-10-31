@@ -4,9 +4,9 @@ const rx = @import("rx");
 
 const fragments =
     \\<Store name="scheduler" version={1}>
-    \\  <Object name="state"><Field name="cursor" type="u64" value={0}/></Object>
-    \\  <Object name="state"><Field name="label" type="string" value={}/></Object>
-    \\  <Object name="other"><Field name="cursor" type="string" value={A&B}/></Object>
+    \\  <Object name="state"><Field name="cursor" type={u64} value={0}/></Object>
+    \\  <Object name="state"><Field name="label" type={string} value={}/></Object>
+    \\  <Object name="other"><Field name="cursor" type={string} value={A&B}/></Object>
     \\</Store>
 ;
 
@@ -28,15 +28,15 @@ test "Store text preserves disjoint fragments and fields in different objects" {
     try std.testing.expectEqualStrings("scheduler", data.attributes.name);
     try std.testing.expectEqual(@as(u32, 1), data.attributes.version);
     try std.testing.expectEqual(@as(usize, 3), data.children.len);
-    try std.testing.expectEqualStrings("state", data.children[0].attributes.name);
-    try std.testing.expectEqualStrings("state", data.children[1].attributes.name);
-    try std.testing.expectEqualStrings("other", data.children[2].attributes.name);
-    try std.testing.expectEqualStrings("cursor", data.children[0].children[0].attributes.name);
-    try std.testing.expectEqualStrings("u64", data.children[0].children[0].attributes.type);
-    try std.testing.expectEqualStrings("0", data.children[0].children[0].attributes.value);
-    try std.testing.expectEqualStrings("label", data.children[1].children[0].attributes.name);
-    try std.testing.expectEqualStrings("", data.children[1].children[0].attributes.value);
-    try std.testing.expectEqualStrings("A&B", data.children[2].children[0].attributes.value);
+    try std.testing.expectEqualStrings("state", data.children[0].object.attributes.name);
+    try std.testing.expectEqualStrings("state", data.children[1].object.attributes.name);
+    try std.testing.expectEqualStrings("other", data.children[2].object.attributes.name);
+    try std.testing.expectEqualStrings("cursor", data.children[0].object.children[0].attributes.name);
+    try std.testing.expectEqualStrings("u64", data.children[0].object.children[0].attributes.type);
+    try std.testing.expectEqualStrings("0", data.children[0].object.children[0].attributes.value);
+    try std.testing.expectEqualStrings("label", data.children[1].object.children[0].attributes.name);
+    try std.testing.expectEqualStrings("", data.children[1].object.children[0].attributes.value);
+    try std.testing.expectEqualStrings("A&B", data.children[2].object.children[0].attributes.value);
 }
 
 test "Store text accepts zero version" {
@@ -48,7 +48,7 @@ test "Store text accepts maximum u32 version" {
 }
 
 fn checkVersion(version: []const u8, expected: u32) !void {
-    const source = try std.fmt.allocPrint(std.testing.allocator, "<Store name='state' version={{{s}}}><Object name='state'><Field name='x' type='string' value={{}}/></Object></Store>", .{version});
+    const source = try std.fmt.allocPrint(std.testing.allocator, "<Store name='state' version={{{s}}}><Object name='state'><Field name='x' type={{string}} value={{}}/></Object></Store>", .{version});
 
     defer std.testing.allocator.free(source);
 
@@ -76,7 +76,7 @@ test "Store text duplicate fragments release every allocation failure" {
 
 fn checkAllocation(allocator: std.mem.Allocator, invalid: bool) !void {
     const source = if (invalid)
-        "<Store name='state' version={1}><Object name='state'><Field name='x' type='u64' value={0}/></Object><Object name='state'><Field name='x' type='string' value={}/></Object></Store>"
+        "<Store name='state' version={1}><Object name='state'><Field name='x' type={u64} value={0}/></Object><Object name='state'><Field name='x' type={string} value={}/></Object></Store>"
 
     else
         fragments;
@@ -103,7 +103,7 @@ fn checkAllocation(allocator: std.mem.Allocator, invalid: bool) !void {
 }
 
 test "Store text duplicate decoded name reports second original value position" {
-    var parsed = try rx.parseXml(std.testing.allocator, "<Store name='s' version={1}>\r\n<Object name='state'><Field name='x' type='u64' value={0}/></Object>\r\n<Object name='state'><Field name='&#120;' type='string' value={}/></Object>\r\n</Store>");
+    var parsed = try rx.parseXml(std.testing.allocator, "<Store name='s' version={1}>\r\n<Object name='state'><Field name='x' type={u64} value={0}/></Object>\r\n<Object name='state'><Field name='&#120;' type={string} value={}/></Object>\r\n</Store>");
 
     defer parsed.deinit();
 

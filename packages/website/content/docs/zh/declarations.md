@@ -25,7 +25,7 @@ Gateway 和 Store 文件描述应用边界。结构校验不会启动服务器�
 ```xml
 <Store name="inventory" version={1}>
   <Object name="Stock">
-    <Field name="available" type="u64" value={0} />
+    <Field name="available" type={u64} value={0} />
   </Object>
 </Store>
 ```

@@ -1,6 +1,6 @@
 const store = `<Store name="counter_state" version={1}>
     <Object name="counter">
-        <Field name="value" type="u64" value={3} />
+        <Field name="value" type={u64} value={3} />
     </Object>
 </Store>
 `

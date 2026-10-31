@@ -79,7 +79,7 @@ RX 属性值只负责数据引用、组装和简单运算，不执行函数或�
 
 花括号内部直接使用 ZX 源码，支持对象、列表、比较、逻辑运算、注释和模板，不进行 XML 实体解码或空白归一化；`<`、`&&` 无需写成 XML 实体。引号字符串仍使用标签转义，例如 `&amp;`、`&quot;`。
 
-`Call.in`、`Return.value`、`Switch.on`、`Case.value`、`Emit.value` 和 Store `Field.value` 都使用这一规则。`setter` 写作 `{[store.alias.object]}`，仍只授权一个完整 Store Object。路径、`name` 及 `Field.type` 保持静态引号字符串，不接受动态表达式。Store.version 和 Gateway 字节上限是静态整数配置，使用 `{1}`、`{8192}` 等整数字面量，保留各自范围检查。
+`Call.in`、`Return.value`、`Switch.on`、`Case.value`、`Emit.value` 和 Store `Field.value` 都使用这一规则。`setter` 写作 `{[store.alias.object]}`，仍只授权一个完整 Store Object。路径和 `name` 保持静态引号字符串；`Field.type` 使用花括号内的 ZX 类型表达式。Store.version 和 Gateway 字节上限是静态整数配置，使用 `{1}`、`{8192}` 等整数字面量，保留各自范围检查。
 
 Call 使用 in 传参；读取输入写 `in={$in}`，字符串写 `in="$in"`；旧表达式中通过 XML 实体表示的符号需在花括号内恢复为 ZX 符号。无后缀调用保留：`fn="load"` 对应 `load.zx`，`module="orders"` 对应 `orders.rx`，不需要 `.zig`。
 
@@ -151,19 +151,19 @@ module 的 Input 为 void 时可省略 in；非 void 输入省略时在推导阶
 | Gateway    | `name`、`protocol?`、`listen?`、`max_header_bytes?`、`max_body_bytes?` | Group、Route                                                                                |
 | Group      | `prefix`                                                               | Group、Route                                                                                |
 | Route      | `path`、`service`、`method?`                                           | 无                                                                                          |
-| Store 定义 | `name`、`version`                                                      | Object                                                                                      |
+| Store 定义 | `name`、`version`                                                      | Type、Object                                                                                |
 | Object     | `name`                                                                 | Field                                                                                       |
 | Field      | `name`、`type`、`value`                                                | 无                                                                                          |
 
 共 **18 个不同标签名**，Store 在两种文件上下文中具有不同 Schema。Store 引用中的 as 只沿用原设计的 Store 数据命名空间，不是模块别名；Gateway/Store 的 name 是领域配置名称，也不充当模块注册标识。
 
-Task、Parallel、Switch、Case、Default、Group、Store 定义、Object 均至少有一个子元素。Module 和 Gateway 允许空内容。Task 不能直接嵌套 Task，其他递归嵌套遵循表格。Switch 的 Case 值不能重复，最多一个 Default，不强制 Default 位置。
+Task、Parallel、Switch、Case、Default、Group、Object 均至少有一个子元素；Store 定义至少包含一个 Object，Type 必须位于 Object 前。Module 和 Gateway 允许空内容。Task 不能直接嵌套 Task，其他递归嵌套遵循表格。Switch 的 Case 值不能重复，最多一个 Default，不强制 Default 位置。
 
 setter 仅可用于 fn 调用；module 目标的 Store 写入能力由目标模块内部的 fn 调用声明。
 
 protocol 的语法集合为 `http`、`grpc`、`websocket`、`tcp`、`mqtt`；method 为 `GET`、`HEAD`、`POST`、`PUT`、`DELETE`、`CONNECT`、`OPTIONS`、`TRACE`、`PATCH`。这不代表已经实现这些协议的 Runtime adapter。Route.service 也采用文件路径引用语法。
 
-Store.version 为 u32。同一个 Object 的 Field 名不可重复；同名 Object 可声明不同字段，但同一文件的完整 Object.Field 路径不可重复。Field.value 可使用引号字符串或花括号 ZX 表达式；空字符串写作 `value=""`，也可写作 `value={""}`。Field.type 使用 ZX 类型表达式，字段初值通过相同类型与所有权检查，不自动提供动态 map 或未声明的类型别名。
+Store.version 为 u32。同一个 Object 的 Field 名不可重复；同名 Object 可声明不同字段，但同一文件的完整 Object.Field 路径不可重复。Field.value 可使用引号字符串或花括号 ZX 表达式；空字符串写作 `value=""`，也可写作 `value={""}`。Field.type 使用花括号内的 ZX 类型表达式；Store 可在 Object 前通过 Type.from/as 引用 ZX 导出类型，作用域只限当前定义。字段初值通过相同类型与所有权检查，不自动提供动态 map 或未声明的类型别名。
 
 ## API 与校验层级
 

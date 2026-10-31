@@ -18,6 +18,7 @@ pub const OriginTable = @typeInfo(@TypeOf(OriginStorage.view)).@"fn".return_type
 
 /// What an analysis derives from everything but the ZX function bodies.
 pub const Frame = struct {
+    stores: []const @import("rx").ModuleSource = &.{},
     modules: []const @import("rx").ModuleSource,
     dependencies: @import("source_graph/model.zig").Graph,
     definitions: []@import("../store.zig").Definition,

@@ -4,7 +4,7 @@ const zx = @import("zx");
 const project = @import("../project.zig");
 const sources = @import("../sources.zig");
 
-pub fn validate(io: std.Io, allocator: std.mem.Allocator, path: []const u8, source: []const u8, config_path: ?[]const u8, writer: *std.Io.Writer) !bool {
+pub fn validate(io: std.Io, allocator: std.mem.Allocator, path: []const u8, source: []const u8, config_path: ?[]const u8, modules: []const @import("rx").ModuleSource, writer: *std.Io.Writer) !bool {
     var loaded = project.load(io, allocator, path, config_path) catch |err| {
         if (err == error.OutOfMemory) return err;
 
@@ -37,19 +37,21 @@ pub fn validate(io: std.Io, allocator: std.mem.Allocator, path: []const u8, sour
 
     loaded.project.compiled_libraries = libraries.libraries.items;
 
+    if (!try called(allocator, path, loaded.project.root_dir, modules)) {
+        var signed = try compiler.project.analyzeSignaturesWithCache(allocator, inputs, &.{path}, loaded.project, &parse_cache);
+
+        defer signed.deinit();
+
+        if (signed.value == .diagnostic) return report(writer, inputs, signed.value.diagnostic);
+
+        return true;
+    }
+
     var analyzed = try compiler.analyzeProjectWithCache(allocator, inputs, loaded.project, &parse_cache);
 
     defer analyzed.deinit();
 
-    if (analyzed.value == .diagnostic) {
-        const issue = analyzed.value.diagnostic;
-        const index = issue.source_index orelse 0;
-        const location = zx.source.locate(inputs[index].source, issue.span.start);
-
-        try writer.print("{s}:{d}:{d}: {t}: {s}\n", .{ inputs[index].path, location.line, location.column, issue.code, issue.message });
-
-        return false;
-    }
+    if (analyzed.value == .diagnostic) return report(writer, inputs, analyzed.value.diagnostic);
 
     if (analyzed.value.ir.type_only) {
         try writer.print("{s}: Call.fn requires an executable ZX module with a default function\n", .{path});
@@ -58,4 +60,38 @@ pub fn validate(io: std.Io, allocator: std.mem.Allocator, path: []const u8, sour
     }
 
     return true;
+}
+
+fn report(writer: *std.Io.Writer, inputs: []const compiler.project.Source, issue: anytype) !bool {
+    const index = issue.source_index orelse 0;
+    const location = zx.source.locate(inputs[index].source, issue.span.start);
+
+    try writer.print("{s}:{d}:{d}: {t}: {s}\n", .{ inputs[index].path, location.line, location.column, issue.code, issue.message });
+
+    return false;
+}
+
+fn called(allocator: std.mem.Allocator, path: []const u8, root: []const u8, modules: []const @import("rx").ModuleSource) !bool {
+    var pending: std.ArrayList(struct { owner: []const u8, node: @import("rx").ast.Node }) = .empty;
+
+    defer pending.deinit(allocator);
+
+    for (modules) |module| try pending.append(allocator, .{ .owner = module.path, .node = module.node });
+
+    while (pending.pop()) |item| {
+        if (std.mem.eql(u8, item.node.name, "Call") or std.mem.eql(u8, item.node.name, "Module")) {
+            for (item.node.attributes) |attribute| {
+                if (!std.mem.eql(u8, attribute.name, "fn")) continue;
+
+                const relative = try @import("rx").resolveFunctionPath(allocator, item.owner, attribute.value);
+                const resolved = try std.fs.path.resolve(allocator, &.{ root, relative });
+
+                if (std.mem.eql(u8, path, resolved)) return true;
+            }
+        }
+
+        for (item.node.children) |node| try pending.append(allocator, .{ .owner = item.owner, .node = node });
+    }
+
+    return false;
 }

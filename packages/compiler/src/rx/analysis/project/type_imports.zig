@@ -12,8 +12,8 @@ pub fn collect(allocator: std.mem.Allocator, source: rx.ModuleSource, project: f
     for (source.node.children) |node| {
         if (!std.mem.eql(u8, node.name, "Type")) continue;
 
-        const from = target.attribute(node, "from");
-        const alias = target.attribute(node, "as");
+        const from = target.optionalAttribute(node, "from") orelse return .{ .diagnostic = .{ .path = try allocator.dupe(u8, source.path), .location = node.location, .code = "module", .message = "Type requires an explicit from attribute" } };
+        const alias = target.optionalAttribute(node, "as") orelse return failure(allocator, source, from, "Type requires an explicit as attribute");
         const owner = try std.fs.path.resolve(allocator, &.{ project.root_dir, source.path });
         const packages = rx.module_reference.dependencies(project, owner);
 

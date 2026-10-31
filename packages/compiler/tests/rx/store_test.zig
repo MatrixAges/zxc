@@ -14,7 +14,7 @@ test "store object and field definitions produce typed version" {
 
     try std.testing.expect(result.value == .data);
     try std.testing.expectEqual(@as(u32, 1), result.value.data.store.attributes.version);
-    try std.testing.expectEqualStrings("u64", result.value.data.store.children[0].children[0].attributes.type);
+    try std.testing.expectEqualStrings("u64", result.value.data.store.children[0].object.children[0].attributes.type);
 }
 
 test "store distinguishes references from definitions and validates version" {

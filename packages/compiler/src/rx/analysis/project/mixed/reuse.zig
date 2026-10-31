@@ -43,6 +43,7 @@ pub fn begin(state: *const State, cache: *const ParseCache, record: ?*history.Hi
 
     for (state.graph.modules, self.digests) |module, *digest| digest.* = switch (module.source) {
         .zx => cache.sourceDigest(module.path),
+        .store => null,
         .rx => if (record) |owner| owner.rxDigest(module.path) else null,
     };
 
@@ -129,6 +130,8 @@ fn reaches(self: *const Self, state: *const State, index: usize) bool {
 /// Whether `index`, analyzed again into tables still aligned, appended the very function rows and produced the very
 /// link it had before, down to the bodies they point to.
 fn repeated(state: *const State, previous: *const history.Retained, index: usize, start: usize) bool {
+    if (state.graph.modules[index].source == .store) return true;
+
     const current = state.finished[index] orelse return false;
     const earlier = previous.finished[index] orelse return false;
     const end = state.functions.count();
@@ -184,6 +187,12 @@ fn unchanged(self: *const Self, state: *const State, index: usize) bool {
     const previous = self.previous.?;
 
     if (index == state.graph.entry) return false;
+
+    if (module.source == .store) {
+        const before = previous.derived.dependencies.modules[index].source;
+
+        return before == .store and columns.same(previous.derived.stores[before.store].node, self.derived.stores[module.source.store].node) and !self.reaches(state, index);
+    }
 
     const earlier = previous.digests[index] orelse return false;
     const current = self.digests[index] orelse return false;

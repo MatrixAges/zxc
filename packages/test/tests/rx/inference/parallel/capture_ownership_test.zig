@@ -71,7 +71,7 @@ test "RX scalar-returning Store call freezes aggregate argument published by set
         .source = "<Module><Store from='state' as='jobs'/><Call fn='list' in={$in}/><Call fn='write_list' in={$ctx.list} setter={[store.jobs.counter]}/><Call fn='consume' in={$ctx.list}/><Return value={$ctx.consume.length}/></Module>",
         .store = true,
         .slots = 1,
-        .store_source = "<Store name='lists' version={1}><Object name='counter'><Field name='value' type='u64[]' value={[3]}/></Object></Store>",
+        .store_source = "<Store name='lists' version={1}><Object name='counter'><Field name='value' type={u64[]} value={[3]}/></Object></Store>",
         .extra_sources = &.{.{ .path = "consume.zx", .source = @embedFile("owned_input/consume.zx") }},
     });
 }
@@ -81,6 +81,6 @@ test "RX scalar-returning Store call preserves read access to published argument
         .source = "<Module><Store from='state' as='jobs'/><Call fn='list' in={$in}/><Call fn='write_list' in={$ctx.list} setter={[store.jobs.counter]}/><Return value={$ctx.list.length + $ctx.write_list}/></Module>",
         .store = true,
         .slots = 1,
-        .store_source = "<Store name='lists' version={1}><Object name='counter'><Field name='value' type='u64[]' value={[3]}/></Object></Store>",
+        .store_source = "<Store name='lists' version={1}><Object name='counter'><Field name='value' type={u64[]} value={[3]}/></Object></Store>",
     });
 }

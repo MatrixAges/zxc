@@ -21,7 +21,11 @@ export default function (in: Input): Output {
         case "Emit":
             return in.attribute == "value" ? Role.Value : Role.Static
         case "Field":
-            return in.attribute == "value" ? Role.Value : Role.Static
+            return match {
+                in.attribute == "type" => Role.Type,
+                in.attribute == "value" => Role.Value,
+                _ => Role.Static
+            }
         case "Task":
             return in.attribute == "out" ? Role.Expression : Role.Static
         case "Args":

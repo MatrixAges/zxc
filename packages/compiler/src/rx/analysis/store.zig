@@ -6,7 +6,8 @@ const zx = @import("zx");
 const target = @import("call/target.zig");
 const expression = @import("expression.zig");
 const initializer = @import("store/initializer.zig");
-pub const Options = struct { owner: []const u8, node: rx.ast.Node, types: zx.ir.TypeTable = .{}, nominal_types: @FieldType(frontend.AnalysisResult, "nominal_types") = .{}, native_modules: zx.ir.NativeModuleTable = .{} };
+pub const registry = @import("store/registry.zig");
+pub const Options = struct { aliases: []const zx.ir.Export = &.{}, owner: []const u8, node: rx.ast.Node, types: zx.ir.TypeTable = .{}, nominal_types: @FieldType(frontend.AnalysisResult, "nominal_types") = .{}, native_modules: zx.ir.NativeModuleTable = .{} };
 pub const Binding = struct { name: []const u8, slot: zx.ir.StoreSlot };
 pub const Object = struct { name: []const u8, initial: zx.ir.Program };
 pub const Definition = struct { source_path: []const u8, name: []const u8, version: u32, types: zx.ir.TypeTable, objects: []const Object };
@@ -49,10 +50,16 @@ fn analyzeIn(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.E
         return failure(allocator, options.owner, options.node.location, "module", "Store definition must have a project-relative .store.rx path");
     };
 
-    var types = options.types;
+    const resolved = try @import("store/type.zig").resolve(allocator, path, options.node, .{ .types = options.types, .nominal_types = options.nominal_types, .native_modules = options.native_modules }, options.aliases);
+
+    if (resolved == .diagnostic) return diagnostic(allocator, path, resolved.diagnostic);
+
+    var types = resolved.resolved.types;
     var objects: std.ArrayList(Object) = .empty;
 
     for (options.node.children) |node| {
+        if (!std.mem.eql(u8, node.name, "Object")) continue;
+
         const name = target.attribute(node, "name").value;
         var seen = false;
 
@@ -64,23 +71,16 @@ fn analyzeIn(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.E
 
         var fields: std.ArrayList(initializer.Field) = .empty;
 
-        for (options.node.children) |fragment| {
-            if (!std.mem.eql(u8, target.attribute(fragment, "name").value, name)) continue;
+        for (resolved.resolved.fields) |field| {
+            if (!std.mem.eql(u8, field.object, name)) continue;
 
-            for (fragment.children) |field| {
-                const resolved = try @import("store/type.zig").resolve(allocator, path, target.attribute(field, "type"), .{ .types = types, .nominal_types = options.nominal_types, .native_modules = options.native_modules });
+            const initial = try expression.compile(allocator, path, target.attribute(field.node, "value"), .{ .types = types, .native_modules = options.native_modules, .expected = field.type_id });
 
-                if (resolved == .diagnostic) return diagnostic(allocator, path, resolved.diagnostic);
+            if (initial.value == .diagnostic) return diagnostic(allocator, path, initial.value.diagnostic);
 
-                types = resolved.resolved.types;
-                const initial = try expression.compile(allocator, path, target.attribute(field, "value"), .{ .types = types, .native_modules = options.native_modules, .expected = resolved.resolved.id });
+            types = initial.value.ir.types;
 
-                if (initial.value == .diagnostic) return diagnostic(allocator, path, initial.value.diagnostic);
-
-                types = initial.value.ir.types;
-
-                try fields.append(allocator, .{ .name = target.attribute(field, "name").value, .type_id = resolved.resolved.id, .initial = initial.value.ir });
-            }
+            try fields.append(allocator, .{ .name = target.attribute(field.node, "name").value, .type_id = field.type_id, .initial = initial.value.ir });
         }
 
         var reporter: zx.Reporter = .{};

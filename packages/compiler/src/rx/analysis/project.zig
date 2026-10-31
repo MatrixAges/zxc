@@ -111,19 +111,14 @@ fn derive(allocator: std.mem.Allocator, options: Options, cache: *frontend.proje
         .additional_roots = roots,
         .sources = options.sources,
         .modules = modules,
+        .stores = options.stores,
         .project = options.project,
         .parse_cache = cache,
     });
 
     if (dependencies.value == .diagnostic) return failed(allocator, dependencies.value.diagnostic);
 
-    const registry = try @import("store/registry.zig").load(allocator, options.stores, options.project.context);
-
-    if (registry == .diagnostic) return .{ .diagnostic = registry.diagnostic };
-
     var project = options.project;
-    project.context = registry.data.context;
-
     var signature_entries: std.ArrayList([]const u8) = .empty;
 
     for (dependencies.value.graph.order) |index| {
@@ -155,6 +150,16 @@ fn derive(allocator: std.mem.Allocator, options: Options, cache: *frontend.proje
 
     if (earlier != null) options.history.?.signatures_reused = true;
 
+    project.context.types = signatures.types;
+    project.context.nominal_types = signatures.nominal_types;
+    project.context.native_modules = signatures.native_modules;
+
+    const registry = try @import("store/registry.zig").loadSignatures(allocator, options.stores, project, signatures);
+
+    if (registry == .diagnostic) return .{ .diagnostic = registry.diagnostic };
+
+    project.context = registry.data.context;
+
     const prepared = try prepare.loadSignatures(allocator, modules, options.sources, project, registry.data.definitions, signatures);
 
     if (prepared == .diagnostic) return .{ .diagnostic = prepared.diagnostic };
@@ -175,6 +180,7 @@ fn derive(allocator: std.mem.Allocator, options: Options, cache: *frontend.proje
 
     return .{ .frame = .{
         .modules = modules,
+        .stores = options.stores,
         .dependencies = dependencies.value.graph,
         .definitions = registry.data.definitions,
         .loaded = prepared.loaded,

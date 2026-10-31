@@ -13,7 +13,7 @@ pub fn infer(path: []const u8, kind: []const u8) !analysis.module.Result {
 
     defer main.deinit();
 
-    const store = try std.fmt.allocPrint(allocator, "<Store name='same_name' version={{1}}><Object name='counter'><Field name='value' type='{s}' value={{3}}/></Object></Store>", .{kind});
+    const store = try std.fmt.allocPrint(allocator, "<Store name='same_name' version={{1}}><Object name='counter'><Field name='value' type={{{s}}} value={{3}}/></Object></Store>", .{kind});
 
     defer allocator.free(store);
 

@@ -85,7 +85,7 @@ test "Store getter can be passed to ordinary input" {
     try h.run(.{
         .source = "<Module><Store from='state' as='jobs'/><Call fn='consume' in={store.jobs.counter.value}/><Return value={$ctx.consume.length}/></Module>",
         .store = true,
-        .store_source = "<Store name='lists' version={1}><Object name='counter'><Field name='value' type='u64[]' value={[3]}/></Object></Store>",
+        .store_source = "<Store name='lists' version={1}><Object name='counter'><Field name='value' type={u64[]} value={[3]}/></Object></Store>",
         .slots = 1,
     });
 }
@@ -94,7 +94,7 @@ test "copied Store getter can transfer" {
     try h.run(.{
         .source = "<Module><Store from='state' as='jobs'/><Call fn='list' in={store.jobs.counter.value}/><Call fn='consume' in={$ctx.list}/><Return value={$ctx.consume.length}/></Module>",
         .store = true,
-        .store_source = "<Store name='lists' version={1}><Object name='counter'><Field name='value' type='u64[]' value={[3]}/></Object></Store>",
+        .store_source = "<Store name='lists' version={1}><Object name='counter'><Field name='value' type={u64[]} value={[3]}/></Object></Store>",
         .slots = 1,
     });
 }
@@ -103,7 +103,7 @@ test "published Store value can be passed to ordinary input" {
     try h.run(.{
         .source = "<Module><Store from='state' as='jobs'/><Call fn='list' in={$in}/><Call fn='write_list' in={$ctx.list} setter={[store.jobs.counter]}/><Call fn='consume' in={$ctx.list}/><Return value={$ctx.consume.length}/></Module>",
         .store = true,
-        .store_source = "<Store name='lists' version={1}><Object name='counter'><Field name='value' type='u64[]' value={[3]}/></Object></Store>",
+        .store_source = "<Store name='lists' version={1}><Object name='counter'><Field name='value' type={u64[]} value={[3]}/></Object></Store>",
         .slots = 1,
     });
 }
@@ -112,7 +112,7 @@ test "owned new result can be published to Store" {
     try h.run(.{
         .source = "<Module><Store from='state' as='jobs'/><Call fn='list' in={$in}/><Call fn='consume' in={$ctx.list}/><Call fn='write_list' in={$ctx.consume} setter={[store.jobs.counter]}/><Return value={$ctx.write_list}/></Module>",
         .store = true,
-        .store_source = "<Store name='lists' version={1}><Object name='counter'><Field name='value' type='u64[]' value={[3]}/></Object></Store>",
+        .store_source = "<Store name='lists' version={1}><Object name='counter'><Field name='value' type={u64[]} value={[3]}/></Object></Store>",
         .slots = 1,
     });
 }

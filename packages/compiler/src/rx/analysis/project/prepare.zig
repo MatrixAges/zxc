@@ -14,12 +14,7 @@ pub fn load(allocator: std.mem.Allocator, modules: []const rx.ModuleSource, sour
 }
 
 pub fn loadSignatures(allocator: std.mem.Allocator, modules: []const rx.ModuleSource, sources: []const frontend.project.Source, initial_project: frontend.project.Options, definitions: []const Store.Definition, signatures: frontend.project.signature_project.Data) std.mem.Allocator.Error!Value {
-    var project = initial_project;
-    project.context.types = signatures.types;
-    project.context.nominal_types = signatures.nominal_types;
-    project.context.native_modules = signatures.native_modules;
-
-    return loadWithSignatures(allocator, modules, sources, project, definitions, signatures);
+    return loadWithSignatures(allocator, modules, sources, initial_project, definitions, signatures);
 }
 
 fn loadWithSignatures(allocator: std.mem.Allocator, modules: []const rx.ModuleSource, sources: []const frontend.project.Source, initial_project: frontend.project.Options, definitions: []const Store.Definition, signatures: ?frontend.project.signature_project.Data) std.mem.Allocator.Error!Value {

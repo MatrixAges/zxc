@@ -25,7 +25,7 @@ Gateway와 Store 파일은 애플리케이션 경계를 기술합니다. 구조 
 ```xml
 <Store name="inventory" version={1}>
   <Object name="Stock">
-    <Field name="available" type="u64" value={0} />
+    <Field name="available" type={u64} value={0} />
   </Object>
 </Store>
 ```

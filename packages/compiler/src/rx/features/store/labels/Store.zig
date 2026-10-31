@@ -2,19 +2,34 @@ const std = @import("std");
 const dsl = @import("dsl");
 const checks = @import("../../../checks.zig");
 const Object = @import("Object.zig").Object;
+const Type = @import("../../../labels/Type.zig").Type;
 
 const StoreBase = dsl.element("Store", struct {
     name: []const u8,
     version: u32,
-}, dsl.list(Object, .{ .min = 1 }));
+}, dsl.list(dsl.choice(.{ .type = Type, .object = Object }), .{ .min = 1 }));
 
 pub const Store = dsl.refine(StoreBase, checkStore);
 
 fn checkStore(_: StoreBase.Data, node: dsl.ast.Node, _: anytype, reporter: *dsl.Reporter) dsl.Error!void {
     try checks.nonEmpty(node, reporter);
+    try checks.uniqueChildren(node, "Type", "as", reporter);
+
+    var has_objects = false;
+
+    for (node.children) |child| {
+        if (std.mem.eql(u8, child.name, "Type")) {
+            if (has_objects) return checks.fail(child, "from", "Type declarations must precede Store objects", reporter);
+        } else has_objects = true;
+    }
+
+    if (!has_objects) return checks.fail(node, "", "Store requires at least one Object", reporter);
 
     for (node.children, 0..) |object, index| {
+        if (!std.mem.eql(u8, object.name, "Object")) continue;
+
         for (node.children[0..index]) |previous| {
+            if (!std.mem.eql(u8, previous.name, "Object")) continue;
             if (!std.mem.eql(u8, checks.attribute(object, "name").?, checks.attribute(previous, "name").?)) continue;
 
             for (object.children) |field| {

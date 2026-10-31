@@ -25,7 +25,7 @@ Protocols are `http`, `grpc`, `websocket`, `tcp`, and `mqtt`. HTTP methods are `
 ```xml
 <Store name="inventory" version={1}>
   <Object name="Stock">
-    <Field name="available" type="u64" value={0} />
+    <Field name="available" type={u64} value={0} />
   </Object>
 </Store>
 ```

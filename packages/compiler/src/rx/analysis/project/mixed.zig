@@ -48,6 +48,7 @@ pub fn compile(allocator: std.mem.Allocator, backing: std.mem.Allocator, derived
         if (try reuse.reuse(&state, index)) continue;
 
         switch (module.source) {
+            .store => reuse.analyzed(&state, index),
             .zx => {
                 const signature = state.signature(index) orelse return .{ .diagnostic = .{ .path = module.path, .location = .{ .offset = 0, .line = 1, .column = 1 }, .code = "module", .message = "source module signature is missing" } };
 

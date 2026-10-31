@@ -22,14 +22,17 @@ pub fn load(io: std.Io, allocator: std.mem.Allocator, entry: []const u8, config_
         .io = io,
         .project = project.project,
         .modules = loaded.data.modules,
+        .stores = loaded.data.stores,
         .functions = loaded.data.functions,
         .writer = writer,
     }) orelse return null;
 
+    if (!try @import("store_types.zig").validate(io, allocator, loaded.data, functions, project.project, writer)) return null;
+
     for (functions) |function| {
         const path = try std.fs.path.resolve(allocator, &.{ root, function.path });
 
-        if (!try @import("function.zig").validate(io, allocator, path, function.source, config_path, writer)) return null;
+        if (!try @import("function.zig").validate(io, allocator, path, function.source, config_path, loaded.data.modules, writer)) return null;
     }
 
     var libraries = @import("../library/inputs.zig"){ .allocator = allocator };

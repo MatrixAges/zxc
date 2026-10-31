@@ -129,6 +129,7 @@ pub fn analyze(self: *Self, state: *State, cache: *frontend.project.ParseCache, 
 
 fn prepare(self: *Self, state: *State, cache: *frontend.project.ParseCache, sources: []const frontend.project.Source, derived: Frame, index: usize) State.Error!?Item {
     switch (state.graph.modules[index].source) {
+        .store => return null,
         .zx => return .{ .zx = .{ .prepared = try Zx.prepare(state, cache, sources, index, null) } },
         .rx => |source| {
             const module = derived.loaded.modules[source];
@@ -188,6 +189,7 @@ fn eligible(state: *const State, reuse: *const Reuse, index: usize) bool {
     if (reuse.reusable(state, index)) return false;
 
     switch (module.source) {
+        .store => return false,
         .zx => {
             const signature = state.signature(index) orelse return false;
 

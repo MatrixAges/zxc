@@ -89,9 +89,9 @@ const cases: Array<Case> = [
     {
         name: 'Store suffix does not trigger orchestration build',
         file: 'state.store.rx',
-        source: '<Store version="1">\n <Object name="counter">\n  <Field name="value" type="u64" value="0" />\n\n </Object>\n <Object name="settings">\n  <Field name="enabled" type="bool" value="true" />\n </Object>\n</Store>\n',
+        source: '<Store version="1">\n <Object name="counter">\n  <Field name="value" type={u64} value="0" />\n\n </Object>\n <Object name="settings">\n  <Field name="enabled" type={bool} value="true" />\n </Object>\n</Store>\n',
         expected:
-            '<Store version="1">\n    <Object name="counter">\n        <Field name="value" type="u64" value="0" />\n    </Object>\n\n    <Object name="settings">\n        <Field name="enabled" type="bool" value="true" />\n    </Object>\n</Store>\n'
+            '<Store version="1">\n    <Object name="counter">\n        <Field name="value" type={u64} value="0" />\n    </Object>\n\n    <Object name="settings">\n        <Field name="enabled" type={bool} value="true" />\n    </Object>\n</Store>\n'
     },
     {
         name: 'Gateway suffix and nonexistent services remain formatable',

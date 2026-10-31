@@ -3,7 +3,7 @@ const rx = @import("rx");
 const project = @import("frontend").project;
 const Diagnostic = @import("../../call/target.zig").Diagnostic;
 
-pub const Source = union(enum) { zx: usize, rx: usize };
+pub const Source = union(enum) { zx: usize, rx: usize, store: usize };
 pub const Target = union(enum) { source: usize, compiled: project.compiled.Target, native: []const u8 };
 pub const Edge = struct { target: Target, location: rx.ast.Location };
 pub const Module = struct { path: []const u8, source: Source, dependencies: []const Edge = &.{} };

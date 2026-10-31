@@ -1,7 +1,7 @@
 const std = @import("std");
 const rx = @import("rx");
 const Inputs = @import("../watch/inputs.zig");
-pub const Options = struct { io: std.Io, root: []const u8, entry: []const u8, writer: *std.Io.Writer, inputs: ?*Inputs = null, check_initializers: bool = true, project: @import("compiler").project.Options = .{ .entry = "" } };
+pub const Options = struct { io: std.Io, root: []const u8, entry: []const u8, writer: *std.Io.Writer, inputs: ?*Inputs = null, project: @import("compiler").project.Options = .{ .entry = "" } };
 pub const GatewaySource = struct { path: []const u8, source: []const u8, node: rx.ast.Node };
 pub const Data = struct { gateway: ?GatewaySource = null, modules: []const rx.ModuleSource, stores: []const rx.ModuleSource, sources: []const rx.TextSource, functions: []const rx.TextSource };
 
@@ -134,20 +134,6 @@ fn loadIn(allocator: std.mem.Allocator, options: Options) !?Data {
 
         if (std.mem.endsWith(u8, path, ".store.rx")) {
             try stores.append(allocator, .{ .path = path, .node = parsed.value.node });
-
-            if (options.check_initializers) {
-                var definition = try @import("rx_analysis").store.analyze(allocator, .{ .owner = path, .node = parsed.value.node });
-
-                defer definition.deinit();
-
-                if (definition.value == .diagnostic) {
-                    const issue = definition.value.diagnostic;
-
-                    try writer.print("{s}:{d}:{d}: {s}: {s}\n", .{ issue.path, issue.location.line, issue.location.column, issue.code, issue.message });
-
-                    return null;
-                }
-            }
         }
 
         const packages = rx.module_reference.dependencies(options.project, absolute);

@@ -42,6 +42,7 @@ pub fn validate(node: dsl.ast.Node, reporter: *dsl.Reporter) dsl.Error!void {
 fn role(element: []const u8, attribute: []const u8) Role {
     if (@import("rx_options").generated_rules) return @import("schema/scalar.zig").execute(@import("generated_attribute_role"), &.{ .element = element, .attribute = attribute });
     if (nativeValue(element, attribute)) return .Value;
+    if (std.mem.eql(u8, element, "Field") and std.mem.eql(u8, attribute, "type")) return .Type;
     if (std.mem.eql(u8, element, "Args") and (std.mem.eql(u8, attribute, "in") or std.mem.eql(u8, attribute, "out"))) return .Type;
 
     const expression = (std.mem.eql(u8, element, "Task") and std.mem.eql(u8, attribute, "out")) or

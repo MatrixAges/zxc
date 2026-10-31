@@ -8,6 +8,7 @@ pub const Options = struct {
     io: std.Io,
     project: compiler.project.Options,
     modules: []const rx.ModuleSource,
+    stores: []const rx.ModuleSource = &.{},
     functions: []const rx.TextSource,
     writer: *std.Io.Writer,
     inputs: ?*Inputs = null,
@@ -25,7 +26,8 @@ pub fn collect(allocator: std.mem.Allocator, options: Options) !?[]const rx.Text
         try seen.put(allocator, try std.fs.path.resolve(allocator, &.{ options.project.root_dir, source.path }), {});
     }
 
-    for (options.modules) |module| {
+    for (0..options.modules.len + options.stores.len) |index| {
+        const module = if (index < options.modules.len) options.modules[index] else options.stores[index - options.modules.len];
         const owner = try std.fs.path.resolve(allocator, &.{ options.project.root_dir, module.path });
         const packages = rx.module_reference.dependencies(options.project, owner);
 
