@@ -24,16 +24,20 @@ pub const Bundle = struct {
 };
 
 pub fn createCached(allocator: std.mem.Allocator, library: *const model.Result, cache: ?*Cache) Error!Bundle {
-    return create(allocator, allocator, library, cache, false);
+    return create(allocator, allocator, library, cache, false, false);
 }
 
 /// A bundle of files that import each other, held in memory from `output`; what building it needs only meanwhile
 /// comes from `allocator`.
 pub fn createFilesCached(allocator: std.mem.Allocator, output: std.mem.Allocator, library: *const model.Result, cache: ?*Cache) Error!Bundle {
-    return create(allocator, output, library, cache, true);
+    return create(allocator, output, library, cache, true, false);
 }
 
-fn create(allocator: std.mem.Allocator, output: std.mem.Allocator, library: *const model.Result, cache: ?*Cache, file_imports: bool) Error!Bundle {
+pub fn createFilesCachedConcurrent(allocator: std.mem.Allocator, output: std.mem.Allocator, library: *const model.Result, cache: ?*Cache) Error!Bundle {
+    return create(allocator, output, library, cache, true, true);
+}
+
+fn create(allocator: std.mem.Allocator, output: std.mem.Allocator, library: *const model.Result, cache: ?*Cache, file_imports: bool, comptime concurrent_analysis: bool) Error!Bundle {
     if (@import("frontend").checks_internal_ir) try validation.validate(allocator, library);
 
     var arena = std.heap.ArenaAllocator.init(output);
@@ -59,7 +63,12 @@ fn create(allocator: std.mem.Allocator, output: std.mem.Allocator, library: *con
     defer if (loaded) |*value| value.deinit();
 
     const memo = if (loaded) |*value| value else if (keeps_memo) try memos.kept(cache.?) else null;
-    var analysis = try @import("genz").zx.modules.Analysis.createRemembered(allocator, program, exported_functions[0..exported_count], memo);
+    const Analysis = @import("genz").zx.modules.Analysis;
+
+    var analysis = if (concurrent_analysis)
+        try Analysis.createRememberedConcurrent(allocator, program, exported_functions[0..exported_count], memo)
+    else
+        try Analysis.createRemembered(allocator, program, exported_functions[0..exported_count], memo);
 
     // Names take the capabilities the analysis already found instead of tracing the call graph again.
     var identities = names.createWith(owned, program, library.nominal_types, .{ .io = analysis.value.io, .process = analysis.value.process }) catch |err| {

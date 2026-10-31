@@ -14,22 +14,41 @@ pub const prepare = @import("inline_call/root.zig").prepare;
 pub const function_analysis = @import("function_analysis.zig");
 
 pub fn emit(allocator: std.mem.Allocator, program: zx.ir.Program) std.mem.Allocator.Error![]u8 {
+    return emitWithConcurrency(allocator, program, false);
+}
+
+/// `allocator` and its parents must be threadsafe.
+pub fn emitConcurrent(allocator: std.mem.Allocator, program: zx.ir.Program) std.mem.Allocator.Error![]u8 {
+    return emitWithConcurrency(allocator, program, true);
+}
+
+fn emitWithConcurrency(allocator: std.mem.Allocator, program: zx.ir.Program, comptime concurrent: bool) std.mem.Allocator.Error![]u8 {
     var arena = std.heap.ArenaAllocator.init(allocator);
 
     defer arena.deinit();
 
     const temporary = arena.allocator();
-    var lower = try initialize(temporary, allocator, program);
+    var lower = try initializePreparedWithConcurrency(temporary, allocator, try prepare(temporary, program), concurrent);
 
     return render(allocator, lower.builder.nodes, try lower.declarations());
 }
 
 pub fn bundle(allocator: std.mem.Allocator, program: zx.ir.Program) std.mem.Allocator.Error!Bundle {
+    return bundleWithConcurrency(allocator, program, false);
+}
+
+/// `allocator` and its parents must be threadsafe.
+pub fn bundleConcurrent(allocator: std.mem.Allocator, program: zx.ir.Program) std.mem.Allocator.Error!Bundle {
+    return bundleWithConcurrency(allocator, program, true);
+}
+
+fn bundleWithConcurrency(allocator: std.mem.Allocator, program: zx.ir.Program, comptime concurrent: bool) std.mem.Allocator.Error!Bundle {
     var arena = std.heap.ArenaAllocator.init(allocator);
 
     defer arena.deinit();
 
-    var lower = try initialize(arena.allocator(), allocator, program);
+    const temporary = arena.allocator();
+    var lower = try initializePreparedWithConcurrency(temporary, allocator, try prepare(temporary, program), concurrent);
     const types = try render(allocator, lower.builder.nodes, try @import("type_bundle.zig").declarations(&lower));
 
     errdefer allocator.free(types);
@@ -54,11 +73,20 @@ pub fn initialize(temporary: std.mem.Allocator, workspace: std.mem.Allocator, so
 }
 
 pub fn initializePrepared(temporary: std.mem.Allocator, workspace: std.mem.Allocator, program: zx.ir.Program) std.mem.Allocator.Error!Lower {
+    return initializePreparedWithConcurrency(temporary, workspace, program, false);
+}
+
+fn initializePreparedWithConcurrency(temporary: std.mem.Allocator, workspace: std.mem.Allocator, program: zx.ir.Program, comptime concurrent: bool) std.mem.Allocator.Error!Lower {
     const Analysis = @import("function_analysis.zig");
     const basis = try temporary.create(Analysis.Uniqueness.Basis);
     basis.* = try .create(temporary, program, null);
 
-    return initializeAnalyzed(temporary, workspace, program, try Analysis.analyze(temporary, workspace, program, &.{}, basis, null));
+    const facts = if (concurrent)
+        try Analysis.analyzeConcurrent(temporary, workspace, program, &.{}, basis, null)
+    else
+        try Analysis.analyze(temporary, workspace, program, &.{}, basis, null);
+
+    return initializeAnalyzed(temporary, workspace, program, facts);
 }
 
 pub fn initializeAnalyzed(temporary: std.mem.Allocator, workspace: std.mem.Allocator, program: zx.ir.Program, facts: @import("function_analysis.zig")) std.mem.Allocator.Error!Lower {

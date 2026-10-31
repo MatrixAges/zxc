@@ -7,6 +7,8 @@ pub const Status = enum { success, failed, retry, backend_failed };
 pub const Context = struct {
     io: std.Io,
     allocator: std.mem.Allocator,
+    /// The caller guarantees `allocator` and its parents are threadsafe.
+    concurrent_analysis: bool = false,
     options: @import("options.zig").Options,
     environment: *const std.process.Environ.Map,
     stdout: *std.Io.Writer,
@@ -146,7 +148,7 @@ pub fn run(context: Context) !Status {
     defer generation_cache.deinit();
 
     var dependencies: std.ArrayList([]const u8) = .empty;
-    const compile_options = compiler.CompileOptions{ .io = context.io, .sources = sources, .project = project, .parse_cache = if (options.cache) null else &semantic_cache.parse_cache, .semantic_cache = if (options.cache) &semantic_cache else null, .generation_cache = if (options.native and options.cache) &generation_cache else null, .solver = options.solver, .writer = stderr, .dependencies = &dependencies, .type_output = if (options.output != null) &type_output.writer else null };
+    const compile_options = compiler.CompileOptions{ .io = context.io, .concurrent_analysis = context.concurrent_analysis, .sources = sources, .project = project, .parse_cache = if (options.cache) null else &semantic_cache.parse_cache, .semantic_cache = if (options.cache) &semantic_cache else null, .generation_cache = if (options.native and options.cache) &generation_cache else null, .solver = options.solver, .writer = stderr, .dependencies = &dependencies, .type_output = if (options.output != null) &type_output.writer else null };
 
     const result: compiler.Result = if (options.native) generated: {
         const compiled = try compiler.compileProjectModulesVerified(allocator, compile_options);

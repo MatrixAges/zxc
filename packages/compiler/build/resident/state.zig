@@ -35,6 +35,7 @@ discarded: ?std.heap.ArenaAllocator = null,
 emission: std.heap.ArenaAllocator,
 const Generation = struct { path: []u8, cache: compiler.zig.GenerationCache };
 
+/// `gpa` must be threadsafe: background cache writers and concurrent generation share it.
 pub fn init(io: std.Io, gpa: std.mem.Allocator) !Self {
     var scratch = std.heap.ArenaAllocator.init(gpa);
 

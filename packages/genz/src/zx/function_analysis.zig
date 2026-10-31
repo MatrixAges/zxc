@@ -62,6 +62,15 @@ pub fn createExported(backing: std.mem.Allocator, program: ir.Program, exported:
 
 /// Facts that also reuse and extend the body analyses `memo` remembers from earlier programs.
 pub fn createRemembered(backing: std.mem.Allocator, program: ir.Program, exported: []const ir.FunctionId, memo: ?*Uniqueness.Memo) std.mem.Allocator.Error!Owned {
+    return createWithConcurrency(backing, program, exported, memo, false);
+}
+
+/// `backing` and every allocator behind `memo` must be threadsafe; this call exclusively borrows `memo`.
+pub fn createRememberedConcurrent(backing: std.mem.Allocator, program: ir.Program, exported: []const ir.FunctionId, memo: ?*Uniqueness.Memo) std.mem.Allocator.Error!Owned {
+    return createWithConcurrency(backing, program, exported, memo, true);
+}
+
+fn createWithConcurrency(backing: std.mem.Allocator, program: ir.Program, exported: []const ir.FunctionId, memo: ?*Uniqueness.Memo, comptime concurrent: bool) std.mem.Allocator.Error!Owned {
     var arena = std.heap.ArenaAllocator.init(backing);
 
     errdefer arena.deinit();
@@ -72,7 +81,7 @@ pub fn createRemembered(backing: std.mem.Allocator, program: ir.Program, exporte
 
     defer scratch.deinit();
 
-    const facts = try analyzeFrom(scratch.allocator(), backing, program, exported, .{ .build = .{ .allocator = owned, .basis = basis } }, memo);
+    const facts = try analyzeFrom(scratch.allocator(), backing, program, exported, .{ .build = .{ .allocator = owned, .basis = basis } }, memo, concurrent);
 
     const value: Self = .{
         .value = .{
@@ -101,7 +110,12 @@ pub fn createRemembered(backing: std.mem.Allocator, program: ir.Program, exporte
 }
 
 pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, program: ir.Program, exported: []const ir.FunctionId, basis: *const Uniqueness.Basis, memo: ?*Uniqueness.Memo) std.mem.Allocator.Error!Self {
-    return analyzeFrom(allocator, workspace, program, exported, .{ .ready = basis }, memo);
+    return analyzeFrom(allocator, workspace, program, exported, .{ .ready = basis }, memo, false);
+}
+
+/// All allocators must be threadsafe, including shared parents and those behind the exclusively borrowed `memo`.
+pub fn analyzeConcurrent(allocator: std.mem.Allocator, workspace: std.mem.Allocator, program: ir.Program, exported: []const ir.FunctionId, basis: *const Uniqueness.Basis, memo: ?*Uniqueness.Memo) std.mem.Allocator.Error!Self {
+    return analyzeFrom(allocator, workspace, program, exported, .{ .ready = basis }, memo, true);
 }
 
 /// The basis uniqueness reads, or where to build it: building it first on the uniqueness thread overlaps it with the
@@ -117,15 +131,16 @@ const Source = union(enum) {
     }
 };
 
-fn analyzeFrom(allocator: std.mem.Allocator, workspace: std.mem.Allocator, program: ir.Program, exported: []const ir.FunctionId, source: Source, memo: ?*Uniqueness.Memo) std.mem.Allocator.Error!Self {
-    // Uniqueness, the costliest pass, reads only the program and the basis, so it runs beside the others.
+fn analyzeFrom(allocator: std.mem.Allocator, workspace: std.mem.Allocator, program: ir.Program, exported: []const ir.FunctionId, source: Source, memo: ?*Uniqueness.Memo, comptime concurrent: bool) std.mem.Allocator.Error!Self {
     var uniqueness = Concurrent{ .arena = .init(workspace), .workspace = workspace, .program = program, .exported = exported, .source = source, .memo = memo };
 
     defer uniqueness.arena.deinit();
 
-    const thread = std.Thread.spawn(.{}, Concurrent.run, .{&uniqueness}) catch null;
+    const thread: ?std.Thread = if (concurrent) std.Thread.spawn(.{}, Concurrent.run, .{&uniqueness}) catch null else null;
 
-    if (thread == null) uniqueness.run();
+    if (thread == null) {
+        uniqueness.result = analyzeUniqueness(if (concurrent) uniqueness.arena.allocator() else allocator, workspace, program, exported, source, memo);
+    }
 
     const others = remaining(allocator, workspace, program);
     const errors = @import("zx").error_effects.perFunction(allocator, program.types, program.functions);
@@ -139,7 +154,7 @@ fn analyzeFrom(allocator: std.mem.Allocator, workspace: std.mem.Allocator, progr
     value.errors = try errors;
     value.identity_free = try identity_free;
     value.fresh_outputs = try fresh_outputs;
-    value.uniqueness = try copyPlans(allocator, try uniqueness.result);
+    value.uniqueness = if (concurrent) try copyPlans(allocator, try uniqueness.result) else try uniqueness.result;
     value.basis = source.basis();
 
     return value;
@@ -219,19 +234,18 @@ const Concurrent = struct {
     memo: ?*Uniqueness.Memo,
     result: std.mem.Allocator.Error!Uniqueness.Result = error.OutOfMemory,
     fn run(self: *Concurrent) void {
-        if (self.source == .build) {
-            const build = self.source.build;
-
-            build.basis.* = Uniqueness.Basis.create(build.allocator, self.program, self.memo) catch |err| {
-                self.result = err;
-
-                return;
-            };
-        }
-
-        self.result = Uniqueness.analyze(self.arena.allocator(), self.workspace, self.program, self.exported, self.source.basis(), self.memo);
+        self.result = analyzeUniqueness(self.arena.allocator(), self.workspace, self.program, self.exported, self.source, self.memo);
     }
 };
+
+fn analyzeUniqueness(allocator: std.mem.Allocator, workspace: std.mem.Allocator, program: ir.Program, exported: []const ir.FunctionId, source: Source, memo: ?*Uniqueness.Memo) std.mem.Allocator.Error!Uniqueness.Result {
+    if (source == .build) {
+        const build = source.build;
+        build.basis.* = try Uniqueness.Basis.create(build.allocator, program, memo);
+    }
+
+    return Uniqueness.analyze(allocator, workspace, program, exported, source.basis(), memo);
+}
 
 /// The names live in the program, which outlives its facts.
 fn copyErrors(allocator: std.mem.Allocator, source: []const ?[]const []const u8) std.mem.Allocator.Error![]const ?[]const []const u8 {

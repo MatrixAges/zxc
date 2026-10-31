@@ -30,6 +30,13 @@ pub fn emitLibraryFilesCached(allocator: std.mem.Allocator, output: std.mem.Allo
     return library.createFilesCached(allocator, output, result, cache);
 }
 
+/// Analysis and memo allocators must be threadsafe, and no other call may use the memo until this returns.
+pub fn emitLibraryFilesCachedConcurrent(allocator: std.mem.Allocator, output: std.mem.Allocator, result: *const @import("../library/root.zig").Result, cache: ?*GenerationCache) (library.Error || error{ InvalidIr, UnverifiedContracts })!LibraryBundle {
+    try trusted(allocator, result.program);
+
+    return library.createFilesCachedConcurrent(allocator, output, result, cache);
+}
+
 pub fn emitModules(allocator: std.mem.Allocator, analysis: *const @import("frontend").AnalysisResult) (modules.Error || error{ InvalidIr, UnverifiedContracts })!ModuleBundle {
     return emitModulesCached(allocator, analysis, null);
 }
@@ -42,11 +49,20 @@ pub fn emitModulesCached(allocator: std.mem.Allocator, analysis: *const @import(
 }
 
 pub fn emit(allocator: std.mem.Allocator, program: zx.ir.Program) (std.mem.Allocator.Error || error{ InvalidIr, UnverifiedContracts, NativeRequiresBundle })![]u8 {
+    return emitWithConcurrency(allocator, program, false);
+}
+
+/// `allocator` and its parents must be threadsafe.
+pub fn emitConcurrent(allocator: std.mem.Allocator, program: zx.ir.Program) (std.mem.Allocator.Error || error{ InvalidIr, UnverifiedContracts, NativeRequiresBundle })![]u8 {
+    return emitWithConcurrency(allocator, program, true);
+}
+
+fn emitWithConcurrency(allocator: std.mem.Allocator, program: zx.ir.Program, comptime concurrent: bool) (std.mem.Allocator.Error || error{ InvalidIr, UnverifiedContracts, NativeRequiresBundle })![]u8 {
     try validate(allocator, program);
 
     if (program.native_modules.count() != 0) return error.NativeRequiresBundle;
 
-    return @import("genz").zx.emit(allocator, program);
+    return if (concurrent) @import("genz").zx.emitConcurrent(allocator, program) else @import("genz").zx.emit(allocator, program);
 }
 
 pub const Bundle = @import("genz").zx.Bundle;

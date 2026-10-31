@@ -12,6 +12,8 @@ pub const Options = struct {
     dependencies: ?*std.ArrayList([]const u8) = null,
     writer: *std.Io.Writer,
     type_output: ?*std.Io.Writer = null,
+    /// Requires a threadsafe allocator and threadsafe parents for parallel source analysis.
+    concurrent_analysis: bool = false,
 };
 
 pub fn compile(allocator: std.mem.Allocator, options: Options) !compiler.Result {
@@ -34,7 +36,7 @@ pub fn emit(allocator: std.mem.Allocator, options: Options, analyzed: *const com
 fn render(allocator: std.mem.Allocator, options: Options, program: compiler.ir.Program) !compiler.Result {
     if (program.native_modules.count() != 0) {
         const writer = options.type_output orelse return .{ .diagnostic = .{ .code = .module, .span = .{ .start = 0, .end = 0 }, .message = "native modules require shared type output; use --out or build" } };
-        const bundle = try @import("genz").zx.bundle(allocator, program);
+        const bundle = if (options.concurrent_analysis) try @import("genz").zx.bundleConcurrent(allocator, program) else try @import("genz").zx.bundle(allocator, program);
 
         defer allocator.free(bundle.types);
         errdefer allocator.free(bundle.source);
@@ -49,9 +51,11 @@ fn render(allocator: std.mem.Allocator, options: Options, program: compiler.ir.P
         return .{ .source = bundle.source };
     }
 
-    if (requiresVerification(program, options.solver)) return .{ .source = try @import("genz").zx.emit(allocator, program) };
+    if (requiresVerification(program, options.solver)) return .{ .source = if (options.concurrent_analysis) try @import("genz").zx.emitConcurrent(allocator, program) else try @import("genz").zx.emit(allocator, program) };
 
-    return .{ .source = compiler.zig.emit(allocator, program) catch |err| switch (err) {
+    const source = if (options.concurrent_analysis) compiler.zig.emitConcurrent(allocator, program) else compiler.zig.emit(allocator, program);
+
+    return .{ .source = source catch |err| switch (err) {
         error.OutOfMemory => return error.OutOfMemory,
         error.InvalidIr, error.UnverifiedContracts, error.NativeRequiresBundle => return .{ .diagnostic = .{ .code = .contract, .span = .{ .start = 0, .end = 0 }, .message = "invalid or unverified project IR" } },
     } };

@@ -51,7 +51,7 @@ pub fn run(context: Compile.Context) !Compile.Status {
 
     defer type_output.deinit();
 
-    const configuration = compiler.CompileOptions{ .io = context.io, .sources = prepared.sources, .project = loaded.project, .generation_cache = if (options.native and options.cache) &cache else null, .solver = options.solver, .writer = writer, .dependencies = &dependencies, .type_output = if (options.output != null) &type_output.writer else null };
+    const configuration = compiler.CompileOptions{ .io = context.io, .concurrent_analysis = context.concurrent_analysis, .sources = prepared.sources, .project = loaded.project, .generation_cache = if (options.native and options.cache) &cache else null, .solver = options.solver, .writer = writer, .dependencies = &dependencies, .type_output = if (options.output != null) &type_output.writer else null };
 
     if (!options.native) {
         const emitted = try compiler.emitProgramVerified(allocator, configuration, &prepared.analysis);

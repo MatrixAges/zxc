@@ -50,7 +50,7 @@ pub fn main(init: std.process.Init) !void {
         try @import("cli/watch/interrupt.zig").run(init.io, std.heap.page_allocator, options, init.environ_map, stdout, stderr);
     } else if (options.watch) {
         try @import("cli/watch.zig").run(init.io, std.heap.page_allocator, options, init.environ_map, stdout, stderr);
-    } else if (try @import("cli/compile.zig").run(.{ .io = init.io, .allocator = allocator, .options = options, .environment = init.environ_map, .stdout = stdout, .stderr = stderr }) != .success) {
+    } else if (try @import("cli/compile.zig").run(.{ .io = init.io, .allocator = allocator, .concurrent_analysis = true, .options = options, .environment = init.environ_map, .stdout = stdout, .stderr = stderr }) != .success) {
         try stderr.flush();
 
         std.process.exit(1);
