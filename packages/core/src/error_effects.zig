@@ -48,6 +48,7 @@ pub fn expression(allocator: std.mem.Allocator, types: ir.TypeTable, functions: 
 
 /// The error set of every function at once; see `error_effects/functions.zig`.
 pub const perFunction = @import("error_effects/functions.zig").all;
+pub const functionBodies = @import("error_effects/functions.zig").collect;
 
 pub fn deinit(self: *Self) void {
     self.names.deinit(self.allocator);
@@ -125,7 +126,6 @@ pub fn call(self: *Self, id: ir.FunctionId) std.mem.Allocator.Error!void {
     }
 
     if (self.callees) |list| return list.append(self.allocator, id);
-
     try self.raises(function);
 }
 

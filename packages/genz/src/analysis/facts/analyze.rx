@@ -7,6 +7,7 @@
     <Call fn="../capability/tasks" in={$in.program} />
     <Call fn="../types/fresh_outputs" in={$in.program} />
     <Call fn="../identity/free" in={{ types: $in.program.types, functions: $in.program.functions, pure: $ctx.summary.pure }} />
+    <Call module="core/error_effects/functions" in={$in.errors} />
 
-    <Return value={{ pure: $ctx.summary.pure, local: $ctx.summary.local, values: $ctx.summary.values, selected: $ctx.select.selected, keys: $ctx.select.keys, io: $ctx.io, process: $ctx.process, tasks: $ctx.tasks, fresh_outputs: $ctx.fresh_outputs, identity_free: $ctx.free }} />
+    <Return value={{ pure: $ctx.summary.pure, local: $ctx.summary.local, values: $ctx.summary.values, selected: $ctx.select.selected, keys: $ctx.select.keys, io: $ctx.io, process: $ctx.process, tasks: $ctx.tasks, fresh_outputs: $ctx.fresh_outputs, identity_free: $ctx.free, errors: $ctx.functions }} />
 </Module>

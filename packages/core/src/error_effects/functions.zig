@@ -6,29 +6,29 @@ const std = @import("std");
 const ir = @import("../ir.zig");
 const Effects = @import("../error_effects.zig");
 const parallel = @import("../parallel.zig");
-const Own = struct { names: []const []const u8, unknown: bool, callees: []const ir.FunctionId };
+pub const Own = struct { names: []const []const u8, unknown: bool, callees: []const ir.FunctionId };
 const unvisited = std.math.maxInt(u32);
+
+pub const Bodies = struct {
+    allocator: std.mem.Allocator,
+    own: []Own,
+    arenas: []std.heap.ArenaAllocator,
+    pub fn deinit(self: *Bodies) void {
+        for (self.arenas) |*arena| arena.deinit();
+
+        self.allocator.free(self.arenas);
+        self.allocator.free(self.own);
+    }
+};
 
 /// Each function's error set, null where unknown, as `Effects.program` reports for its body.
 pub fn all(allocator: std.mem.Allocator, types: ir.TypeTable, functions: ir.FunctionTable) std.mem.Allocator.Error![]const ?[]const []const u8 {
+    var bodies = try collect(allocator, types, functions);
+
+    defer bodies.deinit();
+
     const count = functions.count();
-    const own = try allocator.alloc(Own, count);
-    const arenas = try allocator.alloc(std.heap.ArenaAllocator, @max(@min(parallel.width(), count), 1));
-
-    for (arenas) |*arena| arena.* = .init(std.heap.smp_allocator);
-
-    defer {
-        for (arenas) |*arena| arena.deinit();
-
-        allocator.free(arenas);
-    }
-
-    var visits = Visits{ .types = types, .functions = functions, .own = own, .arenas = arenas };
-
-    parallel.spread(Visits, &visits, Visits.run, arenas.len);
-
-    if (visits.failed.load(.monotonic)) return error.OutOfMemory;
-
+    const own = bodies.own;
     const result = try allocator.alloc(?[]const []const u8, count);
     const order = try allocator.alloc(u32, count);
     const low = try allocator.alloc(u32, count);
@@ -93,6 +93,31 @@ pub fn all(allocator: std.mem.Allocator, types: ir.TypeTable, functions: ir.Func
     }
 
     return result;
+}
+
+pub fn collect(allocator: std.mem.Allocator, types: ir.TypeTable, functions: ir.FunctionTable) std.mem.Allocator.Error!Bodies {
+    const count = functions.count();
+    const own = try allocator.alloc(Own, count);
+
+    errdefer allocator.free(own);
+
+    const arenas = try allocator.alloc(std.heap.ArenaAllocator, @max(@min(parallel.width(), count), 1));
+
+    errdefer allocator.free(arenas);
+
+    for (arenas) |*arena| arena.* = .init(std.heap.smp_allocator);
+
+    errdefer {
+        for (arenas) |*arena| arena.deinit();
+    }
+
+    var visits = Visits{ .types = types, .functions = functions, .own = own, .arenas = arenas };
+
+    parallel.spread(Visits, &visits, Visits.run, arenas.len);
+
+    if (visits.failed.load(.monotonic)) return error.OutOfMemory;
+
+    return .{ .allocator = allocator, .own = own, .arenas = arenas };
 }
 
 const Visits = struct {

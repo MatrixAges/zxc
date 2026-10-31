@@ -1,0 +1,23 @@
+import type { Workspace } from "./model"
+
+export type Input = u32[][]
+
+export type Output = Workspace
+
+export default function (in: Input): Output {
+    return {
+        order: in.map(calls => 4294967295),
+        low: in.map(calls => 0),
+        on_stack: in.map(calls => false),
+        stack: in.map(calls => 0),
+        stack_count: 0,
+        nodes: in.map(calls => 0),
+        children: in.map(calls => 0),
+        starts: in.map(calls => 0),
+        frame_count: 0,
+        ordinal: 0,
+        membership: in.map(calls => 0),
+        members: [],
+        first: [0]
+    }
+}

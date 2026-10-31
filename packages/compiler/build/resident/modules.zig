@@ -8,6 +8,7 @@ const Self = @This();
 
 gpa: std.mem.Allocator,
 current: ?rx.TextResult = null,
+packages: [32]u8 = undefined,
 /// The paths and texts `current` was parsed from, in turn.
 texts: std.ArrayList([]u8) = .empty,
 replaced: std.ArrayList(rx.TextResult) = .empty,
@@ -20,8 +21,8 @@ pub fn deinit(self: *Self) void {
 }
 
 /// The parse of `sources`; the kept one while their paths and texts match it.
-pub fn parse(self: *Self, sources: []const rx.TextSource) !*const rx.TextResult {
-    if (self.current != null and self.matches(sources)) return &self.current.?;
+pub fn parse(self: *Self, sources: []const rx.TextSource, packages: [32]u8) !*const rx.TextResult {
+    if (self.current != null and bytes.equal(&self.packages, &packages) and self.matches(sources)) return &self.current.?;
 
     var parsed = try rx.parseModules(self.gpa, sources);
 
@@ -39,6 +40,7 @@ pub fn parse(self: *Self, sources: []const rx.TextSource) !*const rx.TextResult 
     if (self.current) |old| self.replaced.appendAssumeCapacity(old);
 
     self.current = parsed;
+    self.packages = packages;
 
     return &self.current.?;
 }

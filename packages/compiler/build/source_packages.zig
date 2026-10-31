@@ -8,6 +8,7 @@ pub const entries: []const Package = &.{
     .{ .specifier = "compiler/ir_function_check", .entry = "zx/ir/canonical/validation/functions/check.rx" },
     .{ .specifier = "compiler/collection_lower", .entry = "zx/analysis/analyzer/collections/lower.rx" },
     .{ .specifier = "compiler/error_effects", .entry = "core/error_effects/analyze.rx" },
+    .{ .specifier = "core/error_effects/functions", .entry = "core/error_effects/functions/analyze.rx" },
     .{ .specifier = "compiler/contract", .entry = "zx/analysis/analyzer/contracts/predicate/analyze.rx" },
     .{ .specifier = "lint/naming", .entry = "lint/naming/check.zx" },
     .{ .specifier = "lint/naming/model", .entry = "lint/naming/model.zx" },

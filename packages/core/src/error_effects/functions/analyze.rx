@@ -1,0 +1,19 @@
+<Module>
+    <Input>
+        <Field name="names" type="string[][]" />
+        <Field name="unknown" type="bool[]" />
+        <Field name="callees" type="u32[][]" />
+    </Input>
+
+    <Call fn="initial" in={$in.callees} />
+    <Call fn="components" in={{ callees: $in.callees, state: $ctx.initial }} />
+    <Call fn="join" in={{ sources: $in, components: $ctx.components }} />
+
+    <Return value={{ components: $ctx.components.membership, names: $ctx.join.names, unknown: $ctx.join.unknown }} />
+
+    <Output>
+        <Field name="components" type="u32[]" />
+        <Field name="names" type="string[][]" />
+        <Field name="unknown" type="bool[]" />
+    </Output>
+</Module>

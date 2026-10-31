@@ -143,13 +143,11 @@ fn analyzeFrom(allocator: std.mem.Allocator, workspace: std.mem.Allocator, progr
     }
 
     const others = remaining(allocator, workspace, program);
-    const errors = @import("zx").error_effects.perFunction(allocator, program.types, program.functions);
 
     if (thread) |running| running.join();
 
     var value = try others;
 
-    value.errors = try errors;
     value.uniqueness = if (concurrent) try copyPlans(allocator, try uniqueness.result) else try uniqueness.result;
     value.basis = source.basis();
 
@@ -208,6 +206,7 @@ fn remaining(allocator: std.mem.Allocator, workspace: std.mem.Allocator, program
             .tasks = generated.tasks,
             .fresh_outputs = generated.fresh_outputs,
             .identity_free = generated.identity_free,
+            .errors = generated.errors,
             .uniqueness = undefined,
             .basis = undefined,
         };
@@ -222,6 +221,7 @@ fn remaining(allocator: std.mem.Allocator, workspace: std.mem.Allocator, program
         .tasks = try @import("tasks/allocator.zig").functions(allocator, program),
         .fresh_outputs = try freshOutputs(allocator, program),
         .identity_free = try @import("iteration_layout/identity_free.zig").functions(allocator, program, value.pure),
+        .errors = try @import("zx").error_effects.perFunction(allocator, program.types, program.functions),
         .uniqueness = undefined,
         .basis = undefined,
     };

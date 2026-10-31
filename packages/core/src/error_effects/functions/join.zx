@@ -1,0 +1,24 @@
+import group from "./group"
+
+import type { Components, Groups, Sources } from "./model"
+
+export type Input = { sources: Sources, components: Components }
+
+export type Output = Groups
+
+export default function (in: Input): Output {
+    const groups: Groups = { names: [], unknown: [] }
+
+    const result = loop({ sources: in.sources, components: in.components, groups: groups, index: 0 }, {
+        while: current => current.index + 1 < current.components.first.length,
+        next: current => {
+            const joined = group({ sources: current.sources, components: current.components, groups: current.groups, index: current.index })
+
+            current.groups.names = current.groups.names.push(joined.names)[0]
+            current.groups.unknown = current.groups.unknown.push(joined.unknown)[0]
+            current.index += 1
+        }
+    })
+
+    return result.groups
+}

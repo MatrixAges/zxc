@@ -66,7 +66,19 @@ pub fn generate(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, r
     std.mem.sort(compiler.project.Source, sources.items, {}, collection.lessSource);
     std.mem.sort(rx.TextSource, modules.items, {}, collection.lessModule);
 
-    const parsed = try resident.modules.parse(modules.items);
+    const packages = try allocator.alloc(compiler.project.Package, project.packages.len);
+    var package_hash = compiler.Sha256.init(.{});
+
+    for (project.packages, packages) |package, *target| {
+        target.* = .{ .specifier = package.specifier, .entry = package.entry };
+
+        field(&package_hash, package.specifier);
+        field(&package_hash, package.entry);
+    }
+
+    for (modules.items) |*module| module.packages = packages;
+
+    const parsed = try resident.modules.parse(modules.items, package_hash.finalResult());
 
     if (parsed.value == .diagnostic) {
         std.debug.print("{s}: {s}\n", .{ modules.items[parsed.value.diagnostic.source_index].path, parsed.value.diagnostic.issue.message });
@@ -76,7 +88,7 @@ pub fn generate(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, r
 
     const inputs = try allocator.alloc(rx.ModuleSource, modules.items.len);
 
-    for (inputs, modules.items, parsed.parsed) |*item, source, module| item.* = .{ .path = source.path, .node = module.value.node };
+    for (inputs, modules.items, parsed.parsed) |*item, source, module| item.* = .{ .path = source.path, .node = module.value.node, .packages = packages };
 
     const interfaces = try allocator.alloc(compiler.project.NativeInterface, project.interfaces.len);
 
@@ -87,10 +99,6 @@ pub fn generate(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, r
 
         target.* = .{ .specifier = interface.specifier, .path = interface.path, .source = source, .module = interface.module };
     }
-
-    const packages = try allocator.alloc(compiler.project.Package, project.packages.len);
-
-    for (project.packages, packages) |package, *target| target.* = .{ .specifier = package.specifier, .entry = package.entry };
 
     const rx_digests = try allocator.alloc(analysis.project.ModuleDigest, modules.items.len);
 

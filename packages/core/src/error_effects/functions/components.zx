@@ -1,0 +1,81 @@
+import integers from "std:integer"
+
+import finishComponent from "./finish_component"
+
+import type { Components, Workspace } from "./model"
+
+export type Input = { callees: u32[][], state: Workspace }
+
+export type Output = Components
+
+export default function (in: Input): Output {
+    const result = loop({ callees: in.callees, state: in.state, root: 0 }, {
+        while: current => current.root < current.callees.length || current.state.frame_count != 0,
+        next: current => {
+            if (current.state.frame_count == 0) {
+                if (current.state.order[current.root] == 4294967295) {
+                    const frame = current.state.frame_count
+
+                    current.state.order[current.root] = current.state.ordinal
+                    current.state.low[current.root] = current.state.ordinal
+                    current.state.ordinal += 1
+                    current.state.on_stack[current.root] = true
+                    current.state.stack[current.state.stack_count] = integers.narrow(current.root)
+                    current.state.starts[frame] = current.state.stack_count
+                    current.state.stack_count += 1
+                    current.state.nodes[frame] = integers.narrow(current.root)
+                    current.state.children[frame] = 0
+                    current.state.frame_count += 1
+                }
+
+                current.root += 1
+            } else {
+                const top = current.state.frame_count - 1
+                const node = integers.widen(current.state.nodes[top])
+                const child = current.state.children[top]
+
+                if (child < current.callees[node].length) {
+                    const target_id = current.callees[node][child]
+                    const target = integers.widen(target_id)
+
+                    current.state.children[top] += 1
+
+                    if (current.state.order[target] == 4294967295) {
+                        const frame = current.state.frame_count
+
+                        current.state.order[target] = current.state.ordinal
+                        current.state.low[target] = current.state.ordinal
+                        current.state.ordinal += 1
+                        current.state.on_stack[target] = true
+                        current.state.stack[current.state.stack_count] = target_id
+                        current.state.starts[frame] = current.state.stack_count
+                        current.state.stack_count += 1
+                        current.state.nodes[frame] = target_id
+                        current.state.children[frame] = 0
+                        current.state.frame_count += 1
+                    } else if (current.state.on_stack[target] && current.state.order[target] < current.state.low[node]) {
+                        current.state.low[node] = current.state.order[target]
+                    }
+                } else {
+                    const start = current.state.starts[top]
+
+                    current.state.frame_count -= 1
+
+                    if (current.state.frame_count != 0) {
+                        const parent = integers.widen(current.state.nodes[current.state.frame_count - 1])
+
+                        if (current.state.low[node] < current.state.low[parent]) {
+                            current.state.low[parent] = current.state.low[node]
+                        }
+                    }
+
+                    if (current.state.low[node] == current.state.order[node]) {
+                        current.state = finishComponent({ state: current.state, start: start })
+                    }
+                }
+            }
+        }
+    })
+
+    return { membership: result.state.membership, members: result.state.members, first: result.state.first }
+}

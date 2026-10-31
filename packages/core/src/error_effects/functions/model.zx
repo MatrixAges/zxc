@@ -1,0 +1,21 @@
+export type Sources = { names: string[][], unknown: bool[], callees: u32[][] }
+
+export type Components = { membership: u32[], members: u32[], first: u64[] }
+
+export type Workspace = {
+    order: u32[]
+    low: u32[]
+    on_stack: bool[]
+    stack: u32[]
+    stack_count: u64
+    nodes: u32[]
+    children: u64[]
+    starts: u64[]
+    frame_count: u64
+    ordinal: u32
+    membership: u32[]
+    members: u32[]
+    first: u64[]
+}
+
+export type Groups = { names: string[][], unknown: bool[] }
