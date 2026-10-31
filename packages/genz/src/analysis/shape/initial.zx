@@ -1,0 +1,9 @@
+import type { Request, State } from "./model"
+
+export type Input = Request
+
+export type Output = State
+
+export default function (in: Input): Output {
+    return { request: in, numbers: in.kinds.map(kind => 4294967295), type_ids: [], nodes: [], cursors: [], root: 0 }
+}
