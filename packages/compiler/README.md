@@ -77,6 +77,8 @@ std:child_process.spawnSync 与 spawnSyncWithInput 支持显式 I/O 的同步进
 
 std:zlib 提供 gzip/deflate/deflateRaw，输入 u8[]；gzipWith/deflateWith/deflateRawWith 接收 `{ data: u8[], level: i32, }`，级别为 -1（默认）、0（不压缩）、1–9。gunzip/inflate/inflateRaw 接收 `{ data: u8[], max_output_length: u32, }`。结果均为新分配字节数组。解压验证容器校验和、gzip 长度及总输出上限，支持连续 gzip 成员，拒绝尾随垃圾。新增 zstdDecompress 接收 `{ data: u8[], max_output_length: u32, max_window_length: u32, }`，支持连续 Zstd 帧、可跳过帧和校验和验证；两个上限分别约束总输出与单帧窗口。当前不提供流、预设字典、其他压缩参数、Brotli 或 Zstd 编码。详见 [Zstd 解压参考](../../docs/2026-10-04/Zstd解压参考.md)。
 
+字节列表支持 `bytes.concatText(text)[0]`，把字符串的 UTF-8 字节追加到结果列表；返回形状与 concat 相同。左侧必须为 u8[]，右侧必须为 string。该操作复用普通列表增长和复制，不构造中间字节数组或重新编码；concat 本身仍只接受同类型列表。
+
 ## Answer：使用与验证
 
 仓库根目录：

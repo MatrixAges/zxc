@@ -318,7 +318,7 @@ const Check = struct {
                 else => unreachable,
             };
 
-            if (!self.typed(argument, hint)) return false;
+            if (!self.typed(argument, hint) and !(value.kind == .concat and source.list == Types.scalarId(.u8) and self.typed(argument, string_type))) return false;
         }
 
         const business = self.program.typeOf(result.tuple.at(1));

@@ -3,7 +3,7 @@ const ir = @import("zx").ir;
 const generated = @import("generated_uniqueness_slots");
 const Slots = @import("../slots.zig");
 
-pub fn build(allocator: std.mem.Allocator, types: ir.TypeTable) std.mem.Allocator.Error!Slots {
+pub fn build(allocator: std.mem.Allocator, types: ir.TypeTable) std.mem.Allocator.Error!Slots.Built {
     const output = generated.executeValue(allocator, &.{
         .kinds = types.kinds,
         .first = types.first,
@@ -17,11 +17,11 @@ pub fn build(allocator: std.mem.Allocator, types: ir.TypeTable) std.mem.Allocato
 
     comptime std.debug.assert(@typeInfo(ir.TypeId).@"enum".tag_type == u32);
 
-    return .{
+    return .{ .slots = .{
         .types = types,
         .counts = output.counts,
         .offsets = output.offsets,
         .members = @ptrCast(output.members),
         .unwrapped = @ptrCast(output.unwrapped),
-    };
+    }, .texts = output.texts };
 }

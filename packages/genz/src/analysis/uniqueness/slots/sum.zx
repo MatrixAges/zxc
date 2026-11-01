@@ -2,30 +2,42 @@ import integers from "std:integer"
 
 export type Input = {
     counts: u32[],
+    texts: bool[],
     members: u32[],
     first: u64,
     count: u64
 }
 
-export type Output = u32
+export type Output = {
+    count: u32,
+    text: bool
+}
 
 export default function (in: Input): Output {
     const zero: u32 = 0
 
-    return loop({
+    const result = loop({
         counts: in.counts,
+        texts: in.texts,
         members: in.members,
         first: in.first,
         count: in.count,
         index: 0,
-        total: zero
+        total: zero,
+        text: false
     }, {
         while: current => current.index < current.count,
         next: current => {
             const child = current.members[current.first + current.index]
 
             current.total += current.counts[integers.widen(child)]
+            current.text = current.text || current.texts[integers.widen(child)]
             current.index += 1
         }
-    }).total
+    })
+
+    return {
+        count: result.total,
+        text: result.text
+    }
 }

@@ -9,22 +9,25 @@ counts: []const u32,
 offsets: []const []const u32,
 members: []const []const ir.TypeId,
 unwrapped: []const ir.TypeId,
-pub fn init(allocator: std.mem.Allocator, types: ir.TypeTable) std.mem.Allocator.Error!Self {
+pub const Built = struct { slots: Self, texts: []const bool };
+
+pub fn init(allocator: std.mem.Allocator, types: ir.TypeTable) std.mem.Allocator.Error!Built {
     if (@import("genz_options").generated_analysis) return @import("slots/generated.zig").build(allocator, types);
 
     return seed(allocator, types);
 }
 
-fn seed(allocator: std.mem.Allocator, types: ir.TypeTable) std.mem.Allocator.Error!Self {
+fn seed(allocator: std.mem.Allocator, types: ir.TypeTable) std.mem.Allocator.Error!Built {
     const counts = try allocator.alloc(u32, types.count());
     const offsets = try allocator.alloc([]const u32, types.count());
     const members = try allocator.alloc([]const ir.TypeId, types.count());
     const unwrapped = try allocator.alloc(ir.TypeId, types.count());
     const known = try allocator.alloc(bool, types.count());
+    const texts = try allocator.alloc(bool, types.count());
 
     @memset(known, false);
 
-    for (0..types.count()) |index| _ = measure(types, counts, known, @fromBackingInt(@intCast(index)));
+    for (0..types.count()) |index| _ = measure(types, counts, texts, known, @fromBackingInt(@intCast(index)));
 
     for (offsets, members, unwrapped, 0..) |*target, *member_types, *bare, index| {
         const len = switch (types.get(@fromBackingInt(@intCast(index)))) {
@@ -52,28 +55,55 @@ fn seed(allocator: std.mem.Allocator, types: ir.TypeTable) std.mem.Allocator.Err
         bare.* = current;
     }
 
-    return .{ .types = types, .counts = counts, .offsets = offsets, .members = members, .unwrapped = unwrapped };
+    return .{ .slots = .{ .types = types, .counts = counts, .offsets = offsets, .members = members, .unwrapped = unwrapped }, .texts = texts };
 }
 
-fn measure(types: ir.TypeTable, counts: []u32, known: []bool, type_id: ir.TypeId) u32 {
+fn measure(types: ir.TypeTable, counts: []u32, texts: []bool, known: []bool, type_id: ir.TypeId) u32 {
     const index = @backingInt(type_id);
 
     if (known[index]) return counts[index];
 
+    texts[index] = false;
+
     const result: u32 = switch (types.get(type_id)) {
-        .list => 1,
-        .optional => |child| measure(types, counts, known, child),
+        .scalar => |value| scalar: {
+            texts[index] = value == .string;
+
+            break :scalar 0;
+        },
+        .list, .optional => |child| branch: {
+            const child_count = measure(types, counts, texts, known, child);
+
+            texts[index] = texts[@backingInt(child)];
+
+            break :branch if (types.get(type_id) == .list) 1 else child_count;
+        },
+        .task => |task| future: {
+            _ = measure(types, counts, texts, known, task.result);
+            texts[index] = texts[@backingInt(task.result)];
+
+            break :future 0;
+        },
         .object => |fields| sum: {
             var total: u32 = 0;
 
-            for (0..fields.len) |field| total += measure(types, counts, known, fields.at(field).type_id);
+            for (0..fields.len) |field| {
+                const child = fields.at(field).type_id;
+                total += measure(types, counts, texts, known, child);
+                texts[index] = texts[index] or texts[@backingInt(child)];
+            }
 
             break :sum total;
         },
         .tuple => |items| sum: {
             var total: u32 = 0;
 
-            for (0..items.len) |item| total += measure(types, counts, known, items.at(item));
+            for (0..items.len) |item| {
+                const child = items.at(item);
+
+                total += measure(types, counts, texts, known, child);
+                texts[index] = texts[index] or texts[@backingInt(child)];
+            }
 
             break :sum total;
         },
@@ -94,19 +124,19 @@ fn memberType(types: ir.TypeTable, type_id: ir.TypeId, step: u32) ir.TypeId {
     };
 }
 
-pub fn count(self: Self, type_id: ir.TypeId) u32 {
+pub fn count(self: *const Self, type_id: ir.TypeId) u32 {
     return self.counts[@backingInt(type_id)];
 }
 
 /// Slot range and type of the member `step` of a value; optionals are transparent.
-pub fn member(self: Self, type_id: ir.TypeId, step: u32) struct { offset: u32, type_id: ir.TypeId } {
+pub fn member(self: *const Self, type_id: ir.TypeId, step: u32) struct { offset: u32, type_id: ir.TypeId } {
     const owner = self.unwrap(type_id);
 
     return .{ .offset = self.offsets[@backingInt(owner)][step], .type_id = self.members[@backingInt(owner)][step] };
 }
 
 /// The member of an object or tuple whose slot range holds `slot`: the last one starting at or before it.
-fn locate(self: Self, owner: ir.TypeId, slot: u32) u32 {
+fn locate(self: *const Self, owner: ir.TypeId, slot: u32) u32 {
     const starts = self.offsets[@backingInt(owner)];
     var low: usize = 0;
     var high: usize = starts.len;
@@ -120,12 +150,12 @@ fn locate(self: Self, owner: ir.TypeId, slot: u32) u32 {
     return @intCast(low);
 }
 
-pub fn unwrap(self: Self, type_id: ir.TypeId) ir.TypeId {
+pub fn unwrap(self: *const Self, type_id: ir.TypeId) ir.TypeId {
     return self.unwrapped[@backingInt(type_id)];
 }
 
 /// The list type stored at slot `slot` of a value of `type_id`.
-pub fn listType(self: Self, type_id: ir.TypeId, slot: u32) ir.TypeId {
+pub fn listType(self: *const Self, type_id: ir.TypeId, slot: u32) ir.TypeId {
     var current = self.unwrap(type_id);
     var remaining = slot;
 
@@ -140,7 +170,7 @@ pub fn listType(self: Self, type_id: ir.TypeId, slot: u32) ir.TypeId {
 }
 
 /// Member indices leading from a value of `type_id` to slot `slot`.
-pub fn path(self: Self, allocator: std.mem.Allocator, type_id: ir.TypeId, slot: u32) std.mem.Allocator.Error![]const u32 {
+pub fn path(self: *const Self, allocator: std.mem.Allocator, type_id: ir.TypeId, slot: u32) std.mem.Allocator.Error![]const u32 {
     var steps: std.ArrayList(u32) = .empty;
     var current = self.unwrap(type_id);
     var remaining = slot;

@@ -1,4 +1,24 @@
+import { type_id_u8, type_id_u64, type_id_string } from "core/const"
 import { CollectionKind } from "core/expression_table/kinds"
+
+import { no_diagnostic } from "../../../../../../const"
+import {
+    method_with,
+    method_pop,
+    method_sort,
+    method_reverse,
+    method_splice,
+    method_concat,
+    method_concat_text,
+    method_push,
+    unknown_method,
+    with_arity,
+    method_arity,
+    sort_element,
+    text_element,
+    name_code,
+    type_code,
+} from "./const"
 
 export type Input = {
     name: string,
@@ -16,44 +36,49 @@ export type Output = {
 }
 
 export default function (in: Input): Output {
-    const replacement = in.name == "with"
+    const text = in.name == method_concat_text
+    const replacement = in.name == method_with
 
     const kind = match in.name {
-        "pop" => CollectionKind.Pop,
-        "sort" => CollectionKind.Sort,
-        "reverse" => CollectionKind.Reverse,
-        "splice" => CollectionKind.Splice,
-        "concat" => CollectionKind.Concat,
+        method_pop => CollectionKind.Pop,
+        method_sort => CollectionKind.Sort,
+        method_reverse => CollectionKind.Reverse,
+        method_splice => CollectionKind.Splice,
+        method_concat => CollectionKind.Concat,
+        method_concat_text => CollectionKind.Concat,
         _ => CollectionKind.Push,
     }
 
     const known =
-        replacement || in.name == "push" || in.name == "pop" || in.name == "sort" ||
-        in.name == "reverse" || in.name == "splice" || in.name == "concat"
+        text || replacement || in.name == method_push || in.name == method_pop ||
+        in.name == method_sort ||
+        in.name == method_reverse || in.name == method_splice || in.name == method_concat
 
     const hints: u32[] = match {
-        replacement => [5, in.element],
+        replacement => [type_id_u64, in.element],
         kind == CollectionKind.Push => [in.element],
-        kind == CollectionKind.Concat => [in.list],
-        kind == CollectionKind.Splice => [5, 5, in.list],
+        kind == CollectionKind.Concat => [text ? type_id_string : in.list],
+        kind == CollectionKind.Splice => [type_id_u64, type_id_u64, in.list],
         _ => [],
     }
 
     const message = match {
-        !known => "unknown list operation",
+        !known => unknown_method,
+        text && in.element != type_id_u8 => text_element,
         in.count != hints.length =>
-            replacement ? "with requires an index and replacement value" :
-            "list operation argument count mismatch",
-        kind == CollectionKind.Sort && (in.element < 2 || in.element > 10) =>
-            "sort requires numeric or string elements",
-        _ => "",
+            replacement ? with_arity :
+            method_arity,
+        kind == CollectionKind.Sort &&
+            (in.element < type_id_u8 || in.element > type_id_string) =>
+            sort_element,
+        _ => no_diagnostic,
     }
 
     return {
         kind: kind,
         replacement: replacement,
         hints: hints,
-        code: !known ? "name" : "type_mismatch",
+        code: !known ? name_code : type_code,
         message: message
     }
 }

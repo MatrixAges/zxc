@@ -3,19 +3,20 @@
 
     <Args in={Slots.Types} out={Slots.Plan} />
 
-    <Call fn="counts" in={$in} />
+    <Call fn="facts" in={$in} />
 
     <Call
         fn="layout"
         in={{
             types: $in,
-            counts: $ctx.counts
+            counts: $ctx.facts.counts
         }}
     />
 
     <Return
         value={{
-            counts: $ctx.counts,
+            counts: $ctx.facts.counts,
+            texts: $ctx.facts.texts,
             offsets: $ctx.layout.offsets,
             members: $ctx.layout.members,
             unwrapped: $ctx.layout.unwrapped

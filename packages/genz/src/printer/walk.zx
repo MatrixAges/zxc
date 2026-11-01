@@ -1,3 +1,7 @@
+import { ascii_at } from "core/ascii/const"
+import { ascii_underscore } from "core/const"
+
+import { indentation } from "../const"
 import block from "./block"
 import declaration from "./declaration"
 import expression from "./expression"
@@ -25,7 +29,7 @@ export default function (in: Input): Output {
             current.stack = current.stack.pop()[0]
 
             if (frame.action == Action.Text) {
-                current.output = current.output.concat(token(frame.token))[0]
+                current.output = current.output.concatText(token(frame.token))[0]
             } else if (
                 frame.action == Action.Identifier ||
                     frame.action == Action.BindingIdentifier ||
@@ -44,14 +48,14 @@ export default function (in: Input): Output {
                 } else {
                     const discard =
                         frame.action == Action.BindingIdentifier &&
-                        bytes.length == 1 && bytes[0] == 95
+                        bytes.length == 1 && bytes[0] == ascii_underscore
 
                     current.output =
                         discard ||
                         identifier(bytes) ? current.output.concat(
                             bytes
                         )[0] : quoted({
-                            output: current.output.push(64)[0],
+                            output: current.output.push(ascii_at)[0],
                             bytes: bytes
                         })
                 }
@@ -69,18 +73,11 @@ export default function (in: Input): Output {
                     output: current.output,
                     remaining: current.depth
                 }, {
-                    while: indentation => indentation.remaining != 0,
-                    next: indentation => {
-                        indentation.output =
-                            indentation.output.concat(
-                                [
-                                    32,
-                                    32,
-                                    32,
-                                    32
-                                ]
-                            )[0]
-                        indentation.remaining -= 1
+                    while: level => level.remaining != 0,
+                    next: level => {
+                        level.output =
+                            level.output.concatText(indentation)[0]
+                        level.remaining -= 1
                     }
                 })
 

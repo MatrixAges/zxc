@@ -11,12 +11,14 @@ const Self = @This();
 /// stored as elements of its lists; what an update writes is one buffer, and elements are never written in place. A
 /// value whose origin the walk cannot follow counts as every input slot.
 held: []const []const bool,
+text_held: []const []const bool,
 written: []const []const bool,
 /// `memo` keeps the summaries of each body by its `contents` and its callees' summaries, so a later program walks only
 /// the bodies whose content or callees changed.
-pub fn create(allocator: std.mem.Allocator, program: ir.Program, slots: Slots, contents: []const [32]u8, types: [32]u8, memo: ?*Memo) std.mem.Allocator.Error!Self {
+pub fn create(allocator: std.mem.Allocator, program: ir.Program, slots: Slots, texts: []const bool, contents: []const [32]u8, types: [32]u8, memo: ?*Memo) std.mem.Allocator.Error!Self {
     const count = program.functions.count();
     const held = try allocator.alloc([]bool, count);
+    const text_held = try allocator.alloc([]bool, count);
     const written = try allocator.alloc([]bool, count);
     var scratch = std.heap.ArenaAllocator.init(allocator);
 
@@ -29,18 +31,24 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program, slots: Slots, c
         const size = slots.count(function.input_type);
         held[index] = try allocator.alloc(bool, size);
         written[index] = try allocator.alloc(bool, size);
+        text_held[index] = try allocator.alloc(bool, if (texts[@backingInt(function.output_type)]) size else 0);
 
         @memset(held[index], false);
+        @memset(text_held[index], false);
         @memset(written[index], false);
 
         if (function.external == null) continue;
 
+        @memset(text_held[index], true);
+
+        for (text_held[index], 0..) |value, slot| held[index][slot] = value;
+
         const outputs = try @import("basis.zig").lists(temporary, slots, function.output_type);
 
-        for (held[index], 0..) |*value, slot| value.* = std.mem.indexOfScalar(ir.TypeId, outputs, slots.listType(function.input_type, @intCast(slot))) != null;
+        for (held[index], 0..) |*value, slot| value.* = value.* or std.mem.indexOfScalar(ir.TypeId, outputs, slots.listType(function.input_type, @intCast(slot))) != null;
     }
 
-    const self = Self{ .held = held, .written = written };
+    const self = Self{ .held = held, .text_held = text_held, .written = written };
 
     if (try layers(temporary, program)) |found| {
         const remembered: ?Remembered = if (memo) |value| .{
@@ -55,6 +63,27 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program, slots: Slots, c
     } else try self.settle(temporary, program, slots);
 
     return self;
+}
+
+fn textInputs(self: Self, expressions: ir.ExpressionTable) bool {
+    for (expressions.call_functions) |callee| {
+        if (std.mem.indexOfScalar(bool, self.text_held[callee], true) != null) return true;
+    }
+
+    return false;
+}
+
+fn retainText(held: []bool, text_held: []const bool) bool {
+    var changed = false;
+
+    for (text_held, 0..) |value, slot| {
+        if (!value or held[slot]) continue;
+
+        held[slot] = true;
+        changed = true;
+    }
+
+    return changed;
 }
 
 /// Functions grouped by call depth when every call goes to a function earlier in the table, as the table orders them
@@ -120,6 +149,7 @@ const Remembered = struct {
         var hash = @import("zx").Sha256.init(.{});
         var result: Memo.Digest = undefined;
 
+        hash.update("zxc.uniqueness.flow.v4");
         hash.update(&self.types);
         hash.update(&self.contents[index]);
 
@@ -128,6 +158,8 @@ const Remembered = struct {
 
             hash.update(std.mem.asBytes(&@as(u32, @intCast(flow.held[callee].len))));
             hash.update(std.mem.sliceAsBytes(flow.held[callee]));
+            hash.update(std.mem.asBytes(&@as(u32, @intCast(flow.text_held[callee].len))));
+            hash.update(std.mem.sliceAsBytes(flow.text_held[callee]));
             hash.update(std.mem.sliceAsBytes(flow.written[callee]));
         }
 
@@ -165,7 +197,7 @@ fn layered(self: Self, program: ir.Program, slots: Slots, found: Layers, remembe
 
         for (layer.functions) |index| {
             if (program.functions.at(index).external != null) continue;
-            if (kept.found[index]) kept.memo.keepFlowed(kept.keys[index]) else try kept.memo.putFlowed(kept.keys[index], self.held[index], self.written[index]);
+            if (kept.found[index]) kept.memo.keepFlowed(kept.keys[index]) else try kept.memo.putFlowed(kept.keys[index], self.held[index], self.text_held[index], self.written[index]);
         }
     }
 }
@@ -207,14 +239,16 @@ const Layer = struct {
         if (function.external != null) return;
 
         const held = @constCast(self.flow.held[index]);
+        const text_held = @constCast(self.flow.text_held[index]);
         const written = @constCast(self.flow.written[index]);
 
         if (self.remembered) |kept| {
             kept.keys[index] = kept.key(self.flow, function, index);
             kept.found[index] = false;
 
-            if (kept.memo.getFlowed(kept.keys[index])) |value| if (value.held.len == held.len and value.written.len == written.len) {
+            if (kept.memo.getFlowed(kept.keys[index])) |value| if (value.held.len == held.len and value.text_held.len == text_held.len and value.written.len == written.len) {
                 @memcpy(held, value.held);
+                @memcpy(text_held, value.text_held);
                 @memcpy(written, value.written);
 
                 kept.found[index] = true;
@@ -226,7 +260,11 @@ const Layer = struct {
         defer _ = walker.bodies.reset(.retain_capacity);
         const body = try Body.create(walker.bodies.allocator(), function, self.slots);
         const walk = &walker.walk.?;
+
+        if (text_held.len != 0 and self.flow.textInputs(function.expressions)) _ = try walk.textHeld(&body, text_held);
+
         _ = try walk.held(&body, held);
+        _ = retainText(held, text_held);
         _ = try walk.written(&body, written);
     }
 };
@@ -271,10 +309,14 @@ fn settle(self: Self, allocator: std.mem.Allocator, program: ir.Program, slots: 
     while (queue.pop()) |index| {
         queued[index] = false;
         const body = &bodies[index].?;
-        const holds = try walk.held(body, @constCast(self.held[index]));
+        const text_held = @constCast(self.text_held[index]);
+        const texts = if (text_held.len != 0 and self.textInputs(body.function.expressions)) try walk.textHeld(body, text_held) else false;
+        const held = @constCast(self.held[index]);
+        const holds = try walk.held(body, held);
+        const retained = retainText(held, text_held);
         const writes = try walk.written(body, @constCast(self.written[index]));
 
-        if (!holds and !writes) continue;
+        if (!holds and !retained and !texts and !writes) continue;
 
         for (callers[index].items) |caller| {
             if (queued[caller]) continue;
@@ -335,6 +377,17 @@ const Walk = struct {
     fn held(self: *Walk, body: *const Body, reached: []bool) std.mem.Allocator.Error!bool {
         try self.begin(body, true);
         for (body.order.results.items) |result| try self.whole(result);
+
+        return self.finish(reached);
+    }
+    fn textHeld(self: *Walk, body: *const Body, reached: []bool) std.mem.Allocator.Error!bool {
+        try self.begin(body, true);
+
+        for (body.function.expressions.call_functions, body.function.expressions.call_arguments) |callee, argument| {
+            for (self.flow.text_held[callee], 0..) |holds, slot| {
+                if (holds) try self.push(@fromBackingInt(argument), @intCast(slot));
+            }
+        }
 
         return self.finish(reached);
     }
@@ -499,8 +552,9 @@ const Walk = struct {
     /// Whether the elements of a list hold lists of their own, which copying the elements carries along.
     fn nested(self: *Walk, list: ir.ExprId) bool {
         const type_id = self.slots.unwrap(self.body.function.expressions.get(list).type_id);
+        const value_type = self.slots.types.get(type_id);
 
-        return self.slots.count(self.slots.types.get(type_id).list) != 0;
+        return value_type == .list and self.slots.count(value_type.list) != 0;
     }
 
     /// Every slot of a value, as when it becomes part of a list's contents.

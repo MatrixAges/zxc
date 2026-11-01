@@ -1,4 +1,5 @@
 import integers from "std:integer"
+import { type_id_u8, type_id_u64, type_id_string, type_id_void } from "core/const"
 import { CollectionKind } from "core/expression_table/kinds"
 import { Kind } from "core/type_table/model"
 
@@ -68,7 +69,7 @@ export default function (in: Input): Output {
         next: current => {
             const hint = match current.operation {
                 CollectionKind.Push => current.element,
-                CollectionKind.Splice => current.index < 2 ? 5 : current.source,
+                CollectionKind.Splice => current.index < 2 ? type_id_u64 : current.source,
                 _ => current.source
             }
             const context = current.context
@@ -81,7 +82,15 @@ export default function (in: Input): Output {
                     .collection_arguments[current.first +
                         current.index],
                 type_id: hint
-            })
+            }) || current.operation == CollectionKind.Concat &&
+                current.element == type_id_u8 && typed({
+                    expressions: context.expressions,
+                    index: context.index,
+                    id:
+                        context.expressions
+                        .collection_arguments[current.first + current.index],
+                    type_id: type_id_string
+                })
             current.index += 1
         }
     })
@@ -102,9 +111,9 @@ export default function (in: Input): Output {
             )] == element,
         CollectionKind.Splice => business == source_id,
         CollectionKind.Sort =>
-            business == 0 && (
-                numeric(element) != Numeric.Other || element == 10
+            business == type_id_void && (
+                numeric(element) != Numeric.Other || element == type_id_string
             ),
-        _ => business == 0
+        _ => business == type_id_void
     }
 }

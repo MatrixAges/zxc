@@ -1,4 +1,20 @@
 import integers from "std:integer"
+import {
+    ascii_backslash,
+    ascii_carriage_return,
+    ascii_double_quote,
+    ascii_line_feed,
+    ascii_lower_n,
+    ascii_lower_r,
+    ascii_lower_t,
+    ascii_lower_x,
+    ascii_printable_last,
+    ascii_space,
+    ascii_tab
+} from "core/ascii/const"
+import { hexadecimal_radix } from "core/const"
+
+import { hexadecimal_digits } from "../../const"
 
 export type Input = {
     output: u8[],
@@ -8,56 +24,46 @@ export type Input = {
 export type Output = u8[]
 
 export default function (in: Input): Output {
-    const digits: u8[] =
-        [
-            48,
-            49,
-            50,
-            51,
-            52,
-            53,
-            54,
-            55,
-            56,
-            57,
-            97,
-            98,
-            99,
-            100,
-            101,
-            102
-        ]
-
     const result = loop({
-        output: in.output.push(34)[0],
+        output: in.output.push(ascii_double_quote)[0],
         index: 0,
         bytes: in.bytes,
-        digits: digits
+        digits: hexadecimal_digits
     }, {
         while: current => current.index < current.bytes.length,
         next: current => {
             const byte = current.bytes[current.index]
 
-            if (byte == 34 || byte == 92) {
-                current.output = current.output.concat([92, byte])[0]
-            } else if (byte == 10 || byte == 13 || byte == 9) {
+            if (byte == ascii_double_quote || byte == ascii_backslash) {
+                current.output = current.output.concat([ascii_backslash, byte])[0]
+            } else if (
+                byte == ascii_line_feed || byte == ascii_carriage_return ||
+                    byte == ascii_tab
+            ) {
                 current.output =
                     current.output.concat(
                         [
-                            92,
-                            match byte { 10 => 110, 13 => 114, _ => 116, }
+                            ascii_backslash,
+                            match byte {
+                                ascii_line_feed => ascii_lower_n,
+                                ascii_carriage_return => ascii_lower_r,
+                                _ => ascii_lower_t,
+                            }
                         ]
                     )[0]
-            } else if (byte >= 32 && byte <= 126) {
+            } else if (byte >= ascii_space && byte <= ascii_printable_last) {
                 current.output = current.output.push(byte)[0]
             } else {
                 current.output =
                     current.output.concat(
                         [
-                            92,
-                            120,
-                            current.digits[integers.widenByte(byte / 16)],
-                            current.digits[integers.widenByte(byte % 16)]
+                            ascii_backslash,
+                            ascii_lower_x,
+                            current
+                                .digits[integers.widenByte(byte) / hexadecimal_radix],
+                            current
+                                .digits[integers.widenByte(byte) %
+                                    hexadecimal_radix]
                         ]
                     )[0]
             }
@@ -66,5 +72,5 @@ export default function (in: Input): Output {
         }
     })
 
-    return result.output.push(34)[0]
+    return result.output.push(ascii_double_quote)[0]
 }

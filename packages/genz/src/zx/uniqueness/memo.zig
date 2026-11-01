@@ -18,7 +18,7 @@ pub const Renewed = struct { key: u64, want: Level };
 /// The plan of a body once every fact settled.
 pub const Planned = struct { flags: []const Function.Flags, renewals: []const Function.Renewal, used: bool = true };
 /// Which input slots a body's output holds and its updates write, by the body and its callees' own.
-pub const Flowed = struct { held: []const bool, written: []const bool, used: bool = true };
+pub const Flowed = struct { held: []const bool, text_held: []const bool, written: []const bool, used: bool = true };
 
 /// What one body reads beyond the facts other bodies hand it.
 pub const State = struct {
@@ -197,12 +197,12 @@ pub fn keepFlowed(self: *Self, key: Digest) void {
     if (self.flowed.getPtr(key)) |entry| entry.used = true;
 }
 
-pub fn putFlowed(self: *Self, key: Digest, held: []const bool, written: []const bool) std.mem.Allocator.Error!void {
+pub fn putFlowed(self: *Self, key: Digest, held: []const bool, text_held: []const bool, written: []const bool) std.mem.Allocator.Error!void {
     const allocator = self.arena.allocator();
 
     self.changed = true;
 
-    try self.flowed.put(allocator, key, .{ .held = try allocator.dupe(bool, held), .written = try allocator.dupe(bool, written) });
+    try self.flowed.put(allocator, key, .{ .held = try allocator.dupe(bool, held), .text_held = try allocator.dupe(bool, text_held), .written = try allocator.dupe(bool, written) });
 }
 
 fn use(comptime Value: type, map: *std.AutoHashMapUnmanaged(Digest, Value), key: Digest) ?Value {
@@ -335,7 +335,7 @@ fn readEntries(comptime Key: type, reader: *std.Io.Reader, map: *std.AutoHashMap
     }
 }
 
-const magic = "zxc.uniqueness.memo.v10";
+const magic = "zxc.uniqueness.memo.v11";
 
 /// Whether `save` would differ from what was loaded.
 pub fn stale(self: *const Self) bool {

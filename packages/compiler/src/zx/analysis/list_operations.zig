@@ -5,15 +5,20 @@ const ir = zx.ir;
 const Analyzer = @import("analyzer.zig");
 const Types = @import("types.zig");
 const numbers = @import("numbers.zig");
+const text_method = "concatText";
+const text_element = "concatText requires a byte list";
 
 pub fn analyze(self: *Analyzer, expression: anytype, target: ir.ExprId) zx.Error!ir.ExprId {
     const call = syntax.value(expression).call;
 
     if (std.mem.eql(u8, syntax.value(call.callee).field.name.text, "with")) return @import("list_replacement.zig").analyze(self, expression, target);
 
-    const kind = std.meta.stringToEnum(ir.ListOperation, syntax.value(call.callee).field.name.text) orelse return self.reporter.fail(.name, expression.span, "unknown list operation");
+    const text = std.mem.eql(u8, syntax.value(call.callee).field.name.text, text_method);
+    const kind = if (text) ir.ListOperation.concat else std.meta.stringToEnum(ir.ListOperation, syntax.value(call.callee).field.name.text) orelse return self.reporter.fail(.name, expression.span, "unknown list operation");
     const list_type = self.node(target).type_id;
     const element_type = self.types.get(list_type).list;
+
+    if (text and element_type != Types.scalarId(.u8)) return self.reporter.fail(.type_mismatch, expression.span, text_element);
 
     const count: usize = switch (kind) {
         .push, .concat => 1,
@@ -31,7 +36,7 @@ pub fn analyze(self: *Analyzer, expression: anytype, target: ir.ExprId) zx.Error
 
         const hint = switch (kind) {
             .push => element_type,
-            .concat => list_type,
+            .concat => if (text) Types.scalarId(.string) else list_type,
             .splice => if (index < 2) Types.scalarId(.u64) else list_type,
             else => unreachable,
         };
