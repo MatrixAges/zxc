@@ -1,3 +1,4 @@
+import { kind_identifier, kind_keyword } from "./const"
 import emit from "./emit"
 import isKeyword from "./is_keyword"
 import keywordValue from "./keyword_value"
@@ -10,7 +11,8 @@ export type Input = LexerState
 export type Output = LexerState
 
 export default function (in: Input): Output {
-    const kind = isKeyword(keywordValue(in.keyword_state)) ? "keyword" : "identifier"
+    const kind = isKeyword(keywordValue(in.keyword_state)) ? kind_keyword :
+        kind_identifier
 
     return emit({
         kind: kind,

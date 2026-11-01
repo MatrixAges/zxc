@@ -1,3 +1,4 @@
+import {no_diagnostic} from "../../../const"
 import { Mode } from "./model"
 
 import type { State, Frame } from "./model"
@@ -24,7 +25,7 @@ export default function (in: Input): Output {
         offset: in.start,
         comment_start: 0,
         done: false,
-        message: "",
+        message: no_diagnostic,
         issue: 0
     }
 }

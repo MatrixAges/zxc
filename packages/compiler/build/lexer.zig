@@ -6,6 +6,7 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode, stage0: []con
 
         run.addFileInput(.{ .cwd_relative = stage0 });
         run.addDirectoryArg2(b.path("src/zx/frontend/lexer"), .{});
+        run.addDirectoryArg2(b.path("../core/src"), .{});
         trackSources(b, run) catch @panic("unable to track ZX lexer sources");
 
         return run.addOutputFileArg("lexer.zig");
@@ -34,12 +35,16 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode, stage0: []con
     const run = b.addRunArtifact(executable);
 
     run.addDirectoryArg2(b.path("src/zx/frontend/lexer"), .{});
+    run.addDirectoryArg2(b.path("../core/src"), .{});
     trackSources(b, run) catch @panic("unable to track ZX lexer sources");
 
     return run.addOutputFileArg("lexer.zig");
 }
 
 fn trackSources(b: *std.Build, run: *std.Build.Step.Run) !void {
+    run.addFileInput(b.path("../core/src/const.zx"));
+    run.addFileInput(b.path("../core/src/ascii/const.zx"));
+
     const root = b.path("src/zx/frontend/lexer");
     const absolute = try b.root.joinString(b.allocator, "src/zx/frontend/lexer");
     var directory = try std.Io.Dir.cwd().openDir(b.graph.io, absolute, .{ .iterate = true });

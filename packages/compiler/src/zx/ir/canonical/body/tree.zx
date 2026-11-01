@@ -1,4 +1,5 @@
 import integers from "std:integer"
+import { max_nesting_depth } from "core/const"
 import { StatementKind } from "core/control_table/model"
 
 import type { Control } from "core/control_table/model"
@@ -102,7 +103,7 @@ export default function (in: Input): Output {
                     }
                     const depth = current.depths[child] + 1
 
-                    current.valid = !current.owned[child] && depth <= 256
+                    current.valid = !current.owned[child] && depth <= max_nesting_depth
                     current.owned[child] = true
 
                     if (depth > current.depths[current.block]) {

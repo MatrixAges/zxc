@@ -1,3 +1,12 @@
+import {
+    kind_eof,
+    kind_identifier,
+    kind_keyword,
+    kind_number,
+    kind_punctuation,
+    kind_string,
+    kind_template
+} from "./const"
 import { Kind } from "./token_model"
 
 export type Input = Kind
@@ -6,12 +15,12 @@ export type Output = string
 
 export default function (in: Input): Output {
     return match {
-        in == Kind.Identifier => "identifier",
-        in == Kind.Keyword => "keyword",
-        in == Kind.Number => "number",
-        in == Kind.String => "string",
-        in == Kind.Template => "template",
-        in == Kind.Punctuation => "punctuation",
-        _ => "eof"
+        in == Kind.Identifier => kind_identifier,
+        in == Kind.Keyword => kind_keyword,
+        in == Kind.Number => kind_number,
+        in == Kind.String => kind_string,
+        in == Kind.Template => kind_template,
+        in == Kind.Punctuation => kind_punctuation,
+        _ => kind_eof
     }
 }

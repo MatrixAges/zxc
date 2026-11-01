@@ -1,9 +1,13 @@
+import { ascii_backslash, ascii_colon, ascii_null, ascii_slash } from "core/ascii/const"
+
 export type Input = u8[]
 
 export type Output = u64
 
 export default function (in: Input): Output {
-    if (in.length == 0 || in[0] == 47 || in[in.length - 1] == 47) {
+    if (
+        in.length == 0 || in[0] == ascii_slash || in[in.length - 1] == ascii_slash
+    ) {
         return in.length
     }
 
@@ -17,9 +21,10 @@ export default function (in: Input): Output {
         next: value => {
             const byte = value.source[value.offset]
 
-            value.valid = byte != 0 && byte != 58 && byte != 92
+            value.valid =
+                byte != ascii_null && byte != ascii_colon && byte != ascii_backslash
 
-            if (byte == 47) {
+            if (byte == ascii_slash) {
                 value.start = value.offset + 1
             }
 

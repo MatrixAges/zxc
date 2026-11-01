@@ -1,3 +1,8 @@
+import { ascii_less_than } from "core/ascii/const"
+import { max_nesting_depth } from "core/const"
+
+import {no_diagnostic} from "../../../const"
+import { nesting_limit, unexpected_token } from "../diagnostic/const"
 import name from "../name"
 import advance from "./advance"
 import fail from "./fail"
@@ -10,19 +15,19 @@ export type Input = State
 export type Output = State
 
 export default function (in: Input): Output {
-    if (in.frames.length >= 256) {
+    if (in.frames.length >= max_nesting_depth) {
         return fail({
             state: in,
-            message: "XML nesting exceeds 256 elements"
+            message: nesting_limit
         })
     }
 
     const offset = in.control.location.offset
 
-    if (offset == in.source.length || in.source[offset] != 60) {
+    if (offset == in.source.length || in.source[offset] != ascii_less_than) {
         return fail({
             state: in,
-            message: "unexpected XML token"
+            message: unexpected_token
         })
     }
 
@@ -44,7 +49,7 @@ export default function (in: Input): Output {
         count: end - offset
     })
 
-    if (parsed.message != "") {
+    if (parsed.message != no_diagnostic) {
         return fail({
             state: state,
             message: parsed.message

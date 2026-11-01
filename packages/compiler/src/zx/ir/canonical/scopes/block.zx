@@ -1,4 +1,5 @@
 import integers from "std:integer"
+import { max_nesting_depth } from "core/const"
 
 import { Phase } from "./model"
 import returns from "./returns"
@@ -17,7 +18,7 @@ export default function (in: Input): Output {
     const control = program.body.control
 
     if (frame.phase == Phase.Block) {
-        if (frame.b > 256) {
+        if (frame.b > max_nesting_depth) {
             return {
                 state: in.state,
                 valid: false

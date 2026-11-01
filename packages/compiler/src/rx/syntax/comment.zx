@@ -1,3 +1,5 @@
+import {xml_comment_end, xml_comment_start, xml_double_dash} from "./const"
+import { invalid_comment, unterminated_comment } from "./diagnostic/const"
 import starts from "./starts"
 
 export enum Issue { None, Unterminated, DoubleDash }
@@ -15,7 +17,7 @@ export type Output = {
 export default function (in: Input): Output {
     const state = loop({
         source: in.source,
-        offset: in.offset + 4,
+        offset: in.offset + xml_comment_start.length,
         done: false,
         issue: Issue.None
     }, {
@@ -24,16 +26,16 @@ export default function (in: Input): Output {
             const finish = starts({
                 source: value.source,
                 offset: value.offset,
-                text: [45, 45, 62]
+                text: xml_comment_end
             })
             const double_dash = starts({
                 source: value.source,
                 offset: value.offset,
-                text: [45, 45]
+                text: xml_double_dash
             })
             const eof = value.offset == value.source.length
             const offset = match {
-                finish => value.offset + 3,
+                finish => value.offset + xml_comment_end.length,
                 eof || double_dash => value.offset,
                 _ => value.offset + 1
             }
@@ -57,8 +59,8 @@ export default function (in: Input): Output {
         end: state.offset,
         message: match {
             state.issue == Issue.None => "",
-            state.issue == Issue.Unterminated => "unterminated XML comment",
-            _ => "XML comments cannot contain --"
+            state.issue == Issue.Unterminated => unterminated_comment,
+            _ => invalid_comment
         }
     }
 }

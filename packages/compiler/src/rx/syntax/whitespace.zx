@@ -1,3 +1,10 @@
+import {
+    ascii_carriage_return,
+    ascii_line_feed,
+    ascii_space,
+    ascii_tab
+} from "core/ascii/const"
+
 export type Input = {
     source: u8[],
     offset: u64
@@ -14,7 +21,9 @@ export default function (in: Input): Output {
         while: value => !value.done && value.offset < value.source.length,
         next: value => {
             const byte = value.source[value.offset]
-            const accepted = byte == 32 || byte == 9 || byte == 10 || byte == 13
+            const accepted =
+                byte == ascii_space || byte == ascii_tab || byte == ascii_line_feed ||
+                byte == ascii_carriage_return
             const offset = value.offset + (accepted ? 1 : 0)
 
             value = {

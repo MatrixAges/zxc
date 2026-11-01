@@ -1,3 +1,5 @@
+import {xml_self_close, xml_tag_end} from "../const"
+import { attribute_whitespace_required } from "../diagnostic/const"
 import starts from "../starts"
 import whitespace from "../whitespace"
 import advance from "./advance"
@@ -24,13 +26,13 @@ export default function (in: Input): Output {
     const closed = starts({
         source: in.source,
         offset: offset,
-        text: [47, 62]
+        text: xml_self_close
     })
 
     const content = starts({
         source: in.source,
         offset: offset,
-        text: [62]
+        text: xml_tag_end
     })
 
     const state = advance({
@@ -41,7 +43,7 @@ export default function (in: Input): Output {
     if (closed) {
         return publish(advance({
             state: state,
-            count: 2
+            count: xml_self_close.length
         }))
     }
 
@@ -58,7 +60,7 @@ export default function (in: Input): Output {
     if (offset == start) {
         return fail({
             state: state,
-            message: "XML attributes require separating whitespace"
+            message: attribute_whitespace_required
         })
     }
 

@@ -1,3 +1,4 @@
+import { xml_cdata_end } from "../../const"
 import advance from "../advance"
 import { ValueKind } from "../model"
 import flush from "./flush"
@@ -23,7 +24,7 @@ export default function (in: Input): Output {
 
     const count = match {
         state.control.value_kind == ValueKind.Attribute => 1,
-        state.control.value_kind == ValueKind.Cdata => 3,
+        state.control.value_kind == ValueKind.Cdata => xml_cdata_end.length,
         _ => 0
     }
 

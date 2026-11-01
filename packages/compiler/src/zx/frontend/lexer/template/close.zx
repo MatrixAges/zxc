@@ -1,3 +1,4 @@
+import { kind_template } from "../const"
 import emit from "../emit"
 import { Mode } from "../model"
 
@@ -10,7 +11,7 @@ export type Output = LexerState
 export default function (in: Input): Output {
     if (in.frames.length == 0) {
         return emit({
-            kind: "template",
+            kind: kind_template,
             start: in.start,
             end: in.offset + 1,
             comment: false,

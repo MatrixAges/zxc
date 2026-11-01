@@ -1,3 +1,5 @@
+import {no_diagnostic} from "../../../const"
+import {utf8_bom, xml_declaration_start} from "../const"
 import declaration from "../declaration/scan"
 import starts from "../starts"
 import advance from "./advance"
@@ -15,13 +17,13 @@ export default function (in: Input): Output {
     const offset = starts({
         source: in.source,
         offset: 0,
-        text: [239, 187, 191]
-    }) ? 3 : 0
+        text: utf8_bom
+    }) ? utf8_bom.length : 0
 
     const declared = starts({
         source: in.source,
         offset: offset,
-        text: [60, 63, 120, 109, 108]
+        text: xml_declaration_start
     })
 
     const parsed = declared ? declaration({
@@ -29,7 +31,7 @@ export default function (in: Input): Output {
         offset: offset
     }) : {
         end: offset,
-        message: ""
+        message: no_diagnostic
     }
 
     const state = advance({
@@ -37,7 +39,7 @@ export default function (in: Input): Output {
         count: parsed.end
     })
 
-    if (parsed.message != "") {
+    if (parsed.message != no_diagnostic) {
         return fail({
             state: state,
             message: parsed.message

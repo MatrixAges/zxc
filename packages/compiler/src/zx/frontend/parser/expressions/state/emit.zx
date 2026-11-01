@@ -1,3 +1,5 @@
+import { max_nesting_depth } from "core/const"
+
 import { Phase } from "./model"
 
 import type { ExprState, ExprNode } from "./model"
@@ -10,7 +12,7 @@ export type Input = {
 export type Output = ExprState
 
 export default function (in: Input): Output {
-    if (in.node.depth > 256) {
+    if (in.node.depth > max_nesting_depth) {
         const diagnostic = {
             code: "unsupported",
             start: in.node.span.start,

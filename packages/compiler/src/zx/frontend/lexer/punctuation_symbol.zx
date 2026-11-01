@@ -1,3 +1,27 @@
+import {
+    ascii_ampersand,
+    ascii_asterisk,
+    ascii_bang,
+    ascii_close_brace,
+    ascii_close_bracket,
+    ascii_close_paren,
+    ascii_colon,
+    ascii_comma,
+    ascii_dot,
+    ascii_equals,
+    ascii_greater_than,
+    ascii_less_than,
+    ascii_minus,
+    ascii_open_brace,
+    ascii_open_bracket,
+    ascii_open_paren,
+    ascii_percent,
+    ascii_plus,
+    ascii_question,
+    ascii_semicolon,
+    ascii_slash
+} from "core/ascii/const"
+
 import { Symbol } from "./token_model"
 
 export type Input = {
@@ -15,39 +39,39 @@ export default function (in: Input): Output {
 
     if (in.length == 2) {
         return match {
-            in.byte == 61 && in.next == 62 => Symbol.Arrow,
-            in.byte == 61 => Symbol.Equal,
-            in.byte == 33 => Symbol.NotEqual,
-            in.byte == 60 => Symbol.LessEqual,
-            in.byte == 62 => Symbol.GreaterEqual,
-            in.byte == 63 => Symbol.Coalesce,
-            in.byte == 38 => Symbol.And,
+            in.byte == ascii_equals && in.next == ascii_greater_than => Symbol.Arrow,
+            in.byte == ascii_equals => Symbol.Equal,
+            in.byte == ascii_bang => Symbol.NotEqual,
+            in.byte == ascii_less_than => Symbol.LessEqual,
+            in.byte == ascii_greater_than => Symbol.GreaterEqual,
+            in.byte == ascii_question => Symbol.Coalesce,
+            in.byte == ascii_ampersand => Symbol.And,
             _ => Symbol.Or
         }
     }
 
     return match {
-        in.byte == 123 => Symbol.OpenBrace,
-        in.byte == 125 => Symbol.CloseBrace,
-        in.byte == 40 => Symbol.OpenParen,
-        in.byte == 41 => Symbol.CloseParen,
-        in.byte == 91 => Symbol.OpenBracket,
-        in.byte == 93 => Symbol.CloseBracket,
-        in.byte == 58 => Symbol.Colon,
-        in.byte == 59 => Symbol.Semicolon,
-        in.byte == 44 => Symbol.Comma,
-        in.byte == 46 => Symbol.Dot,
-        in.byte == 63 => Symbol.Question,
-        in.byte == 43 => Symbol.Plus,
-        in.byte == 45 => Symbol.Minus,
-        in.byte == 42 => Symbol.Star,
-        in.byte == 47 => Symbol.Slash,
-        in.byte == 37 => Symbol.Percent,
-        in.byte == 60 => Symbol.Less,
-        in.byte == 62 => Symbol.Greater,
-        in.byte == 61 => Symbol.Assign,
-        in.byte == 33 => Symbol.Not,
-        in.byte == 38 => Symbol.Ampersand,
+        in.byte == ascii_open_brace => Symbol.OpenBrace,
+        in.byte == ascii_close_brace => Symbol.CloseBrace,
+        in.byte == ascii_open_paren => Symbol.OpenParen,
+        in.byte == ascii_close_paren => Symbol.CloseParen,
+        in.byte == ascii_open_bracket => Symbol.OpenBracket,
+        in.byte == ascii_close_bracket => Symbol.CloseBracket,
+        in.byte == ascii_colon => Symbol.Colon,
+        in.byte == ascii_semicolon => Symbol.Semicolon,
+        in.byte == ascii_comma => Symbol.Comma,
+        in.byte == ascii_dot => Symbol.Dot,
+        in.byte == ascii_question => Symbol.Question,
+        in.byte == ascii_plus => Symbol.Plus,
+        in.byte == ascii_minus => Symbol.Minus,
+        in.byte == ascii_asterisk => Symbol.Star,
+        in.byte == ascii_slash => Symbol.Slash,
+        in.byte == ascii_percent => Symbol.Percent,
+        in.byte == ascii_less_than => Symbol.Less,
+        in.byte == ascii_greater_than => Symbol.Greater,
+        in.byte == ascii_equals => Symbol.Assign,
+        in.byte == ascii_bang => Symbol.Not,
+        in.byte == ascii_ampersand => Symbol.Ampersand,
         _ => Symbol.Pipe
     }
 }

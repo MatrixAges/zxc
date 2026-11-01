@@ -1,3 +1,12 @@
+import {
+    app_name,
+    current_directory,
+    gateway_name_suffix,
+    parent_directory,
+    rx_suffix,
+    store_name_suffix,
+    store_suffix
+} from "../../const"
 import ends from "./ends"
 import equal from "./equal"
 import { Kind } from "./model"
@@ -7,7 +16,7 @@ import name from "./name"
 export type Input = {
     path: u8[],
     kind: Kind,
-    suffix: u8[]
+    suffix: string
 }
 
 export type Output = bool
@@ -35,7 +44,7 @@ export default function (in: Input): Output {
 
     const rx = ends({
         source: in.path,
-        pattern: [46, 114, 120]
+        pattern: rx_suffix
     })
 
     if (in.kind == Kind.ModuleReference && rx) {
@@ -48,11 +57,11 @@ export default function (in: Input): Output {
     if (equal({
         source: in.path,
         start: start,
-        pattern: [46]
+        pattern: current_directory
     }) || equal({
         source: in.path,
         start: start,
-        pattern: [46, 46]
+        pattern: parent_directory
     })) {
         return false
     }
@@ -62,20 +71,20 @@ export default function (in: Input): Output {
             return !equal({
                 source: in.path,
                 start: start,
-                pattern: [97, 112, 112]
+                pattern: app_name
             }) &&
             !ends({
                 source: in.path,
-                pattern: [46, 103, 97, 116, 101, 119, 97, 121]
+                pattern: gateway_name_suffix
             }) &&
             !ends({
                 source: in.path,
-                pattern: [46, 115, 116, 111, 114, 101]
+                pattern: store_name_suffix
             })
         case Kind.StoreReference:
             return !rx || ends({
                 source: in.path,
-                pattern: [46, 115, 116, 111, 114, 101, 46, 114, 120]
+                pattern: store_suffix
             })
         case Kind.FunctionReference:
             return !rx

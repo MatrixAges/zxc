@@ -1,3 +1,5 @@
+import { max_nesting_depth } from "core/const"
+
 import fail from "./fail"
 import frame from "./frame"
 
@@ -16,7 +18,7 @@ export type Output = State
 export default function (in: Input): Output {
     const depth = in.state.frame.depth
 
-    if (in.nested && depth >= 256) {
+    if (in.nested && depth >= max_nesting_depth) {
         return fail({
             state: in.state,
             code: "unsupported",

@@ -1,7 +1,9 @@
+import { ascii_digit_first, ascii_digit_last } from "core/const"
+
 export type Input = u8
 
 export type Output = bool
 
 export default function (in: Input): Output {
-    return in >= 48 && in <= 57
+    return in >= ascii_digit_first && in <= ascii_digit_last
 }

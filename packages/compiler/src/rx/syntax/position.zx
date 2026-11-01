@@ -1,3 +1,5 @@
+import { ascii_carriage_return, ascii_line_feed } from "core/ascii/const"
+
 import type { Location } from "./model"
 
 export type Input = {
@@ -16,17 +18,20 @@ export default function (in: Input): Output {
         column: in.location.column,
         end: in.location.offset + in.count,
         previous_cr:
-            in.location.offset != 0 && in.source[in.location.offset - 1] == 13
+            in.location.offset != 0 &&
+            in.source[in.location.offset - 1] == ascii_carriage_return
     }, {
         while: value => value.offset < value.end,
         next: value => {
             const byte = value.source[value.offset]
-            const newline = byte == 13 || byte == 10 && !value.previous_cr
+            const newline =
+                byte == ascii_carriage_return ||
+                byte == ascii_line_feed && !value.previous_cr
             const offset = value.offset + 1
             const line = newline ? value.line + 1 : value.line
             const column = match {
                 newline => 1,
-                byte == 10 => value.column,
+                byte == ascii_line_feed => value.column,
                 _ => value.column + 1
             }
 
@@ -35,7 +40,7 @@ export default function (in: Input): Output {
                 offset: offset,
                 line: line,
                 column: column,
-                previous_cr: byte == 13
+                previous_cr: byte == ascii_carriage_return
             }
         }
     })

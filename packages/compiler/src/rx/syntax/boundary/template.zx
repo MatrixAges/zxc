@@ -1,3 +1,15 @@
+import {
+    ascii_backslash,
+    ascii_backtick,
+    ascii_dollar,
+    ascii_double_quote,
+    ascii_lower_n,
+    ascii_lower_r,
+    ascii_lower_t,
+    ascii_open_brace
+} from "core/ascii/const"
+
+import { unsupported_template_escape } from "../../../zx/frontend/lexer/const"
 import close from "./close"
 import fail from "./fail"
 import { Mode } from "./model"
@@ -15,21 +27,22 @@ export default function (in: Input): Output {
     const next = has_next ? in.source[in.offset + 1] : 0
     const offset = in.offset + 1
 
-    if (byte == 96) {
+    if (byte == ascii_backtick) {
         return close(in)
     }
 
-    if (byte == 92) {
+    if (byte == ascii_backslash) {
         if (
-            has_next && next != 34 && next != 92 && next != 110 && next != 114 &&
-                next != 116 && next != 96 && next != 36
+            has_next && next != ascii_double_quote && next != ascii_backslash &&
+                next != ascii_lower_n && next != ascii_lower_r &&
+                next != ascii_lower_t && next != ascii_backtick && next != ascii_dollar
         ) {
             const issue = in.offset
 
             return fail({
                 state: in,
                 offset: issue,
-                message: "unsupported template escape"
+                message: unsupported_template_escape
             })
         }
 
@@ -39,7 +52,7 @@ export default function (in: Input): Output {
         }
     }
 
-    if (byte == 36 && next == 123) {
+    if (byte == ascii_dollar && next == ascii_open_brace) {
         const depth = in.frame.depth + 1
 
         return open({

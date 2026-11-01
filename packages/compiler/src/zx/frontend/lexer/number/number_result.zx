@@ -1,3 +1,6 @@
+import { ascii_underscore } from "core/const"
+
+import { invalid_digit_separator, missing_exponent_digit } from "../const"
 import isDigit from "./is_digit"
 
 import type { State, Result } from "./number_state"
@@ -7,17 +10,17 @@ export type Input = State
 export type Output = Result
 
 export default function (in: Input): Output {
-    if (!in.separators_valid || in.last_byte == 95) {
+    if (!in.separators_valid || in.last_byte == ascii_underscore) {
         return {
             end: in.end,
-            diagnostic: "digit separators must occur between digits"
+            diagnostic: invalid_digit_separator
         }
     }
 
     if (!isDigit(in.last_byte)) {
         return {
             end: in.end,
-            diagnostic: "an exponent requires at least one digit"
+            diagnostic: missing_exponent_digit
         }
     }
 

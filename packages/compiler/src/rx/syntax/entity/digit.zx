@@ -1,31 +1,30 @@
+import integer from "std:integer"
+import { ascii_lower_f, ascii_upper_f } from "core/ascii/const"
+import {
+    ascii_digit_first,
+    ascii_digit_last,
+    ascii_lower_first,
+    ascii_upper_first,
+    decimal_radix,
+    hexadecimal_radix
+} from "core/const"
+
 export type Input = u8
 
 export type Output = u64
 
 export default function (in: Input): Output {
-    switch (in) {
-        case 48: return 0
-        case 49: return 1
-        case 50: return 2
-        case 51: return 3
-        case 52: return 4
-        case 53: return 5
-        case 54: return 6
-        case 55: return 7
-        case 56: return 8
-        case 57: return 9
-        case 65: return 10
-        case 66: return 11
-        case 67: return 12
-        case 68: return 13
-        case 69: return 14
-        case 70: return 15
-        case 97: return 10
-        case 98: return 11
-        case 99: return 12
-        case 100: return 13
-        case 101: return 14
-        case 102: return 15
-        default: return 16
+    if (in >= ascii_digit_first && in <= ascii_digit_last) {
+        return integer.widenByte(in - ascii_digit_first)
     }
+
+    if (in >= ascii_upper_first && in <= ascii_upper_f) {
+        return integer.widenByte(in - ascii_upper_first) + decimal_radix
+    }
+
+    if (in >= ascii_lower_first && in <= ascii_lower_f) {
+        return integer.widenByte(in - ascii_lower_first) + decimal_radix
+    }
+
+    return hexadecimal_radix
 }

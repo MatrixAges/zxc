@@ -1,4 +1,18 @@
+import {
+    ascii_carriage_return,
+    ascii_line_feed,
+    ascii_space,
+    ascii_tab
+} from "core/ascii/const"
+
+import { no_diagnostic } from "../../const"
 import validateUtf8 from "../../zx/frontend/lexer/utf8/validate"
+import {
+    utf8_bmp_noncharacter_lead,
+    utf8_bmp_noncharacter_middle,
+    utf8_bmp_noncharacter_tail
+} from "./const"
+import { forbidden_character, invalid_utf8 } from "./diagnostic/const"
 
 export type State = {
     valid: bool,
@@ -12,7 +26,7 @@ export type Output = string
 
 export default function (in: Input): Output {
     if (!validateUtf8(in)) {
-        return "XML source must be valid UTF-8"
+        return invalid_utf8
     }
 
     const initial: State = {
@@ -25,13 +39,16 @@ export default function (in: Input): Output {
         valid:
             state.valid &&
             (
-                byte >= 32 || byte == 9 || byte == 10 || byte == 13
+                byte >= ascii_space || byte == ascii_tab || byte == ascii_line_feed ||
+                    byte == ascii_carriage_return
             ) && !(
-                state.second == 239 && state.first == 191 && byte >= 190
+                state.second == utf8_bmp_noncharacter_lead &&
+                    state.first == utf8_bmp_noncharacter_middle &&
+                    byte >= utf8_bmp_noncharacter_tail
             ),
         second: state.first,
         first: byte
     }), initial)
 
-    return checked.valid ? "" : "XML source contains a forbidden character"
+    return checked.valid ? no_diagnostic : forbidden_character
 }

@@ -1,3 +1,6 @@
+import { type_id_void, type_id_bool } from "core/const"
+
+import {inline_budget} from "../../const"
 import scalar from "../types/scalar"
 import rebuild from "./rebuild"
 import selection from "./selection"
@@ -26,7 +29,6 @@ export type Output = Rebuilt[]
 
 export default function (in: Input): Output {
     const results: Rebuilt[] = []
-    const limit = 4096
 
     if (in.units.length == 1) {
         return results
@@ -35,20 +37,19 @@ export default function (in: Input): Output {
     const void_type = scalar({
         kinds: in.types.kinds,
         first: in.types.first,
-        scalar: 0
+        scalar: type_id_void
     })
 
     const bool_type = scalar({
         kinds: in.types.kinds,
         first: in.types.first,
-        scalar: 1
+        scalar: type_id_bool
     })
 
     const applied = loop({
         types: in.types,
         units: in.units,
         plan: in.plan,
-        limit: limit,
         void_type: void_type,
         bool_type: bool_type,
         results: results,
@@ -72,7 +73,7 @@ export default function (in: Input): Output {
                     types: current.types,
                     unit: unit,
                     costs: current.plan,
-                    limit: current.limit
+                    limit: inline_budget
                 })
 
                 if (!selected.selected) {
@@ -82,7 +83,7 @@ export default function (in: Input): Output {
                         types: current.types,
                         units: current.units,
                         plan: current.plan,
-                        limit: current.limit,
+                        limit: inline_budget,
                         void_type: current.void_type,
                         bool_type: current.bool_type,
                         unit: current.index,

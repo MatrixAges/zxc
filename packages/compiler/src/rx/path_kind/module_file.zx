@@ -1,3 +1,4 @@
+import {app_file, gateway_suffix, rx_suffix, store_suffix} from "../../const"
 import ends from "./ends"
 import equal from "./equal"
 
@@ -9,22 +10,22 @@ export type Input = {
 export type Output = bool
 
 export default function (in: Input): Output {
-    return in.source.length - in.start > 3 &&
+    return in.source.length - in.start > rx_suffix.length &&
         ends({
             source: in.source,
-            pattern: [46, 114, 120]
+            pattern: rx_suffix
         }) &&
         !equal({
             source: in.source,
             start: in.start,
-            pattern: [97, 112, 112, 46, 114, 120]
+            pattern: app_file
         }) &&
         !ends({
             source: in.source,
-            pattern: [46, 103, 97, 116, 101, 119, 97, 121, 46, 114, 120]
+            pattern: gateway_suffix
         }) &&
         !ends({
             source: in.source,
-            pattern: [46, 115, 116, 111, 114, 101, 46, 114, 120]
+            pattern: store_suffix
         })
 }

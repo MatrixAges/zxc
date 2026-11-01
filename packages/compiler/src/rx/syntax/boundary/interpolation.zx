@@ -1,3 +1,15 @@
+import {
+    ascii_asterisk,
+    ascii_backtick,
+    ascii_close_brace,
+    ascii_double_quote,
+    ascii_open_brace,
+    ascii_slash
+} from "core/ascii/const"
+import { max_nesting_depth } from "core/const"
+
+import {no_diagnostic} from "../../../const"
+import { template_nesting_limit } from "../../../zx/frontend/lexer/const"
 import close from "./close"
 import fail from "./fail"
 import { Mode } from "./model"
@@ -16,19 +28,19 @@ export default function (in: Input): Output {
     const offset = in.offset + 1
     const braces = in.frame.braces
 
-    if (byte == 125 && braces == 0) {
+    if (byte == ascii_close_brace && braces == 0) {
         return close(in)
     }
 
-    if (byte == 96) {
+    if (byte == ascii_backtick) {
         const depth = in.frame.depth + 1
         const start = in.offset
 
-        if (depth > 256) {
+        if (depth > max_nesting_depth) {
             return fail({
                 state: in,
                 offset: start,
-                message: "template nesting exceeds 256 levels"
+                message: template_nesting_limit
             })
         }
 
@@ -42,9 +54,9 @@ export default function (in: Input): Output {
     }
 
     const mode = match {
-        byte == 34 => Mode.String,
-        byte == 47 && next == 47 => Mode.LineComment,
-        byte == 47 && next == 42 => Mode.BlockComment,
+        byte == ascii_double_quote => Mode.String,
+        byte == ascii_slash && next == ascii_slash => Mode.LineComment,
+        byte == ascii_slash && next == ascii_asterisk => Mode.BlockComment,
         _ => Mode.Interpolation
     }
 
@@ -60,15 +72,15 @@ export default function (in: Input): Output {
             ...in.frame,
             mode: mode,
             braces: match {
-                byte == 123 => braces + 1,
-                byte == 125 => braces - 1,
+                byte == ascii_open_brace => braces + 1,
+                byte == ascii_close_brace => braces - 1,
                 _ => braces
             }
         },
         offset: next_offset,
         comment_start: comment_start,
         done: false,
-        message: "",
+        message: no_diagnostic,
         issue: 0
     }
 }

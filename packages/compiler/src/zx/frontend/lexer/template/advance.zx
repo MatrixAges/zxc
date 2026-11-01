@@ -1,3 +1,20 @@
+import {
+    ascii_asterisk,
+    ascii_backslash,
+    ascii_backtick,
+    ascii_carriage_return,
+    ascii_close_brace,
+    ascii_dollar,
+    ascii_double_quote,
+    ascii_line_feed,
+    ascii_lower_n,
+    ascii_lower_r,
+    ascii_lower_t,
+    ascii_open_brace,
+    ascii_slash
+} from "core/ascii/const"
+
+import { lexical_code, unsupported_template_escape } from "../const"
 import fail from "../fail"
 import { Mode } from "../model"
 import close from "./close"
@@ -13,14 +30,16 @@ export type Output = LexerState
 export default function (in: Input): Output {
     if (in.state.mode == Mode.TemplateEscape) {
         if (
-            in.byte != 34 && in.byte != 92 && in.byte != 110 && in.byte != 114 &&
-                in.byte != 116 && in.byte != 96 && in.byte != 36
+            in.byte != ascii_double_quote && in.byte != ascii_backslash &&
+                in.byte != ascii_lower_n && in.byte != ascii_lower_r &&
+                in.byte != ascii_lower_t && in.byte != ascii_backtick &&
+                in.byte != ascii_dollar
         ) {
             return fail({
-                code: "lexical",
+                code: lexical_code,
                 start: in.state.offset - 1,
                 end: in.state.offset + 1,
-                message: "unsupported template escape",
+                message: unsupported_template_escape,
                 state: in.state
             })
         }
@@ -32,18 +51,18 @@ export default function (in: Input): Output {
     }
 
     if (in.state.mode == Mode.Template) {
-        if (in.byte == 96) {
+        if (in.byte == ascii_backtick) {
             return close(in.state)
         }
 
-        if (in.byte == 92) {
+        if (in.byte == ascii_backslash) {
             return {
                 ...in.state,
                 mode: Mode.TemplateEscape
             }
         }
 
-        if (in.byte == 36 && in.has_next && in.next == 123) {
+        if (in.byte == ascii_dollar && in.has_next && in.next == ascii_open_brace) {
             return openInterpolation(in.state)
         }
 
@@ -61,8 +80,8 @@ export default function (in: Input): Output {
         return {
             ...in.state,
             mode: match {
-                in.byte == 34 => Mode.Interpolation,
-                in.byte == 92 => Mode.InterpolationStringEscape,
+                in.byte == ascii_double_quote => Mode.Interpolation,
+                in.byte == ascii_backslash => Mode.InterpolationStringEscape,
                 _ => Mode.InterpolationString
             }
         }
@@ -71,13 +90,14 @@ export default function (in: Input): Output {
     if (in.state.mode == Mode.InterpolationLineComment) {
         return {
             ...in.state,
-            mode: in.byte == 10 || in.byte == 13 ? Mode.Interpolation :
+            mode: in.byte == ascii_line_feed || in.byte == ascii_carriage_return ?
+                Mode.Interpolation :
                 Mode.InterpolationLineComment
         }
     }
 
     if (in.state.mode == Mode.InterpolationBlockComment) {
-        if (in.byte == 42 && in.has_next && in.next == 47) {
+        if (in.byte == ascii_asterisk && in.has_next && in.next == ascii_slash) {
             const next_skip_until = in.state.offset + 2
 
             return {
@@ -90,12 +110,13 @@ export default function (in: Input): Output {
         return in.state
     }
 
-    if (in.byte == 125 && in.state.braces == 0) {
+    if (in.byte == ascii_close_brace && in.state.braces == 0) {
         return close(in.state)
     }
 
-    if (in.byte == 123 || in.byte == 125) {
-        const next_braces = in.byte == 123 ? in.state.braces + 1 : in.state.braces - 1
+    if (in.byte == ascii_open_brace || in.byte == ascii_close_brace) {
+        const next_braces = in.byte == ascii_open_brace ? in.state.braces + 1 :
+            in.state.braces - 1
 
         return {
             ...in.state,
@@ -103,27 +124,27 @@ export default function (in: Input): Output {
         }
     }
 
-    if (in.byte == 96) {
+    if (in.byte == ascii_backtick) {
         return openTemplate(in.state)
     }
 
-    if (in.byte == 34) {
+    if (in.byte == ascii_double_quote) {
         return {
             ...in.state,
             mode: Mode.InterpolationString
         }
     }
 
-    if (in.byte == 47 && in.has_next) {
+    if (in.byte == ascii_slash && in.has_next) {
         const next = in.next
 
-        if (next == 47 || next == 42) {
+        if (next == ascii_slash || next == ascii_asterisk) {
             const next_skip_until = in.state.offset + 2
 
             return {
                 ...in.state,
                 skip_until: next_skip_until,
-                mode: next == 47 ? Mode.InterpolationLineComment :
+                mode: next == ascii_slash ? Mode.InterpolationLineComment :
                     Mode.InterpolationBlockComment
             }
         }

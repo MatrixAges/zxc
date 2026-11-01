@@ -1,3 +1,24 @@
+import integer from "std:integer"
+import {
+    ascii_ampersand,
+    ascii_double_quote,
+    ascii_greater_than,
+    ascii_hash,
+    ascii_less_than,
+    ascii_lower_x,
+    ascii_single_quote
+} from "core/ascii/const"
+
+import {no_diagnostic} from "../../../const"
+import { xml_decimal_prefix, xml_hexadecimal_prefix } from "../const"
+import {
+    xml_entity_amp,
+    xml_entity_apos,
+    xml_entity_gt,
+    xml_entity_lt,
+    xml_entity_quot
+} from "../const"
+import { unsupported_entity } from "../diagnostic/const"
 import starts from "../starts"
 import number from "./number"
 
@@ -15,73 +36,77 @@ export type Output = {
 export default function (in: Input): Output {
     const length = in.end - in.start
 
-    if (length == 3 && starts({
+    if (length == xml_entity_amp.length && starts({
         source: in.source,
         offset: in.start,
-        text: [97, 109, 112]
+        text: xml_entity_amp
     })) {
         return {
-            codepoint: 38,
-            message: ""
+            codepoint: integer.widenByte(ascii_ampersand),
+            message: no_diagnostic
         }
     }
 
-    if (length == 2 && starts({
+    if (length == xml_entity_lt.length && starts({
         source: in.source,
         offset: in.start,
-        text: [108, 116]
+        text: xml_entity_lt
     })) {
         return {
-            codepoint: 60,
-            message: ""
+            codepoint: integer.widenByte(ascii_less_than),
+            message: no_diagnostic
         }
     }
 
-    if (length == 2 && starts({
+    if (length == xml_entity_gt.length && starts({
         source: in.source,
         offset: in.start,
-        text: [103, 116]
+        text: xml_entity_gt
     })) {
         return {
-            codepoint: 62,
-            message: ""
+            codepoint: integer.widenByte(ascii_greater_than),
+            message: no_diagnostic
         }
     }
 
-    if (length == 4 && starts({
+    if (length == xml_entity_quot.length && starts({
         source: in.source,
         offset: in.start,
-        text: [113, 117, 111, 116]
+        text: xml_entity_quot
     })) {
         return {
-            codepoint: 34,
-            message: ""
+            codepoint: integer.widenByte(ascii_double_quote),
+            message: no_diagnostic
         }
     }
 
-    if (length == 4 && starts({
+    if (length == xml_entity_apos.length && starts({
         source: in.source,
         offset: in.start,
-        text: [97, 112, 111, 115]
+        text: xml_entity_apos
     })) {
         return {
-            codepoint: 39,
-            message: ""
+            codepoint: integer.widenByte(ascii_single_quote),
+            message: no_diagnostic
         }
     }
 
-    if (length < 2 || in.source[in.start] != 35) {
+    if (
+        length < xml_decimal_prefix.length + 1 || in.source[in.start] != ascii_hash
+    ) {
         return {
             codepoint: 0,
-            message: "unsupported XML entity reference"
+            message: unsupported_entity
         }
     }
 
-    const hexadecimal = in.source[in.start + 1] == 120
+    const hexadecimal = in.source[in.start + 1] == ascii_lower_x
 
     return number({
         source: in.source,
-        start: in.start + (hexadecimal ? 2 : 1),
+        start:
+            in.start +
+            (hexadecimal ? xml_hexadecimal_prefix.length : xml_decimal_prefix.length),
         end: in.end,
         hexadecimal: hexadecimal
     })

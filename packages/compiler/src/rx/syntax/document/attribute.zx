@@ -1,3 +1,16 @@
+import {
+    ascii_double_quote,
+    ascii_equals,
+    ascii_open_brace,
+    ascii_single_quote
+} from "core/ascii/const"
+
+import {no_diagnostic} from "../../../const"
+import {
+    attribute_quote_required,
+    duplicate_attribute,
+    unexpected_token
+} from "../diagnostic/const"
 import name from "../name"
 import whitespace from "../whitespace"
 import advance from "./advance"
@@ -44,7 +57,7 @@ export default function (in: Input): Output {
         count: end - offset
     })
 
-    if (parsed.message != "") {
+    if (parsed.message != no_diagnostic) {
         return fail({
             state: named,
             message: parsed.message
@@ -54,7 +67,7 @@ export default function (in: Input): Output {
     if (repeated) {
         return fail({
             state: named,
-            message: "duplicate XML attribute"
+            message: duplicate_attribute
         })
     }
 
@@ -63,7 +76,8 @@ export default function (in: Input): Output {
         offset: end
     })
 
-    const missing = assign == named.source.length || named.source[assign] != 61
+    const missing =
+        assign == named.source.length || named.source[assign] != ascii_equals
 
     const assigned = advance({
         state: named,
@@ -73,7 +87,7 @@ export default function (in: Input): Output {
     if (missing) {
         return fail({
             state: assigned,
-            message: "unexpected XML token"
+            message: unexpected_token
         })
     }
 
@@ -104,14 +118,14 @@ export default function (in: Input): Output {
 
     const quote = value_offset < state.source.length ? state.source[value_offset] : 0
 
-    if (quote == 123 && state.control.expressions) {
+    if (quote == ascii_open_brace && state.control.expressions) {
         return expression(state)
     }
 
-    if (quote != 34 && quote != 39) {
+    if (quote != ascii_double_quote && quote != ascii_single_quote) {
         return fail({
             state: state,
-            message: "XML attribute values must be quoted"
+            message: attribute_quote_required
         })
     }
 

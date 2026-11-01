@@ -1,3 +1,27 @@
+import integer from "std:integer"
+import {
+    ascii_tab,
+    ascii_line_feed,
+    ascii_carriage_return,
+    ascii_space
+} from "core/ascii/const"
+import { decimal_radix, hexadecimal_radix } from "core/const"
+
+import { no_diagnostic } from "../../../const"
+import {
+    xml_before_surrogates_last,
+    xml_reference_accumulator_max,
+    xml_after_surrogates_first,
+    unicode_last,
+    xml_bmp_last,
+    xml_supplementary_first,
+} from "../const"
+import {
+    empty_reference,
+    forbidden_reference,
+    invalid_reference,
+    overflow_reference
+} from "../diagnostic/const"
 import digit from "./digit"
 
 export type Input = {
@@ -16,7 +40,7 @@ export default function (in: Input): Output {
     if (in.start == in.end) {
         return {
             codepoint: 0,
-            message: "empty XML character reference"
+            message: empty_reference
         }
     }
 
@@ -24,7 +48,7 @@ export default function (in: Input): Output {
         source: in.source,
         offset: in.start,
         end: in.end,
-        radix: in.hexadecimal ? 16 : 10,
+        radix: in.hexadecimal ? hexadecimal_radix : decimal_radix,
         value: 0,
         valid: true,
         overflow: false
@@ -34,7 +58,7 @@ export default function (in: Input): Output {
             const number = digit(value.source[value.offset])
             const valid = value.valid && number < value.radix
             const next = value.overflow ? 0 : value.value * value.radix + number
-            const overflow = value.overflow || next > 2097151
+            const overflow = value.overflow || next > xml_reference_accumulator_max
             const offset = value.offset + 1
 
             value = {
@@ -50,27 +74,30 @@ export default function (in: Input): Output {
     if (!state.valid) {
         return {
             codepoint: 0,
-            message: "invalid XML character reference"
+            message: invalid_reference
         }
     }
 
     if (state.overflow) {
         return {
             codepoint: 0,
-            message: "XML character reference is out of range"
+            message: overflow_reference
         }
     }
 
     const character = state.value
 
     const valid =
-        character == 9 || character == 10 || character == 13 ||
-        character >= 32 && character <= 55295 ||
-        character >= 57344 && character <= 65533 ||
-        character >= 65536 && character <= 1114111
+        character == integer.widenByte(ascii_tab) ||
+        character == integer.widenByte(ascii_line_feed) ||
+        character == integer.widenByte(ascii_carriage_return) ||
+        character >= integer.widenByte(ascii_space) &&
+        character <= xml_before_surrogates_last ||
+        character >= xml_after_surrogates_first && character <= xml_bmp_last ||
+        character >= xml_supplementary_first && character <= unicode_last
 
     return {
         codepoint: character,
-        message: valid ? "" : "forbidden XML character reference"
+        message: valid ? no_diagnostic : forbidden_reference
     }
 }

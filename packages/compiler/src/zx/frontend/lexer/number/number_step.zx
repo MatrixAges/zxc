@@ -1,3 +1,12 @@
+import {
+    ascii_dot,
+    ascii_lower_e,
+    ascii_minus,
+    ascii_plus,
+    ascii_upper_e
+} from "core/ascii/const"
+import { ascii_underscore } from "core/const"
+
 import isDigit from "./is_digit"
 import { Phase } from "./number_state"
 
@@ -27,7 +36,8 @@ export default function (in: Input): Output {
                 end: in.state.end + 2,
                 phase: Phase.Fraction,
                 last_byte: in.byte,
-                separators_valid: in.state.separators_valid && in.state.last_byte != 95
+                separators_valid:
+                    in.state.separators_valid && in.state.last_byte != ascii_underscore
             }
         }
 
@@ -47,7 +57,7 @@ export default function (in: Input): Output {
         }
     }
 
-    if (in.byte == 95) {
+    if (in.byte == ascii_underscore) {
         return {
             ...in.state,
             end: in.state.end + 1,
@@ -60,7 +70,7 @@ export default function (in: Input): Output {
         }
     }
 
-    if (in.state.phase == Phase.Integer && in.byte == 46) {
+    if (in.state.phase == Phase.Integer && in.byte == ascii_dot) {
         return {
             ...in.state,
             phase: Phase.FractionStart
@@ -70,7 +80,7 @@ export default function (in: Input): Output {
     if (
         (in.state.phase == Phase.Integer || in.state.phase == Phase.Fraction) &&
             (
-                in.byte == 101 || in.byte == 69
+                in.byte == ascii_lower_e || in.byte == ascii_upper_e
             )
     ) {
         return {
@@ -78,13 +88,16 @@ export default function (in: Input): Output {
             end: in.state.end + 1,
             phase: Phase.ExponentStart,
             last_byte: in.byte,
-            separators_valid: in.state.separators_valid && in.state.last_byte != 95
+            separators_valid:
+                in.state.separators_valid && in.state.last_byte != ascii_underscore
         }
     }
 
-    if (in.state.phase == Phase.ExponentStart && (
-        in.byte == 43 || in.byte == 45
-    )) {
+    if (
+        in.state.phase == Phase.ExponentStart && (
+            in.byte == ascii_plus || in.byte == ascii_minus
+        )
+    ) {
         return {
             ...in.state,
             end: in.state.end + 1,

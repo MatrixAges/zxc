@@ -1,3 +1,18 @@
+import {
+    ascii_backslash,
+    ascii_double_quote,
+    ascii_lower_n,
+    ascii_lower_r,
+    ascii_lower_t,
+    ascii_space
+} from "core/ascii/const"
+
+import {
+    kind_string,
+    lexical_code,
+    unescaped_control,
+    unsupported_string_escape
+} from "./const"
 import emit from "./emit"
 import fail from "./fail"
 import { Mode } from "./model"
@@ -11,14 +26,15 @@ export type Output = LexerState
 export default function (in: Input): Output {
     if (in.state.mode == Mode.StringEscape) {
         if (
-            in.byte != 34 && in.byte != 92 && in.byte != 110 && in.byte != 114 &&
-                in.byte != 116
+            in.byte != ascii_double_quote && in.byte != ascii_backslash &&
+                in.byte != ascii_lower_n && in.byte != ascii_lower_r &&
+                in.byte != ascii_lower_t
         ) {
             return fail({
-                code: "lexical",
+                code: lexical_code,
                 start: in.state.offset - 1,
                 end: in.state.offset + 1,
-                message: "unsupported string escape",
+                message: unsupported_string_escape,
                 state: in.state
             })
         }
@@ -29,9 +45,9 @@ export default function (in: Input): Output {
         }
     }
 
-    if (in.byte == 34) {
+    if (in.byte == ascii_double_quote) {
         return emit({
-            kind: "string",
+            kind: kind_string,
             start: in.state.start,
             end: in.state.offset + 1,
             comment: false,
@@ -42,18 +58,18 @@ export default function (in: Input): Output {
         })
     }
 
-    if (in.byte < 32) {
+    if (in.byte < ascii_space) {
         return fail({
-            code: "lexical",
+            code: lexical_code,
             start: in.state.start,
             end: in.state.offset + 1,
-            message: "control characters must be escaped in strings",
+            message: unescaped_control,
             state: in.state
         })
     }
 
     return {
         ...in.state,
-        mode: in.byte == 92 ? Mode.StringEscape : Mode.String
+        mode: in.byte == ascii_backslash ? Mode.StringEscape : Mode.String
     }
 }

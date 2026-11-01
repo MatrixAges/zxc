@@ -1,3 +1,17 @@
+import { ascii_dot, ascii_minus, ascii_null } from "core/ascii/const"
+import {
+    ascii_digit_first,
+    ascii_digit_last,
+    ascii_lower_first,
+    ascii_lower_last,
+    ascii_underscore,
+    ascii_upper_first,
+    ascii_upper_last
+} from "core/const"
+
+import {no_diagnostic} from "../../const"
+import { ascii_name_required } from "./diagnostic/const"
+
 export type Input = {
     source: u8[],
     offset: u64
@@ -9,14 +23,17 @@ export type Output = {
 }
 
 export default function (in: Input): Output {
-    const byte = in.offset < in.source.length ? in.source[in.offset] : 0
-    const alphabetic = byte >= 65 && byte <= 90 || byte >= 97 && byte <= 122
+    const byte = in.offset < in.source.length ? in.source[in.offset] : ascii_null
 
-    if (!alphabetic && byte != 95) {
+    const alphabetic =
+        byte >= ascii_upper_first && byte <= ascii_upper_last ||
+        byte >= ascii_lower_first && byte <= ascii_lower_last
+
+    if (!alphabetic && byte != ascii_underscore) {
         return {
             end: in.offset,
             message:
-                "expected an ASCII XML name; declarations and namespaces are unsupported"
+                ascii_name_required
         }
     }
 
@@ -29,9 +46,11 @@ export default function (in: Input): Output {
         next: value => {
             const current = value.source[value.offset]
             const accepted =
-                current >= 65 && current <= 90 || current >= 97 && current <= 122 ||
-                current >= 48 && current <= 57 || current == 95 || current == 45 ||
-                current == 46
+                current >= ascii_upper_first && current <= ascii_upper_last ||
+                current >= ascii_lower_first && current <= ascii_lower_last ||
+                current >= ascii_digit_first && current <= ascii_digit_last ||
+                current == ascii_underscore || current == ascii_minus ||
+                current == ascii_dot
             const offset = value.offset + (accepted ? 1 : 0)
 
             value = {
@@ -44,6 +63,6 @@ export default function (in: Input): Output {
 
     return {
         end: state.offset,
-        message: ""
+        message: no_diagnostic
     }
 }

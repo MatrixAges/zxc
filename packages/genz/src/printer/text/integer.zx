@@ -1,3 +1,7 @@
+import { decimal_radix } from "core/const"
+
+import {decimal_digits} from "../../const"
+
 export type Input = {
     output: u8[],
     value: u64
@@ -6,28 +10,26 @@ export type Input = {
 export type Output = u8[]
 
 export default function (in: Input): Output {
-    const digits: u8[] = [48, 49, 50, 51, 52, 53, 54, 55, 56, 57]
     const first = in.output.length
 
     const written = loop({
         output: in.output,
-        value: in.value,
-        digits: digits
+        value: in.value
     }, {
         do: current => {
             current.output =
                 current.output.push(
-                    current.digits[current.value % 10]
+                    decimal_digits[current.value % decimal_radix]
                 )[0]
-            current.value = current.value / 10
+            current.value = current.value / decimal_radix
         },
         while: current => current.value != 0
-    })
+    }).output
 
     const reversed = loop({
-        output: written.output,
+        output: written,
         left: first,
-        right: written.output.length - 1
+        right: written.length - 1
     }, {
         while: current => current.left < current.right,
         next: current => {

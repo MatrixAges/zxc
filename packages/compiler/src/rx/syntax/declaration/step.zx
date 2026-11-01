@@ -1,3 +1,16 @@
+import { ascii_double_quote, ascii_equals, ascii_single_quote } from "core/ascii/const"
+
+import {no_diagnostic} from "../../../const"
+import {
+    xml_declaration_end,
+    xml_encoding,
+    xml_encoding_attribute,
+    xml_standalone_attribute,
+    xml_standalone_no,
+    xml_standalone_yes,
+    xml_version,
+    xml_version_attribute
+} from "../const"
 import matches from "../matches"
 import name from "../name"
 import starts from "../starts"
@@ -20,11 +33,11 @@ export default function (in: Input): Output {
     if (starts({
         source: in.source,
         offset: offset,
-        text: [63, 62]
+        text: xml_declaration_end
     })) {
         return {
             ...in,
-            offset: offset + 2,
+            offset: offset + xml_declaration_end.length,
             done: true,
             issue: in.count == 0 ? Issue.VersionRequired : Issue.None
         }
@@ -43,7 +56,7 @@ export default function (in: Input): Output {
         offset: offset
     })
 
-    if (field.message != "") {
+    if (field.message != no_diagnostic) {
         return {
             ...in,
             offset: field.end,
@@ -57,7 +70,7 @@ export default function (in: Input): Output {
         offset: field.end
     })
 
-    if (assign == in.source.length || in.source[assign] != 61) {
+    if (assign == in.source.length || in.source[assign] != ascii_equals) {
         return {
             ...in,
             offset: assign,
@@ -73,7 +86,8 @@ export default function (in: Input): Output {
 
     if (
         quoted == in.source.length ||
-            in.source[quoted] != 34 && in.source[quoted] != 39
+            in.source[quoted] != ascii_double_quote &&
+            in.source[quoted] != ascii_single_quote
     ) {
         return {
             ...in,
@@ -111,47 +125,47 @@ export default function (in: Input): Output {
     const version = matches({
         source: in.source,
         span: field_span,
-        text: [118, 101, 114, 115, 105, 111, 110],
+        text: xml_version_attribute,
         ignore_case: false
     })
 
     const encoding = matches({
         source: in.source,
         span: field_span,
-        text: [101, 110, 99, 111, 100, 105, 110, 103],
+        text: xml_encoding_attribute,
         ignore_case: false
     })
 
     const standalone = matches({
         source: in.source,
         span: field_span,
-        text: [115, 116, 97, 110, 100, 97, 108, 111, 110, 101],
+        text: xml_standalone_attribute,
         ignore_case: false
     })
 
     const version_value = matches({
         source: in.source,
         span: value_span,
-        text: [49, 46, 48],
+        text: xml_version,
         ignore_case: false
     })
 
     const encoding_value = matches({
         source: in.source,
         span: value_span,
-        text: [85, 84, 70, 45, 56],
+        text: xml_encoding,
         ignore_case: true
     })
 
     const standalone_value = matches({
         source: in.source,
         span: value_span,
-        text: [121, 101, 115],
+        text: xml_standalone_yes,
         ignore_case: false
     }) || matches({
         source: in.source,
         span: value_span,
-        text: [110, 111],
+        text: xml_standalone_no,
         ignore_case: false
     })
 

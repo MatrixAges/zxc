@@ -14,9 +14,9 @@ pub fn main(init: std.process.Init) !void {
     if (args.len < 2) return error.MissingCommand;
 
     if (std.mem.eql(u8, args[1], "--lexer")) {
-        if (args.len != 4) return error.OutputCountMismatch;
+        if (args.len != 5) return error.OutputCountMismatch;
 
-        return @import("generate_lexer.zig").generate(init, args[2], args[3]);
+        return @import("generate_lexer.zig").generate(init, args[2], args[3], args[4]);
     }
 
     if (std.mem.eql(u8, args[1], "--standard-abi")) {

@@ -1,4 +1,9 @@
+import { ascii_less_than } from "core/ascii/const"
+
+import {no_diagnostic} from "../../../const"
 import comment from "../comment"
+import {xml_cdata_start, xml_close_start, xml_comment_start} from "../const"
+import { missing_closing_tag } from "../diagnostic/const"
 import starts from "../starts"
 import advance from "./advance"
 import close from "./close"
@@ -20,14 +25,14 @@ export default function (in: Input): Output {
     if (offset == in.source.length) {
         return fail({
             state: in,
-            message: "missing XML closing tag"
+            message: missing_closing_tag
         })
     }
 
     if (starts({
         source: in.source,
         offset: offset,
-        text: [60, 47]
+        text: xml_close_start
     })) {
         return close(in)
     }
@@ -35,7 +40,7 @@ export default function (in: Input): Output {
     if (starts({
         source: in.source,
         offset: offset,
-        text: [60, 33, 45, 45]
+        text: xml_comment_start
     })) {
         const parsed = comment({
             source: in.source,
@@ -47,7 +52,7 @@ export default function (in: Input): Output {
             count: parsed.end - offset
         })
 
-        return parsed.message == "" ? state : fail({
+        return parsed.message == no_diagnostic ? state : fail({
             state: state,
             message: parsed.message
         })
@@ -56,19 +61,19 @@ export default function (in: Input): Output {
     if (starts({
         source: in.source,
         offset: offset,
-        text: [60, 33, 91, 67, 68, 65, 84, 65, 91]
+        text: xml_cdata_start
     })) {
         return start({
             state: advance({
                 state: in,
-                count: 9
+                count: xml_cdata_start.length
             }),
             kind: ValueKind.Cdata,
             terminator: 0
         })
     }
 
-    if (in.source[offset] == 60) {
+    if (in.source[offset] == ascii_less_than) {
         return open({
             source: in.source,
             tree: in.tree,
@@ -81,6 +86,6 @@ export default function (in: Input): Output {
     return start({
         state: in,
         kind: ValueKind.Text,
-        terminator: 60
+        terminator: ascii_less_than
     })
 }

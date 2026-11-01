@@ -1,3 +1,10 @@
+import {
+    ascii_asterisk,
+    ascii_carriage_return,
+    ascii_line_feed,
+    ascii_slash
+} from "core/ascii/const"
+
 import emit from "./emit"
 import { Mode } from "./model"
 
@@ -8,9 +15,14 @@ export type Input = AdvanceInput
 export type Output = LexerState
 
 export default function (in: Input): Output {
-    const line_break = in.state.line_break || in.byte == 10 || in.byte == 13
+    const line_break =
+        in.state.line_break || in.byte == ascii_line_feed ||
+        in.byte == ascii_carriage_return
 
-    if (in.state.mode == Mode.LineComment && (in.byte == 10 || in.byte == 13)) {
+    if (
+        in.state.mode == Mode.LineComment &&
+            (in.byte == ascii_line_feed || in.byte == ascii_carriage_return)
+    ) {
         return emit({
             kind: "",
             start: in.state.start,
@@ -25,8 +37,8 @@ export default function (in: Input): Output {
     }
 
     if (
-        in.state.mode == Mode.BlockComment && in.byte == 42 && in.has_next &&
-            in.next == 47
+        in.state.mode == Mode.BlockComment && in.byte == ascii_asterisk && in.has_next &&
+            in.next == ascii_slash
     ) {
         const next_skip_until = in.state.offset + 2
 

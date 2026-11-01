@@ -1,4 +1,5 @@
 import integers from "std:integer"
+import { max_nesting_depth } from "core/const"
 import { ExpressionKind } from "core/expression_table/kinds"
 
 import contains from "../refinement/facts/contains_value"
@@ -21,7 +22,7 @@ export default function (in: Input): Output {
     const expressions = program.body.expressions
     const frame = in.frame
 
-    if (frame.a >= expressions.kinds.length || frame.b > 256) {
+    if (frame.a >= expressions.kinds.length || frame.b > max_nesting_depth) {
         return {
             state: in.state,
             valid: false

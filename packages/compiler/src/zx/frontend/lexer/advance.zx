@@ -1,3 +1,5 @@
+import { ascii_underscore } from "core/const"
+
 import begin from "./begin"
 import comment from "./comment"
 import endIdentifier from "./end_identifier"
@@ -25,7 +27,7 @@ export default function (in: Input): Output {
     }
 
     if (in.state.mode == Mode.Identifier) {
-        if (isLetter(in.byte) || isDigit(in.byte) || in.byte == 95) {
+        if (isLetter(in.byte) || isDigit(in.byte) || in.byte == ascii_underscore) {
             const next_keyword = keywordTransition({
                 state: in.state.keyword_state,
                 byte: in.byte

@@ -1,3 +1,5 @@
+import { max_nesting_depth } from "core/const"
+
 import { Family } from "../prepare/model"
 import fail from "../state/fail"
 import frame from "../state/frame"
@@ -11,7 +13,7 @@ export type Input = ExprState
 export type Output = ExprState
 
 export default function (in: Input): Output {
-    if (in.control.depth >= 256) {
+    if (in.control.depth >= max_nesting_depth) {
         return fail({
             state: in,
             code: "unsupported",

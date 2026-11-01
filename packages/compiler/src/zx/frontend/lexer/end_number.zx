@@ -1,3 +1,4 @@
+import { kind_number, lexical_code } from "./const"
 import emit from "./emit"
 import fail from "./fail"
 import { Mode } from "./model"
@@ -14,7 +15,7 @@ export default function (in: Input): Output {
 
     if (number.diagnostic != "") {
         return fail({
-            code: "lexical",
+            code: lexical_code,
             start: in.start,
             end: in.start + number.end,
             message: number.diagnostic,
@@ -23,7 +24,7 @@ export default function (in: Input): Output {
     }
 
     return emit({
-        kind: "number",
+        kind: kind_number,
         start: in.start,
         end: in.start + number.end,
         comment: false,

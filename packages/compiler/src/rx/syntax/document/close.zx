@@ -1,3 +1,8 @@
+import { ascii_greater_than } from "core/ascii/const"
+
+import {no_diagnostic} from "../../../const"
+import { xml_close_start } from "../const"
+import { mismatched_closing_tag, unexpected_token } from "../diagnostic/const"
 import equal from "../equal"
 import name from "../name"
 import whitespace from "../whitespace"
@@ -16,7 +21,7 @@ export default function (in: Input): Output {
 
     const parsed = name({
         source: in.source,
-        offset: offset + 2
+        offset: offset + xml_close_start.length
     })
 
     const end = parsed.end
@@ -25,7 +30,7 @@ export default function (in: Input): Output {
         source: in.source,
         left: in.frame.name,
         right: {
-            start: offset + 2,
+            start: offset + xml_close_start.length,
             end: end
         }
     })
@@ -35,7 +40,7 @@ export default function (in: Input): Output {
         count: end - offset
     })
 
-    if (parsed.message != "") {
+    if (parsed.message != no_diagnostic) {
         return fail({
             state: state,
             message: parsed.message
@@ -45,7 +50,7 @@ export default function (in: Input): Output {
     if (!matched) {
         return fail({
             state: state,
-            message: "XML closing tag does not match opening tag"
+            message: mismatched_closing_tag
         })
     }
 
@@ -54,7 +59,8 @@ export default function (in: Input): Output {
         offset: end
     })
 
-    const closed = finish < state.source.length && state.source[finish] == 62
+    const closed =
+        finish < state.source.length && state.source[finish] == ascii_greater_than
 
     const advanced = advance({
         state: state,
@@ -64,7 +70,7 @@ export default function (in: Input): Output {
     if (!closed) {
         return fail({
             state: advanced,
-            message: "unexpected XML token"
+            message: unexpected_token
         })
     }
 

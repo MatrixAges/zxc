@@ -1,3 +1,17 @@
+import {
+    ascii_asterisk,
+    ascii_backtick,
+    ascii_carriage_return,
+    ascii_dollar,
+    ascii_double_quote,
+    ascii_line_feed,
+    ascii_slash,
+    ascii_space,
+    ascii_tab
+} from "core/ascii/const"
+import { ascii_underscore } from "core/const"
+
+import { kind_punctuation, lexical_code, unexpected_character } from "./const"
 import emit from "./emit"
 import fail from "./fail"
 import isLetter from "./is_letter"
@@ -17,40 +31,47 @@ export type Input = AdvanceInput
 export type Output = LexerState
 
 export default function (in: Input): Output {
-    const line_break = in.state.line_break || in.byte == 10 || in.byte == 13
+    const line_break =
+        in.state.line_break || in.byte == ascii_line_feed ||
+        in.byte == ascii_carriage_return
 
     const offset = in.state.offset
 
-    if (in.byte == 32 || (in.byte >= 9 && in.byte <= 13)) {
+    if (
+        in.byte == ascii_space ||
+            (in.byte >= ascii_tab && in.byte <= ascii_carriage_return)
+    ) {
         return {
             ...in.state,
             line_break: line_break
         }
     }
 
-    if (in.byte == 47 && in.has_next) {
+    if (in.byte == ascii_slash && in.has_next) {
         const next = in.next
 
-        if (next == 47 || next == 42) {
+        if (next == ascii_slash || next == ascii_asterisk) {
             const next_skip_until = offset + 2
 
             return {
                 ...in.state,
                 skip_until: next_skip_until,
-                mode: next == 47 ? Mode.LineComment : Mode.BlockComment,
+                mode: next == ascii_slash ? Mode.LineComment : Mode.BlockComment,
                 start: offset
             }
         }
     }
 
-    if (isLetter(in.byte) || in.byte == 95 || in.byte == 36) {
+    if (
+        isLetter(in.byte) || in.byte == ascii_underscore || in.byte == ascii_dollar
+    ) {
         return {
             ...in.state,
             keyword_state: keywordTransition({
                 state: 0,
                 byte: in.byte
             }),
-            dollar: in.byte == 36,
+            dollar: in.byte == ascii_dollar,
             mode: Mode.Identifier,
             start: offset
         }
@@ -70,7 +91,7 @@ export default function (in: Input): Output {
         }
     }
 
-    if (in.byte == 34) {
+    if (in.byte == ascii_double_quote) {
         return {
             ...in.state,
             mode: Mode.String,
@@ -78,16 +99,16 @@ export default function (in: Input): Output {
         }
     }
 
-    if (in.byte == 96) {
+    if (in.byte == ascii_backtick) {
         return openTemplate(in.state)
     }
 
     if (!isPunctuation(in.byte)) {
         return fail({
-            code: "lexical",
+            code: lexical_code,
             start: offset,
             end: offset + 1,
-            message: "unexpected character",
+            message: unexpected_character,
             state: in.state
         })
     }
@@ -109,7 +130,7 @@ export default function (in: Input): Output {
     const next_skip_until = offset + length
 
     return emit({
-        kind: "punctuation",
+        kind: kind_punctuation,
         start: offset,
         end: offset + length,
         comment: false,

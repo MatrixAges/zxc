@@ -7,18 +7,31 @@ const collection = @import("source_collection.zig");
 pub fn main(init: std.process.Init) !void {
     const args = try init.minimal.args.toSlice(init.arena.allocator());
 
-    if (args.len != 3) return error.OutputCountMismatch;
+    if (args.len != 4) return error.OutputCountMismatch;
 
-    return generate(init, args[1], args[2]);
+    return generate(init, args[1], args[2], args[3]);
 }
 
-pub fn generate(init: std.process.Init, source_root: []const u8, output_path: []const u8) !void {
+pub fn generate(init: std.process.Init, source_root: []const u8, core_root: []const u8, output_path: []const u8) !void {
     const allocator = init.arena.allocator();
     var sources: std.ArrayList(compiler.project.Source) = .empty;
     var modules: std.ArrayList(rx.TextSource) = .empty;
     var templates: std.ArrayList(compiler.project.Resource) = .empty;
 
     try collection.collect(init.io, allocator, null, source_root, "", &sources, &modules, &templates);
+
+    const packages = [_]compiler.project.Package{
+        .{ .specifier = "core/const", .entry = "core/const.zx" },
+        .{ .specifier = "core/ascii/const", .entry = "core/ascii/const.zx" },
+    };
+
+    for (packages) |package| {
+        const relative = package.entry["core/".len..];
+        const path = try std.fs.path.join(allocator, &.{ core_root, relative });
+        const source = try std.Io.Dir.cwd().readFileAlloc(init.io, path, allocator, .unlimited);
+
+        try sources.append(allocator, .{ .path = package.entry, .source = source });
+    }
 
     std.mem.sort(compiler.project.Source, sources.items, {}, collection.lessSource);
     std.mem.sort(rx.TextSource, modules.items, {}, collection.lessModule);
@@ -45,7 +58,7 @@ pub fn generate(init: std.process.Init, source_root: []const u8, output_path: []
         .entry = "scan.rx",
         .modules = selected,
         .sources = sources.items,
-        .project = .{ .entry = "" },
+        .project = .{ .entry = "", .packages = &packages },
     });
 
     defer analyzed.deinit();

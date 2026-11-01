@@ -15,6 +15,7 @@ pub const entries: []const Package = &.{
     .{ .specifier = "compiler/type_name", .entry = "zx/frontend/type_name/normalize.rx" },
     .{ .specifier = "lint/naming", .entry = "lint/naming/check.zx" },
     .{ .specifier = "lint/naming/model", .entry = "lint/naming/model.zx" },
+    .{ .specifier = "core/ascii/const", .entry = "core/ascii/const.zx" },
     .{ .specifier = "core/const", .entry = "core/const.zx" },
     .{ .specifier = "core/constant/model", .entry = "core/constant/model.zx" },
     .{ .specifier = "core/constant/lookup", .entry = "core/constant/lookup.zx" },

@@ -1,28 +1,53 @@
+import {
+    ascii_ampersand,
+    ascii_asterisk,
+    ascii_bang,
+    ascii_close_brace,
+    ascii_close_bracket,
+    ascii_close_paren,
+    ascii_colon,
+    ascii_comma,
+    ascii_dot,
+    ascii_equals,
+    ascii_greater_than,
+    ascii_less_than,
+    ascii_minus,
+    ascii_open_brace,
+    ascii_open_bracket,
+    ascii_open_paren,
+    ascii_percent,
+    ascii_pipe,
+    ascii_plus,
+    ascii_question,
+    ascii_semicolon,
+    ascii_slash
+} from "core/ascii/const"
+
 export type Input = u8
 
 export type Output = bool
 
 export default function (in: Input): Output {
-    return in == 123 ||
-        in == 125 ||
-        in == 40 ||
-        in == 41 ||
-        in == 58 ||
-        in == 59 ||
-        in == 44 ||
-        in == 46 ||
-        in == 63 ||
-        in == 91 ||
-        in == 93 ||
-        in == 43 ||
-        in == 45 ||
-        in == 42 ||
-        in == 47 ||
-        in == 37 ||
-        in == 60 ||
-        in == 62 ||
-        in == 61 ||
-        in == 33 ||
-        in == 38 ||
-        in == 124
+    return in == ascii_open_brace ||
+        in == ascii_close_brace ||
+        in == ascii_open_paren ||
+        in == ascii_close_paren ||
+        in == ascii_colon ||
+        in == ascii_semicolon ||
+        in == ascii_comma ||
+        in == ascii_dot ||
+        in == ascii_question ||
+        in == ascii_open_bracket ||
+        in == ascii_close_bracket ||
+        in == ascii_plus ||
+        in == ascii_minus ||
+        in == ascii_asterisk ||
+        in == ascii_slash ||
+        in == ascii_percent ||
+        in == ascii_less_than ||
+        in == ascii_greater_than ||
+        in == ascii_equals ||
+        in == ascii_bang ||
+        in == ascii_ampersand ||
+        in == ascii_pipe
 }

@@ -1,3 +1,4 @@
+import {no_diagnostic} from "../../../const"
 import scan from "../boundary/scan"
 import position from "../position"
 import advance from "./advance"
@@ -38,7 +39,7 @@ export default function (in: Input): Output {
         }
     }
 
-    if (result.message != "") {
+    if (result.message != no_diagnostic) {
         return fail({
             state: advance({
                 state: state,

@@ -1,3 +1,18 @@
+import {
+    ascii_asterisk,
+    ascii_backslash,
+    ascii_carriage_return,
+    ascii_double_quote,
+    ascii_line_feed,
+    ascii_slash
+} from "core/ascii/const"
+
+import {no_diagnostic} from "../../../const"
+import {
+    unterminated_interpolation,
+    unterminated_template,
+    unterminated_template_comment
+} from "../../../zx/frontend/lexer/const"
 import fail from "./fail"
 import interpolation from "./interpolation"
 import { Mode } from "./model"
@@ -15,9 +30,9 @@ export default function (in: Input): Output {
         const issue = mode == Mode.BlockComment ? in.comment_start : in.frame.start
 
         const message = match {
-            mode == Mode.Template => "unterminated template string",
-            mode == Mode.BlockComment => "unterminated comment in template",
-            _ => "unterminated template interpolation"
+            mode == Mode.Template => unterminated_template,
+            mode == Mode.BlockComment => unterminated_template_comment,
+            _ => unterminated_interpolation
         }
 
         return fail({
@@ -41,15 +56,17 @@ export default function (in: Input): Output {
     const mode = in.frame.mode
 
     const finished = match {
-        mode == Mode.String => byte == 34,
-        mode == Mode.LineComment => byte == 10 || byte == 13,
-        _ => byte == 42 && next == 47
+        mode == Mode.String => byte == ascii_double_quote,
+        mode == Mode.LineComment =>
+            byte == ascii_line_feed || byte == ascii_carriage_return,
+        _ => byte == ascii_asterisk && next == ascii_slash
     }
 
     const skip =
         has_next &&
         (
-            mode == Mode.String && byte == 92 || mode == Mode.BlockComment && finished
+            mode == Mode.String && byte == ascii_backslash ||
+                mode == Mode.BlockComment && finished
         )
 
     const offset = in.offset + (skip ? 2 : 1)
@@ -64,7 +81,7 @@ export default function (in: Input): Output {
         offset: offset,
         comment_start: in.comment_start,
         done: false,
-        message: "",
+        message: no_diagnostic,
         issue: 0
     }
 }

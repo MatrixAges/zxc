@@ -1,4 +1,7 @@
+import {no_diagnostic} from "../../../const"
 import comment from "../comment"
+import {xml_comment_start} from "../const"
+import { root_required } from "../diagnostic/const"
 import starts from "../starts"
 import whitespace from "../whitespace"
 import advance from "./advance"
@@ -23,7 +26,7 @@ export default function (in: Input): Output {
     if (starts({
         source: in.source,
         offset: offset,
-        text: [60, 33, 45, 45]
+        text: xml_comment_start
     })) {
         const parsed = comment({
             source: in.source,
@@ -35,7 +38,7 @@ export default function (in: Input): Output {
             count: parsed.end - start
         })
 
-        return parsed.message == "" ? state : fail({
+        return parsed.message == no_diagnostic ? state : fail({
             state: state,
             message: parsed.message
         })
@@ -56,7 +59,7 @@ export default function (in: Input): Output {
     if (offset != state.source.length) {
         return fail({
             state: state,
-            message: "XML requires exactly one root element"
+            message: root_required
         })
     }
 

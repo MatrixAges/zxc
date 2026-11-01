@@ -1,3 +1,4 @@
+import { kind_identifier, kind_keyword } from "./const"
 import { Keyword } from "./keyword_model"
 import keywordValue from "./keyword_value"
 import tokenKind from "./token_kind"
@@ -46,8 +47,8 @@ export default function (in: Input): Output {
     }
 
     const word =
-        in.kind == "identifier" ||
-        in.kind == "keyword" ? keywordValue(
+        in.kind == kind_identifier ||
+        in.kind == kind_keyword ? keywordValue(
             in.state.keyword_state
         ) : Keyword.Root
 

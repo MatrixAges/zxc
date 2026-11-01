@@ -1,3 +1,6 @@
+import { max_nesting_depth } from "core/const"
+
+import { syntax_code, template_nesting_limit } from "../const"
 import fail from "../fail"
 import { Mode } from "../model"
 
@@ -20,12 +23,12 @@ export default function (in: Input): Output {
         }
     }
 
-    if (in.depth + 1 > 256) {
+    if (in.depth + 1 > max_nesting_depth) {
         return fail({
-            code: "syntax",
+            code: syntax_code,
             start: in.offset,
             end: in.offset + 1,
-            message: "template nesting exceeds 256 levels",
+            message: template_nesting_limit,
             state: in
         })
     }

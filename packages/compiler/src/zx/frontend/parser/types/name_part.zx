@@ -1,3 +1,5 @@
+import { max_nesting_depth } from "core/const"
+
 import { Kind } from "../../lexer/token_model"
 import consume from "./consume"
 import fail from "./fail"
@@ -18,7 +20,7 @@ export default function (in: Input): Output {
         })
     }
 
-    if (in.control.depth + in.frames.length >= 256) {
+    if (in.control.depth + in.frames.length >= max_nesting_depth) {
         return fail({
             state: in,
             code: "unsupported",

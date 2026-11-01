@@ -1,3 +1,14 @@
+import {
+    ascii_ampersand,
+    ascii_bang,
+    ascii_dot,
+    ascii_equals,
+    ascii_greater_than,
+    ascii_less_than,
+    ascii_pipe,
+    ascii_question
+} from "core/ascii/const"
+
 export type Input = {
     byte: u8,
     next: u8,
@@ -9,24 +20,29 @@ export type Input = {
 export type Output = u64
 
 export default function (in: Input): Output {
-    if (in.byte == 46 && in.has_after && in.next == 46 && in.after == 46) {
+    if (
+        in.byte == ascii_dot && in.has_after && in.next == ascii_dot &&
+            in.after == ascii_dot
+    ) {
         return 3
     }
 
     if (
         in.has_next &&
             (
-                (in.byte == 61 && in.next == 62) ||
+                (in.byte == ascii_equals && in.next == ascii_greater_than) ||
                     (
-                        in.next == 61 &&
+                        in.next == ascii_equals &&
                             (
-                                in.byte == 61 || in.byte == 33 || in.byte == 60 ||
-                                    in.byte == 62
+                                in.byte == ascii_equals || in.byte == ascii_bang ||
+                                    in.byte == ascii_less_than ||
+                                    in.byte == ascii_greater_than
                             )
                     ) ||
                     (
                         in.byte == in.next && (
-                            in.byte == 63 || in.byte == 38 || in.byte == 124
+                            in.byte == ascii_question || in.byte == ascii_ampersand ||
+                                in.byte == ascii_pipe
                         )
                     )
             )
