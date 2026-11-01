@@ -1,0 +1,37 @@
+<Module>
+    <Type from="./model" as="Model" />
+    <Type from="../context" as="Context" />
+
+    <Args in={{
+        analysis: Model.Analysis,
+        module: Context.ModuleInput
+    }} out={Model.Analysis} />
+
+    <Switch on={
+        $in.analysis.state.diagnostic.message != "" ||
+        ($in.module.syntax.constants.length == 0 && $in.module.context.constant_imports == null)
+    }>
+        <Case value={true}>
+            <Return value={$in.analysis} />
+        </Case>
+    </Switch>
+
+    <Call fn="../../constants/declarations/analyze" in={{
+        bytes: $in.module.bytes,
+        syntax: $in.module.syntax,
+        native: $in.module.native,
+        types: $in.analysis.state.types,
+        imports: $in.module.context.constant_imports
+    }} />
+
+    <Return value={{
+        ...$in.analysis,
+        state: {
+            ...$in.analysis.state,
+            types: $ctx.analyze.types,
+            diagnostic: $ctx.analyze.diagnostic
+        },
+        constant_scope: $ctx.analyze.scope,
+        constant_first: $ctx.analyze.first
+    }} />
+</Module>

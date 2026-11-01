@@ -3,10 +3,12 @@ const zx = @import("zx");
 const Types = @import("../../types.zig");
 const Analyzer = @import("../../analyzer.zig");
 
-pub fn apply(types: *Types, declarations: []const zx.ast.Constant, imports: []const zx.ir.Constant) zx.Error![]const zx.ir.Constant {
-    if (declarations.len == 0 and imports.len == 0) return &.{};
+pub const Result = struct { scope: []const zx.ir.Constant, exports: []const zx.ir.Constant };
+
+pub fn apply(types: *Types, declarations: []const zx.ast.Constant, imports: []const zx.ir.Constant) zx.Error!Result {
+    if (declarations.len == 0 and imports.len == 0) return .{ .scope = &.{}, .exports = &.{} };
     if (!@import("../input.zig").nativeValid(types.items.view(), imports)) return types.reporter.fail(.contract, .{ .start = 0, .end = 0 }, "invalid typed constant bindings");
-    if (declarations.len == 0) return &.{};
+    if (declarations.len == 0) return .{ .scope = imports, .exports = &.{} };
 
     var scope: std.ArrayList(zx.ir.Constant) = .empty;
 
@@ -20,7 +22,7 @@ pub fn apply(types: *Types, declarations: []const zx.ast.Constant, imports: []co
         try scope.append(types.allocator, try evaluate(types, declaration, scope.items));
     }
 
-    return scope.items[imports.len..];
+    return .{ .scope = scope.items, .exports = scope.items[imports.len..] };
 }
 
 fn evaluate(types: *Types, declaration: zx.ast.Constant, scope: []const zx.ir.Constant) zx.Error!zx.ir.Constant {

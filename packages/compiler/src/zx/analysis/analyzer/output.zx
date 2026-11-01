@@ -1,3 +1,4 @@
+import type { Values } from "core/constant/model"
 import type { Contracts } from "core/contract_table/model"
 import type { Body } from "core/ir/body"
 import type { Ownership } from "core/symbol_table/model"
@@ -12,6 +13,8 @@ export type ModuleOutput = {
     contracts: Contracts
     export_names: string[]
     export_types: u32[]
+    constant_scope: Values?
+    constant_first: u64
     input_type: u32
     output_type: u32
     output_ownership: Ownership

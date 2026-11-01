@@ -8,5 +8,5 @@ export type Input = { state: Prepared, type_only: bool }
 export type Output = Analysis
 
 export default function (in: Input): Output {
-    return { state: in.state, root: null, contracts: { kinds: [], predicates: [], symbols: [], expressions: [], span_start: [], span_end: [] }, names: [], types: [], ownership: Ownership.Copy, type_only: in.type_only }
+    return { state: in.state, constant_scope: null, constant_first: 0, root: null, contracts: { kinds: [], predicates: [], symbols: [], expressions: [], span_start: [], span_end: [] }, names: [], types: [], ownership: Ownership.Copy, type_only: in.type_only }
 }

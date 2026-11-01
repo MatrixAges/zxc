@@ -98,22 +98,8 @@ fn run(types: *Types, arena: *zx.Arena, source: []const u8, syntax: @FieldType(D
     return .{
         .ports = .{ .input_type = @fromBackingInt(output.input_type), .output_type = @fromBackingInt(output.output_type) },
         .exports = exports,
-        .constant_exports = try publishConstants(types.allocator, output),
+        .constant_exports = try @import("../../analysis/constants/exports.zig").own(types.allocator, output.constant_scope, output.constant_first),
         .type_only = output.type_only,
         .has_store = output.has_store,
     };
-}
-
-fn publishConstants(allocator: std.mem.Allocator, output: generated.Output) std.mem.Allocator.Error![]const zx.ir.Constant {
-    const scope = output.constant_scope orelse return &.{};
-    const first: usize = @intCast(output.constant_first);
-    const constants = try allocator.alloc(zx.ir.Constant, scope.names.len - first);
-
-    for (scope.names[first..], scope.values[first..], constants) |name, literal, *constant| constant.* = .{
-        .name = try allocator.dupe(u8, name),
-        .type_id = @fromBackingInt(literal.type_id),
-        .value = try @import("../../analysis/constants/input.zig").own(allocator, literal),
-    };
-
-    return constants;
 }

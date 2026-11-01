@@ -29,6 +29,7 @@ pub fn collect(state: *State, requested: []const Export) State.Error![]const fro
             .path = try state.allocator.dupe(u8, exported.path),
             .function = loaded.function,
             .types = loaded.exports,
+            .constants = loaded.constant_exports,
         };
     }
 

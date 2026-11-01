@@ -44,6 +44,7 @@ pub fn apply(analyzer: *Context, output: *const model.Output, file_name: []const
         .stores = try own(allocator, borrow.columns(ir.StoreTable, output.body.stores.*), .{}),
         .contracts = try @import("contracts.zig").copy(allocator, borrow.columns(ir.ContractTable, output.contracts.*)),
         .exports = exports,
+        .constant_exports = try @import("../../constants/exports.zig").own(allocator, output.constant_scope, output.constant_first),
         .type_only = output.type_only,
     };
 }

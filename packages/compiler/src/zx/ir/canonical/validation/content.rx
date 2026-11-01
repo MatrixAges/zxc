@@ -3,6 +3,33 @@
 
     <Args in={Model.Program} out={bool} />
 
+    <Switch on={$in.constant_exports != null}>
+        <Case value={true}>
+            <Call fn="../../../analysis/constants/valid" in={{
+                constants: $in.constant_exports,
+                types: {
+                    base: $in.context.table,
+                    delta: {
+                        kinds: [],
+                        first: [],
+                        second: [],
+                        labels: [],
+                        children: [],
+                        field_types: [],
+                        field_names: [],
+                        names: []
+                    }
+                }
+            }} />
+
+            <Switch on={!$ctx.valid}>
+                <Case value={true}>
+                    <Return value={false} />
+                </Case>
+            </Switch>
+        </Case>
+    </Switch>
+
     <Call module="unit/check" in={{ context: $in.context, unit: $in.unit }} />
 
     <Switch on={$ctx.check}>

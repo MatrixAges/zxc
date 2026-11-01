@@ -1,6 +1,7 @@
 import integers from "std:integer"
 
 import declared from "./declared"
+import { DeclarationKind } from "./model"
 
 import type { Request } from "./model"
 
@@ -20,7 +21,7 @@ export default function (in: Input): Output {
             const input_type = bindings.input_types[index]
             const output_type = bindings.output_types[index]
 
-            current.valid = declared({ source_text: current.input.source_text, native: current.input.native, syntax: current.input.syntax, name: namespace ?? name, callable: true }) &&
+            current.valid = declared({ source_text: current.input.source_text, native: current.input.native, syntax: current.input.syntax, name: namespace ?? name, kind: DeclarationKind.Callable }) &&
                 id < current.input.functions.files.length
 
             if (current.valid) {

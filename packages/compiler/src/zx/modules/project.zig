@@ -201,7 +201,7 @@ const Project = struct {
 
                     const program = self.units[dependency].program.?;
 
-                    break :block Imported{ .type_only = program.type_only, .function = self.units[dependency].function, .input_type = program.input_type, .output_type = program.output_type, .exports = program.exports };
+                    break :block Imported{ .type_only = program.type_only, .function = self.units[dependency].function, .input_type = program.input_type, .output_type = program.output_type, .exports = program.exports, .constant_exports = program.constant_exports };
                 },
                 .compiled => |value| try self.loadCompiled(value, item.span),
             };
@@ -269,6 +269,7 @@ const Project = struct {
                     .native_modules = self.native_modules.view(),
                     .aliases = aliases.items,
                     .imports = imports.items,
+                    .constant_imports = frame.constant_imports.items,
                     .dependencies = dependencies.items,
                 })) |result| {
                     restored = result.program;
@@ -293,6 +294,7 @@ const Project = struct {
                 .origins = &self.nominal_origins,
                 .origin = .{ .source = unit.path },
                 .function_imports = imports.items,
+                .constant_imports = frame.constant_imports.items,
                 .functions = self.functions.view(),
                 .store_bindings = if (std.mem.eql(u8, unit.path, self.options.entry)) self.options.context.stores else &.{},
                 .store_type_count = self.options.context.types.count(),
@@ -318,6 +320,8 @@ const Project = struct {
             .source_digest = source_digest,
             .type_range = .{ .start = first_type, .end = program.types.count() },
             .exports = program.exports,
+            .constant_exports = program.constant_exports,
+            .constant_imports = frame.constant_imports.items,
             .imports = dependencies.items,
             .type_imports = aliases.items,
             .function_imports = imports.items,

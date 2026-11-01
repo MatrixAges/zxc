@@ -28,6 +28,7 @@ pub const Result = struct {
         var result = self.program;
         result.file_name = exported.path;
         result.exports = exported.types;
+        result.constant_exports = exported.constants;
 
         if (exported.function) |id| {
             const function = result.functions.at(@backingInt(id));

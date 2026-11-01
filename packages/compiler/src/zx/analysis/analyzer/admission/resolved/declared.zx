@@ -1,10 +1,11 @@
 import { ImportKind } from "../../../../frontend/parser/imports/model"
 import importName from "../../source/import_name"
+import { DeclarationKind } from "./model"
 
 import type { Program } from "../../../../frontend/parser/syntax/model"
 import type { NativeModule } from "../../source/model"
 
-export type Input = { source_text: string, native: NativeModule?, syntax: Program, name: string, callable: bool }
+export type Input = { source_text: string, native: NativeModule?, syntax: Program, name: string, kind: DeclarationKind }
 
 export type Output = bool
 
@@ -14,7 +15,13 @@ export default function (in: Input): Output {
         next: current => {
             const item = current.input.syntax.imports[current.index]
 
-            if ((item.kind == ImportKind.Function) == current.input.callable) {
+            const selected = match current.input.kind {
+                DeclarationKind.Callable => item.kind == ImportKind.Function,
+                DeclarationKind.Constant => item.kind == ImportKind.Enumeration,
+                _ => item.kind != ImportKind.Function
+            }
+
+            if (selected) {
                 current.found = loop({ input: current.input, item: item, index: 0, found: false }, {
                     while: names => !names.found && names.index < names.item.count,
                     next: names => {

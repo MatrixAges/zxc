@@ -68,6 +68,7 @@ pub fn Storage(comptime Input: type) type {
                 .unit = &self.unit,
                 .export_names = names,
                 .export_types = ids,
+                .constant_exports = try @import("../../../analysis/constants/input.zig").marshal(std.meta.Child(@typeInfo(@FieldType(Input, "constant_exports")).optional.child), allocator, program.constant_exports),
             };
         }
     };

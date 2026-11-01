@@ -12,6 +12,7 @@ pub const Prepared = struct {
     source: []const u8,
     parsed: *const frontend.project.ParseCache.ModuleResult,
     type_imports: @FieldType(frontend.ResolvedImports, "aliases"),
+    constant_imports: []const zx.ir.Constant,
     imports: []const Binding,
     /// Whether the parse passed its source checks already, which then come before the imports.
     checked: bool,
@@ -74,7 +75,7 @@ pub fn prepare(state: *State, cache: *frontend.project.ParseCache, sources: []co
         .indexed => |*result| if (frontend.project.ParseCache.indexed_enabled) try @import("imports.zig").collect(state, result.header(), index, signature) else unreachable,
     };
 
-    return .{ .index = index, .source = source.source, .parsed = parsed, .type_imports = signature.type_imports, .imports = imports, .checked = checking != null };
+    return .{ .index = index, .source = source.source, .parsed = parsed, .type_imports = signature.type_imports, .constant_imports = signature.constant_imports, .imports = imports, .checked = checking != null };
 }
 
 /// Analyzes a prepared body against the shared tables, which it only reads, so bodies that depend on none of each
@@ -91,6 +92,7 @@ pub fn analyze(state: *const State, temporary: std.mem.Allocator, prepared: Prep
         .stores = stores,
     }, .{
         .aliases = prepared.type_imports,
+        .constant_imports = prepared.constant_imports,
         .imports = prepared.imports,
         .functions = base,
         .verified_functions = state.verifiedFunctions(),

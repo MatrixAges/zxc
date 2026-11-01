@@ -4,6 +4,23 @@ const Input = @import("../resolved.zig").Input;
 
 pub fn valid(header: anytype, input: Input, types: ir.TypeTable) bool {
     if (!input.functions.validStructure()) return false;
+    if (!@import("../../analysis/constants/input.zig").nativeValid(types, input.constant_imports)) return false;
+
+    for (input.constant_imports) |constant| {
+        var found = false;
+
+        for (0..header.importCount()) |index| {
+            if (header.importAt(index).kind != .enumeration) continue;
+
+            for (0..header.importNameCount(index)) |name_index| {
+                if (std.mem.eql(u8, constant.name, header.importNameAt(index, name_index).text)) found = true;
+            }
+        }
+
+        if (!found) return false;
+
+        for (input.aliases) |alias| if (std.mem.eql(u8, alias.name, constant.name)) return false;
+    }
 
     for (input.aliases, 0..) |alias, index| {
         if (@backingInt(alias.type_id) >= types.count() or !declared(header, alias.name, false)) return false;
@@ -50,6 +67,12 @@ pub fn valid(header: anytype, input: Input, types: ir.TypeTable) bool {
                     if (std.mem.eql(u8, name, binding.namespace orelse binding.name)) found = true;
                 }
             } else {
+                if (item.kind == .enumeration) {
+                    for (input.constant_imports) |constant| {
+                        if (std.mem.eql(u8, name, constant.name)) found = true;
+                    }
+                }
+
                 for (input.aliases) |alias| {
                     if (!std.mem.eql(u8, name, alias.name)) continue;
                     if (item.kind == .enumeration and types.at(@backingInt(alias.type_id)) != .enumeration) return false;

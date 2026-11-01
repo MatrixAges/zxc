@@ -92,7 +92,18 @@ pub fn link(allocator: std.mem.Allocator, inputs: []const model.Input) Error!mod
             }
         }
 
-        exported.* = .{ .name = try owned.dupe(u8, input.name), .path = try owned.dupe(u8, program.file_name), .function = function_id, .types = public_types.items };
+        const constants = try owned.alloc(ir.Constant, program.constant_exports.len);
+
+        for (program.constant_exports, constants) |source, *constant| {
+            constant.* = source;
+            constant.name = try owned.dupe(u8, source.name);
+
+            if (source.value == .string) constant.value.string = try owned.dupe(u8, source.value.string);
+
+            constant.type_id = try nodes.types.include(source.type_id);
+        }
+
+        exported.* = .{ .name = try owned.dupe(u8, input.name), .path = try owned.dupe(u8, program.file_name), .function = function_id, .types = public_types.items, .constants = constants };
     }
 
     for (0..functions.count()) |function_row| {

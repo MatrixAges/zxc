@@ -4,6 +4,7 @@ const ir = zx.ir;
 
 pub fn validate(allocator: std.mem.Allocator, program: ir.Program, verified: usize) std.mem.Allocator.Error!?zx.Diagnostic {
     if (program.version != zx.ir_version or !program.functions.validStructure() or !@import("type_rules.zig").validate(program.types)) return invalid();
+    if (!@import("../analysis/constants/input.zig").nativeValid(program.types, program.constant_exports)) return invalid();
     if (!try @import("body_structure.zig").valid(allocator, program) or !@import("contracts.zig").tables(program.contracts)) return invalid();
 
     for (verified..program.functions.count()) |item_row| {

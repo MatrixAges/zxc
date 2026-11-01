@@ -192,6 +192,7 @@ pub const Program = struct {
     output_type: TypeId,
     body: ControlBody,
     exports: []const Export = &.{},
+    constant_exports: []const Constant = &.{},
     functions: FunctionTable = .{},
     native_modules: NativeModuleTable = .{},
     stores: StoreTable = .{},

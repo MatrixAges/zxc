@@ -1,4 +1,5 @@
 import integers from "std:integer"
+import constant from "core/constant/lookup"
 import kind from "core/type_table/kind"
 import { Kind } from "core/type_table/model"
 
@@ -45,6 +46,11 @@ export default function (in: Input): Output {
                                 }
                             }).found
                         } else if (names.valid) {
+                            const value = names.item.kind == ImportKind.Enumeration && names.input.constants != null ? constant({
+                                constants: names.input.constants,
+                                name: name
+                            }) : null
+
                             const matched = loop({ input: names.input, name: name, kind: names.item.kind, index: 0, found: false, valid: true }, {
                                 while: alias => alias.valid && !alias.found && alias.index < alias.input.aliases.names.length,
                                 next: alias => {
@@ -57,7 +63,7 @@ export default function (in: Input): Output {
                                 }
                             })
 
-                            names.valid = matched.found && matched.valid
+                            names.valid = value != null || (matched.found && matched.valid)
                         }
 
                         names.index += 1

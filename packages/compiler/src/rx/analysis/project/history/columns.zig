@@ -37,7 +37,8 @@ pub fn same(left: anytype, right: @TypeOf(left)) bool {
     const T = @TypeOf(left);
 
     return switch (@typeInfo(T)) {
-        .int, .bool, .@"enum", .float, .void => left == right,
+        .int, .bool, .@"enum", .void => left == right,
+        .float => @as(@Int(.unsigned, @bitSizeOf(T)), @bitCast(left)) == @as(@Int(.unsigned, @bitSizeOf(T)), @bitCast(right)),
         .optional => if (left) |value| if (right) |other| same(value, other) else false else right == null,
         .array => same(left[0..], right[0..]),
         .pointer => |pointer| switch (pointer.size) {
@@ -66,9 +67,7 @@ fn slices(left: anytype, right: @TypeOf(left)) bool {
 
     if (left.len != right.len) return false;
     if (left.len == 0 or left.ptr == right.ptr) return true;
-
     if (comptime std.meta.hasUniqueRepresentation(Element)) return std.mem.eql(Element, left, right);
-
     for (left, right) |a, b| if (!same(a, b)) return false;
 
     return true;

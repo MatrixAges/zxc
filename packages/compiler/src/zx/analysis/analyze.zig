@@ -116,6 +116,7 @@ fn analyzeInputIn(allocator: std.mem.Allocator, input: anytype, file_name: []con
         .reporter = &reporter,
         .functions = functions,
         .function_imports = if (resolved) |bindings| bindings.imports else &.{},
+        .constant_imports = if (resolved) |bindings| bindings.constant_imports else &.{},
         .types = &copied_types,
         .aliases = if (resolved) |bindings| bindings.aliases else &.{},
         .origins = &origins,

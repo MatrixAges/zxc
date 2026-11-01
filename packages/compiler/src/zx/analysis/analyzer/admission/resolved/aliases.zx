@@ -1,6 +1,7 @@
 import integers from "std:integer"
 
 import declared from "./declared"
+import { DeclarationKind } from "./model"
 
 import type { Request } from "./model"
 
@@ -15,7 +16,7 @@ export default function (in: Input): Output {
             const name = current.input.aliases.names[current.index]
 
             current.valid = integers.widen(current.input.aliases.ids[current.index]) < current.input.table.kinds.length &&
-                declared({ source_text: current.input.source_text, native: current.input.native, syntax: current.input.syntax, name: name, callable: false })
+                declared({ source_text: current.input.source_text, native: current.input.native, syntax: current.input.syntax, name: name, kind: DeclarationKind.Alias })
 
             if (current.valid) {
                 current.valid = loop({ names: current.input.aliases.names, limit: current.index, name: name, index: 0, valid: true }, {

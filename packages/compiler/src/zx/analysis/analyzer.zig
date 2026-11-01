@@ -45,8 +45,11 @@ fn runInitialized(self: *Self, program: anytype, view: anytype, file_name: []con
     const contract_span = if (program.body) |body| body.span else zx.Span{ .start = 0, .end = 0 };
     const signature = try @import("../modules/source_signature.zig").ports(&self.types, program);
     const input_type = signature.input_type;
-
     self.output_type = signature.output_type;
+
+    const constants = try @import("constants/declarations/seed.zig").apply(&self.types, program.constants, self.constants);
+
+    self.constants = constants.scope;
 
     try self.resolveStores(program.has_store, contract_span);
 
@@ -67,6 +70,7 @@ fn runInitialized(self: *Self, program: anytype, view: anytype, file_name: []con
         .input_type = input_type,
         .body = body,
         .exports = exports,
+        .constant_exports = constants.exports,
         .type_only = program.body == null,
     });
 }
@@ -83,6 +87,7 @@ const Output = struct {
     file_name: []const u8,
     input_type: ir.TypeId,
     exports: []const ir.Export,
+    constant_exports: []const ir.Constant,
     type_only: bool,
     body: ?ir.BlockId = null,
     contracts: ir.ContractTable = .{},
@@ -99,6 +104,7 @@ fn finish(self: *Self, output: Output) zx.Error!ir.Program {
         .output_type = self.output_type,
         .body = try self.control.finish(self.allocator, output.body),
         .exports = output.exports,
+        .constant_exports = output.constant_exports,
         .stores = self.stores,
         .type_only = output.type_only,
     };

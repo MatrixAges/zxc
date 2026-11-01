@@ -1,3 +1,4 @@
+import type { Values } from "core/constant/model"
 import type { Complete } from "core/function_table/complete"
 import type { Modules } from "core/native_module_table/model"
 import type { Table } from "core/type_table/model"
@@ -17,6 +18,7 @@ export type Context = {
     mode: Mode
     type_base: Table
     aliases: Cache
+    constant_imports: Values?
     nominal_base: Bindings
     nominal_names: string[]
     nominal_origin: Origin

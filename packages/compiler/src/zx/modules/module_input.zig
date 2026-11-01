@@ -39,6 +39,7 @@ pub const Native = struct {
                 .shared = .{ .origins = context.origins, .origin = context.origin },
             },
             .functions = context.functions,
+            .constants = context.constant_imports,
             .function_imports = context.function_imports,
             .store_bindings = context.store_bindings,
             .store_type_count = context.store_type_count,

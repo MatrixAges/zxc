@@ -47,7 +47,7 @@ pub fn resolve(types: *Types, program: anytype, view: anytype, constants: []cons
     return .{
         .ports = signature,
         .exports = try exports(types, view),
-        .constant_exports = try @import("../analysis/constants/declarations/seed.zig").apply(types, program.constants, constants),
+        .constant_exports = (try @import("../analysis/constants/declarations/seed.zig").apply(types, program.constants, constants)).exports,
         .type_only = program.body == null,
         .has_store = program.has_store,
     };

@@ -21,6 +21,7 @@ pub const Loaded = struct {
     input_type: ir.TypeId,
     output_type: ir.TypeId,
     exports: []const ir.Export,
+    constant_exports: []const ir.Constant = &.{},
     store_initializers: []const Initializer,
 };
 
@@ -94,6 +95,12 @@ fn finish(input: Input, destination: program_link.Destination, nodes: *Nodes) pr
     }
 
     const initializers = try allocator.alloc(Initializer, input.store_initializers.len);
+    const constants = try allocator.alloc(ir.Constant, program.constant_exports.len);
+
+    for (program.constant_exports, constants) |source, *constant| {
+        constant.* = try @import("../../analysis/constants/copy.zig").copy(allocator, source);
+        constant.type_id = try nodes.types.include(source.type_id);
+    }
 
     for (input.store_initializers, initializers) |source, *initializer| {
         initializer.* = .{
@@ -108,6 +115,7 @@ fn finish(input: Input, destination: program_link.Destination, nodes: *Nodes) pr
         .input_type = try nodes.types.include(program.input_type),
         .output_type = try nodes.types.include(program.output_type),
         .exports = exports,
+        .constant_exports = constants,
         .store_initializers = initializers,
     };
 }

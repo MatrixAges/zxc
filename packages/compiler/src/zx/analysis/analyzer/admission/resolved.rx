@@ -3,6 +3,14 @@
 
     <Args in={Model.Request} out={bool} />
 
+    <Call fn="resolved/constants" in={$in} />
+
+    <Switch on={!$ctx.constants}>
+        <Case value={true}>
+            <Return value={false} />
+        </Case>
+    </Switch>
+
     <Call fn="../../../ir/canonical/validation/structure/functions" in={{ functions: $in.functions, maximum_count: $in.maximum_count }} />
 
     <Switch on={!$ctx.functions}>

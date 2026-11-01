@@ -1,0 +1,72 @@
+import valid from "../../../constants/valid"
+import declared from "./declared"
+import { DeclarationKind } from "./model"
+
+import type { Request } from "./model"
+
+export type Input = Request
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const constants = in.constants
+
+    if (constants == null) {
+        return true
+    }
+
+    if (!valid({
+        constants: constants,
+        types: {
+            base: in.table,
+            delta: {
+                kinds: [],
+                first: [],
+                second: [],
+                labels: [],
+                children: [],
+                field_types: [],
+                field_names: [],
+                names: []
+            }
+        }
+    })) {
+        return false
+    }
+
+    return loop({
+        input: in,
+        names: constants.names,
+        index: 0,
+        valid: true
+    }, {
+        while: current => current.valid && current.index < current.names.length,
+        next: current => {
+            const name = current.names[current.index]
+
+            current.valid = declared({
+                source_text: current.input.source_text,
+                native: current.input.native,
+                syntax: current.input.syntax,
+                name: name,
+                kind: DeclarationKind.Constant
+            })
+
+            const matching = loop({
+                names: current.input.aliases.names,
+                name: name,
+                index: 0,
+                found: false
+            }, {
+                while: alias => !alias.found && alias.index < alias.names.length,
+                next: alias => {
+                    alias.found = alias.names[alias.index] == alias.name
+                    alias.index += 1
+                }
+            }).found
+
+            current.valid = current.valid && !matching
+            current.index += 1
+        }
+    }).valid
+}

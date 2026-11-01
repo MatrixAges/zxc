@@ -22,6 +22,7 @@ pub fn analyze(owner: *Analyzer, source: anytype, input_type: ir.TypeId, exports
         var analyzer = Analyzer{
             .allocator = owner.allocator,
             .reporter = owner.reporter,
+            .constants = owner.constants,
             .types = .{ .allocator = owner.allocator, .reporter = owner.reporter, .declarations = &.{}, .aliases = aliases },
         };
 

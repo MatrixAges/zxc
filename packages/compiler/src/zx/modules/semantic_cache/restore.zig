@@ -16,6 +16,7 @@ pub const Current = struct {
     native_modules: ir.NativeModuleTable,
     aliases: []const ir.Export,
     imports: []const FunctionImport,
+    constant_imports: []const ir.Constant = &.{},
     dependencies: []const Record.Import,
 };
 
@@ -23,6 +24,8 @@ pub const Result = struct { program: ir.Program, nominal_types: Origins.Table };
 const Error = Types.Error || model.Error;
 
 pub fn restore(module: model.Module, current: Current) std.mem.Allocator.Error!?Result {
+    if (current.constant_imports.len != 0) return null;
+
     return restoreChecked(module, current) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 

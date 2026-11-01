@@ -5,6 +5,7 @@ pub const Output = std.meta.Child(generated.Output);
 pub const Context = std.meta.Child(@FieldType(Input, "context"));
 pub const Types = std.meta.Child(@FieldType(Context, "type_base"));
 pub const Aliases = std.meta.Child(@FieldType(Context, "aliases"));
+pub const Constants = @FieldType(Context, "constant_imports");
 pub const Origins = std.meta.Child(@FieldType(Context, "nominal_base"));
 pub const Origin = std.meta.Child(@FieldType(Context, "nominal_origin"));
 pub const Functions = std.meta.Child(@FieldType(Context, "functions"));

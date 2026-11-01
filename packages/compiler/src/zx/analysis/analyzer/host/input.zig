@@ -8,6 +8,7 @@ const Self = @This();
 
 types: model.Types,
 aliases: model.Aliases,
+constants: model.Constants,
 origins: model.Origins,
 origin: model.Origin,
 functions: model.Functions,
@@ -21,6 +22,7 @@ pub fn init(allocator: std.mem.Allocator, analyzer: *const Context) std.mem.Allo
     return .{
         .types = ir.TypeTable.borrow(model.Types, analyzer.base_types),
         .aliases = try bindings.aliases(allocator, analyzer.aliases),
+        .constants = try @import("../../constants/input.zig").marshal(std.meta.Child(@typeInfo(model.Constants).optional.child), allocator, analyzer.constant_imports),
         .origins = Origins.Table.borrow(model.Origins, analyzer.base_origins),
         .origin = .{
             .kind = switch (origin) {
@@ -51,6 +53,7 @@ pub fn context(self: *const Self, analyzer: *const Context) model.Context {
         },
         .type_base = &self.types,
         .aliases = &self.aliases,
+        .constant_imports = self.constants,
         .nominal_base = &self.origins,
         .nominal_names = analyzer.base_origins.names,
         .nominal_origin = &self.origin,
