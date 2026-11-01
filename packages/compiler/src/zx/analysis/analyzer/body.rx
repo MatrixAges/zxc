@@ -20,13 +20,7 @@
 
     <Call
         fn="statements/traversal/initial"
-        in={{
-            state: $in.state,
-            source: $in.source,
-            imports: $in.imports,
-            functions: $in.functions,
-            block: $in.block
-        }}
+        in={$in.omit(["span"])}
     />
 
     <Call fn="statements/traversal/advance" in={$ctx.initial} />

@@ -1,0 +1,113 @@
+import { no_diagnostic } from "../../../../../const"
+import { ExprKind } from "../../../../frontend/parser/expressions/state/model"
+import decode from "../../../../frontend/string_literal/decode"
+import literal from "../../source/literal"
+import items from "../items"
+import {
+    static_fields_message,
+    duplicate_field_message,
+    type_code,
+    name_code
+} from "./const"
+
+import type { Diagnostic } from "../../../../frontend/lexer/model"
+import type { Source } from "../request"
+
+export type Input = {
+    source: Source,
+    node: u64
+}
+
+export type Output = {
+    names: string[],
+    diagnostic: Diagnostic
+}
+
+export default function (in: Input): Output {
+    const node = in.source.tree.nodes[in.node]
+
+    const arguments = items({
+        items: in.source.tree.items,
+        head: node.head
+    })
+
+    const names: string[] = []
+
+    const diagnostic: Diagnostic = {
+        code: no_diagnostic,
+        message: no_diagnostic,
+        start: 0,
+        end: 0
+    }
+
+    if (
+        arguments.length != 1 ||
+            in.source.tree.nodes[arguments[0]].kind != ExprKind.List
+    ) {
+        return {
+            names,
+            diagnostic: {
+                code: type_code,
+                message: static_fields_message,
+                start: node.span.start,
+                end: node.span.end
+            }
+        }
+    }
+
+    const values = items({
+        items: in.source.tree.items,
+        head: in.source.tree.nodes[arguments[0]].head
+    })
+
+    const result = loop({
+        names,
+        values,
+        index: 0,
+        source: in.source,
+        diagnostic
+    }, {
+        while: current =>
+            current.index < current.values.length && current.diagnostic.message == "",
+        next: current => {
+            const id = current.values[current.index]
+            const value = current.source.tree.nodes[id]
+
+            if (value.kind != ExprKind.String) {
+                current.diagnostic = {
+                    code: type_code,
+                    message: static_fields_message,
+                    start: value.span.start,
+                    end: value.span.end
+                }
+            } else {
+                const name = decode({
+                    source: literal({
+                        source: current.source,
+                        index: id,
+                        template: false
+                    }),
+                    template: false
+                })
+
+                if (current.names.some(previous => previous == name)) {
+                    current.diagnostic = {
+                        code: name_code,
+                        message: duplicate_field_message,
+                        start: value.span.start,
+                        end: value.span.end
+                    }
+                } else {
+                    current.names = current.names.push(name)[0]
+                }
+            }
+
+            current.index += 1
+        }
+    })
+
+    return {
+        names: result.names,
+        diagnostic: result.diagnostic
+    }
+}

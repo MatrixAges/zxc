@@ -10,10 +10,14 @@
             module="validate"
             in={{
                 source: $in,
-                declarations: $ctx.native.declarations,
-                functions: $ctx.native.functions,
-                parameters: $ctx.native.parameters,
-                errors: $ctx.native.errors
+                ...$ctx.native.pick(
+                    [
+                        "declarations",
+                        "functions",
+                        "parameters",
+                        "errors"
+                    ]
+                )
             }}
         />
 

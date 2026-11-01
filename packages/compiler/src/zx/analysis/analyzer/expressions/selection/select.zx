@@ -1,0 +1,92 @@
+import integers from "std:integer"
+
+import row from "../../../semantic/types/row"
+import { NameKind } from "../../source/model"
+import readName from "../../source/name"
+import { method_omit } from "./const"
+import indices from "./indices"
+import keys from "./keys"
+import lower from "./lower"
+
+import type { Prepared } from "../../model"
+import type { Result } from "../model"
+import type { Source } from "../request"
+
+export type Input = {
+    state: Prepared,
+    source: Source,
+    node: u64,
+    target: u32
+}
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const node = in.source.tree.nodes[in.node]
+
+    const fields = keys({
+        source: in.source,
+        node: in.node
+    })
+
+    if (fields.diagnostic.message != "") {
+        return {
+            state: {
+                ...in.state,
+                diagnostic: fields.diagnostic
+            },
+            value: 0
+        }
+    }
+
+    const tables = {
+        base: in.state.types.context.base,
+        delta: in.state.types.delta
+    }
+
+    const target = row({
+        tables,
+        id: in.state.local.expressions.types[integers.widen(in.target)]
+    })
+
+    const table = target.delta ? tables.delta : tables.base
+
+    const name = readName({
+        source: in.source,
+        kind: NameKind.Expression,
+        index: node.first
+    })
+
+    const selected = indices({
+        names: table.field_names,
+        first: integers.widen(target.first),
+        count: integers.widen(target.second),
+        keys: fields.names,
+        omit: name.text == method_omit,
+        span: node.span
+    })
+
+    if (selected.diagnostic.message != "") {
+        return {
+            state: {
+                ...in.state,
+                diagnostic: selected.diagnostic
+            },
+            value: 0
+        }
+    }
+
+    if (selected.indices.length == integers.widen(target.second)) {
+        return {
+            state: in.state,
+            value: in.target
+        }
+    }
+
+    return lower({
+        state: in.state,
+        target: in.target,
+        indices: selected.indices,
+        span: node.span
+    })
+}

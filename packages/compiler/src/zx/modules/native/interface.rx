@@ -42,11 +42,7 @@
         <If on={$ctx.exports.diagnostic.message == ""}>
             <Call
                 fn="signatures/functions"
-                in={{
-                    resolution: $in.resolution,
-                    functions: $in.functions,
-                    parameters: $in.parameters
-                }}
+                in={$in.pick(["resolution", "functions", "parameters"])}
             />
 
             <If on={$ctx.functions.resolution.diagnostic.message == ""}>

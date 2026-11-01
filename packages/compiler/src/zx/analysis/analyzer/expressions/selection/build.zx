@@ -1,0 +1,88 @@
+import integers from "std:integer"
+import project from "core/expression_table/append/projection"
+
+import row from "../../../semantic/types/row"
+import finish from "../objects/finish"
+
+import type { Span } from "../../../../frontend/lexer/token_model"
+import type { Prepared } from "../../model"
+import type { Result } from "../model"
+
+export type Input = {
+    state: Prepared,
+    target: u32,
+    indices: u32[],
+    span: Span
+}
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const tables = {
+        base: in.state.types.context.base,
+        delta: in.state.types.delta
+    }
+
+    const type_id = in.state.local.expressions.types[integers.widen(in.target)]
+
+    const target = row({
+        tables,
+        id: type_id
+    })
+
+    const table = target.delta ? tables.delta : tables.base
+    const values: u32[] = []
+    const names: string[] = []
+
+    const result = loop({
+        indices: in.indices,
+        index: 0,
+        expressions: in.state.local.expressions,
+        target: in.target,
+        table,
+        first: integers.widen(target.first),
+        names,
+        values,
+        span: in.span
+    }, {
+        while: current => current.index < current.indices.length,
+        next: current => {
+            const index = current.indices[current.index]
+            const position = current.first + integers.widen(index)
+            const value = project({
+                table: current.expressions,
+                metadata: {
+                    type_id: current.table.field_types[position],
+                    span_start: current.span.start,
+                    span_end: current.span.end
+                },
+                target: current.target,
+                index,
+                tuple: false
+            })
+
+            current.expressions = value.table
+            current.names =
+                current.names.push(current.table.field_names[position])[0]
+            current.values = current.values.push(value.id)[0]
+            current.index += 1
+        }
+    })
+
+    return finish({
+        state: {
+            ...in.state,
+            local: {
+                ...in.state.local,
+                expressions: result.expressions
+            }
+        },
+        entries: {
+            names: result.names,
+            values: result.values
+        },
+        evaluation: result.values,
+        hint: null,
+        span: in.span
+    })
+}

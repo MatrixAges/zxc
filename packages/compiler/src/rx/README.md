@@ -77,7 +77,7 @@ Type 声明 ZX 公开类型的来源，as 必填且在当前 Module 内唯一；
 
 属性使用引号或花括号区分值的语义：`value="hello"` 是字符串，`value={expression}` 使用 ZX 表达式。`value="$in"` 返回字符串 `$in`；读取输入应写 `value={$in}`。对象表达式外面仍需属性花括号，例如 `in={{user: $in.user}}`。
 
-RX 属性值只负责数据引用、组装和简单运算，不执行函数或方法调用，也不定义 lambda 或状态更新块；嵌套对象、模板插值和分支中的调用同样禁止。将 loop、集合处理和其他计算放在 ZX 模块中，用 `<Call fn="calculate" in={$in} />` 编排，再通过 `$ctx.calculate` 连接后续步骤。模块组合使用 Call.module。
+RX 属性值只负责数据引用、组装和简单运算，不执行普通函数或方法调用，也不定义 lambda 或状态更新块；嵌套对象、模板插值和分支遵守同一边界。对象的 pick/omit 是静态字段组装，只接受字符串字面量字段数组，receiver 仍须满足上述边界。将 loop、集合处理和其他计算放在 ZX 模块中，用 `<Call fn="calculate" in={$in} />` 编排，再通过 `$ctx.calculate` 连接后续步骤。模块组合使用 Call.module。
 
 花括号内部直接使用 ZX 源码，支持对象、列表、比较、逻辑运算、注释和模板，不进行 XML 实体解码或空白归一化；`<`、`&&` 无需写成 XML 实体。引号字符串仍使用标签转义，例如 `&amp;`、`&quot;`。
 
@@ -86,6 +86,16 @@ RX 属性值只负责数据引用、组装和简单运算，不执行函数或�
 Call 使用 in 传参；读取输入写 `in={$in}`，字符串写 `in="$in"`；旧表达式中通过 XML 实体表示的符号需在花括号内恢复为 ZX 符号。无后缀调用保留：`fn="load"` 对应 `load.zx`，`module="orders"` 对应 `orders.rx`，不需要 `.zig`。
 
 ## 调用与组合
+
+对象组装支持展开、同名属性简写，以及静态 `object.pick(["field"])` / `object.omit(["field"])`。
+字段必须是字符串字面量数组，解码后拒绝重复与未知键，结果保留原字段 TypeId 和来源类型顺序。
+键不进入运行时，receiver 仍受属性值边界约束；普通函数与回调不能借此进入属性。
+来源字段集合须由 Args、调用接口或对象构造确定，不能通过选择键凭空推导来源。
+空 pick 保留来源求值并返回空对象；空 omit 复用原对象。
+
+```xml
+<Call fn="validate" in={$in.omit(["span"])} />
+```
 
 每个 Module 自身就是流程。Args 约束模块接口，`rx_analysis.module.infer` 连接声明、函数签名和实际返回路径；类型来源通过 Type 明确引入。
 

@@ -6,7 +6,10 @@ import { NameKind } from "../../../source/model"
 import readName from "../../../source/name"
 import plan from "../../calls/list/plan"
 import items from "../../items"
+import { method_pick, method_omit } from "../../selection/const"
+import select from "../../selection/select"
 import next from "../lists/next"
+import { Phase } from "../model"
 import transform from "../transforms/enter"
 
 import type { Work, ListCall } from "../model"
@@ -54,6 +57,29 @@ export default function (in: Input): Output {
     })
 
     if (target.kind != Kind.List) {
+        if (
+            target.kind == Kind.Object &&
+                (name.text == method_pick || name.text == method_omit)
+        ) {
+            const result = select({
+                state: in.state,
+                source: in.source,
+                node: frame.node,
+                target: in.value
+            })
+
+            return {
+                ...in,
+                state: result.state,
+                value: result.value,
+                phase: Phase.Complete,
+                frames: {
+                    ...in.frames,
+                    methods: in.frames.methods.pop()[0]
+                }
+            }
+        }
+
         return {
             ...in,
             state: {

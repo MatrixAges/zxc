@@ -8,13 +8,15 @@
     <If on={$ctx.header}>
         <Call
             fn="descriptor"
-            in={{
-                path: $in.path,
-                modules: $in.modules,
-                export_names: $in.export_names,
-                export_types: $in.export_types,
-                declaration: $in.declaration
-            }}
+            in={$in.pick(
+                [
+                    "path",
+                    "modules",
+                    "export_names",
+                    "export_types",
+                    "declaration"
+                ]
+            )}
         />
 
         <Call
@@ -27,11 +29,7 @@
 
         <Call
             fn="bindings"
-            in={{
-                signatures: $in.signatures,
-                imports: $in.imports,
-                declaration: $in.declaration
-            }}
+            in={$in.pick(["signatures", "imports", "declaration"])}
         />
 
         <Return value={$ctx.descriptor && $ctx.origins && $ctx.bindings} />

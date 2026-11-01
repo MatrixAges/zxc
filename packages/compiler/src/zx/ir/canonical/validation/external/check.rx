@@ -9,16 +9,19 @@
         <Call
             module="../../native_export_check"
             in={{
-                functions: {
-                    input_types: $in.context.functions.input_types,
-                    output_types: $in.context.functions.output_types,
-                    native_modules: $in.context.functions.native_modules,
-                    native_members: $in.context.functions.native_members,
-                    native_exports: $in.context.functions.native_exports,
-                    native_fallible: $in.context.functions.native_fallible,
-                    native_errors: $in.context.functions.native_errors,
-                    native_concurrent: $in.context.functions.native_concurrent
-                },
+                functions:
+                    $in.context.functions.pick(
+                        [
+                            "input_types",
+                            "output_types",
+                            "native_modules",
+                            "native_members",
+                            "native_exports",
+                            "native_fallible",
+                            "native_errors",
+                            "native_concurrent"
+                        ]
+                    ),
                 modules: $in.context.modules,
                 index: $in.index
             }}

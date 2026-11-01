@@ -1,10 +1,16 @@
 const zx = @import("zx");
 const syntax = zx.syntax.borrow;
+const object_selection = @import("frontend").object_selection;
 pub const message = "RX values cannot contain calls or callbacks; move logic to ZX and use Call.fn or Call.module";
 
 pub fn validate(expression: anytype) ?zx.Diagnostic {
     switch (syntax.value(expression)) {
-        .call, .pipeline, .lambda, .state_block, .capture, .task, .await_task, .cancel_task => return .{ .code = .unsupported, .span = expression.span, .message = message },
+        .call => {
+            if (!object_selection.matches(expression)) return .{ .code = .unsupported, .span = expression.span, .message = message };
+
+            return object_selection.validate(expression) orelse validate(syntax.value(syntax.value(expression).call.callee).field.target);
+        },
+        .pipeline, .lambda, .state_block, .capture, .task, .await_task, .cancel_task => return .{ .code = .unsupported, .span = expression.span, .message = message },
         .field => |field| return validate(field.target),
         .index => |item| return validate(item.target) orelse validate(item.index),
         .unary => |unary| return validate(unary.operand),

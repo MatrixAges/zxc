@@ -1,0 +1,86 @@
+import integers from "std:integer"
+import append from "core/expression_table/append/scope"
+import { Ownership } from "core/symbol_table/model"
+
+import reference from "../../collections/building/reference"
+import symbol from "../../collections/building/symbol"
+import borrow from "../../statements/scopes/borrow"
+import build from "./build"
+import { binding_name } from "./const"
+import reusable from "./reusable"
+
+import type { Result } from "../model"
+import type { Input as BuildInput } from "./build"
+
+export type Input = BuildInput
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    if (reusable({
+        expressions: in.state.local.expressions,
+        value: in.target
+    })) {
+        return build(in)
+    }
+
+    const binding = symbol({
+        state: in.state,
+        name: binding_name,
+        type_id: in.state.local.expressions.types[integers.widen(in.target)],
+        ownership: Ownership.Copy,
+        span: in.span
+    })
+
+    const value = reference({
+        state: binding.state,
+        symbol: binding.symbol,
+        span: in.span
+    })
+
+    const result = build({
+        ...in,
+        state: value.state,
+        target: value.value
+    })
+
+    if (result.state.diagnostic.message != "") {
+        return result
+    }
+
+    const symbols: u32?[] = [binding.symbol]
+
+    const output = append({
+        table: result.state.local.expressions,
+        metadata: {
+            type_id:
+                result.state.local.expressions.types[integers.widen(
+                    result.value
+                )],
+            span_start: in.span.start,
+            span_end: in.span.end
+        },
+        result: result.value,
+        symbols,
+        values: [in.target],
+        borrows:
+            [
+                borrow(
+                    in.state.local.expressions.kinds[integers.widen(
+                        in.target
+                    )]
+                )
+            ]
+    })
+
+    return {
+        state: {
+            ...result.state,
+            local: {
+                ...result.state.local,
+                expressions: output.table
+            }
+        },
+        value: output.id
+    }
+}

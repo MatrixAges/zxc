@@ -6,11 +6,7 @@
 
     <Call
         fn="functions/validate"
-        in={{
-            signatures: $in.signatures,
-            imports: $in.imports,
-            plan: $in.plan
-        }}
+        in={$in.pick(["signatures", "imports", "plan"])}
     />
 
     <Call

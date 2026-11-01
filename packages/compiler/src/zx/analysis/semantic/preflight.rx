@@ -24,21 +24,13 @@
     <If on={$ctx.shape}>
         <Call
             fn="merging/preflight/origins"
-            in={{
-                source: $in.source,
-                origins: $in.origins,
-                names: $in.names
-            }}
+            in={$in.pick(["source", "origins", "names"])}
         />
 
         <If on={$ctx.origins.valid}>
             <Call
                 fn="merging/preflight/bounds"
-                in={{
-                    source: $in.source,
-                    target: $in.target,
-                    first: $in.first
-                }}
+                in={$in.pick(["source", "target", "first"])}
             />
 
             <If on={$ctx.bounds}>

@@ -26,10 +26,9 @@
                     fn="signature/request"
                     in={{
                         types: {
-                            context: $in.types.context,
+                            ...$in.types,
                             delta: $ctx.task.input.delta,
-                            cache: $ctx.task.input.cache,
-                            nominal_delta: $in.types.nominal_delta
+                            cache: $ctx.task.input.cache
                         },
                         span: $ctx.initial.span,
                         name: "Output"
@@ -42,10 +41,9 @@
             <Return
                 value={{
                     types: {
-                        context: $in.types.context,
+                        ...$in.types,
                         delta: $ctx.task.output.delta,
-                        cache: $ctx.task.output.cache,
-                        nominal_delta: $in.types.nominal_delta
+                        cache: $ctx.task.output.cache
                     },
                     span: $ctx.initial.span,
                     input_type: $ctx.task.input.id,
@@ -58,10 +56,9 @@
                 <Return
                     value={{
                         types: {
-                            context: $in.types.context,
+                            ...$in.types,
                             delta: $ctx.task.input.delta,
-                            cache: $ctx.task.input.cache,
-                            nominal_delta: $in.types.nominal_delta
+                            cache: $ctx.task.input.cache
                         },
                         span: $ctx.initial.span,
                         input_type: $ctx.initial.input_type,

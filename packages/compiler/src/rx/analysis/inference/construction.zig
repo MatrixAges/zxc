@@ -130,9 +130,13 @@ fn optional(graph: *Graph, value: Graph.Id) bool {
     return shape == .optional or (shape == .known and graph.types.get(shape.known) == .optional);
 }
 
-fn closed(graph: *const Graph, value: Graph.Id, depth: usize) bool {
+pub fn closed(graph: *const Graph, value: Graph.Id, depth: usize) bool {
     if (graph.shape(value) == .known) return true;
     if (depth >= 256) return false;
+
+    for (graph.selections.items) |selection| {
+        if (graph.root(selection.result) == graph.root(value)) return true;
+    }
 
     for (graph.constructions.items) |object| {
         if (graph.root(object.result) != graph.root(value)) continue;

@@ -19,11 +19,7 @@
 
     <Call
         fn="local/initial"
-        in={{
-            signature: $in.signature,
-            stores: $in.stores,
-            allow_store: $in.allow_store
-        }}
+        in={$in.omit(["has_body"])}
     />
 
     <If on={$in.has_body}>

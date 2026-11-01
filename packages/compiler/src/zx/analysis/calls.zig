@@ -78,7 +78,12 @@ pub fn analyze(self: *Analyzer, expression: anytype, expected: ?ir.TypeId) zx.Er
     const name = field.name.text;
 
     if (std.mem.eql(u8, name, "clone")) return self.reporter.fail(.unsupported, expression.span, "deep copying is not supported; move an owned value or borrow it read-only");
-    if (self.types.get(target_type) != .list) return self.reporter.fail(.type_mismatch, field.name.span, "collection methods require a list");
+
+    if (self.types.get(target_type) != .list) {
+        if (self.types.get(target_type) == .object and @import("../frontend/object_selection.zig").name(name)) return @import("object_selection.zig").analyze(self, expression, target);
+
+        return self.reporter.fail(.type_mismatch, field.name.span, "collection methods require a list");
+    }
 
     const kind = std.meta.stringToEnum(@FieldType(ir.Transform, "kind"), name);
 

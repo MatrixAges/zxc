@@ -24,6 +24,7 @@ binding_lookups: std.ArrayList(@import("bindings.zig").Lookup) = .empty,
 assignments: std.ArrayList(Assignment.Edge) = .empty,
 assignment_keys: std.AutoHashMapUnmanaged([2]Id, void) = .empty,
 constructions: std.ArrayList(@import("construction.zig").Object) = .empty,
+selections: std.ArrayList(@import("selection.zig").Selection) = .empty,
 sequences: std.ArrayList(@import("sequences.zig").Sequence) = .empty,
 nonnull: std.ArrayList(@import("non_null.zig").Projection) = .empty,
 known_types: std.AutoHashMapUnmanaged(zx.ir.TypeId, Id) = .empty,
@@ -74,6 +75,7 @@ pub fn root(self: *const Self, id: Id) Id {
         const grandparent = nodes[@backingInt(parent)].parent;
 
         nodes[@backingInt(current)].parent = grandparent;
+
         current = grandparent;
     }
 }
@@ -92,7 +94,6 @@ pub fn expect(self: *Self, value: Id, expected: Id, span: zx.Span) zx.Error!void
 
     if (key[0] == key[1]) return;
     if ((try self.assignment_keys.getOrPut(self.allocator, key)).found_existing) return;
-
     try self.assignments.append(self.allocator, .{ .value = value, .expected = expected, .span = span });
 
     self.revision += 1;
@@ -221,6 +222,7 @@ pub fn finish(self: *Self) zx.Error!void {
         try @import("non_null.zig").propagate(self, false);
         for (self.sequences.items) |sequence| try @import("sequences.zig").propagate(self, sequence);
         for (self.constructions.items) |object| try @import("construction.zig").propagate(self, object, false);
+        for (self.selections.items) |selection| try @import("selection.zig").propagate(self, selection, false);
 
         for (self.lengths.items) |projection| {
             if (self.shape(projection.target) == .unknown) continue;
@@ -247,6 +249,8 @@ pub fn finish(self: *Self) zx.Error!void {
         if (revision != self.revision) continue;
         if (try @import("index.zig").defaultLists(self)) continue;
         try @import("non_null.zig").propagate(self, true);
+        if (revision != self.revision) continue;
+        for (self.selections.items) |selection| try @import("selection.zig").propagate(self, selection, true);
         if (revision != self.revision) continue;
         for (self.constructions.items) |object| try @import("construction.zig").propagate(self, object, true);
         if (revision != self.revision) continue;

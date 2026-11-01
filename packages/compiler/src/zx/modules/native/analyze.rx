@@ -32,12 +32,7 @@
 
     <Call
         module="prepare"
-        in={{
-            context: $in.context,
-            shared: $in.shared,
-            origins: $in.origins,
-            origin: $in.origin
-        }}
+        in={$in.pick(["context", "shared", "origins", "origin"])}
     />
 
     <If on={$ctx.prepare.resolution.diagnostic.message == ""}>
