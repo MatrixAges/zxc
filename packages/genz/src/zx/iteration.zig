@@ -151,7 +151,12 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
             return try aggregate.finish(self, &body, result);
         }
 
-        const result = try @import("iteration_consumer.zig").read(self, selected, selected.result, state);
+        var result = try @import("iteration_consumer.zig").read(self, selected, selected.result, state);
+
+        if (state_scope != null) {
+            const bound = try aggregate.bind(self, &body, result);
+            result = try @import("state_value/conversion.zig").convert(self, &body, self.program.expression(selected.result).type_id, bound, .pointer);
+        }
 
         return try aggregate.finish(self, &body, result);
     }

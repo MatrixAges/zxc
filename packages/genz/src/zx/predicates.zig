@@ -7,7 +7,7 @@ const intrinsic = @import("intrinsics.zig");
 
 pub fn lower(self: *Lower, value: ir.Transform) Lower.Error!node.ExpressionId {
     var body: std.ArrayList(node.Statement) = .empty;
-    const source = try aggregate.bind(self, &body, try self.expr(value.target));
+    const source = try aggregate.bind(self, &body, try @import("state_value/list.zig").expression(self, value.target));
     const label = try self.fresh("predicate");
     const identity = value.kind == .every;
     const callback = try self.expr(value.body);

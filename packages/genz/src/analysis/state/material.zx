@@ -1,4 +1,6 @@
 import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
 
 import key from "./key"
 
@@ -15,10 +17,10 @@ export type Input = {
 export type Output = u8[]
 
 export default function (in: Input): Output {
-    const kind = in.types.kinds[in.index]
+    const target = kind(in.types.kinds[in.index])
     const first = integers.widen(in.types.first[in.index])
 
-    if (kind == 2) {
+    if (target == Kind.Optional) {
         return key({
             keys: in.keys,
             bytes: in.bytes,
@@ -26,7 +28,7 @@ export default function (in: Input): Output {
         })
     }
 
-    if (!in.chosen) {
+    if (!in.chosen || target == Kind.List) {
         return in.bytes
     }
 
@@ -34,7 +36,7 @@ export default function (in: Input): Output {
         types: in.types,
         keys: in.keys,
         bytes: in.bytes,
-        object: kind == 1,
+        object: target == Kind.Object,
         first: first,
         count: integers.widen(in.types.second[in.index]),
         position: 0

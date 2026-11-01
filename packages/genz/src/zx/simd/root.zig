@@ -19,12 +19,12 @@ pub fn lower(self: *Lower, id: ir.ExprId, value: ir.Transform) Lower.Error!?node
 
     if (!expression.supported(self.program, value.body, context, input)) return null;
 
-    return try emit(self, value.target, value.body, input, context);
+    return try @import("../state_value/list.zig").wrap(self, self.program.expression(id).type_id, try emit(self, value.target, value.body, input, context), false);
 }
 
 pub fn emit(self: *Lower, target: ir.ExprId, callback: ir.ExprId, input: ir.TypeId, context: expression.Context) Lower.Error!node.ExpressionId {
     var body: std.ArrayList(node.Statement) = .empty;
-    const source = try aggregate.bind(self, &body, try self.expr(target));
+    const source = try aggregate.bind(self, &body, try @import("../state_value/list.zig").expression(self, target));
     const element_type = try self.typeExpr(input);
     const length = try self.field(source, "len");
     const result = try aggregate.bind(self, &body, try self.call(try self.field(try self.builder.identifier("allocator"), "alloc"), &.{ element_type, length }, true));

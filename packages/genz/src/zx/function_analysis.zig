@@ -139,7 +139,7 @@ fn analyzeFrom(allocator: std.mem.Allocator, workspace: std.mem.Allocator, progr
     const thread: ?std.Thread = if (concurrent) std.Thread.spawn(.{}, Concurrent.run, .{&uniqueness}) catch null else null;
 
     if (thread == null) {
-        uniqueness.result = analyzeUniqueness(if (concurrent) uniqueness.arena.allocator() else allocator, workspace, program, exported, source, memo);
+        uniqueness.result = analyzeUniqueness(if (concurrent) uniqueness.arena.allocator() else allocator, workspace, program, exported, source, memo, concurrent);
     }
 
     const others = remaining(allocator, workspace, program);
@@ -236,17 +236,17 @@ const Concurrent = struct {
     memo: ?*Uniqueness.Memo,
     result: std.mem.Allocator.Error!Uniqueness.Result = error.OutOfMemory,
     fn run(self: *Concurrent) void {
-        self.result = analyzeUniqueness(self.arena.allocator(), self.workspace, self.program, self.exported, self.source, self.memo);
+        self.result = analyzeUniqueness(self.arena.allocator(), self.workspace, self.program, self.exported, self.source, self.memo, true);
     }
 };
 
-fn analyzeUniqueness(allocator: std.mem.Allocator, workspace: std.mem.Allocator, program: ir.Program, exported: []const ir.FunctionId, source: Source, memo: ?*Uniqueness.Memo) std.mem.Allocator.Error!Uniqueness.Result {
+fn analyzeUniqueness(allocator: std.mem.Allocator, workspace: std.mem.Allocator, program: ir.Program, exported: []const ir.FunctionId, source: Source, memo: ?*Uniqueness.Memo, comptime concurrent: bool) std.mem.Allocator.Error!Uniqueness.Result {
     if (source == .build) {
         const build = source.build;
         build.basis.* = try Uniqueness.Basis.create(build.allocator, program, memo);
     }
 
-    return Uniqueness.analyze(allocator, workspace, program, exported, source.basis(), memo);
+    return if (concurrent) Uniqueness.analyzeConcurrent(allocator, workspace, program, exported, source.basis(), memo) else Uniqueness.analyze(allocator, workspace, program, exported, source.basis(), memo);
 }
 
 /// The names live in the program, which outlives its facts.

@@ -82,6 +82,15 @@ const budget = 64;
 /// `exported` functions are also called from outside the program, so nothing is known about their input. A persistent
 /// `memo` carries body analyses over from earlier programs; without one, repeated states only replay within this call.
 pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, program: ir.Program, exported: []const ir.FunctionId, basis: *const Basis, persistent: ?*Memo) std.mem.Allocator.Error!Result {
+    return analyzeWithConcurrency(allocator, workspace, program, exported, basis, persistent, false);
+}
+
+/// All allocators must be threadsafe, including shared parents and the exclusively borrowed memo.
+pub fn analyzeConcurrent(allocator: std.mem.Allocator, workspace: std.mem.Allocator, program: ir.Program, exported: []const ir.FunctionId, basis: *const Basis, persistent: ?*Memo) std.mem.Allocator.Error!Result {
+    return analyzeWithConcurrency(allocator, workspace, program, exported, basis, persistent, true);
+}
+
+fn analyzeWithConcurrency(allocator: std.mem.Allocator, workspace: std.mem.Allocator, program: ir.Program, exported: []const ir.FunctionId, basis: *const Basis, persistent: ?*Memo, comptime concurrent: bool) std.mem.Allocator.Error!Result {
     var scratch = std.heap.ArenaAllocator.init(workspace);
 
     defer scratch.deinit();
@@ -117,7 +126,7 @@ pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, progr
 
     if (try shortcut(allocator, temporary, program, slots, &summaries, units, memo, &replay)) |result| return result;
 
-    var pool = try Pool.init(temporary);
+    var pool = try Pool.init(temporary, concurrent);
 
     defer pool.deinit();
 

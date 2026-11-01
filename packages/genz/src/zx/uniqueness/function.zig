@@ -217,7 +217,7 @@ fn entering(self: *Self, owner: ir.ExprId, initial: ir.ExprId, slot: u32) Level 
     const result = self.level(initial, slot);
     const want = self.renewed.get(renewal(owner, slot)) orelse return result;
 
-    return if (lacks(result, want)) .all else result;
+    return if (lacks(result, want)) materialized(result, want, true) else result;
 }
 
 fn renewal(owner: ir.ExprId, slot: u32) u64 {
@@ -228,7 +228,7 @@ fn renewal(owner: ir.ExprId, slot: u32) u64 {
 const value_renewal: u64 = 1 << 63;
 
 fn lacks(level_value: Level, want: Level) bool {
-    return (want.headered and !level_value.headered) or (want.unique and !level_value.unique);
+    return (want.headered and !level_value.headered and !level_value.deferred) or (want.unique and !level_value.unique);
 }
 
 /// A list slot of a loop state, or of an expression's own value when `value` is set, that starts from a growth copy.
@@ -240,6 +240,8 @@ pub fn renewals(self: *Self, allocator: std.mem.Allocator) std.mem.Allocator.Err
     var entries = self.renewed.iterator();
 
     while (entries.next()) |entry| {
+        if (!entry.value_ptr.unique) continue;
+
         const value = entry.key_ptr.* & value_renewal != 0;
         const owner: ir.ExprId = @fromBackingInt(@intCast((entry.key_ptr.* & ~value_renewal) >> 32));
         const slot: u32 = @truncate(entry.key_ptr.*);
@@ -266,7 +268,7 @@ pub fn renewals(self: *Self, allocator: std.mem.Allocator) std.mem.Allocator.Err
     return result.items;
 }
 
-pub const Flags = packed struct(u8) { frontier: bool = false, retract: bool = false, in_place: bool = false, normalize: bool = false, renew: bool = false, grow: bool = false, padding: u2 = 0 };
+pub const Flags = packed struct(u8) { frontier: bool = false, retract: bool = false, in_place: bool = false, normalize: bool = false, renew: bool = false, grow: bool = false, lazy: bool = false, padding: u1 = 0 };
 
 /// How each list update lowers: appends check the frontier of a headered target, pops of a unique headered target hand
 /// the frontier back, element writes of a unique target happen in place and those of a shared headered target copy into
@@ -284,7 +286,7 @@ pub fn flags(self: *Self, values: []Flags) std.mem.Allocator.Error!void {
 
         const raw_level = self.raw(id, 0);
 
-        values[@backingInt(id)].normalize = (want.headered and !raw_level.headered) or (want.unique and !raw_level.unique);
+        values[@backingInt(id)].normalize = want.unique and lacks(raw_level, want);
     }
 
     var renewed = self.renewed.iterator();
@@ -295,7 +297,7 @@ pub fn flags(self: *Self, values: []Flags) std.mem.Allocator.Error!void {
         const id: ir.ExprId = @fromBackingInt(@intCast((entry.key_ptr.* & ~value_renewal) >> 32));
 
         if (self.order.time[@backingInt(id)] == Order.none) continue;
-        if (lacks(self.raw(id, @truncate(entry.key_ptr.*)), entry.value_ptr.*)) values[@backingInt(id)].renew = true;
+        if (entry.value_ptr.unique and lacks(self.raw(id, @truncate(entry.key_ptr.*)), entry.value_ptr.*)) values[@backingInt(id)].renew = true;
     }
 
     for (self.operations) |id| {
@@ -306,7 +308,10 @@ pub fn flags(self: *Self, values: []Flags) std.mem.Allocator.Error!void {
                 const target = self.level(operation.target, 0);
 
                 switch (operation.kind) {
-                    .push, .concat => value.frontier = target.headered,
+                    .push, .concat => {
+                        value.frontier = target.headered;
+                        value.lazy = !target.headered and target.deferred;
+                    },
                     .pop => value.retract = target.headered and target.unique,
                     .sort, .reverse => {
                         value.in_place = target.unique;
@@ -353,11 +358,11 @@ pub fn level(self: *Self, id: ir.ExprId, slot: u32) Level {
 
     const entry = &self.levels[index - base];
 
-    if (entry.* != .unknown) return @bitCast(@as(u2, @intCast(@backingInt(entry.*))));
+    if (entry.* != .unknown) return @bitCast(@as(u3, @intCast(@backingInt(entry.*))));
 
     const result = self.compute(id, slot);
 
-    entry.* = @fromBackingInt(@intCast(@as(u2, @bitCast(result))));
+    entry.* = @fromBackingInt(@intCast(@as(u3, @bitCast(result))));
 
     return result;
 }
@@ -368,11 +373,16 @@ fn compute(self: *Self, id: ir.ExprId, slot: u32) Level {
 
     if (!lacks(result, want)) return result;
 
-    return .{ .headered = true, .unique = self.copyLinear(id, slot) };
+    return materialized(result, want, self.copyLinear(id, slot));
 }
 
-/// Whether a growth copy made at `id` stays unique: its uses must be linear, and a symbol's uses are tracked on the
-/// symbol, not on each reference to it.
+fn materialized(result: Level, want: Level, linear: bool) Level {
+    if (want.unique) return .{ .headered = true, .unique = linear };
+
+    return .{ .headered = result.headered, .unique = result.unique, .deferred = true };
+}
+
+/// Whether the new copy stays unique at this expression; symbol uses belong to the symbol.
 fn copyLinear(self: *Self, id: ir.ExprId, slot: u32) bool {
     return self.row(id).value != .reference and self.sites.linear(self.sites.nodeRoot(id), slot);
 }
@@ -455,7 +465,9 @@ fn node(self: *Self, id: ir.ExprId, slot: u32) Level {
             .push, .concat => blk: {
                 const target = self.level(operation.target, 0);
 
-                break :blk .{ .headered = true, .unique = !target.headered or target.unique };
+                if (operation.kind == .concat) break :blk .{ .headered = target.headered, .unique = target.unique, .deferred = !target.headered };
+
+                break :blk .{ .headered = true, .unique = (!target.headered and !target.deferred) or target.unique };
             },
             .pop => self.level(operation.target, 0),
             .sort, .reverse => written(self.level(operation.target, 0)),
@@ -550,12 +562,12 @@ pub fn demand(self: *Self, changed: *std.ArrayList(usize), marked: *std.ArrayLis
 fn trace(self: *Self, id: ir.ExprId, slot: u32, outer: ?ir.ExprId, repeat: bool, wanted: Level) std.mem.Allocator.Error!void {
     const current = self.level(id, slot);
     var want = wanted;
-    want.headered = want.headered and !current.headered;
+    want.headered = want.headered and !current.headered and !current.deferred;
     want.unique = want.unique and !current.unique and self.linearAt(id, slot);
 
     if (want == Level.none) return;
 
-    const key = (@as(u64, @backingInt(id)) << 35) | (@as(u64, slot) << 3) | (@as(u64, @as(u2, @bitCast(want))) << 1) | @intFromBool(repeat);
+    const key = (@as(u64, @backingInt(id)) << 36) | (@as(u64, slot) << 4) | (@as(u64, @as(u3, @bitCast(want))) << 1) | @intFromBool(repeat);
 
     if ((try self.traced.getOrPut(self.allocator, key)).found_existing) return;
 

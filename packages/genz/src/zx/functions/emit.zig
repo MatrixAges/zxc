@@ -35,6 +35,7 @@ pub fn append(self: *Lower, output: *std.ArrayList(node.Declaration), request: R
     helper.state_symbols = .empty;
     helper.state_active = false;
     helper.value_output = false;
+    helper.public_value_output = false;
     helper.iteration_value = null;
     helper.capture = null;
     helper.serial = 0;

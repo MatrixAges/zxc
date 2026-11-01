@@ -24,5 +24,5 @@ pub fn lower(self: *Lower, value: ir.ExpressionRow, items: []const ir.ExprId) Lo
     const array = try self.builder.expression(.{ .array = .{ .element_type = try self.typeExpr(element), .values = expressions } });
     const address = try self.builder.expression(.{ .comptime_value = try self.builder.expression(.{ .address_of = array }) });
 
-    return try self.cast(try self.typeExpr(value.type_id), address);
+    return try self.cast(try @import("types.zig").get(self, self.abi_types, value.type_id), address);
 }

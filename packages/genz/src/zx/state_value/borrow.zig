@@ -5,6 +5,7 @@ const Lower = @import("../lower.zig");
 
 pub fn lower(self: *Lower, storage: *std.ArrayList(node.Statement), body: *std.ArrayList(node.Statement), id: ir.TypeId, value: node.ExpressionId) Lower.Error!node.ExpressionId {
     if (!self.state_plan.represented(self.program, id)) return value;
+    if (self.program.typeOf(id) == .list) return self.field(value, "items");
 
     const layout = try @import("../types.zig").get(self, self.abi_layouts, id);
 

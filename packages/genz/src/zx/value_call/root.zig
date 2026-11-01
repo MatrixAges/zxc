@@ -37,6 +37,8 @@ pub fn expression(self: *Lower, id: ir.ExprId) Lower.Error!node.ExpressionId {
 }
 
 fn dereference(self: *Lower, id: ir.ExprId) Lower.Error!node.ExpressionId {
+    if (self.program.typeOf(self.program.expression(id).type_id) == .list) return self.expr(id);
+
     return self.builder.expression(.{ .dereference = try self.expr(id) });
 }
 

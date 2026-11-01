@@ -1,6 +1,9 @@
 import crypto from "std:crypto"
 import encoding from "std:encoding"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
 
+import { value_layout_identity } from "./const"
 import material from "./material"
 
 import type { Table } from "core/type_table/model"
@@ -20,17 +23,19 @@ export default function (in: Input): Output {
     const result = loop({
         types: in.types,
         boxed: in.boxed,
-        prefix: encoding.encodeUtf8("state.value.origin.v1"),
+        prefix: encoding.encodeUtf8(value_layout_identity),
         index: 0,
         selected: selected,
         keys: keys
     }, {
         while: current => current.index < current.types.kinds.length,
         next: current => {
-            const kind = current.types.kinds[current.index]
+            const target = kind(current.types.kinds[current.index])
             const chosen =
-                !current.boxed[current.index] && (
-                    kind == 1 || kind == 4
+                target == Kind.List || (
+                    !current.boxed[current.index] && (
+                        target == Kind.Object || target == Kind.Tuple
+                    )
                 )
             const flag: u8 = chosen ? 1 : 0
             const bytes = material({

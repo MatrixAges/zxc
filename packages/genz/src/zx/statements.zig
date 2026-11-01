@@ -78,6 +78,11 @@ pub fn lower(self: *Lower, values: ir.Block) Lower.Error![]const node.Statement 
                     if (returned == null) returned = if (self.value_output) try @import("value_call/root.zig").expression(self, id) else try self.expr(id);
                 }
 
+                if (self.public_value_output and self.state_active) if (returned) |result| {
+                    const boundary = try @import("aggregate.zig").bind(self, &output, result);
+                    returned = try @import("state_value/conversion.zig").convert(self, &output, self.program.output_type, boundary, .view_layout);
+                };
+
                 if (self.transaction()) {
                     if (returned) |result| {
                         const name = try self.fresh("output");

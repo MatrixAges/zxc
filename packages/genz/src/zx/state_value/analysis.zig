@@ -66,11 +66,11 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocat
     for (0..program.types.count()) |index| {
         const value = program.types.at(index);
 
-        selected[index] = !boxed[index] and (value == .object or value == .tuple);
+        selected[index] = value == .list or (!boxed[index] and (value == .object or value == .tuple));
 
         var hash = @import("zx").Sha256.init(.{});
 
-        hash.update("state.value.origin.v1");
+        hash.update("state.value.origin.v2");
         hash.update(&.{@intFromBool(selected[index])});
 
         switch (value) {

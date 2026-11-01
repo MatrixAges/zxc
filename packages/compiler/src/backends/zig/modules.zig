@@ -153,13 +153,19 @@ pub fn typeNamesAnalyzed(owned: std.mem.Allocator, program: @import("zx").ir.Pro
     for (0..program.types.count(), identities.types, 0..) |view_index, name, index| {
         const value = program.types.at(view_index);
 
-        if (value != .object and value != .tuple and value != .enumeration and value != .native_reference) continue;
-        if (!(try type_set.getOrPut(owned, name)).found_existing) try type_names.append(owned, name);
+        if (value != .list and value != .object and value != .tuple and value != .enumeration and value != .native_reference) continue;
+        if (value != .list and !(try type_set.getOrPut(owned, name)).found_existing) try type_names.append(owned, name);
 
         if (state_plan.selected[index]) {
             const internal_name = try state_plan.name(owned, @fromBackingInt(@intCast(index)), name);
 
             if (!(try type_set.getOrPut(owned, internal_name)).found_existing) try type_names.append(owned, internal_name);
+
+            if (value == .object or value == .tuple) {
+                const view_name = try std.fmt.allocPrint(owned, "view_{s}", .{internal_name});
+
+                if (!(try type_set.getOrPut(owned, view_name)).found_existing) try type_names.append(owned, view_name);
+            }
         }
     }
 

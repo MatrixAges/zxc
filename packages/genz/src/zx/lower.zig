@@ -16,6 +16,7 @@ abi_types: []node.ExpressionId = &.{},
 abi_layouts: []node.ExpressionId = &.{},
 state_types: []node.ExpressionId = &.{},
 state_layouts: []node.ExpressionId = &.{},
+view_types: []node.ExpressionId = &.{},
 state_plan: @import("state_value/analysis.zig"),
 state_active: bool = false,
 state_symbols: std.AutoHashMapUnmanaged(ir.SymbolId, void) = .empty,
@@ -43,6 +44,7 @@ pure_functions: []const bool = &.{},
 identity_free_functions: []const bool = &.{},
 local_functions: []const bool = &.{},
 value_output: bool = false,
+public_value_output: bool = false,
 stack_symbols: std.AutoHashMapUnmanaged(ir.SymbolId, void) = .empty,
 projected_symbols: ?[]const bool = null,
 iteration_value: ?*@import("iteration_value/root.zig") = null,
@@ -107,7 +109,7 @@ pub fn functionValue(self: *Self, name: []const u8) Error!node.Declaration {
 
     defer if (state) |saved| saved.restore();
 
-    if (self.state_active) try self.state_symbols.put(self.allocator, @fromBackingInt(0), {});
+    if (self.state_active and !self.public_value_output) try self.state_symbols.put(self.allocator, @fromBackingInt(0), {});
 
     defer _ = self.state_symbols.remove(@fromBackingInt(0));
 
@@ -175,13 +177,13 @@ pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declar
     const parameters = try self.allocator.alloc(node.Field, 2 + @as(usize, @intFromBool(injected)) + @as(usize, @intFromBool(needs_io)) + @as(usize, @intFromBool(needs_process)));
 
     parameters[0] = if (exported) .{ .name = "arena", .value = try self.builder.expression(.{ .pointer = try @import("intrinsics.zig").standardField(self, &.{ "heap", "ArenaAllocator" }) }) } else .{ .name = "allocator", .value = try @import("intrinsics.zig").standardField(self, &.{ "mem", "Allocator" }) };
-    parameters[1] = .{ .name = "in", .value = try self.typeExpr(self.program.input_type) };
+    parameters[1] = .{ .name = "in", .value = if (self.public_value_output) try @import("types.zig").get(self, self.view_types, self.program.input_type) else try self.typeExpr(self.program.input_type) };
 
     if (injected) parameters[2] = .{ .name = "context", .value = try self.builder.expression(.{ .primitive = .@"anytype" }) };
     if (needs_io) parameters[2 + @as(usize, @intFromBool(injected))] = .{ .name = "io", .value = try @import("intrinsics.zig").standardField(self, &.{"Io"}) };
     if (needs_process) parameters[parameters.len - 1] = .{ .name = "process", .value = try @import("intrinsics.zig").standardField(self, &.{ "process", "Init", "Minimal" }) };
 
-    return .{ .function = .{ .name = name, .parameters = parameters, .return_type = try self.builder.expression(.{ .error_union = .{ .payload = if (self.value_output) try self.layoutExpr(self.program.output_type) else try self.typeExpr(self.program.output_type), .errors = errors } }), .body = try self.builder.statements(body.items), .exported = exported } };
+    return .{ .function = .{ .name = name, .parameters = parameters, .return_type = try self.builder.expression(.{ .error_union = .{ .payload = if (self.public_value_output) try @import("types.zig").get(self, self.view_types, self.program.output_type) else if (self.value_output) try self.layoutExpr(self.program.output_type) else try self.typeExpr(self.program.output_type), .errors = errors } }), .body = try self.builder.statements(body.items), .exported = exported } };
 }
 
 pub fn expr(self: *Self, id: ir.ExprId) Error!node.ExpressionId {
@@ -226,8 +228,16 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!node.ExpressionId {
 
             const name = try std.fmt.allocPrint(self.allocator, "store_{d}", .{slot});
             const current = try self.builder.expression(.{ .dereference = try self.field(try self.builder.identifier("context"), name) });
+            const stored = if (self.transaction()) try self.builder.expression(.{ .binary = .{ .operator = .coalesce, .left = try self.field(try self.builder.identifier("pending"), name), .right = current } }) else current;
 
-            break :blk if (self.transaction()) self.builder.expression(.{ .binary = .{ .operator = .coalesce, .left = try self.field(try self.builder.identifier("pending"), name), .right = current } }) else current;
+            if (!self.state_active or !self.state_plan.represented(self.program, value.type_id)) break :blk stored;
+            if (self.program.typeOf(value.type_id) == .list) break :blk @import("state_value/list.zig").borrowed(self, value.type_id, stored);
+
+            var body: std.ArrayList(node.Statement) = .empty;
+            const source = try @import("aggregate.zig").bind(self, &body, stored);
+            const converted = try @import("state_value/conversion.zig").convert(self, &body, value.type_id, source, .value);
+
+            break :blk @import("aggregate.zig").finish(self, &body, converted);
         },
         .reference => |symbol| blk: {
             self.used[@backingInt(symbol)] = true;
@@ -237,21 +247,31 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!node.ExpressionId {
 
             if (self.state_active and !self.state_symbols.contains(symbol)) {
                 var body: std.ArrayList(node.Statement) = .empty;
-                const converted = try @import("state_value/conversion.zig").convert(self, &body, value.type_id, value_reference, .value);
+                const converted = try @import("state_value/conversion.zig").convert(self, &body, value.type_id, value_reference, if (self.public_value_output and @backingInt(symbol) == 0) .view_value else .value);
 
                 break :blk @import("aggregate.zig").finish(self, &body, converted);
             }
 
             break :blk value_reference;
         },
-        .field => |item| self.field(try self.projection(item.target), self.program.typeOf(self.program.expression(item.target).type_id).object.at(item.index).name),
+        .field => |item| self.projectedField(item.target, value.type_id, self.program.typeOf(self.program.expression(item.target).type_id).object.at(item.index).name),
         .tuple_field => |item| blk: {
             if (try @import("collections.zig").projection(self, item.target, item.index)) |selected| break :blk selected;
 
-            break :blk self.field(try self.projection(item.target), try std.fmt.allocPrint(self.allocator, "{d}", .{item.index}));
+            break :blk self.projectedField(item.target, value.type_id, try std.fmt.allocPrint(self.allocator, "{d}", .{item.index}));
         },
-        .index => |item| @import("intrinsics.zig").index(self, try self.expr(item.target), try self.expr(item.index)),
-        .length => |child| self.cast(value_type, try self.field(try self.expr(child), "len")),
+        .index => |item| blk: {
+            const indexed = try @import("intrinsics.zig").index(self, try @import("state_value/list.zig").expression(self, item.target), try self.expr(item.index));
+
+            if (!self.state_active or !self.state_plan.represented(self.program, value.type_id)) break :blk indexed;
+            if (self.program.typeOf(value.type_id) == .list) break :blk @import("state_value/list.zig").borrowed(self, value.type_id, indexed);
+
+            var body: std.ArrayList(node.Statement) = .empty;
+            const source = try @import("aggregate.zig").bind(self, &body, indexed);
+
+            break :blk @import("aggregate.zig").finish(self, &body, try @import("state_value/conversion.zig").convert(self, &body, value.type_id, source, .value));
+        },
+        .length => |child| self.cast(value_type, try self.field(try @import("state_value/list.zig").expression(self, child), "len")),
         .unary => |unary| self.builder.expression(.{ .unary = .{ .operator = if (unary.operator == .not) .not else .negate, .operand = try self.expr(unary.operand) } }),
         .binary => |operation| self.binary(operation),
         .match_expr => |selection| @import("match.zig").lower(self, selection),
@@ -320,6 +340,18 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!node.ExpressionId {
             break :blk if (body.items.len == 0) result else try @import("aggregate.zig").finish(self, &body, result);
         },
     };
+}
+
+fn projectedField(self: *Self, target: ir.ExprId, id: ir.TypeId, name: []const u8) Error!node.ExpressionId {
+    const value = try self.field(try self.projection(target), name);
+
+    if (!self.state_active or !self.state_plan.represented(self.program, id) or self.state_plan.represented(self.program, self.program.expression(target).type_id)) return value;
+    if (self.program.typeOf(id) == .list) return @import("state_value/list.zig").borrowed(self, id, value);
+
+    var body: std.ArrayList(node.Statement) = .empty;
+    const bound = try @import("aggregate.zig").bind(self, &body, value);
+
+    return @import("aggregate.zig").finish(self, &body, try @import("state_value/conversion.zig").convert(self, &body, id, bound, .value));
 }
 
 fn projection(self: *Self, id: ir.ExprId) Error!node.ExpressionId {

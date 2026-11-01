@@ -9,6 +9,7 @@ pub fn lower(self: *Lower, output: *std.ArrayList(node.Declaration), exported: b
     self.abi_layouts = self.layouts;
     self.state_types = try self.allocator.dupe(node.ExpressionId, self.types);
     self.state_layouts = try self.allocator.dupe(node.ExpressionId, self.layouts);
+    self.view_types = try self.allocator.dupe(node.ExpressionId, self.types);
 
     var declared: std.StringHashMapUnmanaged(void) = .empty;
 
@@ -18,6 +19,7 @@ pub fn lower(self: *Lower, output: *std.ArrayList(node.Declaration), exported: b
         if (value == .optional) {
             self.state_types[index] = try self.builder.expression(.{ .optional_type = self.state_types[@backingInt(value.optional)] });
             self.state_layouts[index] = self.state_types[index];
+            self.view_types[index] = if (self.view_types[@backingInt(value.optional)] == self.state_types[@backingInt(value.optional)]) self.state_types[index] else try self.builder.expression(.{ .optional_type = self.view_types[@backingInt(value.optional)] });
 
             continue;
         }
@@ -30,6 +32,7 @@ pub fn lower(self: *Lower, output: *std.ArrayList(node.Declaration), exported: b
 
         const selected = blk: {
             const definition = switch (value) {
+                .list => |child| try @import("list.zig").definition(self, child),
                 .object => |fields| object: {
                     const items = try self.allocator.alloc(node.Field, fields.len + 1);
 
@@ -69,5 +72,61 @@ pub fn lower(self: *Lower, output: *std.ArrayList(node.Declaration), exported: b
 
         self.state_types[index] = selected;
         self.state_layouts[index] = selected;
+
+        if (value == .object or value == .tuple) {
+            const changed = switch (value) {
+                .object => |fields| changed: {
+                    for (0..fields.len) |field_index| {
+                        const child = @backingInt(fields.at(field_index).type_id);
+
+                        if (self.view_types[child] != self.state_types[child]) break :changed true;
+                    }
+
+                    break :changed false;
+                },
+                .tuple => |children| changed: {
+                    for (0..children.len) |child_index| {
+                        const child = @backingInt(children.at(child_index));
+
+                        if (self.view_types[child] != self.state_types[child]) break :changed true;
+                    }
+
+                    break :changed false;
+                },
+                else => unreachable,
+            };
+
+            const definition = if (!changed) selected else switch (value) {
+                .object => |fields| object: {
+                    const items = try self.allocator.alloc(node.Field, fields.len + 1);
+
+                    for (items[0..fields.len], 0..) |*item, field_index| {
+                        const field = fields.at(field_index);
+
+                        item.* = .{ .name = field.name, .value = self.view_types[@backingInt(field.type_id)] };
+                    }
+
+                    items[fields.len] = .{ .name = try @import("origin.zig").name(self, id), .value = try self.builder.expression(.{ .optional_type = self.abi_types[index] }), .default_value = try self.builder.expression(.null_value) };
+
+                    break :object try self.builder.expression(.{ .struct_type = items });
+                },
+                .tuple => |children| tuple: {
+                    const items = try self.allocator.alloc(node.ExpressionId, children.len + 1);
+
+                    for (items[0..children.len], 0..) |*item, child_index| item.* = self.view_types[@backingInt(children.at(child_index))];
+
+                    items[children.len] = try self.builder.expression(.{ .optional_type = self.abi_types[index] });
+
+                    break :tuple try self.builder.expression(.{ .tuple_type = items });
+                },
+                else => unreachable,
+            };
+
+            const view_name = try std.fmt.allocPrint(self.allocator, "view_{s}", .{name});
+
+            if (!(try declared.getOrPut(self.allocator, view_name)).found_existing) try output.append(self.allocator, .{ .constant = .{ .name = view_name, .value = definition, .exported = exported } });
+
+            self.view_types[index] = if (changed) try self.builder.identifier(view_name) else selected;
+        }
     }
 }

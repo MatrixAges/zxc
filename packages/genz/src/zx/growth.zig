@@ -71,10 +71,11 @@ pub fn normalize(self: *Lower, id: ir.ExprId, value: node.ExpressionId) Lower.Er
     var body: std.ArrayList(node.Statement) = .empty;
     const child = self.program.typeOf(self.program.expression(id).type_id).list;
     const element = try @import("iteration_value/types.zig").element(self, child);
-    const source = try aggregate.bind(self, &body, value);
+    const type_id = self.program.expression(id).type_id;
+    const source = try aggregate.bind(self, &body, try @import("state_value/list.zig").items(self, type_id, value));
     const buffer = try reserve(self, &body, element, source, try self.field(source, "len"), false);
 
-    return aggregate.finish(self, &body, buffer);
+    return aggregate.finish(self, &body, try @import("state_value/list.zig").wrap(self, type_id, buffer, true));
 }
 
 pub fn retract(self: *Lower, body: *std.ArrayList(node.Statement), element: node.ExpressionId, source: node.ExpressionId, length: node.ExpressionId) Lower.Error!void {
@@ -227,8 +228,18 @@ const Emitter = struct {
             try recurse(self, try lowering.builder.expression(.{ .address_of = try lowering.builtin(.field, &.{ value, field_name }) }), try lowering.builder.expression(.{ .slice = .{ .target = path, .start = try lowering.builder.integer(1) } })),
         };
 
+        const wrapped_items = try lowering.field(value, "items");
+        const wrapped_child = try lowering.field(try lowering.field(try lowering.builtin(.typeInfo, &.{try lowering.builtin(.TypeOf, &.{wrapped_items})}), "pointer"), "child");
+
+        const wrapped = [_]node.Statement{
+            .{ .assignment = .{ .target = wrapped_items, .value = try lowering.call(try self.id("zxReserve"), &.{ wrapped_child, allocator, wrapped_items, try lowering.field(wrapped_items, "len"), try lowering.builder.expression(.{ .boolean = false }) }, true) } },
+            .{ .assignment = .{ .target = try lowering.field(value, "headered"), .value = try lowering.builder.expression(.{ .boolean = true }) } },
+        };
+
+        const terminal = try self.binary(.equal, try lowering.field(path, "len"), try lowering.builder.integer(0));
+
         const nonoptional = [_]node.Statement{
-            try lowering.builder.branch(try self.binary(.equal, info, try lowering.builder.expression(.{ .enum_literal = "pointer" })), &pointer, &fields),
+            try lowering.builder.branch(try self.binary(.equal, info, try lowering.builder.expression(.{ .enum_literal = "pointer" })), &pointer, &.{try lowering.builder.branch(terminal, &wrapped, &fields)}),
         };
 
         const statements = [_]node.Statement{

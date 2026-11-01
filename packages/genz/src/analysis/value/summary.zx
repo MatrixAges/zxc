@@ -1,5 +1,7 @@
 import integers from "std:integer"
 import { map } from "std:utils"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
 
 import body from "../calls/body"
 import parallel from "../control/parallel"
@@ -56,15 +58,17 @@ export default function (in: Input): Output {
 
             const output = functions.output_types[index]
 
-            current.values[index] =
-                current.local[index] &&
-                (current.program.types.kinds[integers.widen(
+            const object =
+                kind(current.program.types.kinds[integers.widen(
                     output
-                )] == 1 || represented({
-                    types: current.program.types,
-                    selected: current.selected,
-                    id: output
-                }))
+                )]) == Kind.Object
+            const state = functions.native_modules[index] == null && represented({
+                types: current.program.types,
+                selected: current.selected,
+                id: output
+            })
+
+            current.values[index] = current.local[index] && (object || state)
             current.index += 1
         }
     })

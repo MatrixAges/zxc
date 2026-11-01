@@ -2,7 +2,6 @@ const std = @import("std");
 const ir = @import("zx").ir;
 const node = @import("../node.zig");
 const Lower = @import("lower.zig");
-
 /// A type expression not built yet: a file that imports the shared type bundle builds each one when first used.
 const unset: node.ExpressionId = @fromBackingInt(std.math.maxInt(u32));
 
@@ -71,7 +70,7 @@ pub fn get(self: *Lower, table: []const node.ExpressionId, id: ir.TypeId) Lower.
     const index = @backingInt(id);
 
     if (table[index] == unset) {
-        if (table.ptr == self.state_types.ptr or table.ptr == self.state_layouts.ptr) try state(self, index) else try abi(self, index);
+        if (table.ptr == self.view_types.ptr) try view(self, index) else if (table.ptr == self.state_types.ptr or table.ptr == self.state_layouts.ptr) try state(self, index) else try abi(self, index);
     }
 
     return table[index];
@@ -88,8 +87,9 @@ fn shared(self: *Lower, output: *std.ArrayList(node.Declaration)) Lower.Error!vo
     self.abi_layouts = self.layouts;
     self.state_types = try self.allocator.alloc(node.ExpressionId, self.types.len);
     self.state_layouts = try self.allocator.alloc(node.ExpressionId, self.types.len);
+    self.view_types = try self.allocator.alloc(node.ExpressionId, self.types.len);
 
-    for ([_][]node.ExpressionId{ self.abi_types, self.abi_layouts, self.state_types, self.state_layouts }) |table| @memset(table, unset);
+    for ([_][]node.ExpressionId{ self.abi_types, self.abi_layouts, self.state_types, self.state_layouts, self.view_types }) |table| @memset(table, unset);
 }
 
 fn abi(self: *Lower, index: usize) Lower.Error!void {
@@ -156,4 +156,47 @@ fn plain(self: *Lower, value: ir.Type, table: []const node.ExpressionId) Lower.E
 
 fn typeName(self: *Lower, index: usize) Lower.Error![]const u8 {
     return if (self.type_names) |names| names[index] else try std.fmt.allocPrint(self.allocator, "zx_type_{d}", .{index});
+}
+
+fn view(self: *Lower, index: usize) Lower.Error!void {
+    const id: ir.TypeId = @fromBackingInt(@intCast(index));
+    const value = self.program.typeOf(id);
+
+    if (value == .optional) {
+        const child = try get(self, self.view_types, value.optional);
+
+        self.view_types[index] = if (child == try get(self, self.state_types, value.optional)) try get(self, self.state_types, id) else try self.builder.expression(.{ .optional_type = child });
+    } else if ((value == .object or value == .tuple) and self.state_plan.selected[index]) {
+        const changed = switch (value) {
+            .object => |fields| changed: {
+                for (0..fields.len) |field_index| {
+                    const child = fields.at(field_index).type_id;
+
+                    if (try get(self, self.view_types, child) != try get(self, self.state_types, child)) break :changed true;
+                }
+
+                break :changed false;
+            },
+            .tuple => |children| changed: {
+                for (0..children.len) |child_index| {
+                    const child = children.at(child_index);
+
+                    if (try get(self, self.view_types, child) != try get(self, self.state_types, child)) break :changed true;
+                }
+
+                break :changed false;
+            },
+            else => unreachable,
+        };
+
+        if (!changed) {
+            self.view_types[index] = try get(self, self.state_types, id);
+
+            return;
+        }
+
+        const name = try self.state_plan.name(self.allocator, id, try typeName(self, index));
+
+        self.view_types[index] = try self.field(try self.builder.identifier("zx_abi"), try std.fmt.allocPrint(self.allocator, "view_{s}", .{name}));
+    } else self.view_types[index] = try get(self, self.abi_types, id);
 }

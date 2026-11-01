@@ -36,8 +36,8 @@ const capacity = 256;
 /// Polls before sleeping, as the next request usually comes within a fraction of a millisecond.
 const spins = 2000;
 
-pub fn init(allocator: std.mem.Allocator) std.mem.Allocator.Error!Self {
-    const cores = std.math.clamp(std.Thread.getCpuCount() catch 1, 1, most);
+pub fn init(allocator: std.mem.Allocator, comptime concurrent: bool) std.mem.Allocator.Error!Self {
+    const cores = if (concurrent) std.math.clamp(std.Thread.getCpuCount() catch 1, 1, most) else 1;
     const workers = try allocator.alloc(Worker, cores);
     const ring = try allocator.alloc(std.atomic.Value(u32), capacity);
 

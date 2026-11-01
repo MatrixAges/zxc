@@ -4,13 +4,18 @@ const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
 const aggregate = @import("../aggregate.zig");
 const types = @import("../types.zig");
-pub const Mode = enum { value, value_layout, pointer, layout, borrow };
+
+pub const Mode = enum { value, value_layout, pointer, layout, borrow, view_value, view_layout };
 
 pub fn convert(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.TypeId, value: node.ExpressionId, mode: Mode) Lower.Error!node.ExpressionId {
     if (!self.state_plan.represented(self.program, id)) return value;
+    if (mode == .view_value or mode == .view_layout) return @import("view.zig").convert(self, body, id, value, mode == .view_value);
     if (mode == .borrow) return @import("borrow.zig").lower(self, body, body, id, value);
 
     const input = mode == .value or mode == .value_layout;
+
+    if (self.program.typeOf(id) == .list) return if (input) @import("list.zig").borrowed(self, id, value) else self.field(value, "items");
+
     const layout = try types.get(self, if (input) self.state_layouts else self.abi_layouts, id);
     const child_mode: Mode = if (input) .value else .pointer;
     var fallback: std.ArrayList(node.Statement) = .empty;

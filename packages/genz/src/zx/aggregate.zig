@@ -44,8 +44,11 @@ fn objectMode(self: *Lower, id: ir.ExprId, value: @FieldType(@FieldType(ir.Expre
 
     for (0..value.fields.len) |index| {
         const field = value.fields.at(index);
+        var expression = try self.expr(field.value);
 
-        fields[index] = .{ .name = type_fields.at(field.index).name, .value = try self.expr(field.value) };
+        if (self.state_active and !self.state_plan.selected[@backingInt(type_id)]) expression = try @import("state_value/conversion.zig").convert(self, &body, self.program.expression(field.value).type_id, try bind(self, &body, expression), .pointer);
+
+        fields[index] = .{ .name = type_fields.at(field.index).name, .value = expression };
     }
 
     for (value.evaluation, 0..) |item, index| {
@@ -66,12 +69,18 @@ pub fn tupleValue(self: *Lower, value: ir.ExpressionRow, items: []const ir.ExprI
 }
 
 fn sequenceMode(self: *Lower, value: ir.ExpressionRow, items: []const ir.ExprId, layout: bool) Lower.Error!node.ExpressionId {
-    if (value.value == .list) if (try @import("static_list.zig").lower(self, value, items)) |literal| return literal;
+    if (value.value == .list) if (try @import("static_list.zig").lower(self, value, items)) |literal| return @import("state_value/list.zig").wrap(self, value.type_id, literal, false);
 
     var body: std.ArrayList(node.Statement) = .empty;
     const expressions = try self.allocator.alloc(node.ExpressionId, items.len);
 
-    for (items, 0..) |item, index| expressions[index] = try bind(self, &body, try self.expr(item));
+    for (items, 0..) |item, index| {
+        var expression = try bind(self, &body, try self.expr(item));
+
+        if (self.state_active and (value.value == .list or (value.value == .tuple and !self.state_plan.selected[@backingInt(value.type_id)]))) expression = try @import("state_value/conversion.zig").convert(self, &body, self.program.expression(item).type_id, expression, .pointer);
+
+        expressions[index] = expression;
+    }
 
     const result = switch (value.value) {
         .tuple => blk: {
@@ -80,7 +89,7 @@ fn sequenceMode(self: *Lower, value: ir.ExpressionRow, items: []const ir.ExprId,
             break :blk if (layout) try @import("state_value/origin.zig").tuple(self, value.type_id, tuple) else try self.construct(value.type_id, tuple);
         },
         .list => blk: {
-            const element_type = try self.typeExpr(self.program.typeOf(value.type_id).list);
+            const element_type = try @import("types.zig").get(self, self.abi_types, self.program.typeOf(value.type_id).list);
             const array = try self.builder.expression(.{ .array = .{ .element_type = element_type, .values = expressions } });
 
             break :blk try self.call(try self.field(try self.builder.identifier("allocator"), "dupe"), &.{ element_type, try self.builder.expression(.{ .address_of = array }) }, true);
@@ -89,7 +98,7 @@ fn sequenceMode(self: *Lower, value: ir.ExpressionRow, items: []const ir.ExprId,
         else => unreachable,
     };
 
-    return finish(self, &body, result);
+    return finish(self, &body, if (value.value == .list) try @import("state_value/list.zig").wrap(self, value.type_id, result, false) else result);
 }
 
 pub fn bind(self: *Lower, body: *std.ArrayList(node.Statement), expression: node.ExpressionId) Lower.Error!node.ExpressionId {

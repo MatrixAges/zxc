@@ -38,10 +38,10 @@ pub fn scope(self: *Lower, value: ir.ScopeRow) Lower.Error![]const ir.SymbolId {
     return symbols.toOwnedSlice(self.allocator);
 }
 
-pub fn parameters(self: *Lower, values: []const ir.SymbolId) Lower.Error![]const ir.SymbolId {
+pub fn parameters(self: *Lower, transform: ir.Transform) Lower.Error![]const ir.SymbolId {
     var symbols: std.ArrayList(ir.SymbolId) = .empty;
 
-    if (self.state_active) for (values) |id| try add(self, &symbols, id);
+    if (self.state_active and transform.kind == .reduce) try add(self, &symbols, transform.parameters[0]);
 
     return symbols.toOwnedSlice(self.allocator);
 }

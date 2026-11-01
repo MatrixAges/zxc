@@ -254,7 +254,7 @@ fn entries(self: *Self, comptime Key: type, map: *const std.AutoHashMap(Key, Lev
 
     for (self.order.items) |record| {
         try self.int(if (Key == u64) u64 else u32, @intCast(record.key));
-        try self.encoded.append(self.arena.allocator(), @as(u2, @bitCast(record.level)));
+        try self.encoded.append(self.arena.allocator(), @as(u3, @bitCast(record.level)));
     }
 }
 
@@ -262,24 +262,15 @@ fn entryKey(comptime Key: type, key: Key) u64 {
     return if (Key == u64) key else @backingInt(key);
 }
 
-/// The levels four to a byte; the count goes first, so the padding of the last byte is unambiguous.
+/// Two three-bit levels per byte; the count makes the final padding unambiguous.
 fn levels(self: *Self, values: []const Level) std.mem.Allocator.Error!void {
     try self.int(u32, @intCast(values.len));
 
-    const bytes = try self.encoded.addManyAsSlice(self.arena.allocator(), (values.len + 3) / 4);
-    const whole = values.len / 4;
+    const bytes = try self.encoded.addManyAsSlice(self.arena.allocator(), (values.len + 1) / 2);
 
-    // Each level sits in its own byte; four bytes read as one word fold into one byte with three shifts.
-    for (bytes[0..whole], 0..) |*byte, index| {
-        const word = std.mem.readInt(u32, @ptrCast(values[index * 4 ..][0..4]), .little) & 0x03030303;
-        byte.* = @truncate(word | word >> 6 | word >> 12 | word >> 18);
-    }
+    @memset(bytes, 0);
 
-    if (whole == bytes.len) return;
-
-    bytes[whole] = 0;
-
-    for (values[whole * 4 ..], 0..) |value, index| bytes[whole] |= @as(u8, @as(u2, @bitCast(value))) << @intCast(index * 2);
+    for (values, 0..) |value, index| bytes[index / 2] |= @as(u8, @as(u3, @bitCast(value))) << @intCast(index % 2 * 4);
 }
 
 fn int(self: *Self, comptime T: type, value: T) std.mem.Allocator.Error!void {
@@ -319,9 +310,9 @@ fn restoreFrom(comptime kind: Kind, reader: *std.Io.Reader, summaries: *Summarie
 fn readLevels(reader: *std.Io.Reader, values: []Level) !void {
     if (try reader.takeInt(u32, .little) != values.len) return error.InvalidState;
 
-    const bytes = try reader.take((values.len + 3) / 4);
+    const bytes = try reader.take((values.len + 1) / 2);
 
-    for (values, 0..) |*value, position| value.* = @bitCast(@as(u2, @truncate(bytes[position / 4] >> @intCast(position % 4 * 2))));
+    for (values, 0..) |*value, position| value.* = @bitCast(@as(u3, @truncate(bytes[position / 2] >> @intCast(position % 2 * 4))));
 }
 
 fn readEntries(comptime Key: type, reader: *std.Io.Reader, map: *std.AutoHashMap(Key, Level)) !void {
@@ -331,11 +322,11 @@ fn readEntries(comptime Key: type, reader: *std.Io.Reader, map: *std.AutoHashMap
         const key = try reader.takeInt(if (Key == u64) u64 else u32, .little);
         const level = try reader.takeByte();
 
-        try map.put(if (Key == u64) key else @fromBackingInt(key), @bitCast(std.math.cast(u2, level) orelse return error.InvalidState));
+        try map.put(if (Key == u64) key else @fromBackingInt(key), @bitCast(std.math.cast(u3, level) orelse return error.InvalidState));
     }
 }
 
-const magic = "zxc.uniqueness.memo.v11";
+const magic = "zxc.uniqueness.memo.v12";
 
 /// Whether `save` would differ from what was loaded.
 pub fn stale(self: *const Self) bool {

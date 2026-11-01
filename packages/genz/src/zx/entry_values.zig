@@ -7,8 +7,10 @@ pub fn declarations(lowering: *Lower, output: *std.ArrayList(node.Declaration)) 
 
     const output_type = lowering.program.typeOf(lowering.program.output_type);
     const aggregate = output_type == .object or output_type == .tuple or lowering.state_plan.represented(lowering.program, lowering.program.output_type);
-    var value = if (aggregate) try lowering.functionValue("executeValue") else try lowering.function("executeValue", false);
+    lowering.public_value_output = lowering.state_plan.represented(lowering.program, lowering.program.output_type);
+    defer lowering.public_value_output = false;
 
+    var value = if (aggregate) try lowering.functionValue("executeValue") else try lowering.function("executeValue", false);
     value.function.exported = true;
 
     try output.append(lowering.allocator, value);

@@ -10,13 +10,16 @@ const intrinsics = @import("intrinsics.zig");
 pub fn lower(self: *Lower, id: ir.ExprId) Lower.Error!node.ExpressionId {
     const update = self.program.expression(id).value.list_update;
     var body: std.ArrayList(node.Statement) = .empty;
-    const source = try aggregate.bind(self, &body, try self.expr(update.target));
+    const type_id = self.program.expression(update.target).type_id;
+    const source_value = try aggregate.bind(self, &body, try self.expr(update.target));
+    const source = try @import("state_value/list.zig").items(self, type_id, source_value);
     const index = try aggregate.bind(self, &body, try self.expr(update.index));
 
     try intrinsics.failIf(self, &body, try intrinsics.binary(self, .greater_equal, index, try self.field(source, "len")), "IndexOutOfBounds");
 
-    const value = try aggregate.bind(self, &body, try self.expr(update.value));
-    const element = try @import("iteration_value/types.zig").element(self, self.program.typeOf(self.program.expression(update.target).type_id).list);
+    const evaluated = try aggregate.bind(self, &body, try self.expr(update.value));
+    const value = if (self.state_active) try @import("state_value/conversion.zig").convert(self, &body, self.program.expression(update.value).type_id, evaluated, .pointer) else evaluated;
+    const element = try @import("types.zig").get(self, self.abi_types, self.program.typeOf(type_id).list);
     const flags = self.plan.get(id);
 
     const buffer = if (flags.in_place)
@@ -31,5 +34,7 @@ pub fn lower(self: *Lower, id: ir.ExprId) Lower.Error!node.ExpressionId {
 
     try body.append(self.allocator, .{ .assignment = .{ .target = slot, .value = value } });
 
-    return aggregate.finish(self, &body, buffer);
+    const result = if (@import("state_value/list.zig").selected(self, type_id)) try @import("state_value/list.zig").create(self, type_id, buffer, if (flags.in_place) try self.field(source_value, "headered") else try self.builder.expression(.{ .boolean = flags.grow })) else buffer;
+
+    return aggregate.finish(self, &body, result);
 }

@@ -99,11 +99,29 @@ pub fn read(self: *Lower, consumer: Consumer, id: ir.ExprId, state: node.Express
             const type_id = self.program.expression(field.target).type_id;
             const kind = self.program.typeOf(type_id);
             const name = if (expression.value == .field) kind.object.at(field.index).name else try std.fmt.allocPrint(self.allocator, "{d}", .{field.index});
+            const projected = try self.field(target, name);
 
-            break :value self.field(target, name);
+            if (!self.state_active or self.state_plan.represented(self.program, type_id)) break :value projected;
+
+            break :value fromAbi(self, expression.type_id, projected);
         },
-        .index => |item| @import("intrinsics.zig").index(self, try read(self, consumer, item.target, state), try self.expr(item.index)),
-        .length => |child| self.cast(try self.typeExpr(expression.type_id), try self.field(try read(self, consumer, child, state), "len")),
+        .index => |item| value: {
+            const projected = try @import("intrinsics.zig").index(self, try @import("state_value/list.zig").items(self, self.program.expression(item.target).type_id, try read(self, consumer, item.target, state)), try self.expr(item.index));
+
+            break :value if (self.state_active) fromAbi(self, expression.type_id, projected) else projected;
+        },
+        .length => |child| self.cast(try self.typeExpr(expression.type_id), try self.field(try @import("state_value/list.zig").items(self, self.program.expression(child).type_id, try read(self, consumer, child, state)), "len")),
         else => unreachable,
     };
+}
+
+fn fromAbi(self: *Lower, id: ir.TypeId, value: node.ExpressionId) Lower.Error!node.ExpressionId {
+    if (!self.state_plan.represented(self.program, id)) return value;
+    if (self.program.typeOf(id) == .list) return @import("state_value/list.zig").borrowed(self, id, value);
+
+    var body: std.ArrayList(node.Statement) = .empty;
+    const source = try @import("aggregate.zig").bind(self, &body, value);
+    const converted = try @import("state_value/conversion.zig").convert(self, &body, id, source, .value);
+
+    return @import("aggregate.zig").finish(self, &body, converted);
 }
