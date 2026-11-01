@@ -15,15 +15,15 @@ pub const Native = struct {
     pub fn header(self: Native) zx.syntax.header.Native {
         return .{ .program = self.value.ast };
     }
-    pub fn signature(self: Native, types: *Types) zx.Error!Signature.Result {
+    pub fn signature(self: Native, types: *Types, constants: []const zx.ir.Constant) zx.Error!Signature.Result {
         try checkConstants(self.header(), types.reporter);
-        if (module_result.indexed_enabled) return @import("source_signature/host.zig").analyzeNative(types, self.value.source, self.value.ast);
+        if (module_result.indexed_enabled) return @import("source_signature/host.zig").analyzeNative(types, self.value.source, self.value.ast, constants);
 
         types.declarations = self.value.ast.declarations;
 
         try types.initialize();
 
-        return Signature.resolve(types, self.value.ast, @import("type_views").Native{ .items = self.value.ast.declarations });
+        return Signature.resolve(types, self.value.ast, @import("type_views").Native{ .items = self.value.ast.declarations }, constants);
     }
     pub fn analyze(self: Native, context: *Context, file_name: []const u8) zx.Error!zx.ir.Program {
         if (module_result.indexed_enabled) return @import("../analysis/analyzer/host/root.zig").analyzeNative(context, self.value.source, self.value.ast, file_name);
@@ -62,11 +62,10 @@ pub const Indexed = if (module_result.indexed_enabled) struct {
     pub fn header(self: Self) @import("../frontend/syntax/header.zig").View(@FieldType(module_result.Indexed, "output")) {
         return .{ .source = self.value.source, .storage = self.value.output };
     }
-
-    pub fn signature(self: Self, types: *Types) zx.Error!Signature.Result {
+    pub fn signature(self: Self, types: *Types, constants: []const zx.ir.Constant) zx.Error!Signature.Result {
         try checkConstants(self.header(), types.reporter);
 
-        return @import("source_signature/host.zig").analyze(types, self.value.source, self.value.output);
+        return @import("source_signature/host.zig").analyze(types, self.value.source, self.value.output, constants);
     }
     pub fn analyze(self: Self, analyzer: *Context, file_name: []const u8) zx.Error!zx.ir.Program {
         return @import("../analysis/analyzer/host/root.zig").analyze(analyzer, self.value.source, self.value.output, file_name);

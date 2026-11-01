@@ -1,0 +1,110 @@
+import analyze from "compiler/constant_declaration"
+
+import valid from "../valid"
+
+import type { Literal } from "core/constant/model"
+import type { Input, Result } from "./model"
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const imports = in.imports
+    const first = imports != null ? imports.names.length : 0
+
+    const initial: Result = {
+        types: in.types,
+        scope: imports,
+        first: first,
+        diagnostic: {
+            code: "",
+            message: "",
+            start: 0,
+            end: 0
+        }
+    }
+
+    if (imports == null && in.syntax.constants.length == 0) {
+        return initial
+    }
+
+    if (imports != null && !valid({
+        constants: imports,
+        types: {
+            base: in.types.context.base,
+            delta: in.types.delta
+        }
+    })) {
+        return {
+            ...initial,
+            diagnostic: {
+                code: "contract",
+                message: "invalid typed constant bindings",
+                start: 0,
+                end: 0
+            }
+        }
+    }
+
+    if (in.syntax.constants.length == 0) {
+        return initial
+    }
+
+    const names: string[] = []
+    const values: Literal[] = []
+
+    const result = loop({
+        input: in,
+        types: in.types,
+        names: imports != null ? imports.names : names,
+        values: imports != null ? imports.values : values,
+        index: 0,
+        diagnostic: initial.diagnostic
+    }, {
+        while: current => current.diagnostic.message == "" && current.index < current.input.syntax.constants.length,
+        next: current => {
+            const constant = current.input.syntax.constants[current.index]
+            const evaluated = analyze({
+                bytes: current.input.bytes,
+                index: current.index,
+                constant: constant,
+                native: current.input.native,
+                types: current.types,
+                scope: current.names.length != 0 ? {
+                    names: current.names,
+                    values: current.values
+                } : null
+            })
+
+            current.types = evaluated.types
+            current.diagnostic = evaluated.diagnostic
+
+            const value = evaluated.value
+
+            if (value == null && evaluated.diagnostic.message == "") {
+                current.diagnostic = {
+                    code: "contract",
+                    message: "constant evaluation produced no value",
+                    start: constant.span.start,
+                    end: constant.span.end
+                }
+            }
+
+            if (value != null && evaluated.diagnostic.message == "") {
+                current.names = current.names.push(evaluated.name.text)[0]
+                current.values = current.values.push(value)[0]
+            }
+
+            current.index += 1
+        }
+    })
+
+    return {
+        types: result.types,
+        scope: result.names.length != 0 ? {
+            names: result.names,
+            values: result.values
+        } : null,
+        first: first,
+        diagnostic: result.diagnostic
+    }
+}

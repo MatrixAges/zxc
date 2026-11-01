@@ -1,0 +1,44 @@
+import empty from "core/function_table/empty"
+
+import type { FunctionImports } from "../../../analyzer/context"
+import type { Request } from "../../../analyzer/expressions/request"
+import type { Functions } from "../../../analyzer/functions"
+import type { Prepared } from "../../../analyzer/model"
+import type { Item } from "../model"
+
+export type Input = {
+    item: Item,
+    state: Prepared,
+    expected: u32
+}
+
+export type Output = {
+    request: Request,
+    imports: FunctionImports,
+    functions: Functions
+}
+
+export default function (in: Input): Output {
+    return {
+        request: {
+            state: in.state,
+            source: {
+                bytes: in.item.bytes,
+                tree: in.item.constant.expressions,
+                blocks: in.item.constant.blocks,
+                constant_values: in.item.scope,
+                native: in.item.native
+            },
+            node: in.item.constant.value,
+            expected: in.expected
+        },
+        imports: {
+            namespaces: [],
+            names: [],
+            ids: [],
+            input_types: [],
+            output_types: []
+        },
+        functions: empty()
+    }
+}

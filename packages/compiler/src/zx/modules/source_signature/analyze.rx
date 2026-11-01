@@ -1,20 +1,44 @@
 <Module>
-    <Type from="../../analysis/analyzer/declarations/model" as="Model" />
     <Type from="./model" as="SourceSignatureModel" />
 
-    <Args in={Model.DeclarationInput} out={SourceSignatureModel.Result} />
+    <Args in={SourceSignatureModel.Input} out={SourceSignatureModel.Result} />
 
-    <Call module="../../analysis/analyzer/declarations" in={$in} />
+    <Call module="../../analysis/analyzer/declarations" in={$in.declarations} />
 
-    <Call fn="initial" in={{ syntax: $in.syntax, types: $ctx.declarations.types, diagnostic: $ctx.declarations.diagnostic }} />
+    <Call fn="initial" in={{ syntax: $in.declarations.syntax, types: $ctx.declarations.types, diagnostic: $ctx.declarations.diagnostic }} />
 
     <Switch on={$ctx.declarations.diagnostic.message == ""}>
         <Case value={true}>
-            <Call module="../../analysis/analyzer/signature" in={{ syntax: $in.syntax, types: $ctx.declarations.types }} />
+            <Call module="../../analysis/analyzer/signature" in={{ syntax: $in.declarations.syntax, types: $ctx.declarations.types }} />
 
             <Switch on={$ctx.signature.diagnostic.message == ""}>
                 <Case value={true}>
                     <Call fn="../../analysis/analyzer/exports" in={{ state: { types: $ctx.signature.types, diagnostic: $ctx.signature.diagnostic } }} />
+
+                    <Switch on={$ctx.exports.state.diagnostic.message == ""}>
+                        <Case value={true}>
+                            <Call fn="../../analysis/constants/declarations/analyze" in={{
+                                bytes: $in.declarations.bytes,
+                                syntax: $in.declarations.syntax,
+                                native: $in.declarations.native,
+                                types: $ctx.exports.state.types,
+                                imports: $in.imports
+                            }} />
+
+                            <Return value={{
+                                ...$ctx.initial,
+                                type_delta: $ctx.analyze.types.delta,
+                                nominal_delta: $ctx.analyze.types.nominal_delta,
+                                input_type: $ctx.signature.input_type,
+                                output_type: $ctx.signature.output_type,
+                                export_names: $ctx.exports.names,
+                                export_types: $ctx.exports.types,
+                                constant_scope: $ctx.analyze.scope,
+                                constant_first: $ctx.analyze.first,
+                                diagnostic: $ctx.analyze.diagnostic
+                            }} />
+                        </Case>
+                    </Switch>
 
                     <Return value={{ ...$ctx.initial, type_delta: $ctx.exports.state.types.delta, nominal_delta: $ctx.exports.state.types.nominal_delta, input_type: $ctx.signature.input_type, output_type: $ctx.signature.output_type, export_names: $ctx.exports.names, export_types: $ctx.exports.types, diagnostic: $ctx.exports.state.diagnostic }} />
                 </Case>

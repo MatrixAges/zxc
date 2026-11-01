@@ -64,3 +64,14 @@ pub fn value(comptime T: type, literal: ir.ConstantValue) T {
         inline else => |payload, tag| @unionInit(T, @tagName(tag), payload),
     };
 }
+
+pub fn own(allocator: std.mem.Allocator, literal: anytype) std.mem.Allocator.Error!ir.ConstantValue {
+    return switch (literal.kind) {
+        .Integer => if (literal.negative) .{ .negative_integer = literal.integer } else .{ .integer = literal.integer },
+        .Float => .{ .float = literal.floating },
+        .String => .{ .string = try allocator.dupe(u8, literal.text) },
+        .Boolean => .{ .boolean = literal.boolean },
+        .EnumValue => .{ .enumeration = literal.enumeration },
+        else => unreachable,
+    };
+}

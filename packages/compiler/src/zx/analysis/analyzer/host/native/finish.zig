@@ -15,6 +15,7 @@ pub fn apply(context: *Context, declarations: []const zx.ast.Declaration, import
     const types = try context.types.prepare(declarations, null);
 
     const text = try context.keep(model.Text, .{
+        .constant_names = context.constant_names.items,
         .expression_names = context.expression_names.items,
         .expression_values = context.expression_values.items,
         .field_names = context.field_names.items,

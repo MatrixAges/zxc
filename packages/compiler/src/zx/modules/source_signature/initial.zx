@@ -15,6 +15,8 @@ export default function (in: Input): Output {
         output_type: 0,
         export_names: [],
         export_types: [],
+        constant_scope: null,
+        constant_first: 0,
         type_only: in.syntax.body == null,
         has_store: in.syntax.has_store,
         diagnostic: in.diagnostic

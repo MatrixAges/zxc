@@ -1,0 +1,38 @@
+import type { Literal, Values } from "core/constant/model"
+import type { Constant } from "../../../frontend/parser/constants/model"
+import type { Program } from "../../../frontend/parser/syntax/model"
+import type { NativeModule } from "../../analyzer/source/model"
+import type { Types } from "../../analyzer/types/model"
+import type { Diagnostic } from "../../semantic/resolving/model"
+import type { Name } from "../../semantic/resolving/source/model"
+
+export type Input = {
+    bytes: u8[],
+    syntax: Program,
+    native: NativeModule?,
+    types: Types,
+    imports: Values?
+}
+
+export type Result = {
+    types: Types,
+    scope: Values?,
+    first: u64,
+    diagnostic: Diagnostic
+}
+
+export type Item = {
+    bytes: u8[],
+    index: u64,
+    constant: Constant,
+    native: NativeModule?,
+    types: Types,
+    scope: Values?
+}
+
+export type ItemResult = {
+    name: Name,
+    types: Types,
+    value: Literal?,
+    diagnostic: Diagnostic
+}

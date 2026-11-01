@@ -232,7 +232,7 @@ const Project = struct {
 
             self.types = .{};
             defer self.types = types.items;
-            unit.signature = try input.signature(&types);
+            unit.signature = try input.signature(&types, &.{});
             unit.signature_aliases = aliases.items;
             unit.signature_imports = imports.items;
             unit.state = .done;

@@ -10,6 +10,7 @@ pub const Ports = struct {
 pub const Result = struct {
     ports: Ports,
     exports: []const ir.Export,
+    constant_exports: []const ir.Constant = &.{},
     type_only: bool,
     has_store: bool,
 };
@@ -40,12 +41,13 @@ pub fn exports(types: *Types, view: anytype) zx.Error![]const ir.Export {
     return result;
 }
 
-pub fn resolve(types: *Types, program: anytype, view: anytype) zx.Error!Result {
+pub fn resolve(types: *Types, program: anytype, view: anytype, constants: []const ir.Constant) zx.Error!Result {
     const signature = try ports(types, program);
 
     return .{
         .ports = signature,
         .exports = try exports(types, view),
+        .constant_exports = try @import("../analysis/constants/declarations/seed.zig").apply(types, program.constants, constants),
         .type_only = program.body == null,
         .has_store = program.has_store,
     };

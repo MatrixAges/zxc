@@ -1,0 +1,95 @@
+import local from "../../../analyzer/local/initial"
+import text from "../../../semantic/resolving/source/text"
+
+import type { Prepared } from "../../../analyzer/model"
+import type { Signature } from "../../../analyzer/signature/model"
+import type { Name, Reference } from "../../../semantic/resolving/source/model"
+import type { Item } from "../model"
+
+export type Input = Item
+
+export type Output = {
+    state: Prepared,
+    reference: Reference,
+    name: Name
+}
+
+export default function (in: Input): Output {
+    const native = in.native
+
+    const name: Name = native != null ? {
+        text: native.text.constant_names[in.index],
+        start: in.constant.name.start,
+        end: in.constant.name.end
+    } : text({
+        source: in.bytes,
+        span: in.constant.name
+    })
+
+    const scope = in.scope
+
+    const duplicate = scope != null && loop({
+        names: scope.names,
+        name: name.text,
+        index: 0,
+        found: false
+    }, {
+        while: current => !current.found && current.index < current.names.length,
+        next: current => {
+            current.found = current.names[current.index] == current.name
+            current.index += 1
+        }
+    }).found
+
+    const signature: Signature = {
+        types: {
+            ...in.types,
+            context: {
+                ...in.types.context,
+                source: {
+                    indexed: {
+                        bytes: in.bytes,
+                        types: in.constant.types,
+                        order: in.constant.type_order,
+                        declarations: [],
+                        members: []
+                    },
+                    native: native != null ? native.types : null
+                }
+            }
+        },
+        span: in.constant.span,
+        input_type: 0,
+        output_type: 0,
+        diagnostic: {
+            code: duplicate ? "name" : "",
+            message: duplicate ? "duplicate constant binding" : "",
+            start: name.start,
+            end: name.end
+        }
+    }
+
+    return {
+        state: {
+            types: signature.types,
+            local: local({
+                signature: signature,
+                stores: {
+                    paths: [],
+                    types: [],
+                    handles: [],
+                    readable: [],
+                    writable: []
+                },
+                allow_store: false
+            }),
+            input_type: 0,
+            diagnostic: signature.diagnostic
+        },
+        reference: native != null ? native.text.type_references[in.constant.annotation] : {
+            enumeration: false,
+            index: in.constant.annotation
+        },
+        name: name
+    }
+}

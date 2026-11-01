@@ -11,6 +11,7 @@ pub const entries: []const Package = &.{
     .{ .specifier = "core/error_effects/functions", .entry = "core/error_effects/functions/analyze.rx" },
     .{ .specifier = "compiler/contract", .entry = "zx/analysis/analyzer/contracts/predicate/analyze.rx" },
     .{ .specifier = "compiler/constant_syntax", .entry = "zx/frontend/parser/constants/parse.rx" },
+    .{ .specifier = "compiler/constant_declaration", .entry = "zx/analysis/constants/declarations/item/analyze.rx" },
     .{ .specifier = "compiler/type_name", .entry = "zx/frontend/type_name/normalize.rx" },
     .{ .specifier = "lint/naming", .entry = "lint/naming/check.zx" },
     .{ .specifier = "lint/naming/model", .entry = "lint/naming/model.zx" },

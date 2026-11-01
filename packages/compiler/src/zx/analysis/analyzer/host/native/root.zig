@@ -44,10 +44,14 @@ pub fn convert(comptime contents: enum { header, full }, allocator: std.mem.Allo
 
     const roots = try allocator.alloc(struct { annotation: u64, value: u64 }, program.constants.len);
 
-    for (program.constants, roots) |item, *root| root.* = .{
-        .annotation = try context.typeReference(item.annotation),
-        .value = try context.expression(item.value),
-    };
+    for (program.constants, roots) |item, *root| {
+        try context.constant_names.append(allocator, item.name.text);
+
+        root.* = .{
+            .annotation = try context.typeReference(item.annotation),
+            .value = try context.expression(item.value),
+        };
+    }
 
     const tables = try @import("finish.zig").apply(&context, program.declarations, import_names.items);
     const constants = try allocator.alloc(*const model.Constant, program.constants.len);

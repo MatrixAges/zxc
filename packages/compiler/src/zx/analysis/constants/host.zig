@@ -60,14 +60,7 @@ pub fn evaluate(allocator: std.mem.Allocator, program: zx.ir.Program, root: zx.i
         .message = "internal compiler error: constant evaluation produced no value",
     } } };
 
-    const literal: zx.ir.ConstantValue = switch (value.kind) {
-        .Integer => if (value.negative) .{ .negative_integer = value.integer } else .{ .integer = value.integer },
-        .Float => .{ .float = value.floating },
-        .String => .{ .string = try owned.dupe(u8, value.text) },
-        .Boolean => .{ .boolean = value.boolean },
-        .EnumValue => .{ .enumeration = value.enumeration },
-        else => unreachable,
-    };
+    const literal = try @import("input.zig").own(owned, value);
 
     return .{ .arena = arena, .value = .{ .constant = .{ .type_id = @fromBackingInt(value.type_id), .value = literal } } };
 }

@@ -1,6 +1,13 @@
+import type { Values } from "core/constant/model"
 import type { Table } from "core/type_table/model"
 import type { Bindings } from "core/type_table/nominal"
+import type { DeclarationInput } from "../../analysis/analyzer/declarations/model"
 import type { Diagnostic } from "../../analysis/semantic/resolving/model"
+
+export type Input = {
+    declarations: DeclarationInput,
+    imports: Values?
+}
 
 export type Result = {
     type_delta: Table
@@ -9,6 +16,8 @@ export type Result = {
     output_type: u32
     export_names: string[]
     export_types: u32[]
+    constant_scope: Values?
+        constant_first: u64
     type_only: bool
     has_store: bool
     diagnostic: Diagnostic

@@ -10,7 +10,7 @@ export default function (in: Input): Output {
     return {
         request: {
             context: {
-                source: { indexed: { bytes: in.bytes, types: in.syntax.types, order: in.syntax.type_order, declarations: in.syntax.declarations, members: in.syntax.members }, native: in.native },
+                source: { indexed: { bytes: in.bytes, types: in.syntax.types, order: in.syntax.type_order, declarations: in.syntax.declarations, members: in.syntax.members }, native: in.native == null ? null : in.native.types },
                 base: in.type_base,
                 resolved: { names: [], ids: [] },
                 aliases: in.aliases,
