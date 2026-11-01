@@ -1,6 +1,10 @@
 import type { Target } from "./model"
 
-export type Input = { expected: u32?, floating: bool, negative: bool }
+export type Input = {
+    expected: u32?,
+    floating: bool,
+    negative: bool
+}
 
 export type Output = Target
 
@@ -15,5 +19,11 @@ export default function (in: Input): Output {
         _ => unsigned,
     }
 
-    return { id: id, floating: id == 8 || id == 9, integer: id >= 2 && id <= 7, signed: id == 6 || id == 7 }
+    return {
+        id: id,
+        floating: id == 8 || id == 9,
+        single: id == 8,
+        integer: id >= 2 && id <= 7,
+        signed: id == 6 || id == 7
+    }
 }

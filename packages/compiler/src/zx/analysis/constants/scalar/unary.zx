@@ -1,0 +1,51 @@
+import { ExpressionKind, UnaryOperator } from "core/expression_table/kinds"
+
+import maximum from "../../analyzer/expressions/numbers/maximum"
+
+import type { Value, Result } from "./model"
+
+export type Input = {
+    value: Value,
+    operator: UnaryOperator
+}
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const value = in.value
+
+    if (in.operator == UnaryOperator.Not) {
+        return {
+            value: {
+                ...value,
+                boolean: !value.boolean
+            },
+            message: ""
+        }
+    }
+
+    if (value.kind == ExpressionKind.Float) {
+        return {
+            value: {
+                ...value,
+                floating: -value.floating
+            },
+            message: ""
+        }
+    }
+
+    const negative = value.integer != 0 && !value.negative
+
+    const limit = maximum({
+        id: value.type_id,
+        negative: negative
+    })
+
+    return {
+        value: {
+            ...value,
+            negative: negative
+        },
+        message: value.integer > limit ? "integer constant negation overflows its type" : ""
+    }
+}

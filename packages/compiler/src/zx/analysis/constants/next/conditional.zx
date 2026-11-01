@@ -1,0 +1,33 @@
+import integers from "std:integer"
+
+import type { Action, Next } from "../model"
+
+export type Input = Next
+
+export type Output = Action
+
+export default function (in: Input): Output {
+    const expressions = in.input.expressions
+    const payload = integers.widen(expressions.payloads[integers.widen(in.frame.id)])
+    const condition_id = expressions.conditional_conditions[payload]
+    const condition = in.cursor.values[integers.widen(condition_id)]
+
+    if (condition == null) {
+        return {
+            frame: in.frame,
+            child: condition_id,
+            value: null,
+            message: ""
+        }
+    }
+
+    const selected = condition.boolean ? expressions.conditional_yes[payload] : expressions.conditional_no[payload]
+    const value = in.cursor.values[integers.widen(selected)]
+
+    return {
+        frame: in.frame,
+        child: value == null ? selected : null,
+        value: value,
+        message: ""
+    }
+}

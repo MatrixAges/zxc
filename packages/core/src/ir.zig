@@ -39,6 +39,8 @@ pub const SymbolTable = @import("symbol_table/root.zig");
 pub const SymbolStorage = @import("symbol_table/storage.zig");
 pub const Symbol = struct { name: []const u8, type_id: TypeId, span: Span, ownership: Ownership = .copy };
 pub const Export = struct { name: []const u8, type_id: TypeId };
+pub const Constant = @import("constant.zig").Constant;
+pub const ConstantValue = @import("constant.zig").Value;
 pub const ListOperation = enum { push, pop, sort, reverse, splice, concat };
 pub const Transform = struct { kind: enum { map, filter, reduce, every, some }, target: ExprId, parameters: []const SymbolId, body: ExprId, initial: ?ExprId = null };
 pub const Projection = struct { target: ExprId, index: u32 };

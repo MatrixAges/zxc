@@ -1,0 +1,84 @@
+import integers from "std:integer"
+import { BinaryOperator, ExpressionKind } from "core/expression_table/kinds"
+
+import binary from "../scalar/binary"
+import unary from "../scalar/unary"
+
+import type { Action, Next } from "../model"
+
+export type Input = Next
+
+export type Output = Action
+
+export default function (in: Input): Output {
+    const expressions = in.input.expressions
+    const index = integers.widen(in.frame.id)
+    const payload = integers.widen(expressions.payloads[index])
+    const single = expressions.kinds[index] == ExpressionKind.Unary
+    const left_id = single ? expressions.unary_operands[payload] : expressions.binary_left[payload]
+    const left = in.cursor.values[integers.widen(left_id)]
+
+    if (left == null) {
+        return {
+            frame: in.frame,
+            child: left_id,
+            value: null,
+            message: ""
+        }
+    }
+
+    if (single) {
+        const result = unary({
+            value: left,
+            operator: expressions.unary_operators[payload]
+        })
+
+        return {
+            frame: in.frame,
+            child: null,
+            value: result.value,
+            message: result.message
+        }
+    }
+
+    const operator = expressions.binary_operators[payload]
+    const short = (operator == BinaryOperator.LogicalAnd && !left.boolean) || (operator == BinaryOperator.LogicalOr && left.boolean)
+
+    if (short) {
+        return {
+            frame: in.frame,
+            child: null,
+            value: {
+                ...left,
+                type_id: expressions.types[index]
+            },
+            message: ""
+        }
+    }
+
+    const right_id = expressions.binary_right[payload]
+    const right = in.cursor.values[integers.widen(right_id)]
+
+    if (right == null) {
+        return {
+            frame: in.frame,
+            child: right_id,
+            value: null,
+            message: ""
+        }
+    }
+
+    const result = binary({
+        left: left,
+        right: right,
+        operator: operator,
+        type_id: expressions.types[index]
+    })
+
+    return {
+        frame: in.frame,
+        child: null,
+        value: result.value,
+        message: result.message
+    }
+}

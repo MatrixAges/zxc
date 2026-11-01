@@ -1,0 +1,47 @@
+import { BinaryOperator, ExpressionKind } from "core/expression_table/kinds"
+
+import type { Binary } from "./model"
+
+export type Input = Binary
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const left = in.left
+    const right = in.right
+
+    if (left.kind == ExpressionKind.Float) {
+        return match in.operator {
+            BinaryOperator.Equal => left.floating == right.floating,
+            BinaryOperator.NotEqual => left.floating != right.floating,
+            BinaryOperator.Less => left.floating < right.floating,
+            BinaryOperator.LessEqual => left.floating <= right.floating,
+            BinaryOperator.Greater => left.floating > right.floating,
+            _ => left.floating >= right.floating
+        }
+    }
+
+    const equal = match left.kind {
+        ExpressionKind.Boolean => left.boolean == right.boolean,
+        ExpressionKind.String => left.text == right.text,
+        ExpressionKind.EnumValue => left.enumeration == right.enumeration,
+        _ => left.negative == right.negative && left.integer == right.integer
+    }
+
+    if (in.operator == BinaryOperator.Equal || in.operator == BinaryOperator.NotEqual) {
+        return in.operator == BinaryOperator.Equal ? equal : !equal
+    }
+
+    const less = match {
+        left.negative != right.negative => left.negative,
+        left.negative => left.integer > right.integer,
+        _ => left.integer < right.integer
+    }
+
+    return match in.operator {
+        BinaryOperator.Less => less,
+        BinaryOperator.LessEqual => less || equal,
+        BinaryOperator.Greater => !less && !equal,
+        _ => !less
+    }
+}

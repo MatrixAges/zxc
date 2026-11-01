@@ -1,0 +1,36 @@
+import floats from "std:float"
+import { BinaryOperator } from "core/expression_table/kinds"
+
+export type Input = {
+    left: f64,
+    right: f64,
+    operator: BinaryOperator,
+    single: bool
+}
+
+export type Output = f64
+
+export default function (in: Input): Output {
+    if (in.single) {
+        const left = floats.narrow(in.left)
+        const right = floats.narrow(in.right)
+
+        const value = match in.operator {
+            BinaryOperator.Add => left + right,
+            BinaryOperator.Subtract => left - right,
+            BinaryOperator.Multiply => left * right,
+            BinaryOperator.Divide => left / right,
+            _ => left % right
+        }
+
+        return floats.widen(value)
+    }
+
+    return match in.operator {
+        BinaryOperator.Add => in.left + in.right,
+        BinaryOperator.Subtract => in.left - in.right,
+        BinaryOperator.Multiply => in.left * in.right,
+        BinaryOperator.Divide => in.left / in.right,
+        _ => in.left % in.right
+    }
+}

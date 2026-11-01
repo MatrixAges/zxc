@@ -1,0 +1,42 @@
+import type { Expressions } from "core/expression_table/model"
+import type { Diagnostic } from "../../frontend/lexer/model"
+import type { Value } from "./scalar/model"
+
+export type Request = {
+    expressions: Expressions,
+    root: u32
+}
+
+export type Frame = {
+    id: u32,
+    arm: u64
+}
+
+export type Cursor = {
+    frames: Frame[],
+    values: Value?[],
+    diagnostic: Diagnostic
+}
+
+export type Step = {
+    input: Request,
+    cursor: Cursor
+}
+
+export type Action = {
+    frame: Frame,
+    child: u32?,
+    value: Value?,
+    message: string
+}
+
+export type Next = {
+    input: Request,
+    cursor: Cursor,
+    frame: Frame
+}
+
+export type Result = {
+    value: Value?,
+    diagnostic: Diagnostic
+}

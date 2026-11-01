@@ -1,0 +1,103 @@
+import { BinaryOperator } from "core/expression_table/kinds"
+
+import maximum from "../../analyzer/expressions/numbers/maximum"
+
+import type { Arithmetic, IntegerResult } from "./model"
+
+export type Input = Arithmetic
+
+export type Output = IntegerResult
+
+export default function (in: Input): Output {
+    const left = in.left
+
+    const right = {
+        magnitude: in.right.magnitude,
+        negative: in.operator == BinaryOperator.Subtract && in.right.magnitude != 0 ? !in.right.negative : in.right.negative
+    }
+
+    const addition = in.operator == BinaryOperator.Add || in.operator == BinaryOperator.Subtract
+    const negative = addition ? left.negative : left.negative != right.negative
+
+    const limit = maximum({
+        id: in.target.id,
+        negative: negative
+    })
+
+    const invalid_sign = negative && !in.target.signed
+
+    const empty = {
+        magnitude: 0,
+        negative: false
+    }
+
+    if (addition) {
+        if (left.negative == right.negative) {
+            if (invalid_sign || right.magnitude > limit || left.magnitude > limit - right.magnitude) {
+                return {
+                    value: empty,
+                    message: "integer constant arithmetic overflows its type"
+                }
+            }
+
+            const magnitude = left.magnitude + right.magnitude
+
+            return {
+                value: {
+                    magnitude: magnitude,
+                    negative: magnitude != 0 && negative
+                },
+                message: ""
+            }
+        }
+
+        const larger_left = left.magnitude >= right.magnitude
+        const magnitude = larger_left ? left.magnitude - right.magnitude : right.magnitude - left.magnitude
+        const sign = larger_left ? left.negative : right.negative
+
+        return {
+            value: {
+                magnitude: magnitude,
+                negative: magnitude != 0 && sign
+            },
+            message: magnitude != 0 && sign && !in.target.signed ? "integer constant arithmetic overflows its type" : ""
+        }
+    }
+
+    if (in.operator == BinaryOperator.Multiply) {
+        if ((invalid_sign && left.magnitude != 0 && right.magnitude != 0) || (right.magnitude != 0 && left.magnitude > limit / right.magnitude)) {
+            return {
+                value: empty,
+                message: "integer constant arithmetic overflows its type"
+            }
+        }
+
+        const magnitude = left.magnitude * right.magnitude
+
+        return {
+            value: {
+                magnitude: magnitude,
+                negative: magnitude != 0 && negative
+            },
+            message: ""
+        }
+    }
+
+    if (right.magnitude == 0) {
+        return {
+            value: empty,
+            message: "integer constant division by zero"
+        }
+    }
+
+    const remainder = in.operator == BinaryOperator.Remainder
+    const magnitude = remainder ? left.magnitude % right.magnitude : left.magnitude / right.magnitude
+
+    return {
+        value: {
+            magnitude: magnitude,
+            negative: magnitude != 0 && (remainder ? left.negative : negative)
+        },
+        message: !remainder && (invalid_sign || magnitude > limit) ? "integer constant arithmetic overflows its type" : ""
+    }
+}

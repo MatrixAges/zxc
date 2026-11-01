@@ -1,0 +1,37 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import type { Request } from "../model"
+import type { Value } from "../scalar/model"
+
+export type Input = {
+    input: Request,
+    id: u32
+}
+
+export type Output = Value
+
+export default function (in: Input): Output {
+    const expressions = in.input.expressions
+    const index = integers.widen(in.id)
+    const kind = expressions.kinds[index]
+    const payload = integers.widen(expressions.payloads[index])
+    const integer = kind == ExpressionKind.Integer || kind == ExpressionKind.NegativeInteger
+
+    const magnitude = match kind {
+        ExpressionKind.Integer => expressions.integers[payload],
+        ExpressionKind.NegativeInteger => expressions.negative_integers[payload],
+        _ => 0
+    }
+
+    return {
+        type_id: expressions.types[index],
+        kind: integer ? ExpressionKind.Integer : kind,
+        integer: magnitude,
+        negative: magnitude != 0 && kind == ExpressionKind.NegativeInteger,
+        floating: kind == ExpressionKind.Float ? expressions.floats[payload] : 0,
+        text: kind == ExpressionKind.String ? expressions.strings[payload] : "",
+        boolean: kind == ExpressionKind.Boolean && expressions.booleans[payload],
+        enumeration: kind == ExpressionKind.EnumValue ? expressions.enumerations[payload] : 0
+    }
+}

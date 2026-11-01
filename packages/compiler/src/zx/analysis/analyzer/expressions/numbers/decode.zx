@@ -22,8 +22,8 @@ export default function (in: Input): Output {
 
     if (selected.floating) {
         const bytes = source.separators ? clean(in.source) : in.source
-        const value = floating({ bytes: bytes, single: selected.id == 8, negative: in.negative })
-        const precision = selected.id == 8 ? 24 : 53
+        const value = floating({ bytes: bytes, single: selected.single, negative: in.negative })
+        const precision = selected.single ? 24 : 53
         const message = value.message == "" && !source.floating ? exact({ bytes: bytes, precision: precision }) : value.message
 
         return { target: selected, integer: 0, floating: value.value, message: message }

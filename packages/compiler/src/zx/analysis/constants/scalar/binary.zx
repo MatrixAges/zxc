@@ -1,0 +1,74 @@
+import { BinaryOperator, ExpressionKind } from "core/expression_table/kinds"
+
+import target from "../../analyzer/expressions/numbers/target"
+import classify from "../../analyzer/expressions/operators/classify"
+import compare from "./compare"
+import floating from "./floating"
+import integer from "./integer"
+
+import type { Binary, Result } from "./model"
+
+export type Input = Binary
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const flags = classify(in.operator)
+
+    if (flags.comparison || flags.logical) {
+        const logical = in.operator == BinaryOperator.LogicalAnd ? in.left.boolean && in.right.boolean : in.left.boolean || in.right.boolean
+
+        return {
+            value: {
+                ...in.left,
+                type_id: in.type_id,
+                kind: ExpressionKind.Boolean,
+                boolean: flags.comparison ? compare(in) : logical
+            },
+            message: ""
+        }
+    }
+
+    const selected = target({
+        expected: in.left.type_id,
+        floating: false,
+        negative: false
+    })
+
+    if (selected.floating) {
+        return {
+            value: {
+                ...in.left,
+                floating: floating({
+                    left: in.left.floating,
+                    right: in.right.floating,
+                    operator: in.operator,
+                    single: selected.single
+                })
+            },
+            message: ""
+        }
+    }
+
+    const result = integer({
+        left: {
+            magnitude: in.left.integer,
+            negative: in.left.negative
+        },
+        right: {
+            magnitude: in.right.integer,
+            negative: in.right.negative
+        },
+        operator: in.operator,
+        target: selected
+    })
+
+    return {
+        value: {
+            ...in.left,
+            integer: result.value.magnitude,
+            negative: result.value.negative
+        },
+        message: result.message
+    }
+}

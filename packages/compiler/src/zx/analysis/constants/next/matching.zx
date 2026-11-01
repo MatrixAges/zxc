@@ -1,0 +1,72 @@
+import integers from "std:integer"
+import { BinaryOperator } from "core/expression_table/kinds"
+
+import compare from "../scalar/compare"
+
+import type { Action, Next } from "../model"
+
+export type Input = Next
+
+export type Output = Action
+
+export default function (in: Input): Output {
+    const expressions = in.input.expressions
+    const payload = integers.widen(expressions.payloads[integers.widen(in.frame.id)])
+    const subject_id = expressions.match_subjects[payload]
+    const subject = subject_id != null ? in.cursor.values[integers.widen(subject_id)] : null
+
+    if (subject_id != null && subject == null) {
+        return {
+            frame: in.frame,
+            child: subject_id,
+            value: null,
+            message: ""
+        }
+    }
+
+    const count = integers.widen(expressions.match_count[payload])
+    const arm = integers.widen(expressions.match_first[payload]) + in.frame.arm
+
+    if (in.frame.arm < count) {
+        const condition_id = expressions.match_conditions[arm]
+        const condition = in.cursor.values[integers.widen(condition_id)]
+
+        if (condition == null) {
+            return {
+                frame: in.frame,
+                child: condition_id,
+                value: null,
+                message: ""
+            }
+        }
+
+        const matches = subject != null ? compare({
+            left: subject,
+            right: condition,
+            operator: BinaryOperator.Equal,
+            type_id: condition.type_id
+        }) : condition.boolean
+
+        if (!matches) {
+            return {
+                frame: {
+                    ...in.frame,
+                    arm: in.frame.arm + 1
+                },
+                child: null,
+                value: null,
+                message: ""
+            }
+        }
+    }
+
+    const selected = in.frame.arm < count ? expressions.match_results[arm] : expressions.match_fallbacks[payload]
+    const value = in.cursor.values[integers.widen(selected)]
+
+    return {
+        frame: in.frame,
+        child: value == null ? selected : null,
+        value: value,
+        message: ""
+    }
+}

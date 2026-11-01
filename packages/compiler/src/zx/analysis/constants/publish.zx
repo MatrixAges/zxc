@@ -1,0 +1,38 @@
+import floats from "std:float"
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import type { Result, Step } from "./model"
+
+export type Input = Step
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const index = integers.widen(in.input.root)
+    const value = in.cursor.values[index]
+
+    if (in.cursor.diagnostic.message != "") {
+        return {
+            value: null,
+            diagnostic: in.cursor.diagnostic
+        }
+    }
+
+    if (value != null && value.kind == ExpressionKind.Float && !floats.isFinite(value.floating)) {
+        return {
+            value: null,
+            diagnostic: {
+                code: "unsupported",
+                start: in.input.expressions.span_start[index],
+                end: in.input.expressions.span_end[index],
+                message: "non-finite constant values cannot be materialized as IR literals"
+            }
+        }
+    }
+
+    return {
+        value: value,
+        diagnostic: in.cursor.diagnostic
+    }
+}

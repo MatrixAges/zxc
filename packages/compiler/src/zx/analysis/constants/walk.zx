@@ -1,0 +1,48 @@
+import integers from "std:integer"
+
+import next from "./next"
+
+import type { Cursor, Step } from "./model"
+
+export type Input = Step
+
+export type Output = Cursor
+
+export default function (in: Input): Output {
+    return loop({
+        input: in.input,
+        cursor: in.cursor
+    }, {
+        while: current => current.cursor.frames.length != 0 && current.cursor.diagnostic.message == "",
+        next: current => {
+            const last = current.cursor.frames.length - 1
+            const frame = current.cursor.frames[last]
+            const action = next({
+                input: current.input,
+                cursor: current.cursor,
+                frame: frame
+            })
+
+            if (action.message != "") {
+                const id = integers.widen(frame.id)
+
+                current.cursor.diagnostic = {
+                    code: "type_mismatch",
+                    start: current.input.expressions.span_start[id],
+                    end: current.input.expressions.span_end[id],
+                    message: action.message
+                }
+            } else if (action.child != null) {
+                current.cursor.frames = current.cursor.frames.push({
+                    id: action.child,
+                    arm: 0
+                })[0]
+            } else if (action.value != null) {
+                current.cursor.values[integers.widen(frame.id)] = action.value
+                current.cursor.frames = current.cursor.frames.pop()[0]
+            } else {
+                current.cursor.frames[last] = action.frame
+            }
+        }
+    }).cursor
+}

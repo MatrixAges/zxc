@@ -1,0 +1,39 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import atom from "./next/atom"
+import conditional from "./next/conditional"
+import matching from "./next/matching"
+import operation from "./next/operation"
+
+import type { Action, Next } from "./model"
+
+export type Input = Next
+
+export type Output = Action
+
+export default function (in: Input): Output {
+    const kind = in.input.expressions.kinds[integers.widen(in.frame.id)]
+
+    if (kind == ExpressionKind.Unary || kind == ExpressionKind.Binary) {
+        return operation(in)
+    }
+
+    if (kind == ExpressionKind.Conditional) {
+        return conditional(in)
+    }
+
+    if (kind == ExpressionKind.Match) {
+        return matching(in)
+    }
+
+    return {
+        frame: in.frame,
+        child: null,
+        value: atom({
+            input: in.input,
+            id: in.frame.id
+        }),
+        message: ""
+    }
+}
