@@ -1,3 +1,6 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+
 import symbols from "../body/symbols"
 import offsets from "../expressions/validation/offsets"
 import expressions from "../expressions/validation/validate"
@@ -12,7 +15,7 @@ export default function (in: Input): Output {
     const contracts = in.contracts
     const count = contracts.kinds.length
 
-    if (count > 4294967295 || contracts.predicates.length != count || contracts.symbols.length != count || contracts.expressions.length != count || contracts.span_start.length != count || contracts.span_end.length != count) {
+    if (count > integers.widen(max_u32) || contracts.predicates.length != count || contracts.symbols.length != count || contracts.expressions.length != count || contracts.span_start.length != count || contracts.span_end.length != count) {
         return false
     }
 

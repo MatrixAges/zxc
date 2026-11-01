@@ -1,6 +1,8 @@
 import integers from "std:integer"
 import { BinaryOperator, ExpressionKind } from "core/expression_table/kinds"
 
+import { code_unsupported, code_contract, message_root_bounds, message_closed_scalar } from "./const"
+
 import type { Diagnostic } from "../../frontend/lexer/model"
 import type { Request } from "./model"
 
@@ -21,10 +23,10 @@ export default function (in: Input): Output {
 
     if (root >= expressions.kinds.length) {
         return {
-            code: "contract",
+            code: code_contract,
             start: 0,
             end: 0,
-            message: "constant expression root is out of bounds"
+            message: message_root_bounds
         }
     }
 
@@ -50,10 +52,10 @@ export default function (in: Input): Output {
 
                 if ((!atom && !operation && !branch) || coalesce) {
                     current.diagnostic = {
-                        code: "unsupported",
+                        code: code_unsupported,
                         start: current.expressions.span_start[index],
                         end: current.expressions.span_end[index],
-                        message: "constant initializers require closed scalar expressions"
+                        message: message_closed_scalar
                     }
                 }
 

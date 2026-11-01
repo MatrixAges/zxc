@@ -1,3 +1,6 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+
 import type { Table } from "./model"
 
 export type Input = Table
@@ -11,7 +14,7 @@ export default function (in: Input): Output {
     const arguments_aligned = in.native_allocators.length == count && in.native_io.length == count && in.native_process.length == count && in.native_tuples.length == count
     const effects_aligned = in.native_fallible.length == count && in.native_errors.length == count && in.native_concurrent.length == count
 
-    if (count > 4294967295 || !types_aligned || !names_aligned || !arguments_aligned || !effects_aligned) {
+    if (count > integers.widen(max_u32) || !types_aligned || !names_aligned || !arguments_aligned || !effects_aligned) {
         return false
     }
 

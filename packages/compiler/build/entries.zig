@@ -35,6 +35,8 @@ pub const main = [_]Entry{
     .{ .path = "zx/modules/binding/bind.rx", .name = "project_binding" },
     .{ .path = "zx/analysis/integer/decode.rx", .name = "integer" },
     constant_fold,
+    .{ .path = "zx/analysis/constants/validate.rx", .name = "constant_values" },
+    .{ .path = "zx/analysis/constants/bindings.rx", .name = "constant_bindings" },
     .{ .path = "zx/analysis/semantic/origins.rx", .name = "origin_validation" },
     .{ .path = "zx/analysis/semantic/produce.rx", .name = "origin_production" },
     .{ .path = "zx/analysis/semantic/preflight.rx", .name = "merge_preflight" },

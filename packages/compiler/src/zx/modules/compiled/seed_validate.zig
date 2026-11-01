@@ -7,7 +7,7 @@ pub const Error = std.mem.Allocator.Error || error{InvalidLibrary};
 pub fn validate(allocator: std.mem.Allocator, library: model.Graph) Error!void {
     const program = library.program;
 
-    if (!program.type_only or program.exports.len != 0 or program.stores.count() != 0 or library.exports.len == 0) return error.InvalidLibrary;
+    if (!program.type_only or program.exports.len != 0 or program.constant_exports.len != 0 or program.stores.count() != 0 or library.exports.len == 0) return error.InvalidLibrary;
     if (try @import("../../ir/validate.zig").validate(allocator, program) != null) return error.InvalidLibrary;
 
     var temporary = std.heap.ArenaAllocator.init(allocator);
@@ -65,6 +65,8 @@ pub fn validate(allocator: std.mem.Allocator, library: model.Graph) Error!void {
 
             if (function.external != null or !std.mem.eql(u8, function.file_name, exported.path)) return error.InvalidLibrary;
         }
+
+        if (!@import("../../analysis/constants/input.zig").nativeValid(program.types, exported.constants)) return error.InvalidLibrary;
 
         var type_names: std.StringHashMapUnmanaged(void) = .empty;
 

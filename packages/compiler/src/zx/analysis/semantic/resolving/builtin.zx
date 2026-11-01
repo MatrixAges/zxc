@@ -1,22 +1,26 @@
+import integers from "std:integer"
+import { type_name_void, type_name_bool, type_name_boolean, type_name_u8, type_name_u16, type_name_u32, type_name_u64, type_name_i32, type_name_i64, type_name_f32, type_name_f64, type_name_number, type_name_string } from "core/const"
+import { type_id_void, type_id_bool, type_id_u8, type_id_u16, type_id_u32, type_id_u64, type_id_i32, type_id_i64, type_id_f32, type_id_f64, type_id_string } from "core/const"
+
 export type Input = string
 
 export type Output = u64
 
 export default function (in: Input): Output {
     return match in {
-        "void" => 1,
-        "bool" => 2,
-        "boolean" => 2,
-        "u8" => 3,
-        "u16" => 4,
-        "u32" => 5,
-        "u64" => 6,
-        "i32" => 7,
-        "i64" => 8,
-        "f32" => 9,
-        "f64" => 10,
-        "number" => 10,
-        "string" => 11,
+        type_name_void => integers.widen(type_id_void) + 1,
+        type_name_bool => integers.widen(type_id_bool) + 1,
+        type_name_boolean => integers.widen(type_id_bool) + 1,
+        type_name_u8 => integers.widen(type_id_u8) + 1,
+        type_name_u16 => integers.widen(type_id_u16) + 1,
+        type_name_u32 => integers.widen(type_id_u32) + 1,
+        type_name_u64 => integers.widen(type_id_u64) + 1,
+        type_name_i32 => integers.widen(type_id_i32) + 1,
+        type_name_i64 => integers.widen(type_id_i64) + 1,
+        type_name_f32 => integers.widen(type_id_f32) + 1,
+        type_name_f64 => integers.widen(type_id_f64) + 1,
+        type_name_number => integers.widen(type_id_f64) + 1,
+        type_name_string => integers.widen(type_id_string) + 1,
         _ => 0
     }
 }

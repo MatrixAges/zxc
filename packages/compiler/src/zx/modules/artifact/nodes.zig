@@ -23,6 +23,19 @@ types: TypeMap,
 functions: IdMap(ir.FunctionId),
 native_modules: IdMap(ir.NativeModuleId),
 arena: ?*std.heap.ArenaAllocator = null,
+pub fn constants(self: *Self, values: []const ir.Constant) Error![]const ir.Constant {
+    if (values.len == 0) return &.{};
+
+    const result = try self.allocator.alloc(ir.Constant, values.len);
+
+    for (values, result) |value, *owned| {
+        owned.* = try @import("../../analysis/constants/copy.zig").copy(self.allocator, value);
+        owned.type_id = try self.types.include(value.type_id);
+    }
+
+    return result;
+}
+
 pub fn functionId(self: *Self, id: ir.FunctionId) Error!ir.FunctionId {
     return self.functions.get(id);
 }

@@ -10,6 +10,8 @@ pub const Module = struct {
     types: ir.TypeTable,
     nominal_types: @import("../nominal_origins.zig").Table,
     exports: []const ir.Export,
+    constant_exports: []const ir.Constant = &.{},
+    constant_imports: []const ir.Constant = &.{},
     type_imports: []const ir.Export,
     function_imports: []const @import("../function_import.zig"),
     functions: ir.SignatureTable,

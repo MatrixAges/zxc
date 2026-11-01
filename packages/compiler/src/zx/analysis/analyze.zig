@@ -63,11 +63,6 @@ fn analyzeInput(allocator: std.mem.Allocator, input: anytype, file_name: []const
 
 fn analyzeInputIn(allocator: std.mem.Allocator, input: anytype, file_name: []const u8, context: Context, resolved: ?Resolved.Input) std.mem.Allocator.Error!ResolvedResult {
     var reporter: zx.Reporter = .{};
-
-    Input.checkConstants(input.header(), &reporter) catch {
-        return .{ .value = .{ .diagnostic = reporter.diagnostic.? } };
-    };
-
     var copied_types: zx.ir.TypeStorage = .{};
     var origins = Origins{ .allocator = allocator };
     const functions = if (resolved) |bindings| bindings.functions else zx.ir.FunctionTable{};

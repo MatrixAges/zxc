@@ -1,5 +1,6 @@
 import analyze from "compiler/constant_declaration"
 
+import { code_contract, message_invalid_bindings, message_missing_value } from "../const"
 import valid from "../valid"
 
 import type { Literal } from "core/constant/model"
@@ -37,8 +38,8 @@ export default function (in: Input): Output {
         return {
             ...initial,
             diagnostic: {
-                code: "contract",
-                message: "invalid typed constant bindings",
+                code: code_contract,
+                message: message_invalid_bindings,
                 start: 0,
                 end: 0
             }
@@ -82,8 +83,8 @@ export default function (in: Input): Output {
 
             if (value == null && evaluated.diagnostic.message == "") {
                 current.diagnostic = {
-                    code: "contract",
-                    message: "constant evaluation produced no value",
+                    code: code_contract,
+                    message: message_missing_value,
                     start: constant.span.start,
                     end: constant.span.end
                 }

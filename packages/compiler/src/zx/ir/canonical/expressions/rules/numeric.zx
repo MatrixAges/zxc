@@ -1,3 +1,5 @@
+import { type_id_u8, type_id_u64, type_id_i32, type_id_i64, type_id_f32, type_id_f64 } from "core/const"
+
 import { Numeric } from "./model"
 
 export type Input = u32
@@ -5,13 +7,13 @@ export type Input = u32
 export type Output = Numeric
 
 export default function (in: Input): Output {
-    if (in >= 2 && in <= 5) {
+    if (in >= type_id_u8 && in <= type_id_u64) {
         return Numeric.Integer
     }
 
-    if (in == 6 || in == 7) {
+    if (in == type_id_i32 || in == type_id_i64) {
         return Numeric.Signed
     }
 
-    return in == 8 || in == 9 ? Numeric.Float : Numeric.Other
+    return in == type_id_f32 || in == type_id_f64 ? Numeric.Float : Numeric.Other
 }

@@ -18,9 +18,6 @@ functions: ir.SignatureStorage = .{},
 native_modules: ir.NativeModuleStorage = .{},
 pub fn init(allocator: std.mem.Allocator, temporary: std.mem.Allocator, analysis: *const Analysis.Result) Error!Self {
     const program = analysis.value.ir;
-
-    if (program.constant_exports.len != 0) return error.InvalidModule;
-
     const functions = try temporary.alloc(?ir.FunctionId, program.functions.count());
     const native_modules = try temporary.alloc(?ir.NativeModuleId, program.native_modules.count());
 
@@ -31,8 +28,6 @@ pub fn init(allocator: std.mem.Allocator, temporary: std.mem.Allocator, analysis
 }
 
 pub fn extract(self: *Self, record: Record) Error!model.Module {
-    if (record.constant_exports.len != 0 or record.constant_imports.len != 0) return error.InvalidModule;
-
     var roots = try @import("roots.zig").collect(self.types.temporary, self.program, record);
 
     defer roots.deinit();
@@ -116,6 +111,8 @@ pub fn extract(self: *Self, record: Record) Error!model.Module {
         .types = self.types.items.view(),
         .nominal_types = self.types.nominal_origins.items.view(),
         .exports = exported,
+        .constant_exports = try nodes.constants(record.constant_exports),
+        .constant_imports = try nodes.constants(record.constant_imports),
         .type_imports = type_imports,
         .function_imports = function_imports,
         .functions = self.functions.view(),

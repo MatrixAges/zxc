@@ -1,8 +1,10 @@
 import floats from "std:float"
 import integers from "std:integer"
+import { type_id_void, type_id_bool, type_id_f32, type_id_string } from "core/const"
 import { ExpressionKind } from "core/expression_table/kinds"
 import { Kind } from "core/type_table/model"
 
+import integerMaximum from "../../../../analysis/analyzer/expressions/numbers/maximum"
 import { Numeric } from "./model"
 import numeric from "./numeric"
 
@@ -23,14 +25,10 @@ export default function (in: Input): Output {
             return false
         }
 
-        const maximum = match in.type_id {
-            2 => 255,
-            3 => 65535,
-            4 => 4294967295,
-            5 => 18446744073709551615,
-            6 => negative ? 2147483648 : 2147483647,
-            _ => negative ? 9223372036854775808 : 9223372036854775807
-        }
+        const maximum = integerMaximum({
+            id: in.type_id,
+            negative: negative
+        })
 
         const magnitude = negative ? expressions.negative_integers[in.payload] : expressions.integers[in.payload]
 
@@ -40,7 +38,7 @@ export default function (in: Input): Output {
     if (in.kind == ExpressionKind.Float) {
         const value = expressions.floats[in.payload]
 
-        return numeric(in.type_id) == Numeric.Float && floats.isFinite(value) && (in.type_id != 8 || floats.widen(floats.narrow(value)) == value)
+        return numeric(in.type_id) == Numeric.Float && floats.isFinite(value) && (in.type_id != type_id_f32 || floats.widen(floats.narrow(value)) == value)
     }
 
     if (in.kind == ExpressionKind.StoreGet) {
@@ -56,9 +54,9 @@ export default function (in: Input): Output {
     }
 
     return match in.kind {
-        ExpressionKind.String => in.type_id == 10,
-        ExpressionKind.Boolean => in.type_id == 1,
-        ExpressionKind.Unit => in.type_id == 0,
+        ExpressionKind.String => in.type_id == type_id_string,
+        ExpressionKind.Boolean => in.type_id == type_id_bool,
+        ExpressionKind.Unit => in.type_id == type_id_void,
         ExpressionKind.None => in.target == Kind.Optional,
         ExpressionKind.EnumValue => in.target == Kind.Enumeration && expressions.enumerations[in.payload] < in.context.table.second[integers.widen(in.type_id)],
         ExpressionKind.ErrorValue => in.target == Kind.ErrorSet && expressions.errors[in.payload] < in.context.table.second[integers.widen(in.type_id)],

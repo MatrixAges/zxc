@@ -1,4 +1,5 @@
 import integers from "std:integer"
+import { max_u32 } from "core/const"
 import kind from "core/type_table/kind"
 import { Kind } from "core/type_table/model"
 
@@ -17,7 +18,7 @@ export default function (in: Input): Output {
 
                 current.root += 1
 
-                if (current.numbers[integers.widen(root)] == 4294967295) {
+                if (current.numbers[integers.widen(root)] == max_u32) {
                     current.nodes = current.nodes.push(root)[0]
                     current.cursors = current.cursors.push(0)[0]
                 }
@@ -45,7 +46,7 @@ export default function (in: Input): Output {
 
                     current.cursors[top] += 1
 
-                    if (current.numbers[integers.widen(child)] == 4294967295) {
+                    if (current.numbers[integers.widen(child)] == max_u32) {
                         current.nodes = current.nodes.push(child)[0]
                         current.cursors = current.cursors.push(0)[0]
                     }

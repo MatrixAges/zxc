@@ -24,8 +24,6 @@ pub const Result = struct { program: ir.Program, nominal_types: Origins.Table };
 const Error = Types.Error || model.Error;
 
 pub fn restore(module: model.Module, current: Current) std.mem.Allocator.Error!?Result {
-    if (current.constant_imports.len != 0) return null;
-
     return restoreChecked(module, current) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 
@@ -37,6 +35,11 @@ fn restoreChecked(module: model.Module, current: Current) Error!Result {
     if (!module.native_modules.validStructure() or !module.functions.validStructure() or !current.native_modules.validStructure()) return error.InvalidModule;
     if (!sameDependencies(module.dependencies, current.dependencies)) return error.InvalidModule;
     if (module.type_imports.len != current.aliases.len or module.function_imports.len != current.imports.len) return error.InvalidModule;
+    if (module.constant_imports.len != current.constant_imports.len) return error.InvalidModule;
+
+    const constants = @import("../../analysis/constants/check.zig");
+
+    if (!try constants.validate(current.allocator, current.types.view(), current.constant_imports)) return error.InvalidModule;
 
     const allocator = current.allocator;
     const first_type = current.types.count();
@@ -61,6 +64,11 @@ fn restoreChecked(module: model.Module, current: Current) Error!Result {
     }
 
     const mapping = try types.append(allocator, module);
+
+    if (!try constants.validate(allocator, module.types, module.constant_exports)) return error.InvalidModule;
+    if (!try constants.validate(allocator, module.types, module.constant_imports)) return error.InvalidModule;
+    if (try @import("../../analysis/constants/bindings.zig").compare(allocator, .{ .previous = module.constant_imports, .current = current.constant_imports, .mapping = mapping }) != .Equal) return error.InvalidModule;
+
     const function_mapping = try allocator.alloc(?ir.FunctionId, module.functions.count());
     const native_mapping = try allocator.alloc(?ir.NativeModuleId, module.native_modules.count());
 
@@ -148,6 +156,7 @@ fn restoreChecked(module: model.Module, current: Current) Error!Result {
         .body = if (function) |value| value.body else .{},
         .contracts = if (function) |value| value.contracts else .{},
         .exports = exports,
+        .constant_exports = try nodes.constants(module.constant_exports),
         .stores = stores,
         .store_mode = if (function) |value| value.store_mode else .transaction,
         .functions = try current.functions.snapshot(allocator),

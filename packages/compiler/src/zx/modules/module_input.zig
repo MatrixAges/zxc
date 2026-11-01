@@ -71,7 +71,3 @@ pub const Indexed = if (module_result.indexed_enabled) struct {
         return @import("../analysis/analyzer/host/root.zig").analyze(analyzer, self.value.source, self.value.output, file_name);
     }
 } else void;
-
-pub fn checkConstants(header: anytype, reporter: *zx.Reporter) zx.Error!void {
-    if (header.constantCount() != 0) return reporter.fail(.unsupported, header.constantAt(0).span, "export const declarations are parsed; constant analysis is not yet available");
-}

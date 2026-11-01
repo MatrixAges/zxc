@@ -29,6 +29,11 @@ pub fn module(self: *Self, index: usize) Error!?ir.Function {
     try checkExports(value.exports, nodes.types);
     try checkExports(value.type_imports, nodes.types);
 
+    const constants = @import("../../analysis/constants/check.zig");
+
+    if (!try constants.validate(self.temporary, value.types, value.constant_exports)) return error.InvalidModule;
+    if (!try constants.validate(self.temporary, value.types, value.constant_imports)) return error.InvalidModule;
+
     for (0..value.native_modules.count(), native_mapping) |item_row, *id| {
         const item = value.native_modules.at(item_row);
 
@@ -105,9 +110,32 @@ fn imports(self: *Self, index: usize, nodes: *Nodes) Error!void {
             continue;
         }
 
-        if (target.function != null) return error.InvalidModule;
+        if (target.function != null and dependency.kind != .enumeration) return error.InvalidModule;
+
+        const Bindings = @import("../../analysis/constants/bindings.zig");
+
+        var constants: ?Bindings.Prepared = if (dependency.kind == .enumeration and target.constant_exports.len != 0) try Bindings.prepare(self.temporary, .{
+            .previous = target.constant_exports,
+            .current = value.constant_imports,
+            .mapping = self.type_mappings[target_index],
+            .current_mapping = self.type_mappings[index],
+        }) else null;
+
+        defer if (constants) |*prepared| prepared.deinit();
 
         for (dependency.names) |name| {
+            if (constants) |*prepared| {
+                const comparison = try prepared.compare(name);
+
+                switch (comparison) {
+                    .Equal => continue,
+                    .Different => return error.ConflictingInterface,
+                    .Missing => {},
+                }
+            }
+
+            if (target.function != null) return error.InvalidModule;
+
             var exported: ?ir.TypeId = null;
             var imported: ?ir.TypeId = null;
 

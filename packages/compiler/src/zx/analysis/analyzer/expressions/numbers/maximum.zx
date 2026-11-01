@@ -1,14 +1,17 @@
+import integers from "std:integer"
+import { type_id_u8, type_id_u16, type_id_u32, type_id_i32, type_id_i64, max_u8, max_u16, max_u32, max_u64, i32_negative_magnitude, i32_positive_magnitude, i64_negative_magnitude, i64_positive_magnitude } from "core/const"
+
 export type Input = { id: u32, negative: bool }
 
 export type Output = u64
 
 export default function (in: Input): Output {
     return match in.id {
-        2 => 255,
-        3 => 65535,
-        4 => 4294967295,
-        6 => in.negative ? 2147483648 : 2147483647,
-        7 => in.negative ? 9223372036854775808 : 9223372036854775807,
-        _ => 18446744073709551615,
+        type_id_u8 => integers.widenByte(max_u8),
+        type_id_u16 => integers.widenShort(max_u16),
+        type_id_u32 => integers.widen(max_u32),
+        type_id_i32 => in.negative ? i32_negative_magnitude : i32_positive_magnitude,
+        type_id_i64 => in.negative ? i64_negative_magnitude : i64_positive_magnitude,
+        _ => max_u64,
     }
 }

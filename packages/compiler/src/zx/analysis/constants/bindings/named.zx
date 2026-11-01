@@ -1,0 +1,39 @@
+import lookup from "core/constant/lookup"
+
+import literalMatches from "./literal_matches"
+import { Comparison } from "./model"
+
+import type { Request } from "./model"
+
+export type Input = Request
+
+export type Output = Comparison
+
+export default function (in: Input): Output {
+    const name = in.name
+
+    if (name == null) {
+        return Comparison.Different
+    }
+
+    const previous = lookup({
+        constants: in.previous,
+        name: name
+    })
+
+    if (previous == null) {
+        return Comparison.Missing
+    }
+
+    const current = lookup({
+        constants: in.current,
+        name: name
+    })
+
+    return current != null && literalMatches({
+        left: previous,
+        right: current,
+        mapping: in.mapping,
+        current_mapping: in.current_mapping
+    }) ? Comparison.Equal : Comparison.Different
+}

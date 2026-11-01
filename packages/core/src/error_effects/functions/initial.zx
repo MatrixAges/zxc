@@ -1,3 +1,5 @@
+import { max_u32 } from "core/const"
+
 import type { Workspace } from "./model"
 
 export type Input = u32[][]
@@ -6,7 +8,7 @@ export type Output = Workspace
 
 export default function (in: Input): Output {
     return {
-        order: in.map(calls => 4294967295),
+        order: in.map(calls => max_u32),
         low: in.map(calls => 0),
         on_stack: in.map(calls => false),
         stack: in.map(calls => 0),

@@ -34,6 +34,7 @@ pub fn apply(allocator: std.mem.Allocator, output: *const Output, destination: D
             .path = try allocator.dupe(u8, output.exports.paths[index]),
             .function = if (output.exports.functions[index]) |id| @fromBackingInt(id) else null,
             .types = types,
+            .constants = try @import("../../../analysis/constants/exports.zig").own(allocator, output.exports.constants[index], 0),
         };
     }
 

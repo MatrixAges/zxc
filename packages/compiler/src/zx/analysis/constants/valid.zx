@@ -1,12 +1,12 @@
 import floats from "std:float"
 import integers from "std:integer"
+import { type_id_string, type_id_bool } from "core/const"
 import { ExpressionKind } from "core/expression_table/kinds"
 import { Kind } from "core/type_table/model"
 import row from "core/type_table/row"
 
 import maximum from "../analyzer/expressions/numbers/maximum"
 import target from "../analyzer/expressions/numbers/target"
-import builtin from "../semantic/resolving/builtin"
 
 import type { Values } from "core/constant/model"
 import type { Tables } from "core/type_table/model"
@@ -72,8 +72,8 @@ export default function (in: Input): Output {
                         negative: value.negative
                     }),
                     ExpressionKind.Float => numeric.floating && floats.isFinite(value.floating) && (!numeric.single || floats.widen(floats.narrow(value.floating)) == value.floating),
-                    ExpressionKind.String => type_row.kind == Kind.Scalar && integers.widen(value.type_id) + 1 == builtin("string"),
-                    ExpressionKind.Boolean => type_row.kind == Kind.Scalar && integers.widen(value.type_id) + 1 == builtin("bool"),
+                    ExpressionKind.String => type_row.kind == Kind.Scalar && value.type_id == type_id_string,
+                    ExpressionKind.Boolean => type_row.kind == Kind.Scalar && value.type_id == type_id_bool,
                     ExpressionKind.EnumValue => type_row.kind == Kind.Enumeration && value.enumeration < type_row.second,
                     _ => false
                 }

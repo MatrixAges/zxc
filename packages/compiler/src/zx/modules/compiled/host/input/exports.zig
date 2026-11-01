@@ -7,8 +7,15 @@ pub fn columns(comptime Target: type, allocator: std.mem.Allocator, exports: []c
     const functions = try allocator.alloc(?u32, exports.len);
     const type_names = try allocator.alloc([]const []const u8, exports.len);
     const type_ids = try allocator.alloc([]const u32, exports.len);
+    const Optional = std.meta.Child(@FieldType(Target, "constants"));
+    const Item = @typeInfo(Optional).optional.child;
+    const Values = if (@typeInfo(Item) == .pointer) std.meta.Child(Item) else Item;
+    const constants = try allocator.alloc(Optional, exports.len);
 
     for (exports, 0..) |exported, index| {
+        const values = try @import("../../../../analysis/constants/input.zig").marshal(Values, allocator, exported.constants);
+
+        constants[index] = if (values) |value| if (@typeInfo(Item) == .pointer) value else value.* else null;
         names[index] = exported.name;
         paths[index] = exported.path;
         functions[index] = if (exported.function) |id| @backingInt(id) else null;
@@ -24,5 +31,5 @@ pub fn columns(comptime Target: type, allocator: std.mem.Allocator, exports: []c
         type_ids[index] = row_ids;
     }
 
-    return .{ .names = names, .paths = paths, .functions = functions, .type_names = type_names, .type_ids = type_ids };
+    return .{ .names = names, .paths = paths, .functions = functions, .type_names = type_names, .type_ids = type_ids, .constants = constants };
 }

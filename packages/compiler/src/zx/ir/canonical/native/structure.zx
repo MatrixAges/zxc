@@ -1,3 +1,6 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+
 import type { Modules } from "core/native_module_table/model"
 
 export type Input = Modules
@@ -7,7 +10,7 @@ export type Output = bool
 export default function (in: Input): Output {
     const count = in.specifiers.length
 
-    if (count > 4294967295 || in.identities.length != count || in.import_names.length != count || in.type_ids.length != count || in.type_names.length != count || in.type_namespaces.length != count) {
+    if (count > integers.widen(max_u32) || in.identities.length != count || in.import_names.length != count || in.type_ids.length != count || in.type_names.length != count || in.type_namespaces.length != count) {
         return false
     }
 
@@ -17,7 +20,7 @@ export default function (in: Input): Output {
             const names = current.modules.type_names[current.index]
             const ids = current.modules.type_ids[current.index]
 
-            current.valid = names.length == ids.length && names.length <= 4294967295
+            current.valid = names.length == ids.length && names.length <= integers.widen(max_u32)
             current.index += 1
         }
     })

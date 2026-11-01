@@ -1,7 +1,7 @@
 const std = @import("std");
 const zx = @import("zx");
 const Artifact = @import("../artifact/model.zig");
-const marker = "zxc.module.v3\n";
+const marker = "zxc.module.v4\n";
 const Payload = struct { ir_version: u32, context_digest: [32]u8, module: Artifact.Module };
 pub const Decoded = struct { result: Artifact.Result, context_digest: [32]u8 };
 pub const Error = std.mem.Allocator.Error || error{InvalidCache};
@@ -59,6 +59,8 @@ pub fn decode(allocator: std.mem.Allocator, bytes: []const u8, compiler_digest: 
     };
 
     if (!parsed.module.functions.validStructure() or !parsed.module.native_modules.validStructure() or !parsed.module.stores.validStructure() or !@import("../../ir/type_rules.zig").validate(parsed.module.types)) return error.InvalidCache;
+    if (!try @import("../../analysis/constants/check.zig").validate(arena.allocator(), parsed.module.types, parsed.module.constant_exports)) return error.InvalidCache;
+    if (!try @import("../../analysis/constants/check.zig").validate(arena.allocator(), parsed.module.types, parsed.module.constant_imports)) return error.InvalidCache;
 
     if (parsed.module.function) |function| {
         if (!function.stores.validStructure() or !try function.body.validStructure(allocator) or !function.symbols.validStructure() or !function.expressions.validStructure()) return error.InvalidCache;

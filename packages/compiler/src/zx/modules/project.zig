@@ -130,9 +130,6 @@ const Project = struct {
         const index = frame.index;
         const unit = &self.units[index];
         const header = input.header();
-
-        if (self.phase == .body) try Input.checkConstants(header, self.reporter);
-
         const aliases = &frame.aliases;
         const imported_names = &frame.imported_names;
         const imports = &frame.imports;
@@ -375,6 +372,7 @@ const Project = struct {
                 .input_type = if (function) |value| value.input_type else @fromBackingInt(@intCast(@backingInt(ir.Scalar.void))),
                 .output_type = if (function) |value| value.output_type else @fromBackingInt(@intCast(@backingInt(ir.Scalar.void))),
                 .exports = exported.types,
+                .constant_exports = exported.constants,
                 .type_only = function == null,
             };
         }

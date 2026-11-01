@@ -3,7 +3,7 @@ const Record = @import("../../module_record.zig");
 
 pub fn project(comptime Target: type, allocator: std.mem.Allocator, record: Record) std.mem.Allocator.Error!Target {
     const Kind = std.meta.Child(@FieldType(Target, "import_kinds"));
-    const exports = try allocator.alloc(u32, record.exports.len);
+    const declarations = try allocator.alloc(u32, record.exports.len + record.constant_exports.len + record.constant_imports.len);
     const type_imports = try allocator.alloc(u32, record.type_imports.len);
     const function_ids = try allocator.alloc(u32, record.function_imports.len);
     const function_inputs = try allocator.alloc(u32, record.function_imports.len);
@@ -11,7 +11,9 @@ pub fn project(comptime Target: type, allocator: std.mem.Allocator, record: Reco
     const import_kinds = try allocator.alloc(Kind, record.imports.len);
     const import_specifiers = try allocator.alloc([]const u8, record.imports.len);
 
-    for (record.exports, exports) |value, *id| id.* = @backingInt(value.type_id);
+    for (record.exports, declarations[0..record.exports.len]) |value, *id| id.* = @backingInt(value.type_id);
+    for (record.constant_exports, declarations[record.exports.len..][0..record.constant_exports.len]) |value, *id| id.* = @backingInt(value.type_id);
+    for (record.constant_imports, declarations[record.exports.len + record.constant_exports.len ..]) |value, *id| id.* = @backingInt(value.type_id);
     for (record.type_imports, type_imports) |value, *id| id.* = @backingInt(value.type_id);
 
     for (record.function_imports, function_ids, function_inputs, function_outputs) |value, *id, *input, *output| {
@@ -35,7 +37,7 @@ pub fn project(comptime Target: type, allocator: std.mem.Allocator, record: Reco
         .path = record.path,
         .start = record.type_range.start,
         .end = record.type_range.end,
-        .exports = exports,
+        .declaration_types = declarations,
         .type_imports = type_imports,
         .function_ids = function_ids,
         .function_inputs = function_inputs,

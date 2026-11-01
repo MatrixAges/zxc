@@ -1,6 +1,6 @@
 const std = @import("std");
 const generated = @import("generated");
-pub const NameKind = enum { value, callable, type_decl };
+pub const NameKind = enum { value, callable, type_decl, imported_value };
 
 pub fn checkName(name: []const u8, kind: NameKind) bool {
     const Input = @typeInfo(generated.Input).pointer.child;
@@ -9,6 +9,7 @@ pub fn checkName(name: []const u8, kind: NameKind) bool {
         .value => .Value,
         .callable => .Callable,
         .type_decl => .TypeDecl,
+        .imported_value => .ImportedValue,
     } };
 
     var storage: [0]u8 = undefined;

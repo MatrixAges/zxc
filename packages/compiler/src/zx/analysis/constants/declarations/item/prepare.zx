@@ -1,5 +1,6 @@
 import local from "../../../analyzer/local/initial"
 import text from "../../../semantic/resolving/source/text"
+import { code_name, message_duplicate_binding } from "../../const"
 
 import type { Prepared } from "../../../analyzer/model"
 import type { Signature } from "../../../analyzer/signature/model"
@@ -62,8 +63,8 @@ export default function (in: Input): Output {
         input_type: 0,
         output_type: 0,
         diagnostic: {
-            code: duplicate ? "name" : "",
-            message: duplicate ? "duplicate constant binding" : "",
+            code: duplicate ? code_name : "",
+            message: duplicate ? message_duplicate_binding : "",
             start: name.start,
             end: name.end
         }

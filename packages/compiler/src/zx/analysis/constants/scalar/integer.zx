@@ -1,6 +1,7 @@
 import { BinaryOperator } from "core/expression_table/kinds"
 
 import maximum from "../../analyzer/expressions/numbers/maximum"
+import { message_arithmetic_overflow, message_division_zero } from "../const"
 
 import type { Arithmetic, IntegerResult } from "./model"
 
@@ -36,7 +37,7 @@ export default function (in: Input): Output {
             if (invalid_sign || right.magnitude > limit || left.magnitude > limit - right.magnitude) {
                 return {
                     value: empty,
-                    message: "integer constant arithmetic overflows its type"
+                    message: message_arithmetic_overflow
                 }
             }
 
@@ -60,7 +61,7 @@ export default function (in: Input): Output {
                 magnitude: magnitude,
                 negative: magnitude != 0 && sign
             },
-            message: magnitude != 0 && sign && !in.target.signed ? "integer constant arithmetic overflows its type" : ""
+            message: magnitude != 0 && sign && !in.target.signed ? message_arithmetic_overflow : ""
         }
     }
 
@@ -68,7 +69,7 @@ export default function (in: Input): Output {
         if ((invalid_sign && left.magnitude != 0 && right.magnitude != 0) || (right.magnitude != 0 && left.magnitude > limit / right.magnitude)) {
             return {
                 value: empty,
-                message: "integer constant arithmetic overflows its type"
+                message: message_arithmetic_overflow
             }
         }
 
@@ -86,7 +87,7 @@ export default function (in: Input): Output {
     if (right.magnitude == 0) {
         return {
             value: empty,
-            message: "integer constant division by zero"
+            message: message_division_zero
         }
     }
 
@@ -98,6 +99,6 @@ export default function (in: Input): Output {
             magnitude: magnitude,
             negative: magnitude != 0 && (remainder ? left.negative : negative)
         },
-        message: !remainder && (invalid_sign || magnitude > limit) ? "integer constant arithmetic overflows its type" : ""
+        message: !remainder && (invalid_sign || magnitude > limit) ? message_arithmetic_overflow : ""
     }
 }

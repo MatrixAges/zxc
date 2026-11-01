@@ -19,8 +19,6 @@ pub const Destination = struct {
 };
 
 pub fn load(allocator: std.mem.Allocator, options: Options) !model.Loaded {
-    try @import("validate.zig").checkConstants(options.library.program, options.library.exports);
-
     if (comptime !@import("parser_options").generated_parser) return @import("seed_load.zig").load(allocator, .{
         .library = options.library,
         .types = options.types,
@@ -33,8 +31,6 @@ pub fn load(allocator: std.mem.Allocator, options: Options) !model.Loaded {
 }
 
 pub fn loadInto(allocator: std.mem.Allocator, library: model.Library, destination: Destination) !model.Loaded {
-    try @import("validate.zig").checkConstants(library.program, library.exports);
-
     if (comptime !@import("parser_options").generated_parser) return @import("seed_load.zig").loadInto(allocator, library, .{
         .types = destination.types,
         .origins = destination.origins,

@@ -9,9 +9,6 @@ const contents = @import("contents.zig");
 pub fn extract(arena: *std.heap.ArenaAllocator, temporary: *std.heap.ArenaAllocator, analysis: *const Analysis.Result, record: Record) model.Error!model.Module {
     const allocator = arena.allocator();
     const program = analysis.value.ir;
-
-    if (program.constant_exports.len != 0 or record.constant_exports.len != 0 or record.constant_imports.len != 0) return error.InvalidModule;
-
     const prepared = try @import("run.zig").execute(arena, temporary, analysis, record);
     const materialized = prepared.value orelse return error.InvalidModule;
     const types = try owned.types(allocator, materialized.table);
@@ -37,6 +34,8 @@ pub fn extract(arena: *std.heap.ArenaAllocator, temporary: *std.heap.ArenaAlloca
         .types = types,
         .nominal_types = origins,
         .exports = try contents.exports(&nodes, record.exports),
+        .constant_exports = try nodes.constants(record.constant_exports),
+        .constant_imports = try nodes.constants(record.constant_imports),
         .type_imports = try contents.exports(&nodes, record.type_imports),
         .function_imports = try contents.imports(&nodes, record.function_imports),
         .functions = functions,

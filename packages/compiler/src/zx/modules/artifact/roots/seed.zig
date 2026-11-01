@@ -19,6 +19,8 @@ pub fn collect(allocator: std.mem.Allocator, program: ir.Program, record: Record
     @memset(needed[record.type_range.start..record.type_range.end], true);
 
     for (record.exports) |item| try self.mark(item.type_id);
+    for (record.constant_exports) |item| try self.mark(item.type_id);
+    for (record.constant_imports) |item| try self.mark(item.type_id);
     for (record.type_imports) |item| try self.mark(item.type_id);
 
     for (record.function_imports) |binding| {

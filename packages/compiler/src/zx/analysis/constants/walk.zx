@@ -1,5 +1,6 @@
 import integers from "std:integer"
 
+import { code_type_mismatch } from "./const"
 import next from "./next"
 
 import type { Cursor, Step } from "./model"
@@ -27,7 +28,7 @@ export default function (in: Input): Output {
                 const id = integers.widen(frame.id)
 
                 current.cursor.diagnostic = {
-                    code: "type_mismatch",
+                    code: code_type_mismatch,
                     start: current.input.expressions.span_start[id],
                     end: current.input.expressions.span_end[id],
                     message: action.message

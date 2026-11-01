@@ -1,0 +1,17 @@
+<Module>
+    <Type from="bindings/model" as="Model" />
+
+    <Args in={Model.Request} out={Model.Comparison} />
+
+    <Switch on={$in.name != null}>
+        <Case value={true}>
+            <Call fn="bindings/named" in={$in} />
+
+            <Return value={$ctx.named} />
+        </Case>
+    </Switch>
+
+    <Call fn="bindings/matches" in={$in} />
+
+    <Return value={$ctx.matches ? Model.Comparison.Equal : Model.Comparison.Different} />
+</Module>

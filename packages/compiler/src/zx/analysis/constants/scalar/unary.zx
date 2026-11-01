@@ -1,6 +1,7 @@
 import { ExpressionKind, UnaryOperator } from "core/expression_table/kinds"
 
 import maximum from "../../analyzer/expressions/numbers/maximum"
+import { message_negation_overflow } from "../const"
 
 import type { Value, Result } from "./model"
 
@@ -46,6 +47,6 @@ export default function (in: Input): Output {
             ...value,
             negative: negative
         },
-        message: value.integer > limit ? "integer constant negation overflows its type" : ""
+        message: value.integer > limit ? message_negation_overflow : ""
     }
 }

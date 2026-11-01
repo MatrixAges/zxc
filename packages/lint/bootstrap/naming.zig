@@ -1,7 +1,9 @@
 const std = @import("std");
-pub const NameKind = enum { value, callable, type_decl };
+pub const NameKind = enum { value, callable, type_decl, imported_value };
 
-pub fn checkName(name: []const u8, kind: NameKind) bool {
+pub fn checkName(name: []const u8, requested: NameKind) bool {
+    const kind = if (requested == .imported_value) (if (name.len > 0 and std.ascii.isUpper(name[0])) NameKind.type_decl else NameKind.value) else requested;
+
     if (name.len == 0) return false;
 
     if (kind == .type_decl) {

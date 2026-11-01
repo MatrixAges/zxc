@@ -1,5 +1,9 @@
 const std = @import("std");
 
+pub fn bits(value: f64) u64 {
+    return @bitCast(value);
+}
+
 pub fn narrow(value: f64) f32 {
     return @floatCast(value);
 }

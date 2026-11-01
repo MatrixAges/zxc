@@ -32,7 +32,7 @@ pub fn checkHeaderNames(view: anytype) ?zx.Diagnostic {
         const item = view.importAt(index);
 
         for (0..view.importNameCount(index)) |name| {
-            if (checkBinding(view.importNameAt(index, name), if (item.kind == .function) .callable else .type_decl)) |issue| return issue;
+            if (checkBinding(view.importNameAt(index, name), switch (item.kind) { .function => .callable, .enumeration => .imported_value, .type_only => .type_decl })) |issue| return issue;
         }
     }
 
@@ -54,6 +54,7 @@ fn checkBinding(name: zx.ast.Name, kind: NameKind) ?zx.Diagnostic {
         .value => "value names must use snake_case",
         .callable => "function names must use camelCase",
         .type_decl => "type names must use PascalCase",
+        .imported_value => "named imports must use snake_case constants or PascalCase enums",
     } };
 }
 

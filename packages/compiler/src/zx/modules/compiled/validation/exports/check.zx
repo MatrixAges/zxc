@@ -1,5 +1,6 @@
 import integers from "std:integer"
 
+import validConstants from "../../../../analysis/constants/valid"
 import text from "../../../../ir/canonical/native/text"
 import types from "./types"
 
@@ -26,6 +27,25 @@ export default function (in: Input): Output {
         if (index >= functions.files.length || functions.native_modules[index] != null || functions.files[index] != path) {
             return false
         }
+    }
+
+    if (!validConstants({
+        constants: exports.constants[in.index],
+        types: {
+            base: in.graph.program.context.table,
+            delta: {
+                kinds: [],
+                first: [],
+                second: [],
+                labels: [],
+                children: [],
+                field_types: [],
+                field_names: [],
+                names: []
+            }
+        }
+    })) {
+        return false
     }
 
     return types({ names: exports.type_names[in.index], ids: exports.type_ids[in.index], count: in.graph.program.context.table.kinds.length, function_id: function_id, functions: functions })

@@ -84,6 +84,7 @@ pub fn link(allocator: std.mem.Allocator, modules: []const model.Module, entry: 
         .body = if (root) |value| value.body else .{},
         .contracts = if (root) |value| value.contracts else .{},
         .exports = exports,
+        .constant_exports = try nodes.constants(module.constant_exports),
         .functions = builder.functions.view(),
         .native_modules = builder.native_modules.view(),
         .stores = stores,

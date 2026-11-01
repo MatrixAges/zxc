@@ -4,6 +4,10 @@ pub fn widen(value: u32) u64 {
     return value;
 }
 
+pub fn widenShort(value: u16) u64 {
+    return value;
+}
+
 pub fn widenByte(value: u8) u64 {
     return value;
 }

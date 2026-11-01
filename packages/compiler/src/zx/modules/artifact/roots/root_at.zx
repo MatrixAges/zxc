@@ -15,7 +15,7 @@ export default function (in: Input): Output {
     const cursor = in.cursor
 
     return match cursor.stage {
-        0 => listRoot({ values: request.record.exports, cursor: cursor }),
+        0 => listRoot({ values: request.record.declaration_types, cursor: cursor }),
         1 => listRoot({ values: request.record.type_imports, cursor: cursor }),
         2 => functionRoot({ request: request, cursor: cursor }),
         3 => nativeRoot({ request: request, cursor: cursor }),

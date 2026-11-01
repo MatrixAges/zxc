@@ -117,6 +117,7 @@ pub fn loadInto(allocator: std.mem.Allocator, library: model.Library, destinatio
         }
 
         exported.types = public_types;
+        exported.constants = try nodes.constants(exported.constants);
     }
 
     const initializers = try allocator.dupe(model.StoreInitializer, library.store_initializers);

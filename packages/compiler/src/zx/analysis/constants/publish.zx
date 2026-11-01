@@ -2,6 +2,8 @@ import floats from "std:float"
 import integers from "std:integer"
 import { ExpressionKind } from "core/expression_table/kinds"
 
+import { code_unsupported, message_non_finite } from "./const"
+
 import type { Result, Step } from "./model"
 
 export type Input = Step
@@ -23,10 +25,10 @@ export default function (in: Input): Output {
         return {
             value: null,
             diagnostic: {
-                code: "unsupported",
+                code: code_unsupported,
                 start: in.input.expressions.span_start[index],
                 end: in.input.expressions.span_end[index],
-                message: "non-finite constant values cannot be materialized as IR literals"
+                message: message_non_finite
             }
         }
     }

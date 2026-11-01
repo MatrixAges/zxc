@@ -1,4 +1,5 @@
 import integers from "std:integer"
+import { max_u32 } from "core/const"
 
 import finishComponent from "./finish_component"
 
@@ -13,7 +14,7 @@ export default function (in: Input): Output {
         while: current => current.root < current.callees.length || current.state.frame_count != 0,
         next: current => {
             if (current.state.frame_count == 0) {
-                if (current.state.order[current.root] == 4294967295) {
+                if (current.state.order[current.root] == max_u32) {
                     const frame = current.state.frame_count
 
                     current.state.order[current.root] = current.state.ordinal
@@ -40,7 +41,7 @@ export default function (in: Input): Output {
 
                     current.state.children[top] += 1
 
-                    if (current.state.order[target] == 4294967295) {
+                    if (current.state.order[target] == max_u32) {
                         const frame = current.state.frame_count
 
                         current.state.order[target] = current.state.ordinal

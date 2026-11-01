@@ -1,0 +1,29 @@
+import floats from "std:float"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import type { Literal } from "core/constant/model"
+
+export type Input = {
+    left: Literal,
+    right: Literal
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const left = in.left
+    const right = in.right
+
+    if (left.kind != right.kind) {
+        return false
+    }
+
+    return match left.kind {
+        ExpressionKind.Integer => left.integer == right.integer && left.negative == right.negative,
+        ExpressionKind.Float => floats.bits(left.floating) == floats.bits(right.floating),
+        ExpressionKind.String => left.text == right.text,
+        ExpressionKind.Boolean => left.boolean == right.boolean,
+        ExpressionKind.EnumValue => left.enumeration == right.enumeration,
+        _ => false
+    }
+}
