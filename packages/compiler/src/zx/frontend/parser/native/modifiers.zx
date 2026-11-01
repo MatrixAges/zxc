@@ -15,15 +15,15 @@ export default function (in: Input): Output {
     const throwing = in.control.phase == Phase.Throws
     const opening = in.control.phase == Phase.ErrorOpen
 
-    const present = match {
-        throwing => token.word == Keyword.Throws,
-        opening => token.symbol == Symbol.OpenBrace,
+    const present = match in.control.phase {
+        Phase.Throws => token.word == Keyword.Throws,
+        Phase.ErrorOpen => token.symbol == Symbol.OpenBrace,
         _ => token.word == Keyword.Concurrent
     }
 
-    const phase = match {
-        throwing => present ? Phase.ErrorOpen : Phase.Concurrent,
-        opening => present ? Phase.ErrorName : Phase.Concurrent,
+    const phase = match in.control.phase {
+        Phase.Throws => present ? Phase.ErrorOpen : Phase.Concurrent,
+        Phase.ErrorOpen => present ? Phase.ErrorName : Phase.Concurrent,
         _ => Phase.End
     }
 

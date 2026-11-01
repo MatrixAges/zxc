@@ -27,10 +27,10 @@ export default function (in: Input): Output {
                 .tokens[current.index < current.tokens.length ? current.index :
                     current.tokens.length - 1]
 
-            current.valid = match {
-                current.part == Part.Export => at.word == Keyword.Export,
-                current.part == Part.Const => at.word == Keyword.Const,
-                current.part == Part.Name => at.kind == Kind.Identifier,
+            current.valid = match current.part {
+                Part.Export => at.word == Keyword.Export,
+                Part.Const => at.word == Keyword.Const,
+                Part.Name => at.kind == Kind.Identifier,
                 _ => at.symbol == Symbol.Colon
             }
 
@@ -39,10 +39,10 @@ export default function (in: Input): Output {
                     current.name = at.span
                 }
 
-                current.part = match {
-                    current.part == Part.Export => Part.Const,
-                    current.part == Part.Const => Part.Name,
-                    current.part == Part.Name => Part.Colon,
+                current.part = match current.part {
+                    Part.Export => Part.Const,
+                    Part.Const => Part.Name,
+                    Part.Name => Part.Colon,
                     _ => Part.Done
                 }
                 current.index += 1
@@ -66,10 +66,10 @@ export default function (in: Input): Output {
             code: "syntax",
             start: at.span.start,
             end: at.span.end,
-            message: match {
-                checked.part == Part.Export => "expected export",
-                checked.part == Part.Const => "expected const",
-                checked.part == Part.Name => "expected an identifier",
+            message: match checked.part {
+                Part.Export => "expected export",
+                Part.Const => "expected const",
+                Part.Name => "expected an identifier",
                 _ => "expected :"
             }
         }

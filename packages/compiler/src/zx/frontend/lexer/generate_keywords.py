@@ -1,7 +1,12 @@
+import argparse
 import json
+import subprocess
 from pathlib import Path
 
-root = Path(__file__).parent
+root = Path(__file__).resolve().parent
+parser = argparse.ArgumentParser()
+parser.add_argument("--formatter", type=Path, default=root.parents[5] / "zig-out/bin/zxc")
+formatter = parser.parse_args().formatter.resolve()
 keywords = json.loads((root / "keywords.json").read_text())
 words = keywords + json.loads((root / "contextual_words.json").read_text())
 prefixes = sorted({word[:length] for word in words for length in range(1, len(word) + 1)})
@@ -26,6 +31,7 @@ def writeSource(path, lines):
         raise ValueError(f"ZX source exceeds 120 lines: {path}")
 
     path.write_text(source)
+    subprocess.run([str(formatter), "fmt", str(path), "--write"], check=True)
 
 
 def children(prefix):
@@ -37,10 +43,10 @@ def groupName(letter):
 
 
 def transition(prefix):
-    lines = [f"        case {states[prefix]}: return match {{"]
+    lines = [f"        case {states[prefix]}: return match in.byte {{"]
 
     for byte in children(prefix):
-        lines.append(f"            in.byte == {ord(byte)} => {states[prefix + byte]},")
+        lines.append(f"            {ord(byte)} => {states[prefix + byte]},")
 
     return lines + ["            _ => 1", "        }"]
 

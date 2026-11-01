@@ -38,40 +38,39 @@ export default function (in: Input): Output {
     }
 
     if (in.length == 2) {
-        return match {
-            in.byte == ascii_equals && in.next == ascii_greater_than => Symbol.Arrow,
-            in.byte == ascii_equals => Symbol.Equal,
-            in.byte == ascii_bang => Symbol.NotEqual,
-            in.byte == ascii_less_than => Symbol.LessEqual,
-            in.byte == ascii_greater_than => Symbol.GreaterEqual,
-            in.byte == ascii_question => Symbol.Coalesce,
-            in.byte == ascii_ampersand => Symbol.And,
+        return match in.byte {
+            ascii_equals => in.next == ascii_greater_than ? Symbol.Arrow : Symbol.Equal,
+            ascii_bang => Symbol.NotEqual,
+            ascii_less_than => Symbol.LessEqual,
+            ascii_greater_than => Symbol.GreaterEqual,
+            ascii_question => Symbol.Coalesce,
+            ascii_ampersand => Symbol.And,
             _ => Symbol.Or
         }
     }
 
-    return match {
-        in.byte == ascii_open_brace => Symbol.OpenBrace,
-        in.byte == ascii_close_brace => Symbol.CloseBrace,
-        in.byte == ascii_open_paren => Symbol.OpenParen,
-        in.byte == ascii_close_paren => Symbol.CloseParen,
-        in.byte == ascii_open_bracket => Symbol.OpenBracket,
-        in.byte == ascii_close_bracket => Symbol.CloseBracket,
-        in.byte == ascii_colon => Symbol.Colon,
-        in.byte == ascii_semicolon => Symbol.Semicolon,
-        in.byte == ascii_comma => Symbol.Comma,
-        in.byte == ascii_dot => Symbol.Dot,
-        in.byte == ascii_question => Symbol.Question,
-        in.byte == ascii_plus => Symbol.Plus,
-        in.byte == ascii_minus => Symbol.Minus,
-        in.byte == ascii_asterisk => Symbol.Star,
-        in.byte == ascii_slash => Symbol.Slash,
-        in.byte == ascii_percent => Symbol.Percent,
-        in.byte == ascii_less_than => Symbol.Less,
-        in.byte == ascii_greater_than => Symbol.Greater,
-        in.byte == ascii_equals => Symbol.Assign,
-        in.byte == ascii_bang => Symbol.Not,
-        in.byte == ascii_ampersand => Symbol.Ampersand,
+    return match in.byte {
+        ascii_open_brace => Symbol.OpenBrace,
+        ascii_close_brace => Symbol.CloseBrace,
+        ascii_open_paren => Symbol.OpenParen,
+        ascii_close_paren => Symbol.CloseParen,
+        ascii_open_bracket => Symbol.OpenBracket,
+        ascii_close_bracket => Symbol.CloseBracket,
+        ascii_colon => Symbol.Colon,
+        ascii_semicolon => Symbol.Semicolon,
+        ascii_comma => Symbol.Comma,
+        ascii_dot => Symbol.Dot,
+        ascii_question => Symbol.Question,
+        ascii_plus => Symbol.Plus,
+        ascii_minus => Symbol.Minus,
+        ascii_asterisk => Symbol.Star,
+        ascii_slash => Symbol.Slash,
+        ascii_percent => Symbol.Percent,
+        ascii_less_than => Symbol.Less,
+        ascii_greater_than => Symbol.Greater,
+        ascii_equals => Symbol.Assign,
+        ascii_bang => Symbol.Not,
+        ascii_ampersand => Symbol.Ampersand,
         _ => Symbol.Pipe
     }
 }

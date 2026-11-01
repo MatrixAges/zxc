@@ -71,9 +71,9 @@ export default function (in: Input): Output {
         frame: {
             ...in.frame,
             mode: mode,
-            braces: match {
-                byte == ascii_open_brace => braces + 1,
-                byte == ascii_close_brace => braces - 1,
+            braces: match byte {
+                ascii_open_brace => braces + 1,
+                ascii_close_brace => braces - 1,
                 _ => braces
             }
         },

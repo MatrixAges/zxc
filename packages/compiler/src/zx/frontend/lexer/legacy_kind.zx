@@ -14,13 +14,13 @@ export type Input = Kind
 export type Output = string
 
 export default function (in: Input): Output {
-    return match {
-        in == Kind.Identifier => kind_identifier,
-        in == Kind.Keyword => kind_keyword,
-        in == Kind.Number => kind_number,
-        in == Kind.String => kind_string,
-        in == Kind.Template => kind_template,
-        in == Kind.Punctuation => kind_punctuation,
+    return match in {
+        Kind.Identifier => kind_identifier,
+        Kind.Keyword => kind_keyword,
+        Kind.Number => kind_number,
+        Kind.String => kind_string,
+        Kind.Template => kind_template,
+        Kind.Punctuation => kind_punctuation,
         _ => kind_eof
     }
 }

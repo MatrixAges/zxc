@@ -29,9 +29,9 @@ export default function (in: Input): Output {
         const mode = in.frame.mode
         const issue = mode == Mode.BlockComment ? in.comment_start : in.frame.start
 
-        const message = match {
-            mode == Mode.Template => unterminated_template,
-            mode == Mode.BlockComment => unterminated_template_comment,
+        const message = match mode {
+            Mode.Template => unterminated_template,
+            Mode.BlockComment => unterminated_template_comment,
             _ => unterminated_interpolation
         }
 
@@ -55,9 +55,9 @@ export default function (in: Input): Output {
     const next = has_next ? in.source[in.offset + 1] : 0
     const mode = in.frame.mode
 
-    const finished = match {
-        mode == Mode.String => byte == ascii_double_quote,
-        mode == Mode.LineComment =>
+    const finished = match mode {
+        Mode.String => byte == ascii_double_quote,
+        Mode.LineComment =>
             byte == ascii_line_feed || byte == ascii_carriage_return,
         _ => byte == ascii_asterisk && next == ascii_slash
     }

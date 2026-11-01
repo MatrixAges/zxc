@@ -7,76 +7,76 @@ export type Output = u64
 
 export default function (in: Input): Output {
     switch (in.state) {
-        case 179: return match {
-            in.byte == 104 => 180,
-            in.byte == 114 => 185,
-            in.byte == 121 => 198,
+        case 179: return match in.byte {
+            104 => 180,
+            114 => 185,
+            121 => 198,
             _ => 1
         }
-        case 180: return match {
-            in.byte == 114 => 181,
+        case 180: return match in.byte {
+            114 => 181,
             _ => 1
         }
-        case 181: return match {
-            in.byte == 111 => 182,
+        case 181: return match in.byte {
+            111 => 182,
             _ => 1
         }
-        case 182: return match {
-            in.byte == 119 => 183,
+        case 182: return match in.byte {
+            119 => 183,
             _ => 1
         }
-        case 183: return match {
-            in.byte == 115 => 184,
+        case 183: return match in.byte {
+            115 => 184,
             _ => 1
         }
-        case 185: return match {
-            in.byte == 97 => 186,
-            in.byte == 117 => 195,
-            in.byte == 121 => 197,
+        case 185: return match in.byte {
+            97 => 186,
+            117 => 195,
+            121 => 197,
             _ => 1
         }
-        case 186: return match {
-            in.byte == 110 => 187,
+        case 186: return match in.byte {
+            110 => 187,
             _ => 1
         }
-        case 187: return match {
-            in.byte == 115 => 188,
+        case 187: return match in.byte {
+            115 => 188,
             _ => 1
         }
-        case 188: return match {
-            in.byte == 97 => 189,
+        case 188: return match in.byte {
+            97 => 189,
             _ => 1
         }
-        case 189: return match {
-            in.byte == 99 => 190,
+        case 189: return match in.byte {
+            99 => 190,
             _ => 1
         }
-        case 190: return match {
-            in.byte == 116 => 191,
+        case 190: return match in.byte {
+            116 => 191,
             _ => 1
         }
-        case 191: return match {
-            in.byte == 105 => 192,
+        case 191: return match in.byte {
+            105 => 192,
             _ => 1
         }
-        case 192: return match {
-            in.byte == 111 => 193,
+        case 192: return match in.byte {
+            111 => 193,
             _ => 1
         }
-        case 193: return match {
-            in.byte == 110 => 194,
+        case 193: return match in.byte {
+            110 => 194,
             _ => 1
         }
-        case 195: return match {
-            in.byte == 101 => 196,
+        case 195: return match in.byte {
+            101 => 196,
             _ => 1
         }
-        case 198: return match {
-            in.byte == 112 => 199,
+        case 198: return match in.byte {
+            112 => 199,
             _ => 1
         }
-        case 199: return match {
-            in.byte == 101 => 200,
+        case 199: return match in.byte {
+            101 => 200,
             _ => 1
         }
         default: return 1

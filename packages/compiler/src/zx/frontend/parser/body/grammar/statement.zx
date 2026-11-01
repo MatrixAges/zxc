@@ -15,11 +15,11 @@ export default function (in: Input): Output {
     const word = in.expression.control.token.word
     const symbol = in.expression.control.token.symbol
 
-    const kind = match {
-        word == Keyword.Const => StatementKind.Constant,
-        word == Keyword.Return => StatementKind.Result,
-        word == Keyword.If => StatementKind.Branch,
-        word == Keyword.Switch => StatementKind.Switch,
+    const kind = match word {
+        Keyword.Const => StatementKind.Constant,
+        Keyword.Return => StatementKind.Result,
+        Keyword.If => StatementKind.Branch,
+        Keyword.Switch => StatementKind.Switch,
         _ => StatementKind.Evaluate
     }
 

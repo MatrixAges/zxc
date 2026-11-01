@@ -41,17 +41,14 @@ export default function (in: Input): Output {
         }
     }
 
-    const next = match {
-        kind == StatementKind.StoreSet || kind == StatementKind.StateUpdate => {
-            ...in.frame,
-            second: result
-        },
-        _ => {
-            ...in.frame,
-            first: match {
-                kind == StatementKind.Result => result + 1,
-                _ => result
-            }
+    const next = kind == StatementKind.StoreSet || kind == StatementKind.StateUpdate ? {
+        ...in.frame,
+        second: result
+    } : {
+        ...in.frame,
+        first: match kind {
+            StatementKind.Result => result + 1,
+            _ => result
         }
     }
 

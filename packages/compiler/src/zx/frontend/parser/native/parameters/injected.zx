@@ -21,9 +21,9 @@ export default function (in: Input): Output {
         })
     }
 
-    const expected = match {
-        in.control.injected == 0 => Keyword.Allocator,
-        in.control.injected == 1 => Keyword.Io,
+    const expected = match in.control.injected {
+        0 => Keyword.Allocator,
+        1 => Keyword.Io,
         _ => Keyword.Process
     }
 
@@ -60,8 +60,8 @@ export default function (in: Input): Output {
     const stage = in.control.injected + 1
 
     const count = match {
-        injected => match {
-            next == Symbol.Comma => 2,
+        injected => match next {
+            Symbol.Comma => 2,
             _ => 1
         },
         _ => 0

@@ -22,9 +22,9 @@ export default function (in: Input): Output {
         count: state.control.value_count
     }
 
-    const count = match {
-        state.control.value_kind == ValueKind.Attribute => 1,
-        state.control.value_kind == ValueKind.Cdata => xml_cdata_end.length,
+    const count = match state.control.value_kind {
+        ValueKind.Attribute => 1,
+        ValueKind.Cdata => xml_cdata_end.length,
         _ => 0
     }
 

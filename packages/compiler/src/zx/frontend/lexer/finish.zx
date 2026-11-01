@@ -44,12 +44,13 @@ export default function (in: Input): Output {
         })
     }
 
-    const message = match {
-        in.mode == Mode.BlockComment => unterminated_block_comment,
-        in.mode == Mode.String || in.mode == Mode.StringEscape => unterminated_string,
-        in.mode == Mode.Template || in.mode == Mode.TemplateEscape =>
-            unterminated_template,
-        in.mode == Mode.InterpolationBlockComment => unterminated_template_comment,
+    const message = match in.mode {
+        Mode.BlockComment => unterminated_block_comment,
+        Mode.String => unterminated_string,
+        Mode.StringEscape => unterminated_string,
+        Mode.Template => unterminated_template,
+        Mode.TemplateEscape => unterminated_template,
+        Mode.InterpolationBlockComment => unterminated_template_comment,
         _ => unterminated_interpolation
     }
 

@@ -69,10 +69,10 @@ export default function (in: Input): Output {
             state.control.token.word == Keyword.Await ||
             state.control.token.word == Keyword.Cancel
     ) {
-        const kind = match {
-            state.control.token.word == Keyword.Try => FrameKind.Capture,
-            state.control.token.word == Keyword.Async => FrameKind.Async,
-            state.control.token.word == Keyword.Await => FrameKind.Await,
+        const kind = match state.control.token.word {
+            Keyword.Try => FrameKind.Capture,
+            Keyword.Async => FrameKind.Async,
+            Keyword.Await => FrameKind.Await,
             _ => FrameKind.Cancel
         }
 

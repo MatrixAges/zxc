@@ -79,9 +79,9 @@ export default function (in: Input): Output {
     if (in.state.mode == Mode.InterpolationString) {
         return {
             ...in.state,
-            mode: match {
-                in.byte == ascii_double_quote => Mode.Interpolation,
-                in.byte == ascii_backslash => Mode.InterpolationStringEscape,
+            mode: match in.byte {
+                ascii_double_quote => Mode.Interpolation,
+                ascii_backslash => Mode.InterpolationStringEscape,
                 _ => Mode.InterpolationString
             }
         }

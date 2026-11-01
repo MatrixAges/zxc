@@ -57,9 +57,9 @@ export default function (in: Input): Output {
 
     return {
         end: state.offset,
-        message: match {
-            state.issue == Issue.None => "",
-            state.issue == Issue.Unterminated => unterminated_comment,
+        message: match state.issue {
+            Issue.None => "",
+            Issue.Unterminated => unterminated_comment,
             _ => invalid_comment
         }
     }

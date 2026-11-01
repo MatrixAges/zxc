@@ -7,20 +7,20 @@ export type Output = u64
 
 export default function (in: Input): Output {
     switch (in.state) {
-        case 210: return match {
-            in.byte == 104 => 211,
+        case 210: return match in.byte {
+            104 => 211,
             _ => 1
         }
-        case 211: return match {
-            in.byte == 105 => 212,
+        case 211: return match in.byte {
+            105 => 212,
             _ => 1
         }
-        case 212: return match {
-            in.byte == 108 => 213,
+        case 212: return match in.byte {
+            108 => 213,
             _ => 1
         }
-        case 213: return match {
-            in.byte == 101 => 214,
+        case 213: return match in.byte {
+            101 => 214,
             _ => 1
         }
         default: return 1

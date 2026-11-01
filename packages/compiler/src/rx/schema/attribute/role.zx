@@ -10,9 +10,9 @@ export type Output = Role
 export default function (in: Input): Output {
     switch (in.element) {
         case "Call":
-            return match {
-                in.attribute == "in" => Role.Value,
-                in.attribute == "setter" => Role.Expression,
+            return match in.attribute {
+                "in" => Role.Value,
+                "setter" => Role.Expression,
                 _ => Role.Static
             }
         case "Switch":
@@ -24,9 +24,9 @@ export default function (in: Input): Output {
         case "Emit":
             return in.attribute == "value" ? Role.Value : Role.Static
         case "Field":
-            return match {
-                in.attribute == "type" => Role.Type,
-                in.attribute == "value" => Role.Value,
+            return match in.attribute {
+                "type" => Role.Type,
+                "value" => Role.Value,
                 _ => Role.Static
             }
         case "Task":
