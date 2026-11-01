@@ -7,7 +7,7 @@
 
     <Switch on={$ctx.constraint.diagnostic.message != ""}>
         <Case value={true}>
-            <Return value={{ aliases: { names: [], ids: [] }, imports: { namespaces: [], names: [], ids: [], input_types: [], output_types: [] }, diagnostic: $ctx.constraint.diagnostic }} />
+            <Return value={{ aliases: { names: [], ids: [] }, imports: { namespaces: [], names: [], ids: [], input_types: [], output_types: [] }, constants: null, diagnostic: $ctx.constraint.diagnostic }} />
         </Case>
     </Switch>
 
@@ -15,13 +15,14 @@
         <Case value={true}>
             <Call fn="functions" in={$in} />
 
-            <Return value={{ aliases: { names: [], ids: [] }, imports: $ctx.functions, diagnostic: $ctx.constraint.diagnostic }} />
+            <Return value={{ aliases: { names: [], ids: [] }, imports: $ctx.functions, constants: null, diagnostic: $ctx.constraint.diagnostic }} />
         </Case>
 
         <Default>
-            <Call fn="aliases" in={$in} />
+            <Call fn="constants" in={$in} />
+            <Call fn="aliases" in={{ ...$in, names: $ctx.constants.names }} />
 
-            <Return value={{ aliases: $ctx.aliases.aliases, imports: { namespaces: [], names: [], ids: [], input_types: [], output_types: [] }, diagnostic: $ctx.aliases.diagnostic }} />
+            <Return value={{ aliases: $ctx.aliases.aliases, imports: { namespaces: [], names: [], ids: [], input_types: [], output_types: [] }, constants: $ctx.constants.values, diagnostic: $ctx.aliases.diagnostic }} />
         </Default>
     </Switch>
 </Module>

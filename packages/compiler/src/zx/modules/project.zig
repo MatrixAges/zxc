@@ -29,13 +29,14 @@ const Unit = struct {
     signature: ?@import("source_signature.zig").Result = null,
     signature_aliases: []const ir.Export = &.{},
     signature_imports: []const FunctionImport = &.{},
+    signature_constant_imports: []const ir.Constant = &.{},
     function: ?ir.FunctionId = null,
     context_digest: [32]u8 = undefined,
     reused: bool = false,
 };
 
 const NativeUnit = struct { exports: []const ir.Export, members: []const FunctionImport };
-const Imported = struct { type_only: bool, function: ?ir.FunctionId, input_type: ir.TypeId, output_type: ir.TypeId, exports: []const ir.Export };
+const Imported = struct { type_only: bool, function: ?ir.FunctionId, input_type: ir.TypeId, output_type: ir.TypeId, exports: []const ir.Export, constant_exports: []const ir.Constant = &.{} };
 
 pub const ImportTarget = union(enum) { source: []const u8, compiled: compiled.Target };
 
@@ -47,6 +48,7 @@ const LoadFrame = struct {
     aliases: std.ArrayList(ir.Export) = .empty,
     imported_names: std.StringHashMapUnmanaged(void) = .empty,
     imports: std.ArrayList(FunctionImport) = .empty,
+    constant_imports: std.ArrayList(ir.Constant) = .empty,
     dependencies: std.ArrayList(ModuleRecord.Import) = .empty,
 };
 
@@ -129,11 +131,12 @@ const Project = struct {
         const unit = &self.units[index];
         const header = input.header();
 
-        try Input.checkConstants(header, self.reporter);
+        if (self.phase == .body) try Input.checkConstants(header, self.reporter);
 
         const aliases = &frame.aliases;
         const imported_names = &frame.imported_names;
         const imports = &frame.imports;
+        const constants = &frame.constant_imports;
         const dependencies = &frame.dependencies;
 
         while (frame.next_import < header.importCount()) : (frame.next_import += 1) {
@@ -150,7 +153,7 @@ const Project = struct {
                 const kind = specifier.classify(item.path) catch return self.reporter.fail(.module, item.span, "invalid or unknown import specifier");
 
                 if (kind != .file and kind != .package) {
-                    if (try self.importNative(item, imports, aliases)) |identity| {
+                    if (try self.importNative(item, imports, aliases, constants)) |identity| {
                         var dependency = try ModuleRecord.copyImport(self.allocator, item, .native);
                         dependency.identity = try self.allocator.dupe(u8, identity);
 
@@ -193,7 +196,7 @@ const Project = struct {
                     if (self.phase == .signature) {
                         const signature = self.units[dependency].signature.?;
 
-                        break :block Imported{ .type_only = signature.type_only, .function = null, .input_type = signature.ports.input_type, .output_type = signature.ports.output_type, .exports = signature.exports };
+                        break :block Imported{ .type_only = signature.type_only, .function = null, .input_type = signature.ports.input_type, .output_type = signature.ports.output_type, .exports = signature.exports, .constant_exports = signature.constant_exports };
                     }
 
                     const program = self.units[dependency].program.?;
@@ -211,8 +214,9 @@ const Project = struct {
                 .type_only = imported.type_only,
                 .types = self.types.view(),
                 .exports = imported.exports,
+                .constant_exports = imported.constant_exports,
                 .members = if (imported.function) |id| &.{.{ .name = "", .id = id, .input_type = imported.input_type, .output_type = imported.output_type }} else &.{},
-            }, self.reporter, aliases, imports);
+            }, self.reporter, aliases, imports, constants);
 
             try dependencies.append(self.allocator, try ModuleRecord.copyImport(self.allocator, item, switch (target) {
                 .source => |path| .{ .source = path },
@@ -232,9 +236,10 @@ const Project = struct {
 
             self.types = .{};
             defer self.types = types.items;
-            unit.signature = try input.signature(&types, &.{});
+            unit.signature = try input.signature(&types, constants.items);
             unit.signature_aliases = aliases.items;
             unit.signature_imports = imports.items;
+            unit.signature_constant_imports = constants.items;
             unit.state = .done;
         } else try self.finishInput(frame, input);
 
@@ -405,7 +410,7 @@ const Project = struct {
 
         return id;
     }
-    fn importNative(self: *Project, item: anytype, imports: *std.ArrayList(FunctionImport), aliases: *std.ArrayList(ir.Export)) zx.Error!?[]const u8 {
+    fn importNative(self: *Project, item: anytype, imports: *std.ArrayList(FunctionImport), aliases: *std.ArrayList(ir.Export), constants: *std.ArrayList(ir.Constant)) zx.Error!?[]const u8 {
         var found: ?NativeInterface = null;
         const path = self.units[self.current_source].path;
         const registry = package_scope.nativeInterfaces(self.options.package_scopes, path, self.options.native_interfaces);
@@ -467,7 +472,7 @@ const Project = struct {
             .types = self.types.view(),
             .exports = unit.exports,
             .members = unit.members,
-        }, self.reporter, aliases, imports);
+        }, self.reporter, aliases, imports, constants);
 
         return entry.key();
     }
@@ -584,6 +589,7 @@ pub fn analyzeSignaturesWithCache(allocator: std.mem.Allocator, sources: []const
             .signature = units[index].signature.?,
             .type_imports = units[index].signature_aliases,
             .function_imports = units[index].signature_imports,
+            .constant_imports = units[index].signature_constant_imports,
         };
     }
 

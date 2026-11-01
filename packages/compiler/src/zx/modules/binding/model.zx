@@ -1,3 +1,4 @@
+import type { Values } from "core/constant/model"
 import type { Cache, Diagnostic } from "../../analysis/semantic/resolving/model"
 import type { ImportKind } from "../../frontend/parser/imports/model"
 import type { Imports } from "../function_import"
@@ -17,7 +18,8 @@ export type Request = {
     type_only: bool
     type_kinds: u8[]
     exports: Cache
-    members: Members
+    constant_exports: Values?
+        members: Members
 }
 
-export type Result = { aliases: Cache, imports: Imports, diagnostic: Diagnostic }
+export type Result = { aliases: Cache, imports: Imports, constants: Values?, diagnostic: Diagnostic }

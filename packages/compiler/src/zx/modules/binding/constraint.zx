@@ -19,7 +19,7 @@ export default function (in: Input): Output {
         } else if (in.type_only || in.names.values.length != 1) {
             return { callable: callable, diagnostic: { code: "module", message: "default imports must refer to an executable module", start: in.start, end: in.end } }
         }
-    } else if (in.target == Target.Source && !in.type_only) {
+    } else if (in.kind == ImportKind.TypeOnly && in.target == Target.Source && !in.type_only) {
         return { callable: callable, diagnostic: { code: "module", message: "type and enum imports must refer to a pure type module", start: in.start, end: in.end } }
     }
 

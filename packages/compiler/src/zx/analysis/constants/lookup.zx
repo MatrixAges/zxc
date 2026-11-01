@@ -1,3 +1,5 @@
+import find from "core/constant/lookup"
+
 import lookup from "../analyzer/bindings/lookup"
 
 import type { Literal, Values } from "core/constant/model"
@@ -29,23 +31,8 @@ export type Output = Literal?
             return null
         }
 
-        const missing: u64? = null
-
-        const found = loop({
+        return find({
             constants: constants,
-            name: in.name,
-            index: 0,
-            value: missing
-        }, {
-            while: current => current.value == null && current.index < current.constants.names.length,
-            next: current => {
-                if (current.constants.names[current.index] == current.name) {
-                    current.value = current.index
-                }
-
-                current.index += 1
-            }
-        }).value
-
-        return found != null ? constants.values[found] : null
+            name: in.name
+        })
     }

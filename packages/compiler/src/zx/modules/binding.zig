@@ -3,8 +3,8 @@ const zx = @import("zx");
 const Context = @import("binding/context.zig");
 const FunctionImport = @import("function_import.zig");
 
-pub fn apply(allocator: std.mem.Allocator, item: anytype, context: Context, reporter: *zx.Reporter, aliases: *std.ArrayList(zx.ir.Export), imports: *std.ArrayList(FunctionImport)) zx.Error!void {
-    if (!@import("parser_options").generated_parser) return @import("binding/seed.zig").apply(allocator, item, context, reporter, aliases, imports);
+pub fn apply(allocator: std.mem.Allocator, item: anytype, context: Context, reporter: *zx.Reporter, aliases: *std.ArrayList(zx.ir.Export), imports: *std.ArrayList(FunctionImport), constants: *std.ArrayList(zx.ir.Constant)) zx.Error!void {
+    if (!@import("parser_options").generated_parser) return @import("binding/seed.zig").apply(allocator, item, context, reporter, aliases, imports, constants);
 
     var arena = std.heap.ArenaAllocator.init(allocator);
 
@@ -35,5 +35,15 @@ pub fn apply(allocator: std.mem.Allocator, item: anytype, context: Context, repo
             .input_type = @fromBackingInt(output.imports.input_types[index]),
             .output_type = @fromBackingInt(output.imports.output_types[index]),
         });
+    }
+
+    if (output.constants) |values| {
+        for (values.names, values.values) |name, literal| {
+            try constants.append(allocator, .{
+                .name = try allocator.dupe(u8, name),
+                .type_id = @fromBackingInt(literal.type_id),
+                .value = try @import("../analysis/constants/input.zig").own(allocator, literal),
+            });
+        }
     }
 }

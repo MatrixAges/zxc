@@ -63,6 +63,7 @@ pub fn init(allocator: std.mem.Allocator, item: anytype, context: Context) std.m
         .type_only = context.type_only,
         .type_kinds = context.types.kinds,
         .exports = exports,
+        .constant_exports = try constants(allocator, item, context),
         .members = members,
     };
 
@@ -73,6 +74,16 @@ pub fn init(allocator: std.mem.Allocator, item: anytype, context: Context) std.m
     owned.* = value;
 
     return owned;
+}
+
+fn constants(allocator: std.mem.Allocator, item: anytype, context: Context) std.mem.Allocator.Error!@FieldType(Record, "constant_exports") {
+    if (item.kind != .enumeration or context.constant_exports.len == 0) return null;
+
+    const Target = @typeInfo(@FieldType(Record, "constant_exports")).optional.child;
+    const Table = if (@typeInfo(Target) == .pointer) std.meta.Child(Target) else Target;
+    const value = (try @import("../../analysis/constants/input.zig").marshal(Table, allocator, context.constant_exports)).?;
+
+    return if (Target == Table) value.* else value;
 }
 
 inline fn record(comptime Target: type, allocator: std.mem.Allocator, fields: anytype) std.mem.Allocator.Error!Target {

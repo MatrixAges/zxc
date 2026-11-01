@@ -3,7 +3,7 @@ const zx = @import("zx");
 const Context = @import("context.zig");
 const FunctionImport = @import("../function_import.zig");
 
-pub fn apply(allocator: std.mem.Allocator, item: anytype, context: Context, reporter: *zx.Reporter, aliases: *std.ArrayList(zx.ir.Export), imports: *std.ArrayList(FunctionImport)) zx.Error!void {
+pub fn apply(allocator: std.mem.Allocator, item: anytype, context: Context, reporter: *zx.Reporter, aliases: *std.ArrayList(zx.ir.Export), imports: *std.ArrayList(FunctionImport), constants: *std.ArrayList(zx.ir.Constant)) zx.Error!void {
     if (item.kind == .function) {
         if (context.target == .native) {
             if (item.nameCount() != 1 or context.members.len == 0) return reporter.fail(.module, item.span, "native namespaces require one binding and callable exports");
@@ -26,11 +26,25 @@ pub fn apply(allocator: std.mem.Allocator, item: anytype, context: Context, repo
         return;
     }
 
-    if (context.target == .source and !context.type_only) return reporter.fail(.module, item.span, "type and enum imports must refer to a pure type module");
+    if (item.kind == .type_only and context.target == .source and !context.type_only) return reporter.fail(.module, item.span, "type and enum imports must refer to a pure type module");
 
     for (0..item.nameCount()) |index| {
         const name = item.nameAt(index);
         var found = false;
+
+        if (item.kind == .enumeration) {
+            for (context.constant_exports) |constant| {
+                if (!std.mem.eql(u8, name.text, constant.name)) continue;
+                try constants.append(allocator, try @import("../../analysis/constants/copy.zig").copy(allocator, constant));
+
+                found = true;
+
+                break;
+            }
+        }
+
+        if (found) continue;
+        if (context.target == .source and !context.type_only) return reporter.fail(.module, item.span, "type and enum imports must refer to a pure type module");
 
         for (context.exports) |exported| {
             if (!std.mem.eql(u8, name.text, exported.name)) continue;
