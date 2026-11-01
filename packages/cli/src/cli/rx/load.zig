@@ -27,6 +27,39 @@ pub fn load(io: std.Io, allocator: std.mem.Allocator, entry: []const u8, config_
         .writer = writer,
     }) orelse return null;
 
+    const graph_entry = if (loaded.data.gateway != null)
+        if (loaded.data.modules.len != 0) loaded.data.modules[0].path else null
+
+    else
+        owner;
+
+    if (graph_entry) |selected| {
+        const zx_sources = try allocator.alloc(@import("compiler").project.Source, functions.len);
+        const roots = try allocator.alloc([]const u8, loaded.data.modules.len);
+
+        for (functions, zx_sources) |function, *source| source.* = .{ .path = function.path, .source = function.source };
+        for (loaded.data.modules, roots) |module, *path| path.* = module.path;
+
+        var graph = try @import("rx_analysis").project.source_graph.build(allocator, .{
+            .entry = selected,
+            .additional_roots = roots,
+            .sources = zx_sources,
+            .modules = loaded.data.modules,
+            .stores = loaded.data.stores,
+            .project = project.project,
+        });
+
+        defer graph.deinit();
+
+        if (graph.value == .diagnostic) {
+            const issue = graph.value.diagnostic;
+
+            try writer.print("{s}:{d}:{d}: {s}: {s}\n", .{ issue.path, issue.location.line, issue.location.column, issue.code, issue.message });
+
+            return null;
+        }
+    }
+
     if (!try @import("store_types.zig").validate(io, allocator, loaded.data, functions, project.project, writer)) return null;
 
     for (functions) |function| {

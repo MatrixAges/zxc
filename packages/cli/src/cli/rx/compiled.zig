@@ -31,19 +31,14 @@ pub fn collect(allocator: std.mem.Allocator, options: Options) !bool {
 
                 var reporter: zx.Reporter = .{};
 
-                const resolved = compiler.project.resolveTarget(allocator, owner, attribute.value, options.project, &reporter, .{ .start = 0, .end = 0 }) catch |err| {
+                const resolved = compiler.project.resolveModuleTarget(allocator, owner, attribute.value, options.project, &reporter, .{ .start = 0, .end = 0 }) catch |err| {
                     if (err == error.OutOfMemory) return error.OutOfMemory;
                     try options.writer.print("{s}:{d}:{d}: module: {s}\n", .{ module.path, attribute.value_location.line, attribute.value_location.column, reporter.diagnostic.?.message });
 
                     return false;
                 };
 
-                if (resolved != .compiled) {
-                    try options.writer.print("{s}:{d}:{d}: module: Call.module requires a public compiled package module\n", .{ module.path, attribute.value_location.line, attribute.value_location.column });
-
-                    return false;
-                }
-
+                if (resolved == .source) continue;
                 try options.libraries.add(options.io, resolved.compiled, options.project, options.inputs);
 
                 for (options.libraries.libraries.items) |library| {

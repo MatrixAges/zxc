@@ -13,6 +13,8 @@ pub const Result = struct {
     nominal_types: @import("../modules/nominal_origins.zig").Table = .{},
     store_initializers: []const @import("../modules/compiled.zig").StoreInitializer = &.{},
     modules: []const @import("../modules/module_record.zig") = &.{},
+    entry_function: ?zx.ir.FunctionId = null,
+    public_functions: []const @import("../modules/function_import.zig") = &.{},
     pub fn deinit(self: *Result) void {
         self.arena.deinit();
 

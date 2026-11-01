@@ -27,7 +27,7 @@ pub fn validate(io: std.Io, allocator: std.mem.Allocator, path: []const u8, sour
 
     defer libraries.deinit();
 
-    const inputs = sources.readWithLibraries(io, allocator, source, loaded.project, &parse_cache, null, &libraries) catch |err| {
+    const detected = sources.readDetectingRx(io, allocator, source, loaded.project, &parse_cache, null, &libraries) catch |err| {
         if (err == error.OutOfMemory) return err;
 
         try writer.print("{s}: source loading: {s}\n", .{ path, @errorName(err) });
@@ -35,16 +35,36 @@ pub fn validate(io: std.Io, allocator: std.mem.Allocator, path: []const u8, sour
         return false;
     };
 
+    const inputs = detected.sources;
     loaded.project.compiled_libraries = libraries.libraries.items;
 
-    if (!try called(io, allocator, path, loaded.project.root_dir, modules)) {
+    const executable = try called(io, allocator, path, loaded.project.root_dir, modules);
+
+    if (!executable or detected.has_rx) {
         var signed = try compiler.project.analyzeSignaturesWithCache(allocator, inputs, &.{path}, loaded.project, &parse_cache);
 
         defer signed.deinit();
 
         if (signed.value == .diagnostic) return report(writer, inputs, signed.value.diagnostic);
+        if (!executable) return true;
 
-        return true;
+        for (signed.value.data.modules) |module| {
+            const delegated = module.signature.deferredSource() orelse continue;
+
+            const registered = for (modules) |source_module| {
+                const absolute = try std.fs.path.resolve(allocator, &.{ loaded.project.root_dir, source_module.path });
+
+                defer allocator.free(absolute);
+
+                if (std.mem.eql(u8, delegated, absolute)) break true;
+            } else false;
+
+            if (!registered) {
+                try writer.print("{s}: default re-export target is missing from the RX module collection\n", .{path});
+            }
+
+            return registered;
+        }
     }
 
     var analyzed = try compiler.analyzeProjectWithCache(allocator, inputs, loaded.project, &parse_cache);

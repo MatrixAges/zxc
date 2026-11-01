@@ -97,7 +97,7 @@ pub fn run(raw_context: Context) !Status {
 
     defer libraries.deinit();
 
-    const sources = if (options.formatting) &.{} else @import("sources.zig").readWithLibraries(context.io, allocator, source, project, &semantic_cache.parse_cache, inputs, &libraries) catch |err| {
+    const detected = if (options.formatting) @as(@import("sources.zig").Detected, .{ .sources = &.{}, .has_rx = false }) else @import("sources.zig").readDetectingRx(context.io, allocator, source, project, &semantic_cache.parse_cache, inputs, &libraries) catch |err| {
         if (err == error.OutOfMemory) return err;
 
         try stderr.print("{s}: source loading: {s}\n", .{ libraries.failure_path orelse input_path, @errorName(err) });
@@ -105,6 +105,10 @@ pub fn run(raw_context: Context) !Status {
 
         return .failed;
     };
+
+    if (detected.has_rx) return @import("rx/compile.zig").run(context);
+
+    const sources = detected.sources;
 
     project.compiled_libraries = libraries.libraries.items;
     loaded.project = project;

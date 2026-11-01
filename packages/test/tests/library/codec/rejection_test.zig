@@ -30,7 +30,7 @@ fn corrupt(mode: Mode) ![]u8 {
         .empty_exports => exports.array.items.len = 0,
         .duplicate => exports.array.items[1].object.getPtr("name").?.* = first.get("name").?,
         .function => first.getPtr("function").?.* = .{ .integer = 999999 },
-        .path => first.getPtr("path").?.* = .{ .string = "/project/wrong.zx" },
+        .path => first.getPtr("path").?.* = .{ .string = "" },
         .input_type => first.getPtr("types").?.array.items[0].object.getPtr("type_id").?.* = .{ .integer = 0 },
         .origins => {
             for (root.getPtr("nominal_types").?.object.values()) |*column| switch (column.*) {
@@ -79,7 +79,7 @@ test "library rejects out of range public function ID with correct digest" {
     try check(.function);
 }
 
-test "library rejects public path inconsistent with function origin" {
+test "library rejects an empty public path" {
     try check(.path);
 }
 

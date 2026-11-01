@@ -5,6 +5,7 @@ const model = @import("source_graph/model.zig");
 const Collector = @import("source_graph/collect.zig");
 pub const Result = model.Result;
 pub const Graph = model.Graph;
+pub const references = @import("source_graph/rx_edges.zig");
 
 pub const Options = struct {
     entry: []const u8,

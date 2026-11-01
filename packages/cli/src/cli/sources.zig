@@ -13,6 +13,25 @@ pub fn readWithInputs(io: std.Io, allocator: std.mem.Allocator, source: []const 
 }
 
 pub fn readWithLibraries(io: std.Io, allocator: std.mem.Allocator, source: []const u8, project: compiler.project.Options, cache: *compiler.project.ParseCache, inputs: ?*Inputs, libraries: ?*Libraries) ![]const compiler.project.Source {
+    return readInternal(io, allocator, source, project, cache, inputs, libraries, null, null);
+}
+
+pub const Detected = struct { sources: []const compiler.project.Source, has_rx: bool };
+
+pub fn readDetectingRx(io: std.Io, allocator: std.mem.Allocator, source: []const u8, project: compiler.project.Options, cache: *compiler.project.ParseCache, inputs: ?*Inputs, libraries: ?*Libraries) !Detected {
+    var has_rx = false;
+    const sources = try readInternal(io, allocator, source, project, cache, inputs, libraries, &has_rx, null);
+
+    return .{ .sources = sources, .has_rx = has_rx };
+}
+
+pub const Known = std.StringHashMapUnmanaged([]const u8);
+
+pub fn readKnown(io: std.Io, allocator: std.mem.Allocator, source: []const u8, project: compiler.project.Options, cache: *compiler.project.ParseCache, inputs: ?*Inputs, libraries: ?*Libraries, known: *const Known) ![]const compiler.project.Source {
+    return readInternal(io, allocator, source, project, cache, inputs, libraries, null, known);
+}
+
+fn readInternal(io: std.Io, allocator: std.mem.Allocator, source: []const u8, project: compiler.project.Options, cache: *compiler.project.ParseCache, inputs: ?*Inputs, libraries: ?*Libraries, has_rx: ?*bool, known: ?*const Known) ![]const compiler.project.Source {
     var sources: std.ArrayList(compiler.project.Source) = .empty;
 
     if (inputs) |observed| try observed.add(io, project.entry);
@@ -35,7 +54,7 @@ pub fn readWithLibraries(io: std.Io, allocator: std.mem.Allocator, source: []con
 
         if (parsed.diagnostic() != null) continue;
 
-        const context = ImportContext{ .io = io, .allocator = allocator, .owner = canonical_path, .project = project, .sources = &sources, .inputs = inputs, .libraries = libraries };
+        const context = ImportContext{ .io = io, .allocator = allocator, .owner = canonical_path, .project = project, .sources = &sources, .inputs = inputs, .libraries = libraries, .has_rx = has_rx, .known = known };
 
         switch (parsed.*) {
             .native => |result| try readImports(zx.syntax.header.Native{ .program = result.value.parsed.ast }, context),
@@ -54,6 +73,8 @@ const ImportContext = struct {
     sources: *std.ArrayList(compiler.project.Source),
     inputs: ?*Inputs,
     libraries: ?*Libraries,
+    has_rx: ?*bool,
+    known: ?*const Known,
 };
 
 fn readImports(header: anytype, context: ImportContext) !void {
@@ -61,7 +82,7 @@ fn readImports(header: anytype, context: ImportContext) !void {
         const imported = header.importAt(index);
         var reporter: zx.Reporter = .{};
 
-        const target = compiler.project.resolveTarget(context.allocator, context.owner, imported.path, context.project, &reporter, imported.span) catch |err| {
+        const target = compiler.project.resolveModuleTarget(context.allocator, context.owner, imported.path, context.project, &reporter, imported.span) catch |err| {
             if (err == error.OutOfMemory) return error.OutOfMemory;
 
             continue;
@@ -77,6 +98,12 @@ fn readImports(header: anytype, context: ImportContext) !void {
                 continue;
             },
         };
+
+        if (std.mem.endsWith(u8, candidate, ".rx")) {
+            if (context.has_rx) |found| found.* = true;
+
+            continue;
+        }
 
         const file_reference = (try compiler.project.specifier.classify(imported.path)) == .file;
         const path = if (file_reference) try @import("sources/module_path.zig").select(context.io, context.allocator, candidate, context.inputs) else candidate;
@@ -104,7 +131,9 @@ fn readImports(header: anytype, context: ImportContext) !void {
             else => return err,
         };
 
-        const text = std.Io.Dir.cwd().readFileAlloc(context.io, path, context.allocator, .limited(16 * 1024 * 1024)) catch |err| switch (err) {
+        const known_text = if (context.known) |known| known.get(path) else null;
+
+        const text = if (known_text) |text| try context.allocator.dupe(u8, text) else std.Io.Dir.cwd().readFileAlloc(context.io, path, context.allocator, .limited(16 * 1024 * 1024)) catch |err| switch (err) {
             error.FileNotFound => continue,
             else => return err,
         };

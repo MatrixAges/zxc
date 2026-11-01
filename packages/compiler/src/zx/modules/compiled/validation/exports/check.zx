@@ -33,8 +33,7 @@ export default function (in: Input): Output {
 
         if (
             index >= functions.files.length ||
-                functions.native_modules[index] != null ||
-                functions.files[index] != path
+                functions.native_modules[index] != null
         ) {
             return false
         }

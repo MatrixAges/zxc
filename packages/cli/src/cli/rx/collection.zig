@@ -1,7 +1,8 @@
 const std = @import("std");
 const rx = @import("rx");
+const compiler = @import("compiler");
 const Inputs = @import("../watch/inputs.zig");
-pub const Options = struct { io: std.Io, root: []const u8, entry: []const u8, writer: *std.Io.Writer, inputs: ?*Inputs = null, project: @import("compiler").project.Options = .{ .entry = "" } };
+pub const Options = struct { io: std.Io, root: []const u8, entry: []const u8, writer: *std.Io.Writer, inputs: ?*Inputs = null, project: compiler.project.Options = .{ .entry = "" }, parse_cache: ?*compiler.project.ParseCache = null, libraries: ?*@import("../library/inputs.zig") = null };
 pub const GatewaySource = struct { path: []const u8, source: []const u8, node: rx.ast.Node };
 pub const Data = struct { gateway: ?GatewaySource = null, modules: []const rx.ModuleSource, stores: []const rx.ModuleSource, sources: []const rx.TextSource, functions: []const rx.TextSource };
 
@@ -33,16 +34,28 @@ fn loadIn(allocator: std.mem.Allocator, options: Options) !?Data {
     const io = options.io;
     const writer = options.writer;
     const root = try std.fs.path.resolve(allocator, &.{options.root});
+    var project = options.project;
+    project.root_dir = root;
+
     const physical_root = try std.Io.Dir.cwd().realPathFileAlloc(io, root, allocator);
 
-    const first = (if (std.mem.endsWith(u8, options.entry, ".gateway.rx")) rx.normalizeGatewayPath(allocator, options.entry) else if (std.mem.endsWith(u8, options.entry, ".store.rx")) rx.normalizeStorePath(allocator, options.entry) else rx.normalizeModulePath(allocator, options.entry)) catch |err| {
+    const first = (if (std.mem.endsWith(u8, options.entry, ".zx")) allocator.dupe(u8, options.entry) else if (std.mem.endsWith(u8, options.entry, ".gateway.rx")) rx.normalizeGatewayPath(allocator, options.entry) else if (std.mem.endsWith(u8, options.entry, ".store.rx")) rx.normalizeStorePath(allocator, options.entry) else rx.normalizeModulePath(allocator, options.entry)) catch |err| {
         if (err == error.OutOfMemory) return err;
         try writer.print("{s}: invalid RX entry path\n", .{options.entry});
 
         return null;
     };
 
+    var local_cache = compiler.project.ParseCache{ .allocator = allocator };
+
+    defer local_cache.deinit();
+
+    const cache = options.parse_cache orelse &local_cache;
     var queue: std.ArrayList([]const u8) = .empty;
+    var queued: std.StringHashMapUnmanaged(void) = .empty;
+
+    defer queued.deinit(allocator);
+
     var sources: std.ArrayList(rx.TextSource) = .empty;
     var modules: std.ArrayList(rx.ModuleSource) = .empty;
     var stores: std.ArrayList(rx.ModuleSource) = .empty;
@@ -51,6 +64,7 @@ fn loadIn(allocator: std.mem.Allocator, options: Options) !?Data {
     var physical: std.StringHashMapUnmanaged([]const u8) = .empty;
 
     try queue.append(allocator, first);
+    try queued.put(allocator, try std.fs.path.resolve(allocator, &.{ root, first }), {});
 
     var index: usize = 0;
 
@@ -96,6 +110,14 @@ fn loadIn(allocator: std.mem.Allocator, options: Options) !?Data {
         if (options.inputs) |inputs| try inputs.record(io, absolute, source);
 
         if (std.mem.endsWith(u8, path, ".zx")) {
+            const parsed = try cache.getModule(source, absolute);
+            var collector = @import("references/collector.zig"){ .allocator = allocator, .options = project, .owner = absolute, .queue = &queue, .queued = &queued, .io = io, .inputs = options.inputs, .libraries = options.libraries, .writer = writer };
+
+            if (parsed.diagnostic() == null) switch (parsed.*) {
+                .native => |value| try collector.header(@import("zx").syntax.header.Native{ .program = value.value.parsed.ast }),
+                .indexed => |*value| if (compiler.project.ParseCache.indexed_enabled) try collector.header(value.header()) else unreachable,
+            };
+
             try functions.append(allocator, .{ .path = path, .source = source });
 
             continue;
@@ -146,7 +168,13 @@ fn loadIn(allocator: std.mem.Allocator, options: Options) !?Data {
             try modules.append(allocator, .{ .path = path, .node = parsed.value.node, .packages = packages });
         }
 
-        if (!try @import("references.zig").collect(allocator, &queue, path, parsed.value.node, packages, writer)) return null;
+        var collector = @import("references/collector.zig"){ .allocator = allocator, .options = project, .owner = absolute, .queue = &queue, .queued = &queued, .io = io, .inputs = options.inputs, .libraries = options.libraries, .writer = writer };
+
+        @import("rx_analysis").project.source_graph.references.collect(&collector, .{ .path = path, .node = parsed.value.node, .packages = packages }) catch |err| {
+            if (err == error.InvalidSourceGraph) return null;
+
+            return err;
+        };
     }
 
     return .{ .gateway = gateway_source, .modules = modules.items, .stores = stores.items, .sources = sources.items, .functions = functions.items };

@@ -32,6 +32,7 @@ pub const Result = struct {
 
         if (exported.function) |id| {
             const function = result.functions.at(@backingInt(id));
+            result.file_name = function.file_name;
             result.type_only = false;
             result.input_type = function.input_type;
             result.output_type = function.output_type;

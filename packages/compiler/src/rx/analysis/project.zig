@@ -104,17 +104,23 @@ fn derive(allocator: std.mem.Allocator, options: Options, cache: *frontend.proje
         return failed(allocator, .{ .path = options.modules[issue.source_index].path, .location = issue.issue.location, .code = @tagName(issue.issue.code), .message = issue.issue.message });
     }
 
-    const entry = rx.normalizeModulePath(allocator, options.entry) catch |err| {
-        if (err == error.OutOfMemory) return error.OutOfMemory;
+    const is_zx = std.mem.endsWith(u8, options.entry, ".zx");
 
-        return failed(allocator, .{ .path = options.entry, .location = .{ .offset = 0, .line = 1, .column = 1 }, .code = "module", .message = "RX entry must be an ordinary module inside the project root" });
-    };
+    const entry = if (is_zx)
+        try std.fs.path.resolve(allocator, &.{ options.project.root_dir, options.entry })
+
+    else
+        rx.normalizeModulePath(allocator, options.entry) catch |err| {
+            if (err == error.OutOfMemory) return error.OutOfMemory;
+
+            return failed(allocator, .{ .path = options.entry, .location = .{ .offset = 0, .line = 1, .column = 1 }, .code = "module", .message = "entry must name a registered source module inside the project root" });
+        };
 
     const modules = try allocator.alloc(rx.ModuleSource, options.modules.len);
 
     for (registered, checked.value.data, modules) |source, module, *item| item.* = .{ .path = module.path, .node = source.node, .packages = source.packages };
 
-    const entry_index = prepare.find(modules, entry) orelse return failed(allocator, .{ .path = entry, .location = .{ .offset = 0, .line = 1, .column = 1 }, .code = "module", .message = "RX entry is not registered in the module collection" });
+    const entry_index = if (is_zx) null else prepare.find(modules, entry) orelse return failed(allocator, .{ .path = entry, .location = .{ .offset = 0, .line = 1, .column = 1 }, .code = "module", .message = "RX entry is not registered in the module collection" });
     const roots = try allocator.alloc([]const u8, modules.len);
 
     for (modules, roots) |module, *path| path.* = module.path;
@@ -180,7 +186,7 @@ fn derive(allocator: std.mem.Allocator, options: Options, cache: *frontend.proje
     const source_map = SourceMap.init(allocator, modules) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 
-        return failed(allocator, .{ .path = entry, .location = modules[entry_index].node.location, .code = "unsupported", .message = "RX source positions exceed the supported address range" });
+        return failed(allocator, .{ .path = entry, .location = if (entry_index) |index| modules[index].node.location else .{ .offset = 0, .line = 1, .column = 1 }, .code = "unsupported", .message = "RX source positions exceed the supported address range" });
     };
 
     var reporter: zx.Reporter = .{};
@@ -196,7 +202,7 @@ fn derive(allocator: std.mem.Allocator, options: Options, cache: *frontend.proje
         .stores = options.stores,
         .dependencies = dependencies.value.graph,
         .definitions = registry.data.definitions,
-        .loaded = prepared.loaded,
+        .loaded = try prepare.completeShortcuts(allocator, prepared.loaded, resolved),
         .signatures = signatures,
         .resolved = resolved,
         .types = graph.types.items.view(),

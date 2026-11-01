@@ -56,7 +56,9 @@ pub fn link(allocator: std.mem.Allocator, inputs: []const model.Input) Error!mod
 
         var function_id: ?ir.FunctionId = null;
 
-        if (!program.type_only) {
+        if (input.analysis.entry_function) |id| {
+            function_id = try nodes.functionId(id);
+        } else if (!program.type_only) {
             function_id = @fromBackingInt(@intCast(functions.count()));
 
             try functions.append(owned, try nodes.function(.{
@@ -104,6 +106,17 @@ pub fn link(allocator: std.mem.Allocator, inputs: []const model.Input) Error!mod
         }
 
         var members: std.ArrayList(frontend.project.FunctionImport) = .empty;
+
+        for (input.analysis.public_functions) |source| {
+            var member = source;
+            member.namespace = null;
+            member.name = try owned.dupe(u8, source.name);
+            member.id = try nodes.functionId(source.id);
+            member.input_type = try nodes.types.include(source.input_type);
+            member.output_type = try nodes.types.include(source.output_type);
+
+            try members.append(owned, member);
+        }
 
         for (input.analysis.modules) |record| {
             if (!std.mem.eql(u8, record.path, program.file_name)) continue;

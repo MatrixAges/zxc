@@ -10,6 +10,7 @@ pub const Options = struct {
     project: compiler.project.Options,
     writer: *std.Io.Writer,
     inputs: ?*Inputs = null,
+    exports: []const analysis.project.Export = &.{},
 };
 
 pub fn run(allocator: std.mem.Allocator, options: Options) !?Result {
@@ -20,14 +21,6 @@ pub fn run(allocator: std.mem.Allocator, options: Options) !?Result {
 
     if (collection.outside(owner)) return error.RxEntryOutsideProject;
 
-    var loaded = try collection.load(allocator, .{ .io = io, .root = root, .entry = owner, .writer = options.writer, .inputs = options.inputs, .project = project }) orelse return null;
-
-    defer loaded.deinit();
-
-    for (loaded.data.modules) |module| {
-        try validatePath(allocator, options, try std.fs.path.resolve(allocator, &.{ root, module.path }));
-    }
-
     var cache = compiler.project.ParseCache{ .allocator = allocator };
 
     defer cache.deinit();
@@ -35,6 +28,14 @@ pub fn run(allocator: std.mem.Allocator, options: Options) !?Result {
     var libraries = @import("../library/inputs.zig"){ .allocator = allocator };
 
     defer libraries.deinit();
+
+    var loaded = try collection.load(allocator, .{ .io = io, .root = root, .entry = owner, .writer = options.writer, .inputs = options.inputs, .project = project, .parse_cache = &cache, .libraries = &libraries }) orelse return null;
+
+    defer loaded.deinit();
+
+    for (loaded.data.modules) |module| {
+        try validatePath(allocator, options, try std.fs.path.resolve(allocator, &.{ root, module.path }));
+    }
 
     var sources: std.ArrayList(compiler.project.Source) = .empty;
     var seen: std.StringHashMapUnmanaged(void) = .empty;
@@ -51,17 +52,32 @@ pub fn run(allocator: std.mem.Allocator, options: Options) !?Result {
         .inputs = options.inputs,
     }) orelse return null;
 
+    var known: @import("../sources.zig").Known = .empty;
+
+    defer known.deinit(allocator);
+
     for (functions) |function| {
         const path = try std.fs.path.resolve(allocator, &.{ root, function.path });
 
+        try known.put(allocator, path, function.source);
+    }
+
+    for (functions) |function| {
+        const path = try std.fs.path.resolve(allocator, &.{ root, function.path });
+
+        if (seen.contains(path)) {
+            allocator.free(path);
+
+            continue;
+        }
+
         try validatePath(allocator, options, path);
-        if (seen.contains(path)) continue;
 
         var function_project = project;
         function_project.entry = path;
 
         const text = try allocator.dupe(u8, function.source);
-        const imported = try @import("../sources.zig").readWithLibraries(io, allocator, text, function_project, &cache, options.inputs, &libraries);
+        const imported = try @import("../sources.zig").readKnown(io, allocator, text, function_project, &cache, options.inputs, &libraries, &known);
 
         for (imported) |item| {
             if (project.package_scopes.len == 0) try validatePath(allocator, options, item.path);
@@ -73,7 +89,7 @@ pub fn run(allocator: std.mem.Allocator, options: Options) !?Result {
     if (!try @import("compiled.zig").collect(allocator, .{ .io = io, .modules = loaded.data.modules, .project = project, .libraries = &libraries, .inputs = options.inputs, .writer = options.writer })) return null;
 
     project.compiled_libraries = libraries.libraries.items;
-    var inferred = try analysis.project.infer(allocator, .{ .entry = owner, .modules = loaded.data.modules, .stores = loaded.data.stores, .sources = sources.items, .project = project });
+    var inferred = try analysis.project.infer(allocator, .{ .entry = owner, .exports = options.exports, .modules = loaded.data.modules, .stores = loaded.data.stores, .sources = sources.items, .project = project });
 
     errdefer inferred.deinit();
 
@@ -96,7 +112,7 @@ pub fn run(allocator: std.mem.Allocator, options: Options) !?Result {
         });
     }
 
-    return .{ .analysis = .{ .arena = inferred.arena, .value = .{ .ir = contract.program }, .nominal_types = contract.nominal_types, .store_initializers = contract.store_initializers }, .sources = sources.items, .store_definitions = contract.store_definitions };
+    return .{ .analysis = .{ .arena = inferred.arena, .value = .{ .ir = contract.program }, .nominal_types = contract.nominal_types, .store_initializers = contract.store_initializers, .entry_function = contract.entry_function, .public_functions = contract.public_functions }, .sources = sources.items, .store_definitions = contract.store_definitions };
 }
 
 fn validatePath(allocator: std.mem.Allocator, options: Options, path: []const u8) !void {

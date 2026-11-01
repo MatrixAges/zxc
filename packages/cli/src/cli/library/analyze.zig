@@ -50,9 +50,27 @@ pub const Result = struct {
             for (module.store_definitions) |definition| for (definition.objects) |object| {
                 const identity = try std.fmt.allocPrint(scratch, "store.{s}:{s}", .{ definition.source_path, object.name });
 
-                const needed = for (module.analysis.value.ir.stores.paths) |path| {
+                var needed = for (module.analysis.value.ir.stores.paths) |path| {
                     if (std.mem.eql(u8, path, identity)) break true;
                 } else false;
+
+                if (!needed) for (module.analysis.public_functions) |member| {
+                    const program = module.analysis.value.ir;
+
+                    if (@backingInt(member.id) >= program.functions.count()) return error.InvalidAnalysis;
+
+                    const function = program.functions.at(@backingInt(member.id));
+
+                    for (function.stores.paths) |path| {
+                        if (std.mem.eql(u8, path, identity)) {
+                            needed = true;
+
+                            break;
+                        }
+                    }
+
+                    if (needed) break;
+                };
 
                 if (needed) try initializers.append(scratch, .{ .identity = identity, .schema_version = definition.version, .program = object.initial });
             };
@@ -101,15 +119,20 @@ pub fn run(allocator: std.mem.Allocator, options: Options) !?Result {
         project.entry = try std.fs.path.resolve(owned, &.{ project.root_dir, exported.source });
 
         if (std.mem.endsWith(u8, project.entry, ".rx")) {
-            const prepared = try @import("../rx/analyze.zig").run(owned, .{ .io = options.io, .project = project, .writer = options.writer, .inputs = options.inputs }) orelse return null;
+            const prepared = try @import("../rx/analyze.zig").run(owned, .{ .io = options.io, .project = project, .writer = options.writer, .inputs = options.inputs, .exports = &.{.{ .name = exported.path, .path = project.entry }} }) orelse return null;
             module.* = .{ .name = exported.path, .analysis = prepared.analysis, .sources = prepared.sources, .store_definitions = prepared.store_definitions };
         } else {
             const source = try std.Io.Dir.cwd().readFileAlloc(options.io, project.entry, owned, .limited(16 * 1024 * 1024));
-            const sources = try @import("../sources.zig").readWithLibraries(options.io, owned, source, project, &cache, options.inputs, &libraries);
+            const detected = try @import("../sources.zig").readDetectingRx(options.io, owned, source, project, &cache, options.inputs, &libraries);
             project.compiled_libraries = libraries.libraries.items;
 
-            const analyzed = try compiler.analyzeProjectWithCache(owned, sources, project, &cache);
-            module.* = .{ .name = exported.path, .analysis = analyzed, .sources = sources };
+            if (detected.has_rx) {
+                const prepared = try @import("../rx/analyze.zig").run(owned, .{ .io = options.io, .project = project, .writer = options.writer, .inputs = options.inputs, .exports = &.{.{ .name = exported.path, .path = project.entry }} }) orelse return null;
+                module.* = .{ .name = exported.path, .analysis = prepared.analysis, .sources = prepared.sources, .store_definitions = prepared.store_definitions };
+            } else {
+                const analyzed = try compiler.analyzeProjectWithCache(owned, detected.sources, project, &cache);
+                module.* = .{ .name = exported.path, .analysis = analyzed, .sources = detected.sources };
+            }
         }
 
         count += 1;

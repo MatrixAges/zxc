@@ -13,8 +13,23 @@ modules: []model.Module,
 paths: @import("zx").bytes.Map(usize),
 edges: std.ArrayList(model.Edge) = .empty,
 owner: usize = 0,
-
 issue: ?Diagnostic = null,
+pub fn ownerPath(self: *const Self) []const u8 {
+    return self.modules[self.owner].path;
+}
+
+pub fn store(self: *Self, path: []const u8, location: rx.ast.Location, owner: []const u8) Error!void {
+    const absolute = try std.fs.path.resolve(self.allocator, &.{ self.options.root_dir, path });
+
+    if (!self.paths.contains(absolute)) {
+        self.issue = .{ .path = try self.allocator.dupe(u8, owner), .location = location, .code = "capability", .message = "Store definition is not registered" };
+
+        return error.InvalidGraph;
+    }
+
+    try self.local(path, location);
+}
+
 pub fn fail(self: *Self, location: rx.ast.Location, message: []const u8) Error {
     self.issue = .{
         .path = self.modules[self.owner].path,

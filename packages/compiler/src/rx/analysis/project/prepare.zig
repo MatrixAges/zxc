@@ -5,7 +5,7 @@ const target = @import("../call/target.zig");
 const Store = @import("../store.zig");
 const Flow = @import("flow.zig");
 pub const Call = struct { setter: ?target.Setter = null, getters: []const Store.Binding = &.{}, node: rx.ast.Node, callee: union(enum) { function: target.Function, module: usize, signature: frontend.project.signature_project.Ports } };
-pub const Module = struct { source: rx.ModuleSource, calls: []const Call, steps: []const Flow.Step, type_imports: []const @import("zx").ir.Export = &.{}, value_imports: []const @import("zx").ir.Export = &.{} };
+pub const Module = struct { source: rx.ModuleSource, shortcut: ?usize = null, calls: []const Call, steps: []const Flow.Step, type_imports: []const @import("zx").ir.Export = &.{}, value_imports: []const @import("zx").ir.Export = &.{} };
 pub const Loaded = struct { modules: []const Module, project: frontend.project.Options };
 pub const Value = union(enum) { loaded: Loaded, diagnostic: target.Diagnostic };
 
@@ -25,6 +25,7 @@ fn loadWithSignatures(allocator: std.mem.Allocator, modules: []const rx.ModuleSo
         loader.owner = source.path;
         loader.calls = .empty;
         loader.task_count = 0;
+        loader.deferred_shortcut = null;
 
         const references = try @import("../store/references.zig").resolve(allocator, source, definitions);
 
@@ -45,10 +46,39 @@ fn loadWithSignatures(allocator: std.mem.Allocator, modules: []const rx.ModuleSo
 
         if (imported == .diagnostic) return .{ .diagnostic = imported.diagnostic };
 
-        plan.* = .{ .source = source, .calls = loader.calls.items, .steps = steps, .type_imports = imported.imports, .value_imports = try @import("type_imports.zig").values(allocator, loader.project.context.types, imported.imports) };
+        plan.* = .{ .source = source, .shortcut = loader.deferred_shortcut, .calls = loader.calls.items, .steps = steps, .type_imports = imported.imports, .value_imports = try @import("type_imports.zig").values(allocator, loader.project.context.types, imported.imports) };
     }
 
     return .{ .loaded = .{ .modules = plans, .project = loader.project } };
+}
+
+pub fn completeShortcuts(allocator: std.mem.Allocator, loaded: Loaded, signatures: []const @import("signatures.zig").Signature) std.mem.Allocator.Error!Loaded {
+    const pending = for (loaded.modules) |module| {
+        if (module.shortcut != null) break true;
+    } else false;
+
+    if (!pending) return loaded;
+
+    const modules = try allocator.dupe(Module, loaded.modules);
+    const shorthand = @import("shorthand.zig");
+    const void_type = @import("frontend").types.scalarId(.void);
+
+    for (modules, signatures) |*module, signature| {
+        const index = module.shortcut orelse continue;
+        const calls = try allocator.dupe(Call, module.calls);
+        const node = try shorthand.call(allocator, module.source.node, signature.input_type != void_type);
+        const steps = try allocator.alloc(Flow.Step, if (signature.output_type == void_type) 1 else 2);
+
+        calls[index].node = node;
+        steps[0] = .{ .value = .{ .call = index } };
+
+        if (steps.len == 2) steps[1] = .{ .value = .{ .result = try shorthand.result(allocator, node) } };
+
+        module.calls = calls;
+        module.steps = steps;
+    }
+
+    return .{ .modules = modules, .project = loaded.project };
 }
 
 const Loader = struct {
@@ -61,6 +91,7 @@ const Loader = struct {
     stores: []const Store.Binding = &.{},
     calls: std.ArrayList(Call) = .empty,
     task_count: usize = 0,
+    deferred_shortcut: ?usize = null,
     issue: ?target.Diagnostic = null,
     const Error = std.mem.Allocator.Error || error{InvalidFlow};
 
@@ -72,7 +103,11 @@ const Loader = struct {
         const ports = switch (callee) {
             .signature => |signature| signature,
             .function => |function| frontend.project.signature_project.Ports{ .input_type = function.program.input_type, .output_type = function.program.output_type },
-            .module => unreachable,
+            .module => {
+                self.deferred_shortcut = index;
+
+                return &.{};
+            },
         };
 
         const void_type = frontend.types.scalarId(.void);
@@ -178,6 +213,19 @@ const Loader = struct {
 
             for (self.signatures.?.modules) |module| {
                 if (!std.mem.eql(u8, module.path, path)) continue;
+
+                if (module.signature.deferredSource()) |source| {
+                    if (capability.setter != null) return self.fail(attribute.value_location, "capability", "RX module Store authorization belongs inside the module");
+
+                    const module_index = try self.deferredModule(source) orelse return self.fail(attribute.value_location, "module", "default re-export target is missing from the RX module collection");
+
+                    try self.calls.append(self.allocator, .{ .node = node, .getters = capability.getters, .callee = .{ .module = module_index } });
+
+                    found = true;
+
+                    break;
+                }
+
                 if (module.signature.type_only) return self.fail(attribute.value_location, "module", "Call.fn requires an executable ZX module with a default function");
                 if (capability.setter != null and !module.signature.has_store) return self.fail(attribute.value_location, "capability", "a Call.setter target must declare its second parameter as { store }");
                 try self.calls.append(self.allocator, .{ .node = node, .setter = capability.setter, .getters = capability.getters, .callee = .{ .signature = module.signature.ports } });
@@ -207,6 +255,17 @@ const Loader = struct {
         }
 
         return index;
+    }
+    fn deferredModule(self: *Loader, path: []const u8) Error!?usize {
+        for (self.modules, 0..) |module, index| {
+            const absolute = try std.fs.path.resolve(self.allocator, &.{ self.project.root_dir, module.path });
+
+            defer self.allocator.free(absolute);
+
+            if (std.mem.eql(u8, absolute, path)) return index;
+        }
+
+        return null;
     }
     fn fail(self: *Loader, location: rx.ast.Location, code: []const u8, message: []const u8) Error {
         const result = try target.failure(self.allocator, .{ .path = self.owner, .location = location, .code = code, .message = message });

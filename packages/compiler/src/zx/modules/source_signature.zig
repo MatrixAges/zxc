@@ -7,7 +7,7 @@ pub const Ports = struct {
     output_type: ir.TypeId,
 };
 
-pub const Member = struct { name: []const u8, ports: ?Ports, has_store: bool = false };
+pub const Member = struct { name: []const u8, ports: ?Ports, source: ?[]const u8 = null, has_store: bool = false };
 
 pub const Result = struct {
     ports: Ports,
@@ -16,6 +16,13 @@ pub const Result = struct {
     members: []const Member = &.{},
     type_only: bool,
     has_store: bool,
+    pub fn deferredSource(self: Result) ?[]const u8 {
+        for (self.members) |member| {
+            if (member.name.len == 0 and member.ports == null) return member.source;
+        }
+
+        return null;
+    }
 };
 
 pub fn ports(types: *Types, program: anytype) zx.Error!Ports {

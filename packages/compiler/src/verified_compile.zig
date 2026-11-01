@@ -73,11 +73,13 @@ pub const LibraryResult = union(enum) {
 };
 
 pub fn emitLibrary(allocator: std.mem.Allocator, options: Options, library: *const compiler.library.Result) !LibraryResult {
-    for (library.exports, 0..) |exported, index| {
+    for (library.exports, 0..) |_, index| {
         var scoped = options;
-        scoped.project.entry = exported.path;
+        const program = try library.module(index);
 
-        if (try checkProgram(allocator, scoped, try library.module(index))) |issue| return .{ .diagnostic = try issue.clone(allocator) };
+        scoped.project.entry = program.file_name;
+
+        if (try checkProgram(allocator, scoped, program)) |issue| return .{ .diagnostic = try issue.clone(allocator) };
     }
 
     return .{ .bundle = try @import("backends/zig/library.zig").createCached(allocator, library, options.generation_cache) };

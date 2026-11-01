@@ -49,6 +49,21 @@ pub fn collect(graph: *Graph, modules: []const Prepared.Module, source_map: Sour
 
         var walker = Walker{ .expression = &expression, .module = module, .states = states, .output = state.output };
 
+        if (module.shortcut) |call_index| {
+            const call = module.calls[call_index];
+            const ports = states[call.callee.module];
+            const span = graph.nodes.items[@backingInt(state.input)].span;
+
+            try graph.unify(state.input, ports.input, span);
+            try graph.unify(state.output, ports.output, span);
+            try walker.bindResult(call.node, state.output, .call);
+
+            state.input_used = true;
+            state.bindings = walker.bindings.items;
+
+            continue;
+        }
+
         try walker.steps(module.steps);
 
         if (!walker.returned) {

@@ -98,18 +98,50 @@ pub fn compile(allocator: std.mem.Allocator, backing: std.mem.Allocator, derived
         }
     }
 
-    var contract = entry orelse return .{ .diagnostic = .{ .path = dependencies.modules[dependencies.entry].path, .location = .{ .offset = 0, .line = 1, .column = 1 }, .code = "module", .message = "RX entry was not lowered" } };
-    const id = state.finished[dependencies.entry].?.function.?;
     state.owner = dependencies.entry;
+    const root = dependencies.modules[dependencies.entry];
+    const finished = state.finished[dependencies.entry] orelse return .{ .diagnostic = .{ .path = root.path, .location = .{ .offset = 0, .line = 1, .column = 1 }, .code = "module", .message = "entry source module was not compiled" } };
+    const id = finished.function;
 
-    const functions = if (exports.len == 0) state.functions.view().prefix(@backingInt(id)) else state.functions.view();
+    const functions = if (root.source == .rx and exports.len == 0 and finished.members.len == 0)
+        state.functions.view().prefix(@backingInt(id.?))
 
-    contract.program = @import("mixed/function.zig").view(&state, id, functions) catch |err| {
-        if (err == error.OutOfMemory) return error.OutOfMemory;
+    else
+        state.functions.view();
 
-        return .{ .diagnostic = state.issue.? };
+    const program = if (id) |function|
+        @import("mixed/function.zig").view(&state, function, functions) catch |err| {
+            if (err == error.OutOfMemory) return error.OutOfMemory;
+
+            return .{ .diagnostic = state.issue.? };
+        }
+
+    else
+        zx.ir.Program{ .file_name = root.path, .types = state.types.items.view(), .input_type = finished.input_type, .output_type = finished.output_type, .symbols = .{}, .expressions = .{}, .body = .{}, .functions = functions, .native_modules = state.native_modules.view(), .type_only = true };
+
+    var contract = entry orelse Module.Contract{
+        .program = program,
+        .types = state.types.items.view(),
+        .nominal_types = state.types.origins.items.view(),
+        .input_type = program.input_type,
+        .output_type = program.output_type,
+        .calls = &.{},
+        .result = null,
+        .native_modules = state.native_modules.view(),
     };
 
+    contract.program = program;
+    contract.program.exports = finished.exports;
+    contract.program.constant_exports = finished.constant_exports;
+
+    contract.entry_function = if (id) |function|
+        if (@backingInt(function) < functions.count() and state.functions.at(@backingInt(function)).external == null) function else null
+
+    else
+        null;
+
+    contract.public_functions = finished.members;
+    contract.store_initializers = state.initializers.items;
     contract.types = state.types.items.view();
     contract.native_modules = state.native_modules.view();
     contract.nominal_types = state.types.origins.items.view();

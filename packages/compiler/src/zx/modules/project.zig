@@ -259,7 +259,7 @@ const Project = struct {
             const imported = switch (target) {
                 .source => |path| block: {
                     if (self.phase == .signature and std.mem.endsWith(u8, path, ".rx")) {
-                        break :block Imported{ .exports = &.{}, .signatures = &.{.{ .name = "", .ports = null }} };
+                        break :block Imported{ .exports = &.{}, .signatures = &.{.{ .name = "", .ports = null, .source = path }} };
                     }
 
                     const dependency = self.find(path) orelse return self.reporter.fail(.module, item.span, "import target is missing from the source set");
@@ -382,11 +382,18 @@ const Project = struct {
         for (signature.members) |member| {
             if (member.name.len != 0) continue;
 
-            signature.ports = member.ports orelse return self.reporter.fail(.module, .{ .start = 0, .end = 0 }, "a default re-export requires a resolved callable interface");
+            const ports = member.ports orelse {
+                if (member.source != null) continue;
+
+                return self.reporter.fail(.module, .{ .start = 0, .end = 0 }, "a default re-export requires a callable source");
+            };
+
+            signature.ports = ports;
             signature.has_store = member.has_store;
             signature.type_only = false;
         }
     }
+
     fn finishInput(self: *Project, frame: *LoadFrame, input: anytype) zx.Error!void {
         const unit = &self.units[frame.index];
         const aliases = frame.aliases;
@@ -908,7 +915,15 @@ pub fn resolveModuleTarget(allocator: std.mem.Allocator, from: []const u8, path:
     if (options.package_scopes.len != 0 and owner == null) return reporter.fail(.module, span, "source file does not belong to a declared package");
 
     if (kind == .file) {
-        var resolved = try resolvePath(allocator, from, path, root, reporter, span);
+        const rx_source = std.mem.endsWith(u8, path, ".rx");
+
+        var resolved = if (rx_source) block: {
+            const candidate = try resolvePath(allocator, from, path[0 .. path.len - ".rx".len], root, reporter, span);
+
+            defer allocator.free(candidate);
+
+            break :block try std.fmt.allocPrint(allocator, "{s}.rx", .{candidate[0 .. candidate.len - ".zx".len]});
+        } else try resolvePath(allocator, from, path, root, reporter, span);
 
         errdefer allocator.free(resolved);
 

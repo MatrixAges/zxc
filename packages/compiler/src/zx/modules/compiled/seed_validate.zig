@@ -63,7 +63,7 @@ pub fn validate(allocator: std.mem.Allocator, library: model.Graph) Error!void {
 
             const function = program.functions.at(@backingInt(id));
 
-            if (function.external != null or !std.mem.eql(u8, function.file_name, exported.path)) return error.InvalidLibrary;
+            if (function.external != null) return error.InvalidLibrary;
         }
 
         if (!@import("../../analysis/constants/input.zig").nativeValid(program.types, exported.constants)) return error.InvalidLibrary;
