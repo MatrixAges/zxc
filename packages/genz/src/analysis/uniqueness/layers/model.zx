@@ -1,0 +1,17 @@
+import type { Expressions } from "core/expression_table/model"
+
+export type Functions = {
+    native_modules: u32?[],
+    expressions: Expressions[]
+}
+
+export type Depths = {
+    values: u32[],
+    maximum: u32,
+    ordered: bool
+}
+
+export type Plan = {
+    order: u32[],
+    ends: u64[]
+}

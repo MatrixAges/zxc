@@ -1,0 +1,37 @@
+import integers from "std:integer"
+import { map } from "std:utils"
+
+import type { Plan } from "./model"
+
+export type Input = {
+    depths: u32[],
+    starts: u64[]
+}
+
+export type Output = Plan
+
+export default function (in: Input): Output {
+    const order: u32[] = map(in.depths, depth => 0)
+
+    const result = loop({
+        depths: in.depths,
+        ends: in.starts,
+        order,
+        index: 0
+    }, {
+        while: current => current.index < current.depths.length,
+        next: current => {
+            const depth = integers.widen(current.depths[current.index])
+            const position = current.ends[depth]
+
+            current.order[position] = integers.narrow(current.index)
+            current.ends[depth] += 1
+            current.index += 1
+        }
+    })
+
+    return {
+        order: result.order,
+        ends: result.ends
+    }
+}

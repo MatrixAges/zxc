@@ -1,0 +1,53 @@
+import integers from "std:integer"
+import { map } from "std:utils"
+
+import depth from "./depth"
+
+import type { Depths, Functions } from "./model"
+
+export type Input = Functions
+
+export type Output = Depths
+
+export default function (in: Input): Output {
+    const values: u32[] = map(in.native_modules, module => 0)
+
+    const result = loop({
+        functions: in,
+        values,
+        index: 0,
+        maximum: integers.narrow(0),
+        ordered: true
+    }, {
+        while: current => current.ordered &&
+            current.index < current.functions.native_modules.length,
+        next: current => {
+            if (current.functions.native_modules[current.index] == null) {
+                const value = depth({
+                    callees:
+                        current.functions.expressions[current.index].call_functions,
+                    depths: current.values,
+                    index: current.index
+                })
+
+                if (value == null) {
+                    current.ordered = false
+                } else {
+                    current.values[current.index] = value
+
+                    if (value > current.maximum) {
+                        current.maximum = value
+                    }
+                }
+            }
+
+            current.index += 1
+        }
+    })
+
+    return {
+        values: result.values,
+        maximum: result.maximum,
+        ordered: result.ordered
+    }
+}

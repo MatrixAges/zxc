@@ -83,6 +83,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/printer/render.rx", .name = "printer", .owner = .genz },
     .{ .path = "genz/analysis/facts/analyze.rx", .name = "function_facts", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/slots/build.rx", .name = "uniqueness_slots", .owner = .genz },
+    .{ .path = "genz/analysis/uniqueness/layers/plan.rx", .name = "uniqueness_layers", .owner = .genz },
     .{ .path = "genz/analysis/shape/plan.rx", .name = "shape_plan", .owner = .genz },
     .{ .path = "genz/analysis/inline/prepare.rx", .name = "inline_prepare", .owner = .genz },
 };

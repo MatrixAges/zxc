@@ -1,0 +1,22 @@
+export type Input = u64[]
+
+export type Output = u64[]
+
+export default function (in: Input): Output {
+    const result = loop({
+        values: in,
+        index: 0,
+        total: 0
+    }, {
+        while: current => current.index < current.values.length,
+        next: current => {
+            const count = current.values[current.index]
+
+            current.values[current.index] = current.total
+            current.total += count
+            current.index += 1
+        }
+    })
+
+    return result.values
+}

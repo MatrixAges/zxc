@@ -50,7 +50,7 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program, slots: Slots, t
 
     const self = Self{ .held = held, .text_held = text_held, .written = written };
 
-    if (try layers(temporary, program)) |found| {
+    if (try @import("flow/layers/root.zig").build(temporary, program.functions)) |found| {
         const remembered: ?Remembered = if (memo) |value| .{
             .memo = value,
             .types = types,
@@ -86,55 +86,7 @@ fn retainText(held: []bool, text_held: []const bool) bool {
     return changed;
 }
 
-/// Functions grouped by call depth when every call goes to a function earlier in the table, as the table orders them
-/// unless bodies recurse: a function's callees then sit in earlier layers, so each body is walked once, after the
-/// summaries it reads are final, and the bodies of one layer are walked on all cores.
-const Layers = struct { order: []const u32, ends: []const usize };
-
-fn layers(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!?Layers {
-    const count = program.functions.count();
-    const depths = try allocator.alloc(u32, count);
-    var deepest: u32 = 0;
-
-    for (depths, 0..) |*depth, index| {
-        const function = program.functions.at(index);
-
-        depth.* = 0;
-
-        if (function.external != null) continue;
-
-        for (function.expressions.kinds, 0..) |_, expression| {
-            const callee = @backingInt(function.expressions.callee(expression) orelse continue);
-
-            if (callee >= index) return null;
-
-            depth.* = @max(depth.*, depths[callee] + 1);
-        }
-
-        deepest = @max(deepest, depth.*);
-    }
-
-    const ends = try allocator.alloc(usize, deepest + 1);
-    const order = try allocator.alloc(u32, count);
-
-    @memset(ends, 0);
-
-    for (depths) |depth| ends[depth] += 1;
-
-    var total: usize = 0;
-
-    for (ends) |*end| {
-        total += end.*;
-        end.* = total - end.*;
-    }
-
-    for (depths, 0..) |depth, index| {
-        order[ends[depth]] = @intCast(index);
-        ends[depth] += 1;
-    }
-
-    return .{ .order = order, .ends = ends };
-}
+const Layers = @import("flow/layers/root.zig").Plan;
 
 /// What looking bodies up in a memo needs: the digests of the types and of each body, and per body its key and whether
 /// the memo held it.
@@ -184,7 +136,8 @@ fn layered(self: Self, program: ir.Program, slots: Slots, found: Layers, remembe
 
     var start: usize = 0;
 
-    for (found.ends) |end| {
+    for (found.ends) |boundary| {
+        const end: usize = @intCast(boundary);
         var layer = Layer{ .flow = self, .program = program, .slots = slots, .functions = found.order[start..end], .walkers = walkers, .remembered = remembered };
 
         start = end;

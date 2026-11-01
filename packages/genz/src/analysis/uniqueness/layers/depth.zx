@@ -1,0 +1,38 @@
+import integers from "std:integer"
+
+export type Input = {
+    callees: u32[],
+    depths: u32[],
+    index: u64
+}
+
+export type Output = u32?
+
+    export default function (in: Input): Output {
+        const result = loop({
+            source: in,
+            index: 0,
+            depth: integers.narrow(0),
+            ordered: true
+        }, {
+            while: current =>
+                current.ordered && current.index < current.source.callees.length,
+            next: current => {
+                const callee = integers.widen(current.source.callees[current.index])
+
+                if (callee >= current.source.index) {
+                    current.ordered = false
+                } else {
+                    const depth = current.source.depths[callee] + 1
+
+                    if (depth > current.depth) {
+                        current.depth = depth
+                    }
+                }
+
+                current.index += 1
+            }
+        })
+
+        return result.ordered ? result.depth : null
+    }

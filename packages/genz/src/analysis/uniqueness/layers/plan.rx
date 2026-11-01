@@ -1,0 +1,24 @@
+<Module>
+    <Type from="./model" as="Layers" />
+
+    <Args in={Layers.Functions} out={Layers.Plan?} />
+
+    <Call fn="depths" in={$in} />
+
+    <If on={!$ctx.depths.ordered}>
+        <Return value={null} />
+    </If>
+
+    <Call fn="counts" in={$ctx.depths} />
+    <Call fn="offsets" in={$ctx.counts} />
+
+    <Call
+        fn="ordering"
+        in={{
+            depths: $ctx.depths.values,
+            starts: $ctx.offsets
+        }}
+    />
+
+    <Return value={$ctx.ordering} />
+</Module>
