@@ -7,5 +7,5 @@ export type Input = {
 export type Output = string
 
 export default function (in: Input): Output {
-    return `(set-logic QF_BV)\n(set-option :produce-models true)\n(set-option :timeout 10000)\n${in.declarations}\n${in.definitions}\n(assert ${in.predicate})\n(check-sat)\n`
+    return templateFile("./statement.tpl")
 }

@@ -36,7 +36,19 @@ pub fn infer(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.E
     return .{ .arena = arena, .value = value };
 }
 
-fn inferIn(allocator: std.mem.Allocator, backing: std.mem.Allocator, options: Options) std.mem.Allocator.Error!Module.Value {
+fn inferIn(allocator: std.mem.Allocator, backing: std.mem.Allocator, raw_options: Options) std.mem.Allocator.Error!Module.Value {
+    var options = raw_options;
+
+    options.sources = switch (try frontend.project.prepareSources(allocator, options.sources, options.project)) {
+        .sources => |items| items,
+        .diagnostic => |issue| {
+            const source = options.sources[issue.source_index.?];
+            const location = zx.source.locate(source.source, issue.span.start);
+
+            return failure(allocator, .{ .path = source.path, .location = .{ .offset = issue.span.start, .line = location.line, .column = location.column }, .code = @tagName(issue.code), .message = issue.message });
+        },
+    };
+
     var local = frontend.project.ParseCache{ .allocator = allocator };
 
     defer local.deinit();
@@ -46,12 +58,12 @@ fn inferIn(allocator: std.mem.Allocator, backing: std.mem.Allocator, options: Op
 
     const derived = earlier orelse switch (try derive(allocator, options, cache)) {
         .frame => |frame| frame,
-        .diagnostic => |issue| return .{ .diagnostic = issue },
+        .diagnostic => |issue| return remap(allocator, options, issue),
     };
 
     var result = try @import("project/mixed.zig").compile(allocator, backing, derived, options.modules, options.sources, options.exports, cache, options.history);
 
-    if (result == .diagnostic) return result;
+    if (result == .diagnostic) return remap(allocator, options, result.diagnostic);
 
     for (derived.definitions) |*definition| {
         definition.types = result.contract.types;
@@ -215,4 +227,21 @@ fn failure(allocator: std.mem.Allocator, issue: target.Diagnostic) std.mem.Alloc
     const value = try target.failure(allocator, issue);
 
     return .{ .diagnostic = value.diagnostic };
+}
+
+fn remap(allocator: std.mem.Allocator, options: Options, issue: target.Diagnostic) std.mem.Allocator.Error!Module.Value {
+    for (options.sources) |source| {
+        if (source.template_origins.len == 0) continue;
+
+        const path = try std.fs.path.resolve(allocator, &.{ options.project.root_dir, source.path });
+
+        if (!std.mem.eql(u8, path, issue.path)) continue;
+
+        const origin = frontend.project.resources.locate(source, issue.location.offset);
+        const position = zx.source.locate(origin.source, origin.offset);
+
+        return failure(allocator, .{ .path = origin.path, .location = .{ .offset = origin.offset, .line = position.line, .column = position.column }, .code = issue.code, .message = issue.message });
+    }
+
+    return failure(allocator, issue);
 }

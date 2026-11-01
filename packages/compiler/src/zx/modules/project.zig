@@ -11,7 +11,10 @@ const NominalOrigins = @import("nominal_origins.zig");
 const ModuleRecord = @import("module_record.zig");
 const Input = @import("module_input.zig");
 pub const signature_project = @import("signature_project.zig");
-pub const Source = struct { path: []const u8, source: []const u8 };
+pub const Resource = struct { path: []const u8, source: []const u8 };
+pub const Source = struct { path: []const u8, source: []const u8, templates: []const Resource = &.{}, original: ?[]const u8 = null, template_origins: []const @import("../frontend/resources/root.zig").Origin = &.{} };
+pub const resources = @import("../frontend/resources/root.zig");
+pub const prepareSources = @import("../frontend/resources/prepare.zig").sources;
 pub const compiled = @import("compiled.zig");
 pub const External = @import("interface.zig").External;
 pub const standard = @import("standard_interfaces").modules;
@@ -615,13 +618,18 @@ pub fn analyzeSignaturesWithCache(allocator: std.mem.Allocator, sources: []const
     } } };
 }
 
-fn analyzeWithCaches(allocator: std.mem.Allocator, sources: []const Source, options: Options, cache: *ParseCache, semantic_cache: ?*SemanticCache) std.mem.Allocator.Error!Analysis.Result {
+fn analyzeWithCaches(allocator: std.mem.Allocator, raw_sources: []const Source, options: Options, cache: *ParseCache, semantic_cache: ?*SemanticCache) std.mem.Allocator.Error!Analysis.Result {
     var arena = std.heap.ArenaAllocator.init(allocator);
 
     errdefer arena.deinit();
 
     const temporary = arena.allocator();
     var reporter: zx.Reporter = .{};
+
+    const sources = switch (try prepareSources(temporary, raw_sources, options)) {
+        .sources => |items| items,
+        .diagnostic => |issue| return .{ .arena = arena, .value = .{ .diagnostic = issue } },
+    };
 
     if (options.context.types.count() != 0 and !@import("../ir/type_rules.zig").validate(options.context.types)) return .{ .arena = arena, .value = .{ .diagnostic = .{
         .code = .contract,
@@ -658,7 +666,7 @@ fn analyzeWithCaches(allocator: std.mem.Allocator, sources: []const Source, opti
     var program = project.load(root) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 
-        var issue = reporter.diagnostic.?;
+        var issue = try resources.diagnostic(temporary, sources[project.current_source], reporter.diagnostic.?);
         issue.source_index = project.current_source;
 
         return .{ .arena = arena, .value = .{ .diagnostic = issue } };

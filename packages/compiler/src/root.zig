@@ -125,6 +125,8 @@ pub fn analyzeProjectIncremental(allocator: std.mem.Allocator, sources: []const 
 }
 
 fn analysisDiagnostic(allocator: std.mem.Allocator, issue: Diagnostic) std.mem.Allocator.Error!AnalysisResult {
+    defer issue.deinit();
+
     var arena = std.heap.ArenaAllocator.init(allocator);
 
     errdefer arena.deinit();
@@ -146,6 +148,17 @@ fn checkProjectSources(allocator: std.mem.Allocator, sources: []const project.So
         var issue = try parsed.check(allocator);
 
         if (issue) |*diagnostic| {
+            if (source.template_origins.len != 0) {
+                const previous = diagnostic.*;
+                diagnostic.* = try project.resources.diagnostic(allocator, source, previous);
+
+                if (diagnostic.message.ptr != previous.message.ptr) {
+                    previous.deinit();
+
+                    diagnostic.message_allocator = allocator;
+                }
+            }
+
             diagnostic.source_index = index;
 
             return diagnostic.*;

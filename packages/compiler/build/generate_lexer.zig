@@ -16,8 +16,9 @@ pub fn generate(init: std.process.Init, source_root: []const u8, output_path: []
     const allocator = init.arena.allocator();
     var sources: std.ArrayList(compiler.project.Source) = .empty;
     var modules: std.ArrayList(rx.TextSource) = .empty;
+    var templates: std.ArrayList(compiler.project.Resource) = .empty;
 
-    try collection.collect(init.io, allocator, null, source_root, "", &sources, &modules);
+    try collection.collect(init.io, allocator, null, source_root, "", &sources, &modules, &templates);
 
     std.mem.sort(compiler.project.Source, sources.items, {}, collection.lessSource);
     std.mem.sort(rx.TextSource, modules.items, {}, collection.lessModule);

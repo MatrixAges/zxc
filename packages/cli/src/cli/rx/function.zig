@@ -64,7 +64,7 @@ pub fn validate(io: std.Io, allocator: std.mem.Allocator, path: []const u8, sour
 
 fn report(writer: *std.Io.Writer, inputs: []const compiler.project.Source, issue: anytype) !bool {
     const index = issue.source_index orelse 0;
-    const location = zx.source.locate(inputs[index].source, issue.span.start);
+    const location = zx.source.locate(inputs[index].original orelse inputs[index].source, issue.span.start);
 
     try writer.print("{s}:{d}:{d}: {t}: {s}\n", .{ inputs[index].path, location.line, location.column, issue.code, issue.message });
 

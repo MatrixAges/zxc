@@ -39,6 +39,12 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
             if (entry.owner == .frontend) frontend.addImport(entry.importName(), @field(generated, entry.name));
         }
     } else {
+        frontend.addImport("generated_resource_scan", b.createModule(.{
+            .root_source_file = b.path("bootstrap/resource_scan.zig"),
+            .target = target,
+            .optimize = optimize,
+        }));
+
         frontend.addImport("generated_constant_fold", @import("constant_seed.zig").create(b, target, optimize));
 
         frontend.addImport("refinement_seed", b.createModule(.{
@@ -94,6 +100,18 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
             if (entry.owner == .compiler) module.addImport(entry.importName(), @field(generated, entry.name));
             if (entry.owner == .genz and !native_genz) genz.addImport(entry.importName(), @field(generated, entry.name));
         }
+    } else {
+        const query_types = b.createModule(.{ .root_source_file = b.path("bootstrap/query/types.zig"), .target = target, .optimize = optimize });
+        const query_string = b.createModule(.{ .root_source_file = b.path("standard/src/string.zig"), .target = target, .optimize = optimize });
+
+        const query = b.createModule(.{
+            .root_source_file = b.path("bootstrap/query/root.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{ .{ .name = "zxc_abi", .module = query_types }, .{ .name = "zxc_string", .module = query_string } },
+        });
+
+        module.addImport("query_seed", query);
     }
 
     module.addImport("parser_options", parser_options);

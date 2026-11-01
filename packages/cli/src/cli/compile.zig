@@ -167,7 +167,7 @@ pub fn run(context: Context) !Status {
 
     switch (result) {
         .diagnostic => |issue| {
-            const failed_source = if (issue.source_index) |index| sources[index].source else source;
+            const failed_source = if (issue.source_index) |index| (sources[index].original orelse sources[index].source) else source;
             const failed_path = if (issue.source_index) |index| sources[index].path else input_path;
             const location = zx.source.locate(failed_source, issue.span.start);
 

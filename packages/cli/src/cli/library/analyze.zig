@@ -118,7 +118,7 @@ pub fn run(allocator: std.mem.Allocator, options: Options) !?Result {
         if (module.analysis.value == .diagnostic) {
             const issue = module.analysis.value.diagnostic;
             const source = module.sources[issue.source_index orelse 0];
-            const location = zx.source.locate(source.source, issue.span.start);
+            const location = zx.source.locate(source.original orelse source.source, issue.span.start);
 
             try options.writer.print("{s}:{d}:{d}: {t}: {s}\n", .{ source.path, location.line, location.column, issue.code, issue.message });
 

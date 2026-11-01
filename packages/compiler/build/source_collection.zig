@@ -16,7 +16,7 @@ pub fn lessModule(_: void, left: rx.TextSource, right: rx.TextSource) bool {
 /// Appends the ZX and RX sources under `root`, named with `prefix`; `files`, when given, owns their texts. The tree is
 /// listed one depth at a time, every directory of a depth on its own core, and a listed file whose metadata vouches for
 /// the text `files` kept takes that text there; the calling thread reads the others afterwards.
-pub fn collect(io: std.Io, allocator: std.mem.Allocator, files: ?*Files, root: []const u8, prefix: []const u8, sources: *std.ArrayList(compiler.project.Source), modules: *std.ArrayList(rx.TextSource)) !void {
+pub fn collect(io: std.Io, allocator: std.mem.Allocator, files: ?*Files, root: []const u8, prefix: []const u8, sources: *std.ArrayList(compiler.project.Source), modules: *std.ArrayList(rx.TextSource), templates: *std.ArrayList(compiler.project.Resource)) !void {
     var directory = try std.Io.Dir.cwd().openDir(io, root, .{});
 
     defer directory.close(io);
@@ -48,7 +48,7 @@ pub fn collect(io: std.Io, allocator: std.mem.Allocator, files: ?*Files, root: [
                 const path = try std.mem.concat(allocator, u8, &.{ prefix, relative });
                 const source = file.text orelse if (files) |kept| try kept.read(io, directory, relative, path) else try directory.readFileAlloc(io, relative, allocator, .unlimited);
 
-                if (file.zx) try sources.append(allocator, .{ .path = path, .source = source }) else try modules.append(allocator, .{ .path = path, .source = source });
+                if (file.zx) try sources.append(allocator, .{ .path = path, .source = source }) else if (file.tpl) try templates.append(allocator, .{ .path = path, .source = source }) else try modules.append(allocator, .{ .path = path, .source = source });
             }
         }
 
@@ -58,7 +58,7 @@ pub fn collect(io: std.Io, allocator: std.mem.Allocator, files: ?*Files, root: [
 
 /// Threads listing at once; the file system serves more of them no faster, as they wait on its locks.
 const listers = 8;
-const File = struct { name: []const u8, zx: bool, text: ?[]const u8 };
+const File = struct { name: []const u8, zx: bool, tpl: bool, text: ?[]const u8 };
 const Listing = struct { files: []const File, directories: []const []const u8 };
 
 /// The directories of one depth, listed by every participant taking the next one left.
@@ -95,9 +95,10 @@ const List = struct {
             .directory => try directories.append(arena, try arena.dupe(u8, entry.name)),
             .file => {
                 const zx = std.mem.endsWith(u8, entry.name, ".zx");
+                const tpl = std.mem.endsWith(u8, entry.name, ".tpl");
 
-                if (!zx and !std.mem.endsWith(u8, entry.name, ".rx")) continue;
-                try files.append(arena, .{ .name = try arena.dupe(u8, entry.name), .zx = zx, .text = try work.kept(directory, parent, entry) });
+                if (!zx and !tpl and !std.mem.endsWith(u8, entry.name, ".rx")) continue;
+                try files.append(arena, .{ .name = try arena.dupe(u8, entry.name), .zx = zx, .tpl = tpl, .text = try work.kept(directory, parent, entry) });
             },
             else => {},
         };

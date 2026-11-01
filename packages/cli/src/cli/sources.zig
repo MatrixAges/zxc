@@ -23,7 +23,10 @@ pub fn readWithLibraries(io: std.Io, allocator: std.mem.Allocator, source: []con
     var index: usize = 0;
 
     while (index < sources.items.len) : (index += 1) {
-        const item = sources.items[index];
+        const item = try @import("sources/templates.zig").prepare(io, allocator, sources.items[index], project, inputs);
+
+        sources.items[index] = item;
+
         const canonical_path = try std.fs.path.resolve(allocator, &.{ project.root_dir, item.path });
 
         defer allocator.free(canonical_path);

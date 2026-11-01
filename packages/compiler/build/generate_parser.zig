@@ -60,11 +60,23 @@ pub fn generate(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, r
 
     var sources: std.ArrayList(compiler.project.Source) = .empty;
     var modules: std.ArrayList(rx.TextSource) = .empty;
+    var templates: std.ArrayList(compiler.project.Resource) = .empty;
 
-    for (project.roots) |root| try collection.collect(io, allocator, &resident.files, root.path, root.prefix, &sources, &modules);
+    for (project.roots) |root| try collection.collect(io, allocator, &resident.files, root.path, root.prefix, &sources, &modules, &templates);
 
     std.mem.sort(compiler.project.Source, sources.items, {}, collection.lessSource);
     std.mem.sort(rx.TextSource, modules.items, {}, collection.lessModule);
+
+    for (sources.items) |*source| source.templates = templates.items;
+
+    const prepared_sources = switch (try compiler.project.prepareSources(allocator, sources.items, .{ .entry = "" })) {
+        .sources => |items| items,
+        .diagnostic => |issue| {
+            std.debug.print("{s}: {s}\n", .{ sources.items[issue.source_index.?].path, issue.message });
+
+            return error.InvalidTemplateResource;
+        },
+    };
 
     const packages = try allocator.alloc(compiler.project.Package, project.packages.len);
     var package_hash = compiler.Sha256.init(.{});
@@ -105,7 +117,7 @@ pub fn generate(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, r
     for (modules.items, rx_digests) |module, *item| item.* = .{ .path = module.path, .digest = resident.files.digest(module.path, module.source) };
 
     const frame = frameDigest(resident.digest, manifest_source, rx_digests, interfaces, true);
-    const inputs_digest = fingerprint(frame, partitions, sources.items, &resident.files);
+    const inputs_digest = fingerprint(frame, partitions, prepared_sources, &resident.files);
 
     // An output directory reused across runs already holds the result when nothing it depends on changed.
     if (request.write and try current(io, allocator, output, inputs_digest)) return "";
@@ -119,7 +131,7 @@ pub fn generate(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, r
 
     const summary = try @import("shared_generation.zig").run(io, allocator, resident, project.entries, .{
         .modules = inputs,
-        .sources = sources.items,
+        .sources = prepared_sources,
         .interfaces = interfaces,
         .packages = packages,
         .frame = frame,

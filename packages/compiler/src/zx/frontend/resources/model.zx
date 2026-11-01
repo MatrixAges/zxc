@@ -1,0 +1,19 @@
+export type Token = {
+    text: string,
+    start: u64,
+    end: u64,
+    quoted: bool
+}
+
+export type Reference = {
+    start: u64,
+    end: u64,
+    literal: string
+}
+
+export type Output = {
+    references: Reference[],
+    invalid: bool,
+    start: u64,
+    end: u64
+}

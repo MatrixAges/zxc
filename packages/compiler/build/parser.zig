@@ -135,7 +135,7 @@ fn trackSources(b: *std.Build, run: *std.Build.Step.Run, root: std.Build.LazyPat
     while (try walker.next(b.graph.io)) |entry| {
         if (entry.kind == .directory) {
             b.dependOnDirectoryContents(root.path(b, entry.path));
-        } else if (entry.kind == .file and (std.mem.endsWith(u8, entry.path, ".zx") or std.mem.endsWith(u8, entry.path, ".rx"))) {
+        } else if (entry.kind == .file and (std.mem.endsWith(u8, entry.path, ".zx") or std.mem.endsWith(u8, entry.path, ".rx") or std.mem.endsWith(u8, entry.path, ".tpl"))) {
             try paths.append(b.allocator, try b.allocator.dupe(u8, entry.path));
         }
     }

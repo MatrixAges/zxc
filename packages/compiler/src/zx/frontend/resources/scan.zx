@@ -1,0 +1,57 @@
+import {template_function, member_access, open_call, close_call} from "./const"
+
+import type {Token, Reference, Output} from "./model"
+
+export type Input = Token[]
+
+export default function (in: Input): Output {
+    const references: Reference[] = []
+
+    const result = loop({
+        tokens: in,
+        index: 0,
+        references: references,
+        invalid: false,
+        start: 0,
+        end: 0
+    }, {
+        while: current => !current.invalid && current.index < current.tokens.length,
+        next: current => {
+            const index = current.index
+            const token = current.tokens[index]
+            const member = index > 0 && current.tokens[index - 1].text == member_access
+            const call =
+                index + 1 < current.tokens.length &&
+                current.tokens[index + 1].text == open_call
+
+            current.index += 1
+
+            if (token.text == template_function && !member && call) {
+                const valid =
+                    index + 3 < current.tokens.length &&
+                    current.tokens[index + 2].quoted &&
+                    current.tokens[index + 3].text == close_call
+
+                if (!valid) {
+                    current.invalid = true
+                    current.start = token.start
+                    current.end = token.end
+                } else {
+                    current.references = current.references.push({
+                        start: token.start,
+                        end: current.tokens[index + 3].end,
+                        literal: current.tokens[index + 2].text
+                    })[0]
+                    current.index += 3
+                }
+            }
+        }
+    })
+
+    return {
+        references: result.references,
+        invalid: result.invalid,
+        start: result.start,
+        end: result.end
+    }
+}
