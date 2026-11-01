@@ -1,4 +1,5 @@
 import { ExprKind } from "../../../../frontend/parser/expressions/state/model"
+import constant from "../../../constants/lookup"
 import lookup from "../../bindings/lookup"
 import { NameKind } from "../../source/model"
 import readName from "../../source/name"
@@ -27,6 +28,10 @@ export type Output = u32?
         const root_name = readName({ source: source, kind: NameKind.Expression, index: field ? callee.first : in.callee }).text
 
         if (lookup({ active: in.context.state.local.active, names: in.context.state.local.symbols.names, scope_floor: in.context.state.local.scope_floor, name: root_name }) != null) {
+            return null
+        }
+
+        if (in.context.source.constant_values != null && constant({ active: in.context.state.local.active, names: in.context.state.local.symbols.names, constants: in.context.source.constant_values, name: root_name }) != null) {
             return null
         }
 

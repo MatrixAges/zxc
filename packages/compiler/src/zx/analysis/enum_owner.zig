@@ -13,6 +13,7 @@ pub fn resolve(self: *const Analyzer, owner: anytype) ?zx.ir.TypeId {
         if (std.mem.eql(u8, self.symbols.at(@backingInt(id)).name, name)) return null;
     }
 
+    if (@import("constants/lookup.zig").find(self, name) != null) return null;
     if (binding.lookup(self, root) != null or binding.unit(self, root)) return null;
 
     if (value == .identifier) {

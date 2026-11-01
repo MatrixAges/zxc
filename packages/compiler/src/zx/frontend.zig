@@ -35,4 +35,4 @@ pub const native_link = @import("modules/link/native.zig");
 pub const ArtifactNodes = @import("modules/artifact/nodes.zig");
 pub const analyzeOwnership = @import("ownership/check.zig").analyze;
 pub const storesOwnValues = @import("ownership/stores.zig").check;
-pub const constants = if (@import("parser_options").generated_parser) @import("analysis/constants/host.zig") else void;
+pub const constants = @import("analysis/constants/host.zig");

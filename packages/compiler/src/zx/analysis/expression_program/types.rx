@@ -18,6 +18,7 @@
 
             <Call fn="types/check" in={{
                 analysis: $ctx.task.resolved,
+                constant_values: $in.input.constant_values,
                 binding_types: $in.input.binding_types,
                 alias_types: $in.input.alias_types,
                 expected: $in.input.expected,

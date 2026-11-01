@@ -1,0 +1,51 @@
+import lookup from "../analyzer/bindings/lookup"
+
+import type { Literal, Values } from "core/constant/model"
+
+export type Input = {
+    active: u32[],
+    names: string[],
+    constants: Values?,
+    name: string
+}
+
+export type Output = Literal?
+
+    export default function (in: Input): Output {
+        const constants = in.constants
+
+        if (constants == null) {
+            return null
+        }
+
+        const local = lookup({
+            active: in.active,
+            names: in.names,
+            scope_floor: 0,
+            name: in.name
+        })
+
+        if (local != null) {
+            return null
+        }
+
+        const missing: u64? = null
+
+        const found = loop({
+            constants: constants,
+            name: in.name,
+            index: 0,
+            value: missing
+        }, {
+            while: current => current.value == null && current.index < current.constants.names.length,
+            next: current => {
+                if (current.constants.names[current.index] == current.name) {
+                    current.value = current.index
+                }
+
+                current.index += 1
+            }
+        }).value
+
+        return found != null ? constants.values[found] : null
+    }

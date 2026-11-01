@@ -71,11 +71,15 @@ fn execute(comptime mode: Mode, scratch: *std.heap.ArenaAllocator, allocator: st
     else
         .{ .syntax = borrow.pointer(@FieldType(Input, "syntax"), parsed.output), .native = @as(@FieldType(Input, "native"), null) };
 
+    const ConstantTable = std.meta.Child(@typeInfo(@FieldType(Input, "constant_values")).optional.child);
+    const constants = try @import("../../constants/input.zig").marshal(ConstantTable, scratch.allocator(), options.constants);
+
     const input = Input{
         .bytes = parsed.source,
         .syntax = source.syntax,
         .native = source.native,
         .type_base = &types,
+        .constant_values = constants,
         .binding_names = names,
         .binding_types = ids,
         .alias_names = alias_names,

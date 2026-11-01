@@ -65,7 +65,7 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode, stage0: []con
     };
 
     // Each entry set runs as its own step, so builds that never import the checks do not generate them.
-    inline for (.{ entries.Set.main, entries.Set.checks }) |set| {
+    inline for (.{ entries.Set.main, entries.Set.checks, entries.Set.constant_seed }) |set| {
         const run = generatorRun(b, executable, stage0);
 
         const project = manifest.Project{
@@ -100,7 +100,11 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode, stage0: []con
             run.has_side_effects = true;
         }
 
-        @field(sources, @tagName(set)) = directory;
+        if (set == .constant_seed) {
+            const install = b.addInstallDirectory(.{ .source_dir = directory, .install_dir = .prefix, .install_subdir = "bootstrap/constants" });
+
+            b.step("bootstrap-constant-seed", "Generate the initial constant evaluator snapshot from RX and ZX").dependOn(&install.step);
+        } else @field(sources, @tagName(set)) = directory;
     }
 
     return sources;

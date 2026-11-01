@@ -11,7 +11,7 @@ pub const Binding = struct { name: []const u8, type_id: ir.TypeId };
 /// borrows its strings, and the table is re-validated only in internal builds. `type_storage`, with `borrow_types`,
 /// is the storage `types` views whole: the expression then extends it in place rather than copying the table. The
 /// storage only grows, so tables viewed from it earlier stay valid.
-pub const Options = struct { types: ir.TypeTable = .{}, borrow_types: bool = false, type_storage: ?*ir.TypeStorage = null, native_modules: ir.NativeModuleTable = .{}, aliases: []const ir.Export = &.{}, bindings: []const Binding = &.{}, unit_bindings: []const []const u8 = &.{}, nonnull_bindings: []const []const u8 = &.{}, expected: ?ir.TypeId = null };
+pub const Options = struct { types: ir.TypeTable = .{}, borrow_types: bool = false, type_storage: ?*ir.TypeStorage = null, native_modules: ir.NativeModuleTable = .{}, aliases: []const ir.Export = &.{}, constants: []const ir.Constant = &.{}, bindings: []const Binding = &.{}, unit_bindings: []const []const u8 = &.{}, nonnull_bindings: []const []const u8 = &.{}, expected: ?ir.TypeId = null };
 pub const Expression = struct { types: ir.TypeTable, symbols: ir.SymbolTable, expressions: ir.ExpressionTable, value: ir.ExprId };
 
 pub const Result = struct {
@@ -48,11 +48,13 @@ fn analyzeIn(allocator: std.mem.Allocator, parsed: Parsed, options: Options, rep
     var analyzer = Analyzer{
         .allocator = allocator,
         .reporter = reporter,
+        .constants = options.constants,
         .types = .{ .allocator = allocator, .reporter = reporter, .declarations = &.{}, .aliases = options.aliases },
     };
 
     try analyzer.types.items.appendDelta(allocator, try @import("type_table.zig").copy(allocator, options.types));
     try analyzer.types.initialize();
+    if (!@import("constants/input.zig").nativeValid(analyzer.types.items.view(), options.constants)) return reporter.fail(.contract, parsed.expression.span, "invalid typed constant bindings");
     try checkAliases(options.aliases, analyzer.types.items.count(), reporter, parsed.expression.span);
     for (options.unit_bindings) |name| try @import("expression_binding.zig").bindUnit(&analyzer, .{ .text = name, .span = parsed.expression.span });
 

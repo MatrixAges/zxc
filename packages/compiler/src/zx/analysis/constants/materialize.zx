@@ -1,0 +1,72 @@
+import appendBoolean from "core/expression_table/append/boolean"
+import appendFloat from "core/expression_table/append/float"
+import appendInteger from "core/expression_table/append/integer"
+import { ValueKind } from "core/expression_table/append/model"
+import appendString from "core/expression_table/append/string"
+import appendEnum from "core/expression_table/append/value"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import type { Literal } from "core/constant/model"
+import type { Span } from "../../frontend/lexer/token_model"
+import type { Result } from "../analyzer/expressions/model"
+import type { Prepared } from "../analyzer/model"
+
+export type Input = {
+    state: Prepared,
+    value: Literal,
+    span: Span
+}
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const metadata = {
+        type_id: in.value.type_id,
+        span_start: in.span.start,
+        span_end: in.span.end
+    }
+
+    const table = in.state.local.expressions
+    const value = in.value
+
+    const appended = match value.kind {
+        ExpressionKind.Integer => appendInteger({
+            table: table,
+            metadata: metadata,
+            value: value.integer,
+            negative: value.negative
+        }),
+        ExpressionKind.Float => appendFloat({
+            table: table,
+            metadata: metadata,
+            value: value.floating
+        }),
+        ExpressionKind.Boolean => appendBoolean({
+            table: table,
+            metadata: metadata,
+            value: value.boolean
+        }),
+        ExpressionKind.String => appendString({
+            table: table,
+            metadata: metadata,
+            value: value.text
+        }),
+        _ => appendEnum({
+            table: table,
+            metadata: metadata,
+            value: value.enumeration,
+            kind: ValueKind.EnumValue
+        })
+    }
+
+    return {
+        state: {
+            ...in.state,
+            local: {
+                ...in.state.local,
+                expressions: appended.table
+            }
+        },
+        value: appended.id
+    }
+}

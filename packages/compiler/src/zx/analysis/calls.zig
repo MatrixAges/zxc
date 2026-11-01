@@ -14,6 +14,7 @@ pub fn analyze(self: *Analyzer, expression: anytype, expected: ?ir.TypeId) zx.Er
     if (callee == .identifier) {
         const name = callee.identifier;
 
+        if (@import("constants/lookup.zig").find(self, name.text) != null) return self.reporter.fail(.type_mismatch, name.span, "a constant value is not a callable function");
         if (self.lookup(name.text) != null) return self.reporter.fail(.type_mismatch, name.span, "a local value is not a callable function");
 
         for (self.active.items[0..self.scope_floor]) |symbol| {
@@ -44,7 +45,7 @@ pub fn analyze(self: *Analyzer, expression: anytype, expected: ?ir.TypeId) zx.Er
     if (target_value == .identifier) {
         const namespace = target_value.identifier;
 
-        if (self.lookup(namespace.text) == null) {
+        if (self.lookup(namespace.text) == null and @import("constants/lookup.zig").find(self, namespace.text) == null) {
             var shadowed = false;
 
             for (self.active.items[0..self.scope_floor]) |symbol| {

@@ -1,18 +1,24 @@
+import constant from "../../../constants/lookup"
 import lookup from "../../bindings/lookup"
 import captured from "./captured"
 import find from "./find"
 import { Route } from "./model"
 
+import type { Values } from "core/constant/model"
 import type { Name } from "../../../semantic/resolving/source/model"
 import type { FunctionImports } from "../../context"
 import type { Prepared } from "../../model"
 import type { Dispatch } from "./model"
 
-export type Input = { state: Prepared, imports: FunctionImports, name: Name }
+export type Input = { state: Prepared, constants: Values?, imports: FunctionImports, name: Name }
 
 export type Output = Dispatch
 
 export default function (in: Input): Output {
+    if (in.constants != null && constant({ active: in.state.local.active, names: in.state.local.symbols.names, constants: in.constants, name: in.name.text }) != null) {
+        return { state: { ...in.state, diagnostic: { code: "type_mismatch", message: "a constant value is not a callable function", start: in.name.start, end: in.name.end } }, route: Route.Failed, index: 0 }
+    }
+
     if (lookup({ active: in.state.local.active, names: in.state.local.symbols.names, scope_floor: in.state.local.scope_floor, name: in.name.text }) != null) {
         return { state: { ...in.state, diagnostic: { code: "type_mismatch", message: "a local value is not a callable function", start: in.name.start, end: in.name.end } }, route: Route.Failed, index: 0 }
     }

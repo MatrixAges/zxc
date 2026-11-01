@@ -23,6 +23,16 @@ pub fn analyze(self: *Analyzer, expression: anytype, expected: ?ir.TypeId) zx.Er
         .string => |text| return self.append(.{ .span = span, .type_id = Types.scalarId(.string), .value = .{ .string = try @import("strings.zig").decode(self.allocator, text[1 .. text.len - 1]) } }),
         .boolean => |value| return self.append(.{ .span = span, .type_id = Types.scalarId(.bool), .value = .{ .boolean = value } }),
         .identifier => |name| {
+            if (self.lookup(name.text)) |symbol| return @import("refinement.zig").reference(self, symbol, span);
+
+            if (@import("constants/lookup.zig").find(self, name.text)) |constant| {
+                var literal = @import("constants/input.zig").value(@FieldType(ir.Expression, "value"), constant.value);
+
+                if (literal == .string) literal.string = try self.allocator.dupe(u8, literal.string);
+
+                return self.append(.{ .span = span, .type_id = constant.type_id, .value = literal });
+            }
+
             const symbol = try self.resolveValue(name);
 
             return @import("refinement.zig").reference(self, symbol, span);
@@ -37,7 +47,7 @@ pub fn analyze(self: *Analyzer, expression: anytype, expected: ?ir.TypeId) zx.Er
             if (target_value == .identifier) {
                 const name = target_value.identifier.text;
 
-                if (std.mem.eql(u8, name, "error") and self.lookup(name) == null) return @import("capture.zig").member(self, field.name, span, aggregates.payload(self, expected));
+                if (std.mem.eql(u8, name, "error") and self.lookup(name) == null and @import("constants/lookup.zig").find(self, name) == null) return @import("capture.zig").member(self, field.name, span, aggregates.payload(self, expected));
             }
 
             if (@import("enum_owner.zig").resolve(self, field.target)) |type_id| {
@@ -208,7 +218,7 @@ fn probeType(self: *const Analyzer, value: anytype, declared: bool) ?ir.TypeId {
 
             break :blk if (target == .task) target.task.result else null;
         },
-        .identifier => |name| if (self.lookup(name.text)) |id| (if (declared) self.symbols.at(@backingInt(id)).type_id else @import("refinement.zig").typeOf(self, id)) else null,
+        .identifier => |name| if (self.lookup(name.text)) |id| (if (declared) self.symbols.at(@backingInt(id)).type_id else @import("refinement.zig").typeOf(self, id)) else if (@import("constants/lookup.zig").find(self, name.text)) |constant| constant.type_id else null,
         .field => |field| blk: {
             const target_value = syntax.value(field.target);
 
@@ -257,7 +267,7 @@ fn probeType(self: *const Analyzer, value: anytype, declared: bool) ?ir.TypeId {
             const callee = syntax.value(call.callee);
 
             if (callee == .identifier) {
-                if (self.lookup(callee.identifier.text) != null) break :blk null;
+                if (self.lookup(callee.identifier.text) != null or @import("constants/lookup.zig").find(self, callee.identifier.text) != null) break :blk null;
 
                 for (self.function_imports) |function| {
                     if (function.namespace == null and std.mem.eql(u8, function.name, callee.identifier.text)) break :blk function.output_type;
@@ -266,7 +276,7 @@ fn probeType(self: *const Analyzer, value: anytype, declared: bool) ?ir.TypeId {
                 const field = callee.field;
                 const owner = syntax.value(field.target).identifier.text;
 
-                if (self.lookup(owner) != null) break :blk null;
+                if (self.lookup(owner) != null or @import("constants/lookup.zig").find(self, owner) != null) break :blk null;
 
                 for (self.function_imports) |function| {
                     const namespace = function.namespace orelse continue;

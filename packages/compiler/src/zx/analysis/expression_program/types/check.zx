@@ -1,9 +1,13 @@
 import integers from "std:integer"
 
+import constants from "../../constants/valid"
+
+import type { Values } from "core/constant/model"
 import type { Analysis } from "../model"
 
 export type Input = {
     analysis: Analysis,
+    constant_values: Values?,
     binding_types: u32[],
     alias_types: u32[],
     expected: u32?,
@@ -40,6 +44,29 @@ export default function (in: Input): Output {
                 diagnostic: {
                     code: "contract",
                     message: "expression type alias is missing from the shared type table",
+                    start: in.analysis.span.start,
+                    end: in.analysis.span.end
+                }
+            }
+        }
+    }
+
+    const values_valid = in.constant_values == null || constants({
+        constants: in.constant_values,
+        types: {
+            base: in.analysis.state.types.context.base,
+            delta: in.analysis.state.types.delta
+        }
+    })
+
+    if (!values_valid) {
+        return {
+            ...in.analysis,
+            state: {
+                ...in.analysis.state,
+                diagnostic: {
+                    code: "contract",
+                    message: "invalid typed constant bindings",
                     start: in.analysis.span.start,
                     end: in.analysis.span.end
                 }

@@ -42,7 +42,26 @@ pub fn convert(comptime contents: enum { header, full }, allocator: std.mem.Allo
         .span = try context.span(item.span),
     });
 
+    const roots = try allocator.alloc(struct { annotation: u64, value: u64 }, program.constants.len);
+
+    for (program.constants, roots) |item, *root| root.* = .{
+        .annotation = try context.typeReference(item.annotation),
+        .value = try context.expression(item.value),
+    };
+
     const tables = try @import("finish.zig").apply(&context, program.declarations, import_names.items);
+    const constants = try allocator.alloc(*const model.Constant, program.constants.len);
+
+    for (program.constants, roots, constants) |item, root, *value| value.* = try context.keep(model.Constant, .{
+        .name = try context.span(item.name.span),
+        .span = try context.span(item.span),
+        .annotation = root.annotation,
+        .value = root.value,
+        .types = &model.empty_types,
+        .type_order = &model.empty_order,
+        .expressions = tables.expressions,
+        .blocks = tables.blocks,
+    });
 
     const syntax = try context.keep(model.Syntax, .{
         .types = &model.empty_types,
@@ -54,7 +73,7 @@ pub fn convert(comptime contents: enum { header, full }, allocator: std.mem.Allo
         .imports = imports,
         .import_names = import_spans.items,
         .declarations = &.{},
-        .constants = &.{},
+        .constants = constants,
         .members = &.{},
         .contracts = contracts,
         .has_store = program.has_store,

@@ -1,0 +1,17 @@
+import type { ExpressionKind } from "../expression_table/kinds"
+
+export type Literal = {
+    type_id: u32,
+    kind: ExpressionKind,
+    integer: u64,
+    negative: bool,
+    floating: f64,
+    text: string,
+    boolean: bool,
+    enumeration: u32
+}
+
+export type Values = {
+    names: string[],
+    values: Literal[]
+}

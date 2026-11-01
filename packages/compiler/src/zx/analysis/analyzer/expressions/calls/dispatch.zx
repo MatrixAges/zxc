@@ -1,4 +1,5 @@
 import { ExprKind } from "../../../../frontend/parser/expressions/state/model"
+import constant from "../../../constants/lookup"
 import lookup from "../../bindings/lookup"
 import { NameKind } from "../../source/model"
 import readName from "../../source/name"
@@ -25,7 +26,7 @@ export default function (in: Input): Output {
     }
 
     if (callee.kind == ExprKind.Identifier) {
-        return identifier({ state: in.state, imports: in.imports, name: readName({ source: in.source, kind: NameKind.Expression, index: node.first }) })
+        return identifier({ state: in.state, constants: in.source.constant_values, imports: in.imports, name: readName({ source: in.source, kind: NameKind.Expression, index: node.first }) })
     }
 
     if (callee.kind != ExprKind.Field) {
@@ -40,7 +41,7 @@ export default function (in: Input): Output {
 
     const namespace = readName({ source: in.source, kind: NameKind.Expression, index: callee.first })
 
-    if (lookup({ active: in.state.local.active, names: in.state.local.symbols.names, scope_floor: in.state.local.scope_floor, name: namespace.text }) != null) {
+    if (lookup({ active: in.state.local.active, names: in.state.local.symbols.names, scope_floor: in.state.local.scope_floor, name: namespace.text }) != null || (in.source.constant_values != null && constant({ active: in.state.local.active, names: in.state.local.symbols.names, constants: in.source.constant_values, name: namespace.text }) != null)) {
         return { state: in.state, route: Route.Method, index: 0 }
     }
 

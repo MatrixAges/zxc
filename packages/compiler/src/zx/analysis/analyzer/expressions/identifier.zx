@@ -1,18 +1,50 @@
 import integers from "std:integer"
 
+import constant from "../../constants/lookup"
+import materialize from "../../constants/materialize"
+import lookup from "../bindings/lookup"
 import value from "../bindings/value"
 import reference from "./reference"
 
+import type { Values } from "core/constant/model"
 import type { Name } from "../../semantic/resolving/source/model"
 import type { Prepared } from "../model"
 import type { Result } from "./model"
 
-export type Input = { state: Prepared, name: Name }
+export type Input = { state: Prepared, constant_values: Values?, name: Name }
 
 export type Output = Result
 
 export default function (in: Input): Output {
-    const resolved = value(in)
+    const local = lookup({
+        active: in.state.local.active,
+        names: in.state.local.symbols.names,
+        scope_floor: in.state.local.scope_floor,
+        name: in.name.text
+    })
+
+    const literal = local == null && in.constant_values != null ? constant({
+        active: in.state.local.active,
+        names: in.state.local.symbols.names,
+        constants: in.constant_values,
+        name: in.name.text
+    }) : null
+
+    if (literal != null) {
+        return materialize({
+            state: in.state,
+            value: literal,
+            span: {
+                start: in.name.start,
+                end: in.name.end
+            }
+        })
+    }
+
+    const resolved = local != null ? {
+        state: in.state,
+        symbol: local
+    } : value({ state: in.state, name: in.name })
 
     if (resolved.state.diagnostic.message != "") {
         return { state: resolved.state, value: 0 }

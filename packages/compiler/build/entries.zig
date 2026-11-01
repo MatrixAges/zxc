@@ -15,7 +15,8 @@ pub const Entry = struct {
     }
 };
 
-pub const Set = enum { main, checks };
+pub const Set = enum { main, checks, constant_seed };
+const constant_fold = Entry{ .path = "zx/analysis/constants/evaluate.rx", .name = "constant_fold" };
 
 /// Entries linked into zxc.
 pub const main = [_]Entry{
@@ -33,7 +34,7 @@ pub const main = [_]Entry{
     .{ .path = "zx/modules/specifier/classify.rx", .name = "specifier" },
     .{ .path = "zx/modules/binding/bind.rx", .name = "project_binding" },
     .{ .path = "zx/analysis/integer/decode.rx", .name = "integer" },
-    .{ .path = "zx/analysis/constants/evaluate.rx", .name = "constant_fold" },
+    constant_fold,
     .{ .path = "zx/analysis/semantic/origins.rx", .name = "origin_validation" },
     .{ .path = "zx/analysis/semantic/produce.rx", .name = "origin_production" },
     .{ .path = "zx/analysis/semantic/preflight.rx", .name = "merge_preflight" },
@@ -101,6 +102,7 @@ pub fn of(set: Set) []const Entry {
     return switch (set) {
         .main => &main,
         .checks => &checks,
+        .constant_seed => &.{constant_fold},
     };
 }
 

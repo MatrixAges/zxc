@@ -1,0 +1,87 @@
+import floats from "std:float"
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+import { Kind } from "core/type_table/model"
+import row from "core/type_table/row"
+
+import maximum from "../analyzer/expressions/numbers/maximum"
+import target from "../analyzer/expressions/numbers/target"
+import builtin from "../semantic/resolving/builtin"
+
+import type { Values } from "core/constant/model"
+import type { Tables } from "core/type_table/model"
+
+export type Input = {
+    constants: Values?,
+    types: Tables
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const constants = in.constants
+
+    if (constants == null) {
+        return true
+    }
+
+    if (constants.names.length != constants.values.length) {
+        return false
+    }
+
+    return loop({
+        constants: constants,
+        types: in.types,
+        count: in.types.base.kinds.length + in.types.delta.kinds.length,
+        index: 0,
+        valid: true
+    }, {
+        while: current => current.valid && current.index < current.constants.names.length,
+        next: current => {
+            const value = current.constants.values[current.index]
+            const name = current.constants.names[current.index]
+
+            current.valid = name != "" && integers.widen(value.type_id) < current.count
+
+            if (current.valid) {
+                const unique = loop({
+                    names: current.constants.names,
+                    name: name,
+                    index: 0,
+                    end: current.index,
+                    valid: true
+                }, {
+                    while: previous => previous.valid && previous.index < previous.end,
+                    next: previous => {
+                        previous.valid = previous.names[previous.index] != previous.name
+                        previous.index += 1
+                    }
+                }).valid
+                const numeric = target({
+                    expected: value.type_id,
+                    floating: false,
+                    negative: false
+                })
+                const type_row = row({
+                    tables: current.types,
+                    id: value.type_id
+                })
+                const literal = match value.kind {
+                    ExpressionKind.Integer => numeric.integer && (!value.negative || numeric.signed) && value.integer <= maximum({
+                        id: value.type_id,
+                        negative: value.negative
+                    }),
+                    ExpressionKind.Float => numeric.floating && floats.isFinite(value.floating) && (!numeric.single || floats.widen(floats.narrow(value.floating)) == value.floating),
+                    ExpressionKind.String => type_row.kind == Kind.Scalar && integers.widen(value.type_id) + 1 == builtin("string"),
+                    ExpressionKind.Boolean => type_row.kind == Kind.Scalar && integers.widen(value.type_id) + 1 == builtin("bool"),
+                    ExpressionKind.EnumValue => type_row.kind == Kind.Enumeration && value.enumeration < type_row.second,
+                    _ => false
+                }
+
+                current.valid = unique && literal
+            }
+
+            current.index += 1
+        }
+    }).valid
+}

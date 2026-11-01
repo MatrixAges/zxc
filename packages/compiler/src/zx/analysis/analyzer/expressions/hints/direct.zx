@@ -2,6 +2,7 @@ import integers from "std:integer"
 
 import { ExprKind } from "../../../../frontend/parser/expressions/state/model"
 import typeOf from "../../../../ir/canonical/refinement/type_of"
+import constant from "../../../constants/lookup"
 import lookup from "../../bindings/lookup"
 import { NameKind } from "../../source/model"
 import readName from "../../source/name"
@@ -36,7 +37,17 @@ export default function (in: Input): Output {
     }
 
     if (node.kind == ExprKind.Identifier) {
-        return { handled: true, type_id: null }
+        const literal = source.constant_values != null ? constant({
+            active: state.local.active,
+            names: state.local.symbols.names,
+            constants: source.constant_values,
+            name: readName({ source: source, kind: NameKind.Expression, index: in.node }).text
+        }) : null
+
+        return {
+            handled: true,
+            type_id: literal != null ? literal.type_id : null
+        }
     }
 
     if (node.kind == ExprKind.Boolean || node.kind == ExprKind.String) {

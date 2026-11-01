@@ -9,6 +9,7 @@ const Self = @This();
 allocator: std.mem.Allocator,
 reporter: *zx.Reporter,
 types: Types,
+constants: []const ir.Constant = &.{},
 symbols: ir.SymbolStorage = .{},
 active: std.ArrayList(ir.SymbolId) = .empty,
 nodes: ir.ExpressionStorage = .{},

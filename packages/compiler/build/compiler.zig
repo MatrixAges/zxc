@@ -39,6 +39,8 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
             if (entry.owner == .frontend) frontend.addImport(entry.importName(), @field(generated, entry.name));
         }
     } else {
+        frontend.addImport("generated_constant_fold", @import("constant_seed.zig").create(b, target, optimize));
+
         frontend.addImport("refinement_seed", b.createModule(.{
             .root_source_file = b.path("bootstrap/refinement.zig"),
             .target = target,

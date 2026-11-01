@@ -1,6 +1,7 @@
 import { Kind } from "core/type_table/model"
 
 import { ExprKind } from "../../../../frontend/parser/expressions/state/model"
+import constant from "../../../constants/lookup"
 import row from "../../../semantic/types/row"
 import lookup from "../../bindings/lookup"
 import { NameKind } from "../../source/model"
@@ -63,7 +64,7 @@ export default function (in: Input): Output {
 
     const tables = { base: in.state.types.context.base, delta: in.state.types.delta }
 
-    if (root.text == "error" && lookup({ active: in.state.local.active, names: in.state.local.symbols.names, scope_floor: in.state.local.scope_floor, name: root.text }) == null) {
+    if (root.text == "error" && lookup({ active: in.state.local.active, names: in.state.local.symbols.names, scope_floor: in.state.local.scope_floor, name: root.text }) == null && (in.source.constant_values == null || constant({ active: in.state.local.active, names: in.state.local.symbols.names, constants: in.source.constant_values, name: root.text }) == null)) {
         const expected = payload({ types: in.state.types, expected: in.expected })
 
         if (expected == null || row({ tables: tables, id: expected }).kind != Kind.ErrorSet) {

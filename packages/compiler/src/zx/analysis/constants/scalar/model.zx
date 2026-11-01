@@ -1,16 +1,8 @@
-import type { BinaryOperator, ExpressionKind } from "core/expression_table/kinds"
+import type { Literal } from "core/constant/model"
+import type { BinaryOperator } from "core/expression_table/kinds"
 import type { Target } from "../../analyzer/expressions/numbers/model"
 
-export type Value = {
-    type_id: u32,
-    kind: ExpressionKind,
-    integer: u64,
-    negative: bool,
-    floating: f64,
-    text: string,
-    boolean: bool,
-    enumeration: u32
-}
+export type Value = Literal
 
 export type Signed = {
     magnitude: u64,

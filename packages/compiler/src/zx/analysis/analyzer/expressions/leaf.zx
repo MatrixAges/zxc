@@ -33,11 +33,11 @@ export default function (in: Input): Output {
     const symbol = binding.symbol
 
     if (symbol != null) {
-        return { handled: true, result: identifier({ state: in.state, name: { text: in.state.local.symbols.names[integers.widen(symbol)], start: node.span.start, end: node.span.end } }) }
+        return { handled: true, result: identifier({ state: in.state, constant_values: in.source.constant_values, name: { text: in.state.local.symbols.names[integers.widen(symbol)], start: node.span.start, end: node.span.end } }) }
     }
 
     if (node.kind == ExprKind.Identifier) {
-        return { handled: true, result: identifier({ state: in.state, name: readName({ source: in.source, kind: NameKind.Expression, index: in.node }) }) }
+        return { handled: true, result: identifier({ state: in.state, constant_values: in.source.constant_values, name: readName({ source: in.source, kind: NameKind.Expression, index: in.node }) }) }
     }
 
     if (node.kind == ExprKind.Field) {

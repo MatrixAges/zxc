@@ -52,6 +52,7 @@ fn build(allocator: std.mem.Allocator, parsed: anytype, options: Options, report
     var analyzer = Analyzer{
         .allocator = allocator,
         .reporter = reporter,
+        .constants = options.constants,
         .types = .{ .allocator = allocator, .reporter = reporter, .declarations = &.{}, .aliases = options.aliases },
     };
 
@@ -64,6 +65,7 @@ fn build(allocator: std.mem.Allocator, parsed: anytype, options: Options, report
     };
 
     try analyzer.types.initialize();
+    if (!@import("constants/input.zig").nativeValid(analyzer.types.items.view(), options.constants)) return reporter.fail(.contract, parsed.expression.span, "invalid typed constant bindings");
     try @import("expression.zig").checkAliases(options.aliases, analyzer.types.items.count(), reporter, span);
 
     const children = try allocator.alloc(ir.TypeId, options.bindings.len);

@@ -18,6 +18,7 @@ pub const Name = Item(Blocks, "names");
 pub const Case = Item(Blocks, "cases");
 pub const Import = Item(Syntax, "imports");
 pub const Declaration = Item(Syntax, "declarations");
+pub const Constant = Item(Syntax, "constants");
 pub const Contract = Item(Syntax, "contracts");
 pub const Span = std.meta.Child(@FieldType(Node, "span"));
 pub const Operator = @FieldType(Node, "operator");
