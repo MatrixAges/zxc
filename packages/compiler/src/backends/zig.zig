@@ -79,8 +79,9 @@ fn validate(allocator: std.mem.Allocator, program: zx.ir.Program) (std.mem.Alloc
     return verified(program);
 }
 
-/// Libraries and analysis results were validated where they entered the process, so only debug builds re-check their IR.
+/// Libraries and analysis results were validated where they entered the process, so only debug builds fully re-check their IR.
 fn trusted(allocator: std.mem.Allocator, program: zx.ir.Program) (std.mem.Allocator.Error || error{ InvalidIr, UnverifiedContracts })!void {
+    if (program.version != zx.ir_version) return error.InvalidIr;
     if (@import("frontend").checks_internal_ir) return validate(allocator, program);
 
     return verified(program);

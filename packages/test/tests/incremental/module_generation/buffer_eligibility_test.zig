@@ -2,7 +2,7 @@ const std = @import("std");
 const f = @import("buffer_eligibility/fixture.zig");
 const same = @import("fixture.zig").same;
 
-fn transition(before: f.Mode, after: f.Mode, changes_entry: bool) !void {
+fn transition(before: f.Mode, after: f.Mode) !void {
     var cache = f.compiler.zig.GenerationCache.init(std.testing.allocator);
 
     defer cache.deinit();
@@ -33,14 +33,16 @@ fn transition(before: f.Mode, after: f.Mode, changes_entry: bool) !void {
     var module_changed = false;
 
     for (first.modules, second.modules) |a, b| {
+        try std.testing.expectEqualStrings(a.name, b.name);
+        try std.testing.expectEqualDeep(a.imports, b.imports);
         if (!std.mem.eql(u8, a.source, b.source)) module_changed = true;
     }
 
     try std.testing.expect(module_changed);
     try std.testing.expectEqualStrings(first.entry.name, second.entry.name);
-    try std.testing.expectEqual(changes_entry, !std.mem.eql(u8, first.entry.source, second.entry.source));
-    try std.testing.expectEqual(before != .reverse, std.mem.indexOf(u8, first.entry.source, "callBuffered") != null);
-    try std.testing.expectEqual(after != .reverse, std.mem.indexOf(u8, second.entry.source, "callBuffered") != null);
+    try std.testing.expectEqualStrings(first.entry.source, second.entry.source);
+    try std.testing.expect(std.mem.indexOf(u8, first.entry.source, "callValue") != null);
+    try std.testing.expect(std.mem.indexOf(u8, second.entry.source, "callValue") != null);
 
     const generated = cache.generated;
     const reused = cache.reused;
@@ -59,14 +61,14 @@ fn transition(before: f.Mode, after: f.Mode, changes_entry: bool) !void {
     try same(first, restored);
 }
 
-test "reverse dependency invalidates transitive buffered caller" {
-    try transition(.push, .reverse, true);
+test "replacing append with reverse preserves the generic value caller ABI" {
+    try transition(.push, .reverse);
 }
 
-test "restoring append eligibility invalidates transitive value caller" {
-    try transition(.reverse, .push, true);
+test "restoring append preserves the generic value caller ABI" {
+    try transition(.reverse, .push);
 }
 
 test "append payload edit preserves caller source while refreshing leaf" {
-    try transition(.push, .changed, false);
+    try transition(.push, .changed);
 }
