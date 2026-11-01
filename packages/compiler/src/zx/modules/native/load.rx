@@ -28,48 +28,46 @@
 
     <Call module="parse" in={$in.source} />
 
-    <Switch on={$ctx.parse.diagnostic.message == ""}>
-        <Case value={true}>
-            <Call
-                module="analyze"
-                in={{
-                    context: {
-                        source: {
-                            indexed: {
-                                bytes: $in.source,
-                                types: $ctx.parse.types,
-                                order: $ctx.parse.type_order,
-                                declarations: $ctx.parse.declarations,
-                                members: $ctx.parse.members
-                            },
-                            native: null
+    <If on={$ctx.parse.diagnostic.message == ""}>
+        <Call
+            module="analyze"
+            in={{
+                context: {
+                    source: {
+                        indexed: {
+                            bytes: $in.source,
+                            types: $ctx.parse.types,
+                            order: $ctx.parse.type_order,
+                            declarations: $ctx.parse.declarations,
+                            members: $ctx.parse.members
                         },
-                        base: $in.base,
-                        resolved: {
-                            names: [],
-                            ids: []
-                        },
-                        aliases: {
-                            names: [],
-                            ids: []
-                        },
-                        visiting: [],
-                        native_interface: true
+                        native: null
                     },
-                    shared: $in.shared,
-                    origins: $in.origins,
-                    origin: $in.origin,
-                    namespace: $in.namespace,
-                    functions: $ctx.parse.functions,
-                    parameters: $ctx.parse.parameters,
-                    errors: $ctx.parse.errors
-                }}
-            />
+                    base: $in.base,
+                    resolved: {
+                        names: [],
+                        ids: []
+                    },
+                    aliases: {
+                        names: [],
+                        ids: []
+                    },
+                    visiting: [],
+                    native_interface: true
+                },
+                shared: $in.shared,
+                origins: $in.origins,
+                origin: $in.origin,
+                namespace: $in.namespace,
+                functions: $ctx.parse.functions,
+                parameters: $ctx.parse.parameters,
+                errors: $ctx.parse.errors
+            }}
+        />
 
-            <Return value={$ctx.analyze} />
-        </Case>
+        <Return value={$ctx.analyze} />
 
-        <Default>
+        <Else>
             <Return
                 value={{
                     delta: {
@@ -97,6 +95,6 @@
                     }
                 }}
             />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

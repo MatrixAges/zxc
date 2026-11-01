@@ -37,18 +37,16 @@
 
     <Call module="../../analysis/semantic/resolving/initialize" in={$ctx.initial} />
 
-    <Switch on={$ctx.initialize.diagnostic.message == ""}>
-        <Case value={true}>
-            <Call
-                fn="../../analysis/semantic/resolving/declarations"
-                in={$ctx.initialize}
-            />
+    <If on={$ctx.initialize.diagnostic.message == ""}>
+        <Call
+            fn="../../analysis/semantic/resolving/declarations"
+            in={$ctx.initialize}
+        />
 
-            <Return value={$ctx.declarations} />
-        </Case>
+        <Return value={$ctx.declarations} />
 
-        <Default>
+        <Else>
             <Return value={$ctx.initialize} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

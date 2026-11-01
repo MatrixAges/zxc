@@ -40,28 +40,26 @@
         }}
     />
 
-    <Switch on={$ctx.prepare.resolution.diagnostic.message == ""}>
-        <Case value={true}>
-            <Call
-                module="interface"
-                in={{
-                    resolution: $ctx.prepare.resolution,
-                    namespace: $in.namespace,
-                    functions: $in.functions,
-                    parameters: $in.parameters,
-                    errors: $in.errors
-                }}
-            />
+    <If on={$ctx.prepare.resolution.diagnostic.message == ""}>
+        <Call
+            module="interface"
+            in={{
+                resolution: $ctx.prepare.resolution,
+                namespace: $in.namespace,
+                functions: $in.functions,
+                parameters: $in.parameters,
+                errors: $in.errors
+            }}
+        />
 
-            <Return
-                value={{
-                    ...$ctx.interface,
-                    origins: $ctx.prepare.origins
-                }}
-            />
-        </Case>
+        <Return
+            value={{
+                ...$ctx.interface,
+                origins: $ctx.prepare.origins
+            }}
+        />
 
-        <Default>
+        <Else>
             <Return
                 value={{
                     delta: $ctx.prepare.resolution.delta,
@@ -72,6 +70,6 @@
                     origins: $ctx.prepare.origins
                 }}
             />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

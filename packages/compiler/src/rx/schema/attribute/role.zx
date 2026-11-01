@@ -17,6 +17,8 @@ export default function (in: Input): Output {
             }
         case "Switch":
             return in.attribute == "on" ? Role.Value : Role.Static
+        case "If":
+            return in.attribute == "on" ? Role.Expression : Role.Static
         case "Return":
             return in.attribute == "value" ? Role.Value : Role.Static
         case "Case":

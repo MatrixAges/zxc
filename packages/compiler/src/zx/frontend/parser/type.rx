@@ -12,21 +12,19 @@
 
     <Call module="../lexical" in={$in.source} />
 
-    <Switch on={$ctx.lexical.lexed.diagnostic.message == ""}>
-        <Case value={true}>
-            <Call
-                fn="types/parse"
-                in={{
-                    tokens: $ctx.lexical.lexed.tokens,
-                    start: $in.start,
-                    depth: $in.depth
-                }}
-            />
+    <If on={$ctx.lexical.lexed.diagnostic.message == ""}>
+        <Call
+            fn="types/parse"
+            in={{
+                tokens: $ctx.lexical.lexed.tokens,
+                start: $in.start,
+                depth: $in.depth
+            }}
+        />
 
-            <Return value={$ctx.parse} />
-        </Case>
+        <Return value={$ctx.parse} />
 
-        <Default>
+        <Else>
             <Call
                 fn="types/lexical_failure"
                 in={{
@@ -37,6 +35,6 @@
             />
 
             <Return value={$ctx.lexical_failure} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

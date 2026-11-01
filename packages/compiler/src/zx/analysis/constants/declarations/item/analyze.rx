@@ -5,18 +5,16 @@
 
     <Call fn="prepare" in={$in} />
 
-    <Switch on={$ctx.prepare.state.diagnostic.message != ""}>
-        <Case value={true}>
-            <Return
-                value={{
-                    name: $ctx.prepare.name,
-                    types: $in.types,
-                    value: null,
-                    diagnostic: $ctx.prepare.state.diagnostic
-                }}
-            />
-        </Case>
-    </Switch>
+    <If on={$ctx.prepare.state.diagnostic.message != ""}>
+        <Return
+            value={{
+                name: $ctx.prepare.name,
+                types: $in.types,
+                value: null,
+                diagnostic: $ctx.prepare.state.diagnostic
+            }}
+        />
+    </If>
 
     <Call
         fn="../../../analyzer/types/annotation"
@@ -26,21 +24,19 @@
         }}
     />
 
-    <Switch on={$ctx.annotation.state.diagnostic.message != ""}>
-        <Case value={true}>
-            <Return
-                value={{
-                    name: $ctx.prepare.name,
-                    types: {
-                        ...$ctx.annotation.state.types,
-                        context: $in.types.context
-                    },
-                    value: null,
-                    diagnostic: $ctx.annotation.state.diagnostic
-                }}
-            />
-        </Case>
-    </Switch>
+    <If on={$ctx.annotation.state.diagnostic.message != ""}>
+        <Return
+            value={{
+                name: $ctx.prepare.name,
+                types: {
+                    ...$ctx.annotation.state.types,
+                    context: $in.types.context
+                },
+                value: null,
+                diagnostic: $ctx.annotation.state.diagnostic
+            }}
+        />
+    </If>
 
     <Call
         fn="request"
@@ -54,21 +50,19 @@
     <Call fn="../../../analyzer/expressions/traversal/initial" in={$ctx.request} />
     <Call fn="../../../analyzer/expressions/traversal/advance" in={$ctx.initial} />
 
-    <Switch on={$ctx.advance.state.diagnostic.message != ""}>
-        <Case value={true}>
-            <Return
-                value={{
-                    name: $ctx.prepare.name,
-                    types: {
-                        ...$ctx.advance.state.types,
-                        context: $in.types.context
-                    },
-                    value: null,
-                    diagnostic: $ctx.advance.state.diagnostic
-                }}
-            />
-        </Case>
-    </Switch>
+    <If on={$ctx.advance.state.diagnostic.message != ""}>
+        <Return
+            value={{
+                name: $ctx.prepare.name,
+                types: {
+                    ...$ctx.advance.state.types,
+                    context: $in.types.context
+                },
+                value: null,
+                diagnostic: $ctx.advance.state.diagnostic
+            }}
+        />
+    </If>
 
     <Call
         module="../../evaluate"

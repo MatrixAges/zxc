@@ -17,21 +17,19 @@
         }}
     />
 
-    <Switch on={$ctx.body_check}>
-        <Case value={true}>
-            <Call
-                module="../../contract_tables_check"
-                in={{
-                    contracts: $in.unit.contracts,
-                    max_offset: $in.max_offset
-                }}
-            />
+    <If on={$ctx.body_check}>
+        <Call
+            module="../../contract_tables_check"
+            in={{
+                contracts: $in.unit.contracts,
+                max_offset: $in.max_offset
+            }}
+        />
 
-            <Return value={$ctx.contract_tables_check} />
-        </Case>
+        <Return value={$ctx.contract_tables_check} />
 
-        <Default>
+        <Else>
             <Return value={false} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

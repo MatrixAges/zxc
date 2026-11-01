@@ -14,27 +14,25 @@
         }}
     />
 
-    <Switch on={$ctx.bind.diagnostic.message == ""}>
-        <Case value={true}>
-            <Call
-                fn="expression"
-                in={{
-                    state: $ctx.bind,
-                    source: $in.source,
-                    node: $in.contract.predicate
-                }}
-            />
+    <If on={$ctx.bind.diagnostic.message == ""}>
+        <Call
+            fn="expression"
+            in={{
+                state: $ctx.bind,
+                source: $in.source,
+                node: $in.contract.predicate
+            }}
+        />
 
-            <Call fn="../../expressions/traversal/advance" in={$ctx.expression} />
-            <Call fn="check" in={$ctx.advance} />
+        <Call fn="../../expressions/traversal/advance" in={$ctx.expression} />
+        <Call fn="check" in={$ctx.advance} />
 
-            <Return value={$ctx.check} />
-        </Case>
+        <Return value={$ctx.check} />
 
-        <Default>
+        <Else>
             <Call fn="failed" in={$ctx.bind} />
 
             <Return value={$ctx.failed} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

@@ -5,40 +5,36 @@
 
     <Call fn="header" in={$in} />
 
-    <Switch on={$ctx.header.diagnostic.message == ""}>
-        <Case value={true}>
-            <Call fn="annotation" in={$ctx.header} />
+    <If on={$ctx.header.diagnostic.message == ""}>
+        <Call fn="annotation" in={$ctx.header} />
 
-            <Switch on={$ctx.annotation.diagnostic.message == ""}>
-                <Case value={true}>
-                    <Call fn="initializer" in={$ctx.annotation} />
-                    <Call fn="../types/order" in={$ctx.initializer.types.tree} />
+        <If on={$ctx.annotation.diagnostic.message == ""}>
+            <Call fn="initializer" in={$ctx.annotation} />
+            <Call fn="../types/order" in={$ctx.initializer.types.tree} />
 
-                    <Call
-                        fn="publish"
-                        in={{
-                            annotation: $ctx.annotation,
-                            parsed: $ctx.initializer,
-                            order: $ctx.order
-                        }}
-                    />
+            <Call
+                fn="publish"
+                in={{
+                    annotation: $ctx.annotation,
+                    parsed: $ctx.initializer,
+                    order: $ctx.order
+                }}
+            />
 
-                    <Return value={$ctx.publish} />
-                </Case>
+            <Return value={$ctx.publish} />
 
-                <Default>
-                    <Return
-                        value={{
-                            constant: null,
-                            index: $ctx.annotation.index,
-                            diagnostic: $ctx.annotation.diagnostic
-                        }}
-                    />
-                </Default>
-            </Switch>
-        </Case>
+            <Else>
+                <Return
+                    value={{
+                        constant: null,
+                        index: $ctx.annotation.index,
+                        diagnostic: $ctx.annotation.diagnostic
+                    }}
+                />
+            </Else>
+        </If>
 
-        <Default>
+        <Else>
             <Return
                 value={{
                     constant: null,
@@ -46,6 +42,6 @@
                     diagnostic: $ctx.header.diagnostic
                 }}
             />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

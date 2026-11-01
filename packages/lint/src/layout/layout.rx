@@ -5,19 +5,17 @@
 
     <Call fn="scan" in={$in} />
 
-    <Switch on={$in.indent_only}>
-        <Case value={true}>
-            <Call
-                fn="breaks"
-                in={{
-                    graph: $ctx.scan,
-                    wraps: []
-                }}
-            />
+    <If on={$in.indent_only}>
+        <Call
+            fn="breaks"
+            in={{
+                graph: $ctx.scan,
+                wraps: []
+            }}
+        />
 
-            <Return value={$ctx.breaks} />
-        </Case>
-    </Switch>
+        <Return value={$ctx.breaks} />
+    </If>
 
     <Call fn="suffixes" in={$ctx.scan} />
     <Call fn="measure" in={$ctx.suffixes} />

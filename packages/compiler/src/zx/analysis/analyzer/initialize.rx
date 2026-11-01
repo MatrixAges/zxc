@@ -26,37 +26,35 @@
         }}
     />
 
-    <Switch on={$in.has_body}>
-        <Case value={true}>
-            <Call
-                fn="bindings/append"
-                in={{
-                    local: $ctx.initial,
-                    name: {
-                        text: "in",
-                        start: $in.signature.span.start,
-                        end: $in.signature.span.end
-                    },
-                    type_id: $in.signature.input_type,
-                    scope_start: 0
-                }}
-            />
+    <If on={$in.has_body}>
+        <Call
+            fn="bindings/append"
+            in={{
+                local: $ctx.initial,
+                name: {
+                    text: "in",
+                    start: $in.signature.span.start,
+                    end: $in.signature.span.end
+                },
+                type_id: $in.signature.input_type,
+                scope_start: 0
+            }}
+        />
 
-            <Return
-                value={{
-                    local: $ctx.append.local,
-                    diagnostic: $ctx.append.diagnostic
-                }}
-            />
-        </Case>
+        <Return
+            value={{
+                local: $ctx.append.local,
+                diagnostic: $ctx.append.diagnostic
+            }}
+        />
 
-        <Default>
+        <Else>
             <Return
                 value={{
                     local: $ctx.initial,
                     diagnostic: $in.signature.diagnostic
                 }}
             />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

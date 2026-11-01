@@ -11,11 +11,9 @@
         out={bool}
     />
 
-    <Switch on={$in.trusted}>
-        <Case value={true}>
-            <Return value={true} />
-        </Case>
-    </Switch>
+    <If on={$in.trusted}>
+        <Return value={true} />
+    </If>
 
     <Call
         fn="types/validation/shape"
@@ -26,21 +24,19 @@
         }}
     />
 
-    <Switch on={$ctx.shape}>
-        <Case value={true}>
-            <Call
-                fn="types/validation/rows"
-                in={{
-                    table: $in.table,
-                    scalar_count: $in.scalar_count
-                }}
-            />
+    <If on={$ctx.shape}>
+        <Call
+            fn="types/validation/rows"
+            in={{
+                table: $in.table,
+                scalar_count: $in.scalar_count
+            }}
+        />
 
-            <Return value={$ctx.rows} />
-        </Case>
+        <Return value={$ctx.rows} />
 
-        <Default>
+        <Else>
             <Return value={false} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

@@ -5,38 +5,34 @@
 
     <Call fn="initial" in={$in} />
 
-    <Switch on={$in.initialize}>
-        <Case value={true}>
-            <Call module="initialize" in={$ctx.initial} />
+    <If on={$in.initialize}>
+        <Call module="initialize" in={$ctx.initial} />
 
-            <Switch on={$ctx.initialize.diagnostic.message == ""}>
-                <Case value={true}>
-                    <Call fn="declarations" in={$ctx.initialize} />
+        <If on={$ctx.initialize.diagnostic.message == ""}>
+            <Call fn="declarations" in={$ctx.initialize} />
 
-                    <Return
-                        value={{
-                            delta: $ctx.declarations.delta,
-                            cache: $ctx.declarations.cache,
-                            id: $ctx.declarations.result,
-                            diagnostic: $ctx.declarations.diagnostic
-                        }}
-                    />
-                </Case>
+            <Return
+                value={{
+                    delta: $ctx.declarations.delta,
+                    cache: $ctx.declarations.cache,
+                    id: $ctx.declarations.result,
+                    diagnostic: $ctx.declarations.diagnostic
+                }}
+            />
 
-                <Default>
-                    <Return
-                        value={{
-                            delta: $ctx.initialize.delta,
-                            cache: $ctx.initialize.cache,
-                            id: $ctx.initialize.result,
-                            diagnostic: $ctx.initialize.diagnostic
-                        }}
-                    />
-                </Default>
-            </Switch>
-        </Case>
+            <Else>
+                <Return
+                    value={{
+                        delta: $ctx.initialize.delta,
+                        cache: $ctx.initialize.cache,
+                        id: $ctx.initialize.result,
+                        diagnostic: $ctx.initialize.diagnostic
+                    }}
+                />
+            </Else>
+        </If>
 
-        <Default>
+        <Else>
             <Call fn="run" in={$ctx.initial} />
 
             <Return
@@ -47,6 +43,6 @@
                     diagnostic: $ctx.run.diagnostic
                 }}
             />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

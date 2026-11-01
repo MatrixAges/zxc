@@ -72,10 +72,12 @@ zig build test
 
 ## 能力边界
 
-`zxc check-rx` 支持显式普通模块文件集合，以及 `--entry` 的普通模块/Gateway 可达依赖装载和 Store 定义检查。Gateway 先沿所有嵌套 Route.service 找到普通模块；普通模块沿 Import、所有嵌套 Call.module 和 Store.from 装载。入口装载检查物理身份和项目根边界，普通模块子集最终仍调用完整集合校验；Gateway/Store 只进入各自 Schema 检查，不混入普通调用图。它不扫描不可达文件。`zxc build` 已支持普通模块 Call.fn/Call.module/Return、Task 和 Switch 的项目推导与应用构建；Store 声明与单 Object setter 支持显式授权源码生成；目标为替代隐式全局变量的共享内存，当前已移除 --state-dir 与磁盘保存，顺序调用共享 State，独立请求由生成的 Request 管理 arena。Parallel 已支持直接纯计算 Call 和 Task 的真实线程执行与结果汇合；Task 静态提取为独立函数，通过 $ctx.task.<name> 公开分支返回值。Store 并发及原生副作用仍未实现。HTTP Gateway 已接通静态路由、统一服务链接和共享 State 的顺序请求宿主；独占 Store 写入已生成请求边界回收；其他协议、并发、超时及一般共享 Store 回收仍未实现。事件订阅调度尚未实现。Emit 的语法存在不代表事件处理已经可运行。表达式解析、ZX 类型联结与 Store 初始化执行也不能从结构校验成功推断出来。
+`zxc check-rx` 支持显式普通模块文件集合，以及 `--entry` 的普通模块/Gateway 可达依赖装载和 Store 定义检查。Gateway 先沿所有嵌套 Route.service 找到普通模块；普通模块沿 Import、所有嵌套 Call.module 和 Store.from 装载。入口装载检查物理身份和项目根边界，普通模块子集最终仍调用完整集合校验；Gateway/Store 只进入各自 Schema 检查，不混入普通调用图。它不扫描不可达文件。`zxc build` 已支持普通模块 Call.fn/Call.module/Return、Task、If 和 Switch 的项目推导与应用构建；Store 声明与单 Object setter 支持显式授权源码生成；目标为替代隐式全局变量的共享内存，当前已移除 --state-dir 与磁盘保存，顺序调用共享 State，独立请求由生成的 Request 管理 arena。Parallel 已支持直接纯计算 Call 和 Task 的真实线程执行与结果汇合；Task 静态提取为独立函数，通过 $ctx.task.<name> 公开分支返回值。Store 并发及原生副作用仍未实现。HTTP Gateway 已接通静态路由、统一服务链接和共享 State 的顺序请求宿主；独占 Store 写入已生成请求边界回收；其他协议、并发、超时及一般共享 Store 回收仍未实现。事件订阅调度尚未实现。Emit 的语法存在不代表事件处理已经可运行。表达式解析、ZX 类型联结与 Store 初始化执行也不能从结构校验成功推断出来。
 
 维护公开指导时，用使用者能理解的版本和环境能力描述这些限制，不要求使用者阅读内部 AST、修改编译器或运行 zxc 仓库测试。
 
 Store 语义以 [Store 设计](../docs/2026-10-05/Store设计.md)为准：不自动落盘或重启恢复，不把应用级共享状态改成每次调用的局部副本，不保存已释放请求内存的引用。
 
 普通模块图按 ModuleSource.packages 中当前源码所属包的声明区分包引用与本地 RX；CLI 装载、编译库收集和项目推导必须使用同一 module_reference 分类。不能按文件存在与否切换解析方式，也不能跳过未声明的本地目标或环检查。Route.service 保留普通 RX 路径语义，不继承 Call.module 的包分类。
+
+If.on 必须是花括号布尔表达式；直属步骤为真分支，Else 可选、最多一次且位于末尾，不能独立出现。不增加 Then。布尔二分优先 If，多值匹配使用 Switch；两者共用静态 selection、作用域、收窄及所有权处理。

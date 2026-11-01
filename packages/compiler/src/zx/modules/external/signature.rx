@@ -39,63 +39,59 @@
         />
     </Task>
 
-    <Switch on={$ctx.task.declarations.diagnostic.message == ""}>
-        <Case value={true}>
-            <Task name="input" out={$ctx.port}>
-                <Call
-                    fn="../../analysis/analyzer/signature/request"
-                    in={{
-                        types: $ctx.task.declarations.types,
-                        span: $in.input.span,
-                        name: "Input"
-                    }}
-                />
+    <If on={$ctx.task.declarations.diagnostic.message == ""}>
+        <Task name="input" out={$ctx.port}>
+            <Call
+                fn="../../analysis/analyzer/signature/request"
+                in={{
+                    types: $ctx.task.declarations.types,
+                    span: $in.input.span,
+                    name: "Input"
+                }}
+            />
 
-                <Call module="../../analysis/semantic/resolve" in={$ctx.request} />
+            <Call module="../../analysis/semantic/resolve" in={$ctx.request} />
 
-                <Call
-                    fn="signature/port"
-                    in={{
-                        analysis: $ctx.task.declarations,
-                        result: $ctx.resolve,
-                        input_port: true
-                    }}
-                />
-            </Task>
+            <Call
+                fn="signature/port"
+                in={{
+                    analysis: $ctx.task.declarations,
+                    result: $ctx.resolve,
+                    input_port: true
+                }}
+            />
+        </Task>
 
-            <Switch on={$ctx.task.input.diagnostic.message == ""}>
-                <Case value={true}>
-                    <Call
-                        fn="../../analysis/analyzer/signature/request"
-                        in={{
-                            types: $ctx.task.input.types,
-                            span: $in.input.span,
-                            name: "Output"
-                        }}
-                    />
+        <If on={$ctx.task.input.diagnostic.message == ""}>
+            <Call
+                fn="../../analysis/analyzer/signature/request"
+                in={{
+                    types: $ctx.task.input.types,
+                    span: $in.input.span,
+                    name: "Output"
+                }}
+            />
 
-                    <Call module="../../analysis/semantic/resolve" in={$ctx.request} />
+            <Call module="../../analysis/semantic/resolve" in={$ctx.request} />
 
-                    <Call
-                        fn="signature/port"
-                        in={{
-                            analysis: $ctx.task.input,
-                            result: $ctx.resolve,
-                            input_port: false
-                        }}
-                    />
+            <Call
+                fn="signature/port"
+                in={{
+                    analysis: $ctx.task.input,
+                    result: $ctx.resolve,
+                    input_port: false
+                }}
+            />
 
-                    <Return value={$ctx.port} />
-                </Case>
+            <Return value={$ctx.port} />
 
-                <Default>
-                    <Return value={$ctx.task.input} />
-                </Default>
-            </Switch>
-        </Case>
+            <Else>
+                <Return value={$ctx.task.input} />
+            </Else>
+        </If>
 
-        <Default>
+        <Else>
             <Return value={$ctx.task.declarations} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

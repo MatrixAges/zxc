@@ -10,34 +10,32 @@
         out={Model.Analysis}
     />
 
-    <Switch on={$in.analysis.state.diagnostic.message == ""}>
-        <Case value={true}>
-            <Call
-                fn="../exports"
-                in={{
-                    state: {
-                        types: $in.analysis.state.types,
-                        diagnostic: $in.analysis.state.diagnostic
-                    }
-                }}
-            />
+    <If on={$in.analysis.state.diagnostic.message == ""}>
+        <Call
+            fn="../exports"
+            in={{
+                state: {
+                    types: $in.analysis.state.types,
+                    diagnostic: $in.analysis.state.diagnostic
+                }
+            }}
+        />
 
-            <Return
-                value={{
-                    ...$in.analysis,
-                    state: {
-                        ...$in.analysis.state,
-                        types: $ctx.exports.state.types,
-                        diagnostic: $ctx.exports.state.diagnostic
-                    },
-                    names: $ctx.exports.names,
-                    types: $ctx.exports.types
-                }}
-            />
-        </Case>
+        <Return
+            value={{
+                ...$in.analysis,
+                state: {
+                    ...$in.analysis.state,
+                    types: $ctx.exports.state.types,
+                    diagnostic: $ctx.exports.state.diagnostic
+                },
+                names: $ctx.exports.names,
+                types: $ctx.exports.types
+            }}
+        />
 
-        <Default>
+        <Else>
             <Return value={$in.analysis} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

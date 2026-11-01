@@ -3,15 +3,13 @@
 
     <Args in={Model.Analysis} out={Model.Analysis} />
 
-    <Switch on={$in.program && $in.state.diagnostic.message == ""}>
-        <Case value={true}>
-            <Call fn="finish" in={$in} />
+    <If on={$in.program && $in.state.diagnostic.message == ""}>
+        <Call fn="finish" in={$in} />
 
-            <Return value={$ctx.finish} />
-        </Case>
+        <Return value={$ctx.finish} />
 
-        <Default>
+        <Else>
             <Return value={$in} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

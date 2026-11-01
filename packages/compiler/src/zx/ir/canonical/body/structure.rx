@@ -13,11 +13,9 @@
         <Call fn="../stores/validate" in={$in.body.stores} />
     </Task>
 
-    <Switch on={$ctx.task.stores}>
-        <Case value={false}>
-            <Return value={false} />
-        </Case>
-    </Switch>
+    <If on={!$ctx.task.stores}>
+        <Return value={false} />
+    </If>
 
     <Call
         fn="./symbols"
@@ -27,11 +25,9 @@
         }}
     />
 
-    <Switch on={$ctx.symbols}>
-        <Case value={false}>
-            <Return value={false} />
-        </Case>
-    </Switch>
+    <If on={!$ctx.symbols}>
+        <Return value={false} />
+    </If>
 
     <Task name="expressions" out={$ctx.validate}>
         <Call
@@ -43,21 +39,17 @@
         />
     </Task>
 
-    <Switch on={$ctx.task.expressions}>
-        <Case value={false}>
-            <Return value={false} />
-        </Case>
-    </Switch>
+    <If on={!$ctx.task.expressions}>
+        <Return value={false} />
+    </If>
 
     <Task name="control" out={$ctx.validate}>
         <Call fn="../control/validate" in={$in.body.control} />
     </Task>
 
-    <Switch on={$ctx.task.control}>
-        <Case value={false}>
-            <Return value={false} />
-        </Case>
-    </Switch>
+    <If on={!$ctx.task.control}>
+        <Return value={false} />
+    </If>
 
     <Call
         fn="./tree"

@@ -10,21 +10,19 @@
         out={bool[]}
     />
 
-    <Switch on={$in.enabled}>
-        <Case value={true}>
-            <Call
-                fn="./analyze"
-                in={{
-                    functions: $in.functions,
-                    concurrent: $in.concurrent
-                }}
-            />
+    <If on={$in.enabled}>
+        <Call
+            fn="./analyze"
+            in={{
+                functions: $in.functions,
+                concurrent: $in.concurrent
+            }}
+        />
 
-            <Return value={$ctx.analyze} />
-        </Case>
+        <Return value={$ctx.analyze} />
 
-        <Default>
+        <Else>
             <Return value={[]} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

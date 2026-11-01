@@ -19,46 +19,42 @@
         }}
     />
 
-    <Switch on={$ctx.scopes_check}>
-        <Case value={true}>
+    <If on={$ctx.scopes_check}>
+        <Call
+            module="../../tasks_check"
+            in={{
+                table: $in.context.table,
+                body: $in.unit.body,
+                input_type: $in.unit.input_type,
+                output_type: $in.unit.output_type
+            }}
+        />
+
+        <If on={$ctx.tasks_check}>
+            <Call fn="ownership_request" in={$in} />
+
             <Call
-                module="../../tasks_check"
+                module="../../../../ownership/check"
+                in={$ctx.ownership_request}
+            />
+
+            <Call
+                fn="ownership_result"
                 in={{
-                    table: $in.context.table,
-                    body: $in.unit.body,
-                    input_type: $in.unit.input_type,
-                    output_type: $in.unit.output_type
+                    outcome: $ctx.check,
+                    declared: $in.unit.output_ownership
                 }}
             />
 
-            <Switch on={$ctx.tasks_check}>
-                <Case value={true}>
-                    <Call fn="ownership_request" in={$in} />
+            <Return value={$ctx.ownership_result} />
 
-                    <Call
-                        module="../../../../ownership/check"
-                        in={$ctx.ownership_request}
-                    />
+            <Else>
+                <Return value={false} />
+            </Else>
+        </If>
 
-                    <Call
-                        fn="ownership_result"
-                        in={{
-                            outcome: $ctx.check,
-                            declared: $in.unit.output_ownership
-                        }}
-                    />
-
-                    <Return value={$ctx.ownership_result} />
-                </Case>
-
-                <Default>
-                    <Return value={false} />
-                </Default>
-            </Switch>
-        </Case>
-
-        <Default>
+        <Else>
             <Return value={false} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

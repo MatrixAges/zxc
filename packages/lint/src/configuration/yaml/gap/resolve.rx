@@ -4,36 +4,32 @@
 
     <Args in={Gap.Input} out={Boundary.Output} />
 
-    <Switch on={$in.preserve_trailing}>
-        <Case value={true}>
-            <Return
-                value={{
-                    needs_edit: false,
-                    start: 0,
-                    end: 0,
-                    crlf: false,
-                    separate: false
-                }}
-            />
-        </Case>
+    <If on={$in.preserve_trailing}>
+        <Return
+            value={{
+                needs_edit: false,
+                start: 0,
+                end: 0,
+                crlf: false,
+                separate: false
+            }}
+        />
 
-        <Default>
+        <Else>
             <Call fn="scan" in={$in.gap} />
 
-            <Switch on={$ctx.scan.valid && $ctx.scan.has_newline}>
-                <Case value={false}>
-                    <Return
-                        value={{
-                            needs_edit: false,
-                            start: 0,
-                            end: 0,
-                            crlf: false,
-                            separate: false
-                        }}
-                    />
-                </Case>
+            <If on={!($ctx.scan.valid && $ctx.scan.has_newline)}>
+                <Return
+                    value={{
+                        needs_edit: false,
+                        start: 0,
+                        end: 0,
+                        crlf: false,
+                        separate: false
+                    }}
+                />
 
-                <Default>
+                <Else>
                     <Call fn="multiline" in={$in} />
 
                     <Call
@@ -52,8 +48,8 @@
                     />
 
                     <Return value={$ctx.check} />
-                </Default>
-            </Switch>
-        </Default>
-    </Switch>
+                </Else>
+            </If>
+        </Else>
+    </If>
 </Module>

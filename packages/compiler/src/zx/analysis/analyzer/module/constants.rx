@@ -10,7 +10,7 @@
         out={Model.Analysis}
     />
 
-    <Switch
+    <If
         on={
         $in.analysis.state.diagnostic.message != "" ||
             (
@@ -19,10 +19,8 @@
             )
     }
     >
-        <Case value={true}>
-            <Return value={$in.analysis} />
-        </Case>
-    </Switch>
+        <Return value={$in.analysis} />
+    </If>
 
     <Call
         fn="../../constants/declarations/analyze"

@@ -15,15 +15,13 @@
 
     <Call fn="valid" in={$in} />
 
-    <Switch on={$ctx.validate_types && $ctx.valid}>
-        <Case value={true}>
-            <Call module="build" in={$in} />
+    <If on={$ctx.validate_types && $ctx.valid}>
+        <Call module="build" in={$in} />
 
-            <Return value={$ctx.build} />
-        </Case>
+        <Return value={$ctx.build} />
 
-        <Default>
+        <Else>
             <Return value={null} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

@@ -5,20 +5,18 @@
 
     <Call fn="../../../analysis/semantic/extracting/planning/ready" in={$in.state} />
 
-    <Switch on={$ctx.ready}>
-        <Case value={true}>
-            <Call fn="native_dependencies" in={$in} />
+    <If on={$ctx.ready}>
+        <Call fn="native_dependencies" in={$in} />
 
-            <Return value={$ctx.native_dependencies} />
-        </Case>
+        <Return value={$ctx.native_dependencies} />
 
-        <Default>
+        <Else>
             <Return
                 value={{
                     state: $in.state,
                     natives: $in.natives
                 }}
             />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

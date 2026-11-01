@@ -5,35 +5,29 @@
 
     <Call fn="./native/structure" in={$in.modules} />
 
-    <Switch on={$ctx.structure}>
-        <Case value={true}>
-            <Call module="./native/declarations_check" in={$in.modules} />
+    <If on={$ctx.structure}>
+        <Call module="./native/declarations_check" in={$in.modules} />
 
-            <Switch on={$ctx.declarations_check}>
-                <Case value={true}>
-                    <Call module="./native/bindings_check" in={$in} />
+        <If on={$ctx.declarations_check}>
+            <Call module="./native/bindings_check" in={$in} />
 
-                    <Switch on={$ctx.bindings_check}>
-                        <Case value={true}>
-                            <Call fn="./native/owners" in={$in} />
+            <If on={$ctx.bindings_check}>
+                <Call fn="./native/owners" in={$in} />
 
-                            <Return value={$ctx.owners} />
-                        </Case>
+                <Return value={$ctx.owners} />
 
-                        <Default>
-                            <Return value={false} />
-                        </Default>
-                    </Switch>
-                </Case>
-
-                <Default>
+                <Else>
                     <Return value={false} />
-                </Default>
-            </Switch>
-        </Case>
+                </Else>
+            </If>
 
-        <Default>
+            <Else>
+                <Return value={false} />
+            </Else>
+        </If>
+
+        <Else>
             <Return value={false} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

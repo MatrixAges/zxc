@@ -18,21 +18,19 @@
         in={$ctx.validate.state}
     />
 
-    <Switch on={$ctx.ready}>
-        <Case value={true}>
-            <Call
-                fn="functions/imports"
-                in={{
-                    ...$in,
-                    plan: $ctx.validate
-                }}
-            />
+    <If on={$ctx.ready}>
+        <Call
+            fn="functions/imports"
+            in={{
+                ...$in,
+                plan: $ctx.validate
+            }}
+        />
 
-            <Return value={$ctx.imports} />
-        </Case>
+        <Return value={$ctx.imports} />
 
-        <Default>
+        <Else>
             <Return value={$ctx.validate} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

@@ -5,15 +5,13 @@
 
     <Call fn="validation/declarations" in={$in} />
 
-    <Switch on={$ctx.declarations.message == ""}>
-        <Case value={true}>
-            <Call fn="validation/functions" in={$in} />
+    <If on={$ctx.declarations.message == ""}>
+        <Call fn="validation/functions" in={$in} />
 
-            <Return value={$ctx.functions} />
-        </Case>
+        <Return value={$ctx.functions} />
 
-        <Default>
+        <Else>
             <Return value={$ctx.declarations} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

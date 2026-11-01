@@ -5,41 +5,35 @@
 
     <Call fn="./initialize" in={$in.program} />
 
-    <Switch on={$ctx.initialize.valid}>
-        <Case value={true}>
-            <Call
-                fn="./walk"
-                in={{
-                    context: $in,
-                    state: $ctx.initialize.state
-                }}
-            />
+    <If on={$ctx.initialize.valid}>
+        <Call
+            fn="./walk"
+            in={{
+                context: $in,
+                state: $ctx.initialize.state
+            }}
+        />
 
-            <Switch on={$ctx.walk.valid}>
-                <Case value={true}>
-                    <Call fn="./declared" in={$ctx.walk.state.activity.declared} />
+        <If on={$ctx.walk.valid}>
+            <Call fn="./declared" in={$ctx.walk.state.activity.declared} />
 
-                    <Switch on={$ctx.declared}>
-                        <Case value={true}>
-                            <Call fn="./returned" in={$in} />
+            <If on={$ctx.declared}>
+                <Call fn="./returned" in={$in} />
 
-                            <Return value={$ctx.returned} />
-                        </Case>
+                <Return value={$ctx.returned} />
 
-                        <Default>
-                            <Return value={false} />
-                        </Default>
-                    </Switch>
-                </Case>
-
-                <Default>
+                <Else>
                     <Return value={false} />
-                </Default>
-            </Switch>
-        </Case>
+                </Else>
+            </If>
 
-        <Default>
+            <Else>
+                <Return value={false} />
+            </Else>
+        </If>
+
+        <Else>
             <Return value={false} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

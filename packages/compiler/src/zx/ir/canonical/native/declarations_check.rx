@@ -5,25 +5,21 @@
 
     <Call fn="./declarations/declarations" in={$in} />
 
-    <Switch on={$ctx.declarations}>
-        <Case value={true}>
-            <Call fn="./declarations/namespaces" in={$in} />
+    <If on={$ctx.declarations}>
+        <Call fn="./declarations/namespaces" in={$in} />
 
-            <Switch on={$ctx.namespaces}>
-                <Case value={true}>
-                    <Call fn="./declarations/imports_unique" in={$in} />
+        <If on={$ctx.namespaces}>
+            <Call fn="./declarations/imports_unique" in={$in} />
 
-                    <Return value={$ctx.imports_unique} />
-                </Case>
+            <Return value={$ctx.imports_unique} />
 
-                <Default>
-                    <Return value={false} />
-                </Default>
-            </Switch>
-        </Case>
+            <Else>
+                <Return value={false} />
+            </Else>
+        </If>
 
-        <Default>
+        <Else>
             <Return value={false} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

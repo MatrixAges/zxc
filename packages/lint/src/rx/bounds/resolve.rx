@@ -10,76 +10,70 @@
         out={Model.Output}
     />
 
-    <Switch on={$in.kind == 0}>
-        <Case value={true}>
-            <Call
-                fn="tag_end"
-                in={{
-                    source: $in.source,
-                    start: $in.start
-                }}
-            />
+    <If on={$in.kind == 0}>
+        <Call
+            fn="tag_end"
+            in={{
+                source: $in.source,
+                start: $in.start
+            }}
+        />
 
-            <Call
-                fn="opening"
-                in={{
-                    source: $in.source,
-                    end: $ctx.tag_end
-                }}
-            />
+        <Call
+            fn="opening"
+            in={{
+                source: $in.source,
+                end: $ctx.tag_end
+            }}
+        />
 
-            <Return value={$ctx.opening} />
-        </Case>
+        <Return value={$ctx.opening} />
 
-        <Default>
-            <Switch on={$in.kind == 1}>
-                <Case value={true}>
-                    <Call
-                        fn="closing_start"
-                        in={{
-                            source: $in.source,
-                            start: $in.start
-                        }}
-                    />
+        <Else>
+            <If on={$in.kind == 1}>
+                <Call
+                    fn="closing_start"
+                    in={{
+                        source: $in.source,
+                        start: $in.start
+                    }}
+                />
 
-                    <Call
-                        fn="tag_end"
-                        in={{
-                            source: $in.source,
-                            start: $ctx.closing_start
-                        }}
-                    />
+                <Call
+                    fn="tag_end"
+                    in={{
+                        source: $in.source,
+                        start: $ctx.closing_start
+                    }}
+                />
 
-                    <Return
-                        value={{
-                            start: $ctx.closing_start,
-                            end: $ctx.tag_end,
-                            self_closing: false
-                        }}
-                    />
-                </Case>
+                <Return
+                    value={{
+                        start: $ctx.closing_start,
+                        end: $ctx.tag_end,
+                        self_closing: false
+                    }}
+                />
 
-                <Default>
-                    <Switch on={$in.kind == 2}>
-                        <Case value={true}>
-                            <Call
-                                fn="comment_end"
-                                in={{
-                                    source: $in.source,
-                                    start: $in.start
-                                }}
-                            />
+                <Else>
+                    <If on={$in.kind == 2}>
+                        <Call
+                            fn="comment_end"
+                            in={{
+                                source: $in.source,
+                                start: $in.start
+                            }}
+                        />
 
-                            <Return
-                                value={{
-                                    start: $in.start,
-                                    end: $ctx.comment_end,
-                                    self_closing: false
-                                }}
-                            />
-                        </Case>
+                        <Return
+                            value={{
+                                start: $in.start,
+                                end: $ctx.comment_end,
+                                self_closing: false
+                            }}
+                        />
 
-                        <Default>
+                        <Else>
                             <Call
                                 fn="tag_end"
                                 in={{
@@ -95,10 +89,10 @@
                                     self_closing: false
                                 }}
                             />
-                        </Default>
-                    </Switch>
-                </Default>
-            </Switch>
-        </Default>
-    </Switch>
+                        </Else>
+                    </If>
+                </Else>
+            </If>
+        </Else>
+    </If>
 </Module>

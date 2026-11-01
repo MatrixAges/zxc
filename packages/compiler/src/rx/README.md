@@ -1,6 +1,6 @@
 # RX
 
-`.rx` 文件的 Zig 语法定义库，基于 `dsl`。支持 XML 文本解析和带源码位置的 AST 校验，输出为强类型数据或诊断；普通 Call.fn/Call.module/Return、Task 和 Switch 已支持生成独立应用；其余流程执行能力见本文边界。
+`.rx` 文件的 Zig 语法定义库，基于 `dsl`。支持 XML 文本解析和带源码位置的 AST 校验，输出为强类型数据或诊断；普通 Call.fn/Call.module/Return、Task、If 和 Switch 已支持生成独立应用；其余流程执行能力见本文边界。
 
 ## 构建与测试
 
@@ -81,7 +81,7 @@ RX 属性值只负责数据引用、组装和简单运算，不执行函数或�
 
 花括号内部直接使用 ZX 源码，支持对象、列表、比较、逻辑运算、注释和模板，不进行 XML 实体解码或空白归一化；`<`、`&&` 无需写成 XML 实体。引号字符串仍使用标签转义，例如 `&amp;`、`&quot;`。
 
-`Call.in`、`Return.value`、`Switch.on`、`Case.value`、`Emit.value` 和 Store `Field.value` 都使用这一规则。`setter` 写作 `{[store.alias.object]}`，仍只授权一个完整 Store Object。路径和 `name` 保持静态引号字符串；`Field.type` 使用花括号内的 ZX 类型表达式。Store.version 和 Gateway 字节上限是静态整数配置，使用 `{1}`、`{8192}` 等整数字面量，保留各自范围检查。
+`Call.in`、`Return.value`、`Switch.on`、`Case.value`、`Emit.value` 和 Store `Field.value` 都使用这一规则。`If.on` 必须使用花括号布尔表达式。`setter` 写作 `{[store.alias.object]}`，仍只授权一个完整 Store Object。路径和 `name` 保持静态引号字符串；`Field.type` 使用花括号内的 ZX 类型表达式。Store.version 和 Gateway 字节上限是静态整数配置，使用 `{1}`、`{8192}` 等整数字面量，保留各自范围检查。
 
 Call 使用 in 传参；读取输入写 `in={$in}`，字符串写 `in="$in"`；旧表达式中通过 XML 实体表示的符号需在花括号内恢复为 ZX 符号。无后缀调用保留：`fn="load"` 对应 `load.zx`，`module="orders"` 对应 `orders.rx`，不需要 `.zig`。
 
@@ -135,29 +135,31 @@ module 的 Input 为 void 时可省略 in；非 void 输入省略时在推导阶
 
 属性默认必填，`?` 表示可以省略。
 
-| 标签       | 属性                                                                   | 直属子标签                                                                                  |
-| ---------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| Module     | `fn?`                                                                  | Type、Args、Import、Store 引用、Task、Call、Parallel、Switch、Emit、Return；fn 简写无子标签 |
-| Type       | `from`、`as`                                                           | 无                                                                                          |
-| Args       | `in`、`out`，类型表达式                                                | 无                                                                                          |
-| Import     | `from`                                                                 | 无                                                                                          |
-| Call       | `fn?` / `module?` 二选一、`in?`、`setter?`                             | 无                                                                                          |
-| Return     | `value`                                                                | 无                                                                                          |
-| Task       | `name`、`out?`                                                         | Call、Parallel、Switch、Emit、Return                                                        |
-| Parallel   | 无                                                                     | Task、Call                                                                                  |
-| Switch     | `on`                                                                   | Case、Default                                                                               |
-| Case       | `value`                                                                | Task、Call、Parallel、Switch、Emit、Return                                                  |
-| Default    | 无                                                                     | Task、Call、Parallel、Switch、Emit、Return                                                  |
-| Emit       | `event`、`value`                                                       | 无                                                                                          |
-| Store 引用 | `from`、`as?`                                                          | 无                                                                                          |
-| Gateway    | `name`、`protocol?`、`listen?`、`max_header_bytes?`、`max_body_bytes?` | Group、Route                                                                                |
-| Group      | `prefix`                                                               | Group、Route                                                                                |
-| Route      | `path`、`service`、`method?`                                           | 无                                                                                          |
-| Store 定义 | `name`、`version`                                                      | Type、Object                                                                                |
-| Object     | `name`                                                                 | Field                                                                                       |
-| Field      | `name`、`type`、`value`                                                | 无                                                                                          |
+| 标签       | 属性                                                                   | 直属子标签                                                                                      |
+| ---------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Module     | `fn?`                                                                  | Type、Args、Import、Store 引用、Task、Call、Parallel、If、Switch、Emit、Return；fn 简写无子标签 |
+| Type       | `from`、`as`                                                           | 无                                                                                              |
+| Args       | `in`、`out`，类型表达式                                                | 无                                                                                              |
+| Import     | `from`                                                                 | 无                                                                                              |
+| Call       | `fn?` / `module?` 二选一、`in?`、`setter?`                             | 无                                                                                              |
+| Return     | `value`                                                                | 无                                                                                              |
+| Task       | `name`、`out?`                                                         | Call、Parallel、If、Switch、Emit、Return                                                        |
+| Parallel   | 无                                                                     | Task、Call                                                                                      |
+| If         | `on`，布尔表达式                                                       | Task、Call、Parallel、If、Switch、Emit、Return、末尾 Else                                       |
+| Else       | 无                                                                     | Task、Call、Parallel、If、Switch、Emit、Return                                                  |
+| Switch     | `on`                                                                   | Case、Default                                                                                   |
+| Case       | `value`                                                                | Task、Call、Parallel、If、Switch、Emit、Return                                                  |
+| Default    | 无                                                                     | Task、Call、Parallel、If、Switch、Emit、Return                                                  |
+| Emit       | `event`、`value`                                                       | 无                                                                                              |
+| Store 引用 | `from`、`as?`                                                          | 无                                                                                              |
+| Gateway    | `name`、`protocol?`、`listen?`、`max_header_bytes?`、`max_body_bytes?` | Group、Route                                                                                    |
+| Group      | `prefix`                                                               | Group、Route                                                                                    |
+| Route      | `path`、`service`、`method?`                                           | 无                                                                                              |
+| Store 定义 | `name`、`version`                                                      | Type、Object                                                                                    |
+| Object     | `name`                                                                 | Field                                                                                           |
+| Field      | `name`、`type`、`value`                                                | 无                                                                                              |
 
-共 **18 个不同标签名**，Store 在两种文件上下文中具有不同 Schema。Store 引用中的 as 只沿用原设计的 Store 数据命名空间，不是模块别名；Gateway/Store 的 name 是领域配置名称，也不充当模块注册标识。
+共 **20 个不同标签名**，Store 在两种文件上下文中具有不同 Schema。Store 引用中的 as 只沿用原设计的 Store 数据命名空间，不是模块别名；Gateway/Store 的 name 是领域配置名称，也不充当模块注册标识。
 
 Task、Parallel、Switch、Case、Default、Group、Object 均至少有一个子元素；Store 定义至少包含一个 Object，Type 必须位于 Object 前。Module 和 Gateway 允许空内容。Task 不能直接嵌套 Task，其他递归嵌套遵循表格。Switch 的 Case 值不能重复，最多一个 Default，不强制 Default 位置。
 
@@ -258,7 +260,7 @@ switch (inferred.value) {
 }
 ```
 
-当前 module.infer 接受 `Call.fn`、`Return`、Task 分组与 Switch 分支。`module.infer` 使用项目入口处理单个普通模块；有 module 依赖时应传入完整集合。`Call.in` 中的 `$in` 由目标函数的 Input 和字段用途共同约束；Call 返回值通过 `$ctx.<name>` 供后续步骤与 Return 使用。结果名直接取目标文件名（去掉源码后缀）；Call 不接受 name 属性。目标名必须是合法标识符，且不得为保留名 task。Task 返回值通过 $ctx.task.<name> 读取，可以与 Call 同名。绑定路径不能重叠，也不能覆盖 `$in`；Return 或必然返回的分支之后的步骤拒绝为不可达。输入既未被使用、也没有调用约束时推导为 void，无 Return 时输出为 void。使用输入却没有足够约束时报告无法推导，不默认为动态类型。
+当前 module.infer 接受 `Call.fn`、`Return`、Task 分组与 If / Switch 分支。`module.infer` 使用项目入口处理单个普通模块；有 module 依赖时应传入完整集合。`Call.in` 中的 `$in` 由目标函数的 Input 和字段用途共同约束；Call 返回值通过 `$ctx.<name>` 供后续步骤与 Return 使用。结果名直接取目标文件名（去掉源码后缀）；Call 不接受 name 属性。目标名必须是合法标识符，且不得为保留名 task。Task 返回值通过 $ctx.task.<name> 读取，可以与 Call 同名。绑定路径不能重叠，也不能覆盖 `$in`；Return 或必然返回的分支之后的步骤拒绝为不可达。输入既未被使用、也没有调用约束时推导为 void，无 Return 时输出为 void。使用输入却没有足够约束时报告无法推导，不默认为动态类型。
 
 数组字面量保留各元素的类型约束，等待目标上下文决定 list 或 tuple；目标仍不明确时才采用同质列表。嵌套数组先默认外层，再将得到的元素类型传回内层，避免把可接受 tuple 上下文的字面量提前固定为 list。空列表没有足够元素类型信息时仍拒绝推导。
 
@@ -278,23 +280,27 @@ try output.writeAll(generated);
 
 包含原生模块时使用 `compiler.zig.emitBundle` 的共享 ABI 输出。包含形式化契约时仍须先完成既有证明流程，生成门禁不会因来自 RX 而放宽。生成的 Zig 模块提供 `Input`、`Output` 与 `execute(arena, input)`，arena 必须覆盖返回聚合值的使用生命周期。
 
-## Task 与 Switch 执行
+## Task 与条件分支执行
 
-普通顺序 Task 的 name 作为分组名称，不创建额外服务或并行调度。Task 内顺序执行；Task 和每个 Case/Default 内的 Call 的 $ctx 命名结果只在当前作用域及其子层可见。它们可读取外部绑定，不能覆盖外部路径；兄弟分支可声明相同结果名。没有隐式分支结果合并，需要返回时在各分支显式 Return。Return 结束所在执行边界：模块，或下文定义的直属 Parallel Task。
+普通顺序 Task 的 name 作为分组名称，不创建额外服务或并行调度。Task 内顺序执行；Task 和每个 If / Else / Case / Default 内的 Call 的 $ctx 命名结果只在当前作用域及其子层可见。它们可读取外部绑定，不能覆盖外部路径；兄弟分支可声明相同结果名。没有隐式分支结果合并，需要返回时在各分支显式 Return。Return 结束所在执行边界：模块，或下文定义的直属 Parallel Task。
 
 ```xml
 <Module>
-  <Task name="choose">
-    <Switch on={$in.enabled}>
-      <Case value={true}>
-        <Call fn="calculate" in={$in.value} />
-        <Return value={$ctx.calculate} />
-      </Case>
-      <Default><Return value={$in.value} /></Default>
-    </Switch>
-  </Task>
+    <Task name="choose">
+        <If on={$in.enabled}>
+            <Call fn="calculate" in={$in.value} />
+
+            <Return value={$ctx.calculate} />
+
+            <Else>
+                <Return value={$in.value} />
+            </Else>
+        </If>
+    </Task>
 </Module>
 ```
+
+If.on 只计算一次，必须为 bool；真时执行直属步骤，假时执行 Else。Else 可选、最多一个且必须位于末尾，不能独立出现；省略时假分支继续后续步骤。If 真分支不能为空。布尔条件优先使用 If；多值匹配使用 Switch。If、Else 支持嵌套，属性中的 `&&` 和 `||` 保持短路。
 
 Switch.on 只计算一次，匹配一个 Case 或 Default，无 fallthrough。Default 可以出现在任意位置；没有 Default 且未匹配时继续 Switch 后的步骤。整数与 bool 标签使用花括号字面量；字符串标签写作 `value="ready"`，也可写作 `value={"ready"}`。标签必须是字面量，不能用运行中绑定或算术表达式替代常量；解码后相同的标签也拒绝重复。枚举成员名称尚受 RX 表达式类型命名环境限制，不能因底层 IR 支持枚举 switch 就认为已经提供 RX 枚举导入。
 
@@ -324,7 +330,7 @@ Task.out 为可选的花括号表达式，在任务内部步骤结束后求值�
 | `stores`  | 可选的独立 Store 定义集合，每项为路径与真实 XML AST  |
 | `project` | 可选的既有 ZX 项目、包和原生接口配置                 |
 
-入口先对整个集合执行 `validateModules`，包括未使用 Import、所有嵌套 module 引用及循环检查。之后为每个模块登记一个输入输出契约，共同收集 Call.fn、Call.module、Return、Task、Switch 与 Parallel Call/Task 的类型约束，稳定后才生成代码。Import 仅声明依赖，不触发运行。Store 引用独立分析并进入显式调用授权；事件仍明确拒绝。
+入口先对整个集合执行 `validateModules`，包括未使用 Import、所有嵌套 module 引用及循环检查。之后为每个模块登记一个输入输出契约，共同收集 Call.fn、Call.module、Return、Task、If、Switch 与 Parallel Call/Task 的类型约束，稳定后才生成代码。Import 仅声明依赖，不触发运行。Store 引用独立分析并进入显式调用授权；事件仍明确拒绝。
 
 子模块可以只有 `<Return value={$in} />`，由调用者或下游函数确定其类型。同一个文件在所有调用点共享一个契约，不按调用点生成不同类型的实例；不相容的调用会报错。未读取输入的子模块仍可接收调用者传来的有类型值；无使用、无调用约束的输入才默认为 void。完整集合仍无法确定的类型会报告推导失败。
 
@@ -366,7 +372,7 @@ CLI `check-rx --entry state.store.rx` 以及普通入口装载到的 Store 定�
 </Module>
 ```
 
-getter 仅在 Call.in 可见，允许读取完整 Object 或字段。每次 Call 前读取新的不可变快照，作为普通输入值传递；Return、Switch 或回调不能直接捕获 Store getter。Call 结果固定位于 $ctx 命名空间。
+getter 仅在 Call.in 可见，允许读取完整 Object 或字段。每次 Call 前读取新的不可变快照，作为普通输入值传递；Return、If、Switch 或回调不能直接捕获 Store getter。Call 结果固定位于 $ctx 命名空间。
 
 setter 必须列出一个完整 Object；不能列出整个 Store、字段、未声明对象或多个对象。目标 ZX 必须声明 `export default function (in: Input, { store }): Output`，通过 `store.jobs.counter = next` 替换整个对象。该能力只写，不允许读取当前 Store；读取值从 in 获得。普通 ZX import 不继承能力，Call.module 的授权由被调模块自己声明。
 

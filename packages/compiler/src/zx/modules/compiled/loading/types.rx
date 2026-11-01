@@ -17,34 +17,32 @@
         }}
     />
 
-    <Switch on={$ctx.preflight != null}>
-        <Case value={true}>
-            <Call
-                module="../../../analysis/semantic/merge"
-                in={{
-                    request: {
-                        source: $in.source,
-                        origins: $in.origins,
-                        origin_indices: $ctx.preflight,
-                        base: $in.base,
-                        base_origins: $in.base_origins,
-                        first: 0,
-                        checked: true
-                    },
-                    state: $ctx.initial
-                }}
-            />
+    <If on={$ctx.preflight != null}>
+        <Call
+            module="../../../analysis/semantic/merge"
+            in={{
+                request: {
+                    source: $in.source,
+                    origins: $in.origins,
+                    origin_indices: $ctx.preflight,
+                    base: $in.base,
+                    base_origins: $in.base_origins,
+                    first: 0,
+                    checked: true
+                },
+                state: $ctx.initial
+            }}
+        />
 
-            <Return value={$ctx.merge} />
-        </Case>
+        <Return value={$ctx.merge} />
 
-        <Default>
+        <Else>
             <Return
                 value={{
                     ...$ctx.initial,
                     status: 3
                 }}
             />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

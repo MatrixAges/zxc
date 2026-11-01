@@ -4,23 +4,21 @@
 
     <Args in={Request.Input} out={Model.Analysis} />
 
-    <Switch on={$in.analysis.state.diagnostic.message == ""}>
-        <Case value={true}>
-            <Call fn="evaluate/request" in={$in} />
-            <Call fn="../analyzer/expressions/traversal/initial" in={$ctx.request} />
-            <Call fn="../analyzer/expressions/traversal/advance" in={$ctx.initial} />
+    <If on={$in.analysis.state.diagnostic.message == ""}>
+        <Call fn="evaluate/request" in={$in} />
+        <Call fn="../analyzer/expressions/traversal/initial" in={$ctx.request} />
+        <Call fn="../analyzer/expressions/traversal/advance" in={$ctx.initial} />
 
-            <Return
-                value={{
-                    ...$in.analysis,
-                    state: $ctx.advance.state,
-                    value: $ctx.advance.value
-                }}
-            />
-        </Case>
+        <Return
+            value={{
+                ...$in.analysis,
+                state: $ctx.advance.state,
+                value: $ctx.advance.value
+            }}
+        />
 
-        <Default>
+        <Else>
             <Return value={$in.analysis} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

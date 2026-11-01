@@ -5,29 +5,27 @@
 
     <Call module="../../frontend/parser/native" in={$in} />
 
-    <Switch on={$ctx.native.diagnostic.message == ""}>
-        <Case value={true}>
-            <Call
-                module="validate"
-                in={{
-                    source: $in,
-                    declarations: $ctx.native.declarations,
-                    functions: $ctx.native.functions,
-                    parameters: $ctx.native.parameters,
-                    errors: $ctx.native.errors
-                }}
-            />
+    <If on={$ctx.native.diagnostic.message == ""}>
+        <Call
+            module="validate"
+            in={{
+                source: $in,
+                declarations: $ctx.native.declarations,
+                functions: $ctx.native.functions,
+                parameters: $ctx.native.parameters,
+                errors: $ctx.native.errors
+            }}
+        />
 
-            <Return
-                value={{
-                    ...$ctx.native,
-                    diagnostic: $ctx.validate
-                }}
-            />
-        </Case>
+        <Return
+            value={{
+                ...$ctx.native,
+                diagnostic: $ctx.validate
+            }}
+        />
 
-        <Default>
+        <Else>
             <Return value={$ctx.native} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

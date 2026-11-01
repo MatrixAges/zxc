@@ -5,15 +5,13 @@
 
     <Call fn="initializing/aliases" in={$in} />
 
-    <Switch on={$ctx.aliases.diagnostic.message == ""}>
-        <Case value={true}>
-            <Call fn="initializing/declarations" in={$ctx.aliases} />
+    <If on={$ctx.aliases.diagnostic.message == ""}>
+        <Call fn="initializing/declarations" in={$ctx.aliases} />
 
-            <Return value={$ctx.declarations} />
-        </Case>
+        <Return value={$ctx.declarations} />
 
-        <Default>
+        <Else>
             <Return value={$ctx.aliases} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

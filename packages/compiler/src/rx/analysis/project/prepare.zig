@@ -127,7 +127,7 @@ const Loader = struct {
 
         for (nodes) |node| {
             if (std.mem.eql(u8, node.name, "Import") or std.mem.eql(u8, node.name, "Store") or std.mem.eql(u8, node.name, "Type") or std.mem.eql(u8, node.name, "Args")) continue;
-            if (terminated) return self.fail(node.location, "return_path", "steps after a terminating Return or Switch are unreachable");
+            if (terminated) return self.fail(node.location, "return_path", "steps after a terminating Return, Switch or If are unreachable");
 
             const value: @FieldType(Flow.Step, "value") = if (std.mem.eql(u8, node.name, "Return"))
                 .{ .result = target.attribute(node, "value") }
@@ -161,7 +161,18 @@ const Loader = struct {
                 }
 
                 break :selection .{ .selection = .{ .subject = target.attribute(node, "on"), .cases = cases } };
-            } else return self.fail(node.location, "unsupported", "RX execution supports Store declarations, Call, Return, Task, Switch and pure Parallel branches; events require host linking");
+            } else if (std.mem.eql(u8, node.name, "If")) selection: {
+                const subject = target.attribute(node, "on");
+                const has_else = std.mem.eql(u8, node.children[node.children.len - 1].name, "Else");
+                const body = if (has_else) node.children[0 .. node.children.len - 1] else node.children;
+                const cases = try self.allocator.alloc(Flow.Case, if (has_else) 2 else 1);
+
+                cases[0] = .{ .value = .{ .name = "value", .value = "true", .kind = .expression, .location = subject.location, .value_location = subject.value_location }, .body = try self.steps(body) };
+
+                if (has_else) cases[1] = .{ .value = null, .body = try self.steps(node.children[node.children.len - 1].children) };
+
+                break :selection .{ .selection = .{ .subject = subject, .cases = cases } };
+            } else return self.fail(node.location, "unsupported", "RX execution supports Store declarations, Call, Return, Task, Switch, If and pure Parallel branches; events require host linking");
 
             try result.append(self.allocator, .{ .value = value });
 

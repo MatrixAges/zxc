@@ -5,19 +5,15 @@
 
     <Call fn="validation/header" in={$in} />
 
-    <Switch on={$ctx.header}>
-        <Case value={false}>
-            <Return value={false} />
-        </Case>
-    </Switch>
+    <If on={!$ctx.header}>
+        <Return value={false} />
+    </If>
 
     <Call module="../../ir/canonical/validation/validate" in={$in.program} />
 
-    <Switch on={$ctx.validate}>
-        <Case value={false}>
-            <Return value={false} />
-        </Case>
-    </Switch>
+    <If on={!$ctx.validate}>
+        <Return value={false} />
+    </If>
 
     <Call
         module="../../analysis/semantic/origins"
@@ -28,43 +24,33 @@
         }}
     />
 
-    <Switch on={$ctx.origins}>
-        <Case value={false}>
-            <Return value={false} />
-        </Case>
-    </Switch>
+    <If on={!$ctx.origins}>
+        <Return value={false} />
+    </If>
 
     <Call fn="validation/nominal" in={$in} />
 
-    <Switch on={$ctx.nominal}>
-        <Case value={false}>
-            <Return value={false} />
-        </Case>
-    </Switch>
+    <If on={!$ctx.nominal}>
+        <Return value={false} />
+    </If>
 
     <Call fn="validation/initializers" in={$in} />
 
-    <Switch on={$ctx.initializers}>
-        <Case value={false}>
-            <Return value={false} />
-        </Case>
-    </Switch>
+    <If on={!$ctx.initializers}>
+        <Return value={false} />
+    </If>
 
     <Call fn="validation/exports" in={$in} />
 
-    <Switch on={$ctx.exports}>
-        <Case value={false}>
-            <Return value={false} />
-        </Case>
-    </Switch>
+    <If on={!$ctx.exports}>
+        <Return value={false} />
+    </If>
 
     <Call fn="validation/stores" in={$in.program.context.functions.stores} />
 
-    <Switch on={$ctx.stores}>
-        <Case value={false}>
-            <Return value={false} />
-        </Case>
-    </Switch>
+    <If on={!$ctx.stores}>
+        <Return value={false} />
+    </If>
 
     <Return value={true} />
 </Module>

@@ -145,7 +145,7 @@ fn checkNestedExpression(expression: anytype, nested: bool, comptime context: Ex
         .unary => |unary| return checkNestedExpression(unary.operand, nested, context),
         .binary => |binary| return checkNestedExpression(binary.left, nested, context) orelse checkNestedExpression(binary.right, nested, context),
         .conditional => |value| {
-            if (nested) return .{ .code = .style, .span = expression.span, .message = if (context == .rx) "nested conditional values are not allowed in RX; use Switch or move the decision to ZX and use Call.fn" else "nested conditional expressions are not allowed; use match" };
+            if (nested) return .{ .code = .style, .span = expression.span, .message = if (context == .rx) "nested conditional values are not allowed in RX; use If or Switch, or move the decision to ZX and use Call.fn" else "nested conditional expressions are not allowed; use match" };
 
             return checkNestedExpression(value.condition, true, context) orelse checkNestedExpression(value.yes, true, context) orelse checkNestedExpression(value.no, true, context);
         },

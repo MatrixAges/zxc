@@ -5,25 +5,21 @@
 
     <Call fn="./tasks/interface" in={$in} />
 
-    <Switch on={$ctx.interface}>
-        <Case value={true}>
-            <Call fn="./tasks/references" in={$in} />
+    <If on={$ctx.interface}>
+        <Call fn="./tasks/references" in={$in} />
 
-            <Switch on={$ctx.references}>
-                <Case value={true}>
-                    <Call fn="./tasks/consumption" in={$in} />
+        <If on={$ctx.references}>
+            <Call fn="./tasks/consumption" in={$in} />
 
-                    <Return value={$ctx.consumption} />
-                </Case>
+            <Return value={$ctx.consumption} />
 
-                <Default>
-                    <Return value={false} />
-                </Default>
-            </Switch>
-        </Case>
+            <Else>
+                <Return value={false} />
+            </Else>
+        </If>
 
-        <Default>
+        <Else>
             <Return value={false} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

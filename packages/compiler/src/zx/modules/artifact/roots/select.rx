@@ -3,78 +3,70 @@
 
     <Args in={Model.Request} out={bool[]?} />
 
-    <Switch on={$in.record.has_body}>
-        <Case value={true}>
-            <Switch on={$in.record.body_function == null}>
-                <Case value={true}>
+    <If on={$in.record.has_body}>
+        <If on={$in.record.body_function == null}>
+            <Call
+                fn="entry_source"
+                in={{
+                    path: $in.record.path,
+                    file_name: $in.file_name,
+                    type_only: $in.type_only
+                }}
+            />
+
+            <If on={$ctx.entry_source}>
+                <Call
+                    module="with_body"
+                    in={{
+                        request: $in,
+                        body: $in.entry
+                    }}
+                />
+
+                <Return value={$ctx.with_body} />
+
+                <Else>
+                    <Return value={null} />
+                </Else>
+            </If>
+
+            <Else>
+                <Call
+                    fn="function_source"
+                    in={{
+                        path: $in.record.path,
+                        functions: $in.functions,
+                        index: $in.record.body_function ?? 0
+                    }}
+                />
+
+                <If on={$ctx.function_source}>
                     <Call
-                        fn="entry_source"
+                        fn="function_body"
                         in={{
-                            path: $in.record.path,
-                            file_name: $in.file_name,
-                            type_only: $in.type_only
-                        }}
-                    />
-
-                    <Switch on={$ctx.entry_source}>
-                        <Case value={true}>
-                            <Call
-                                module="with_body"
-                                in={{
-                                    request: $in,
-                                    body: $in.entry
-                                }}
-                            />
-
-                            <Return value={$ctx.with_body} />
-                        </Case>
-
-                        <Default>
-                            <Return value={null} />
-                        </Default>
-                    </Switch>
-                </Case>
-
-                <Default>
-                    <Call
-                        fn="function_source"
-                        in={{
-                            path: $in.record.path,
                             functions: $in.functions,
                             index: $in.record.body_function ?? 0
                         }}
                     />
 
-                    <Switch on={$ctx.function_source}>
-                        <Case value={true}>
-                            <Call
-                                fn="function_body"
-                                in={{
-                                    functions: $in.functions,
-                                    index: $in.record.body_function ?? 0
-                                }}
-                            />
+                    <Call
+                        module="with_body"
+                        in={{
+                            request: $in,
+                            body: $ctx.function_body
+                        }}
+                    />
 
-                            <Call
-                                module="with_body"
-                                in={{
-                                    request: $in,
-                                    body: $ctx.function_body
-                                }}
-                            />
+                    <Return value={$ctx.with_body} />
 
-                            <Return value={$ctx.with_body} />
-                        </Case>
+                    <Else>
+                        <Return value={null} />
+                    </Else>
+                </If>
+            </Else>
+        </If>
 
-                        <Default>
-                            <Return value={null} />
-                        </Default>
-                    </Switch>
-                </Default>
-            </Switch>
-        </Case>
-
-        <Default>
+        <Else>
             <Call
                 module="reachable"
                 in={{
@@ -84,6 +76,6 @@
             />
 
             <Return value={$ctx.reachable} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

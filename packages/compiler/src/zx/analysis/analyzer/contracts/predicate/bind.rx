@@ -27,35 +27,33 @@
         />
     </Task>
 
-    <Switch on={$ctx.task.input.diagnostic.message == "" && $in.contract.ensures}>
-        <Case value={true}>
-            <Task
-                name="output"
-                out={{
-                    ...$in.state,
-                    local: $ctx.append.local,
-                    diagnostic: $ctx.append.diagnostic
+    <If on={$ctx.task.input.diagnostic.message == "" && $in.contract.ensures}>
+        <Task
+            name="output"
+            out={{
+                ...$in.state,
+                local: $ctx.append.local,
+                diagnostic: $ctx.append.diagnostic
+            }}
+        >
+            <Call
+                fn="../../bindings/append"
+                in={{
+                    local: $ctx.task.input.local,
+                    name: {
+                        text: "out",
+                        start: $in.contract.span.start,
+                        end: $in.contract.span.end
+                    },
+                    type_id: $in.output_type,
+                    scope_start: 0
                 }}
-            >
-                <Call
-                    fn="../../bindings/append"
-                    in={{
-                        local: $ctx.task.input.local,
-                        name: {
-                            text: "out",
-                            start: $in.contract.span.start,
-                            end: $in.contract.span.end
-                        },
-                        type_id: $in.output_type,
-                        scope_start: 0
-                    }}
-                />
-            </Task>
+            />
+        </Task>
 
-            <Return value={$ctx.task.output} />
-        </Case>
+        <Return value={$ctx.task.output} />
 
-        <Default>
+        <Else>
             <Return
                 value={{
                     ...$in.state,
@@ -63,6 +61,6 @@
                     diagnostic: $ctx.task.input.diagnostic
                 }}
             />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

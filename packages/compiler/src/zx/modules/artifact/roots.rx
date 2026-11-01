@@ -7,15 +7,13 @@
     <Call fn="roots/valid" in={$in} />
     <Call fn="dependencies/allowed" in={$in.record.import_kinds} />
 
-    <Switch on={$ctx.structure && $ctx.valid && $ctx.allowed}>
-        <Case value={true}>
-            <Call module="roots/select" in={$in} />
+    <If on={$ctx.structure && $ctx.valid && $ctx.allowed}>
+        <Call module="roots/select" in={$in} />
 
-            <Return value={$ctx.select} />
-        </Case>
+        <Return value={$ctx.select} />
 
-        <Default>
+        <Else>
             <Return value={null} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

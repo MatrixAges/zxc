@@ -8,6 +8,7 @@ const Call = @import("Call.zig").Call;
 const Task = @import("Task.zig").Sequential;
 const Parallel = @import("Parallel.zig").Parallel;
 const Switch = @import("Switch.zig").Switch;
+const If = @import("If.zig").If;
 const Emit = @import("Emit.zig").Emit;
 const Return = @import("Return.zig").Return;
 const StoreReference = @import("../features/store/root.zig").StoreReference;
@@ -23,6 +24,7 @@ const ModuleBase = dsl.element("Module", struct {
     .task = Task,
     .parallel = Parallel,
     .@"switch" = Switch,
+    .@"if" = If,
     .emit = Emit,
     .@"return" = Return,
 }), .{}));

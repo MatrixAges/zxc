@@ -5,43 +5,39 @@
 
     <Call fn="utf8/validate" in={$in} />
 
-    <Switch on={$ctx.validate}>
-        <Case value={true}>
-            <Call
-                fn="initial"
-                in={{
-                    start: 0,
-                    end: $in.length
-                }}
-            />
+    <If on={$ctx.validate}>
+        <Call
+            fn="initial"
+            in={{
+                start: 0,
+                end: $in.length
+            }}
+        />
 
-            <Call
-                fn="bytes"
-                in={{
-                    source: $in,
-                    state: $ctx.initial
-                }}
-            />
+        <Call
+            fn="bytes"
+            in={{
+                source: $in,
+                state: $ctx.initial
+            }}
+        />
 
-            <Call fn="flush" in={$ctx.bytes} />
-            <Call fn="finish" in={$ctx.flush} />
+        <Call fn="flush" in={$ctx.bytes} />
+        <Call fn="finish" in={$ctx.flush} />
 
-            <Switch on={$ctx.finish.diagnostic.message == ""}>
-                <Case value={true}>
-                    <Call fn="publish" in={$ctx.finish} />
+        <If on={$ctx.finish.diagnostic.message == ""}>
+            <Call fn="publish" in={$ctx.finish} />
 
-                    <Return value={$ctx.publish} />
-                </Case>
+            <Return value={$ctx.publish} />
 
-                <Default>
-                    <Call fn="failure" in={$ctx.finish.diagnostic} />
+            <Else>
+                <Call fn="failure" in={$ctx.finish.diagnostic} />
 
-                    <Return value={$ctx.failure} />
-                </Default>
-            </Switch>
-        </Case>
+                <Return value={$ctx.failure} />
+            </Else>
+        </If>
 
-        <Default>
+        <Else>
             <Call
                 fn="failure"
                 in={{
@@ -53,6 +49,6 @@
             />
 
             <Return value={$ctx.failure} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

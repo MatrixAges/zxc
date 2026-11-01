@@ -5,11 +5,9 @@
 
     <Call fn="initial" in={$in} />
 
-    <Switch on={$ctx.initial.diagnostic.message != ""}>
-        <Case value={true}>
-            <Return value={$ctx.initial} />
-        </Case>
-    </Switch>
+    <If on={$ctx.initial.diagnostic.message != ""}>
+        <Return value={$ctx.initial} />
+    </If>
 
     <Call fn="names" in={$in} />
 

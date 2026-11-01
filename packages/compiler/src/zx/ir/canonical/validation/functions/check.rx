@@ -5,39 +5,35 @@
 
     <Call fn="forward" in={$in} />
 
-    <Switch on={$ctx.forward}>
-        <Case value={true}>
-            <Switch on={$in.context.functions.native_modules[$in.index] != null}>
-                <Case value={true}>
-                    <Call module="../external/check" in={$in} />
+    <If on={$ctx.forward}>
+        <If on={$in.context.functions.native_modules[$in.index] != null}>
+            <Call module="../external/check" in={$in} />
 
-                    <Return value={$ctx.check} />
-                </Case>
+            <Return value={$ctx.check} />
 
-                <Default>
-                    <Call
-                        fn="select"
-                        in={{
-                            functions: $in.context.functions,
-                            index: $in.index
-                        }}
-                    />
+            <Else>
+                <Call
+                    fn="select"
+                    in={{
+                        functions: $in.context.functions,
+                        index: $in.index
+                    }}
+                />
 
-                    <Call
-                        module="../unit/check"
-                        in={{
-                            context: $in.context,
-                            unit: $ctx.select
-                        }}
-                    />
+                <Call
+                    module="../unit/check"
+                    in={{
+                        context: $in.context,
+                        unit: $ctx.select
+                    }}
+                />
 
-                    <Return value={$ctx.check} />
-                </Default>
-            </Switch>
-        </Case>
+                <Return value={$ctx.check} />
+            </Else>
+        </If>
 
-        <Default>
+        <Else>
             <Return value={false} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

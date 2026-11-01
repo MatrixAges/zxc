@@ -3,13 +3,11 @@
 
     <Args in={Model.Request} out={Model.Comparison} />
 
-    <Switch on={$in.name != null}>
-        <Case value={true}>
-            <Call fn="bindings/named" in={$in} />
+    <If on={$in.name != null}>
+        <Call fn="bindings/named" in={$in} />
 
-            <Return value={$ctx.named} />
-        </Case>
-    </Switch>
+        <Return value={$ctx.named} />
+    </If>
 
     <Call fn="bindings/matches" in={$in} />
 

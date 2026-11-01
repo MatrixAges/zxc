@@ -7,6 +7,7 @@ pub const Step = union(enum) {
     task: flow.Task.Data,
     parallel: flow.Parallel.Data,
     @"switch": flow.Switch.Data,
+    @"if": flow.If.Data,
     emit: flow.Emit.Data,
     @"return": flow.Return.Data,
 };
@@ -14,11 +15,15 @@ pub const Step = union(enum) {
 const Scope = enum { body, task, parallel };
 
 pub fn children(comptime scope: Scope) type {
-    return dsl.list(struct {
+    return dsl.list(child(scope), .{ .min = 1 });
+}
+
+pub fn child(comptime scope: Scope) type {
+    return struct {
         pub const Data = Step;
 
         pub fn decode(allocator: std.mem.Allocator, node: dsl.ast.Node, reporter: *dsl.Reporter, context: anytype) dsl.Error!Data {
-            inline for (.{ "call", "task", "parallel", "switch", "emit", "return" }) |tag| {
+            inline for (.{ "call", "task", "parallel", "switch", "if", "emit", "return" }) |tag| {
                 const allowed = comptime switch (scope) {
                     .body => true,
                     .task => !std.mem.eql(u8, tag, "task"),
@@ -39,7 +44,7 @@ pub fn children(comptime scope: Scope) type {
                 .message = "Element is not allowed in this RX execution scope",
             });
         }
-    }, .{ .min = 1 });
+    };
 }
 
 fn schema(comptime tag: []const u8, comptime scope: Scope) type {
@@ -47,6 +52,7 @@ fn schema(comptime tag: []const u8, comptime scope: Scope) type {
     if (std.mem.eql(u8, tag, "task")) return if (scope == .parallel) flow.Task else @import("labels/Task.zig").Sequential;
     if (std.mem.eql(u8, tag, "parallel")) return flow.Parallel;
     if (std.mem.eql(u8, tag, "switch")) return flow.Switch;
+    if (std.mem.eql(u8, tag, "if")) return flow.If;
     if (std.mem.eql(u8, tag, "emit")) return flow.Emit;
     if (std.mem.eql(u8, tag, "return")) return flow.Return;
 

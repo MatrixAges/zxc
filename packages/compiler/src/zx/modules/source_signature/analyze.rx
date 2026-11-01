@@ -14,89 +14,83 @@
         }}
     />
 
-    <Switch on={$ctx.declarations.diagnostic.message == ""}>
-        <Case value={true}>
+    <If on={$ctx.declarations.diagnostic.message == ""}>
+        <Call
+            module="../../analysis/analyzer/signature"
+            in={{
+                syntax: $in.declarations.syntax,
+                types: $ctx.declarations.types
+            }}
+        />
+
+        <If on={$ctx.signature.diagnostic.message == ""}>
             <Call
-                module="../../analysis/analyzer/signature"
+                fn="../../analysis/analyzer/exports"
                 in={{
-                    syntax: $in.declarations.syntax,
-                    types: $ctx.declarations.types
+                    state: {
+                        types: $ctx.signature.types,
+                        diagnostic: $ctx.signature.diagnostic
+                    }
                 }}
             />
 
-            <Switch on={$ctx.signature.diagnostic.message == ""}>
-                <Case value={true}>
-                    <Call
-                        fn="../../analysis/analyzer/exports"
-                        in={{
-                            state: {
-                                types: $ctx.signature.types,
-                                diagnostic: $ctx.signature.diagnostic
-                            }
-                        }}
-                    />
+            <If on={$ctx.exports.state.diagnostic.message == ""}>
+                <Call
+                    fn="../../analysis/constants/declarations/analyze"
+                    in={{
+                        bytes: $in.declarations.bytes,
+                        syntax: $in.declarations.syntax,
+                        native: $in.declarations.native,
+                        types: $ctx.exports.state.types,
+                        imports: $in.imports
+                    }}
+                />
 
-                    <Switch on={$ctx.exports.state.diagnostic.message == ""}>
-                        <Case value={true}>
-                            <Call
-                                fn="../../analysis/constants/declarations/analyze"
-                                in={{
-                                    bytes: $in.declarations.bytes,
-                                    syntax: $in.declarations.syntax,
-                                    native: $in.declarations.native,
-                                    types: $ctx.exports.state.types,
-                                    imports: $in.imports
-                                }}
-                            />
+                <Return
+                    value={{
+                        ...$ctx.initial,
+                        type_delta: $ctx.analyze.types.delta,
+                        nominal_delta: $ctx.analyze.types.nominal_delta,
+                        input_type: $ctx.signature.input_type,
+                        output_type: $ctx.signature.output_type,
+                        export_names: $ctx.exports.names,
+                        export_types: $ctx.exports.types,
+                        constant_scope: $ctx.analyze.scope,
+                        constant_first: $ctx.analyze.first,
+                        diagnostic: $ctx.analyze.diagnostic
+                    }}
+                />
+            </If>
 
-                            <Return
-                                value={{
-                                    ...$ctx.initial,
-                                    type_delta: $ctx.analyze.types.delta,
-                                    nominal_delta: $ctx.analyze.types.nominal_delta,
-                                    input_type: $ctx.signature.input_type,
-                                    output_type: $ctx.signature.output_type,
-                                    export_names: $ctx.exports.names,
-                                    export_types: $ctx.exports.types,
-                                    constant_scope: $ctx.analyze.scope,
-                                    constant_first: $ctx.analyze.first,
-                                    diagnostic: $ctx.analyze.diagnostic
-                                }}
-                            />
-                        </Case>
-                    </Switch>
+            <Return
+                value={{
+                    ...$ctx.initial,
+                    type_delta: $ctx.exports.state.types.delta,
+                    nominal_delta: $ctx.exports.state.types.nominal_delta,
+                    input_type: $ctx.signature.input_type,
+                    output_type: $ctx.signature.output_type,
+                    export_names: $ctx.exports.names,
+                    export_types: $ctx.exports.types,
+                    diagnostic: $ctx.exports.state.diagnostic
+                }}
+            />
 
-                    <Return
-                        value={{
-                            ...$ctx.initial,
-                            type_delta: $ctx.exports.state.types.delta,
-                            nominal_delta: $ctx.exports.state.types.nominal_delta,
-                            input_type: $ctx.signature.input_type,
-                            output_type: $ctx.signature.output_type,
-                            export_names: $ctx.exports.names,
-                            export_types: $ctx.exports.types,
-                            diagnostic: $ctx.exports.state.diagnostic
-                        }}
-                    />
-                </Case>
+            <Else>
+                <Return
+                    value={{
+                        ...$ctx.initial,
+                        type_delta: $ctx.signature.types.delta,
+                        nominal_delta: $ctx.signature.types.nominal_delta,
+                        input_type: $ctx.signature.input_type,
+                        output_type: $ctx.signature.output_type,
+                        diagnostic: $ctx.signature.diagnostic
+                    }}
+                />
+            </Else>
+        </If>
 
-                <Default>
-                    <Return
-                        value={{
-                            ...$ctx.initial,
-                            type_delta: $ctx.signature.types.delta,
-                            nominal_delta: $ctx.signature.types.nominal_delta,
-                            input_type: $ctx.signature.input_type,
-                            output_type: $ctx.signature.output_type,
-                            diagnostic: $ctx.signature.diagnostic
-                        }}
-                    />
-                </Default>
-            </Switch>
-        </Case>
-
-        <Default>
+        <Else>
             <Return value={$ctx.initial} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

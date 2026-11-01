@@ -16,44 +16,42 @@
         }}
     />
 
-    <Switch on={$in.input.type_base.kinds.length == 0 || $ctx.validate_types}>
-        <Case value={true}>
-            <Call fn="types/request" in={$in.analysis.state.types} />
+    <If on={$in.input.type_base.kinds.length == 0 || $ctx.validate_types}>
+        <Call fn="types/request" in={$in.analysis.state.types} />
 
-            <Task
-                name="resolved"
-                out={{
-                    ...$in.analysis,
-                    state: {
-                        ...$in.analysis.state,
-                        types: {
-                            ...$in.analysis.state.types,
-                            delta: $ctx.resolve.delta,
-                            cache: $ctx.resolve.cache
-                        },
-                        diagnostic: $ctx.resolve.diagnostic
-                    }
-                }}
-            >
-                <Call module="../semantic/resolving/resolve" in={$ctx.request} />
-            </Task>
+        <Task
+            name="resolved"
+            out={{
+                ...$in.analysis,
+                state: {
+                    ...$in.analysis.state,
+                    types: {
+                        ...$in.analysis.state.types,
+                        delta: $ctx.resolve.delta,
+                        cache: $ctx.resolve.cache
+                    },
+                    diagnostic: $ctx.resolve.diagnostic
+                }
+            }}
+        >
+            <Call module="../semantic/resolving/resolve" in={$ctx.request} />
+        </Task>
 
-            <Call
-                fn="types/check"
-                in={{
-                    analysis: $ctx.task.resolved,
-                    constant_values: $in.input.constant_values,
-                    binding_types: $in.input.binding_types,
-                    alias_types: $in.input.alias_types,
-                    expected: $in.input.expected,
-                    check_bindings: $in.analysis.program
-                }}
-            />
+        <Call
+            fn="types/check"
+            in={{
+                analysis: $ctx.task.resolved,
+                constant_values: $in.input.constant_values,
+                binding_types: $in.input.binding_types,
+                alias_types: $in.input.alias_types,
+                expected: $in.input.expected,
+                check_bindings: $in.analysis.program
+            }}
+        />
 
-            <Return value={$ctx.check} />
-        </Case>
+        <Return value={$ctx.check} />
 
-        <Default>
+        <Else>
             <Return
                 value={{
                     ...$in.analysis,
@@ -68,6 +66,6 @@
                     }
                 }}
             />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

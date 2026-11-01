@@ -11,25 +11,21 @@
 
     <Call module="./body/structure" in={$in} />
 
-    <Switch on={$ctx.structure}>
-        <Case value={true}>
-            <Call fn="./body/references/expressions" in={$in.body} />
+    <If on={$ctx.structure}>
+        <Call fn="./body/references/expressions" in={$in.body} />
 
-            <Switch on={$ctx.expressions}>
-                <Case value={true}>
-                    <Call fn="./body/references/control" in={$in.body} />
+        <If on={$ctx.expressions}>
+            <Call fn="./body/references/control" in={$in.body} />
 
-                    <Return value={$ctx.control} />
-                </Case>
+            <Return value={$ctx.control} />
 
-                <Default>
-                    <Return value={false} />
-                </Default>
-            </Switch>
-        </Case>
+            <Else>
+                <Return value={false} />
+            </Else>
+        </If>
 
-        <Default>
+        <Else>
             <Return value={false} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

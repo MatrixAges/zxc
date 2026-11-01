@@ -21,47 +21,41 @@
         }}
     />
 
-    <Switch on={$ctx.shape}>
-        <Case value={true}>
+    <If on={$ctx.shape}>
+        <Call
+            fn="merging/preflight/origins"
+            in={{
+                source: $in.source,
+                origins: $in.origins,
+                names: $in.names
+            }}
+        />
+
+        <If on={$ctx.origins.valid}>
             <Call
-                fn="merging/preflight/origins"
+                fn="merging/preflight/bounds"
                 in={{
                     source: $in.source,
-                    origins: $in.origins,
-                    names: $in.names
+                    target: $in.target,
+                    first: $in.first
                 }}
             />
 
-            <Switch on={$ctx.origins.valid}>
-                <Case value={true}>
-                    <Call
-                        fn="merging/preflight/bounds"
-                        in={{
-                            source: $in.source,
-                            target: $in.target,
-                            first: $in.first
-                        }}
-                    />
+            <If on={$ctx.bounds}>
+                <Return value={$ctx.origins.indices} />
 
-                    <Switch on={$ctx.bounds}>
-                        <Case value={true}>
-                            <Return value={$ctx.origins.indices} />
-                        </Case>
-
-                        <Default>
-                            <Return value={null} />
-                        </Default>
-                    </Switch>
-                </Case>
-
-                <Default>
+                <Else>
                     <Return value={null} />
-                </Default>
-            </Switch>
-        </Case>
+                </Else>
+            </If>
 
-        <Default>
+            <Else>
+                <Return value={null} />
+            </Else>
+        </If>
+
+        <Else>
             <Return value={null} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

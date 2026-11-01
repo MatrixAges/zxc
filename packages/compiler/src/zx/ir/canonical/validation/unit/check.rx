@@ -13,35 +13,29 @@
         }}
     />
 
-    <Switch on={$ctx.stores_check}>
-        <Case value={true}>
-            <Call fn="ports" in={$in} />
+    <If on={$ctx.stores_check}>
+        <Call fn="ports" in={$in} />
 
-            <Switch on={$ctx.ports}>
-                <Case value={true}>
-                    <Switch on={$in.unit.type_only}>
-                        <Case value={true}>
-                            <Call fn="type_only" in={$in.unit} />
+        <If on={$ctx.ports}>
+            <If on={$in.unit.type_only}>
+                <Call fn="type_only" in={$in.unit} />
 
-                            <Return value={$ctx.type_only} />
-                        </Case>
+                <Return value={$ctx.type_only} />
 
-                        <Default>
-                            <Call module="body" in={$in} />
+                <Else>
+                    <Call module="body" in={$in} />
 
-                            <Return value={$ctx.body} />
-                        </Default>
-                    </Switch>
-                </Case>
+                    <Return value={$ctx.body} />
+                </Else>
+            </If>
 
-                <Default>
-                    <Return value={false} />
-                </Default>
-            </Switch>
-        </Case>
+            <Else>
+                <Return value={false} />
+            </Else>
+        </If>
 
-        <Default>
+        <Else>
             <Return value={false} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

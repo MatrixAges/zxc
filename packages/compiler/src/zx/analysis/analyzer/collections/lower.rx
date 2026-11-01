@@ -31,66 +31,62 @@
         }}
     />
 
-    <Switch on={$ctx.initial_state.state.diagnostic.message == ""}>
-        <Case value={true}>
+    <If on={$ctx.initial_state.state.diagnostic.message == ""}>
+        <Call
+            fn="lowering/parameters"
+            in={{
+                state: $ctx.initial_state.state,
+                initial: $ctx.initial_state.value,
+                span: $in.span
+            }}
+        />
+
+        <Call
+            fn="lowering/condition"
+            in={{
+                state: $ctx.parameters.state,
+                span: $in.span,
+                kind: $in.kind,
+                parameter: $ctx.parameters.condition_parameter
+            }}
+        />
+
+        <Call
+            module="step"
+            in={{
+                state: $ctx.condition.state,
+                kind: $in.kind,
+                parameter: $ctx.parameters.parameter,
+                callback: $in.callback,
+                span: $in.span
+            }}
+        />
+
+        <If on={$ctx.step.state.diagnostic.message == ""}>
             <Call
-                fn="lowering/parameters"
+                fn="lowering/finish"
                 in={{
-                    state: $ctx.initial_state.state,
+                    state: $ctx.step.state,
                     initial: $ctx.initial_state.value,
-                    span: $in.span
-                }}
-            />
-
-            <Call
-                fn="lowering/condition"
-                in={{
-                    state: $ctx.parameters.state,
-                    span: $in.span,
-                    kind: $in.kind,
-                    parameter: $ctx.parameters.condition_parameter
-                }}
-            />
-
-            <Call
-                module="step"
-                in={{
-                    state: $ctx.condition.state,
-                    kind: $in.kind,
+                    condition_parameter: $ctx.parameters.condition_parameter,
                     parameter: $ctx.parameters.parameter,
-                    callback: $in.callback,
+                    condition: $ctx.condition.value,
+                    body: $ctx.step.value,
+                    bindings: $ctx.source.bindings,
+                    result_type: $in.result_type,
                     span: $in.span
                 }}
             />
 
-            <Switch on={$ctx.step.state.diagnostic.message == ""}>
-                <Case value={true}>
-                    <Call
-                        fn="lowering/finish"
-                        in={{
-                            state: $ctx.step.state,
-                            initial: $ctx.initial_state.value,
-                            condition_parameter: $ctx.parameters.condition_parameter,
-                            parameter: $ctx.parameters.parameter,
-                            condition: $ctx.condition.value,
-                            body: $ctx.step.value,
-                            bindings: $ctx.source.bindings,
-                            result_type: $in.result_type,
-                            span: $in.span
-                        }}
-                    />
+            <Return value={$ctx.finish} />
 
-                    <Return value={$ctx.finish} />
-                </Case>
+            <Else>
+                <Return value={$ctx.step} />
+            </Else>
+        </If>
 
-                <Default>
-                    <Return value={$ctx.step} />
-                </Default>
-            </Switch>
-        </Case>
-
-        <Default>
+        <Else>
             <Return value={$ctx.initial_state} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

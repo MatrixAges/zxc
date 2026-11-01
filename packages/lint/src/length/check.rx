@@ -7,23 +7,19 @@
         out={u64?}
     />
 
-    <Switch on={$in.maximum != null && $in.maximum == 0}>
-        <Case value={true}>
-            <Return value={null} />
-        </Case>
+    <If on={$in.maximum != null && $in.maximum == 0}>
+        <Return value={null} />
 
-        <Default>
+        <Else>
             <Call fn="count" in={$in.text} />
 
-            <Switch on={$in.maximum == null || $ctx.count > $in.maximum}>
-                <Case value={true}>
-                    <Return value={$ctx.count} />
-                </Case>
+            <If on={$in.maximum == null || $ctx.count > $in.maximum}>
+                <Return value={$ctx.count} />
 
-                <Default>
+                <Else>
                     <Return value={null} />
-                </Default>
-            </Switch>
-        </Default>
-    </Switch>
+                </Else>
+            </If>
+        </Else>
+    </If>
 </Module>

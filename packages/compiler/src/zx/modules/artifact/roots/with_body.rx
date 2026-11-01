@@ -17,21 +17,19 @@
         }}
     />
 
-    <Switch on={$ctx.body_valid}>
-        <Case value={true}>
-            <Call
-                module="reachable"
-                in={{
-                    request: $in.request,
-                    body: $in.body
-                }}
-            />
+    <If on={$ctx.body_valid}>
+        <Call
+            module="reachable"
+            in={{
+                request: $in.request,
+                body: $in.body
+            }}
+        />
 
-            <Return value={$ctx.reachable} />
-        </Case>
+        <Return value={$ctx.reachable} />
 
-        <Default>
+        <Else>
             <Return value={null} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

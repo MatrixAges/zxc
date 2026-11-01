@@ -37,45 +37,43 @@
         }}
     />
 
-    <Switch on={$ctx.types.status == 0}>
-        <Case value={true}>
-            <Call
-                fn="functions"
-                in={{
-                    source: $in.program.context.functions,
-                    mapping: $ctx.types.mapping,
-                    module_id: $in.input.module_id
-                }}
-            />
+    <If on={$ctx.types.status == 0}>
+        <Call
+            fn="functions"
+            in={{
+                source: $in.program.context.functions,
+                mapping: $ctx.types.mapping,
+                module_id: $in.input.module_id
+            }}
+        />
 
-            <Call
-                fn="../../../compiled/loading/type_delta"
-                in={{
-                    base: $ctx.type_base,
-                    delta: $ctx.types.delta,
-                    existing_count: $in.input.base.kinds.length
-                }}
-            />
+        <Call
+            fn="../../../compiled/loading/type_delta"
+            in={{
+                base: $ctx.type_base,
+                delta: $ctx.types.delta,
+                existing_count: $in.input.base.kinds.length
+            }}
+        />
 
-            <Call
-                fn="publish"
-                in={{
-                    request: $in.input.validation.request,
-                    types: $ctx.type_delta,
-                    origins: $ctx.types.origins,
-                    functions: $ctx.functions,
-                    mapping: $ctx.types.mapping
-                }}
-            />
+        <Call
+            fn="publish"
+            in={{
+                request: $in.input.validation.request,
+                types: $ctx.type_delta,
+                origins: $ctx.types.origins,
+                functions: $ctx.functions,
+                mapping: $ctx.types.mapping
+            }}
+        />
 
-            <Return value={$ctx.publish} />
-        </Case>
+        <Return value={$ctx.publish} />
 
-        <Default>
+        <Else>
             <Call fn="merge_status" in={$ctx.types.status} />
             <Call fn="failed" in={$ctx.merge_status} />
 
             <Return value={$ctx.failed} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

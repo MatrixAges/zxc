@@ -5,21 +5,19 @@
 
     <Call fn="collect" in={$in} />
 
-    <Switch on={$ctx.collect.valid}>
-        <Case value={true}>
-            <Call
-                fn="closure"
-                in={{
-                    table: $in.request.table,
-                    needed: $ctx.collect.needed
-                }}
-            />
+    <If on={$ctx.collect.valid}>
+        <Call
+            fn="closure"
+            in={{
+                table: $in.request.table,
+                needed: $ctx.collect.needed
+            }}
+        />
 
-            <Return value={$ctx.closure.valid ? $ctx.closure.needed : null} />
-        </Case>
+        <Return value={$ctx.closure.valid ? $ctx.closure.needed : null} />
 
-        <Default>
+        <Else>
             <Return value={null} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

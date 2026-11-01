@@ -14,35 +14,29 @@
         }}
     />
 
-    <Switch on={$ctx.contracts_check}>
-        <Case value={true}>
-            <Call fn="symbols" in={$in} />
+    <If on={$ctx.contracts_check}>
+        <Call fn="symbols" in={$in} />
 
-            <Switch on={$ctx.symbols}>
-                <Case value={true}>
-                    <Call fn="expressions" in={$in} />
+        <If on={$ctx.symbols}>
+            <Call fn="expressions" in={$in} />
 
-                    <Switch on={$ctx.expressions}>
-                        <Case value={true}>
-                            <Call module="flow" in={$in} />
+            <If on={$ctx.expressions}>
+                <Call module="flow" in={$in} />
 
-                            <Return value={$ctx.flow} />
-                        </Case>
+                <Return value={$ctx.flow} />
 
-                        <Default>
-                            <Return value={false} />
-                        </Default>
-                    </Switch>
-                </Case>
-
-                <Default>
+                <Else>
                     <Return value={false} />
-                </Default>
-            </Switch>
-        </Case>
+                </Else>
+            </If>
 
-        <Default>
+            <Else>
+                <Return value={false} />
+            </Else>
+        </If>
+
+        <Else>
             <Return value={false} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

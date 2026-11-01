@@ -3,12 +3,10 @@
 
     <Call fn="prepare" in={$in} />
 
-    <Switch on={$ctx.prepare.has_trivia}>
-        <Case value={false}>
-            <Return value={$in} />
-        </Case>
+    <If on={!$ctx.prepare.has_trivia}>
+        <Return value={$in} />
 
-        <Default>
+        <Else>
             <Call module="../lexer/scan" in={$ctx.prepare.bytes} />
 
             <Call
@@ -20,6 +18,6 @@
             />
 
             <Return value={$ctx.compact} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

@@ -11,15 +11,13 @@
         }}
     />
 
-    <Switch on={$ctx.unit}>
-        <Case value={true}>
-            <Call fn="structure/walk" in={$in.context} />
+    <If on={$ctx.unit}>
+        <Call fn="structure/walk" in={$in.context} />
 
-            <Return value={$ctx.walk} />
-        </Case>
+        <Return value={$ctx.walk} />
 
-        <Default>
+        <Else>
             <Return value={false} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

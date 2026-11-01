@@ -1,15 +1,13 @@
 <Module>
     <Args in={string[]} out={string} />
 
-    <Switch on={$in.length == 0}>
-        <Case value={true}>
-            <Return value={"false"} />
-        </Case>
+    <If on={$in.length == 0}>
+        <Return value={"false"} />
 
-        <Default>
+        <Else>
             <Call fn="disjunction" in={$in} />
 
             <Return value={$ctx.disjunction} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

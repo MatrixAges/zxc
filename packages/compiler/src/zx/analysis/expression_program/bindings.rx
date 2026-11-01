@@ -4,65 +4,59 @@
 
     <Args in={Request.Input} out={Model.Analysis} />
 
-    <Switch on={$in.analysis.state.diagnostic.message == ""}>
-        <Case value={true}>
+    <If on={$in.analysis.state.diagnostic.message == ""}>
+        <Call
+            fn="bindings/units"
+            in={{
+                analysis: $in.analysis,
+                names: $in.input.unit_bindings
+            }}
+        />
+
+        <If on={$ctx.units.state.diagnostic.message == ""}>
             <Call
-                fn="bindings/units"
+                fn="bindings/values"
                 in={{
-                    analysis: $in.analysis,
-                    names: $in.input.unit_bindings
+                    analysis: $ctx.units,
+                    names: $in.input.binding_names,
+                    types: $in.input.binding_types
                 }}
             />
 
-            <Switch on={$ctx.units.state.diagnostic.message == ""}>
-                <Case value={true}>
+            <If on={$ctx.values.program}>
+                <Call
+                    fn="bindings/projections"
+                    in={{
+                        analysis: $ctx.values,
+                        types: $in.input.binding_types
+                    }}
+                />
+
+                <Return value={$ctx.projections} />
+
+                <Else>
                     <Call
-                        fn="bindings/values"
+                        fn="types/check"
                         in={{
-                            analysis: $ctx.units,
-                            names: $in.input.binding_names,
-                            types: $in.input.binding_types
+                            analysis: $ctx.values,
+                            binding_types: [],
+                            alias_types: [],
+                            expected: $in.input.expected,
+                            check_bindings: true
                         }}
                     />
 
-                    <Switch on={$ctx.values.program}>
-                        <Case value={true}>
-                            <Call
-                                fn="bindings/projections"
-                                in={{
-                                    analysis: $ctx.values,
-                                    types: $in.input.binding_types
-                                }}
-                            />
+                    <Return value={$ctx.check} />
+                </Else>
+            </If>
 
-                            <Return value={$ctx.projections} />
-                        </Case>
+            <Else>
+                <Return value={$ctx.units} />
+            </Else>
+        </If>
 
-                        <Default>
-                            <Call
-                                fn="types/check"
-                                in={{
-                                    analysis: $ctx.values,
-                                    binding_types: [],
-                                    alias_types: [],
-                                    expected: $in.input.expected,
-                                    check_bindings: true
-                                }}
-                            />
-
-                            <Return value={$ctx.check} />
-                        </Default>
-                    </Switch>
-                </Case>
-
-                <Default>
-                    <Return value={$ctx.units} />
-                </Default>
-            </Switch>
-        </Case>
-
-        <Default>
+        <Else>
             <Return value={$in.analysis} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

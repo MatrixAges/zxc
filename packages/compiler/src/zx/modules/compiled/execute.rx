@@ -11,13 +11,11 @@
         }}
     />
 
-    <Switch on={$ctx.destination}>
-        <Case value={false}>
-            <Call fn="empty" in={7} />
+    <If on={!$ctx.destination}>
+        <Call fn="empty" in={7} />
 
-            <Return value={$ctx.empty} />
-        </Case>
-    </Switch>
+        <Return value={$ctx.empty} />
+    </If>
 
     <Call
         fn="identity/valid"
@@ -28,31 +26,25 @@
         }}
     />
 
-    <Switch on={$ctx.valid}>
-        <Case value={false}>
-            <Call fn="empty" in={1} />
+    <If on={!$ctx.valid}>
+        <Call fn="empty" in={1} />
 
-            <Return value={$ctx.empty} />
-        </Case>
-    </Switch>
+        <Return value={$ctx.empty} />
+    </If>
 
     <Call module="validate" in={$in.graph} />
 
-    <Switch on={$ctx.validate}>
-        <Case value={false}>
-            <Call fn="empty" in={1} />
+    <If on={!$ctx.validate}>
+        <Call fn="empty" in={1} />
 
-            <Return value={$ctx.empty} />
-        </Case>
-    </Switch>
+        <Return value={$ctx.empty} />
+    </If>
 
-    <Switch on={$in.load}>
-        <Case value={false}>
-            <Call fn="empty" in={0} />
+    <If on={!$in.load}>
+        <Call fn="empty" in={0} />
 
-            <Return value={$ctx.empty} />
-        </Case>
-    </Switch>
+        <Return value={$ctx.empty} />
+    </If>
 
     <Call module="load" in={$in} />
 

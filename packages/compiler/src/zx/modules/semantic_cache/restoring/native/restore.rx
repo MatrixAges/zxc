@@ -17,40 +17,36 @@
 
     <Call module="eligible" in={$in.validation.request} />
 
-    <Switch on={$ctx.eligible}>
-        <Case value={true}>
-            <Call fn="program" in={$in.validation} />
+    <If on={$ctx.eligible}>
+        <Call fn="program" in={$in.validation} />
 
+        <Call
+            module="../../../../ir/canonical/validation/validate"
+            in={$ctx.program}
+        />
+
+        <If on={$ctx.validate}>
             <Call
-                module="../../../../ir/canonical/validation/validate"
-                in={$ctx.program}
+                module="merge"
+                in={{
+                    input: $in,
+                    program: $ctx.program
+                }}
             />
 
-            <Switch on={$ctx.validate}>
-                <Case value={true}>
-                    <Call
-                        module="merge"
-                        in={{
-                            input: $in,
-                            program: $ctx.program
-                        }}
-                    />
+            <Return value={$ctx.merge} />
 
-                    <Return value={$ctx.merge} />
-                </Case>
+            <Else>
+                <Call fn="failed" in={2} />
 
-                <Default>
-                    <Call fn="failed" in={2} />
+                <Return value={$ctx.failed} />
+            </Else>
+        </If>
 
-                    <Return value={$ctx.failed} />
-                </Default>
-            </Switch>
-        </Case>
-
-        <Default>
+        <Else>
             <Call fn="failed" in={1} />
 
             <Return value={$ctx.failed} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

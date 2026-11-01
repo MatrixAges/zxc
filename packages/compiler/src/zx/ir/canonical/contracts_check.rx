@@ -11,15 +11,13 @@
         }}
     />
 
-    <Switch on={$ctx.contract_tables_check}>
-        <Case value={true}>
-            <Call fn="./contracts/predicates" in={$in} />
+    <If on={$ctx.contract_tables_check}>
+        <Call fn="./contracts/predicates" in={$in} />
 
-            <Return value={$ctx.predicates} />
-        </Case>
+        <Return value={$ctx.predicates} />
 
-        <Default>
+        <Else>
             <Return value={false} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

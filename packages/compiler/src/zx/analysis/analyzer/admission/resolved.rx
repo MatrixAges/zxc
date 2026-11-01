@@ -5,11 +5,9 @@
 
     <Call fn="resolved/constants" in={$in} />
 
-    <Switch on={!$ctx.constants}>
-        <Case value={true}>
-            <Return value={false} />
-        </Case>
-    </Switch>
+    <If on={!$ctx.constants}>
+        <Return value={false} />
+    </If>
 
     <Call
         fn="../../../ir/canonical/validation/structure/functions"
@@ -19,27 +17,21 @@
         }}
     />
 
-    <Switch on={!$ctx.functions}>
-        <Case value={true}>
-            <Return value={false} />
-        </Case>
-    </Switch>
+    <If on={!$ctx.functions}>
+        <Return value={false} />
+    </If>
 
     <Call fn="resolved/aliases" in={$in} />
 
-    <Switch on={!$ctx.aliases}>
-        <Case value={true}>
-            <Return value={false} />
-        </Case>
-    </Switch>
+    <If on={!$ctx.aliases}>
+        <Return value={false} />
+    </If>
 
     <Call fn="resolved/bindings" in={$in} />
 
-    <Switch on={!$ctx.bindings}>
-        <Case value={true}>
-            <Return value={false} />
-        </Case>
-    </Switch>
+    <If on={!$ctx.bindings}>
+        <Return value={false} />
+    </If>
 
     <Call fn="resolved/declarations" in={$in} />
 

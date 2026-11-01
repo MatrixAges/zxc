@@ -5,16 +5,14 @@
 
     <Call fn="closure" in={$in} />
 
-    <Switch on={$ctx.closure.message != ""}>
-        <Case value={true}>
-            <Return
-                value={{
-                    value: null,
-                    diagnostic: $ctx.closure
-                }}
-            />
-        </Case>
-    </Switch>
+    <If on={$ctx.closure.message != ""}>
+        <Return
+            value={{
+                value: null,
+                diagnostic: $ctx.closure
+            }}
+        />
+    </If>
 
     <Call fn="initial" in={$in} />
 

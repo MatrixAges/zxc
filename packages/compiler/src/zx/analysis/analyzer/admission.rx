@@ -6,59 +6,51 @@
 
     <Call fn="admission/mode" in={$in.context.mode} />
 
-    <Switch on={!$ctx.mode.validate}>
-        <Case value={true}>
+    <If on={!$ctx.mode.validate}>
+        <Return
+            value={{
+                code: "",
+                message: "",
+                start: 0,
+                end: 0
+            }}
+        />
+    </If>
+
+    <If on={$ctx.mode.standalone && $in.syntax.imports.length > 0}>
+        <Return
+            value={{
+                code: "module",
+                message:
+                    "modules with imports require the project analysis entry point",
+                start: $in.syntax.imports[0].span.start,
+                end: $in.syntax.imports[0].span.end
+            }}
+        />
+    </If>
+
+    <If on={$in.context.type_base.kinds.length > 0}>
+        <Call
+            module="../semantic/validate_types"
+            in={{
+                table: $in.context.type_base,
+                scalar_count: $in.context.scalar_count,
+                maximum_count: $in.context.maximum_count,
+                trusted: $ctx.mode.resolved
+            }}
+        />
+
+        <If on={!$ctx.validate_types}>
             <Return
                 value={{
-                    code: "",
-                    message: "",
+                    code: "contract",
+                    message: "invalid shared type table",
                     start: 0,
                     end: 0
                 }}
             />
-        </Case>
-    </Switch>
-
-    <Switch on={$ctx.mode.standalone && $in.syntax.imports.length > 0}>
-        <Case value={true}>
-            <Return
-                value={{
-                    code: "module",
-                    message:
-                        "modules with imports require the project analysis entry point",
-                    start: $in.syntax.imports[0].span.start,
-                    end: $in.syntax.imports[0].span.end
-                }}
-            />
-        </Case>
-    </Switch>
-
-    <Switch on={$in.context.type_base.kinds.length > 0}>
-        <Case value={true}>
-            <Call
-                module="../semantic/validate_types"
-                in={{
-                    table: $in.context.type_base,
-                    scalar_count: $in.context.scalar_count,
-                    maximum_count: $in.context.maximum_count,
-                    trusted: $ctx.mode.resolved
-                }}
-            />
-
-            <Switch on={!$ctx.validate_types}>
-                <Case value={true}>
-                    <Return
-                        value={{
-                            code: "contract",
-                            message: "invalid shared type table",
-                            start: 0,
-                            end: 0
-                        }}
-                    />
-                </Case>
-            </Switch>
-        </Case>
-    </Switch>
+        </If>
+    </If>
 
     <Call
         module="../../ir/canonical/native_modules_check"
@@ -68,51 +60,45 @@
         }}
     />
 
-    <Switch on={!$ctx.native_modules_check}>
-        <Case value={true}>
+    <If on={!$ctx.native_modules_check}>
+        <Return
+            value={{
+                code: "contract",
+                message: "invalid shared native module table",
+                start: 0,
+                end: 0
+            }}
+        />
+    </If>
+
+    <If on={$ctx.mode.resolved}>
+        <Call
+            module="admission/resolved"
+            in={{
+                source_text: $in.source_text,
+                native: $in.native,
+                syntax: $in.syntax,
+                table: $in.context.type_base,
+                aliases: $in.context.aliases,
+                constants: $in.context.constant_imports,
+                bindings: $in.context.function_imports,
+                functions: $in.context.complete_functions,
+                maximum_count: $in.context.maximum_count
+            }}
+        />
+
+        <If on={!$ctx.resolved}>
             <Return
                 value={{
                     code: "contract",
-                    message: "invalid shared native module table",
+                    message:
+                        "resolved imports do not match the source declarations and function signatures",
                     start: 0,
                     end: 0
                 }}
             />
-        </Case>
-    </Switch>
-
-    <Switch on={$ctx.mode.resolved}>
-        <Case value={true}>
-            <Call
-                module="admission/resolved"
-                in={{
-                    source_text: $in.source_text,
-                    native: $in.native,
-                    syntax: $in.syntax,
-                    table: $in.context.type_base,
-                    aliases: $in.context.aliases,
-                    constants: $in.context.constant_imports,
-                    bindings: $in.context.function_imports,
-                    functions: $in.context.complete_functions,
-                    maximum_count: $in.context.maximum_count
-                }}
-            />
-
-            <Switch on={!$ctx.resolved}>
-                <Case value={true}>
-                    <Return
-                        value={{
-                            code: "contract",
-                            message:
-                                "resolved imports do not match the source declarations and function signatures",
-                            start: 0,
-                            end: 0
-                        }}
-                    />
-                </Case>
-            </Switch>
-        </Case>
-    </Switch>
+        </If>
+    </If>
 
     <Call
         module="../semantic/origins"
@@ -123,18 +109,16 @@
         }}
     />
 
-    <Switch on={!$ctx.origins}>
-        <Case value={true}>
-            <Return
-                value={{
-                    code: "contract",
-                    message: "invalid shared nominal type table",
-                    start: 0,
-                    end: 0
-                }}
-            />
-        </Case>
-    </Switch>
+    <If on={!$ctx.origins}>
+        <Return
+            value={{
+                code: "contract",
+                message: "invalid shared nominal type table",
+                start: 0,
+                end: 0
+            }}
+        />
+    </If>
 
     <Return
         value={{

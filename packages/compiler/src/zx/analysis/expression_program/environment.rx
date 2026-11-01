@@ -4,31 +4,27 @@
 
     <Args in={Request.Input} out={Model.Analysis} />
 
-    <Switch on={$in.analysis.program && $in.analysis.state.diagnostic.message == ""}>
-        <Case value={true}>
-            <Call
-                fn="environment/tuple"
-                in={{
-                    analysis: $in.analysis,
-                    types: $in.input.binding_types
-                }}
-            />
+    <If on={$in.analysis.program && $in.analysis.state.diagnostic.message == ""}>
+        <Call
+            fn="environment/tuple"
+            in={{
+                analysis: $in.analysis,
+                types: $in.input.binding_types
+            }}
+        />
 
-            <Switch on={$ctx.tuple.state.diagnostic.message == ""}>
-                <Case value={true}>
-                    <Call fn="environment/input" in={$ctx.tuple} />
+        <If on={$ctx.tuple.state.diagnostic.message == ""}>
+            <Call fn="environment/input" in={$ctx.tuple} />
 
-                    <Return value={$ctx.input} />
-                </Case>
+            <Return value={$ctx.input} />
 
-                <Default>
-                    <Return value={$ctx.tuple} />
-                </Default>
-            </Switch>
-        </Case>
+            <Else>
+                <Return value={$ctx.tuple} />
+            </Else>
+        </If>
 
-        <Default>
+        <Else>
             <Return value={$in.analysis} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

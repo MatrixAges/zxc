@@ -11,15 +11,13 @@
         }}
     />
 
-    <Switch on={$ctx.shape}>
-        <Case value={true}>
-            <Call fn="types/nominal/validate" in={$in} />
+    <If on={$ctx.shape}>
+        <Call fn="types/nominal/validate" in={$in} />
 
-            <Return value={$ctx.validate} />
-        </Case>
+        <Return value={$ctx.validate} />
 
-        <Default>
+        <Else>
             <Return value={false} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

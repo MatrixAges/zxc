@@ -33,26 +33,24 @@
         }}
     />
 
-    <Switch on={$ctx.normalize.conflict}>
-        <Case value={true}>
-            <Return
-                value={{
-                    delta: $in.delta,
-                    cache: $in.cache,
-                    id: $in.id,
-                    origins: $ctx.normalize.origins,
-                    diagnostic: {
-                        code: "type_mismatch",
-                        message:
-                            "shared nominal declaration has incompatible identity or members",
-                        start: 0,
-                        end: 0
-                    }
-                }}
-            />
-        </Case>
+    <If on={$ctx.normalize.conflict}>
+        <Return
+            value={{
+                delta: $in.delta,
+                cache: $in.cache,
+                id: $in.id,
+                origins: $ctx.normalize.origins,
+                diagnostic: {
+                    code: "type_mismatch",
+                    message:
+                        "shared nominal declaration has incompatible identity or members",
+                    start: 0,
+                    end: 0
+                }
+            }}
+        />
 
-        <Default>
+        <Else>
             <Call
                 fn="cache"
                 in={{
@@ -89,6 +87,6 @@
                     }
                 }}
             />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

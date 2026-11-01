@@ -6,35 +6,33 @@
 
     <Call module="resolving/resolve" in={$in.request} />
 
-    <Switch
+    <If
         on={$in.request.initialize && $in.shared && $ctx.resolve.diagnostic.message == ""}
     >
-        <Case value={true}>
-            <Call
-                module="normalizing/normalize"
-                in={{
-                    base: $in.request.context.base,
-                    delta: $ctx.resolve.delta,
-                    cache: $ctx.resolve.cache,
-                    id: $ctx.resolve.id,
-                    origins: $in.origins,
-                    origin: $in.origin
-                }}
-            />
+        <Call
+            module="normalizing/normalize"
+            in={{
+                base: $in.request.context.base,
+                delta: $ctx.resolve.delta,
+                cache: $ctx.resolve.cache,
+                id: $ctx.resolve.id,
+                origins: $in.origins,
+                origin: $in.origin
+            }}
+        />
 
-            <Return
-                value={{
-                    delta: $ctx.normalize.delta,
-                    cache: $ctx.normalize.cache,
-                    id: $ctx.normalize.id,
-                    diagnostic: $ctx.normalize.diagnostic,
-                    origins: $ctx.normalize.origins,
-                    publish: $ctx.normalize.diagnostic.message == ""
-                }}
-            />
-        </Case>
+        <Return
+            value={{
+                delta: $ctx.normalize.delta,
+                cache: $ctx.normalize.cache,
+                id: $ctx.normalize.id,
+                diagnostic: $ctx.normalize.diagnostic,
+                origins: $ctx.normalize.origins,
+                publish: $ctx.normalize.diagnostic.message == ""
+            }}
+        />
 
-        <Default>
+        <Else>
             <Return
                 value={{
                     delta: $ctx.resolve.delta,
@@ -50,6 +48,6 @@
                     }
                 }}
             />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

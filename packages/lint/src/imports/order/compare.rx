@@ -5,18 +5,16 @@
 
     <Call fn="classify" in={$in} />
 
-    <Switch on={$ctx.classify.left_category != $ctx.classify.right_category}>
-        <Case value={true}>
-            <Return
-                value={{
-                    less_than:
-                        $ctx.classify.left_category < $ctx.classify.right_category,
-                    same_group: $ctx.classify.same_group
-                }}
-            />
-        </Case>
+    <If on={$ctx.classify.left_category != $ctx.classify.right_category}>
+        <Return
+            value={{
+                less_than:
+                    $ctx.classify.left_category < $ctx.classify.right_category,
+                same_group: $ctx.classify.same_group
+            }}
+        />
 
-        <Default>
+        <Else>
             <Call fn="path_order" in={$in} />
 
             <Return
@@ -25,6 +23,6 @@
                     same_group: true
                 }}
             />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

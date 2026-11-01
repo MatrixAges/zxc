@@ -18,80 +18,74 @@
         }}
     />
 
-    <Switch on={$ctx.declarations.diagnostic.message == ""}>
-        <Case value={true}>
+    <If on={$ctx.declarations.diagnostic.message == ""}>
+        <Call
+            module="signature"
+            in={{
+                syntax: $in.syntax,
+                types: $ctx.declarations.types
+            }}
+        />
+
+        <If on={$ctx.signature.diagnostic.message == ""}>
             <Call
-                module="signature"
+                module="stores"
                 in={{
-                    syntax: $in.syntax,
-                    types: $ctx.declarations.types
+                    context: $in.context,
+                    signature: $ctx.signature,
+                    has_store: $in.syntax.has_store
                 }}
             />
 
-            <Switch on={$ctx.signature.diagnostic.message == ""}>
-                <Case value={true}>
-                    <Call
-                        module="stores"
-                        in={{
-                            context: $in.context,
-                            signature: $ctx.signature,
-                            has_store: $in.syntax.has_store
-                        }}
-                    />
+            <If on={$ctx.stores.diagnostic.message == ""}>
+                <Call
+                    module="initialize"
+                    in={{
+                        signature: $ctx.signature,
+                        stores: $ctx.stores.stores,
+                        allow_store: $ctx.stores.allow_store,
+                        has_body: $in.syntax.body != null
+                    }}
+                />
 
-                    <Switch on={$ctx.stores.diagnostic.message == ""}>
-                        <Case value={true}>
-                            <Call
-                                module="initialize"
-                                in={{
-                                    signature: $ctx.signature,
-                                    stores: $ctx.stores.stores,
-                                    allow_store: $ctx.stores.allow_store,
-                                    has_body: $in.syntax.body != null
-                                }}
-                            />
+                <Return
+                    value={{
+                        types: $ctx.signature.types,
+                        local: $ctx.initialize.local,
+                        input_type: $ctx.signature.input_type,
+                        diagnostic: $ctx.initialize.diagnostic
+                    }}
+                />
 
-                            <Return
-                                value={{
-                                    types: $ctx.signature.types,
-                                    local: $ctx.initialize.local,
-                                    input_type: $ctx.signature.input_type,
-                                    diagnostic: $ctx.initialize.diagnostic
-                                }}
-                            />
-                        </Case>
-
-                        <Default>
-                            <Call
-                                fn="failure"
-                                in={{
-                                    module: $in,
-                                    types: $ctx.signature.types,
-                                    diagnostic: $ctx.stores.diagnostic
-                                }}
-                            />
-
-                            <Return value={$ctx.failure} />
-                        </Default>
-                    </Switch>
-                </Case>
-
-                <Default>
+                <Else>
                     <Call
                         fn="failure"
                         in={{
                             module: $in,
                             types: $ctx.signature.types,
-                            diagnostic: $ctx.signature.diagnostic
+                            diagnostic: $ctx.stores.diagnostic
                         }}
                     />
 
                     <Return value={$ctx.failure} />
-                </Default>
-            </Switch>
-        </Case>
+                </Else>
+            </If>
 
-        <Default>
+            <Else>
+                <Call
+                    fn="failure"
+                    in={{
+                        module: $in,
+                        types: $ctx.signature.types,
+                        diagnostic: $ctx.signature.diagnostic
+                    }}
+                />
+
+                <Return value={$ctx.failure} />
+            </Else>
+        </If>
+
+        <Else>
             <Call
                 fn="failure"
                 in={{
@@ -102,6 +96,6 @@
             />
 
             <Return value={$ctx.failure} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

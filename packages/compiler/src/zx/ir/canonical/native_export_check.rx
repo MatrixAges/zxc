@@ -5,73 +5,65 @@
 
     <Call fn="./native/exports/owner" in={$in} />
 
-    <Switch on={$ctx.owner != null}>
-        <Case value={true}>
+    <If on={$ctx.owner != null}>
+        <Call
+            fn="./native/export_name"
+            in={{
+                functions: $in.functions,
+                index: $in.index
+            }}
+        />
+
+        <Call fn="./native/text" in={$ctx.export_name} />
+
+        <If on={$ctx.text}>
             <Call
-                fn="./native/export_name"
+                fn="./native/exports/effects"
                 in={{
-                    functions: $in.functions,
-                    index: $in.index
+                    members: $in.functions.native_errors[$in.index],
+                    fallible: $in.functions.native_fallible[$in.index]
                 }}
             />
 
-            <Call fn="./native/text" in={$ctx.export_name} />
+            <If on={$ctx.effects}>
+                <Call
+                    fn="./native/exports/unoccupied"
+                    in={{
+                        modules: $in.modules,
+                        owner: $ctx.owner,
+                        name: $ctx.export_name
+                    }}
+                />
 
-            <Switch on={$ctx.text}>
-                <Case value={true}>
+                <If on={$ctx.unoccupied}>
                     <Call
-                        fn="./native/exports/effects"
+                        fn="./native/exports/compatible"
                         in={{
-                            members: $in.functions.native_errors[$in.index],
-                            fallible: $in.functions.native_fallible[$in.index]
+                            context: $in,
+                            owner: $ctx.owner,
+                            name: $ctx.export_name
                         }}
                     />
 
-                    <Switch on={$ctx.effects}>
-                        <Case value={true}>
-                            <Call
-                                fn="./native/exports/unoccupied"
-                                in={{
-                                    modules: $in.modules,
-                                    owner: $ctx.owner,
-                                    name: $ctx.export_name
-                                }}
-                            />
+                    <Return value={$ctx.compatible} />
 
-                            <Switch on={$ctx.unoccupied}>
-                                <Case value={true}>
-                                    <Call
-                                        fn="./native/exports/compatible"
-                                        in={{
-                                            context: $in,
-                                            owner: $ctx.owner,
-                                            name: $ctx.export_name
-                                        }}
-                                    />
+                    <Else>
+                        <Return value={false} />
+                    </Else>
+                </If>
 
-                                    <Return value={$ctx.compatible} />
-                                </Case>
-
-                                <Default>
-                                    <Return value={false} />
-                                </Default>
-                            </Switch>
-                        </Case>
-
-                        <Default>
-                            <Return value={false} />
-                        </Default>
-                    </Switch>
-                </Case>
-
-                <Default>
+                <Else>
                     <Return value={false} />
-                </Default>
-            </Switch>
-        </Case>
+                </Else>
+            </If>
 
-        <Default>
+            <Else>
+                <Return value={false} />
+            </Else>
+        </If>
+
+        <Else>
             <Return value={false} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

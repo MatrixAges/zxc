@@ -4,47 +4,43 @@
 
     <Args in={Request.Input} out={Model.Analysis} />
 
-    <Switch
+    <If
         on={$in.analysis.program && $in.analysis.state.diagnostic.message == "" &&
             $in.input.nonnull_bindings.length != 0}
     >
-        <Case value={true}>
-            <Switch on={$in.analysis.linking}>
-                <Case value={true}>
-                    <Call
-                        fn="facts/add"
-                        in={{
-                            analysis: $in.analysis,
-                            names: $in.input.nonnull_bindings,
-                            bindings: $in.input.binding_names
-                        }}
-                    />
+        <If on={$in.analysis.linking}>
+            <Call
+                fn="facts/add"
+                in={{
+                    analysis: $in.analysis,
+                    names: $in.input.nonnull_bindings,
+                    bindings: $in.input.binding_names
+                }}
+            />
 
-                    <Return value={$ctx.add} />
-                </Case>
+            <Return value={$ctx.add} />
 
-                <Default>
-                    <Return
-                        value={{
-                            ...$in.analysis,
-                            state: {
-                                ...$in.analysis.state,
-                                diagnostic: {
-                                    code: "contract",
-                                    message:
-                                        "external branch facts require expression linking",
-                                    start: $in.analysis.span.start,
-                                    end: $in.analysis.span.end
-                                }
+            <Else>
+                <Return
+                    value={{
+                        ...$in.analysis,
+                        state: {
+                            ...$in.analysis.state,
+                            diagnostic: {
+                                code: "contract",
+                                message:
+                                    "external branch facts require expression linking",
+                                start: $in.analysis.span.start,
+                                end: $in.analysis.span.end
                             }
-                        }}
-                    />
-                </Default>
-            </Switch>
-        </Case>
+                        }
+                    }}
+                />
+            </Else>
+        </If>
 
-        <Default>
+        <Else>
             <Return value={$in.analysis} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

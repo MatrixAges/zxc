@@ -20,21 +20,19 @@
         }}
     />
 
-    <Switch on={$ctx.resolve.diagnostic.message == ""}>
-        <Case value={true}>
-            <Call
-                fn="stores/authorize"
-                in={{
-                    stores: $ctx.resolve.stores,
-                    has_store: $in.has_store,
-                    span: $in.signature.span
-                }}
-            />
+    <If on={$ctx.resolve.diagnostic.message == ""}>
+        <Call
+            fn="stores/authorize"
+            in={{
+                stores: $ctx.resolve.stores,
+                has_store: $in.has_store,
+                span: $in.signature.span
+            }}
+        />
 
-            <Return value={$ctx.authorize} />
-        </Case>
+        <Return value={$ctx.authorize} />
 
-        <Default>
+        <Else>
             <Return
                 value={{
                     stores: $ctx.resolve.stores,
@@ -42,6 +40,6 @@
                     diagnostic: $ctx.resolve.diagnostic
                 }}
             />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

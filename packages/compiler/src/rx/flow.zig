@@ -10,5 +10,7 @@ pub const Parallel = @import("labels/Parallel.zig").Parallel;
 pub const Switch = @import("labels/Switch.zig").Switch;
 pub const Case = @import("labels/Case.zig").Case;
 pub const Default = @import("labels/Default.zig").Default;
+pub const If = @import("labels/If.zig").If;
+pub const Else = @import("labels/Else.zig").Else;
 pub const Emit = @import("labels/Emit.zig").Emit;
 pub const StoreReference = @import("features/store/root.zig").StoreReference;

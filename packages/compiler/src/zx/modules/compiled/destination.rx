@@ -9,22 +9,20 @@
         out={bool}
     />
 
-    <Switch on={$in.seed}>
-        <Case value={true}>
-            <Call
-                module="../../analysis/semantic/origins"
-                in={{
-                    table: $in.destination.types,
-                    origins: $in.destination.origins,
-                    names: $in.destination.origin_names
-                }}
-            />
+    <If on={$in.seed}>
+        <Call
+            module="../../analysis/semantic/origins"
+            in={{
+                table: $in.destination.types,
+                origins: $in.destination.origins,
+                names: $in.destination.origin_names
+            }}
+        />
 
-            <Return value={$ctx.origins} />
-        </Case>
+        <Return value={$ctx.origins} />
 
-        <Default>
+        <Else>
             <Return value={true} />
-        </Default>
-    </Switch>
+        </Else>
+    </If>
 </Module>

@@ -3,29 +3,25 @@
 
     <Args in={Model.Input} out={Model.State} />
 
-    <Switch on={$in.request.checked}>
-        <Case value={true}>
-            <Call
-                fn="merging/preflight/prefix"
-                in={{
-                    source: $in.request.source,
-                    target: $in.request.base,
-                    first: $in.request.first
+    <If on={$in.request.checked}>
+        <Call
+            fn="merging/preflight/prefix"
+            in={{
+                source: $in.request.source,
+                target: $in.request.base,
+                first: $in.request.first
+            }}
+        />
+
+        <If on={!$ctx.prefix}>
+            <Return
+                value={{
+                    ...$in.state,
+                    status: 3
                 }}
             />
-
-            <Switch on={$ctx.prefix}>
-                <Case value={false}>
-                    <Return
-                        value={{
-                            ...$in.state,
-                            status: 3
-                        }}
-                    />
-                </Case>
-            </Switch>
-        </Case>
-    </Switch>
+        </If>
+    </If>
 
     <Call
         fn="merging/initialize"
