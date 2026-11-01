@@ -11,7 +11,7 @@ export default function (in: Input): Output {
 
     const facts = restore({
         facts: local.refinement.facts,
-        mark: in.boundary.facts
+        mark: in.context.facts
     })
 
     return {
@@ -28,12 +28,12 @@ export default function (in: Input): Output {
             ...in.state,
             local: {
                 ...local,
-                active: local.active.splice(0, in.boundary.active, [])[1],
-                scope_floor: in.boundary.floor,
-                lambda_depth: in.boundary.depth,
+                active: local.active.splice(0, in.context.active, [])[1],
+                scope_floor: in.context.floor,
+                lambda_depth: in.context.depth,
                 captures: {
                     ...local.captures,
-                    current: in.boundary.captures
+                    current: in.context.captures
                 },
                 refinement: {
                     ...local.refinement,

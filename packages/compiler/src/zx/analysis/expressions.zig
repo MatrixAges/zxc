@@ -23,6 +23,16 @@ pub fn analyze(self: *Analyzer, expression: anytype, expected: ?ir.TypeId) zx.Er
         .string => |text| return self.append(.{ .span = span, .type_id = Types.scalarId(.string), .value = .{ .string = try @import("strings.zig").decode(self.allocator, text[1 .. text.len - 1]) } }),
         .boolean => |value| return self.append(.{ .span = span, .type_id = Types.scalarId(.bool), .value = .{ .boolean = value } }),
         .identifier => |name| {
+            if (std.mem.eql(u8, name.text, "_")) {
+                if (self.pipeline) |*pipe| {
+                    if (pipe.depth != self.lambda_depth) return self.reporter.fail(.name, span, "pipeline placeholders cannot cross callback boundaries");
+
+                    pipe.uses += 1;
+
+                    return @import("refinement.zig").reference(self, pipe.symbol, span);
+                }
+            }
+
             if (self.lookup(name.text)) |symbol| return @import("refinement.zig").reference(self, symbol, span);
 
             if (@import("constants/lookup.zig").find(self, name.text)) |constant| {
@@ -97,6 +107,7 @@ pub fn analyze(self: *Analyzer, expression: anytype, expected: ?ir.TypeId) zx.Er
 
             return self.append(.{ .span = span, .type_id = type_id, .value = .{ .unary = .{ .operator = if (unary.operator == .not) .not else .negate, .operand = operand } } });
         },
+        .pipeline => return @import("pipeline.zig").analyze(self, expression, expected),
         .binary => |binary| {
             if (binary.operator == .coalesce) {
                 var left = try self.expression(binary.left, null);

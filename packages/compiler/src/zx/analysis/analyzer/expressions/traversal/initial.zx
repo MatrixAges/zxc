@@ -28,12 +28,13 @@ export default function (in: Input): Output {
             },
             frames: []
         },
-        boundary: {
+        context: {
             active: in.request.state.local.active.length,
             floor: in.request.state.local.scope_floor,
             depth: in.request.state.local.lambda_depth,
             captures: in.request.state.local.captures.current,
-            facts: mark(in.request.state.local.refinement.facts)
+            facts: mark(in.request.state.local.refinement.facts),
+            pipelines: []
         },
         frames: {
             actions: [],

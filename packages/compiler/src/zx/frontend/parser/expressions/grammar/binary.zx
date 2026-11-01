@@ -27,11 +27,14 @@ export default function (in: Input): Output {
     const end = in.state.control.last_end
     const depth = (left_depth > right_depth ? left_depth : right_depth) + 1
 
+    const kind = in.frame.operator == Operator.Pipeline ? ExprKind.Pipeline :
+        ExprKind.Binary
+
     const state = in.frame.kind == FrameKind.BinaryRight ? emit({
         state: in.state,
         node: {
             ...node({
-                kind: ExprKind.Binary,
+                kind: kind,
                 start: start,
                 end: end,
                 depth: depth
@@ -63,7 +66,12 @@ export default function (in: Input): Output {
             })
         }
 
-        const family = next_family == Family.None ? state.control.family : next_family
+        const family = match {
+            state.control.hint.binary.operator == Operator.Pipeline => Family.None,
+            next_family == Family.None => state.control.family,
+            _ => next_family
+        }
+
         const minimum: u8 = state.control.hint.binary.precedence + 1
         const allow_lambda = in.frame.allow_lambda
 

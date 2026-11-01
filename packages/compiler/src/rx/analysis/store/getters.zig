@@ -35,6 +35,7 @@ pub fn contains(expression: anytype, name: []const u8) bool {
         .capture, .task, .await_task, .cancel_task => |child| contains(child, name),
         .unary => |unary| contains(unary.operand, name),
         .binary => |binary| contains(binary.left, name) or contains(binary.right, name),
+        .pipeline => |pipe| contains(pipe.input, name) or contains(pipe.stage, name),
         .conditional => |branch| contains(branch.condition, name) or contains(branch.yes, name) or contains(branch.no, name),
         .match_expr => |selection| block: {
             if (selection.subject) |subject| if (contains(subject, name)) {

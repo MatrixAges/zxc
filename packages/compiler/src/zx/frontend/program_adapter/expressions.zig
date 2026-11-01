@@ -25,6 +25,7 @@ pub fn fill(context: anytype) !void {
             .Template => .{ .template = try collections.parts(context, node) },
             .Unary => .{ .unary = .{ .operator = if (node.flag) .negate else .not, .operand = context.expression(node.first) } },
             .Binary => .{ .binary = .{ .operator = Context.operator(node.operator), .left = context.expression(node.first), .right = context.expression(node.second) } },
+            .Pipeline => .{ .pipeline = .{ .input = context.expression(node.first), .stage = context.expression(node.second) } },
             .Conditional => .{ .conditional = .{ .condition = context.expression(node.first), .yes = context.expression(node.second), .no = context.expression(node.third) } },
             .Match => .{ .match_expr = .{ .subject = if (node.first == 0) null else context.expression(node.first - 1), .arms = try collections.arms(context, node), .fallback = context.expression(node.second) } },
             .Object => .{ .object = try collections.fields(context, node) },

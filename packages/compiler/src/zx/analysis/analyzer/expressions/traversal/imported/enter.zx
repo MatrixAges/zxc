@@ -1,7 +1,9 @@
 import integers from "std:integer"
+import { Kind } from "core/type_table/model"
 
 import row from "../../../../semantic/types/row"
 import items from "../../items"
+import { native_arity_message, tuple_arity_message, input_arity_message } from "./const"
 import next from "./next"
 
 import type { Work, Imported } from "../model"
@@ -34,7 +36,7 @@ export default function (in: Input): Output {
         }
     }
 
-    const tuple =
+    const native_tuple =
         work.functions.native_modules[integers.widen(id)] != null &&
         work.functions.native_tuples[integers.widen(
             id
@@ -50,15 +52,19 @@ export default function (in: Input): Output {
         id: input
     })
 
+    const tuple = native_tuple || (target.kind == Kind.Tuple && node.count > 1)
+
     const valid = tuple ? node.count == integers.widen(target.second) :
         node.count == 1 || (
             input == 0 && node.count == 0
         )
 
     if (!valid) {
-        const message =
-            tuple ? "native argument count does not match its registered signature" :
-            "a ZX function requires one Input argument; void Input permits no arguments"
+        const message = match {
+            native_tuple => native_arity_message,
+            tuple => tuple_arity_message,
+            _ => input_arity_message
+        }
 
         return {
             ...work,

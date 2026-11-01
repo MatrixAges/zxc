@@ -107,7 +107,7 @@ pub fn infer(self: *Self, expression: anytype, expected: ?Graph.Id) zx.Error!Gra
 
             break :block result;
         },
-        .call, .lambda, .state_block, .capture, .task, .await_task, .cancel_task => return self.graph.reporter.fail(.unsupported, span, @import("../value_rules.zig").message),
+        .call, .pipeline, .lambda, .state_block, .capture, .task, .await_task, .cancel_task => return self.graph.reporter.fail(.unsupported, span, @import("../value_rules.zig").message),
     };
 
     const narrowed = try self.refined(expression, value);

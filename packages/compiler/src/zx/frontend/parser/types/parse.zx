@@ -13,23 +13,22 @@ export type Input = {
 export type Output = State
 
 export default function (in: Input): Output {
-    const state = initial({
+    return initial({
         start: in.start,
         depth: in.depth
     })
-
-    return in.tokens.reduce((state, token) => step({
-        state: state,
-        token: {
-            kind: token.kind,
-            word: token.word,
-            symbol: token.symbol,
-            span: {
-                start: token.span.start,
-                end: token.span.end
-            },
-            line_break: token.line_break,
-            dollar: token.dollar
-        }
-    }), state)
+        -> in.tokens.reduce((state, token) => step({
+            state: state,
+            token: {
+                kind: token.kind,
+                word: token.word,
+                symbol: token.symbol,
+                span: {
+                    start: token.span.start,
+                    end: token.span.end
+                },
+                line_break: token.line_break,
+                dollar: token.dollar
+            }
+        }), _)
 }

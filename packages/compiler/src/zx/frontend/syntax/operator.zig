@@ -17,13 +17,13 @@ pub fn get(value: anytype) zx.syntax.Operator {
         .GreaterEqual => .greater_equal,
         .And => .logical_and,
         .Or => .logical_or,
-        .None => unreachable,
+        .None, .Pipeline => unreachable,
     };
 }
 
 pub fn fromNative(comptime Target: type, value: zx.syntax.Operator) Target {
     inline for (std.enums.values(Target)) |candidate| {
-        if (comptime candidate == .None) continue;
+        if (comptime candidate == .None or candidate == .Pipeline) continue;
         if (value == comptime get(candidate)) return candidate;
     }
 

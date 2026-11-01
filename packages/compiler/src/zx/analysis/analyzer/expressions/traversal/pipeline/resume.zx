@@ -1,0 +1,101 @@
+import integers from "std:integer"
+import append from "core/expression_table/append/scope"
+import { Ownership } from "core/symbol_table/model"
+
+import symbol from "../../../collections/building/symbol"
+import borrow from "../../../statements/scopes/borrow"
+import { Action, Phase } from "../model"
+import { input_name, unused_message, name_code } from "./const"
+import fail from "./fail"
+
+import type { Work } from "../model"
+
+export type Input = {
+    work: Work,
+    action: Action
+}
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const work = in.work
+    const index = work.context.pipelines.length - 1
+    const frame = work.context.pipelines[index]
+    const node = work.source.tree.nodes[frame.node]
+
+    if (in.action == Action.PipelineInput) {
+        const binding = symbol({
+            state: work.state,
+            name: input_name,
+            type_id: work.state.local.expressions.types[integers.widen(work.value)],
+            ownership: Ownership.Copy,
+            span: node.span
+        })
+
+        return {
+            ...work,
+            state: binding.state,
+            node: node.second,
+            expected: frame.expected,
+            phase: Phase.Evaluate,
+            context: {
+                ...work.context,
+                pipelines: work.context.pipelines.splice(index, 1, [{
+                    ...frame,
+                    input: work.value,
+                    symbol: binding.symbol,
+                    active: true
+                }])[0]
+            },
+            frames: {
+                ...work.frames,
+                actions: work.frames.actions.push(Action.PipelineStage)[0]
+            }
+        }
+    }
+
+    if (frame.uses == 0) {
+        return fail({
+            work: work,
+            code: name_code,
+            message: unused_message
+        })
+    }
+
+    const result = append({
+        table: work.state.local.expressions,
+        metadata: {
+            type_id: work.state.local.expressions.types[integers.widen(work.value)],
+            span_start: node.span.start,
+            span_end: node.span.end
+        },
+        result: work.value,
+        symbols: [frame.symbol],
+        values: [frame.input],
+        borrows:
+            [
+                borrow(
+                    work.state.local.expressions.kinds[integers.widen(
+                        frame.input
+                    )]
+                )
+            ]
+    })
+
+    return {
+        ...work,
+        state: {
+            ...work.state,
+            local: {
+                ...work.state.local,
+                expressions: result.table
+            }
+        },
+        value: result.id,
+        phase: Phase.Complete,
+        context: {
+            ...work.context,
+            pipelines: work.context.pipelines.pop()[0]
+        }
+    }
+}

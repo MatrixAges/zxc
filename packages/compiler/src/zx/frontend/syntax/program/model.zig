@@ -30,6 +30,7 @@ pub fn Model(comptime Context: type) type {
                 template: Sequence(.parts),
                 unary: struct { operator: enum { negate, not }, operand: Expression },
                 binary: struct { operator: zx.syntax.Operator, left: Expression, right: Expression },
+                pipeline: struct { input: Expression, stage: Expression },
                 conditional: struct { condition: Expression, yes: Expression, no: Expression },
                 match_expr: struct { subject: ?Expression, arms: Sequence(.arms), fallback: Expression },
                 object: Sequence(.fields),

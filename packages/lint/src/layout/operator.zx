@@ -1,5 +1,5 @@
 import { question } from "./const"
-import { assignment_priority, assign, arrow, colon } from "./const"
+import { assignment_priority, assign, arrow, pipeline, colon } from "./const"
 import {
     logical_and,
     logical_or,
@@ -34,6 +34,7 @@ export default function (in: Input): Output {
         question => assignment_priority,
         assign => assignment_priority,
         arrow => assignment_priority,
+        pipeline => assignment_priority,
         colon => assignment_priority,
         coalesce => coalesce_priority,
         logical_or => or_priority,

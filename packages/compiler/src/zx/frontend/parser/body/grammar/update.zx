@@ -57,7 +57,8 @@ export default function (in: Input): Output {
         const expression_kind = state.expression.tree.nodes[result].kind
 
         if (
-            expression_kind == ExprKind.Call || expression_kind == ExprKind.Await ||
+            expression_kind == ExprKind.Call || expression_kind == ExprKind.Pipeline ||
+                expression_kind == ExprKind.Await ||
                 expression_kind == ExprKind.Cancel
         ) {
             return {

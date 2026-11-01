@@ -114,6 +114,10 @@ fn expression(result: *Projection, value: anytype) void {
             expression(result, item.yes);
             expression(result, item.no);
         },
+        .pipeline => |item| {
+            expression(result, item.input);
+            expression(result, item.stage);
+        },
         .lambda => |item| expression(result, item.body),
         .state_block => |item| block(result, item),
         .list => |items| for (0..items.len) |index| expression(result, syntax.item(items, index)),

@@ -1,0 +1,26 @@
+import type { Work } from "../model"
+
+export type Input = {
+    work: Work,
+    code: string,
+    message: string
+}
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const span = in.work.source.tree.nodes[in.work.node].span
+
+    return {
+        ...in.work,
+        state: {
+            ...in.work.state,
+            diagnostic: {
+                code: in.code,
+                message: in.message,
+                start: span.start,
+                end: span.end
+            }
+        }
+    }
+}

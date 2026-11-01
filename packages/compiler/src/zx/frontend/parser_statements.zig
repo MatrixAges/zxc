@@ -149,7 +149,7 @@ const Evaluation = struct {
 
         const value = try parser.expression(0);
 
-        if (value.value != .call and value.value != .await_task and value.value != .cancel_task) return parser.reporter.fail(.syntax, value.span, "only calls, await and cancel can be used as standalone expressions");
+        if (value.value != .call and value.value != .pipeline and value.value != .await_task and value.value != .cancel_task) return parser.reporter.fail(.syntax, value.span, "only calls, pipelines, await and cancel can be used as standalone expressions");
 
         try parser.endStatement();
 

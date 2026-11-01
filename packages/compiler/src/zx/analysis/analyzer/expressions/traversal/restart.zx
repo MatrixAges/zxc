@@ -16,12 +16,13 @@ export default function (in: Input): Output {
 
     return {
         ...in.work,
-        boundary: {
+        context: {
             active: local.active.length,
             floor: local.scope_floor,
             depth: local.lambda_depth,
             captures: local.captures.current,
-            facts: mark(local.refinement.facts)
+            facts: mark(local.refinement.facts),
+            pipelines: in.work.context.pipelines
         },
         node: in.node,
         expected: in.expected,

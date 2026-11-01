@@ -40,6 +40,7 @@ pub const Expression = struct {
         template: []const TemplatePart,
         unary: struct { operator: enum { negate, not }, operand: *const Expression },
         binary: struct { operator: Operator, left: *const Expression, right: *const Expression },
+        pipeline: struct { input: *const Expression, stage: *const Expression },
         conditional: struct { condition: *const Expression, yes: *const Expression, no: *const Expression },
         match_expr: Match,
         object: []const Field,

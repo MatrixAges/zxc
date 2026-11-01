@@ -6,6 +6,8 @@ import call from "./calls/enter"
 import matching from "./matching/enter"
 import { Phase, Action } from "./model"
 import object from "./objects/enter"
+import pipeline from "./pipeline/enter"
+import placeholder from "./pipeline/placeholder"
 import sequence from "./sequence/enter"
 import template from "./templates/enter"
 
@@ -18,6 +20,18 @@ export type Output = Work
 export default function (in: Input): Output {
     const node = in.source.tree.nodes[in.node]
     const expected = in.expected
+
+    if (node.kind == ExprKind.Pipeline) {
+        return pipeline(in)
+    }
+
+    if (in.context.pipelines.length != 0 && node.kind == ExprKind.Identifier) {
+        const slot = placeholder(in)
+
+        if (slot.handled) {
+            return slot.work
+        }
+    }
 
     const frames = expected == null ? in.frames : {
         ...in.frames,

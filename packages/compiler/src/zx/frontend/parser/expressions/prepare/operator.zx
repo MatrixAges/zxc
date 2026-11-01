@@ -9,6 +9,11 @@ export type Output = Binary
 
 export default function (in: Input): Output {
     return match in {
+        Symbol.Pipeline => {
+            operator: Operator.Pipeline,
+            precedence: 0,
+            family: Family.None
+        },
         Symbol.Coalesce => {
             operator: Operator.Coalesce,
             precedence: 1,

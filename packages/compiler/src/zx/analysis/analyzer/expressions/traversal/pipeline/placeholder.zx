@@ -1,0 +1,107 @@
+import integers from "std:integer"
+
+import { ExprKind } from "../../../../../frontend/parser/expressions/state/model"
+import { NameKind } from "../../../source/model"
+import readName from "../../../source/name"
+import coerce from "../../coerce"
+import reference from "../../reference"
+import { Phase } from "../model"
+import { placeholder_name, boundary_message, name_code } from "./const"
+import fail from "./fail"
+
+import type { Work } from "../model"
+
+export type Input = Work
+
+export type Output = {
+    handled: bool,
+    work: Work
+}
+
+export default function (in: Input): Output {
+    const node = in.source.tree.nodes[in.node]
+
+    if (in.context.pipelines.length == 0 || node.kind != ExprKind.Identifier) {
+        return {
+            handled: false,
+            work: in
+        }
+    }
+
+    const name = readName({
+        source: in.source,
+        kind: NameKind.Expression,
+        index: in.node
+    })
+
+    if (name.text != placeholder_name) {
+        return {
+            handled: false,
+            work: in
+        }
+    }
+
+    const index = in.context.pipelines.length - 1
+    const frame = in.context.pipelines[index]
+
+    if (
+        !frame.active || frame.depth != in.state.local.lambda_depth ||
+            frame.asynchronous != in.frames.asynchronous.length
+    ) {
+        return {
+            handled: true,
+            work: fail({
+                work: in,
+                code: name_code,
+                message: boundary_message
+            })
+        }
+    }
+
+    const value = reference({
+        expressions: in.state.local.expressions,
+        tables: {
+            base: in.state.types.context.base,
+            delta: in.state.types.delta
+        },
+        facts: in.state.local.refinement.facts,
+        type_id: in.state.local.symbols.types[integers.widen(frame.symbol)],
+        symbol: frame.symbol,
+        span: node.span
+    })
+
+    const state = {
+        ...in.state,
+        local: {
+            ...in.state.local,
+            expressions: value.expressions
+        }
+    }
+
+    const result = in.expected == null ? {
+        state: state,
+        value: value.value
+    } : coerce({
+        state: state,
+        value: value.value,
+        expected: in.expected,
+        span: node.span
+    })
+
+    return {
+        handled: true,
+        work: {
+            ...in,
+            state: result.state,
+            value: result.value,
+            phase: Phase.Complete,
+            context: {
+                ...in.context,
+                pipelines: in.context.pipelines.splice(index, 1, [{
+                    ...frame,
+                    uses: frame.uses + 1
+                }])[0]
+            }
+        }
+    }
+}

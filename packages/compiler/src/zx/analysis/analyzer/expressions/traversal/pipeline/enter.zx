@@ -1,0 +1,49 @@
+import { ExprKind } from "../../../../../frontend/parser/expressions/state/model"
+import { Action, Phase } from "../model"
+import { stage_message, syntax_code } from "./const"
+import fail from "./fail"
+
+import type { Work } from "../model"
+import type { Frame } from "./model"
+
+export type Input = Work
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const node = in.source.tree.nodes[in.node]
+
+    if (in.source.tree.nodes[node.second].kind != ExprKind.Call) {
+        return fail({
+            work: in,
+            code: syntax_code,
+            message: stage_message
+        })
+    }
+
+    const frame: Frame = {
+        node: in.node,
+        expected: in.expected,
+        input: 0,
+        symbol: 0,
+        active: false,
+        uses: 0,
+        depth: in.state.local.lambda_depth,
+        asynchronous: in.frames.asynchronous.length
+    }
+
+    return {
+        ...in,
+        node: node.first,
+        expected: null,
+        phase: Phase.Evaluate,
+        context: {
+            ...in.context,
+            pipelines: in.context.pipelines.push(frame)[0]
+        },
+        frames: {
+            ...in.frames,
+            actions: in.frames.actions.push(Action.PipelineInput)[0]
+        }
+    }
+}

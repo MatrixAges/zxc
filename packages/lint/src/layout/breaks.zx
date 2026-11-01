@@ -9,6 +9,7 @@ import {
     keyword_case,
     keyword_default
 } from "./const"
+import { pipeline } from "./const"
 import operatorPriority from "./operator"
 import segmentWidth from "./segment_width"
 
@@ -71,6 +72,7 @@ export default function (in: Input): Output {
                 layout && previous_operator && !token.newline &&
                 current.column + segment > limit
             const chain = token.text == access_dot
+            const pipe = layout && token.text == pipeline
             const next = current.index + 1
             const following = current.index + 2
             const member = next < graph.input.tokens.length ?
@@ -92,7 +94,7 @@ export default function (in: Input): Output {
                 layout && chain && !token.newline && current.column + head > limit
             const needed =
                 current.pending || after_open || after_comma || before_close ||
-                overflow || chain_overflow
+                overflow || chain_overflow || pipe
             const inline_comment = token.comment && !token.newline
             const line = token.newline || (needed && !inline_comment)
             const selection =
@@ -108,7 +110,9 @@ export default function (in: Input): Output {
                 const base = closing && partner != null ? current.levels[partner] :
                     selected_base
 
-                if ((previous_operator || chain) && !closing && !selection) {
+                if (
+                    (previous_operator || chain || pipe) && !closing && !selection
+                ) {
                     const resumed = current.continuation ?? current.level + 1
 
                     current.continuation = resumed

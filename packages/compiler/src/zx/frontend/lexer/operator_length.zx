@@ -5,6 +5,7 @@ import {
     ascii_equals,
     ascii_greater_than,
     ascii_less_than,
+    ascii_minus,
     ascii_pipe,
     ascii_question
 } from "core/ascii/const"
@@ -30,7 +31,10 @@ export default function (in: Input): Output {
     if (
         in.has_next &&
             (
-                (in.byte == ascii_equals && in.next == ascii_greater_than) ||
+                (
+                    (in.byte == ascii_equals || in.byte == ascii_minus) &&
+                        in.next == ascii_greater_than
+                ) ||
                     (
                         in.next == ascii_equals &&
                             (

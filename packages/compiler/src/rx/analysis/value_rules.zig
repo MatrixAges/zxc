@@ -4,7 +4,7 @@ pub const message = "RX values cannot contain calls or callbacks; move logic to 
 
 pub fn validate(expression: anytype) ?zx.Diagnostic {
     switch (syntax.value(expression)) {
-        .call, .lambda, .state_block, .capture, .task, .await_task, .cancel_task => return .{ .code = .unsupported, .span = expression.span, .message = message },
+        .call, .pipeline, .lambda, .state_block, .capture, .task, .await_task, .cancel_task => return .{ .code = .unsupported, .span = expression.span, .message = message },
         .field => |field| return validate(field.target),
         .index => |item| return validate(item.target) orelse validate(item.index),
         .unary => |unary| return validate(unary.operand),

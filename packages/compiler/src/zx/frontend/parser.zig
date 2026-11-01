@@ -107,6 +107,7 @@ pub fn make(self: *Self, start: usize, value: @FieldType(ast.Expression, "value"
         .capture, .task, .await_task, .cancel_task => |child| child_depth = child.depth,
         .unary => |unary| child_depth = unary.operand.depth,
         .binary => |binary| child_depth = @max(binary.left.depth, binary.right.depth),
+        .pipeline => |pipe| child_depth = @max(pipe.input.depth, pipe.stage.depth),
         .conditional => |conditional| child_depth = @max(conditional.condition.depth, conditional.yes.depth, conditional.no.depth),
         .match_expr => |selection| {
             child_depth = selection.fallback.depth;

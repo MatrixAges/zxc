@@ -25,7 +25,19 @@ fn parseBinary(parser: *Parser, minimum: u8, allow_lambda: bool, family: *?Binar
     defer parser.depth -= 1;
     var left = try primary(parser, allow_lambda);
 
-    while (zx.syntax.Operator.parse(parser.current().text(parser.source))) |operator| {
+    while (true) {
+        if (minimum == 0 and parser.take("->")) {
+            var stage_family: ?BinaryFamily = null;
+            const stage = try parseBinary(parser, 1, allow_lambda, &stage_family);
+
+            family.* = null;
+            left = try parser.make(left.span.start, .{ .pipeline = .{ .input = left, .stage = stage } });
+
+            continue;
+        }
+
+        const operator = zx.syntax.Operator.parse(parser.current().text(parser.source)) orelse break;
+
         if (operator.precedence() < minimum) break;
 
         const next_family: ?BinaryFamily = switch (operator) {

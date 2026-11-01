@@ -144,6 +144,7 @@ fn checkNestedExpression(expression: anytype, nested: bool, comptime context: Ex
         .capture, .task, .await_task, .cancel_task => |child| return checkNestedExpression(child, nested, context),
         .unary => |unary| return checkNestedExpression(unary.operand, nested, context),
         .binary => |binary| return checkNestedExpression(binary.left, nested, context) orelse checkNestedExpression(binary.right, nested, context),
+        .pipeline => |pipe| return checkNestedExpression(pipe.input, nested, context) orelse checkNestedExpression(pipe.stage, nested, context),
         .conditional => |value| {
             if (nested) return .{ .code = .style, .span = expression.span, .message = if (context == .rx) "nested conditional values are not allowed in RX; use If or Switch, or move the decision to ZX and use Call.fn" else "nested conditional expressions are not allowed; use match" };
 

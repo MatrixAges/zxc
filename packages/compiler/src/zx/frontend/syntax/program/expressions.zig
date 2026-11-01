@@ -23,6 +23,7 @@ pub fn read(reference: anytype) @TypeOf(reference).Value {
         .Template => .{ .template = sequence(.parts, reference, node.count) },
         .Unary => .{ .unary = .{ .operator = if (node.flag) .negate else .not, .operand = context.expression(node.first) } },
         .Binary => .{ .binary = .{ .operator = @import("../operator.zig").get(node.operator), .left = context.expression(node.first), .right = context.expression(node.second) } },
+        .Pipeline => .{ .pipeline = .{ .input = context.expression(node.first), .stage = context.expression(node.second) } },
         .Conditional => .{ .conditional = .{ .condition = context.expression(node.first), .yes = context.expression(node.second), .no = context.expression(node.third) } },
         .Match => .{ .match_expr = .{ .subject = if (node.first == 0) null else context.expression(node.first - 1), .arms = sequence(.arms, reference, node.count), .fallback = context.expression(node.second) } },
         .Object => .{ .object = sequence(.fields, reference, node.count) },

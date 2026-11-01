@@ -14,10 +14,13 @@ import type {
 import type { Scopes } from "../../statements/scopes/model"
 import type { Entries } from "../objects/model"
 import type { Source } from "../request"
+import type { Frame as PipelineFrame } from "./pipeline/model"
 
 export enum Phase { Evaluate, Complete, StateBlock, ScopeNext, StateSwitch, Done }
 
 export enum Action {
+    PipelineInput,
+    PipelineStage,
     Coerce,
     Unary,
     Field,
@@ -145,12 +148,13 @@ export type Template = {
     values: u32[]
 }
 
-export type Boundary = {
+export type Context = {
     active: u64,
     floor: u64,
     depth: u64,
     captures: u32?,
     facts: Mark
+    pipelines: PipelineFrame[]
 }
 
 export type AsyncFrame = {
@@ -201,7 +205,7 @@ export type Work = {
     imports: FunctionImports
     functions: Functions
     scopes: Scopes
-    boundary: Boundary
+    context: Context
     frames: Frames
     node: u64
     expected: u32?

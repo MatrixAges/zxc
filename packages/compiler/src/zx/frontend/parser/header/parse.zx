@@ -15,16 +15,18 @@ export type Input = {
 export type Output = State
 
 export default function (in: Input): Output {
-    return loop(initial(expression({
+    return expression({
         prepared: in.prepared,
         start: in.start,
         depth: in.depth,
         minimum: 0,
         allow_lambda: true
-    })), {
-        while: value => value.control.phase != HeaderPhase.Done,
-        next: value => {
-            value = step(value)
-        }
     })
+        -> initial(_)
+        -> loop(_, {
+            while: value => value.control.phase != HeaderPhase.Done,
+            next: value => {
+                value = step(value)
+            }
+        })
 }

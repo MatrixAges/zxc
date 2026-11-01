@@ -15,6 +15,7 @@ export default function (in: Input): Output {
 
     if (
         kind == StatementKind.Evaluate && expression_kind != ExprKind.Call &&
+            expression_kind != ExprKind.Pipeline &&
             expression_kind != ExprKind.Await && expression_kind != ExprKind.Cancel
     ) {
         const start = in.expression.tree.nodes[result].span.start

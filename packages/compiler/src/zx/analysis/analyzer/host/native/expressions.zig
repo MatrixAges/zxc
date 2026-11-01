@@ -97,6 +97,11 @@ pub fn fill(context: *Context, pending: Context.Expression) std.mem.Allocator.Er
             node.first = try context.expression(value.left);
             node.second = try context.expression(value.right);
         },
+        .pipeline => |value| {
+            node.kind = .Pipeline;
+            node.first = try context.expression(value.input);
+            node.second = try context.expression(value.stage);
+        },
         .conditional => |value| {
             node.kind = .Conditional;
             node.first = try context.expression(value.condition);

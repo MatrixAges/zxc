@@ -93,12 +93,14 @@ fn importedCall(self: *Analyzer, expression: anytype, function: Analyzer.Functio
     if (signature.stores.count() != 0) return self.reporter.fail(.capability, expression.span, "Store functions require an explicitly authorized orchestration Call");
 
     const call = syntax.value(expression).call;
-    const expand_tuple = if (signature.external) |external| external.expand_tuple else false;
+    const native_tuple = if (signature.external) |external| external.expand_tuple else false;
+    const input = self.types.get(function.input_type);
+    const expand_tuple = native_tuple or (input == .tuple and call.arguments.len > 1);
 
     const argument = if (expand_tuple) blk: {
         const count = self.types.get(function.input_type).tuple.len;
 
-        if (count != call.arguments.len) return self.reporter.fail(.type_mismatch, expression.span, "native argument count does not match its registered signature");
+        if (count != call.arguments.len) return self.reporter.fail(.type_mismatch, expression.span, if (native_tuple) "native argument count does not match its registered signature" else "argument count does not match the Input tuple");
 
         const values = try self.allocator.alloc(ir.ExprId, count);
 

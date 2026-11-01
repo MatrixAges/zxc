@@ -10,6 +10,7 @@ import matching from "./matching/resume"
 import { Phase, Action } from "./model"
 import object from "./objects/resume"
 import parallel from "./parallel/resume"
+import pipeline from "./pipeline/resume"
 import projection from "./projection"
 import binding from "./scopes/binding"
 import branch from "./scopes/branch"
@@ -41,6 +42,13 @@ export default function (in: Input): Output {
             ...in.frames,
             actions: in.frames.actions.pop()[0]
         }
+    }
+
+    if (action == Action.PipelineInput || action == Action.PipelineStage) {
+        return pipeline({
+            work: work,
+            action: action
+        })
     }
 
     if (action == Action.AsyncBody) {

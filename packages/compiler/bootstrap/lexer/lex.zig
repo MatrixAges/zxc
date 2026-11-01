@@ -109,7 +109,7 @@ pub fn lex(allocator: std.mem.Allocator, source: []const u8, reporter: *zx.Repor
 
             if (std.mem.startsWith(u8, source[offset..], "...")) {
                 offset += 3;
-            } else if (std.mem.startsWith(u8, source[offset..], "=>")) {
+            } else if (std.mem.startsWith(u8, source[offset..], "=>") or std.mem.startsWith(u8, source[offset..], "->")) {
                 offset += 2;
             } else {
                 offset += 1;

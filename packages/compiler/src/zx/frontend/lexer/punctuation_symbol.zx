@@ -40,6 +40,7 @@ export default function (in: Input): Output {
     if (in.length == 2) {
         return match in.byte {
             ascii_equals => in.next == ascii_greater_than ? Symbol.Arrow : Symbol.Equal,
+            ascii_minus => Symbol.Pipeline,
             ascii_bang => Symbol.NotEqual,
             ascii_less_than => Symbol.LessEqual,
             ascii_greater_than => Symbol.GreaterEqual,

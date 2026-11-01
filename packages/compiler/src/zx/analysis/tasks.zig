@@ -6,6 +6,10 @@ const Analyzer = @import("analyzer.zig");
 const Types = @import("types.zig");
 
 pub fn start(self: *Analyzer, child: anytype, span: zx.Span) zx.Error!ir.ExprId {
+    const pipeline = self.pipeline;
+    self.pipeline = null;
+    defer self.pipeline = pipeline;
+
     const first = self.nodes.count();
     const symbol_count = self.symbols.count();
     const body = try self.expression(child, null);
