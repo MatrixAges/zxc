@@ -10,6 +10,31 @@ pub const Names = struct { types: []const []const u8, functions: []const []const
 pub const Unit = union(enum) { entry, function: ir.FunctionId, types, regular: ir.FunctionId };
 pub const abi_view = @import("abi_view.zig");
 pub const Error = std.mem.Allocator.Error || error{ InvalidNames, InvalidFunction };
+pub const PublicMember = struct { name: []const u8, function: ir.FunctionId };
+
+pub fn publicEntry(allocator: std.mem.Allocator, backing: std.mem.Allocator, program: ir.Program, names: Names, facts: Analysis, members: []const PublicMember) Error![]u8 {
+    var arena = std.heap.ArenaAllocator.init(backing);
+
+    defer arena.deinit();
+
+    const temporary = arena.allocator();
+    var lower = try initialize(temporary, backing, program, names, facts);
+    var declarations: std.ArrayList(node.Declaration) = .empty;
+
+    try declarations.appendSlice(temporary, try lower.declarations());
+
+    for (members) |member| {
+        const module = try lower.builder.builtin(.import, &.{try lower.builder.string(names.functions[@backingInt(member.function)])});
+
+        try declarations.append(temporary, .{ .constant = .{
+            .exported = true,
+            .name = member.name,
+            .value = try lower.builder.field(module, "call"),
+        } });
+    }
+
+    return render(allocator, lower.builder.nodes, declarations.items);
+}
 
 pub fn entry(allocator: std.mem.Allocator, program: ir.Program, names: Names) Error![]u8 {
     return generate(allocator, program, names, .entry);
@@ -132,7 +157,6 @@ fn functionPrepared(allocator: std.mem.Allocator, backing: std.mem.Allocator, pr
 
     if (value) {
         var value_declaration = try lower.functionValue("callValue");
-
         value_declaration.function.exported = true;
 
         try output.append(temporary, value_declaration);

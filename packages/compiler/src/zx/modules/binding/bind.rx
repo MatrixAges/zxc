@@ -1,74 +1,28 @@
 <Module>
-    <Type from="./model" as="Model" />
+    <Type from="./model" as="Binding" />
 
-    <Args in={Model.Request} out={Model.Result} />
+    <Args in={Binding.Request} out={Binding.Result} />
 
-    <Call fn="constraint" in={$in} />
+    <Call fn="initial" in={$in} />
 
-    <Switch on={$ctx.constraint.diagnostic.message != ""}>
+    <Switch on={$ctx.initial.diagnostic.message != ""}>
         <Case value={true}>
-            <Return
-                value={{
-                    aliases: {
-                        names: [],
-                        ids: []
-                    },
-                    imports: {
-                        namespaces: [],
-                        names: [],
-                        ids: [],
-                        input_types: [],
-                        output_types: []
-                    },
-                    constants: null,
-                    diagnostic: $ctx.constraint.diagnostic
-                }}
-            />
+            <Return value={$ctx.initial} />
         </Case>
     </Switch>
 
-    <Switch on={$ctx.constraint.callable}>
-        <Case value={true}>
-            <Call fn="functions" in={$in} />
+    <Call fn="names" in={$in} />
 
-            <Return
-                value={{
-                    aliases: {
-                        names: [],
-                        ids: []
-                    },
-                    imports: $ctx.functions,
-                    constants: null,
-                    diagnostic: $ctx.constraint.diagnostic
-                }}
-            />
-        </Case>
+    <Call
+        fn="select"
+        in={{
+            request: {
+                ...$in,
+                names: $ctx.names
+            },
+            result: $ctx.initial
+        }}
+    />
 
-        <Default>
-            <Call fn="constants" in={$in} />
-
-            <Call
-                fn="aliases"
-                in={{
-                    ...$in,
-                    names: $ctx.constants.names
-                }}
-            />
-
-            <Return
-                value={{
-                    aliases: $ctx.aliases.aliases,
-                    imports: {
-                        namespaces: [],
-                        names: [],
-                        ids: [],
-                        input_types: [],
-                        output_types: []
-                    },
-                    constants: $ctx.constants.values,
-                    diagnostic: $ctx.aliases.diagnostic
-                }}
-            />
-        </Default>
-    </Switch>
+    <Return value={$ctx.select} />
 </Module>

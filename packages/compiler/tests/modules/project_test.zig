@@ -20,6 +20,13 @@ test "modules: imported pure types share the canonical type registry" {
     }, "main.zx");
 }
 
+test "modules: type imports reuse an executable module interface" {
+    try valid(&.{
+        .{ .path = "main.zx", .source = "import type { Input } from \"./dep\"\n export type Value = Input\n" },
+        .{ .path = "dep.zx", .source = "export type Input = u64\n export type Output = u64\n export default function (in: Input): Output { return in }" },
+    }, "main.zx");
+}
+
 test "modules: default function imports compose with alias paths" {
     try valid(&.{
         .{ .path = "add.zx", .source = "export type Input = u64\n export type Output = u64\n export default function (in: Input): Output { return in + 1 }" },

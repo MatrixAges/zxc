@@ -39,7 +39,7 @@ export default function (in: Input): Output {
         end: in.control.opening.end
     }
 
-    if (in.control.count == 0) {
+    if (in.control.count == 0 && !in.control.wildcard) {
         return fail({
             state: in,
             span: opening,
@@ -63,6 +63,8 @@ export default function (in: Input): Output {
 
     const item = {
         kind: kind,
+        exported: in.control.exported,
+        wildcard: in.control.wildcard,
         span: {
             start: in.control.opening.start,
             end: in.control.path.end
@@ -78,8 +80,7 @@ export default function (in: Input): Output {
     const imports = in.imports.push(item)[0]
 
     return begin({
-        imports: imports,
-        names: in.names,
-        control: in.control
+        ...in,
+        imports: imports
     })
 }

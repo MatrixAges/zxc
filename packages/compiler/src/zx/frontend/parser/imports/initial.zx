@@ -16,6 +16,7 @@ export default function (in: Input): Output {
     return {
         imports: imports,
         names: names,
+        sources: [],
         control: {
             phase: Phase.Start,
             index: 0,
@@ -42,6 +43,11 @@ export default function (in: Input): Output {
             first: 0,
             count: 0,
             named: false,
+            reference: false,
+            exported: false,
+            wildcard: false,
+            aliased: false,
+            default_binding: false,
             type_only: false,
             diagnostic: {
                 code: "",

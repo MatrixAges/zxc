@@ -1,0 +1,30 @@
+import advance from "./advance"
+import { Phase } from "./model"
+
+import type { Session, State } from "./model"
+
+export type Input = Session
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const state = {
+        ...in,
+        state: {
+            ...in.state,
+            control: {
+                ...in.state.control,
+                phase: Phase.Start
+            }
+        }
+    }
+
+    return loop(state, {
+        while: current =>
+            current.state.control.phase != Phase.Done &&
+            current.state.control.index < current.tokens.length,
+        next: current => {
+            current.state = advance(current)
+        }
+    }).state
+}

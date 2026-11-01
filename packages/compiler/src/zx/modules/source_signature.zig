@@ -7,10 +7,13 @@ pub const Ports = struct {
     output_type: ir.TypeId,
 };
 
+pub const Member = struct { name: []const u8, ports: ?Ports, has_store: bool = false };
+
 pub const Result = struct {
     ports: Ports,
     exports: []const ir.Export,
     constant_exports: []const ir.Constant = &.{},
+    members: []const Member = &.{},
     type_only: bool,
     has_store: bool,
 };

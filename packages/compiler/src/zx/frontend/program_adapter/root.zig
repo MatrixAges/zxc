@@ -17,7 +17,14 @@ pub fn convert(allocator: std.mem.Allocator, source: []const u8, output: anytype
 
         for (names, program.import_names[@intCast(item.first)..][0..names.len]) |*name, position| name.* = context.name(position);
 
+        const sources = try allocator.alloc(zx.ast.Name, names.len);
+
+        for (sources, program.import_sources[@intCast(item.first)..][0..sources.len]) |*name, position| name.* = context.name(position);
+
         value.* = .{
+            .exported = item.exported,
+            .wildcard = item.wildcard,
+            .source_names = sources,
             .kind = switch (item.kind) {
                 .Function => .function,
                 .Enumeration => .enumeration,

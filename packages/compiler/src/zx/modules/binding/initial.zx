@@ -1,0 +1,49 @@
+import { ImportKind } from "../../frontend/parser/imports/model"
+import { executable_required, namespace_required, module_code } from "./const"
+import { Target } from "./model"
+import position from "./position"
+
+import type { Request, Result } from "./model"
+
+export type Input = Request
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const native = in.target == Target.Native
+    const callable = in.kind == ImportKind.Function
+
+    const member = callable && !native ? position({
+        names: in.members,
+        name: ""
+    }) : null
+
+    const invalid = callable && (
+        in.names.values.length != 1 ||
+            (native ? in.members.length == 0 : member == null)
+    )
+
+    const failure = native ? namespace_required : executable_required
+
+    return {
+        aliases: {
+            names: [],
+            indices: []
+        },
+        constants: {
+            names: [],
+            indices: []
+        },
+        functions: {
+            names: [],
+            indices: []
+        },
+        namespace: callable && native && !invalid ? in.names.aliases[0] : null,
+        diagnostic: {
+            code: invalid ? module_code : "",
+            message: invalid ? failure : "",
+            start: invalid ? in.start : 0,
+            end: invalid ? in.end : 0
+        }
+    }
+}

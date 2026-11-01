@@ -60,7 +60,7 @@ fn checkBinding(name: zx.ast.Name, kind: NameKind) ?zx.Diagnostic {
         .value => "value names must use snake_case",
         .callable => "function names must use camelCase",
         .type_decl => "type names must use PascalCase",
-        .imported_value => "named imports must use snake_case constants or PascalCase enums",
+        .imported_value => "named imports must use camelCase functions, snake_case constants or PascalCase types",
     } };
 }
 

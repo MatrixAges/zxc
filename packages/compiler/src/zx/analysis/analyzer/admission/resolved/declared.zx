@@ -27,12 +27,12 @@ export default function (in: Input): Output {
             const item = current.input.syntax.imports[current.index]
 
             const selected = match current.input.kind {
-                DeclarationKind.Callable => item.kind == ImportKind.Function,
+                DeclarationKind.Callable => item.kind != ImportKind.TypeOnly,
                 DeclarationKind.Constant => item.kind == ImportKind.Enumeration,
                 _ => item.kind != ImportKind.Function
             }
 
-            if (selected) {
+            if (selected && !item.exported) {
                 current.found = loop({
                     input: current.input,
                     item: item,

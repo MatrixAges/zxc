@@ -1,6 +1,7 @@
 import { Keyword } from "../../lexer/keyword_model"
 import { Kind, Symbol } from "../../lexer/token_model"
 import begin from "./begin"
+import { expected_alias, default_alias } from "./const"
 import fail from "./fail"
 import finish from "./finish"
 import { Phase } from "./model"
@@ -24,8 +25,7 @@ export default function (in: Input): Output {
         const index = in.state.control.index + 1
 
         return {
-            imports: in.state.imports,
-            names: in.state.names,
+            ...in.state,
             control: {
                 ...in.state.control,
                 index: index
@@ -34,8 +34,7 @@ export default function (in: Input): Output {
     }
 
     const state = {
-        imports: in.state.imports,
-        names: in.state.names,
+        ...in.state,
         control: {
             ...in.state.control,
             token: in.token
@@ -64,8 +63,7 @@ export default function (in: Input): Output {
 
     if (phase == Phase.Binding && !state.control.type_only && word == Keyword.Type) {
         return {
-            imports: state.imports,
-            names: state.names,
+            ...state,
             control: {
                 ...state.control,
                 type_only: true,
@@ -74,10 +72,69 @@ export default function (in: Input): Output {
         }
     }
 
+    if (phase == Phase.Binding && state.control.exported && symbol == Symbol.Star) {
+        return {
+            ...state,
+            control: {
+                ...state.control,
+                named: true,
+                wildcard: true,
+                phase: Phase.From,
+                index: index
+            }
+        }
+    }
+
+    if (phase == Phase.Separator && word == Keyword.As && !state.control.aliased) {
+        return {
+            ...state,
+            control: {
+                ...state.control,
+                aliased: true,
+                phase: Phase.Alias,
+                index: index
+            }
+        }
+    }
+
+    if (phase == Phase.Alias) {
+        if (
+            kind != Kind.Identifier &&
+                !(state.control.exported && word == Keyword.Default)
+        ) {
+            return fail({
+                state: state,
+                span: span,
+                message: expected_alias
+            })
+        }
+
+        return {
+            ...state,
+            names:
+                state.names.with(state.control.first + state.control.count - 1, span),
+            control: {
+                ...state.control,
+                phase: Phase.Separator,
+                index: index
+            }
+        }
+    }
+
+    if (
+        phase == Phase.Separator && state.control.default_binding &&
+            !state.control.aliased && !state.control.exported
+    ) {
+        return fail({
+            state: state,
+            span: span,
+            message: default_alias
+        })
+    }
+
     if (phase == Phase.Binding && symbol == Symbol.OpenBrace) {
         return {
-            imports: state.imports,
-            names: state.names,
+            ...state,
             control: {
                 ...state.control,
                 named: true,
@@ -91,8 +148,7 @@ export default function (in: Input): Output {
         (phase == Phase.Name || phase == Phase.Separator) && symbol == Symbol.CloseBrace
     ) {
         return {
-            imports: state.imports,
-            names: state.names,
+            ...state,
             control: {
                 ...state.control,
                 phase: Phase.From,
@@ -102,7 +158,10 @@ export default function (in: Input): Output {
     }
 
     if (phase == Phase.Binding || phase == Phase.Name) {
-        if (kind != Kind.Identifier) {
+        if (
+            kind != Kind.Identifier &&
+                !(phase == Phase.Name && word == Keyword.Default)
+        ) {
             return fail({
                 state: state,
                 span: span,
@@ -114,12 +173,15 @@ export default function (in: Input): Output {
         const names = state.names.push(span)[0]
 
         return {
-            imports: state.imports,
+            ...state,
             names: names,
+            sources: state.sources.push(span)[0],
             control: {
                 ...state.control,
                 phase: phase == Phase.Binding ? Phase.From : Phase.Separator,
                 count: count,
+                aliased: false,
+                default_binding: word == Keyword.Default,
                 index: index
             }
         }
@@ -135,8 +197,7 @@ export default function (in: Input): Output {
         }
 
         return {
-            imports: state.imports,
-            names: state.names,
+            ...state,
             control: {
                 ...state.control,
                 phase: Phase.Name,
@@ -155,8 +216,7 @@ export default function (in: Input): Output {
         }
 
         return {
-            imports: state.imports,
-            names: state.names,
+            ...state,
             control: {
                 ...state.control,
                 phase: Phase.Path,
@@ -174,8 +234,7 @@ export default function (in: Input): Output {
     }
 
     return {
-        imports: state.imports,
-        names: state.names,
+        ...state,
         control: {
             ...state.control,
             phase: Phase.End,

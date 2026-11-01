@@ -55,8 +55,10 @@ fn loadIn(allocator: std.mem.Allocator, options: Options) !?Data {
     var index: usize = 0;
 
     while (index < queue.items.len) : (index += 1) {
-        const path = queue.items[index];
-        const absolute = try std.fs.path.resolve(allocator, &.{ root, path });
+        const requested = queue.items[index];
+        const candidate = try std.fs.path.resolve(allocator, &.{ root, requested });
+        const absolute = if (std.mem.endsWith(u8, candidate, ".zx")) try @import("../sources/module_path.zig").select(io, allocator, candidate, options.inputs) else candidate;
+        const path = try std.fs.path.relative(allocator, root, null, root, absolute);
 
         if (options.inputs) |inputs| try inputs.add(io, absolute);
 
@@ -76,6 +78,7 @@ fn loadIn(allocator: std.mem.Allocator, options: Options) !?Data {
         }
 
         if (physical.get(real)) |previous| {
+            if (std.mem.eql(u8, previous, path)) continue;
             try writer.print("{s}: physical module file is already registered as {s}\n", .{ path, previous });
 
             return null;

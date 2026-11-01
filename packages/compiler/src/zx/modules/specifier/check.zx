@@ -1,3 +1,4 @@
+import { current_directory, parent_directory } from "../path/const"
 import { Kind } from "./model"
 
 export type Input = string
@@ -5,6 +6,10 @@ export type Input = string
 export type Output = Kind
 
 export default function (in: Input): Output {
+    if (in == current_directory || in == parent_directory) {
+        return Kind.File
+    }
+
     if (in.length == 0) {
         return Kind.Invalid
     }

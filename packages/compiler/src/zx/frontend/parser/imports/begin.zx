@@ -8,7 +8,7 @@ export type Input = State
 export type Output = State
 
 export default function (in: Input): Output {
-    const importing = in.control.token.word == Keyword.Import
+    const importing = in.control.reference
     const first = in.names.length
 
     const opening = {
@@ -19,8 +19,7 @@ export default function (in: Input): Output {
     const index = in.control.index + (importing ? 1 : 0)
 
     return {
-        imports: in.imports,
-        names: in.names,
+        ...in,
         control: {
             ...in.control,
             phase: importing ? Phase.Binding : Phase.Done,
@@ -29,6 +28,10 @@ export default function (in: Input): Output {
             first: first,
             count: 0,
             named: false,
+            exported: in.control.token.word == Keyword.Export,
+            wildcard: false,
+            aliased: false,
+            default_binding: false,
             type_only: false
         }
     }

@@ -69,6 +69,9 @@ pub const SwitchCase = struct { value: ?*const Expression, body: Block, span: Sp
 pub const Import = struct {
     kind: enum { type_only, function, enumeration },
     names: []const Name,
+    source_names: []const Name = &.{},
+    exported: bool = false,
+    wildcard: bool = false,
     path: []const u8,
     span: Span,
 };

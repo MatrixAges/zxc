@@ -59,7 +59,8 @@ export default function (in: Input): Output {
             start: token.span.start,
             present: false,
             diagnostic:
-                in.declarations.declarations.length == 0 && in.constants.length == 0 ? {
+                in.declarations.declarations.length == 0 && in.constants.length == 0 &&
+                !in.prefix.imports.imports.some(item => item.exported) ? {
                     code: "contract",
                     start: token.span.start,
                     end: token.span.end,

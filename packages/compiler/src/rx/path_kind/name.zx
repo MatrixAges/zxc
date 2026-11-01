@@ -6,7 +6,7 @@ export type Output = u64
 
 export default function (in: Input): Output {
     if (
-        in.length == 0 || in[0] == ascii_slash || in[in.length - 1] == ascii_slash
+        in.length == 0 || in[0] == ascii_slash
     ) {
         return in.length
     }
@@ -32,5 +32,9 @@ export default function (in: Input): Output {
         }
     })
 
-    return state.valid ? state.start : in.length
+    if (!state.valid) {
+        return in.length
+    }
+
+    return state.start == in.length ? state.start - 1 : state.start
 }

@@ -1,93 +1,71 @@
 const std = @import("std");
-const Context = @import("context.zig");
+const Symbols = @import("symbols.zig").Symbols;
 const generated = @import("generated_project_binding");
 pub const Input = @typeInfo(@TypeOf(generated.executeValue)).@"fn".param_types[1].?;
-const Record = if (@typeInfo(Input) == .pointer) @typeInfo(Input).pointer.child else Input;
-const Names = @FieldType(Record, "names");
-const Exports = @FieldType(Record, "exports");
-const Members = @FieldType(Record, "members");
+const Record = if (@typeInfo(Input) == .pointer) std.meta.Child(Input) else Input;
 
-pub fn init(allocator: std.mem.Allocator, item: anytype, context: Context) std.mem.Allocator.Error!Input {
+pub fn init(allocator: std.mem.Allocator, item: anytype, symbols: *const Symbols) std.mem.Allocator.Error!Input {
     const values = try allocator.alloc([]const u8, item.nameCount());
     const starts = try allocator.alloc(u64, values.len);
     const ends = try allocator.alloc(u64, values.len);
+    var aliases: ?[][]const u8 = null;
 
     for (values, starts, ends, 0..) |*value, *start, *end, index| {
         const name = item.nameAt(index);
+        const source = item.sourceAt(index);
 
-        value.* = name.text;
-        start.* = name.span.start;
-        end.* = name.span.end;
+        value.* = source.text;
+        start.* = source.span.start;
+        end.* = source.span.end;
+
+        if (aliases == null and !std.mem.eql(u8, value.*, name.text)) {
+            aliases = try allocator.alloc([]const u8, values.len);
+
+            @memcpy(aliases.?[0..index], values[0..index]);
+        }
+
+        if (aliases) |locals| locals[index] = name.text;
     }
 
-    const names = try record(Names, allocator, .{ .values = values, .starts = starts, .ends = ends });
-    const export_values = if (item.kind == .function) context.exports[0..0] else context.exports;
-    const export_names = try allocator.alloc([]const u8, export_values.len);
-    const export_ids = try allocator.alloc(u32, export_values.len);
+    const names = try record(@FieldType(Record, "names"), allocator, .{ .values = values, .aliases = aliases orelse values, .starts = starts, .ends = ends });
+    const export_names = try allocator.alloc([]const u8, symbols.exports.len);
+    const export_ids = try allocator.alloc(u32, symbols.exports.len);
 
-    for (export_values, export_names, export_ids) |value, *name, *id| {
+    for (symbols.exports, export_names, export_ids) |value, *name, *id| {
         name.* = value.name;
         id.* = @backingInt(value.type_id);
     }
 
-    const exports = try record(Exports, allocator, .{ .names = export_names, .ids = export_ids });
-    const member_values = if (item.kind == .function) context.members else context.members[0..0];
-    const member_names = try allocator.alloc([]const u8, member_values.len);
-    const ids = try allocator.alloc(u32, member_values.len);
-    const input_types = try allocator.alloc(u32, member_values.len);
-    const output_types = try allocator.alloc(u32, member_values.len);
+    const exports = try record(@FieldType(Record, "exports"), allocator, .{ .names = export_names, .ids = export_ids });
+    const constants = try allocator.alloc([]const u8, symbols.constants.len);
 
-    for (member_values, 0..) |value, index| {
-        member_names[index] = value.name;
-        ids[index] = @backingInt(value.id);
-        input_types[index] = @backingInt(value.input_type);
-        output_types[index] = @backingInt(value.output_type);
-    }
+    for (symbols.constants, constants) |value, *name| name.* = value.name;
 
-    const members = try record(Members, allocator, .{ .names = member_names, .ids = ids, .input_types = input_types, .output_types = output_types });
-
-    const value: Record = .{
-        .target = switch (context.target) {
+    return record(Input, allocator, .{
+        .target = @as(@FieldType(Record, "target"), switch (symbols.target) {
             .source => .Source,
             .compiled => .Compiled,
             .native => .Native,
-        },
-        .kind = switch (item.kind) {
+        }),
+        .kind = @as(@FieldType(Record, "kind"), switch (item.kind) {
             .function => .Function,
             .enumeration => .Enumeration,
             .type_only => .TypeOnly,
-        },
-        .start = item.span.start,
-        .end = item.span.end,
+        }),
+        .reexport = item.exported,
+        .wildcard = item.wildcard,
+        .start = @as(u64, item.span.start),
+        .end = @as(u64, item.span.end),
         .names = names,
-        .type_only = context.type_only,
-        .type_kinds = context.types.kinds,
+        .type_kinds = symbols.types.kinds,
         .exports = exports,
-        .constant_exports = try constants(allocator, item, context),
-        .members = members,
-    };
-
-    if (Record == Input) return value;
-
-    const owned = try allocator.create(Record);
-
-    owned.* = value;
-
-    return owned;
-}
-
-fn constants(allocator: std.mem.Allocator, item: anytype, context: Context) std.mem.Allocator.Error!@FieldType(Record, "constant_exports") {
-    if (item.kind != .enumeration or context.constant_exports.len == 0) return null;
-
-    const Target = @typeInfo(@FieldType(Record, "constant_exports")).optional.child;
-    const Table = if (@typeInfo(Target) == .pointer) std.meta.Child(Target) else Target;
-    const value = (try @import("../../analysis/constants/input.zig").marshal(Table, allocator, context.constant_exports)).?;
-
-    return if (Target == Table) value.* else value;
+        .constants = constants,
+        .members = symbols.functions,
+    });
 }
 
 inline fn record(comptime Target: type, allocator: std.mem.Allocator, fields: anytype) std.mem.Allocator.Error!Target {
-    const Value = if (@typeInfo(Target) == .pointer) @typeInfo(Target).pointer.child else Target;
+    const Value = if (@typeInfo(Target) == .pointer) std.meta.Child(Target) else Target;
     var value: Value = undefined;
 
     inline for (@typeInfo(Value).@"struct".field_names) |name| {

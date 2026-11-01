@@ -48,13 +48,24 @@ fn create(allocator: std.mem.Allocator, output: std.mem.Allocator, library: *con
     const program = try @import("genz").zx.prepare(owned, library.program);
     const needed = try owned.alloc(bool, program.functions.count());
     const public_modules = try owned.alloc(PublicModule, library.exports.len);
-    const exported_functions = try owned.alloc(@import("zx").ir.FunctionId, library.exports.len);
+    var function_count = library.exports.len;
+
+    for (library.exports) |exported| function_count += exported.members.len;
+
+    const exported_functions = try owned.alloc(@import("zx").ir.FunctionId, function_count);
     var exported_count: usize = 0;
 
-    for (library.exports) |exported| if (exported.function) |id| {
-        exported_functions[exported_count] = id;
-        exported_count += 1;
-    };
+    for (library.exports) |exported| {
+        if (exported.function) |id| {
+            exported_functions[exported_count] = id;
+            exported_count += 1;
+        }
+
+        for (exported.members) |member| {
+            exported_functions[exported_count] = member.id;
+            exported_count += 1;
+        }
+    }
 
     const memos = @import("uniqueness_memo.zig");
     const keeps_memo = if (cache) |store| store.keeps_memo else false;
@@ -109,13 +120,51 @@ fn create(allocator: std.mem.Allocator, output: std.mem.Allocator, library: *con
 
         references.markRoot(needed, view);
 
+        const members = try owned.alloc(@import("genz").zx.modules.PublicMember, exported.members.len);
+
+        for (exported.members, members) |member, *public| {
+            public.* = .{ .name = member.name, .function = member.id };
+
+            needed[@backingInt(member.id)] = true;
+        }
+
         var digest: [32]u8 = undefined;
 
         @import("zx").Sha256.hash(exported.name, &digest, .{});
         public_batch.* = batch;
         public_batch.program = view;
+        public_batch.public_members = members;
 
         try public_batch.analysis.value.reentry(owned, allocator, view);
+
+        const called = try references.imports(owned, view.expressions, view.contracts, identities.functions);
+        var imports = called;
+
+        if (members.len != 0) {
+            var seen: @import("zx").bytes.Map(void) = .empty;
+            var combined: std.ArrayList([]const u8) = .empty;
+
+            defer seen.deinit(owned);
+
+            for (called) |name| {
+                try seen.put(owned, name, {});
+                try combined.append(owned, name);
+            }
+
+            for (members) |member| {
+                const name = identities.functions[@backingInt(member.function)];
+
+                if (!(try seen.getOrPut(owned, name)).found_existing) try combined.append(owned, name);
+            }
+
+            std.mem.sort([]const u8, combined.items, {}, struct {
+                fn lessThan(_: void, left: []const u8, right: []const u8) bool {
+                    return std.mem.lessThan(u8, left, right);
+                }
+            }.lessThan);
+
+            imports = combined.items;
+        }
 
         public_module.* = .{
             .name = try owned.dupe(u8, exported.name),
@@ -124,7 +173,7 @@ fn create(allocator: std.mem.Allocator, output: std.mem.Allocator, library: *con
             .file = .{
                 .name = try std.fmt.allocPrint(owned, "public_{s}", .{std.fmt.bytesToHex(digest, .lower)}),
                 .source = &.{},
-                .imports = try references.imports(owned, view.expressions, view.contracts, identities.functions),
+                .imports = imports,
             },
         };
     }
@@ -132,6 +181,22 @@ fn create(allocator: std.mem.Allocator, output: std.mem.Allocator, library: *con
     references.close(needed, program.functions);
 
     const units = try modules.functionUnits(owned, needed);
+
+    if (function_count > library.exports.len) {
+        const public_functions = try owned.alloc(bool, needed.len);
+
+        @memset(public_functions, false);
+
+        for (library.exports) |exported| for (exported.members) |member| {
+            public_functions[@backingInt(member.id)] = true;
+        };
+
+        for (units) |*unit| if (public_functions[@backingInt(unit.function)]) {
+            const id = unit.function;
+            unit.* = .{ .regular = id };
+        };
+    }
+
     const Job = @import("function_sources.zig").Job;
     const jobs = try owned.alloc(Job, public_batches.len + 1 + units.len);
 

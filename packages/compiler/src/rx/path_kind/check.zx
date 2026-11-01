@@ -1,3 +1,5 @@
+import { ascii_slash } from "core/ascii/const"
+
 import {
     app_name,
     current_directory,
@@ -25,6 +27,17 @@ export default function (in: Input): Output {
     const start = name(in.path)
 
     if (start == in.path.length) {
+        return false
+    }
+
+    if (in.kind == Kind.FunctionReference) {
+        return !ends({
+            source: in.path,
+            pattern: rx_suffix
+        })
+    }
+
+    if (in.path[in.path.length - 1] == ascii_slash) {
         return false
     }
 

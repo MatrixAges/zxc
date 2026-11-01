@@ -1,0 +1,129 @@
+import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import { ImportKind } from "../../frontend/parser/imports/model"
+import {
+    default_export,
+    module_code,
+    enum_required,
+    missing_export,
+    missing_native,
+    native_enum_required
+} from "./const"
+import { Target } from "./model"
+import position from "./position"
+
+import type { Request, Result } from "./model"
+
+export type Input = {
+    request: Request,
+    result: Result
+}
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    return loop({
+        request: in.request,
+        result: in.result,
+        index: 0
+    }, {
+        while: current =>
+            current.result.diagnostic.message == "" && current.index < (
+                current.result.namespace != null ? current.request.members.length :
+                    current.request.names.values.length
+            ),
+        next: current => {
+            const request = current.request
+            const namespace = current.result.namespace != null
+            const local = namespace ? request.members[current.index] :
+                request.names.aliases[current.index]
+            const original = namespace ? local : request.names.values[current.index]
+            const name =
+                request.kind == ImportKind.Function || original == default_export ? "" :
+                original
+            const callable: u64? = match {
+                namespace => current.index,
+                request.kind == ImportKind.TypeOnly => null,
+                _ => position({
+                    names: request.members,
+                    name: name
+                })
+            }
+            const constant: u64? =
+                callable == null && request.kind == ImportKind.Enumeration ?
+                position({
+                    names: request.constants,
+                    name: original
+                }) : null
+            const alias_index: u64? = callable == null && constant == null ? position({
+                names: request.exports.names,
+                name: original
+            }) : null
+
+            const public_name = request.reexport && local == default_export ? "" : local
+
+            if (callable != null && request.kind != ImportKind.TypeOnly) {
+                current.result = {
+                    ...current.result,
+                    functions: {
+                        names: current.result.functions.names.push(public_name)[0],
+                        indices: current.result.functions.indices.push(callable)[0]
+                    }
+                }
+            } else if (constant != null && request.kind == ImportKind.Enumeration) {
+                current.result = {
+                    ...current.result,
+                    constants: {
+                        names: current.result.constants.names.push(local)[0],
+                        indices: current.result.constants.indices.push(constant)[0]
+                    }
+                }
+            } else if (alias_index != null) {
+                const allowed = request.reexport || request.kind == ImportKind.TypeOnly ||
+                    kind(
+                        request
+                            .type_kinds[integers.widen(
+                                request.exports.ids[alias_index]
+                            )]
+                    ) == Kind.Enumeration
+
+                if (allowed) {
+                    current.result = {
+                        ...current.result,
+                        aliases: {
+                            names: current.result.aliases.names.push(local)[0],
+                            indices:
+                                current.result.aliases.indices.push(alias_index)[0]
+                        }
+                    }
+                } else {
+                    current.result = {
+                        ...current.result,
+                        diagnostic: {
+                            code: module_code,
+                            message: request.target == Target.Native ?
+                                native_enum_required : enum_required,
+                            start: request.names.starts[current.index],
+                            end: request.names.ends[current.index]
+                        }
+                    }
+                }
+            } else {
+                current.result = {
+                    ...current.result,
+                    diagnostic: {
+                        code: module_code,
+                        message: request.target == Target.Native ? missing_native :
+                            missing_export,
+                        start: request.names.starts[current.index],
+                        end: request.names.ends[current.index]
+                    }
+                }
+            }
+
+            current.index += 1
+        }
+    }).result
+}

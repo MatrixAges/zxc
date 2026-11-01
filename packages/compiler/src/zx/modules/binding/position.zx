@@ -1,0 +1,27 @@
+export type Input = {
+    names: string[],
+    name: string
+}
+
+export type Output = u64?
+
+    export default function (in: Input): Output {
+        const found: u64? = null
+
+        return loop({
+            names: in.names,
+            name: in.name,
+            index: 0,
+            found: found
+        }, {
+            while: current =>
+                current.found == null && current.index < current.names.length,
+            next: current => {
+                if (current.names[current.index] == current.name) {
+                    current.found = current.index
+                }
+
+                current.index += 1
+            }
+        }).found
+    }

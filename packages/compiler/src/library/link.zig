@@ -103,7 +103,26 @@ pub fn link(allocator: std.mem.Allocator, inputs: []const model.Input) Error!mod
             constant.type_id = try nodes.types.include(source.type_id);
         }
 
-        exported.* = .{ .name = try owned.dupe(u8, input.name), .path = try owned.dupe(u8, program.file_name), .function = function_id, .types = public_types.items, .constants = constants };
+        var members: std.ArrayList(frontend.project.FunctionImport) = .empty;
+
+        for (input.analysis.modules) |record| {
+            if (!std.mem.eql(u8, record.path, program.file_name)) continue;
+
+            for (record.reexports.functions) |source| {
+                if (source.name.len == 0) continue;
+
+                var member = source;
+                member.namespace = null;
+                member.name = try owned.dupe(u8, source.name);
+                member.id = try nodes.functionId(source.id);
+                member.input_type = try nodes.types.include(source.input_type);
+                member.output_type = try nodes.types.include(source.output_type);
+
+                try members.append(owned, member);
+            }
+        }
+
+        exported.* = .{ .name = try owned.dupe(u8, input.name), .path = try owned.dupe(u8, program.file_name), .function = function_id, .types = public_types.items, .constants = constants, .members = members.items };
     }
 
     for (0..functions.count()) |function_row| {

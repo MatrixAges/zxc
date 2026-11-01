@@ -16,12 +16,14 @@ pub const Context = struct {
     watch: ?*Attempt = null,
 };
 
-pub fn run(context: Context) !Status {
+pub fn run(raw_context: Context) !Status {
+    var context = raw_context;
+
     if (context.options.linting) return @import("lint.zig").run(context);
     if (context.options.formatting and (context.options.config_kind != null or std.mem.endsWith(u8, context.options.input, ".yaml") or std.mem.endsWith(u8, context.options.input, ".json"))) return @import("configuration/root.zig").run(context);
 
     const allocator = context.allocator;
-    const options = context.options;
+    var options = context.options;
     const stdout = context.stdout;
     const stderr = context.stderr;
     var library_inputs = if (context.watch == null and options.mode == .lib) try @import("watch/inputs.zig").init(context.io, allocator) else null;
@@ -29,7 +31,10 @@ pub fn run(context: Context) !Status {
     defer if (library_inputs) |*observed| observed.deinit();
 
     const inputs = if (context.watch) |attempt| attempt.inputs else if (library_inputs) |*observed| observed else null;
-    const input_path = options.input;
+    const input_path = try @import("sources/module_path.zig").entry(context.io, allocator, options.input, inputs);
+
+    options.input = input_path;
+    context.options = options;
 
     if (inputs) |observed| try observed.add(context.io, input_path);
     if (!options.formatting and std.mem.endsWith(u8, input_path, ".rx") and options.mode != .lib) return @import("rx/compile.zig").run(context);

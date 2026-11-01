@@ -31,10 +31,6 @@ test "modules negative: default import requires executable" {
     try reject("import compute from \"./dep\"\n export type Input = u64\n export type Output = u64\n export default function (in: Input): Output { return in }", "export type Value = u64\n", .module);
 }
 
-test "modules negative: type import requires pure file" {
-    try reject("import type { Input } from \"./dep\"\n export type Value = Input\n", "export type Input = u64\n export type Output = u64\n export default function (in: Input): Output { return in }", .module);
-}
-
 test "modules negative: duplicate imported binding" {
     try reject("import type { Value } from \"./dep\"\n import type { Value } from \"./dep\"\n export type Result = Value\n", "export type Value = u64\n", .name);
 }

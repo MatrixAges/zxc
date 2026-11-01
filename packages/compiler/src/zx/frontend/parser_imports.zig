@@ -1,27 +1,47 @@
+const std = @import("std");
 const zx = @import("zx");
 const Parser = @import("parser.zig");
 const ast = zx.ast;
-const grammar = @import("combinators.zig");
-const Name = grammar.reference(ast.Name, Parser.name);
-const Named = grammar.sequence(.{ grammar.token("{"), grammar.separated(Name, ",", "}"), grammar.required(grammar.token("}"), "expected }") });
-const Names = struct { names: []const ast.Name, named: bool };
-const Bindings = grammar.choice(.{ grammar.map(Named, Names, named), grammar.map(Name, Names, single) });
-const Rule = grammar.sequence(.{ grammar.token("import"), grammar.optional(grammar.token("type")), Bindings, grammar.required(grammar.token("from"), "expected from"), grammar.reference([]const u8, path), grammar.reference(void, Parser.endStatement) });
-pub const Import = grammar.map(Rule, ast.Import, declaration);
 
-fn named(_: *Parser, values: Named.Value) zx.Error!Names {
-    return .{ .names = values[1], .named = true };
-}
+pub fn parse(parser: *Parser) zx.Error!ast.Import {
+    const start = parser.current().span.start;
+    const exported = parser.take("export");
 
-fn single(parser: *Parser, name: ast.Name) zx.Error!Names {
-    const names = try parser.allocator.alloc(ast.Name, 1);
+    if (!exported) try parser.expect("import");
 
-    names[0] = name;
+    const type_only = parser.take("type");
+    const wildcard = exported and parser.take("*");
+    const named = wildcard or parser.take("{");
+    var names: std.ArrayList(ast.Name) = .empty;
+    var sources: std.ArrayList(ast.Name) = .empty;
 
-    return .{ .names = names, .named = false };
-}
+    if (!wildcard) {
+        while (true) {
+            if (named and parser.take("}")) break;
 
-fn path(parser: *Parser) zx.Error![]const u8 {
+            const source = if (named and parser.at("default")) value: {
+                const token = parser.current();
+                parser.index += 1;
+
+                break :value ast.Name{ .text = token.text(parser.source), .span = token.span };
+            } else try parser.name();
+
+            const name = if (named and parser.take("as")) (if (exported) try binding(parser) else try parser.name()) else source;
+
+            if (!exported and std.mem.eql(u8, name.text, "default")) return parser.reporter.fail(.syntax, name.span, "default imports in braces require an alias");
+            try names.append(parser.allocator, name);
+            try sources.append(parser.allocator, source);
+            if (!named) break;
+            if (parser.take("}")) break;
+            try parser.expect(",");
+        }
+    }
+
+    if (!wildcard and names.items.len == 0) return parser.reporter.fail(.syntax, parser.current().span, "an import must bind at least one name");
+    if (type_only and !named) return parser.reporter.fail(.syntax, parser.current().span, "type imports require named bindings");
+    if (exported and !named) return parser.reporter.fail(.syntax, parser.current().span, "re-exports require named bindings or *");
+    try parser.expect("from");
+
     const token = parser.current();
 
     if (token.kind != .string) return parser.reporter.fail(.syntax, token.span, "import path must be a string literal");
@@ -29,15 +49,19 @@ fn path(parser: *Parser) zx.Error![]const u8 {
     parser.index += 1;
 
     const text = token.text(parser.source);
+    const path = try @import("string_literal.zig").decode(parser.allocator, text[1 .. text.len - 1]);
 
-    return @import("string_literal.zig").decode(parser.allocator, text[1 .. text.len - 1]);
+    try parser.endStatement();
+
+    return .{ .kind = if (type_only) .type_only else if (named) .enumeration else .function, .names = try names.toOwnedSlice(parser.allocator), .source_names = try sources.toOwnedSlice(parser.allocator), .exported = exported, .wildcard = wildcard, .path = path, .span = parser.range(start) };
 }
 
-fn declaration(parser: *Parser, values: Rule.Value) zx.Error!ast.Import {
-    const bindings = values[2];
+fn binding(parser: *Parser) zx.Error!ast.Name {
+    if (!parser.at("default")) return parser.name();
 
-    if (bindings.names.len == 0) return parser.reporter.fail(.syntax, values[0].span, "an import must bind at least one name");
-    if (values[1] != null and !bindings.named) return parser.reporter.fail(.syntax, values[0].span, "type imports require named bindings");
+    const token = parser.current();
 
-    return .{ .kind = if (values[1] != null) .type_only else if (bindings.named) .enumeration else .function, .names = bindings.names, .path = values[4], .span = parser.range(values[0].span.start) };
+    parser.index += 1;
+
+    return .{ .text = token.text(parser.source), .span = token.span };
 }

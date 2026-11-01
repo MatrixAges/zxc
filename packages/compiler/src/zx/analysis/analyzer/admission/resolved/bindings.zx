@@ -1,5 +1,6 @@
 import integers from "std:integer"
 
+import position from "../../../../modules/binding/position"
 import declared from "./declared"
 import { DeclarationKind } from "./model"
 
@@ -34,6 +35,17 @@ export default function (in: Input): Output {
                 kind: DeclarationKind.Callable
             }) &&
                 id < current.input.functions.files.length
+
+            const local = namespace ?? name
+            const constants = current.input.constants
+
+            current.valid = current.valid && position({
+                names: current.input.aliases.names,
+                name: local
+            }) == null && (constants == null || position({
+                names: constants.names,
+                name: local
+            }) == null)
 
             if (current.valid) {
                 current.valid = loop({

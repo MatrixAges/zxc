@@ -10,7 +10,7 @@ pub fn valid(header: anytype, input: Input, types: ir.TypeTable) bool {
         var found = false;
 
         for (0..header.importCount()) |index| {
-            if (header.importAt(index).kind != .enumeration) continue;
+            if (header.importAt(index).exported or header.importAt(index).kind != .enumeration) continue;
 
             for (0..header.importNameCount(index)) |name_index| {
                 if (std.mem.eql(u8, constant.name, header.importNameAt(index, name_index).text)) found = true;
@@ -38,6 +38,11 @@ pub fn valid(header: anytype, input: Input, types: ir.TypeTable) bool {
             if (std.mem.eql(u8, previous.name, binding.name) and std.mem.eql(u8, previous.namespace orelse "", binding.namespace orelse "")) return false;
         }
 
+        const local = binding.namespace orelse binding.name;
+
+        for (input.aliases) |alias| if (std.mem.eql(u8, local, alias.name)) return false;
+        for (input.constant_imports) |constant| if (std.mem.eql(u8, local, constant.name)) return false;
+
         const function = input.functions.at(@backingInt(binding.id));
 
         if (binding.input_type != function.input_type or binding.output_type != function.output_type) return false;
@@ -47,12 +52,15 @@ pub fn valid(header: anytype, input: Input, types: ir.TypeTable) bool {
     for (0..header.importCount()) |index| {
         const item = header.importAt(index);
 
+        if (item.exported) continue;
         if (item.kind == .function and header.importNameCount(index) != 1) return false;
 
         for (0..header.importNameCount(index)) |name_index| {
             const name = header.importNameAt(index, name_index).text;
 
             for (0..index + 1) |previous_index| {
+                if (header.importAt(previous_index).exported) continue;
+
                 const count = if (previous_index == index) name_index else header.importNameCount(previous_index);
 
                 for (0..count) |previous_name| {
@@ -62,11 +70,13 @@ pub fn valid(header: anytype, input: Input, types: ir.TypeTable) bool {
 
             var found = false;
 
-            if (item.kind == .function) {
+            if (item.kind != .type_only) {
                 for (input.imports) |binding| {
                     if (std.mem.eql(u8, name, binding.namespace orelse binding.name)) found = true;
                 }
-            } else {
+            }
+
+            if (item.kind != .function) {
                 if (item.kind == .enumeration) {
                     for (input.constant_imports) |constant| {
                         if (std.mem.eql(u8, name, constant.name)) found = true;
@@ -90,7 +100,10 @@ pub fn valid(header: anytype, input: Input, types: ir.TypeTable) bool {
 
 fn declared(header: anytype, name: []const u8, function: bool) bool {
     for (0..header.importCount()) |index| {
-        if ((header.importAt(index).kind == .function) != function) continue;
+        const item = header.importAt(index);
+
+        if (item.exported) continue;
+        if (if (function) item.kind == .type_only else item.kind == .function) continue;
 
         for (0..header.importNameCount(index)) |name_index| {
             if (std.mem.eql(u8, header.importNameAt(index, name_index).text, name)) return true;

@@ -1,12 +1,16 @@
 const std = @import("std");
 const frontend = @import("frontend");
+const zx = @import("zx");
 const State = @import("state.zig");
 const Binding = std.meta.Child(@FieldType(frontend.ResolvedImports, "imports"));
+pub const Result = struct { functions: []const Binding, published: []const Binding };
 
-pub fn collect(state: *State, header: anytype, index: usize, signature: frontend.project.signature_project.Module) State.Error![]const Binding {
+pub fn collect(state: *State, header: anytype, index: usize, signature: frontend.project.signature_project.Module) State.Error!Result {
     var bindings: std.ArrayList(Binding) = .empty;
+    var published: std.ArrayList(Binding) = .empty;
 
     try bindings.appendSlice(state.allocator, signature.function_imports);
+    try published.appendSlice(state.allocator, signature.reexport_functions);
 
     const edges = state.graph.modules[index].dependencies;
 
@@ -15,28 +19,54 @@ pub fn collect(state: *State, header: anytype, index: usize, signature: frontend
     for (edges, 0..) |edge, import_index| {
         const item = header.importAt(import_index);
 
-        if (item.kind != .function or edge.target == .native) continue;
-        if (header.importNameCount(import_index) != 1) return state.fail(edge.location, "default imports require one binding");
+        if (item.kind == .type_only or edge.target == .native) continue;
 
-        const id = switch (edge.target) {
-            .source => |source| block: {
+        const dependency = switch (edge.target) {
+            .source => |source| source_block: {
                 const loaded = state.finished[source] orelse return state.fail(edge.location, "source function dependency has not been analyzed in its required context");
 
-                break :block loaded.function orelse return state.fail(edge.location, "default imports must refer to an executable module");
+                break :source_block frontend.project.compiled.Export{ .name = "", .path = "", .function = loaded.function, .types = loaded.exports, .constants = loaded.constant_exports, .members = loaded.members };
             },
-            .compiled => |target| (try @import("library.zig").load(state, target, edge.location)).function orelse return state.fail(edge.location, "default imports must refer to an executable module"),
+            .compiled => |target| try @import("library.zig").load(state, target, edge.location),
             .native => unreachable,
         };
 
-        const function = state.functions.at(@backingInt(id));
+        const temporary = state.scratch.allocator();
+        const count = dependency.members.len + @intFromBool(dependency.function != null);
+        const members = try temporary.alloc(Binding, count);
+        const names = try temporary.alloc([]const u8, count);
+        var first: usize = 0;
 
-        try bindings.append(state.allocator, .{
-            .name = try state.allocator.dupe(u8, header.importNameAt(import_index, 0).text),
-            .id = id,
-            .input_type = function.input_type,
-            .output_type = function.output_type,
-        });
+        if (dependency.function) |id| {
+            const function = state.functions.at(@backingInt(id));
+            members[0] = .{ .name = "", .id = id, .input_type = function.input_type, .output_type = function.output_type };
+            first = 1;
+        }
+
+        @memcpy(members[first..], dependency.members);
+
+        for (members, names) |member, *name| name.* = member.name;
+
+        const binding = frontend.project.import_binding;
+        const symbols = binding.Symbols{ .target = if (edge.target == .source) .source else .compiled, .types = state.types.items.view(), .exports = dependency.types, .constants = dependency.constants, .functions = names };
+        var reporter: zx.Reporter = .{};
+        const view = frontend.project.import_view.get(header, import_index);
+
+        const selected = binding.select(temporary, state.allocator, view, &symbols, &reporter) catch |err| {
+            if (err == error.OutOfMemory) return error.OutOfMemory;
+
+            return state.fail(edge.location, reporter.diagnostic.?.message);
+        };
+
+        const destination = if (item.exported) &published else &bindings;
+
+        for (selected.functions.names, selected.functions.indices) |name, selected_index| {
+            var member = members[@intCast(selected_index)];
+            member.name = try state.allocator.dupe(u8, name);
+
+            try destination.append(state.allocator, member);
+        }
     }
 
-    return bindings.items;
+    return .{ .functions = bindings.items, .published = published.items };
 }

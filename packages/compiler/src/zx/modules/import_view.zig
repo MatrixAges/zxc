@@ -3,7 +3,7 @@ const zx = @import("zx");
 pub fn get(header: anytype, index: usize) View(@TypeOf(header)) {
     const item = header.importAt(index);
 
-    return .{ .header = header, .index = index, .kind = item.kind, .path = item.path, .span = item.span };
+    return .{ .header = header, .index = index, .kind = item.kind, .exported = item.exported, .wildcard = item.wildcard, .path = item.path, .span = item.span };
 }
 
 fn View(comptime Header: type) type {
@@ -13,8 +13,13 @@ fn View(comptime Header: type) type {
         header: Header,
         index: usize,
         kind: @FieldType(zx.ast.Import, "kind"),
+        exported: bool,
+        wildcard: bool,
         path: []const u8,
         span: zx.Span,
+        pub fn sourceAt(self: Self, index: usize) zx.ast.Name {
+            return self.header.importSourceAt(self.index, index);
+        }
         pub fn nameCount(self: Self) usize {
             return self.header.importNameCount(self.index);
         }

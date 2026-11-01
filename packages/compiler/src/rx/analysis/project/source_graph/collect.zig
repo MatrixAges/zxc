@@ -33,7 +33,8 @@ pub fn source(self: *Self, path: []const u8, location: rx.ast.Location) Error!vo
 }
 
 pub fn local(self: *Self, path: []const u8, location: rx.ast.Location) Error!void {
-    const resolved = try std.fs.path.resolve(self.allocator, &.{ self.options.root_dir, path });
+    const absolute = try std.fs.path.resolve(self.allocator, &.{ self.options.root_dir, path });
+    const resolved = if (std.mem.endsWith(u8, absolute, ".zx")) try project.selectSource(self.allocator, absolute, self.options) else absolute;
     const scopes = self.options.package_scopes;
 
     if (scopes.len != 0) {

@@ -1,0 +1,41 @@
+import { Keyword } from "../../lexer/keyword_model"
+import { Symbol } from "../../lexer/token_model"
+
+import type { Token } from "../../lexer/token_model"
+
+export type Input = {
+    tokens: Token[],
+    index: u64
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    if (in.index >= in.tokens.length) {
+        return false
+    }
+
+    const token = in.tokens[in.index]
+
+    if (token.word == Keyword.Import) {
+        return true
+    }
+
+    if (token.word != Keyword.Export || in.index + 1 >= in.tokens.length) {
+        return false
+    }
+
+    const next = in.tokens[in.index + 1]
+
+    if (next.symbol == Symbol.OpenBrace || next.symbol == Symbol.Star) {
+        return true
+    }
+
+    if (next.word != Keyword.Type || in.index + 2 >= in.tokens.length) {
+        return false
+    }
+
+    const binding = in.tokens[in.index + 2].symbol
+
+    return binding == Symbol.OpenBrace || binding == Symbol.Star
+}

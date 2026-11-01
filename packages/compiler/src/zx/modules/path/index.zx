@@ -1,0 +1,14 @@
+import encoding from "std:encoding"
+import path from "std:path"
+
+import { module_extension, index_file } from "./const"
+
+export type Input = string
+
+export type Output = string
+
+export default function (in: Input): Output {
+    const directory = encoding.sliceBytes(in, 0, in.length - module_extension.length)
+
+    return path.join([directory, index_file])
+}

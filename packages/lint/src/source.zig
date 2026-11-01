@@ -54,16 +54,26 @@ fn planView(allocator: std.mem.Allocator, source: []const u8, comments: anytype,
     const ordered = try @import("imports/edits.zig").planView(allocator, source, comments, view);
     const spaced = try spacing.viewEdits(allocator, source, comments, view, body);
 
-    return merge(allocator, view, ordered, spaced);
+    return merge(allocator, ordered, spaced);
 }
 
-fn merge(allocator: std.mem.Allocator, view: anytype, ordered: []const spacing.Edit, spaced: []const spacing.Edit) std.mem.Allocator.Error![]const spacing.Edit {
+fn merge(allocator: std.mem.Allocator, ordered: []const spacing.Edit, spaced: []const spacing.Edit) std.mem.Allocator.Error![]const spacing.Edit {
     var result: std.ArrayList(spacing.Edit) = .empty;
 
     try result.appendSlice(allocator, ordered);
 
     for (spaced) |edit| {
-        if (view.importCount() != 0 and edit.span.start >= view.importAt(0).span.start and edit.span.end <= view.importAt(view.importCount() - 1).span.end) continue;
+        var replaced = false;
+
+        for (ordered) |section| {
+            if (edit.span.start >= section.span.start and edit.span.end <= section.span.end) {
+                replaced = true;
+
+                break;
+            }
+        }
+
+        if (replaced) continue;
         try result.append(allocator, edit);
     }
 

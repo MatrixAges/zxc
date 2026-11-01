@@ -1,7 +1,7 @@
 const std = @import("std");
 const zx = @import("zx");
 const Artifact = @import("../artifact/model.zig");
-const marker = "zxc.module.v4\n";
+const marker = "zxc.module.v5\n";
 const Payload = struct { ir_version: u32, context_digest: [32]u8, module: Artifact.Module };
 pub const Decoded = struct { result: Artifact.Result, context_digest: [32]u8 };
 pub const Error = std.mem.Allocator.Error || error{InvalidCache};

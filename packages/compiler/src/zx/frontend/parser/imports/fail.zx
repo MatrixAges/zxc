@@ -13,8 +13,7 @@ export type Output = State
 
 export default function (in: Input): Output {
     return {
-        imports: in.state.imports,
-        names: in.state.names,
+        ...in.state,
         control: {
             ...in.state.control,
             phase: Phase.Done,

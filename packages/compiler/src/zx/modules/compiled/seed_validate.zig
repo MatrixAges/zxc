@@ -70,6 +70,19 @@ pub fn validate(allocator: std.mem.Allocator, library: model.Graph) Error!void {
 
         var type_names: std.StringHashMapUnmanaged(void) = .empty;
 
+        for (exported.constants) |item| {
+            if (!text(item.name) or (try type_names.getOrPut(scratch, item.name)).found_existing) return error.InvalidLibrary;
+        }
+
+        for (exported.members) |member| {
+            if (!text(member.name) or member.namespace != null or @backingInt(member.id) >= program.functions.count()) return error.InvalidLibrary;
+            if ((try type_names.getOrPut(scratch, member.name)).found_existing) return error.InvalidLibrary;
+
+            const function = program.functions.at(@backingInt(member.id));
+
+            if (member.input_type != function.input_type or member.output_type != function.output_type) return error.InvalidLibrary;
+        }
+
         for (exported.types) |item| {
             if (!text(item.name) or @backingInt(item.type_id) >= program.types.count()) return error.InvalidLibrary;
 

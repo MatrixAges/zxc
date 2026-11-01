@@ -16,9 +16,10 @@ pub fn resolve(allocator: std.mem.Allocator, owner: []const u8, node: rx.ast.Nod
     const attribute = reference orelse target.attribute(node, "fn");
     const from = try std.fs.path.resolve(allocator, &.{ project.root_dir, owner });
     const packages = rx.module_reference.dependencies(project, from);
+    const package = reference != null and rx.module_reference.isPackage(attribute.value, packages);
     var path: []const u8 = undefined;
 
-    if (reference != null and rx.module_reference.isPackage(attribute.value, packages)) {
+    if (package) {
         var reporter: zx.Reporter = .{};
 
         const resolved = frontend.project.resolveModuleTarget(allocator, from, attribute.value, project, &reporter, .{ .start = attribute.value_location.offset, .end = attribute.value_location.offset }) catch |err| {
@@ -44,7 +45,18 @@ pub fn resolve(allocator: std.mem.Allocator, owner: []const u8, node: rx.ast.Nod
         path = try std.fs.path.resolve(allocator, &.{ project.root_dir, relative });
     }
 
-    if (std.mem.endsWith(u8, path, ".zx")) return .{ .source = path };
+    if (std.mem.endsWith(u8, path, ".zx")) {
+        const selected = try frontend.project.selectSource(allocator, path, project);
+        var reporter: zx.Reporter = .{};
+
+        if (!package) frontend.project.checkFileTarget(from, selected, project, &reporter, .{ .start = attribute.value_location.offset, .end = attribute.value_location.offset }) catch |err| {
+            if (err == error.OutOfMemory) return error.OutOfMemory;
+
+            return failure(allocator, owner, attribute.value_location, reporter.diagnostic.?.message);
+        };
+
+        return .{ .source = selected };
+    }
 
     for (modules, 0..) |module, index| {
         const registered = try std.fs.path.resolve(allocator, &.{ project.root_dir, module.path });

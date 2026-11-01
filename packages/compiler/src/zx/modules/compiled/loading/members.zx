@@ -1,0 +1,33 @@
+import integers from "std:integer"
+
+import ids from "./remap/ids"
+
+import type { Imports } from "../../function_import"
+
+export type Input = {
+    source: Imports,
+    mapping: u32[],
+    first: u64
+}
+
+export type Output = Imports
+
+export default function (in: Input): Output {
+    const first = in.first
+
+    return {
+        ...in.source,
+        ids:
+            in.source.ids.map(
+                value => integers.narrow(first + integers.widen(value))
+            ),
+        input_types: ids({
+            values: in.source.input_types,
+            mapping: in.mapping
+        }),
+        output_types: ids({
+            values: in.source.output_types,
+            mapping: in.mapping
+        })
+    }
+}

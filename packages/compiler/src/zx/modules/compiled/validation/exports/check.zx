@@ -2,6 +2,7 @@ import integers from "std:integer"
 
 import validConstants from "../../../../analysis/constants/valid"
 import text from "../../../../ir/canonical/native/text"
+import members from "./members"
 import types from "./types"
 
 import type { Graph } from "../../model"
@@ -58,7 +59,12 @@ export default function (in: Input): Output {
         return false
     }
 
-    return types({
+    return members({
+        members: exports.members[in.index],
+        types: exports.type_names[in.index],
+        constants: exports.constants[in.index],
+        functions: functions
+    }) && types({
         names: exports.type_names[in.index],
         ids: exports.type_ids[in.index],
         count: in.graph.program.context.table.kinds.length,

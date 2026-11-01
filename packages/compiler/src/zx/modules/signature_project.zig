@@ -9,6 +9,7 @@ pub const Module = struct {
     type_imports: []const zx.ir.Export,
     function_imports: []const @import("function_import.zig"),
     constant_imports: []const zx.ir.Constant = &.{},
+    reexport_functions: []const @import("function_import.zig") = &.{},
 };
 
 pub const Library = struct { index: usize, exports: []const @import("compiled.zig").Export };

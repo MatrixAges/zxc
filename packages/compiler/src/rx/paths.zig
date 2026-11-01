@@ -127,11 +127,8 @@ pub fn isFunctionReference(reference: []const u8) bool {
         return @import("path_kind/adapter.zig").check(reference, &.{}, .FunctionReference);
     }
 
-    const name = std.fs.path.basename(reference);
-
-    return reference.len != 0 and reference[0] != '/' and reference[reference.len - 1] != '/' and
+    return reference.len != 0 and reference[0] != '/' and
         std.mem.indexOfAny(u8, reference, "\\:\x00") == null and
-        !std.mem.eql(u8, name, ".") and !std.mem.eql(u8, name, "..") and
         !std.mem.endsWith(u8, reference, ".rx");
 }
 
@@ -141,7 +138,7 @@ pub fn resolveFunction(allocator: std.mem.Allocator, owner: []const u8, referenc
     const joined = try std.fmt.allocPrint(allocator, "{s}/{s}{s}", .{
         std.fs.path.dirname(owner) orelse ".",
         reference,
-        if (std.mem.endsWith(u8, reference, ".zx")) "" else ".zx",
+        if (std.mem.endsWith(u8, reference, "/")) "index.zx" else if (std.mem.eql(u8, std.fs.path.basename(reference), ".") or std.mem.eql(u8, std.fs.path.basename(reference), "..")) "/index.zx" else if (std.mem.endsWith(u8, reference, ".zx")) "" else ".zx",
     });
 
     defer allocator.free(joined);

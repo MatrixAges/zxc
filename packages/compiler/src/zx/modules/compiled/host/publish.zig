@@ -29,11 +29,23 @@ pub fn apply(allocator: std.mem.Allocator, output: *const Output, destination: D
             item.* = .{ .name = try allocator.dupe(u8, name), .type_id = @fromBackingInt(id) };
         }
 
+        const source_members = output.exports.members[index];
+        const members = try allocator.alloc(@import("../../function_import.zig"), source_members.names.len);
+
+        for (members, 0..) |*member, row| member.* = .{
+            .namespace = null,
+            .name = try allocator.dupe(u8, source_members.names[row]),
+            .id = @fromBackingInt(source_members.ids[row]),
+            .input_type = @fromBackingInt(source_members.input_types[row]),
+            .output_type = @fromBackingInt(source_members.output_types[row]),
+        };
+
         exported.* = .{
             .name = try allocator.dupe(u8, output.exports.names[index]),
             .path = try allocator.dupe(u8, output.exports.paths[index]),
             .function = if (output.exports.functions[index]) |id| @fromBackingInt(id) else null,
             .types = types,
+            .members = members,
             .constants = try @import("../../../analysis/constants/exports.zig").own(allocator, output.exports.constants[index], 0),
         };
     }

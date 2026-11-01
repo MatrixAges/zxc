@@ -96,6 +96,7 @@ pub fn extract(self: *Self, record: Record) Error!model.Module {
         dependency.specifier = try self.allocator.dupe(u8, dependency.specifier);
         dependency.identity = if (dependency.identity) |key| try self.allocator.dupe(u8, key) else null;
         dependency.names = try nodes.strings(dependency.names);
+        dependency.source_names = try nodes.strings(dependency.source_names);
 
         dependency.target = switch (dependency.target) {
             .compiled => return error.InvalidModule,

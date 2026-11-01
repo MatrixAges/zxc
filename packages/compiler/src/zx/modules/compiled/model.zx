@@ -4,6 +4,7 @@ import type { Modules } from "core/native_module_table/model"
 import type { Table } from "core/type_table/model"
 import type { Bindings } from "core/type_table/nominal"
 import type { Program } from "../../ir/canonical/validation/model"
+import type { Imports } from "../function_import"
 
 export type Exports = {
     names: string[],
@@ -11,7 +12,8 @@ export type Exports = {
     functions: u32?[],
     type_names: string[][],
     type_ids: u32[][],
-    constants: Values?[]
+    constants: Values?[],
+    members: Imports[]
 }
 
 export type Initializers = {

@@ -14,6 +14,9 @@ pub const Prepared = struct {
     type_imports: @FieldType(frontend.ResolvedImports, "aliases"),
     constant_imports: []const zx.ir.Constant,
     imports: []const Binding,
+    exports: []const zx.ir.Export,
+    constant_exports: []const zx.ir.Constant,
+    members: []const Binding,
     /// Whether the parse passed its source checks already, which then come before the imports.
     checked: bool,
 };
@@ -25,6 +28,9 @@ pub const Analyzed = struct {
     types: usize,
     native_modules: usize,
     initializers: usize,
+    exports: []const zx.ir.Export,
+    constant_exports: []const zx.ir.Constant,
+    members: []const Binding,
 };
 
 pub const Outcome = union(enum) { analyzed: Analyzed, diagnostic: zx.Diagnostic };
@@ -75,7 +81,7 @@ pub fn prepare(state: *State, cache: *frontend.project.ParseCache, sources: []co
         .indexed => |*result| if (frontend.project.ParseCache.indexed_enabled) try @import("imports.zig").collect(state, result.header(), index, signature) else unreachable,
     };
 
-    return .{ .index = index, .source = source.source, .parsed = parsed, .type_imports = signature.type_imports, .constant_imports = signature.constant_imports, .imports = imports, .checked = checking != null };
+    return .{ .index = index, .source = source.source, .parsed = parsed, .type_imports = signature.type_imports, .constant_imports = signature.constant_imports, .imports = imports.functions, .exports = signature.signature.exports, .constant_exports = signature.signature.constant_exports, .members = imports.published, .checked = checking != null };
 }
 
 /// Analyzes a prepared body against the shared tables, which it only reads, so bodies that depend on none of each
@@ -107,6 +113,9 @@ pub fn analyze(state: *const State, temporary: std.mem.Allocator, prepared: Prep
         .types = state.types.items.count(),
         .native_modules = state.native_modules.count(),
         .initializers = state.initializers.items.len,
+        .exports = prepared.exports,
+        .constant_exports = prepared.constant_exports,
+        .members = prepared.members,
     } };
 }
 
@@ -126,6 +135,8 @@ pub fn link(state: *State, temporary: std.mem.Allocator, analyzed: Analyzed) Sta
     destination.temporary = temporary;
     program.functions = base;
     program.native_modules = state.native_modules.view();
+    program.exports = analyzed.exports;
+    program.constant_exports = analyzed.constant_exports;
 
     return state.linked(Source.appendBody(.{
         .program = program,
@@ -133,6 +144,7 @@ pub fn link(state: *State, temporary: std.mem.Allocator, analyzed: Analyzed) Sta
         .verified_functions = state.verifiedFunctions(),
         .nominal_types = analyzed.result.nominal_types,
         .store_initializers = analyzed.result.store_initializers,
+        .members = analyzed.members,
         .base_types = if (analyzed.types == state.types.items.count() and analyzed.functions == state.functions.count()) null else analyzed.types,
     }, destination) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;

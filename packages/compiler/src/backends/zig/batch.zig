@@ -11,6 +11,7 @@ program: ir.Program,
 names: generating.Names,
 analysis: generating.Analysis.Owned,
 cache: ?*Cache,
+public_members: []const generating.PublicMember = &.{},
 pub fn create(backing: std.mem.Allocator, program: ir.Program, names: generating.Names, cache: ?*Cache) std.mem.Allocator.Error!Self {
     return createExported(backing, program, names, cache, &.{});
 }
@@ -61,7 +62,6 @@ pub fn emit(self: *const Self, owned: std.mem.Allocator, unit: generating.Unit) 
 /// Cache identity and cached source of one unit; names and keys live in `scratch`.
 pub fn lookup(self: *const Self, scratch: std.mem.Allocator, unit: generating.Unit) generating.Error!Lookup {
     var found = try self.identify(scratch, unit);
-
     found.source = if (self.cache) |store| try store.get(found.name, found.key) else null;
 
     return found;
@@ -76,16 +76,38 @@ pub fn identify(self: *const Self, scratch: std.mem.Allocator, unit: generating.
         .entry, .types => try std.fmt.allocPrint(scratch, "{s}:{s}", .{ @tagName(unit), self.program.file_name }),
     };
 
-    return .{ .name = name, .key = fingerprint.createAnalyzed(self.program, self.names, unit, self.analysis.value), .source = null };
+    var key = fingerprint.createAnalyzed(self.program, self.names, unit, self.analysis.value);
+
+    if (unit == .entry and self.public_members.len != 0) {
+        var hash = @import("zx").Sha256.init(.{});
+
+        hash.update(&key);
+
+        for (self.public_members) |member| {
+            const target = self.names.functions[@backingInt(member.function)];
+
+            hash.update(std.mem.asBytes(&member.name.len));
+            hash.update(member.name);
+            hash.update(std.mem.asBytes(&target.len));
+            hash.update(target);
+        }
+
+        hash.final(&key);
+    }
+
+    return .{ .name = name, .key = key, .source = null };
 }
 
 /// Pure generation of one unit; threads may share a batch when each passes its own `owned` and a thread-safe `backing`.
 pub fn generate(self: *const Self, owned: std.mem.Allocator, backing: std.mem.Allocator, unit: generating.Unit) generating.Error![]const u8 {
+    if (unit == .entry and self.public_members.len != 0) return generating.publicEntry(owned, backing, self.program, self.names, self.analysis.value, self.public_members);
+
     return generating.analyzed(owned, backing, self.program, self.names, unit, self.analysis.value);
 }
 
 pub fn remember(self: *const Self, found: Lookup, source: []const u8) std.mem.Allocator.Error!void {
     const store = self.cache orelse return;
+
     store.generated += 1;
 
     try store.put(found.name, found.key, source);

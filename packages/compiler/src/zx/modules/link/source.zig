@@ -11,6 +11,7 @@ pub const Input = struct {
     verified_functions: ir.FunctionTable = .{},
     nominal_types: Origins.Table,
     store_initializers: []const Initializer = &.{},
+    members: []const @import("../function_import.zig") = &.{},
     /// The length of the shared type table the body was analyzed against, when the tables grew since; its base
     /// functions are then a prefix of the shared ones rather than all of them.
     base_types: ?usize = null,
@@ -23,6 +24,7 @@ pub const Loaded = struct {
     exports: []const ir.Export,
     constant_exports: []const ir.Constant = &.{},
     store_initializers: []const Initializer,
+    members: []const @import("../function_import.zig") = &.{},
 };
 
 pub fn append(input: Input, destination: program_link.Destination) program_link.Error!Loaded {
@@ -110,12 +112,33 @@ fn finish(input: Input, destination: program_link.Destination, nodes: *Nodes) pr
         };
     }
 
+    var members: std.ArrayList(@import("../function_import.zig")) = .empty;
+
+    for (input.members) |source| {
+        var member = source;
+
+        member.id = try nodes.functionId(source.id);
+        member.input_type = try nodes.types.include(source.input_type);
+        member.output_type = try nodes.types.include(source.output_type);
+        member.name = try allocator.dupe(u8, source.name);
+        member.namespace = null;
+
+        if (member.name.len == 0) {
+            if (function != null) return error.InvalidModule;
+
+            function = member.id;
+        } else try members.append(allocator, member);
+    }
+
+    const entry = if (function) |id| destination.functions.at(@backingInt(id)) else null;
+
     return .{
         .function = function,
-        .input_type = try nodes.types.include(program.input_type),
-        .output_type = try nodes.types.include(program.output_type),
+        .input_type = if (entry) |value| value.input_type else try nodes.types.include(program.input_type),
+        .output_type = if (entry) |value| value.output_type else try nodes.types.include(program.output_type),
         .exports = exports,
         .constant_exports = constants,
+        .members = members.items,
         .store_initializers = initializers,
     };
 }

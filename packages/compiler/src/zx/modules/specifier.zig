@@ -37,6 +37,7 @@ pub fn classify(specifier: []const u8) error{InvalidSpecifier}!Kind {
         return error.InvalidSpecifier;
     }
 
+    if (std.mem.eql(u8, specifier, ".") or std.mem.eql(u8, specifier, "..")) return .file;
     if (std.mem.startsWith(u8, specifier, "./") or std.mem.startsWith(u8, specifier, "../") or std.mem.startsWith(u8, specifier, "@/")) return .file;
     if (specifier[0] == '/' or specifier[specifier.len - 1] == '/') return error.InvalidSpecifier;
 

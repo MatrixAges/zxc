@@ -1,9 +1,11 @@
 import integers from "std:integer"
 
 import scope from "../identity/scope"
+import members from "./members"
 import ids from "./remap/ids"
 
 import type { Literal, Values } from "core/constant/model"
+import type { Imports } from "../../function_import"
 import type { Exports } from "../model"
 
 export type Input = {
@@ -21,6 +23,7 @@ export default function (in: Input): Output {
     const types: u32[][] = []
 
     const constants: Values?[] = []
+    const function_members: Imports[] = []
 
     const result = loop({
         input: in,
@@ -28,6 +31,7 @@ export default function (in: Input): Output {
         functions: functions,
         types: types,
         constants: constants,
+        members: function_members,
         index: 0
     }, {
         while: current => current.index < current.input.source.names.length,
@@ -75,6 +79,11 @@ export default function (in: Input): Output {
                 }).values
             }
 
+            current.members = current.members.push(members({
+                source: current.input.source.members[current.index],
+                mapping: current.input.mapping,
+                first: current.input.first
+            }))[0]
             current.constants = current.constants.push(mapped_constants)[0]
             current.index += 1
         }
@@ -85,6 +94,7 @@ export default function (in: Input): Output {
         paths: result.paths,
         functions: result.functions,
         type_ids: result.types,
-        constants: result.constants
+        constants: result.constants,
+        members: result.members
     }
 }

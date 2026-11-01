@@ -16,7 +16,11 @@ pub fn values(allocator: std.mem.Allocator, types: zx.ir.TypeTable, imports: []c
     return result.items;
 }
 
-pub fn collect(allocator: std.mem.Allocator, source: rx.ModuleSource, project: frontend.project.Options, signatures: frontend.project.signature_project.Data) std.mem.Allocator.Error!Value {
+pub fn collect(allocator: std.mem.Allocator, source: rx.ModuleSource, raw_project: frontend.project.Options, signatures: frontend.project.signature_project.Data) std.mem.Allocator.Error!Value {
+    var project = raw_project;
+
+    if (project.source_index == null) project.source_index = try frontend.project.source_index.buildIn(allocator, signatures.modules, project.root_dir);
+
     var imports: std.ArrayList(zx.ir.Export) = .empty;
 
     for (source.node.children) |node| {
@@ -49,10 +53,11 @@ pub fn collect(allocator: std.mem.Allocator, source: rx.ModuleSource, project: f
             break :resolved try std.fs.path.resolve(allocator, &.{ project.root_dir, relative });
         };
 
+        const selected = try frontend.project.selectSource(allocator, path, project);
         var found = false;
 
         for (signatures.modules) |module| {
-            if (!std.mem.eql(u8, module.path, path)) continue;
+            if (!std.mem.eql(u8, module.path, selected)) continue;
 
             for (module.signature.exports) |exported| {
                 try imports.append(allocator, .{

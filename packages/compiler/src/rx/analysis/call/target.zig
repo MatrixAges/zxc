@@ -59,8 +59,11 @@ fn loadIn(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.Erro
     if ((attributes.setter != null) != (options.setter != null) or options.project.context.stores.len != 0) return failure(allocator, .{ .path = options.owner, .location = options.call.location, .code = "capability", .message = "Store calls require explicit per-call authorization from module declarations" });
 
     const target = optionalAttribute(options.call, "module") orelse attribute(options.call, "fn");
+    var project = options.project;
 
-    const path = if (attributes.module) |module| block: {
+    if (project.source_index == null) project.source_index = try frontend.project.source_index.buildIn(allocator, options.sources, project.root_dir);
+
+    const candidate = if (attributes.module) |module| block: {
         const owner = try std.fs.path.resolve(allocator, &.{ options.project.root_dir, options.owner });
 
         if (!rx.module_reference.isPackage(module, rx.module_reference.dependencies(options.project, owner))) return failure(allocator, .{ .path = options.owner, .location = target.value_location, .code = "unsupported", .message = "local module calls require RX module linking" });
@@ -84,7 +87,8 @@ fn loadIn(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.Erro
         return failure(allocator, .{ .path = options.owner, .location = target.value_location, .code = "module", .message = "Call.fn must reference a ZX file within the project root" });
     };
 
-    var project = options.project;
+    const absolute = try std.fs.path.resolve(allocator, &.{ project.root_dir, candidate });
+    const path = try frontend.project.selectSource(allocator, absolute, project);
 
     project.entry = path;
 

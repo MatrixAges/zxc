@@ -180,6 +180,8 @@ fn sameDependencies(left: []const Record.Import, right: []const Record.Import) b
 
     for (left, right) |a, b| {
         if (!std.mem.eql(u8, a.identity orelse a.specifier, b.identity orelse b.specifier)) return false;
+        if (a.exported != b.exported or a.wildcard != b.wildcard) return false;
+        if (!native.stringsEqual(if (a.source_names.len == 0) a.names else a.source_names, if (b.source_names.len == 0) b.names else b.source_names)) return false;
         if (a.kind != b.kind or !std.mem.eql(u8, a.specifier, b.specifier) or !native.stringsEqual(a.names, b.names) or std.meta.activeTag(a.target) != std.meta.activeTag(b.target)) return false;
         if (a.target == .source and !std.mem.eql(u8, a.target.source, b.target.source)) return false;
 

@@ -10,17 +10,23 @@ pub fn convert(comptime contents: enum { header, full }, allocator: std.mem.Allo
     const source_imports = if (contents == .full) program.imports else &.{};
     const imports = try allocator.alloc(*const model.Import, source_imports.len);
     var import_spans: std.ArrayList(*const model.Span) = .empty;
+    var import_sources: std.ArrayList(*const model.Span) = .empty;
     var import_names: std.ArrayList([]const u8) = .empty;
 
     for (source_imports, imports) |item, *value| {
         const first = import_names.items.len;
 
-        for (item.names) |name| {
+        for (item.names, 0..) |name, index| {
+            const source = (if (item.source_names.len == 0) item.names else item.source_names)[index];
+
+            try import_sources.append(allocator, try context.span(source.span));
             try import_spans.append(allocator, try context.span(name.span));
             try import_names.append(allocator, name.text);
         }
 
         value.* = try context.keep(model.Import, .{
+            .exported = item.exported,
+            .wildcard = item.wildcard,
             .kind = switch (item.kind) {
                 .function => .Function,
                 .enumeration => .Enumeration,
@@ -76,6 +82,7 @@ pub fn convert(comptime contents: enum { header, full }, allocator: std.mem.Allo
         .comments = &.{},
         .imports = imports,
         .import_names = import_spans.items,
+        .import_sources = import_sources.items,
         .declarations = &.{},
         .constants = constants,
         .members = &.{},

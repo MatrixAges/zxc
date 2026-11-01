@@ -37,7 +37,7 @@ pub fn validate(io: std.Io, allocator: std.mem.Allocator, path: []const u8, sour
 
     loaded.project.compiled_libraries = libraries.libraries.items;
 
-    if (!try called(allocator, path, loaded.project.root_dir, modules)) {
+    if (!try called(io, allocator, path, loaded.project.root_dir, modules)) {
         var signed = try compiler.project.analyzeSignaturesWithCache(allocator, inputs, &.{path}, loaded.project, &parse_cache);
 
         defer signed.deinit();
@@ -71,7 +71,7 @@ fn report(writer: *std.Io.Writer, inputs: []const compiler.project.Source, issue
     return false;
 }
 
-fn called(allocator: std.mem.Allocator, path: []const u8, root: []const u8, modules: []const @import("rx").ModuleSource) !bool {
+fn called(io: std.Io, allocator: std.mem.Allocator, path: []const u8, root: []const u8, modules: []const @import("rx").ModuleSource) !bool {
     var pending: std.ArrayList(struct { owner: []const u8, node: @import("rx").ast.Node }) = .empty;
 
     defer pending.deinit(allocator);
@@ -84,7 +84,8 @@ fn called(allocator: std.mem.Allocator, path: []const u8, root: []const u8, modu
                 if (!std.mem.eql(u8, attribute.name, "fn")) continue;
 
                 const relative = try @import("rx").resolveFunctionPath(allocator, item.owner, attribute.value);
-                const resolved = try std.fs.path.resolve(allocator, &.{ root, relative });
+                const candidate = try std.fs.path.resolve(allocator, &.{ root, relative });
+                const resolved = try @import("../sources/module_path.zig").select(io, allocator, candidate, null);
 
                 if (std.mem.eql(u8, path, resolved)) return true;
             }

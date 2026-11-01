@@ -3,7 +3,9 @@ import parseConstant from "compiler/constant_syntax"
 import { Keyword } from "../../../lexer/keyword_model"
 import { Phase } from "../../declarations/model"
 import step from "../../declarations/step"
+import reference from "../../imports/reference"
 import current from "../token"
+import imports from "./imports"
 
 import type { DeclarationStage } from "./model"
 
@@ -12,6 +14,20 @@ export type Input = DeclarationStage
 export type Output = DeclarationStage
 
 export default function (in: Input): Output {
+    if (
+        (
+            in.declarations.control.phase == Phase.Start ||
+                in.declarations.control.phase == Phase.Done
+        ) &&
+            in.declarations.control.diagnostic.message == "" &&
+            !in.declarations.control.type_diagnostic && reference({
+                tokens: in.prefix.prepared.lexical.lexed.tokens,
+                index: in.declarations.control.index
+            })
+    ) {
+        return imports(in)
+    }
+
     if (in.declarations.control.phase == Phase.Done) {
         const parsed = parseConstant({
             prepared: in.prefix.prepared,
@@ -60,7 +76,10 @@ export default function (in: Input): Output {
         finished:
             done &&
             (
-                !constant || declarations.control.diagnostic.message != "" ||
+                !(constant || reference({
+                    tokens: tokens,
+                    index: index
+                })) || declarations.control.diagnostic.message != "" ||
                     declarations.control.type_diagnostic
             )
     }

@@ -17,7 +17,7 @@ const Imports = struct {
     fn importAt(self: Imports, index: usize) Header.Import {
         const item = self.items[index];
 
-        return .{ .kind = item.kind, .path = item.path, .span = item.span };
+        return .{ .kind = item.kind, .path = item.path, .span = item.span, .exported = item.exported, .wildcard = item.wildcard };
     }
 };
 
@@ -36,7 +36,9 @@ pub fn planView(allocator: std.mem.Allocator, source: []const u8, comments: anyt
         const item = view.importAt(index);
         const next = if (index + 1 < view.importCount()) view.importAt(index + 1).span.start else source.len;
         const end = trailingEnd(source, comments, item.span.end, next);
-        var barrier = false;
+        var barrier = std.mem.trim(u8, source[end..next], " \t\r\n").len != 0;
+
+        if (index + 1 < view.importCount() and item.exported != view.importAt(index + 1).exported) barrier = true;
 
         for (comments) |position| {
             const comment = Header.span(position);

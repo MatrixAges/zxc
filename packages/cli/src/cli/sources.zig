@@ -35,7 +35,7 @@ pub fn readWithLibraries(io: std.Io, allocator: std.mem.Allocator, source: []con
 
         if (parsed.diagnostic() != null) continue;
 
-        const context = ImportContext{ .io = io, .allocator = allocator, .owner = item.path, .project = project, .sources = &sources, .inputs = inputs, .libraries = libraries };
+        const context = ImportContext{ .io = io, .allocator = allocator, .owner = canonical_path, .project = project, .sources = &sources, .inputs = inputs, .libraries = libraries };
 
         switch (parsed.*) {
             .native => |result| try readImports(zx.syntax.header.Native{ .program = result.value.parsed.ast }, context),
@@ -67,7 +67,7 @@ fn readImports(header: anytype, context: ImportContext) !void {
             continue;
         };
 
-        const path = switch (target) {
+        const candidate = switch (target) {
             .source => |path| path,
             .compiled => |compiled| {
                 const collection = context.libraries orelse return error.CompiledLibraryLoaderRequired;
@@ -76,6 +76,15 @@ fn readImports(header: anytype, context: ImportContext) !void {
 
                 continue;
             },
+        };
+
+        const file_reference = (try compiler.project.specifier.classify(imported.path)) == .file;
+        const path = if (file_reference) try @import("sources/module_path.zig").select(context.io, context.allocator, candidate, context.inputs) else candidate;
+
+        if (file_reference) compiler.project.checkFileTarget(context.owner, path, context.project, &reporter, imported.span) catch |err| {
+            if (err == error.OutOfMemory) return error.OutOfMemory;
+
+            continue;
         };
 
         if (context.inputs) |observed| try observed.add(context.io, path);

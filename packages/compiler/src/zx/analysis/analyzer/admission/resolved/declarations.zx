@@ -5,6 +5,7 @@ import { Kind } from "core/type_table/model"
 
 import { ImportKind } from "../../../../frontend/parser/imports/model"
 import importName from "../../source/import_name"
+import localName from "./local_name"
 
 import type { Request } from "./model"
 
@@ -16,6 +17,7 @@ export default function (in: Input): Output {
     return loop({
         input: in,
         index: 0,
+        forwarded: in.syntax.imports.some(item => item.exported),
         valid: true
     }, {
         while: current =>
@@ -25,11 +27,12 @@ export default function (in: Input): Output {
 
             current.valid = item.kind != ImportKind.Function || item.count == 1
 
-            if (current.valid) {
+            if (current.valid && !item.exported) {
                 current.valid = loop({
                     input: current.input,
                     item: item,
                     index: 0,
+                    forwarded: current.forwarded,
                     valid: true
                 }, {
                     while: names => names.valid && names.index < names.item.count,
@@ -46,6 +49,7 @@ export default function (in: Input): Output {
                             input: names.input,
                             limit: position,
                             name: name,
+                            forwarded: names.forwarded,
                             index: 0,
                             valid: true
                         }, {
@@ -62,15 +66,19 @@ export default function (in: Input): Output {
                                     index: previous.index
                                 })
 
-                                previous.valid = value != previous.name
+                                previous.valid =
+                                    value != previous.name ||
+                                    (previous.forwarded && !localName({
+                                        imports: previous.input.syntax.imports,
+                                        index: previous.index
+                                    }))
                                 previous.index += 1
                             }
                         }).valid
 
-                        if (
-                            names.valid && names.item.kind == ImportKind.Function
-                        ) {
-                            names.valid = loop({
+                        const callable =
+                            names.valid && names.item.kind != ImportKind.TypeOnly &&
+                            loop({
                                 bindings: names.input.bindings,
                                 name: name,
                                 index: 0,
@@ -78,20 +86,27 @@ export default function (in: Input): Output {
                             }, {
                                 while: binding =>
                                     !binding.found &&
-                                    binding.index <
-                                    binding.bindings.names.length,
+                                    binding.index < binding.bindings.names.length,
                                 next: binding => {
                                     binding.found =
                                         (
-                                            binding.bindings.namespaces[binding
-                                                .index] ??
-                                                binding.bindings.names[binding
-                                                    .index]
+                                            binding.bindings.namespaces[binding.index] ??
+                                                binding.bindings.names[binding.index]
                                         ) == binding.name
                                     binding.index += 1
                                 }
                             }).found
-                        } else if (names.valid) {
+
+                        if (
+                            names.valid && names.item.kind == ImportKind.Function
+                        ) {
+                            names.valid = callable
+                        }
+
+                        if (
+                            names.valid && !callable &&
+                                names.item.kind != ImportKind.Function
+                        ) {
                             const value =
                                 names.item.kind == ImportKind.Enumeration &&
                                 names.input.constants != null ? constant({

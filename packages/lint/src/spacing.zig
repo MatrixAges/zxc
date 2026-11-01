@@ -4,6 +4,7 @@ const syntax = zx.syntax.borrow;
 const Header = zx.syntax.header;
 const shape = @import("shape.zig");
 const boundary_rule = @import("spacing_boundary");
+const import_order = @import("import_order");
 
 pub const Edit = struct {
     span: zx.Span,
@@ -23,26 +24,32 @@ pub fn viewEdits(allocator: std.mem.Allocator, source: []const u8, comments: any
 
     errdefer planner.result.deinit(allocator);
 
-    for (0..view.importCount()) |index| {
-        const item = view.importAt(index);
-        const next = if (index + 1 < view.importCount()) view.importAt(index + 1).span.start else exportStart(view, 0, 0);
-        const separate = index + 1 == view.importCount() or shape.multiline(source, item.span) or shape.multiline(source, view.importAt(index + 1).span);
-
-        try planner.appendBoundary(item.span.end, next, separate);
-    }
-
+    var import_index: usize = 0;
     var declaration_index: usize = 0;
     var constant_index: usize = 0;
 
-    while (declaration_index < view.declarationCount() or constant_index < view.constantCount()) {
-        const constant = constant_index < view.constantCount() and (declaration_index == view.declarationCount() or view.constantAt(constant_index).span.start < view.declarationAt(declaration_index).span.start);
-        const item = if (constant) view.constantAt(constant_index) else view.declarationAt(declaration_index);
+    while (import_index < view.importCount() or declaration_index < view.declarationCount() or constant_index < view.constantCount()) {
+        const import_start = if (import_index < view.importCount()) view.importAt(import_index).span.start else source.len;
+        const declaration_start = exportStart(view, declaration_index, constant_index);
+        const imported = import_start < declaration_start;
+        const constant = !imported and constant_index < view.constantCount() and (declaration_index == view.declarationCount() or view.constantAt(constant_index).span.start < view.declarationAt(declaration_index).span.start);
+        const span = if (imported) view.importAt(import_index).span else if (constant) view.constantAt(constant_index).span else view.declarationAt(declaration_index).span;
+        const exported = imported and view.importAt(import_index).exported;
 
-        if (constant) constant_index += 1 else declaration_index += 1;
+        if (imported) import_index += 1 else if (constant) constant_index += 1 else declaration_index += 1;
 
-        const more = declaration_index < view.declarationCount() or constant_index < view.constantCount();
+        const next_import = if (import_index < view.importCount()) view.importAt(import_index).span.start else source.len;
+        const next_declaration = exportStart(view, declaration_index, constant_index);
+        const next = @min(next_import, next_declaration);
+        const adjacent_imports = imported and next_import < next_declaration;
 
-        try planner.appendBoundary(item.span.end, exportStart(view, declaration_index, constant_index), more or view.hasBody());
+        const separate = if (adjacent_imports)
+            exported != view.importAt(import_index).exported or !import_order.sameGroup(view.importAt(import_index - 1), view.importAt(import_index))
+
+        else
+            next < source.len;
+
+        try planner.appendBoundary(span.end, next, separate);
     }
 
     if (body) |value| try planner.block(value);

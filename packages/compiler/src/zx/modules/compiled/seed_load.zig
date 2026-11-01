@@ -116,6 +116,16 @@ pub fn loadInto(allocator: std.mem.Allocator, library: model.Library, destinatio
             item.type_id = try nodes.types.include(item.type_id);
         }
 
+        const members = try allocator.dupe(@import("../function_import.zig"), exported.members);
+
+        for (members) |*member| {
+            member.name = try allocator.dupe(u8, member.name);
+            member.id = try nodes.functionId(member.id);
+            member.input_type = try nodes.types.include(member.input_type);
+            member.output_type = try nodes.types.include(member.output_type);
+        }
+
+        exported.members = members;
         exported.types = public_types;
         exported.constants = try nodes.constants(exported.constants);
     }

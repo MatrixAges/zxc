@@ -1,0 +1,43 @@
+import { Phase } from "../../declarations/model"
+import { resume } from "../../imports"
+
+import type { DeclarationStage } from "./model"
+
+export type Input = DeclarationStage
+
+export type Output = DeclarationStage
+
+export default function (in: Input): Output {
+    const index = in.declarations.control.index
+
+    const parsed = resume({
+        tokens: in.prefix.prepared.lexical.lexed.tokens,
+        state: {
+            ...in.prefix.imports,
+            control: {
+                ...in.prefix.imports.control,
+                index: index,
+                start: index
+            }
+        }
+    })
+
+    const failed = parsed.control.diagnostic.message != ""
+
+    return {
+        ...in,
+        prefix: {
+            ...in.prefix,
+            imports: parsed
+        },
+        finished: failed,
+        declarations: {
+            ...in.declarations,
+            control: {
+                ...in.declarations.control,
+                phase: failed ? Phase.Done : Phase.Start,
+                index: parsed.control.index
+            }
+        }
+    }
+}

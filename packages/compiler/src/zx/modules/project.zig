@@ -5,12 +5,18 @@ pub const ParseCache = @import("parse_cache.zig");
 pub const SemanticCache = @import("semantic_cache.zig");
 pub const artifact = @import("artifact.zig");
 const HostContext = @import("../analysis/analyzer/host/context.zig");
-const FunctionImport = @import("function_import.zig");
+pub const FunctionImport = @import("function_import.zig");
+const Signature = @import("source_signature.zig");
+const PublicExports = @import("public_exports.zig");
 const Analysis = @import("../analysis/analyze.zig");
 const NominalOrigins = @import("nominal_origins.zig");
 const ModuleRecord = @import("module_record.zig");
 const Input = @import("module_input.zig");
 pub const signature_project = @import("signature_project.zig");
+pub const import_binding = @import("binding.zig");
+pub const import_view = @import("import_view.zig");
+pub const source_index = @import("source_index.zig");
+pub const module_path = @import("module_path.zig");
 pub const Resource = struct { path: []const u8, source: []const u8 };
 pub const Source = struct { path: []const u8, source: []const u8, templates: []const Resource = &.{}, original: ?[]const u8 = null, template_origins: []const @import("../frontend/resources/root.zig").Origin = &.{} };
 pub const resources = @import("../frontend/resources/root.zig");
@@ -23,7 +29,30 @@ pub const package_scope = @import("package_scope.zig");
 pub const Package = package_scope.Package;
 pub const PackageScope = package_scope.Scope;
 pub const specifier = @import("specifier.zig");
-pub const Options = struct { native_interfaces: []const NativeInterface = &.{}, externals: []const External = &.{}, packages: []const Package = &.{}, package_scopes: []const PackageScope = &.{}, compiled_libraries: []const compiled.Library = &.{}, entry: []const u8, root_dir: []const u8 = ".", context: Analysis.Context = .{} };
+
+pub const Options = struct {
+    source_index: ?*const source_index.Map = null,
+    native_interfaces: []const NativeInterface = &.{},
+    externals: []const External = &.{},
+    packages: []const Package = &.{},
+    package_scopes: []const PackageScope = &.{},
+    compiled_libraries: []const compiled.Library = &.{},
+    entry: []const u8,
+    root_dir: []const u8 = ".",
+    context: Analysis.Context = .{},
+    pub fn jsonStringify(self: Options, writer: anytype) !void {
+        try writer.beginObject();
+
+        inline for (@typeInfo(Options).@"struct".field_names) |name| {
+            if (comptime !std.mem.eql(u8, name, "source_index")) {
+                try writer.objectField(name);
+                try writer.write(@field(self, name));
+            }
+        }
+
+        try writer.endObject();
+    }
+};
 
 const Unit = struct {
     path: []const u8,
@@ -32,15 +61,18 @@ const Unit = struct {
     signature: ?@import("source_signature.zig").Result = null,
     signature_aliases: []const ir.Export = &.{},
     signature_imports: []const FunctionImport = &.{},
+    signature_reexports: []const FunctionImport = &.{},
     signature_constant_imports: []const ir.Constant = &.{},
     function: ?ir.FunctionId = null,
+    exports: []const ir.Export = &.{},
+    constants: []const ir.Constant = &.{},
+    members: []const FunctionImport = &.{},
     context_digest: [32]u8 = undefined,
     reused: bool = false,
 };
 
 const NativeUnit = struct { exports: []const ir.Export, members: []const FunctionImport };
-const Imported = struct { type_only: bool, function: ?ir.FunctionId, input_type: ir.TypeId, output_type: ir.TypeId, exports: []const ir.Export, constant_exports: []const ir.Constant = &.{} };
-
+const Imported = struct { exports: []const ir.Export, constant_exports: []const ir.Constant = &.{}, members: []const FunctionImport = &.{}, signatures: []const Signature.Member = &.{} };
 pub const ImportTarget = union(enum) { source: []const u8, compiled: compiled.Target };
 
 const LoadFrame = struct {
@@ -53,11 +85,16 @@ const LoadFrame = struct {
     imports: std.ArrayList(FunctionImport) = .empty,
     constant_imports: std.ArrayList(ir.Constant) = .empty,
     dependencies: std.ArrayList(ModuleRecord.Import) = .empty,
+    export_aliases: std.ArrayList(ir.Export) = .empty,
+    export_constants: std.ArrayList(ir.Constant) = .empty,
+    export_functions: std.ArrayList(FunctionImport) = .empty,
+    signature_members: std.ArrayList(Signature.Member) = .empty,
 };
 
 const Project = struct {
     arena: *std.heap.ArenaAllocator,
     allocator: std.mem.Allocator,
+    binding_scratch: std.heap.ArenaAllocator,
     sources: []const Source,
     parse_cache: *ParseCache,
     semantic_cache: ?*SemanticCache = null,
@@ -76,12 +113,47 @@ const Project = struct {
     store_initializers: std.ArrayList(compiled.StoreInitializer) = .empty,
     compiled_units: std.AutoHashMapUnmanaged(usize, []const compiled.Export) = .empty,
     current_source: usize = 0,
+    fn bindingAllocator(self: *Project) std.mem.Allocator {
+        _ = self.binding_scratch.reset(.retain_capacity);
+
+        return self.binding_scratch.allocator();
+    }
     fn load(self: *Project, index: usize) zx.Error!ir.Program {
         try self.loadFrames(index);
 
         var program = self.units[index].program.?;
-
+        const unit = &self.units[index];
         program.types = self.types.view();
+        program.exports = unit.exports;
+        program.constant_exports = unit.constants;
+
+        if (program.type_only) if (unit.function) |id| {
+            const function = self.functions.at(@backingInt(id));
+
+            program.type_only = false;
+            program.input_type = function.input_type;
+            program.output_type = function.output_type;
+            program.output_ownership = function.output_ownership;
+            program.symbols = function.symbols;
+            program.expressions = function.expressions;
+            program.body = function.body;
+            program.contracts = function.contracts;
+            program.stores = function.stores;
+            program.store_mode = function.store_mode;
+
+            if (function.external != null) {
+                const span = zx.Span{ .start = 0, .end = 0 };
+
+                program.symbols = try ir.SymbolTable.fromValues(self.allocator, &.{.{ .name = "$in", .type_id = program.input_type, .span = span }});
+
+                program.expressions = try ir.ExpressionTable.fromValues(self.allocator, &.{
+                    .{ .type_id = program.input_type, .span = span, .value = if (@backingInt(program.input_type) == @backingInt(ir.Scalar.void)) .unit else .{ .reference = @fromBackingInt(0) } },
+                    .{ .type_id = program.output_type, .span = span, .value = .{ .call = .{ .function = id, .argument = @fromBackingInt(0) } } },
+                });
+
+                program.body = try ir.ControlBody.fromValues(self.allocator, &.{.{ .result = @fromBackingInt(1) }});
+            }
+        };
 
         return program;
     }
@@ -141,19 +213,22 @@ const Project = struct {
 
         while (frame.next_import < header.importCount()) : (frame.next_import += 1) {
             const item = @import("import_view.zig").get(header, frame.next_import);
+            const selected_aliases = if (item.exported) &frame.export_aliases else aliases;
+            const selected_imports = if (item.exported) &frame.export_functions else imports;
+            const selected_constants = if (item.exported) &frame.export_constants else constants;
 
             const target = frame.pending orelse target_block: {
-                for (0..item.nameCount()) |name_index| {
+                if (!item.exported) for (0..item.nameCount()) |name_index| {
                     const name = item.nameAt(name_index);
                     const entry = try imported_names.getOrPut(self.allocator, name.text);
 
                     if (entry.found_existing) return self.reporter.fail(.name, name.span, "duplicate import binding");
-                }
+                };
 
                 const kind = specifier.classify(item.path) catch return self.reporter.fail(.module, item.span, "invalid or unknown import specifier");
 
                 if (kind != .file and kind != .package) {
-                    if (try self.importNative(item, imports, aliases, constants)) |identity| {
+                    if (try self.importNative(item, selected_imports, selected_aliases, selected_constants)) |identity| {
                         var dependency = try ModuleRecord.copyImport(self.allocator, item, .native);
                         dependency.identity = try self.allocator.dupe(u8, identity);
 
@@ -175,9 +250,7 @@ const Project = struct {
                     try resolveTarget(self.allocator, unit.path, item.path, self.options, self.reporter, item.span);
             };
 
-            if (self.phase == .signature and item.kind == .function) {
-                if (item.nameCount() != 1) return self.reporter.fail(.module, item.span, "default imports require one binding");
-
+            if (self.phase == .signature and item.kind == .function and !item.exported and target == .source and std.mem.endsWith(u8, target.source, ".rx")) {
                 frame.pending = null;
 
                 continue;
@@ -185,6 +258,10 @@ const Project = struct {
 
             const imported = switch (target) {
                 .source => |path| block: {
+                    if (self.phase == .signature and std.mem.endsWith(u8, path, ".rx")) {
+                        break :block Imported{ .exports = &.{}, .signatures = &.{.{ .name = "", .ports = null }} };
+                    }
+
                     const dependency = self.find(path) orelse return self.reporter.fail(.module, item.span, "import target is missing from the source set");
 
                     if (self.units[dependency].state != .done) {
@@ -196,12 +273,12 @@ const Project = struct {
                     if (self.phase == .signature) {
                         const signature = self.units[dependency].signature.?;
 
-                        break :block Imported{ .type_only = signature.type_only, .function = null, .input_type = signature.ports.input_type, .output_type = signature.ports.output_type, .exports = signature.exports, .constant_exports = signature.constant_exports };
+                        break :block Imported{ .exports = signature.exports, .constant_exports = signature.constant_exports, .signatures = signature.members };
                     }
 
-                    const program = self.units[dependency].program.?;
+                    const loaded = &self.units[dependency];
 
-                    break :block Imported{ .type_only = program.type_only, .function = self.units[dependency].function, .input_type = program.input_type, .output_type = program.output_type, .exports = program.exports, .constant_exports = program.constant_exports };
+                    break :block Imported{ .exports = loaded.exports, .constant_exports = loaded.constants, .members = loaded.members };
                 },
                 .compiled => |value| try self.loadCompiled(value, item.span),
             };
@@ -209,14 +286,15 @@ const Project = struct {
             frame.pending = null;
             self.current_source = index;
 
-            try @import("binding.zig").apply(self.allocator, item, .{
+            if (self.phase == .signature) {
+                try self.bindSignature(frame, item, imported);
+            } else try @import("binding.zig").apply(self.allocator, self.bindingAllocator(), item, .{
                 .target = if (target == .source) .source else .compiled,
-                .type_only = imported.type_only,
                 .types = self.types.view(),
                 .exports = imported.exports,
                 .constant_exports = imported.constant_exports,
-                .members = if (imported.function) |id| &.{.{ .name = "", .id = id, .input_type = imported.input_type, .output_type = imported.output_type }} else &.{},
-            }, self.reporter, aliases, imports, constants);
+                .members = imported.members,
+            }, self.reporter, selected_aliases, selected_imports, selected_constants);
 
             try dependencies.append(self.allocator, try ModuleRecord.copyImport(self.allocator, item, switch (target) {
                 .source => |path| .{ .source = path },
@@ -237,13 +315,77 @@ const Project = struct {
             self.types = .{};
             defer self.types = types.items;
             unit.signature = try input.signature(&types, constants.items);
+
+            try self.publishSignature(frame, &unit.signature.?);
+
             unit.signature_aliases = aliases.items;
             unit.signature_imports = imports.items;
+            unit.signature_reexports = frame.export_functions.items;
             unit.signature_constant_imports = constants.items;
             unit.state = .done;
         } else try self.finishInput(frame, input);
 
         return null;
+    }
+    fn bindSignature(self: *Project, frame: *LoadFrame, item: anytype, imported: Imported) zx.Error!void {
+        const temporary = self.bindingAllocator();
+        const signatures = if (imported.signatures.len != 0) imported.signatures else try self.memberSignatures(temporary, imported.members);
+        const names = try temporary.alloc([]const u8, signatures.len);
+
+        for (signatures, names) |member, *name| name.* = member.name;
+
+        const symbols = import_binding.Symbols{ .target = .source, .types = self.types.view(), .exports = imported.exports, .constants = imported.constant_exports, .functions = names };
+        const selected = try import_binding.select(temporary, self.allocator, item, &symbols, self.reporter);
+        const aliases = if (item.exported) &frame.export_aliases else &frame.aliases;
+        const constants = if (item.exported) &frame.export_constants else &frame.constant_imports;
+
+        for (selected.aliases.names, selected.aliases.indices) |name, index| {
+            try aliases.append(self.allocator, .{ .name = try self.allocator.dupe(u8, name), .type_id = imported.exports[@intCast(index)].type_id });
+        }
+
+        for (selected.constants.names, selected.constants.indices) |name, index| {
+            var value = try @import("../analysis/constants/copy.zig").copy(self.allocator, imported.constant_exports[@intCast(index)]);
+
+            value.name = try self.allocator.dupe(u8, name);
+
+            try constants.append(self.allocator, value);
+        }
+
+        if (item.exported) for (selected.functions.names, selected.functions.indices) |name, index| {
+            var member = signatures[@intCast(index)];
+
+            member.name = try self.allocator.dupe(u8, name);
+
+            try frame.signature_members.append(self.allocator, member);
+        };
+    }
+    fn memberSignatures(self: *Project, allocator: std.mem.Allocator, members: []const FunctionImport) std.mem.Allocator.Error![]const Signature.Member {
+        const result = try allocator.alloc(Signature.Member, members.len);
+
+        for (members, result) |member, *signature| {
+            const function = self.functions.at(@backingInt(member.id));
+            signature.* = .{ .name = member.name, .ports = .{ .input_type = member.input_type, .output_type = member.output_type }, .has_store = function.stores.count() != 0 };
+        }
+
+        return result;
+    }
+    fn publishSignature(self: *Project, frame: *LoadFrame, signature: *Signature.Result) zx.Error!void {
+        const native = try self.memberSignatures(self.allocator, frame.export_functions.items);
+        const forwarded = try PublicExports.merge(Signature.Member, self.allocator, frame.signature_members.items, native);
+        const own: []const Signature.Member = if (!signature.type_only) try self.allocator.dupe(Signature.Member, &.{.{ .name = "", .ports = signature.ports, .has_store = signature.has_store }}) else &.{};
+        signature.exports = try PublicExports.merge(ir.Export, self.allocator, signature.exports, frame.export_aliases.items);
+        signature.constant_exports = try PublicExports.merge(ir.Constant, self.allocator, signature.constant_exports, frame.export_constants.items);
+        signature.members = try PublicExports.merge(Signature.Member, self.allocator, own, forwarded);
+
+        if (frame.export_aliases.items.len + frame.export_constants.items.len + forwarded.len != 0) try PublicExports.validate(self.allocator, signature.exports, signature.constant_exports, signature.members, self.reporter);
+
+        for (signature.members) |member| {
+            if (member.name.len != 0) continue;
+
+            signature.ports = member.ports orelse return self.reporter.fail(.module, .{ .start = 0, .end = 0 }, "a default re-export requires a resolved callable interface");
+            signature.has_store = member.has_store;
+            signature.type_only = false;
+        }
     }
     fn finishInput(self: *Project, frame: *LoadFrame, input: anytype) zx.Error!void {
         const unit = &self.units[frame.index];
@@ -315,12 +457,24 @@ const Project = struct {
             try self.functions.append(self.allocator, .{ .stores = program.stores, .store_mode = program.store_mode, .output_ownership = program.output_ownership, .file_name = program.file_name, .input_type = program.input_type, .output_type = program.output_type, .symbols = program.symbols, .expressions = program.expressions, .body = program.body, .contracts = program.contracts });
         }
 
+        const own: []const FunctionImport = if (unit.function) |id| try self.allocator.dupe(FunctionImport, &.{.{ .name = "", .id = id, .input_type = program.input_type, .output_type = program.output_type }}) else &.{};
+        unit.exports = try PublicExports.merge(ir.Export, self.allocator, program.exports, frame.export_aliases.items);
+        unit.constants = try PublicExports.merge(ir.Constant, self.allocator, program.constant_exports, frame.export_constants.items);
+        unit.members = try PublicExports.merge(FunctionImport, self.allocator, own, frame.export_functions.items);
+
+        if (frame.export_aliases.items.len + frame.export_constants.items.len + frame.export_functions.items.len != 0) try PublicExports.validate(self.allocator, unit.exports, unit.constants, unit.members, self.reporter);
+
+        if (unit.function == null) for (unit.members) |member| {
+            if (member.name.len == 0) unit.function = member.id;
+        };
+
         try self.modules.append(self.allocator, .{
             .path = unit.path,
             .source_digest = source_digest,
             .type_range = .{ .start = first_type, .end = program.types.count() },
             .exports = program.exports,
             .constant_exports = program.constant_exports,
+            .reexports = .{ .types = frame.export_aliases.items, .constants = frame.export_constants.items, .functions = frame.export_functions.items },
             .constant_imports = frame.constant_imports.items,
             .imports = dependencies.items,
             .type_imports = aliases.items,
@@ -369,14 +523,12 @@ const Project = struct {
             if (!std.mem.eql(u8, exported.name, target.name)) continue;
 
             const function = if (exported.function) |id| self.functions.at(@backingInt(id)) else null;
+            const own: []const FunctionImport = if (exported.function) |id| try self.allocator.dupe(FunctionImport, &.{.{ .name = "", .id = id, .input_type = function.?.input_type, .output_type = function.?.output_type }}) else &.{};
 
             return .{
-                .function = exported.function,
-                .input_type = if (function) |value| value.input_type else @fromBackingInt(@intCast(@backingInt(ir.Scalar.void))),
-                .output_type = if (function) |value| value.output_type else @fromBackingInt(@intCast(@backingInt(ir.Scalar.void))),
                 .exports = exported.types,
                 .constant_exports = exported.constants,
-                .type_only = function == null,
+                .members = try PublicExports.merge(FunctionImport, self.allocator, own, exported.members),
             };
         }
 
@@ -471,9 +623,8 @@ const Project = struct {
             break :blk result;
         };
 
-        try @import("binding.zig").apply(self.allocator, item, .{
+        try @import("binding.zig").apply(self.allocator, self.bindingAllocator(), item, .{
             .target = .native,
-            .type_only = unit.members.len == 0,
             .types = self.types.view(),
             .exports = unit.exports,
             .members = unit.members,
@@ -558,7 +709,9 @@ pub fn analyzeSignaturesWithCache(allocator: std.mem.Allocator, sources: []const
 
     for (sources, 0..) |source, index| units[index] = .{ .path = try std.fs.path.resolve(owned, &.{ options.root_dir, source.path }) };
 
-    var project = Project{ .arena = &arena, .allocator = owned, .sources = sources, .parse_cache = cache, .phase = .signature, .units = units, .options = options, .reporter = &reporter, .nominal_origins = .{ .allocator = owned } };
+    var project = Project{ .binding_scratch = std.heap.ArenaAllocator.init(allocator), .arena = &arena, .allocator = owned, .sources = sources, .parse_cache = cache, .phase = .signature, .units = units, .options = options, .reporter = &reporter, .nominal_origins = .{ .allocator = owned } };
+
+    defer project.binding_scratch.deinit();
 
     if (options.context.types.count() != 0 and !@import("../ir/type_rules.zig").validate(options.context.types)) return .{ .arena = arena, .value = .{ .diagnostic = .{ .code = .contract, .span = .{ .start = 0, .end = 0 }, .message = "invalid shared type table" } } };
     if (!@import("native_context.zig").valid(options.context.types, options.context.native_modules)) return .{ .arena = arena, .value = .{ .diagnostic = .{ .code = .contract, .span = .{ .start = 0, .end = 0 }, .message = "invalid shared native module table" } } };
@@ -573,6 +726,8 @@ pub fn analyzeSignaturesWithCache(allocator: std.mem.Allocator, sources: []const
     };
 
     if (!try project.indexUnits()) return .{ .arena = arena, .value = .{ .diagnostic = .{ .code = .module, .span = .{ .start = 0, .end = 0 }, .message = "source paths must be unique after normalization" } } };
+
+    project.options.source_index = &project.unit_indices;
 
     const modules = try owned.alloc(signature_project.Module, entries.len);
 
@@ -594,6 +749,7 @@ pub fn analyzeSignaturesWithCache(allocator: std.mem.Allocator, sources: []const
             .signature = units[index].signature.?,
             .type_imports = units[index].signature_aliases,
             .function_imports = units[index].signature_imports,
+            .reexport_functions = units[index].signature_reexports,
             .constant_imports = units[index].signature_constant_imports,
         };
     }
@@ -649,7 +805,10 @@ fn analyzeWithCaches(allocator: std.mem.Allocator, raw_sources: []const Source, 
 
     var normalized = options;
     normalized.entry = try std.fs.path.resolve(temporary, &.{ options.root_dir, options.entry });
-    var project = Project{ .arena = &arena, .allocator = temporary, .sources = sources, .parse_cache = cache, .semantic_cache = if (options.compiled_libraries.len == 0) semantic_cache else null, .units = units, .options = normalized, .reporter = &reporter, .nominal_origins = .{ .allocator = temporary } };
+    var project = Project{ .binding_scratch = std.heap.ArenaAllocator.init(allocator), .arena = &arena, .allocator = temporary, .sources = sources, .parse_cache = cache, .semantic_cache = if (options.compiled_libraries.len == 0) semantic_cache else null, .units = units, .options = normalized, .reporter = &reporter, .nominal_origins = .{ .allocator = temporary } };
+
+    defer project.binding_scratch.deinit();
+
     project.native_modules = try @import("native_context.zig").storage(temporary, options.context.native_modules);
     project.types = try @import("../analysis/type_table.zig").storage(temporary, options.context.types);
 
@@ -661,6 +820,7 @@ fn analyzeWithCaches(allocator: std.mem.Allocator, raw_sources: []const Source, 
 
     if (!try project.indexUnits()) return .{ .arena = arena, .value = .{ .diagnostic = .{ .code = .module, .span = .{ .start = 0, .end = 0 }, .message = "source paths must be unique after normalization" } } };
 
+    project.options.source_index = &project.unit_indices;
     const root = project.find(normalized.entry) orelse return .{ .arena = arena, .value = .{ .diagnostic = .{ .code = .module, .span = .{ .start = 0, .end = 0 }, .message = "entry module is missing" } } };
 
     var program = project.load(root) catch |err| {
@@ -674,7 +834,7 @@ fn analyzeWithCaches(allocator: std.mem.Allocator, raw_sources: []const Source, 
 
     program.types = project.types.view();
     program.native_modules = project.native_modules.view();
-    program.functions = try project.functions.view().prefix(project.functions.count() - @intFromBool(!program.type_only)).snapshot(temporary);
+    program.functions = try project.functions.view().prefix(project.functions.count() - @intFromBool(!project.units[root].program.?.type_only)).snapshot(temporary);
 
     if (try @import("../ir/validate.zig").validate(allocator, program)) |issue| return .{ .arena = arena, .value = .{ .diagnostic = issue } };
 
@@ -711,17 +871,16 @@ fn analyzeWithCaches(allocator: std.mem.Allocator, raw_sources: []const Source, 
 
 pub fn resolvePath(allocator: std.mem.Allocator, from: []const u8, path: []const u8, root: []const u8, reporter: *zx.Reporter, span: zx.Span) zx.Error![]const u8 {
     const extension = std.fs.path.extension(path);
-    const basename = std.fs.path.basename(path);
+    const directory = module_path.directoryReference(path);
 
-    if (basename.len == 0 or std.mem.endsWith(u8, path, "/") or std.mem.eql(u8, basename, ".") or std.mem.eql(u8, basename, "..")) return reporter.fail(.module, span, "project imports must name a ZX module");
-    if (extension.len != 0) return reporter.fail(.module, span, "project imports must omit the .zx extension; runtime and RX imports are forbidden");
+    if (!directory and extension.len != 0) return reporter.fail(.module, span, "project imports must omit the .zx extension; runtime and RX imports are forbidden");
 
-    const source_path = try std.fmt.allocPrint(allocator, "{s}.zx", .{path});
+    const source_path = if (directory) try module_path.directory(allocator, path) else try std.fmt.allocPrint(allocator, "{s}.zx", .{path});
 
     defer allocator.free(source_path);
 
     if (std.mem.startsWith(u8, path, "@/")) return std.fs.path.resolve(allocator, &.{ root, source_path[2..] });
-    if (!std.mem.startsWith(u8, path, "./") and !std.mem.startsWith(u8, path, "../")) return reporter.fail(.module, span, "imports require ./, ../ or @/ paths; external interfaces require explicit registration");
+    if (!std.mem.eql(u8, path, ".") and !std.mem.eql(u8, path, "..") and !std.mem.startsWith(u8, path, "./") and !std.mem.startsWith(u8, path, "../")) return reporter.fail(.module, span, "imports require ./, ../ or @/ paths; external interfaces require explicit registration");
 
     return std.fs.path.resolve(allocator, &.{ std.fs.path.dirname(from) orelse ".", source_path });
 }
@@ -749,9 +908,17 @@ pub fn resolveModuleTarget(allocator: std.mem.Allocator, from: []const u8, path:
     if (options.package_scopes.len != 0 and owner == null) return reporter.fail(.module, span, "source file does not belong to a declared package");
 
     if (kind == .file) {
-        const resolved = try resolvePath(allocator, from, path, root, reporter, span);
+        var resolved = try resolvePath(allocator, from, path, root, reporter, span);
 
-        if (owner != null and package_scope.owner(options.package_scopes, resolved) != owner) return reporter.fail(.module, span, "file import crosses a package boundary; declare and import the package dependency");
+        errdefer allocator.free(resolved);
+
+        const selected = if (module_path.directoryReference(path)) resolved else try selectSource(allocator, resolved, options);
+
+        if (selected.ptr != resolved.ptr) allocator.free(resolved);
+
+        resolved = selected;
+
+        try checkFileTarget(from, resolved, options, reporter, span);
 
         return .{ .source = resolved };
     }
@@ -781,4 +948,18 @@ pub fn resolveModuleTarget(allocator: std.mem.Allocator, from: []const u8, path:
     }
 
     return target orelse return reporter.fail(.module, span, "ZX package is not declared in the project dependencies");
+}
+
+pub fn selectSource(allocator: std.mem.Allocator, candidate: []const u8, options: Options) std.mem.Allocator.Error![]const u8 {
+    const paths = options.source_index orelse return candidate;
+
+    return module_path.select(allocator, candidate, source_index.Known{ .paths = paths });
+}
+
+pub fn checkFileTarget(from: []const u8, target: []const u8, options: Options, reporter: *zx.Reporter, span: zx.Span) zx.Error!void {
+    if (options.package_scopes.len == 0) return;
+
+    const owner = package_scope.owner(options.package_scopes, from) orelse return reporter.fail(.module, span, "source file does not belong to a declared package");
+
+    if (package_scope.owner(options.package_scopes, target) != owner) return reporter.fail(.module, span, "file import crosses a package boundary; declare and import the package dependency");
 }

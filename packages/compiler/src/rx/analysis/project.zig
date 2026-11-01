@@ -49,6 +49,7 @@ fn inferIn(allocator: std.mem.Allocator, backing: std.mem.Allocator, raw_options
         },
     };
 
+    options.project.source_index = try frontend.project.source_index.buildIn(allocator, options.sources, options.project.root_dir);
     var local = frontend.project.ParseCache{ .allocator = allocator };
 
     defer local.deinit();

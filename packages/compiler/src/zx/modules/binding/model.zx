@@ -1,39 +1,40 @@
-import type { Values } from "core/constant/model"
 import type { Cache, Diagnostic } from "../../analysis/semantic/resolving/model"
 import type { ImportKind } from "../../frontend/parser/imports/model"
-import type { Imports } from "../function_import"
 
 export enum Target { Source, Compiled, Native }
 
+export enum Section { Types, Constants, Functions, Done }
+
 export type Names = {
     values: string[],
+    aliases: string[],
     starts: u64[],
     ends: u64[]
 }
 
-export type Members = {
-    names: string[],
-    ids: u32[],
-    input_types: u32[],
-    output_types: u32[]
+export type Request = {
+    target: Target,
+    kind: ImportKind,
+    reexport: bool,
+    wildcard: bool,
+    start: u64,
+    end: u64,
+    names: Names,
+    type_kinds: u8[],
+    exports: Cache,
+    constants: string[],
+    members: string[]
 }
 
-export type Request = {
-    target: Target
-    kind: ImportKind
-    start: u64
-    end: u64
-    names: Names
-    type_only: bool
-    type_kinds: u8[]
-    exports: Cache
-    constant_exports: Values?
-        members: Members
+export type Bindings = {
+    names: string[],
+    indices: u64[]
 }
 
 export type Result = {
-    aliases: Cache,
-    imports: Imports,
-    constants: Values?,
+    aliases: Bindings,
+    constants: Bindings,
+    functions: Bindings,
+    namespace: string?,
     diagnostic: Diagnostic
 }

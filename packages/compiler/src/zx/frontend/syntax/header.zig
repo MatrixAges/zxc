@@ -18,6 +18,8 @@ pub fn View(comptime Storage: type) type {
                     .Enumeration => .enumeration,
                     .TypeOnly => .type_only,
                 },
+                .exported = item.exported,
+                .wildcard = item.wildcard,
                 .path = self.source[@intCast(item.path.start + 1)..@intCast(item.path.end - 1)],
                 .span = Header.span(item.span),
             };
@@ -30,6 +32,11 @@ pub fn View(comptime Storage: type) type {
             const first: usize = @intCast(self.storage.imports[index].first);
 
             return self.named(self.storage.import_names[first + name]);
+        }
+        pub fn importSourceAt(self: Self, index: usize, name: usize) zx.ast.Name {
+            const first: usize = @intCast(self.storage.imports[index].first);
+
+            return self.named(self.storage.import_sources[first + name]);
         }
         pub fn declarationCount(self: Self) usize {
             return self.storage.declarations.len;

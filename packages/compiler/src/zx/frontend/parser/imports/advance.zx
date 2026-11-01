@@ -1,0 +1,24 @@
+import reference from "./reference"
+import step from "./step"
+
+import type { Session, State } from "./model"
+
+export type Input = Session
+
+export type Output = State
+
+export default function (in: Input): Output {
+    return step({
+        token: in.tokens[in.state.control.index],
+        state: {
+            ...in.state,
+            control: {
+                ...in.state.control,
+                reference: reference({
+                    tokens: in.tokens,
+                    index: in.state.control.index
+                })
+            }
+        }
+    })
+}
