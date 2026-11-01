@@ -28,7 +28,7 @@ pub fn analyze(self: *Analyzer, expression: anytype, expected: ?ir.TypeId) zx.Er
         for (self.function_imports) |function| {
             if (function.namespace != null or !std.mem.eql(u8, function.name, name.text)) continue;
 
-            return importedCall(self, expression, function);
+            return importedCall(self, expression, function, expected);
         }
 
         if (std.mem.eql(u8, name.text, "loop")) return @import("iteration/root.zig").analyze(self, expression, expected);
@@ -66,7 +66,7 @@ pub fn analyze(self: *Analyzer, expression: anytype, expected: ?ir.TypeId) zx.Er
 
                 known_namespace = true;
 
-                if (std.mem.eql(u8, function.name, field.name.text)) return importedCall(self, expression, function);
+                if (std.mem.eql(u8, function.name, field.name.text)) return importedCall(self, expression, function, expected);
             }
 
             if (known_namespace) return self.reporter.fail(.name, field.name.span, "unknown module member");
@@ -77,6 +77,7 @@ pub fn analyze(self: *Analyzer, expression: anytype, expected: ?ir.TypeId) zx.Er
     const target_type = self.node(target).type_id;
     const name = field.name.text;
 
+    if (std.mem.eql(u8, name, "map") or std.mem.eql(u8, name, "reduce")) return self.reporter.fail(.unsupported, field.name.span, "map and reduce are utils functions; import them explicitly or use loop");
     if (std.mem.eql(u8, name, "clone")) return self.reporter.fail(.unsupported, expression.span, "deep copying is not supported; move an owned value or borrow it read-only");
 
     if (self.types.get(target_type) != .list) {
@@ -92,38 +93,40 @@ pub fn analyze(self: *Analyzer, expression: anytype, expected: ?ir.TypeId) zx.Er
     return @import("list_operations.zig").analyze(self, expression, target);
 }
 
-fn importedCall(self: *Analyzer, expression: anytype, function: Analyzer.FunctionImport) zx.Error!ir.ExprId {
-    const signature = self.functions.at(@backingInt(function.id));
+fn importedCall(self: *Analyzer, expression: anytype, function: Analyzer.FunctionImport, expected: ?ir.TypeId) zx.Error!ir.ExprId {
+    if (function.intrinsic) |operation| return @import("utilities.zig").analyze(self, expression, operation, expected);
+
+    const signature = self.functions.at(@backingInt(function.id.?));
 
     if (signature.stores.count() != 0) return self.reporter.fail(.capability, expression.span, "Store functions require an explicitly authorized orchestration Call");
 
     const call = syntax.value(expression).call;
     const native_tuple = if (signature.external) |external| external.expand_tuple else false;
-    const input = self.types.get(function.input_type);
+    const input = self.types.get(function.input_type.?);
     const expand_tuple = native_tuple or (input == .tuple and call.arguments.len > 1);
 
     const argument = if (expand_tuple) blk: {
-        const count = self.types.get(function.input_type).tuple.len;
+        const count = self.types.get(function.input_type.?).tuple.len;
 
         if (count != call.arguments.len) return self.reporter.fail(.type_mismatch, expression.span, if (native_tuple) "native argument count does not match its registered signature" else "argument count does not match the Input tuple");
 
         const values = try self.allocator.alloc(ir.ExprId, count);
 
         for (0..count) |index| {
-            const parameter = self.types.get(function.input_type).tuple.at(index);
+            const parameter = self.types.get(function.input_type.?).tuple.at(index);
 
             values[index] = try self.expression(syntax.item(call.arguments, index), parameter);
         }
 
-        break :blk try self.append(.{ .span = expression.span, .type_id = function.input_type, .value = .{ .tuple = values } });
-    } else if (function.input_type == Types.scalarId(.void) and call.arguments.len == 0)
-        try self.append(.{ .span = expression.span, .type_id = function.input_type, .value = .unit })
+        break :blk try self.append(.{ .span = expression.span, .type_id = function.input_type.?, .value = .{ .tuple = values } });
+    } else if (function.input_type.? == Types.scalarId(.void) and call.arguments.len == 0)
+        try self.append(.{ .span = expression.span, .type_id = function.input_type.?, .value = .unit })
 
     else blk: {
         if (call.arguments.len != 1) return self.reporter.fail(.type_mismatch, expression.span, "a ZX function requires one Input argument; void Input permits no arguments");
 
-        break :blk try self.expression(syntax.item(call.arguments, 0), function.input_type);
+        break :blk try self.expression(syntax.item(call.arguments, 0), function.input_type.?);
     };
 
-    return self.append(.{ .span = expression.span, .type_id = function.output_type, .value = .{ .call = .{ .function = function.id, .argument = argument } } });
+    return self.append(.{ .span = expression.span, .type_id = function.output_type.?, .value = .{ .call = .{ .function = function.id.?, .argument = argument } } });
 }

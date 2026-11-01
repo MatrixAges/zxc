@@ -11,19 +11,19 @@ test "Store archive rejects forged whole nested service owned summary" {
 }
 
 test "Store archive rejects forged rows helper owned summary" {
-    try h.run(.{ .value = "{ count: 9, rows: in.rows.map(row => row), labels: [\"fresh\"] }", .expected = false, .helper = true, .service = false, .forge_summary = true });
+    try h.run(.{ .value = "{ count: 9, rows: map(in.rows, row => row), labels: [\"fresh\"] }", .expected = false, .helper = true, .service = false, .forge_summary = true });
 }
 
 test "Store archive rejects forged rows nested service owned summary" {
-    try h.run(.{ .value = "{ count: 9, rows: in.rows.map(row => row), labels: [\"fresh\"] }", .expected = false, .helper = true, .service = true, .forge_summary = true });
+    try h.run(.{ .value = "{ count: 9, rows: map(in.rows, row => row), labels: [\"fresh\"] }", .expected = false, .helper = true, .service = true, .forge_summary = true });
 }
 
 test "Store archive rejects forged labels helper owned summary" {
-    try h.run(.{ .value = "{ count: 9, rows: [[1]], labels: in.labels.map(label => label) }", .expected = false, .helper = true, .service = false, .forge_summary = true });
+    try h.run(.{ .value = "{ count: 9, rows: [[1]], labels: map(in.labels, label => label) }", .expected = false, .helper = true, .service = false, .forge_summary = true });
 }
 
 test "Store archive rejects forged labels nested service owned summary" {
-    try h.run(.{ .value = "{ count: 9, rows: [[1]], labels: in.labels.map(label => label) }", .expected = false, .helper = true, .service = true, .forge_summary = true });
+    try h.run(.{ .value = "{ count: 9, rows: [[1]], labels: map(in.labels, label => label) }", .expected = false, .helper = true, .service = true, .forge_summary = true });
 }
 
 test "Store archive rejects forged branch helper owned summary" {
@@ -39,5 +39,5 @@ test "Store forged whole summary allocation failures" {
 }
 
 test "Store forged rows summary allocation failures" {
-    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{ .value = "{ count: 9, rows: in.rows.map(row => row), labels: [\"fresh\"] }", .expected = false, .helper = true, .service = true, .forge_summary = true }});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{ .value = "{ count: 9, rows: map(in.rows, row => row), labels: [\"fresh\"] }", .expected = false, .helper = true, .service = true, .forge_summary = true }});
 }

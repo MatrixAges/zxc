@@ -54,7 +54,7 @@ pub fn module(self: *Self, index: usize) Error!?ir.Function {
         } else {
             const target = self.find(signature.file_name) orelse return error.InvalidModule;
 
-            if (!sourceDependency(value, signature.file_name)) return error.InvalidModule;
+            if (!self.sourceDependency(value, signature.file_name)) return error.InvalidModule;
 
             const target_id = self.module_functions[target] orelse return error.InvalidModule;
             const callee = self.functions.at(@backingInt(target_id));
@@ -80,13 +80,22 @@ fn imports(self: *Self, index: usize, nodes: *Nodes) Error!void {
     const value = self.modules[index];
 
     for (value.function_imports) |binding| {
-        const id = try nodes.functionId(binding.id);
+        if (!binding.valid()) return error.InvalidModule;
+        if (binding.intrinsic != null) continue;
+
+        const id = try nodes.functionId(binding.id.?);
         const function = self.functions.at(@backingInt(id));
 
-        if (try nodes.types.include(binding.input_type) != function.input_type or try nodes.types.include(binding.output_type) != function.output_type) return error.ConflictingInterface;
+        if (try nodes.types.include(binding.input_type.?) != function.input_type or try nodes.types.include(binding.output_type.?) != function.output_type) return error.ConflictingInterface;
     }
 
     for (value.dependencies) |dependency| {
+        if (dependency.target == .intrinsic) {
+            if (!std.mem.eql(u8, dependency.specifier, @import("../intrinsic.zig").specifier) or dependency.kind == .type_only) return error.InvalidModule;
+
+            continue;
+        }
+
         if (dependency.target != .source) {
             var found = false;
 
@@ -103,12 +112,22 @@ fn imports(self: *Self, index: usize, nodes: *Nodes) Error!void {
 
         const target_index = self.find(dependency.target.source) orelse return error.InvalidModule;
         const target = self.modules[target_index];
+        const members = @import("members.zig");
+        const consumers = if (dependency.exported) value.members else value.function_imports;
 
         if (dependency.kind == .function) {
-            if (target.function == null or dependency.names.len != 1) return error.InvalidModule;
+            if (dependency.names.len != 1) return error.InvalidModule;
+
+            if (members.find(target, "")) |member| {
+                try members.check(target, member, consumers, dependency.names[0], nodes, self.functions.view(), self.type_mappings[target_index]);
+            } else if (target.function == null) return error.InvalidModule;
 
             continue;
         }
+
+        if (dependency.wildcard and dependency.kind != .type_only) for (target.members) |member| {
+            if (member.name.len != 0) try members.check(target, member, consumers, member.name, nodes, self.functions.view(), self.type_mappings[target_index]);
+        };
 
         if (target.function != null and dependency.kind != .enumeration) return error.InvalidModule;
 
@@ -123,7 +142,17 @@ fn imports(self: *Self, index: usize, nodes: *Nodes) Error!void {
 
         defer if (constants) |*prepared| prepared.deinit();
 
-        for (dependency.names) |name| {
+        if (dependency.source_names.len != 0 and dependency.source_names.len != dependency.names.len) return error.InvalidModule;
+
+        for (dependency.names, 0..) |name, name_index| {
+            const original = if (dependency.source_names.len == 0) name else dependency.source_names[name_index];
+
+            if (dependency.kind != .type_only) if (members.find(target, original)) |member| {
+                try members.check(target, member, consumers, name, nodes, self.functions.view(), self.type_mappings[target_index]);
+
+                continue;
+            };
+
             if (constants) |*prepared| {
                 const comparison = try prepared.compare(name);
 
@@ -195,9 +224,18 @@ fn find(self: *const Self, path: []const u8) ?usize {
     return null;
 }
 
-fn sourceDependency(value: model.Module, path: []const u8) bool {
+fn sourceDependency(self: *Self, value: model.Module, path: []const u8) bool {
     for (value.dependencies) |dependency| {
-        if (dependency.target == .source and dependency.kind == .function and std.mem.eql(u8, dependency.target.source, path)) return true;
+        if (dependency.target != .source or dependency.kind == .type_only) continue;
+        if (dependency.kind == .function and std.mem.eql(u8, dependency.target.source, path)) return true;
+
+        const target = self.modules[self.find(dependency.target.source) orelse return false];
+
+        for (target.members) |member| {
+            if (member.intrinsic != null or !member.valid()) continue;
+            if (@backingInt(member.id.?) >= target.functions.count()) return false;
+            if (std.mem.eql(u8, target.functions.at(@backingInt(member.id.?)).file_name, path)) return true;
+        }
     }
 
     return false;

@@ -14,6 +14,7 @@ pub const Module = struct {
     constant_imports: []const ir.Constant = &.{},
     type_imports: []const ir.Export,
     function_imports: []const @import("../function_import.zig"),
+    members: []const @import("../function_import.zig") = &.{},
     functions: ir.SignatureTable,
     native_modules: ir.NativeModuleTable,
     function: ?ir.Function,

@@ -1,3 +1,5 @@
+import { reduce } from "std:utils"
+
 import initial from "./initial"
 import step from "./step"
 
@@ -13,7 +15,7 @@ export type Input = {
 export type Output = State
 
 export default function (in: Input): Output {
-    return in.tokens.reduce((state, token) => step({
+    return reduce(in.tokens, (state, token) => step({
         state: state,
         token: {
             kind: token.kind,

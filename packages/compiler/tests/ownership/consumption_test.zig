@@ -57,7 +57,7 @@ test "ownership: an escaping nested view permits persistent updates" {
 }
 
 test "ownership: a fresh scalar map output does not alias its source" {
-    try check("const values = [1]\n const mapped = values.map((item) => item + 1)\n const [next, _] = values.reverse()\n return mapped[0] + next[0]\n");
+    try helpers.analyzeCase("import { map } from \"std:utils\"\n\nexport type Input = bool\nexport type Output = u64\nexport default function (in: Input): Output { const values = [1]\n const mapped = map(values, (item) => item + 1)\n const [next, _] = values.reverse()\n return mapped[0] + next[0] }", null);
 }
 
 test "ownership: clone cannot create an independent owner" {

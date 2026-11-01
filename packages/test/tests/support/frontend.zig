@@ -6,7 +6,7 @@ const Phase = enum { parse, analyze, compile };
 
 pub fn check(source: []const u8, phase: Phase, expected: ?Code, span: ?[2]usize) !void {
     if (phase == .compile) {
-        var result = try compiler.compile(std.testing.allocator, source, "case.zx");
+        var result = try compiler.compileProject(std.testing.allocator, &.{.{ .path = "case.zx", .source = source }}, .{ .entry = "case.zx" });
 
         defer result.deinit(std.testing.allocator);
 
@@ -27,7 +27,7 @@ pub fn check(source: []const u8, phase: Phase, expected: ?Code, span: ?[2]usize)
 
     try std.testing.expect(parsed.value == .parsed);
 
-    var analyzed = try compiler.analyze(std.testing.allocator, parsed.value.parsed);
+    var analyzed = try compiler.project.analyze(std.testing.allocator, &.{.{ .path = "case.zx", .source = source }}, .{ .entry = "case.zx" });
 
     defer analyzed.deinit();
 

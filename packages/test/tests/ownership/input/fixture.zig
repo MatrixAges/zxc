@@ -3,7 +3,7 @@ pub const compiler = @import("compiler");
 pub const artifact = compiler.project.artifact;
 pub const main_source = @embedFile("runtime/main.zx");
 pub const consume_source = @embedFile("runtime/consume.zx");
-pub const borrowed_source = "export type Input = u64[]\nexport type Output = u64[]\nexport default function (in: Input): Output { return in.map(item => item) }\n";
+pub const borrowed_source = "import { map } from \"std:utils\"\n\nexport type Input = u64[]\nexport type Output = u64[]\nexport default function (in: Input): Output { return map(in, item => item) }\n";
 
 pub fn analyze(allocator: std.mem.Allocator, helper: []const u8) !compiler.AnalysisResult {
     var result = try compiler.project.analyze(allocator, &.{

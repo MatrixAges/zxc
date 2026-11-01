@@ -1,3 +1,5 @@
+import { reduce } from "std:utils"
+
 import cancelStep from "./cancel_step"
 
 import type { Resolution, Span } from "./model"
@@ -17,7 +19,7 @@ export default function (in: Input): Output {
         segments: segments
     }
 
-    const state = in.reverse()[0].reduce((state, segment) => cancelStep({
+    const state = reduce(in.reverse()[0], (state, segment) => cancelStep({
         state: state,
         start: segment.start,
         end: segment.end,

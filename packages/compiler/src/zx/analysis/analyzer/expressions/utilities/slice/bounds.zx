@@ -1,0 +1,82 @@
+import integers from "std:integer"
+import { type_id_u64 } from "core/const"
+import { ValueKind } from "core/expression_table/append/model"
+import { BinaryOperator } from "core/expression_table/kinds"
+
+import { Operation } from "../../../../../modules/intrinsic/model"
+import integer from "../../../collections/building/integer"
+import binary from "../../operators/binary"
+import choice from "../building/choice"
+import value from "../building/value"
+
+import type { List } from "../model"
+import type { Bounds } from "./model"
+
+export type Input = List
+
+export type Output = Bounds
+
+export default function (in: Input): Output {
+    const source = in.values[0]
+    const count = in.values[1]
+
+    const length = value({
+        state: in.state,
+        span: in.span,
+        type_id: type_id_u64,
+        kind: ValueKind.Length,
+        value: source
+    })
+
+    const less = binary({
+        state: length.state,
+        span: in.span,
+        operator: BinaryOperator.Less,
+        left: count,
+        right: length.value
+    })
+
+    const bounded = choice({
+        state: less.state,
+        span: in.span,
+        condition: less.value,
+        yes: count,
+        no: length.value
+    })
+
+    const remaining = binary({
+        state: bounded.state,
+        span: in.span,
+        operator: BinaryOperator.Subtract,
+        left: length.value,
+        right: bounded.value
+    })
+
+    const zero = integer({
+        state: remaining.state,
+        span: in.span,
+        value: 0
+    })
+
+    const start = match in.operation {
+        Operation.Take => zero.value,
+        Operation.DropRight => zero.value,
+        Operation.TakeRight => remaining.value,
+        _ => bounded.value
+    }
+
+    const end = match in.operation {
+        Operation.Take => bounded.value,
+        Operation.DropRight => remaining.value,
+        _ => length.value
+    }
+
+    return {
+        state: zero.state,
+        source,
+        result_type: in.state.local.expressions.types[integers.widen(source)],
+        start,
+        end,
+        span: in.span
+    }
+}

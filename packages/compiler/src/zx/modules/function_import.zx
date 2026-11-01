@@ -1,7 +1,10 @@
+import type { Operation } from "./intrinsic/model"
+
 export type Imports = {
     namespaces: string?[],
     names: string[],
-    ids: u32[],
-    input_types: u32[],
-    output_types: u32[]
+    ids: u32?[],
+    input_types: u32?[],
+    output_types: u32?[],
+    intrinsics: Operation?[]
 }

@@ -1,0 +1,17 @@
+import type { Span } from "../../../../../frontend/lexer/token_model"
+import type { Prepared } from "../../../model"
+
+export type Bounds = {
+    state: Prepared,
+    source: u32,
+    result_type: u32,
+    start: u32,
+    end: u32,
+    span: Span
+}
+
+export type Frame = {
+    state: Prepared,
+    parameter: u32,
+    span: Span
+}

@@ -62,7 +62,9 @@ fn create(allocator: std.mem.Allocator, output: std.mem.Allocator, library: *con
         }
 
         for (exported.members) |member| {
-            exported_functions[exported_count] = member.id;
+            if (member.intrinsic != null) continue;
+
+            exported_functions[exported_count] = member.id.?;
             exported_count += 1;
         }
     }
@@ -120,12 +122,22 @@ fn create(allocator: std.mem.Allocator, output: std.mem.Allocator, library: *con
 
         references.markRoot(needed, view);
 
-        const members = try owned.alloc(@import("genz").zx.modules.PublicMember, exported.members.len);
+        var member_count: usize = 0;
 
-        for (exported.members, members) |member, *public| {
-            public.* = .{ .name = member.name, .function = member.id };
+        for (exported.members) |member| {
+            if (member.intrinsic == null) member_count += 1;
+        }
 
-            needed[@backingInt(member.id)] = true;
+        const members = try owned.alloc(@import("genz").zx.modules.PublicMember, member_count);
+        var member_index: usize = 0;
+
+        for (exported.members) |member| {
+            if (member.intrinsic != null) continue;
+
+            members[member_index] = .{ .name = member.name, .function = member.id.? };
+            member_index += 1;
+
+            needed[@backingInt(member.id.?)] = true;
         }
 
         var digest: [32]u8 = undefined;
@@ -188,7 +200,7 @@ fn create(allocator: std.mem.Allocator, output: std.mem.Allocator, library: *con
         @memset(public_functions, false);
 
         for (library.exports) |exported| for (exported.members) |member| {
-            public_functions[@backingInt(member.id)] = true;
+            if (member.id) |id| public_functions[@backingInt(id)] = true;
         };
 
         for (units) |*unit| if (public_functions[@backingInt(unit.function)]) {

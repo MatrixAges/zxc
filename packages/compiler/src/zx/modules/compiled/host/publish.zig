@@ -33,11 +33,12 @@ pub fn apply(allocator: std.mem.Allocator, output: *const Output, destination: D
         const members = try allocator.alloc(@import("../../function_import.zig"), source_members.names.len);
 
         for (members, 0..) |*member, row| member.* = .{
+            .intrinsic = if (source_members.intrinsics[row]) |operation| @fromBackingInt(@intCast(@backingInt(operation))) else null,
             .namespace = null,
             .name = try allocator.dupe(u8, source_members.names[row]),
-            .id = @fromBackingInt(source_members.ids[row]),
-            .input_type = @fromBackingInt(source_members.input_types[row]),
-            .output_type = @fromBackingInt(source_members.output_types[row]),
+            .id = if (source_members.ids[row]) |id| @fromBackingInt(id) else null,
+            .input_type = if (source_members.input_types[row]) |id| @fromBackingInt(id) else null,
+            .output_type = if (source_members.output_types[row]) |id| @fromBackingInt(id) else null,
         };
 
         exported.* = .{

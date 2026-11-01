@@ -1,3 +1,5 @@
+import { reduce } from "std:utils"
+
 import tick from "./tick"
 
 import type { State } from "./model"
@@ -10,7 +12,7 @@ export type Input = {
 export type Output = State
 
 export default function (in: Input): Output {
-    return in.source.reduce((state, byte) => tick({
+    return reduce(in.source, (state, byte) => tick({
         state: state,
         byte: byte
     }), in.state)

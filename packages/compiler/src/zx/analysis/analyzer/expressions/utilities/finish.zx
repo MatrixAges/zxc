@@ -1,0 +1,46 @@
+import integers from "std:integer"
+import append from "core/expression_table/append/scope"
+
+import type { Span } from "../../../../frontend/lexer/token_model"
+import type { Bindings } from "../../collections/model"
+import type { Result } from "../model"
+
+export type Input = {
+    result: Result,
+    bindings: Bindings,
+    span: Span
+}
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    if (in.result.state.diagnostic.message != "") {
+        return in.result
+    }
+
+    const result = append({
+        table: in.result.state.local.expressions,
+        metadata: {
+            type_id:
+                in.result.state.local.expressions
+                .types[integers.widen(
+                    in.result.value
+                )],
+            span_start: in.span.start,
+            span_end: in.span.end
+        },
+        result: in.result.value,
+        ...in.bindings
+    })
+
+    return {
+        state: {
+            ...in.result.state,
+            local: {
+                ...in.result.state.local,
+                expressions: result.table
+            }
+        },
+        value: result.id
+    }
+}

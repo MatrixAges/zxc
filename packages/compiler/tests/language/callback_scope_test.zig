@@ -8,7 +8,7 @@ fn check(source: []const u8, expected: ?@FieldType(zx.Diagnostic, "code")) !void
 
     defer parsed.deinit();
 
-    var analyzed = try compiler.analyze(std.testing.allocator, parsed.value.parsed);
+    var analyzed = try helpers.analyze(std.testing.allocator, parsed.value.parsed);
 
     defer analyzed.deinit();
 
@@ -25,43 +25,43 @@ fn check(source: []const u8, expected: ?@FieldType(zx.Diagnostic, "code")) !void
 }
 
 test "zx-callback-scope: explicit map parameter is visible" {
-    try check("export type Input = u64[]\n export type Output = u64[]\n export default function (in: Input): Output { return in.map((item) => item + 1) }", null);
+    try check("import { map } from \"std:utils\"\n\nexport type Input = u64[]\n export type Output = u64[]\n export default function (in: Input): Output { return map(in, (item) => item + 1) }", null);
 }
 
-test "zx-callback-scope: outer const is not captured" {
-    try check("export type Input = u64[]\n export type Output = u64[]\n export default function (in: Input): Output { const offset = 1\n return in.map((item) => item + offset) }", .ownership);
+test "zx-callback-scope: utils map carries an outer const in loop context" {
+    try check("import { map } from \"std:utils\"\n\nexport type Input = u64[]\n export type Output = u64[]\n export default function (in: Input): Output { const offset = 1\n return map(in, (item) => item + offset) }", null);
 }
 
-test "zx-callback-scope: function input is not captured" {
-    try check("export type Input = { items: u64[]\n offset: u64 }\n export type Output = u64[]\n export default function (in: Input): Output { return in.items.map((item) => item + in.offset) }", .ownership);
+test "zx-callback-scope: utils map borrows function input in loop context" {
+    try check("import { map } from \"std:utils\"\n\nexport type Input = { items: u64[]\n offset: u64 }\n export type Output = u64[]\n export default function (in: Input): Output { return map(in.items, (item) => item + in.offset) }", null);
 }
 
 test "zx-callback-scope: same named parameter shadows outer binding" {
-    try check("export type Input = u64[]\n export type Output = u64[]\n export default function (in: Input): Output { const item = 100\n return in.map((item) => item + 1) }", null);
+    try check("import { map } from \"std:utils\"\n\nexport type Input = u64[]\n export type Output = u64[]\n export default function (in: Input): Output { const item = 100\n return map(in, (item) => item + 1) }", null);
 }
 
 test "zx-callback-scope: nested callbacks have independent parameter scopes" {
-    try check("export type Input = u64[][]\n export type Output = u64[][]\n export default function (in: Input): Output { return in.map((row) => row.map((item) => item + 1)) }", null);
+    try check("import { map } from \"std:utils\"\n\nexport type Input = u64[][]\n export type Output = u64[][]\n export default function (in: Input): Output { return map(in, (row) => map(row, (item) => item + 1)) }", null);
 }
 
-test "zx-callback-scope: inner callback cannot capture outer callback parameter" {
-    try check("export type Input = u64[][]\n export type Output = u64[][]\n export default function (in: Input): Output { return in.map((row) => row.map((item) => row[0])) }", .ownership);
+test "zx-callback-scope: nested utils map borrows outer loop context" {
+    try check("import { map } from \"std:utils\"\n\nexport type Input = u64[][]\n export type Output = u64[][]\n export default function (in: Input): Output { return map(in, (row) => map(row, (item) => row[0])) }", null);
 }
 
 test "zx-callback-scope: leaving nested callback restores enclosing scope" {
-    try check("export type Input = u64[][]\n export type Output = u64[]\n export default function (in: Input): Output { return in.map((row) => row.reduce((sum, item) => sum + item, 0) + row[0]) }", null);
+    try check("import { map, reduce } from \"std:utils\"\n\nexport type Input = u64[][]\n export type Output = u64[]\n export default function (in: Input): Output { return map(in, (row) => reduce(row, (sum, item) => sum + item, 0) + row[0]) }", null);
 }
 
 test "zx-callback-scope: reduce initial value is evaluated outside callback" {
-    try check("export type Input = u64[]\n export type Output = u64\n export default function (in: Input): Output { const initial = 10\n return in.reduce((sum, item) => sum + item, initial) }", null);
+    try check("import { reduce } from \"std:utils\"\n\nexport type Input = u64[]\n export type Output = u64\n export default function (in: Input): Output { const initial = 10\n return reduce(in, (sum, item) => sum + item, initial) }", null);
 }
 
-test "zx-callback-scope: reduce body cannot capture its initial binding" {
-    try check("export type Input = u64[]\n export type Output = u64\n export default function (in: Input): Output { const initial = 10\n return in.reduce((sum, item) => sum + initial, initial) }", .ownership);
+test "zx-callback-scope: utils reduce borrows its initial binding in loop context" {
+    try check("import { reduce } from \"std:utils\"\n\nexport type Input = u64[]\n export type Output = u64\n export default function (in: Input): Output { const initial = 10\n return reduce(in, (sum, item) => sum + initial, initial) }", null);
 }
 
 test "zx-callback-scope: duplicate parameters are rejected" {
-    try check("export type Input = u64[]\n export type Output = u64\n export default function (in: Input): Output { return in.reduce((item, item) => item, 0) }", .name);
+    try check("import { reduce } from \"std:utils\"\n\nexport type Input = u64[]\n export type Output = u64\n export default function (in: Input): Output { return reduce(in, (item, item) => item, 0) }", .name);
 }
 
 test "zx-callback-scope: callback cannot be stored as a value" {
@@ -69,25 +69,25 @@ test "zx-callback-scope: callback cannot be stored as a value" {
 }
 
 test "zx-callback-scope: outer scope is restored after map" {
-    try check("export type Input = u64[]\n export type Output = u64\n export default function (in: Input): Output { const offset = 4\n const values = in.map((item) => item + 1)\n return offset }", null);
+    try check("import { map } from \"std:utils\"\n\nexport type Input = u64[]\n export type Output = u64\n export default function (in: Input): Output { const offset = 4\n const values = map(in, (item) => item + 1)\n return offset }", null);
 }
 
 test "zx-callback-scope: static enum names do not capture values" {
-    try check("export enum Mode { On, Off } export type Input = u64[]\n export type Output = Mode[]\n export default function (in: Input): Output { return in.map((item) => Mode.On) }", null);
+    try check("import { map } from \"std:utils\"\n\nexport enum Mode { On, Off } export type Input = u64[]\n export type Output = Mode[]\n export default function (in: Input): Output { return map(in, (item) => Mode.On) }", null);
 }
 
 test "zx-callback-scope: sibling callback cannot read a previous callback parameter" {
-    try check("export type Input = u64[]\n export type Output = u64[]\n export default function (in: Input): Output { return in.map((item) => item + 1).map((next) => item) }", .name);
+    try check("import { map } from \"std:utils\"\n\nexport type Input = u64[]\n export type Output = u64[]\n export default function (in: Input): Output { return map(map(in, (item) => item + 1), (next) => item) }", .name);
 }
 
 fn analyzeWithAllocator(allocator: std.mem.Allocator) !void {
-    var parsed = try compiler.parse(allocator, "export type Input = u64[][]\n export type Output = u64[]\n export default function (in: Input): Output { return in.map((row) => row.reduce((sum, item) => sum + item, 0)) }", "allocation.zx");
+    var parsed = try compiler.parse(allocator, "import { map, reduce } from \"std:utils\"\n\nexport type Input = u64[][]\n export type Output = u64[]\n export default function (in: Input): Output { return map(in, (row) => reduce(row, (sum, item) => sum + item, 0)) }", "allocation.zx");
 
     defer parsed.deinit();
 
     try std.testing.expect(parsed.value == .parsed);
 
-    var analyzed = try compiler.analyze(allocator, parsed.value.parsed);
+    var analyzed = try helpers.analyze(allocator, parsed.value.parsed);
 
     defer analyzed.deinit();
 

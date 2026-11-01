@@ -1,4 +1,5 @@
 import integers from "std:integer"
+import { map } from "std:utils"
 import { StatementKind } from "core/control_table/model"
 import { ExpressionKind } from "core/expression_table/kinds"
 
@@ -232,7 +233,7 @@ export default function (in: Input): Output {
         table: table,
         finds: walked.finds,
         marks: walked.marks,
-        seen: table.kinds.map(kind => false)
+        seen: map(table.kinds, kind => false)
     }, {
         while: current => current.finds.length != 0,
         next: current => {
@@ -319,7 +320,7 @@ export default function (in: Input): Output {
     const marked = loop({
         table: table,
         marks: found.marks,
-        marked: table.kinds.map(kind => false)
+        marked: map(table.kinds, kind => false)
     }, {
         while: current => current.marks.length != 0,
         next: current => {

@@ -1,0 +1,76 @@
+import integers from "std:integer"
+import { type_id_void } from "core/const"
+import { Ownership } from "core/symbol_table/model"
+
+import reference from "../../collections/building/reference"
+import symbol from "../../collections/building/symbol"
+import { argument_name } from "./const"
+
+import type { Input as Request, Bound } from "./model"
+
+export type Input = Request
+
+export type Output = Bound
+
+export default function (in: Input): Output {
+    const values: u32[] = []
+    const symbols: u32?[] = []
+    const borrows: bool[] = []
+
+    const result = loop({
+        state: in.state,
+        arguments: in.values,
+        values,
+        symbols,
+        borrows,
+        span: in.span,
+        index: 0
+    }, {
+        while: current => current.index < current.arguments.length,
+        next: current => {
+            const value = current.arguments[current.index]
+            const type_id =
+                current.state.local.expressions.types[integers.widen(value)]
+
+            if (type_id == type_id_void) {
+                current.values = current.values.push(value)[0]
+                current.symbols = current.symbols.push(null)[0]
+                current.borrows = current.borrows.push(true)[0]
+            } else {
+                const binding = symbol({
+                    state: current.state,
+                    name: argument_name,
+                    type_id: current.state.local.expressions
+                        .types[integers.widen(
+                            value
+                        )],
+                    ownership: Ownership.Copy,
+                    span: current.span
+                })
+
+                const result = reference({
+                    state: binding.state,
+                    symbol: binding.symbol,
+                    span: current.span
+                })
+
+                current.state = result.state
+                current.values = current.values.push(result.value)[0]
+                current.symbols = current.symbols.push(binding.symbol)[0]
+                current.borrows = current.borrows.push(true)[0]
+            }
+
+            current.index += 1
+        }
+    })
+
+    return {
+        state: result.state,
+        values: result.values,
+        bindings: {
+            symbols: result.symbols,
+            values: in.values,
+            borrows: result.borrows
+        }
+    }
+}

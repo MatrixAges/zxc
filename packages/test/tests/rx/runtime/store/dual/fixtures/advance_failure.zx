@@ -1,16 +1,28 @@
-export type State = { value: u64
- history: u64[] }
+import { map } from "std:utils"
 
-export type Input = { increment: u64
- index: u64
- state: State }
+export type State = {
+    value: u64
+    history: u64[]
+}
+
+export type Input = {
+    increment: u64
+    index: u64
+    state: State
+}
 
 export type Output = u64
 
-export default function (in: Input, { store }): Output {
-  const next = { ...in.state, value: in.state.value + in.increment, history: in.state.history.map(item => item + 1) }
+export default function (in: Input, {
+    store
+}): Output {
+    const next = {
+        ...in.state,
+        value: in.state.value + in.increment,
+        history: map(in.state.history, item => item + 1)
+    }
 
-  store.inner.counter = next
+    store.inner.counter = next
 
-  return next.history[in.index]
+    return next.history[in.index]
 }

@@ -54,7 +54,7 @@ test "compiled export accepts fresh scalar map" {
 
     defer restored.deinit();
 
-    try checkConsumer(&restored, "import consume from \"owned\"\nexport type Input = u64[]\nexport type Output = u64[]\nexport default function (in: Input): Output { return consume(in.map(item => item)) }\n", true);
+    try checkConsumer(&restored, "import { map } from \"std:utils\"\n\nimport consume from \"owned\"\nexport type Input = u64[]\nexport type Output = u64[]\nexport default function (in: Input): Output { return consume(map(in, item => item)) }\n", true);
 }
 
 fn republished(allocator: std.mem.Allocator) !compiler.library.Result {

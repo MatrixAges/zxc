@@ -1,0 +1,119 @@
+import integers from "std:integer"
+import { type_id_u8, type_id_f64 } from "core/const"
+import { BinaryOperator } from "core/expression_table/kinds"
+
+import { Operation } from "../../../../modules/intrinsic/model"
+import binary from "../operators/binary"
+import choice from "./building/choice"
+import { numeric_message, type_code } from "./const"
+
+import type { Result } from "../model"
+import type { Input as Request } from "./model"
+
+export type Input = Request
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const first = in.values[0]
+    const lower = in.values[1]
+    const upper = in.values[2]
+    const type_id = in.state.local.expressions.types[integers.widen(first)]
+
+    if (type_id < type_id_u8 || type_id > type_id_f64) {
+        return {
+            state: {
+                ...in.state,
+                diagnostic: {
+                    code: type_code,
+                    message: numeric_message,
+                    start: in.span.start,
+                    end: in.span.end
+                }
+            },
+            value: 0
+        }
+    }
+
+    if (in.operation == Operation.InRange) {
+        const ordered = binary({
+            state: in.state,
+            span: in.span,
+            operator: BinaryOperator.LessEqual,
+            left: lower,
+            right: upper
+        })
+
+        const start = choice({
+            state: ordered.state,
+            span: in.span,
+            condition: ordered.value,
+            yes: lower,
+            no: upper
+        })
+
+        const end = choice({
+            state: start.state,
+            span: in.span,
+            condition: ordered.value,
+            yes: upper,
+            no: lower
+        })
+
+        const above = binary({
+            state: end.state,
+            span: in.span,
+            operator: BinaryOperator.GreaterEqual,
+            left: first,
+            right: start.value
+        })
+
+        const below = binary({
+            state: above.state,
+            span: in.span,
+            operator: BinaryOperator.Less,
+            left: first,
+            right: end.value
+        })
+
+        return binary({
+            state: below.state,
+            span: in.span,
+            operator: BinaryOperator.LogicalAnd,
+            left: above.value,
+            right: below.value
+        })
+    }
+
+    const below = binary({
+        state: in.state,
+        span: in.span,
+        operator: BinaryOperator.Less,
+        left: first,
+        right: lower
+    })
+
+    const bounded = choice({
+        state: below.state,
+        span: in.span,
+        condition: below.value,
+        yes: lower,
+        no: first
+    })
+
+    const above = binary({
+        state: bounded.state,
+        span: in.span,
+        operator: BinaryOperator.Greater,
+        left: bounded.value,
+        right: upper
+    })
+
+    return choice({
+        state: above.state,
+        span: in.span,
+        condition: above.value,
+        yes: upper,
+        no: bounded.value
+    })
+}

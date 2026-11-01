@@ -1,3 +1,5 @@
+import { reduce } from "std:utils"
+
 import finish from "./finish"
 import tick from "./tick"
 
@@ -17,7 +19,7 @@ export default function (in: Input): Output {
         segments: segments
     }
 
-    const state = finish(in.reduce((state, byte) => tick({
+    const state = finish(reduce(in, (state, byte) => tick({
         state: state,
         byte: byte
     }), initial))

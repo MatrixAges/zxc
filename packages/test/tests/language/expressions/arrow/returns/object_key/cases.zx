@@ -1,9 +1,11 @@
+import { map } from "std:utils"
+
 export type Input = { items: i64[] }
 
 export type Output = i64[]
 
 export default function (in: Input): Output {
-    const cells = in.items.map(val => ({ key: val }))
+    const cells = map(in.items, val => ({ key: val }))
 
-    return cells.map(cell => cell.key)
+    return map(cells, cell => cell.key)
 }

@@ -1,0 +1,25 @@
+import type { Span } from "../../../../frontend/lexer/token_model"
+import type { Operation } from "../../../../modules/intrinsic/model"
+import type { Bindings } from "../../collections/model"
+import type { Prepared } from "../../model"
+
+export type Input = {
+    state: Prepared,
+    operation: Operation,
+    values: u32[],
+    span: Span
+}
+
+export type Bound = {
+    state: Prepared,
+    values: u32[],
+    bindings: Bindings
+}
+
+export type List = {
+    state: Prepared,
+    operation: Operation,
+    values: u32[],
+    span: Span,
+    element_type: u32
+}

@@ -1,9 +1,14 @@
+import { map } from "std:utils"
+
 import fresh from "./fresh"
 
-export type Input = { values: u64[], enabled: bool }
+export type Input = {
+    values: u64[],
+    enabled: bool
+}
 
 export type Output = u64[]
 
 export default function (in: Input): Output {
-    return in.enabled ? fresh(in.values) : in.values.map(item => item + 1)
+    return in.enabled ? fresh(in.values) : map(in.values, item => item + 1)
 }

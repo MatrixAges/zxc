@@ -2,7 +2,9 @@ import integers from "std:integer"
 
 import row from "../../../../semantic/types/row"
 import { Phase, Action } from "../model"
+import intrinsic from "../utilities/next"
 import finish from "./finish"
+import invalid from "./invalid"
 
 import type { Work } from "../model"
 
@@ -17,7 +19,18 @@ export default function (in: Input): Output {
         return finish(in)
     }
 
+    if (in.imports.intrinsics[frame.import_index] != null) {
+        return intrinsic(in)
+    }
+
     const input = in.imports.input_types[frame.import_index]
+
+    if (input == null) {
+        return invalid({
+            work: in,
+            node: frame.node
+        })
+    }
 
     const tables = {
         base: in.state.types.context.base,

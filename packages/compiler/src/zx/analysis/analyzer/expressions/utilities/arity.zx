@@ -1,0 +1,22 @@
+import { Operation } from "../../../../modules/intrinsic/model"
+import { unary_arity, binary_arity, ternary_arity } from "./const"
+
+export type Input = Operation
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    return match in {
+        Operation.Map => binary_arity,
+        Operation.Reduce => binary_arity,
+        Operation.Pick => binary_arity,
+        Operation.Omit => binary_arity,
+        Operation.Take => binary_arity,
+        Operation.TakeRight => binary_arity,
+        Operation.Drop => binary_arity,
+        Operation.DropRight => binary_arity,
+        Operation.Clamp => ternary_arity,
+        Operation.InRange => ternary_arity,
+        _ => unary_arity
+    }
+}

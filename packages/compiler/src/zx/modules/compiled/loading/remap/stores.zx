@@ -1,3 +1,5 @@
+import { map } from "std:utils"
+
 import store from "../../identity/store"
 import ids from "./ids"
 
@@ -18,7 +20,7 @@ export default function (in: Input): Output {
             values: in.source.types,
             mapping: in.mapping
         }),
-        paths: in.source.paths.map(value => store({
+        paths: map(in.source.paths, value => store({
             instance: in.instance,
             value: value
         }))

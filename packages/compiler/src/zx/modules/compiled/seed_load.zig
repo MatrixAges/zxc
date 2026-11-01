@@ -120,9 +120,9 @@ pub fn loadInto(allocator: std.mem.Allocator, library: model.Library, destinatio
 
         for (members) |*member| {
             member.name = try allocator.dupe(u8, member.name);
-            member.id = try nodes.functionId(member.id);
-            member.input_type = try nodes.types.include(member.input_type);
-            member.output_type = try nodes.types.include(member.output_type);
+            member.id = if (member.id) |id| try nodes.functionId(id) else null;
+            member.input_type = if (member.input_type) |id| try nodes.types.include(id) else null;
+            member.output_type = if (member.output_type) |id| try nodes.types.include(id) else null;
         }
 
         exported.members = members;

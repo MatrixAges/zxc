@@ -1,11 +1,15 @@
-export type Input = { items: i64[] }
+import { map } from "std:utils"
+
+export type Input = {
+    items: i64[]
+}
 
 export type Output = i64[]
 
 export default function (in: Input): Output {
-  const owned = in.items.map(item => item)
+    const owned = map(in.items, item => item)
 
-  const [next, _] = owned.reverse()
+    const [next, _] = owned.reverse()
 
-  return next
+    return next
 }

@@ -1,0 +1,61 @@
+import integers from "std:integer"
+import { Kind } from "core/type_table/model"
+
+import { Operation } from "../../../../modules/intrinsic/model"
+import row from "../../../semantic/types/row"
+import { type_code, array_message } from "./const"
+import list from "./list"
+import numeric from "./numeric"
+import predicate from "./predicate"
+
+import type { Result } from "../model"
+import type { Input as Request } from "./model"
+
+export type Input = Request
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    if (in.operation == Operation.Identity) {
+        return {
+            state: in.state,
+            value: in.values[0]
+        }
+    }
+
+    if (in.operation == Operation.IsNil || in.operation == Operation.IsNotNil) {
+        return predicate(in)
+    }
+
+    if (in.operation == Operation.Clamp || in.operation == Operation.InRange) {
+        return numeric(in)
+    }
+
+    const target = row({
+        tables: {
+            base: in.state.types.context.base,
+            delta: in.state.types.delta
+        },
+        id: in.state.local.expressions.types[integers.widen(in.values[0])]
+    })
+
+    if (target.kind != Kind.List) {
+        return {
+            state: {
+                ...in.state,
+                diagnostic: {
+                    code: type_code,
+                    message: array_message,
+                    start: in.span.start,
+                    end: in.span.end
+                }
+            },
+            value: 0
+        }
+    }
+
+    return list({
+        ...in,
+        element_type: target.first
+    })
+}

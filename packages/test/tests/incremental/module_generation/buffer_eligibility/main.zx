@@ -1,13 +1,27 @@
+import { map, reduce } from "std:utils"
+
 import step from "./step"
 
-export type State = { values: u64[], count: u64 }
+export type State = {
+    values: u64[],
+    count: u64
+}
 
-export type Input = { seed: u64[], steps: u64[] }
+export type Input = {
+    seed: u64[],
+    steps: u64[]
+}
 
 export type Output = State
 
 export default function (in: Input): Output {
-  const initial: State = {values: in.seed.map(item => item), count: 0}
+    const initial: State = {
+        values: map(in.seed, item => item),
+        count: 0
+    }
 
-  return in.steps.reduce((state, item) => step({state, item}), initial)
+    return reduce(in.steps, (state, item) => step({
+        state,
+        item
+    }), initial)
 }

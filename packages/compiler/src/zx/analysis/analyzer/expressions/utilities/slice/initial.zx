@@ -1,0 +1,41 @@
+import integers from "std:integer"
+import { SequenceKind } from "core/expression_table/append/model"
+import sequence from "core/expression_table/append/sequence"
+
+import object from "../../../collections/building/object"
+import { field_source, field_index, field_end, field_result } from "../const"
+
+import type { Result } from "../../model"
+import type { Bounds } from "./model"
+
+export type Input = Bounds
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const empty = sequence({
+        table: in.state.local.expressions,
+        metadata: {
+            type_id: in.state.local.expressions.types[integers.widen(in.source)],
+            span_start: in.span.start,
+            span_end: in.span.end
+        },
+        kind: SequenceKind.List,
+        values: []
+    })
+
+    return object({
+        state: {
+            ...in.state,
+            local: {
+                ...in.state.local,
+                expressions: empty.table
+            }
+        },
+        span: in.span,
+        fields: {
+            names: [field_source, field_index, field_end, field_result],
+            values: [in.source, in.start, in.end, empty.id]
+        }
+    })
+}

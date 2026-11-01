@@ -68,24 +68,8 @@ pub fn extract(self: *Self, record: Record) Error!model.Module {
         if (!found) return error.InvalidModule;
     }
 
-    const function_imports = try self.allocator.dupe(FunctionImport, record.function_imports);
-
-    for (function_imports) |*binding| {
-        const index = @backingInt(binding.id);
-
-        if (index >= self.program.functions.count()) return error.InvalidModule;
-
-        const function = self.program.functions.at(index);
-
-        if (binding.input_type != function.input_type or binding.output_type != function.output_type) return error.InvalidModule;
-
-        binding.id = try self.importFunction(binding.id);
-        binding.name = try self.allocator.dupe(u8, binding.name);
-        binding.namespace = if (binding.namespace) |name| try self.allocator.dupe(u8, name) else null;
-        binding.input_type = try self.types.include(binding.input_type);
-        binding.output_type = try self.types.include(binding.output_type);
-    }
-
+    const function_imports = try self.bindings(record.function_imports);
+    const members = try self.bindings(record.reexports.functions);
     const exported = try self.exports(record.exports);
     const function = try self.copyFunction(record);
     var nodes = self.nodeCopier();
@@ -101,7 +85,7 @@ pub fn extract(self: *Self, record: Record) Error!model.Module {
         dependency.target = switch (dependency.target) {
             .compiled => return error.InvalidModule,
             .source => |path| .{ .source = try self.allocator.dupe(u8, path) },
-            .native, .external => dependency.target,
+            .native, .external, .intrinsic => dependency.target,
         };
     }
 
@@ -116,6 +100,7 @@ pub fn extract(self: *Self, record: Record) Error!model.Module {
         .constant_imports = try nodes.constants(record.constant_imports),
         .type_imports = type_imports,
         .function_imports = function_imports,
+        .members = members,
         .functions = self.functions.view(),
         .native_modules = self.native_modules.view(),
         .function = function,
@@ -211,4 +196,31 @@ fn exports(self: *Self, values: []const ir.Export) Error![]const ir.Export {
 
 fn nodeCopier(self: *Self) Nodes {
     return .{ .allocator = self.allocator, .types = .{ .collect = &self.types }, .functions = .{ .indexed = self.function_mapping }, .native_modules = .{ .indexed = self.native_mapping } };
+}
+
+fn bindings(self: *Self, source: []const FunctionImport) Error![]const FunctionImport {
+    const function_imports = try self.allocator.dupe(FunctionImport, source);
+
+    for (function_imports) |*binding| {
+        if (!binding.valid()) return error.InvalidModule;
+
+        binding.name = try self.allocator.dupe(u8, binding.name);
+        binding.namespace = if (binding.namespace) |name| try self.allocator.dupe(u8, name) else null;
+
+        if (binding.intrinsic != null) continue;
+
+        const index = @backingInt(binding.id.?);
+
+        if (index >= self.program.functions.count()) return error.InvalidModule;
+
+        const function = self.program.functions.at(index);
+
+        if (binding.input_type != function.input_type or binding.output_type != function.output_type) return error.InvalidModule;
+
+        binding.id = try self.importFunction(binding.id.?);
+        binding.input_type = try self.types.include(binding.input_type.?);
+        binding.output_type = try self.types.include(binding.output_type.?);
+    }
+
+    return function_imports;
 }

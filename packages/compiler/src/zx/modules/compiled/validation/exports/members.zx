@@ -23,7 +23,7 @@ export default function (in: Input): Output {
     if (
         members.namespaces.length != count || members.ids.length != count ||
             members.input_types.length != count ||
-            members.output_types.length != count
+            members.output_types.length != count || members.intrinsics.length != count
     ) {
         return false
     }
@@ -46,18 +46,40 @@ export default function (in: Input): Output {
         next: current => {
             const values = current.input.members
             const row = current.index
-            const id = integers.widen(values.ids[row])
+            const id = values.ids[row]
+            const input = values.input_types[row]
+            const output = values.output_types[row]
 
             current.valid =
-                text(values.names[row]) && values.namespaces[row] == null &&
-                id < current.input.functions.files.length
+                (
+                    text(values.names[row]) ||
+                        (
+                            values.names[row] == "" &&
+                                values.intrinsics[row] != null
+                        )
+                ) && values.namespaces[row] == null
 
             if (current.valid) {
-                current.valid =
-                    values.input_types[row] ==
-                    current.input.functions.input_types[id] &&
-                    values.output_types[row] == current.input.functions
-                    .output_types[id]
+                if (values.intrinsics[row] != null) {
+                    current.valid = id == null && input == null && output == null
+                } else if (id != null && input != null && output != null) {
+                    current.valid =
+                        integers.widen(id) < current.input.functions.files.length
+
+                    if (current.valid) {
+                        current.valid =
+                            input ==
+                            current.input.functions.input_types[integers.widen(
+                                id
+                            )] &&
+                            output ==
+                            current.input.functions.output_types[integers.widen(
+                                id
+                            )]
+                    }
+                } else {
+                    current.valid = false
+                }
             }
 
             current.index += 1

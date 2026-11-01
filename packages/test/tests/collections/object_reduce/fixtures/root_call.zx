@@ -1,13 +1,30 @@
+import { reduce } from "std:utils"
+
 import advance from "./advance"
 
-export type Child = { value: u64 }
+export type Child = {
+    value: u64
+}
 
-export type State = { count: u64, total: u64, last: u64, labels: string[], text: string, child: Child }
+export type State = {
+    count: u64,
+    total: u64,
+    last: u64,
+    labels: string[],
+    text: string,
+    child: Child
+}
 
-export type Input = { seed: State, steps: u64[] }
+export type Input = {
+    seed: State,
+    steps: u64[]
+}
 
 export type Output = State
 
 export default function (in: Input): Output {
-  return in.steps.reduce((state, item) => advance({state, item}), in.seed)
+    return reduce(in.steps, (state, item) => advance({
+        state,
+        item
+    }), in.seed)
 }

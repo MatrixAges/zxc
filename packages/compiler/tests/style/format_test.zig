@@ -48,7 +48,7 @@ test "style: a pure type file does not need an extra blank line at EOF" {
 
 test "style: naming checks reach callback and destructuring bindings" {
     for ([_][]const u8{
-        "return in.map((BadName) => BadName)\n",
+        "return loop(in, {while: BadName => false, next: current => current})\n",
         "const values = in.clone()\n const [BadName, _] = values.pop()\n return BadName\n",
     }) |body| {
         const source = try std.fmt.allocPrint(std.testing.allocator, "export type Input = u64[]\n export type Output = u64[]\n export default function (in: Input): Output {{ {s} }}", .{body});
@@ -65,7 +65,7 @@ test "style: naming checks reach callback and destructuring bindings" {
 }
 
 fn compileAllocationFailures(allocator: std.mem.Allocator) !void {
-    const result = try compiler.compile(allocator, "export type Input = u64[]\n\nexport type Output = u64[]\n\nexport default function (in: Input): Output { return in.map((item) => item + 1) }", "memory.zx");
+    const result = try compiler.compile(allocator, "export type Input = u64[]\n\nexport type Output = u64[]\n\nexport default function (in: Input): Output {\n    const values: u64[] = []\n\n    return loop({\n        source: in,\n        index: 0,\n        values\n    }, {\n        while: current => current.index < current.source.length,\n        next: current => {\n            current.values = current.values.push(current.source[current.index] + 1)[0]\n            current.index += 1\n        }\n    }).values\n}\n", "memory.zx");
 
     defer result.deinit(allocator);
 
@@ -73,5 +73,10 @@ fn compileAllocationFailures(allocator: std.mem.Allocator) !void {
 }
 
 test "integration: compilation frees all allocations at every failure point" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, compileAllocationFailures, .{});
+    var vtable = std.testing.allocator.vtable.*;
+    vtable.resize = std.mem.Allocator.noResize;
+    vtable.remap = std.mem.Allocator.noRemap;
+    const allocator: std.mem.Allocator = .{ .ptr = std.testing.allocator.ptr, .vtable = &vtable };
+
+    try std.testing.checkAllAllocationFailures(allocator, compileAllocationFailures, .{});
 }

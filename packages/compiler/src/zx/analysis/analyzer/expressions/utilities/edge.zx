@@ -1,0 +1,96 @@
+import { type_id_u64 } from "core/const"
+import { ValueKind } from "core/expression_table/append/model"
+import { BinaryOperator } from "core/expression_table/kinds"
+
+import { Operation } from "../../../../modules/intrinsic/model"
+import integer from "../../collections/building/integer"
+import binary from "../operators/binary"
+import index from "../projections/index"
+import choice from "./building/choice"
+import none from "./building/none"
+import optional from "./building/optional"
+import value from "./building/value"
+
+import type { Result } from "../model"
+import type { List as Request } from "./model"
+
+export type Input = Request
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const length = value({
+        state: in.state,
+        span: in.span,
+        type_id: type_id_u64,
+        kind: ValueKind.Length,
+        value: in.values[0]
+    })
+
+    const zero = integer({
+        state: length.state,
+        span: in.span,
+        value: 0
+    })
+
+    const present = binary({
+        state: zero.state,
+        span: in.span,
+        operator: BinaryOperator.Greater,
+        left: length.value,
+        right: zero.value
+    })
+
+    const one = integer({
+        state: present.state,
+        span: in.span,
+        value: 1
+    })
+
+    const position = in.operation == Operation.Head ? {
+        state: one.state,
+        value: zero.value
+    } : binary({
+        state: one.state,
+        span: in.span,
+        operator: BinaryOperator.Subtract,
+        left: length.value,
+        right: one.value
+    })
+
+    const element = index({
+        state: position.state,
+        span: in.span,
+        index_span: in.span,
+        target: in.values[0],
+        index: position.value
+    })
+
+    const wrapped = optional({
+        state: element.state,
+        span: in.span,
+        type_id: in.element_type
+    })
+
+    const some = value({
+        state: wrapped.state,
+        span: in.span,
+        type_id: wrapped.id,
+        kind: ValueKind.Some,
+        value: element.value
+    })
+
+    const empty = none({
+        state: some.state,
+        span: in.span,
+        type_id: wrapped.id
+    })
+
+    return choice({
+        state: empty.state,
+        span: in.span,
+        condition: present.value,
+        yes: some.value,
+        no: empty.value
+    })
+}

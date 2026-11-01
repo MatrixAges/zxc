@@ -1,4 +1,5 @@
 import integers from "std:integer"
+import { map } from "std:utils"
 
 import body from "../calls/body"
 import parallel from "../control/parallel"
@@ -16,8 +17,8 @@ export type Input = {
 export type Output = Values
 
 export default function (in: Input): Output {
-    const local = in.program.functions.output_types.map(id => false)
-    const values = in.program.functions.output_types.map(id => false)
+    const local = map(in.program.functions.output_types, id => false)
+    const values = map(in.program.functions.output_types, id => false)
 
     const result = loop({
         program: in.program,

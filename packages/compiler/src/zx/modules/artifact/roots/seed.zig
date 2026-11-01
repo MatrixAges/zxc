@@ -23,17 +23,19 @@ pub fn collect(allocator: std.mem.Allocator, program: ir.Program, record: Record
     for (record.constant_imports) |item| try self.mark(item.type_id);
     for (record.type_imports) |item| try self.mark(item.type_id);
 
-    for (record.function_imports) |binding| {
-        if (@backingInt(binding.id) >= program.functions.count()) return error.InvalidModule;
+    for ([_][]const @import("../../function_import.zig"){ record.function_imports, record.reexports.functions }) |bindings| for (bindings) |binding| {
+        if (!binding.valid()) return error.InvalidModule;
+        if (binding.intrinsic != null) continue;
+        if (@backingInt(binding.id.?) >= program.functions.count()) return error.InvalidModule;
 
-        const function = program.functions.at(@backingInt(binding.id));
+        const function = program.functions.at(@backingInt(binding.id.?));
 
-        try self.mark(binding.input_type);
-        try self.mark(binding.output_type);
+        try self.mark(binding.input_type.?);
+        try self.mark(binding.output_type.?);
         try self.mark(function.input_type);
         try self.mark(function.output_type);
         if (function.external) |external| try self.nativeModule(external.module);
-    }
+    };
 
     for (record.imports) |dependency| {
         if (dependency.target != .native) continue;

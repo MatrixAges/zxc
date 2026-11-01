@@ -17,11 +17,15 @@ pub fn matches(expression: anytype) bool {
 }
 
 pub fn validate(expression: anytype) ?zx.Diagnostic {
+    return validateAt(expression, 0);
+}
+
+pub fn validateAt(expression: anytype, offset: usize) ?zx.Diagnostic {
     const call = syntax.value(expression).call;
 
-    if (call.type_argument != null or call.arguments.len != 1) return issue(expression.span, "object selection requires one static field array");
+    if (call.type_argument != null or call.arguments.len != offset + 1) return issue(expression.span, "object selection requires one static field array");
 
-    const argument = syntax.item(call.arguments, 0);
+    const argument = syntax.item(call.arguments, offset);
     const value = syntax.value(argument);
 
     if (value != .list) return issue(argument.span, "object selection fields must be a string literal array");
@@ -36,9 +40,13 @@ pub fn validate(expression: anytype) ?zx.Diagnostic {
 }
 
 pub fn keys(allocator: std.mem.Allocator, expression: anytype, reporter: *zx.Reporter) zx.Error![]const []const u8 {
-    if (validate(expression)) |diagnostic| return reporter.fail(diagnostic.code, diagnostic.span, diagnostic.message);
+    return keysAt(allocator, expression, reporter, 0);
+}
 
-    const values = syntax.value(syntax.item(syntax.value(expression).call.arguments, 0)).list;
+pub fn keysAt(allocator: std.mem.Allocator, expression: anytype, reporter: *zx.Reporter, offset: usize) zx.Error![]const []const u8 {
+    if (validateAt(expression, offset)) |diagnostic| return reporter.fail(diagnostic.code, diagnostic.span, diagnostic.message);
+
+    const values = syntax.value(syntax.item(syntax.value(expression).call.arguments, offset)).list;
     const result = try allocator.alloc([]const u8, values.len);
 
     for (result, 0..) |*key, index| {

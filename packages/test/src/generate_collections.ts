@@ -3,6 +3,7 @@ import { consuming, programs, source } from './collection_programs.ts'
 import evaluate from './models/collections.ts'
 import { product, range, writeCatalog, writeOutput } from './shared/catalog.ts'
 import { stringify } from './shared/json.ts'
+import zxSource from './shared/zx_source.ts'
 
 const maximum = 2n ** 63n - 1n
 const minimum = -(2n ** 63n)
@@ -121,6 +122,6 @@ for (const operation of Object.keys(programs)) {
         const base = `tests/built_ins/list/${operation}/` + (length < 0 ? 'i64' : `owned/${length}/i64`)
 
         writeCatalog(base + '.jsonl', group)
-        writeOutput(base + '.zx', source(operation, length < 0 ? undefined : length))
+        writeOutput(base + '.zx', zxSource(source(operation, length < 0 ? undefined : length)))
     }
 }

@@ -1,0 +1,57 @@
+<Module>
+    <Type from="./model" as="Model" />
+    <Type from="../model" as="Expressions" />
+
+    <Args in={Model.List} out={Expressions.Result} />
+
+    <Call fn="slice/bounds" in={$in} />
+    <Call fn="slice/initial" in={$ctx.bounds} />
+
+    <Call
+        fn="../../collections/lowering/parameters"
+        in={{
+            ...$ctx.initial,
+            initial: $ctx.initial.value,
+            span: $in.span
+        }.omit(["value"])}
+    />
+
+    <Call
+        fn="slice/condition"
+        in={{
+            state: $ctx.parameters.state,
+            parameter: $ctx.parameters.condition_parameter,
+            span: $in.span
+        }}
+    />
+
+    <Call
+        fn="slice/step"
+        in={{
+            state: $ctx.condition.state,
+            parameter: $ctx.parameters.parameter,
+            span: $in.span
+        }}
+    />
+
+    <Call
+        fn="../../collections/lowering/finish"
+        in={{
+            state: $ctx.step.state,
+            initial: $ctx.initial.value,
+            condition_parameter: $ctx.parameters.condition_parameter,
+            parameter: $ctx.parameters.parameter,
+            condition: $ctx.condition.value,
+            body: $ctx.step.value,
+            bindings: {
+                symbols: [],
+                values: [],
+                borrows: []
+            },
+            result_type: $ctx.bounds.result_type,
+            span: $in.span
+        }}
+    />
+
+    <Return value={$ctx.finish} />
+</Module>

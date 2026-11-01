@@ -1,17 +1,39 @@
-export type Input = { values: u64[], count: u64 }
+import { map } from "std:utils"
 
-export type State = { values: u64[], round: u64, count: u64, fresh: u64[] }
+export type Input = {
+    values: u64[],
+    count: u64
+}
 
-export type Output = { original: u64[], values: u64[] }
+export type State = {
+    values: u64[],
+    round: u64,
+    count: u64,
+    fresh: u64[]
+}
+
+export type Output = {
+    original: u64[],
+    values: u64[]
+}
 
 export default function (in: Input): Output {
-    const fresh = in.values.map(item => item + 1)
-    const initial: State = { values: in.values, fresh: fresh, round: 0, count: in.count }
+    const fresh = map(in.values, item => item + 1)
+
+    const initial: State = {
+        values: in.values,
+        fresh: fresh,
+        round: 0,
+        count: in.count
+    }
 
     const state = loop(initial, {
         while: current => current.round < current.count,
         next: current => {
-            const inner = loop({ values: current.fresh, round: 0 }, {
+            const inner = loop({
+                values: current.fresh,
+                round: 0
+            }, {
                 while: step => step.round < 3,
                 next: step => {
                     step.values[0] += 1
@@ -24,5 +46,8 @@ export default function (in: Input): Output {
         }
     })
 
-    return { original: in.values, values: state.values }
+    return {
+        original: in.values,
+        values: state.values
+    }
 }

@@ -4,6 +4,7 @@ import cases from './map_projection/cases.ts'
 import expectation from './models/map_projection.ts'
 import { package_dir, writeCatalog, writeOutput } from './shared/catalog.ts'
 import { readRows } from './shared/json.ts'
+import zxSource from './shared/zx_source.ts'
 
 type Sample = { name: string; path: string; sha256: string; spec: Spec; reason: string }
 const samples = readRows<Sample>(resolve(package_dir, 'src/data/map_projection.jsonl'))
@@ -30,7 +31,9 @@ for (const operation of Object.keys(programs) as Array<Spec['operation']>) {
 
     writeOutput(
         `tests/${base}/${operation}.zx`,
-        `export type Input = { items: i64[]${program.fields ? `, ${program.fields}` : ''} }\n\nexport type Output = { mapped: ${program.type}[], items: i64[] }\n\nexport default function (in: Input): Output {\n    return { mapped: in.items.map((item, index, source) => ${program.expression}), items: in.items }\n}\n`
+        zxSource(
+            `export type Input = { items: i64[]${program.fields ? `, ${program.fields}` : ''} }\n\nexport type Output = { mapped: ${program.type}[], items: i64[] }\n\nexport default function (in: Input): Output {\n    return { mapped: map(in.items, (item, index, source) => ${program.expression}), items: in.items }\n}\n`
+        )
     )
     writeCatalog(
         `tests/${base}/${operation}.jsonl`,

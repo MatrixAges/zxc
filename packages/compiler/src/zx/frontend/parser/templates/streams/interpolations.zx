@@ -1,3 +1,5 @@
+import { reduce } from "std:utils"
+
 import step from "./step"
 
 import type { Interpolation } from "../model"
@@ -11,7 +13,7 @@ export type Input = {
 export type Output = Interpolation[]
 
 export default function (in: Input): Output {
-    const completed = in.source.reduce((state, byte) => step({
+    const completed = reduce(in.source, (state, byte) => step({
         state: state,
         byte: byte
     }), in.state)

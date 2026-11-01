@@ -1,0 +1,34 @@
+import integers from "std:integer"
+import { type_id_u64 } from "core/const"
+
+import { Operation } from "../../../../../modules/intrinsic/model"
+import { Phase, Action } from "../model"
+
+import type { Work } from "../model"
+
+export type Input = Work
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const frame = in.frames.imported[in.frames.imported.length - 1]
+    const operation = in.imports.intrinsics[frame.import_index]
+
+    const expected: u32? = match {
+        frame.index == 0 => null,
+        operation == Operation.Clamp || operation == Operation.InRange =>
+            in.state.local.expressions.types[integers.widen(frame.values[0])],
+        _ => type_id_u64
+    }
+
+    return {
+        ...in,
+        node: frame.arguments[frame.index],
+        expected,
+        phase: Phase.Evaluate,
+        frames: {
+            ...in.frames,
+            actions: in.frames.actions.push(Action.Imported)[0]
+        }
+    }
+}

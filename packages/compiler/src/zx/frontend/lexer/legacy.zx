@@ -1,3 +1,5 @@
+import { map } from "std:utils"
+
 import legacyKind from "./legacy_kind"
 
 import type { Diagnostic, Result } from "./model"
@@ -17,7 +19,7 @@ export type Output = {
 }
 
 export default function (in: Input): Output {
-    const tokens = in.tokens.map(token => {
+    const tokens = map(in.tokens, token => {
         kind: legacyKind(token.kind),
         span: token.span
     })

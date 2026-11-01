@@ -1,4 +1,5 @@
 import integers from "std:integer"
+import { map } from "std:utils"
 import { Kind } from "core/type_table/model"
 
 import kind from "../../../analysis/semantic/types/kind"
@@ -12,7 +13,7 @@ export type Output = bool
 
 export default function (in: Input): Output {
     const table = in.program.context.table
-    const declared = table.kinds.map(value => false)
+    const declared = map(table.kinds, value => false)
 
     const origins = loop({
         context: in.program.context,

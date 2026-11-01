@@ -1,3 +1,5 @@
+import { map } from "std:utils"
+
 import type { DataInput, NestedState } from "../model"
 
 export type Input = DataInput
@@ -5,8 +7,19 @@ export type Input = DataInput
 export type Output = NestedState
 
 export default function (in: Input): Output {
-    const left = in.left.map(item => item)
-    const right = in.right.map(item => item)
+    const left = map(in.left, item => item)
+    const right = map(in.right, item => item)
 
-    return { product: [{ left, right }, in.marker], round: 0, count: in.count, delta: in.delta, enabled: in.enabled, left_index: in.left_index, right_index: in.right_index }
+    return {
+        product: [{
+            left,
+            right
+        }, in.marker],
+        round: 0,
+        count: in.count,
+        delta: in.delta,
+        enabled: in.enabled,
+        left_index: in.left_index,
+        right_index: in.right_index
+    }
 }

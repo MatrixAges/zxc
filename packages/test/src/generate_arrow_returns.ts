@@ -1,6 +1,7 @@
 import { resolve } from 'node:path'
 import { package_dir, writeCatalog, writeOutput } from './shared/catalog.ts'
 import { readRows } from './shared/json.ts'
+import zxSource from './shared/zx_source.ts'
 
 type Sample = {
     name: 'increment' | 'square' | 'object_key'
@@ -36,22 +37,25 @@ function expectedValue(name: Sample['name'], item: number): number {
 }
 
 for (const sample of samples) {
-    const mapped = `in.items.map(${sample.parameter} => ${sample.expression})`
+    const mapped = `map(in.items, ${sample.parameter} => ${sample.expression})`
     const body =
         sample.name === 'object_key'
-            ? `    const cells = ${mapped}\n\n    return cells.map(cell => cell.key)`
+            ? `    const cells = ${mapped}\n\n    return map(cells, cell => cell.key)`
             : `    return ${mapped}`
 
     writeOutput(
         `tests/${base}/${sample.name}/cases.zx`,
-        `export type Input = { items: i64[] }
+        zxSource(
+            `export type Input = { items: i64[] }
 
 export type Output = i64[]
 
 export default function (in: Input): Output {
 ${body}
 }
-`
+`,
+            true
+        )
     )
     writeCatalog(
         `tests/${base}/${sample.name}/cases.jsonl`,

@@ -15,7 +15,8 @@ import type { Source } from "../request"
 
 export type Input = {
     source: Source,
-    node: u64
+    node: u64,
+    offset: u64
 }
 
 export type Output = {
@@ -41,8 +42,8 @@ export default function (in: Input): Output {
     }
 
     if (
-        arguments.length != 1 ||
-            in.source.tree.nodes[arguments[0]].kind != ExprKind.List
+        arguments.length != in.offset + 1 ||
+            in.source.tree.nodes[arguments[in.offset]].kind != ExprKind.List
     ) {
         return {
             names,
@@ -57,7 +58,7 @@ export default function (in: Input): Output {
 
     const values = items({
         items: in.source.tree.items,
-        head: in.source.tree.nodes[arguments[0]].head
+        head: in.source.tree.nodes[arguments[in.offset]].head
     })
 
     const result = loop({

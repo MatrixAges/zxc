@@ -8,7 +8,7 @@ pub fn main(init: std.process.Init) !void {
     if (args.len != 3) return error.ExpectedSourceAndOutputPaths;
 
     const source = try std.Io.Dir.cwd().readFileAlloc(init.io, args[1], memory, .limited(1024 * 1024));
-    const result = try compiler.compile(memory, source, "filter.zx");
+    const result = try compiler.compileProject(memory, &.{.{ .path = "filter.zx", .source = source }}, .{ .entry = "filter.zx" });
 
     defer result.deinit(memory);
 

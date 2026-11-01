@@ -31,8 +31,9 @@ pub fn valid(header: anytype, input: Input, types: ir.TypeTable) bool {
     }
 
     for (input.imports, 0..) |binding, index| {
+        if (!binding.valid()) return false;
         if (!declared(header, binding.namespace orelse binding.name, true)) return false;
-        if (@backingInt(binding.id) >= input.functions.count()) return false;
+        if (binding.id != null and @backingInt(binding.id.?) >= input.functions.count()) return false;
 
         for (input.imports[0..index]) |previous| {
             if (std.mem.eql(u8, previous.name, binding.name) and std.mem.eql(u8, previous.namespace orelse "", binding.namespace orelse "")) return false;
@@ -43,10 +44,12 @@ pub fn valid(header: anytype, input: Input, types: ir.TypeTable) bool {
         for (input.aliases) |alias| if (std.mem.eql(u8, local, alias.name)) return false;
         for (input.constant_imports) |constant| if (std.mem.eql(u8, local, constant.name)) return false;
 
-        const function = input.functions.at(@backingInt(binding.id));
+        if (binding.intrinsic != null) continue;
+
+        const function = input.functions.at(@backingInt(binding.id.?));
 
         if (binding.input_type != function.input_type or binding.output_type != function.output_type) return false;
-        if (@backingInt(binding.input_type) >= types.count() or @backingInt(binding.output_type) >= types.count()) return false;
+        if (@backingInt(binding.input_type.?) >= types.count() or @backingInt(binding.output_type.?) >= types.count()) return false;
     }
 
     for (0..header.importCount()) |index| {

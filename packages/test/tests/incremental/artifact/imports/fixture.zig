@@ -45,7 +45,7 @@ pub fn entry(analysis: compiler.AnalysisResult) !usize {
 
 pub fn local(module: artifact.Module, name: []const u8) !ir.FunctionId {
     for (module.function_imports) |item| {
-        if (std.mem.eql(u8, item.name, name)) return item.id;
+        if (std.mem.eql(u8, item.name, name)) return item.id.?;
     }
 
     return error.MissingFixtureImport;

@@ -1,11 +1,25 @@
-export type Input = { values: u64[], count: u64 }
+import { map } from "std:utils"
 
-export type State = { pair: [u64[], u64], count: u64 }
+export type Input = {
+    values: u64[],
+    count: u64
+}
 
-export type Output = { original: u64[], values: u64[] }
+export type State = {
+    pair: [u64[], u64],
+    count: u64
+}
+
+export type Output = {
+    original: u64[],
+    values: u64[]
+}
 
 export default function (in: Input): Output {
-    const initial: State = { pair: [in.values.map(item => item + 1), 0], count: in.count }
+    const initial: State = {
+        pair: [map(in.values, item => item + 1), 0],
+        count: in.count
+    }
 
     const state = loop(initial, {
         while: current => current.pair[1] < current.count,
@@ -15,5 +29,8 @@ export default function (in: Input): Output {
         }
     })
 
-    return { original: in.values, values: state.pair[0] }
+    return {
+        original: in.values,
+        values: state.pair[0]
+    }
 }

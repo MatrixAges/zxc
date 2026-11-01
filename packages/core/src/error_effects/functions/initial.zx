@@ -1,3 +1,4 @@
+import { map } from "std:utils"
 import { max_u32 } from "core/const"
 
 import type { Workspace } from "./model"
@@ -8,17 +9,17 @@ export type Output = Workspace
 
 export default function (in: Input): Output {
     return {
-        order: in.map(calls => max_u32),
-        low: in.map(calls => 0),
-        on_stack: in.map(calls => false),
-        stack: in.map(calls => 0),
+        order: map(in, calls => max_u32),
+        low: map(in, calls => 0),
+        on_stack: map(in, calls => false),
+        stack: map(in, calls => 0),
         stack_count: 0,
-        nodes: in.map(calls => 0),
-        children: in.map(calls => 0),
-        starts: in.map(calls => 0),
+        nodes: map(in, calls => 0),
+        children: map(in, calls => 0),
+        starts: map(in, calls => 0),
         frame_count: 0,
         ordinal: 0,
-        membership: in.map(calls => 0),
+        membership: map(in, calls => 0),
         members: [],
         first: [0]
     }

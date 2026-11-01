@@ -48,12 +48,12 @@ pub fn module(analysis: f.compiler.AnalysisResult, selected: usize, value: f.art
 
         for (imports[0..position]) |prior| seen = seen or prior.id == original.id;
         if (!seen) unique += 1;
-        try std.testing.expect(@backingInt(actual.id) < value.functions.count());
+        try std.testing.expect(@backingInt(actual.id.?) < value.functions.count());
         try std.testing.expectEqualStrings(original.name, actual.name);
         try std.testing.expectEqualDeep(original.namespace, actual.namespace);
 
-        const before = analysis.value.ir.functions.at(@backingInt(original.id));
-        const after = value.functions.at(@backingInt(actual.id));
+        const before = analysis.value.ir.functions.at(@backingInt(original.id.?));
+        const after = value.functions.at(@backingInt(actual.id.?));
 
         try std.testing.expectEqualStrings(before.file_name, after.file_name);
         try std.testing.expectEqual(actual.input_type, after.input_type);

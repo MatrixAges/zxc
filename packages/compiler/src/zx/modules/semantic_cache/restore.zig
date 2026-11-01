@@ -106,12 +106,14 @@ fn restoreChecked(module: model.Module, current: Current) Error!Result {
     }
 
     for (module.function_imports, current.imports) |previous, binding| {
+        if (!previous.valid() or !binding.valid() or previous.intrinsic != binding.intrinsic) return error.InvalidModule;
         if (!std.mem.eql(u8, previous.name, binding.name) or !optionalName(previous.namespace, binding.namespace)) return error.InvalidModule;
-        if (try nodes.types.include(previous.input_type) != binding.input_type or try nodes.types.include(previous.output_type) != binding.output_type) return error.InvalidModule;
+        if (previous.intrinsic != null) continue;
+        if (try nodes.types.include(previous.input_type.?) != binding.input_type or try nodes.types.include(previous.output_type.?) != binding.output_type) return error.InvalidModule;
 
-        const index = @backingInt(previous.id);
+        const index = @backingInt(previous.id.?);
 
-        if (index >= function_mapping.len or @backingInt(binding.id) >= current.functions.count()) return error.InvalidModule;
+        if (index >= function_mapping.len or @backingInt(binding.id.?) >= current.functions.count()) return error.InvalidModule;
 
         if (function_mapping[index]) |mapped| {
             if (mapped != binding.id) return error.InvalidModule;

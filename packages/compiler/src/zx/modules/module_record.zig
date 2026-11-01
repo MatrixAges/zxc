@@ -1,7 +1,7 @@
 const std = @import("std");
 const zx = @import("zx");
 
-pub const Target = union(enum) { source: []const u8, compiled: @import("compiled.zig").Target, native, external };
+pub const Target = union(enum) { source: []const u8, compiled: @import("compiled.zig").Target, native, external, intrinsic };
 pub const Reexports = struct { types: []const zx.ir.Export = &.{}, constants: []const zx.ir.Constant = &.{}, functions: []const @import("function_import.zig") = &.{} };
 
 pub const Import = struct {
@@ -57,7 +57,7 @@ pub fn copyImport(allocator: std.mem.Allocator, item: anytype, target: Target) s
         .target = switch (target) {
             .source => |path| .{ .source = try allocator.dupe(u8, path) },
             .compiled => |value| .{ .compiled = try @import("compiled.zig").copyTarget(allocator, value) },
-            .native, .external => target,
+            .native, .external, .intrinsic => target,
         },
     };
 }

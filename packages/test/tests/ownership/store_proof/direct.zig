@@ -47,7 +47,7 @@ test "Store proof direct borrowed_rows" {
 
 test "Store proof direct shallow_rows" {
     try h.run(.{
-        .value = "{ count: 9, rows: in.rows.map(row => row), labels: [\"fresh\"] }",
+        .value = "{ count: 9, rows: map(in.rows, row => row), labels: [\"fresh\"] }",
         .expected = false,
         .helper = false,
         .service = false,
@@ -56,7 +56,7 @@ test "Store proof direct shallow_rows" {
 
 test "Store proof direct deep_rows" {
     try h.run(.{
-        .value = "{ count: 9, rows: in.rows.map(row => row.map(item => item)), labels: [\"fresh\"] }",
+        .value = "{ count: 9, rows: map(in.rows, row => map(row, item => item)), labels: [\"fresh\"] }",
         .expected = true,
         .helper = false,
         .service = false,
@@ -74,7 +74,7 @@ test "Store proof direct borrowed_labels" {
 
 test "Store proof direct shallow_labels" {
     try h.run(.{
-        .value = "{ count: 9, rows: [[1]], labels: in.labels.map(label => label) }",
+        .value = "{ count: 9, rows: [[1]], labels: map(in.labels, label => label) }",
         .expected = false,
         .helper = false,
         .service = false,
@@ -83,7 +83,7 @@ test "Store proof direct shallow_labels" {
 
 test "Store proof direct fresh_labels" {
     try h.run(.{
-        .value = "{ count: 9, rows: [[1]], labels: in.labels.map(label => `${label}!`) }",
+        .value = "{ count: 9, rows: [[1]], labels: map(in.labels, label => `${label}!`) }",
         .expected = true,
         .helper = false,
         .service = false,
@@ -92,7 +92,7 @@ test "Store proof direct fresh_labels" {
 
 test "Store proof direct deep_both" {
     try h.run(.{
-        .value = "{ count: in.count, rows: in.rows.map(row => row.map(item => item)), labels: in.labels.map(label => `${label}!`) }",
+        .value = "{ count: in.count, rows: map(in.rows, row => map(row, item => item)), labels: map(in.labels, label => `${label}!`) }",
         .expected = true,
         .helper = false,
         .service = false,
@@ -137,7 +137,7 @@ test "Store proof direct copied_element" {
 
 test "Store proof direct spread_replace_all" {
     try h.run(.{
-        .value = "{ ...in, rows: in.rows.map(row => row.map(item => item)), labels: in.labels.map(label => `${label}!`) }",
+        .value = "{ ...in, rows: map(in.rows, row => map(row, item => item)), labels: map(in.labels, label => `${label}!`) }",
         .expected = true,
         .helper = false,
         .service = false,

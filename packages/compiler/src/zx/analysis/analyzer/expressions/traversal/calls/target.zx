@@ -1,9 +1,18 @@
 import integers from "std:integer"
+import { TransformKind } from "core/expression_table/kinds"
 import { Kind } from "core/type_table/model"
 
 import row from "../../../../semantic/types/row"
 import { NameKind } from "../../../source/model"
 import readName from "../../../source/name"
+import {
+    method_map,
+    method_reduce,
+    method_clone,
+    unsupported_code,
+    removed_method_message,
+    clone_message
+} from "../../calls/const"
 import plan from "../../calls/list/plan"
 import items from "../../items"
 import { method_pick, method_omit } from "../../selection/const"
@@ -30,15 +39,21 @@ export default function (in: Input): Output {
         index: node.first
     })
 
-    if (name.text == "clone") {
+    const message = match name.text {
+        method_clone => clone_message,
+        method_map => removed_method_message,
+        method_reduce => removed_method_message,
+        _ => ""
+    }
+
+    if (message != "") {
         return {
             ...in,
             state: {
                 ...in.state,
                 diagnostic: {
-                    code: "unsupported",
-                    message:
-                        "deep copying is not supported; move an owned value or borrow it read-only",
+                    code: unsupported_code,
+                    message: message,
                     start: node.span.start,
                     end: node.span.end
                 }
@@ -65,7 +80,9 @@ export default function (in: Input): Output {
                 state: in.state,
                 source: in.source,
                 node: frame.node,
-                target: in.value
+                target: in.value,
+                offset: 0,
+                omit: name.text == method_omit
             })
 
             return {
@@ -95,12 +112,28 @@ export default function (in: Input): Output {
     }
 
     if (
-        name.text == "map" || name.text == "filter" || name.text == "reduce" ||
-            name.text == "every" || name.text == "some"
+        name.text == "filter" || name.text == "every" || name.text == "some"
     ) {
         return transform({
-            work: in,
-            name: name.text
+            work: {
+                ...in,
+                frames: {
+                    ...in.frames,
+                    methods: in.frames.methods.pop()[0]
+                }
+            },
+            node: frame.node,
+            kind: match name.text {
+                "filter" => TransformKind.Filter,
+                "every" => TransformKind.Every,
+                _ => TransformKind.Some
+            },
+            target: in.value,
+            expected: frame.expected,
+            arguments: items({
+                items: in.source.tree.items,
+                head: node.head
+            })
         })
     }
 

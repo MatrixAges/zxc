@@ -1,13 +1,24 @@
+import { map, reduce } from "std:utils"
+
 import step from "./escape_optional_step"
 
-export type Cell = { value: u64 }
+export type Cell = {
+    value: u64
+}
 
-export type Bundle = { argument: Cell?, local: Cell? }
+export type Bundle = {
+    argument: Cell?,
+    local: Cell?
+}
 
 export type Input = u64[]
 
 export type Output = Bundle[]
 
 export default function (in: Input): Output {
-  return in.map(item => [item].reduce((state, value) => step({value}), step({value: 0})))
+    return map(in, item => reduce([item], (state, value) => step({
+        value
+    }), step({
+        value: 0
+    })))
 }

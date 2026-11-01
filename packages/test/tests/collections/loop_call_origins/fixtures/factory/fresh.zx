@@ -1,7 +1,9 @@
+import { map } from "std:utils"
+
 export type Input = u64[]
 
 export type Output = u64[]
 
 export default function (in: Input): Output {
-    return in.map(item => item + 1)
+    return map(in, item => item + 1)
 }

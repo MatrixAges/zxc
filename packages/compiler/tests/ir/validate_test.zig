@@ -11,11 +11,11 @@ fn expectInvalid(program: zx.ir.Program) !void {
 }
 
 test "ir: rejects a callback capture supplied by a foreign frontend" {
-    var parsed = try helpers.parseValid("export type Input = u64[]\n export type Output = u64[]\n export default function (in: Input): Output { const offset = 1\n return in.map((item) => item + 1) }");
+    var parsed = try helpers.parseValid("import { map } from \"std:utils\"\n\nexport type Input = u64[]\n export type Output = u64[]\n export default function (in: Input): Output { const offset = 1\n return map(in, (item) => item + 1) }");
 
     defer parsed.deinit();
 
-    var analyzed = try frontend.analyze(std.testing.allocator, parsed.value.parsed);
+    var analyzed = try helpers.analyze(std.testing.allocator, parsed.value.parsed);
 
     defer analyzed.deinit();
 
@@ -43,7 +43,7 @@ test "ir: rejects forward edges and wrong versions" {
 
     defer parsed.deinit();
 
-    var analyzed = try frontend.analyze(std.testing.allocator, parsed.value.parsed);
+    var analyzed = try helpers.analyze(std.testing.allocator, parsed.value.parsed);
 
     defer analyzed.deinit();
 
@@ -71,7 +71,7 @@ test "ir: accepts pure type modules and rejects phantom executable bodies" {
 
     defer parsed.deinit();
 
-    var analyzed = try frontend.analyze(std.testing.allocator, parsed.value.parsed);
+    var analyzed = try helpers.analyze(std.testing.allocator, parsed.value.parsed);
 
     defer analyzed.deinit();
 
@@ -89,7 +89,7 @@ test "ir: foreign self-recursion cannot bypass source module cycle checks" {
 
     defer parsed.deinit();
 
-    var analyzed = try frontend.analyze(std.testing.allocator, parsed.value.parsed);
+    var analyzed = try helpers.analyze(std.testing.allocator, parsed.value.parsed);
 
     defer analyzed.deinit();
 

@@ -4,6 +4,7 @@ import { resolve } from 'node:path'
 import expectation from './models/reduce_trace.ts'
 import { package_dir, writeCatalog, writeOutput } from './shared/catalog.ts'
 import { readRows } from './shared/json.ts'
+import zxSource from './shared/zx_source.ts'
 
 type Sample = { name: string; mode: Mode; path: string; sha256: string; input: Input; reason: string }
 const samples = readRows<Sample>(resolve(package_dir, 'src/data/reduce_trace.jsonl'))
@@ -67,7 +68,9 @@ for (const mode of ['seeded', 'unseeded'] as const) {
 
     writeOutput(
         `tests/${base}/${mode}.zx`,
-        `import host from "zig:host"\n\nexport type Input = { items: i64[], seed: i64 }\n\nexport type Output = i64\n\nexport default function (in: Input): Output {\n    return host.source(in.items).reduce((previous, current, index, source) =>\n        host.visit({ previous, current, index, source })${initial})\n}\n`
+        zxSource(
+            `import host from "zig:host"\n\nexport type Input = { items: i64[], seed: i64 }\n\nexport type Output = i64\n\nexport default function (in: Input): Output {\n    return reduce(host.source(in.items), (previous, current, index, source) =>\n        host.visit({ previous, current, index, source })${initial})\n}\n`
+        )
     )
     writeCatalog(`tests/${base}/${mode}.jsonl`, rows)
 }

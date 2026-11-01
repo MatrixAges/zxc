@@ -159,7 +159,7 @@ See the [RX Reference](packages/compiler/src/rx/README.md) for attributes and ne
 | Types        | `u8`–`u64`, `i32`, `i64`, `f32`, `f64`, `bool`, `string`, objects, enums, `T?` optionals, `T[]` lists, `[A, B]` tuples                      |
 | Bindings     | `const` only, destructuring and spread; no semicolons                                                                                       |
 | Control flow | `if`, `switch`, `match` and `loop` expressions                                                                                              |
-| Collections  | Capture-free `map`, `filter`, `reduce`                                                                                                      |
+| Collections  | `loop`, array `filter` / `every` / `some`; imported [`utils.map` / `utils.reduce`](packages/utils/README.md)                                |
 | Errors       | `const [err, res] = try expression`; finite error sets and checked success narrowing                                                        |
 | Concurrency  | `async expression`, `await task`, `cancel task` and `parallel({name: () => expression})`                                                    |
 | Ownership    | No pointers and no `clone`; the compiler decides how values move                                                                            |

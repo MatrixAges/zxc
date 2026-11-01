@@ -1,3 +1,5 @@
+import { map } from "std:utils"
+
 export type Input = {
     source: u8[],
     expressions: bool
@@ -10,7 +12,7 @@ export type Output = {
 
 export default function (in: Input): Output {
     return {
-        source: in.source.map(byte => byte),
+        source: map(in.source, byte => byte),
         expressions: in.expressions
     }
 }

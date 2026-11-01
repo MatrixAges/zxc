@@ -4,7 +4,7 @@ const h = @import("fixture.zig");
 
 test "Store proof deep_both analysis linking codec allocation failures" {
     try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{
-        .value = "{ count: in.count, rows: in.rows.map(row => row.map(item => item)), labels: in.labels.map(label => `${label}!`) }",
+        .value = "{ count: in.count, rows: map(in.rows, row => map(row, item => item)), labels: map(in.labels, label => `${label}!`) }",
         .expected = true,
         .helper = true,
         .service = true,
@@ -13,7 +13,7 @@ test "Store proof deep_both analysis linking codec allocation failures" {
 
 test "Store proof shallow_rows analysis linking codec allocation failures" {
     try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{
-        .value = "{ count: 9, rows: in.rows.map(row => row), labels: [\"fresh\"] }",
+        .value = "{ count: 9, rows: map(in.rows, row => row), labels: [\"fresh\"] }",
         .expected = false,
         .helper = true,
         .service = true,
@@ -22,7 +22,7 @@ test "Store proof shallow_rows analysis linking codec allocation failures" {
 
 test "Store proof spread_replace_all analysis linking codec allocation failures" {
     try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{
-        .value = "{ ...in, rows: in.rows.map(row => row.map(item => item)), labels: in.labels.map(label => `${label}!`) }",
+        .value = "{ ...in, rows: map(in.rows, row => map(row, item => item)), labels: map(in.labels, label => `${label}!`) }",
         .expected = true,
         .helper = true,
         .service = true,

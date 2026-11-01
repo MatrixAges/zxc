@@ -1,0 +1,26 @@
+import { Operation } from "../../../../modules/intrinsic/model"
+import aggregate from "./aggregate"
+import edge from "./edge"
+import slice from "./slice.rx"
+
+import type { Result } from "../model"
+import type { List } from "./model"
+
+export type Input = List
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    if (in.operation == Operation.Head || in.operation == Operation.Last) {
+        return edge(in)
+    }
+
+    if (
+        in.operation == Operation.Sum || in.operation == Operation.Min ||
+            in.operation == Operation.Max
+    ) {
+        return aggregate(in)
+    }
+
+    return slice(in)
+}

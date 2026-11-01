@@ -3,7 +3,7 @@ const check = @import("check.zig");
 const feedback = @import("feedback.zig");
 const h = @import("ownership_case");
 const initial = "    const fresh: u64[] = []\n\n    const initial = {fresh: fresh, view: in}\n\n";
-const reduce = "    const result = in.reduce((state, item) => {fresh: state.fresh.push(item)[0], view: state.view}, initial)\n\n";
+const reduce = "    const result = reduce(in, (state, item) => {fresh: state.fresh.push(item)[0], view: state.view}, initial)\n\n";
 
 test "feedback reaches borrowed provenance through multiple field transfers" {
     for ([_]usize{ 2, 5, 17 }) |fields| {
@@ -41,7 +41,7 @@ test "reduce callback copies cannot erase the borrowed zero callback initial pat
     try h.run(.{ .ownership = "borrowed", .body =
         \\    const initial = {fresh: in, view: in}
         \\
-        \\    const result = in.reduce((state, item) => {fresh: state.fresh.map(value => value), view: state.view}, initial)
+        \\    const result = reduce(in, (state, item) => {fresh: map(state.fresh, value => value), view: state.view}, initial)
         \\
         \\    return result.fresh
     });
@@ -52,7 +52,7 @@ test "precondition loop retains borrowed zero step projection" {
         \\    const result = loop({fresh: in, view: in, index: 0}, {
         \\        while: state => state.index < state.view.length,
         \\        next: state => {
-        \\            state.fresh = state.fresh.map(value => value)
+        \\            state.fresh = map(state.fresh, value => value)
         \\            state.index += 1
         \\        }
         \\    })
@@ -66,7 +66,7 @@ test "postcondition loop replaces borrowed projection before every exit" {
         \\    const result = loop({fresh: in, view: in, index: 0}, {
         \\        while: state => state.index < state.view.length,
         \\        do: state => {
-        \\            state.fresh = state.fresh.map(value => value)
+        \\            state.fresh = map(state.fresh, value => value)
         \\            state.index += 1
         \\        }
         \\    })

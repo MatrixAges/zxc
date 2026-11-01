@@ -18,6 +18,7 @@ test "source native and external dependencies preserve their kinds through every
             .native => native_count += 1,
             .external => external_count += 1,
             .compiled => return error.UnexpectedCompiledDependency,
+            .intrinsic => return error.UnexpectedIntrinsicDependency,
         };
 
         try std.testing.expectEqual(@as(usize, 3), source_count);

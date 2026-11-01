@@ -1,4 +1,5 @@
 import integers from "std:integer"
+import { map } from "std:utils"
 import { ExpressionKind } from "core/expression_table/kinds"
 
 import children from "../ir/children"
@@ -54,10 +55,10 @@ export default function (in: Input): Output {
                     kind == ExpressionKind.List || kind == ExpressionKind.Tuple ||
                     kind == ExpressionKind.Template
             ) {
-                current.stack = current.stack.concat(children({
+                current.stack = current.stack.concat(map(children({
                     table: table,
                     id: id
-                }).map(child => integers.widen(child)))[0]
+                }), child => integers.widen(child)))[0]
             } else {
                 current.valid = false
             }

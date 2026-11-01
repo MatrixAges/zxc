@@ -1,9 +1,23 @@
-export type Input = { seed: u64[], steps: { enabled: bool, value: u64, values: u64[] }[] }
+import { map, reduce } from "std:utils"
+
+export type Input = {
+    seed: u64[],
+    steps: {
+        enabled: bool,
+        value: u64,
+        values: u64[]
+    }[]
+}
 
 export type Output = u64[]
 
 export default function (in: Input): Output {
-  const initial = in.seed.map(item => item)
+    const initial = map(in.seed, item => item)
 
-  return in.steps.reduce((items, step) => items.length % 2 == 0 ? items.push(step.value)[0] : items.concat(step.values)[0], initial)
+    return reduce(
+        in.steps,
+        (items, step) => items.length % 2 == 0 ? items.push(step.value)[0] :
+            items.concat(step.values)[0],
+        initial
+    )
 }

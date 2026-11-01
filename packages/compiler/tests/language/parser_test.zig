@@ -67,10 +67,12 @@ test "zx-ownership-binding: explicit tuple destructuring preserves discard names
 
 test "zx-collections: parse chained filter and map lambdas" {
     var result = try h.parseValid(
+        \\import { map } from "std:utils"
+        \\
         \\export type Input = u64[]
         \\export type Output = u64[]
         \\export default function (in: Input): Output {
-        \\  return in.filter((score) => score >= 60).map(score => score + 10)
+        \\  return map(in.filter((score) => score >= 60), score => score + 10)
         \\}
     );
 
@@ -78,8 +80,8 @@ test "zx-collections: parse chained filter and map lambdas" {
 
     const call = result.value.parsed.ast.body.?.statements[0].value.result.?.value.call;
 
-    try std.testing.expect(call.arguments[0].value == .lambda);
-    try std.testing.expectEqualStrings("map", call.callee.value.field.name.text);
+    try std.testing.expect(call.arguments[1].value == .lambda);
+    try std.testing.expectEqualStrings("map", call.callee.value.identifier.text);
 }
 
 test "zx-template: interpolation uses expression parsing and absolute spans" {

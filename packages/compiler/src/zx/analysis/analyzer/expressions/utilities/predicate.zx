@@ -1,0 +1,52 @@
+import integers from "std:integer"
+import { BinaryOperator } from "core/expression_table/kinds"
+import { Kind } from "core/type_table/model"
+
+import { Operation } from "../../../../modules/intrinsic/model"
+import row from "../../../semantic/types/row"
+import binary from "../operators/binary"
+import boolean from "./building/boolean"
+import none from "./building/none"
+
+import type { Result } from "../model"
+import type { Input as Request } from "./model"
+
+export type Input = Request
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const first = in.values[0]
+    const type_id = in.state.local.expressions.types[integers.widen(first)]
+
+    const target = row({
+        tables: {
+            base: in.state.types.context.base,
+            delta: in.state.types.delta
+        },
+        id: type_id
+    })
+
+    if (target.kind != Kind.Optional) {
+        return boolean({
+            state: in.state,
+            span: in.span,
+            value: in.operation == Operation.IsNotNil
+        })
+    }
+
+    const empty = none({
+        state: in.state,
+        span: in.span,
+        type_id
+    })
+
+    return binary({
+        state: empty.state,
+        span: in.span,
+        operator: in.operation == Operation.IsNil ? BinaryOperator.Equal :
+            BinaryOperator.NotEqual,
+        left: first,
+        right: empty.value
+    })
+}

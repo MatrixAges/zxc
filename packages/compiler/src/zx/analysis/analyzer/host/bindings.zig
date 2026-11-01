@@ -19,19 +19,22 @@ pub fn aliases(allocator: std.mem.Allocator, values: []const ir.Export) std.mem.
 pub fn imports(allocator: std.mem.Allocator, values: []const FunctionImport) std.mem.Allocator.Error!model.FunctionImports {
     const namespaces = try allocator.alloc(?[]const u8, values.len);
     const names = try allocator.alloc([]const u8, values.len);
-    const ids = try allocator.alloc(u32, values.len);
-    const input_types = try allocator.alloc(u32, values.len);
-    const output_types = try allocator.alloc(u32, values.len);
+    const ids = try allocator.alloc(?u32, values.len);
+    const input_types = try allocator.alloc(?u32, values.len);
+    const output_types = try allocator.alloc(?u32, values.len);
+    const Operation = std.meta.Child(std.meta.Child(@FieldType(model.FunctionImports, "intrinsics")));
+    const intrinsics = try allocator.alloc(?Operation, values.len);
 
     for (values, 0..) |value, index| {
         namespaces[index] = value.namespace;
         names[index] = value.name;
-        ids[index] = @backingInt(value.id);
-        input_types[index] = @backingInt(value.input_type);
-        output_types[index] = @backingInt(value.output_type);
+        ids[index] = if (value.id) |id| @backingInt(id) else null;
+        input_types[index] = if (value.input_type) |id| @backingInt(id) else null;
+        output_types[index] = if (value.output_type) |id| @backingInt(id) else null;
+        intrinsics[index] = if (value.intrinsic) |operation| @fromBackingInt(@intCast(@backingInt(operation))) else null;
     }
 
-    return .{ .namespaces = namespaces, .names = names, .ids = ids, .input_types = input_types, .output_types = output_types };
+    return .{ .namespaces = namespaces, .names = names, .ids = ids, .input_types = input_types, .output_types = output_types, .intrinsics = intrinsics };
 }
 
 pub fn stores(allocator: std.mem.Allocator, values: []const StoreBinding) std.mem.Allocator.Error!model.StoreBindings {

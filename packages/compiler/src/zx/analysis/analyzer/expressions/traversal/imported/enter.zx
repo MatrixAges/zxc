@@ -3,7 +3,9 @@ import { Kind } from "core/type_table/model"
 
 import row from "../../../../semantic/types/row"
 import items from "../../items"
+import intrinsic from "../utilities/enter"
 import { native_arity_message, tuple_arity_message, input_arity_message } from "./const"
+import invalid from "./invalid"
 import next from "./next"
 
 import type { Work, Imported } from "../model"
@@ -18,7 +20,20 @@ export type Output = Work
 export default function (in: Input): Output {
     const work = in.work
     const node = work.source.tree.nodes[work.node]
+
+    if (work.imports.intrinsics[in.index] != null) {
+        return intrinsic(in)
+    }
+
     const id = work.imports.ids[in.index]
+    const input = work.imports.input_types[in.index]
+
+    if (id == null || input == null) {
+        return invalid({
+            work,
+            node: work.node
+        })
+    }
 
     if (work.functions.stores[integers.widen(id)].types.length != 0) {
         return {
@@ -41,8 +56,6 @@ export default function (in: Input): Output {
         work.functions.native_tuples[integers.widen(
             id
         )]
-
-    const input = work.imports.input_types[in.index]
 
     const target = row({
         tables: {

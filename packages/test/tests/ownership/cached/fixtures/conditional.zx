@@ -1,11 +1,28 @@
-export type Input = { first: u64[], second: u64[], choice: bool }
+import { map } from "std:utils"
 
-export type Output = { first: u64[], second: u64[] }
+export type Input = {
+    first: u64[],
+    second: u64[],
+    choice: bool
+}
+
+export type Output = {
+    first: u64[],
+    second: u64[]
+}
 
 export default function (in: Input): Output {
-  const first = in.first.map((item) => item)
-  const second = in.second.map((item) => item)
-  const source: Output = { first: first, second: second }
+    const first = map(in.first, (item) => item)
+    const second = map(in.second, (item) => item)
 
-  return in.choice ? {...source} : {...source}
+    const source: Output = {
+        first: first,
+        second: second
+    }
+
+    return in.choice ? {
+        ...source
+    } : {
+        ...source
+    }
 }

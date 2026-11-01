@@ -1,4 +1,5 @@
 import integers from "std:integer"
+import { map } from "std:utils"
 
 export type Input = {
     values: u32[],
@@ -8,5 +9,5 @@ export type Input = {
 export type Output = u32[]
 
 export default function (in: Input): Output {
-    return in.values.map(value => in.mapping[integers.widen(value)])
+    return map(in.values, value => in.mapping[integers.widen(value)])
 }

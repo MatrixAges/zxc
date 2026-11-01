@@ -38,6 +38,7 @@ pub fn extract(arena: *std.heap.ArenaAllocator, temporary: *std.heap.ArenaAlloca
         .constant_imports = try nodes.constants(record.constant_imports),
         .type_imports = try contents.exports(&nodes, record.type_imports),
         .function_imports = try contents.imports(&nodes, record.function_imports),
+        .members = try contents.imports(&nodes, record.reexports.functions),
         .functions = functions,
         .native_modules = native_modules,
         .function = function,

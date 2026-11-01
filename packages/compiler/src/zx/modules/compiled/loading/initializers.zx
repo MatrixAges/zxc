@@ -1,4 +1,5 @@
 import integers from "std:integer"
+import { map } from "std:utils"
 
 import store from "../identity/store"
 
@@ -15,12 +16,13 @@ export type Output = Initializers
 export default function (in: Input): Output {
     return {
         ...in.source,
-        identities: in.source.identities.map(value => store({
+        identities: map(in.source.identities, value => store({
             instance: in.instance,
             value: value
         })),
         functions:
-            in.source.functions.map(
+            map(
+                in.source.functions,
                 value => integers.narrow(
                     in.first + integers.widen(
                         value

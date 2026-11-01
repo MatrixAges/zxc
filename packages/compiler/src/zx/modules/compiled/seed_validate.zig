@@ -75,10 +75,12 @@ pub fn validate(allocator: std.mem.Allocator, library: model.Graph) Error!void {
         }
 
         for (exported.members) |member| {
-            if (!text(member.name) or member.namespace != null or @backingInt(member.id) >= program.functions.count()) return error.InvalidLibrary;
+            if ((!text(member.name) and !(member.name.len == 0 and member.intrinsic != null)) or member.namespace != null or !member.valid()) return error.InvalidLibrary;
             if ((try type_names.getOrPut(scratch, member.name)).found_existing) return error.InvalidLibrary;
+            if (member.intrinsic != null) continue;
+            if (@backingInt(member.id.?) >= program.functions.count()) return error.InvalidLibrary;
 
-            const function = program.functions.at(@backingInt(member.id));
+            const function = program.functions.at(@backingInt(member.id.?));
 
             if (member.input_type != function.input_type or member.output_type != function.output_type) return error.InvalidLibrary;
         }

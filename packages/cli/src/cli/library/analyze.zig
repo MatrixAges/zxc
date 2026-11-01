@@ -55,11 +55,13 @@ pub const Result = struct {
                 } else false;
 
                 if (!needed) for (module.analysis.public_functions) |member| {
+                    if (member.intrinsic != null) continue;
+
                     const program = module.analysis.value.ir;
 
-                    if (@backingInt(member.id) >= program.functions.count()) return error.InvalidAnalysis;
+                    if (@backingInt(member.id.?) >= program.functions.count()) return error.InvalidAnalysis;
 
-                    const function = program.functions.at(@backingInt(member.id));
+                    const function = program.functions.at(@backingInt(member.id.?));
 
                     for (function.stores.paths) |path| {
                         if (std.mem.eql(u8, path, identity)) {

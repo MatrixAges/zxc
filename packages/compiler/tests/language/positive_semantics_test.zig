@@ -33,11 +33,11 @@ test "positive analyze: optional tuple payload" {
 }
 
 test "positive analyze: empty map" {
-    try h.analyzeCase("export type Input = void\n export type Output = u64[]\n export default function (in: Input): Output { const values: u64[] = []\n return values.map(item => item + 1) }", null);
+    try h.analyzeCase("import { map } from \"std:utils\"\n\nexport type Input = void\n export type Output = u64[]\n export default function (in: Input): Output { const values: u64[] = []\n return map(values, item => item + 1) }", null);
 }
 
 test "positive analyze: empty reduce" {
-    try h.analyzeCase("export type Input = void\n export type Output = u64\n export default function (in: Input): Output { const values: u64[] = []\n return values.reduce((sum, item) => sum + item, 9) }", null);
+    try h.analyzeCase("import { reduce } from \"std:utils\"\n\nexport type Input = void\n export type Output = u64\n export default function (in: Input): Output { const values: u64[] = []\n return reduce(values, (sum, item) => sum + item, 9) }", null);
 }
 
 test "positive analyze: string length" {

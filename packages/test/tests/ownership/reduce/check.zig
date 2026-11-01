@@ -15,7 +15,7 @@ pub fn run(case: Case) !void {
 }
 
 pub fn allocated(allocator: std.mem.Allocator, case: Case) !void {
-    const source = try std.fmt.allocPrint(allocator, "export type Input = {s}\n\nexport type Output = {s}\n\nexport default function (in: Input): Output {{\n{s}\n}}\n", .{ case.input, case.output, case.body });
+    const source = try std.fmt.allocPrint(allocator, "import {{ map, reduce }} from \"std:utils\"\n\nexport type Input = {s}\n\nexport type Output = {s}\n\nexport default function (in: Input): Output {{\n{s}\n}}\n", .{ case.input, case.output, case.body });
 
     defer allocator.free(source);
 

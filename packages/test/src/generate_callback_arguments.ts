@@ -1,6 +1,7 @@
 import { resolve } from 'node:path'
 import { package_dir, writeCatalog, writeOutput } from './shared/catalog.ts'
 import { readRows } from './shared/json.ts'
+import zxSource from './shared/zx_source.ts'
 
 type Method = 'map' | 'filter' | 'every' | 'some'
 type Original = { method: Method; path: string; sha256: string }
@@ -44,10 +45,14 @@ for (const method of ['map', 'filter', 'every', 'some'] as const) {
     })
     const output_type = method === 'map' ? 'bool[]' : method === 'filter' ? 'i64[]' : 'bool'
     const operator = method === 'some' ? '!=' : '=='
+    const callback = `(item, index, source) => source[index] ${operator} item`
+    const expression = method === 'map' ? `map(in, ${callback})` : `in.${method}(${callback})`
 
     writeOutput(
         `tests/${base}.zx`,
-        `export type Input = i64[]\n\nexport type Output = ${output_type}\n\nexport default function (in: Input): Output {\n    return in.${method}((item, index, source) => source[index] ${operator} item)\n}\n`
+        zxSource(
+            `export type Input = i64[]\n\nexport type Output = ${output_type}\n\nexport default function (in: Input): Output {\n    return ${expression}\n}\n`
+        )
     )
     writeCatalog(`tests/${base}.jsonl`, rows)
 }

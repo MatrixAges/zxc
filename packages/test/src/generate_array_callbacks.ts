@@ -2,6 +2,7 @@ import type { Json } from './shared/json.ts'
 import { resolve } from 'node:path'
 import { package_dir, writeCatalog, writeOutput } from './shared/catalog.ts'
 import { readRows } from './shared/json.ts'
+import zxSource from './shared/zx_source.ts'
 
 type Row = { name: string; input: Json; expected: { value?: Json; error?: string } }
 
@@ -11,7 +12,9 @@ function writeSuite(args: { name: string; input: string; output: string; express
 
     writeOutput(
         `tests/${base}/cases.zx`,
-        `export type Input = ${input}\n\nexport type Output = ${output}\n\nexport default function (in: Input): Output {\n  return ${expression}\n}\n`
+        zxSource(
+            `export type Input = ${input}\n\nexport type Output = ${output}\n\nexport default function (in: Input): Output {\n  return ${expression}\n}\n`
+        )
     )
     writeCatalog(
         `tests/${base}/cases.jsonl`,
@@ -33,7 +36,7 @@ writeSuite({
     name: 'map/predicate',
     input: 'i64[]',
     output: 'bool[]',
-    expression: 'in.map(item => item > 10)',
+    expression: 'map(in, item => item > 10)',
     rows: mapping.map(row => ({ ...row, expected: { value: row.input.map(item => item > 10) } }))
 })
 
@@ -97,7 +100,7 @@ writeSuite({
     name: 'reduce/empty',
     input: '{ items: i64[][], seed: i64 }',
     output: 'i64',
-    expression: 'in.items.reduce((sum, row) => sum + row[0], in.seed)',
+    expression: 'reduce(in.items, (sum, row) => sum + row[0], in.seed)',
     rows: empty.map(({ name, ...input }) => ({
         name,
         input,
@@ -121,7 +124,7 @@ writeSuite({
     name: 'reduce/order',
     input: '{ items: string[], seed: string }',
     output: 'string',
-    expression: 'in.items.reduce((sum, item) => `${sum}${item}`, in.seed)',
+    expression: 'reduce(in.items, (sum, item) => `${sum}${item}`, in.seed)',
     rows: ordered.map(({ name, ...input }) => ({
         name,
         input,
@@ -142,7 +145,7 @@ writeSuite({
     name: 'reduce/arguments',
     input: '{ items: i64[], seed: i64 }',
     output: 'i64',
-    expression: 'in.items.reduce((previous, current) => current > 10 && previous == 1 ? 2 : 0, in.seed)',
+    expression: 'reduce(in.items, (previous, current) => current > 10 && previous == 1 ? 2 : 0, in.seed)',
     rows: arguments_cases.map(({ name, ...input }) => ({
         name,
         input,

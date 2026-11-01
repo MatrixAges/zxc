@@ -1,0 +1,63 @@
+import field from "../../projections/field"
+
+import type { Span } from "../../../../../frontend/lexer/token_model"
+import type { Prepared } from "../../../model"
+
+export type Input = {
+    state: Prepared,
+    target: u32,
+    names: string[],
+    span: Span
+}
+
+export type Output = {
+    state: Prepared,
+    values: u32[]
+}
+
+export default function (in: Input): Output {
+    const values: u32[] = []
+
+    const result = loop({
+        input: in,
+        state: in.state,
+        values,
+        index: 0
+    }, {
+        while: current => current.index < current.input.names.length,
+        next: current => {
+            const projected = field({
+                expressions: current.state.local.expressions,
+                tables: {
+                    base: current.state.types.context.base,
+                    delta: current.state.types.delta
+                },
+                facts: current.state.local.refinement.facts,
+                diagnostic: current.state.diagnostic,
+                target: current.input.target,
+                name: {
+                    text: current.input.names[current.index],
+                    start: current.input.span.start,
+                    end: current.input.span.end
+                },
+                span: current.input.span
+            })
+
+            current.state = {
+                ...current.state,
+                local: {
+                    ...current.state.local,
+                    expressions: projected.expressions
+                },
+                diagnostic: projected.diagnostic
+            }
+            current.values = current.values.push(projected.value)[0]
+            current.index += 1
+        }
+    })
+
+    return {
+        state: result.state,
+        values: result.values
+    }
+}

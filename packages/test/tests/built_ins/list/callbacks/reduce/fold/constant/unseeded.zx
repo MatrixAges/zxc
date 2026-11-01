@@ -1,7 +1,18 @@
-export type Input = { items: i64[], returned: i64 }
+import { reduce } from "std:utils"
 
-export type Output = { value: i64, items: i64[] }
+export type Input = {
+    items: i64[],
+    returned: i64
+}
+
+export type Output = {
+    value: i64,
+    items: i64[]
+}
 
 export default function (in: Input): Output {
-    return { value: in.items.reduce((previous, current) => in.returned), items: in.items }
+    return {
+        value: reduce(in.items, (previous, current) => in.returned),
+        items: in.items
+    }
 }

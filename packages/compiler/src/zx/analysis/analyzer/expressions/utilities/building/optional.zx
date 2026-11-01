@@ -1,0 +1,34 @@
+import { Kind } from "core/type_table/model"
+
+import construct from "../../../types/construct"
+
+import type { Span } from "../../../../../frontend/lexer/token_model"
+import type { Prepared } from "../../../model"
+import type { Output as Construction } from "../../../types/construct"
+
+export type Input = {
+    state: Prepared,
+    type_id: u32,
+    span: Span
+}
+
+export type Output = Construction
+
+export default function (in: Input): Output {
+    return construct({
+        state: in.state,
+        span: in.span,
+        candidate: {
+            kind: Kind.Optional,
+            first: in.type_id,
+            second: 0,
+            label: "",
+            children: [],
+            fields: {
+                names: [],
+                types: []
+            },
+            names: []
+        }
+    })
+}

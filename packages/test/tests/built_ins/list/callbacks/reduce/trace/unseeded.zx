@@ -1,10 +1,19 @@
+import { reduce } from "std:utils"
 import host from "zig:host"
 
-export type Input = { items: i64[], seed: i64 }
+export type Input = {
+    items: i64[],
+    seed: i64
+}
 
 export type Output = i64
 
 export default function (in: Input): Output {
-    return host.source(in.items).reduce((previous, current, index, source) =>
-        host.visit({ previous, current, index, source }))
+    return reduce(host.source(in.items), (previous, current, index, source) =>
+        host.visit({
+            previous,
+            current,
+            index,
+            source
+        }))
 }

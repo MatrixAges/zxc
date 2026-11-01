@@ -4,6 +4,7 @@ import { resolve } from 'node:path'
 import expectation from './models/reduce_fold.ts'
 import { package_dir, writeCatalog, writeOutput } from './shared/catalog.ts'
 import { readRows } from './shared/json.ts'
+import zxSource from './shared/zx_source.ts'
 
 type Sample = { name: string; path: string; sha256: string; spec: Spec; reason: string }
 type Named = { name: string; spec: Spec }
@@ -49,7 +50,7 @@ for (const seeded of [false, true]) {
         name: `concat/${mode}`,
         input: seeded ? '{ items: string[], seed: string }' : 'string[]',
         output: 'string',
-        expression: `${argument}.reduce((previous, current) => \`\${previous}\${current}\`${initial})`,
+        expression: `reduce(${argument}, (previous, current) => \`\${previous}\${current}\`${initial})`,
         rows: (seeded ? ['', '0', 'prefix', '🌿', '\0'] : ['']).flatMap(seed =>
             text_inputs.map(input => ({
                 name: `${input.name}/seed_${Buffer.from(seed).toString('hex') || 'empty'}`,
@@ -61,7 +62,7 @@ for (const seeded of [false, true]) {
         name: `sum/${mode}`,
         input: seeded ? '{ items: i64[], seed: i64 }' : 'i64[]',
         output: 'i64',
-        expression: `${argument}.reduce((previous, current) => previous + current${initial})`,
+        expression: `reduce(${argument}, (previous, current) => previous + current${initial})`,
         rows: (seeded ? [-7, 0, 1, 11, 65535] : [0]).flatMap(seed =>
             numeric_inputs.map(input => ({
                 name: `${input.name}/seed_${seed}`,
@@ -75,7 +76,7 @@ suites.push({
     name: 'constant/unseeded',
     input: '{ items: i64[], returned: i64 }',
     output: '{ value: i64, items: i64[] }',
-    expression: '{ value: in.items.reduce((previous, current) => in.returned), items: in.items }',
+    expression: '{ value: reduce(in.items, (previous, current) => in.returned), items: in.items }',
     rows: [-7, 0, 1, 11, 65535].flatMap(returned =>
         numeric_inputs.map(input => ({
             name: `${input.name}/returned_${returned}`,
@@ -98,7 +99,9 @@ const originals = new Map<string, { id: string; expected: ReturnType<typeof expe
 for (const suite of suites) {
     writeOutput(
         `tests/${base}/${suite.name}.zx`,
-        `export type Input = ${suite.input}\n\nexport type Output = ${suite.output}\n\nexport default function (in: Input): Output {\n    return ${suite.expression}\n}\n`
+        zxSource(
+            `export type Input = ${suite.input}\n\nexport type Output = ${suite.output}\n\nexport default function (in: Input): Output {\n    return ${suite.expression}\n}\n`
+        )
     )
     const rows = suite.rows.map(({ name, spec }) => {
         const input =

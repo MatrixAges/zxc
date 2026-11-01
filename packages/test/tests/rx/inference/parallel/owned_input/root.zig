@@ -16,8 +16,8 @@ test "RX input remains borrowed" {
 
 test "RX rejects inline map before owned transfer" {
     try h.run(.{
-        .source = "<Module><Call fn='list' in={$in}/><Call fn='consume' in={$in.map(item => item)}/><Return value={$ctx.consume.length}/></Module>",
-        .expected = .{ .code = "unsupported", .marker = "$in.map" },
+        .source = "<Module><Call fn='list' in={$in}/><Call fn='consume' in={map($in, item => item)}/><Return value={$ctx.consume.length}/></Module>",
+        .expected = .{ .code = "unsupported", .marker = "map(" },
     });
 }
 

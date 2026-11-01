@@ -7,9 +7,14 @@ const Builder = @import("collections/builder.zig");
 const selection = @import("../frontend/object_selection.zig");
 
 pub fn analyze(self: *Analyzer, expression: anytype, source: ir.ExprId) zx.Error!ir.ExprId {
-    const keys = try selection.keys(self.allocator, expression, self.reporter);
-    const fields = self.types.get(self.node(source).type_id).object;
     const omit = std.mem.eql(u8, syntax.value(syntax.value(expression).call.callee).field.name.text, "omit");
+
+    return analyzeAt(self, expression, source, omit, 0);
+}
+
+pub fn analyzeAt(self: *Analyzer, expression: anytype, source: ir.ExprId, omit: bool, offset: usize) zx.Error!ir.ExprId {
+    const keys = try selection.keysAt(self.allocator, expression, self.reporter, offset);
+    const fields = self.types.get(self.node(source).type_id).object;
     var indices: std.ArrayList(u32) = .empty;
 
     for (keys) |key| {

@@ -1,9 +1,19 @@
+import { map } from "std:utils"
+
 export type Input = i64[]
 
-export type Output = { original: i64[], reversed: i64[] }
+export type Output = {
+    original: i64[],
+    reversed: i64[]
+}
 
 export default function (in: Input): Output {
-    const holder = { values: in.map(item => item + 1) }
+    const holder = {
+        values: map(in, item => item + 1)
+    }
 
-    return { original: in, reversed: holder.values.reverse()[0] }
+    return {
+        original: in,
+        reversed: holder.values.reverse()[0]
+    }
 }

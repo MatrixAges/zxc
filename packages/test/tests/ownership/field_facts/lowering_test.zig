@@ -19,7 +19,7 @@ test "postcondition fresh assignment retains ownership after earlier scalar upda
         \\        while: state => state.index < state.view.length,
         \\        do: state => {
         \\            state.index += 1
-        \\            state.fresh = state.fresh.map(value => value)
+        \\            state.fresh = map(state.fresh, value => value)
         \\        }
         \\    })
         \\
@@ -32,7 +32,7 @@ test "postcondition root replacement preserves fresh field before every exit" {
         \\    const result = loop({fresh: in, view: in, index: 0}, {
         \\        while: state => state.index < state.view.length,
         \\        do: state => {
-        \\            state = {fresh: state.fresh.map(value => value), view: state.view, index: state.index + 1}
+        \\            state = {fresh: map(state.fresh, value => value), view: state.view, index: state.index + 1}
         \\        }
         \\    })
         \\

@@ -1,0 +1,121 @@
+import integers from "std:integer"
+import { TransformKind } from "core/expression_table/kinds"
+import { Kind } from "core/type_table/model"
+
+import { Operation } from "../../../../../modules/intrinsic/model"
+import row from "../../../../semantic/types/row"
+import items from "../../items"
+import select from "../../selection/select"
+import { object_message, type_code } from "../../utilities/const"
+import lower from "../../utilities/lower.rx"
+import invalid from "../imported/invalid"
+import { Phase } from "../model"
+import transform from "../transforms/enter"
+
+import type { Result } from "../../model"
+import type { Work } from "../model"
+
+export type Input = Work
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const frame = in.frames.imported[in.frames.imported.length - 1]
+    const operation = in.imports.intrinsics[frame.import_index]
+    const span = in.source.tree.nodes[frame.node].span
+
+    if (operation == null) {
+        return invalid({
+            work: in,
+            node: frame.node
+        })
+    }
+
+    if (operation == Operation.Identity) {
+        return {
+            ...in,
+            value: frame.values[0],
+            phase: Phase.Complete,
+            frames: {
+                ...in.frames,
+                imported: in.frames.imported.pop()[0]
+            }
+        }
+    }
+
+    const selection = operation == Operation.Pick || operation == Operation.Omit
+
+    const target = row({
+        tables: {
+            base: in.state.types.context.base,
+            delta: in.state.types.delta
+        },
+        id: in.state.local.expressions.types[integers.widen(
+            frame.values[0]
+        )]
+    })
+
+    if (
+        (operation == Operation.Map || operation == Operation.Reduce) &&
+            target.kind == Kind.List
+    ) {
+        return transform({
+            work: {
+                ...in,
+                frames: {
+                    ...in.frames,
+                    imported: in.frames.imported.pop()[0],
+                    methods: in.frames.methods.pop()[0]
+                }
+            },
+            node: frame.node,
+            kind: operation == Operation.Map ? TransformKind.Map : TransformKind.Reduce,
+            target: frame.values[0],
+            expected: in.frames.methods[in.frames.methods.length - 1].expected,
+            arguments: items({
+                items: in.source.tree.items,
+                head: in.source.tree.nodes[frame.node].head
+            }).splice(0, 1, [])[0]
+        })
+    }
+
+    const result: Result = match {
+        selection && target.kind != Kind.Object => {
+            state: {
+                ...in.state,
+                diagnostic: {
+                    code: type_code,
+                    message: object_message,
+                    start: span.start,
+                    end: span.end
+                }
+            },
+            value: 0
+        },
+        selection => select({
+            state: in.state,
+            source: in.source,
+            node: frame.node,
+            target: frame.values[0],
+            offset: 1,
+            omit: operation == Operation.Omit
+        }),
+        _ => lower({
+            state: in.state,
+            operation,
+            values: frame.values,
+            span
+        })
+    }
+
+    return {
+        ...in,
+        state: result.state,
+        value: result.value,
+        phase: Phase.Complete,
+        frames: {
+            ...in.frames,
+            imported: in.frames.imported.pop()[0]
+        }
+    }
+}

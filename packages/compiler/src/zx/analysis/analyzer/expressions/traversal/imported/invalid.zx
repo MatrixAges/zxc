@@ -1,0 +1,27 @@
+import { contract_code, binding_message } from "./const"
+
+import type { Work } from "../model"
+
+export type Input = {
+    work: Work,
+    node: u64
+}
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const span = in.work.source.tree.nodes[in.node].span
+
+    return {
+        ...in.work,
+        state: {
+            ...in.work.state,
+            diagnostic: {
+                code: contract_code,
+                message: binding_message,
+                start: span.start,
+                end: span.end
+            }
+        }
+    }
+}

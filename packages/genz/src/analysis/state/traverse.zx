@@ -1,4 +1,5 @@
 import integers from "std:integer"
+import { map } from "std:utils"
 
 import children from "../types/children"
 import closure from "../types/closure"
@@ -14,7 +15,7 @@ export type Input = {
 export type Output = bool[]
 
 export default function (in: Input): Output {
-    const seen = in.types.kinds.map(kind => false)
+    const seen = map(in.types.kinds, kind => false)
     const stack: u32[] = [in.root]
 
     const result = loop({

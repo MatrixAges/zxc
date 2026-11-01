@@ -1,0 +1,36 @@
+import { BinaryOperator } from "core/expression_table/kinds"
+
+import reference from "../../../collections/building/reference"
+import binary from "../../operators/binary"
+import fields from "../building/fields"
+import { field_index, field_end } from "../const"
+
+import type { Result } from "../../model"
+import type { Frame } from "./model"
+
+export type Input = Frame
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const current = reference({
+        state: in.state,
+        span: in.span,
+        symbol: in.parameter
+    })
+
+    const values = fields({
+        state: current.state,
+        span: in.span,
+        target: current.value,
+        names: [field_index, field_end]
+    })
+
+    return binary({
+        state: values.state,
+        span: in.span,
+        operator: BinaryOperator.Less,
+        left: values.values[0],
+        right: values.values[1]
+    })
+}

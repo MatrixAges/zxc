@@ -43,7 +43,7 @@ test "store: nested field writes cannot bypass the whole Object setter" {
 }
 
 test "store: callbacks cannot capture injected handles" {
-    try check("const values = in.map((item) => $state.value.count)\n return values.length\n", writable, .capability);
+    try check("const result = loop({ items: in, index: 0, value: 0 }, { while: current => current.index < current.items.length, next: current => { current.value = $state.value.count\n current.index += 1\n } })\n return result.value\n", writable, .capability);
 }
 
 test "store: getter lists permit persistent updates without changing the stored value" {

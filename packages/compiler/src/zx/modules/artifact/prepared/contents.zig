@@ -16,11 +16,11 @@ pub fn imports(nodes: *Nodes, source: []const FunctionImport) Error![]const Func
     const result = try nodes.allocator.dupe(FunctionImport, source);
 
     for (result) |*value| {
-        value.id = try nodes.functionId(value.id);
+        value.id = if (value.id) |id| try nodes.functionId(id) else null;
         value.name = try nodes.allocator.dupe(u8, value.name);
         value.namespace = if (value.namespace) |name| try nodes.allocator.dupe(u8, name) else null;
-        value.input_type = try nodes.types.include(value.input_type);
-        value.output_type = try nodes.types.include(value.output_type);
+        value.input_type = if (value.input_type) |id| try nodes.types.include(id) else null;
+        value.output_type = if (value.output_type) |id| try nodes.types.include(id) else null;
     }
 
     return result;
@@ -33,11 +33,12 @@ pub fn dependencies(nodes: *Nodes, source: []const Record.Import) Error![]const 
         value.specifier = try nodes.allocator.dupe(u8, value.specifier);
         value.identity = if (value.identity) |key| try nodes.allocator.dupe(u8, key) else null;
         value.names = try nodes.strings(value.names);
+        value.source_names = try nodes.strings(value.source_names);
 
         value.target = switch (value.target) {
             .compiled => unreachable,
             .source => |path| .{ .source = try nodes.allocator.dupe(u8, path) },
-            .native, .external => value.target,
+            .native, .external, .intrinsic => value.target,
         };
     }
 

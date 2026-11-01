@@ -1,0 +1,75 @@
+import { BinaryOperator } from "core/expression_table/kinds"
+
+import integer from "../../../collections/building/integer"
+import object from "../../../collections/building/object"
+import push from "../../../collections/building/push"
+import reference from "../../../collections/building/reference"
+import binary from "../../operators/binary"
+import index from "../../projections/index"
+import fields from "../building/fields"
+import { field_source, field_index, field_end, field_result } from "../const"
+
+import type { Result } from "../../model"
+import type { Frame } from "./model"
+
+export type Input = Frame
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const current = reference({
+        state: in.state,
+        span: in.span,
+        symbol: in.parameter
+    })
+
+    const values = fields({
+        state: current.state,
+        span: in.span,
+        target: current.value,
+        names: [field_source, field_index, field_end, field_result]
+    })
+
+    const element = index({
+        state: values.state,
+        span: in.span,
+        index_span: in.span,
+        target: values.values[0],
+        index: values.values[1]
+    })
+
+    const appended = push({
+        state: element.state,
+        span: in.span,
+        target: values.values[3],
+        value: element.value
+    })
+
+    const one = integer({
+        state: appended.state,
+        span: in.span,
+        value: 1
+    })
+
+    const next = binary({
+        state: one.state,
+        span: in.span,
+        operator: BinaryOperator.Add,
+        left: values.values[1],
+        right: one.value
+    })
+
+    return object({
+        state: next.state,
+        span: in.span,
+        fields: {
+            names: [field_source, field_index, field_end, field_result],
+            values: [
+                values.values[0],
+                next.value,
+                values.values[2],
+                appended.value
+            ]
+        }
+    })
+}

@@ -42,7 +42,7 @@ pub fn init(self: *Self, allocator: std.mem.Allocator, artifact: Artifact.Module
 
     for (artifact.function_imports, imports) |source, *target| {
         const item = try allocator.create(std.meta.Child(ImportPointer));
-        item.* = .{ .namespace = source.namespace, .name = source.name, .id = @backingInt(source.id), .input_type = @backingInt(source.input_type), .output_type = @backingInt(source.output_type) };
+        item.* = .{ .namespace = source.namespace, .name = source.name, .id = @backingInt(source.id.?), .input_type = @backingInt(source.input_type.?), .output_type = @backingInt(source.output_type.?) };
         target.* = item;
     }
 

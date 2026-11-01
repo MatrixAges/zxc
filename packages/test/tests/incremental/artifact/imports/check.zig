@@ -25,12 +25,12 @@ pub fn module(analysis: f.compiler.AnalysisResult, index: usize, value: f.artifa
         try std.testing.expectEqual(original.namespace != null, copied.namespace != null);
         if (original.namespace) |name| try std.testing.expectEqualStrings(name, copied.namespace.?);
 
-        const global = program.functions.at(@backingInt(original.id));
-        const local = value.functions.at(@backingInt(copied.id));
+        const global = program.functions.at(@backingInt(original.id.?));
+        const local = value.functions.at(@backingInt(copied.id.?));
 
         try std.testing.expectEqualStrings(global.file_name, local.file_name);
-        try types.same(program.types, original.input_type, value.types, copied.input_type);
-        try types.same(program.types, original.output_type, value.types, copied.output_type);
+        try types.same(program.types, original.input_type.?, value.types, copied.input_type.?);
+        try types.same(program.types, original.output_type.?, value.types, copied.output_type.?);
         try std.testing.expectEqual(copied.input_type, local.input_type);
         try std.testing.expectEqual(copied.output_type, local.output_type);
 

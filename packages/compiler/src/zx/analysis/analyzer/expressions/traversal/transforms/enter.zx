@@ -1,7 +1,6 @@
 import { TransformKind } from "core/expression_table/kinds"
 
 import payload from "../../../types/payload"
-import items from "../../items"
 import { Phase, Action } from "../model"
 import callback from "./callback"
 
@@ -10,16 +9,21 @@ import type { Work } from "../model"
 
 export type Input = {
     work: Work,
-    name: string
+    node: u64,
+    kind: TransformKind,
+    target: u32,
+    expected: u32?,
+    arguments: u64[]
 }
 
 export type Output = Work
 
 export default function (in: Input): Output {
-    const method = in.work.frames.methods[in.work.frames.methods.length - 1]
-    const node = in.work.source.tree.nodes[method.node]
+    const node = in.work.source.tree.nodes[in.node]
+    const arguments = in.arguments
+    const kind = in.kind
 
-    if (node.count < 1 || node.count > 2) {
+    if (arguments.length < 1 || arguments.length > 2) {
         return {
             ...in.work,
             state: {
@@ -27,7 +31,7 @@ export default function (in: Input): Output {
                 diagnostic: {
                     code: "type_mismatch",
                     message:
-                        "collection operations require a callback and at most one optional method argument",
+                        "collection operation requires a callback and at most one additional argument",
                     start: node.span.start,
                     end: node.span.end
                 }
@@ -35,24 +39,11 @@ export default function (in: Input): Output {
         }
     }
 
-    const kind = match in.name {
-        "map" => TransformKind.Map,
-        "filter" => TransformKind.Filter,
-        "reduce" => TransformKind.Reduce,
-        "every" => TransformKind.Every,
-        _ => TransformKind.Some,
-    }
-
-    const arguments = items({
-        items: in.work.source.tree.items,
-        head: node.head
-    })
-
     const frame: Frame = {
-        node: method.node,
+        node: in.node,
         kind: kind,
-        target: in.work.value,
-        expected: method.expected,
+        target: in.target,
+        expected: in.expected,
         second: null,
         arguments: arguments,
         capture_frame: 0,
@@ -64,7 +55,6 @@ export default function (in: Input): Output {
         ...in.work,
         frames: {
             ...in.work.frames,
-            methods: in.work.frames.methods.pop()[0],
             transforms: in.work.frames.transforms.push(frame)[0]
         }
     }
@@ -75,7 +65,7 @@ export default function (in: Input): Output {
 
     const expected = kind == TransformKind.Reduce ? payload({
         types: work.state.types,
-        expected: method.expected
+        expected: in.expected
     }) : null
 
     return {

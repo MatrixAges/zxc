@@ -111,9 +111,9 @@ pub fn link(allocator: std.mem.Allocator, inputs: []const model.Input) Error!mod
             var member = source;
             member.namespace = null;
             member.name = try owned.dupe(u8, source.name);
-            member.id = try nodes.functionId(source.id);
-            member.input_type = try nodes.types.include(source.input_type);
-            member.output_type = try nodes.types.include(source.output_type);
+            member.id = if (source.id) |id| try nodes.functionId(id) else null;
+            member.input_type = if (source.input_type) |id| try nodes.types.include(id) else null;
+            member.output_type = if (source.output_type) |id| try nodes.types.include(id) else null;
 
             try members.append(owned, member);
         }
@@ -122,14 +122,14 @@ pub fn link(allocator: std.mem.Allocator, inputs: []const model.Input) Error!mod
             if (!std.mem.eql(u8, record.path, program.file_name)) continue;
 
             for (record.reexports.functions) |source| {
-                if (source.name.len == 0) continue;
+                if (source.name.len == 0 and source.intrinsic == null) continue;
 
                 var member = source;
                 member.namespace = null;
                 member.name = try owned.dupe(u8, source.name);
-                member.id = try nodes.functionId(source.id);
-                member.input_type = try nodes.types.include(source.input_type);
-                member.output_type = try nodes.types.include(source.output_type);
+                member.id = if (source.id) |id| try nodes.functionId(id) else null;
+                member.input_type = if (source.input_type) |id| try nodes.types.include(id) else null;
+                member.output_type = if (source.output_type) |id| try nodes.types.include(id) else null;
 
                 try members.append(owned, member);
             }

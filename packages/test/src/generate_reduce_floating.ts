@@ -4,6 +4,7 @@ import expectation from './models/reduce_floating.ts'
 import inputs from './reduce_floating/inputs.ts'
 import nodeReference from './reduce_floating/node_reference.ts'
 import { writeCatalog, writeOutput } from './shared/catalog.ts'
+import zxSource from './shared/zx_source.ts'
 
 const operators = { add: '+', subtract: '-', multiply: '*', divide: '/' }
 const base = 'built_ins/list/callbacks/reduce/floating'
@@ -25,14 +26,14 @@ for (const width of [32, 64] as const) {
             writeCatalog('tests/' + group + '.jsonl', rows)
             writeOutput(
                 'tests/' + group + '.zx',
-                `export type Input = { items: f${width}[], seed: f${width} }
+                zxSource(`export type Input = { items: f${width}[], seed: f${width} }
 
 export type Output = f${width}
 
 export default function (in: Input): Output {
-    return in.items.reduce((previous, current) => previous ${operators[operation]} current${seeded ? ', in.seed' : ''})
+    return reduce(in.items, (previous, current) => previous ${operators[operation]} current${seeded ? ', in.seed' : ''})
 }
-`
+`)
             )
         }
     }

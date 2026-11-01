@@ -1,0 +1,103 @@
+import { ExprKind } from "../../../../../frontend/parser/expressions/state/model"
+import { Operation } from "../../../../../modules/intrinsic/model"
+import items from "../../items"
+import arity from "../../utilities/arity"
+import boolean from "../../utilities/building/boolean"
+import {
+    type_code,
+    arity_message,
+    binary_arity,
+    ternary_arity
+} from "../../utilities/const"
+import invalid from "../imported/invalid"
+import next from "../imported/next"
+import { Phase } from "../model"
+
+import type { Work, Imported } from "../model"
+
+export type Input = {
+    work: Work,
+    index: u64
+}
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const work = in.work
+    const node = work.source.tree.nodes[work.node]
+    const operation = work.imports.intrinsics[in.index]
+
+    if (operation == null) {
+        return invalid({
+            work,
+            node: work.node
+        })
+    }
+
+    const valid = operation == Operation.Reduce ?
+        node.count == binary_arity || node.count == ternary_arity :
+        node.count == arity(operation)
+
+    if (!valid) {
+        return {
+            ...work,
+            state: {
+                ...work.state,
+                diagnostic: {
+                    code: type_code,
+                    message: arity_message,
+                    start: node.span.start,
+                    end: node.span.end
+                }
+            }
+        }
+    }
+
+    const arguments = items({
+        items: work.source.tree.items,
+        head: node.head
+    })
+
+    if (
+        (operation == Operation.IsNil || operation == Operation.IsNotNil) &&
+            work.source.tree.nodes[arguments[0]].kind == ExprKind.Null
+    ) {
+        const result = boolean({
+            state: work.state,
+            span: node.span,
+            value: operation == Operation.IsNil
+        })
+
+        return {
+            ...work,
+            state: result.state,
+            value: result.value,
+            phase: Phase.Complete
+        }
+    }
+
+    const frame: Imported = {
+        node: work.node,
+        import_index: in.index,
+        tuple: false,
+        arguments: operation == Operation.Pick || operation == Operation.Omit ||
+            operation == Operation.Map || operation == Operation.Reduce ?
+            [arguments[0]] : arguments,
+        index: 0,
+        values: []
+    }
+
+    return next({
+        ...work,
+        frames: {
+            ...work.frames,
+            imported: work.frames.imported.push(frame)[0],
+            methods: operation == Operation.Map || operation == Operation.Reduce ?
+                work.frames.methods.push({
+                    node: work.node,
+                    expected: work.expected,
+                    target: 0
+                })[0] : work.frames.methods
+        }
+    })
+}

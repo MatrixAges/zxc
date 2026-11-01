@@ -95,14 +95,14 @@ test "global function id is remapped to the module local import id" {
 
     try std.testing.expect(analysis.value == .ir);
     try std.testing.expectEqualStrings("/project/helper.zx", analysis.modules[2].path);
-    try std.testing.expectEqual(@as(u32, 1), @backingInt(analysis.modules[2].function_imports[0].id));
+    try std.testing.expectEqual(@as(u32, 1), @backingInt(analysis.modules[2].function_imports[0].id.?));
 
     var result = try artifact.extract(std.testing.allocator, &analysis, 2);
 
     defer result.deinit();
 
     try std.testing.expectEqual(@as(usize, 1), result.value.functions.count());
-    try std.testing.expectEqual(@as(u32, 0), @backingInt(result.value.function_imports[0].id));
+    try std.testing.expectEqual(@as(u32, 0), @backingInt(result.value.function_imports[0].id.?));
     try std.testing.expectEqualStrings("/project/leaf.zx", result.value.functions.at(0).file_name);
 
     var calls: usize = 0;

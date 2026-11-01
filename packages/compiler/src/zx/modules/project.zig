@@ -228,6 +228,19 @@ const Project = struct {
                 const kind = specifier.classify(item.path) catch return self.reporter.fail(.module, item.span, "invalid or unknown import specifier");
 
                 if (kind != .file and kind != .package) {
+                    if (std.mem.eql(u8, item.path, @import("intrinsic.zig").specifier)) {
+                        try import_binding.apply(self.allocator, self.bindingAllocator(), item, .{
+                            .target = .native,
+                            .types = self.types.view(),
+                            .exports = &.{},
+                            .members = &@import("intrinsic.zig").exports,
+                        }, self.reporter, selected_aliases, selected_imports, selected_constants);
+
+                        try dependencies.append(self.allocator, try ModuleRecord.copyImport(self.allocator, item, .intrinsic));
+
+                        continue;
+                    }
+
                     if (try self.importNative(item, selected_imports, selected_aliases, selected_constants)) |identity| {
                         var dependency = try ModuleRecord.copyImport(self.allocator, item, .native);
                         dependency.identity = try self.allocator.dupe(u8, identity);
@@ -363,8 +376,12 @@ const Project = struct {
         const result = try allocator.alloc(Signature.Member, members.len);
 
         for (members, result) |member, *signature| {
-            const function = self.functions.at(@backingInt(member.id));
-            signature.* = .{ .name = member.name, .ports = .{ .input_type = member.input_type, .output_type = member.output_type }, .has_store = function.stores.count() != 0 };
+            if (member.intrinsic) |operation| {
+                signature.* = .{ .name = member.name, .ports = null, .intrinsic = operation };
+            } else {
+                const function = self.functions.at(@backingInt(member.id.?));
+                signature.* = .{ .name = member.name, .ports = .{ .input_type = member.input_type.?, .output_type = member.output_type.? }, .has_store = function.stores.count() != 0 };
+            }
         }
 
         return result;
@@ -383,7 +400,7 @@ const Project = struct {
             if (member.name.len != 0) continue;
 
             const ports = member.ports orelse {
-                if (member.source != null) continue;
+                if (member.source != null or member.intrinsic != null) continue;
 
                 return self.reporter.fail(.module, .{ .start = 0, .end = 0 }, "a default re-export requires a callable source");
             };

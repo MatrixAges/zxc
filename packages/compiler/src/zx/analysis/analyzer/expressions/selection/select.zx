@@ -1,9 +1,7 @@
 import integers from "std:integer"
+import { pick } from "std:utils"
 
 import row from "../../../semantic/types/row"
-import { NameKind } from "../../source/model"
-import readName from "../../source/name"
-import { method_omit } from "./const"
 import indices from "./indices"
 import keys from "./keys"
 import lower from "./lower"
@@ -16,7 +14,9 @@ export type Input = {
     state: Prepared,
     source: Source,
     node: u64,
-    target: u32
+    target: u32,
+    offset: u64,
+    omit: bool
 }
 
 export type Output = Result
@@ -24,10 +24,7 @@ export type Output = Result
 export default function (in: Input): Output {
     const node = in.source.tree.nodes[in.node]
 
-    const fields = keys({
-        source: in.source,
-        node: in.node
-    })
+    const fields = keys(pick(in, ["source", "node", "offset"]))
 
     if (fields.diagnostic.message != "") {
         return {
@@ -51,18 +48,12 @@ export default function (in: Input): Output {
 
     const table = target.delta ? tables.delta : tables.base
 
-    const name = readName({
-        source: in.source,
-        kind: NameKind.Expression,
-        index: node.first
-    })
-
     const selected = indices({
         names: table.field_names,
         first: integers.widen(target.first),
         count: integers.widen(target.second),
         keys: fields.names,
-        omit: name.text == method_omit,
+        omit: in.omit,
         span: node.span
     })
 

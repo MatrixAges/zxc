@@ -1,4 +1,5 @@
 import integers from "std:integer"
+import { map } from "std:utils"
 import { ExpressionKind } from "core/expression_table/kinds"
 
 import simple from "../control/simple"
@@ -22,7 +23,7 @@ export default function (in: Input): Output {
         units: in.units,
         pure: in.pure,
         limit: in.limit,
-        costs: in.pure.map(value => 0),
+        costs: map(in.pure, value => 0),
         index: 0
     }, {
         while: current => current.index < current.pure.length,

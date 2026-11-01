@@ -117,13 +117,13 @@ fn finish(input: Input, destination: program_link.Destination, nodes: *Nodes) pr
     for (input.members) |source| {
         var member = source;
 
-        member.id = try nodes.functionId(source.id);
-        member.input_type = try nodes.types.include(source.input_type);
-        member.output_type = try nodes.types.include(source.output_type);
+        member.id = if (source.id) |id| try nodes.functionId(id) else null;
+        member.input_type = if (source.input_type) |id| try nodes.types.include(id) else null;
+        member.output_type = if (source.output_type) |id| try nodes.types.include(id) else null;
         member.name = try allocator.dupe(u8, source.name);
         member.namespace = null;
 
-        if (member.name.len == 0) {
+        if (member.name.len == 0 and member.intrinsic == null) {
             if (function != null) return error.InvalidModule;
 
             function = member.id;

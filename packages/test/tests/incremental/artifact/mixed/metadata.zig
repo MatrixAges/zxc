@@ -98,9 +98,9 @@ pub fn functions(module: f.artifact.Module, node: f.ir.TypeId) !void {
     var source_count: usize = 0;
 
     for (module.function_imports) |binding| {
-        try std.testing.expect(@backingInt(binding.id) < module.functions.count());
+        try std.testing.expect(@backingInt(binding.id.?) < module.functions.count());
 
-        const signature = module.functions.at(@backingInt(binding.id));
+        const signature = module.functions.at(@backingInt(binding.id.?));
 
         try std.testing.expectEqual(binding.input_type, signature.input_type);
         try std.testing.expectEqual(binding.output_type, signature.output_type);

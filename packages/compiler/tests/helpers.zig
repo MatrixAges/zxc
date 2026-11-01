@@ -27,12 +27,18 @@ pub fn parseInvalid(source: []const u8, code: @FieldType(zx.Diagnostic, "code"))
     try std.testing.expectEqual(code, result.value.diagnostic.code);
 }
 
+pub fn analyze(allocator: std.mem.Allocator, parsed: anytype) std.mem.Allocator.Error!compiler.AnalysisResult {
+    if (parsed.ast.imports.len == 0) return compiler.analyze(allocator, parsed);
+
+    return compiler.project.analyze(allocator, &.{.{ .path = parsed.file_name, .source = parsed.source }}, .{ .entry = parsed.file_name });
+}
+
 pub fn analyzeCase(source: []const u8, expected: ?@FieldType(zx.Diagnostic, "code")) !void {
     var parsed = try parseValid(source);
 
     defer parsed.deinit();
 
-    var analyzed = try compiler.analyze(std.testing.allocator, parsed.value.parsed);
+    var analyzed = try analyze(std.testing.allocator, parsed.value.parsed);
 
     defer analyzed.deinit();
 

@@ -1,6 +1,7 @@
 import { resolve } from 'node:path'
 import { package_dir, writeCatalog, writeOutput } from './shared/catalog.ts'
 import { readRows } from './shared/json.ts'
+import zxSource from './shared/zx_source.ts'
 
 const inputs = [
     { name: 'empty', items: [] },
@@ -42,9 +43,14 @@ for (const method of ['map', 'filter', 'every', 'some'] as const) {
         })
     )
 
+    const callback = 'item => in.context.res'
+    const expression = method === 'map' ? `map(in.items, ${callback})` : `in.items.${method}(${callback})`
+
     writeOutput(
         `tests/${base}/cases.zx`,
-        `export type Input = { items: i64[], context: { res: bool } }\n\nexport type Output = ${output}\n\nexport default function (in: Input): Output {\n    return in.items.${method}(item => in.context.res)\n}\n`
+        zxSource(
+            `export type Input = { items: i64[], context: { res: bool } }\n\nexport type Output = ${output}\n\nexport default function (in: Input): Output {\n    return ${expression}\n}\n`
+        )
     )
 
     writeCatalog(`tests/${base}/cases.jsonl`, rows)

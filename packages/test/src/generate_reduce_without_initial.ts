@@ -1,19 +1,20 @@
 import { resolve } from 'node:path'
 import { package_dir, writeCatalog, writeOutput } from './shared/catalog.ts'
 import { readRows } from './shared/json.ts'
+import zxSource from './shared/zx_source.ts'
 
 const base = 'built_ins/list/callbacks/reduce/without_initial'
 
 writeOutput(
     `tests/${base}/cases.zx`,
-    `export type Input = string[]
+    zxSource(`export type Input = string[]
 
 export type Output = string
 
 export default function (in: Input): Output {
-    return in.reduce((previous, current) => current)
+    return reduce(in, (previous, current) => current)
 }
-`
+`)
 )
 
 writeCatalog(`tests/${base}/cases.jsonl`, [

@@ -2,6 +2,7 @@ import type { Json } from './shared/json.ts'
 import { resolve } from 'node:path'
 import { package_dir, writeCatalog, writeOutput } from './shared/catalog.ts'
 import { readRows } from './shared/json.ts'
+import zxSource from './shared/zx_source.ts'
 
 type Input = { items: Array<number>; threshold?: number; limit?: number }
 type Sample = {
@@ -63,18 +64,18 @@ for (const kind of ['value', 'index', 'all']) {
 
     writeOutput(
         `tests/${path}.zx`,
-        `export type Input = { items: i64[]${extra} }
+        zxSource(`export type Input = { items: i64[]${extra} }
 
 export type Output = { result: bool, calls: u64, visited: i64[]${extra} }
 
 export default function (in: Input): Output {
     const initial: Output = { result: true, calls: 0, visited: []${initial} }
 
-    return in.items.reduce((state, item) => state.result ? {
+    return reduce(in.items, (state, item) => state.result ? {
         result: ${predicate}, calls: state.calls + 1, visited: state.visited.push(item)[0]${retained}
     } : state, initial)
 }
-`
+`)
     )
     const limits = kind === 'value' ? [-1, 0, 10, 11, 65535] : kind === 'index' ? [0, 1, 5, 9, 17] : [0]
     const rows = [
@@ -99,19 +100,19 @@ export default function (in: Input): Output {
 
 writeOutput(
     `tests/${base}/rows/cases.zx`,
-    `export type Input = { items: i64[][], threshold: i64 }
+    zxSource(`export type Input = { items: i64[][], threshold: i64 }
 
 export type Output = { result: bool, calls: u64, visited: i64[], threshold: i64 }
 
 export default function (in: Input): Output {
     const initial: Output = { result: true, calls: 0, visited: [], threshold: in.threshold }
 
-    return in.items.reduce((state, item) => state.result ? {
+    return reduce(in.items, (state, item) => state.result ? {
         result: item[0] > state.threshold, calls: state.calls + 1,
         visited: state.visited.push(item[0])[0], threshold: state.threshold
     } : state, initial)
 }
-`
+`)
 )
 
 const rows = [

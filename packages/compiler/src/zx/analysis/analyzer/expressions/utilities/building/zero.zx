@@ -1,0 +1,45 @@
+import { type_id_f32, type_id_f64 } from "core/const"
+import appendFloat from "core/expression_table/append/float"
+import appendInteger from "core/expression_table/append/integer"
+
+import type { Span } from "../../../../../frontend/lexer/token_model"
+import type { Prepared } from "../../../model"
+import type { Result } from "../../model"
+
+export type Input = {
+    state: Prepared,
+    span: Span,
+    type_id: u32
+}
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const metadata = {
+        type_id: in.type_id,
+        span_start: in.span.start,
+        span_end: in.span.end
+    }
+
+    const result = in.type_id == type_id_f32 || in.type_id == type_id_f64 ? appendFloat({
+        table: in.state.local.expressions,
+        metadata,
+        value: 0.0
+    }) : appendInteger({
+        table: in.state.local.expressions,
+        metadata,
+        value: 0,
+        negative: false
+    })
+
+    return {
+        state: {
+            ...in.state,
+            local: {
+                ...in.state.local,
+                expressions: result.table
+            }
+        },
+        value: result.id
+    }
+}

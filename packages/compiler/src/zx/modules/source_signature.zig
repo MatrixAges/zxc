@@ -7,7 +7,7 @@ pub const Ports = struct {
     output_type: ir.TypeId,
 };
 
-pub const Member = struct { name: []const u8, ports: ?Ports, source: ?[]const u8 = null, has_store: bool = false };
+pub const Member = struct { name: []const u8, ports: ?Ports, source: ?[]const u8 = null, has_store: bool = false, intrinsic: ?@import("intrinsic.zig").Operation = null };
 
 pub const Result = struct {
     ports: Ports,

@@ -1,6 +1,7 @@
 import { resolve } from 'node:path'
 import { package_dir, writeCatalog, writeOutput } from './shared/catalog.ts'
 import { readRows } from './shared/json.ts'
+import zxSource from './shared/zx_source.ts'
 
 type Sample = {
     name: string
@@ -47,19 +48,19 @@ function expectedValue(input: { items: Array<number>; seed: number }) {
 
 writeOutput(
     `tests/${base}/cases.zx`,
-    `export type Input = { items: i64[], seed: i64 }
+    zxSource(`export type Input = { items: i64[], seed: i64 }
 
 export type Output = { value: i64, visits: { previous: i64, current: i64, index: u64, source_value: i64, source_length: u64 }[] }
 
 export default function (in: Input): Output {
     const initial: Output = { value: in.seed, visits: [] }
 
-    return in.items.reduce((state, item, index, source) => ({
+    return reduce(in.items, (state, item, index, source) => ({
         value: item,
         visits: state.visits.push({ previous: state.value, current: item, index, source_value: source[index], source_length: source.length })[0]
     }), initial)
 }
-`
+`)
 )
 
 const rows = [
