@@ -12,22 +12,24 @@
     <Call fn="program/diagnostic" in={$ctx.body} />
     <Call fn="types/order" in={$ctx.body.body.expression.types.tree} />
 
-    <Return value={{
-        types: $ctx.body.body.expression.types.tree,
-        type_order: $ctx.order,
-        expressions: $ctx.body.body.expression.tree,
-        blocks: $ctx.body.body.tree,
-        tokens: $ctx.body.body.expression.prepared.lexical.lexed.tokens,
-        comments: $ctx.body.body.expression.prepared.lexical.lexed.comments,
-        imports: $ctx.body.prefix.imports,
-        import_names: $ctx.body.prefix.names,
-        declarations: $ctx.body.prefix.declarations,
-        constants: $ctx.body.prefix.constants,
-        members: $ctx.body.prefix.members,
-        contracts: $ctx.body.contracts,
-        has_store: $ctx.body.header.has_store,
-        function_start: $ctx.body.prefix.function_start,
-        body: $ctx.body.prefix.present ? $ctx.body.body.control.result : null,
-        diagnostic: $ctx.diagnostic
-    }} />
+    <Return
+        value={{
+            types: $ctx.body.body.expression.types.tree,
+            type_order: $ctx.order,
+            expressions: $ctx.body.body.expression.tree,
+            blocks: $ctx.body.body.tree,
+            tokens: $ctx.body.body.expression.prepared.lexical.lexed.tokens,
+            comments: $ctx.body.body.expression.prepared.lexical.lexed.comments,
+            imports: $ctx.body.prefix.imports,
+            import_names: $ctx.body.prefix.names,
+            declarations: $ctx.body.prefix.declarations,
+            constants: $ctx.body.prefix.constants,
+            members: $ctx.body.prefix.members,
+            contracts: $ctx.body.contracts,
+            has_store: $ctx.body.header.has_store,
+            function_start: $ctx.body.prefix.function_start,
+            body: $ctx.body.prefix.present ? $ctx.body.body.control.result : null,
+            diagnostic: $ctx.diagnostic
+        }}
+    />
 </Module>

@@ -4,7 +4,10 @@ import type { Local } from "../local"
 
 export type Input = Local
 
-export type Output = { local: Local, frame: u32 }
+export type Output = {
+    local: Local,
+    frame: u32
+}
 
 export default function (in: Input): Output {
     const frame = integers.narrow(in.captures.frames.starts.length)
@@ -17,5 +20,17 @@ export default function (in: Input): Output {
         last: in.captures.frames.last.push(null)[0]
     }
 
-    return { local: { ...in, scope_floor: in.active.length, lambda_depth: in.lambda_depth + 1, captures: { ...in.captures, frames: frames, current: frame } }, frame: frame }
+    return {
+        local: {
+            ...in,
+            scope_floor: in.active.length,
+            lambda_depth: in.lambda_depth + 1,
+            captures: {
+                ...in.captures,
+                frames: frames,
+                current: frame
+            }
+        },
+        frame: frame
+    }
 }

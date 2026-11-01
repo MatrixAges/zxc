@@ -1,0 +1,147 @@
+import {
+    open_object,
+    close_object,
+    open_call,
+    close_call,
+    open_list,
+    close_list,
+    comma,
+    keyword_case,
+    keyword_default
+} from "./const"
+import { no_operator } from "./const"
+import gapWidth from "./gap"
+import operatorPriority from "./operator"
+
+import type { Graph, Input } from "./model"
+
+export type Output = Graph
+
+export default function (in: Input): Output {
+    const partners: u64?[] = []
+    const owners: u64?[] = []
+    const depths: u64[] = []
+    const widths: u64[] = []
+    const stack: u64[] = []
+    const prefixes: u64[] = []
+    const vertical_counts: u64[] = []
+    const gaps: u64[] = []
+    const selections: bool[] = []
+
+    const result = loop({
+        input: in,
+        partners: partners,
+        owners: owners,
+        depths: depths,
+        widths: widths,
+        stack: stack,
+        index: 0,
+        width: 0,
+        prefix: 0,
+        vertical_count: 0,
+        prefixes: prefixes,
+        vertical_counts: vertical_counts,
+        gaps: gaps,
+        selections: selections,
+        selection_depth: 0
+    }, {
+        while: current => current.index < current.input.tokens.length,
+        next: current => {
+            const token = current.input.tokens[current.index]
+            const closing =
+                token.closing || token.text == close_object ||
+                token.text == close_call || token.text == close_list
+            const opening =
+                token.opening || token.text == open_object ||
+                token.text == open_call || token.text == open_list
+            const parent: u64? = current.stack.length == 0 ? null :
+                current.stack[current.stack.length - 1]
+            const previous = current.index == 0 ? "" :
+                current.input.tokens[current.index - 1].text
+            const gap = gapWidth({
+                previous: previous,
+                current: token.text,
+                actual: token.gap
+            })
+            const selection =
+                parent != null &&
+                (
+                    token.text == keyword_case || token.text == keyword_default
+                )
+            const prior_selection =
+                selection && parent != null && current.selections[parent]
+            const depth =
+                current.stack.length + current.selection_depth -
+                (
+                    prior_selection ? 1 : 0
+                )
+
+            if (
+                token.boundary || previous == open_object || previous == comma ||
+                    operatorPriority(previous) != no_operator
+            ) {
+                current.prefix = 0
+            }
+
+            current.partners = current.partners.push(null)[0]
+            current.owners = current.owners.push(parent)[0]
+            current.depths = current.depths.push(depth)[0]
+            current.widths = current.widths.push(current.width + gap)[0]
+            current.prefixes = current.prefixes.push(current.prefix + gap)[0]
+            current.vertical_counts =
+                current.vertical_counts.push(
+                    current.vertical_count
+                )[0]
+            current.gaps = current.gaps.push(gap)[0]
+            current.selections = current.selections.push(false)[0]
+            current.width += token.text.length + gap
+            current.prefix += token.text.length + gap
+
+            if (selection && parent != null && !current.selections[parent]) {
+                current.selections[parent] = true
+                current.selection_depth += 1
+            }
+
+            if (
+                token.object && current.index + 1 < current.input.tokens.length &&
+                    current.input.tokens[current.index + 1].text != close_object
+            ) {
+                current.vertical_count += 1
+            }
+
+            if (closing && current.stack.length != 0) {
+                const popped = current.stack.pop()
+                const first = popped[1]
+
+                if (first != null) {
+                    current.partners[first] = current.index
+                    current.partners[current.index] = first
+                    current.selection_depth -= current.selections[first] ? 1 : 0
+                    current.depths[current.index] =
+                        current.stack.length - 1 + current.selection_depth
+                }
+
+                current.stack = popped[0]
+            }
+
+            if (opening) {
+                current.stack = current.stack.push(current.index)[0]
+            }
+
+            current.index += 1
+        }
+    })
+
+    return {
+        input: in,
+        partners: result.partners,
+        owners: result.owners,
+        depths: result.depths,
+        widths: result.widths,
+        prefixes: result.prefixes,
+        vertical_counts: result.vertical_counts,
+        gaps: result.gaps,
+        trailers: [],
+        selections: result.selections
+    }
+}

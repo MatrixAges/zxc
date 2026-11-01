@@ -17,9 +17,15 @@ export type Unit = {
     external: bool
 }
 
-export type Call = { expression: u32, lane: u64 }
+export type Call = {
+    expression: u32,
+    lane: u64
+}
 
-export type Iteration = { expression: u32, path: u32[] }
+export type Iteration = {
+    expression: u32,
+    path: u32[]
+}
 
 export type Lane = {
     input: u32[]
@@ -34,4 +40,8 @@ export type Lane = {
 
 export type Lanes = Lane[]
 
-export type Units = { types: Table, units: Unit[], entry: u64 }
+export type Units = {
+    types: Table,
+    units: Unit[],
+    entry: u64
+}

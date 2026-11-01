@@ -11,15 +11,56 @@ export type Input = Request
 export type Output = State
 
 export default function (in: Input): Output {
-    const initial: State = { context: in.context, sources: [], frames: [], called: { slots: [], count: 0 }, names: [], unknown: in.program && in.stores }
-    const root = source({ state: initial, expressions: in.expressions, control: in.control })
+    const initial: State = {
+        context: in.context,
+        sources: [],
+        frames: [],
+        called: {
+            slots: [],
+            count: 0
+        },
+        names: [],
+        unknown: in.program && in.stores
+    }
+
+    const root = source({
+        state: initial,
+        expressions: in.expressions,
+        control: in.control
+    })
 
     if (!in.program) {
-        return { ...root.state, frames: [{ operation: Operation.Expression, source: root.source, index: integers.widen(in.expression), count: 0 }] }
+        return {
+            ...root.state,
+            frames: [{
+                operation: Operation.Expression,
+                source: root.source,
+                index: integers.widen(in.expression),
+                count: 0
+            }]
+        }
     }
 
     const block = in.root
-    const frames: Frame[] = block == null ? [] : [{ operation: Operation.Block, source: root.source, index: integers.widen(in.control.block_first[integers.widen(block)]), count: integers.widen(in.control.block_count[integers.widen(block)]) }]
 
-    return contracts({ state: { ...root.state, frames: frames }, contracts: in.contracts })
+    const frames: Frame[] = block == null ? [] : [{
+        operation: Operation.Block,
+        source: root.source,
+        index: integers.widen(in.control.block_first[integers.widen(
+            block
+        )]),
+        count: integers.widen(
+            in.control.block_count[integers.widen(
+                block
+            )]
+        )
+    }]
+
+    return contracts({
+        state: {
+            ...root.state,
+            frames: frames
+        },
+        contracts: in.contracts
+    })
 }

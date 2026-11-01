@@ -14,7 +14,11 @@ export default function (in: Input): Output {
     const token = current(in)
 
     if (in.control.injected == 3) {
-        return advance({ state: in, phase: Phase.Parameter, count: 0 })
+        return advance({
+            state: in,
+            phase: Phase.Parameter,
+            count: 0
+        })
     }
 
     const expected = match {
@@ -37,9 +41,20 @@ export default function (in: Input): Output {
         first_error: in.control.current.first_error,
         error_count: in.control.current.error_count,
         concurrent: in.control.current.concurrent,
-        allocator_argument: in.control.current.allocator_argument || (injected && in.control.injected == 0),
-        io_argument: in.control.current.io_argument || (injected && in.control.injected == 1),
-        process_argument: in.control.current.process_argument || (injected && in.control.injected == 2)
+        allocator_argument:
+            in.control.current.allocator_argument ||
+            (
+                injected && in.control.injected == 0
+            ),
+        io_argument:
+            in.control.current.io_argument || (
+                injected && in.control.injected == 1
+            ),
+        process_argument:
+            in.control.current.process_argument ||
+            (
+                injected && in.control.injected == 2
+            )
     }
 
     const stage = in.control.injected + 1

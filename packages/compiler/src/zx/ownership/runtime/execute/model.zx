@@ -8,7 +8,19 @@ import type { Memory } from "../model"
 import type { Stack } from "../snapshots/model"
 import type { Work } from "../work/model"
 
-export enum Family { Statements, Values, Callbacks, Branches, Calls, Collections, Objects, Scope, Tasks, Expression, Invalid }
+export enum Family {
+    Statements,
+    Values,
+    Callbacks,
+    Branches,
+    Calls,
+    Collections,
+    Objects,
+    Scope,
+    Tasks,
+    Expression,
+    Invalid
+}
 
 export type Machine = {
     program: Program

@@ -2,8 +2,16 @@ import { Mode } from "./model"
 
 export type Input = Mode
 
-export type Output = { validate: bool, standalone: bool, resolved: bool }
+export type Output = {
+    validate: bool,
+    standalone: bool,
+    resolved: bool
+}
 
 export default function (in: Input): Output {
-    return { validate: in != Mode.Project, standalone: in == Mode.Standalone, resolved: in == Mode.Resolved }
+    return {
+        validate: in != Mode.Project,
+        standalone: in == Mode.Standalone,
+        resolved: in == Mode.Resolved
+    }
 }

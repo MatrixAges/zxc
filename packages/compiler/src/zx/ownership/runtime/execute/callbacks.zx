@@ -13,15 +13,34 @@ export type Output = Machine
 
 export default function (in: Input): Output {
     return loop(in, {
-        while: current => current.active && current.complete && !current.failed && current.work.actions.length != 0 && family(current.work.actions[current.work.actions.length - 1]) == Family.Callbacks,
+        while: current =>
+            current.active && current.complete && !current.failed &&
+            current.work.actions.length != 0 &&
+            family(
+                current.work.actions[current.work.actions.length - 1]
+            ) == Family.Callbacks,
         next: current => {
             const action = current.work.actions[current.work.actions.length - 1]
 
-            if (action == WorkAction.IterationRound || action == WorkAction.IterationAdvance || action == WorkAction.IterationInitial || action == WorkAction.IterationCondition || action == WorkAction.IterationBody || action == WorkAction.IterationFinish) {
+            if (
+                action == WorkAction.IterationRound ||
+                    action == WorkAction.IterationAdvance ||
+                    action == WorkAction.IterationInitial ||
+                    action == WorkAction.IterationCondition ||
+                    action == WorkAction.IterationBody ||
+                    action == WorkAction.IterationFinish
+            ) {
                 current = iteration(current)
-            } else if (action == WorkAction.TransformTarget || action == WorkAction.TransformInitial || action == WorkAction.TransformParameter) {
+            } else if (
+                action == WorkAction.TransformTarget ||
+                    action == WorkAction.TransformInitial ||
+                    action == WorkAction.TransformParameter
+            ) {
                 current = transformStart(current)
-            } else if (action == WorkAction.TransformBody || action == WorkAction.TransformFinish) {
+            } else if (
+                action == WorkAction.TransformBody ||
+                    action == WorkAction.TransformFinish
+            ) {
                 current = transformFinish(current)
             }
         }

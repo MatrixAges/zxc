@@ -2,11 +2,20 @@ import type { Frame, State } from "./model"
 
 export type Input = State
 
-export type Output = { state: State, frame: Frame }
+export type Output = {
+    state: State,
+    frame: Frame
+}
 
 export default function (in: Input): Output {
     const position = in.frames.phases.length - 1
-    const frame: Frame = { phase: in.frames.phases[position], a: in.frames.a[position], b: in.frames.b[position], c: in.frames.c[position] }
+
+    const frame: Frame = {
+        phase: in.frames.phases[position],
+        a: in.frames.a[position],
+        b: in.frames.b[position],
+        c: in.frames.c[position]
+    }
 
     return {
         state: {

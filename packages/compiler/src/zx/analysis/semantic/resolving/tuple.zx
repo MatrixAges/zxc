@@ -13,16 +13,54 @@ export type Output = State
 
 export default function (in: Input): Output {
     const previous = current(in.frames)
-    const state = previous.waiting ? replace({ state: { ...in, scratch: { ...in.scratch, types: in.scratch.types.push(in.result)[0] } }, frame: { ...previous, index: previous.index + 1, waiting: false } }) : in
+
+    const state = previous.waiting ? replace({
+        state: {
+            ...in,
+            scratch: {
+                ...in.scratch,
+                types: in.scratch.types.push(in.result)[0]
+            }
+        },
+        frame: {
+            ...previous,
+            index: previous.index + 1,
+            waiting: false
+        }
+    }) : in
+
     const head = current(state.frames)
 
     if (head.index == head.count) {
         return finish(state)
     }
 
-    const selected = item({ source: state.context.source, position: head.position })
-    const waiting = replace({ state: state, frame: { ...head, position: selected.next, waiting: true } })
-    const child = frame({ operation: Operation.Node, name: { text: "", start: 0, end: 0 }, reference: selected.value })
+    const selected = item({
+        source: state.context.source,
+        position: head.position
+    })
 
-    return { ...waiting, frames: waiting.frames.push(child)[0] }
+    const waiting = replace({
+        state: state,
+        frame: {
+            ...head,
+            position: selected.next,
+            waiting: true
+        }
+    })
+
+    const child = frame({
+        operation: Operation.Node,
+        name: {
+            text: "",
+            start: 0,
+            end: 0
+        },
+        reference: selected.value
+    })
+
+    return {
+        ...waiting,
+        frames: waiting.frames.push(child)[0]
+    }
 }

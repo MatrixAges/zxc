@@ -14,33 +14,99 @@ import type { Input, State } from "./model"
 export type Output = State
 
 export default function (in: Input): Output {
-    return loop({ request: in.request, state: in.state, index: in.request.first }, {
-        while: current => current.state.status == 0 && current.index < current.request.source.kinds.length,
+    return loop({
+        request: in.request,
+        state: in.state,
+        index: in.request.first
+    }, {
+        while: current =>
+            current.state.status == 0 &&
+            current.index < current.request.source.kinds.length,
         next: current => {
             const request = current.request
             const index = current.index
-            const remapped = references({ source: request.source, index: index, mapping: current.state.mapping, references: current.state.references })
-            const value = candidate({ source: request.source, index: index, references: remapped })
+            const remapped = references({
+                source: request.source,
+                index: index,
+                mapping: current.state.mapping,
+                references: current.state.references
+            })
+            const value = candidate({
+                source: request.source,
+                index: index,
+                references: remapped
+            })
             const type_kind = kind(request.source.kinds[index])
-            const is_nominal = type_kind == Kind.Enumeration || type_kind == Kind.NativeReference
+            const is_nominal =
+                type_kind == Kind.Enumeration || type_kind == Kind.NativeReference
 
             if (is_nominal && request.origin_indices[index] == 0) {
-                current.state = { ...current.state, references: remapped, status: 1 }
+                current.state = {
+                    ...current.state,
+                    references: remapped,
+                    status: 1
+                }
             } else {
-                const origin_index = is_nominal ? request.origin_indices[index] - 1 : 0
-                const identity = is_nominal ? { kind: request.origins.kinds[origin_index], owner: request.origins.owners[origin_index], member: request.origins.members[origin_index] } : { kind: 0, owner: "", member: "" }
-                const tables = { base: request.base, delta: current.state.delta }
-                const result = is_nominal ? nominal({ tables: tables, origins: { base: request.base_origins, delta: current.state.origins }, origin: identity, candidate: value }) : structural({ tables: tables, candidate: value })
+                const origin_index =
+                    is_nominal ? request.origin_indices[index] - 1 : 0
+                const identity = is_nominal ? {
+                    kind: request.origins.kinds[origin_index],
+                    owner: request.origins.owners[origin_index],
+                    member: request.origins.members[origin_index]
+                } : {
+                    kind: 0,
+                    owner: "",
+                    member: ""
+                }
+                const tables = {
+                    base: request.base,
+                    delta: current.state.delta
+                }
+                const result = is_nominal ? nominal({
+                    tables: tables,
+                    origins: {
+                        base: request.base_origins,
+                        delta: current.state.origins
+                    },
+                    origin: identity,
+                    candidate: value
+                }) : structural({
+                    tables: tables,
+                    candidate: value
+                })
 
                 if (result == 1) {
-                    current.state = { ...current.state, references: remapped, status: 2 }
+                    current.state = {
+                        ...current.state,
+                        references: remapped,
+                        status: 2
+                    }
                 } else {
-                    const id = result == 0 ? integers.narrow(request.base.kinds.length + current.state.delta.kinds.length) : integers.narrow(result - 2)
-                    const added = result == 0 ? delta({ delta: current.state.delta, candidate: value }) : current.state.delta
-                    const bound = result == 0 && is_nominal ? origin({ bindings: current.state.origins, origin: identity, id: id }) : current.state.origins
+                    const id =
+                        result ==
+                        0 ? integers.narrow(
+                            request.base.kinds.length + current.state.delta.kinds.length
+                        ) : integers.narrow(
+                            result - 2
+                        )
+                    const added = result == 0 ? delta({
+                        delta: current.state.delta,
+                        candidate: value
+                    }) : current.state.delta
+                    const bound = result == 0 && is_nominal ? origin({
+                        bindings: current.state.origins,
+                        origin: identity,
+                        id: id
+                    }) : current.state.origins
                     const mapping = current.state.mapping.with(index, id)
 
-                    current.state = { mapping: mapping, delta: added, origins: bound, references: remapped, status: 0 }
+                    current.state = {
+                        mapping: mapping,
+                        delta: added,
+                        origins: bound,
+                        references: remapped,
+                        status: 0
+                    }
                 }
             }
 

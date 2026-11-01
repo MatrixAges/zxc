@@ -1,0 +1,26 @@
+import {
+    print_width,
+    indent_width,
+    object_byte,
+    line_feed,
+    carriage_return
+} from "./const"
+
+export type Input = {
+    source: u8[],
+    level: u64,
+    prefix: u64
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    if (in.source.length * 2 + in.level * indent_width + in.prefix + 1 > print_width) {
+        return true
+    }
+
+    return in.source.some(
+        byte =>
+            byte == object_byte || byte == line_feed || byte == carriage_return
+    )
+}

@@ -11,21 +11,30 @@ export type Input = State
 export type Output = State
 
 export default function (in: Input): Output {
-  if (in.control.phase == HeaderPhase.Done) {
-    return in
-  }
+    if (in.control.phase == HeaderPhase.Done) {
+        return in
+    }
 
-  if (in.control.phase == HeaderPhase.Predicate) {
-    return predicate(in)
-  }
+    if (in.control.phase == HeaderPhase.Predicate) {
+        return predicate(in)
+    }
 
-  const at = current(in.expression)
-  const state = { expression: in.expression, body: in.body, contracts: in.contracts, control: { ...in.control, token: at.token } }
+    const at = current(in.expression)
 
-  switch (state.control.phase) {
-    case HeaderPhase.Contract: return contracts(state)
-    case HeaderPhase.ContractOpen: return contracts(state)
-    case HeaderPhase.ContractClose: return predicate(state)
-    default: return signature(state)
-  }
+    const state = {
+        expression: in.expression,
+        body: in.body,
+        contracts: in.contracts,
+        control: {
+            ...in.control,
+            token: at.token
+        }
+    }
+
+    switch (state.control.phase) {
+        case HeaderPhase.Contract: return contracts(state)
+        case HeaderPhase.ContractOpen: return contracts(state)
+        case HeaderPhase.ContractClose: return predicate(state)
+        default: return signature(state)
+    }
 }

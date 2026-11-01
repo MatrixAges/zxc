@@ -14,7 +14,8 @@ export type Output = Work
 
 export default function (in: Input): Output {
     const result = loop(in, {
-        while: current => current.state.diagnostic.message == "" && current.phase != Phase.Done,
+        while: current =>
+            current.state.diagnostic.message == "" && current.phase != Phase.Done,
         next: current => {
             const result = match current.phase {
                 Phase.Evaluate => enter(current),

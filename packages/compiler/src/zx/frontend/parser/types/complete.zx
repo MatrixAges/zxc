@@ -12,19 +12,26 @@ export type Input = State
 export type Output = State
 
 export default function (in: Input): Output {
-  if (in.frames.length == 0) {
-    return { tree: in.tree, frames: in.frames, control: { ...in.control, phase: Phase.Done } }
-  }
+    if (in.frames.length == 0) {
+        return {
+            tree: in.tree,
+            frames: in.frames,
+            control: {
+                ...in.control,
+                phase: Phase.Done
+            }
+        }
+    }
 
-  const kind = in.frames[in.frames.length - 1].kind
+    const kind = in.frames[in.frames.length - 1].kind
 
-  if (kind == TypeKind.Application) {
-    return applicationEnd(in)
-  }
+    if (kind == TypeKind.Application) {
+        return applicationEnd(in)
+    }
 
-  if (kind == TypeKind.Object) {
-    return objectSeparator(addField(in))
-  }
+    if (kind == TypeKind.Object) {
+        return objectSeparator(addField(in))
+    }
 
-  return tupleSeparator(addItem(in))
+    return tupleSeparator(addItem(in))
 }

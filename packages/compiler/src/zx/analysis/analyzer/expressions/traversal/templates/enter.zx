@@ -10,7 +10,11 @@ export default function (in: Input): Output {
     const node = in.source.tree.nodes[in.node]
     const parts: u64[] = []
 
-    const ordered = loop({ tree: in.source.tree, head: node.head, parts: parts }, {
+    const ordered = loop({
+        tree: in.source.tree,
+        head: node.head,
+        parts: parts
+    }, {
         while: current => current.head != 0,
         next: current => {
             current.parts = current.parts.push(current.head - 1)[0]
@@ -18,7 +22,18 @@ export default function (in: Input): Output {
         }
     })
 
-    const frame: Template = { node: in.node, parts: ordered.parts.reverse()[0], index: 0, values: [] }
+    const frame: Template = {
+        node: in.node,
+        parts: ordered.parts.reverse()[0],
+        index: 0,
+        values: []
+    }
 
-    return next({ ...in, frames: { ...in.frames, templates: in.frames.templates.push(frame)[0] } })
+    return next({
+        ...in,
+        frames: {
+            ...in.frames,
+            templates: in.frames.templates.push(frame)[0]
+        }
+    })
 }

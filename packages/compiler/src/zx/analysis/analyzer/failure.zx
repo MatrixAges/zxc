@@ -6,13 +6,36 @@ import type { ModuleInput } from "./context"
 import type { Prepared } from "./model"
 import type { Types } from "./types/model"
 
-export type Input = { module: ModuleInput, types: Types, diagnostic: Diagnostic }
+export type Input = {
+    module: ModuleInput,
+    types: Types,
+    diagnostic: Diagnostic
+}
 
 export type Output = Prepared
 
 export default function (in: Input): Output {
-    const signature = initialSignature({ syntax: in.module.syntax, types: in.types })
-    const local = initialLocal({ signature: signature, stores: { paths: [], types: [], handles: [], readable: [], writable: [] }, allow_store: false })
+    const signature = initialSignature({
+        syntax: in.module.syntax,
+        types: in.types
+    })
 
-    return { types: in.types, local: local, input_type: signature.input_type, diagnostic: in.diagnostic }
+    const local = initialLocal({
+        signature: signature,
+        stores: {
+            paths: [],
+            types: [],
+            handles: [],
+            readable: [],
+            writable: []
+        },
+        allow_store: false
+    })
+
+    return {
+        types: in.types,
+        local: local,
+        input_type: signature.input_type,
+        diagnostic: in.diagnostic
+    }
 }

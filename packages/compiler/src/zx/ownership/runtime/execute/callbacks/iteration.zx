@@ -16,7 +16,9 @@ export default function (in: Input): Output {
         return start(in)
     }
 
-    if (action == WorkAction.IterationCondition || action == WorkAction.IterationBody) {
+    if (
+        action == WorkAction.IterationCondition || action == WorkAction.IterationBody
+    ) {
         return callback(in)
     }
 

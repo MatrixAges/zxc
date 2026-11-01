@@ -7,7 +7,13 @@
 
     <Switch on={$ctx.initialize.valid}>
         <Case value={true}>
-            <Call fn="./walk" in={{ context: $in, state: $ctx.initialize.state }} />
+            <Call
+                fn="./walk"
+                in={{
+                    context: $in,
+                    state: $ctx.initialize.state
+                }}
+            />
 
             <Switch on={$ctx.walk.valid}>
                 <Case value={true}>

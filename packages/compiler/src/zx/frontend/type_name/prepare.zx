@@ -2,11 +2,21 @@ import encoding from "std:encoding"
 
 export type Input = string
 
-export type Output = { bytes: u8[], has_trivia: bool }
+export type Output = {
+    bytes: u8[],
+    has_trivia: bool
+}
 
 export default function (in: Input): Output {
     const bytes = encoding.encodeUtf8(in)
-    const has_trivia = bytes.some(byte => byte == 32 || byte == 9 || byte == 10 || byte == 13 || byte == 47)
 
-    return { bytes: bytes, has_trivia: has_trivia }
+    const has_trivia =
+        bytes.some(
+            byte => byte == 32 || byte == 9 || byte == 10 || byte == 13 || byte == 47
+        )
+
+    return {
+        bytes: bytes,
+        has_trivia: has_trivia
+    }
 }

@@ -1,11 +1,23 @@
 import hash from "../name_hash"
 
-export type Input = { slots: string?[], name: string }
+export type Input = {
+    slots: string?[],
+    name: string
+}
 
-export type Output = { index: u64, found: bool }
+export type Output = {
+    index: u64,
+    found: bool
+}
 
 export default function (in: Input): Output {
-    const result = loop({ slots: in.slots, name: in.name, index: hash(in.name) % in.slots.length, active: true, found: false }, {
+    const result = loop({
+        slots: in.slots,
+        name: in.name,
+        index: hash(in.name) % in.slots.length,
+        active: true,
+        found: false
+    }, {
         while: current => current.active,
         next: current => {
             const name = current.slots[current.index]
@@ -16,10 +28,14 @@ export default function (in: Input): Output {
                 current.found = true
                 current.active = false
             } else {
-                current.index = current.index + 1 == current.slots.length ? 0 : current.index + 1
+                current.index = current.index + 1 == current.slots.length ? 0 :
+                    current.index + 1
             }
         }
     })
 
-    return { index: result.index, found: result.found }
+    return {
+        index: result.index,
+        found: result.found
+    }
 }

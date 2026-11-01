@@ -5,13 +5,24 @@ import project from "./project"
 
 import type { Context, Work, Frame } from "./model"
 
-export type Input = { context: Context, node: u64 }
+export type Input = {
+    context: Context,
+    node: u64
+}
 
 export type Output = u32?
 
     export default function (in: Input): Output {
-        const frames: Frame[] = [{ operation: Operation.Probe, node: in.node }]
-        const initial: Work = { context: in.context, frames: frames, result: null }
+        const frames: Frame[] = [{
+            operation: Operation.Probe,
+            node: in.node
+        }]
+
+        const initial: Work = {
+            context: in.context,
+            frames: frames,
+            result: null
+        }
 
         const result = loop(initial, {
             while: current => current.frames.length > 0,
@@ -20,20 +31,38 @@ export type Output = u32?
 
                 current.frames = current.frames.pop()[0]
 
-                if (frame.operation == Operation.Probe || frame.operation == Operation.Declared || (frame.operation == Operation.Fallback && current.result == null)) {
-                    const result = enter({ work: current, node: frame.node, declared: frame.operation == Operation.Declared })
+                if (
+                    frame.operation == Operation.Probe ||
+                        frame.operation == Operation.Declared ||
+                        (
+                            frame.operation == Operation.Fallback &&
+                                current.result == null
+                        )
+                ) {
+                    const result = enter({
+                        work: current,
+                        node: frame.node,
+                        declared: frame.operation == Operation.Declared
+                    })
 
                     current.frames = result.frames
                     current.result = result.result
                 } else if (frame.operation == Operation.MatchLiteral) {
                     if (current.result == null) {
-                        current.result = matchLiteral({ source: current.context.source, node: frame.node })
+                        current.result = matchLiteral({
+                            source: current.context.source,
+                            node: frame.node
+                        })
                     }
                 } else if (frame.operation != Operation.Fallback) {
                     const type_id = current.result
 
                     if (type_id != null) {
-                        current.result = project({ context: current.context, frame: frame, type_id: type_id })
+                        current.result = project({
+                            context: current.context,
+                            frame: frame,
+                            type_id: type_id
+                        })
                     }
                 }
             }

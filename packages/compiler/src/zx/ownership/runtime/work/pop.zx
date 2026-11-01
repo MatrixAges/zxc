@@ -5,5 +5,10 @@ export type Input = Work
 export type Output = Work
 
 export default function (in: Input): Output {
-    return { actions: in.actions.pop()[0], subjects: in.subjects.pop()[0], moving: in.moving.pop()[0], indices: in.indices.pop()[0] }
+    return {
+        actions: in.actions.pop()[0],
+        subjects: in.subjects.pop()[0],
+        moving: in.moving.pop()[0],
+        indices: in.indices.pop()[0]
+    }
 }

@@ -3,7 +3,11 @@ import { Phase } from "./model"
 
 import type { Work } from "./model"
 
-export type Input = { work: Work, node: u64, expected: u32? }
+export type Input = {
+    work: Work,
+    node: u64,
+    expected: u32?
+}
 
 export type Output = Work
 
@@ -12,7 +16,13 @@ export default function (in: Input): Output {
 
     return {
         ...in.work,
-        boundary: { active: local.active.length, floor: local.scope_floor, depth: local.lambda_depth, captures: local.captures.current, facts: mark(local.refinement.facts) },
+        boundary: {
+            active: local.active.length,
+            floor: local.scope_floor,
+            depth: local.lambda_depth,
+            captures: local.captures.current,
+            facts: mark(local.refinement.facts)
+        },
         node: in.node,
         expected: in.expected,
         value: 0,

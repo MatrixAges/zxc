@@ -5,8 +5,15 @@ import type { Declaration } from "../declarations/model"
 import type { Import } from "../imports/model"
 
 export type Prefix = {
-    imports: Import[], names: Span[], declarations: Declaration[], members: Span[],
+    imports: Import[],
+    names: Span[],
+    declarations: Declaration[],
+    members: Span[],
     constants: Constant[],
-    function_start: u64, present: bool, type_diagnostic: bool,
-    import_diagnostic: Diagnostic, declaration_diagnostic: Diagnostic, diagnostic: Diagnostic
+    function_start: u64,
+    present: bool,
+    type_diagnostic: bool,
+    import_diagnostic: Diagnostic,
+    declaration_diagnostic: Diagnostic,
+    diagnostic: Diagnostic
 }

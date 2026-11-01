@@ -13,13 +13,19 @@ export type Output = Body
 
 export default function (in: Input): Output {
     const result = loop(in, {
-        while: current => current.expression.state.diagnostic.message == "" && current.phase != Phase.Done,
+        while: current =>
+            current.expression.state.diagnostic.message == "" &&
+            current.phase != Phase.Done,
         next: current => {
             const advanced = match current.phase {
                 Phase.Next => next(current),
                 Phase.Resume => resume(current),
                 Phase.Selection => selection(current),
-                _ => { ...current, expression: expression(current.expression), phase: Phase.Resume },
+                _ => {
+                    ...current,
+                    expression: expression(current.expression),
+                    phase: Phase.Resume
+                },
             }
 
             current.expression = advanced.expression

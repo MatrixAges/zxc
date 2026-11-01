@@ -7,7 +7,11 @@ import literal from "./literal"
 
 import type { Context } from "./model"
 
-export type Input = { context: Context, node: u64, expected: u32? }
+export type Input = {
+    context: Context,
+    node: u64,
+    expected: u32?
+}
 
 export type Output = u32?
 
@@ -24,19 +28,32 @@ export type Output = u32?
             return 1
         }
 
-        const left = known({ context: in.context, node: node.first })
+        const left = known({
+            context: in.context,
+            node: node.first
+        })
 
         if (left != null) {
             return left
         }
 
-        const right = known({ context: in.context, node: node.second })
+        const right = known({
+            context: in.context,
+            node: node.second
+        })
 
         if (right != null) {
             return right
         }
 
-        const expected: u32? = flags.comparison ? null : payload({ types: in.context.state.types, expected: in.expected })
+        const expected: u32? = flags.comparison ? null : payload({
+            types: in.context.state.types,
+            expected: in.expected
+        })
 
-        return expected != null ? expected : literal({ source: in.context.source, left: node.first, right: node.second })
+        return expected != null ? expected : literal({
+            source: in.context.source,
+            left: node.first,
+            right: node.second
+        })
     }

@@ -1,5 +1,9 @@
 import integers from "std:integer"
-import { BinaryOperator, ExpressionKind, UnaryOperator } from "core/expression_table/kinds"
+import {
+    BinaryOperator,
+    ExpressionKind,
+    UnaryOperator
+} from "core/expression_table/kinds"
 import { Kind } from "core/type_table/model"
 
 import kind from "../../../../analysis/semantic/types/kind"
@@ -21,8 +25,17 @@ export default function (in: Input): Output {
     if (in.kind == ExpressionKind.Unary) {
         const number = numeric(in.type_id)
 
-        return typed({ expressions: expressions, index: context.index, id: expressions.unary_operands[in.payload], type_id: in.type_id }) &&
-            (expressions.unary_operators[in.payload] == UnaryOperator.Not ? in.type_id == 1 : number == Numeric.Signed || number == Numeric.Float)
+        return typed({
+            expressions: expressions,
+            index: context.index,
+            id: expressions.unary_operands[in.payload],
+            type_id: in.type_id
+        }) &&
+            (
+                expressions.unary_operators[in.payload] == UnaryOperator.Not ?
+                    in.type_id ==
+                    1 : number == Numeric.Signed || number == Numeric.Float
+            )
     }
 
     const left_index = integers.widen(expressions.binary_left[in.payload])
@@ -38,23 +51,34 @@ export default function (in: Input): Output {
     const operator = expressions.binary_operators[in.payload]
 
     if (operator == BinaryOperator.Coalesce) {
-        return target == Kind.Optional && context.table.first[integers.widen(left)] == right && in.type_id == right
+        return target == Kind.Optional &&
+            context.table.first[integers.widen(
+                left
+            )] == right && in.type_id == right
     }
 
     if (left != right) {
         return false
     }
 
-    const equality = operator == BinaryOperator.Equal || operator == BinaryOperator.NotEqual
+    const equality =
+        operator == BinaryOperator.Equal || operator == BinaryOperator.NotEqual
 
-    if (equality && target == Kind.Optional && !comparable({ table: context.table, type_id: left }) && expressions.kinds[left_index] != ExpressionKind.None && expressions.kinds[right_index] != ExpressionKind.None) {
-        return false
-    }
+    if (equality && target == Kind.Optional && !comparable({
+        table: context.table,
+        type_id: left
+    }) && expressions.kinds[left_index] != ExpressionKind.None &&
+        expressions.kinds[right_index] != ExpressionKind.None) {
+            return false
+        }
 
     const number = numeric(left) != Numeric.Other
 
     if (equality) {
-        return (number || left == 1 || left == 10 || target == Kind.Enumeration || target == Kind.ErrorSet || target == Kind.Optional) && in.type_id == 1
+        return (
+            number || left == 1 || left == 10 || target == Kind.Enumeration ||
+                target == Kind.ErrorSet || target == Kind.Optional
+        ) && in.type_id == 1
     }
 
     return match operator {

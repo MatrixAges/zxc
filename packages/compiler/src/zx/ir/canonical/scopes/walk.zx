@@ -3,17 +3,31 @@ import take from "./take"
 
 import type { Context, Result, State } from "./model"
 
-export type Input = { context: Context, state: State }
+export type Input = {
+    context: Context,
+    state: State
+}
 
 export type Output = Result
 
 export default function (in: Input): Output {
-    const result = loop({ context: in.context, result: { state: in.state, valid: true } }, {
-        while: current => current.result.valid && current.result.state.frames.phases.length != 0,
+    const result = loop({
+        context: in.context,
+        result: {
+            state: in.state,
+            valid: true
+        }
+    }, {
+        while: current =>
+            current.result.valid && current.result.state.frames.phases.length != 0,
         next: current => {
             const taken = take(current.result.state)
 
-            current.result = dispatch({ context: current.context, frame: taken.frame, state: taken.state })
+            current.result = dispatch({
+                context: current.context,
+                frame: taken.frame,
+                state: taken.state
+            })
         }
     })
 

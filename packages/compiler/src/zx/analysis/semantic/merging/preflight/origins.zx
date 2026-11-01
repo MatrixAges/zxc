@@ -5,19 +5,39 @@ import binding from "../../types/nominal/validation/binding"
 import type { Table } from "core/type_table/model"
 import type { Bindings } from "core/type_table/nominal"
 
-export type Input = { source: Table, origins: Bindings, names: string[] }
+export type Input = {
+    source: Table,
+    origins: Bindings,
+    names: string[]
+}
 
-export type Output = { valid: bool, indices: u64[] }
+export type Output = {
+    valid: bool,
+    indices: u64[]
+}
 
 export default function (in: Input): Output {
     const indices: u64[] = in.source.kinds.map(value => 0)
 
-    const result = loop({ source: in.source, origins: in.origins, names: in.names, indices: indices, index: 0, valid: true }, {
+    const result = loop({
+        source: in.source,
+        origins: in.origins,
+        names: in.names,
+        indices: indices,
+        index: 0,
+        valid: true
+    }, {
         while: current => current.valid && current.index < current.origins.ids.length,
         next: current => {
             const id = integers.widen(current.origins.ids[current.index])
-            const valid = id < current.source.kinds.length && current.indices[id] == 0 &&
-                binding({ table: current.source, origins: current.origins, names: current.names, index: current.index })
+            const valid =
+                id < current.source.kinds.length && current.indices[id] == 0 &&
+                binding({
+                    table: current.source,
+                    origins: current.origins,
+                    names: current.names,
+                    index: current.index
+                })
 
             if (valid) {
                 current.indices[id] = current.index + 1
@@ -28,5 +48,8 @@ export default function (in: Input): Output {
         }
     })
 
-    return { valid: result.valid, indices: result.indices }
+    return {
+        valid: result.valid,
+        indices: result.indices
+    }
 }

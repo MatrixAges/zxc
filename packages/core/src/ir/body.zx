@@ -3,6 +3,18 @@ import type { Expressions } from "../expression_table/model"
 import type { Stores } from "../store_table/model"
 import type { Symbols } from "../symbol_table/model"
 
-export type Body = { stores: Stores, symbols: Symbols, expressions: Expressions, control: Control, root: u32? }
+export type Body = {
+    stores: Stores,
+    symbols: Symbols,
+    expressions: Expressions,
+    control: Control,
+    root: u32?
+}
 
-export type Predicate = { symbols: Symbols, expressions: Expressions, predicate: u32, span_start: u64, span_end: u64 }
+export type Predicate = {
+    symbols: Symbols,
+    expressions: Expressions,
+    predicate: u32,
+    span_start: u64,
+    span_end: u64
+}

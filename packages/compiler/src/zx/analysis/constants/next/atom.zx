@@ -16,7 +16,9 @@ export default function (in: Input): Output {
     const index = integers.widen(in.id)
     const kind = expressions.kinds[index]
     const payload = integers.widen(expressions.payloads[index])
-    const integer = kind == ExpressionKind.Integer || kind == ExpressionKind.NegativeInteger
+
+    const integer =
+        kind == ExpressionKind.Integer || kind == ExpressionKind.NegativeInteger
 
     const magnitude = match kind {
         ExpressionKind.Integer => expressions.integers[payload],
@@ -32,6 +34,7 @@ export default function (in: Input): Output {
         floating: kind == ExpressionKind.Float ? expressions.floats[payload] : 0,
         text: kind == ExpressionKind.String ? expressions.strings[payload] : "",
         boolean: kind == ExpressionKind.Boolean && expressions.booleans[payload],
-        enumeration: kind == ExpressionKind.EnumValue ? expressions.enumerations[payload] : 0
+        enumeration:
+            kind == ExpressionKind.EnumValue ? expressions.enumerations[payload] : 0
     }
 }

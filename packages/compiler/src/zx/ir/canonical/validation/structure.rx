@@ -3,7 +3,13 @@
 
     <Args in={Model.Program} out={bool} />
 
-    <Call module="structure/unit" in={{ unit: $in.unit, max_offset: $in.context.max_offset }} />
+    <Call
+        module="structure/unit"
+        in={{
+            unit: $in.unit,
+            max_offset: $in.context.max_offset
+        }}
+    />
 
     <Switch on={$ctx.unit}>
         <Case value={true}>

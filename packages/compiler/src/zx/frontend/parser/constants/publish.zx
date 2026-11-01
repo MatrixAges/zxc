@@ -17,12 +17,16 @@ export default function (in: Input): Output {
     const parsed = in.parsed
     const control = parsed.control
     const tokens = parsed.prepared.lexical.lexed.tokens
-    const token = tokens[control.index < tokens.length ? control.index : tokens.length - 1]
+
+    const token =
+        tokens[control.index < tokens.length ? control.index : tokens.length - 1]
+
     const lexical = control.lexical_diagnostic
 
     const diagnostic = match {
         lexical == 1 => parsed.prepared.lexical.lexed.diagnostic,
-        lexical != 0 => parsed.prepared.lexical.interpolations[lexical - 2].lexed.diagnostic,
+        lexical != 0 =>
+            parsed.prepared.lexical.interpolations[lexical - 2].lexed.diagnostic,
         control.type_diagnostic => parsed.types.control.diagnostic,
         _ => control.diagnostic
     }
@@ -35,7 +39,13 @@ export default function (in: Input): Output {
         }
     }
 
-    if (token.symbol == Symbol.Semicolon || (token.kind != Kind.Eof && token.symbol != Symbol.CloseBrace && !token.line_break)) {
+    if (
+        token.symbol == Symbol.Semicolon ||
+            (
+                token.kind != Kind.Eof && token.symbol != Symbol.CloseBrace &&
+                    !token.line_break
+            )
+    ) {
         return {
             constant: null,
             index: control.index,
@@ -43,7 +53,10 @@ export default function (in: Input): Output {
                 code: "syntax",
                 start: token.span.start,
                 end: token.span.end,
-                message: token.symbol == Symbol.Semicolon ? "semicolons are not allowed in ZX" : "expected a newline, closing block or end of source"
+                message:
+                    token.symbol ==
+                    Symbol.Semicolon ? "semicolons are not allowed in ZX" :
+                    "expected a newline, closing block or end of source"
             }
         }
     }

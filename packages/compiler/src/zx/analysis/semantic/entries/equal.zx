@@ -2,7 +2,10 @@ import { Kind } from "core/type_table/model"
 
 import type { Entry } from "./model"
 
-export type Input = { left: Entry, right: Entry }
+export type Input = {
+    left: Entry,
+    right: Entry
+}
 
 export type Output = bool
 
@@ -14,7 +17,9 @@ export default function (in: Input): Output {
         return false
     }
 
-    if (left.kind == Kind.Scalar || left.kind == Kind.Optional || left.kind == Kind.List) {
+    if (
+        left.kind == Kind.Scalar || left.kind == Kind.Optional || left.kind == Kind.List
+    ) {
         return left.first == right.first
     }
 
@@ -34,15 +39,22 @@ export default function (in: Input): Output {
         return false
     }
 
-    const state = loop({ left: left, right: right, index: 0, equal: true }, {
+    const state = loop({
+        left: left,
+        right: right,
+        index: 0,
+        equal: true
+    }, {
         while: current => current.equal && current.index < current.left.count,
         next: current => {
             const a = current.left.offset + current.index
             const b = current.right.offset + current.index
             const equal = match current.left.kind {
-                Kind.Object => current.left.field_names[a] == current.right.field_names[b] &&
+                Kind.Object =>
+                    current.left.field_names[a] == current.right.field_names[b] &&
                     current.left.field_types[a] == current.right.field_types[b],
-                Kind.Tuple => current.left.children[a] == current.right.children[b],
+                Kind.Tuple =>
+                    current.left.children[a] == current.right.children[b],
                 _ => current.left.names[a] == current.right.names[b]
             }
 

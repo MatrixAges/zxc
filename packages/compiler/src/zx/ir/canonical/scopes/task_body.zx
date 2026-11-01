@@ -18,25 +18,72 @@ export default function (in: Input): Output {
     const first = integers.widen(expressions.task_capture_first[payload])
     const count = integers.widen(expressions.task_capture_count[payload])
 
-    const valid = capturesActive({ active: in.state.activity.active, symbols: expressions.task_captures, first: first, count: count })
+    const valid = capturesActive({
+        active: in.state.activity.active,
+        symbols: expressions.task_captures,
+        first: first,
+        count: count
+    })
 
     if (!valid) {
-        return { state: in.state, valid: false }
+        return {
+            state: in.state,
+            valid: false
+        }
     }
 
-    const restoration = schedule({ state: in.state, frame: { phase: Phase.Restore, a: in.state.activity.changed_symbols.length, b: in.state.refinement.facts.nonnull.length, c: in.state.refinement.facts.capture_errors.length } })
+    const restoration = schedule({
+        state: in.state,
+        frame: {
+            phase: Phase.Restore,
+            a: in.state.activity.changed_symbols.length,
+            b: in.state.refinement.facts.nonnull.length,
+            c: in.state.refinement.facts.capture_errors.length
+        }
+    })
+
     const cleared = clear(restoration.activity)
 
-    const activity = loop({ activity: cleared, expressions: expressions, first: first, count: count, index: 0 }, {
+    const activity = loop({
+        activity: cleared,
+        expressions: expressions,
+        first: first,
+        count: count,
+        index: 0
+    }, {
         while: current => current.index < current.count,
         next: current => {
-            current.activity = set({ activity: current.activity, symbol: integers.widen(current.expressions.task_captures[current.first + current.index]), value: true })
+            current.activity = set({
+                activity: current.activity,
+                symbol:
+                    integers.widen(
+                        current.expressions
+                            .task_captures[current.first +
+                                current.index]
+                    ),
+                value: true
+            })
             current.index += 1
         }
     }).activity
 
-    const captured: State = { ...restoration, activity: activity }
-    const state = schedule({ state: captured, frame: { phase: Phase.Expression, a: integers.widen(expressions.task_bodies[payload]), b: in.frame.b + 1, c: in.frame.c == 1 || in.frame.c == 3 ? 3 : 2 } })
+    const captured: State = {
+        ...restoration,
+        activity: activity
+    }
 
-    return { state: state, valid: true }
+    const state = schedule({
+        state: captured,
+        frame: {
+            phase: Phase.Expression,
+            a: integers.widen(expressions.task_bodies[payload]),
+            b: in.frame.b + 1,
+            c: in.frame.c == 1 || in.frame.c == 3 ? 3 : 2
+        }
+    })
+
+    return {
+        state: state,
+        valid: true
+    }
 }

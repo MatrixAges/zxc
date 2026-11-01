@@ -5,5 +5,10 @@ export type Input = Frame
 export type Output = Frame
 
 export default function (in: Input): Output {
-  return { start: in.start, text_start: in.text_start, head: in.head, count: in.count }
+    return {
+        start: in.start,
+        text_start: in.text_start,
+        head: in.head,
+        count: in.count
+    }
 }

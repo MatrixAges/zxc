@@ -6,5 +6,20 @@ export type Input = Types
 export type Output = Request
 
 export default function (in: Input): Output {
-    return { context: in.context, delta: in.delta, cache: in.cache, initialize: true, named: false, name: { text: "", start: 0, end: 0 }, reference: { enumeration: false, index: 0 } }
+    return {
+        context: in.context,
+        delta: in.delta,
+        cache: in.cache,
+        initialize: true,
+        named: false,
+        name: {
+            text: "",
+            start: 0,
+            end: 0
+        },
+        reference: {
+            enumeration: false,
+            index: 0
+        }
+    }
 }

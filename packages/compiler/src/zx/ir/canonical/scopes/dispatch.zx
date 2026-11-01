@@ -22,30 +22,90 @@ export default function (in: Input): Output {
     const state = in.state
 
     if (frame.phase == Phase.Restore) {
-        const activity = restoreActivity({ activity: state.activity, mark: frame.a })
-        const facts = restoreFacts({ facts: state.refinement.facts, mark: { nonnull: frame.b, captures: frame.c } })
+        const activity = restoreActivity({
+            activity: state.activity,
+            mark: frame.a
+        })
 
-        return { state: { ...state, activity: activity, refinement: { ...state.refinement, facts: facts } }, valid: true }
+        const facts = restoreFacts({
+            facts: state.refinement.facts,
+            mark: {
+                nonnull: frame.b,
+                captures: frame.c
+            }
+        })
+
+        return {
+            state: {
+                ...state,
+                activity: activity,
+                refinement: {
+                    ...state.refinement,
+                    facts: facts
+                }
+            },
+            valid: true
+        }
     }
 
     if (frame.phase == Phase.RestoreFacts) {
-        const facts = restoreFacts({ facts: state.refinement.facts, mark: { nonnull: frame.a, captures: frame.b } })
+        const facts = restoreFacts({
+            facts: state.refinement.facts,
+            mark: {
+                nonnull: frame.a,
+                captures: frame.b
+            }
+        })
 
-        return { state: { ...state, refinement: { ...state.refinement, facts: facts } }, valid: true }
+        return {
+            state: {
+                ...state,
+                refinement: {
+                    ...state.refinement,
+                    facts: facts
+                }
+            },
+            valid: true
+        }
     }
 
     if (frame.phase == Phase.Assume) {
-        const refinement = assume({ state: state.refinement, expressions: program.body.expressions, condition: frame.a, truth: frame.b != 0 })
+        const refinement = assume({
+            state: state.refinement,
+            expressions: program.body.expressions,
+            condition: frame.a,
+            truth: frame.b != 0
+        })
 
-        return { state: { ...state, refinement: refinement }, valid: true }
+        return {
+            state: {
+                ...state,
+                refinement: refinement
+            },
+            valid: true
+        }
     }
 
     return match frame.phase {
         Phase.Block => block(in),
         Phase.BlockNext => block(in),
         Phase.Expression => expression(in),
-        Phase.Declare => declare({ program: program, state: state, symbol: frame.a, type_id: program.body.expressions.types[frame.b], owner: 0, mode: Declaration.Ordinary }),
-        Phase.ScopeDeclare => declare({ program: program, state: state, symbol: frame.a, type_id: 0, owner: frame.b, mode: Declaration.Scope }),
+        Phase.Declare => declare({
+            program: program,
+            state: state,
+            symbol: frame.a,
+            type_id: program.body.expressions.types[frame.b],
+            owner: 0,
+            mode: Declaration.Ordinary
+        }),
+        Phase.ScopeDeclare => declare({
+            program: program,
+            state: state,
+            symbol: frame.a,
+            type_id: 0,
+            owner: frame.b,
+            mode: Declaration.Scope
+        }),
         Phase.Destructure => destructure(in),
         Phase.Branch => branch(in),
         Phase.BranchPost => branch(in),
@@ -53,6 +113,9 @@ export default function (in: Input): Output {
         Phase.IterationCondition => callback(in),
         Phase.IterationBody => callback(in),
         Phase.Transform => callback(in),
-        _ => { state: state, valid: false }
+        _ => {
+            state: state,
+            valid: false
+        }
     }
 }

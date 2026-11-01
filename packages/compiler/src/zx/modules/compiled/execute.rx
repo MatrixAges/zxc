@@ -3,7 +3,13 @@
 
     <Args in={Model.Input} out={Model.Result} />
 
-    <Call module="destination" in={{ seed: $in.seed, destination: $in.destination }} />
+    <Call
+        module="destination"
+        in={{
+            seed: $in.seed,
+            destination: $in.destination
+        }}
+    />
 
     <Switch on={$ctx.destination}>
         <Case value={false}>
@@ -13,7 +19,14 @@
         </Case>
     </Switch>
 
-    <Call fn="identity/valid" in={{ instance: $in.instance, artifact: $in.artifact, load: $in.load }} />
+    <Call
+        fn="identity/valid"
+        in={{
+            instance: $in.instance,
+            artifact: $in.artifact,
+            load: $in.load
+        }}
+    />
 
     <Switch on={$ctx.valid}>
         <Case value={false}>

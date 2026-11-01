@@ -4,19 +4,48 @@ import { TargetKind } from "../dependencies/model"
 import includeNative from "./native_include"
 
 import type { Modules } from "core/native_module_table/model"
-import type { Request, State } from "../../../analysis/semantic/extracting/planning/model"
+import type {
+    Request,
+    State
+} from "../../../analysis/semantic/extracting/planning/model"
 import type { Dependencies, NativePlan } from "./model"
 
-export type Input = { request: Request, state: State, modules: Modules, natives: NativePlan, dependencies: Dependencies }
+export type Input = {
+    request: Request,
+    state: State,
+    modules: Modules,
+    natives: NativePlan,
+    dependencies: Dependencies
+}
 
-export type Output = { state: State, natives: NativePlan }
+export type Output = {
+    state: State,
+    natives: NativePlan
+}
 
 export default function (in: Input): Output {
-    const result = loop({ request: in.request, plan: in.state, modules: in.modules, natives: in.natives, dependencies: in.dependencies, index: 0, module: 0, found: false }, {
-        while: current => current.plan.status == Status.Ready && current.index < current.dependencies.kinds.length,
+    const result = loop({
+        request: in.request,
+        plan: in.state,
+        modules: in.modules,
+        natives: in.natives,
+        dependencies: in.dependencies,
+        index: 0,
+        module: 0,
+        found: false
+    }, {
+        while: current =>
+            current.plan.status == Status.Ready &&
+            current.index < current.dependencies.kinds.length,
         next: current => {
-            if (current.dependencies.kinds[current.index] != TargetKind.Native || current.module >= current.modules.specifiers.length) {
-                if (current.dependencies.kinds[current.index] == TargetKind.Native && !current.found) {
+            if (
+                current.dependencies.kinds[current.index] != TargetKind.Native ||
+                    current.module >= current.modules.specifiers.length
+            ) {
+                if (
+                    current.dependencies.kinds[current.index] == TargetKind.Native &&
+                        !current.found
+                ) {
                     current.plan.status = Status.Invalid
                 }
 
@@ -24,8 +53,17 @@ export default function (in: Input): Output {
                 current.module = 0
                 current.found = false
             } else {
-                if (key({ modules: current.modules, index: current.module }) == current.dependencies.keys[current.index]) {
-                    const included = includeNative({ request: current.request, state: current.plan, modules: current.modules, natives: current.natives, index: current.module })
+                if (key({
+                    modules: current.modules,
+                    index: current.module
+                }) == current.dependencies.keys[current.index]) {
+                    const included = includeNative({
+                        request: current.request,
+                        state: current.plan,
+                        modules: current.modules,
+                        natives: current.natives,
+                        index: current.module
+                    })
 
                     current.plan = included.state
                     current.natives = included.natives
@@ -37,5 +75,8 @@ export default function (in: Input): Output {
         }
     })
 
-    return { state: result.plan, natives: result.natives }
+    return {
+        state: result.plan,
+        natives: result.natives
+    }
 }

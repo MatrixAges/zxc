@@ -4,12 +4,33 @@ import type { Control } from "../control_table/model"
 import type { Expressions } from "../expression_table/model"
 import type { State, Source } from "./model"
 
-export type Input = { state: State, expressions: Expressions, control: Control }
+export type Input = {
+    state: State,
+    expressions: Expressions,
+    control: Control
+}
 
-export type Output = { state: State, source: u64 }
+export type Output = {
+    state: State,
+    source: u64
+}
 
 export default function (in: Input): Output {
-    const source: Source = { expressions: in.expressions, control: in.control, returns: terminates(in.control), visited: { slots: [], count: 0 } }
+    const source: Source = {
+        expressions: in.expressions,
+        control: in.control,
+        returns: terminates(in.control),
+        visited: {
+            slots: [],
+            count: 0
+        }
+    }
 
-    return { state: { ...in.state, sources: in.state.sources.push(source)[0] }, source: in.state.sources.length }
+    return {
+        state: {
+            ...in.state,
+            sources: in.state.sources.push(source)[0]
+        },
+        source: in.state.sources.length
+    }
 }

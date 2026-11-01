@@ -7,69 +7,86 @@
 
     <Switch on={$ctx.prepare.state.diagnostic.message != ""}>
         <Case value={true}>
-            <Return value={{
-                name: $ctx.prepare.name,
-                types: $in.types,
-                value: null,
-                diagnostic: $ctx.prepare.state.diagnostic
-            }} />
+            <Return
+                value={{
+                    name: $ctx.prepare.name,
+                    types: $in.types,
+                    value: null,
+                    diagnostic: $ctx.prepare.state.diagnostic
+                }}
+            />
         </Case>
     </Switch>
 
-    <Call fn="../../../analyzer/types/annotation" in={{
-        state: $ctx.prepare.state,
-        reference: $ctx.prepare.reference
-    }} />
+    <Call
+        fn="../../../analyzer/types/annotation"
+        in={{
+            state: $ctx.prepare.state,
+            reference: $ctx.prepare.reference
+        }}
+    />
 
     <Switch on={$ctx.annotation.state.diagnostic.message != ""}>
         <Case value={true}>
-            <Return value={{
-                name: $ctx.prepare.name,
-                types: {
-                    ...$ctx.annotation.state.types,
-                    context: $in.types.context
-                },
-                value: null,
-                diagnostic: $ctx.annotation.state.diagnostic
-            }} />
+            <Return
+                value={{
+                    name: $ctx.prepare.name,
+                    types: {
+                        ...$ctx.annotation.state.types,
+                        context: $in.types.context
+                    },
+                    value: null,
+                    diagnostic: $ctx.annotation.state.diagnostic
+                }}
+            />
         </Case>
     </Switch>
 
-    <Call fn="request" in={{
-        item: $in,
-        state: $ctx.annotation.state,
-        expected: $ctx.annotation.id
-    }} />
+    <Call
+        fn="request"
+        in={{
+            item: $in,
+            state: $ctx.annotation.state,
+            expected: $ctx.annotation.id
+        }}
+    />
 
     <Call fn="../../../analyzer/expressions/traversal/initial" in={$ctx.request} />
     <Call fn="../../../analyzer/expressions/traversal/advance" in={$ctx.initial} />
 
     <Switch on={$ctx.advance.state.diagnostic.message != ""}>
         <Case value={true}>
-            <Return value={{
-                name: $ctx.prepare.name,
-                types: {
-                    ...$ctx.advance.state.types,
-                    context: $in.types.context
-                },
-                value: null,
-                diagnostic: $ctx.advance.state.diagnostic
-            }} />
+            <Return
+                value={{
+                    name: $ctx.prepare.name,
+                    types: {
+                        ...$ctx.advance.state.types,
+                        context: $in.types.context
+                    },
+                    value: null,
+                    diagnostic: $ctx.advance.state.diagnostic
+                }}
+            />
         </Case>
     </Switch>
 
-    <Call module="../../evaluate" in={{
-        expressions: $ctx.advance.state.local.expressions,
-        root: $ctx.advance.value
-    }} />
+    <Call
+        module="../../evaluate"
+        in={{
+            expressions: $ctx.advance.state.local.expressions,
+            root: $ctx.advance.value
+        }}
+    />
 
-    <Return value={{
-        name: $ctx.prepare.name,
-        types: {
-            ...$ctx.advance.state.types,
-            context: $in.types.context
-        },
-        value: $ctx.evaluate.value,
-        diagnostic: $ctx.evaluate.diagnostic
-    }} />
+    <Return
+        value={{
+            name: $ctx.prepare.name,
+            types: {
+                ...$ctx.advance.state.types,
+                context: $in.types.context
+            },
+            value: $ctx.evaluate.value,
+            diagnostic: $ctx.evaluate.diagnostic
+        }}
+    />
 </Module>

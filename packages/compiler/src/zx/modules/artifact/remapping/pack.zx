@@ -1,6 +1,12 @@
-export type Input = { types: u32[]?, functions: u32[]? }
+export type Input = {
+    types: u32[]?,
+    functions: u32[]?
+}
 
-export type Output = { types: u32[], functions: u32[] }?
+export type Output = {
+    types: u32[],
+    functions: u32[]
+}?
 
     export default function (in: Input): Output {
         const types = in.types
@@ -10,5 +16,8 @@ export type Output = { types: u32[], functions: u32[] }?
             return null
         }
 
-        return { types: types, functions: functions }
+        return {
+            types: types,
+            functions: functions
+        }
     }

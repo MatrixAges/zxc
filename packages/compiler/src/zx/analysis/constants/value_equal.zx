@@ -19,8 +19,12 @@ export default function (in: Input): Output {
     }
 
     return match left.kind {
-        ExpressionKind.Integer => left.integer == right.integer && left.negative == right.negative,
-        ExpressionKind.Float => floats.bits(left.floating) == floats.bits(right.floating),
+        ExpressionKind.Integer =>
+            left.integer == right.integer && left.negative == right.negative,
+        ExpressionKind.Float =>
+            floats.bits(left.floating) == floats.bits(
+                right.floating
+            ),
         ExpressionKind.String => left.text == right.text,
         ExpressionKind.Boolean => left.boolean == right.boolean,
         ExpressionKind.EnumValue => left.enumeration == right.enumeration,

@@ -6,13 +6,20 @@ import kind from "../types/kind"
 import type { Table } from "core/type_table/model"
 import type { Candidate } from "../types/model"
 
-export type Input = { source: Table, index: u64, references: u32[] }
+export type Input = {
+    source: Table,
+    index: u64,
+    references: u32[]
+}
 
 export type Output = Candidate
 
 export default function (in: Input): Output {
     const type_kind = kind(in.source.kinds[in.index])
-    const single = type_kind == Kind.Optional || type_kind == Kind.List || type_kind == Kind.Task
+
+    const single =
+        type_kind == Kind.Optional || type_kind == Kind.List || type_kind == Kind.Task
+
     const first = integers.widen(in.source.first[in.index])
     const count = integers.widen(in.source.second[in.index])
 
@@ -22,7 +29,23 @@ export default function (in: Input): Output {
         second: type_kind == Kind.Task ? in.references[1] : 0,
         label: in.source.labels[in.index],
         children: type_kind == Kind.Tuple ? in.references : [],
-        fields: { names: type_kind == Kind.Object ? in.source.field_names.splice(first, count, [])[1] : [], types: type_kind == Kind.Object ? in.references : [] },
-        names: type_kind == Kind.Enumeration || type_kind == Kind.ErrorSet ? in.source.names.splice(first, count, [])[1] : []
+        fields: {
+            names:
+                type_kind ==
+                Kind.Object ? in.source.field_names.splice(
+                    first,
+                    count,
+                    []
+                )[1] : [],
+            types: type_kind == Kind.Object ? in.references : []
+        },
+        names:
+            type_kind == Kind.Enumeration ||
+            type_kind ==
+            Kind.ErrorSet ? in.source.names.splice(
+                first,
+                count,
+                []
+            )[1] : []
     }
 }

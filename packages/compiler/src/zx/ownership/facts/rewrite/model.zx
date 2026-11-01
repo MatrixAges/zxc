@@ -1,3 +1,8 @@
 export enum RewriteAction { Join, Read, Borrow, Freeze, ReleaseAllLoans, ReleaseNewLoans }
 
-export type Cache = { left: u64[], right: u64[], values: u64[], slots: u64[] }
+export type Cache = {
+    left: u64[],
+    right: u64[],
+    values: u64[],
+    slots: u64[]
+}

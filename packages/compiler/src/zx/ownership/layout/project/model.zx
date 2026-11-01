@@ -1,7 +1,17 @@
 import type { Program } from "../../ir/input_model"
 import type { Cached } from "../model"
 
-export enum Phase { Expression, AncestorStart, Ancestor, Root, Path, Ensure, Grow, Clear, Rehash }
+export enum Phase {
+    Expression,
+    AncestorStart,
+    Ancestor,
+    Root,
+    Path,
+    Ensure,
+    Grow,
+    Clear,
+    Rehash
+}
 
 export type Session = {
     program: Program,

@@ -1,0 +1,170 @@
+import {
+    comma,
+    print_width,
+    indent_width,
+    no_operator,
+    access_dot,
+    open_call,
+    open_list,
+    keyword_case,
+    keyword_default
+} from "./const"
+import operatorPriority from "./operator"
+import segmentWidth from "./segment_width"
+
+import type { Break, Plan } from "./model"
+
+export type Input = Plan
+
+export type Output = Break[]
+
+export default function (in: Input): Output {
+    const breaks: Break[] = []
+    const levels: u64[] = []
+    const continuations: u64?[] = []
+    const continuation: u64? = null
+
+    return loop({
+        plan: in,
+        breaks: breaks,
+        levels: levels,
+        continuations: continuations,
+        level: in.graph.input.level,
+        continuation: continuation,
+        previous_priority: no_operator,
+        pending: false,
+        column: in.graph.input.level * indent_width + in.graph.input.prefix,
+        index: 0
+    }, {
+        while: current => current.index < current.plan.graph.input.tokens.length,
+        next: current => {
+            const graph = current.plan.graph
+            const token = graph.input.tokens[current.index]
+            const parent = graph.owners[current.index]
+            const partner = graph.partners[current.index]
+            const closing = partner != null && partner < current.index
+            const opening = partner != null && partner > current.index
+            const layout = !graph.input.indent_only
+            const after_open =
+                layout && parent != null && parent + 1 == current.index &&
+                current.plan.wraps[parent]
+            const previous_separator =
+                current.index != 0 &&
+                (
+                    graph.input.tokens[current.index - 1].text == comma ||
+                        graph.input.tokens[current.index - 1].separator
+                )
+            const after_comma =
+                layout && previous_separator && parent != null &&
+                current.plan.wraps[parent]
+            const before_close =
+                layout && closing && partner != null && current.plan.wraps[partner]
+            const width = graph.input.width == 0 ? print_width : graph.input.width
+            const limit = width > graph.input.suffix ? width - graph.input.suffix : 0
+            const previous_operator = current.previous_priority != no_operator
+            const segment = layout && previous_operator ? segmentWidth({
+                graph: graph,
+                index: current.index,
+                priority: current.previous_priority
+            }) : 0
+            const overflow =
+                layout && previous_operator && !token.newline &&
+                current.column + segment > limit
+            const chain = token.text == access_dot
+            const next = current.index + 1
+            const following = current.index + 2
+            const member = next < graph.input.tokens.length ?
+                graph.input.tokens[next].text.length : 0
+            const bracket =
+                following < graph.input.tokens.length &&
+                (
+                    graph.input.tokens[following].text == open_call ||
+                        graph.input.tokens[following].text == open_list
+                )
+            const index_end = bracket ? graph.partners[following] : null
+            const indexed =
+                layout && index_end != null && graph.input.tokens[following].block
+            const index_width = indexed && index_end != null ?
+                graph.widths[index_end] - graph.widths[following] +
+                graph.input.tokens[index_end].text.length : 0
+            const head = token.text.length + member + (bracket ? 1 : 0) + index_width
+            const chain_overflow =
+                layout && chain && !token.newline && current.column + head > limit
+            const needed =
+                current.pending || after_open || after_comma || before_close ||
+                overflow || chain_overflow
+            const inline_comment = token.comment && !token.newline
+            const line = token.newline || (needed && !inline_comment)
+            const selection =
+                parent != null &&
+                (token.text == keyword_case || token.text == keyword_default)
+
+            if (current.index == 0 || line) {
+                const parent_level = parent != null ? current.levels[parent] + 1 :
+                    graph.input.level
+                const selected =
+                    parent != null && graph.selections[parent] && !selection
+                const selected_base = parent_level + (selected ? 1 : 0)
+                const base = closing && partner != null ? current.levels[partner] :
+                    selected_base
+
+                if ((previous_operator || chain) && !closing && !selection) {
+                    const resumed = current.continuation ?? current.level + 1
+
+                    current.continuation = resumed
+                    current.level = base > resumed ? base : resumed
+                } else {
+                    current.continuation = closing && partner != null ?
+                        current.continuations[partner] : null
+                    current.level = base
+                }
+
+                if (line) {
+                    current.column = current.level * indent_width
+                }
+            }
+
+            current.levels = current.levels.push(current.level)[0]
+            current.continuations =
+                current.continuations.push(current.continuation)[0]
+
+            if (
+                layout && opening && partner != null && partner > current.index + 1 &&
+                    !token.block
+            ) {
+                const children =
+                    graph.vertical_counts[partner] >
+                    graph.vertical_counts[current.index]
+                const tail = partner + 1 < graph.trailers.length ?
+                    graph.trailers[partner + 1] : 0
+                const size =
+                    graph.widths[partner] - graph.widths[current.index] +
+                    graph.input.tokens[partner].text.length
+
+                if (
+                    token.object ||
+                        !children && current.column + token.gap + size + tail > limit
+                ) {
+                    current.plan.wraps[current.index] = true
+                }
+            }
+
+            if (line || current.index == 0 && graph.input.prefix == 0) {
+                current.breaks = current.breaks.push({
+                    index: current.index,
+                    level: current.level,
+                    count: current.level * indent_width
+                })[0]
+            }
+
+            current.column += token.text.length + (line ? 0 : token.gap)
+            current.pending = needed && inline_comment
+
+            if (!token.comment) {
+                current.previous_priority = operatorPriority(token.text)
+            }
+
+            current.index += 1
+        }
+    }).breaks
+}

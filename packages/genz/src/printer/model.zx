@@ -14,9 +14,56 @@ export type Source = {
     count: u32
 }
 
-export enum Action { Text, Identifier, BindingIdentifier, Quoted, Integer, Expression, Statement, Block, Declaration, Field, Parameter, ObjectField, Arm, Indent, Enter, Leave }
+export enum Action {
+    Text,
+    Identifier,
+    BindingIdentifier,
+    Quoted,
+    Integer,
+    Expression,
+    Statement,
+    Block,
+    Declaration,
+    Field,
+    Parameter,
+    ObjectField,
+    Arm,
+    Indent,
+    Enter,
+    Leave
+}
 
-export enum ByteSource { None, ExpressionIdentifier, ExpressionString, EnumLiteral, ErrorValue, FieldName, BlockLabel, CatchCapture, CatchLabel, CatchScopeCapture, ConditionalCapture, ConditionalErrorCapture, EnumMember, ErrorMember, ErrorUnionMember, MemberName, ArmCapture, StatementConstant, StatementVariable, DeclarationConstant, DeclarationVariable, DeclarationField, FunctionName, ForCapture, ForIndexCapture, WhileCapture, BranchCapture, BranchErrorCapture, BreakLabel }
+export enum ByteSource {
+    None,
+    ExpressionIdentifier,
+    ExpressionString,
+    EnumLiteral,
+    ErrorValue,
+    FieldName,
+    BlockLabel,
+    CatchCapture,
+    CatchLabel,
+    CatchScopeCapture,
+    ConditionalCapture,
+    ConditionalErrorCapture,
+    EnumMember,
+    ErrorMember,
+    ErrorUnionMember,
+    MemberName,
+    ArmCapture,
+    StatementConstant,
+    StatementVariable,
+    DeclarationConstant,
+    DeclarationVariable,
+    DeclarationField,
+    FunctionName,
+    ForCapture,
+    ForIndexCapture,
+    WhileCapture,
+    BranchCapture,
+    BranchErrorCapture,
+    BreakLabel
+}
 
 export type Frame = {
     action: Action
@@ -35,4 +82,7 @@ export type State = {
     depth: u32
 }
 
-export type Step = { source: Source, frame: Frame }
+export type Step = {
+    source: Source,
+    frame: Frame
+}

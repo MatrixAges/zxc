@@ -17,11 +17,18 @@ export type Output = bool
 export default function (in: Input): Output {
     const expressions = in.context.expressions
 
-    if (in.kind == ExpressionKind.Integer || in.kind == ExpressionKind.NegativeInteger) {
+    if (
+        in.kind == ExpressionKind.Integer || in.kind == ExpressionKind.NegativeInteger
+    ) {
         const number = numeric(in.type_id)
         const negative = in.kind == ExpressionKind.NegativeInteger
 
-        if ((number != Numeric.Integer && number != Numeric.Signed) || (negative && number != Numeric.Signed)) {
+        if (
+            (number != Numeric.Integer && number != Numeric.Signed) ||
+                (
+                    negative && number != Numeric.Signed
+                )
+        ) {
             return false
         }
 
@@ -30,7 +37,8 @@ export default function (in: Input): Output {
             negative: negative
         })
 
-        const magnitude = negative ? expressions.negative_integers[in.payload] : expressions.integers[in.payload]
+        const magnitude = negative ? expressions.negative_integers[in.payload] :
+            expressions.integers[in.payload]
 
         return magnitude <= maximum
     }
@@ -38,19 +46,29 @@ export default function (in: Input): Output {
     if (in.kind == ExpressionKind.Float) {
         const value = expressions.floats[in.payload]
 
-        return numeric(in.type_id) == Numeric.Float && floats.isFinite(value) && (in.type_id != type_id_f32 || floats.widen(floats.narrow(value)) == value)
+        return numeric(in.type_id) == Numeric.Float && floats.isFinite(value) &&
+            (
+                in.type_id != type_id_f32 || floats.widen(
+                    floats.narrow(
+                        value
+                    )
+                ) == value
+            )
     }
 
     if (in.kind == ExpressionKind.StoreGet) {
         const slot = integers.widen(expressions.stores[in.payload])
 
-        return slot < in.context.stores.paths.length && in.context.stores.readable[slot] && in.context.stores.types[slot] == in.type_id
+        return slot < in.context.stores.paths.length &&
+            in.context.stores.readable[slot] &&
+            in.context.stores.types[slot] == in.type_id
     }
 
     if (in.kind == ExpressionKind.Reference) {
         const symbol = integers.widen(expressions.references[in.payload])
 
-        return symbol < in.context.symbols.names.length && in.context.symbols.types[symbol] == in.type_id
+        return symbol < in.context.symbols.names.length &&
+            in.context.symbols.types[symbol] == in.type_id
     }
 
     return match in.kind {
@@ -58,8 +76,18 @@ export default function (in: Input): Output {
         ExpressionKind.Boolean => in.type_id == type_id_bool,
         ExpressionKind.Unit => in.type_id == type_id_void,
         ExpressionKind.None => in.target == Kind.Optional,
-        ExpressionKind.EnumValue => in.target == Kind.Enumeration && expressions.enumerations[in.payload] < in.context.table.second[integers.widen(in.type_id)],
-        ExpressionKind.ErrorValue => in.target == Kind.ErrorSet && expressions.errors[in.payload] < in.context.table.second[integers.widen(in.type_id)],
+        ExpressionKind.EnumValue =>
+            in.target == Kind.Enumeration &&
+            expressions.enumerations[in.payload] <
+            in.context.table.second[integers.widen(
+                in.type_id
+            )],
+        ExpressionKind.ErrorValue =>
+            in.target == Kind.ErrorSet &&
+            expressions.errors[in.payload] <
+            in.context.table.second[integers.widen(
+                in.type_id
+            )],
         _ => false
     }
 }

@@ -14,7 +14,13 @@ export default function (in: Input): Output {
         return false
     }
 
-    return loop({ table: in.context.table, names: in.export_names, types: in.export_types, index: 0, valid: true }, {
+    return loop({
+        table: in.context.table,
+        names: in.export_names,
+        types: in.export_types,
+        index: 0,
+        valid: true
+    }, {
         while: current => current.valid && current.index < current.names.length,
         next: current => {
             const type_id = integers.widen(current.types[current.index])
@@ -26,7 +32,13 @@ export default function (in: Input): Output {
                 current.valid = kind(current.table.kinds[type_id]) != Kind.Task
             }
 
-            const duplicate = loop({ names: current.names, name: name, limit: current.index, index: 0, found: false }, {
+            const duplicate = loop({
+                names: current.names,
+                name: name,
+                limit: current.index,
+                index: 0,
+                found: false
+            }, {
                 while: prior => !prior.found && prior.index < prior.limit,
                 next: prior => {
                     prior.found = prior.names[prior.index] == prior.name

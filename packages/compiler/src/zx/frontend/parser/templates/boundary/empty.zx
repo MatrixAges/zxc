@@ -7,12 +7,22 @@ export type Input = Diagnostic
 export type Output = Boundary
 
 export default function (in: Input): Output {
-  const tokens: Token[] = []
-  const comments: Span[] = []
-  const templates: Template[] = []
-  const parts: Part[] = []
-  const events: Event[] = []
-  const token_templates: u64[] = []
+    const tokens: Token[] = []
+    const comments: Span[] = []
+    const templates: Template[] = []
+    const parts: Part[] = []
+    const events: Event[] = []
+    const token_templates: u64[] = []
 
-  return { lexed: { tokens: tokens, comments: comments, diagnostic: in }, templates: templates, parts: parts, events: events, token_templates: token_templates }
+    return {
+        lexed: {
+            tokens: tokens,
+            comments: comments,
+            diagnostic: in
+        },
+        templates: templates,
+        parts: parts,
+        events: events,
+        token_templates: token_templates
+    }
 }

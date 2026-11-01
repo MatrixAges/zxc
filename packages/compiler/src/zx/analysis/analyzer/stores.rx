@@ -3,19 +3,45 @@
     <Type from="./signature/model" as="Model" />
     <Type from="./stores/authorize" as="Authorize" />
 
-    <Args in={{ context: Context.Context, has_store: bool, signature: Model.Signature }} out={Authorize.Output} />
+    <Args
+        in={{
+            context: Context.Context,
+            has_store: bool,
+            signature: Model.Signature
+        }}
+        out={Authorize.Output}
+    />
 
-    <Call fn="stores/resolve" in={{ context: $in.context, signature: $in.signature }} />
+    <Call
+        fn="stores/resolve"
+        in={{
+            context: $in.context,
+            signature: $in.signature
+        }}
+    />
 
     <Switch on={$ctx.resolve.diagnostic.message == ""}>
         <Case value={true}>
-            <Call fn="stores/authorize" in={{ stores: $ctx.resolve.stores, has_store: $in.has_store, span: $in.signature.span }} />
+            <Call
+                fn="stores/authorize"
+                in={{
+                    stores: $ctx.resolve.stores,
+                    has_store: $in.has_store,
+                    span: $in.signature.span
+                }}
+            />
 
             <Return value={$ctx.authorize} />
         </Case>
 
         <Default>
-            <Return value={{ stores: $ctx.resolve.stores, allow_store: false, diagnostic: $ctx.resolve.diagnostic }} />
+            <Return
+                value={{
+                    stores: $ctx.resolve.stores,
+                    allow_store: false,
+                    diagnostic: $ctx.resolve.diagnostic
+                }}
+            />
         </Default>
     </Switch>
 </Module>

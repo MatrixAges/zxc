@@ -4,10 +4,19 @@ import unique from "./unique"
 import type { Table } from "core/type_table/model"
 import type { Bindings } from "core/type_table/nominal"
 
-export type Input = { table: Table, origins: Bindings, names: string[], index: u64 }
+export type Input = {
+    table: Table,
+    origins: Bindings,
+    names: string[],
+    index: u64
+}
 
 export type Output = bool
 
 export default function (in: Input): Output {
-    return binding(in) && unique({ origins: in.origins, names: in.names, index: in.index })
+    return binding(in) && unique({
+        origins: in.origins,
+        names: in.names,
+        index: in.index
+    })
 }

@@ -18,10 +18,32 @@ export default function (in: Input): Output {
     }
 
     const tuple = frame.tuple
-    const tables = { base: in.state.types.context.base, delta: in.state.types.delta }
-    const target = row({ tables: tables, id: tuple ?? 0 })
-    const table = target.delta ? tables.delta : tables.base
-    const expected = tuple == null ? frame.element : table.children[integers.widen(target.first) + frame.index]
 
-    return { ...in, node: frame.items[frame.index], expected: expected, phase: Phase.Evaluate, frames: { ...in.frames, actions: in.frames.actions.push(Action.Sequence)[0] } }
+    const tables = {
+        base: in.state.types.context.base,
+        delta: in.state.types.delta
+    }
+
+    const target = row({
+        tables: tables,
+        id: tuple ?? 0
+    })
+
+    const table = target.delta ? tables.delta : tables.base
+
+    const expected = tuple == null ? frame.element :
+        table.children[integers.widen(
+            target.first
+        ) + frame.index]
+
+    return {
+        ...in,
+        node: frame.items[frame.index],
+        expected: expected,
+        phase: Phase.Evaluate,
+        frames: {
+            ...in.frames,
+            actions: in.frames.actions.push(Action.Sequence)[0]
+        }
+    }
 }

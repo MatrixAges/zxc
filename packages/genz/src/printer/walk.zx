@@ -26,34 +26,70 @@ export default function (in: Input): Output {
 
             if (frame.action == Action.Text) {
                 current.output = current.output.concat(token(frame.token))[0]
-            } else if (frame.action == Action.Identifier || frame.action == Action.BindingIdentifier || frame.action == Action.Quoted) {
-                const bytes = source({ source: current.source, frame: frame })
+            } else if (
+                frame.action == Action.Identifier ||
+                    frame.action == Action.BindingIdentifier ||
+                    frame.action == Action.Quoted
+            ) {
+                const bytes = source({
+                    source: current.source,
+                    frame: frame
+                })
 
                 if (frame.action == Action.Quoted) {
-                    current.output = quoted({ output: current.output, bytes: bytes })
+                    current.output = quoted({
+                        output: current.output,
+                        bytes: bytes
+                    })
                 } else {
-                    const discard = frame.action == Action.BindingIdentifier && bytes.length == 1 && bytes[0] == 95
+                    const discard =
+                        frame.action == Action.BindingIdentifier &&
+                        bytes.length == 1 && bytes[0] == 95
 
-                    current.output = discard || identifier(bytes) ? current.output.concat(bytes)[0] : quoted({ output: current.output.push(64)[0], bytes: bytes })
+                    current.output =
+                        discard ||
+                        identifier(bytes) ? current.output.concat(
+                            bytes
+                        )[0] : quoted({
+                            output: current.output.push(64)[0],
+                            bytes: bytes
+                        })
                 }
             } else if (frame.action == Action.Integer) {
-                current.output = integer({ output: current.output, value: frame.number })
+                current.output = integer({
+                    output: current.output,
+                    value: frame.number
+                })
             } else if (frame.action == Action.Enter) {
                 current.depth += 1
             } else if (frame.action == Action.Leave) {
                 current.depth -= 1
             } else if (frame.action == Action.Indent) {
-                const indented = loop({ output: current.output, remaining: current.depth }, {
+                const indented = loop({
+                    output: current.output,
+                    remaining: current.depth
+                }, {
                     while: indentation => indentation.remaining != 0,
                     next: indentation => {
-                        indentation.output = indentation.output.concat([32, 32, 32, 32])[0]
+                        indentation.output =
+                            indentation.output.concat(
+                                [
+                                    32,
+                                    32,
+                                    32,
+                                    32
+                                ]
+                            )[0]
                         indentation.remaining -= 1
                     }
                 })
 
                 current.output = indented.output
             } else {
-                const step = { source: current.source, frame: frame }
+                const step = {
+                    source: current.source,
+                    frame: frame
+                }
                 const frames = match frame.action {
                     Action.Expression => expression(step),
                     Action.Statement => statement(step),
@@ -61,11 +97,18 @@ export default function (in: Input): Output {
                     Action.Block => block(step),
                     _ => member(step),
                 }
-                const expanded = loop({ stack: current.stack, remaining: frames.length, frames: frames }, {
+                const expanded = loop({
+                    stack: current.stack,
+                    remaining: frames.length,
+                    frames: frames
+                }, {
                     while: pending => pending.remaining != 0,
                     next: pending => {
                         pending.remaining -= 1
-                        pending.stack = pending.stack.push(pending.frames[pending.remaining])[0]
+                        pending.stack =
+                            pending.stack.push(
+                                pending.frames[pending.remaining]
+                            )[0]
                     }
                 })
 

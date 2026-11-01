@@ -22,65 +22,267 @@ export type Output = Machine
 
 export default function (in: Input): Output {
     return loop(in, {
-        while: current => current.active && current.complete && !current.failed && current.work.actions.length != 0 && family(current.work.actions[current.work.actions.length - 1]) == Family.Collections,
+        while: current =>
+            current.active && current.complete && !current.failed &&
+            current.work.actions.length != 0 &&
+            family(
+                current.work.actions[current.work.actions.length - 1]
+            ) == Family.Collections,
         next: current => {
             const frame = top(current.work)
 
             current.work = pop(current.work)
 
             if (frame.action == WorkAction.CollectionTarget) {
-                const collection = integers.widen(current.program.expressions.payloads[frame.subject])
-                const type_id = integers.widen(current.program.expressions.types[integers.widen(current.program.expressions.collection_targets[collection])])
-                const element = integers.widen(row({ tables: current.program.types, id: integers.narrow(type_id) }).first)
-                const shares = current.program.expressions.collection_kinds[collection] == CollectionKind.Pop || current.program.expressions.collection_kinds[collection] == CollectionKind.Splice || current.references[element]
-                const borrowed = shares && (summary({ forest: current.memory.forest, fact: current.value }) == State.Borrowed || summary({ forest: current.memory.forest, fact: current.value }) == State.Loaned)
+                const collection =
+                    integers.widen(
+                        current.program.expressions.payloads[frame.subject]
+                    )
+                const type_id =
+                    integers.widen(
+                        current.program.expressions
+                            .types[integers.widen(
+                                current.program.expressions
+                                    .collection_targets[collection]
+                            )]
+                    )
+                const element = integers.widen(row({
+                    tables: current.program.types,
+                    id: integers.narrow(type_id)
+                }).first)
+                const shares =
+                    current.program.expressions.collection_kinds[collection] ==
+                    CollectionKind.Pop ||
+                    current.program.expressions.collection_kinds[collection] ==
+                    CollectionKind.Splice || current.references[element]
+                const borrowed = shares && (summary({
+                    forest: current.memory.forest,
+                    fact: current.value
+                }) == State.Borrowed || summary({
+                    forest: current.memory.forest,
+                    fact: current.value
+                }) == State.Loaned)
 
-                current.values = current.values.push(uniform(borrowed ? State.Borrowed : State.Owned))[0]
-                current.work = push({ work: current.work, frame: { action: WorkAction.CollectionArgument, subject: frame.subject, moving: false, index: 0 } })
+                current.values =
+                    current.values.push(
+                        uniform(
+                            borrowed ? State.Borrowed : State.Owned
+                        )
+                    )[0]
+                current.work = push({
+                    work: current.work,
+                    frame: {
+                        action: WorkAction.CollectionArgument,
+                        subject: frame.subject,
+                        moving: false,
+                        index: 0
+                    }
+                })
             } else if (frame.action == WorkAction.CollectionArgument) {
-                const collection = integers.widen(current.program.expressions.payloads[frame.subject])
+                const collection =
+                    integers.widen(
+                        current.program.expressions.payloads[frame.subject]
+                    )
 
-                if (frame.index < integers.widen(current.program.expressions.collection_count[collection])) {
-                    current.work = push({ work: current.work, frame: { action: WorkAction.CollectionResult, subject: frame.subject, moving: false, index: frame.index } })
-                    current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.collection_arguments[integers.widen(current.program.expressions.collection_first[collection]) + frame.index]), moving: false, index: 0 } })
+                if (
+                    frame.index <
+                        integers.widen(
+                            current.program.expressions.collection_count[collection]
+                        )
+                ) {
+                    current.work = push({
+                        work: current.work,
+                        frame: {
+                            action: WorkAction.CollectionResult,
+                            subject: frame.subject,
+                            moving: false,
+                            index: frame.index
+                        }
+                    })
+                    current.work = push({
+                        work: current.work,
+                        frame: {
+                            action: WorkAction.Value,
+                            subject:
+                                integers.widen(
+                                    current.program.expressions
+                                        .collection_arguments[integers
+                                            .widen(
+                                                current.program.expressions
+                                                    .collection_first[collection]
+                                            ) + frame.index]
+                                ),
+                            moving: false,
+                            index: 0
+                        }
+                    })
                 } else {
                     current.value = current.values[current.values.length - 1]
                     current.values = current.values.pop()[0]
 
-                    if (summary({ forest: current.memory.forest, fact: current.value }) == State.Borrowed) {
-                        current.memory = borrow({ types: current.program.types, references: current.references, expressions: current.program.expressions, layout: current.layout, memory: current.memory, expression: integers.widen(current.program.expressions.collection_targets[collection]), permanent: true })
-                        current.work = push({ work: current.work, frame: { action: WorkAction.CollectionFreeze, subject: frame.subject, moving: false, index: 0 } })
+                    if (summary({
+                        forest: current.memory.forest,
+                        fact: current.value
+                    }) == State.Borrowed) {
+                        current.memory = borrow({
+                            types: current.program.types,
+                            references: current.references,
+                            expressions: current.program.expressions,
+                            layout: current.layout,
+                            memory: current.memory,
+                            expression:
+                                integers.widen(
+                                    current.program.expressions
+                                        .collection_targets[collection]
+                                ),
+                            permanent: true
+                        })
+                        current.work = push({
+                            work: current.work,
+                            frame: {
+                                action: WorkAction.CollectionFreeze,
+                                subject: frame.subject,
+                                moving: false,
+                                index: 0
+                            }
+                        })
                     }
                 }
             } else if (frame.action == WorkAction.CollectionResult) {
-                const collection = integers.widen(current.program.expressions.payloads[frame.subject])
-                const type_id = integers.widen(current.program.expressions.types[integers.widen(current.program.expressions.collection_targets[collection])])
-                const element = integers.widen(row({ tables: current.program.types, id: integers.narrow(type_id) }).first)
+                const collection =
+                    integers.widen(
+                        current.program.expressions.payloads[frame.subject]
+                    )
+                const type_id =
+                    integers.widen(
+                        current.program.expressions
+                            .types[integers.widen(
+                                current.program.expressions
+                                    .collection_targets[collection]
+                            )]
+                    )
+                const element = integers.widen(row({
+                    tables: current.program.types,
+                    id: integers.narrow(type_id)
+                }).first)
 
-                if (current.references[element] && (summary({ forest: current.memory.forest, fact: current.value }) == State.Borrowed || summary({ forest: current.memory.forest, fact: current.value }) == State.Loaned)) {
-                    current.values[current.values.length - 1] = uniform(State.Borrowed)
+                if (current.references[element] && (summary({
+                    forest: current.memory.forest,
+                    fact: current.value
+                }) == State.Borrowed || summary({
+                    forest: current.memory.forest,
+                    fact: current.value
+                }) == State.Loaned)) {
+                    current.values[current.values.length - 1] =
+                        uniform(
+                            State.Borrowed
+                        )
                 }
 
-                current.work = push({ work: current.work, frame: { action: WorkAction.CollectionArgument, subject: frame.subject, moving: false, index: frame.index + 1 } })
+                current.work = push({
+                    work: current.work,
+                    frame: {
+                        action: WorkAction.CollectionArgument,
+                        subject: frame.subject,
+                        moving: false,
+                        index: frame.index + 1
+                    }
+                })
             } else if (frame.action == WorkAction.CollectionFreeze) {
-                const arguments = { first: integers.widen(current.program.expressions.collection_first[integers.widen(current.program.expressions.payloads[frame.subject])]), count: integers.widen(current.program.expressions.collection_count[integers.widen(current.program.expressions.payloads[frame.subject])]) }
+                const arguments = {
+                    first:
+                        integers.widen(
+                            current.program.expressions
+                                .collection_first[integers.widen(
+                                    current.program.expressions.payloads[frame.subject]
+                                )]
+                        ),
+                    count:
+                        integers.widen(
+                            current.program.expressions
+                                .collection_count[integers.widen(
+                                    current.program.expressions.payloads[frame.subject]
+                                )]
+                        )
+                }
 
                 if (frame.index < arguments.count) {
-                    current.memory = borrow({ types: current.program.types, references: current.references, expressions: current.program.expressions, layout: current.layout, memory: current.memory, expression: integers.widen(current.program.expressions.collection_arguments[arguments.first + frame.index]), permanent: true })
-                    current.work = push({ work: current.work, frame: { action: WorkAction.CollectionFreeze, subject: frame.subject, moving: false, index: frame.index + 1 } })
+                    current.memory = borrow({
+                        types: current.program.types,
+                        references: current.references,
+                        expressions: current.program.expressions,
+                        layout: current.layout,
+                        memory: current.memory,
+                        expression:
+                            integers.widen(
+                                current.program.expressions
+                                    .collection_arguments[arguments
+                                        .first +
+                                        frame.index]
+                            ),
+                        permanent: true
+                    })
+                    current.work = push({
+                        work: current.work,
+                        frame: {
+                            action: WorkAction.CollectionFreeze,
+                            subject: frame.subject,
+                            moving: false,
+                            index: frame.index + 1
+                        }
+                    })
                 }
             } else if (frame.action == WorkAction.UpdateResult) {
-                const update = integers.widen(current.program.expressions.payloads[frame.subject])
-                const type_id = integers.widen(current.program.expressions.types[frame.subject])
-                const element = integers.widen(row({ tables: current.program.types, id: integers.narrow(type_id) }).first)
-                const borrowed = current.references[element] || summary({ forest: current.memory.forest, fact: current.value }) == State.Borrowed || summary({ forest: current.memory.forest, fact: current.value }) == State.Loaned
+                const update =
+                    integers.widen(
+                        current.program.expressions.payloads[frame.subject]
+                    )
+                const type_id =
+                    integers.widen(
+                        current.program.expressions.types[frame.subject]
+                    )
+                const element = integers.widen(row({
+                    tables: current.program.types,
+                    id: integers.narrow(type_id)
+                }).first)
+                const borrowed = current.references[element] || summary({
+                    forest: current.memory.forest,
+                    fact: current.value
+                }) == State.Borrowed || summary({
+                    forest: current.memory.forest,
+                    fact: current.value
+                }) == State.Loaned
 
                 if (borrowed) {
-                    current.memory = borrow({ types: current.program.types, references: current.references, expressions: current.program.expressions, layout: current.layout, memory: current.memory, expression: integers.widen(current.program.expressions.update_targets[update]), permanent: true })
-                    current.memory = borrow({ types: current.program.types, references: current.references, expressions: current.program.expressions, layout: current.layout, memory: current.memory, expression: integers.widen(current.program.expressions.update_values[update]), permanent: true })
+                    current.memory = borrow({
+                        types: current.program.types,
+                        references: current.references,
+                        expressions: current.program.expressions,
+                        layout: current.layout,
+                        memory: current.memory,
+                        expression:
+                            integers.widen(
+                                current.program.expressions.update_targets[update]
+                            ),
+                        permanent: true
+                    })
+                    current.memory = borrow({
+                        types: current.program.types,
+                        references: current.references,
+                        expressions: current.program.expressions,
+                        layout: current.layout,
+                        memory: current.memory,
+                        expression:
+                            integers.widen(
+                                current.program.expressions.update_values[update]
+                            ),
+                        permanent: true
+                    })
                 }
 
-                current.value = uniform(borrowed ? State.Borrowed : State.Owned)
+                current.value = uniform(
+                    borrowed ? State.Borrowed : State.Owned
+                )
             }
         }
     })

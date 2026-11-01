@@ -5,7 +5,14 @@ import capture from "./facts/capture"
 import type { Expressions } from "core/expression_table/model"
 import type { Facts } from "./facts/model"
 
-export type Input = { facts: Facts, expressions: Expressions, value: u64, count: u64, err: u32?, result: u32? }
+export type Input = {
+    facts: Facts,
+    expressions: Expressions,
+    value: u64,
+    count: u64,
+    err: u32?,
+    result: u32?
+}
 
 export type Output = Facts
 
@@ -13,8 +20,15 @@ export default function (in: Input): Output {
     const err = in.err
     const result = in.result
 
-    if (in.expressions.kinds[in.value] == ExpressionKind.Capture && in.count == 2 && err != null && result != null) {
-        return capture({ facts: in.facts, err: err, result: result })
+    if (
+        in.expressions.kinds[in.value] == ExpressionKind.Capture && in.count == 2 &&
+            err != null && result != null
+    ) {
+        return capture({
+            facts: in.facts,
+            err: err,
+            result: result
+        })
     }
 
     return in.facts

@@ -7,7 +7,10 @@ import { Operation } from "./model"
 
 import type { State, Frame } from "./model"
 
-export type Input = { state: State, frame: Frame }
+export type Input = {
+    state: State,
+    frame: Frame
+}
 
 export type Output = State
 
@@ -22,25 +25,105 @@ export default function (in: Input): Output {
     const payload = control.statement_payloads[in.frame.index]
 
     if (kind == StatementKind.StoreSet || kind == StatementKind.Parallel) {
-        return { ...in.state, unknown: true }
+        return {
+            ...in.state,
+            unknown: true
+        }
     }
 
-    const terminal = kind == StatementKind.Result || (kind == StatementKind.Branch && source.returns[integers.widen(control.branch_yes[integers.widen(payload)])] && source.returns[integers.widen(control.branch_no[integers.widen(payload)])]) || (kind == StatementKind.Switch && selectionReturns({ control: control, selection: integers.widen(payload), returns: source.returns }))
-    const frames = terminal || in.frame.count == 1 ? in.state.frames : in.state.frames.push({ ...in.frame, index: in.frame.index + 1, count: in.frame.count - 1 })[0]
+    const terminal =
+        kind == StatementKind.Result ||
+        (
+            kind == StatementKind.Branch &&
+                source
+                .returns[integers.widen(
+                    control.branch_yes[integers.widen(
+                        payload
+                    )]
+                )] &&
+                source
+                .returns[integers.widen(
+                    control.branch_no[integers.widen(
+                        payload
+                    )]
+                )]
+        ) || (kind == StatementKind.Switch && selectionReturns({
+            control: control,
+            selection: integers.widen(payload),
+            returns: source.returns
+        }))
+
+    const frames = terminal || in.frame.count == 1 ? in.state.frames :
+        in.state.frames.push({
+            ...in.frame,
+            index: in.frame.index + 1,
+            count: in.frame.count - 1
+        })[0]
 
     if (kind == StatementKind.Branch) {
         const yes = control.branch_yes[integers.widen(payload)]
         const no = control.branch_no[integers.widen(payload)]
 
-        const pending = frames.push({ operation: Operation.Block, source: in.frame.source, index: integers.widen(control.block_first[integers.widen(no)]), count: integers.widen(control.block_count[integers.widen(no)]) })[0]
-        .push({ operation: Operation.Block, source: in.frame.source, index: integers.widen(control.block_first[integers.widen(yes)]), count: integers.widen(control.block_count[integers.widen(yes)]) })[0]
-        .push({ operation: Operation.Expression, source: in.frame.source, index: integers.widen(control.branch_conditions[integers.widen(payload)]), count: 0 })[0]
+        const pending = frames.push({
+            operation: Operation.Block,
+            source: in.frame.source,
+            index: integers.widen(control.block_first[integers.widen(
+                no
+            )]),
+            count: integers.widen(
+                control.block_count[integers.widen(
+                    no
+                )]
+            )
+        })[0]
+            .push({
+                operation: Operation.Block,
+                source: in.frame.source,
+                index: integers.widen(control.block_first[integers.widen(
+                    yes
+                )]),
+                count: integers.widen(
+                    control.block_count[integers.widen(
+                        yes
+                    )]
+                )
+            })[0]
+            .push({
+                operation: Operation.Expression,
+                source: in.frame.source,
+                index:
+                    integers.widen(
+                        control.branch_conditions[integers.widen(
+                            payload
+                        )]
+                    ),
+                count: 0
+            })[0]
 
-        return { ...in.state, frames: pending }
+        return {
+            ...in.state,
+            frames: pending
+        }
     }
 
     if (kind == StatementKind.Switch) {
-        const pending = loop({ control: control, source: in.frame.source, first: integers.widen(control.selection_first[integers.widen(payload)]), index: integers.widen(control.selection_count[integers.widen(payload)]), frames: frames }, {
+        const pending = loop({
+            control: control,
+            source: in.frame.source,
+            first:
+                integers.widen(
+                    control.selection_first[integers.widen(
+                        payload
+                    )]
+                ),
+            index:
+                integers.widen(
+                    control.selection_count[integers.widen(
+                        payload
+                    )]
+                ),
+            frames: frames
+        }, {
             while: current => current.index > 0,
             next: current => {
                 current.index -= 1
@@ -49,27 +132,84 @@ export default function (in: Input): Output {
                 const body = current.control.case_bodies[position]
                 const value = current.control.case_values[position]
 
-                current.frames = current.frames.push({ operation: Operation.Block, source: current.source, index: integers.widen(current.control.block_first[integers.widen(body)]), count: integers.widen(current.control.block_count[integers.widen(body)]) })[0]
+                current.frames = current.frames.push({
+                    operation: Operation.Block,
+                    source: current.source,
+                    index:
+                        integers.widen(
+                            current.control.block_first[integers.widen(
+                                body
+                            )]
+                        ),
+                    count:
+                        integers.widen(
+                            current.control.block_count[integers.widen(
+                                body
+                            )]
+                        )
+                })[0]
 
                 if (value != null) {
-                    current.frames = current.frames.push({ operation: Operation.Expression, source: current.source, index: integers.widen(value), count: 0 })[0]
+                    current.frames = current.frames.push({
+                        operation: Operation.Expression,
+                        source: current.source,
+                        index: integers.widen(value),
+                        count: 0
+                    })[0]
                 }
             }
         }).frames
 
-        return { ...in.state, frames: pending.push({ operation: Operation.Expression, source: in.frame.source, index: integers.widen(control.selection_subjects[integers.widen(payload)]), count: 0 })[0] }
+        return {
+            ...in.state,
+            frames: pending.push({
+                operation: Operation.Expression,
+                source: in.frame.source,
+                index:
+                    integers.widen(
+                        control.selection_subjects[integers.widen(
+                            payload
+                        )]
+                    ),
+                count: 0
+            })[0]
+        }
     }
 
     const value: u32? = match kind {
         StatementKind.Evaluate => control.evaluations[integers.widen(payload)],
-        StatementKind.Constant => control.constant_values[integers.widen(payload)],
-        StatementKind.Destructure => control.destructure_values[integers.widen(payload)],
+        StatementKind.Constant => control.constant_values[integers.widen(
+            payload
+        )],
+        StatementKind.Destructure =>
+            control.destructure_values[integers.widen(
+                payload
+            )],
         _ => control.results[integers.widen(payload)],
     }
 
-    if (value == null || (kind == StatementKind.Destructure && source.expressions.kinds[integers.widen(value)] == ExpressionKind.Capture)) {
-        return { ...in.state, frames: frames }
+    if (
+        value == null ||
+            (
+                kind == StatementKind.Destructure &&
+                    source.expressions.kinds[integers.widen(
+                        value
+                    )] == ExpressionKind.Capture
+            )
+    ) {
+        return {
+            ...in.state,
+            frames: frames
+        }
     }
 
-    return { ...in.state, frames: frames.push({ operation: Operation.Expression, source: in.frame.source, index: integers.widen(value), count: 0 })[0] }
+    return {
+        ...in.state,
+        frames: frames.push({
+            operation: Operation.Expression,
+            source: in.frame.source,
+            index: integers.widen(value),
+            count: 0
+        })[0]
+    }
 }

@@ -2,15 +2,32 @@ import declaration from "./declaration"
 
 import type { Source } from "./model"
 
-export type Input = { source: Source, name: string, limit: u64 }
+export type Input = {
+    source: Source,
+    name: string,
+    limit: u64
+}
 
-export type Output = { found: bool, index: u64 }
+export type Output = {
+    found: bool,
+    index: u64
+}
 
 export default function (in: Input): Output {
-    const state = loop({ source: in.source, name: in.name, limit: in.limit, index: 0, found: false, selected: 0 }, {
+    const state = loop({
+        source: in.source,
+        name: in.name,
+        limit: in.limit,
+        index: 0,
+        found: false,
+        selected: 0
+    }, {
         while: current => !current.found && current.index < current.limit,
         next: current => {
-            const item = declaration({ source: current.source, index: current.index })
+            const item = declaration({
+                source: current.source,
+                index: current.index
+            })
 
             current.found = item.name.text == current.name
             current.selected = current.index
@@ -18,5 +35,8 @@ export default function (in: Input): Output {
         }
     })
 
-    return { found: state.found, index: state.selected }
+    return {
+        found: state.found,
+        index: state.selected
+    }
 }

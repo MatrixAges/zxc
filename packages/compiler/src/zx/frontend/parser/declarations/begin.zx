@@ -8,14 +8,24 @@ export type Input = State
 export type Output = State
 
 export default function (in: Input): Output {
-  const exporting = in.control.token.word == Keyword.Export
-  const index = in.control.index + (exporting ? 1 : 0)
-  const opening_index = in.control.index
-  const opening = in.control.token.span.start
-  const first = in.members.length
+    const exporting = in.control.token.word == Keyword.Export
+    const index = in.control.index + (exporting ? 1 : 0)
+    const opening_index = in.control.index
+    const opening = in.control.token.span.start
+    const first = in.members.length
 
-  return {
-    declarations: in.declarations, members: in.members, types: in.types,
-    control: { ...in.control, phase: exporting ? Phase.Kind : Phase.Done, index: index, opening: opening, opening_index: opening_index, first: first, count: 0 }
-  }
+    return {
+        declarations: in.declarations,
+        members: in.members,
+        types: in.types,
+        control: {
+            ...in.control,
+            phase: exporting ? Phase.Kind : Phase.Done,
+            index: index,
+            opening: opening,
+            opening_index: opening_index,
+            first: first,
+            count: 0
+        }
+    }
 }

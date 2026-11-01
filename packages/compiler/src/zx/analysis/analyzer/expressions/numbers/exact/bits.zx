@@ -1,13 +1,22 @@
 export type Input = u64[]
 
-export type Output = { significant: u64, trailing: u64 }
+export type Output = {
+    significant: u64,
+    trailing: u64
+}
 
 export default function (in: Input): Output {
     if (in.length == 0) {
-        return { significant: 0, trailing: 0 }
+        return {
+            significant: 0,
+            trailing: 0
+        }
     }
 
-    const high = loop({ value: in[in.length - 1], bits: (in.length - 1) * 32 }, {
+    const high = loop({
+        value: in[in.length - 1],
+        bits: (in.length - 1) * 32
+    }, {
         while: current => current.value != 0,
         next: current => {
             current.value /= 2
@@ -15,14 +24,22 @@ export default function (in: Input): Output {
         }
     })
 
-    const low = loop({ limbs: in, index: 0 }, {
-        while: current => current.index < current.limbs.length && current.limbs[current.index] == 0,
+    const low = loop({
+        limbs: in,
+        index: 0
+    }, {
+        while: current =>
+            current.index < current.limbs.length &&
+            current.limbs[current.index] == 0,
         next: current => {
             current.index += 1
         }
     })
 
-    const zeros = loop({ value: in[low.index], count: low.index * 32 }, {
+    const zeros = loop({
+        value: in[low.index],
+        count: low.index * 32
+    }, {
         while: current => current.value % 2 == 0,
         next: current => {
             current.value /= 2
@@ -30,5 +47,8 @@ export default function (in: Input): Output {
         }
     })
 
-    return { significant: high.bits, trailing: zeros.count }
+    return {
+        significant: high.bits,
+        trailing: zeros.count
+    }
 }

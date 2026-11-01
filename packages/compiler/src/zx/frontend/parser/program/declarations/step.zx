@@ -49,11 +49,19 @@ export default function (in: Input): Output {
     const tokens = in.prefix.prepared.lexical.lexed.tokens
     const index = declarations.control.index
     const done = declarations.control.phase == Phase.Done
-    const constant = done && index + 1 < tokens.length && tokens[index].word == Keyword.Export && tokens[index + 1].word == Keyword.Const
+
+    const constant =
+        done && index + 1 < tokens.length && tokens[index].word == Keyword.Export &&
+        tokens[index + 1].word == Keyword.Const
 
     return {
         ...in,
         declarations: declarations,
-        finished: done && (!constant || declarations.control.diagnostic.message != "" || declarations.control.type_diagnostic)
+        finished:
+            done &&
+            (
+                !constant || declarations.control.diagnostic.message != "" ||
+                    declarations.control.type_diagnostic
+            )
     }
 }

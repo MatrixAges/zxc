@@ -9,7 +9,16 @@ export type Output = LexerState
 
 export default function (in: Input): Output {
     if (in.frames.length == 0) {
-        return emit({ kind: "template", start: in.start, end: in.offset + 1, comment: false, state: { ...in, mode: Mode.Idle } })
+        return emit({
+            kind: "template",
+            start: in.start,
+            end: in.offset + 1,
+            comment: false,
+            state: {
+                ...in,
+                mode: Mode.Idle
+            }
+        })
     }
 
     const last = in.frames.length - 1
@@ -20,7 +29,11 @@ export default function (in: Input): Output {
     const frames = in.frames.pop()[0]
 
     return {
-        source_length: in.source_length, warmed: in.warmed, ahead_one: in.ahead_one, ahead_two: in.ahead_two, keyword_state: in.keyword_state,
+        source_length: in.source_length,
+        warmed: in.warmed,
+        ahead_one: in.ahead_one,
+        ahead_two: in.ahead_two,
+        keyword_state: in.keyword_state,
         symbol: in.symbol,
         line_break: in.line_break,
         dollar: in.dollar,

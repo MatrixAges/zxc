@@ -7,10 +7,17 @@ export type Input = Activity
 export type Output = Activity
 
 export default function (in: Input): Output {
-    return loop({ activity: in, index: 0 }, {
+    return loop({
+        activity: in,
+        index: 0
+    }, {
         while: current => current.index < current.activity.active.length,
         next: current => {
-            current.activity = set({ activity: current.activity, symbol: current.index, value: false })
+            current.activity = set({
+                activity: current.activity,
+                symbol: current.index,
+                value: false
+            })
             current.index += 1
         }
     }).activity

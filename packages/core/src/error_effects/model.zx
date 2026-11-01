@@ -7,12 +7,41 @@ import type { Seen } from "./seen/model"
 
 export enum Operation { Expression, Function, Block }
 
-export type Frame = { operation: Operation, source: u64, index: u64, count: u64 }
+export type Frame = {
+    operation: Operation,
+    source: u64,
+    index: u64,
+    count: u64
+}
 
-export type Source = { expressions: Expressions, control: Control, returns: bool[], visited: Seen }
+export type Source = {
+    expressions: Expressions,
+    control: Control,
+    returns: bool[],
+    visited: Seen
+}
 
-export type Context = { types: Tables, functions: Table }
+export type Context = {
+    types: Tables,
+    functions: Table
+}
 
-export type State = { context: Context, sources: Source[], frames: Frame[], called: Seen, names: string[], unknown: bool }
+export type State = {
+    context: Context,
+    sources: Source[],
+    frames: Frame[],
+    called: Seen,
+    names: string[],
+    unknown: bool
+}
 
-export type Request = { context: Context, expressions: Expressions, control: Control, root: u32?, contracts: Contracts, stores: bool, expression: u32, program: bool }
+export type Request = {
+    context: Context,
+    expressions: Expressions,
+    control: Control,
+    root: u32?,
+    contracts: Contracts,
+    stores: bool,
+    expression: u32,
+    program: bool
+}

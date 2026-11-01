@@ -7,5 +7,12 @@ export type Input = Request
 export type Output = State
 
 export default function (in: Input): Output {
-    return { request: in, numbers: in.kinds.map(kind => max_u32), type_ids: [], nodes: [], cursors: [], root: 0 }
+    return {
+        request: in,
+        numbers: in.kinds.map(kind => max_u32),
+        type_ids: [],
+        nodes: [],
+        cursors: [],
+        root: 0
+    }
 }

@@ -5,26 +5,75 @@ import { Phase, FrameKind } from "../state/model"
 
 import type { ExprState } from "../state/model"
 
-export type Input = { state: ExprState, updating: bool }
+export type Input = {
+    state: ExprState,
+    updating: bool
+}
 
 export type Output = ExprState
 
 export default function (in: Input): Output {
-  const parenthesized = in.state.control.token.symbol == Symbol.OpenParen
-  const start = in.state.control.token.span.start
-  const end = in.state.control.token.span.end
-  const continuation = { ...frame({ kind: FrameKind.Lambda, start: start, depth: in.state.control.depth + (in.updating ? 1 : 0) }), flag: in.updating }
+    const parenthesized = in.state.control.token.symbol == Symbol.OpenParen
+    const start = in.state.control.token.span.start
+    const end = in.state.control.token.span.end
 
-  if (parenthesized) {
-    const frames = in.state.frames.push(continuation)[0]
+    const continuation = {
+        ...frame({
+            kind: FrameKind.Lambda,
+            start: start,
+            depth: in.state.control.depth + (in.updating ? 1 : 0)
+        }),
+        flag: in.updating
+    }
 
-    return consume({ state: { prepared: in.state.prepared, tree: in.state.tree, types: in.state.types, frames: frames, control: in.state.control }, phase: Phase.LambdaParameter })
-  }
+    if (parenthesized) {
+        const frames = in.state.frames.push(continuation)[0]
 
-  const head = in.state.tree.parameters.length + 1
-  const parameters = in.state.tree.parameters.push({ name: { start: start, end: end }, previous: 0 })[0]
-  const frames = in.state.frames.push({ ...continuation, head: head, count: 1 })[0]
-  const tree = { nodes: in.state.tree.nodes, items: in.state.tree.items, fields: in.state.tree.fields, parameters: parameters, parts: in.state.tree.parts, arms: in.state.tree.arms }
+        return consume({
+            state: {
+                prepared: in.state.prepared,
+                tree: in.state.tree,
+                types: in.state.types,
+                frames: frames,
+                control: in.state.control
+            },
+            phase: Phase.LambdaParameter
+        })
+    }
 
-  return consume({ state: { prepared: in.state.prepared, tree: tree, types: in.state.types, frames: frames, control: in.state.control }, phase: Phase.LambdaArrow })
+    const head = in.state.tree.parameters.length + 1
+
+    const parameters = in.state.tree.parameters.push({
+        name: {
+            start: start,
+            end: end
+        },
+        previous: 0
+    })[0]
+
+    const frames = in.state.frames.push({
+        ...continuation,
+        head: head,
+        count: 1
+    })[0]
+
+    const tree = {
+        nodes: in.state.tree.nodes,
+        items: in.state.tree.items,
+        fields: in.state.tree.fields,
+        parameters: parameters,
+        parts: in.state.tree.parts,
+        arms: in.state.tree.arms
+    }
+
+    return consume({
+        state: {
+            prepared: in.state.prepared,
+            tree: tree,
+            types: in.state.types,
+            frames: frames,
+            control: in.state.control
+        },
+        phase: Phase.LambdaArrow
+    })
 }

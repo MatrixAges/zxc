@@ -9,12 +9,23 @@ export type Output = Imports
 
 export default function (in: Input): Output {
     if (in.target != Target.Native) {
-        return { namespaces: [null], names: [in.names.values[0]], ids: in.members.ids, input_types: in.members.input_types, output_types: in.members.output_types }
+        return {
+            namespaces: [null],
+            names: [in.names.values[0]],
+            ids: in.members.ids,
+            input_types: in.members.input_types,
+            output_types: in.members.output_types
+        }
     }
 
     const namespaces: string?[] = []
 
-    const result = loop({ name: in.names.values[0], count: in.members.names.length, index: 0, namespaces: namespaces }, {
+    const result = loop({
+        name: in.names.values[0],
+        count: in.members.names.length,
+        index: 0,
+        namespaces: namespaces
+    }, {
         while: current => current.index < current.count,
         next: current => {
             current.namespaces = current.namespaces.push(current.name)[0]
@@ -22,5 +33,11 @@ export default function (in: Input): Output {
         }
     })
 
-    return { namespaces: result.namespaces, names: in.members.names, ids: in.members.ids, input_types: in.members.input_types, output_types: in.members.output_types }
+    return {
+        namespaces: result.namespaces,
+        names: in.members.names,
+        ids: in.members.ids,
+        input_types: in.members.input_types,
+        output_types: in.members.output_types
+    }
 }

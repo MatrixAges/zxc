@@ -4,19 +4,48 @@ import children from "../types/children"
 
 import type { Table } from "core/type_table/model"
 
-export type Input = { types: Table, boxed: bool[], built: bool[], written: bool[] }
+export type Input = {
+    types: Table,
+    boxed: bool[],
+    built: bool[],
+    written: bool[]
+}
 
-export type Output = { written: bool[], changed: bool }
+export type Output = {
+    written: bool[],
+    changed: bool
+}
 
 export default function (in: Input): Output {
-    const result = loop({ types: in.types, boxed: in.boxed, built: in.built, written: in.written, changed: false, index: 0 }, {
+    const result = loop({
+        types: in.types,
+        boxed: in.boxed,
+        built: in.built,
+        written: in.written,
+        changed: false,
+        index: 0
+    }, {
         while: current => current.index < current.types.kinds.length,
         next: current => {
             const kind = current.types.kinds[current.index]
 
-            if (!current.boxed[current.index] && !current.written[current.index] && (kind == 1 || kind == 2 || kind == 4)) {
+            if (
+                !current.boxed[current.index] && !current.written[current.index] &&
+                    (
+                        kind == 1 || kind == 2 || kind == 4
+                    )
+            ) {
                 const known = current.written
-                const reached = kind == 4 || (kind == 1 && current.built[current.index]) || children({ types: current.types, id: integers.narrow(current.index), deep: false }).some(child => known[integers.widen(child)])
+                const reached =
+                    kind == 4 || (
+                        kind == 1 && current.built[current.index]
+                    ) || children({
+                        types: current.types,
+                        id: integers.narrow(current.index),
+                        deep: false
+                    }).some(child => known[integers.widen(
+                        child
+                    )])
 
                 if (reached) {
                     current.written[current.index] = true
@@ -28,5 +57,8 @@ export default function (in: Input): Output {
         }
     })
 
-    return { written: result.written, changed: result.changed }
+    return {
+        written: result.written,
+        changed: result.changed
+    }
 }

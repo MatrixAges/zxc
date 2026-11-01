@@ -5,9 +5,18 @@ import type { Imports } from "../function_import"
 
 export enum Target { Source, Compiled, Native }
 
-export type Names = { values: string[], starts: u64[], ends: u64[] }
+export type Names = {
+    values: string[],
+    starts: u64[],
+    ends: u64[]
+}
 
-export type Members = { names: string[], ids: u32[], input_types: u32[], output_types: u32[] }
+export type Members = {
+    names: string[],
+    ids: u32[],
+    input_types: u32[],
+    output_types: u32[]
+}
 
 export type Request = {
     target: Target
@@ -22,4 +31,9 @@ export type Request = {
         members: Members
 }
 
-export type Result = { aliases: Cache, imports: Imports, constants: Values?, diagnostic: Diagnostic }
+export type Result = {
+    aliases: Cache,
+    imports: Imports,
+    constants: Values?,
+    diagnostic: Diagnostic
+}

@@ -16,32 +16,93 @@ export default function (in: Input): Output {
     const frame = in.frames.objects[in.frames.objects.length - 1]
 
     if (frame.index == frame.fields.length) {
-        const result = finish({ state: in.state, entries: frame.entries, evaluation: frame.evaluation, hint: frame.hint, span: in.source.tree.nodes[frame.node].span })
+        const result = finish({
+            state: in.state,
+            entries: frame.entries,
+            evaluation: frame.evaluation,
+            hint: frame.hint,
+            span: in.source.tree.nodes[frame.node].span
+        })
 
-        return { ...in, state: result.state, value: result.value, phase: Phase.Complete, frames: { ...in.frames, objects: in.frames.objects.pop()[0] } }
+        return {
+            ...in,
+            state: result.state,
+            value: result.value,
+            phase: Phase.Complete,
+            frames: {
+                ...in.frames,
+                objects: in.frames.objects.pop()[0]
+            }
+        }
     }
 
     const field = in.source.tree.fields[frame.fields[frame.index]]
-    const work: Work = { ...in, node: field.value, expected: null, phase: Phase.Evaluate, frames: { ...in.frames, actions: in.frames.actions.push(Action.Object)[0] } }
+
+    const work: Work = {
+        ...in,
+        node: field.value,
+        expected: null,
+        phase: Phase.Evaluate,
+        frames: {
+            ...in.frames,
+            actions: in.frames.actions.push(Action.Object)[0]
+        }
+    }
+
     const hint = frame.hint
 
     if (field.spread || hint == null) {
         return work
     }
 
-    const name = readName({ source: in.source, kind: NameKind.Field, index: frame.fields[frame.index] })
-    const tables = { base: in.state.types.context.base, delta: in.state.types.delta }
-    const target = row({ tables: tables, id: hint })
+    const name = readName({
+        source: in.source,
+        kind: NameKind.Field,
+        index: frame.fields[frame.index]
+    })
+
+    const tables = {
+        base: in.state.types.context.base,
+        delta: in.state.types.delta
+    }
+
+    const target = row({
+        tables: tables,
+        id: hint
+    })
+
     const table = target.delta ? tables.delta : tables.base
 
-    const found = loop({ names: table.field_names, first: integers.widen(target.first), count: integers.widen(target.second), name: name.text, index: 0 }, {
-        while: current => current.index < current.count && current.names[current.first + current.index] != current.name,
+    const found = loop({
+        names: table.field_names,
+        first: integers.widen(target.first),
+        count: integers.widen(target.second),
+        name: name.text,
+        index: 0
+    }, {
+        while: current =>
+            current.index < current.count &&
+            current.names[current.first + current.index] != current.name,
         next: current => { current.index += 1 }
     })
 
     if (found.index == found.count) {
-        return { ...work, state: { ...work.state, diagnostic: { code: "name", message: "unexpected object field", start: name.start, end: name.end } } }
+        return {
+            ...work,
+            state: {
+                ...work.state,
+                diagnostic: {
+                    code: "name",
+                    message: "unexpected object field",
+                    start: name.start,
+                    end: name.end
+                }
+            }
+        }
     }
 
-    return { ...work, expected: table.field_types[found.first + found.index] }
+    return {
+        ...work,
+        expected: table.field_types[found.first + found.index]
+    }
 }

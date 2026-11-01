@@ -3,19 +3,61 @@
     <Type from="core/type_table/nominal" as="Nominal" />
     <Type from="../../analysis/semantic/merging/origin" as="Origin" />
 
-    <Args in={{ context: Model.Context, origin: Nominal.Origin, origins: Origin.Output, shared: bool }} out={{ origins: Origin.Output, resolution: Model.State }} />
+    <Args
+        in={{
+            context: Model.Context,
+            origin: Nominal.Origin,
+            origins: Origin.Output,
+            shared: bool
+        }}
+        out={{
+            origins: Origin.Output,
+            resolution: Model.State
+        }}
+    />
 
     <Call module="declarations" in={$in.context} />
 
     <Switch on={$ctx.declarations.diagnostic.message == "" && $in.shared}>
         <Case value={true}>
-            <Call module="../../analysis/semantic/normalizing/normalize" in={{ base: $in.context.base, delta: $ctx.declarations.delta, cache: $ctx.declarations.cache, id: $ctx.declarations.result, origins: $in.origins, origin: $in.origin }} />
+            <Call
+                module="../../analysis/semantic/normalizing/normalize"
+                in={{
+                    base: $in.context.base,
+                    delta: $ctx.declarations.delta,
+                    cache: $ctx.declarations.cache,
+                    id: $ctx.declarations.result,
+                    origins: $in.origins,
+                    origin: $in.origin
+                }}
+            />
 
-            <Return value={{ resolution: { context: $ctx.declarations.context, delta: $ctx.normalize.delta, cache: $ctx.normalize.cache, frames: $ctx.declarations.frames, scratch: $ctx.declarations.scratch, active: $ctx.declarations.active, result: $ctx.normalize.id, diagnostic: $ctx.normalize.diagnostic }, origins: $ctx.normalize.origins }} />
+            <Return
+                value={{
+                    resolution: {
+                        ...$ctx.declarations,
+                        delta: $ctx.normalize.delta,
+                        cache: $ctx.normalize.cache,
+                        result: $ctx.normalize.id,
+                        diagnostic: $ctx.normalize.diagnostic
+                    },
+                    origins: $ctx.normalize.origins
+                }}
+            />
         </Case>
 
         <Default>
-            <Return value={{ resolution: $ctx.declarations, origins: { ids: [], kinds: [], owners: [], members: [] } }} />
+            <Return
+                value={{
+                    resolution: $ctx.declarations,
+                    origins: {
+                        ids: [],
+                        kinds: [],
+                        owners: [],
+                        members: []
+                    }
+                }}
+            />
         </Default>
     </Switch>
 </Module>

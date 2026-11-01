@@ -18,7 +18,14 @@ export type Functions = {
     stores: Stores[]
 }
 
-export type Body = { input_type: u32, output_type: u32, symbols: Symbols, expressions: Expressions, contracts: Contracts, stores: Stores }
+export type Body = {
+    input_type: u32,
+    output_type: u32,
+    symbols: Symbols,
+    expressions: Expressions,
+    contracts: Contracts,
+    stores: Stores
+}
 
 export type Record = {
     path: string
@@ -35,10 +42,32 @@ export type Record = {
     body_function: u32?
 }
 
-export type Request = { file_name: string, type_only: bool, table: Table, functions: Functions, modules: Modules, entry: Body, record: Record, max_offset: u64 }
+export type Request = {
+    file_name: string,
+    type_only: bool,
+    table: Table,
+    functions: Functions,
+    modules: Modules,
+    entry: Body,
+    record: Record,
+    max_offset: u64
+}
 
-export type Selection = { request: Request, body: Body? }
+export type Selection = {
+    request: Request,
+    body: Body?
+}
 
-export type Cursor = { stage: u64, index: u64, section: u64, offset: u64 }
+export type Cursor = {
+    stage: u64,
+    index: u64,
+    section: u64,
+    offset: u64
+}
 
-export type Step = { cursor: Cursor, valid: bool, found: bool, id: u32 }
+export type Step = {
+    cursor: Cursor,
+    valid: bool,
+    found: bool,
+    id: u32
+}

@@ -7,11 +7,21 @@ export type Input = LexerState
 export type Output = LexerState
 
 export default function (in: Input): Output {
-    const frame = { mode: in.mode, start: in.start, braces: in.braces, depth: in.depth }
+    const frame = {
+        mode: in.mode,
+        start: in.start,
+        braces: in.braces,
+        depth: in.depth
+    }
+
     const frames = in.frames.push(frame)[0]
 
     return {
-        source_length: in.source_length, warmed: in.warmed, ahead_one: in.ahead_one, ahead_two: in.ahead_two, keyword_state: in.keyword_state,
+        source_length: in.source_length,
+        warmed: in.warmed,
+        ahead_one: in.ahead_one,
+        ahead_two: in.ahead_two,
+        keyword_state: in.keyword_state,
         symbol: in.symbol,
         line_break: in.line_break,
         dollar: in.dollar,

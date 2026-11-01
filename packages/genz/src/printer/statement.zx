@@ -20,11 +20,38 @@ export default function (in: Input): Output {
     const kind = tree.tags[integers.widen(in.frame.id)]
     const id = tree.offsets[integers.widen(in.frame.id)]
     const row = integers.widen(id)
-    const name: Frame = { action: Action.Identifier, token: Token.Empty, bytes: ByteSource.None, id: id, count: 0, index: 0, number: 0 }
+
+    const name: Frame = {
+        action: Action.Identifier,
+        token: Token.Empty,
+        bytes: ByteSource.None,
+        id: id,
+        count: 0,
+        index: 0,
+        number: 0
+    }
 
     return match kind {
-        StatementsKind.Constant => binding({ name: { ...name, bytes: ByteSource.StatementConstant }, type_expr: tree.constant_type_expr[row], value: tree.constant_value[row], exported: tree.constant_exported[row], mutable: false }),
-        StatementsKind.Variable => binding({ name: { ...name, bytes: ByteSource.StatementVariable }, type_expr: tree.variable_type_expr[row], value: tree.variable_value[row], exported: false, mutable: true }),
+        StatementsKind.Constant => binding({
+            name: {
+                ...name,
+                bytes: ByteSource.StatementConstant
+            },
+            type_expr: tree.constant_type_expr[row],
+            value: tree.constant_value[row],
+            exported: tree.constant_exported[row],
+            mutable: false
+        }),
+        StatementsKind.Variable => binding({
+            name: {
+                ...name,
+                bytes: ByteSource.StatementVariable
+            },
+            type_expr: tree.variable_type_expr[row],
+            value: tree.variable_value[row],
+            exported: false,
+            mutable: true
+        }),
         StatementsKind.ForLoop => iteration(in),
         StatementsKind.WhileLoop => iteration(in),
         StatementsKind.Branch => branch(in),

@@ -11,13 +11,20 @@ export type Input = State
 export type Output = State
 
 export default function (in: Input): Output {
-  if (in.control.token.symbol == Symbol.Comma) {
-    return consume({ state: in, phase: Phase.TupleItem })
-  }
+    if (in.control.token.symbol == Symbol.Comma) {
+        return consume({
+            state: in,
+            phase: Phase.TupleItem
+        })
+    }
 
-  if (in.control.token.symbol == Symbol.CloseBracket) {
-    return close(in)
-  }
+    if (in.control.token.symbol == Symbol.CloseBracket) {
+        return close(in)
+    }
 
-  return fail({ state: in, code: "syntax", message: "expected ]" })
+    return fail({
+        state: in,
+        code: "syntax",
+        message: "expected ]"
+    })
 }

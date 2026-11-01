@@ -73,7 +73,7 @@ const cases: Array<Case> = [
         file: 'module.rx',
         source: '<Module>\n <Call\n   fn="a"\n   in="$in" />\n <Call fn="b" in="$in" />\n</Module>\n',
         expected:
-            '<Module>\n    <Call\n        fn="a"\n        in="$in" />\n\n    <Call fn="b" in="$in" />\n</Module>\n'
+            '<Module>\n    <Call\n        fn="a"\n        in="$in"\n    />\n\n    <Call fn="b" in="$in" />\n</Module>\n'
     },
     {
         name: 'empty paired root trims interior blank lines',

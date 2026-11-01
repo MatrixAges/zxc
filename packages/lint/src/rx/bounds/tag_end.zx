@@ -1,11 +1,19 @@
-export type Input = { source: u8[], start: u64 }
+export type Input = {
+    source: u8[],
+    start: u64
+}
 
 export type Output = u64
 
 export default function (in: Input): Output {
     const zero: u8 = 0
 
-    const result = loop({ source: in.source, offset: in.start, quote: zero, done: false }, {
+    const result = loop({
+        source: in.source,
+        offset: in.start,
+        quote: zero,
+        done: false
+    }, {
         while: current => !current.done && current.offset < current.source.length,
         next: current => {
             const byte = current.source[current.offset]

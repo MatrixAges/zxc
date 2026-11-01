@@ -4,7 +4,12 @@ import item from "../../analysis/semantic/resolving/source/item"
 
 import type { Source } from "../../analysis/semantic/resolving/source/model"
 
-export type Input = { source: Source, position: u64, count: u64, object: bool }
+export type Input = {
+    source: Source,
+    position: u64,
+    count: u64,
+    object: bool
+}
 
 export type Output = u64[]
 
@@ -12,18 +17,30 @@ export default function (in: Input): Output {
     const names: string[] = []
     const positions: u64[] = []
 
-    const collected = loop({ input: in, position: in.position, index: 0, names: names, positions: positions }, {
+    const collected = loop({
+        input: in,
+        position: in.position,
+        index: 0,
+        names: names,
+        positions: positions
+    }, {
         while: current => current.index < current.input.count,
         next: current => {
             current.positions = current.positions.push(current.position)[0]
 
             if (current.input.object) {
-                const selected = field({ source: current.input.source, position: current.position })
+                const selected = field({
+                    source: current.input.source,
+                    position: current.position
+                })
 
                 current.names = current.names.push(selected.name.text)[0]
                 current.position = selected.next
             } else {
-                const selected = item({ source: current.input.source, position: current.position })
+                const selected = item({
+                    source: current.input.source,
+                    position: current.position
+                })
 
                 current.position = selected.next
             }
@@ -36,7 +53,15 @@ export default function (in: Input): Output {
         return collected.positions
     }
 
-    const result = loop({ names: collected.names, positions: collected.positions, count: in.count, remaining: in.count / 2, root: 0, building: true, sifting: false }, {
+    const result = loop({
+        names: collected.names,
+        positions: collected.positions,
+        count: in.count,
+        remaining: in.count / 2,
+        root: 0,
+        building: true,
+        sifting: false
+    }, {
         while: current => current.building || current.count > 1 || current.sifting,
         next: current => {
             if (current.sifting) {
@@ -45,9 +70,15 @@ export default function (in: Input): Output {
                 } else {
                     const left = current.root * 2 + 1
                     const right = left + 1
-                    const child = right < current.count && less({ left: current.names[left], right: current.names[right] }) ? right : left
+                    const child = right < current.count && less({
+                        left: current.names[left],
+                        right: current.names[right]
+                    }) ? right : left
 
-                    if (less({ left: current.names[current.root], right: current.names[child] })) {
+                    if (less({
+                        left: current.names[current.root],
+                        right: current.names[child]
+                    })) {
                         const name = current.names[current.root]
                         const position = current.positions[current.root]
 

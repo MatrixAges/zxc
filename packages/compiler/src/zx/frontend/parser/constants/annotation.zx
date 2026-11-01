@@ -27,7 +27,9 @@ export default function (in: Input): Output {
             }
         }
     }, {
-        while: current => !done(current.state.control.phase) && current.state.control.index < current.tokens.length,
+        while: current =>
+            !done(current.state.control.phase) &&
+            current.state.control.index < current.tokens.length,
         next: current => {
             current.state = step({
                 state: current.state,

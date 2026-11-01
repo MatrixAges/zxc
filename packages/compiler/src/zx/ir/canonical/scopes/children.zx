@@ -18,37 +18,104 @@ export default function (in: Input): Output {
     const depth = in.frame.b + 1
     const flags = in.frame.c
 
-    if (kind == ExpressionKind.List || kind == ExpressionKind.Tuple || kind == ExpressionKind.Template) {
-        return { state: sequence({ state: in.state, values: expressions.sequence_items, first: integers.widen(expressions.sequence_first[payload]), count: integers.widen(expressions.sequence_count[payload]), depth: depth, flags: flags }), valid: true }
+    if (
+        kind == ExpressionKind.List || kind == ExpressionKind.Tuple ||
+            kind == ExpressionKind.Template
+    ) {
+        return {
+            state: sequence({
+                state: in.state,
+                values: expressions.sequence_items,
+                first: integers.widen(expressions.sequence_first[payload]),
+                count: integers.widen(expressions.sequence_count[payload]),
+                depth: depth,
+                flags: flags
+            }),
+            valid: true
+        }
     }
 
     if (kind == ExpressionKind.Parallel) {
-        return { state: sequence({ state: in.state, values: expressions.parallel_tasks, first: integers.widen(expressions.parallel_first[payload]), count: integers.widen(expressions.parallel_count[payload]), depth: depth, flags: flags }), valid: true }
+        return {
+            state: sequence({
+                state: in.state,
+                values: expressions.parallel_tasks,
+                first: integers.widen(expressions.parallel_first[payload]),
+                count: integers.widen(expressions.parallel_count[payload]),
+                depth: depth,
+                flags: flags
+            }),
+            valid: true
+        }
     }
 
     if (kind == ExpressionKind.Object) {
-        const fields = sequence({ state: in.state, values: expressions.object_field_values, first: integers.widen(expressions.object_first[payload]), count: integers.widen(expressions.object_count[payload]), depth: depth, flags: flags })
-        const evaluation = sequence({ state: fields, values: expressions.object_evaluation_values, first: integers.widen(expressions.object_evaluation_first[payload]), count: integers.widen(expressions.object_evaluation_count[payload]), depth: depth, flags: flags })
+        const fields = sequence({
+            state: in.state,
+            values: expressions.object_field_values,
+            first: integers.widen(expressions.object_first[payload]),
+            count: integers.widen(expressions.object_count[payload]),
+            depth: depth,
+            flags: flags
+        })
 
-        return { state: evaluation, valid: true }
+        const evaluation = sequence({
+            state: fields,
+            values: expressions.object_evaluation_values,
+            first: integers.widen(expressions.object_evaluation_first[payload]),
+            count: integers.widen(expressions.object_evaluation_count[payload]),
+            depth: depth,
+            flags: flags
+        })
+
+        return {
+            state: evaluation,
+            valid: true
+        }
     }
 
     const arguments = kind == ExpressionKind.ListOperation
-    ? sequence({ state: in.state, values: expressions.collection_arguments, first: integers.widen(expressions.collection_first[payload]), count: integers.widen(expressions.collection_count[payload]), depth: depth, flags: flags })
+    ? sequence({
+        state: in.state,
+        values: expressions.collection_arguments,
+        first: integers.widen(expressions.collection_first[payload]),
+        count: integers.widen(expressions.collection_count[payload]),
+        depth: depth,
+        flags: flags
+    })
     : in.state
 
     const value = kind == ExpressionKind.ListUpdate
-    ? schedule({ state: arguments, frame: { phase: Phase.Expression, a: integers.widen(expressions.update_values[payload]), b: depth, c: flags } })
+    ? schedule({
+        state: arguments,
+        frame: {
+            phase: Phase.Expression,
+            a: integers.widen(expressions.update_values[payload]),
+            b: depth,
+            c: flags
+        }
+    })
     : arguments
 
     const index = match kind {
-        ExpressionKind.ListUpdate => integers.widen(expressions.update_indices[payload]),
+        ExpressionKind.ListUpdate =>
+            integers.widen(
+                expressions.update_indices[payload]
+            ),
         ExpressionKind.Index => integers.widen(expressions.index_values[payload]),
         _ => 0
     }
 
     const indexed = kind == ExpressionKind.ListUpdate || kind == ExpressionKind.Index
-    ? schedule({ state: value, frame: { phase: Phase.Expression, a: index, b: depth, c: flags } })
+    ? schedule({
+        state: value,
+        frame: {
+            phase: Phase.Expression,
+            a: index,
+            b: depth,
+            c: flags
+        }
+    })
     : value
 
     const child = match kind {
@@ -67,5 +134,16 @@ export default function (in: Input): Output {
         _ => expressions.call_arguments[payload]
     }
 
-    return { state: schedule({ state: indexed, frame: { phase: Phase.Expression, a: integers.widen(child), b: depth, c: flags } }), valid: true }
+    return {
+        state: schedule({
+            state: indexed,
+            frame: {
+                phase: Phase.Expression,
+                a: integers.widen(child),
+                b: depth,
+                c: flags
+            }
+        }),
+        valid: true
+    }
 }

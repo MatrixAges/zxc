@@ -22,22 +22,68 @@ export default function (in: Input): Output {
     const frames = expected == null ? in.frames : {
         ...in.frames,
         actions: in.frames.actions.push(Action.Coerce)[0],
-        coercions: in.frames.coercions.push({ expected: expected, span: node.span })[0]
+        coercions: in.frames.coercions.push({
+            expected: expected,
+            span: node.span
+        })[0]
     }
 
-    const result = leaf({ state: in.state, source: in.source, node: in.node, expected: expected })
-    const work = { ...in, frames: frames, state: result.result.state }
+    const result = leaf({
+        state: in.state,
+        source: in.source,
+        node: in.node,
+        expected: expected
+    })
+
+    const work = {
+        ...in,
+        frames: frames,
+        state: result.result.state
+    }
 
     if (result.handled) {
-        return { ...work, value: result.result.value, phase: Phase.Complete }
+        return {
+            ...work,
+            value: result.result.value,
+            phase: Phase.Complete
+        }
     }
 
     if (node.kind == ExprKind.Async) {
-        return { ...work, node: node.first, expected: null, frames: { ...frames, actions: frames.actions.push(Action.AsyncBody)[0], asynchronous: frames.asynchronous.push({ node: in.node, first: work.state.local.expressions.kinds.length, symbol_count: work.state.local.symbols.names.length })[0] } }
+        return {
+            ...work,
+            node: node.first,
+            expected: null,
+            frames: {
+                ...frames,
+                actions: frames.actions.push(Action.AsyncBody)[0],
+                asynchronous: frames.asynchronous.push({
+                    node: in.node,
+                    first: work.state.local.expressions.kinds.length,
+                    symbol_count: work.state.local.symbols.names.length
+                })[0]
+            }
+        }
     }
 
-    if (node.kind == ExprKind.Await || node.kind == ExprKind.Cancel || node.kind == ExprKind.Capture) {
-        return { ...work, node: node.first, expected: null, frames: { ...frames, actions: frames.actions.push(node.kind == ExprKind.Capture ? Action.CaptureValue : Action.TaskValue)[0], singles: frames.singles.push(in.node)[0] } }
+    if (
+        node.kind == ExprKind.Await || node.kind == ExprKind.Cancel ||
+            node.kind == ExprKind.Capture
+    ) {
+        return {
+            ...work,
+            node: node.first,
+            expected: null,
+            frames: {
+                ...frames,
+                actions:
+                    frames.actions.push(
+                        node.kind == ExprKind.Capture ? Action.CaptureValue :
+                            Action.TaskValue
+                    )[0],
+                singles: frames.singles.push(in.node)[0]
+            }
+        }
     }
 
     if (node.kind == ExprKind.Unary || node.kind == ExprKind.Field) {
@@ -45,7 +91,10 @@ export default function (in: Input): Output {
 
         const hint: u32? = match {
             !unary => null,
-            node.flag => payload({ types: work.state.types, expected: expected }),
+            node.flag => payload({
+                types: work.state.types,
+                expected: expected
+            }),
             _ => 1,
         }
 
@@ -53,7 +102,11 @@ export default function (in: Input): Output {
             ...work,
             node: node.first,
             expected: hint,
-            frames: { ...frames, actions: frames.actions.push(unary ? Action.Unary : Action.Field)[0], singles: frames.singles.push(in.node)[0] }
+            frames: {
+                ...frames,
+                actions: frames.actions.push(unary ? Action.Unary : Action.Field)[0],
+                singles: frames.singles.push(in.node)[0]
+            }
         }
     }
 
@@ -62,18 +115,44 @@ export default function (in: Input): Output {
             ...work,
             node: node.first,
             expected: null,
-            frames: { ...frames, actions: frames.actions.push(Action.IndexTarget)[0], indices: frames.indices.push({ node: in.node, target: 0 })[0] }
+            frames: {
+                ...frames,
+                actions: frames.actions.push(Action.IndexTarget)[0],
+                indices: frames.indices.push({
+                    node: in.node,
+                    target: 0
+                })[0]
+            }
         }
     }
 
     if (node.kind == ExprKind.Binary) {
-        const hint = binaryHint({ context: { state: work.state, source: work.source, imports: work.imports }, node: in.node, expected: expected })
+        const hint = binaryHint({
+            context: {
+                state: work.state,
+                source: work.source,
+                imports: work.imports
+            },
+            node: in.node,
+            expected: expected
+        })
 
         return {
             ...work,
             node: node.first,
             expected: hint,
-            frames: { ...frames, actions: frames.actions.push(Action.BinaryLeft)[0], binaries: frames.binaries.push({ node: in.node, left: 0, mark: { nonnull: 0, captures: 0 } })[0] }
+            frames: {
+                ...frames,
+                actions: frames.actions.push(Action.BinaryLeft)[0],
+                binaries: frames.binaries.push({
+                    node: in.node,
+                    left: 0,
+                    mark: {
+                        nonnull: 0,
+                        captures: 0
+                    }
+                })[0]
+            }
         }
     }
 
@@ -82,7 +161,20 @@ export default function (in: Input): Output {
             ...work,
             node: node.first,
             expected: 1,
-            frames: { ...frames, actions: frames.actions.push(Action.Condition)[0], conditionals: frames.conditionals.push({ node: in.node, expected: expected, condition: 0, yes: 0, mark: { nonnull: 0, captures: 0 } })[0] }
+            frames: {
+                ...frames,
+                actions: frames.actions.push(Action.Condition)[0],
+                conditionals: frames.conditionals.push({
+                    node: in.node,
+                    expected: expected,
+                    condition: 0,
+                    yes: 0,
+                    mark: {
+                        nonnull: 0,
+                        captures: 0
+                    }
+                })[0]
+            }
         }
     }
 

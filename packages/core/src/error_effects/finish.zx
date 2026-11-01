@@ -12,11 +12,23 @@ export type Output = string[]?
         const names = in.names.sort()[0]
         const values: string[] = []
 
-        const result = loop({ names: names, values: values, index: 0 }, {
+        const result = loop({
+            names: names,
+            values: values,
+            index: 0
+        }, {
             while: current => current.index < current.names.length,
             next: current => {
-                if (current.index == 0 || current.names[current.index] != current.names[current.index - 1]) {
-                    current.values = current.values.push(current.names[current.index])[0]
+                if (
+                    current.index == 0 ||
+                        current.names[current.index] != current
+                        .names[current.index -
+                            1]
+                ) {
+                    current.values =
+                        current.values.push(
+                            current.names[current.index]
+                        )[0]
                 }
 
                 current.index += 1

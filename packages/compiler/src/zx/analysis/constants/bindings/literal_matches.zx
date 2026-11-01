@@ -18,11 +18,17 @@ export default function (in: Input): Output {
     const right_index = integers.widen(in.right.type_id)
     const current_mapping = in.current_mapping
 
-    if (left_index >= in.mapping.length || (current_mapping != null && right_index >= current_mapping.length)) {
+    if (
+        left_index >= in.mapping.length ||
+            (
+                current_mapping != null && right_index >= current_mapping.length
+            )
+    ) {
         return false
     }
 
-    const right_type = current_mapping != null ? current_mapping[right_index] : in.right.type_id
+    const right_type = current_mapping != null ? current_mapping[right_index] :
+        in.right.type_id
 
     return in.mapping[left_index] == right_type && equal({
         left: in.left,

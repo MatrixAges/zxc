@@ -3,14 +3,36 @@
     <Type from="./functions/model" as="Model" />
     <Type from="./stores/absent" as="Absent" />
 
-    <Args in={{ expressions: Payloads.Input, functions: Model.Functions, stores: Absent.Input }} out={bool} />
+    <Args
+        in={{
+            expressions: Payloads.Input,
+            functions: Model.Functions,
+            stores: Absent.Input
+        }}
+        out={bool}
+    />
 
     <Call fn="./stores/absent" in={$in.stores} />
 
     <Switch on={$ctx.absent}>
         <Case value={true}>
-            <Call fn="./functions/analyze" in={{ functions: $in.functions, concurrent: false }} />
-            <Call fn="./functions/calls" in={{ expressions: $in.expressions, allowed: $ctx.analyze, limit: $ctx.analyze.length, concurrent: false }} />
+            <Call
+                fn="./functions/analyze"
+                in={{
+                    functions: $in.functions,
+                    concurrent: false
+                }}
+            />
+
+            <Call
+                fn="./functions/calls"
+                in={{
+                    expressions: $in.expressions,
+                    allowed: $ctx.analyze,
+                    limit: $ctx.analyze.length,
+                    concurrent: false
+                }}
+            />
 
             <Return value={$ctx.calls} />
         </Case>

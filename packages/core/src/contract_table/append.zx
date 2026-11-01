@@ -2,7 +2,15 @@ import type { Expressions } from "../expression_table/model"
 import type { Symbols } from "../symbol_table/model"
 import type { Contracts, ContractKind } from "./model"
 
-export type Input = { table: Contracts, kind: ContractKind, symbols: Symbols, expressions: Expressions, predicate: u32, span_start: u64, span_end: u64 }
+export type Input = {
+    table: Contracts,
+    kind: ContractKind,
+    symbols: Symbols,
+    expressions: Expressions,
+    predicate: u32,
+    span_start: u64,
+    span_end: u64
+}
 
 export type Output = Contracts
 

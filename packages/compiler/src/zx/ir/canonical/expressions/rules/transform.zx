@@ -33,7 +33,17 @@ export default function (in: Input): Output {
         return false
     }
 
-    if (initial != null && operation != TransformKind.Reduce && kind(table.kinds[integers.widen(expressions.types[integers.widen(initial)])]) == Kind.Task) {
+    if (
+        initial != null && operation != TransformKind.Reduce &&
+            kind(
+                table
+                    .kinds[integers.widen(
+                        expressions.types[integers.widen(
+                            initial
+                        )]
+                    )]
+            ) == Kind.Task
+    ) {
         return false
     }
 
@@ -41,18 +51,43 @@ export default function (in: Input): Output {
         return false
     }
 
-    if (kind(table.kinds[source_type]) != Kind.List || count != (initial != null ? 2 : 1)) {
+    if (
+        kind(table.kinds[source_type]) != Kind.List ||
+            count != (
+                initial != null ? 2 : 1
+            )
+    ) {
         return false
     }
 
-    const parameters = loop({ context: context, first: integers.widen(expressions.transform_first[in.payload]), count: count, operation: operation, context_type: initial != null ? expressions.types[integers.widen(initial)] : 0, element: table.first[source_type], index: 0, valid: true }, {
+    const parameters = loop({
+        context: context,
+        first: integers.widen(expressions.transform_first[in.payload]),
+        count: count,
+        operation: operation,
+        context_type:
+            initial != null ? expressions.types[integers.widen(
+                initial
+            )] : 0,
+        element: table.first[source_type],
+        index: 0,
+        valid: true
+    }, {
         while: current => current.valid && current.index < current.count,
         next: current => {
-            const symbol = integers.widen(current.context.expressions.transform_parameters[current.first + current.index])
+            const symbol =
+                integers.widen(
+                    current.context.expressions
+                        .transform_parameters[current.first +
+                            current.index]
+                )
             const context_index = current.operation == TransformKind.Reduce ? 0 : 1
-            const expected = current.index == context_index ? current.context_type : current.element
+            const expected = current.index == context_index ? current.context_type :
+                current.element
 
-            current.valid = symbol < current.context.symbols.types.length && current.context.symbols.types[symbol] == expected
+            current.valid =
+                symbol < current.context.symbols.types.length &&
+                current.context.symbols.types[symbol] == expected
             current.index += 1
         }
     })
@@ -62,9 +97,34 @@ export default function (in: Input): Output {
     }
 
     return match operation {
-        TransformKind.Map => in.target == Kind.List && typed({ expressions: expressions, index: context.index, id: body, type_id: table.first[integers.widen(in.type_id)] }),
-        TransformKind.Filter => in.type_id == source_id && typed({ expressions: expressions, index: context.index, id: body, type_id: 1 }),
-        TransformKind.Reduce => initial != null && typed({ expressions: expressions, index: context.index, id: initial, type_id: in.type_id }) && typed({ expressions: expressions, index: context.index, id: body, type_id: in.type_id }),
-        _ => in.type_id == 1 && typed({ expressions: expressions, index: context.index, id: body, type_id: 1 })
+        TransformKind.Map => in.target == Kind.List && typed({
+            expressions: expressions,
+            index: context.index,
+            id: body,
+            type_id: table.first[integers.widen(in.type_id)]
+        }),
+        TransformKind.Filter => in.type_id == source_id && typed({
+            expressions: expressions,
+            index: context.index,
+            id: body,
+            type_id: 1
+        }),
+        TransformKind.Reduce => initial != null && typed({
+            expressions: expressions,
+            index: context.index,
+            id: initial,
+            type_id: in.type_id
+        }) && typed({
+            expressions: expressions,
+            index: context.index,
+            id: body,
+            type_id: in.type_id
+        }),
+        _ => in.type_id == 1 && typed({
+            expressions: expressions,
+            index: context.index,
+            id: body,
+            type_id: 1
+        })
     }
 }

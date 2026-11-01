@@ -2,7 +2,10 @@ import integers from "std:integer"
 
 import type { Body, Functions } from "./model"
 
-export type Input = { functions: Functions, index: u32 }
+export type Input = {
+    functions: Functions,
+    index: u32
+}
 
 export type Output = Body
 
@@ -10,5 +13,12 @@ export default function (in: Input): Output {
     const functions = in.functions
     const index = integers.widen(in.index)
 
-    return { input_type: functions.input_types[index], output_type: functions.output_types[index], symbols: functions.symbols[index], expressions: functions.expressions[index], contracts: functions.contracts[index], stores: functions.stores[index] }
+    return {
+        input_type: functions.input_types[index],
+        output_type: functions.output_types[index],
+        symbols: functions.symbols[index],
+        expressions: functions.expressions[index],
+        contracts: functions.contracts[index],
+        stores: functions.stores[index]
+    }
 }

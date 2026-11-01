@@ -27,35 +27,78 @@ export default function (in: Input): Output {
     }
 
     if (single != null) {
-        return { found: in.index == 0, expression: integers.widen(single) }
+        return {
+            found: in.index == 0,
+            expression: integers.widen(single)
+        }
     }
 
     if (kind == ExpressionKind.Index || kind == ExpressionKind.Binary) {
-        const first = kind == ExpressionKind.Index ? in.expressions.index_targets[payload] : in.expressions.binary_left[payload]
-        const second = kind == ExpressionKind.Index ? in.expressions.index_values[payload] : in.expressions.binary_right[payload]
+        const first =
+            kind == ExpressionKind.Index ? in.expressions.index_targets[payload] :
+            in.expressions.binary_left[payload]
+
+        const second =
+            kind == ExpressionKind.Index ? in.expressions.index_values[payload] :
+            in.expressions.binary_right[payload]
+
         const value = in.index == 0 ? first : second
 
-        return { found: in.index < 2, expression: integers.widen(value) }
+        return {
+            found: in.index < 2,
+            expression: integers.widen(value)
+        }
     }
 
-    if (kind == ExpressionKind.Iteration || kind == ExpressionKind.ListUpdate || kind == ExpressionKind.Conditional) {
+    if (
+        kind == ExpressionKind.Iteration || kind == ExpressionKind.ListUpdate ||
+            kind == ExpressionKind.Conditional
+    ) {
         const value = match kind {
-            ExpressionKind.Iteration => match in.index { 0 => in.expressions.iteration_initials[payload], 1 => in.expressions.iteration_conditions[payload], _ => in.expressions.iteration_bodies[payload] },
-            ExpressionKind.ListUpdate => match in.index { 0 => in.expressions.update_targets[payload], 1 => in.expressions.update_indices[payload], _ => in.expressions.update_values[payload] },
-            _ => match in.index { 0 => in.expressions.conditional_conditions[payload], 1 => in.expressions.conditional_yes[payload], _ => in.expressions.conditional_no[payload] }
+            ExpressionKind.Iteration =>
+                match in.index {
+                    0 => in.expressions.iteration_initials[payload],
+                    1 => in.expressions.iteration_conditions[payload],
+                    _ => in.expressions.iteration_bodies[payload]
+                },
+            ExpressionKind.ListUpdate =>
+                match in.index {
+                    0 => in.expressions.update_targets[payload],
+                    1 => in.expressions.update_indices[payload],
+                    _ => in.expressions.update_values[payload]
+                },
+            _ =>
+                match in.index {
+                    0 => in.expressions.conditional_conditions[payload],
+                    1 => in.expressions.conditional_yes[payload],
+                    _ => in.expressions.conditional_no[payload]
+                }
         }
 
-        return { found: in.index < 3, expression: integers.widen(value) }
+        return {
+            found: in.index < 3,
+            expression: integers.widen(value)
+        }
     }
 
     if (kind == ExpressionKind.Transform) {
         if (in.index < 2) {
-            return { found: true, expression: integers.widen(in.index == 0 ? in.expressions.transform_targets[payload] : in.expressions.transform_bodies[payload]) }
+            return {
+                found: true,
+                expression:
+                    integers.widen(
+                        in.index == 0 ? in.expressions.transform_targets[payload] :
+                            in.expressions.transform_bodies[payload]
+                    )
+            }
         }
 
         const initial = in.expressions.transform_initials[payload]
 
-        return { found: in.index == 2 && initial != null, expression: initial == null ? 0 : integers.widen(initial) }
+        return {
+            found: in.index == 2 && initial != null,
+            expression: initial == null ? 0 : integers.widen(initial)
+        }
     }
 
     return variadic(in)

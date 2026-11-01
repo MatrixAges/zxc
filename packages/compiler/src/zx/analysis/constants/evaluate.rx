@@ -7,24 +7,32 @@
 
     <Switch on={$ctx.closure.message != ""}>
         <Case value={true}>
-            <Return value={{
-                value: null,
-                diagnostic: $ctx.closure
-            }} />
+            <Return
+                value={{
+                    value: null,
+                    diagnostic: $ctx.closure
+                }}
+            />
         </Case>
     </Switch>
 
     <Call fn="initial" in={$in} />
 
-    <Call fn="walk" in={{
-        input: $in,
-        cursor: $ctx.initial
-    }} />
+    <Call
+        fn="walk"
+        in={{
+            input: $in,
+            cursor: $ctx.initial
+        }}
+    />
 
-    <Call fn="publish" in={{
-        input: $in,
-        cursor: $ctx.walk
-    }} />
+    <Call
+        fn="publish"
+        in={{
+            input: $in,
+            cursor: $ctx.walk
+        }}
+    />
 
     <Return value={$ctx.publish} />
 </Module>

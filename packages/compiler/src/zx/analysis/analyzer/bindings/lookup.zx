@@ -1,14 +1,27 @@
 import integers from "std:integer"
 
-export type Input = { active: u32[], names: string[], scope_floor: u64, name: string }
+export type Input = {
+    active: u32[],
+    names: string[],
+    scope_floor: u64,
+    name: string
+}
 
 export type Output = u32?
 
     export default function (in: Input): Output {
         const missing: u32? = null
 
-        const result = loop({ active: in.active, names: in.names, scope_floor: in.scope_floor, name: in.name, index: in.active.length, found: missing }, {
-            while: current => current.found == null && current.index > current.scope_floor,
+        const result = loop({
+            active: in.active,
+            names: in.names,
+            scope_floor: in.scope_floor,
+            name: in.name,
+            index: in.active.length,
+            found: missing
+        }, {
+            while: current =>
+                current.found == null && current.index > current.scope_floor,
             next: current => {
                 current.index -= 1
 

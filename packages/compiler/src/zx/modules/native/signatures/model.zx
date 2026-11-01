@@ -1,5 +1,12 @@
 import type { State } from "../../../analysis/semantic/resolving/model"
 
-export type Signature = { input: u32, output: u32, names: string?[] }
+export type Signature = {
+    input: u32,
+    output: u32,
+    names: string?[]
+}
 
-export type Signatures = { resolution: State, signatures: Signature[] }
+export type Signatures = {
+    resolution: State,
+    signatures: Signature[]
+}

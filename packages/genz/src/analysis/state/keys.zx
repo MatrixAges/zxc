@@ -6,7 +6,10 @@ import material from "./material"
 import type { Table } from "core/type_table/model"
 import type { State } from "../model"
 
-export type Input = { types: Table, boxed: bool[] }
+export type Input = {
+    types: Table,
+    boxed: bool[]
+}
 
 export type Output = State
 
@@ -14,13 +17,29 @@ export default function (in: Input): Output {
     const selected: bool[] = []
     const keys: u8[] = []
 
-    const result = loop({ types: in.types, boxed: in.boxed, prefix: encoding.encodeUtf8("state.value.origin.v1"), index: 0, selected: selected, keys: keys }, {
+    const result = loop({
+        types: in.types,
+        boxed: in.boxed,
+        prefix: encoding.encodeUtf8("state.value.origin.v1"),
+        index: 0,
+        selected: selected,
+        keys: keys
+    }, {
         while: current => current.index < current.types.kinds.length,
         next: current => {
             const kind = current.types.kinds[current.index]
-            const chosen = !current.boxed[current.index] && (kind == 1 || kind == 4)
+            const chosen =
+                !current.boxed[current.index] && (
+                    kind == 1 || kind == 4
+                )
             const flag: u8 = chosen ? 1 : 0
-            const bytes = material({ types: current.types, keys: current.keys, bytes: current.prefix.push(flag)[0], index: current.index, chosen: chosen })
+            const bytes = material({
+                types: current.types,
+                keys: current.keys,
+                bytes: current.prefix.push(flag)[0],
+                index: current.index,
+                chosen: chosen
+            })
 
             current.selected = current.selected.push(chosen)[0]
             current.keys = current.keys.concat(crypto.sha256(bytes))[0]
@@ -28,5 +47,8 @@ export default function (in: Input): Output {
         }
     })
 
-    return { selected: result.selected, keys: result.keys }
+    return {
+        selected: result.selected,
+        keys: result.keys
+    }
 }

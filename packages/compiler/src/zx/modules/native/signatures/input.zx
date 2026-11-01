@@ -4,7 +4,10 @@ import construct from "../../../analysis/semantic/resolving/construct"
 
 import type { State } from "../../../analysis/semantic/resolving/model"
 
-export type Input = { resolution: State, types: u32[] }
+export type Input = {
+    resolution: State,
+    types: u32[]
+}
 
 export type Output = State
 
@@ -14,8 +17,25 @@ export default function (in: Input): Output {
     }
 
     if (in.types.length < 2) {
-        return { ...in.resolution, result: in.types.length == 0 ? 0 : in.types[0] }
+        return {
+            ...in.resolution,
+            result: in.types.length == 0 ? 0 : in.types[0]
+        }
     }
 
-    return construct({ state: in.resolution, candidate: { kind: Kind.Tuple, first: 0, second: 0, label: "", children: in.types, fields: { names: [], types: [] }, names: [] } })
+    return construct({
+        state: in.resolution,
+        candidate: {
+            kind: Kind.Tuple,
+            first: 0,
+            second: 0,
+            label: "",
+            children: in.types,
+            fields: {
+                names: [],
+                types: []
+            },
+            names: []
+        }
+    })
 }

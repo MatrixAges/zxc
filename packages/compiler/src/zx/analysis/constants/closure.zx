@@ -1,7 +1,12 @@
 import integers from "std:integer"
 import { BinaryOperator, ExpressionKind } from "core/expression_table/kinds"
 
-import { code_unsupported, code_contract, message_root_bounds, message_closed_scalar } from "./const"
+import {
+    code_unsupported,
+    code_contract,
+    message_root_bounds,
+    message_closed_scalar
+} from "./const"
 
 import type { Diagnostic } from "../../frontend/lexer/model"
 import type { Request } from "./model"
@@ -44,11 +49,23 @@ export default function (in: Input): Output {
 
             if (index == current.root || current.required[index]) {
                 const kind = current.expressions.kinds[index]
-                const payload = integers.widen(current.expressions.payloads[index])
-                const atom = kind == ExpressionKind.Integer || kind == ExpressionKind.NegativeInteger || kind == ExpressionKind.Float || kind == ExpressionKind.String || kind == ExpressionKind.Boolean || kind == ExpressionKind.EnumValue
-                const operation = kind == ExpressionKind.Unary || kind == ExpressionKind.Binary
-                const branch = kind == ExpressionKind.Conditional || kind == ExpressionKind.Match
-                const coalesce = kind == ExpressionKind.Binary && current.expressions.binary_operators[payload] == BinaryOperator.Coalesce
+                const payload =
+                    integers.widen(
+                        current.expressions.payloads[index]
+                    )
+                const atom =
+                    kind == ExpressionKind.Integer ||
+                    kind == ExpressionKind.NegativeInteger ||
+                    kind == ExpressionKind.Float || kind == ExpressionKind.String ||
+                    kind == ExpressionKind.Boolean || kind == ExpressionKind.EnumValue
+                const operation =
+                    kind == ExpressionKind.Unary || kind == ExpressionKind.Binary
+                const branch =
+                    kind == ExpressionKind.Conditional || kind == ExpressionKind.Match
+                const coalesce =
+                    kind == ExpressionKind.Binary &&
+                    current.expressions.binary_operators[payload] ==
+                    BinaryOperator.Coalesce
 
                 if ((!atom && !operation && !branch) || coalesce) {
                     current.diagnostic = {
@@ -60,18 +77,36 @@ export default function (in: Input): Output {
                 }
 
                 if (kind == ExpressionKind.Unary) {
-                    current.required[integers.widen(current.expressions.unary_operands[payload])] = true
+                    current
+                        .required[integers.widen(
+                            current.expressions.unary_operands[payload]
+                        )] = true
                 }
 
                 if (kind == ExpressionKind.Binary) {
-                    current.required[integers.widen(current.expressions.binary_left[payload])] = true
-                    current.required[integers.widen(current.expressions.binary_right[payload])] = true
+                    current
+                        .required[integers.widen(
+                            current.expressions.binary_left[payload]
+                        )] = true
+                    current
+                        .required[integers.widen(
+                            current.expressions.binary_right[payload]
+                        )] = true
                 }
 
                 if (kind == ExpressionKind.Conditional) {
-                    current.required[integers.widen(current.expressions.conditional_conditions[payload])] = true
-                    current.required[integers.widen(current.expressions.conditional_yes[payload])] = true
-                    current.required[integers.widen(current.expressions.conditional_no[payload])] = true
+                    current
+                        .required[integers.widen(
+                            current.expressions.conditional_conditions[payload]
+                        )] = true
+                    current
+                        .required[integers.widen(
+                            current.expressions.conditional_yes[payload]
+                        )] = true
+                    current
+                        .required[integers.widen(
+                            current.expressions.conditional_no[payload]
+                        )] = true
                 }
 
                 if (kind == ExpressionKind.Match) {
@@ -81,18 +116,34 @@ export default function (in: Input): Output {
                         current.required[integers.widen(subject)] = true
                     }
 
-                    current.required[integers.widen(current.expressions.match_fallbacks[payload])] = true
+                    current
+                        .required[integers.widen(
+                            current.expressions.match_fallbacks[payload]
+                        )] = true
                     const arms = loop({
                         required: current.required,
                         conditions: current.expressions.match_conditions,
                         results: current.expressions.match_results,
-                        index: integers.widen(current.expressions.match_first[payload]),
-                        end: integers.widen(current.expressions.match_first[payload]) + integers.widen(current.expressions.match_count[payload])
+                        index:
+                            integers.widen(
+                                current.expressions.match_first[payload]
+                            ),
+                        end:
+                            integers.widen(
+                                current.expressions.match_first[payload]
+                            ) +
+                            integers.widen(
+                                current.expressions.match_count[payload]
+                            )
                     }, {
                         while: arm => arm.index < arm.end,
                         next: arm => {
-                            arm.required[integers.widen(arm.conditions[arm.index])] = true
-                            arm.required[integers.widen(arm.results[arm.index])] = true
+                            arm.required[integers.widen(
+                                arm.conditions[arm.index]
+                            )] = true
+                            arm.required[integers.widen(
+                                arm.results[arm.index]
+                            )] = true
                             arm.index += 1
                         }
                     })

@@ -1,12 +1,21 @@
 import integers from "std:integer"
-import { BinaryOperator, ExpressionKind, UnaryOperator } from "core/expression_table/kinds"
+import {
+    BinaryOperator,
+    ExpressionKind,
+    UnaryOperator
+} from "core/expression_table/kinds"
 
 import compare from "./compare"
 
 import type { Expressions } from "core/expression_table/model"
 import type { Refinement } from "./model"
 
-export type Input = { state: Refinement, expressions: Expressions, condition: u64, truth: bool }
+export type Input = {
+    state: Refinement,
+    expressions: Expressions,
+    condition: u64,
+    truth: bool
+}
 
 export type Output = Refinement
 
@@ -17,7 +26,10 @@ export default function (in: Input): Output {
         truths: in.state.truths.push(in.truth)[0]
     }
 
-    return loop({ state: initial, expressions: in.expressions }, {
+    return loop({
+        state: initial,
+        expressions: in.expressions
+    }, {
         while: current => current.state.conditions.length != 0,
         next: current => {
             const position = current.state.conditions.length - 1
@@ -31,19 +43,47 @@ export default function (in: Input): Output {
             const kind = expressions.kinds[condition]
             const payload = integers.widen(expressions.payloads[condition])
 
-            if (kind == ExpressionKind.Unary && expressions.unary_operators[payload] == UnaryOperator.Not) {
-                current.state.conditions = current.state.conditions.push(integers.widen(expressions.unary_operands[payload]))[0]
+            if (
+                kind == ExpressionKind.Unary &&
+                    expressions.unary_operators[payload] == UnaryOperator.Not
+            ) {
+                current.state.conditions =
+                    current.state.conditions.push(
+                        integers.widen(
+                            expressions.unary_operands[payload]
+                        )
+                    )[0]
                 current.state.truths = current.state.truths.push(!truth)[0]
             } else if (kind == ExpressionKind.Binary) {
                 const operator = expressions.binary_operators[payload]
 
-                if ((operator == BinaryOperator.LogicalAnd && truth) || (operator == BinaryOperator.LogicalOr && !truth)) {
-                    current.state.conditions = current.state.conditions.push(integers.widen(expressions.binary_right[payload]))[0]
-                    current.state.conditions = current.state.conditions.push(integers.widen(expressions.binary_left[payload]))[0]
+                if (
+                    (operator == BinaryOperator.LogicalAnd && truth) ||
+                        (
+                            operator == BinaryOperator.LogicalOr && !truth
+                        )
+                ) {
+                    current.state.conditions =
+                        current.state.conditions.push(
+                            integers.widen(
+                                expressions.binary_right[payload]
+                            )
+                        )[0]
+                    current.state.conditions =
+                        current.state.conditions.push(
+                            integers.widen(
+                                expressions.binary_left[payload]
+                            )
+                        )[0]
                     current.state.truths = current.state.truths.push(truth)[0]
                     current.state.truths = current.state.truths.push(truth)[0]
                 } else {
-                    current.state.facts = compare({ facts: current.state.facts, expressions: expressions, payload: payload, truth: truth })
+                    current.state.facts = compare({
+                        facts: current.state.facts,
+                        expressions: expressions,
+                        payload: payload,
+                        truth: truth
+                    })
                 }
             }
         }

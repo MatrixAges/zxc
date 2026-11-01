@@ -2,7 +2,11 @@ import { ExprKind } from "../../../frontend/parser/expressions/state/model"
 
 import type { Source } from "../expressions/request"
 
-export type Input = { source: Source, index: u64, template: bool }
+export type Input = {
+    source: Source,
+    index: u64,
+    template: bool
+}
 
 export type Output = u8[]
 
@@ -29,5 +33,9 @@ export default function (in: Input): Output {
     const node = in.source.tree.nodes[in.index]
     const offset: u64 = node.kind == ExprKind.String ? 1 : 0
 
-    return in.source.bytes.splice(node.span.start + offset, node.span.end - node.span.start - offset * 2, [])[1]
+    return in.source.bytes.splice(
+        node.span.start + offset,
+        node.span.end - node.span.start - offset * 2,
+        []
+    )[1]
 }

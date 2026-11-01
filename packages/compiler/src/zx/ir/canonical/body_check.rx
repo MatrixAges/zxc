@@ -1,7 +1,13 @@
 <Module>
     <Type from="./body/references/control" as="Control" />
 
-    <Args in={{ body: Control.Input, max_offset: u64 }} out={bool} />
+    <Args
+        in={{
+            body: Control.Input,
+            max_offset: u64
+        }}
+        out={bool}
+    />
 
     <Call module="./body/structure" in={$in} />
 

@@ -4,17 +4,51 @@ import copyFrame from "./copy_frame"
 
 import type { Graph } from "./model"
 
-export type Input = { graph: Graph, offset: u64 }
+export type Input = {
+    graph: Graph,
+    offset: u64
+}
 
 export type Output = Graph
 
 export default function (in: Input): Output {
-  const start = in.graph.frames[in.graph.frames.length - 1].text_start
-  const graph = addPart({ graph: in.graph, kind: PartKind.Text, span: { start: start, end: in.offset }, interpolation: 0, text_start: in.offset })
-  const frame = copyFrame(graph.frames[graph.frames.length - 1])
-  const reference = graph.templates.length + 1
-  const templates = graph.templates.push({ span: { start: frame.start, end: in.offset + 1 }, head: frame.head, count: frame.count })[0]
-  const events = graph.events.push({ kind: EventKind.TemplateClose, offset: in.offset, reference: reference })[0]
+    const start = in.graph.frames[in.graph.frames.length - 1].text_start
 
-  return { templates: templates, parts: graph.parts, events: events, frames: graph.frames.pop()[0], interpolations: graph.interpolations, token_templates: graph.token_templates }
+    const graph = addPart({
+        graph: in.graph,
+        kind: PartKind.Text,
+        span: {
+            start: start,
+            end: in.offset
+        },
+        interpolation: 0,
+        text_start: in.offset
+    })
+
+    const frame = copyFrame(graph.frames[graph.frames.length - 1])
+    const reference = graph.templates.length + 1
+
+    const templates = graph.templates.push({
+        span: {
+            start: frame.start,
+            end: in.offset + 1
+        },
+        head: frame.head,
+        count: frame.count
+    })[0]
+
+    const events = graph.events.push({
+        kind: EventKind.TemplateClose,
+        offset: in.offset,
+        reference: reference
+    })[0]
+
+    return {
+        templates: templates,
+        parts: graph.parts,
+        events: events,
+        frames: graph.frames.pop()[0],
+        interpolations: graph.interpolations,
+        token_templates: graph.token_templates
+    }
 }

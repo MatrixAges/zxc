@@ -6,14 +6,17 @@ export type Input = NativeState
 export type Output = Token
 
 export default function (in: Input): Output {
-  const index = in.control.index
+    const index = in.control.index
 
-  return {
-    kind: in.lexed.tokens[index].kind,
-    word: in.lexed.tokens[index].word,
-    symbol: in.lexed.tokens[index].symbol,
-    span: { start: in.lexed.tokens[index].span.start, end: in.lexed.tokens[index].span.end },
-    line_break: in.lexed.tokens[index].line_break,
-    dollar: in.lexed.tokens[index].dollar
-  }
+    return {
+        kind: in.lexed.tokens[index].kind,
+        word: in.lexed.tokens[index].word,
+        symbol: in.lexed.tokens[index].symbol,
+        span: {
+            start: in.lexed.tokens[index].span.start,
+            end: in.lexed.tokens[index].span.end
+        },
+        line_break: in.lexed.tokens[index].line_break,
+        dollar: in.lexed.tokens[index].dollar
+    }
 }

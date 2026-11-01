@@ -5,7 +5,10 @@ import selectionReturns from "../control/selection_returns"
 
 import type { Context } from "./model"
 
-export type Input = { context: Context, statement: u64 }
+export type Input = {
+    context: Context,
+    statement: u64
+}
 
 export type Output = bool
 
@@ -15,8 +18,19 @@ export default function (in: Input): Output {
 
     return match control.statement_kinds[in.statement] {
         StatementKind.Result => true,
-        StatementKind.Branch => in.context.prepared.returns[integers.widen(control.branch_yes[payload])] && in.context.prepared.returns[integers.widen(control.branch_no[payload])],
-        StatementKind.Switch => selectionReturns({ control: control, selection: payload, returns: in.context.prepared.returns }),
+        StatementKind.Branch =>
+            in.context.prepared
+            .returns[integers.widen(
+                control.branch_yes[payload]
+            )] &&
+            in.context.prepared.returns[integers.widen(
+                control.branch_no[payload]
+            )],
+        StatementKind.Switch => selectionReturns({
+            control: control,
+            selection: payload,
+            returns: in.context.prepared.returns
+        }),
         _ => false
     }
 }

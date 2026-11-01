@@ -6,7 +6,11 @@ import type { Functions } from "../../functions"
 import type { Request } from "../request"
 import type { Work } from "./model"
 
-export type Input = { request: Request, imports: FunctionImports, functions: Functions }
+export type Input = {
+    request: Request,
+    imports: FunctionImports,
+    functions: Functions
+}
 
 export type Output = Work
 
@@ -16,9 +20,44 @@ export default function (in: Input): Output {
         source: in.request.source,
         imports: in.imports,
         functions: in.functions,
-        scopes: { bindings: { symbols: [], values: [], borrows: [] }, frames: [] },
-        boundary: { active: in.request.state.local.active.length, floor: in.request.state.local.scope_floor, depth: in.request.state.local.lambda_depth, captures: in.request.state.local.captures.current, facts: mark(in.request.state.local.refinement.facts) },
-        frames: { actions: [], coercions: [], singles: [], indices: [], binaries: [], conditionals: [], selections: [], sequences: [], objects: [], imported: [], methods: [], lists: [], templates: [], transforms: [], iterations: [], statements: [], updates: [], branches: [], switches: [], asynchronous: [], parallels: [] },
+        scopes: {
+            bindings: {
+                symbols: [],
+                values: [],
+                borrows: []
+            },
+            frames: []
+        },
+        boundary: {
+            active: in.request.state.local.active.length,
+            floor: in.request.state.local.scope_floor,
+            depth: in.request.state.local.lambda_depth,
+            captures: in.request.state.local.captures.current,
+            facts: mark(in.request.state.local.refinement.facts)
+        },
+        frames: {
+            actions: [],
+            coercions: [],
+            singles: [],
+            indices: [],
+            binaries: [],
+            conditionals: [],
+            selections: [],
+            sequences: [],
+            objects: [],
+            imported: [],
+            methods: [],
+            lists: [],
+            templates: [],
+            transforms: [],
+            iterations: [],
+            statements: [],
+            updates: [],
+            branches: [],
+            switches: [],
+            asynchronous: [],
+            parallels: []
+        },
         node: in.request.node,
         expected: in.request.expected,
         value: 0,

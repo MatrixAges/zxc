@@ -14,7 +14,9 @@ export default function (in: Input): Output {
         input: in.input,
         cursor: in.cursor
     }, {
-        while: current => current.cursor.frames.length != 0 && current.cursor.diagnostic.message == "",
+        while: current =>
+            current.cursor.frames.length != 0 &&
+            current.cursor.diagnostic.message == "",
         next: current => {
             const last = current.cursor.frames.length - 1
             const frame = current.cursor.frames[last]

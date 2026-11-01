@@ -18,39 +18,136 @@ export type Output = Machine
 
 export default function (in: Input): Output {
     return loop(in, {
-        while: current => current.active && current.complete && !current.failed && current.work.actions.length != 0 && (current.work.actions[current.work.actions.length - 1] == WorkAction.BranchCondition || current.work.actions[current.work.actions.length - 1] == WorkAction.BranchYes || current.work.actions[current.work.actions.length - 1] == WorkAction.BranchNo),
+        while: current =>
+            current.active && current.complete && !current.failed &&
+            current.work.actions.length != 0 &&
+            (
+                current.work.actions[current.work.actions.length - 1] ==
+                    WorkAction.BranchCondition ||
+                    current.work.actions[current.work.actions.length - 1] ==
+                    WorkAction.BranchYes ||
+                    current.work.actions[current.work.actions.length - 1] ==
+                    WorkAction.BranchNo
+            ),
         next: current => {
             const frame = top(current.work)
 
             current.work = pop(current.work)
 
             if (frame.action == WorkAction.BranchCondition) {
-                const captured = save({ memory: current.memory, stack: current.snapshots, capture: Capture.States })
+                const captured = save({
+                    memory: current.memory,
+                    stack: current.snapshots,
+                    capture: Capture.States
+                })
                 const branch = frame.subject
 
                 current.snapshots = captured.stack
-                current.work = push({ work: current.work, frame: { action: WorkAction.BranchYes, subject: frame.subject, moving: false, index: captured.frame } })
-                current.work = push({ work: current.work, frame: { action: WorkAction.Block, subject: integers.widen(current.program.control.branch_yes[branch]), moving: false, index: 0 } })
+                current.work = push({
+                    work: current.work,
+                    frame: {
+                        action: WorkAction.BranchYes,
+                        subject: frame.subject,
+                        moving: false,
+                        index: captured.frame
+                    }
+                })
+                current.work = push({
+                    work: current.work,
+                    frame: {
+                        action: WorkAction.Block,
+                        subject:
+                            integers.widen(
+                                current.program.control.branch_yes[branch]
+                            ),
+                        moving: false,
+                        index: 0
+                    }
+                })
             } else if (frame.action == WorkAction.BranchYes) {
-                const captured = save({ memory: current.memory, stack: current.snapshots, capture: Capture.States })
+                const captured = save({
+                    memory: current.memory,
+                    stack: current.snapshots,
+                    capture: Capture.States
+                })
                 const branch = frame.subject
 
                 current.snapshots = captured.stack
-                current.memory = apply({ types: current.program.types, references: current.references, layout: current.layout.tree, memory: current.memory, stack: current.snapshots, frame: frame.index, action: Action.RestoreStates })
-                current.work = push({ work: current.work, frame: { action: WorkAction.BranchNo, subject: frame.subject, moving: false, index: frame.index } })
-                current.work = push({ work: current.work, frame: { action: WorkAction.Block, subject: integers.widen(current.program.control.branch_no[branch]), moving: false, index: 0 } })
+                current.memory = apply({
+                    types: current.program.types,
+                    references: current.references,
+                    layout: current.layout.tree,
+                    memory: current.memory,
+                    stack: current.snapshots,
+                    frame: frame.index,
+                    action: Action.RestoreStates
+                })
+                current.work = push({
+                    work: current.work,
+                    frame: {
+                        action: WorkAction.BranchNo,
+                        subject: frame.subject,
+                        moving: false,
+                        index: frame.index
+                    }
+                })
+                current.work = push({
+                    work: current.work,
+                    frame: {
+                        action: WorkAction.Block,
+                        subject:
+                            integers.widen(
+                                current.program.control.branch_no[branch]
+                            ),
+                        moving: false,
+                        index: 0
+                    }
+                })
             } else if (frame.action == WorkAction.BranchNo) {
                 const branch = frame.subject
 
-                if (current.returns[integers.widen(current.program.control.branch_yes[branch])]) {
-                    if (current.returns[integers.widen(current.program.control.branch_no[branch])]) {
-                        current.memory = apply({ types: current.program.types, references: current.references, layout: current.layout.tree, memory: current.memory, stack: current.snapshots, frame: frame.index, action: Action.RestoreStates })
+                if (
+                    current
+                        .returns[integers.widen(
+                            current.program.control.branch_yes[branch]
+                        )]
+                ) {
+                    if (
+                        current
+                            .returns[integers.widen(
+                                current.program.control.branch_no[branch]
+                            )]
+                    ) {
+                        current.memory = apply({
+                            types: current.program.types,
+                            references: current.references,
+                            layout: current.layout.tree,
+                            memory: current.memory,
+                            stack: current.snapshots,
+                            frame: frame.index,
+                            action: Action.RestoreStates
+                        })
                     }
                 } else {
-                    current.memory = apply({ types: current.program.types, references: current.references, layout: current.layout.tree, memory: current.memory, stack: current.snapshots, frame: frame.index + 1, action: current.returns[integers.widen(current.program.control.branch_no[branch])] ? Action.RestoreStates : Action.MergeStates })
+                    current.memory = apply({
+                        types: current.program.types,
+                        references: current.references,
+                        layout: current.layout.tree,
+                        memory: current.memory,
+                        stack: current.snapshots,
+                        frame: frame.index + 1,
+                        action:
+                            current
+                            .returns[integers.widen(
+                                current.program.control.branch_no[branch]
+                            )] ? Action.RestoreStates : Action.MergeStates
+                    })
                 }
 
-                current.snapshots = drop({ stack: current.snapshots, frame: frame.index })
+                current.snapshots = drop({
+                    stack: current.snapshots,
+                    frame: frame.index
+                })
             }
         }
     })

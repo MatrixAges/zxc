@@ -7,7 +7,13 @@
 
     <Switch on={$ctx.collect.valid}>
         <Case value={true}>
-            <Call fn="closure" in={{ table: $in.request.table, needed: $ctx.collect.needed }} />
+            <Call
+                fn="closure"
+                in={{
+                    table: $in.request.table,
+                    needed: $ctx.collect.needed
+                }}
+            />
 
             <Return value={$ctx.closure.valid ? $ctx.closure.needed : null} />
         </Case>

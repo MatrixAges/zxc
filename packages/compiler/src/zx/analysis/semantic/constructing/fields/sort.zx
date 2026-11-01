@@ -11,7 +11,15 @@ export default function (in: Input): Output {
         return in
     }
 
-    const state = loop({ names: in.names, types: in.types, count: in.names.length, remaining: in.names.length / 2, root: 0, building: true, sifting: false }, {
+    const state = loop({
+        names: in.names,
+        types: in.types,
+        count: in.names.length,
+        remaining: in.names.length / 2,
+        root: 0,
+        building: true,
+        sifting: false
+    }, {
         while: current => current.building || current.count > 1 || current.sifting,
         next: current => {
             if (current.sifting) {
@@ -20,9 +28,15 @@ export default function (in: Input): Output {
                 } else {
                     const left = current.root * 2 + 1
                     const right = left + 1
-                    const child = right < current.count && less({ left: current.names[left], right: current.names[right] }) ? right : left
+                    const child = right < current.count && less({
+                        left: current.names[left],
+                        right: current.names[right]
+                    }) ? right : left
 
-                    if (less({ left: current.names[current.root], right: current.names[child] })) {
+                    if (less({
+                        left: current.names[current.root],
+                        right: current.names[child]
+                    })) {
                         const name = current.names[current.root]
                         const type_id = current.types[current.root]
 
@@ -59,5 +73,8 @@ export default function (in: Input): Output {
         }
     })
 
-    return { names: state.names, types: state.types }
+    return {
+        names: state.names,
+        types: state.types
+    }
 }

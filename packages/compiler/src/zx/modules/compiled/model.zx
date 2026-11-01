@@ -14,12 +14,43 @@ export type Exports = {
     constants: Values?[]
 }
 
-export type Initializers = { identities: string[], versions: u32[], functions: u32[] }
+export type Initializers = {
+    identities: string[],
+    versions: u32[],
+    functions: u32[]
+}
 
-export type Graph = { program: Program, origins: Bindings, origin_names: string[], exports: Exports, initializers: Initializers }
+export type Graph = {
+    program: Program,
+    origins: Bindings,
+    origin_names: string[],
+    exports: Exports,
+    initializers: Initializers
+}
 
-export type Destination = { types: Table, origins: Bindings, origin_names: string[], natives: Modules, function_count: u64 }
+export type Destination = {
+    types: Table,
+    origins: Bindings,
+    origin_names: string[],
+    natives: Modules,
+    function_count: u64
+}
 
-export type Input = { graph: Graph, instance: string, artifact: string, load: bool, seed: bool, destination: Destination }
+export type Input = {
+    graph: Graph,
+    instance: string,
+    artifact: string,
+    load: bool,
+    seed: bool,
+    destination: Destination
+}
 
-export type Result = { status: u64, types: Table, origins: Bindings, natives: Modules, functions: Complete, exports: Exports, initializers: Initializers }
+export type Result = {
+    status: u64,
+    types: Table,
+    origins: Bindings,
+    natives: Modules,
+    functions: Complete,
+    exports: Exports,
+    initializers: Initializers
+}

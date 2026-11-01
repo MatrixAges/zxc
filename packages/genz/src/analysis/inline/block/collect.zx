@@ -33,24 +33,57 @@ export default function (in: Input): Output {
     const count = match kind {
         StatementKind.Parallel => integers.widen(control.parallel_count[payload]),
         StatementKind.Branch => 3,
-        StatementKind.Switch => 1 + integers.widen(control.selection_count[payload]) + loop({ control: control, position: integers.widen(control.selection_first[payload]), end: integers.widen(control.selection_first[payload]) + integers.widen(control.selection_count[payload]), valued: 0 }, {
-            while: current => current.position < current.end,
-            next: current => {
-                if (current.control.case_values[current.position] != null) {
-                    current.valued += 1
-                }
+        StatementKind.Switch =>
+            1 + integers.widen(
+                control.selection_count[payload]
+            ) + loop({
+                control: control,
+                position: integers.widen(control.selection_first[payload]),
+                end:
+                    integers.widen(control.selection_first[payload]) +
+                    integers.widen(
+                        control.selection_count[payload]
+                    ),
+                valued: 0
+            }, {
+                while: current => current.position < current.end,
+                next: current => {
+                    if (current.control.case_values[current.position] != null) {
+                        current.valued += 1
+                    }
 
-                current.position += 1
-            }
-        }).valued,
+                    current.position += 1
+                }
+            }).valued,
         StatementKind.Result => control.results[payload] == null ? 0 : 1,
         _ => 1,
     }
 
     const start = state.stack.length - count
     const header: u64[] = [code, payload, count]
-    const described = append({ pool: state.pool, items: header })
-    const pool = copy({ pool: described, stack: state.stack, start: start })
 
-    return { ...state, pool: pool, stack: truncate({ items: state.stack, length: start }), frames: state.frames.push({ ...in.frame, op: InlineOp.BlockNext, a: in.frame.a + 1 })[0] }
+    const described = append({
+        pool: state.pool,
+        items: header
+    })
+
+    const pool = copy({
+        pool: described,
+        stack: state.stack,
+        start: start
+    })
+
+    return {
+        ...state,
+        pool: pool,
+        stack: truncate({
+            items: state.stack,
+            length: start
+        }),
+        frames: state.frames.push({
+            ...in.frame,
+            op: InlineOp.BlockNext,
+            a: in.frame.a + 1
+        })[0]
+    }
 }

@@ -18,28 +18,77 @@ export default function (in: Input): Output {
 
     if (frame.phase == Phase.Block) {
         if (frame.b > 256) {
-            return { state: in.state, valid: false }
+            return {
+                state: in.state,
+                valid: false
+            }
         }
 
-        const restoration = schedule({ state: in.state, frame: { phase: Phase.Restore, a: in.state.activity.changed_symbols.length, b: in.state.refinement.facts.nonnull.length, c: in.state.refinement.facts.capture_errors.length } })
-        const entered = schedule({ state: restoration, frame: { phase: Phase.BlockNext, a: frame.a, b: 0, c: frame.b } })
+        const restoration = schedule({
+            state: in.state,
+            frame: {
+                phase: Phase.Restore,
+                a: in.state.activity.changed_symbols.length,
+                b: in.state.refinement.facts.nonnull.length,
+                c: in.state.refinement.facts.capture_errors.length
+            }
+        })
 
-        return { state: entered, valid: true }
+        const entered = schedule({
+            state: restoration,
+            frame: {
+                phase: Phase.BlockNext,
+                a: frame.a,
+                b: 0,
+                c: frame.b
+            }
+        })
+
+        return {
+            state: entered,
+            valid: true
+        }
     }
 
     const count = integers.widen(control.block_count[frame.a])
 
     if (frame.b == count) {
-        return { state: in.state, valid: true }
+        return {
+            state: in.state,
+            valid: true
+        }
     }
 
     const first = integers.widen(control.block_first[frame.a])
 
-    if (frame.b != 0 && returns({ context: in.context, statement: first + frame.b - 1 })) {
-        return { state: in.state, valid: false }
+    if (frame.b != 0 && returns({
+        context: in.context,
+        statement: first + frame.b - 1
+    })) {
+        return {
+            state: in.state,
+            valid: false
+        }
     }
 
-    const continuation = schedule({ state: in.state, frame: { phase: Phase.BlockNext, a: frame.a, b: frame.b + 1, c: frame.c } })
+    const continuation = schedule({
+        state: in.state,
+        frame: {
+            phase: Phase.BlockNext,
+            a: frame.a,
+            b: frame.b + 1,
+            c: frame.c
+        }
+    })
 
-    return statement({ context: in.context, state: continuation, frame: { phase: Phase.BlockNext, a: first + frame.b, b: frame.c, c: 0 } })
+    return statement({
+        context: in.context,
+        state: continuation,
+        frame: {
+            phase: Phase.BlockNext,
+            a: first + frame.b,
+            b: frame.c,
+            c: 0
+        }
+    })
 }

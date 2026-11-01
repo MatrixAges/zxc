@@ -1,4 +1,23 @@
-export enum StatementsKind { Scope, DeferExpression, ErrdeferExpression, DeferScope, DiscardError, Constant, Variable, Assignment, ForLoop, WhileLoop, BreakLoop, ContinueLoop, BreakValue, UnreachableStmt, Result, Branch, Discard, Expression }
+export enum StatementsKind {
+    Scope,
+    DeferExpression,
+    ErrdeferExpression,
+    DeferScope,
+    DiscardError,
+    Constant,
+    Variable,
+    Assignment,
+    ForLoop,
+    WhileLoop,
+    BreakLoop,
+    ContinueLoop,
+    BreakValue,
+    UnreachableStmt,
+    Result,
+    Branch,
+    Discard,
+    Expression
+}
 
 export type Statements = {
     tags: StatementsKind[]

@@ -13,15 +13,33 @@ export type Output = Analysis
 
 export default function (in: Input): Output {
     const span = in.syntax.expressions.nodes[in.syntax.result].span
-    const diagnostic = { code: "", message: "", start: 0, end: 0 }
+
+    const diagnostic = {
+        code: "",
+        message: "",
+        start: 0,
+        end: 0
+    }
 
     const native = in.native
 
     const types: Types = {
         context: {
-            source: { indexed: { bytes: in.bytes, types: in.syntax.types, order: in.syntax.type_order, declarations: [], members: [] }, native: native != null ? native.types : null },
+            source: {
+                indexed: {
+                    bytes: in.bytes,
+                    types: in.syntax.types,
+                    order: in.syntax.type_order,
+                    declarations: [],
+                    members: []
+                },
+                native: native != null ? native.types : null
+            },
             base: in.type_base,
-            resolved: { names: [], ids: [] },
+            resolved: {
+                names: [],
+                ids: []
+            },
             aliases: {
                 names: in.alias_names,
                 ids: in.alias_types
@@ -29,12 +47,60 @@ export default function (in: Input): Output {
             visiting: [],
             native_interface: false
         },
-        delta: { kinds: [], first: [], second: [], labels: [], children: [], field_types: [], field_names: [], names: [] },
-        cache: { names: [], ids: [] },
-        nominal_delta: { ids: [], kinds: [], owners: [], members: [] }
+        delta: {
+            kinds: [],
+            first: [],
+            second: [],
+            labels: [],
+            children: [],
+            field_types: [],
+            field_names: [],
+            names: []
+        },
+        cache: {
+            names: [],
+            ids: []
+        },
+        nominal_delta: {
+            ids: [],
+            kinds: [],
+            owners: [],
+            members: []
+        }
     }
 
-    const scope = local({ signature: { types: types, span: span, input_type: 0, output_type: 0, diagnostic: diagnostic }, stores: { paths: [], types: [], handles: [], readable: [], writable: [] }, allow_store: false })
+    const scope = local({
+        signature: {
+            types: types,
+            span: span,
+            input_type: 0,
+            output_type: 0,
+            diagnostic: diagnostic
+        },
+        stores: {
+            paths: [],
+            types: [],
+            handles: [],
+            readable: [],
+            writable: []
+        },
+        allow_store: false
+    })
 
-    return { program: in.mode != Mode.Expression, linking: in.mode == Mode.Linking, state: { types: types, local: scope, input_type: 0, diagnostic: diagnostic }, span: span, input_value: 0, binding_values: [], value: 0, root: null, ownership: Ownership.Borrowed }
+    return {
+        program: in.mode != Mode.Expression,
+        linking: in.mode == Mode.Linking,
+        state: {
+            types: types,
+            local: scope,
+            input_type: 0,
+            diagnostic: diagnostic
+        },
+        span: span,
+        input_value: 0,
+        binding_values: [],
+        value: 0,
+        root: null,
+        ownership: Ownership.Borrowed
+    }
 }

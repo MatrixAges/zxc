@@ -5,12 +5,21 @@ import { Symbol } from "./token_model"
 
 import type { LexerState } from "./model"
 
-export type Input = { kind: string, start: u64, end: u64, comment: bool, state: LexerState }
+export type Input = {
+    kind: string,
+    start: u64,
+    end: u64,
+    comment: bool,
+    state: LexerState
+}
 
 export type Output = LexerState
 
 export default function (in: Input): Output {
-    const span = { start: in.start, end: in.end }
+    const span = {
+        start: in.start,
+        end: in.end
+    }
 
     if (in.comment) {
         return {
@@ -36,7 +45,11 @@ export default function (in: Input): Output {
         }
     }
 
-    const word = in.kind == "identifier" || in.kind == "keyword" ? keywordValue(in.state.keyword_state) : Keyword.Root
+    const word =
+        in.kind == "identifier" ||
+        in.kind == "keyword" ? keywordValue(
+            in.state.keyword_state
+        ) : Keyword.Root
 
     const kind = tokenKind(in.kind)
 

@@ -11,5 +11,8 @@ export default function (in: Input): Output {
         return false
     }
 
-    return functions({ functions: in.context.functions, maximum_count: in.context.maximum_count })
+    return functions({
+        functions: in.context.functions,
+        maximum_count: in.context.maximum_count
+    })
 }

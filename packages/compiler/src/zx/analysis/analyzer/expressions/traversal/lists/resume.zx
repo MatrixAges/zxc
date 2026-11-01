@@ -9,7 +9,18 @@ export type Output = Work
 export default function (in: Input): Output {
     const position = in.frames.lists.length - 1
     const frame = in.frames.lists[position]
-    const lists = in.frames.lists.splice(position, 1, [{ ...frame, index: frame.index + 1, values: frame.values.push(in.value)[0] }])[0]
 
-    return next({ ...in, frames: { ...in.frames, lists: lists } })
+    const lists = in.frames.lists.splice(position, 1, [{
+        ...frame,
+        index: frame.index + 1,
+        values: frame.values.push(in.value)[0]
+    }])[0]
+
+    return next({
+        ...in,
+        frames: {
+            ...in.frames,
+            lists: lists
+        }
+    })
 }

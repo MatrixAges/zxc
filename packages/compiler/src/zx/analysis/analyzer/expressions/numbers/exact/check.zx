@@ -3,14 +3,22 @@ import integers from "std:integer"
 import accumulate from "./accumulate"
 import bits from "./bits"
 
-export type Input = { bytes: u8[], precision: u64 }
+export type Input = {
+    bytes: u8[],
+    precision: u64
+}
 
 export type Output = string
 
 export default function (in: Input): Output {
     const limbs: u64[] = []
 
-    const result = loop({ bytes: in.bytes, limbs: limbs, index: 0, invalid: false }, {
+    const result = loop({
+        bytes: in.bytes,
+        limbs: limbs,
+        index: 0,
+        invalid: false
+    }, {
         while: current => !current.invalid && current.index < current.bytes.length,
         next: current => {
             const byte = current.bytes[current.index]
@@ -18,7 +26,10 @@ export default function (in: Input): Output {
             if (byte < 48 || byte > 57) {
                 current.invalid = true
             } else {
-                const next = accumulate({ limbs: current.limbs, digit: integers.widenByte(byte) - 48 })
+                const next = accumulate({
+                    limbs: current.limbs,
+                    digit: integers.widenByte(byte) - 48
+                })
 
                 current.limbs = next.limbs
                 current.invalid = next.overflow
@@ -34,5 +45,10 @@ export default function (in: Input): Output {
 
     const width = bits(result.limbs)
 
-    return width.significant > in.precision && width.trailing < width.significant - in.precision ? "integer literal cannot be represented exactly by its floating-point type" : ""
+    return width.significant > in.precision &&
+        width.trailing <
+        width.significant -
+        in.precision ?
+        "integer literal cannot be represented exactly by its floating-point type" :
+        ""
 }

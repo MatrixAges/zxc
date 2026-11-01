@@ -15,7 +15,10 @@ export default function (in: Input): Output {
     const index = integers.widen(in.frame.id)
     const payload = integers.widen(expressions.payloads[index])
     const single = expressions.kinds[index] == ExpressionKind.Unary
-    const left_id = single ? expressions.unary_operands[payload] : expressions.binary_left[payload]
+
+    const left_id = single ? expressions.unary_operands[payload] :
+        expressions.binary_left[payload]
+
     const left = in.cursor.values[integers.widen(left_id)]
 
     if (left == null) {
@@ -42,7 +45,12 @@ export default function (in: Input): Output {
     }
 
     const operator = expressions.binary_operators[payload]
-    const short = (operator == BinaryOperator.LogicalAnd && !left.boolean) || (operator == BinaryOperator.LogicalOr && left.boolean)
+
+    const short =
+        (operator == BinaryOperator.LogicalAnd && !left.boolean) ||
+        (
+            operator == BinaryOperator.LogicalOr && left.boolean
+        )
 
     if (short) {
         return {

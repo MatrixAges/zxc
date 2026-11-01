@@ -6,7 +6,14 @@ export default function (in: Input): Output {
     const low: u8 = 128
     const high: u8 = 191
 
-    const result = loop({ text: in, index: 0, remaining: 0, low: low, high: high, valid: true }, {
+    const result = loop({
+        text: in,
+        index: 0,
+        remaining: 0,
+        low: low,
+        high: high,
+        valid: true
+    }, {
         while: current => current.valid && current.index < current.text.length,
         next: current => {
             const byte = current.text[current.index]

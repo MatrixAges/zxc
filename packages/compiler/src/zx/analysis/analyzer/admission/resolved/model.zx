@@ -11,11 +11,11 @@ export enum DeclarationKind { Callable, Alias, Constant }
 export type Request = {
     source_text: string
     native: NativeModule?
-    syntax: Program
+        syntax: Program
     table: Table
     aliases: Cache
     constants: Values?
-    bindings: FunctionImports
+        bindings: FunctionImports
     functions: Complete
     maximum_count: u64
 }

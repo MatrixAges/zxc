@@ -9,7 +9,11 @@ import members from "./members"
 
 import type { Table } from "core/type_table/model"
 
-export type Input = { table: Table, index: u64, scalar_count: u64 }
+export type Input = {
+    table: Table,
+    index: u64,
+    scalar_count: u64
+}
 
 export type Output = bool
 
@@ -27,24 +31,52 @@ export default function (in: Input): Output {
     }
 
     if (type_kind == Kind.NativeReference) {
-        return checkName({ name: in.table.labels[in.index], kind: NameKind.TypeDecl })
+        return checkName({
+            name: in.table.labels[in.index],
+            kind: NameKind.TypeDecl
+        })
     }
 
     if (type_kind == Kind.Task) {
-        return first < in.index && second < in.index && kind(in.table.kinds[first]) != Kind.Task && kind(in.table.kinds[second]) == Kind.ErrorSet
+        return first < in.index && second < in.index &&
+            kind(
+                in.table.kinds[first]
+            ) != Kind.Task &&
+            kind(
+                in.table.kinds[second]
+            ) == Kind.ErrorSet
     }
 
     if (type_kind == Kind.Optional || type_kind == Kind.List) {
-        return first < in.index && (type_kind != Kind.List || first != 0) && kind(in.table.kinds[first]) != Kind.Task
+        return first < in.index && (type_kind != Kind.List || first != 0) &&
+            kind(
+                in.table.kinds[first]
+            ) != Kind.Task
     }
 
     if (type_kind == Kind.Tuple || type_kind == Kind.Object) {
-        return children({ table: in.table, index: in.index, first: first, count: second, object: type_kind == Kind.Object })
+        return children({
+            table: in.table,
+            index: in.index,
+            first: first,
+            count: second,
+            object: type_kind == Kind.Object
+        })
     }
 
-    if (type_kind == Kind.Enumeration && (in.table.labels[in.index] == "" || second == 0)) {
+    if (
+        type_kind == Kind.Enumeration &&
+            (
+                in.table.labels[in.index] == "" || second == 0
+            )
+    ) {
         return false
     }
 
-    return members({ values: in.table.names, first: first, count: second, errors: type_kind == Kind.ErrorSet })
+    return members({
+        values: in.table.names,
+        first: first,
+        count: second,
+        errors: type_kind == Kind.ErrorSet
+    })
 }

@@ -4,17 +4,41 @@
 
     <Args in={Request.Input} out={Model.Analysis} />
 
-    <Switch on={$in.analysis.program && $in.analysis.state.diagnostic.message == "" && $in.input.nonnull_bindings.length != 0}>
+    <Switch
+        on={$in.analysis.program && $in.analysis.state.diagnostic.message == "" &&
+            $in.input.nonnull_bindings.length != 0}
+    >
         <Case value={true}>
             <Switch on={$in.analysis.linking}>
                 <Case value={true}>
-                    <Call fn="facts/add" in={{ analysis: $in.analysis, names: $in.input.nonnull_bindings, bindings: $in.input.binding_names }} />
+                    <Call
+                        fn="facts/add"
+                        in={{
+                            analysis: $in.analysis,
+                            names: $in.input.nonnull_bindings,
+                            bindings: $in.input.binding_names
+                        }}
+                    />
 
                     <Return value={$ctx.add} />
                 </Case>
 
                 <Default>
-                    <Return value={{ ...$in.analysis, state: { ...$in.analysis.state, diagnostic: { code: "contract", message: "external branch facts require expression linking", start: $in.analysis.span.start, end: $in.analysis.span.end } } }} />
+                    <Return
+                        value={{
+                            ...$in.analysis,
+                            state: {
+                                ...$in.analysis.state,
+                                diagnostic: {
+                                    code: "contract",
+                                    message:
+                                        "external branch facts require expression linking",
+                                    start: $in.analysis.span.start,
+                                    end: $in.analysis.span.end
+                                }
+                            }
+                        }}
+                    />
                 </Default>
             </Switch>
         </Case>

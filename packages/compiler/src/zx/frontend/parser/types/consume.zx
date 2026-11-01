@@ -2,12 +2,23 @@ import { Phase } from "./model"
 
 import type { State } from "./model"
 
-export type Input = { state: State, phase: Phase }
+export type Input = {
+    state: State,
+    phase: Phase
+}
 
 export type Output = State
 
 export default function (in: Input): Output {
-  const index = in.state.control.index + 1
+    const index = in.state.control.index + 1
 
-  return { tree: in.state.tree, frames: in.state.frames, control: { ...in.state.control, index: index, phase: in.phase } }
+    return {
+        tree: in.state.tree,
+        frames: in.state.frames,
+        control: {
+            ...in.state.control,
+            index: index,
+            phase: in.phase
+        }
+    }
 }

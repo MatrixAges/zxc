@@ -3,7 +3,16 @@
 
     <Args in={u8[]} out={Model.Expression} />
 
-    <Call module="expression" in={{source: $in, start: 0, depth: 0, minimum: 0, allow_lambda: true}} />
+    <Call
+        module="expression"
+        in={{
+            source: $in,
+            start: 0,
+            depth: 0,
+            minimum: 0,
+            allow_lambda: true
+        }}
+    />
 
     <Call fn="expressions/finish" in={$ctx.expression} />
 

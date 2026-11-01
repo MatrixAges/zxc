@@ -9,7 +9,13 @@ export default function (in: Input): Output {
     return {
         type_delta: in.state.types.delta,
         nominal_delta: in.state.types.nominal_delta,
-        body: { stores: in.state.local.stores, symbols: in.state.local.symbols, expressions: in.state.local.expressions, control: in.state.local.control, root: in.state.diagnostic.message == "" ? in.root : null },
+        body: {
+            stores: in.state.local.stores,
+            symbols: in.state.local.symbols,
+            expressions: in.state.local.expressions,
+            control: in.state.local.control,
+            root: in.state.diagnostic.message == "" ? in.root : null
+        },
         contracts: in.contracts,
         export_names: in.names,
         export_types: in.types,

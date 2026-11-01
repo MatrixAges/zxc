@@ -11,4 +11,10 @@ export type Layout = {
     field_indices: u64[]
 }
 
-export type Request = { layout: Layout, states: State[], id: u64, operation: Operation, value: State }
+export type Request = {
+    layout: Layout,
+    states: State[],
+    id: u64,
+    operation: Operation,
+    value: State
+}

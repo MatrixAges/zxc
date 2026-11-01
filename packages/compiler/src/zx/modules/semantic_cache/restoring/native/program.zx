@@ -10,7 +10,14 @@ import type { Table } from "core/type_table/model"
 import type { Program } from "../../../../ir/canonical/validation/model"
 import type { Request } from "./request"
 
-export type Input = { request: Request, types: Table, version: u64, max_offset: u64, scalar_count: u64, maximum_count: u64 }
+export type Input = {
+    request: Request,
+    types: Table,
+    version: u64,
+    max_offset: u64,
+    scalar_count: u64,
+    maximum_count: u64
+}
 
 export type Output = Program
 
@@ -18,14 +25,33 @@ export default function (in: Input): Output {
     const source = in.request.signatures
 
     const body: Body = {
-        stores: { paths: [], types: [], handles: [], readable: [], writable: [] },
-        symbols: { names: [], types: [], span_start: [], span_end: [], ownership: [] },
+        stores: {
+            paths: [],
+            types: [],
+            handles: [],
+            readable: [],
+            writable: []
+        },
+        symbols: {
+            names: [],
+            types: [],
+            span_start: [],
+            span_end: [],
+            ownership: []
+        },
         expressions: emptyExpressions(),
         control: emptyControl(),
         root: null
     }
 
-    const contracts: Contracts = { kinds: [], predicates: [], symbols: [], expressions: [], span_start: [], span_end: [] }
+    const contracts: Contracts = {
+        kinds: [],
+        predicates: [],
+        symbols: [],
+        expressions: [],
+        span_start: [],
+        span_end: []
+    }
 
     const functions: Complete = {
         files: source.files,
@@ -57,8 +83,24 @@ export default function (in: Input): Output {
     return {
         version: in.version,
         expected_version: in.version,
-        context: { table: in.types, functions: functions, modules: in.request.modules, max_offset: in.max_offset, scalar_count: in.scalar_count, maximum_count: in.maximum_count, verified: 0 },
-        unit: { body: body, contracts: contracts, input_type: zero, output_type: zero, output_ownership: Ownership.Borrowed, transaction: true, type_only: true },
+        context: {
+            table: in.types,
+            functions: functions,
+            modules: in.request.modules,
+            max_offset: in.max_offset,
+            scalar_count: in.scalar_count,
+            maximum_count: in.maximum_count,
+            verified: 0
+        },
+        unit: {
+            body: body,
+            contracts: contracts,
+            input_type: zero,
+            output_type: zero,
+            output_ownership: Ownership.Borrowed,
+            transaction: true,
+            type_only: true
+        },
         export_names: in.request.export_names,
         export_types: in.request.export_types
     }

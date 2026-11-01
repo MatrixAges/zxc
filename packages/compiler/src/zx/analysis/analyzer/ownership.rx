@@ -8,7 +8,13 @@
 
     <Call module="../../ownership/check" in={$ctx.request} />
 
-    <Call fn="ownership/finish" in={{ state: $in.state, outcome: $ctx.check }} />
+    <Call
+        fn="ownership/finish"
+        in={{
+            state: $in.state,
+            outcome: $ctx.check
+        }}
+    />
 
     <Return value={$ctx.finish} />
 </Module>

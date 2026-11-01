@@ -7,5 +7,8 @@ export type Input = HeaderStage
 export type Output = HeaderStage
 
 export default function (in: Input): Output {
-  return { prefix: in.prefix, header: step(in.header) }
+    return {
+        prefix: in.prefix,
+        header: step(in.header)
+    }
 }

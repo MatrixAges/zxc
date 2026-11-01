@@ -11,13 +11,28 @@ export type Input = State
 export type Output = State
 
 export default function (in: Input): Output {
-    const completed = loop({ state: in, index: 0, count: count(in.context.source) }, {
-        while: current => current.index < current.count && current.state.diagnostic.message == "",
+    const completed = loop({
+        state: in,
+        index: 0,
+        count: count(in.context.source)
+    }, {
+        while: current =>
+            current.index < current.count && current.state.diagnostic.message == "",
         next: current => {
-            const selected = declaration({ source: current.state.context.source, index: current.index })
-            const entry = frame({ operation: Operation.Name, name: selected.name, reference: selected.value })
+            const selected = declaration({
+                source: current.state.context.source,
+                index: current.index
+            })
+            const entry = frame({
+                operation: Operation.Name,
+                name: selected.name,
+                reference: selected.value
+            })
 
-            current.state = run({ ...current.state, frames: current.state.frames.push(entry)[0] })
+            current.state = run({
+                ...current.state,
+                frames: current.state.frames.push(entry)[0]
+            })
             current.index += 1
         }
     })

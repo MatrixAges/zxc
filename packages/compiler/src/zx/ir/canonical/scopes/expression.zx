@@ -22,50 +22,132 @@ export default function (in: Input): Output {
     const frame = in.frame
 
     if (frame.a >= expressions.kinds.length || frame.b > 256) {
-        return { state: in.state, valid: false }
+        return {
+            state: in.state,
+            valid: false
+        }
     }
 
     const kind = expressions.kinds[frame.a]
     const payload = integers.widen(expressions.payloads[frame.a])
 
     if (kind == ExpressionKind.StoreGet) {
-        return { state: in.state, valid: frame.c == 0 }
+        return {
+            state: in.state,
+            valid: frame.c == 0
+        }
     }
 
     if (kind == ExpressionKind.Reference) {
-        return { state: in.state, valid: in.state.activity.active[integers.widen(expressions.references[payload])] }
+        return {
+            state: in.state,
+            valid:
+                in.state.activity
+                .active[integers.widen(
+                    expressions.references[payload]
+                )]
+        }
     }
 
     if (kind == ExpressionKind.OptionalValue) {
         const child = integers.widen(expressions.optional_values[payload])
 
-        if (!contains({ facts: in.state.refinement.facts, expressions: expressions, value: integers.narrow(child) })) {
-            return { state: in.state, valid: false }
+        if (!contains({
+            facts: in.state.refinement.facts,
+            expressions: expressions,
+            value: integers.narrow(child)
+        })) {
+            return {
+                state: in.state,
+                valid: false
+            }
         }
     } else if (kind == ExpressionKind.Call) {
-        if ((frame.c == 1 || frame.c == 3) && expressions.call_store_count[payload] != 0) {
-            return { state: in.state, valid: false }
+        if (
+            (frame.c == 1 || frame.c == 3) && expressions.call_store_count[payload] != 0
+        ) {
+            return {
+                state: in.state,
+                valid: false
+            }
         }
 
-        if (frame.c >= 2 && !in.context.prepared.concurrent[integers.widen(expressions.call_functions[payload])]) {
-            return { state: in.state, valid: false }
+        if (
+            frame.c >= 2 &&
+                !in.context.prepared
+                .concurrent[integers.widen(
+                    expressions.call_functions[payload]
+                )]
+        ) {
+            return {
+                state: in.state,
+                valid: false
+            }
         }
     } else if (kind == ExpressionKind.Iteration) {
-        const condition = schedule({ state: in.state, frame: { phase: Phase.IterationCondition, a: frame.a, b: frame.b, c: frame.c } })
-        const initial = schedule({ state: condition, frame: { phase: Phase.Expression, a: integers.widen(expressions.iteration_initials[payload]), b: frame.b + 1, c: frame.c } })
+        const condition = schedule({
+            state: in.state,
+            frame: {
+                phase: Phase.IterationCondition,
+                a: frame.a,
+                b: frame.b,
+                c: frame.c
+            }
+        })
 
-        return { state: initial, valid: true }
+        const initial = schedule({
+            state: condition,
+            frame: {
+                phase: Phase.Expression,
+                a: integers.widen(expressions.iteration_initials[payload]),
+                b: frame.b + 1,
+                c: frame.c
+            }
+        })
+
+        return {
+            state: initial,
+            valid: true
+        }
     } else if (kind == ExpressionKind.Transform) {
-        const callback = schedule({ state: in.state, frame: { phase: Phase.Transform, a: frame.a, b: frame.b, c: frame.c } })
+        const callback = schedule({
+            state: in.state,
+            frame: {
+                phase: Phase.Transform,
+                a: frame.a,
+                b: frame.b,
+                c: frame.c
+            }
+        })
+
         const initial = expressions.transform_initials[payload]
 
         const initialized = initial == null
         ? callback
-        : schedule({ state: callback, frame: { phase: Phase.Expression, a: integers.widen(initial), b: frame.b + 1, c: frame.c } })
+        : schedule({
+            state: callback,
+            frame: {
+                phase: Phase.Expression,
+                a: integers.widen(initial),
+                b: frame.b + 1,
+                c: frame.c
+            }
+        })
 
-        const target = schedule({ state: initialized, frame: { phase: Phase.Expression, a: integers.widen(expressions.transform_targets[payload]), b: frame.b + 1, c: frame.c } })
+        const target = schedule({
+            state: initialized,
+            frame: {
+                phase: Phase.Expression,
+                a: integers.widen(expressions.transform_targets[payload]),
+                b: frame.b + 1,
+                c: frame.c
+            }
+        })
 
-        return { state: target, valid: true }
+        return {
+            state: target,
+            valid: true
+        }
     }
 
     return match kind {
@@ -92,6 +174,9 @@ export default function (in: Input): Output {
         ExpressionKind.Object => children(in),
         ExpressionKind.Call => children(in),
         ExpressionKind.ListOperation => children(in),
-        _ => { state: in.state, valid: true }
+        _ => {
+            state: in.state,
+            valid: true
+        }
     }
 }

@@ -4,7 +4,10 @@ import row from "../../semantic/types/row"
 
 import type { Types } from "./model"
 
-export type Input = { types: Types, expected: u32? }
+export type Input = {
+    types: Types,
+    expected: u32?
+}
 
 export type Output = u32?
 
@@ -15,12 +18,22 @@ export type Output = u32?
             return null
         }
 
-        const tables = { base: in.types.context.base, delta: in.types.delta }
+        const tables = {
+            base: in.types.context.base,
+            delta: in.types.delta
+        }
 
-        const result = loop({ tables: tables, id: expected, done: false }, {
+        const result = loop({
+            tables: tables,
+            id: expected,
+            done: false
+        }, {
             while: current => !current.done,
             next: current => {
-                const value = row({ tables: current.tables, id: current.id })
+                const value = row({
+                    tables: current.tables,
+                    id: current.id
+                })
 
                 if (value.kind == Kind.Optional) {
                     current.id = value.first

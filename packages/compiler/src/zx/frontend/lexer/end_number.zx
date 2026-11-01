@@ -10,11 +10,26 @@ export type Input = LexerState
 export type Output = LexerState
 
 export default function (in: Input): Output {
-  const number = result(in.number)
+    const number = result(in.number)
 
-  if (number.diagnostic != "") {
-    return fail({ code: "lexical", start: in.start, end: in.start + number.end, message: number.diagnostic, state: in })
-  }
+    if (number.diagnostic != "") {
+        return fail({
+            code: "lexical",
+            start: in.start,
+            end: in.start + number.end,
+            message: number.diagnostic,
+            state: in
+        })
+    }
 
-  return emit({ kind: "number", start: in.start, end: in.start + number.end, comment: false, state: { ...in, mode: Mode.Idle } })
+    return emit({
+        kind: "number",
+        start: in.start,
+        end: in.start + number.end,
+        comment: false,
+        state: {
+            ...in,
+            mode: Mode.Idle
+        }
+    })
 }

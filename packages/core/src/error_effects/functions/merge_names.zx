@@ -1,9 +1,16 @@
-export type Input = { names: string[], added: string[] }
+export type Input = {
+    names: string[],
+    added: string[]
+}
 
 export type Output = string[]
 
 export default function (in: Input): Output {
-    const result = loop({ names: in.names, added: in.added, index: 0 }, {
+    const result = loop({
+        names: in.names,
+        added: in.added,
+        index: 0
+    }, {
         while: current => current.index < current.added.length,
         next: current => {
             const name = current.added[current.index]

@@ -20,6 +20,8 @@ const constant_fold = Entry{ .path = "zx/analysis/constants/evaluate.rx", .name 
 
 /// Entries linked into zxc.
 pub const main = [_]Entry{
+    .{ .path = "lint/layout/attribute_required.rx", .name = "attribute_required", .owner = .lint },
+    .{ .path = "lint/layout/layout.rx", .name = "layout_rule", .owner = .lint },
     .{ .path = "zx/modules/external/load.rx", .name = "external" },
     .{ .path = "zx/frontend/parser/program.rx", .name = "program", .import_name = "generated_parser" },
     .{ .path = "zx/frontend/parser/expression_text.rx", .name = "expression" },

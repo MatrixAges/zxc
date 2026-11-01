@@ -6,7 +6,12 @@ import ids from "./remap/ids"
 import type { Literal, Values } from "core/constant/model"
 import type { Exports } from "../model"
 
-export type Input = { source: Exports, mapping: u32[], first: u64, instance: string }
+export type Input = {
+    source: Exports,
+    mapping: u32[],
+    first: u64,
+    instance: string
+}
 
 export type Output = Exports
 
@@ -17,15 +22,33 @@ export default function (in: Input): Output {
 
     const constants: Values?[] = []
 
-    const result = loop({ input: in, paths: paths, functions: functions, types: types, constants: constants, index: 0 }, {
+    const result = loop({
+        input: in,
+        paths: paths,
+        functions: functions,
+        types: types,
+        constants: constants,
+        index: 0
+    }, {
         while: current => current.index < current.input.source.names.length,
         next: current => {
             const function_id = current.input.source.functions[current.index]
-            const mapped: u32? = function_id == null ? null : integers.narrow(current.input.first + integers.widen(function_id))
+            const mapped: u32? = function_id == null ? null :
+                integers.narrow(
+                    current.input.first + integers.widen(
+                        function_id
+                    )
+                )
 
-            current.paths = current.paths.push(scope({ instance: current.input.instance, value: current.input.source.paths[current.index] }))[0]
+            current.paths = current.paths.push(scope({
+                instance: current.input.instance,
+                value: current.input.source.paths[current.index]
+            }))[0]
             current.functions = current.functions.push(mapped)[0]
-            current.types = current.types.push(ids({ values: current.input.source.type_ids[current.index], mapping: current.input.mapping }))[0]
+            current.types = current.types.push(ids({
+                values: current.input.source.type_ids[current.index],
+                mapping: current.input.mapping
+            }))[0]
             const source = current.input.source.constants[current.index]
             const empty: Literal[] = []
             const mapped_constants: Values? = source == null ? null : {
@@ -42,7 +65,10 @@ export default function (in: Input): Output {
 
                         row.values = row.values.push({
                             ...value,
-                            type_id: row.mapping[integers.widen(value.type_id)]
+                            type_id:
+                                row.mapping[integers.widen(
+                                    value.type_id
+                                )]
                         })[0]
                         row.index += 1
                     }
@@ -54,5 +80,11 @@ export default function (in: Input): Output {
         }
     })
 
-    return { ...in.source, paths: result.paths, functions: result.functions, type_ids: result.types, constants: result.constants }
+    return {
+        ...in.source,
+        paths: result.paths,
+        functions: result.functions,
+        type_ids: result.types,
+        constants: result.constants
+    }
 }

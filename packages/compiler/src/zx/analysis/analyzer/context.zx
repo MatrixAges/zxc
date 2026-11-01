@@ -12,14 +12,21 @@ import type { NativeModule } from "./source/model"
 
 export type FunctionImports = Imports
 
-export type StoreBindings = { handles: string[], paths: string[], type_names: string?[], type_ids: u32?[], readable: bool[], writable: bool[] }
+export type StoreBindings = {
+    handles: string[],
+    paths: string[],
+    type_names: string?[],
+    type_ids: u32?[],
+    readable: bool[],
+    writable: bool[]
+}
 
 export type Context = {
     mode: Mode
     type_base: Table
     aliases: Cache
     constant_imports: Values?
-    nominal_base: Bindings
+        nominal_base: Bindings
     nominal_names: string[]
     nominal_origin: Origin
     shared: bool
@@ -33,4 +40,11 @@ export type Context = {
     store_type_count: u64
 }
 
-export type ModuleInput = { bytes: u8[], source_text: string, file_name: string, syntax: Program, native: NativeModule?, context: Context }
+export type ModuleInput = {
+    bytes: u8[],
+    source_text: string,
+    file_name: string,
+    syntax: Program,
+    native: NativeModule?,
+    context: Context
+}

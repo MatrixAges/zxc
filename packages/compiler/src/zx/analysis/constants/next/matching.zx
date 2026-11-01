@@ -11,9 +11,20 @@ export type Output = Action
 
 export default function (in: Input): Output {
     const expressions = in.input.expressions
-    const payload = integers.widen(expressions.payloads[integers.widen(in.frame.id)])
+
+    const payload =
+        integers.widen(
+            expressions.payloads[integers.widen(
+                in.frame.id
+            )]
+        )
+
     const subject_id = expressions.match_subjects[payload]
-    const subject = subject_id != null ? in.cursor.values[integers.widen(subject_id)] : null
+
+    const subject =
+        subject_id != null ? in.cursor.values[integers.widen(
+            subject_id
+        )] : null
 
     if (subject_id != null && subject == null) {
         return {
@@ -60,7 +71,9 @@ export default function (in: Input): Output {
         }
     }
 
-    const selected = in.frame.arm < count ? expressions.match_results[arm] : expressions.match_fallbacks[payload]
+    const selected = in.frame.arm < count ? expressions.match_results[arm] :
+        expressions.match_fallbacks[payload]
+
     const value = in.cursor.values[integers.widen(selected)]
 
     return {

@@ -18,9 +18,18 @@ export default function (in: Input): Output {
             current.frames = current.frames.pop()[0]
 
             const result = match frame.operation {
-                Operation.Expression => expression({ state: current, frame: frame }),
-                Operation.Function => call({ state: current, index: frame.index }),
-                _ => block({ state: current, frame: frame }),
+                Operation.Expression => expression({
+                    state: current,
+                    frame: frame
+                }),
+                Operation.Function => call({
+                    state: current,
+                    index: frame.index
+                }),
+                _ => block({
+                    state: current,
+                    frame: frame
+                }),
             }
 
             current.sources = result.sources

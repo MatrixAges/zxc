@@ -17,17 +17,48 @@ export default function (in: Input): Output {
         return fail(state)
     }
 
-    const deeper = { ...state, depth: state.depth + 1 }
-    const control = deeper.units[deeper.mappings.units[in.frame.mapping]].control
-    const count = in.frame.id == 0 ? 0 : integers.widen(control.block_count[in.frame.id - 1])
-    const type_index = in.frame.c
-    const empty = deeper.types.kinds[type_index] == 0 && deeper.types.first[type_index] == 0
-
-    if (in.frame.b == 0 && empty) {
-        const made = unit({ state: deeper, type_id: integers.narrow(in.frame.c), span_start: in.frame.d, span_end: in.frame.e })
-
-        return { ...made.state, frames: made.state.frames.push({ ...in.frame, op: InlineOp.LowerStep, a: count, b: integers.widen(made.id) + 1 })[0] }
+    const deeper = {
+        ...state,
+        depth: state.depth + 1
     }
 
-    return { ...deeper, frames: deeper.frames.push({ ...in.frame, op: InlineOp.LowerStep, a: count })[0] }
+    const control = deeper.units[deeper.mappings.units[in.frame.mapping]].control
+
+    const count = in.frame.id == 0 ? 0 :
+        integers.widen(
+            control.block_count[in.frame.id - 1]
+        )
+
+    const type_index = in.frame.c
+
+    const empty =
+        deeper.types.kinds[type_index] == 0 && deeper.types.first[type_index] == 0
+
+    if (in.frame.b == 0 && empty) {
+        const made = unit({
+            state: deeper,
+            type_id: integers.narrow(in.frame.c),
+            span_start: in.frame.d,
+            span_end: in.frame.e
+        })
+
+        return {
+            ...made.state,
+            frames: made.state.frames.push({
+                ...in.frame,
+                op: InlineOp.LowerStep,
+                a: count,
+                b: integers.widen(made.id) + 1
+            })[0]
+        }
+    }
+
+    return {
+        ...deeper,
+        frames: deeper.frames.push({
+            ...in.frame,
+            op: InlineOp.LowerStep,
+            a: count
+        })[0]
+    }
 }

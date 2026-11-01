@@ -5,11 +5,36 @@
     <Type from="./layout/model" as="LayoutModel" />
     <Type from="./runtime/snapshots/model" as="SnapshotsModel" />
 
-    <Args in={References.Input} out={{ memory: Model.Memory, prepared: { domains: LoopsModel.Domains, layout: LayoutModel.Built, references: bool[], returns: bool[] }, snapshots: SnapshotsModel.Stack }} />
+    <Args
+        in={References.Input}
+        out={{
+            memory: Model.Memory,
+            prepared: {
+                domains: LoopsModel.Domains,
+                layout: LayoutModel.Built,
+                references: bool[],
+                returns: bool[]
+            },
+            snapshots: SnapshotsModel.Stack
+        }}
+    />
 
     <Call module="./ir/prepare" in={$in} />
 
-    <Call fn="./runtime/initialize" in={{ program: $in, references: $ctx.prepare.references, layout: $ctx.prepare.layout }} />
+    <Call
+        fn="./runtime/initialize"
+        in={{
+            program: $in,
+            references: $ctx.prepare.references,
+            layout: $ctx.prepare.layout
+        }}
+    />
 
-    <Return value={{ prepared: $ctx.prepare, memory: $ctx.initialize.memory, snapshots: $ctx.initialize.snapshots }} />
+    <Return
+        value={{
+            prepared: $ctx.prepare,
+            memory: $ctx.initialize.memory,
+            snapshots: $ctx.initialize.snapshots
+        }}
+    />
 </Module>

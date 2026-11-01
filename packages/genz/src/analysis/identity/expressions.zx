@@ -6,7 +6,12 @@ import represented from "../types/layout_represented"
 import type { Expressions } from "core/expression_table/model"
 import type { Table } from "core/type_table/model"
 
-export type Input = { types: Table, expressions: Expressions, allowed: bool[], limit: u64 }
+export type Input = {
+    types: Table,
+    expressions: Expressions,
+    allowed: bool[],
+    limit: u64
+}
 
 export type Output = bool
 
@@ -21,26 +26,61 @@ export default function (in: Input): Output {
         binary_right: in.expressions.binary_right,
     }
 
-    const result = loop({ types: in.types, expressions: columns, allowed: in.allowed, limit: in.limit, index: 0, valid: true }, {
-        while: current => current.valid && current.index < current.expressions.kinds.length,
+    const result = loop({
+        types: in.types,
+        expressions: columns,
+        allowed: in.allowed,
+        limit: in.limit,
+        index: 0,
+        valid: true
+    }, {
+        while: current =>
+            current.valid && current.index < current.expressions.kinds.length,
         next: current => {
             const kind = current.expressions.kinds[current.index]
 
             if (kind == ExpressionKind.Call) {
-                const payload = integers.widen(current.expressions.payloads[current.index])
-                const target = integers.widen(current.expressions.call_functions[payload])
+                const payload =
+                    integers.widen(
+                        current.expressions.payloads[current.index]
+                    )
+                const target =
+                    integers.widen(
+                        current.expressions.call_functions[payload]
+                    )
 
                 current.valid = target < current.limit && current.allowed[target]
             } else if (kind == ExpressionKind.Binary) {
-                const payload = integers.widen(current.expressions.payloads[current.index])
+                const payload =
+                    integers.widen(
+                        current.expressions.payloads[current.index]
+                    )
                 const operator = current.expressions.binary_operators[payload]
 
-                if (operator == BinaryOperator.Equal || operator == BinaryOperator.NotEqual) {
-                    const left = integers.widen(current.expressions.binary_left[payload])
-                    const right = integers.widen(current.expressions.binary_right[payload])
+                if (
+                    operator == BinaryOperator.Equal ||
+                        operator == BinaryOperator.NotEqual
+                ) {
+                    const left =
+                        integers.widen(
+                            current.expressions.binary_left[payload]
+                        )
+                    const right =
+                        integers.widen(
+                            current.expressions.binary_right[payload]
+                        )
 
-                    if (current.expressions.kinds[left] != ExpressionKind.None && current.expressions.kinds[right] != ExpressionKind.None) {
-                        current.valid = !represented({ types: current.types, id: current.expressions.types[left] }) && !represented({ types: current.types, id: current.expressions.types[right] })
+                    if (
+                        current.expressions.kinds[left] != ExpressionKind.None &&
+                            current.expressions.kinds[right] != ExpressionKind.None
+                    ) {
+                        current.valid = !represented({
+                            types: current.types,
+                            id: current.expressions.types[left]
+                        }) && !represented({
+                            types: current.types,
+                            id: current.expressions.types[right]
+                        })
                     }
                 }
             }

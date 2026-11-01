@@ -12,27 +12,64 @@ export type Input = State
 export type Output = State
 
 export default function (in: Input): Output {
-  const offset = in.control.location.offset
-  const parsed = name({ source: in.source, offset: offset + 2 })
-  const end = parsed.end
-  const matched = equal({ source: in.source, left: in.frame.name, right: { start: offset + 2, end: end } })
-  const state = advance({ state: in, count: end - offset })
+    const offset = in.control.location.offset
 
-  if (parsed.message != "") {
-    return fail({ state: state, message: parsed.message })
-  }
+    const parsed = name({
+        source: in.source,
+        offset: offset + 2
+    })
 
-  if (!matched) {
-    return fail({ state: state, message: "XML closing tag does not match opening tag" })
-  }
+    const end = parsed.end
 
-  const finish = whitespace({ source: state.source, offset: end })
-  const closed = finish < state.source.length && state.source[finish] == 62
-  const advanced = advance({ state: state, count: finish - end })
+    const matched = equal({
+        source: in.source,
+        left: in.frame.name,
+        right: {
+            start: offset + 2,
+            end: end
+        }
+    })
 
-  if (!closed) {
-    return fail({ state: advanced, message: "unexpected XML token" })
-  }
+    const state = advance({
+        state: in,
+        count: end - offset
+    })
 
-  return publish(advance({ state: advanced, count: 1 }))
+    if (parsed.message != "") {
+        return fail({
+            state: state,
+            message: parsed.message
+        })
+    }
+
+    if (!matched) {
+        return fail({
+            state: state,
+            message: "XML closing tag does not match opening tag"
+        })
+    }
+
+    const finish = whitespace({
+        source: state.source,
+        offset: end
+    })
+
+    const closed = finish < state.source.length && state.source[finish] == 62
+
+    const advanced = advance({
+        state: state,
+        count: finish - end
+    })
+
+    if (!closed) {
+        return fail({
+            state: advanced,
+            message: "unexpected XML token"
+        })
+    }
+
+    return publish(advance({
+        state: advanced,
+        count: 1
+    }))
 }

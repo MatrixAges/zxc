@@ -1,11 +1,18 @@
 import type { State, Frame } from "./model"
 
-export type Input = { state: State, frame: Frame }
+export type Input = {
+    state: State,
+    frame: Frame
+}
 
 export type Output = State
 
 export default function (in: Input): Output {
-  const frames = in.state.frames.pop()[0].push(in.frame)[0]
+    const frames = in.state.frames.pop()[0].push(in.frame)[0]
 
-  return { tree: in.state.tree, frames: frames, control: in.state.control }
+    return {
+        tree: in.state.tree,
+        frames: frames,
+        control: in.state.control
+    }
 }

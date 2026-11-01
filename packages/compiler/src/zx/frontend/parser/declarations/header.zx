@@ -12,43 +12,111 @@ export type Input = State
 export type Output = State
 
 export default function (in: Input): Output {
-  if (in.control.phase == Phase.Kind) {
-    if (in.control.token.word != Keyword.Type && in.control.token.word != Keyword.Enum) {
-      const index = in.control.opening_index
+    if (in.control.phase == Phase.Kind) {
+        if (
+            in.control.token.word != Keyword.Type && in.control.token.word != Keyword.Enum
+        ) {
+            const index = in.control.opening_index
 
-      return { declarations: in.declarations, members: in.members, types: in.types, control: { ...in.control, phase: Phase.Done, index: index } }
+            return {
+                declarations: in.declarations,
+                members: in.members,
+                types: in.types,
+                control: {
+                    ...in.control,
+                    phase: Phase.Done,
+                    index: index
+                }
+            }
+        }
+
+        const enumeration = in.control.token.word == Keyword.Enum
+
+        return consume({
+            state: {
+                declarations: in.declarations,
+                members: in.members,
+                types: in.types,
+                control: {
+                    ...in.control,
+                    enumeration: enumeration
+                }
+            },
+            phase: Phase.Name
+        })
     }
 
-    const enumeration = in.control.token.word == Keyword.Enum
+    if (in.control.phase == Phase.Name) {
+        if (in.control.token.kind != Kind.Identifier) {
+            return fail({
+                state: in,
+                message: "expected an identifier"
+            })
+        }
 
-    return consume({ state: { declarations: in.declarations, members: in.members, types: in.types, control: { ...in.control, enumeration: enumeration } }, phase: Phase.Name })
-  }
+        const name = {
+            start: in.control.token.span.start,
+            end: in.control.token.span.end
+        }
 
-  if (in.control.phase == Phase.Name) {
-    if (in.control.token.kind != Kind.Identifier) {
-      return fail({ state: in, message: "expected an identifier" })
+        return consume({
+            state: {
+                declarations: in.declarations,
+                members: in.members,
+                types: in.types,
+                control: {
+                    ...in.control,
+                    name: name
+                }
+            },
+            phase: Phase.Open
+        })
     }
 
-    const name = { start: in.control.token.span.start, end: in.control.token.span.end }
+    if (in.control.enumeration) {
+        if (in.control.token.symbol != Symbol.OpenBrace) {
+            return fail({
+                state: in,
+                message: "expected {"
+            })
+        }
 
-    return consume({ state: { declarations: in.declarations, members: in.members, types: in.types, control: { ...in.control, name: name } }, phase: Phase.Open })
-  }
-
-  if (in.control.enumeration) {
-    if (in.control.token.symbol != Symbol.OpenBrace) {
-      return fail({ state: in, message: "expected {" })
+        return consume({
+            state: in,
+            phase: Phase.Member
+        })
     }
 
-    return consume({ state: in, phase: Phase.Member })
-  }
+    if (in.control.token.symbol != Symbol.Assign) {
+        return fail({
+            state: in,
+            message: "expected ="
+        })
+    }
 
-  if (in.control.token.symbol != Symbol.Assign) {
-    return fail({ state: in, message: "expected =" })
-  }
+    const index = in.control.index + 1
 
-  const index = in.control.index + 1
-  const initial = typeInitial({ start: index, depth: in.control.depth })
-  const types = { tree: in.types.tree, frames: initial.frames, control: { ...initial.control, index: index } }
+    const initial = typeInitial({
+        start: index,
+        depth: in.control.depth
+    })
 
-  return consume({ state: { declarations: in.declarations, members: in.members, types: types, control: in.control }, phase: Phase.Value })
+    const types = {
+        tree: in.types.tree,
+        frames: initial.frames,
+        control: {
+            ...initial.control,
+            index: index
+        }
+    }
+
+    return consume({
+        state: {
+            declarations: in.declarations,
+            members: in.members,
+            types: types,
+            control: in.control
+        },
+        phase: Phase.Value
+    })
 }

@@ -12,15 +12,40 @@ export type Output = Work
 
 export default function (in: Input): Output {
     const node = in.source.tree.nodes[in.node]
-    const hint = payload({ types: in.state.types, expected: in.expected })
 
-    if (hint != null && row({ tables: { base: in.state.types.context.base, delta: in.state.types.delta }, id: hint }).kind != Kind.Object) {
-        return { ...in, state: { ...in.state, diagnostic: { code: "type_mismatch", message: "an object literal requires an object type", start: node.span.start, end: node.span.end } } }
+    const hint = payload({
+        types: in.state.types,
+        expected: in.expected
+    })
+
+    if (hint != null && row({
+        tables: {
+            base: in.state.types.context.base,
+            delta: in.state.types.delta
+        },
+        id: hint
+    }).kind != Kind.Object) {
+        return {
+            ...in,
+            state: {
+                ...in.state,
+                diagnostic: {
+                    code: "type_mismatch",
+                    message: "an object literal requires an object type",
+                    start: node.span.start,
+                    end: node.span.end
+                }
+            }
+        }
     }
 
     const fields: u64[] = []
 
-    const ordered = loop({ tree: in.source.tree, head: node.head, fields: fields }, {
+    const ordered = loop({
+        tree: in.source.tree,
+        head: node.head,
+        fields: fields
+    }, {
         while: current => current.head != 0,
         next: current => {
             current.fields = current.fields.push(current.head - 1)[0]
@@ -28,7 +53,23 @@ export default function (in: Input): Output {
         }
     })
 
-    const frame: Object = { node: in.node, hint: hint, fields: ordered.fields.reverse()[0], index: 0, entries: { names: [], values: [] }, evaluation: [] }
+    const frame: Object = {
+        node: in.node,
+        hint: hint,
+        fields: ordered.fields.reverse()[0],
+        index: 0,
+        entries: {
+            names: [],
+            values: []
+        },
+        evaluation: []
+    }
 
-    return next({ ...in, frames: { ...in.frames, objects: in.frames.objects.push(frame)[0] } })
+    return next({
+        ...in,
+        frames: {
+            ...in.frames,
+            objects: in.frames.objects.push(frame)[0]
+        }
+    })
 }

@@ -1,13 +1,31 @@
 <Module>
     <Type from="./model" as="Model" />
 
-    <Args in={{ body: Model.Body, request: Model.Request }} out={bool[]?} />
+    <Args
+        in={{
+            body: Model.Body,
+            request: Model.Request
+        }}
+        out={bool[]?}
+    />
 
-    <Call fn="body_valid" in={{ body: $in.body, max_offset: $in.request.max_offset }} />
+    <Call
+        fn="body_valid"
+        in={{
+            body: $in.body,
+            max_offset: $in.request.max_offset
+        }}
+    />
 
     <Switch on={$ctx.body_valid}>
         <Case value={true}>
-            <Call module="reachable" in={{ request: $in.request, body: $in.body }} />
+            <Call
+                module="reachable"
+                in={{
+                    request: $in.request,
+                    body: $in.body
+                }}
+            />
 
             <Return value={$ctx.reachable} />
         </Case>

@@ -14,26 +14,50 @@ export default function (in: Input): Output {
         return false
     }
 
-    if (!segments({ first: in.parallel_first, count: in.parallel_count, length: in.parallel_values.length })) {
+    if (!segments({
+        first: in.parallel_first,
+        count: in.parallel_count,
+        length: in.parallel_values.length
+    })) {
         return false
     }
 
-    if (!segments({ first: in.destructure_first, count: in.destructure_count, length: in.destructure_symbols.length })) {
+    if (!segments({
+        first: in.destructure_first,
+        count: in.destructure_count,
+        length: in.destructure_symbols.length
+    })) {
         return false
     }
 
-    if (!segments({ first: in.selection_first, count: in.selection_count, length: in.case_bodies.length })) {
+    if (!segments({
+        first: in.selection_first,
+        count: in.selection_count,
+        length: in.case_bodies.length
+    })) {
         return false
     }
 
-    if (!segments({ first: in.block_first, count: in.block_count, length: in.statement_kinds.length }) || !payloads(in)) {
+    if (!segments({
+        first: in.block_first,
+        count: in.block_count,
+        length: in.statement_kinds.length
+    }) || !payloads(in)) {
         return false
     }
 
-    const result = loop({ control: in, block: 0, valid: true }, {
-        while: current => current.valid && current.block < current.control.block_first.length,
+    const result = loop({
+        control: in,
+        block: 0,
+        valid: true
+    }, {
+        while: current =>
+            current.valid && current.block < current.control.block_first.length,
         next: current => {
-            current.valid = blockValid({ control: current.control, block: current.block })
+            current.valid = blockValid({
+                control: current.control,
+                block: current.block
+            })
             current.block += 1
         }
     })

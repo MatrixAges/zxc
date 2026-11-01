@@ -12,14 +12,40 @@ export type Input = State
 export type Output = State
 
 export default function (in: Input): Output {
-  const offset = starts({ source: in.source, offset: 0, text: [239, 187, 191] }) ? 3 : 0
-  const declared = starts({ source: in.source, offset: offset, text: [60, 63, 120, 109, 108] })
-  const parsed = declared ? declaration({ source: in.source, offset: offset }) : { end: offset, message: "" }
-  const state = advance({ state: in, count: parsed.end })
+    const offset = starts({
+        source: in.source,
+        offset: 0,
+        text: [239, 187, 191]
+    }) ? 3 : 0
 
-  if (parsed.message != "") {
-    return fail({ state: state, message: parsed.message })
-  }
+    const declared = starts({
+        source: in.source,
+        offset: offset,
+        text: [60, 63, 120, 109, 108]
+    })
 
-  return transition({ state: state, phase: Phase.BeforeRoot })
+    const parsed = declared ? declaration({
+        source: in.source,
+        offset: offset
+    }) : {
+        end: offset,
+        message: ""
+    }
+
+    const state = advance({
+        state: in,
+        count: parsed.end
+    })
+
+    if (parsed.message != "") {
+        return fail({
+            state: state,
+            message: parsed.message
+        })
+    }
+
+    return transition({
+        state: state,
+        phase: Phase.BeforeRoot
+    })
 }

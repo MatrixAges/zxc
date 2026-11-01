@@ -13,7 +13,11 @@ export type Input = State
 export type Output = State
 
 export default function (in: Input): Output {
-    const row: Row = { state: in, kind: in.table.kinds[in.index], payload: integers.widen(in.table.payloads[in.index]) }
+    const row: Row = {
+        state: in,
+        kind: in.table.kinds[in.index],
+        payload: integers.widen(in.table.payloads[in.index])
+    }
 
     switch (row.kind) {
         case ExpressionKind.None: return literals(row)

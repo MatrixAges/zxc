@@ -22,7 +22,8 @@ export type Output = Literal?
             index: 0,
             value: missing
         }, {
-            while: current => current.value == null && current.index < current.names.length,
+            while: current =>
+                current.value == null && current.index < current.names.length,
             next: current => {
                 if (current.names[current.index] == current.name) {
                     current.value = current.index

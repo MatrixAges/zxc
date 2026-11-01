@@ -12,28 +12,65 @@ import call from "./call"
 
 import type { Context } from "./model"
 
-export type Input = { context: Context, node: u64, declared: bool }
+export type Input = {
+    context: Context,
+    node: u64,
+    declared: bool
+}
 
-export type Output = { handled: bool, type_id: u32? }
+export type Output = {
+    handled: bool,
+    type_id: u32?
+}
 
 export default function (in: Input): Output {
     const state = in.context.state
     const source = in.context.source
     const node = source.tree.nodes[in.node]
-    const binding = injected({ local: state.local, source: source, node: in.node })
+
+    const binding = injected({
+        local: state.local,
+        source: source,
+        node: in.node
+    })
 
     if (binding.unit) {
-        return { handled: true, type_id: 0 }
+        return {
+            handled: true,
+            type_id: 0
+        }
     }
 
     const symbol = match {
         binding.symbol != null => binding.symbol,
-        node.kind == ExprKind.Identifier => lookup({ active: state.local.active, names: state.local.symbols.names, scope_floor: state.local.scope_floor, name: readName({ source: source, kind: NameKind.Expression, index: in.node }).text }),
+        node.kind == ExprKind.Identifier => lookup({
+            active: state.local.active,
+            names: state.local.symbols.names,
+            scope_floor: state.local.scope_floor,
+            name: readName({
+                source: source,
+                kind: NameKind.Expression,
+                index: in.node
+            }).text
+        }),
         _ => null,
     }
 
     if (symbol != null) {
-        return { handled: true, type_id: in.declared ? state.local.symbols.types[integers.widen(symbol)] : typeOf({ facts: state.local.refinement.facts, tables: { base: state.types.context.base, delta: state.types.delta }, type_id: state.local.symbols.types[integers.widen(symbol)], symbol: symbol }) }
+        return {
+            handled: true,
+            type_id: in.declared ? state.local.symbols.types[integers.widen(
+                symbol
+            )] : typeOf({
+                facts: state.local.refinement.facts,
+                tables: {
+                    base: state.types.context.base,
+                    delta: state.types.delta
+                },
+                type_id: state.local.symbols.types[integers.widen(symbol)],
+                symbol: symbol
+            })
+        }
     }
 
     if (node.kind == ExprKind.Identifier) {
@@ -41,7 +78,11 @@ export default function (in: Input): Output {
             active: state.local.active,
             names: state.local.symbols.names,
             constants: source.constant_values,
-            name: readName({ source: source, kind: NameKind.Expression, index: in.node }).text
+            name: readName({
+                source: source,
+                kind: NameKind.Expression,
+                index: in.node
+            }).text
         }) : null
 
         return {
@@ -51,14 +92,34 @@ export default function (in: Input): Output {
     }
 
     if (node.kind == ExprKind.Boolean || node.kind == ExprKind.String) {
-        return { handled: true, type_id: node.kind == ExprKind.Boolean ? 1 : 10 }
+        return {
+            handled: true,
+            type_id: node.kind == ExprKind.Boolean ? 1 : 10
+        }
     }
 
     if (node.kind == ExprKind.Call) {
-        return { handled: true, type_id: call({ context: in.context, callee: node.first }) }
+        return {
+            handled: true,
+            type_id: call({
+                context: in.context,
+                callee: node.first
+            })
+        }
     }
 
-    if (node.kind == ExprKind.Field && (source.tree.nodes[node.first].kind == ExprKind.Identifier || (source.tree.nodes[node.first].kind == ExprKind.Field && state.types.context.aliases.names.length != 0 && source.tree.nodes[source.tree.nodes[node.first].first].kind == ExprKind.Identifier))) {
+    if (
+        node.kind == ExprKind.Field &&
+            (
+                source.tree.nodes[node.first].kind == ExprKind.Identifier ||
+                    (
+                        source.tree.nodes[node.first].kind == ExprKind.Field &&
+                            state.types.context.aliases.names.length != 0 &&
+                            source.tree.nodes[source.tree.nodes[node.first].first].kind ==
+                            ExprKind.Identifier
+                    )
+            )
+    ) {
         const type_id = enumOwner({
             state: state,
             source: source,
@@ -74,15 +135,39 @@ export default function (in: Input): Output {
         }
     }
 
-    if (node.kind == ExprKind.Field && source.tree.nodes[node.first].kind == ExprKind.Identifier) {
-        const owner = readName({ source: source, kind: NameKind.Expression, index: node.first }).text
-        const name = readName({ source: source, kind: NameKind.Expression, index: in.node }).text
+    if (
+        node.kind == ExprKind.Field &&
+            source.tree.nodes[node.first].kind == ExprKind.Identifier
+    ) {
+        const owner = readName({
+            source: source,
+            kind: NameKind.Expression,
+            index: node.first
+        }).text
+
+        const name = readName({
+            source: source,
+            kind: NameKind.Expression,
+            index: in.node
+        }).text
+
         const missing: u32? = null
 
-        const found = loop({ stores: state.local.stores, owner: owner, name: name, index: 0, type_id: missing }, {
-            while: current => current.index < current.stores.types.length && current.type_id == null,
+        const found = loop({
+            stores: state.local.stores,
+            owner: owner,
+            name: name,
+            index: 0,
+            type_id: missing
+        }, {
+            while: current =>
+                current.index < current.stores.types.length &&
+                current.type_id == null,
             next: current => {
-                if (current.name == "value" && current.stores.handles[current.index] == current.owner) {
+                if (
+                    current.name == "value" &&
+                        current.stores.handles[current.index] == current.owner
+                ) {
                     current.type_id = current.stores.types[current.index]
                 }
 
@@ -91,9 +176,15 @@ export default function (in: Input): Output {
         })
 
         if (found.type_id != null) {
-            return { handled: true, type_id: found.type_id }
+            return {
+                handled: true,
+                type_id: found.type_id
+            }
         }
     }
 
-    return { handled: false, type_id: null }
+    return {
+        handled: false,
+        type_id: null
+    }
 }

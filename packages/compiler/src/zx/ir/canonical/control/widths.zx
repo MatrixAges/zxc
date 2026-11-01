@@ -21,15 +21,25 @@ export default function (in: Input): Output {
         return false
     }
 
-    if (in.destructure_values.length != in.destructure_first.length || in.destructure_values.length != in.destructure_count.length) {
+    if (
+        in.destructure_values.length != in.destructure_first.length ||
+            in.destructure_values.length != in.destructure_count.length
+    ) {
         return false
     }
 
-    if (in.branch_conditions.length != in.branch_yes.length || in.branch_conditions.length != in.branch_no.length) {
+    if (
+        in.branch_conditions.length != in.branch_yes.length ||
+            in.branch_conditions.length != in.branch_no.length
+    ) {
         return false
     }
 
-    if (in.selection_subjects.length != in.selection_first.length || in.selection_subjects.length != in.selection_count.length || in.selection_subjects.length != in.selection_exhaustive.length) {
+    if (
+        in.selection_subjects.length != in.selection_first.length ||
+            in.selection_subjects.length != in.selection_count.length ||
+            in.selection_subjects.length != in.selection_exhaustive.length
+    ) {
         return false
     }
 

@@ -3,11 +3,39 @@
     <Type from="../unit" as="Unit" />
     <Type from="./apply" as="Apply" />
 
-    <Args in={{ program: Model.Program, units: Unit.Unit[] }} out={Apply.Output} />
+    <Args
+        in={{
+            program: Model.Program,
+            units: Unit.Unit[]
+        }}
+        out={Apply.Output}
+    />
 
-    <Call fn="../value/pure" in={{ program: $in.program }} />
-    <Call fn="plan" in={{ types: $in.program.types, units: $in.units, pure: $ctx.pure, limit: 4096 }} />
-    <Call fn="apply" in={{ types: $in.program.types, units: $in.units, plan: $ctx.plan }} />
+    <Call
+        fn="../value/pure"
+        in={{
+            program: $in.program
+        }}
+    />
+
+    <Call
+        fn="plan"
+        in={{
+            types: $in.program.types,
+            units: $in.units,
+            pure: $ctx.pure,
+            limit: 4096
+        }}
+    />
+
+    <Call
+        fn="apply"
+        in={{
+            types: $in.program.types,
+            units: $in.units,
+            plan: $ctx.plan
+        }}
+    />
 
     <Return value={$ctx.apply} />
 </Module>

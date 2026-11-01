@@ -1,4 +1,14 @@
-export enum Kind { Scalar, Object, Optional, List, Tuple, ErrorSet, Task, Enumeration, NativeReference }
+export enum Kind {
+    Scalar,
+    Object,
+    Optional,
+    List,
+    Tuple,
+    ErrorSet,
+    Task,
+    Enumeration,
+    NativeReference
+}
 
 export type Table = {
     kinds: u8[]
@@ -11,8 +21,20 @@ export type Table = {
     names: string[]
 }
 
-export type Tables = { base: Table, delta: Table }
+export type Tables = {
+    base: Table,
+    delta: Table
+}
 
-export type Fields = { names: string[], types: u32[] }
+export type Fields = {
+    names: string[],
+    types: u32[]
+}
 
-export type TypeRow = { kind: Kind, first: u32, second: u32, label: string, delta: bool }
+export type TypeRow = {
+    kind: Kind,
+    first: u32,
+    second: u32,
+    label: string,
+    delta: bool
+}

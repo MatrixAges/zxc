@@ -9,5 +9,9 @@ export default function (in: Input): Output {
     const tokens: Token[] = []
     const comments: Span[] = []
 
-    return { tokens: tokens, comments: comments, diagnostic: in }
+    return {
+        tokens: tokens,
+        comments: comments,
+        diagnostic: in
+    }
 }

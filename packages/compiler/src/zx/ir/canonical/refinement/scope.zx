@@ -6,12 +6,23 @@ import bind from "./bind"
 import type { Expressions } from "core/expression_table/model"
 import type { Facts } from "./facts/model"
 
-export type Input = { facts: Facts, expressions: Expressions, first: u64, count: u64 }
+export type Input = {
+    facts: Facts,
+    expressions: Expressions,
+    first: u64,
+    count: u64
+}
 
 export type Output = Facts
 
 export default function (in: Input): Output {
-    return loop({ expressions: in.expressions, facts: in.facts, first: in.first, count: in.count, index: 0 }, {
+    return loop({
+        expressions: in.expressions,
+        facts: in.facts,
+        first: in.first,
+        count: in.count,
+        index: 0
+    }, {
         while: current => current.index < current.count,
         next: current => {
             const expressions = current.expressions
@@ -19,24 +30,58 @@ export default function (in: Input): Output {
             const symbol = expressions.scope_symbols[position]
             const value = integers.widen(expressions.scope_values[position])
 
-            if (symbol != null && expressions.kinds[value] == ExpressionKind.Capture) {
+            if (
+                symbol != null && expressions.kinds[value] == ExpressionKind.Capture
+            ) {
                 const empty: u32? = null
-                const pair = loop({ expressions: expressions, first: current.first, count: current.count, symbol: symbol, index: current.index + 1, err: empty, result: empty }, {
+                const pair = loop({
+                    expressions: expressions,
+                    first: current.first,
+                    count: current.count,
+                    symbol: symbol,
+                    index: current.index + 1,
+                    err: empty,
+                    result: empty
+                }, {
                     while: projection => projection.index < projection.count,
                     next: projection => {
                         const expressions = projection.expressions
                         const position = projection.first + projection.index
-                        const value = integers.widen(expressions.scope_values[position])
-                        const payload = integers.widen(expressions.payloads[value])
+                        const value =
+                            integers.widen(
+                                expressions.scope_values[position]
+                            )
+                        const payload =
+                            integers.widen(
+                                expressions.payloads[value]
+                            )
 
-                        if (expressions.kinds[value] == ExpressionKind.TupleField && expressions.projection_indices[payload] < 2) {
-                            const target = integers.widen(expressions.projection_targets[payload])
+                        if (
+                            expressions.kinds[value] ==
+                                ExpressionKind.TupleField &&
+                                expressions.projection_indices[payload] < 2
+                        ) {
+                            const target =
+                                integers.widen(
+                                    expressions.projection_targets[payload]
+                                )
 
-                            if (expressions.kinds[target] == ExpressionKind.Reference && expressions.references[integers.widen(expressions.payloads[target])] == projection.symbol) {
-                                if (expressions.projection_indices[payload] == 0) {
-                                    projection.err = expressions.scope_symbols[position]
+                            if (
+                                expressions.kinds[target] ==
+                                    ExpressionKind.Reference &&
+                                    expressions
+                                    .references[integers.widen(
+                                        expressions.payloads[target]
+                                    )] == projection.symbol
+                            ) {
+                                if (
+                                    expressions.projection_indices[payload] == 0
+                                ) {
+                                    projection.err =
+                                        expressions.scope_symbols[position]
                                 } else {
-                                    projection.result = expressions.scope_symbols[position]
+                                    projection.result =
+                                        expressions.scope_symbols[position]
                                 }
                             }
                         }
@@ -45,7 +90,14 @@ export default function (in: Input): Output {
                     }
                 })
 
-                current.facts = bind({ facts: current.facts, expressions: expressions, value: value, count: 2, err: pair.err, result: pair.result })
+                current.facts = bind({
+                    facts: current.facts,
+                    expressions: expressions,
+                    value: value,
+                    count: 2,
+                    err: pair.err,
+                    result: pair.result
+                })
             }
 
             current.index += 1

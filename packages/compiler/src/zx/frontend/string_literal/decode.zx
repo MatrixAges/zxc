@@ -1,11 +1,19 @@
 import encoding from "std:encoding"
 
-export type Input = { source: u8[], template: bool }
+export type Input = {
+    source: u8[],
+    template: bool
+}
 
 export type Output = string
 
 export default function (in: Input): Output {
-    const scan = loop({ source: in.source, template: in.template, index: 0, rewrite: false }, {
+    const scan = loop({
+        source: in.source,
+        template: in.template,
+        index: 0,
+        rewrite: false
+    }, {
         while: current => !current.rewrite && current.index < current.source.length,
         next: current => {
             const byte = current.source[current.index]
@@ -21,7 +29,12 @@ export default function (in: Input): Output {
 
     const bytes: u8[] = []
 
-    const result = loop({ source: in.source, template: in.template, index: 0, bytes: bytes }, {
+    const result = loop({
+        source: in.source,
+        template: in.template,
+        index: 0,
+        bytes: bytes
+    }, {
         while: current => current.index < current.source.length,
         next: current => {
             const byte = current.source[current.index]
@@ -29,7 +42,10 @@ export default function (in: Input): Output {
             current.index += 1
 
             if (current.template && byte == 13) {
-                if (current.index < current.source.length && current.source[current.index] == 10) {
+                if (
+                    current.index < current.source.length &&
+                        current.source[current.index] == 10
+                ) {
                     current.index += 1
                 }
 

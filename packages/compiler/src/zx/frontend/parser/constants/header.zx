@@ -22,7 +22,10 @@ export default function (in: Input): Output {
     }, {
         while: current => current.valid && current.part != Part.Done,
         next: current => {
-            const at = current.tokens[current.index < current.tokens.length ? current.index : current.tokens.length - 1]
+            const at =
+                current
+                .tokens[current.index < current.tokens.length ? current.index :
+                    current.tokens.length - 1]
 
             current.valid = match {
                 current.part == Part.Export => at.word == Keyword.Export,

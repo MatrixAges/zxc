@@ -21,31 +21,96 @@ export type Output = Machine
 
 export default function (in: Input): Output {
     return loop(in, {
-        while: current => current.active && current.complete && !current.failed && current.work.actions.length != 0 && (current.work.actions[current.work.actions.length - 1] == WorkAction.BinaryLeft || current.work.actions[current.work.actions.length - 1] == WorkAction.BinaryRight),
+        while: current =>
+            current.active && current.complete && !current.failed &&
+            current.work.actions.length != 0 &&
+            (
+                current.work.actions[current.work.actions.length - 1] ==
+                    WorkAction.BinaryLeft ||
+                    current.work.actions[current.work.actions.length - 1] ==
+                    WorkAction.BinaryRight
+            ),
         next: current => {
             const frame = top(current.work)
 
             current.work = pop(current.work)
 
             if (frame.action == WorkAction.BinaryLeft) {
-                const binary = integers.widen(current.program.expressions.payloads[frame.subject])
-                const captured = save({ memory: current.memory, stack: current.snapshots, capture: Capture.States })
+                const binary =
+                    integers.widen(
+                        current.program.expressions.payloads[frame.subject]
+                    )
+                const captured = save({
+                    memory: current.memory,
+                    stack: current.snapshots,
+                    capture: Capture.States
+                })
 
                 current.snapshots = captured.stack
                 current.values = current.values.push(current.value)[0]
-                current.work = push({ work: current.work, frame: { action: WorkAction.BinaryRight, subject: frame.subject, moving: false, index: captured.frame } })
-                current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.binary_right[binary]), moving: frame.moving, index: 0 } })
+                current.work = push({
+                    work: current.work,
+                    frame: {
+                        action: WorkAction.BinaryRight,
+                        subject: frame.subject,
+                        moving: false,
+                        index: captured.frame
+                    }
+                })
+                current.work = push({
+                    work: current.work,
+                    frame: {
+                        action: WorkAction.Value,
+                        subject:
+                            integers.widen(
+                                current.program.expressions.binary_right[binary]
+                            ),
+                        moving: frame.moving,
+                        index: 0
+                    }
+                })
             } else if (frame.action == WorkAction.BinaryRight) {
-                const binary = integers.widen(current.program.expressions.payloads[frame.subject])
+                const binary =
+                    integers.widen(
+                        current.program.expressions.payloads[frame.subject]
+                    )
 
-                if (current.program.expressions.binary_operators[binary] == BinaryOperator.LogicalAnd || current.program.expressions.binary_operators[binary] == BinaryOperator.LogicalOr || current.program.expressions.binary_operators[binary] == BinaryOperator.Coalesce) {
-                    current.memory = apply({ types: current.program.types, references: current.references, layout: current.layout.tree, memory: current.memory, stack: current.snapshots, frame: frame.index, action: Action.MergeStates })
+                if (
+                    current.program.expressions.binary_operators[binary] ==
+                        BinaryOperator.LogicalAnd ||
+                        current.program.expressions.binary_operators[binary] ==
+                        BinaryOperator.LogicalOr ||
+                        current.program.expressions.binary_operators[binary] ==
+                        BinaryOperator.Coalesce
+                ) {
+                    current.memory = apply({
+                        types: current.program.types,
+                        references: current.references,
+                        layout: current.layout.tree,
+                        memory: current.memory,
+                        stack: current.snapshots,
+                        frame: frame.index,
+                        action: Action.MergeStates
+                    })
                 }
 
-                current.snapshots = drop({ stack: current.snapshots, frame: frame.index })
-                const combined = rewrite({ types: current.program.types, references: current.references, forest: current.memory.forest, left: current.values[current.values.length - 1], right: current.value, action: RewriteAction.Join })
+                current.snapshots = drop({
+                    stack: current.snapshots,
+                    frame: frame.index
+                })
+                const combined = rewrite({
+                    types: current.program.types,
+                    references: current.references,
+                    forest: current.memory.forest,
+                    left: current.values[current.values.length - 1],
+                    right: current.value,
+                    action: RewriteAction.Join
+                })
 
-                current.memory = { ...current.memory, forest: combined.forest }
+                current.memory = {
+                    ...current.memory,
+                    forest: combined.forest
+                }
                 current.value = combined.fact
                 current.values = current.values.pop()[0]
             }

@@ -21,40 +21,66 @@ export type Input = ExprState
 export type Output = ExprState
 
 export default function (in: Input): Output {
-  if (in.control.phase == Phase.Done) {
-    return in
-  }
+    if (in.control.phase == Phase.Done) {
+        return in
+    }
 
-  const at = current(in)
-  const state = { prepared: in.prepared, tree: in.tree, types: in.types, frames: in.frames, control: { ...in.control, token: at.token, hint: at.hint, template: at.template } }
+    const at = current(in)
 
-  if (state.control.phase == Phase.BeginBinary && state.frames.length == 0 && state.control.token.symbol == Symbol.Semicolon) {
-    return fail({ state: state, code: "syntax", message: "semicolons are not allowed in ZX" })
-  }
+    const state = {
+        prepared: in.prepared,
+        tree: in.tree,
+        types: in.types,
+        frames: in.frames,
+        control: {
+            ...in.control,
+            token: at.token,
+            hint: at.hint,
+            template: at.template
+        }
+    }
 
-  switch (state.control.phase) {
-    case Phase.BeginBinary: return beginBinary(state)
-    case Phase.Primary: return primary(state)
-    case Phase.Postfix: return postfix(state)
-    case Phase.FieldName: return postfix(state)
-    case Phase.Returning: return resume(state)
-    case Phase.Arguments: return arguments(state)
-    case Phase.ObjectName: return object(state)
-    case Phase.ObjectColon: return object(state)
-    case Phase.LambdaParameter: return lambda(state)
-    case Phase.LambdaSeparator: return lambda(state)
-    case Phase.LambdaArrow: return lambda(state)
-    case Phase.LambdaBody: return lambda(state)
-    case Phase.Callback: return state.control.hint.lambda ? startLambda({ state: state, updating: true }) : beginBinary(state)
-    case Phase.StateBlock: return fail({ state: state, code: "contract", message: "state block requires the statement driver" })
-    case Phase.MatchStart: return selection(state)
-    case Phase.MatchCondition: return selection(state)
-    case Phase.MatchFallbackArrow: return selection(state)
-    case Phase.MatchEnd: return selection(state)
-    case Phase.GenericType: return generic(state)
-    case Phase.GenericCall: return generic(state)
-    case Phase.TemplateGather: return template(state)
-    case Phase.TemplatePart: return template(state)
-    default: return state
-  }
+    if (
+        state.control.phase == Phase.BeginBinary && state.frames.length == 0 &&
+            state.control.token.symbol == Symbol.Semicolon
+    ) {
+        return fail({
+            state: state,
+            code: "syntax",
+            message: "semicolons are not allowed in ZX"
+        })
+    }
+
+    switch (state.control.phase) {
+        case Phase.BeginBinary: return beginBinary(state)
+        case Phase.Primary: return primary(state)
+        case Phase.Postfix: return postfix(state)
+        case Phase.FieldName: return postfix(state)
+        case Phase.Returning: return resume(state)
+        case Phase.Arguments: return arguments(state)
+        case Phase.ObjectName: return object(state)
+        case Phase.ObjectColon: return object(state)
+        case Phase.LambdaParameter: return lambda(state)
+        case Phase.LambdaSeparator: return lambda(state)
+        case Phase.LambdaArrow: return lambda(state)
+        case Phase.LambdaBody: return lambda(state)
+        case Phase.Callback: return state.control.hint.lambda ? startLambda({
+            state: state,
+            updating: true
+        }) : beginBinary(state)
+        case Phase.StateBlock: return fail({
+            state: state,
+            code: "contract",
+            message: "state block requires the statement driver"
+        })
+        case Phase.MatchStart: return selection(state)
+        case Phase.MatchCondition: return selection(state)
+        case Phase.MatchFallbackArrow: return selection(state)
+        case Phase.MatchEnd: return selection(state)
+        case Phase.GenericType: return generic(state)
+        case Phase.GenericCall: return generic(state)
+        case Phase.TemplateGather: return template(state)
+        case Phase.TemplatePart: return template(state)
+        default: return state
+    }
 }

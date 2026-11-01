@@ -11,7 +11,10 @@ export default function (in: Input): Output {
 
     return {
         ...in,
-        cache: { names: in.cache.names.push(frame.name.text)[0], ids: in.cache.ids.push(in.result)[0] },
+        cache: {
+            names: in.cache.names.push(frame.name.text)[0],
+            ids: in.cache.ids.push(in.result)[0]
+        },
         active: in.active.pop()[0],
         frames: in.frames.pop()[0]
     }

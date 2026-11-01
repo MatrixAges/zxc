@@ -1,4 +1,13 @@
-export enum StatementKind { Evaluate, Constant, Parallel, Destructure, Branch, Switch, StoreSet, Result }
+export enum StatementKind {
+    Evaluate,
+    Constant,
+    Parallel,
+    Destructure,
+    Branch,
+    Switch,
+    StoreSet,
+    Result
+}
 
 export type Control = {
     statement_kinds: StatementKind[]

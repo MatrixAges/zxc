@@ -5,6 +5,19 @@ import type { Diagnostic, Cache } from "../../../semantic/resolving/model"
 import type { Source } from "../../expressions/request"
 import type { Types } from "../../types/model"
 
-export type PredicateInput = { types: Types, aliases: Cache, source: Source, contract: Contract, input_type: u32, output_type: u32 }
+export type PredicateInput = {
+    types: Types,
+    aliases: Cache,
+    source: Source,
+    contract: Contract,
+    input_type: u32,
+    output_type: u32
+}
 
-export type PredicateOutput = { types: Types, symbols: Symbols, expressions: Expressions, predicate: u32, diagnostic: Diagnostic }
+export type PredicateOutput = {
+    types: Types,
+    symbols: Symbols,
+    expressions: Expressions,
+    predicate: u32,
+    diagnostic: Diagnostic
+}

@@ -4,16 +4,32 @@ import dependency from "./dependency"
 
 import type { Table } from "core/type_table/model"
 
-export type Input = { table: Table, needed: bool[] }
+export type Input = {
+    table: Table,
+    needed: bool[]
+}
 
-export type Output = { needed: bool[], valid: bool }
+export type Output = {
+    needed: bool[],
+    valid: bool
+}
 
 export default function (in: Input): Output {
-    const state = loop({ table: in.table, needed: in.needed, remaining: in.needed.length, edge: 0, valid: true }, {
+    const state = loop({
+        table: in.table,
+        needed: in.needed,
+        remaining: in.needed.length,
+        edge: 0,
+        valid: true
+    }, {
         while: current => current.valid && current.remaining > 0,
         next: current => {
             const index = current.remaining - 1
-            const child = current.needed[index] ? dependency({ table: current.table, index: index, edge: current.edge }) : null
+            const child = current.needed[index] ? dependency({
+                table: current.table,
+                index: index,
+                edge: current.edge
+            }) : null
 
             if (child == null) {
                 current.remaining -= 1
@@ -31,5 +47,8 @@ export default function (in: Input): Output {
         }
     })
 
-    return { needed: state.needed, valid: state.valid }
+    return {
+        needed: state.needed,
+        valid: state.valid
+    }
 }

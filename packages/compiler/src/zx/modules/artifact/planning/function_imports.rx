@@ -4,12 +4,29 @@
 
     <Args in={Imports.Input} out={Model.Plan} />
 
-    <Call fn="functions/validate" in={{ signatures: $in.signatures, imports: $in.imports, plan: $in.plan }} />
-    <Call fn="../../../analysis/semantic/extracting/planning/ready" in={$ctx.validate.state} />
+    <Call
+        fn="functions/validate"
+        in={{
+            signatures: $in.signatures,
+            imports: $in.imports,
+            plan: $in.plan
+        }}
+    />
+
+    <Call
+        fn="../../../analysis/semantic/extracting/planning/ready"
+        in={$ctx.validate.state}
+    />
 
     <Switch on={$ctx.ready}>
         <Case value={true}>
-            <Call fn="functions/imports" in={{ ...$in, plan: $ctx.validate }} />
+            <Call
+                fn="functions/imports"
+                in={{
+                    ...$in,
+                    plan: $ctx.validate
+                }}
+            />
 
             <Return value={$ctx.imports} />
         </Case>

@@ -4,12 +4,18 @@ import { State } from "../../../../ownership/places/model"
 
 import type { Outcome } from "../../../../ownership/runtime/work/model"
 
-export type Input = { outcome: Outcome, declared: Ownership }
+export type Input = {
+    outcome: Outcome,
+    declared: Ownership
+}
 
 export type Output = bool
 
 export default function (in: Input): Output {
-    if (!in.outcome.complete || in.outcome.failed || in.outcome.output == State.Loaned || in.outcome.output == State.Moved) {
+    if (
+        !in.outcome.complete || in.outcome.failed || in.outcome.output == State.Loaned ||
+            in.outcome.output == State.Moved
+    ) {
         return false
     }
 

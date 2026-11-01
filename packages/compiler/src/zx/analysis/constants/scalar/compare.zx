@@ -28,7 +28,9 @@ export default function (in: Input): Output {
         _ => left.negative == right.negative && left.integer == right.integer
     }
 
-    if (in.operator == BinaryOperator.Equal || in.operator == BinaryOperator.NotEqual) {
+    if (
+        in.operator == BinaryOperator.Equal || in.operator == BinaryOperator.NotEqual
+    ) {
         return in.operator == BinaryOperator.Equal ? equal : !equal
     }
 

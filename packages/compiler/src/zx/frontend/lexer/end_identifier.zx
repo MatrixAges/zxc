@@ -12,5 +12,14 @@ export type Output = LexerState
 export default function (in: Input): Output {
     const kind = isKeyword(keywordValue(in.keyword_state)) ? "keyword" : "identifier"
 
-    return emit({ kind: kind, start: in.start, end: in.offset, comment: false, state: { ...in, mode: Mode.Idle } })
+    return emit({
+        kind: kind,
+        start: in.start,
+        end: in.offset,
+        comment: false,
+        state: {
+            ...in,
+            mode: Mode.Idle
+        }
+    })
 }

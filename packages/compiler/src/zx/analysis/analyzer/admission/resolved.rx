@@ -11,7 +11,13 @@
         </Case>
     </Switch>
 
-    <Call fn="../../../ir/canonical/validation/structure/functions" in={{ functions: $in.functions, maximum_count: $in.maximum_count }} />
+    <Call
+        fn="../../../ir/canonical/validation/structure/functions"
+        in={{
+            functions: $in.functions,
+            maximum_count: $in.maximum_count
+        }}
+    />
 
     <Switch on={!$ctx.functions}>
         <Case value={true}>

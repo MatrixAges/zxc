@@ -37,11 +37,20 @@ export default function (in: Input): Output {
     const target = kind(in.table.kinds[integers.widen(type_id)])
     const expression_kind = in.expressions.kinds[in.index]
 
-    if (target == Kind.Task && expression_kind != ExpressionKind.Task && expression_kind != ExpressionKind.Reference) {
+    if (
+        target == Kind.Task && expression_kind != ExpressionKind.Task &&
+            expression_kind != ExpressionKind.Reference
+    ) {
         return false
     }
 
-    const check = { context: in, type_id: type_id, target: target, kind: expression_kind, payload: integers.widen(in.expressions.payloads[in.index]) }
+    const check = {
+        context: in,
+        type_id: type_id,
+        target: target,
+        kind: expression_kind,
+        payload: integers.widen(in.expressions.payloads[in.index])
+    }
 
     return match expression_kind {
         ExpressionKind.Some => access(check),

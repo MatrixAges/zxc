@@ -3,6 +3,7 @@ const dsl = @import("dsl");
 const zx = @import("zx");
 const spacing = @import("../spacing.zig");
 const bounds = @import("rx_bounds");
+pub const structure = @import("layout.zig").format;
 const indentation = @import("../indentation/root.zig");
 
 pub fn format(allocator: std.mem.Allocator, source: []const u8, node: dsl.ast.Node) std.mem.Allocator.Error![]u8 {

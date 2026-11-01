@@ -5,7 +5,10 @@ import { Kind, Symbol } from "../lexer/token_model"
 
 import type { Result } from "../lexer/model"
 
-export type Input = { source: string, lexed: Result }
+export type Input = {
+    source: string,
+    lexed: Result
+}
 
 export type Output = string
 
@@ -18,16 +21,28 @@ export default function (in: Input): Output {
 
     const parts: string[] = []
 
-    const result = loop({ source: in.source, tokens: lexed.tokens, parts: parts, index: 0, valid: true }, {
+    const result = loop({
+        source: in.source,
+        tokens: lexed.tokens,
+        parts: parts,
+        index: 0,
+        valid: true
+    }, {
         while: current => current.valid && current.index + 1 < current.tokens.length,
         next: current => {
             const token = current.tokens[current.index]
             const identifier = current.index % 2 == 0
 
-            current.valid = identifier ? token.kind == Kind.Identifier : token.symbol == Symbol.Dot
+            current.valid = identifier ? token.kind == Kind.Identifier :
+                token.symbol == Symbol.Dot
 
             if (current.valid) {
-                const text = encoding.sliceBytes(current.source, token.span.start, token.span.end)
+                const text =
+                    encoding.sliceBytes(
+                        current.source,
+                        token.span.start,
+                        token.span.end
+                    )
 
                 current.parts = current.parts.push(text)[0]
                 current.index += 1
@@ -35,7 +50,10 @@ export default function (in: Input): Output {
         }
     })
 
-    if (!result.valid || result.index % 2 == 0 || lexed.tokens[lexed.tokens.length - 1].kind != Kind.Eof) {
+    if (
+        !result.valid || result.index % 2 == 0 ||
+            lexed.tokens[lexed.tokens.length - 1].kind != Kind.Eof
+    ) {
         return in.source
     }
 

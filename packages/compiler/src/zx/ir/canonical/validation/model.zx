@@ -6,8 +6,32 @@ import type { Modules } from "core/native_module_table/model"
 import type { Ownership } from "core/symbol_table/model"
 import type { Table } from "core/type_table/model"
 
-export type Context = { table: Table, functions: Complete, modules: Modules, max_offset: u64, scalar_count: u64, maximum_count: u64, verified: u64 }
+export type Context = {
+    table: Table,
+    functions: Complete,
+    modules: Modules,
+    max_offset: u64,
+    scalar_count: u64,
+    maximum_count: u64,
+    verified: u64
+}
 
-export type Unit = { body: Body, contracts: Contracts, input_type: u32, output_type: u32, output_ownership: Ownership, transaction: bool, type_only: bool }
+export type Unit = {
+    body: Body,
+    contracts: Contracts,
+    input_type: u32,
+    output_type: u32,
+    output_ownership: Ownership,
+    transaction: bool,
+    type_only: bool
+}
 
-export type Program = { version: u64, expected_version: u64, context: Context, unit: Unit, export_names: string[], export_types: u32[], constant_exports: Values? }
+export type Program = {
+    version: u64,
+    expected_version: u64,
+    context: Context,
+    unit: Unit,
+    export_names: string[],
+    export_types: u32[],
+    constant_exports: Values?
+}

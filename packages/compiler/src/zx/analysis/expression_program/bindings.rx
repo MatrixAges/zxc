@@ -6,27 +6,49 @@
 
     <Switch on={$in.analysis.state.diagnostic.message == ""}>
         <Case value={true}>
-            <Call fn="bindings/units" in={{ analysis: $in.analysis, names: $in.input.unit_bindings }} />
+            <Call
+                fn="bindings/units"
+                in={{
+                    analysis: $in.analysis,
+                    names: $in.input.unit_bindings
+                }}
+            />
 
             <Switch on={$ctx.units.state.diagnostic.message == ""}>
                 <Case value={true}>
-                    <Call fn="bindings/values" in={{ analysis: $ctx.units, names: $in.input.binding_names, types: $in.input.binding_types }} />
+                    <Call
+                        fn="bindings/values"
+                        in={{
+                            analysis: $ctx.units,
+                            names: $in.input.binding_names,
+                            types: $in.input.binding_types
+                        }}
+                    />
 
                     <Switch on={$ctx.values.program}>
                         <Case value={true}>
-                            <Call fn="bindings/projections" in={{ analysis: $ctx.values, types: $in.input.binding_types }} />
+                            <Call
+                                fn="bindings/projections"
+                                in={{
+                                    analysis: $ctx.values,
+                                    types: $in.input.binding_types
+                                }}
+                            />
 
                             <Return value={$ctx.projections} />
                         </Case>
 
                         <Default>
-                            <Call fn="types/check" in={{
-                                analysis: $ctx.values,
-                                binding_types: [],
-                                alias_types: [],
-                                expected: $in.input.expected,
-                                check_bindings: true
-                            }} />
+                            <Call
+                                fn="types/check"
+                                in={{
+                                    analysis: $ctx.values,
+                                    binding_types: [],
+                                    alias_types: [],
+                                    expected: $in.input.expected,
+                                    check_bindings: true
+                                }}
+                            />
 
                             <Return value={$ctx.check} />
                         </Default>

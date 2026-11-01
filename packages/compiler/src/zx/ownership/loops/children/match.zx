@@ -9,7 +9,10 @@ export default function (in: Input): Output {
     const subject = in.expressions.match_subjects[payload]
 
     if (subject != null && in.index == 0) {
-        return { found: true, expression: integers.widen(subject) }
+        return {
+            found: true,
+            expression: integers.widen(subject)
+        }
     }
 
     const index = in.index - (subject == null ? 0 : 1)
@@ -18,10 +21,18 @@ export default function (in: Input): Output {
 
     if (index < count * 2) {
         const position = first + index / 2
-        const value = index % 2 == 0 ? in.expressions.match_conditions[position] : in.expressions.match_results[position]
 
-        return { found: true, expression: integers.widen(value) }
+        const value = index % 2 == 0 ? in.expressions.match_conditions[position] :
+            in.expressions.match_results[position]
+
+        return {
+            found: true,
+            expression: integers.widen(value)
+        }
     }
 
-    return { found: index == count * 2, expression: integers.widen(in.expressions.match_fallbacks[payload]) }
+    return {
+        found: index == count * 2,
+        expression: integers.widen(in.expressions.match_fallbacks[payload])
+    }
 }

@@ -13,12 +13,32 @@ export default function (in: Input): Output {
     const pending: u32[] = []
     const fresh = in.functions.input_types.map(id => true)
 
-    const result = loop({ types: in.types, functions: in.functions, seen: seen, pending: pending, fresh: fresh, index: 0 }, {
+    const result = loop({
+        types: in.types,
+        functions: in.functions,
+        seen: seen,
+        pending: pending,
+        fresh: fresh,
+        index: 0
+    }, {
         while: current => current.index < current.functions.input_types.length,
         next: current => {
-            const initial = children({ types: current.types, id: current.functions.output_types[current.index], pending: current.pending, count: 0 })
+            const initial = children({
+                types: current.types,
+                id: current.functions.output_types[current.index],
+                pending: current.pending,
+                count: 0
+            })
 
-            const visited = loop({ types: current.types, input: current.functions.input_types[current.index], round: integers.narrow(current.index + 1), seen: current.seen, pending: initial.pending, count: initial.count, fresh: true }, {
+            const visited = loop({
+                types: current.types,
+                input: current.functions.input_types[current.index],
+                round: integers.narrow(current.index + 1),
+                seen: current.seen,
+                pending: initial.pending,
+                count: initial.count,
+                fresh: true
+            }, {
                 while: walk => walk.fresh && walk.count != 0,
                 next: walk => {
                     walk.count -= 1
@@ -31,7 +51,12 @@ export default function (in: Input): Output {
                     } else if (walk.seen[index] != walk.round) {
                         walk.seen[index] = walk.round
 
-                        const nested = children({ types: walk.types, id: id, pending: walk.pending, count: walk.count })
+                        const nested = children({
+                            types: walk.types,
+                            id: id,
+                            pending: walk.pending,
+                            count: walk.count
+                        })
 
                         walk.pending = nested.pending
                         walk.count = nested.count

@@ -8,10 +8,18 @@ export type Input = State
 export type Output = State
 
 export default function (in: Input): Output {
-    const result = loop({ state: in, index: 0, count: count(in.context.source) }, {
-        while: current => current.index < current.count && current.state.diagnostic.message == "",
+    const result = loop({
+        state: in,
+        index: 0,
+        count: count(in.context.source)
+    }, {
+        while: current =>
+            current.index < current.count && current.state.diagnostic.message == "",
         next: current => {
-            current.state = declared({ state: current.state, index: current.index })
+            current.state = declared({
+                state: current.state,
+                index: current.index
+            })
             current.index += 1
         }
     })

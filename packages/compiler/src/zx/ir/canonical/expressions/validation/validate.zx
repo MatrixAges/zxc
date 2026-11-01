@@ -5,7 +5,10 @@ import widths from "./widths"
 
 import type { Expressions } from "core/expression_table/model"
 
-export type Input = { table: Expressions, max_offset: u64 }
+export type Input = {
+    table: Expressions,
+    max_offset: u64
+}
 
 export type Output = bool
 
@@ -18,5 +21,9 @@ export default function (in: Input): Output {
         return false
     }
 
-    return offsets({ starts: in.table.span_start, ends: in.table.span_end, max_offset: in.max_offset })
+    return offsets({
+        starts: in.table.span_start,
+        ends: in.table.span_end,
+        max_offset: in.max_offset
+    })
 }

@@ -7,5 +7,10 @@ export type Output = Frame
 export default function (in: Input): Output {
     const index = in.actions.length - 1
 
-    return { action: in.actions[index], subject: in.subjects[index], moving: in.moving[index], index: in.indices[index] }
+    return {
+        action: in.actions[index],
+        subject: in.subjects[index],
+        moving: in.moving[index],
+        index: in.indices[index]
+    }
 }

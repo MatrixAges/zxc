@@ -1,9 +1,19 @@
-export type Input = { limbs: u64[], digit: u64 }
+export type Input = {
+    limbs: u64[],
+    digit: u64
+}
 
-export type Output = { limbs: u64[], overflow: bool }
+export type Output = {
+    limbs: u64[],
+    overflow: bool
+}
 
 export default function (in: Input): Output {
-    const result = loop({ limbs: in.limbs, carry: in.digit, index: 0 }, {
+    const result = loop({
+        limbs: in.limbs,
+        carry: in.digit,
+        index: 0
+    }, {
         while: current => current.index < current.limbs.length,
         next: current => {
             const value = current.limbs[current.index] * 10 + current.carry
@@ -16,5 +26,11 @@ export default function (in: Input): Output {
 
     const overflow = result.carry != 0 && result.limbs.length == 32
 
-    return { limbs: result.carry == 0 || overflow ? result.limbs : result.limbs.push(result.carry)[0], overflow: overflow }
+    return {
+        limbs: result.carry == 0 || overflow ? result.limbs :
+            result.limbs.push(
+                result.carry
+            )[0],
+        overflow: overflow
+    }
 }

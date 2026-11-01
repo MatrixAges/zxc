@@ -15,11 +15,21 @@ export default function (in: Input): Output {
         return false
     }
 
-    if (record.function_ids.length != record.function_inputs.length || record.function_ids.length != record.function_outputs.length || record.import_kinds.length != record.import_specifiers.length) {
+    if (
+        record.function_ids.length != record.function_inputs.length ||
+            record.function_ids.length != record.function_outputs.length ||
+            record.import_kinds.length != record.import_specifiers.length
+    ) {
         return false
     }
 
-    if (functions.files.length != count || functions.input_types.length != count || functions.output_types.length != count || functions.native_modules.length != count || functions.symbols.length != count || functions.expressions.length != count || functions.contracts.length != count || functions.stores.length != count) {
+    if (
+        functions.files.length != count || functions.input_types.length != count ||
+            functions.output_types.length != count ||
+            functions.native_modules.length != count ||
+            functions.symbols.length != count || functions.expressions.length != count ||
+            functions.contracts.length != count || functions.stores.length != count
+    ) {
         return false
     }
 

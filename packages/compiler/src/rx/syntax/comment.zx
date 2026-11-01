@@ -2,16 +2,35 @@ import starts from "./starts"
 
 export enum Issue { None, Unterminated, DoubleDash }
 
-export type Input = { source: u8[], offset: u64 }
+export type Input = {
+    source: u8[],
+    offset: u64
+}
 
-export type Output = { end: u64, message: string }
+export type Output = {
+    end: u64,
+    message: string
+}
 
 export default function (in: Input): Output {
-    const state = loop({ source: in.source, offset: in.offset + 4, done: false, issue: Issue.None }, {
+    const state = loop({
+        source: in.source,
+        offset: in.offset + 4,
+        done: false,
+        issue: Issue.None
+    }, {
         while: value => !value.done,
         next: value => {
-            const finish = starts({ source: value.source, offset: value.offset, text: [45, 45, 62] })
-            const double_dash = starts({ source: value.source, offset: value.offset, text: [45, 45] })
+            const finish = starts({
+                source: value.source,
+                offset: value.offset,
+                text: [45, 45, 62]
+            })
+            const double_dash = starts({
+                source: value.source,
+                offset: value.offset,
+                text: [45, 45]
+            })
             const eof = value.offset == value.source.length
             const offset = match {
                 finish => value.offset + 3,
@@ -25,13 +44,21 @@ export default function (in: Input): Output {
                 _ => Issue.None
             }
 
-            value = { ...value, offset: offset, done: finish || eof || double_dash, issue: issue }
+            value = {
+                ...value,
+                offset: offset,
+                done: finish || eof || double_dash,
+                issue: issue
+            }
         }
     })
 
-    return { end: state.offset, message: match {
-        state.issue == Issue.None => "",
-        state.issue == Issue.Unterminated => "unterminated XML comment",
-        _ => "XML comments cannot contain --"
-    } }
+    return {
+        end: state.offset,
+        message: match {
+            state.issue == Issue.None => "",
+            state.issue == Issue.Unterminated => "unterminated XML comment",
+            _ => "XML comments cannot contain --"
+        }
+    }
 }

@@ -5,11 +5,17 @@ export type Input = void
 export type Output = Tree
 
 export default function (in: Input): Output {
-  const statements: Statement[] = []
-  const blocks: Block[] = []
-  const items: Item[] = []
-  const names: Name[] = []
-  const cases: Case[] = []
+    const statements: Statement[] = []
+    const blocks: Block[] = []
+    const items: Item[] = []
+    const names: Name[] = []
+    const cases: Case[] = []
 
-  return { statements: statements, blocks: blocks, items: items, names: names, cases: cases }
+    return {
+        statements: statements,
+        blocks: blocks,
+        items: items,
+        names: names,
+        cases: cases
+    }
 }

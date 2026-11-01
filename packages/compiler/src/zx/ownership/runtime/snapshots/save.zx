@@ -3,9 +3,16 @@ import { Capture } from "./model"
 import type { Memory } from "../model"
 import type { Stack } from "./model"
 
-export type Input = { memory: Memory, stack: Stack, capture: Capture }
+export type Input = {
+    memory: Memory,
+    stack: Stack,
+    capture: Capture
+}
 
-export type Output = { stack: Stack, frame: u64 }
+export type Output = {
+    stack: Stack,
+    frame: u64
+}
 
 export default function (in: Input): Output {
     const states = in.capture != Capture.Memo
@@ -17,7 +24,10 @@ export default function (in: Input): Output {
             facts: states ? in.stack.facts.concat(in.memory.facts)[0] : in.stack.facts,
             memo: memo ? in.stack.memo.concat(in.memory.memo)[0] : in.stack.memo,
             state_first: in.stack.state_first.push(in.stack.facts.length)[0],
-            state_count: in.stack.state_count.push(states ? in.memory.facts.length : 0)[0],
+            state_count:
+                in.stack.state_count.push(
+                    states ? in.memory.facts.length : 0
+                )[0],
             memo_first: in.stack.memo_first.push(in.stack.memo.length)[0],
             memo_count: in.stack.memo_count.push(memo ? in.memory.memo.length : 0)[0]
         }

@@ -12,7 +12,13 @@ export default function (in: Input): Output {
     const type_ids: u32[] = [in.type_id]
     const positions: u32?[] = [null]
 
-    const result = loop({ input: in, type_ids: type_ids, positions: positions, position: 0, valid: true }, {
+    const result = loop({
+        input: in,
+        type_ids: type_ids,
+        positions: positions,
+        position: 0,
+        valid: true
+    }, {
         while: current => current.valid && current.type_ids.length != 0,
         next: current => {
             const index = current.type_ids.length - 1
@@ -22,10 +28,20 @@ export default function (in: Input): Output {
             const type_kind = kind(current.input.table.kinds[type_index])
 
             if (next_child == null) {
-                if (current.type_ids.length > 256 - current.input.depth || current.position == current.input.names.length || type_kind == Kind.Task) {
+                if (
+                    current.type_ids.length > 256 - current.input.depth ||
+                        current.position == current.input.names.length ||
+                        type_kind == Kind.Task
+                ) {
                     current.valid = false
                 } else {
-                    current.valid = typeName({ names: current.input.binding_names, types: current.input.binding_types, name: current.input.names[current.position], type_id: type_id, required: type_kind == Kind.NativeReference })
+                    current.valid = typeName({
+                        names: current.input.binding_names,
+                        types: current.input.binding_types,
+                        name: current.input.names[current.position],
+                        type_id: type_id,
+                        required: type_kind == Kind.NativeReference
+                    })
                     current.position += 1
                     current.positions[index] = 0
                 }
@@ -48,8 +64,20 @@ export default function (in: Input): Output {
                 } else {
                     const first = current.input.table.first[type_index]
                     const child = match type_kind {
-                        Kind.Object => current.input.table.field_types[integers.widen(first) + integers.widen(next_child)],
-                        Kind.Tuple => current.input.table.children[integers.widen(first) + integers.widen(next_child)],
+                        Kind.Object =>
+                            current.input.table
+                            .field_types[integers.widen(
+                                first
+                            ) + integers.widen(
+                                next_child
+                            )],
+                        Kind.Tuple =>
+                            current.input.table
+                            .children[integers.widen(
+                                first
+                            ) + integers.widen(
+                                next_child
+                            )],
                         _ => first
                     }
 

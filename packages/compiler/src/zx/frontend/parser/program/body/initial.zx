@@ -8,8 +8,15 @@ export type Input = HeaderStage
 export type Output = BodyStage
 
 export default function (in: Input): Output {
-  return {
-    prefix: in.prefix, contracts: in.header.contracts, header: in.header.control,
-    body: initial({ expression: in.header.expression, state_block: false, tree: in.header.body, expression_only: false })
-  }
+    return {
+        prefix: in.prefix,
+        contracts: in.header.contracts,
+        header: in.header.control,
+        body: initial({
+            expression: in.header.expression,
+            state_block: false,
+            tree: in.header.body,
+            expression_only: false
+        })
+    }
 }

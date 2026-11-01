@@ -5,15 +5,27 @@ import start from "./start"
 import type { PreparedInput } from "../prepare/model"
 import type { ExprState } from "./model"
 
-export type Input = { prepared: PreparedInput, start: u64, depth: u64, minimum: u8, allow_lambda: bool }
+export type Input = {
+    prepared: PreparedInput,
+    start: u64,
+    depth: u64,
+    minimum: u8,
+    allow_lambda: bool
+}
 
 export type Output = ExprState
 
 export default function (in: Input): Output {
-  return start({
-    prepared: in.prepared,
-    tree: emptyTree(),
-    types: typeInitial({ start: 0, depth: 0 }),
-    start: in.start, depth: in.depth, minimum: in.minimum, allow_lambda: in.allow_lambda
-  })
+    return start({
+        prepared: in.prepared,
+        tree: emptyTree(),
+        types: typeInitial({
+            start: 0,
+            depth: 0
+        }),
+        start: in.start,
+        depth: in.depth,
+        minimum: in.minimum,
+        allow_lambda: in.allow_lambda
+    })
 }

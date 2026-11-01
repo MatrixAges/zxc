@@ -3,21 +3,66 @@ import path from "./path"
 import type { Analysis } from "../model"
 import type { State } from "./model"
 
-export type Input = { analysis: Analysis, names: string[], bindings: string[] }
+export type Input = {
+    analysis: Analysis,
+    names: string[],
+    bindings: string[]
+}
 
 export type Output = Analysis
 
 export default function (in: Input): Output {
     const state = in.analysis.state
-    const initial: State = { expressions: state.local.expressions, facts: state.local.refinement.facts, diagnostic: state.diagnostic }
 
-    const resolved = loop({ state: initial, tables: { base: state.types.context.base, delta: state.types.delta }, symbol_types: state.local.symbols.types, symbols: state.local.expression_bindings, names: in.names, bindings: in.bindings, span: in.analysis.span, index: 0 }, {
-        while: current => current.state.diagnostic.message == "" && current.index < current.names.length,
+    const initial: State = {
+        expressions: state.local.expressions,
+        facts: state.local.refinement.facts,
+        diagnostic: state.diagnostic
+    }
+
+    const resolved = loop({
+        state: initial,
+        tables: {
+            base: state.types.context.base,
+            delta: state.types.delta
+        },
+        symbol_types: state.local.symbols.types,
+        symbols: state.local.expression_bindings,
+        names: in.names,
+        bindings: in.bindings,
+        span: in.analysis.span,
+        index: 0
+    }, {
+        while: current =>
+            current.state.diagnostic.message == "" &&
+            current.index < current.names.length,
         next: current => {
-            current.state = path({ state: current.state, tables: current.tables, symbol_types: current.symbol_types, symbols: current.symbols, name: current.names[current.index], bindings: current.bindings, span: current.span })
+            current.state = path({
+                state: current.state,
+                tables: current.tables,
+                symbol_types: current.symbol_types,
+                symbols: current.symbols,
+                name: current.names[current.index],
+                bindings: current.bindings,
+                span: current.span
+            })
             current.index += 1
         }
     }).state
 
-    return { ...in.analysis, state: { ...state, local: { ...state.local, expressions: resolved.expressions, refinement: { ...state.local.refinement, facts: resolved.facts } }, diagnostic: resolved.diagnostic } }
+    return {
+        ...in.analysis,
+        state: {
+            ...state,
+            local: {
+                ...state.local,
+                expressions: resolved.expressions,
+                refinement: {
+                    ...state.local.refinement,
+                    facts: resolved.facts
+                }
+            },
+            diagnostic: resolved.diagnostic
+        }
+    }
 }

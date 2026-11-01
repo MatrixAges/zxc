@@ -5,20 +5,90 @@
     <Type from="../merging/origin" as="Origin" />
     <Type from="../resolving/model" as="Model" />
 
-    <Args in={{ base: Append.Output, cache: Cache.Output, delta: Append.Output, id: u32, origin: Nominal.Origin, origins: Origin.Output }} out={{ cache: Cache.Output, delta: Append.Output, diagnostic: Model.Diagnostic, id: u32, origins: Origin.Output }} />
+    <Args
+        in={{
+            base: Append.Output,
+            cache: Cache.Output,
+            delta: Append.Output,
+            id: u32,
+            origin: Nominal.Origin,
+            origins: Origin.Output
+        }}
+        out={{
+            cache: Cache.Output,
+            delta: Append.Output,
+            diagnostic: Model.Diagnostic,
+            id: u32,
+            origins: Origin.Output
+        }}
+    />
 
-    <Call fn="normalize" in={{ base: $in.base, delta: $in.delta, origins: $in.origins, origin: $in.origin }} />
+    <Call
+        fn="normalize"
+        in={{
+            base: $in.base,
+            delta: $in.delta,
+            origins: $in.origins,
+            origin: $in.origin
+        }}
+    />
 
     <Switch on={$ctx.normalize.conflict}>
         <Case value={true}>
-            <Return value={{ delta: $in.delta, cache: $in.cache, id: $in.id, origins: $ctx.normalize.origins, diagnostic: { code: "type_mismatch", message: "shared nominal declaration has incompatible identity or members", start: 0, end: 0 } }} />
+            <Return
+                value={{
+                    delta: $in.delta,
+                    cache: $in.cache,
+                    id: $in.id,
+                    origins: $ctx.normalize.origins,
+                    diagnostic: {
+                        code: "type_mismatch",
+                        message:
+                            "shared nominal declaration has incompatible identity or members",
+                        start: 0,
+                        end: 0
+                    }
+                }}
+            />
         </Case>
 
         <Default>
-            <Call fn="cache" in={{ cache: $in.cache, mapping: { first: $in.base.kinds.length, ids: $ctx.normalize.mapping } }} />
-            <Call fn="reference" in={{ id: $in.id, mapping: { first: $in.base.kinds.length, ids: $ctx.normalize.mapping } }} />
+            <Call
+                fn="cache"
+                in={{
+                    cache: $in.cache,
+                    mapping: {
+                        first: $in.base.kinds.length,
+                        ids: $ctx.normalize.mapping
+                    }
+                }}
+            />
 
-            <Return value={{ delta: $ctx.normalize.delta, cache: $ctx.cache, id: $ctx.reference, origins: $ctx.normalize.origins, diagnostic: { code: "", message: "", start: 0, end: 0 } }} />
+            <Call
+                fn="reference"
+                in={{
+                    id: $in.id,
+                    mapping: {
+                        first: $in.base.kinds.length,
+                        ids: $ctx.normalize.mapping
+                    }
+                }}
+            />
+
+            <Return
+                value={{
+                    delta: $ctx.normalize.delta,
+                    cache: $ctx.cache,
+                    id: $ctx.reference,
+                    origins: $ctx.normalize.origins,
+                    diagnostic: {
+                        code: "",
+                        message: "",
+                        start: 0,
+                        end: 0
+                    }
+                }}
+            />
         </Default>
     </Switch>
 </Module>

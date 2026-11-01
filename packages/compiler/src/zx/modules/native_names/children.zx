@@ -4,23 +4,50 @@ import positions from "./positions"
 
 import type { State } from "./model"
 
-export type Input = { state: State, position: u64, count: u64, object: bool }
+export type Input = {
+    state: State,
+    position: u64,
+    count: u64,
+    object: bool
+}
 
 export type Output = State
 
 export default function (in: Input): Output {
-    const ordered = positions({ source: in.state.source, position: in.position, count: in.count, object: in.object })
+    const ordered = positions({
+        source: in.state.source,
+        position: in.position,
+        count: in.count,
+        object: in.object
+    })
 
-    const result = loop({ state: in.state, positions: ordered, remaining: ordered.length, object: in.object }, {
+    const result = loop({
+        state: in.state,
+        positions: ordered,
+        remaining: ordered.length,
+        object: in.object
+    }, {
         while: current => current.remaining != 0,
         next: current => {
             current.remaining -= 1
 
             const position = current.positions[current.remaining]
-            const selected = current.object ? field({ source: current.state.source, position: position }).value : item({ source: current.state.source, position: position }).value
+            const selected = current.object ? field({
+                source: current.state.source,
+                position: position
+            }).value : item({
+                source: current.state.source,
+                position: position
+            }).value
 
-            current.state.work.nodes = current.state.work.nodes.push(selected.index)[0]
-            current.state.work.enumerations = current.state.work.enumerations.push(selected.enumeration)[0]
+            current.state.work.nodes =
+                current.state.work.nodes.push(
+                    selected.index
+                )[0]
+            current.state.work.enumerations =
+                current.state.work.enumerations.push(
+                    selected.enumeration
+                )[0]
             current.state.work.aliases = current.state.work.aliases.push(null)[0]
         }
     })

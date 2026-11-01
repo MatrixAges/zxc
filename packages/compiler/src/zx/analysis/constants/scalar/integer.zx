@@ -14,10 +14,14 @@ export default function (in: Input): Output {
 
     const right = {
         magnitude: in.right.magnitude,
-        negative: in.operator == BinaryOperator.Subtract && in.right.magnitude != 0 ? !in.right.negative : in.right.negative
+        negative:
+            in.operator == BinaryOperator.Subtract &&
+            in.right.magnitude != 0 ? !in.right.negative : in.right.negative
     }
 
-    const addition = in.operator == BinaryOperator.Add || in.operator == BinaryOperator.Subtract
+    const addition =
+        in.operator == BinaryOperator.Add || in.operator == BinaryOperator.Subtract
+
     const negative = addition ? left.negative : left.negative != right.negative
 
     const limit = maximum({
@@ -34,7 +38,10 @@ export default function (in: Input): Output {
 
     if (addition) {
         if (left.negative == right.negative) {
-            if (invalid_sign || right.magnitude > limit || left.magnitude > limit - right.magnitude) {
+            if (
+                invalid_sign || right.magnitude > limit ||
+                    left.magnitude > limit - right.magnitude
+            ) {
                 return {
                     value: empty,
                     message: message_arithmetic_overflow
@@ -53,7 +60,10 @@ export default function (in: Input): Output {
         }
 
         const larger_left = left.magnitude >= right.magnitude
-        const magnitude = larger_left ? left.magnitude - right.magnitude : right.magnitude - left.magnitude
+
+        const magnitude = larger_left ? left.magnitude - right.magnitude :
+            right.magnitude - left.magnitude
+
         const sign = larger_left ? left.negative : right.negative
 
         return {
@@ -61,12 +71,19 @@ export default function (in: Input): Output {
                 magnitude: magnitude,
                 negative: magnitude != 0 && sign
             },
-            message: magnitude != 0 && sign && !in.target.signed ? message_arithmetic_overflow : ""
+            message:
+                magnitude != 0 && sign &&
+                !in.target.signed ? message_arithmetic_overflow : ""
         }
     }
 
     if (in.operator == BinaryOperator.Multiply) {
-        if ((invalid_sign && left.magnitude != 0 && right.magnitude != 0) || (right.magnitude != 0 && left.magnitude > limit / right.magnitude)) {
+        if (
+            (invalid_sign && left.magnitude != 0 && right.magnitude != 0) ||
+                (
+                    right.magnitude != 0 && left.magnitude > limit / right.magnitude
+                )
+        ) {
             return {
                 value: empty,
                 message: message_arithmetic_overflow
@@ -92,13 +109,17 @@ export default function (in: Input): Output {
     }
 
     const remainder = in.operator == BinaryOperator.Remainder
-    const magnitude = remainder ? left.magnitude % right.magnitude : left.magnitude / right.magnitude
+
+    const magnitude = remainder ? left.magnitude % right.magnitude :
+        left.magnitude / right.magnitude
 
     return {
         value: {
             magnitude: magnitude,
             negative: magnitude != 0 && (remainder ? left.negative : negative)
         },
-        message: !remainder && (invalid_sign || magnitude > limit) ? message_arithmetic_overflow : ""
+        message:
+            !remainder &&
+            (invalid_sign || magnitude > limit) ? message_arithmetic_overflow : ""
     }
 }

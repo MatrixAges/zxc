@@ -14,29 +14,53 @@ export default function (in: Input): Output {
     const table = in.program.context.table
     const declared = table.kinds.map(value => false)
 
-    const origins = loop({ context: in.program.context, origins: in.origins, declared: declared, index: 0, valid: true }, {
+    const origins = loop({
+        context: in.program.context,
+        origins: in.origins,
+        declared: declared,
+        index: 0,
+        valid: true
+    }, {
         while: current => current.valid && current.index < current.origins.ids.length,
         next: current => {
             const id = integers.widen(current.origins.ids[current.index])
 
             current.declared = current.declared.with(id, true)
 
-            if (kind(current.context.table.kinds[id]) == Kind.NativeReference) {
-                const actual = owner({ context: { table: current.context.table, modules: current.context.modules }, type_id: id })
+            if (
+                kind(current.context.table.kinds[id]) == Kind.NativeReference
+            ) {
+                const actual = owner({
+                    context: {
+                        table: current.context.table,
+                        modules: current.context.modules
+                    },
+                    type_id: id
+                })
 
-                current.valid = actual != null && actual == current.origins.owners[current.index]
+                current.valid =
+                    actual != null &&
+                    actual == current.origins.owners[current.index]
             }
 
             current.index += 1
         }
     })
 
-    return loop({ table: table, declared: origins.declared, index: 0, valid: origins.valid }, {
+    return loop({
+        table: table,
+        declared: origins.declared,
+        index: 0,
+        valid: origins.valid
+    }, {
         while: current => current.valid && current.index < current.table.kinds.length,
         next: current => {
             const type_kind = kind(current.table.kinds[current.index])
 
-            current.valid = (type_kind != Kind.Enumeration && type_kind != Kind.NativeReference) || current.declared[current.index]
+            current.valid =
+                (
+                    type_kind != Kind.Enumeration && type_kind != Kind.NativeReference
+                ) || current.declared[current.index]
             current.index += 1
         }
     }).valid

@@ -12,7 +12,8 @@ export default function (in: Input): Output {
         bytes.startsWithText(in.path, 0, "zig:") => 1,
         bytes.startsWithText(in.path, 0, "c:") => 2,
         bytes.startsWithText(in.path, 0, "@/") => 4,
-        bytes.startsWithText(in.path, 0, "./") || bytes.startsWithText(in.path, 0, "../") => 6,
+        bytes.startsWithText(in.path, 0, "./") ||
+            bytes.startsWithText(in.path, 0, "../") => 6,
         _ => 3
     }
 
@@ -25,5 +26,8 @@ export default function (in: Input): Output {
         _ => 0
     }
 
-    return { category: category, group: group }
+    return {
+        category: category,
+        group: group
+    }
 }

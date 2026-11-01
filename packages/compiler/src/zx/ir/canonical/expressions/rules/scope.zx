@@ -13,7 +13,13 @@ export default function (in: Input): Output {
     const context = in.context
     const expressions = context.expressions
 
-    const result = loop({ context: context, first: integers.widen(expressions.scope_first[in.payload]), count: integers.widen(expressions.scope_count[in.payload]), index: 0, valid: true }, {
+    const result = loop({
+        context: context,
+        first: integers.widen(expressions.scope_first[in.payload]),
+        count: integers.widen(expressions.scope_count[in.payload]),
+        index: 0,
+        valid: true
+    }, {
         while: current => current.valid && current.index < current.count,
         next: current => {
             const context = current.context
@@ -26,14 +32,32 @@ export default function (in: Input): Output {
             } else if (symbol != null) {
                 const index = integers.widen(symbol)
 
-                current.valid = index < context.symbols.types.length && typed({ expressions: context.expressions, index: context.index, id: value, type_id: context.symbols.types[index] })
+                current.valid = index < context.symbols.types.length && typed({
+                    expressions: context.expressions,
+                    index: context.index,
+                    id: value,
+                    type_id: context.symbols.types[index]
+                })
             } else {
-                current.valid = typed({ expressions: context.expressions, index: context.index, id: value, type_id: 0 }) || context.expressions.kinds[integers.widen(value)] == ExpressionKind.Iteration
+                current.valid = typed({
+                    expressions: context.expressions,
+                    index: context.index,
+                    id: value,
+                    type_id: 0
+                }) ||
+                    context.expressions.kinds[integers.widen(
+                        value
+                    )] == ExpressionKind.Iteration
             }
 
             current.index += 1
         }
     })
 
-    return result.valid && typed({ expressions: expressions, index: context.index, id: expressions.scope_results[in.payload], type_id: in.type_id })
+    return result.valid && typed({
+        expressions: expressions,
+        index: context.index,
+        id: expressions.scope_results[in.payload],
+        type_id: in.type_id
+    })
 }

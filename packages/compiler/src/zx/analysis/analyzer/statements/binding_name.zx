@@ -9,6 +9,17 @@ export type Output = Diagnostic
 
 export default function (in: Input): Output {
     return reserved(in.text)
-    ? { code: "name", message: "reserved bindings cannot be redeclared; _ is only a tuple discard pattern", start: in.start, end: in.end }
-    : { code: "", message: "", start: 0, end: 0 }
+    ? {
+        code: "name",
+        message:
+            "reserved bindings cannot be redeclared; _ is only a tuple discard pattern",
+        start: in.start,
+        end: in.end
+    }
+    : {
+        code: "",
+        message: "",
+        start: 0,
+        end: 0
+    }
 }

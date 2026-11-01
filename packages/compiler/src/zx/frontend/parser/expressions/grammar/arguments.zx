@@ -13,24 +13,55 @@ export type Input = ExprState
 export type Output = ExprState
 
 export default function (in: Input): Output {
-  const taken = takeFrame(in)
-  const closing = taken.frame.flag ? Symbol.CloseParen : Symbol.CloseBracket
+    const taken = takeFrame(in)
+    const closing = taken.frame.flag ? Symbol.CloseParen : Symbol.CloseBracket
 
-  if (taken.state.control.token.symbol == closing) {
-    return finish(taken)
-  }
+    if (taken.state.control.token.symbol == closing) {
+        return finish(taken)
+    }
 
-  const loop_options = taken.frame.flag && taken.frame.count == 1 && taken.state.tree.nodes[taken.frame.first].kind == ExprKind.Identifier && taken.state.tree.nodes[taken.frame.first].flag && taken.state.control.token.symbol == Symbol.OpenBrace
+    const loop_options =
+        taken.frame.flag && taken.frame.count == 1 &&
+        taken.state.tree.nodes[taken.frame.first].kind == ExprKind.Identifier &&
+        taken.state.tree.nodes[taken.frame.first].flag &&
+        taken.state.control.token.symbol == Symbol.OpenBrace
 
-  if (loop_options) {
-    const continuation = frame({ kind: FrameKind.OptionsValue, start: taken.state.control.token.span.start, depth: taken.state.control.depth })
-    const frames = taken.state.frames.push(taken.frame)[0].push(continuation)[0]
+    if (loop_options) {
+        const continuation = frame({
+            kind: FrameKind.OptionsValue,
+            start: taken.state.control.token.span.start,
+            depth: taken.state.control.depth
+        })
 
-    return consume({ state: { prepared: taken.state.prepared, tree: taken.state.tree, types: taken.state.types, frames: frames, control: taken.state.control }, phase: Phase.ObjectName })
-  }
+        const frames =
+            taken.state.frames.push(taken.frame)[0].push(continuation)[0]
 
-  const frames = taken.state.frames.push(taken.frame)[0]
-  const control: ExprControl = { ...taken.state.control, minimum: 0, allow_lambda: true, fresh_family: true }
+        return consume({
+            state: {
+                prepared: taken.state.prepared,
+                tree: taken.state.tree,
+                types: taken.state.types,
+                frames: frames,
+                control: taken.state.control
+            },
+            phase: Phase.ObjectName
+        })
+    }
 
-  return beginBinary({ prepared: taken.state.prepared, tree: taken.state.tree, types: taken.state.types, frames: frames, control: control })
+    const frames = taken.state.frames.push(taken.frame)[0]
+
+    const control: ExprControl = {
+        ...taken.state.control,
+        minimum: 0,
+        allow_lambda: true,
+        fresh_family: true
+    }
+
+    return beginBinary({
+        prepared: taken.state.prepared,
+        tree: taken.state.tree,
+        types: taken.state.types,
+        frames: frames,
+        control: control
+    })
 }

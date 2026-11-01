@@ -4,7 +4,12 @@ import type { ExpressionKind } from "../kinds"
 import type { Expressions } from "../model"
 import type { Metadata, Result } from "./model"
 
-export type Input = { table: Expressions, metadata: Metadata, kind: ExpressionKind, payload: u32 }
+export type Input = {
+    table: Expressions,
+    metadata: Metadata,
+    kind: ExpressionKind,
+    payload: u32
+}
 
 export type Output = Result
 

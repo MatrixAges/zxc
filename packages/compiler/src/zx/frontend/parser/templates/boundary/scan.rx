@@ -8,7 +8,15 @@
     <Switch on={$ctx.validate}>
         <Case value={true}>
             <Call fn="initial" in={$in.length} />
-            <Call fn="bytes" in={{ source: $in, state: $ctx.initial }} />
+
+            <Call
+                fn="bytes"
+                in={{
+                    source: $in,
+                    state: $ctx.initial
+                }}
+            />
+
             <Call fn="flush" in={$ctx.bytes} />
             <Call fn="finish" in={$ctx.flush} />
 
@@ -28,7 +36,15 @@
         </Case>
 
         <Default>
-            <Call fn="empty" in={{ code: "lexical", start: 0, end: $in.length, message: "source must be valid UTF-8" }} />
+            <Call
+                fn="empty"
+                in={{
+                    code: "lexical",
+                    start: 0,
+                    end: $in.length,
+                    message: "source must be valid UTF-8"
+                }}
+            />
 
             <Return value={$ctx.empty} />
         </Default>

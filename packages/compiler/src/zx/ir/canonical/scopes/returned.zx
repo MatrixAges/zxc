@@ -9,5 +9,10 @@ export type Output = bool
 export default function (in: Input): Output {
     const root = in.program.body.root
 
-    return in.program.output_type == 0 || (root != null && in.prepared.returns[integers.widen(root)])
+    return in.program.output_type == 0 ||
+        (
+            root != null && in.prepared.returns[integers.widen(
+                root
+            )]
+        )
 }

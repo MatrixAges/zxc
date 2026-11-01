@@ -19,7 +19,14 @@
         </Case>
     </Switch>
 
-    <Call module="../../analysis/semantic/origins" in={{ table: $in.program.context.table, origins: $in.origins, names: $in.origin_names }} />
+    <Call
+        module="../../analysis/semantic/origins"
+        in={{
+            table: $in.program.context.table,
+            origins: $in.origins,
+            names: $in.origin_names
+        }}
+    />
 
     <Switch on={$ctx.origins}>
         <Case value={false}>

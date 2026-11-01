@@ -11,7 +11,10 @@ import { Phase, Action } from "./model"
 
 import type { Work } from "./model"
 
-export type Input = { work: Work, action: Action }
+export type Input = {
+    work: Work,
+    action: Action
+}
 
 export type Output = Work
 
@@ -19,24 +22,92 @@ export default function (in: Input): Output {
     const work = in.work
 
     if (in.action == Action.TaskValue || in.action == Action.CaptureValue) {
-        const node = work.source.tree.nodes[work.frames.singles[work.frames.singles.length - 1]]
-        const result = in.action == Action.CaptureValue ? capture({ state: work.state, functions: work.functions, operand: work.value, span: node.span }) : consume({ state: work.state, operand: work.value, cancellation: node.kind == ExprKind.Cancel, span: node.span })
+        const node =
+            work.source.tree
+            .nodes[work.frames.singles[work.frames.singles.length - 1]]
 
-        return { ...work, state: result.state, value: result.value, frames: { ...work.frames, singles: work.frames.singles.pop()[0] } }
+        const result = in.action == Action.CaptureValue ? capture({
+            state: work.state,
+            functions: work.functions,
+            operand: work.value,
+            span: node.span
+        }) : consume({
+            state: work.state,
+            operand: work.value,
+            cancellation: node.kind == ExprKind.Cancel,
+            span: node.span
+        })
+
+        return {
+            ...work,
+            state: result.state,
+            value: result.value,
+            frames: {
+                ...work.frames,
+                singles: work.frames.singles.pop()[0]
+            }
+        }
     }
 
     if (in.action == Action.Unary) {
-        const node = work.source.tree.nodes[work.frames.singles[work.frames.singles.length - 1]]
-        const result = unary({ state: work.state, operand: work.value, negative: node.flag, span: node.span })
+        const node =
+            work.source.tree
+            .nodes[work.frames.singles[work.frames.singles.length - 1]]
 
-        return { ...work, state: result.state, value: result.value, frames: { ...work.frames, singles: work.frames.singles.pop()[0] } }
+        const result = unary({
+            state: work.state,
+            operand: work.value,
+            negative: node.flag,
+            span: node.span
+        })
+
+        return {
+            ...work,
+            state: result.state,
+            value: result.value,
+            frames: {
+                ...work.frames,
+                singles: work.frames.singles.pop()[0]
+            }
+        }
     }
 
     if (in.action == Action.Field) {
         const node_id = work.frames.singles[work.frames.singles.length - 1]
-        const result = field({ expressions: work.state.local.expressions, tables: { base: work.state.types.context.base, delta: work.state.types.delta }, facts: work.state.local.refinement.facts, diagnostic: work.state.diagnostic, target: work.value, name: readName({ source: work.source, kind: NameKind.Expression, index: node_id }), span: work.source.tree.nodes[node_id].span })
 
-        return { ...work, state: { ...work.state, local: { ...work.state.local, expressions: result.expressions }, diagnostic: result.diagnostic }, value: result.value, frames: { ...work.frames, singles: work.frames.singles.pop()[0] } }
+        const result = field({
+            expressions: work.state.local.expressions,
+            tables: {
+                base: work.state.types.context.base,
+                delta: work.state.types.delta
+            },
+            facts: work.state.local.refinement.facts,
+            diagnostic: work.state.diagnostic,
+            target: work.value,
+            name: readName({
+                source: work.source,
+                kind: NameKind.Expression,
+                index: node_id
+            }),
+            span: work.source.tree.nodes[node_id].span
+        })
+
+        return {
+            ...work,
+            state: {
+                ...work.state,
+                local: {
+                    ...work.state.local,
+                    expressions: result.expressions
+                },
+                diagnostic: result.diagnostic
+            },
+            value: result.value,
+            frames: {
+                ...work.frames,
+                singles: work.frames.singles.pop()[0]
+            }
+        }
     }
 
     const position = work.frames.indices.length - 1
@@ -44,7 +115,11 @@ export default function (in: Input): Output {
     const node = work.source.tree.nodes[frame.node]
 
     if (in.action == Action.IndexTarget) {
-        const state = indexable({ state: work.state, target: work.value, span: node.span })
+        const state = indexable({
+            state: work.state,
+            target: work.value,
+            span: node.span
+        })
 
         return {
             ...work,
@@ -52,11 +127,32 @@ export default function (in: Input): Output {
             node: node.second,
             expected: 5,
             phase: Phase.Evaluate,
-            frames: { ...work.frames, actions: work.frames.actions.push(Action.IndexValue)[0], indices: work.frames.indices.splice(position, 1, [{ ...frame, target: work.value }])[0] }
+            frames: {
+                ...work.frames,
+                actions: work.frames.actions.push(Action.IndexValue)[0],
+                indices: work.frames.indices.splice(position, 1, [{
+                    ...frame,
+                    target: work.value
+                }])[0]
+            }
         }
     }
 
-    const result = index({ state: work.state, target: frame.target, index: work.value, index_span: work.source.tree.nodes[node.second].span, span: node.span })
+    const result = index({
+        state: work.state,
+        target: frame.target,
+        index: work.value,
+        index_span: work.source.tree.nodes[node.second].span,
+        span: node.span
+    })
 
-    return { ...work, state: result.state, value: result.value, frames: { ...work.frames, indices: work.frames.indices.pop()[0] } }
+    return {
+        ...work,
+        state: result.state,
+        value: result.value,
+        frames: {
+            ...work.frames,
+            indices: work.frames.indices.pop()[0]
+        }
+    }
 }

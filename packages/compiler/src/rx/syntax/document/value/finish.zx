@@ -11,7 +11,15 @@ export type Output = State
 
 export default function (in: Input): Output {
     const state = in.control.value_head == 0 ? in : flush(in)
-    const value = { span: { start: state.control.value_start, end: state.control.location.offset }, head: state.control.value_head, count: state.control.value_count }
+
+    const value = {
+        span: {
+            start: state.control.value_start,
+            end: state.control.location.offset
+        },
+        head: state.control.value_head,
+        count: state.control.value_count
+    }
 
     const count = match {
         state.control.value_kind == ValueKind.Attribute => 1,
@@ -19,5 +27,12 @@ export default function (in: Input): Output {
         _ => 0
     }
 
-    return publish({ state: advance({ state: state, count: count }), value: value, expression: false })
+    return publish({
+        state: advance({
+            state: state,
+            count: count
+        }),
+        value: value,
+        expression: false
+    })
 }

@@ -11,7 +11,15 @@
         </Case>
     </Switch>
 
-    <Call module="../../../analysis/semantic/validate_types" in={{ table: $in.context.table, scalar_count: $in.context.scalar_count, maximum_count: $in.context.maximum_count, trusted: false }} />
+    <Call
+        module="../../../analysis/semantic/validate_types"
+        in={{
+            table: $in.context.table,
+            scalar_count: $in.context.scalar_count,
+            maximum_count: $in.context.maximum_count,
+            trusted: false
+        }}
+    />
 
     <Switch on={$ctx.validate_types}>
         <Case value={false}>
@@ -27,7 +35,13 @@
         </Case>
     </Switch>
 
-    <Call module="../native_modules_check" in={{ table: $in.context.table, modules: $in.context.modules }} />
+    <Call
+        module="../native_modules_check"
+        in={{
+            table: $in.context.table,
+            modules: $in.context.modules
+        }}
+    />
 
     <Switch on={$ctx.native_modules_check}>
         <Case value={false}>

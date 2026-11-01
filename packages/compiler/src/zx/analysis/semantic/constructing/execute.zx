@@ -8,7 +8,22 @@ export type Input = ConstructionInput
 export type Output = ConstructionOutput
 
 export default function (in: Input): Output {
-    const empty: Table = { kinds: [], first: [], second: [], labels: [], children: [], field_types: [], field_names: [], names: [] }
+    const empty: Table = {
+        kinds: [],
+        first: [],
+        second: [],
+        labels: [],
+        children: [],
+        field_types: [],
+        field_names: [],
+        names: []
+    }
 
-    return update({ tables: { base: in.table, delta: empty }, candidate: in.candidate })
+    return update({
+        tables: {
+            base: in.table,
+            delta: empty
+        },
+        candidate: in.candidate
+    })
 }

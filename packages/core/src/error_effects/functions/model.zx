@@ -1,6 +1,14 @@
-export type Sources = { names: string[][], unknown: bool[], callees: u32[][] }
+export type Sources = {
+    names: string[][],
+    unknown: bool[],
+    callees: u32[][]
+}
 
-export type Components = { membership: u32[], members: u32[], first: u64[] }
+export type Components = {
+    membership: u32[],
+    members: u32[],
+    first: u64[]
+}
 
 export type Workspace = {
     order: u32[]
@@ -18,6 +26,13 @@ export type Workspace = {
     first: u64[]
 }
 
-export type Groups = { names: string[][], unknown: bool[] }
+export type Groups = {
+    names: string[][],
+    unknown: bool[]
+}
 
-export type Result = { components: u32[], names: string[][], unknown: bool[] }
+export type Result = {
+    components: u32[],
+    names: string[][],
+    unknown: bool[]
+}

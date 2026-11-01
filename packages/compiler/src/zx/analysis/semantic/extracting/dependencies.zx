@@ -6,7 +6,11 @@ import kind from "../types/kind"
 import type { Table } from "core/type_table/model"
 import type { Pending } from "./pending"
 
-export type Input = { table: Table, index: u64, pending: Pending }
+export type Input = {
+    table: Table,
+    index: u64,
+    pending: Pending
+}
 
 export type Output = Pending
 
@@ -16,7 +20,12 @@ export default function (in: Input): Output {
 
     if (type_kind == Kind.Task) {
         return {
-            ids: pending.ids.push(integers.widen(in.table.first[in.index]))[0].push(integers.widen(in.table.second[in.index]))[0],
+            ids:
+                pending.ids.push(integers.widen(in.table.first[in.index]))[0].push(
+                    integers.widen(
+                        in.table.second[in.index]
+                    )
+                )[0],
             ready: pending.ready.push(false)[0].push(false)[0]
         }
     } else if (type_kind == Kind.Optional || type_kind == Kind.List) {
@@ -27,12 +36,22 @@ export default function (in: Input): Output {
     } else if (type_kind == Kind.Tuple || type_kind == Kind.Object) {
         const values = type_kind == Kind.Tuple ? in.table.children : in.table.field_types
 
-        const state = loop({ values: values, first: integers.widen(in.table.first[in.index]), remaining: integers.widen(in.table.second[in.index]), pending: pending }, {
+        const state = loop({
+            values: values,
+            first: integers.widen(in.table.first[in.index]),
+            remaining: integers.widen(in.table.second[in.index]),
+            pending: pending
+        }, {
             while: current => current.remaining > 0,
             next: current => {
                 current.remaining -= 1
 
-                current.pending.ids = current.pending.ids.push(integers.widen(current.values[current.first + current.remaining]))[0]
+                current.pending.ids =
+                    current.pending.ids.push(
+                        integers.widen(
+                            current.values[current.first + current.remaining]
+                        )
+                    )[0]
                 current.pending.ready = current.pending.ready.push(false)[0]
             }
         })

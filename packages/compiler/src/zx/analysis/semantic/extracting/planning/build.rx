@@ -3,8 +3,21 @@
 
     <Args in={Model.Request} out={Model.State} />
 
-    <Call fn="initialize" in={{ kinds: $in.table.kinds, scalar_count: $in.scalar_count }} />
-    <Call fn="roots" in={{ request: $in, state: $ctx.initialize }} />
+    <Call
+        fn="initialize"
+        in={{
+            kinds: $in.table.kinds,
+            scalar_count: $in.scalar_count
+        }}
+    />
+
+    <Call
+        fn="roots"
+        in={{
+            request: $in,
+            state: $ctx.initialize
+        }}
+    />
 
     <Return value={$ctx.roots} />
 </Module>

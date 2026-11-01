@@ -15,13 +15,63 @@ export default function (in: Input): Output {
 
     const types: Types = {
         ...in.types,
-        context: { ...context, source: { ...context.source, indexed: { ...context.source.indexed, declarations: [] }, native: native == null ? null : { ...native, declarations: [] } }, resolved: { names: [], ids: [] }, aliases: in.aliases, visiting: [] },
-        cache: { names: [], ids: [] }
+        context: {
+            ...context,
+            source: {
+                ...context.source,
+                indexed: {
+                    ...context.source.indexed,
+                    declarations: []
+                },
+                native: native == null ? null : {
+                    ...native,
+                    declarations: []
+                }
+            },
+            resolved: {
+                names: [],
+                ids: []
+            },
+            aliases: in.aliases,
+            visiting: []
+        },
+        cache: {
+            names: [],
+            ids: []
+        }
     }
 
-    const diagnostic = { code: "", message: "", start: 0, end: 0 }
-    const signature: Signature = { types: types, span: in.contract.span, input_type: in.input_type, output_type: 0, diagnostic: diagnostic }
-    const local = initial({ signature: signature, stores: { paths: [], types: [], handles: [], readable: [], writable: [] }, allow_store: false })
+    const diagnostic = {
+        code: "",
+        message: "",
+        start: 0,
+        end: 0
+    }
 
-    return { types: types, local: local, input_type: in.input_type, diagnostic: diagnostic }
+    const signature: Signature = {
+        types: types,
+        span: in.contract.span,
+        input_type: in.input_type,
+        output_type: 0,
+        diagnostic: diagnostic
+    }
+
+    const local = initial({
+        signature: signature,
+        stores: {
+            paths: [],
+            types: [],
+            handles: [],
+            readable: [],
+            writable: []
+        },
+        allow_store: false
+    })
+
+    return {
+        types: types,
+        local: local,
+        input_type: in.input_type,
+        diagnostic: diagnostic
+    }
 }

@@ -10,10 +10,10 @@ export type Input = Result
 export type Output = NativeState
 
 export default function (in: Input): Output {
-  return loop(initial(in), {
-    while: value => value.control.phase != Phase.Done,
-    next: value => {
-      value = step(value)
-    }
-  })
+    return loop(initial(in), {
+        while: value => value.control.phase != Phase.Done,
+        next: value => {
+            value = step(value)
+        }
+    })
 }

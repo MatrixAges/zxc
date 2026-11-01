@@ -2,10 +2,40 @@
     <Type from="./expressions" as="Expressions" />
     <Type from="./symbols" as="Symbols" />
 
-    <Args in={{ expressions: Expressions.Output, first: u64, mapping: u32[], symbols: Symbols.Output }} out={{ expressions: Expressions.Output, symbols: Symbols.Output }} />
+    <Args
+        in={{
+            expressions: Expressions.Output,
+            first: u64,
+            mapping: u32[],
+            symbols: Symbols.Output
+        }}
+        out={{
+            expressions: Expressions.Output,
+            symbols: Symbols.Output
+        }}
+    />
 
-    <Call fn="symbols" in={{ source: $in.symbols, mapping: $in.mapping }} />
-    <Call fn="expressions" in={{ source: $in.expressions, mapping: $in.mapping, first: $in.first }} />
+    <Call
+        fn="symbols"
+        in={{
+            source: $in.symbols,
+            mapping: $in.mapping
+        }}
+    />
 
-    <Return value={{ symbols: $ctx.symbols, expressions: $ctx.expressions }} />
+    <Call
+        fn="expressions"
+        in={{
+            source: $in.expressions,
+            mapping: $in.mapping,
+            first: $in.first
+        }}
+    />
+
+    <Return
+        value={{
+            symbols: $ctx.symbols,
+            expressions: $ctx.expressions
+        }}
+    />
 </Module>

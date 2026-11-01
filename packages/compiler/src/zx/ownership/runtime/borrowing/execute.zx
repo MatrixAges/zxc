@@ -8,7 +8,15 @@ import type { Built } from "../../layout/model"
 import type { Memory } from "../model"
 import type { Session } from "./execute/model"
 
-export type Input = { types: Tables, references: bool[], expressions: Expressions, layout: Built, memory: Memory, expression: u64, permanent: bool }
+export type Input = {
+    types: Tables,
+    references: bool[],
+    expressions: Expressions,
+    layout: Built,
+    memory: Memory,
+    expression: u64,
+    permanent: bool
+}
 
 export type Output = Memory
 
@@ -37,7 +45,11 @@ export default function (in: Input): Output {
     const result = loop(initial, {
         while: current => current.active,
         next: current => {
-            if (current.phase == Phase.Next || current.phase == Phase.Query || current.phase == Phase.Descend || current.phase == Phase.Expand || current.phase == Phase.Done) {
+            if (
+                current.phase == Phase.Next || current.phase == Phase.Query ||
+                    current.phase == Phase.Descend || current.phase == Phase.Expand ||
+                    current.phase == Phase.Done
+            ) {
                 current = query(current)
             } else if (current.phase == Phase.Enter) {
                 current = propagate(current)
@@ -45,5 +57,11 @@ export default function (in: Input): Output {
         }
     })
 
-    return { forest: result.forest, facts: result.facts, states: result.states, memo: result.memo, trail: result.trail.splice(0, 0, [])[1] }
+    return {
+        forest: result.forest,
+        facts: result.facts,
+        states: result.states,
+        memo: result.memo,
+        trail: result.trail.splice(0, 0, [])[1]
+    }
 }

@@ -6,17 +6,46 @@ import type { Layout } from "../../places/model"
 import type { Memory, Runtime } from "../model"
 import type { Stack } from "./model"
 
-export type Input = { types: Tables, references: bool[], layout: Layout, memory: Memory, stack: Stack, frame: u64, merge: bool }
+export type Input = {
+    types: Tables,
+    references: bool[],
+    layout: Layout,
+    memory: Memory,
+    stack: Stack,
+    frame: u64,
+    merge: bool
+}
 
 export type Output = Runtime
 
 export default function (in: Input): Output {
-    const result = loop({ types: in.types, references: in.references, forest: in.memory.forest, parents: in.layout.parents, saved: in.stack.facts, source: in.memory.facts, first: in.stack.state_first[in.frame], count: in.stack.state_count[in.frame], index: 0, merge: in.merge }, {
+    const result = loop({
+        types: in.types,
+        references: in.references,
+        forest: in.memory.forest,
+        parents: in.layout.parents,
+        saved: in.stack.facts,
+        source: in.memory.facts,
+        first: in.stack.state_first[in.frame],
+        count: in.stack.state_count[in.frame],
+        index: 0,
+        merge: in.merge
+    }, {
         while: current => current.index < current.count,
         next: current => {
             if (current.parents[current.index] == 0) {
                 const position = current.first + current.index
-                const changed = current.merge ? rewrite({ types: current.types, references: current.references, forest: current.forest, left: current.saved[position], right: current.source[current.index], action: RewriteAction.Join }) : { forest: current.forest, fact: current.source[current.index] }
+                const changed = current.merge ? rewrite({
+                    types: current.types,
+                    references: current.references,
+                    forest: current.forest,
+                    left: current.saved[position],
+                    right: current.source[current.index],
+                    action: RewriteAction.Join
+                }) : {
+                    forest: current.forest,
+                    fact: current.source[current.index]
+                }
 
                 current.forest = changed.forest
                 current.saved[position] = changed.fact
@@ -26,5 +55,15 @@ export default function (in: Input): Output {
         }
     })
 
-    return { memory: { ...in.memory, forest: result.forest, facts: result.source }, snapshots: { ...in.stack, facts: result.saved } }
+    return {
+        memory: {
+            ...in.memory,
+            forest: result.forest,
+            facts: result.source
+        },
+        snapshots: {
+            ...in.stack,
+            facts: result.saved
+        }
+    }
 }

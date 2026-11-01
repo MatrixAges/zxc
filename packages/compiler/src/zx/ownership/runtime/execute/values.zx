@@ -23,68 +23,217 @@ export type Output = Machine
 
 export default function (in: Input): Output {
     return loop(in, {
-        while: current => current.active && current.complete && !current.failed && current.work.actions.length != 0 && family(current.work.actions[current.work.actions.length - 1]) == Family.Values,
+        while: current =>
+            current.active && current.complete && !current.failed &&
+            current.work.actions.length != 0 &&
+            family(
+                current.work.actions[current.work.actions.length - 1]
+            ) == Family.Values,
         next: current => {
             const frame = top(current.work)
 
             current.work = pop(current.work)
 
             if (frame.action == WorkAction.Finish) {
-                if (!current.references[integers.widen(current.program.expressions.types[frame.subject])]) {
+                if (
+                    !current
+                        .references[integers.widen(
+                            current.program.expressions.types[frame.subject]
+                        )]
+                ) {
                     current.value = uniform(State.Copy)
                 }
             } else if (frame.action == WorkAction.Project) {
-                current.value = project({ forest: current.memory.forest, fact: current.value, index: frame.index, reference: current.references[integers.widen(current.program.expressions.types[frame.subject])] })
+                current.value = project({
+                    forest: current.memory.forest,
+                    fact: current.value,
+                    index: frame.index,
+                    reference:
+                        current
+                        .references[integers.widen(
+                            current.program.expressions.types[frame.subject]
+                        )]
+                })
             } else if (frame.action == WorkAction.Captured) {
-                const built = product({ forest: current.memory.forest, type_id: current.program.expressions.types[frame.subject], shell: State.Owned, children: [0, current.value], first: 0, count: 2 })
+                const built = product({
+                    forest: current.memory.forest,
+                    type_id: current.program.expressions.types[frame.subject],
+                    shell: State.Owned,
+                    children: [0, current.value],
+                    first: 0,
+                    count: 2
+                })
 
-                current.memory = { ...current.memory, forest: built.forest }
+                current.memory = {
+                    ...current.memory,
+                    forest: built.forest
+                }
                 current.value = built.fact
             } else if (frame.action == WorkAction.Copy) {
                 current.value = uniform(State.Copy)
             } else if (frame.action == WorkAction.Borrowed) {
                 current.value = uniform(State.Borrowed)
             } else if (frame.action == WorkAction.Borrow) {
-                if (!frame.moving && current.references[integers.widen(current.program.expressions.types[frame.subject])]) {
-                    current.memory = borrow({ types: current.program.types, references: current.references, expressions: current.program.expressions, layout: current.layout, memory: current.memory, expression: frame.subject, permanent: false })
+                if (
+                    !frame.moving &&
+                        current
+                        .references[integers.widen(
+                            current.program.expressions.types[frame.subject]
+                        )]
+                ) {
+                    current.memory = borrow({
+                        types: current.program.types,
+                        references: current.references,
+                        expressions: current.program.expressions,
+                        layout: current.layout,
+                        memory: current.memory,
+                        expression: frame.subject,
+                        permanent: false
+                    })
                 }
             } else if (frame.action == WorkAction.Aggregate) {
-                current.work = push({ work: current.work, frame: { action: WorkAction.Borrow, subject: frame.subject, moving: frame.moving, index: 0 } })
-                current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: frame.subject, moving: frame.moving, index: 0 } })
+                current.work = push({
+                    work: current.work,
+                    frame: {
+                        action: WorkAction.Borrow,
+                        subject: frame.subject,
+                        moving: frame.moving,
+                        index: 0
+                    }
+                })
+                current.work = push({
+                    work: current.work,
+                    frame: {
+                        action: WorkAction.Value,
+                        subject: frame.subject,
+                        moving: frame.moving,
+                        index: 0
+                    }
+                })
             } else if (frame.action == WorkAction.Sequence) {
                 const kind = current.program.expressions.kinds[frame.subject]
-                const payload = integers.widen(current.program.expressions.payloads[frame.subject])
-                const items = { first: integers.widen(current.program.expressions.sequence_first[payload]), count: integers.widen(current.program.expressions.sequence_count[payload]) }
+                const payload =
+                    integers.widen(
+                        current.program.expressions.payloads[frame.subject]
+                    )
+                const items = {
+                    first:
+                        integers.widen(
+                            current.program.expressions.sequence_first[payload]
+                        ),
+                    count:
+                        integers.widen(
+                            current.program.expressions.sequence_count[payload]
+                        )
+                }
 
                 if (frame.index < items.count) {
-                    current.work = push({ work: current.work, frame: { action: WorkAction.SequenceResult, subject: frame.subject, moving: frame.moving, index: frame.index } })
-                    current.work = push({ work: current.work, frame: { action: kind == ExpressionKind.Template ? WorkAction.Value : WorkAction.Aggregate, subject: integers.widen(current.program.expressions.sequence_items[items.first + frame.index]), moving: kind == ExpressionKind.Template ? false : frame.moving, index: 0 } })
+                    current.work = push({
+                        work: current.work,
+                        frame: {
+                            action: WorkAction.SequenceResult,
+                            subject: frame.subject,
+                            moving: frame.moving,
+                            index: frame.index
+                        }
+                    })
+                    current.work = push({
+                        work: current.work,
+                        frame: {
+                            action:
+                                kind ==
+                                ExpressionKind.Template ? WorkAction.Value :
+                                WorkAction.Aggregate,
+                            subject:
+                                integers.widen(
+                                    current.program.expressions
+                                        .sequence_items[items
+                                            .first +
+                                            frame.index]
+                                ),
+                            moving: kind == ExpressionKind.Template ? false :
+                                frame.moving,
+                            index: 0
+                        }
+                    })
                 } else if (kind == ExpressionKind.Tuple) {
-                    const built = finish({ forest: current.memory.forest, builders: current.builders, type_id: current.program.expressions.types[frame.subject] })
+                    const built = finish({
+                        forest: current.memory.forest,
+                        builders: current.builders,
+                        type_id:
+                            current.program.expressions.types[frame.subject]
+                    })
 
-                    current.memory = { ...current.memory, forest: built.forest }
+                    current.memory = {
+                        ...current.memory,
+                        forest: built.forest
+                    }
                     current.builders = built.builders
                     current.value = built.fact
                 } else {
-                    current.value = kind == ExpressionKind.Template ? uniform(State.Copy) : current.values[current.values.length - 1]
+                    current.value =
+                        kind == ExpressionKind.Template ? uniform(
+                            State.Copy
+                        ) : current.values[current.values.length - 1]
                     current.values = current.values.pop()[0]
                 }
             } else if (frame.action == WorkAction.SequenceResult) {
-                if (current.program.expressions.kinds[frame.subject] == ExpressionKind.Tuple) {
-                    const first = current.builders.first[current.builders.first.length - 1]
+                if (
+                    current.program.expressions.kinds[frame.subject] ==
+                        ExpressionKind.Tuple
+                ) {
+                    const first =
+                        current.builders.first[current.builders.first.length - 1]
 
-                    current.memory.forest.children[first + frame.index] = current.value
-                } else if (summary({ forest: current.memory.forest, fact: current.value }) == State.Borrowed) {
-                    current.values[current.values.length - 1] = uniform(State.Borrowed)
+                    current.memory.forest.children[first + frame.index] =
+                        current.value
+                } else if (summary({
+                    forest: current.memory.forest,
+                    fact: current.value
+                }) == State.Borrowed) {
+                    current.values[current.values.length - 1] =
+                        uniform(
+                            State.Borrowed
+                        )
                 }
 
-                current.work = push({ work: current.work, frame: { action: WorkAction.Sequence, subject: frame.subject, moving: frame.moving, index: frame.index + 1 } })
+                current.work = push({
+                    work: current.work,
+                    frame: {
+                        action: WorkAction.Sequence,
+                        subject: frame.subject,
+                        moving: frame.moving,
+                        index: frame.index + 1
+                    }
+                })
             } else if (frame.action == WorkAction.IndexTarget) {
-                const item = integers.widen(current.program.expressions.payloads[frame.subject])
+                const item =
+                    integers.widen(
+                        current.program.expressions.payloads[frame.subject]
+                    )
 
                 current.values = current.values.push(current.value)[0]
-                current.work = push({ work: current.work, frame: { action: WorkAction.IndexResult, subject: 0, moving: false, index: 0 } })
-                current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.index_values[item]), moving: false, index: 0 } })
+                current.work = push({
+                    work: current.work,
+                    frame: {
+                        action: WorkAction.IndexResult,
+                        subject: 0,
+                        moving: false,
+                        index: 0
+                    }
+                })
+                current.work = push({
+                    work: current.work,
+                    frame: {
+                        action: WorkAction.Value,
+                        subject:
+                            integers.widen(
+                                current.program.expressions.index_values[item]
+                            ),
+                        moving: false,
+                        index: 0
+                    }
+                })
             } else if (frame.action == WorkAction.IndexResult) {
                 current.value = current.values[current.values.length - 1]
                 current.values = current.values.pop()[0]

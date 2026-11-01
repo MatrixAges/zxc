@@ -5,15 +5,23 @@ export type Input = State
 export type Output = State
 
 export default function (in: Input): Output {
-  if (in.frames.length == 0) {
-    return { ...in, done: true }
-  }
+    if (in.frames.length == 0) {
+        return {
+            ...in,
+            done: true
+        }
+    }
 
-  const popped = in.frames.pop()
+    const popped = in.frames.pop()
 
-  return {
-    source: in.source, frames: popped[0], frame: popped[1] ?? in.frame,
-    offset: in.offset + 1, comment_start: in.comment_start,
-    done: false, message: "", issue: 0
-  }
+    return {
+        source: in.source,
+        frames: popped[0],
+        frame: popped[1] ?? in.frame,
+        offset: in.offset + 1,
+        comment_start: in.comment_start,
+        done: false,
+        message: "",
+        issue: 0
+    }
 }

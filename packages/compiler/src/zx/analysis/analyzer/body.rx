@@ -6,11 +6,38 @@
     <Type from="./model" as="Model" />
     <Type from="./statements/traversal/finish" as="Finish" />
 
-    <Args in={{ block: u64, functions: Functions.Functions, imports: Context.FunctionImports, source: Request.Source, span: Initial.Input, state: Model.Prepared }} out={Finish.Output} />
+    <Args
+        in={{
+            block: u64,
+            functions: Functions.Functions,
+            imports: Context.FunctionImports,
+            source: Request.Source,
+            span: Initial.Input,
+            state: Model.Prepared
+        }}
+        out={Finish.Output}
+    />
 
-    <Call fn="statements/traversal/initial" in={{ state: $in.state, source: $in.source, imports: $in.imports, functions: $in.functions, block: $in.block }} />
+    <Call
+        fn="statements/traversal/initial"
+        in={{
+            state: $in.state,
+            source: $in.source,
+            imports: $in.imports,
+            functions: $in.functions,
+            block: $in.block
+        }}
+    />
+
     <Call fn="statements/traversal/advance" in={$ctx.initial} />
-    <Call fn="statements/traversal/finish" in={{ body: $ctx.advance, span: $in.span }} />
+
+    <Call
+        fn="statements/traversal/finish"
+        in={{
+            body: $ctx.advance,
+            span: $in.span
+        }}
+    />
 
     <Return value={$ctx.finish} />
 </Module>

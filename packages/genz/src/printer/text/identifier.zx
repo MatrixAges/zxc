@@ -9,11 +9,25 @@ export default function (in: Input): Output {
 
     const first = in[0]
 
-    if (first != 95 && !(first >= 65 && first <= 90) && !(first >= 97 && first <= 122)) {
+    if (
+        first != 95 && !(first >= 65 && first <= 90) && !(
+            first >= 97 && first <= 122
+        )
+    ) {
         return false
     }
 
-    if (!in.every(byte => byte == 95 || (byte >= 65 && byte <= 90) || (byte >= 97 && byte <= 122) || (byte >= 48 && byte <= 57))) {
+    if (
+        !in.every(
+            byte =>
+                byte == 95 || (byte >= 65 && byte <= 90) ||
+                (
+                    byte >= 97 && byte <= 122
+                ) || (
+                    byte >= 48 && byte <= 57
+                )
+        )
+    ) {
         return false
     }
 
@@ -38,16 +52,31 @@ export default function (in: Input): Output {
         _ => [],
     }
 
-    const found = loop({ bytes: in, candidates: candidates, index: 0, keyword: false }, {
-        while: current => current.index < current.candidates.length && !current.keyword,
+    const found = loop({
+        bytes: in,
+        candidates: candidates,
+        index: 0,
+        keyword: false
+    }, {
+        while: current =>
+            current.index < current.candidates.length && !current.keyword,
         next: current => {
             const word = current.candidates[current.index]
 
             if (word.length == current.bytes.length) {
-                const compared = loop({ bytes: current.bytes, word: word, index: 0, equal: true }, {
-                    while: comparison => comparison.index < comparison.bytes.length && comparison.equal,
+                const compared = loop({
+                    bytes: current.bytes,
+                    word: word,
+                    index: 0,
+                    equal: true
+                }, {
+                    while: comparison =>
+                        comparison.index < comparison.bytes.length &&
+                        comparison.equal,
                     next: comparison => {
-                        comparison.equal = comparison.bytes[comparison.index] == comparison.word[comparison.index]
+                        comparison.equal =
+                            comparison.bytes[comparison.index] ==
+                            comparison.word[comparison.index]
                         comparison.index += 1
                     }
                 })

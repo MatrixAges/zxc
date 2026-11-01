@@ -8,5 +8,8 @@ export type Input = PreparedInput
 export type Output = ImportStage
 
 export default function (in: Input): Output {
-  return { prepared: in, imports: initial(0) }
+    return {
+        prepared: in,
+        imports: initial(0)
+    }
 }

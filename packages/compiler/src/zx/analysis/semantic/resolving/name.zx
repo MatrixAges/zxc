@@ -30,55 +30,158 @@ export default function (in: Input): Output {
     const scalar = builtin(name)
 
     if (scalar != 0) {
-        return { ...in, result: integers.narrow(scalar - 1), frames: in.frames.pop()[0] }
+        return {
+            ...in,
+            result: integers.narrow(scalar - 1),
+            frames: in.frames.pop()[0]
+        }
     }
 
-    const completed = lookup({ cache: in.cache, name: name })
-    const resolved = completed.found ? completed : lookup({ cache: in.context.resolved, name: name })
+    const completed = lookup({
+        cache: in.cache,
+        name: name
+    })
+
+    const resolved = completed.found ? completed : lookup({
+        cache: in.context.resolved,
+        name: name
+    })
 
     if (resolved.found) {
-        return { ...in, result: resolved.id, frames: in.frames.pop()[0] }
+        return {
+            ...in,
+            result: resolved.id,
+            frames: in.frames.pop()[0]
+        }
     }
 
-    const alias = lookup({ cache: in.context.aliases, name: name })
+    const alias = lookup({
+        cache: in.context.aliases,
+        name: name
+    })
 
     if (alias.found) {
-        return { ...in, result: alias.id, frames: in.frames.pop()[0] }
+        return {
+            ...in,
+            result: alias.id,
+            frames: in.frames.pop()[0]
+        }
     }
 
-    if (contains({ names: in.active, name: name }) || contains({ names: in.context.visiting, name: name })) {
-        return fail({ state: in, code: "type_mismatch", message: "recursive type aliases are not supported", name: head.name })
+    if (contains({
+        names: in.active,
+        name: name
+    }) || contains({
+        names: in.context.visiting,
+        name: name
+    })) {
+        return fail({
+            state: in,
+            code: "type_mismatch",
+            message: "recursive type aliases are not supported",
+            name: head.name
+        })
     }
 
     if (in.active.length + in.context.visiting.length >= 256) {
-        return fail({ state: in, code: "unsupported", message: "type alias nesting exceeds 256 levels", name: head.name })
+        return fail({
+            state: in,
+            code: "unsupported",
+            message: "type alias nesting exceeds 256 levels",
+            name: head.name
+        })
     }
 
-    const selected = find({ source: in.context.source, name: name, limit: count(in.context.source) })
+    const selected = find({
+        source: in.context.source,
+        name: name,
+        limit: count(in.context.source)
+    })
 
     if (!selected.found) {
         const normalized = normalize(name)
 
         if (normalized != name) {
-            return replace({ state: in, frame: { ...head, name: { ...head.name, text: normalized } } })
+            return replace({
+                state: in,
+                frame: {
+                    ...head,
+                    name: {
+                        ...head.name,
+                        text: normalized
+                    }
+                }
+            })
         }
 
-        return fail({ state: in, code: "name", message: "unknown or unsupported type", name: head.name })
+        return fail({
+            state: in,
+            code: "name",
+            message: "unknown or unsupported type",
+            name: head.name
+        })
     }
 
-    const declared = declaration({ source: in.context.source, index: selected.index })
-    const entered = replace({ state: { ...in, active: in.active.push(name)[0] }, frame: { ...head, operation: Operation.FinishName, reference: declared.value, declaration: declared.name } })
-    const value = node({ source: in.context.source, reference: declared.value })
+    const declared = declaration({
+        source: in.context.source,
+        index: selected.index
+    })
 
-    if (in.context.native_interface && value.kind == NodeKind.Named && value.name.text == "opaque") {
-        return construct({ state: entered, candidate: { kind: Kind.NativeReference, first: 0, second: 0, label: declared.name.text, children: [], fields: { names: [], types: [] }, names: [] } })
+    const entered = replace({
+        state: {
+            ...in,
+            active: in.active.push(name)[0]
+        },
+        frame: {
+            ...head,
+            operation: Operation.FinishName,
+            reference: declared.value,
+            declaration: declared.name
+        }
+    })
+
+    const value = node({
+        source: in.context.source,
+        reference: declared.value
+    })
+
+    if (
+        in.context.native_interface && value.kind == NodeKind.Named &&
+            value.name.text == "opaque"
+    ) {
+        return construct({
+            state: entered,
+            candidate: {
+                kind: Kind.NativeReference,
+                first: 0,
+                second: 0,
+                label: declared.name.text,
+                children: [],
+                fields: {
+                    names: [],
+                    types: []
+                },
+                names: []
+            }
+        })
     }
 
     if (value.kind == NodeKind.Enumeration) {
         return enumeration(entered)
     }
 
-    const child = frame({ operation: Operation.Node, name: { text: "", start: 0, end: 0 }, reference: declared.value })
+    const child = frame({
+        operation: Operation.Node,
+        name: {
+            text: "",
+            start: 0,
+            end: 0
+        },
+        reference: declared.value
+    })
 
-    return { ...entered, frames: entered.frames.push(child)[0] }
+    return {
+        ...entered,
+        frames: entered.frames.push(child)[0]
+    }
 }

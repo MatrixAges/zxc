@@ -2,12 +2,19 @@ import integers from "std:integer"
 
 import type { Workspace } from "./model"
 
-export type Input = { state: Workspace, start: u64 }
+export type Input = {
+    state: Workspace,
+    start: u64
+}
 
 export type Output = Workspace
 
 export default function (in: Input): Output {
-    const finished = loop({ state: in.state, index: in.start, component: integers.narrow(in.state.first.length - 1) }, {
+    const finished = loop({
+        state: in.state,
+        index: in.start,
+        component: integers.narrow(in.state.first.length - 1)
+    }, {
         while: current => current.index < current.state.stack_count,
         next: current => {
             const member = current.state.stack[current.index]
@@ -20,5 +27,9 @@ export default function (in: Input): Output {
         }
     })
 
-    return { ...finished.state, stack_count: in.start, first: finished.state.first.push(finished.state.members.length)[0] }
+    return {
+        ...finished.state,
+        stack_count: in.start,
+        first: finished.state.first.push(finished.state.members.length)[0]
+    }
 }

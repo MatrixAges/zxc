@@ -6,24 +6,60 @@ import { State } from "../places/model"
 import type { Symbols } from "core/symbol_table/model"
 import type { Tables } from "core/type_table/model"
 
-export type Input = { types: Tables, symbols: Symbols, position: u64, current: State, moving: bool }
+export type Input = {
+    types: Tables,
+    symbols: Symbols,
+    position: u64,
+    current: State,
+    moving: bool
+}
 
-export type Output = { failed: bool, value: State, assign: bool, assigned: State }
+export type Output = {
+    failed: bool,
+    value: State,
+    assign: bool,
+    assigned: State
+}
 
 export default function (in: Input): Output {
     if (in.current == State.Moved) {
-        return { failed: true, value: State.Moved, assign: false, assigned: State.Copy }
+        return {
+            failed: true,
+            value: State.Moved,
+            assign: false,
+            assigned: State.Copy
+        }
     }
 
-    const linear = in.position < in.symbols.types.length && row({ tables: in.types, id: in.symbols.types[in.position] }).kind == Kind.Task
+    const linear = in.position < in.symbols.types.length && row({
+        tables: in.types,
+        id: in.symbols.types[in.position]
+    }).kind == Kind.Task
 
     if (in.moving && in.current == State.Owned && linear) {
-        return { failed: false, value: in.current, assign: true, assigned: State.Moved }
+        return {
+            failed: false,
+            value: in.current,
+            assign: true,
+            assigned: State.Moved
+        }
     }
 
-    if (in.moving && (in.current == State.Loaned || in.current == State.Borrowed)) {
-        return { failed: false, value: State.Borrowed, assign: true, assigned: State.Borrowed }
+    if (in.moving && (
+        in.current == State.Loaned || in.current == State.Borrowed
+    )) {
+        return {
+            failed: false,
+            value: State.Borrowed,
+            assign: true,
+            assigned: State.Borrowed
+        }
     }
 
-    return { failed: false, value: in.current == State.Loaned ? State.Borrowed : in.current, assign: false, assigned: State.Copy }
+    return {
+        failed: false,
+        value: in.current == State.Loaned ? State.Borrowed : in.current,
+        assign: false,
+        assigned: State.Copy
+    }
 }

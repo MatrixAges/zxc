@@ -23,47 +23,170 @@ export type Output = Machine
 
 export default function (in: Input): Output {
     return loop(in, {
-        while: current => current.active && current.complete && !current.failed && current.work.actions.length != 0 && (current.work.actions[current.work.actions.length - 1] == WorkAction.TransformBody || current.work.actions[current.work.actions.length - 1] == WorkAction.TransformFinish),
+        while: current =>
+            current.active && current.complete && !current.failed &&
+            current.work.actions.length != 0 &&
+            (
+                current.work.actions[current.work.actions.length - 1] ==
+                    WorkAction.TransformBody ||
+                    current.work.actions[current.work.actions.length - 1] ==
+                    WorkAction.TransformFinish
+            ),
         next: current => {
             const frame = top(current.work)
 
             current.work = pop(current.work)
 
             if (frame.action == WorkAction.TransformBody) {
-                const transform = integers.widen(current.program.expressions.payloads[frame.subject])
-                const initial = summary({ forest: current.memory.forest, fact: current.values[current.values.length - 1] })
+                const transform =
+                    integers.widen(
+                        current.program.expressions.payloads[frame.subject]
+                    )
+                const initial = summary({
+                    forest: current.memory.forest,
+                    fact: current.values[current.values.length - 1]
+                })
 
                 current.values = current.values.push(current.value)[0]
-                current.work = push({ work: current.work, frame: { action: WorkAction.TransformFinish, subject: frame.subject, moving: false, index: 0 } })
+                current.work = push({
+                    work: current.work,
+                    frame: {
+                        action: WorkAction.TransformFinish,
+                        subject: frame.subject,
+                        moving: false,
+                        index: 0
+                    }
+                })
 
-                if (current.program.expressions.transform_kinds[transform] == TransformKind.Reduce && summary({ forest: current.memory.forest, fact: current.value }) == State.Borrowed && initial != State.Borrowed) {
-                    current.memory = apply({ types: current.program.types, references: current.references, layout: current.layout.tree, memory: current.memory, stack: current.snapshots, frame: current.snapshots.state_first.length - 1, action: Action.RestoreStates })
-                    current.work = push({ work: current.work, frame: { action: WorkAction.TransformParameter, subject: frame.subject, moving: true, index: 0 } })
-                }
+                if (current.program.expressions.transform_kinds[transform] ==
+                    TransformKind.Reduce && summary({
+                        forest: current.memory.forest,
+                        fact: current.value
+                    }) == State.Borrowed && initial != State.Borrowed) {
+                        current.memory = apply({
+                            types: current.program.types,
+                            references: current.references,
+                            layout: current.layout.tree,
+                            memory: current.memory,
+                            stack: current.snapshots,
+                            frame: current.snapshots.state_first.length - 1,
+                            action: Action.RestoreStates
+                        })
+                        current.work = push({
+                            work: current.work,
+                            frame: {
+                                action: WorkAction.TransformParameter,
+                                subject: frame.subject,
+                                moving: true,
+                                index: 0
+                            }
+                        })
+                    }
             } else if (frame.action == WorkAction.TransformFinish) {
-                const transform = integers.widen(current.program.expressions.payloads[frame.subject])
-                const initial_state = summary({ forest: current.memory.forest, fact: current.values[current.values.length - 2] })
-                const result = summary({ forest: current.memory.forest, fact: current.values[current.values.length - 1] })
-                const type_id = integers.widen(current.program.expressions.types[integers.widen(current.program.expressions.transform_targets[transform])])
-                const element = integers.widen(row({ tables: current.program.types, id: integers.narrow(type_id) }).first)
-                const predicate = current.program.expressions.transform_kinds[transform] == TransformKind.Every || current.program.expressions.transform_kinds[transform] == TransformKind.Some
-                const borrowed = !predicate && ((current.program.expressions.transform_kinds[transform] == TransformKind.Filter && current.references[element]) || result == State.Borrowed || (current.program.expressions.transform_kinds[transform] == TransformKind.Reduce && initial_state == State.Borrowed))
+                const transform =
+                    integers.widen(
+                        current.program.expressions.payloads[frame.subject]
+                    )
+                const initial_state = summary({
+                    forest: current.memory.forest,
+                    fact: current.values[current.values.length - 2]
+                })
+                const result = summary({
+                    forest: current.memory.forest,
+                    fact: current.values[current.values.length - 1]
+                })
+                const type_id =
+                    integers.widen(
+                        current.program.expressions
+                            .types[integers.widen(
+                                current.program.expressions
+                                    .transform_targets[transform]
+                            )]
+                    )
+                const element = integers.widen(row({
+                    tables: current.program.types,
+                    id: integers.narrow(type_id)
+                }).first)
+                const predicate =
+                    current.program.expressions.transform_kinds[transform] ==
+                    TransformKind.Every ||
+                    current.program.expressions.transform_kinds[transform] ==
+                    TransformKind.Some
+                const borrowed =
+                    !predicate &&
+                    (
+                        (
+                            current.program.expressions.transform_kinds[transform] ==
+                                TransformKind.Filter && current.references[element]
+                        ) || result == State.Borrowed ||
+                            (
+                                current.program.expressions.transform_kinds[transform] ==
+                                    TransformKind.Reduce &&
+                                    initial_state == State.Borrowed
+                            )
+                    )
                 const before = current.snapshots.state_first.length - 2
 
-                current.memory = apply({ types: current.program.types, references: current.references, layout: current.layout.tree, memory: current.memory, stack: current.snapshots, frame: before + 1, action: Action.RestoreStates })
+                current.memory = apply({
+                    types: current.program.types,
+                    references: current.references,
+                    layout: current.layout.tree,
+                    memory: current.memory,
+                    stack: current.snapshots,
+                    frame: before + 1,
+                    action: Action.RestoreStates
+                })
 
                 if (borrowed) {
-                    const initial = optionalId(current.program.expressions.transform_initials[transform])
+                    const initial =
+                        optionalId(
+                            current.program.expressions.transform_initials[transform]
+                        )
 
-                    current.memory = borrow({ types: current.program.types, references: current.references, expressions: current.program.expressions, layout: current.layout, memory: current.memory, expression: integers.widen(current.program.expressions.transform_targets[transform]), permanent: true })
+                    current.memory = borrow({
+                        types: current.program.types,
+                        references: current.references,
+                        expressions: current.program.expressions,
+                        layout: current.layout,
+                        memory: current.memory,
+                        expression:
+                            integers.widen(
+                                current.program.expressions
+                                    .transform_targets[transform]
+                            ),
+                        permanent: true
+                    })
 
-                    if (initial != null && current.program.expressions.transform_kinds[transform] != TransformKind.Filter) {
-                        current.memory = borrow({ types: current.program.types, references: current.references, expressions: current.program.expressions, layout: current.layout, memory: current.memory, expression: initial, permanent: true })
+                    if (
+                        initial != null &&
+                            current.program.expressions.transform_kinds[transform] !=
+                            TransformKind.Filter
+                    ) {
+                        current.memory = borrow({
+                            types: current.program.types,
+                            references: current.references,
+                            expressions: current.program.expressions,
+                            layout: current.layout,
+                            memory: current.memory,
+                            expression: initial,
+                            permanent: true
+                        })
                     }
                 }
 
-                current.memory = apply({ types: current.program.types, references: current.references, layout: current.layout.tree, memory: current.memory, stack: current.snapshots, frame: before, action: Action.ReleaseNewLoans })
-                current.snapshots = drop({ stack: current.snapshots, frame: before })
+                current.memory = apply({
+                    types: current.program.types,
+                    references: current.references,
+                    layout: current.layout.tree,
+                    memory: current.memory,
+                    stack: current.snapshots,
+                    frame: before,
+                    action: Action.ReleaseNewLoans
+                })
+                current.snapshots = drop({
+                    stack: current.snapshots,
+                    frame: before
+                })
                 current.values = current.values.pop()[0]
                 current.values = current.values.pop()[0]
                 const output = borrowed ? State.Borrowed : State.Owned

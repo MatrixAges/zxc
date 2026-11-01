@@ -4,7 +4,11 @@ import { NameKind } from "./model"
 import type { Name } from "../../semantic/resolving/source/model"
 import type { Source } from "../expressions/request"
 
-export type Input = { source: Source, kind: NameKind, index: u64 }
+export type Input = {
+    source: Source,
+    kind: NameKind,
+    index: u64
+}
 
 export type Output = Name
 
@@ -20,7 +24,10 @@ export default function (in: Input): Output {
     const native = in.source.native
 
     if (native == null) {
-        return text({ source: in.source.bytes, span: span })
+        return text({
+            source: in.source.bytes,
+            span: span
+        })
     }
 
     const value = match (in.kind) {
@@ -31,5 +38,9 @@ export default function (in: Input): Output {
         _ => native.text.destructure_names[in.index],
     }
 
-    return { text: value, start: span.start, end: span.end }
+    return {
+        text: value,
+        start: span.start,
+        end: span.end
+    }
 }

@@ -4,35 +4,76 @@ import mergeNames from "./merge_names"
 
 import type { Components, Groups, Sources } from "./model"
 
-export type Input = { sources: Sources, components: Components, groups: Groups, index: u64 }
+export type Input = {
+    sources: Sources,
+    components: Components,
+    groups: Groups,
+    index: u64
+}
 
-export type Output = { names: string[], unknown: bool }
+export type Output = {
+    names: string[],
+    unknown: bool
+}
 
 export default function (in: Input): Output {
     const names: string[] = []
 
-    const collected = loop({ sources: in.sources, components: in.components, groups: in.groups, component: in.index, names: names, unknown: false, index: in.components.first[in.index], end: in.components.first[in.index + 1] }, {
+    const collected = loop({
+        sources: in.sources,
+        components: in.components,
+        groups: in.groups,
+        component: in.index,
+        names: names,
+        unknown: false,
+        index: in.components.first[in.index],
+        end: in.components.first[in.index + 1]
+    }, {
         while: current => !current.unknown && current.index < current.end,
         next: current => {
-            const member = integers.widen(current.components.members[current.index])
+            const member =
+                integers.widen(
+                    current.components.members[current.index]
+                )
 
             if (current.sources.unknown[member]) {
                 current.unknown = true
             } else {
                 if (current.sources.names[member].length != 0) {
-                    current.names = mergeNames({ names: current.names, added: current.sources.names[member] })
+                    current.names = mergeNames({
+                        names: current.names,
+                        added: current.sources.names[member]
+                    })
                 }
 
-                const calls = loop({ callees: current.sources.callees[member], components: current.components.membership, groups: current.groups, component: current.component, names: current.names, unknown: false, index: 0 }, {
-                    while: call => !call.unknown && call.index < call.callees.length,
+                const calls = loop({
+                    callees: current.sources.callees[member],
+                    components: current.components.membership,
+                    groups: current.groups,
+                    component: current.component,
+                    names: current.names,
+                    unknown: false,
+                    index: 0
+                }, {
+                    while: call =>
+                        !call.unknown && call.index < call.callees.length,
                     next: call => {
-                        const target = integers.widen(call.components[integers.widen(call.callees[call.index])])
+                        const target =
+                            integers.widen(
+                                call
+                                    .components[integers.widen(
+                                        call.callees[call.index]
+                                    )]
+                            )
 
                         if (target != call.component) {
                             if (call.groups.unknown[target]) {
                                 call.unknown = true
                             } else if (call.groups.names[target].length != 0) {
-                                call.names = mergeNames({ names: call.names, added: call.groups.names[target] })
+                                call.names = mergeNames({
+                                    names: call.names,
+                                    added: call.groups.names[target]
+                                })
                             }
                         }
 
@@ -49,8 +90,14 @@ export default function (in: Input): Output {
     })
 
     if (collected.unknown) {
-        return { names: names, unknown: true }
+        return {
+            names: names,
+            unknown: true
+        }
     }
 
-    return { names: collected.names.sort()[0], unknown: false }
+    return {
+        names: collected.names.sort()[0],
+        unknown: false
+    }
 }

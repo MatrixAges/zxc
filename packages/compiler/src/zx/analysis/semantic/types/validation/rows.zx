@@ -2,7 +2,10 @@ import row from "./row"
 
 import type { Table } from "core/type_table/model"
 
-export type Input = { table: Table, scalar_count: u64 }
+export type Input = {
+    table: Table,
+    scalar_count: u64
+}
 
 export type Output = bool
 
@@ -11,10 +14,19 @@ export default function (in: Input): Output {
         return false
     }
 
-    const state = loop({ table: in.table, scalar_count: in.scalar_count, index: 0, valid: true }, {
+    const state = loop({
+        table: in.table,
+        scalar_count: in.scalar_count,
+        index: 0,
+        valid: true
+    }, {
         while: current => current.valid && current.index < current.table.kinds.length,
         next: current => {
-            current.valid = row({ table: current.table, index: current.index, scalar_count: current.scalar_count })
+            current.valid = row({
+                table: current.table,
+                index: current.index,
+                scalar_count: current.scalar_count
+            })
             current.index += 1
         }
     })

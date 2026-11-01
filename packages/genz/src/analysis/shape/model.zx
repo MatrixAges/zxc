@@ -1,5 +1,23 @@
-export type Request = { kinds: u8[], first: u32[], second: u32[], children: u32[], field_types: u32[], input: u32, output: u32 }
+export type Request = {
+    kinds: u8[],
+    first: u32[],
+    second: u32[],
+    children: u32[],
+    field_types: u32[],
+    input: u32,
+    output: u32
+}
 
-export type Plan = { type_ids: u32[], numbers: u32[] }
+export type Plan = {
+    type_ids: u32[],
+    numbers: u32[]
+}
 
-export type State = { request: Request, numbers: u32[], type_ids: u32[], nodes: u32[], cursors: u64[], root: u64 }
+export type State = {
+    request: Request,
+    numbers: u32[],
+    type_ids: u32[],
+    nodes: u32[],
+    cursors: u64[],
+    root: u64
+}

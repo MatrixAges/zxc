@@ -10,8 +10,13 @@ export type Input = Request
 export type Output = bool
 
 export default function (in: Input): Output {
-    return loop({ input: in, index: 0, valid: true }, {
-        while: current => current.valid && current.index < current.input.bindings.names.length,
+    return loop({
+        input: in,
+        index: 0,
+        valid: true
+    }, {
+        while: current =>
+            current.valid && current.index < current.input.bindings.names.length,
         next: current => {
             const bindings = current.input.bindings
             const index = current.index
@@ -21,25 +26,48 @@ export default function (in: Input): Output {
             const input_type = bindings.input_types[index]
             const output_type = bindings.output_types[index]
 
-            current.valid = declared({ source_text: current.input.source_text, native: current.input.native, syntax: current.input.syntax, name: namespace ?? name, kind: DeclarationKind.Callable }) &&
+            current.valid = declared({
+                source_text: current.input.source_text,
+                native: current.input.native,
+                syntax: current.input.syntax,
+                name: namespace ?? name,
+                kind: DeclarationKind.Callable
+            }) &&
                 id < current.input.functions.files.length
 
             if (current.valid) {
-                current.valid = loop({ bindings: bindings, limit: index, name: name, namespace: namespace ?? "", index: 0, valid: true }, {
-                    while: previous => previous.valid && previous.index < previous.limit,
+                current.valid = loop({
+                    bindings: bindings,
+                    limit: index,
+                    name: name,
+                    namespace: namespace ?? "",
+                    index: 0,
+                    valid: true
+                }, {
+                    while: previous =>
+                        previous.valid && previous.index < previous.limit,
                     next: previous => {
-                        previous.valid = previous.bindings.names[previous.index] != previous.name ||
-                            (previous.bindings.namespaces[previous.index] ?? "") != previous.namespace
+                        previous.valid =
+                            previous.bindings.names[previous.index] !=
+                            previous.name ||
+                            (
+                                previous.bindings.namespaces[previous.index] ?? ""
+                            ) != previous.namespace
                         previous.index += 1
                     }
                 }).valid
             }
 
             if (current.valid) {
-                current.valid = input_type == current.input.functions.input_types[id] &&
+                current.valid =
+                    input_type == current.input.functions.input_types[id] &&
                     output_type == current.input.functions.output_types[id] &&
-                    integers.widen(input_type) < current.input.table.kinds.length &&
-                    integers.widen(output_type) < current.input.table.kinds.length
+                    integers.widen(
+                        input_type
+                    ) < current.input.table.kinds.length &&
+                    integers.widen(
+                        output_type
+                    ) < current.input.table.kinds.length
             }
 
             current.index += 1

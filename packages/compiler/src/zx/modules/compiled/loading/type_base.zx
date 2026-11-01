@@ -2,7 +2,10 @@ import integers from "std:integer"
 
 import type { Table } from "core/type_table/model"
 
-export type Input = { table: Table, scalar_count: u64 }
+export type Input = {
+    table: Table,
+    scalar_count: u64
+}
 
 export type Output = Table
 
@@ -11,14 +14,39 @@ export default function (in: Input): Output {
         return in.table
     }
 
-    const empty: Table = { kinds: [], first: [], second: [], labels: [], children: [], field_types: [], field_names: [], names: [] }
+    const empty: Table = {
+        kinds: [],
+        first: [],
+        second: [],
+        labels: [],
+        children: [],
+        field_types: [],
+        field_names: [],
+        names: []
+    }
+
     const scalar: u8 = 0
     const zero: u32 = 0
 
-    return loop({ table: empty, count: in.scalar_count, scalar: scalar, zero: zero, index: 0 }, {
+    return loop({
+        table: empty,
+        count: in.scalar_count,
+        scalar: scalar,
+        zero: zero,
+        index: 0
+    }, {
         while: current => current.index < current.count,
         next: current => {
-            current.table = { ...current.table, kinds: current.table.kinds.push(current.scalar)[0], first: current.table.first.push(integers.narrow(current.index))[0], second: current.table.second.push(current.zero)[0], labels: current.table.labels.push("")[0] }
+            current.table = {
+                ...current.table,
+                kinds: current.table.kinds.push(current.scalar)[0],
+                first:
+                    current.table.first.push(integers.narrow(
+                        current.index
+                    ))[0],
+                second: current.table.second.push(current.zero)[0],
+                labels: current.table.labels.push("")[0]
+            }
             current.index += 1
         }
     }).table

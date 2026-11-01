@@ -1,15 +1,22 @@
 import type { Output, Scanned } from "./model"
 
-export type Input = { gap: u8[], scanned: Scanned }
+export type Input = {
+    gap: u8[],
+    scanned: Scanned
+}
 
 export default function (in: Input): Output {
     const offset = in.scanned.newline_start
     const length = in.scanned.last_end - offset
 
     const matches = match {
-        in.scanned.crlf && in.scanned.separate => length == 4 && in.gap[offset] == 13 && in.gap[offset + 1] == 10 && in.gap[offset + 2] == 13 && in.gap[offset + 3] == 10,
-        in.scanned.crlf => length == 2 && in.gap[offset] == 13 && in.gap[offset + 1] == 10,
-        in.scanned.separate => length == 2 && in.gap[offset] == 10 && in.gap[offset + 1] == 10,
+        in.scanned.crlf && in.scanned.separate =>
+            length == 4 && in.gap[offset] == 13 && in.gap[offset + 1] == 10 &&
+            in.gap[offset + 2] == 13 && in.gap[offset + 3] == 10,
+        in.scanned.crlf =>
+            length == 2 && in.gap[offset] == 13 && in.gap[offset + 1] == 10,
+        in.scanned.separate =>
+            length == 2 && in.gap[offset] == 10 && in.gap[offset + 1] == 10,
         _ => length == 1 && in.gap[offset] == 10
     }
 

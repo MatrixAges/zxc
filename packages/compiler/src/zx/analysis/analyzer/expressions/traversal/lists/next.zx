@@ -11,10 +11,35 @@ export default function (in: Input): Output {
     const frame = in.frames.lists[in.frames.lists.length - 1]
 
     if (frame.index == frame.arguments.length) {
-        const result = finish({ state: in.state, target: frame.target, kind: frame.kind, replacement: frame.replacement, values: frame.values, span: in.source.tree.nodes[frame.node].span })
+        const result = finish({
+            state: in.state,
+            target: frame.target,
+            kind: frame.kind,
+            replacement: frame.replacement,
+            values: frame.values,
+            span: in.source.tree.nodes[frame.node].span
+        })
 
-        return { ...in, state: result.state, value: result.value, phase: Phase.Complete, frames: { ...in.frames, lists: in.frames.lists.pop()[0] } }
+        return {
+            ...in,
+            state: result.state,
+            value: result.value,
+            phase: Phase.Complete,
+            frames: {
+                ...in.frames,
+                lists: in.frames.lists.pop()[0]
+            }
+        }
     }
 
-    return { ...in, node: frame.arguments[frame.index], expected: frame.hints[frame.index], phase: Phase.Evaluate, frames: { ...in.frames, actions: in.frames.actions.push(Action.ListArgument)[0] } }
+    return {
+        ...in,
+        node: frame.arguments[frame.index],
+        expected: frame.hints[frame.index],
+        phase: Phase.Evaluate,
+        frames: {
+            ...in.frames,
+            actions: in.frames.actions.push(Action.ListArgument)[0]
+        }
+    }
 }

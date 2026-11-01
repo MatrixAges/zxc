@@ -13,10 +13,20 @@ export default function (in: Input): Output {
         return false
     }
 
-    return loop({ symbols: symbols, count: in.context.table.kinds.length, index: 0, valid: true }, {
-        while: current => current.valid && current.index < current.symbols.names.length,
+    return loop({
+        symbols: symbols,
+        count: in.context.table.kinds.length,
+        index: 0,
+        valid: true
+    }, {
+        while: current =>
+            current.valid && current.index < current.symbols.names.length,
         next: current => {
-            current.valid = current.symbols.names[current.index].length != 0 && integers.widen(current.symbols.types[current.index]) < current.count
+            current.valid =
+                current.symbols.names[current.index].length != 0 &&
+                integers.widen(
+                    current.symbols.types[current.index]
+                ) < current.count
             current.index += 1
         }
     }).valid

@@ -5,21 +5,44 @@ export type Input = u8[]
 export type Output = Scanned
 
 export default function (in: Input): Output {
-    const result = loop({ gap: in, offset: 0, valid: true, locked: false, has_newline: false, newline_start: 0, last_end: 0, crlf: false }, {
+    const result = loop({
+        gap: in,
+        offset: 0,
+        valid: true,
+        locked: false,
+        has_newline: false,
+        newline_start: 0,
+        last_end: 0,
+        crlf: false
+    }, {
         while: current => current.valid && current.offset < current.gap.length,
         next: current => {
             const byte = current.gap[current.offset]
 
             if (byte == 32 || byte == 9) {
-                const whitespace = loop({ gap: current.gap, offset: current.offset }, {
-                    while: cursor => cursor.offset < cursor.gap.length && (cursor.gap[cursor.offset] == 32 || cursor.gap[cursor.offset] == 9),
+                const whitespace = loop({
+                    gap: current.gap,
+                    offset: current.offset
+                }, {
+                    while: cursor =>
+                        cursor.offset < cursor.gap.length &&
+                        (
+                            cursor.gap[cursor.offset] == 32 ||
+                                cursor.gap[cursor.offset] == 9
+                        ),
                     next: cursor => { cursor.offset += 1 }
                 })
 
                 current.offset = whitespace.offset
             } else if (byte == 35) {
-                const comment = loop({ gap: current.gap, offset: current.offset }, {
-                    while: cursor => cursor.offset < cursor.gap.length && cursor.gap[cursor.offset] != 13 && cursor.gap[cursor.offset] != 10,
+                const comment = loop({
+                    gap: current.gap,
+                    offset: current.offset
+                }, {
+                    while: cursor =>
+                        cursor.offset < cursor.gap.length &&
+                        cursor.gap[cursor.offset] != 13 &&
+                        cursor.gap[cursor.offset] != 10,
                     next: cursor => { cursor.offset += 1 }
                 })
 
@@ -31,8 +54,13 @@ export default function (in: Input): Output {
             } else if (byte == 13 || byte == 10) {
                 if (!current.locked && byte == 10) {
                     if (!current.has_newline) {
-                        current.crlf = current.offset > 0 && current.gap[current.offset - 1] == 13
-                        current.newline_start = current.offset - (current.crlf ? 1 : 0)
+                        current.crlf =
+                            current.offset > 0 &&
+                            current.gap[current.offset - 1] == 13
+                        current.newline_start =
+                            current.offset - (
+                                current.crlf ? 1 : 0
+                            )
                         current.has_newline = true
                     }
 

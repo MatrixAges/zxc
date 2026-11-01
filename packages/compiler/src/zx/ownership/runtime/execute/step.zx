@@ -29,6 +29,9 @@ export default function (in: Input): Output {
         case Family.Scope: return scope(in)
         case Family.Tasks: return tasks(in)
         case Family.Expression: return expression(in)
-        default: return { ...in, complete: false }
+        default: return {
+            ...in,
+            complete: false
+        }
     }
 }

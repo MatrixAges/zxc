@@ -17,7 +17,12 @@ export default function (in: Input): Output {
     const table = context.table
 
     if (in.kind == ExpressionKind.Some) {
-        return in.target == Kind.Optional && typed({ expressions: expressions, index: context.index, id: expressions.some[in.payload], type_id: table.first[integers.widen(in.type_id)] })
+        return in.target == Kind.Optional && typed({
+            expressions: expressions,
+            index: context.index,
+            id: expressions.some[in.payload],
+            type_id: table.first[integers.widen(in.type_id)]
+        })
     }
 
     const child = match in.kind {
@@ -38,7 +43,8 @@ export default function (in: Input): Output {
     const child_kind = kind(table.kinds[child_type_index])
 
     if (in.kind == ExpressionKind.OptionalValue) {
-        return child_kind == Kind.Optional && table.first[child_type_index] == in.type_id
+        return child_kind == Kind.Optional &&
+            table.first[child_type_index] == in.type_id
     }
 
     if (in.kind == ExpressionKind.Length) {
@@ -46,8 +52,17 @@ export default function (in: Input): Output {
     }
 
     if (in.kind == ExpressionKind.Index) {
-        return typed({ expressions: expressions, index: context.index, id: expressions.index_values[in.payload], type_id: 5 }) &&
-            (child_type == 10 ? in.type_id == 2 : child_kind == Kind.List && table.first[child_type_index] == in.type_id)
+        return typed({
+            expressions: expressions,
+            index: context.index,
+            id: expressions.index_values[in.payload],
+            type_id: 5
+        }) &&
+            (
+                child_type == 10 ? in.type_id == 2 :
+                    child_kind == Kind.List &&
+                    table.first[child_type_index] == in.type_id
+            )
     }
 
     const field = integers.widen(expressions.projection_indices[in.payload])

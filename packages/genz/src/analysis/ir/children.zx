@@ -5,7 +5,10 @@ import range from "./range"
 
 import type { Expressions } from "core/expression_table/model"
 
-export type Input = { table: Expressions, id: u64 }
+export type Input = {
+    table: Expressions,
+    id: u64
+}
 
 export type Output = u32[]
 
@@ -64,48 +67,103 @@ export default function (in: Input): Output {
     }
 
     if (kind == ExpressionKind.Iteration) {
-        return [table.iteration_initials[payload], table.iteration_conditions[payload], table.iteration_bodies[payload]]
+        return [
+            table.iteration_initials[payload],
+            table.iteration_conditions[payload],
+            table.iteration_bodies[payload]
+        ]
     }
 
     if (kind == ExpressionKind.ListUpdate) {
-        return [table.update_targets[payload], table.update_indices[payload], table.update_values[payload]]
+        return [
+            table.update_targets[payload],
+            table.update_indices[payload],
+            table.update_values[payload]
+        ]
     }
 
     if (kind == ExpressionKind.Conditional) {
-        return [table.conditional_conditions[payload], table.conditional_yes[payload], table.conditional_no[payload]]
+        return [
+            table.conditional_conditions[payload],
+            table.conditional_yes[payload],
+            table.conditional_no[payload]
+        ]
     }
 
     if (kind == ExpressionKind.Parallel) {
-        return range({ items: table.parallel_tasks, first: integers.widen(table.parallel_first[payload]), count: integers.widen(table.parallel_count[payload]), prefix: empty })
+        return range({
+            items: table.parallel_tasks,
+            first: integers.widen(table.parallel_first[payload]),
+            count: integers.widen(table.parallel_count[payload]),
+            prefix: empty
+        })
     }
 
-    if (kind == ExpressionKind.List || kind == ExpressionKind.Tuple || kind == ExpressionKind.Template) {
-        return range({ items: table.sequence_items, first: integers.widen(table.sequence_first[payload]), count: integers.widen(table.sequence_count[payload]), prefix: empty })
+    if (
+        kind == ExpressionKind.List || kind == ExpressionKind.Tuple ||
+            kind == ExpressionKind.Template
+    ) {
+        return range({
+            items: table.sequence_items,
+            first: integers.widen(table.sequence_first[payload]),
+            count: integers.widen(table.sequence_count[payload]),
+            prefix: empty
+        })
     }
 
     if (kind == ExpressionKind.ListOperation) {
-        return range({ items: table.collection_arguments, first: integers.widen(table.collection_first[payload]), count: integers.widen(table.collection_count[payload]), prefix: [table.collection_targets[payload]] })
+        return range({
+            items: table.collection_arguments,
+            first: integers.widen(table.collection_first[payload]),
+            count: integers.widen(table.collection_count[payload]),
+            prefix: [table.collection_targets[payload]]
+        })
     }
 
     if (kind == ExpressionKind.Transform) {
         const initial = table.transform_initials[payload]
-        const pair: u32[] = [table.transform_targets[payload], table.transform_bodies[payload]]
+
+        const pair: u32[] =
+            [
+                table.transform_targets[payload],
+                table.transform_bodies[payload]
+            ]
 
         return initial == null ? pair : pair.push(initial)[0]
     }
 
     if (kind == ExpressionKind.Scope) {
-        return range({ items: table.scope_values, first: integers.widen(table.scope_first[payload]), count: integers.widen(table.scope_count[payload]), prefix: empty }).push(table.scope_results[payload])[0]
+        return range({
+            items: table.scope_values,
+            first: integers.widen(table.scope_first[payload]),
+            count: integers.widen(table.scope_count[payload]),
+            prefix: empty
+        }).push(table.scope_results[payload])[0]
     }
 
     if (kind == ExpressionKind.Match) {
         const subject = table.match_subjects[payload]
         const prefix = subject == null ? empty : empty.push(subject)[0]
 
-        const arms = loop({ table: table, items: prefix, position: integers.widen(table.match_first[payload]), end: integers.widen(table.match_first[payload]) + integers.widen(table.match_count[payload]) }, {
+        const arms = loop({
+            table: table,
+            items: prefix,
+            position: integers.widen(table.match_first[payload]),
+            end:
+                integers.widen(table.match_first[payload]) +
+                integers.widen(
+                    table.match_count[payload]
+                )
+        }, {
             while: current => current.position < current.end,
             next: current => {
-                current.items = current.items.concat([current.table.match_conditions[current.position], current.table.match_results[current.position]])[0]
+                current.items =
+                    current.items.concat(
+                        [
+                            current.table.match_conditions[current.position],
+                            current.table.match_results[current.position]
+                        ]
+                    )[0]
                 current.position += 1
             }
         }).items
@@ -114,9 +172,19 @@ export default function (in: Input): Output {
     }
 
     if (kind == ExpressionKind.Object) {
-        const fields = range({ items: table.object_field_values, first: integers.widen(table.object_first[payload]), count: integers.widen(table.object_count[payload]), prefix: empty })
+        const fields = range({
+            items: table.object_field_values,
+            first: integers.widen(table.object_first[payload]),
+            count: integers.widen(table.object_count[payload]),
+            prefix: empty
+        })
 
-        return range({ items: table.object_evaluation_values, first: integers.widen(table.object_evaluation_first[payload]), count: integers.widen(table.object_evaluation_count[payload]), prefix: fields })
+        return range({
+            items: table.object_evaluation_values,
+            first: integers.widen(table.object_evaluation_first[payload]),
+            count: integers.widen(table.object_evaluation_count[payload]),
+            prefix: fields
+        })
     }
 
     return empty

@@ -9,21 +9,39 @@ export type Input = ExprState
 export type Output = State
 
 export default function (in: Input): Output {
-  const contracts: Contract[] = []
-  const failed = in.control.lexical_diagnostic != 0
+    const contracts: Contract[] = []
+    const failed = in.control.lexical_diagnostic != 0
 
-  const token = {
-    kind: in.control.token.kind, word: in.control.token.word, symbol: in.control.token.symbol,
-    span: { start: in.control.token.span.start, end: in.control.token.span.end },
-    line_break: in.control.token.line_break, dollar: in.control.token.dollar
-  }
-
-  return {
-    expression: in, body: emptyTree(), contracts: contracts,
-    control: {
-      phase: failed ? HeaderPhase.Done : HeaderPhase.Open, token: token, has_store: false,
-      has_ensures: false, ensures: false, contract_start: 0, expression_diagnostic: failed,
-      diagnostic: { code: "", start: 0, end: 0, message: "" }
+    const token = {
+        kind: in.control.token.kind,
+        word: in.control.token.word,
+        symbol: in.control.token.symbol,
+        span: {
+            start: in.control.token.span.start,
+            end: in.control.token.span.end
+        },
+        line_break: in.control.token.line_break,
+        dollar: in.control.token.dollar
     }
-  }
+
+    return {
+        expression: in,
+        body: emptyTree(),
+        contracts: contracts,
+        control: {
+            phase: failed ? HeaderPhase.Done : HeaderPhase.Open,
+            token: token,
+            has_store: false,
+            has_ensures: false,
+            ensures: false,
+            contract_start: 0,
+            expression_diagnostic: failed,
+            diagnostic: {
+                code: "",
+                start: 0,
+                end: 0,
+                message: ""
+            }
+        }
+    }
 }

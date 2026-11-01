@@ -4,19 +4,59 @@
     <Type from="../semantic/resolving/model" as="ResolvingModel" />
     <Type from="./local" as="Local" />
 
-    <Args in={{ allow_store: bool, has_body: bool, signature: Model.Signature, stores: Absent.Input }} out={{ diagnostic: ResolvingModel.Diagnostic, local: Local.Local }} />
+    <Args
+        in={{
+            allow_store: bool,
+            has_body: bool,
+            signature: Model.Signature,
+            stores: Absent.Input
+        }}
+        out={{
+            diagnostic: ResolvingModel.Diagnostic,
+            local: Local.Local
+        }}
+    />
 
-    <Call fn="local/initial" in={{ signature: $in.signature, stores: $in.stores, allow_store: $in.allow_store }} />
+    <Call
+        fn="local/initial"
+        in={{
+            signature: $in.signature,
+            stores: $in.stores,
+            allow_store: $in.allow_store
+        }}
+    />
 
     <Switch on={$in.has_body}>
         <Case value={true}>
-            <Call fn="bindings/append" in={{ local: $ctx.initial, name: { text: "in", start: $in.signature.span.start, end: $in.signature.span.end }, type_id: $in.signature.input_type, scope_start: 0 }} />
+            <Call
+                fn="bindings/append"
+                in={{
+                    local: $ctx.initial,
+                    name: {
+                        text: "in",
+                        start: $in.signature.span.start,
+                        end: $in.signature.span.end
+                    },
+                    type_id: $in.signature.input_type,
+                    scope_start: 0
+                }}
+            />
 
-            <Return value={{ local: $ctx.append.local, diagnostic: $ctx.append.diagnostic }} />
+            <Return
+                value={{
+                    local: $ctx.append.local,
+                    diagnostic: $ctx.append.diagnostic
+                }}
+            />
         </Case>
 
         <Default>
-            <Return value={{ local: $ctx.initial, diagnostic: $in.signature.diagnostic }} />
+            <Return
+                value={{
+                    local: $ctx.initial,
+                    diagnostic: $in.signature.diagnostic
+                }}
+            />
         </Default>
     </Switch>
 </Module>

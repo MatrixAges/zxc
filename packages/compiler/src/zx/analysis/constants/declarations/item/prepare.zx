@@ -87,10 +87,11 @@ export default function (in: Input): Output {
             input_type: 0,
             diagnostic: signature.diagnostic
         },
-        reference: native != null ? native.text.type_references[in.constant.annotation] : {
-            enumeration: false,
-            index: in.constant.annotation
-        },
+        reference:
+            native != null ? native.text.type_references[in.constant.annotation] : {
+                enumeration: false,
+                index: in.constant.annotation
+            },
         name: name
     }
 }

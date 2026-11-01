@@ -4,8 +4,28 @@
     <Args in={Effects.Sources} out={Effects.Result} />
 
     <Call fn="initial" in={$in.callees} />
-    <Call fn="components" in={{ callees: $in.callees, state: $ctx.initial }} />
-    <Call fn="join" in={{ sources: $in, components: $ctx.components }} />
 
-    <Return value={{ components: $ctx.components.membership, names: $ctx.join.names, unknown: $ctx.join.unknown }} />
+    <Call
+        fn="components"
+        in={{
+            callees: $in.callees,
+            state: $ctx.initial
+        }}
+    />
+
+    <Call
+        fn="join"
+        in={{
+            sources: $in,
+            components: $ctx.components
+        }}
+    />
+
+    <Return
+        value={{
+            components: $ctx.components.membership,
+            names: $ctx.join.names,
+            unknown: $ctx.join.unknown
+        }}
+    />
 </Module>

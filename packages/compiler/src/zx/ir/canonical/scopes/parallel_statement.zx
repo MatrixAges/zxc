@@ -17,10 +17,18 @@ export default function (in: Input): Output {
     const first = integers.widen(control.parallel_first[in.frame.a])
 
     if (count == 0) {
-        return { state: in.state, valid: false }
+        return {
+            state: in.state,
+            valid: false
+        }
     }
 
-    const declarations = loop({ state: in.state, control: control, first: first, index: count }, {
+    const declarations = loop({
+        state: in.state,
+        control: control,
+        first: first,
+        index: count
+    }, {
         while: current => current.index != 0,
         next: current => {
             current.index -= 1
@@ -29,29 +37,65 @@ export default function (in: Input): Output {
             const symbol = current.control.parallel_symbols[position]
 
             if (symbol != null) {
-                current.state = schedule({ state: current.state, frame: { phase: Phase.Declare, a: integers.widen(symbol), b: integers.widen(current.control.parallel_values[position]), c: 0 } })
+                current.state = schedule({
+                    state: current.state,
+                    frame: {
+                        phase: Phase.Declare,
+                        a: integers.widen(symbol),
+                        b:
+                            integers.widen(
+                                current.control.parallel_values[position]
+                            ),
+                        c: 0
+                    }
+                })
             }
         }
     }).state
 
-    return loop({ result: { state: declarations, valid: true }, context: in.context, first: first, index: count }, {
+    return loop({
+        result: {
+            state: declarations,
+            valid: true
+        },
+        context: in.context,
+        first: first,
+        index: count
+    }, {
         while: current => current.result.valid && current.index != 0,
         next: current => {
             current.index -= 1
 
             const program = current.context.program
-            const id = integers.widen(program.body.control.parallel_values[current.first + current.index])
+            const id =
+                integers.widen(
+                    program.body.control.parallel_values[current.first + current.index]
+                )
             const expressions = program.body.expressions
 
             if (expressions.kinds[id] != ExpressionKind.Call) {
                 current.result.valid = false
             } else {
-                const function_index = integers.widen(expressions.call_functions[integers.widen(expressions.payloads[id])])
+                const function_index =
+                    integers.widen(
+                        expressions
+                            .call_functions[integers.widen(
+                                expressions.payloads[id]
+                            )]
+                    )
 
                 if (!current.context.prepared.pure[function_index]) {
                     current.result.valid = false
                 } else {
-                    current.result.state = schedule({ state: current.result.state, frame: { phase: Phase.Expression, a: id, b: 0, c: 0 } })
+                    current.result.state = schedule({
+                        state: current.result.state,
+                        frame: {
+                            phase: Phase.Expression,
+                            a: id,
+                            b: 0,
+                            c: 0
+                        }
+                    })
                 }
             }
         }

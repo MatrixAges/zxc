@@ -10,7 +10,14 @@
 
         <Default>
             <Call module="../lexer/scan" in={$ctx.prepare.bytes} />
-            <Call fn="compact" in={{ source: $in, lexed: $ctx.scan }} />
+
+            <Call
+                fn="compact"
+                in={{
+                    source: $in,
+                    lexed: $ctx.scan
+                }}
+            />
 
             <Return value={$ctx.compact} />
         </Default>

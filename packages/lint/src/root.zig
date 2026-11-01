@@ -1,6 +1,8 @@
 const std = @import("std");
 const zx = @import("zx");
 const syntax = zx.syntax.borrow;
+pub const attribute_required = @import("attribute_required").check;
+pub const layout = @import("layout/root.zig");
 pub const spacing = @import("spacing.zig");
 pub const indentation = @import("indentation/root.zig");
 pub const header = zx.syntax.header;
@@ -32,7 +34,11 @@ pub fn checkHeaderNames(view: anytype) ?zx.Diagnostic {
         const item = view.importAt(index);
 
         for (0..view.importNameCount(index)) |name| {
-            if (checkBinding(view.importNameAt(index, name), switch (item.kind) { .function => .callable, .enumeration => .imported_value, .type_only => .type_decl })) |issue| return issue;
+            if (checkBinding(view.importNameAt(index, name), switch (item.kind) {
+                .function => .callable,
+                .enumeration => .imported_value,
+                .type_only => .type_decl,
+            })) |issue| return issue;
         }
     }
 

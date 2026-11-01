@@ -3,7 +3,28 @@ import type { Span } from "../../lexer/token_model"
 import type { State, Declaration } from "../declarations/model"
 import type { Tree, Order } from "../types/model"
 
-export enum Phase { Declarations, Start, Declare, Function, Name, Open, Inject, Parameter, Colon, ParameterType, Separator, OutputColon, OutputType, Throws, ErrorOpen, ErrorName, ErrorSeparator, Concurrent, End, Done }
+export enum Phase {
+    Declarations,
+    Start,
+    Declare,
+    Function,
+    Name,
+    Open,
+    Inject,
+    Parameter,
+    Colon,
+    ParameterType,
+    Separator,
+    OutputColon,
+    OutputType,
+    Throws,
+    ErrorOpen,
+    ErrorName,
+    ErrorSeparator,
+    Concurrent,
+    End,
+    Done
+}
 
 export type Function = {
     name: Span,
@@ -20,11 +41,28 @@ export type Function = {
     concurrent: bool
 }
 
-export type Parameter = { name: Span, value: u64 }
+export type Parameter = {
+    name: Span,
+    value: u64
+}
 
-export type Control = { phase: Phase, index: u64, injected: u64, parameter: Span, current: Function, diagnostic: Diagnostic }
+export type Control = {
+    phase: Phase,
+    index: u64,
+    injected: u64,
+    parameter: Span,
+    current: Function,
+    diagnostic: Diagnostic
+}
 
-export type NativeState = { lexed: Result, declarations: State, functions: Function[], parameters: Parameter[], errors: Span[], control: Control }
+export type NativeState = {
+    lexed: Result,
+    declarations: State,
+    functions: Function[],
+    parameters: Parameter[],
+    errors: Span[],
+    control: Control
+}
 
 export type NativeOutput = {
     types: Tree,

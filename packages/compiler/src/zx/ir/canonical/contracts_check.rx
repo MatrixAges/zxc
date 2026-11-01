@@ -3,7 +3,13 @@
 
     <Args in={Model.Program} out={bool} />
 
-    <Call module="./contract_tables_check" in={{ contracts: $in.contracts, max_offset: $in.max_offset }} />
+    <Call
+        module="./contract_tables_check"
+        in={{
+            contracts: $in.contracts,
+            max_offset: $in.max_offset
+        }}
+    />
 
     <Switch on={$ctx.contract_tables_check}>
         <Case value={true}>

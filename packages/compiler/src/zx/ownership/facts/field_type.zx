@@ -4,14 +4,23 @@ import row from "core/type_table/row"
 
 import type { Tables } from "core/type_table/model"
 
-export type Input = { types: Tables, type_id: u32, index: u64 }
+export type Input = {
+    types: Tables,
+    type_id: u32,
+    index: u64
+}
 
 export type Output = u32
 
 export default function (in: Input): Output {
-    const target = row({ tables: in.types, id: in.type_id })
+    const target = row({
+        tables: in.types,
+        id: in.type_id
+    })
+
     const table = target.delta ? in.types.delta : in.types.base
     const position = integers.widen(target.first) + in.index
 
-    return target.kind == Kind.Object ? table.field_types[position] : table.children[position]
+    return target.kind == Kind.Object ? table.field_types[position] :
+        table.children[position]
 }

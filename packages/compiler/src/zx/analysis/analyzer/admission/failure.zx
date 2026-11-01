@@ -5,22 +5,58 @@ import { Ownership } from "core/symbol_table/model"
 import type { Diagnostic } from "../../semantic/resolving/model"
 import type { ModuleOutput } from "../output"
 
-export type Input = { diagnostic: Diagnostic, type_only: bool }
+export type Input = {
+    diagnostic: Diagnostic,
+    type_only: bool
+}
 
 export type Output = ModuleOutput
 
 export default function (in: Input): Output {
     return {
-        type_delta: { kinds: [], first: [], second: [], labels: [], children: [], field_types: [], field_names: [], names: [] },
-        nominal_delta: { ids: [], kinds: [], owners: [], members: [] },
+        type_delta: {
+            kinds: [],
+            first: [],
+            second: [],
+            labels: [],
+            children: [],
+            field_types: [],
+            field_names: [],
+            names: []
+        },
+        nominal_delta: {
+            ids: [],
+            kinds: [],
+            owners: [],
+            members: []
+        },
         body: {
-            stores: { paths: [], types: [], handles: [], readable: [], writable: [] },
-            symbols: { names: [], types: [], span_start: [], span_end: [], ownership: [] },
+            stores: {
+                paths: [],
+                types: [],
+                handles: [],
+                readable: [],
+                writable: []
+            },
+            symbols: {
+                names: [],
+                types: [],
+                span_start: [],
+                span_end: [],
+                ownership: []
+            },
             expressions: emptyExpressions(),
             control: emptyControl(),
             root: null
         },
-        contracts: { kinds: [], predicates: [], symbols: [], expressions: [], span_start: [], span_end: [] },
+        contracts: {
+            kinds: [],
+            predicates: [],
+            symbols: [],
+            expressions: [],
+            span_start: [],
+            span_end: []
+        },
         export_names: [],
         export_types: [],
         constant_scope: null,

@@ -4,7 +4,11 @@ import fail from "../../../analysis/semantic/resolving/fail"
 import type { State } from "../../../analysis/semantic/resolving/model"
 import type { Function } from "../../../frontend/parser/native/model"
 
-export type Input = { state: State, declaration: Function, input: u32 }
+export type Input = {
+    state: State,
+    declaration: Function,
+    input: u32
+}
 
 export type Output = State
 
@@ -13,17 +17,45 @@ export default function (in: Input): Output {
         return in.state
     }
 
-    const tables = { base: in.state.context.base, delta: in.state.delta }
-    const input_reference = contains({ tables: tables, id: in.input, native_references: true })
-    const output_reference = contains({ tables: tables, id: in.state.result, native_references: true })
-    const name = { text: "", start: in.declaration.name.start, end: in.declaration.name.end }
+    const tables = {
+        base: in.state.context.base,
+        delta: in.state.delta
+    }
+
+    const input_reference = contains({
+        tables: tables,
+        id: in.input,
+        native_references: true
+    })
+
+    const output_reference = contains({
+        tables: tables,
+        id: in.state.result,
+        native_references: true
+    })
+
+    const name = {
+        text: "",
+        start: in.declaration.name.start,
+        end: in.declaration.name.end
+    }
 
     if (in.declaration.concurrent && (input_reference || output_reference)) {
-        return fail({ state: in.state, code: "capability", message: "host reference accessors cannot declare concurrency", name: name })
+        return fail({
+            state: in.state,
+            code: "capability",
+            message: "host reference accessors cannot declare concurrency",
+            name: name
+        })
     }
 
     if (output_reference && !input_reference) {
-        return fail({ state: in.state, code: "ownership", message: "native reference results require a host reference input", name: name })
+        return fail({
+            state: in.state,
+            code: "ownership",
+            message: "native reference results require a host reference input",
+            name: name
+        })
     }
 
     return in.state

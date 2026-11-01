@@ -4,10 +4,28 @@ import type { Stores } from "core/store_table/model"
 import type { Symbols } from "core/symbol_table/model"
 import type { Kind, Table } from "core/type_table/model"
 
-export type Functions = { input_types: u32[], output_types: u32[], stores: Stores[] }
+export type Functions = {
+    input_types: u32[],
+    output_types: u32[],
+    stores: Stores[]
+}
 
-export type Context = { table: Table, expressions: Expressions, symbols: Symbols, stores: Stores, functions: Functions, index: u64, orchestration: bool }
+export type Context = {
+    table: Table,
+    expressions: Expressions,
+    symbols: Symbols,
+    stores: Stores,
+    functions: Functions,
+    index: u64,
+    orchestration: bool
+}
 
-export type Check = { context: Context, type_id: u32, target: Kind, kind: ExpressionKind, payload: u64 }
+export type Check = {
+    context: Context,
+    type_id: u32,
+    target: Kind,
+    kind: ExpressionKind,
+    payload: u64
+}
 
 export enum Numeric { Other, Integer, Signed, Float }

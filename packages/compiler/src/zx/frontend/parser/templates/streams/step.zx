@@ -3,14 +3,28 @@ import feed from "./feed"
 
 import type { State } from "./model"
 
-export type Input = { state: State, byte: u8 }
+export type Input = {
+    state: State,
+    byte: u8
+}
 
 export type Output = State
 
 export default function (in: Input): Output {
-  const routed = event(event({ ...in.state, skip: false }))
-  const next = routed.active.present && !routed.skip ? feed({ state: routed, byte: in.byte }) : routed
-  const offset = next.offset + 1
+    const routed = event(event({
+        ...in.state,
+        skip: false
+    }))
 
-  return { ...next, offset: offset }
+    const next = routed.active.present && !routed.skip ? feed({
+        state: routed,
+        byte: in.byte
+    }) : routed
+
+    const offset = next.offset + 1
+
+    return {
+        ...next,
+        offset: offset
+    }
 }

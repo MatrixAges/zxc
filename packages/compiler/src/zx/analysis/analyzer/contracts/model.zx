@@ -4,4 +4,10 @@ import type { Cache } from "../../semantic/resolving/model"
 import type { Source } from "../expressions/request"
 import type { Prepared } from "../model"
 
-export type ContractWork = { state: Prepared, source: Source, items: Contract[], aliases: Cache, contracts: Contracts }
+export type ContractWork = {
+    state: Prepared,
+    source: Source,
+    items: Contract[],
+    aliases: Cache,
+    contracts: Contracts
+}

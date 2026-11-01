@@ -12,15 +12,35 @@ export type Input = State
 export type Output = State
 
 export default function (in: Input): Output {
-  if (in.control.token.symbol != Symbol.Greater) {
-    return fail({ state: in, code: "syntax", message: "expected >" })
-  }
+    if (in.control.token.symbol != Symbol.Greater) {
+        return fail({
+            state: in,
+            code: "syntax",
+            message: "expected >"
+        })
+    }
 
-  const frame = copyFrame(in.frames[in.frames.length - 1])
-  const child = in.control.result
-  const frames = in.frames.pop()[0]
-  const state = { tree: in.tree, frames: frames, control: in.control }
-  const completed = addNode({ state: state, kind: TypeKind.Application, name: frame.name, child: child, head: 0, count: 0 })
+    const frame = copyFrame(in.frames[in.frames.length - 1])
+    const child = in.control.result
+    const frames = in.frames.pop()[0]
 
-  return consume({ state: completed, phase: Phase.Suffix })
+    const state = {
+        tree: in.tree,
+        frames: frames,
+        control: in.control
+    }
+
+    const completed = addNode({
+        state: state,
+        kind: TypeKind.Application,
+        name: frame.name,
+        child: child,
+        head: 0,
+        count: 0
+    })
+
+    return consume({
+        state: completed,
+        phase: Phase.Suffix
+    })
 }

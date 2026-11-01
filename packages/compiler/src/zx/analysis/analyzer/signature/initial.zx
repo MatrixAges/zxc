@@ -2,7 +2,10 @@ import type { Program } from "../../../frontend/parser/syntax/model"
 import type { Types } from "../types/model"
 import type { Signature } from "./model"
 
-export type Input = { syntax: Program, types: Types }
+export type Input = {
+    syntax: Program,
+    types: Types
+}
 
 export type Output = Signature
 
@@ -11,9 +14,17 @@ export default function (in: Input): Output {
 
     return {
         types: in.types,
-        span: body != null ? in.syntax.blocks.blocks[body].span : { start: 0, end: 0 },
+        span: body != null ? in.syntax.blocks.blocks[body].span : {
+            start: 0,
+            end: 0
+        },
         input_type: 0,
         output_type: 0,
-        diagnostic: { code: "", message: "", start: 0, end: 0 }
+        diagnostic: {
+            code: "",
+            message: "",
+            start: 0,
+            end: 0
+        }
     }
 }

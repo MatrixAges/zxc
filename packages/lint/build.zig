@@ -7,6 +7,8 @@ const Rule = struct {
 };
 
 const rules = [_]Rule{
+    .{ .name = "attribute_required", .seed_path = "src/layout/attribute_required.zig", .root_path = "src/layout/attribute_required.zig" },
+    .{ .name = "layout_rule", .seed_path = "src/layout/rule.zig", .root_path = "src/layout/rule.zig" },
     .{ .name = "naming", .seed_path = "bootstrap/naming.zig", .root_path = "src/naming/root.zig" },
     .{ .name = "length", .seed_path = "bootstrap/length.zig", .root_path = "src/length/root.zig" },
     .{ .name = "indentation_line", .seed_path = "bootstrap/indentation_line.zig", .root_path = "src/indentation/line/root.zig" },
@@ -41,6 +43,14 @@ pub fn build(b: *std.Build) void {
             .target = target,
             .optimize = optimize,
         });
+
+        if (seed and (std.mem.eql(u8, rule.name, "layout_rule") or std.mem.eql(u8, rule.name, "attribute_required"))) {
+            rule_module.addImport("generated", b.createModule(.{
+                .root_source_file = b.path(if (std.mem.eql(u8, rule.name, "layout_rule")) "bootstrap/layout.zig" else "bootstrap/attribute_required.zig"),
+                .target = target,
+                .optimize = optimize,
+            }));
+        }
 
         if (generated) |directory| {
             rule_module.addImport("generated", b.createModule(.{

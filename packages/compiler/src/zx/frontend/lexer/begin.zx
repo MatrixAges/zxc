@@ -22,7 +22,10 @@ export default function (in: Input): Output {
     const offset = in.state.offset
 
     if (in.byte == 32 || (in.byte >= 9 && in.byte <= 13)) {
-        return { ...in.state, line_break: line_break }
+        return {
+            ...in.state,
+            line_break: line_break
+        }
     }
 
     if (in.byte == 47 && in.has_next) {
@@ -31,20 +34,48 @@ export default function (in: Input): Output {
         if (next == 47 || next == 42) {
             const next_skip_until = offset + 2
 
-            return { ...in.state, skip_until: next_skip_until, mode: next == 47 ? Mode.LineComment : Mode.BlockComment, start: offset }
+            return {
+                ...in.state,
+                skip_until: next_skip_until,
+                mode: next == 47 ? Mode.LineComment : Mode.BlockComment,
+                start: offset
+            }
         }
     }
 
     if (isLetter(in.byte) || in.byte == 95 || in.byte == 36) {
-        return { ...in.state, keyword_state: keywordTransition({ state: 0, byte: in.byte }), dollar: in.byte == 36, mode: Mode.Identifier, start: offset }
+        return {
+            ...in.state,
+            keyword_state: keywordTransition({
+                state: 0,
+                byte: in.byte
+            }),
+            dollar: in.byte == 36,
+            mode: Mode.Identifier,
+            start: offset
+        }
     }
 
     if (isDigit(in.byte)) {
-        return { ...in.state, mode: Mode.Number, start: offset, number: { end: 1, phase: Phase.Integer, last_byte: in.byte, separators_valid: true } }
+        return {
+            ...in.state,
+            mode: Mode.Number,
+            start: offset,
+            number: {
+                end: 1,
+                phase: Phase.Integer,
+                last_byte: in.byte,
+                separators_valid: true
+            }
+        }
     }
 
     if (in.byte == 34) {
-        return { ...in.state, mode: Mode.String, start: offset }
+        return {
+            ...in.state,
+            mode: Mode.String,
+            start: offset
+        }
     }
 
     if (in.byte == 96) {
@@ -52,13 +83,40 @@ export default function (in: Input): Output {
     }
 
     if (!isPunctuation(in.byte)) {
-        return fail({ code: "lexical", start: offset, end: offset + 1, message: "unexpected character", state: in.state })
+        return fail({
+            code: "lexical",
+            start: offset,
+            end: offset + 1,
+            message: "unexpected character",
+            state: in.state
+        })
     }
 
-    const length = operatorLength({ byte: in.byte, next: in.next, after: in.after, has_next: in.has_next, has_after: in.has_after })
+    const length = operatorLength({
+        byte: in.byte,
+        next: in.next,
+        after: in.after,
+        has_next: in.has_next,
+        has_after: in.has_after
+    })
 
-    const symbol = punctuationSymbol({ byte: in.byte, next: in.next, length: length })
+    const symbol = punctuationSymbol({
+        byte: in.byte,
+        next: in.next,
+        length: length
+    })
+
     const next_skip_until = offset + length
 
-    return emit({ kind: "punctuation", start: offset, end: offset + length, comment: false, state: { ...in.state, symbol: symbol, skip_until: next_skip_until } })
+    return emit({
+        kind: "punctuation",
+        start: offset,
+        end: offset + length,
+        comment: false,
+        state: {
+            ...in.state,
+            symbol: symbol,
+            skip_until: next_skip_until
+        }
+    })
 }

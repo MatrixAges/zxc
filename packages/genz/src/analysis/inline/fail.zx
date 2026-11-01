@@ -7,5 +7,9 @@ export type Output = Inline
 export default function (in: Input): Output {
     const frames: InlineFrame[] = []
 
-    return { ...in, failed: true, frames: frames }
+    return {
+        ...in,
+        failed: true,
+        frames: frames
+    }
 }

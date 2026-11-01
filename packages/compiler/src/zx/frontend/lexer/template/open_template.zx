@@ -11,18 +11,40 @@ export default function (in: Input): Output {
     if (in.mode == Mode.Idle) {
         const next_start = in.offset
 
-        return { ...in, mode: Mode.Template, start: next_start, braces: 0, depth: 0 }
+        return {
+            ...in,
+            mode: Mode.Template,
+            start: next_start,
+            braces: 0,
+            depth: 0
+        }
     }
 
     if (in.depth + 1 > 256) {
-        return fail({ code: "syntax", start: in.offset, end: in.offset + 1, message: "template nesting exceeds 256 levels", state: in })
+        return fail({
+            code: "syntax",
+            start: in.offset,
+            end: in.offset + 1,
+            message: "template nesting exceeds 256 levels",
+            state: in
+        })
     }
 
-    const frame = { mode: in.mode, start: in.start, braces: in.braces, depth: in.depth }
+    const frame = {
+        mode: in.mode,
+        start: in.start,
+        braces: in.braces,
+        depth: in.depth
+    }
+
     const frames = in.frames.push(frame)[0]
 
     return {
-        source_length: in.source_length, warmed: in.warmed, ahead_one: in.ahead_one, ahead_two: in.ahead_two, keyword_state: in.keyword_state,
+        source_length: in.source_length,
+        warmed: in.warmed,
+        ahead_one: in.ahead_one,
+        ahead_two: in.ahead_two,
+        keyword_state: in.keyword_state,
         symbol: in.symbol,
         line_break: in.line_break,
         dollar: in.dollar,

@@ -14,7 +14,11 @@ export default function (in: Input): Output {
         return previous == null && current == null
     }
 
-    if (previous.names.length != current.names.length || previous.names.length != previous.values.length || current.names.length != current.values.length) {
+    if (
+        previous.names.length != current.names.length ||
+            previous.names.length != previous.values.length ||
+            current.names.length != current.values.length
+    ) {
         return false
     }
 
@@ -31,12 +35,14 @@ export default function (in: Input): Output {
             const previous_value = state.previous.values[state.index]
             const current_value = state.current.values[state.index]
 
-            state.valid = state.previous.names[state.index] == state.current.names[state.index] && literalMatches({
-                left: previous_value,
-                right: current_value,
-                mapping: state.mapping,
-                current_mapping: state.current_mapping
-            })
+            state.valid =
+                state.previous.names[state.index] ==
+                state.current.names[state.index] && literalMatches({
+                    left: previous_value,
+                    right: current_value,
+                    mapping: state.mapping,
+                    current_mapping: state.current_mapping
+                })
 
             state.index += 1
         }

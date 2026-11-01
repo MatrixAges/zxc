@@ -2,7 +2,13 @@ import integers from "std:integer"
 
 import type { Captures } from "../captures"
 
-export type Input = { captures: Captures, frame: u32, source: u32, target: u32, value: u32 }
+export type Input = {
+    captures: Captures,
+    frame: u32,
+    source: u32,
+    target: u32,
+    value: u32
+}
 
 export type Output = Captures
 
@@ -17,14 +23,26 @@ export default function (in: Input): Output {
         ...in.captures,
         frames: {
             ...in.captures.frames,
-            first: previous == null ? in.captures.frames.first.splice(frame, 1, [link])[0] : in.captures.frames.first,
+            first:
+                previous ==
+                null ? in.captures.frames.first.splice(
+                    frame,
+                    1,
+                    [link]
+                )[0] : in.captures.frames.first,
             last: in.captures.frames.last.splice(frame, 1, [link])[0]
         },
         bindings: {
             sources: in.captures.bindings.sources.push(in.source)[0],
             targets: in.captures.bindings.targets.push(in.target)[0],
             values: in.captures.bindings.values.push(in.value)[0],
-            next: previous != null ? next.splice(integers.widen(previous), 1, [link])[0] : next
+            next:
+                previous !=
+                null ? next.splice(
+                    integers.widen(previous),
+                    1,
+                    [link]
+                )[0] : next
         }
     }
 }

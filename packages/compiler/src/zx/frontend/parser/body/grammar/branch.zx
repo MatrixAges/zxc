@@ -13,39 +13,99 @@ export type Input = State
 export type Output = State
 
 export default function (in: Input): Output {
-  if (in.control.phase == Phase.IfOpen) {
-    return expect({ state: in, symbol: Symbol.OpenParen, phase: Phase.BeginCondition, message: "expected (" })
-  }
-
-  if (in.control.phase == Phase.IfClose) {
-    const result = in.expression.control.result
-    const state = { expression: in.expression, tree: in.tree, frames: in.frames, suspended: in.suspended, frame: { ...in.frame, first: result }, control: in.control }
-
-    return expect({ state: state, symbol: Symbol.CloseParen, phase: Phase.BlockOpen, message: "expected )" })
-  }
-
-  if (in.control.phase == Phase.BlockOpen || in.control.phase == Phase.IfAlternative && in.expression.control.token.word != Keyword.If) {
-    const resume = in.control.phase == Phase.BlockOpen ? Phase.IfElse : Phase.Publish
-    const state = enter({ state: in, kind: FrameKind.Block, phase: Phase.BlockOpen, resume: resume, nested: true })
-
-    if (state.control.phase == Phase.Done) {
-      return state
+    if (in.control.phase == Phase.IfOpen) {
+        return expect({
+            state: in,
+            symbol: Symbol.OpenParen,
+            phase: Phase.BeginCondition,
+            message: "expected ("
+        })
     }
 
-    return expect({ state: state, symbol: Symbol.OpenBrace, phase: Phase.BlockNext, message: "{" })
-  }
+    if (in.control.phase == Phase.IfClose) {
+        const result = in.expression.control.result
 
-  if (in.control.phase == Phase.IfElse) {
-    if (in.expression.control.token.word == Keyword.Else) {
-      return consume({ state: in, phase: Phase.IfAlternative })
+        const state = {
+            expression: in.expression,
+            tree: in.tree,
+            frames: in.frames,
+            suspended: in.suspended,
+            frame: {
+                ...in.frame,
+                first: result
+            },
+            control: in.control
+        }
+
+        return expect({
+            state: state,
+            symbol: Symbol.CloseParen,
+            phase: Phase.BlockOpen,
+            message: "expected )"
+        })
     }
 
-    return { expression: in.expression, tree: in.tree, frames: in.frames, suspended: in.suspended, frame: in.frame, control: { ...in.control, phase: Phase.Publish } }
-  }
+    if (
+        in.control.phase == Phase.BlockOpen ||
+            in.control.phase == Phase.IfAlternative &&
+            in.expression.control.token.word != Keyword.If
+    ) {
+        const resume = in.control.phase == Phase.BlockOpen ? Phase.IfElse : Phase.Publish
 
-  if (in.control.phase == Phase.IfAlternative) {
-    return enter({ state: in, kind: FrameKind.Statement, phase: Phase.Statement, resume: Phase.Publish, nested: true })
-  }
+        const state = enter({
+            state: in,
+            kind: FrameKind.Block,
+            phase: Phase.BlockOpen,
+            resume: resume,
+            nested: true
+        })
 
-  return expression({ state: in, resume: Phase.IfClose, minimum: 0 })
+        if (state.control.phase == Phase.Done) {
+            return state
+        }
+
+        return expect({
+            state: state,
+            symbol: Symbol.OpenBrace,
+            phase: Phase.BlockNext,
+            message: "{"
+        })
+    }
+
+    if (in.control.phase == Phase.IfElse) {
+        if (in.expression.control.token.word == Keyword.Else) {
+            return consume({
+                state: in,
+                phase: Phase.IfAlternative
+            })
+        }
+
+        return {
+            expression: in.expression,
+            tree: in.tree,
+            frames: in.frames,
+            suspended: in.suspended,
+            frame: in.frame,
+            control: {
+                ...in.control,
+                phase: Phase.Publish
+            }
+        }
+    }
+
+    if (in.control.phase == Phase.IfAlternative) {
+        return enter({
+            state: in,
+            kind: FrameKind.Statement,
+            phase: Phase.Statement,
+            resume: Phase.Publish,
+            nested: true
+        })
+    }
+
+    return expression({
+        state: in,
+        resume: Phase.IfClose,
+        minimum: 0
+    })
 }

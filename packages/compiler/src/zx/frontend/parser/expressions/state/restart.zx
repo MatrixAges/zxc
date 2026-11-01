@@ -3,13 +3,33 @@ import { Phase } from "./model"
 
 import type { ExprState, ExprFrame, ExprControl } from "./model"
 
-export type Input = { state: ExprState, depth: u64, minimum: u8 }
+export type Input = {
+    state: ExprState,
+    depth: u64,
+    minimum: u8
+}
 
 export type Output = ExprState
 
 export default function (in: Input): Output {
-  const frames: ExprFrame[] = []
-  const control: ExprControl = { ...in.state.control, phase: Phase.BeginBinary, base_depth: in.depth, depth: in.depth, minimum: in.minimum, allow_lambda: true, fresh_family: true, family: Family.None }
+    const frames: ExprFrame[] = []
 
-  return { prepared: in.state.prepared, tree: in.state.tree, types: in.state.types, frames: frames, control: control }
+    const control: ExprControl = {
+        ...in.state.control,
+        phase: Phase.BeginBinary,
+        base_depth: in.depth,
+        depth: in.depth,
+        minimum: in.minimum,
+        allow_lambda: true,
+        fresh_family: true,
+        family: Family.None
+    }
+
+    return {
+        prepared: in.state.prepared,
+        tree: in.state.tree,
+        types: in.state.types,
+        frames: frames,
+        control: control
+    }
 }

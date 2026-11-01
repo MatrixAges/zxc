@@ -21,14 +21,25 @@ export default function (in: Input): Output {
 
     if (in.control.phase == Phase.Parameter) {
         if (token.symbol == Symbol.CloseParen) {
-            return advance({ state: in, phase: Phase.OutputColon, count: 1 })
+            return advance({
+                state: in,
+                phase: Phase.OutputColon,
+                count: 1
+            })
         }
 
         if (token.kind != Kind.Identifier) {
-            return fail({ state: in, code: "syntax", message: "expected an identifier" })
+            return fail({
+                state: in,
+                code: "syntax",
+                message: "expected an identifier"
+            })
         }
 
-        const name = { start: token.span.start, end: token.span.end }
+        const name = {
+            start: token.span.start,
+            end: token.span.end
+        }
 
         return advance({
             state: {
@@ -53,23 +64,52 @@ export default function (in: Input): Output {
 
     if (in.control.phase == Phase.Separator) {
         if (token.symbol == Symbol.Comma) {
-            return advance({ state: in, phase: Phase.Parameter, count: 1 })
+            return advance({
+                state: in,
+                phase: Phase.Parameter,
+                count: 1
+            })
         }
 
         if (token.symbol != Symbol.CloseParen) {
-            return fail({ state: in, code: "syntax", message: "expected )" })
+            return fail({
+                state: in,
+                code: "syntax",
+                message: "expected )"
+            })
         }
 
-        return advance({ state: in, phase: Phase.OutputColon, count: 1 })
+        return advance({
+            state: in,
+            phase: Phase.OutputColon,
+            count: 1
+        })
     }
 
     if (token.symbol != Symbol.Colon) {
-        return fail({ state: in, code: "syntax", message: "expected :" })
+        return fail({
+            state: in,
+            code: "syntax",
+            message: "expected :"
+        })
     }
 
     const index = in.control.index + 1
-    const initial = typeInitial({ start: index, depth: 0 })
-    const types = { tree: in.declarations.types.tree, frames: initial.frames, control: { ...initial.control, index: index } }
+
+    const initial = typeInitial({
+        start: index,
+        depth: 0
+    })
+
+    const types = {
+        tree: in.declarations.types.tree,
+        frames: initial.frames,
+        control: {
+            ...initial.control,
+            index: index
+        }
+    }
+
     const phase = in.control.phase == Phase.Colon ? Phase.ParameterType : Phase.OutputType
 
     return advance({
@@ -79,7 +119,12 @@ export default function (in: Input): Output {
             parameters: in.parameters,
             errors: in.errors,
             control: in.control,
-            declarations: { declarations: in.declarations.declarations, members: in.declarations.members, control: in.declarations.control, types: types }
+            declarations: {
+                declarations: in.declarations.declarations,
+                members: in.declarations.members,
+                control: in.declarations.control,
+                types: types
+            }
         },
         phase: phase,
         count: 1

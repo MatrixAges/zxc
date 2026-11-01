@@ -7,12 +7,18 @@ export type Output = Program
 
 export default function (in: Input): Output {
     return {
-        types: { base: in.state.types.context.base, delta: in.state.types.delta },
+        types: {
+            base: in.state.types.context.base,
+            delta: in.state.types.delta
+        },
         symbols: in.state.local.symbols,
         expressions: in.state.local.expressions,
         control: in.state.local.control,
         body: in.root,
-        functions: { ownership: [], stores: [] },
+        functions: {
+            ownership: [],
+            stores: []
+        },
         type_only: false
     }
 }

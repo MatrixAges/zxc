@@ -5,7 +5,13 @@ import type { BlockTree } from "../../../../frontend/parser/body/model"
 import type { Local } from "../../local"
 import type { Scopes, Frame } from "./model"
 
-export type Input = { scopes: Scopes, local: Local, tree: BlockTree, block: u64, state_symbol: u32 }
+export type Input = {
+    scopes: Scopes,
+    local: Local,
+    tree: BlockTree,
+    block: u64,
+    state_symbol: u32
+}
 
 export type Output = Scopes
 
@@ -15,12 +21,19 @@ export default function (in: Input): Output {
     const frame: Frame = {
         source_block: in.block,
         state_symbol: in.state_symbol,
-        statements: order({ items: in.tree.items, head: source.head, count: source.count }),
+        statements: order({
+            items: in.tree.items,
+            head: source.head,
+            count: source.count
+        }),
         next: 0,
         binding_mark: in.scopes.bindings.values.length,
         active_mark: in.local.active.length,
         facts_mark: mark(in.local.refinement.facts)
     }
 
-    return { ...in.scopes, frames: in.scopes.frames.push(frame)[0] }
+    return {
+        ...in.scopes,
+        frames: in.scopes.frames.push(frame)[0]
+    }
 }

@@ -5,7 +5,11 @@ import type { Program } from "../ir/input_model"
 import type { Built } from "../layout/model"
 import type { Memory, Runtime } from "./model"
 
-export type Input = { program: Program, references: bool[], layout: Built }
+export type Input = {
+    program: Program,
+    references: bool[],
+    layout: Built
+}
 
 export type Output = Runtime
 
@@ -14,8 +18,16 @@ export default function (in: Input): Output {
     const numbers: u64[] = []
     const types: u32[] = []
 
-    const allocated = loop({ states: states, facts: numbers, memo: numbers, places: in.layout.tree.parents.length, expressions: in.program.expressions.kinds.length }, {
-        while: current => current.states.length < current.places || current.memo.length < current.expressions,
+    const allocated = loop({
+        states: states,
+        facts: numbers,
+        memo: numbers,
+        places: in.layout.tree.parents.length,
+        expressions: in.program.expressions.kinds.length
+    }, {
+        while: current =>
+            current.states.length < current.places ||
+            current.memo.length < current.expressions,
         next: current => {
             if (current.states.length < current.places) {
                 current.states = current.states.push(State.Copy)[0]
@@ -29,17 +41,39 @@ export default function (in: Input): Output {
     })
 
     const memory: Memory = {
-        forest: { types: types, first: numbers, count: numbers, shells: states, states: states, children: numbers },
+        forest: {
+            types: types,
+            first: numbers,
+            count: numbers,
+            shells: states,
+            states: states,
+            children: numbers
+        },
         facts: allocated.facts,
         states: allocated.states,
         memo: allocated.memo,
         trail: numbers
     }
 
-    const initialized = allocated.states.length == 0 ? memory : place({ types: in.program.types, references: in.references, layout: in.layout.tree, memory: memory, id: 0, operation: Operation.Assign, fact: 3 })
+    const initialized = allocated.states.length == 0 ? memory : place({
+        types: in.program.types,
+        references: in.references,
+        layout: in.layout.tree,
+        memory: memory,
+        id: 0,
+        operation: Operation.Assign,
+        fact: 3
+    })
 
     return {
         memory: initialized,
-        snapshots: { facts: numbers, memo: numbers, state_first: numbers, state_count: numbers, memo_first: numbers, memo_count: numbers }
+        snapshots: {
+            facts: numbers,
+            memo: numbers,
+            state_first: numbers,
+            state_count: numbers,
+            memo_first: numbers,
+            memo_count: numbers
+        }
     }
 }

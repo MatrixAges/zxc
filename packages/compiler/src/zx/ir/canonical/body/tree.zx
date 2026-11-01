@@ -3,7 +3,10 @@ import { StatementKind } from "core/control_table/model"
 
 import type { Control } from "core/control_table/model"
 
-export type Input = { control: Control, root: u32? }
+export type Input = {
+    control: Control,
+    root: u32?
+}
 
 export type Output = bool
 
@@ -23,27 +26,58 @@ export default function (in: Input): Output {
     const flags: bool[] = []
     const numbers: u64[] = []
 
-    const initialized = loop({ count: in.control.block_first.length, root: root, owned: flags, depths: numbers }, {
+    const initialized = loop({
+        count: in.control.block_first.length,
+        root: root,
+        owned: flags,
+        depths: numbers
+    }, {
         while: current => current.owned.length < current.count,
         next: current => {
-            current.owned = current.owned.push(current.owned.length == current.root)[0]
+            current.owned =
+                current.owned.push(
+                    current.owned.length == current.root
+                )[0]
             current.depths = current.depths.push(0)[0]
         }
     })
 
-    const checked = loop({ control: in.control, owned: initialized.owned, depths: initialized.depths, block: 0, index: 0, edge: 0, valid: true }, {
-        while: current => current.valid && current.block < current.control.block_first.length,
+    const checked = loop({
+        control: in.control,
+        owned: initialized.owned,
+        depths: initialized.depths,
+        block: 0,
+        index: 0,
+        edge: 0,
+        valid: true
+    }, {
+        while: current =>
+            current.valid && current.block < current.control.block_first.length,
         next: current => {
-            if (current.index == integers.widen(current.control.block_count[current.block])) {
+            if (
+                current.index ==
+                    integers.widen(
+                        current.control.block_count[current.block]
+                    )
+            ) {
                 current.block += 1
                 current.index = 0
             } else {
-                const statement = integers.widen(current.control.block_first[current.block]) + current.index
+                const statement =
+                    integers.widen(
+                        current.control.block_first[current.block]
+                    ) + current.index
                 const kind = current.control.statement_kinds[statement]
-                const payload = integers.widen(current.control.statement_payloads[statement])
+                const payload =
+                    integers.widen(
+                        current.control.statement_payloads[statement]
+                    )
                 const count = match kind {
                     StatementKind.Branch => 2,
-                    StatementKind.Switch => integers.widen(current.control.selection_count[payload]),
+                    StatementKind.Switch =>
+                        integers.widen(
+                            current.control.selection_count[payload]
+                        ),
                     _ => 0
                 }
 
@@ -52,8 +86,19 @@ export default function (in: Input): Output {
                     current.edge = 0
                 } else {
                     const child = match kind {
-                        StatementKind.Branch => integers.widen(current.edge == 0 ? current.control.branch_yes[payload] : current.control.branch_no[payload]),
-                        _ => integers.widen(current.control.case_bodies[integers.widen(current.control.selection_first[payload]) + current.edge])
+                        StatementKind.Branch =>
+                            integers.widen(
+                                current.edge ==
+                                    0 ? current.control.branch_yes[payload] :
+                                    current.control.branch_no[payload]
+                            ),
+                        _ =>
+                            integers.widen(
+                                current.control
+                                    .case_bodies[integers.widen(
+                                        current.control.selection_first[payload]
+                                    ) + current.edge]
+                            )
                     }
                     const depth = current.depths[child] + 1
 

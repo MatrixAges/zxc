@@ -1,0 +1,62 @@
+import { comma, no_operator } from "./const"
+import operatorPriority from "./operator"
+
+import type { Graph } from "./model"
+
+export type Input = {
+    graph: Graph,
+    index: u64,
+    priority: u64
+}
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    return loop({
+        input: in,
+        index: in.index,
+        width: 0,
+        done: false
+    }, {
+        while: current =>
+            !current.done && current.index < current.input.graph.input.tokens.length,
+        next: current => {
+            const token = current.input.graph.input.tokens[current.index]
+            const parent = current.input.graph.owners[current.index]
+            const owner = current.input.graph.owners[current.input.index]
+            const partner = current.input.graph.partners[current.index]
+            const end =
+                parent == owner &&
+                (
+                    token.text == comma || (
+                        partner != null && partner < current.index
+                    )
+                )
+            const newline = current.index > current.input.index && token.newline
+
+            if (end || newline) {
+                if (end && !newline) {
+                    const tail =
+                        current.index + 1 < current.input.graph.trailers.length ?
+                        current.input.graph.trailers[current.index + 1] : 0
+
+                    current.width +=
+                        token.text.length +
+                        current.input.graph.gaps[current.index] + tail
+                }
+
+                current.done = true
+            } else {
+                current.width +=
+                    token.text.length + current.input.graph.gaps[current.index]
+                const priority = operatorPriority(token.text)
+
+                current.done =
+                    token.object ||
+                    parent == owner && priority != no_operator &&
+                    priority <= current.input.priority
+                current.index += 1
+            }
+        }
+    }).width
+}

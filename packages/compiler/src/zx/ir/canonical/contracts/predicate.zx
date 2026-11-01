@@ -8,7 +8,10 @@ import type { Stores } from "core/store_table/model"
 import type { Functions } from "../expressions/rules/model"
 import type { Program } from "./model"
 
-export type Input = { program: Program, index: u64 }
+export type Input = {
+    program: Program,
+    index: u64
+}
 
 export type Output = bool
 
@@ -28,7 +31,12 @@ export default function (in: Input): Output {
         return false
     }
 
-    if (parameters == 2 && (symbols.names[1] != "out" || symbols.types[1] != program.output_type)) {
+    if (
+        parameters == 2 &&
+            (
+                symbols.names[1] != "out" || symbols.types[1] != program.output_type
+            )
+    ) {
         return false
     }
 
@@ -36,14 +44,42 @@ export default function (in: Input): Output {
         return false
     }
 
-    const stores: Stores = { paths: [], types: [], handles: [], readable: [], writable: [] }
-    const functions: Functions = { input_types: [], output_types: [], stores: [] }
+    const stores: Stores = {
+        paths: [],
+        types: [],
+        handles: [],
+        readable: [],
+        writable: []
+    }
 
-    const result = loop({ table: program.table, symbols: symbols, expressions: expressions, stores: stores, functions: functions, index: 0, valid: true }, {
-        while: current => current.valid && current.index < current.expressions.kinds.length,
+    const functions: Functions = {
+        input_types: [],
+        output_types: [],
+        stores: []
+    }
+
+    const result = loop({
+        table: program.table,
+        symbols: symbols,
+        expressions: expressions,
+        stores: stores,
+        functions: functions,
+        index: 0,
+        valid: true
+    }, {
+        while: current =>
+            current.valid && current.index < current.expressions.kinds.length,
         next: current => {
             current.valid = allowed(current.expressions.kinds[current.index]) &&
-                expression({ table: current.table, expressions: current.expressions, symbols: current.symbols, stores: current.stores, functions: current.functions, index: current.index, orchestration: false })
+                expression({
+                    table: current.table,
+                    expressions: current.expressions,
+                    symbols: current.symbols,
+                    stores: current.stores,
+                    functions: current.functions,
+                    index: current.index,
+                    orchestration: false
+                })
             current.index += 1
         }
     })

@@ -8,27 +8,86 @@ import type { Layout } from "../../places/model"
 import type { Memory } from "../model"
 import type { Stack } from "./model"
 
-export type Input = { types: Tables, references: bool[], layout: Layout, memory: Memory, stack: Stack, frame: u64, action: Action }
+export type Input = {
+    types: Tables,
+    references: bool[],
+    layout: Layout,
+    memory: Memory,
+    stack: Stack,
+    frame: u64,
+    action: Action
+}
 
 export type Output = Memory
 
 export default function (in: Input): Output {
-    const count = in.action == Action.RestoreMemo ? in.memory.memo.length : in.memory.facts.length
-    const state_first = in.action == Action.ReleaseAllLoans || in.action == Action.RestoreMemo ? 0 : in.stack.state_first[in.frame]
-    const memo_first = in.action == Action.RestoreMemo ? in.stack.memo_first[in.frame] : 0
-    const rewrite_action = match in.action { Action.MergeStates => RewriteAction.Join, Action.ReleaseNewLoans => RewriteAction.ReleaseNewLoans, _ => RewriteAction.ReleaseAllLoans }
+    const count = in.action == Action.RestoreMemo ? in.memory.memo.length :
+        in.memory.facts.length
 
-    const result = loop({ types: in.types, references: in.references, layout: in.layout, memory: in.memory, saved: in.stack, state_first: state_first, memo_first: memo_first, action: in.action, rewrite_action: rewrite_action, count: count, index: 0 }, {
+    const state_first =
+        in.action == Action.ReleaseAllLoans || in.action == Action.RestoreMemo ? 0 :
+        in.stack.state_first[in.frame]
+
+    const memo_first = in.action == Action.RestoreMemo ? in.stack.memo_first[in.frame] : 0
+
+    const rewrite_action =
+        match in.action {
+            Action.MergeStates => RewriteAction.Join,
+            Action.ReleaseNewLoans => RewriteAction.ReleaseNewLoans,
+            _ => RewriteAction.ReleaseAllLoans
+        }
+
+    const result = loop({
+        types: in.types,
+        references: in.references,
+        layout: in.layout,
+        memory: in.memory,
+        saved: in.stack,
+        state_first: state_first,
+        memo_first: memo_first,
+        action: in.action,
+        rewrite_action: rewrite_action,
+        count: count,
+        index: 0
+    }, {
         while: current => current.index < current.count,
         next: current => {
             if (current.action == Action.RestoreMemo) {
-                current.memory.memo[current.index] = current.saved.memo[current.memo_first + current.index]
+                current.memory.memo[current.index] =
+                    current.saved.memo[current.memo_first + current.index]
             } else if (current.layout.parents[current.index] == 0) {
-                const saved = current.action == Action.ReleaseAllLoans ? 0 : current.saved.facts[current.state_first + current.index]
-                const changed = current.action == Action.RestoreStates ? { forest: current.memory.forest, fact: saved } : rewrite({ types: current.types, references: current.references, forest: current.memory.forest, left: current.memory.facts[current.index], right: saved, action: current.rewrite_action })
-                const bound = bind({ types: current.types, references: current.references, layout: current.layout, storage: { forest: changed.forest, facts: current.memory.facts, states: current.memory.states }, id: current.index, fact: changed.fact })
+                const saved = current.action == Action.ReleaseAllLoans ? 0 :
+                    current.saved.facts[current.state_first + current.index]
+                const changed = current.action == Action.RestoreStates ? {
+                    forest: current.memory.forest,
+                    fact: saved
+                } : rewrite({
+                    types: current.types,
+                    references: current.references,
+                    forest: current.memory.forest,
+                    left: current.memory.facts[current.index],
+                    right: saved,
+                    action: current.rewrite_action
+                })
+                const bound = bind({
+                    types: current.types,
+                    references: current.references,
+                    layout: current.layout,
+                    storage: {
+                        forest: changed.forest,
+                        facts: current.memory.facts,
+                        states: current.memory.states
+                    },
+                    id: current.index,
+                    fact: changed.fact
+                })
 
-                current.memory = { ...current.memory, forest: bound.forest, facts: bound.facts, states: bound.states }
+                current.memory = {
+                    ...current.memory,
+                    forest: bound.forest,
+                    facts: bound.facts,
+                    states: bound.states
+                }
             }
 
             current.index += 1

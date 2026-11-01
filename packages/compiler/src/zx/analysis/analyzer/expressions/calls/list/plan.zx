@@ -1,8 +1,19 @@
 import { CollectionKind } from "core/expression_table/kinds"
 
-export type Input = { name: string, count: u64, list: u32, element: u32 }
+export type Input = {
+    name: string,
+    count: u64,
+    list: u32,
+    element: u32
+}
 
-export type Output = { kind: CollectionKind, replacement: bool, hints: u32[], code: string, message: string }
+export type Output = {
+    kind: CollectionKind,
+    replacement: bool,
+    hints: u32[],
+    code: string,
+    message: string
+}
 
 export default function (in: Input): Output {
     const replacement = in.name == "with"
@@ -16,7 +27,9 @@ export default function (in: Input): Output {
         _ => CollectionKind.Push,
     }
 
-    const known = replacement || in.name == "push" || in.name == "pop" || in.name == "sort" || in.name == "reverse" || in.name == "splice" || in.name == "concat"
+    const known =
+        replacement || in.name == "push" || in.name == "pop" || in.name == "sort" ||
+        in.name == "reverse" || in.name == "splice" || in.name == "concat"
 
     const hints: u32[] = match {
         replacement => [5, in.element],
@@ -28,10 +41,19 @@ export default function (in: Input): Output {
 
     const message = match {
         !known => "unknown list operation",
-        in.count != hints.length => replacement ? "with requires an index and replacement value" : "list operation argument count mismatch",
-        kind == CollectionKind.Sort && (in.element < 2 || in.element > 10) => "sort requires numeric or string elements",
+        in.count != hints.length =>
+            replacement ? "with requires an index and replacement value" :
+            "list operation argument count mismatch",
+        kind == CollectionKind.Sort && (in.element < 2 || in.element > 10) =>
+            "sort requires numeric or string elements",
         _ => "",
     }
 
-    return { kind: kind, replacement: replacement, hints: hints, code: !known ? "name" : "type_mismatch", message: message }
+    return {
+        kind: kind,
+        replacement: replacement,
+        hints: hints,
+        code: !known ? "name" : "type_mismatch",
+        message: message
+    }
 }

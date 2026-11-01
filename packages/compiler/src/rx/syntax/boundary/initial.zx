@@ -2,16 +2,29 @@ import { Mode } from "./model"
 
 import type { State, Frame } from "./model"
 
-export type Input = { source: u8[], start: u64 }
+export type Input = {
+    source: u8[],
+    start: u64
+}
 
 export type Output = State
 
 export default function (in: Input): Output {
-  const frames: Frame[] = []
+    const frames: Frame[] = []
 
-  return {
-    source: in.source, frames: frames,
-    frame: { mode: Mode.Interpolation, start: in.start, depth: 0, braces: 0 },
-    offset: in.start, comment_start: 0, done: false, message: "", issue: 0
-  }
+    return {
+        source: in.source,
+        frames: frames,
+        frame: {
+            mode: Mode.Interpolation,
+            start: in.start,
+            depth: 0,
+            braces: 0
+        },
+        offset: in.start,
+        comment_start: 0,
+        done: false,
+        message: "",
+        issue: 0
+    }
 }

@@ -2,7 +2,11 @@ import integers from "std:integer"
 
 import type { Control } from "./model"
 
-export type Input = { control: Control, selection: u64, returns: bool[] }
+export type Input = {
+    control: Control,
+    selection: u64,
+    returns: bool[]
+}
 
 export type Output = bool
 
@@ -14,10 +18,19 @@ export default function (in: Input): Output {
     const first = integers.widen(in.control.selection_first[in.selection])
     const count = integers.widen(in.control.selection_count[in.selection])
 
-    const result = loop({ bodies: in.control.case_bodies, returns: in.returns, index: first, end: first + count, all: true }, {
+    const result = loop({
+        bodies: in.control.case_bodies,
+        returns: in.returns,
+        index: first,
+        end: first + count,
+        all: true
+    }, {
         while: current => current.all && current.index < current.end,
         next: current => {
-            current.all = current.returns[integers.widen(current.bodies[current.index])]
+            current.all =
+                current.returns[integers.widen(
+                    current.bodies[current.index]
+                )]
             current.index += 1
         }
     })

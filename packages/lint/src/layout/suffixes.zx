@@ -1,0 +1,82 @@
+import {
+    close_object,
+    close_call,
+    close_list,
+    open_object,
+    open_call,
+    open_list,
+    comma,
+    access_dot,
+    import_from,
+    no_operator
+} from "./const"
+import operatorPriority from "./operator"
+
+import type { Graph } from "./model"
+
+export type Input = Graph
+
+export type Output = Graph
+
+export default function (in: Input): Output {
+    const widths: u64[] = []
+
+    const empty = loop({
+        widths: widths,
+        index: 0,
+        count: in.input.tokens.length
+    }, {
+        while: current => current.index < current.count,
+        next: current => {
+            current.widths = current.widths.push(0)[0]
+            current.index += 1
+        }
+    }).widths
+
+    const result = loop({
+        graph: in,
+        widths: empty,
+        remaining: in.input.tokens.length
+    }, {
+        while: current => current.remaining > 0,
+        next: current => {
+            current.remaining -= 1
+            const index = current.remaining
+            const token = current.graph.input.tokens[index]
+            const next = index + 1
+            const count = current.graph.input.tokens.length
+            const closing =
+                token.text == close_object || token.text == close_call ||
+                token.text == close_list
+            const ending =
+                token.text == open_object || token.text == open_call ||
+                token.text == open_list || token.text == comma ||
+                operatorPriority(
+                    token.text
+                ) != no_operator
+            const tail = next < count ? current.widths[next] : 0
+            const width = current.graph.gaps[index] + token.text.length
+
+            if (closing) {
+                current.widths[index] = width + tail
+            } else if (ending) {
+                current.widths[index] = width
+            } else if (token.text == access_dot && next < count) {
+                const member = current.graph.input.tokens[next]
+                const after = next + 1 < count ? current.widths[next + 1] : 0
+
+                current.widths[index] =
+                    width + current.graph.gaps[next] + member.text.length + after
+            } else if (token.text == import_from && next < count) {
+                current.widths[index] =
+                    width + current.graph.gaps[next] +
+                    current.graph.input.tokens[next].text.length
+            }
+        }
+    })
+
+    return {
+        ...in,
+        trailers: result.widths
+    }
+}

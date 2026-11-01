@@ -10,19 +10,60 @@ export type Input = State
 export type Output = State
 
 export default function (in: Input): Output {
-  const result = in.control.result
-  const start = in.tree.blocks[result].span.start
-  const end = in.tree.blocks[result].span.end
-  const value = { ...node({ kind: ExprKind.StateBlock, start: start, end: end, depth: 1 }), first: result }
-  const index = in.expression.control.index
-  const root_index = in.expression.control.root_index
-  const last_end = in.expression.control.last_end
-  const expression_frames: ExprFrame[] = []
-  const frames: Frame[] = []
-  const popped = in.suspended.pop()
-  const saved = popped[1] ?? { expression: in.expression.control, expression_frames: expression_frames, frames: frames, frame: in.frame, control: in.control }
-  const control = { ...saved.expression, index: index, root_index: root_index, last_end: last_end, phase: Phase.Returning }
-  const expression = emit({ state: { prepared: in.expression.prepared, tree: in.expression.tree, types: in.expression.types, frames: saved.expression_frames, control: control }, node: value })
+    const result = in.control.result
+    const start = in.tree.blocks[result].span.start
+    const end = in.tree.blocks[result].span.end
 
-  return { expression: expression, tree: in.tree, frames: saved.frames, suspended: popped[0], frame: saved.frame, control: saved.control }
+    const value = {
+        ...node({
+            kind: ExprKind.StateBlock,
+            start: start,
+            end: end,
+            depth: 1
+        }),
+        first: result
+    }
+
+    const index = in.expression.control.index
+    const root_index = in.expression.control.root_index
+    const last_end = in.expression.control.last_end
+    const expression_frames: ExprFrame[] = []
+    const frames: Frame[] = []
+    const popped = in.suspended.pop()
+
+    const saved = popped[1] ?? {
+        expression: in.expression.control,
+        expression_frames: expression_frames,
+        frames: frames,
+        frame: in.frame,
+        control: in.control
+    }
+
+    const control = {
+        ...saved.expression,
+        index: index,
+        root_index: root_index,
+        last_end: last_end,
+        phase: Phase.Returning
+    }
+
+    const expression = emit({
+        state: {
+            prepared: in.expression.prepared,
+            tree: in.expression.tree,
+            types: in.expression.types,
+            frames: saved.expression_frames,
+            control: control
+        },
+        node: value
+    })
+
+    return {
+        expression: expression,
+        tree: in.tree,
+        frames: saved.frames,
+        suspended: popped[0],
+        frame: saved.frame,
+        control: saved.control
+    }
 }

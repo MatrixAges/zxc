@@ -29,12 +29,27 @@ export default function (in: Input): Output {
         next: current => {
             const kind = current.kinds[current.index]
 
-            if (current.tasks && (kind == ExpressionKind.Task || kind == ExpressionKind.AwaitTask || kind == ExpressionKind.CancelTask || kind == ExpressionKind.Parallel)) {
+            if (
+                current.tasks &&
+                    (
+                        kind == ExpressionKind.Task || kind == ExpressionKind.AwaitTask ||
+                            kind == ExpressionKind.CancelTask ||
+                            kind == ExpressionKind.Parallel
+                    )
+            ) {
                 current.valid = false
             } else if (kind == ExpressionKind.Call) {
-                const target = integers.widen(current.call_functions[integers.widen(current.payloads[current.index])])
+                const target =
+                    integers.widen(
+                        current
+                            .call_functions[integers.widen(
+                                current.payloads[current.index]
+                            )]
+                    )
 
-                current.valid = target < current.limit && current.allowed[target] == current.expected
+                current.valid =
+                    target < current.limit &&
+                    current.allowed[target] == current.expected
             }
 
             current.index += 1

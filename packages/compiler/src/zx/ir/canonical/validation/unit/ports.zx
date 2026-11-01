@@ -7,5 +7,8 @@ export type Input = Request
 export type Output = bool
 
 export default function (in: Input): Output {
-    return integers.widen(in.unit.input_type) < in.context.table.kinds.length && integers.widen(in.unit.output_type) < in.context.table.kinds.length
+    return integers.widen(in.unit.input_type) < in.context.table.kinds.length &&
+        integers.widen(
+            in.unit.output_type
+        ) < in.context.table.kinds.length
 }

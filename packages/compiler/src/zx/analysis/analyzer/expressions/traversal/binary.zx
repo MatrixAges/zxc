@@ -7,7 +7,10 @@ import { Phase, Action } from "./model"
 
 import type { Work } from "./model"
 
-export type Input = { work: Work, action: Action }
+export type Input = {
+    work: Work,
+    action: Action
+}
 
 export type Output = Work
 
@@ -20,7 +23,13 @@ export default function (in: Input): Output {
 
     if (in.action == Action.BinaryLeft) {
         const before = mark(work.state.local.refinement.facts)
-        const result = right({ state: work.state, operator: operator, left: work.value, span: node.span })
+
+        const result = right({
+            state: work.state,
+            operator: operator,
+            left: work.value,
+            span: node.span
+        })
 
         return {
             ...work,
@@ -28,13 +37,49 @@ export default function (in: Input): Output {
             node: node.second,
             expected: result.expected,
             phase: Phase.Evaluate,
-            frames: { ...work.frames, actions: work.frames.actions.push(Action.BinaryRight)[0], binaries: work.frames.binaries.splice(position, 1, [{ ...frame, left: result.left, mark: before }])[0] }
+            frames: {
+                ...work.frames,
+                actions: work.frames.actions.push(Action.BinaryRight)[0],
+                binaries: work.frames.binaries.splice(position, 1, [{
+                    ...frame,
+                    left: result.left,
+                    mark: before
+                }])[0]
+            }
         }
     }
 
-    const facts = restore({ facts: work.state.local.refinement.facts, mark: frame.mark })
-    const state = { ...work.state, local: { ...work.state.local, refinement: { ...work.state.local.refinement, facts: facts } } }
-    const result = finish({ state: state, operator: operator, left: frame.left, right: work.value, span: node.span })
+    const facts = restore({
+        facts: work.state.local.refinement.facts,
+        mark: frame.mark
+    })
 
-    return { ...work, state: result.state, value: result.value, frames: { ...work.frames, binaries: work.frames.binaries.pop()[0] } }
+    const state = {
+        ...work.state,
+        local: {
+            ...work.state.local,
+            refinement: {
+                ...work.state.local.refinement,
+                facts: facts
+            }
+        }
+    }
+
+    const result = finish({
+        state: state,
+        operator: operator,
+        left: frame.left,
+        right: work.value,
+        span: node.span
+    })
+
+    return {
+        ...work,
+        state: result.state,
+        value: result.value,
+        frames: {
+            ...work.frames,
+            binaries: work.frames.binaries.pop()[0]
+        }
+    }
 }

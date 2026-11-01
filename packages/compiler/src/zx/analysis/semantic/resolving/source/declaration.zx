@@ -2,7 +2,10 @@ import text from "./text"
 
 import type { Source, Entry } from "./model"
 
-export type Input = { source: Source, index: u64 }
+export type Input = {
+    source: Source,
+    index: u64
+}
 
 export type Output = Entry
 
@@ -15,5 +18,14 @@ export default function (in: Input): Output {
 
     const declaration = in.source.indexed.declarations[in.index]
 
-    return { name: text({ source: in.source.indexed.bytes, span: declaration.name }), value: { enumeration: declaration.enumeration, index: declaration.enumeration ? in.index : declaration.value } }
+    return {
+        name: text({
+            source: in.source.indexed.bytes,
+            span: declaration.name
+        }),
+        value: {
+            enumeration: declaration.enumeration,
+            index: declaration.enumeration ? in.index : declaration.value
+        }
+    }
 }

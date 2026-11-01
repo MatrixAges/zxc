@@ -8,5 +8,25 @@ export type Output = State
 export default function (in: Input): Output {
     const zero: u32 = 0
 
-    return { mapping: in.source.kinds.map(value => zero), delta: { kinds: [], first: [], second: [], labels: [], children: [], field_types: [], field_names: [], names: [] }, origins: { ids: [], kinds: [], owners: [], members: [] }, references: [], status: 0 }
+    return {
+        mapping: in.source.kinds.map(value => zero),
+        delta: {
+            kinds: [],
+            first: [],
+            second: [],
+            labels: [],
+            children: [],
+            field_types: [],
+            field_names: [],
+            names: []
+        },
+        origins: {
+            ids: [],
+            kinds: [],
+            owners: [],
+            members: []
+        },
+        references: [],
+        status: 0
+    }
 }

@@ -3,7 +3,15 @@
 
     <Args in={Model.Request} out={Model.State?} />
 
-    <Call module="../../validate_types" in={{ table: $in.table, scalar_count: $in.scalar_count, maximum_count: $in.maximum_count, trusted: false }} />
+    <Call
+        module="../../validate_types"
+        in={{
+            table: $in.table,
+            scalar_count: $in.scalar_count,
+            maximum_count: $in.maximum_count,
+            trusted: false
+        }}
+    />
 
     <Call fn="valid" in={$in} />
 

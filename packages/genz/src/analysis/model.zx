@@ -29,8 +29,23 @@ export type Program = {
         output_type: u32
 }
 
-export type State = { selected: bool[], keys: u8[] }
+export type State = {
+    selected: bool[],
+    keys: u8[]
+}
 
-export type Values = { pure: bool[], local: bool[], values: bool[] }
+export type Values = {
+    pure: bool[],
+    local: bool[],
+    values: bool[]
+}
 
-export type Facts = { pure: bool[], local: bool[], values: bool[], selected: bool[], keys: u8[], io: bool[], process: bool[] }
+export type Facts = {
+    pure: bool[],
+    local: bool[],
+    values: bool[],
+    selected: bool[],
+    keys: u8[],
+    io: bool[],
+    process: bool[]
+}

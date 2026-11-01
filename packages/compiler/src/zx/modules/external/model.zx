@@ -16,8 +16,30 @@ export type ExternalInput = {
         member: u8[]
 }
 
-export type Analysis = { types: Types, publish: bool, input_type: u32, output_type: u32, members: Span[], diagnostic: Diagnostic }
+export type Analysis = {
+    types: Types,
+    publish: bool,
+    input_type: u32,
+    output_type: u32,
+    members: Span[],
+    diagnostic: Diagnostic
+}
 
-export type Resolution = { delta: Table, cache: Cache, id: u32, diagnostic: Diagnostic, origins: Bindings, publish: bool }
+export type Resolution = {
+    delta: Table,
+    cache: Cache,
+    id: u32,
+    diagnostic: Diagnostic,
+    origins: Bindings,
+    publish: bool
+}
 
-export type Result = { type_delta: Table, nominal_delta: Bindings, publish: bool, input_type: u32, output_type: u32, members: Span[], diagnostic: Diagnostic }
+export type Result = {
+    type_delta: Table,
+    nominal_delta: Bindings,
+    publish: bool,
+    input_type: u32,
+    output_type: u32,
+    members: Span[],
+    diagnostic: Diagnostic
+}

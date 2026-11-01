@@ -11,14 +11,46 @@ export type Output = Work
 export default function (in: Input): Output {
     const position = in.frames.transforms.length - 1
     const frame = in.frames.transforms[position]
-    const selected = hints({ state: in.state, kind: frame.kind, target: frame.target, second: frame.second, expected: frame.expected })
-    const entered = enter({ state: in.state, source: in.source, node: frame.arguments[0], types: selected.parameters })
+
+    const selected = hints({
+        state: in.state,
+        kind: frame.kind,
+        target: frame.target,
+        second: frame.second,
+        expected: frame.expected
+    })
+
+    const entered = enter({
+        state: in.state,
+        source: in.source,
+        node: frame.arguments[0],
+        types: selected.parameters
+    })
 
     if (entered.state.diagnostic.message != "") {
-        return { ...in, state: entered.state }
+        return {
+            ...in,
+            state: entered.state
+        }
     }
 
-    const transforms = in.frames.transforms.splice(position, 1, [{ ...frame, capture_frame: entered.frame, parameters: entered.parameters, result_type: selected.result }])[0]
+    const transforms = in.frames.transforms.splice(position, 1, [{
+        ...frame,
+        capture_frame: entered.frame,
+        parameters: entered.parameters,
+        result_type: selected.result
+    }])[0]
 
-    return { ...in, state: entered.state, node: entered.body, expected: selected.body, phase: Phase.Evaluate, frames: { ...in.frames, transforms: transforms, actions: in.frames.actions.push(Action.TransformBody)[0] } }
+    return {
+        ...in,
+        state: entered.state,
+        node: entered.body,
+        expected: selected.body,
+        phase: Phase.Evaluate,
+        frames: {
+            ...in.frames,
+            transforms: transforms,
+            actions: in.frames.actions.push(Action.TransformBody)[0]
+        }
+    }
 }

@@ -1,4 +1,10 @@
 import type { Contracts } from "core/contract_table/model"
 import type { Table } from "core/type_table/model"
 
-export type Program = { table: Table, contracts: Contracts, input_type: u32, output_type: u32, max_offset: u64 }
+export type Program = {
+    table: Table,
+    contracts: Contracts,
+    input_type: u32,
+    output_type: u32,
+    max_offset: u64
+}

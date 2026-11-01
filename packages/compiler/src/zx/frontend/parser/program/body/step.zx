@@ -7,5 +7,10 @@ export type Input = BodyStage
 export type Output = BodyStage
 
 export default function (in: Input): Output {
-  return { prefix: in.prefix, contracts: in.contracts, header: in.header, body: step(in.body) }
+    return {
+        prefix: in.prefix,
+        contracts: in.contracts,
+        header: in.header,
+        body: step(in.body)
+    }
 }

@@ -24,89 +24,341 @@ export type Output = Machine
 
 export default function (in: Input): Output {
     return loop(in, {
-        while: current => current.active && current.complete && !current.failed && current.work.actions.length != 0 && family(current.work.actions[current.work.actions.length - 1]) == Family.Statements,
+        while: current =>
+            current.active && current.complete && !current.failed &&
+            current.work.actions.length != 0 &&
+            family(
+                current.work.actions[current.work.actions.length - 1]
+            ) == Family.Statements,
         next: current => {
             const frame = top(current.work)
 
             current.work = pop(current.work)
 
             if (frame.action == WorkAction.Block) {
-                const count = integers.widen(current.program.control.block_count[frame.subject])
+                const count =
+                    integers.widen(
+                        current.program.control.block_count[frame.subject]
+                    )
 
                 if (frame.index < count) {
-                    const statement = integers.widen(current.program.control.block_first[frame.subject]) + frame.index
+                    const statement =
+                        integers.widen(
+                            current.program.control.block_first[frame.subject]
+                        ) + frame.index
 
-                    current.work = push({ work: current.work, frame: { action: WorkAction.Block, subject: frame.subject, moving: false, index: frame.index + 1 } })
-                    current.work = push({ work: current.work, frame: { action: WorkAction.Release, subject: 0, moving: false, index: 0 } })
-                    current.work = push({ work: current.work, frame: { action: WorkAction.Statement, subject: statement, moving: false, index: 0 } })
+                    current.work = push({
+                        work: current.work,
+                        frame: {
+                            action: WorkAction.Block,
+                            subject: frame.subject,
+                            moving: false,
+                            index: frame.index + 1
+                        }
+                    })
+                    current.work = push({
+                        work: current.work,
+                        frame: {
+                            action: WorkAction.Release,
+                            subject: 0,
+                            moving: false,
+                            index: 0
+                        }
+                    })
+                    current.work = push({
+                        work: current.work,
+                        frame: {
+                            action: WorkAction.Statement,
+                            subject: statement,
+                            moving: false,
+                            index: 0
+                        }
+                    })
                 }
             } else if (frame.action == WorkAction.Release) {
-                current.memory = apply({ types: current.program.types, references: current.references, layout: current.layout.tree, memory: current.memory, stack: current.snapshots, frame: 0, action: Action.ReleaseAllLoans })
+                current.memory = apply({
+                    types: current.program.types,
+                    references: current.references,
+                    layout: current.layout.tree,
+                    memory: current.memory,
+                    stack: current.snapshots,
+                    frame: 0,
+                    action: Action.ReleaseAllLoans
+                })
             } else if (frame.action == WorkAction.Statement) {
                 const kind = current.program.control.statement_kinds[frame.subject]
-                const payload = integers.widen(current.program.control.statement_payloads[frame.subject])
+                const payload =
+                    integers.widen(
+                        current.program.control.statement_payloads[frame.subject]
+                    )
 
                 if (kind == StatementKind.Evaluate) {
-                    current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.control.evaluations[payload]), moving: false, index: 0 } })
+                    current.work = push({
+                        work: current.work,
+                        frame: {
+                            action: WorkAction.Value,
+                            subject:
+                                integers.widen(
+                                    current.program.control.evaluations[payload]
+                                ),
+                            moving: false,
+                            index: 0
+                        }
+                    })
                 } else if (kind == StatementKind.Constant) {
                     const binding = payload
 
-                    current.work = push({ work: current.work, frame: { action: WorkAction.Constant, subject: integers.widen(current.program.control.constant_symbols[binding]), moving: false, index: 0 } })
-                    current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.control.constant_values[binding]), moving: true, index: 0 } })
+                    current.work = push({
+                        work: current.work,
+                        frame: {
+                            action: WorkAction.Constant,
+                            subject:
+                                integers.widen(
+                                    current.program.control.constant_symbols[binding]
+                                ),
+                            moving: false,
+                            index: 0
+                        }
+                    })
+                    current.work = push({
+                        work: current.work,
+                        frame: {
+                            action: WorkAction.Value,
+                            subject:
+                                integers.widen(
+                                    current.program.control.constant_values[binding]
+                                ),
+                            moving: true,
+                            index: 0
+                        }
+                    })
                 } else if (kind == StatementKind.Result) {
-                    const value = optionalId(current.program.control.results[payload])
+                    const value =
+                        optionalId(
+                            current.program.control.results[payload]
+                        )
 
                     if (value != null) {
-                        current.work = push({ work: current.work, frame: { action: WorkAction.Result, subject: 0, moving: false, index: 0 } })
-                        current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: value, moving: true, index: 0 } })
+                        current.work = push({
+                            work: current.work,
+                            frame: {
+                                action: WorkAction.Result,
+                                subject: 0,
+                                moving: false,
+                                index: 0
+                            }
+                        })
+                        current.work = push({
+                            work: current.work,
+                            frame: {
+                                action: WorkAction.Value,
+                                subject: value,
+                                moving: true,
+                                index: 0
+                            }
+                        })
                     }
                 } else if (kind == StatementKind.StoreSet) {
                     const setter = payload
 
-                    current.work = push({ work: current.work, frame: { action: WorkAction.Store, subject: integers.widen(current.program.control.setter_values[setter]), moving: false, index: 0 } })
-                    current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.control.setter_values[setter]), moving: false, index: 0 } })
+                    current.work = push({
+                        work: current.work,
+                        frame: {
+                            action: WorkAction.Store,
+                            subject:
+                                integers.widen(
+                                    current.program.control.setter_values[setter]
+                                ),
+                            moving: false,
+                            index: 0
+                        }
+                    })
+                    current.work = push({
+                        work: current.work,
+                        frame: {
+                            action: WorkAction.Value,
+                            subject:
+                                integers.widen(
+                                    current.program.control.setter_values[setter]
+                                ),
+                            moving: false,
+                            index: 0
+                        }
+                    })
                 } else if (kind == StatementKind.Destructure) {
                     const binding = payload
 
-                    current.work = push({ work: current.work, frame: { action: WorkAction.Destructure, subject: payload, moving: false, index: 0 } })
-                    current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.control.destructure_values[binding]), moving: true, index: 0 } })
+                    current.work = push({
+                        work: current.work,
+                        frame: {
+                            action: WorkAction.Destructure,
+                            subject: payload,
+                            moving: false,
+                            index: 0
+                        }
+                    })
+                    current.work = push({
+                        work: current.work,
+                        frame: {
+                            action: WorkAction.Value,
+                            subject:
+                                integers.widen(
+                                    current.program.control.destructure_values[binding]
+                                ),
+                            moving: true,
+                            index: 0
+                        }
+                    })
                 } else if (kind == StatementKind.Switch) {
-                    current.work = push({ work: current.work, frame: { action: WorkAction.SwitchSubject, subject: payload, moving: false, index: 0 } })
-                    current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.control.selection_subjects[payload]), moving: false, index: 0 } })
+                    current.work = push({
+                        work: current.work,
+                        frame: {
+                            action: WorkAction.SwitchSubject,
+                            subject: payload,
+                            moving: false,
+                            index: 0
+                        }
+                    })
+                    current.work = push({
+                        work: current.work,
+                        frame: {
+                            action: WorkAction.Value,
+                            subject:
+                                integers.widen(
+                                    current.program.control.selection_subjects[payload]
+                                ),
+                            moving: false,
+                            index: 0
+                        }
+                    })
                 } else if (kind == StatementKind.Parallel) {
-                    current.work = push({ work: current.work, frame: { action: WorkAction.Invocation, subject: payload, moving: false, index: 0 } })
+                    current.work = push({
+                        work: current.work,
+                        frame: {
+                            action: WorkAction.Invocation,
+                            subject: payload,
+                            moving: false,
+                            index: 0
+                        }
+                    })
                 } else if (kind == StatementKind.Branch) {
                     const branch = payload
 
-                    current.work = push({ work: current.work, frame: { action: WorkAction.BranchCondition, subject: payload, moving: false, index: 0 } })
-                    current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.control.branch_conditions[branch]), moving: false, index: 0 } })
+                    current.work = push({
+                        work: current.work,
+                        frame: {
+                            action: WorkAction.BranchCondition,
+                            subject: payload,
+                            moving: false,
+                            index: 0
+                        }
+                    })
+                    current.work = push({
+                        work: current.work,
+                        frame: {
+                            action: WorkAction.Value,
+                            subject:
+                                integers.widen(
+                                    current.program.control.branch_conditions[branch]
+                                ),
+                            moving: false,
+                            index: 0
+                        }
+                    })
                 } else {
                     current.complete = false
                 }
             } else if (frame.action == WorkAction.Constant) {
-                current.memory = place({ types: current.program.types, references: current.references, layout: current.layout.tree, memory: current.memory, id: frame.subject, operation: Operation.Assign, fact: current.value })
+                current.memory = place({
+                    types: current.program.types,
+                    references: current.references,
+                    layout: current.layout.tree,
+                    memory: current.memory,
+                    id: frame.subject,
+                    operation: Operation.Assign,
+                    fact: current.value
+                })
             } else if (frame.action == WorkAction.Result) {
-                if (current.returned == State.Borrowed || summary({ forest: current.memory.forest, fact: current.value }) == State.Borrowed) {
+                if (current.returned == State.Borrowed || summary({
+                    forest: current.memory.forest,
+                    fact: current.value
+                }) == State.Borrowed) {
                     current.returned = State.Borrowed
-                } else if (current.returned == State.Owned || summary({ forest: current.memory.forest, fact: current.value }) == State.Owned) {
+                } else if (current.returned == State.Owned || summary({
+                    forest: current.memory.forest,
+                    fact: current.value
+                }) == State.Owned) {
                     current.returned = State.Owned
                 } else {
-                    current.returned = summary({ forest: current.memory.forest, fact: current.value })
+                    current.returned = summary({
+                        forest: current.memory.forest,
+                        fact: current.value
+                    })
                 }
             } else if (frame.action == WorkAction.Store) {
-                current.stores_owned = current.stores_owned && (summary({ forest: current.memory.forest, fact: current.value }) == State.Owned || summary({ forest: current.memory.forest, fact: current.value }) == State.Copy)
-                current.memory = borrow({ types: current.program.types, references: current.references, expressions: current.program.expressions, layout: current.layout, memory: current.memory, expression: frame.subject, permanent: true })
+                current.stores_owned = current.stores_owned && (summary({
+                    forest: current.memory.forest,
+                    fact: current.value
+                }) == State.Owned || summary({
+                    forest: current.memory.forest,
+                    fact: current.value
+                }) == State.Copy)
+                current.memory = borrow({
+                    types: current.program.types,
+                    references: current.references,
+                    expressions: current.program.expressions,
+                    layout: current.layout,
+                    memory: current.memory,
+                    expression: frame.subject,
+                    permanent: true
+                })
             } else if (frame.action == WorkAction.Destructure) {
-                const symbols = { first: integers.widen(current.program.control.destructure_first[frame.subject]), count: integers.widen(current.program.control.destructure_count[frame.subject]) }
+                const symbols = {
+                    first:
+                        integers.widen(
+                            current.program.control.destructure_first[frame.subject]
+                        ),
+                    count:
+                        integers.widen(
+                            current.program.control.destructure_count[frame.subject]
+                        )
+                }
 
                 if (frame.index < symbols.count) {
-                    const symbol = optionalId(current.program.control.destructure_symbols[symbols.first + frame.index])
+                    const symbol =
+                        optionalId(
+                            current.program.control
+                                .destructure_symbols[symbols.first +
+                                    frame.index]
+                        )
 
                     if (symbol != null) {
-                        current.memory = place({ types: current.program.types, references: current.references, layout: current.layout.tree, memory: current.memory, id: symbol, operation: Operation.Assign, fact: project({ forest: current.memory.forest, fact: current.value, index: frame.index, reference: current.layout.tree.references[symbol] }) })
+                        current.memory = place({
+                            types: current.program.types,
+                            references: current.references,
+                            layout: current.layout.tree,
+                            memory: current.memory,
+                            id: symbol,
+                            operation: Operation.Assign,
+                            fact: project({
+                                forest: current.memory.forest,
+                                fact: current.value,
+                                index: frame.index,
+                                reference:
+                                    current.layout.tree.references[symbol]
+                            })
+                        })
                     }
 
-                    current.work = push({ work: current.work, frame: { action: WorkAction.Destructure, subject: frame.subject, moving: false, index: frame.index + 1 } })
+                    current.work = push({
+                        work: current.work,
+                        frame: {
+                            action: WorkAction.Destructure,
+                            subject: frame.subject,
+                            moving: false,
+                            index: frame.index + 1
+                        }
+                    })
                 }
             }
         }

@@ -2,13 +2,33 @@
     <Type from="./model" as="Model" />
     <Type from="../context" as="Context" />
 
-    <Args in={{ analysis: Model.Analysis, module: Context.ModuleInput }} out={Model.Analysis} />
+    <Args
+        in={{
+            analysis: Model.Analysis,
+            module: Context.ModuleInput
+        }}
+        out={Model.Analysis}
+    />
 
     <Switch on={$in.analysis.state.diagnostic.message == ""}>
         <Case value={true}>
-            <Call module="../ownership" in={{ state: $in.analysis.state, root: $in.analysis.root, functions: $in.module.context.functions, type_only: $in.analysis.type_only }} />
+            <Call
+                module="../ownership"
+                in={{
+                    state: $in.analysis.state,
+                    root: $in.analysis.root,
+                    functions: $in.module.context.functions,
+                    type_only: $in.analysis.type_only
+                }}
+            />
 
-            <Return value={{ ...$in.analysis, state: $ctx.ownership.state, ownership: $ctx.ownership.ownership }} />
+            <Return
+                value={{
+                    ...$in.analysis,
+                    state: $ctx.ownership.state,
+                    ownership: $ctx.ownership.ownership
+                }}
+            />
         </Case>
 
         <Default>

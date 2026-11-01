@@ -1,5 +1,11 @@
 <Module>
-    <Args in={{ maximum: u64?, text: u8[] }} out={u64?} />
+    <Args
+        in={{
+            maximum: u64?,
+            text: u8[]
+        }}
+        out={u64?}
+    />
 
     <Switch on={$in.maximum != null && $in.maximum == 0}>
         <Case value={true}>

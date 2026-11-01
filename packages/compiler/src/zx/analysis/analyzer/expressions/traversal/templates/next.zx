@@ -16,10 +16,27 @@ export default function (in: Input): Output {
     const frame = in.frames.templates[position]
     const span = in.source.tree.nodes[frame.node].span
 
-    const text = loop({ state: in.state, source: in.source, frame: frame, span: span }, {
-        while: current => current.frame.index < current.frame.parts.length && !current.source.tree.parts[current.frame.parts[current.frame.index]].expression,
+    const text = loop({
+        state: in.state,
+        source: in.source,
+        frame: frame,
+        span: span
+    }, {
+        while: current =>
+            current.frame.index < current.frame.parts.length &&
+            !current.source.tree.parts[current.frame.parts[current.frame.index]]
+            .expression,
         next: current => {
-            const value = string({ state: current.state, source: literal({ source: current.source, index: current.frame.parts[current.frame.index], template: true }), template: true, span: current.span })
+            const value = string({
+                state: current.state,
+                source: literal({
+                    source: current.source,
+                    index: current.frame.parts[current.frame.index],
+                    template: true
+                }),
+                template: true,
+                span: current.span
+            })
 
             current.state = value.state
             current.frame.values = current.frame.values.push(value.value)[0]
@@ -28,12 +45,47 @@ export default function (in: Input): Output {
     })
 
     if (text.frame.index == text.frame.parts.length) {
-        const result = append({ table: text.state.local.expressions, metadata: { type_id: 10, span_start: span.start, span_end: span.end }, kind: SequenceKind.Template, values: text.frame.values })
+        const result = append({
+            table: text.state.local.expressions,
+            metadata: {
+                type_id: 10,
+                span_start: span.start,
+                span_end: span.end
+            },
+            kind: SequenceKind.Template,
+            values: text.frame.values
+        })
 
-        return { ...in, state: { ...text.state, local: { ...text.state.local, expressions: result.table } }, value: result.id, phase: Phase.Complete, frames: { ...in.frames, templates: in.frames.templates.pop()[0] } }
+        return {
+            ...in,
+            state: {
+                ...text.state,
+                local: {
+                    ...text.state.local,
+                    expressions: result.table
+                }
+            },
+            value: result.id,
+            phase: Phase.Complete,
+            frames: {
+                ...in.frames,
+                templates: in.frames.templates.pop()[0]
+            }
+        }
     }
 
     const part = in.source.tree.parts[text.frame.parts[text.frame.index]]
 
-    return { ...in, state: text.state, node: part.value, expected: null, phase: Phase.Evaluate, frames: { ...in.frames, actions: in.frames.actions.push(Action.Template)[0], templates: in.frames.templates.splice(position, 1, [text.frame])[0] } }
+    return {
+        ...in,
+        state: text.state,
+        node: part.value,
+        expected: null,
+        phase: Phase.Evaluate,
+        frames: {
+            ...in.frames,
+            actions: in.frames.actions.push(Action.Template)[0],
+            templates: in.frames.templates.splice(position, 1, [text.frame])[0]
+        }
+    }
 }

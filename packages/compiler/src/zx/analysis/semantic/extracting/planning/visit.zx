@@ -8,7 +8,11 @@ import { Status } from "./model"
 
 import type { State, Request } from "./model"
 
-export type Input = { request: Request, state: State, index: u64 }
+export type Input = {
+    request: Request,
+    state: State,
+    index: u64
+}
 
 export type Output = State
 
@@ -20,8 +24,16 @@ export default function (in: Input): Output {
     const ids: u64[] = [in.index]
     const ready: bool[] = [false]
 
-    const state = loop({ request: in.request, plan: in.state, pending: { ids: ids, ready: ready } }, {
-        while: current => current.plan.status == Status.Ready && current.pending.ids.length > 0,
+    const state = loop({
+        request: in.request,
+        plan: in.state,
+        pending: {
+            ids: ids,
+            ready: ready
+        }
+    }, {
+        while: current =>
+            current.plan.status == Status.Ready && current.pending.ids.length > 0,
         next: current => {
             const last = current.pending.ids.length - 1
             const index = current.pending.ids[last]
@@ -34,7 +46,11 @@ export default function (in: Input): Output {
                 if (!ready) {
                     current.pending.ids = current.pending.ids.push(index)[0]
                     current.pending.ready = current.pending.ready.push(true)[0]
-                    current.pending = dependencies({ table: current.request.table, index: index, pending: current.pending })
+                    current.pending = dependencies({
+                        table: current.request.table,
+                        index: index,
+                        pending: current.pending
+                    })
                 } else {
                     const mapped = current.plan.count
 
@@ -44,8 +60,16 @@ export default function (in: Input): Output {
 
                     const type_kind = kind(current.request.table.kinds[index])
 
-                    if (type_kind == Kind.Enumeration || type_kind == Kind.NativeReference) {
-                        const selected = origin({ origins: current.request.origins, names: current.request.names, index: index, name: current.request.table.labels[index] })
+                    if (
+                        type_kind == Kind.Enumeration ||
+                            type_kind == Kind.NativeReference
+                    ) {
+                        const selected = origin({
+                            origins: current.request.origins,
+                            names: current.request.names,
+                            index: index,
+                            name: current.request.table.labels[index]
+                        })
 
                         if (selected == 0) {
                             current.plan.status = Status.MissingOrigin

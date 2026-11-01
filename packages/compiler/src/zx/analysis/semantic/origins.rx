@@ -3,7 +3,13 @@
 
     <Args in={Validate.Input} out={bool} />
 
-    <Call fn="types/nominal/shape" in={{ origins: $in.origins, names: $in.names }} />
+    <Call
+        fn="types/nominal/shape"
+        in={{
+            origins: $in.origins,
+            names: $in.names
+        }}
+    />
 
     <Switch on={$ctx.shape}>
         <Case value={true}>

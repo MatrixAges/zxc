@@ -14,23 +14,53 @@ export type Input = State
 export type Output = State
 
 export default function (in: Input): Output {
-  const start = in.control.location.offset
-  const offset = whitespace({ source: in.source, offset: start })
-  const closed = starts({ source: in.source, offset: offset, text: [47, 62] })
-  const content = starts({ source: in.source, offset: offset, text: [62] })
-  const state = advance({ state: in, count: offset - start })
+    const start = in.control.location.offset
 
-  if (closed) {
-    return publish(advance({ state: state, count: 2 }))
-  }
+    const offset = whitespace({
+        source: in.source,
+        offset: start
+    })
 
-  if (content) {
-    return transition({ state: advance({ state: state, count: 1 }), phase: Phase.Content })
-  }
+    const closed = starts({
+        source: in.source,
+        offset: offset,
+        text: [47, 62]
+    })
 
-  if (offset == start) {
-    return fail({ state: state, message: "XML attributes require separating whitespace" })
-  }
+    const content = starts({
+        source: in.source,
+        offset: offset,
+        text: [62]
+    })
 
-  return attribute(state)
+    const state = advance({
+        state: in,
+        count: offset - start
+    })
+
+    if (closed) {
+        return publish(advance({
+            state: state,
+            count: 2
+        }))
+    }
+
+    if (content) {
+        return transition({
+            state: advance({
+                state: state,
+                count: 1
+            }),
+            phase: Phase.Content
+        })
+    }
+
+    if (offset == start) {
+        return fail({
+            state: state,
+            message: "XML attributes require separating whitespace"
+        })
+    }
+
+    return attribute(state)
 }

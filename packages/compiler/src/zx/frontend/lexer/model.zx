@@ -3,11 +3,36 @@ import { Symbol } from "./token_model"
 import type { State } from "./number/number_state"
 import type { Token, Span } from "./token_model"
 
-export enum Mode { Idle, Identifier, Number, String, StringEscape, LineComment, BlockComment, Template, TemplateEscape, Interpolation, InterpolationString, InterpolationStringEscape, InterpolationLineComment, InterpolationBlockComment }
+export enum Mode {
+    Idle,
+    Identifier,
+    Number,
+    String,
+    StringEscape,
+    LineComment,
+    BlockComment,
+    Template,
+    TemplateEscape,
+    Interpolation,
+    InterpolationString,
+    InterpolationStringEscape,
+    InterpolationLineComment,
+    InterpolationBlockComment
+}
 
-export type Diagnostic = { code: string, start: u64, end: u64, message: string }
+export type Diagnostic = {
+    code: string,
+    start: u64,
+    end: u64,
+    message: string
+}
 
-export type Frame = { mode: Mode, start: u64, braces: u64, depth: u64 }
+export type Frame = {
+    mode: Mode,
+    start: u64,
+    braces: u64,
+    depth: u64
+}
 
 export type LexerState = {
     source_length: u64
@@ -31,6 +56,17 @@ export type LexerState = {
     diagnostic: Diagnostic
 }
 
-export type AdvanceInput = { byte: u8, next: u8, after: u8, has_next: bool, has_after: bool, state: LexerState }
+export type AdvanceInput = {
+    byte: u8,
+    next: u8,
+    after: u8,
+    has_next: bool,
+    has_after: bool,
+    state: LexerState
+}
 
-export type Result = { tokens: Token[], comments: Span[], diagnostic: Diagnostic }
+export type Result = {
+    tokens: Token[],
+    comments: Span[],
+    diagnostic: Diagnostic
+}

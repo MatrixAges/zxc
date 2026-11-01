@@ -21,10 +21,24 @@ export default function (in: Input): Output {
     const stores: Stores[] = []
     const contracts: Contracts[] = []
 
-    const result = loop({ request: in, files: files, inputs: input_types, outputs: output_types, modules: modules, symbols: symbols, expressions: expressions, stores: stores, contracts: contracts, index: 0 }, {
+    const result = loop({
+        request: in,
+        files: files,
+        inputs: input_types,
+        outputs: output_types,
+        modules: modules,
+        symbols: symbols,
+        expressions: expressions,
+        stores: stores,
+        contracts: contracts,
+        index: 0
+    }, {
         while: current => current.index < current.request.source.files.length,
         next: current => {
-            const value = step({ request: current.request, index: current.index })
+            const value = step({
+                request: current.request,
+                index: current.index
+            })
 
             current.files = current.files.push(value.file)[0]
             current.inputs = current.inputs.push(value.input_type)[0]
@@ -38,5 +52,15 @@ export default function (in: Input): Output {
         }
     })
 
-    return { ...in.source, files: result.files, input_types: result.inputs, output_types: result.outputs, native_modules: result.modules, symbols: result.symbols, expressions: result.expressions, stores: result.stores, contracts: result.contracts }
+    return {
+        ...in.source,
+        files: result.files,
+        input_types: result.inputs,
+        output_types: result.outputs,
+        native_modules: result.modules,
+        symbols: result.symbols,
+        expressions: result.expressions,
+        stores: result.stores,
+        contracts: result.contracts
+    }
 }

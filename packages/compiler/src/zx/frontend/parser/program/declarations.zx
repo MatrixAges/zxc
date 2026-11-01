@@ -10,7 +10,10 @@ export type Output = DeclarationStage
 
 export default function (in: Input): Output {
     return loop(initial(in), {
-        while: value => !value.finished && value.declarations.control.index < value.prefix.prepared.lexical.lexed.tokens.length,
+        while: value =>
+            !value.finished &&
+            value.declarations.control.index <
+            value.prefix.prepared.lexical.lexed.tokens.length,
         next: value => {
             value = advance(value)
         }

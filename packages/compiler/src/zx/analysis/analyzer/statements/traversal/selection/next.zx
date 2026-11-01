@@ -22,15 +22,54 @@ export default function (in: Input): Output {
     const source = in.expression.source.blocks.cases[frame.cases[frame.index]]
 
     if (source.value != 0) {
-        return request({ body: in, node: source.value - 1, expected: in.expression.state.local.expressions.types[integers.widen(frame.subject)], action: Action.Label })
+        return request({
+            body: in,
+            node: source.value - 1,
+            expected:
+                in.expression.state.local.expressions
+                .types[integers.widen(
+                    frame.subject
+                )],
+            action: Action.Label
+        })
     }
 
     if (frame.fallback) {
-        return { ...in, expression: { ...in.expression, state: { ...in.expression.state, diagnostic: { code: "name", message: "duplicate switch default", start: source.span.start, end: source.span.end } } } }
+        return {
+            ...in,
+            expression: {
+                ...in.expression,
+                state: {
+                    ...in.expression.state,
+                    diagnostic: {
+                        code: "name",
+                        message: "duplicate switch default",
+                        start: source.span.start,
+                        end: source.span.end
+                    }
+                }
+            }
+        }
     }
 
-    const blocks = enter({ blocks: in.blocks, local: in.expression.state.local, tree: in.expression.source.blocks, block: source.body })
-    const selections = in.selections.splice(position, 1, [{ ...frame, fallback: true, values: frame.values.push(null)[0] }])[0]
+    const blocks = enter({
+        blocks: in.blocks,
+        local: in.expression.state.local,
+        tree: in.expression.source.blocks,
+        block: source.body
+    })
 
-    return { ...in, blocks: blocks, selections: selections, actions: in.actions.push(Action.Case)[0], phase: Phase.Next }
+    const selections = in.selections.splice(position, 1, [{
+        ...frame,
+        fallback: true,
+        values: frame.values.push(null)[0]
+    }])[0]
+
+    return {
+        ...in,
+        blocks: blocks,
+        selections: selections,
+        actions: in.actions.push(Action.Case)[0],
+        phase: Phase.Next
+    }
 }

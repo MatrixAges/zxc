@@ -61,7 +61,9 @@ export default function (in: Input): Output {
         index: 0,
         diagnostic: initial.diagnostic
     }, {
-        while: current => current.diagnostic.message == "" && current.index < current.input.syntax.constants.length,
+        while: current =>
+            current.diagnostic.message == "" &&
+            current.index < current.input.syntax.constants.length,
         next: current => {
             const constant = current.input.syntax.constants[current.index]
             const evaluated = analyze({

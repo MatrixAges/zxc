@@ -1,0 +1,47 @@
+export type Token = {
+    text: string,
+    start: u64,
+    end: u64,
+    gap: u64,
+    object: bool,
+    opening: bool,
+    closing: bool,
+    separator: bool,
+    block: bool,
+    comment: bool,
+    boundary: bool,
+    newline: bool
+}
+
+export type Input = {
+    tokens: Token[],
+    width: u64,
+    level: u64,
+    indent_only: bool,
+    prefix: u64,
+    suffix: u64
+}
+
+export type Graph = {
+    input: Input,
+    partners: u64?[],
+    owners: u64?[],
+    depths: u64[],
+    widths: u64[],
+    prefixes: u64[],
+    vertical_counts: u64[],
+    gaps: u64[],
+    trailers: u64[],
+    selections: bool[]
+}
+
+export type Plan = {
+    graph: Graph,
+    wraps: bool[]
+}
+
+export type Break = {
+    index: u64,
+    level: u64,
+    count: u64
+}

@@ -1,0 +1,27 @@
+<Module>
+    <Type from="./model" as="Layout" />
+
+    <Args in={Layout.Input} out={Layout.Break[]} />
+
+    <Call fn="scan" in={$in} />
+
+    <Switch on={$in.indent_only}>
+        <Case value={true}>
+            <Call
+                fn="breaks"
+                in={{
+                    graph: $ctx.scan,
+                    wraps: []
+                }}
+            />
+
+            <Return value={$ctx.breaks} />
+        </Case>
+    </Switch>
+
+    <Call fn="suffixes" in={$ctx.scan} />
+    <Call fn="measure" in={$ctx.suffixes} />
+    <Call fn="breaks" in={$ctx.measure} />
+
+    <Return value={$ctx.breaks} />
+</Module>

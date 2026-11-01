@@ -8,7 +8,11 @@ import type { Program } from "../ir/input_model"
 import type { Built, Roots } from "./model"
 import type { Session } from "./project/model"
 
-export type Input = { program: Program, references: bool[], roots: Roots }
+export type Input = {
+    program: Program,
+    references: bool[],
+    roots: Roots
+}
 
 export type Output = Built
 
@@ -51,15 +55,36 @@ export default function (in: Input): Output {
         next: current => {
             if (current.phase == Phase.Expression) {
                 current = expression(current)
-            } else if (current.phase == Phase.AncestorStart || current.phase == Phase.Ancestor || current.phase == Phase.Root || current.phase == Phase.Path) {
+            } else if (
+                current.phase == Phase.AncestorStart ||
+                    current.phase == Phase.Ancestor || current.phase == Phase.Root ||
+                    current.phase == Phase.Path
+            ) {
                 current = path(current)
             } else if (current.phase == Phase.Ensure) {
                 current = ensure(current)
-            } else if (current.phase == Phase.Grow || current.phase == Phase.Clear || current.phase == Phase.Rehash) {
+            } else if (
+                current.phase == Phase.Grow || current.phase == Phase.Clear ||
+                    current.phase == Phase.Rehash
+            ) {
                 current = rehash(current)
             }
         }
     })
 
-    return { tree: { parents: result.parents, children: result.children, siblings: result.siblings, references: result.reference_flags, types: result.place_types, field_indices: result.field_indices }, cached: result.cached, slots: result.slots, parents: result.key_parents, fields: result.key_fields, values: result.values }
+    return {
+        tree: {
+            parents: result.parents,
+            children: result.children,
+            siblings: result.siblings,
+            references: result.reference_flags,
+            types: result.place_types,
+            field_indices: result.field_indices
+        },
+        cached: result.cached,
+        slots: result.slots,
+        parents: result.key_parents,
+        fields: result.key_fields,
+        values: result.values
+    }
 }

@@ -1,6 +1,13 @@
 import type { Modules, Functions } from "core/native_module_table/model"
 import type { Table } from "core/type_table/model"
 
-export type Context = { table: Table, modules: Modules }
+export type Context = {
+    table: Table,
+    modules: Modules
+}
 
-export type ExportContext = { modules: Modules, functions: Functions, index: u64 }
+export type ExportContext = {
+    modules: Modules,
+    functions: Functions,
+    index: u64
+}

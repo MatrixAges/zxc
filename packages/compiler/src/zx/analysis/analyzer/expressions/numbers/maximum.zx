@@ -1,7 +1,24 @@
 import integers from "std:integer"
-import { type_id_u8, type_id_u16, type_id_u32, type_id_i32, type_id_i64, max_u8, max_u16, max_u32, max_u64, i32_negative_magnitude, i32_positive_magnitude, i64_negative_magnitude, i64_positive_magnitude } from "core/const"
+import {
+    type_id_u8,
+    type_id_u16,
+    type_id_u32,
+    type_id_i32,
+    type_id_i64,
+    max_u8,
+    max_u16,
+    max_u32,
+    max_u64,
+    i32_negative_magnitude,
+    i32_positive_magnitude,
+    i64_negative_magnitude,
+    i64_positive_magnitude
+} from "core/const"
 
-export type Input = { id: u32, negative: bool }
+export type Input = {
+    id: u32,
+    negative: bool
+}
 
 export type Output = u64
 

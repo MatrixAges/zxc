@@ -5,22 +5,40 @@ import kind from "../kind"
 
 import type { Origin, Bindings } from "core/type_table/nominal"
 
-export type Input = { kinds: u8[], first: u64, origin: Origin, bindings: Bindings }
+export type Input = {
+    kinds: u8[],
+    first: u64,
+    origin: Origin,
+    bindings: Bindings
+}
 
 export type Output = Bindings
 
 export default function (in: Input): Output {
-    const result = loop({ index: in.first, kinds: in.kinds, origin: in.origin, bindings: in.bindings }, {
+    const result = loop({
+        index: in.first,
+        kinds: in.kinds,
+        origin: in.origin,
+        bindings: in.bindings
+    }, {
         while: current => current.index < current.kinds.length,
         next: current => {
             const type_kind = kind(current.kinds[current.index])
 
-            if (type_kind == Kind.Enumeration || type_kind == Kind.NativeReference) {
+            if (
+                type_kind == Kind.Enumeration || type_kind == Kind.NativeReference
+            ) {
                 current.bindings = {
-                    ids: current.bindings.ids.push(integers.narrow(current.index))[0],
+                    ids:
+                        current.bindings.ids.push(
+                            integers.narrow(
+                                current.index
+                            )
+                        )[0],
                     kinds: current.bindings.kinds.push(current.origin.kind)[0],
                     owners: current.bindings.owners.push(current.origin.owner)[0],
-                    members: current.bindings.members.push(current.origin.member)[0]
+                    members:
+                        current.bindings.members.push(current.origin.member)[0]
                 }
             }
 

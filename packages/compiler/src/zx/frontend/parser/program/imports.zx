@@ -10,10 +10,13 @@ export type Input = PreparedInput
 export type Output = ImportStage
 
 export default function (in: Input): Output {
-  return loop(initial(in), {
-    while: value => value.prepared.lexical.lexed.diagnostic.message == "" && value.imports.control.phase != Phase.Done && value.imports.control.index < value.prepared.lexical.lexed.tokens.length,
-    next: value => {
-      value = advance(value)
-    }
-  })
+    return loop(initial(in), {
+        while: value =>
+            value.prepared.lexical.lexed.diagnostic.message == "" &&
+            value.imports.control.phase != Phase.Done &&
+            value.imports.control.index < value.prepared.lexical.lexed.tokens.length,
+        next: value => {
+            value = advance(value)
+        }
+    })
 }

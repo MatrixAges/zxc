@@ -3,19 +3,36 @@ import body from "./body"
 import type { Table } from "core/type_table/model"
 import type { Functions } from "../model"
 
-export type Input = { types: Table, functions: Functions, pure: bool[] }
+export type Input = {
+    types: Table,
+    functions: Functions,
+    pure: bool[]
+}
 
 export type Output = bool[]
 
 export default function (in: Input): Output {
     const safe = in.functions.output_types.map(id => false)
 
-    const result = loop({ types: in.types, expressions: in.functions.expressions, contracts: in.functions.contracts, pure: in.pure, safe: safe, index: 0 }, {
+    const result = loop({
+        types: in.types,
+        expressions: in.functions.expressions,
+        contracts: in.functions.contracts,
+        pure: in.pure,
+        safe: safe,
+        index: 0
+    }, {
         while: current => current.index < current.expressions.length,
         next: current => {
             const index = current.index
 
-            current.safe[index] = current.pure[index] && body({ types: current.types, expressions: current.expressions[index], contracts: current.contracts[index], allowed: current.safe, limit: index })
+            current.safe[index] = current.pure[index] && body({
+                types: current.types,
+                expressions: current.expressions[index],
+                contracts: current.contracts[index],
+                allowed: current.safe,
+                limit: index
+            })
             current.index += 1
         }
     })

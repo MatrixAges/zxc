@@ -5,5 +5,8 @@ export type Input = State
 export type Output = State
 
 export default function (in: Input): Output {
-    return { ...in, frames: in.frames.pop()[0] }
+    return {
+        ...in,
+        frames: in.frames.pop()[0]
+    }
 }

@@ -3,26 +3,52 @@ import { NameKind } from "lint/naming/model"
 
 import ascending from "./ascending"
 
-export type Input = { values: string[], first: u64, count: u64, errors: bool }
+export type Input = {
+    values: string[],
+    first: u64,
+    count: u64,
+    errors: bool
+}
 
 export type Output = bool
 
 export default function (in: Input): Output {
-    const state = loop({ values: in.values, first: in.first, count: in.count, errors: in.errors, index: 0, valid: true }, {
+    const state = loop({
+        values: in.values,
+        first: in.first,
+        count: in.count,
+        errors: in.errors,
+        index: 0,
+        valid: true
+    }, {
         while: current => current.valid && current.index < current.count,
         next: current => {
             const position = current.first + current.index
             const member = current.values[position]
 
             if (current.errors) {
-                current.valid = checkName({ name: member, kind: NameKind.TypeDecl }) && (current.index == 0 || ascending({ left: current.values[position - 1], right: member }))
+                current.valid = checkName({
+                    name: member,
+                    kind: NameKind.TypeDecl
+                }) && (current.index == 0 || ascending({
+                    left: current.values[position - 1],
+                    right: member
+                }))
             } else if (member == "") {
                 current.valid = false
             } else {
-                const previous = loop({ values: current.values, first: current.first, count: current.index, member: member, index: 0, unique: true }, {
+                const previous = loop({
+                    values: current.values,
+                    first: current.first,
+                    count: current.index,
+                    member: member,
+                    index: 0,
+                    unique: true
+                }, {
                     while: item => item.unique && item.index < item.count,
                     next: item => {
-                        item.unique = item.values[item.first + item.index] != item.member
+                        item.unique =
+                            item.values[item.first + item.index] != item.member
                         item.index += 1
                     }
                 })

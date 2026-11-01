@@ -1,5 +1,12 @@
 import type { TargetKind } from "../dependencies/model"
 
-export type NativePlan = { mapping: u64[], order: u32[], count: u64 }
+export type NativePlan = {
+    mapping: u64[],
+    order: u32[],
+    count: u64
+}
 
-export type Dependencies = { kinds: TargetKind[], keys: string[] }
+export type Dependencies = {
+    kinds: TargetKind[],
+    keys: string[]
+}

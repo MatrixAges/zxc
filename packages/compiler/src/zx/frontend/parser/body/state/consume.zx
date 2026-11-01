@@ -2,13 +2,30 @@ import consume from "../../expressions/state/consume"
 
 import type { State, Phase } from "../model"
 
-export type Input = { state: State, phase: Phase }
+export type Input = {
+    state: State,
+    phase: Phase
+}
 
 export type Output = State
 
 export default function (in: Input): Output {
-  const phase = in.state.expression.control.phase
-  const expression = consume({ state: in.state.expression, phase: phase })
+    const phase = in.state.expression.control.phase
 
-  return { expression: expression, tree: in.state.tree, frames: in.state.frames, suspended: in.state.suspended, frame: in.state.frame, control: { ...in.state.control, phase: in.phase } }
+    const expression = consume({
+        state: in.state.expression,
+        phase: phase
+    })
+
+    return {
+        expression: expression,
+        tree: in.state.tree,
+        frames: in.state.frames,
+        suspended: in.state.suspended,
+        frame: in.state.frame,
+        control: {
+            ...in.state.control,
+            phase: in.phase
+        }
+    }
 }

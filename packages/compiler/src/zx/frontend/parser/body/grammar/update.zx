@@ -13,36 +13,117 @@ export type Input = State
 export type Output = State
 
 export default function (in: Input): Output {
-  if (in.control.phase == Phase.UpdateAssign) {
-    return expect({ state: in, symbol: Symbol.Assign, phase: Phase.BeginValue, message: "=" })
-  }
-
-  const result = in.expression.control.result
-  const operator = in.expression.control.hint.binary.operator
-  const kind = in.control.phase == Phase.StoreAssign ? StatementKind.StoreSet : StatementKind.StateUpdate
-  const state = { expression: in.expression, tree: in.tree, frames: in.frames, suspended: in.suspended, frame: { ...in.frame, statement: kind, first: result }, control: in.control }
-
-  if (state.control.phase == Phase.StoreAssign || state.expression.control.token.symbol == Symbol.Assign) {
-    return expect({ state: state, symbol: Symbol.Assign, phase: Phase.BeginValue, message: "=" })
-  }
-
-  if (operator == Operator.None) {
-    const expression_kind = state.expression.tree.nodes[result].kind
-
-    if (expression_kind == ExprKind.Call || expression_kind == ExprKind.Await || expression_kind == ExprKind.Cancel) {
-      return { expression: state.expression, tree: state.tree, frames: state.frames, suspended: state.suspended, frame: { ...state.frame, statement: StatementKind.Evaluate }, control: { ...state.control, phase: Phase.EndStatement } }
+    if (in.control.phase == Phase.UpdateAssign) {
+        return expect({
+            state: in,
+            symbol: Symbol.Assign,
+            phase: Phase.BeginValue,
+            message: "="
+        })
     }
 
-    const start = state.expression.tree.nodes[result].span.start
-    const end = state.expression.tree.nodes[result].span.end
-    const diagnostic = { code: "syntax", start: start, end: end, message: "expected a state update, call, await or cancel" }
+    const result = in.expression.control.result
+    const operator = in.expression.control.hint.binary.operator
 
-    return { expression: state.expression, tree: state.tree, frames: state.frames, suspended: state.suspended, frame: state.frame, control: { ...state.control, phase: Phase.Done, diagnostic: diagnostic } }
-  }
+    const kind = in.control.phase == Phase.StoreAssign ? StatementKind.StoreSet :
+        StatementKind.StateUpdate
 
-  if (operator != Operator.Add && operator != Operator.Subtract && operator != Operator.Multiply && operator != Operator.Divide && operator != Operator.Remainder) {
-    return fail({ state: state, code: "syntax", message: "expected a state update or a standalone call" })
-  }
+    const state = {
+        expression: in.expression,
+        tree: in.tree,
+        frames: in.frames,
+        suspended: in.suspended,
+        frame: {
+            ...in.frame,
+            statement: kind,
+            first: result
+        },
+        control: in.control
+    }
 
-  return consume({ state: { expression: state.expression, tree: state.tree, frames: state.frames, suspended: state.suspended, frame: { ...state.frame, operator: operator }, control: state.control }, phase: Phase.UpdateAssign })
+    if (
+        state.control.phase == Phase.StoreAssign ||
+            state.expression.control.token.symbol == Symbol.Assign
+    ) {
+        return expect({
+            state: state,
+            symbol: Symbol.Assign,
+            phase: Phase.BeginValue,
+            message: "="
+        })
+    }
+
+    if (operator == Operator.None) {
+        const expression_kind = state.expression.tree.nodes[result].kind
+
+        if (
+            expression_kind == ExprKind.Call || expression_kind == ExprKind.Await ||
+                expression_kind == ExprKind.Cancel
+        ) {
+            return {
+                expression: state.expression,
+                tree: state.tree,
+                frames: state.frames,
+                suspended: state.suspended,
+                frame: {
+                    ...state.frame,
+                    statement: StatementKind.Evaluate
+                },
+                control: {
+                    ...state.control,
+                    phase: Phase.EndStatement
+                }
+            }
+        }
+
+        const start = state.expression.tree.nodes[result].span.start
+        const end = state.expression.tree.nodes[result].span.end
+
+        const diagnostic = {
+            code: "syntax",
+            start: start,
+            end: end,
+            message: "expected a state update, call, await or cancel"
+        }
+
+        return {
+            expression: state.expression,
+            tree: state.tree,
+            frames: state.frames,
+            suspended: state.suspended,
+            frame: state.frame,
+            control: {
+                ...state.control,
+                phase: Phase.Done,
+                diagnostic: diagnostic
+            }
+        }
+    }
+
+    if (
+        operator != Operator.Add && operator != Operator.Subtract &&
+            operator != Operator.Multiply && operator != Operator.Divide &&
+            operator != Operator.Remainder
+    ) {
+        return fail({
+            state: state,
+            code: "syntax",
+            message: "expected a state update or a standalone call"
+        })
+    }
+
+    return consume({
+        state: {
+            expression: state.expression,
+            tree: state.tree,
+            frames: state.frames,
+            suspended: state.suspended,
+            frame: {
+                ...state.frame,
+                operator: operator
+            },
+            control: state.control
+        },
+        phase: Phase.UpdateAssign
+    })
 }

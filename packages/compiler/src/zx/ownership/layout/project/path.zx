@@ -11,7 +11,12 @@ export type Output = Session
 
 export default function (in: Input): Output {
     return loop(in, {
-        while: current => current.active && (current.phase == Phase.AncestorStart || current.phase == Phase.Ancestor || current.phase == Phase.Root || current.phase == Phase.Path),
+        while: current =>
+            current.active &&
+            (
+                current.phase == Phase.AncestorStart || current.phase == Phase.Ancestor ||
+                    current.phase == Phase.Root || current.phase == Phase.Path
+            ),
         next: current => {
             if (current.phase == Phase.AncestorStart) {
                 current.ancestor = current.expression
@@ -20,8 +25,13 @@ export default function (in: Input): Output {
             } else if (current.phase == Phase.Ancestor) {
                 const kind = current.program.expressions.kinds[current.ancestor]
 
-                if (kind == ExpressionKind.Field || kind == ExpressionKind.TupleField) {
-                    const field = projection({ expressions: current.program.expressions, id: current.ancestor })
+                if (
+                    kind == ExpressionKind.Field || kind == ExpressionKind.TupleField
+                ) {
+                    const field = projection({
+                        expressions: current.program.expressions,
+                        id: current.ancestor
+                    })
 
                     current.path = current.path.push(current.ancestor)[0]
                     current.ancestor = field.target

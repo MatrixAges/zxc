@@ -1,0 +1,54 @@
+import { question } from "./const"
+import { assignment_priority, assign, arrow, colon } from "./const"
+import {
+    logical_and,
+    logical_or,
+    coalesce,
+    equal,
+    not_equal,
+    less_equal,
+    greater_equal,
+    less,
+    greater,
+    add,
+    subtract,
+    multiply,
+    divide,
+    remainder,
+    no_operator,
+    coalesce_priority,
+    or_priority,
+    and_priority,
+    equality_priority,
+    comparison_priority,
+    sum_priority,
+    product_priority
+} from "./const"
+
+export type Input = string
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    return match in {
+        question => assignment_priority,
+        assign => assignment_priority,
+        arrow => assignment_priority,
+        colon => assignment_priority,
+        coalesce => coalesce_priority,
+        logical_or => or_priority,
+        logical_and => and_priority,
+        equal => equality_priority,
+        not_equal => equality_priority,
+        less => comparison_priority,
+        greater => comparison_priority,
+        less_equal => comparison_priority,
+        greater_equal => comparison_priority,
+        add => sum_priority,
+        subtract => sum_priority,
+        multiply => product_priority,
+        divide => product_priority,
+        remainder => product_priority,
+        _ => no_operator
+    }
+}

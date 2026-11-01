@@ -12,9 +12,29 @@ export default function (in: Input): Output {
     if (in.body.symbols.names.length == 0) {
         return {
             state: {
-                activity: { active: [], declared: [], owners: [], changed_symbols: [], changed_values: [] },
-                refinement: { facts: { nonnull: [], projected: [], capture_errors: [], capture_results: [] }, conditions: [], truths: [] },
-                frames: { phases: [], a: [], b: [], c: [] }
+                activity: {
+                    active: [],
+                    declared: [],
+                    owners: [],
+                    changed_symbols: [],
+                    changed_values: []
+                },
+                refinement: {
+                    facts: {
+                        nonnull: [],
+                        projected: [],
+                        capture_errors: [],
+                        capture_results: []
+                    },
+                    conditions: [],
+                    truths: []
+                },
+                frames: {
+                    phases: [],
+                    a: [],
+                    b: [],
+                    c: []
+                }
             },
             valid: false
         }
@@ -31,7 +51,16 @@ export default function (in: Input): Output {
                 changed_symbols: [],
                 changed_values: []
             },
-            refinement: { facts: { nonnull: [], projected: [], capture_errors: [], capture_results: [] }, conditions: [], truths: [] },
+            refinement: {
+                facts: {
+                    nonnull: [],
+                    projected: [],
+                    capture_errors: [],
+                    capture_results: []
+                },
+                conditions: [],
+                truths: []
+            },
             frames: {
                 phases: root == null ? [] : [Phase.Block],
                 a: root == null ? [] : [integers.widen(root)],

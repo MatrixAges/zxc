@@ -30,7 +30,13 @@ export default function (in: Input): Output {
         return missing
     }
 
-    if (qualified && (in.state.types.context.aliases.names.length == 0 || in.source.tree.nodes[owner.first].kind != ExprKind.Identifier)) {
+    if (
+        qualified &&
+            (
+                in.state.types.context.aliases.names.length == 0 ||
+                    in.source.tree.nodes[owner.first].kind != ExprKind.Identifier
+            )
+    ) {
         return missing
     }
 
@@ -60,7 +66,10 @@ export default function (in: Input): Output {
         return missing
     }
 
-    if (in.state.local.expression_bindings.length != 0 || in.state.local.expression_units.length != 0) {
+    if (
+        in.state.local.expression_bindings.length != 0 ||
+            in.state.local.expression_units.length != 0
+    ) {
         const root_binding = injected({
             local: in.state.local,
             source: in.source,
@@ -73,7 +82,10 @@ export default function (in: Input): Output {
             node: in.node
         }) : root_binding
 
-        if (root_binding.unit || root_binding.symbol != null || owner_binding.unit || owner_binding.symbol != null) {
+        if (
+            root_binding.unit || root_binding.symbol != null || owner_binding.unit ||
+                owner_binding.symbol != null
+        ) {
             return missing
         }
     }
@@ -103,7 +115,8 @@ export default function (in: Input): Output {
         found: false,
         id: missing.id
     }, {
-        while: current => current.index < current.aliases.names.length && !current.found,
+        while: current =>
+            current.index < current.aliases.names.length && !current.found,
         next: current => {
             if (matches({
                 source: current.source,

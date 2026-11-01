@@ -8,40 +8,115 @@
     <Type from="./interface/exports" as="Exports" />
     <Type from="./interface/members" as="Members" />
 
-    <Args in={{ errors: Initial.Input[], functions: Model.Function[], namespace: u8[][], parameters: Model.Parameter[], resolution: Check.Output }} out={{ cache: ResolvingModel.Cache, delta: Delta.Output, diagnostic: LexerModel.Diagnostic, exports: Exports.Export[], members: Members.Output }} />
+    <Args
+        in={{
+            errors: Initial.Input[],
+            functions: Model.Function[],
+            namespace: u8[][],
+            parameters: Model.Parameter[],
+            resolution: Check.Output
+        }}
+        out={{
+            cache: ResolvingModel.Cache,
+            delta: Delta.Output,
+            diagnostic: LexerModel.Diagnostic,
+            exports: Exports.Export[],
+            members: Members.Output
+        }}
+    />
 
     <Call fn="interface/namespace" in={$in.namespace} />
 
     <Switch on={$ctx.namespace}>
         <Case value={true}>
             <Call fn="interface/export_index" in={$in.resolution.cache.names} />
-            <Call fn="interface/exports" in={{ source: $in.resolution.context.source, resolved: $in.resolution.cache, slots: $ctx.export_index }} />
+
+            <Call
+                fn="interface/exports"
+                in={{
+                    source: $in.resolution.context.source,
+                    resolved: $in.resolution.cache,
+                    slots: $ctx.export_index
+                }}
+            />
 
             <Switch on={$ctx.exports.diagnostic.message == ""}>
                 <Case value={true}>
-                    <Call fn="signatures/functions" in={{ resolution: $in.resolution, functions: $in.functions, parameters: $in.parameters }} />
+                    <Call
+                        fn="signatures/functions"
+                        in={{
+                            resolution: $in.resolution,
+                            functions: $in.functions,
+                            parameters: $in.parameters
+                        }}
+                    />
 
                     <Switch on={$ctx.functions.resolution.diagnostic.message == ""}>
                         <Case value={true}>
-                            <Call fn="interface/members" in={{ source: $in.resolution.context.source.indexed.bytes, functions: $in.functions, errors: $in.errors, signatures: $ctx.functions.signatures }} />
+                            <Call
+                                fn="interface/members"
+                                in={{
+                                    source: $in.resolution.context.source.indexed.bytes,
+                                    functions: $in.functions,
+                                    errors: $in.errors,
+                                    signatures: $ctx.functions.signatures
+                                }}
+                            />
 
-                            <Return value={{ delta: $ctx.functions.resolution.delta, cache: $ctx.functions.resolution.cache, diagnostic: $ctx.functions.resolution.diagnostic, exports: $ctx.exports.exports, members: $ctx.members }} />
+                            <Return
+                                value={{
+                                    delta: $ctx.functions.resolution.delta,
+                                    cache: $ctx.functions.resolution.cache,
+                                    diagnostic: $ctx.functions.resolution.diagnostic,
+                                    exports: $ctx.exports.exports,
+                                    members: $ctx.members
+                                }}
+                            />
                         </Case>
 
                         <Default>
-                            <Return value={{ delta: $ctx.functions.resolution.delta, cache: $ctx.functions.resolution.cache, diagnostic: $ctx.functions.resolution.diagnostic, exports: $ctx.exports.exports, members: [] }} />
+                            <Return
+                                value={{
+                                    delta: $ctx.functions.resolution.delta,
+                                    cache: $ctx.functions.resolution.cache,
+                                    diagnostic: $ctx.functions.resolution.diagnostic,
+                                    exports: $ctx.exports.exports,
+                                    members: []
+                                }}
+                            />
                         </Default>
                     </Switch>
                 </Case>
 
                 <Default>
-                    <Return value={{ delta: $in.resolution.delta, cache: $in.resolution.cache, diagnostic: $ctx.exports.diagnostic, exports: $ctx.exports.exports, members: [] }} />
+                    <Return
+                        value={{
+                            delta: $in.resolution.delta,
+                            cache: $in.resolution.cache,
+                            diagnostic: $ctx.exports.diagnostic,
+                            exports: $ctx.exports.exports,
+                            members: []
+                        }}
+                    />
                 </Default>
             </Switch>
         </Case>
 
         <Default>
-            <Return value={{ delta: $in.resolution.delta, cache: $in.resolution.cache, diagnostic: { code: "module", message: "native namespaces require nonempty UTF-8 member names", start: 0, end: 0 }, exports: [], members: [] }} />
+            <Return
+                value={{
+                    delta: $in.resolution.delta,
+                    cache: $in.resolution.cache,
+                    diagnostic: {
+                        code: "module",
+                        message: "native namespaces require nonempty UTF-8 member names",
+                        start: 0,
+                        end: 0
+                    },
+                    exports: [],
+                    members: []
+                }}
+            />
         </Default>
     </Switch>
 </Module>

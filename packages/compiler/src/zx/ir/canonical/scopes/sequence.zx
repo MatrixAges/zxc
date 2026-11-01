@@ -5,16 +5,41 @@ import schedule from "./schedule"
 
 import type { State } from "./model"
 
-export type Input = { state: State, values: u32[], first: u64, count: u64, depth: u64, flags: u64 }
+export type Input = {
+    state: State,
+    values: u32[],
+    first: u64,
+    count: u64,
+    depth: u64,
+    flags: u64
+}
 
 export type Output = State
 
 export default function (in: Input): Output {
-    return loop({ state: in.state, values: in.values, first: in.first, index: in.count, depth: in.depth, flags: in.flags }, {
+    return loop({
+        state: in.state,
+        values: in.values,
+        first: in.first,
+        index: in.count,
+        depth: in.depth,
+        flags: in.flags
+    }, {
         while: current => current.index != 0,
         next: current => {
             current.index -= 1
-            current.state = schedule({ state: current.state, frame: { phase: Phase.Expression, a: integers.widen(current.values[current.first + current.index]), b: current.depth, c: current.flags } })
+            current.state = schedule({
+                state: current.state,
+                frame: {
+                    phase: Phase.Expression,
+                    a:
+                        integers.widen(
+                            current.values[current.first + current.index]
+                        ),
+                    b: current.depth,
+                    c: current.flags
+                }
+            })
         }
     }).state
 }

@@ -18,17 +18,51 @@ export default function (in: Input): Output {
 
     const restoration = in.frame.phase == Phase.IterationBody
     ? in.state
-    : schedule({ state: in.state, frame: { phase: Phase.Restore, a: in.state.activity.changed_symbols.length, b: in.state.refinement.facts.nonnull.length, c: in.state.refinement.facts.capture_errors.length } })
+    : schedule({
+        state: in.state,
+        frame: {
+            phase: Phase.Restore,
+            a: in.state.activity.changed_symbols.length,
+            b: in.state.refinement.facts.nonnull.length,
+            c: in.state.refinement.facts.capture_errors.length
+        }
+    })
 
-    const cleared: State = { ...restoration, activity: clear(restoration.activity) }
+    const cleared: State = {
+        ...restoration,
+        activity: clear(restoration.activity)
+    }
 
     if (in.frame.phase == Phase.Transform) {
-        const parameters = loop({ result: { state: cleared, valid: true }, program: program, owner: in.frame.a, first: integers.widen(expressions.transform_first[payload]), count: integers.widen(expressions.transform_count[payload]), index: 0 }, {
+        const parameters = loop({
+            result: {
+                state: cleared,
+                valid: true
+            },
+            program: program,
+            owner: in.frame.a,
+            first: integers.widen(expressions.transform_first[payload]),
+            count: integers.widen(expressions.transform_count[payload]),
+            index: 0
+        }, {
             while: current => current.result.valid && current.index < current.count,
             next: current => {
-                const symbol = integers.widen(current.program.body.expressions.transform_parameters[current.first + current.index])
+                const symbol =
+                    integers.widen(
+                        current.program.body.expressions
+                            .transform_parameters[current
+                                .first +
+                                current.index]
+                    )
 
-                current.result = declare({ program: current.program, state: current.result.state, symbol: symbol, type_id: 0, owner: current.owner, mode: Declaration.Callback })
+                current.result = declare({
+                    program: current.program,
+                    state: current.result.state,
+                    symbol: symbol,
+                    type_id: 0,
+                    owner: current.owner,
+                    mode: Declaration.Callback
+                })
                 current.index += 1
             }
         }).result
@@ -37,23 +71,65 @@ export default function (in: Input): Output {
             return parameters
         }
 
-        return { state: schedule({ state: parameters.state, frame: { phase: Phase.Expression, a: integers.widen(expressions.transform_bodies[payload]), b: in.frame.b + 1, c: in.frame.c >= 2 ? 3 : 1 } }), valid: true }
+        return {
+            state: schedule({
+                state: parameters.state,
+                frame: {
+                    phase: Phase.Expression,
+                    a: integers.widen(expressions.transform_bodies[payload]),
+                    b: in.frame.b + 1,
+                    c: in.frame.c >= 2 ? 3 : 1
+                }
+            }),
+            valid: true
+        }
     }
 
     const condition = in.frame.phase == Phase.IterationCondition
-    const parameter = condition ? expressions.iteration_condition_parameters[payload] : expressions.iteration_parameters[payload]
-    const value = condition ? expressions.iteration_conditions[payload] : expressions.iteration_bodies[payload]
-    const declared = declare({ program: program, state: cleared, symbol: integers.widen(parameter), type_id: 0, owner: in.frame.a, mode: Declaration.Callback })
+
+    const parameter = condition ? expressions.iteration_condition_parameters[payload] :
+        expressions.iteration_parameters[payload]
+
+    const value = condition ? expressions.iteration_conditions[payload] :
+        expressions.iteration_bodies[payload]
+
+    const declared = declare({
+        program: program,
+        state: cleared,
+        symbol: integers.widen(parameter),
+        type_id: 0,
+        owner: in.frame.a,
+        mode: Declaration.Callback
+    })
 
     if (!declared.valid) {
         return declared
     }
 
     const continuation = condition
-    ? schedule({ state: declared.state, frame: { phase: Phase.IterationBody, a: in.frame.a, b: in.frame.b, c: in.frame.c } })
+    ? schedule({
+        state: declared.state,
+        frame: {
+            phase: Phase.IterationBody,
+            a: in.frame.a,
+            b: in.frame.b,
+            c: in.frame.c
+        }
+    })
     : declared.state
 
-    const state = schedule({ state: continuation, frame: { phase: Phase.Expression, a: integers.widen(value), b: in.frame.b + 1, c: in.frame.c >= 2 ? 3 : 1 } })
+    const state = schedule({
+        state: continuation,
+        frame: {
+            phase: Phase.Expression,
+            a: integers.widen(value),
+            b: in.frame.b + 1,
+            c: in.frame.c >= 2 ? 3 : 1
+        }
+    })
 
-    return { state: state, valid: true }
+    return {
+        state: state,
+        valid: true
+    }
 }

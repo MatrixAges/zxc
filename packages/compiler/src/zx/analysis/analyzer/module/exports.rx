@@ -2,13 +2,38 @@
     <Type from="./model" as="Model" />
     <Type from="../context" as="Context" />
 
-    <Args in={{ analysis: Model.Analysis, module: Context.ModuleInput }} out={Model.Analysis} />
+    <Args
+        in={{
+            analysis: Model.Analysis,
+            module: Context.ModuleInput
+        }}
+        out={Model.Analysis}
+    />
 
     <Switch on={$in.analysis.state.diagnostic.message == ""}>
         <Case value={true}>
-            <Call fn="../exports" in={{ state: { types: $in.analysis.state.types, diagnostic: $in.analysis.state.diagnostic } }} />
+            <Call
+                fn="../exports"
+                in={{
+                    state: {
+                        types: $in.analysis.state.types,
+                        diagnostic: $in.analysis.state.diagnostic
+                    }
+                }}
+            />
 
-            <Return value={{ ...$in.analysis, state: { ...$in.analysis.state, types: $ctx.exports.state.types, diagnostic: $ctx.exports.state.diagnostic }, names: $ctx.exports.names, types: $ctx.exports.types }} />
+            <Return
+                value={{
+                    ...$in.analysis,
+                    state: {
+                        ...$in.analysis.state,
+                        types: $ctx.exports.state.types,
+                        diagnostic: $ctx.exports.state.diagnostic
+                    },
+                    names: $ctx.exports.names,
+                    types: $ctx.exports.types
+                }}
+            />
         </Case>
 
         <Default>

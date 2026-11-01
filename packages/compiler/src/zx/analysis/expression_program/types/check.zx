@@ -21,7 +21,9 @@ export default function (in: Input): Output {
         return in.analysis
     }
 
-    const count = in.analysis.state.types.context.base.kinds.length + in.analysis.state.types.delta.kinds.length
+    const count =
+        in.analysis.state.types.context.base.kinds.length +
+        in.analysis.state.types.delta.kinds.length
 
     const aliases_valid = loop({
         types: in.alias_types,
@@ -31,7 +33,8 @@ export default function (in: Input): Output {
     }, {
         while: current => current.valid && current.index < current.types.length,
         next: current => {
-            current.valid = integers.widen(current.types[current.index]) < current.count
+            current.valid =
+                integers.widen(current.types[current.index]) < current.count
             current.index += 1
         }
     }).valid
@@ -43,7 +46,8 @@ export default function (in: Input): Output {
                 ...in.analysis.state,
                 diagnostic: {
                     code: "contract",
-                    message: "expression type alias is missing from the shared type table",
+                    message:
+                        "expression type alias is missing from the shared type table",
                     start: in.analysis.span.start,
                     end: in.analysis.span.end
                 }
@@ -78,10 +82,16 @@ export default function (in: Input): Output {
         return in.analysis
     }
 
-    const valid = loop({ types: in.binding_types, count: count, index: 0, valid: true }, {
+    const valid = loop({
+        types: in.binding_types,
+        count: count,
+        index: 0,
+        valid: true
+    }, {
         while: current => current.valid && current.index < current.types.length,
         next: current => {
-            current.valid = integers.widen(current.types[current.index]) < current.count
+            current.valid =
+                integers.widen(current.types[current.index]) < current.count
             current.index += 1
         }
     }).valid
@@ -89,13 +99,36 @@ export default function (in: Input): Output {
     const span = in.analysis.span
 
     if (!valid) {
-        return { ...in.analysis, state: { ...in.analysis.state, diagnostic: { code: "contract", message: "expression binding type is missing from the shared type table", start: span.start, end: span.end } } }
+        return {
+            ...in.analysis,
+            state: {
+                ...in.analysis.state,
+                diagnostic: {
+                    code: "contract",
+                    message:
+                        "expression binding type is missing from the shared type table",
+                    start: span.start,
+                    end: span.end
+                }
+            }
+        }
     }
 
     const expected = in.expected
 
     if (expected != null && integers.widen(expected) >= count) {
-        return { ...in.analysis, state: { ...in.analysis.state, diagnostic: { code: "contract", message: "expected type is missing from the shared type table", start: span.start, end: span.end } } }
+        return {
+            ...in.analysis,
+            state: {
+                ...in.analysis.state,
+                diagnostic: {
+                    code: "contract",
+                    message: "expected type is missing from the shared type table",
+                    start: span.start,
+                    end: span.end
+                }
+            }
+        }
     }
 
     return in.analysis

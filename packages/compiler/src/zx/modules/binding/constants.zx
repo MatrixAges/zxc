@@ -50,8 +50,14 @@ export default function (in: Input): Output {
             } else {
                 current.names = {
                     values: current.names.values.push(name)[0],
-                    starts: current.names.starts.push(current.input.names.starts[current.index])[0],
-                    ends: current.names.ends.push(current.input.names.ends[current.index])[0]
+                    starts:
+                        current.names.starts.push(
+                            current.input.names.starts[current.index]
+                        )[0],
+                    ends:
+                        current.names.ends.push(
+                            current.input.names.ends[current.index]
+                        )[0]
                 }
             }
 

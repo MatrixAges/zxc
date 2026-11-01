@@ -14,7 +14,8 @@ export default function (in: Input): Output {
         while: current => current.root < 2 || current.nodes.length != 0,
         next: current => {
             if (current.nodes.length == 0) {
-                const root = current.root == 0 ? current.request.input : current.request.output
+                const root = current.root == 0 ? current.request.input :
+                    current.request.output
 
                 current.root += 1
 
@@ -30,7 +31,10 @@ export default function (in: Input): Output {
                 const single = target == Kind.List || target == Kind.Optional
                 const count = match {
                     single => 1,
-                    target == Kind.Object || target == Kind.Tuple => integers.widen(current.request.second[index]),
+                    target == Kind.Object || target == Kind.Tuple =>
+                        integers.widen(
+                            current.request.second[index]
+                        ),
                     _ => 0,
                 }
 
@@ -40,8 +44,15 @@ export default function (in: Input): Output {
                     const first = current.request.first[index]
                     const child = match {
                         single => first,
-                        target == Kind.Object => current.request.field_types[integers.widen(first) + position],
-                        _ => current.request.children[integers.widen(first) + position],
+                        target == Kind.Object =>
+                            current.request
+                            .field_types[integers.widen(
+                                first
+                            ) + position],
+                        _ =>
+                            current.request
+                            .children[integers.widen(first) +
+                                position],
                     }
 
                     current.cursors[top] += 1
@@ -51,7 +62,10 @@ export default function (in: Input): Output {
                         current.cursors = current.cursors.push(0)[0]
                     }
                 } else {
-                    current.numbers[index] = integers.narrow(current.type_ids.length)
+                    current.numbers[index] =
+                        integers.narrow(
+                            current.type_ids.length
+                        )
                     current.type_ids = current.type_ids.push(node)[0]
                     current.nodes = current.nodes.pop()[0]
                     current.cursors = current.cursors.pop()[0]
@@ -60,5 +74,8 @@ export default function (in: Input): Output {
         }
     })
 
-    return { type_ids: result.type_ids, numbers: result.numbers }
+    return {
+        type_ids: result.type_ids,
+        numbers: result.numbers
+    }
 }

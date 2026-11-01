@@ -16,7 +16,9 @@ export default function (in: Input): Output {
     const flags = classify(in.operator)
 
     if (flags.comparison || flags.logical) {
-        const logical = in.operator == BinaryOperator.LogicalAnd ? in.left.boolean && in.right.boolean : in.left.boolean || in.right.boolean
+        const logical =
+            in.operator == BinaryOperator.LogicalAnd ? in.left.boolean &&
+            in.right.boolean : in.left.boolean || in.right.boolean
 
         return {
             value: {

@@ -15,9 +15,21 @@
                 </Case>
 
                 <Default>
-                    <Call fn="select" in={{ functions: $in.context.functions, index: $in.index }} />
+                    <Call
+                        fn="select"
+                        in={{
+                            functions: $in.context.functions,
+                            index: $in.index
+                        }}
+                    />
 
-                    <Call module="../unit/check" in={{ context: $in.context, unit: $ctx.select }} />
+                    <Call
+                        module="../unit/check"
+                        in={{
+                            context: $in.context,
+                            unit: $ctx.select
+                        }}
+                    />
 
                     <Return value={$ctx.check} />
                 </Default>

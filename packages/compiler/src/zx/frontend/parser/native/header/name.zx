@@ -14,10 +14,17 @@ export default function (in: Input): Output {
     const token = current(in)
 
     if (token.kind != Kind.Identifier) {
-        return fail({ state: in, code: "syntax", message: "expected an identifier" })
+        return fail({
+            state: in,
+            code: "syntax",
+            message: "expected an identifier"
+        })
     }
 
-    const name = { start: token.span.start, end: token.span.end }
+    const name = {
+        start: token.span.start,
+        end: token.span.end
+    }
 
     return advance({
         state: {

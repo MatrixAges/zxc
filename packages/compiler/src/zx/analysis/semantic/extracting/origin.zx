@@ -2,16 +2,34 @@ import integers from "std:integer"
 
 import type { Bindings } from "core/type_table/nominal"
 
-export type Input = { origins: Bindings, names: string[], index: u64, name: string }
+export type Input = {
+    origins: Bindings,
+    names: string[],
+    index: u64,
+    name: string
+}
 
 export type Output = u64
 
 export default function (in: Input): Output {
-    const selected = loop({ origins: in.origins, names: in.names, id: in.index, name: in.name, index: 0, result: 0, valid: true }, {
+    const selected = loop({
+        origins: in.origins,
+        names: in.names,
+        id: in.index,
+        name: in.name,
+        index: 0,
+        result: 0,
+        valid: true
+    }, {
         while: current => current.valid && current.index < current.origins.ids.length,
         next: current => {
-            if (integers.widen(current.origins.ids[current.index]) == current.id) {
-                if (current.result != 0 || current.names[current.index] != current.name) {
+            if (
+                integers.widen(current.origins.ids[current.index]) == current.id
+            ) {
+                if (
+                    current.result != 0 ||
+                        current.names[current.index] != current.name
+                ) {
                     current.valid = false
                 } else {
                     current.result = current.index + 2

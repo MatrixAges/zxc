@@ -14,23 +14,32 @@ export type Input = ExprState
 export type Output = ExprState
 
 export default function (in: Input): Output {
-  if (in.frames.length == 0) {
-    return { prepared: in.prepared, tree: in.tree, types: in.types, frames: in.frames, control: { ...in.control, phase: Phase.Done } }
-  }
+    if (in.frames.length == 0) {
+        return {
+            prepared: in.prepared,
+            tree: in.tree,
+            types: in.types,
+            frames: in.frames,
+            control: {
+                ...in.control,
+                phase: Phase.Done
+            }
+        }
+    }
 
-  const taken = takeFrame(in)
+    const taken = takeFrame(in)
 
-  switch (taken.frame.kind) {
-    case FrameKind.BinaryLeft: return binary(taken)
-    case FrameKind.BinaryRight: return binary(taken)
-    case FrameKind.Arguments: return arguments(taken)
-    case FrameKind.ObjectValue: return object(taken)
-    case FrameKind.OptionsValue: return object(taken)
-    case FrameKind.MatchSubject: return selection(taken)
-    case FrameKind.MatchCondition: return selection(taken)
-    case FrameKind.MatchResult: return selection(taken)
-    case FrameKind.MatchFallback: return selection(taken)
-    case FrameKind.Interpolation: return interpolation(taken)
-    default: return simple(taken)
-  }
+    switch (taken.frame.kind) {
+        case FrameKind.BinaryLeft: return binary(taken)
+        case FrameKind.BinaryRight: return binary(taken)
+        case FrameKind.Arguments: return arguments(taken)
+        case FrameKind.ObjectValue: return object(taken)
+        case FrameKind.OptionsValue: return object(taken)
+        case FrameKind.MatchSubject: return selection(taken)
+        case FrameKind.MatchCondition: return selection(taken)
+        case FrameKind.MatchResult: return selection(taken)
+        case FrameKind.MatchFallback: return selection(taken)
+        case FrameKind.Interpolation: return interpolation(taken)
+        default: return simple(taken)
+    }
 }

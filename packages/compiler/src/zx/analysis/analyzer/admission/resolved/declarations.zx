@@ -13,57 +13,133 @@ export type Input = Request
 export type Output = bool
 
 export default function (in: Input): Output {
-    return loop({ input: in, index: 0, valid: true }, {
-        while: current => current.valid && current.index < current.input.syntax.imports.length,
+    return loop({
+        input: in,
+        index: 0,
+        valid: true
+    }, {
+        while: current =>
+            current.valid && current.index < current.input.syntax.imports.length,
         next: current => {
             const item = current.input.syntax.imports[current.index]
 
             current.valid = item.kind != ImportKind.Function || item.count == 1
 
             if (current.valid) {
-                current.valid = loop({ input: current.input, item: item, index: 0, valid: true }, {
+                current.valid = loop({
+                    input: current.input,
+                    item: item,
+                    index: 0,
+                    valid: true
+                }, {
                     while: names => names.valid && names.index < names.item.count,
                     next: names => {
                         const position = names.item.first + names.index
-                        const name = importName({ source_text: names.input.source_text, spans: names.input.syntax.import_names, native: names.input.native, index: position })
+                        const name = importName({
+                            source_text: names.input.source_text,
+                            spans: names.input.syntax.import_names,
+                            native: names.input.native,
+                            index: position
+                        })
 
-                        names.valid = loop({ input: names.input, limit: position, name: name, index: 0, valid: true }, {
-                            while: previous => previous.valid && previous.index < previous.limit,
+                        names.valid = loop({
+                            input: names.input,
+                            limit: position,
+                            name: name,
+                            index: 0,
+                            valid: true
+                        }, {
+                            while: previous =>
+                                previous.valid &&
+                                previous.index < previous.limit,
                             next: previous => {
-                                const value = importName({ source_text: previous.input.source_text, spans: previous.input.syntax.import_names, native: previous.input.native, index: previous.index })
+                                const value = importName({
+                                    source_text:
+                                        previous.input.source_text,
+                                    spans:
+                                        previous.input.syntax.import_names,
+                                    native: previous.input.native,
+                                    index: previous.index
+                                })
 
                                 previous.valid = value != previous.name
                                 previous.index += 1
                             }
                         }).valid
 
-                        if (names.valid && names.item.kind == ImportKind.Function) {
-                            names.valid = loop({ bindings: names.input.bindings, name: name, index: 0, found: false }, {
-                                while: binding => !binding.found && binding.index < binding.bindings.names.length,
+                        if (
+                            names.valid && names.item.kind == ImportKind.Function
+                        ) {
+                            names.valid = loop({
+                                bindings: names.input.bindings,
+                                name: name,
+                                index: 0,
+                                found: false
+                            }, {
+                                while: binding =>
+                                    !binding.found &&
+                                    binding.index <
+                                    binding.bindings.names.length,
                                 next: binding => {
-                                    binding.found = (binding.bindings.namespaces[binding.index] ?? binding.bindings.names[binding.index]) == binding.name
+                                    binding.found =
+                                        (
+                                            binding.bindings.namespaces[binding
+                                                .index] ??
+                                                binding.bindings.names[binding
+                                                    .index]
+                                        ) == binding.name
                                     binding.index += 1
                                 }
                             }).found
                         } else if (names.valid) {
-                            const value = names.item.kind == ImportKind.Enumeration && names.input.constants != null ? constant({
-                                constants: names.input.constants,
-                                name: name
-                            }) : null
+                            const value =
+                                names.item.kind == ImportKind.Enumeration &&
+                                names.input.constants != null ? constant({
+                                    constants: names.input.constants,
+                                    name: name
+                                }) : null
 
-                            const matched = loop({ input: names.input, name: name, kind: names.item.kind, index: 0, found: false, valid: true }, {
-                                while: alias => alias.valid && !alias.found && alias.index < alias.input.aliases.names.length,
+                            const matched = loop({
+                                input: names.input,
+                                name: name,
+                                kind: names.item.kind,
+                                index: 0,
+                                found: false,
+                                valid: true
+                            }, {
+                                while: alias =>
+                                    alias.valid && !alias.found &&
+                                    alias.index <
+                                    alias.input.aliases.names.length,
                                 next: alias => {
-                                    if (alias.input.aliases.names[alias.index] == alias.name) {
+                                    if (
+                                        alias.input.aliases.names[alias.index] ==
+                                            alias.name
+                                    ) {
                                         alias.found = true
-                                        alias.valid = alias.kind != ImportKind.Enumeration || kind(alias.input.table.kinds[integers.widen(alias.input.aliases.ids[alias.index])]) == Kind.Enumeration
+                                        alias.valid =
+                                            alias.kind !=
+                                            ImportKind.Enumeration ||
+                                            kind(
+                                                alias.input.table
+                                                    .kinds[integers
+                                                        .widen(
+                                                            alias.input.aliases
+                                                                .ids[alias
+                                                                    .index]
+                                                        )]
+                                            ) == Kind.Enumeration
                                     }
 
                                     alias.index += 1
                                 }
                             })
 
-                            names.valid = value != null || (matched.found && matched.valid)
+                            names.valid =
+                                value != null ||
+                                (
+                                    matched.found && matched.valid
+                                )
                         }
 
                         names.index += 1

@@ -5,13 +5,24 @@ import { DeclarationKind } from "./model"
 import type { Program } from "../../../../frontend/parser/syntax/model"
 import type { NativeModule } from "../../source/model"
 
-export type Input = { source_text: string, native: NativeModule?, syntax: Program, name: string, kind: DeclarationKind }
+export type Input = {
+    source_text: string,
+    native: NativeModule?,
+    syntax: Program,
+    name: string,
+    kind: DeclarationKind
+}
 
 export type Output = bool
 
 export default function (in: Input): Output {
-    return loop({ input: in, index: 0, found: false }, {
-        while: current => !current.found && current.index < current.input.syntax.imports.length,
+    return loop({
+        input: in,
+        index: 0,
+        found: false
+    }, {
+        while: current =>
+            !current.found && current.index < current.input.syntax.imports.length,
         next: current => {
             const item = current.input.syntax.imports[current.index]
 
@@ -22,10 +33,21 @@ export default function (in: Input): Output {
             }
 
             if (selected) {
-                current.found = loop({ input: current.input, item: item, index: 0, found: false }, {
-                    while: names => !names.found && names.index < names.item.count,
+                current.found = loop({
+                    input: current.input,
+                    item: item,
+                    index: 0,
+                    found: false
+                }, {
+                    while: names =>
+                        !names.found && names.index < names.item.count,
                     next: names => {
-                        const name = importName({ source_text: names.input.source_text, spans: names.input.syntax.import_names, native: names.input.native, index: names.item.first + names.index })
+                        const name = importName({
+                            source_text: names.input.source_text,
+                            spans: names.input.syntax.import_names,
+                            native: names.input.native,
+                            index: names.item.first + names.index
+                        })
 
                         names.found = name == names.input.name
                         names.index += 1

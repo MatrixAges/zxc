@@ -10,7 +10,14 @@ import type { Domains } from "../loops/model"
 import type { Runtime } from "./model"
 import type { Outcome } from "./work/model"
 
-export type Input = { program: Program, references: bool[], returns: bool[], domains: Domains, layout: Built, runtime: Runtime }
+export type Input = {
+    program: Program,
+    references: bool[],
+    returns: bool[],
+    domains: Domains,
+    layout: Built,
+    runtime: Runtime
+}
 
 export type Output = Outcome
 
@@ -18,14 +25,59 @@ export default function (in: Input): Output {
     const root = in.program.body
 
     if (root == null || in.program.type_only) {
-        return { complete: true, failed: false, expression: 0, output: State.Copy, stores_owned: true }
+        return {
+            complete: true,
+            failed: false,
+            expression: 0,
+            output: State.Copy,
+            stores_owned: true
+        }
     }
 
     const values: u64[] = []
     const seen: bool[] = []
-    const loops = { heads: values, exits: values, seen: seen, entries: values, boundaries: values, first: values, count: values, roots: values, facts: values, outputs: values }
 
-    const result = loop({ loops: loops, program: in.program, references: in.references, returns: in.returns, domains: in.domains, layout: in.layout, builders: { first: values, count: values }, memory: in.runtime.memory, snapshots: in.runtime.snapshots, work: { actions: [WorkAction.Block], subjects: [integers.widen(root)], moving: [false], indices: [0] }, value: 0, values: values, returned: State.Copy, stores_owned: true, failed: false, complete: true, expression: 0, active: !in.program.type_only }, {
+    const loops = {
+        heads: values,
+        exits: values,
+        seen: seen,
+        entries: values,
+        boundaries: values,
+        first: values,
+        count: values,
+        roots: values,
+        facts: values,
+        outputs: values
+    }
+
+    const result = loop({
+        loops: loops,
+        program: in.program,
+        references: in.references,
+        returns: in.returns,
+        domains: in.domains,
+        layout: in.layout,
+        builders: {
+            first: values,
+            count: values
+        },
+        memory: in.runtime.memory,
+        snapshots: in.runtime.snapshots,
+        work: {
+            actions: [WorkAction.Block],
+            subjects: [integers.widen(root)],
+            moving: [false],
+            indices: [0]
+        },
+        value: 0,
+        values: values,
+        returned: State.Copy,
+        stores_owned: true,
+        failed: false,
+        complete: true,
+        expression: 0,
+        active: !in.program.type_only
+    }, {
         while: current => current.active && current.complete && !current.failed,
         next: current => {
             if (current.work.actions.length == 0) {
@@ -36,5 +88,11 @@ export default function (in: Input): Output {
         }
     })
 
-    return { complete: result.complete, failed: result.failed, expression: result.expression, output: result.returned == State.Loaned ? State.Borrowed : result.returned, stores_owned: result.stores_owned }
+    return {
+        complete: result.complete,
+        failed: result.failed,
+        expression: result.expression,
+        output: result.returned == State.Loaned ? State.Borrowed : result.returned,
+        stores_owned: result.stores_owned
+    }
 }

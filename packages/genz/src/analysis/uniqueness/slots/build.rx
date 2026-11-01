@@ -4,7 +4,21 @@
     <Args in={Slots.Types} out={Slots.Plan} />
 
     <Call fn="counts" in={$in} />
-    <Call fn="layout" in={{ types: $in, counts: $ctx.counts }} />
 
-    <Return value={{ counts: $ctx.counts, offsets: $ctx.layout.offsets, members: $ctx.layout.members, unwrapped: $ctx.layout.unwrapped }} />
+    <Call
+        fn="layout"
+        in={{
+            types: $in,
+            counts: $ctx.counts
+        }}
+    />
+
+    <Return
+        value={{
+            counts: $ctx.counts,
+            offsets: $ctx.layout.offsets,
+            members: $ctx.layout.members,
+            unwrapped: $ctx.layout.unwrapped
+        }}
+    />
 </Module>

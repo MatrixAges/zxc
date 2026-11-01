@@ -22,18 +22,34 @@ export default function (in: Input): Output {
 
     if (in.control.phase == Phase.Declare) {
         if (token.word != Keyword.Declare) {
-            return fail({ state: in, code: "syntax", message: "expected declare" })
+            return fail({
+                state: in,
+                code: "syntax",
+                message: "expected declare"
+            })
         }
 
-        return advance({ state: in, phase: Phase.Function, count: 1 })
+        return advance({
+            state: in,
+            phase: Phase.Function,
+            count: 1
+        })
     }
 
     if (in.control.phase == Phase.Function) {
         if (token.word != Keyword.Function) {
-            return fail({ state: in, code: "syntax", message: "expected function" })
+            return fail({
+                state: in,
+                code: "syntax",
+                message: "expected function"
+            })
         }
 
-        return advance({ state: in, phase: Phase.Name, count: 1 })
+        return advance({
+            state: in,
+            phase: Phase.Name,
+            count: 1
+        })
     }
 
     if (in.control.phase == Phase.Name) {
@@ -41,8 +57,16 @@ export default function (in: Input): Output {
     }
 
     if (token.symbol != Symbol.OpenParen) {
-        return fail({ state: in, code: "syntax", message: "expected (" })
+        return fail({
+            state: in,
+            code: "syntax",
+            message: "expected ("
+        })
     }
 
-    return advance({ state: in, phase: Phase.Inject, count: 1 })
+    return advance({
+        state: in,
+        phase: Phase.Inject,
+        count: 1
+    })
 }

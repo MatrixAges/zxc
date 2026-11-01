@@ -11,7 +11,11 @@ import type { Name } from "../../semantic/resolving/source/model"
 import type { Prepared } from "../model"
 import type { Result } from "./model"
 
-export type Input = { state: Prepared, constant_values: Values?, name: Name }
+export type Input = {
+    state: Prepared,
+    constant_values: Values?,
+    name: Name
+}
 
 export type Output = Result
 
@@ -44,13 +48,44 @@ export default function (in: Input): Output {
     const resolved = local != null ? {
         state: in.state,
         symbol: local
-    } : value({ state: in.state, name: in.name })
+    } : value({
+        state: in.state,
+        name: in.name
+    })
 
     if (resolved.state.diagnostic.message != "") {
-        return { state: resolved.state, value: 0 }
+        return {
+            state: resolved.state,
+            value: 0
+        }
     }
 
-    const result = reference({ expressions: resolved.state.local.expressions, tables: { base: resolved.state.types.context.base, delta: resolved.state.types.delta }, facts: resolved.state.local.refinement.facts, type_id: resolved.state.local.symbols.types[integers.widen(resolved.symbol)], symbol: resolved.symbol, span: { start: in.name.start, end: in.name.end } })
+    const result = reference({
+        expressions: resolved.state.local.expressions,
+        tables: {
+            base: resolved.state.types.context.base,
+            delta: resolved.state.types.delta
+        },
+        facts: resolved.state.local.refinement.facts,
+        type_id:
+            resolved.state.local.symbols.types[integers.widen(
+                resolved.symbol
+            )],
+        symbol: resolved.symbol,
+        span: {
+            start: in.name.start,
+            end: in.name.end
+        }
+    })
 
-    return { state: { ...resolved.state, local: { ...resolved.state.local, expressions: result.expressions } }, value: result.value }
+    return {
+        state: {
+            ...resolved.state,
+            local: {
+                ...resolved.state.local,
+                expressions: result.expressions
+            }
+        },
+        value: result.value
+    }
 }

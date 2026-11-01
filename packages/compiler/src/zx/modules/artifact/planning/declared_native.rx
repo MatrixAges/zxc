@@ -13,7 +13,12 @@
         </Case>
 
         <Default>
-            <Return value={{ state: $in.state, natives: $in.natives }} />
+            <Return
+                value={{
+                    state: $in.state,
+                    natives: $in.natives
+                }}
+            />
         </Default>
     </Switch>
 </Module>

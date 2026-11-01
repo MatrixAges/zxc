@@ -15,33 +15,90 @@ export default function (in: Input): Output {
     const program = in.context.program
     const control = program.body.control
 
-    if (!valid({ program: program, payload: in.frame.a })) {
-        return { state: in.state, valid: false }
+    if (!valid({
+        program: program,
+        payload: in.frame.a
+    })) {
+        return {
+            state: in.state,
+            valid: false
+        }
     }
 
-    const state = loop({ state: in.state, program: program, payload: in.frame.a, facts: in.state.refinement.facts.nonnull.length, captures: in.state.refinement.facts.capture_errors.length, first: integers.widen(control.selection_first[in.frame.a]), index: integers.widen(control.selection_count[in.frame.a]), depth: in.frame.b + 1 }, {
+    const state = loop({
+        state: in.state,
+        program: program,
+        payload: in.frame.a,
+        facts: in.state.refinement.facts.nonnull.length,
+        captures: in.state.refinement.facts.capture_errors.length,
+        first: integers.widen(control.selection_first[in.frame.a]),
+        index: integers.widen(control.selection_count[in.frame.a]),
+        depth: in.frame.b + 1
+    }, {
         while: current => current.index != 0,
         next: current => {
             current.index -= 1
 
             const position = current.first + current.index
             const control = current.program.body.control
-            const truth = switchTruth({ program: current.program, payload: current.payload, position: position })
+            const truth = switchTruth({
+                program: current.program,
+                payload: current.payload,
+                position: position
+            })
 
-            current.state = schedule({ state: current.state, frame: { phase: Phase.RestoreFacts, a: current.facts, b: current.captures, c: 0 } })
-            current.state = schedule({ state: current.state, frame: { phase: Phase.Block, a: integers.widen(control.case_bodies[position]), b: current.depth, c: 0 } })
+            current.state = schedule({
+                state: current.state,
+                frame: {
+                    phase: Phase.RestoreFacts,
+                    a: current.facts,
+                    b: current.captures,
+                    c: 0
+                }
+            })
+            current.state = schedule({
+                state: current.state,
+                frame: {
+                    phase: Phase.Block,
+                    a: integers.widen(control.case_bodies[position]),
+                    b: current.depth,
+                    c: 0
+                }
+            })
 
             if (truth != null) {
-                current.state = schedule({ state: current.state, frame: { phase: Phase.Assume, a: integers.widen(control.selection_subjects[current.payload]), b: truth ? 1 : 0, c: 0 } })
+                current.state = schedule({
+                    state: current.state,
+                    frame: {
+                        phase: Phase.Assume,
+                        a:
+                            integers.widen(
+                                control.selection_subjects[current.payload]
+                            ),
+                        b: truth ? 1 : 0,
+                        c: 0
+                    }
+                })
             }
 
             const value = control.case_values[position]
 
             if (value != null) {
-                current.state = schedule({ state: current.state, frame: { phase: Phase.Expression, a: integers.widen(value), b: 0, c: 0 } })
+                current.state = schedule({
+                    state: current.state,
+                    frame: {
+                        phase: Phase.Expression,
+                        a: integers.widen(value),
+                        b: 0,
+                        c: 0
+                    }
+                })
             }
         }
     }).state
 
-    return { state: state, valid: true }
+    return {
+        state: state,
+        valid: true
+    }
 }

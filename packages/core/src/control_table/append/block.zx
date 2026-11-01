@@ -2,9 +2,15 @@ import integers from "std:integer"
 
 import type { Control } from "../model"
 
-export type Input = { table: Control, first: u64 }
+export type Input = {
+    table: Control,
+    first: u64
+}
 
-export type Output = { table: Control, id: u32 }
+export type Output = {
+    table: Control,
+    id: u32
+}
 
 export default function (in: Input): Output {
     const id = integers.narrow(in.table.block_first.length)
@@ -13,7 +19,12 @@ export default function (in: Input): Output {
         table: {
             ...in.table,
             block_first: in.table.block_first.push(integers.narrow(in.first))[0],
-            block_count: in.table.block_count.push(integers.narrow(in.table.statement_kinds.length - in.first))[0]
+            block_count:
+                in.table.block_count.push(
+                    integers.narrow(
+                        in.table.statement_kinds.length - in.first
+                    )
+                )[0]
         },
         id: id
     }

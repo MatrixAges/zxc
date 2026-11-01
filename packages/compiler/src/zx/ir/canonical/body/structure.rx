@@ -1,7 +1,13 @@
 <Module>
     <Type from="./references/control" as="Control" />
 
-    <Args in={{ body: Control.Input, max_offset: u64 }} out={bool} />
+    <Args
+        in={{
+            body: Control.Input,
+            max_offset: u64
+        }}
+        out={bool}
+    />
 
     <Task name="stores" out={$ctx.validate}>
         <Call fn="../stores/validate" in={$in.body.stores} />
@@ -13,7 +19,13 @@
         </Case>
     </Switch>
 
-    <Call fn="./symbols" in={{ symbols: $in.body.symbols, max_offset: $in.max_offset }} />
+    <Call
+        fn="./symbols"
+        in={{
+            symbols: $in.body.symbols,
+            max_offset: $in.max_offset
+        }}
+    />
 
     <Switch on={$ctx.symbols}>
         <Case value={false}>
@@ -22,7 +34,13 @@
     </Switch>
 
     <Task name="expressions" out={$ctx.validate}>
-        <Call fn="../expressions/validation/validate" in={{ table: $in.body.expressions, max_offset: $in.max_offset }} />
+        <Call
+            fn="../expressions/validation/validate"
+            in={{
+                table: $in.body.expressions,
+                max_offset: $in.max_offset
+            }}
+        />
     </Task>
 
     <Switch on={$ctx.task.expressions}>
@@ -41,7 +59,13 @@
         </Case>
     </Switch>
 
-    <Call fn="./tree" in={{ control: $in.body.control, root: $in.body.root }} />
+    <Call
+        fn="./tree"
+        in={{
+            control: $in.body.control,
+            root: $in.body.root
+        }}
+    />
 
     <Return value={$ctx.tree} />
 </Module>

@@ -21,7 +21,12 @@ export default function (in: Input): Output {
         }
     }
 
-    if (value != null && value.kind == ExpressionKind.Float && !floats.isFinite(value.floating)) {
+    if (
+        value != null && value.kind == ExpressionKind.Float &&
+            !floats.isFinite(
+                value.floating
+            )
+    ) {
         return {
             value: null,
             diagnostic: {

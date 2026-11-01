@@ -1,0 +1,32 @@
+import {
+    open_object,
+    close_object,
+    open_call,
+    close_call,
+    open_list,
+    close_list,
+    comma,
+    no_operator
+} from "./const"
+import priority from "./operator"
+
+export type Input = {
+    previous: string,
+    current: string,
+    actual: u64
+}
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    const after_open =
+        in.previous == open_object || in.previous == open_call || in.previous == open_list
+
+    const before_close =
+        in.current == close_object || in.current == close_call || in.current == close_list
+
+    const operator =
+        priority(in.previous) != no_operator || priority(in.current) != no_operator
+
+    return after_open || before_close || operator || in.previous == comma ? 1 : in.actual
+}

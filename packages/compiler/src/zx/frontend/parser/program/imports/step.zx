@@ -8,7 +8,16 @@ export type Input = ImportStage
 export type Output = ImportStage
 
 export default function (in: Input): Output {
-  const token = current({ prepared: in.prepared, index: in.imports.control.index })
+    const token = current({
+        prepared: in.prepared,
+        index: in.imports.control.index
+    })
 
-  return { prepared: in.prepared, imports: step({ state: in.imports, token: token }) }
+    return {
+        prepared: in.prepared,
+        imports: step({
+            state: in.imports,
+            token: token
+        })
+    }
 }

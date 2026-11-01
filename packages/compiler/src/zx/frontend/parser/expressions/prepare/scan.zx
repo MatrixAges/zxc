@@ -10,13 +10,27 @@ export type Output = Hint[]
 export default function (in: Input): Output {
     const hints: Hint[] = []
 
-    const result = loop({ tokens: in, remaining: in.length, state: { arrow: false, parameter_start: false, after_identifier: false, hints: hints } }, {
+    const result = loop({
+        tokens: in,
+        remaining: in.length,
+        state: {
+            arrow: false,
+            parameter_start: false,
+            after_identifier: false,
+            hints: hints
+        }
+    }, {
         while: current => current.remaining != 0,
         next: current => {
             const index = current.remaining - 1
             const token = current.tokens[index]
 
-            current.state = step({ state: current.state, kind: token.kind, symbol: token.symbol, word: token.word })
+            current.state = step({
+                state: current.state,
+                kind: token.kind,
+                symbol: token.symbol,
+                word: token.word
+            })
             current.remaining = index
         }
     })

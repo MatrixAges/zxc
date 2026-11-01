@@ -3,7 +3,10 @@ import { CollectionKind, ExpressionKind } from "core/expression_table/kinds"
 
 import type { Expressions } from "core/expression_table/model"
 
-export type Input = { expressions: Expressions, id: u64 }
+export type Input = {
+    expressions: Expressions,
+    id: u64
+}
 
 export type Output = bool
 
@@ -20,7 +23,16 @@ export default function (in: Input): Output {
         return false
     }
 
-    const start = integers.widen(table.collection_arguments[integers.widen(table.collection_first[payload])])
+    const start =
+        integers.widen(
+            table
+                .collection_arguments[integers.widen(
+                    table.collection_first[payload]
+                )]
+        )
 
-    return table.kinds[start] == ExpressionKind.Integer && table.integers[integers.widen(table.payloads[start])] == 0
+    return table.kinds[start] == ExpressionKind.Integer &&
+        table.integers[integers.widen(
+            table.payloads[start]
+        )] == 0
 }

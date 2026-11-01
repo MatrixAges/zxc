@@ -8,11 +8,24 @@ export type Input = u64
 export type Output = State
 
 export default function (in: Input): Output {
-  const templates: Template[] = []
-  const parts: Part[] = []
-  const events: Event[] = []
-  const frames: Frame[] = []
-  const token_templates: u64[] = []
+    const templates: Template[] = []
+    const parts: Part[] = []
+    const events: Event[] = []
+    const frames: Frame[] = []
+    const token_templates: u64[] = []
 
-  return { lexer: initial({ start: 0, end: in }), graph: { templates: templates, parts: parts, events: events, frames: frames, interpolations: 0, token_templates: token_templates } }
+    return {
+        lexer: initial({
+            start: 0,
+            end: in
+        }),
+        graph: {
+            templates: templates,
+            parts: parts,
+            events: events,
+            frames: frames,
+            interpolations: 0,
+            token_templates: token_templates
+        }
+    }
 }

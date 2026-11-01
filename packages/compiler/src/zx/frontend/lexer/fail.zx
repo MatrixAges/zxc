@@ -1,9 +1,23 @@
 import type { LexerState } from "./model"
 
-export type Input = { code: string, start: u64, end: u64, message: string, state: LexerState }
+export type Input = {
+    code: string,
+    start: u64,
+    end: u64,
+    message: string,
+    state: LexerState
+}
 
 export type Output = LexerState
 
 export default function (in: Input): Output {
-  return { ...in.state, diagnostic: { code: in.code, start: in.start, end: in.end, message: in.message } }
+    return {
+        ...in.state,
+        diagnostic: {
+            code: in.code,
+            start: in.start,
+            end: in.end,
+            message: in.message
+        }
+    }
 }

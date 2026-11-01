@@ -2,7 +2,11 @@ import run from "core/control_table/selection_returns"
 
 import type { Control } from "core/control_table/model"
 
-export type Input = { control: Control, selection: u64, returns: bool[] }
+export type Input = {
+    control: Control,
+    selection: u64,
+    returns: bool[]
+}
 
 export type Output = bool
 

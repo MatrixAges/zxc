@@ -10,38 +10,120 @@ import type { FunctionImports } from "../../context"
 import type { Prepared } from "../../model"
 import type { Dispatch } from "./model"
 
-export type Input = { state: Prepared, constants: Values?, imports: FunctionImports, name: Name }
+export type Input = {
+    state: Prepared,
+    constants: Values?,
+    imports: FunctionImports,
+    name: Name
+}
 
 export type Output = Dispatch
 
 export default function (in: Input): Output {
-    if (in.constants != null && constant({ active: in.state.local.active, names: in.state.local.symbols.names, constants: in.constants, name: in.name.text }) != null) {
-        return { state: { ...in.state, diagnostic: { code: "type_mismatch", message: "a constant value is not a callable function", start: in.name.start, end: in.name.end } }, route: Route.Failed, index: 0 }
+    if (in.constants != null && constant({
+        active: in.state.local.active,
+        names: in.state.local.symbols.names,
+        constants: in.constants,
+        name: in.name.text
+    }) != null) {
+        return {
+            state: {
+                ...in.state,
+                diagnostic: {
+                    code: "type_mismatch",
+                    message: "a constant value is not a callable function",
+                    start: in.name.start,
+                    end: in.name.end
+                }
+            },
+            route: Route.Failed,
+            index: 0
+        }
     }
 
-    if (lookup({ active: in.state.local.active, names: in.state.local.symbols.names, scope_floor: in.state.local.scope_floor, name: in.name.text }) != null) {
-        return { state: { ...in.state, diagnostic: { code: "type_mismatch", message: "a local value is not a callable function", start: in.name.start, end: in.name.end } }, route: Route.Failed, index: 0 }
+    if (lookup({
+        active: in.state.local.active,
+        names: in.state.local.symbols.names,
+        scope_floor: in.state.local.scope_floor,
+        name: in.name.text
+    }) != null) {
+        return {
+            state: {
+                ...in.state,
+                diagnostic: {
+                    code: "type_mismatch",
+                    message: "a local value is not a callable function",
+                    start: in.name.start,
+                    end: in.name.end
+                }
+            },
+            route: Route.Failed,
+            index: 0
+        }
     }
 
-    const capture = captured({ state: in.state, name: in.name })
+    const capture = captured({
+        state: in.state,
+        name: in.name
+    })
 
     if (capture.state.diagnostic.message != "") {
-        return { state: capture.state, route: Route.Failed, index: 0 }
+        return {
+            state: capture.state,
+            route: Route.Failed,
+            index: 0
+        }
     }
 
     if (capture.found) {
-        return { state: { ...capture.state, diagnostic: { code: "type_mismatch", message: "a captured value is not a callable function", start: in.name.start, end: in.name.end } }, route: Route.Failed, index: 0 }
+        return {
+            state: {
+                ...capture.state,
+                diagnostic: {
+                    code: "type_mismatch",
+                    message: "a captured value is not a callable function",
+                    start: in.name.start,
+                    end: in.name.end
+                }
+            },
+            route: Route.Failed,
+            index: 0
+        }
     }
 
-    const imported = find({ imports: in.imports, namespace: null, name: in.name.text })
+    const imported = find({
+        imports: in.imports,
+        namespace: null,
+        name: in.name.text
+    })
 
     if (imported.found) {
-        return { state: in.state, route: Route.Imported, index: imported.index }
+        return {
+            state: in.state,
+            route: Route.Imported,
+            index: imported.index
+        }
     }
 
     if (in.name.text == "loop" || in.name.text == "parallel") {
-        return { state: in.state, route: in.name.text == "loop" ? Route.Loop : Route.Parallel, index: 0 }
+        return {
+            state: in.state,
+            route: in.name.text == "loop" ? Route.Loop : Route.Parallel,
+            index: 0
+        }
     }
 
-    return { state: { ...in.state, diagnostic: { code: "name", message: "unknown imported function", start: in.name.start, end: in.name.end } }, route: Route.Failed, index: 0 }
+    return {
+        state: {
+            ...in.state,
+            diagnostic: {
+                code: "name",
+                message: "unknown imported function",
+                start: in.name.start,
+                end: in.name.end
+            }
+        },
+        route: Route.Failed,
+        index: 0
+    }
 }

@@ -12,15 +12,55 @@ export type Input = State
 export type Output = State
 
 export default function (in: Input): Output {
-  const offset = in.control.location.offset
-  const start = offset + 1
-  const location = position({ source: in.source, location: in.control.location, count: 1 })
-  const result = scan({ source: in.source, start: start })
-  const state = { source: result.source, tree: in.tree, frames: in.frames, frame: in.frame, control: { ...in.control, value_kind: ValueKind.Attribute, value_location: location } }
+    const offset = in.control.location.offset
+    const start = offset + 1
 
-  if (result.message != "") {
-    return fail({ state: advance({ state: state, count: result.offset - offset }), message: result.message })
-  }
+    const location = position({
+        source: in.source,
+        location: in.control.location,
+        count: 1
+    })
 
-  return publish({ state: advance({ state: state, count: result.end + 1 - offset }), value: { span: { start: start, end: result.end }, head: 0, count: 0 }, expression: true })
+    const result = scan({
+        source: in.source,
+        start: start
+    })
+
+    const state = {
+        source: result.source,
+        tree: in.tree,
+        frames: in.frames,
+        frame: in.frame,
+        control: {
+            ...in.control,
+            value_kind: ValueKind.Attribute,
+            value_location: location
+        }
+    }
+
+    if (result.message != "") {
+        return fail({
+            state: advance({
+                state: state,
+                count: result.offset - offset
+            }),
+            message: result.message
+        })
+    }
+
+    return publish({
+        state: advance({
+            state: state,
+            count: result.end + 1 - offset
+        }),
+        value: {
+            span: {
+                start: start,
+                end: result.end
+            },
+            head: 0,
+            count: 0
+        },
+        expression: true
+    })
 }

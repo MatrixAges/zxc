@@ -8,7 +8,10 @@ import slots from "./slots"
 
 import type { Graph } from "../../model"
 
-export type Input = { graph: Graph, index: u64 }
+export type Input = {
+    graph: Graph,
+    index: u64
+}
 
 export type Output = bool
 
@@ -19,18 +22,33 @@ export default function (in: Input): Output {
     const functions = in.graph.program.context.functions
     const table = in.graph.program.context.table
 
-    if (!text(identity) || identity.length <= 6 || identity[0] != 115 || identity[1] != 116 || identity[2] != 111 || identity[3] != 114 || identity[4] != 101 || identity[5] != 46 || index >= functions.files.length) {
+    if (
+        !text(identity) || identity.length <= 6 || identity[0] != 115 ||
+            identity[1] != 116 || identity[2] != 111 || identity[3] != 114 ||
+            identity[4] != 101 || identity[5] != 46 || index >= functions.files.length
+    ) {
         return false
     }
 
     const input_id = integers.widen(functions.input_types[index])
     const output_id = integers.widen(functions.output_types[index])
 
-    if (kind(table.kinds[input_id]) != Kind.Scalar || table.first[input_id] != 0 || kind(table.kinds[output_id]) != Kind.Object || functions.native_modules[index] != null || functions.stores[index].paths.length != 0 || functions.contracts[index].kinds.length != 0) {
+    if (
+        kind(table.kinds[input_id]) != Kind.Scalar || table.first[input_id] != 0 ||
+            kind(
+                table.kinds[output_id]
+            ) != Kind.Object || functions.native_modules[index] != null ||
+            functions.stores[index].paths.length != 0 ||
+            functions.contracts[index].kinds.length != 0
+    ) {
         return false
     }
 
-    const pure = loop({ kinds: functions.expressions[index].kinds, index: 0, valid: true }, {
+    const pure = loop({
+        kinds: functions.expressions[index].kinds,
+        index: 0,
+        valid: true
+    }, {
         while: current => current.valid && current.index < current.kinds.length,
         next: current => {
             current.valid = current.kinds[current.index] != ExpressionKind.Call
@@ -38,5 +56,9 @@ export default function (in: Input): Output {
         }
     }).valid
 
-    return pure && slots({ stores: functions.stores, identity: identity, type_id: functions.output_types[index] })
+    return pure && slots({
+        stores: functions.stores,
+        identity: identity,
+        type_id: functions.output_types[index]
+    })
 }

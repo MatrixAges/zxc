@@ -18,8 +18,15 @@ export type Output = NativeState
 export default function (in: Input): Output {
     if (in.control.phase == Phase.Declarations) {
         const token = current(in)
-        const declarations = declarationStep({ state: in.declarations, token: token })
-        const failed = declarations.control.diagnostic.message != "" || declarations.types.control.diagnostic.message != ""
+
+        const declarations = declarationStep({
+            state: in.declarations,
+            token: token
+        })
+
+        const failed =
+            declarations.control.diagnostic.message != "" ||
+            declarations.types.control.diagnostic.message != ""
 
         const phase = match {
             failed => Phase.Done,

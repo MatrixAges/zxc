@@ -1,6 +1,9 @@
 import { Role } from "./model"
 
-export type Input = { element: string, attribute: string }
+export type Input = {
+    element: string,
+    attribute: string
+}
 
 export type Output = Role
 
@@ -29,11 +32,13 @@ export default function (in: Input): Output {
         case "Task":
             return in.attribute == "out" ? Role.Expression : Role.Static
         case "Args":
-            return in.attribute == "in" || in.attribute == "out" ? Role.Type : Role.Static
+            return in.attribute == "in" || in.attribute == "out" ? Role.Type :
+            Role.Static
         case "Store":
             return in.attribute == "version" ? Role.Expression : Role.Static
         case "Gateway":
-            return in.attribute == "max_header_bytes" || in.attribute == "max_body_bytes" ? Role.Expression : Role.Static
+            return in.attribute == "max_header_bytes" ||
+            in.attribute == "max_body_bytes" ? Role.Expression : Role.Static
         default:
             return Role.Static
     }

@@ -90,7 +90,7 @@ pub fn format(allocator: std.mem.Allocator, source: []const u8, file_name: []con
             return .{ .diagnostic = try diagnostic.clone(allocator) };
         }
 
-        return .{ .source = try lint.rx.format(allocator, source, parsed.value.node) };
+        return .{ .source = try frontend.formatXml(allocator, source, parsed.value.node) };
     }
 
     var parsed = try frontend.parseModule(allocator, source, file_name);

@@ -6,15 +6,25 @@ import step from "./step"
 import type { PreparedInput } from "../expressions/prepare/model"
 import type { State } from "./model"
 
-export type Input = { prepared: PreparedInput, start: u64, depth: u64 }
+export type Input = {
+    prepared: PreparedInput,
+    start: u64,
+    depth: u64
+}
 
 export type Output = State
 
 export default function (in: Input): Output {
-  return loop(initial(expression({ prepared: in.prepared, start: in.start, depth: in.depth, minimum: 0, allow_lambda: true })), {
-    while: value => value.control.phase != HeaderPhase.Done,
-    next: value => {
-      value = step(value)
-    }
-  })
+    return loop(initial(expression({
+        prepared: in.prepared,
+        start: in.start,
+        depth: in.depth,
+        minimum: 0,
+        allow_lambda: true
+    })), {
+        while: value => value.control.phase != HeaderPhase.Done,
+        next: value => {
+            value = step(value)
+        }
+    })
 }

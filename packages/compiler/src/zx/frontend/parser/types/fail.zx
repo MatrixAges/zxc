@@ -2,12 +2,29 @@ import { Phase } from "./model"
 
 import type { State } from "./model"
 
-export type Input = { state: State, code: string, message: string }
+export type Input = {
+    state: State,
+    code: string,
+    message: string
+}
 
 export type Output = State
 
 export default function (in: Input): Output {
-  const diagnostic = { code: in.code, start: in.state.control.token.span.start, end: in.state.control.token.span.end, message: in.message }
+    const diagnostic = {
+        code: in.code,
+        start: in.state.control.token.span.start,
+        end: in.state.control.token.span.end,
+        message: in.message
+    }
 
-  return { tree: in.state.tree, frames: in.state.frames, control: { ...in.state.control, phase: Phase.Done, diagnostic: diagnostic } }
+    return {
+        tree: in.state.tree,
+        frames: in.state.frames,
+        control: {
+            ...in.state.control,
+            phase: Phase.Done,
+            diagnostic: diagnostic
+        }
+    }
 }

@@ -10,17 +10,44 @@ export type Output = u32[]
 export default function (in: Input): Output {
     const empty: u32[] = []
 
-    const result = loop({ expressions: in, index: 0, types: empty }, {
+    const result = loop({
+        expressions: in,
+        index: 0,
+        types: empty
+    }, {
         while: current => current.index < current.expressions.kinds.length,
         next: current => {
-            if (current.expressions.kinds[current.index] == ExpressionKind.Binary) {
-                const payload = integers.widen(current.expressions.payloads[current.index])
+            if (
+                current.expressions.kinds[current.index] == ExpressionKind.Binary
+            ) {
+                const payload =
+                    integers.widen(
+                        current.expressions.payloads[current.index]
+                    )
                 const operator = current.expressions.binary_operators[payload]
-                const left = integers.widen(current.expressions.binary_left[payload])
-                const right = integers.widen(current.expressions.binary_right[payload])
+                const left =
+                    integers.widen(
+                        current.expressions.binary_left[payload]
+                    )
+                const right =
+                    integers.widen(
+                        current.expressions.binary_right[payload]
+                    )
 
-                if ((operator == BinaryOperator.Equal || operator == BinaryOperator.NotEqual) && current.expressions.kinds[left] != ExpressionKind.None && current.expressions.kinds[right] != ExpressionKind.None) {
-                    current.types = current.types.concat([current.expressions.types[left], current.expressions.types[right]])[0]
+                if (
+                    (
+                        operator == BinaryOperator.Equal ||
+                            operator == BinaryOperator.NotEqual
+                    ) && current.expressions.kinds[left] != ExpressionKind.None &&
+                        current.expressions.kinds[right] != ExpressionKind.None
+                ) {
+                    current.types =
+                        current.types.concat(
+                            [
+                                current.expressions.types[left],
+                                current.expressions.types[right]
+                            ]
+                        )[0]
                 }
             }
 

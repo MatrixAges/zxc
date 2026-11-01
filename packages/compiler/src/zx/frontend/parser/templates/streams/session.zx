@@ -2,12 +2,24 @@ import initial from "../../../lexer/initial"
 
 import type { Session } from "./model"
 
-export type Input = { start: u64, end: u64, present: bool }
+export type Input = {
+    start: u64,
+    end: u64,
+    present: bool
+}
 
 export type Output = Session
 
 export default function (in: Input): Output {
-  const token_templates: u64[] = []
+    const token_templates: u64[] = []
 
-  return { present: in.present, start: in.start, lexer: initial({ start: in.start, end: in.end }), token_templates: token_templates }
+    return {
+        present: in.present,
+        start: in.start,
+        lexer: initial({
+            start: in.start,
+            end: in.end
+        }),
+        token_templates: token_templates
+    }
 }

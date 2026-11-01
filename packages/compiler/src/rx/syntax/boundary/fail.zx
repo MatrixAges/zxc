@@ -1,9 +1,18 @@
 import type { State } from "./model"
 
-export type Input = { state: State, offset: u64, message: string }
+export type Input = {
+    state: State,
+    offset: u64,
+    message: string
+}
 
 export type Output = State
 
 export default function (in: Input): Output {
-  return { ...in.state, done: true, issue: in.offset, message: in.message }
+    return {
+        ...in.state,
+        done: true,
+        issue: in.offset,
+        message: in.message
+    }
 }

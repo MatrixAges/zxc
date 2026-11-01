@@ -2,7 +2,11 @@ import integers from "std:integer"
 
 import type { Table } from "core/type_table/model"
 
-export type Input = { types: Table, id: u32, deep: bool }
+export type Input = {
+    types: Table,
+    id: u32,
+    deep: bool
+}
 
 export type Output = u32[]
 
@@ -19,10 +23,21 @@ export default function (in: Input): Output {
         return empty
     }
 
-    const result = loop({ types: in.types, object: kind == 1, first: integers.widen(in.types.first[index]), count: integers.widen(in.types.second[index]), position: 0, items: empty }, {
+    const result = loop({
+        types: in.types,
+        object: kind == 1,
+        first: integers.widen(in.types.first[index]),
+        count: integers.widen(in.types.second[index]),
+        position: 0,
+        items: empty
+    }, {
         while: current => current.position < current.count,
         next: current => {
-            const child = current.object ? current.types.field_types[current.first + current.position] : current.types.children[current.first + current.position]
+            const child =
+                current.object ? current.types
+                .field_types[current.first +
+                    current.position] :
+                current.types.children[current.first + current.position]
 
             current.items = current.items.push(child)[0]
             current.position += 1

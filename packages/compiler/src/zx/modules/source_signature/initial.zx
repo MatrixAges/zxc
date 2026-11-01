@@ -3,7 +3,11 @@ import type { Diagnostic } from "../../analysis/semantic/resolving/model"
 import type { Program } from "../../frontend/parser/syntax/model"
 import type { Result } from "./model"
 
-export type Input = { syntax: Program, types: Types, diagnostic: Diagnostic }
+export type Input = {
+    syntax: Program,
+    types: Types,
+    diagnostic: Diagnostic
+}
 
 export type Output = Result
 

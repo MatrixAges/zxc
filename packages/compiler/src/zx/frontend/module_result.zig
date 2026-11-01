@@ -87,34 +87,35 @@ pub const Result = union(enum) {
         };
     }
     pub fn format(self: *const Self, allocator: std.mem.Allocator) std.mem.Allocator.Error![]u8 {
-        const spaced = try self.formatSpacing(allocator);
+        const structured = try self.structure(allocator);
 
-        defer allocator.free(spaced);
+        defer allocator.free(structured);
 
-        const source = switch (self.*) {
-            .native => |result| result.value.parsed.source,
-            .indexed => |result| if (indexed_enabled) result.source else unreachable,
-        };
-
-        if (std.mem.eql(u8, source, spaced)) return self.indent(allocator);
+        if (std.mem.eql(u8, self.text().?, structured)) return self.formatSpacing(allocator);
 
         const file_name = switch (self.*) {
             .native => |result| result.value.parsed.file_name,
             .indexed => |result| if (indexed_enabled) result.file_name else unreachable,
         };
 
-        var parsed = try parser.parseModule(allocator, spaced, file_name);
+        var parsed = try parser.parseModule(allocator, structured, file_name);
 
         defer parsed.deinit();
         std.debug.assert(parsed.diagnostic() == null);
 
-        return parsed.indent(allocator);
+        return parsed.formatSpacing(allocator);
     }
-    fn indent(self: *const Self, allocator: std.mem.Allocator) std.mem.Allocator.Error![]u8 {
-        return switch (self.*) {
-            .native => |result| lint.indentation.zx.format(allocator, result.value.parsed.source, result.value.parsed.lexed.tokens, result.value.parsed.lexed.comments),
-            .indexed => |result| if (indexed_enabled) lint.indentation.zx.format(allocator, result.source, result.output.tokens, result.output.comments) else unreachable,
+    fn structure(self: *const Self, allocator: std.mem.Allocator) std.mem.Allocator.Error![]u8 {
+        var arena = std.heap.ArenaAllocator.init(allocator);
+
+        defer arena.deinit();
+
+        const projection = switch (self.*) {
+            .native => |result| try @import("layout.zig").native(arena.allocator(), result.value.parsed),
+            .indexed => |result| if (indexed_enabled) try @import("layout.zig").indexed(arena.allocator(), result.source, result.output) else unreachable,
         };
+
+        return lint.layout.format(allocator, self.text().?, projection.tokens, lint.layout.use_default_width, 0);
     }
     fn formatSpacing(self: *const Self, allocator: std.mem.Allocator) std.mem.Allocator.Error![]u8 {
         return switch (self.*) {

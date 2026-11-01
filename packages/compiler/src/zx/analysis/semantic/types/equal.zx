@@ -7,7 +7,11 @@ import row from "../entries/row"
 import type { Tables } from "core/type_table/model"
 import type { Candidate } from "./model"
 
-export type Input = { tables: Tables, id: u32, candidate: Candidate }
+export type Input = {
+    tables: Tables,
+    id: u32,
+    candidate: Candidate
+}
 
 export type Output = bool
 
@@ -18,5 +22,11 @@ export default function (in: Input): Output {
     const table = delta ? in.tables.delta : in.tables.base
     const index = delta ? id - base_count : id
 
-    return equal({ left: row({ table: table, index: index }), right: candidate(in.candidate) })
+    return equal({
+        left: row({
+            table: table,
+            index: index
+        }),
+        right: candidate(in.candidate)
+    })
 }

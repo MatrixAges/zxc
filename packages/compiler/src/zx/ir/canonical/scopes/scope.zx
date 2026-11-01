@@ -15,12 +15,51 @@ export default function (in: Input): Output {
     const payload = integers.widen(expressions.payloads[in.frame.a])
     const first = integers.widen(expressions.scope_first[payload])
     const count = integers.widen(expressions.scope_count[payload])
-    const restoration = schedule({ state: in.state, frame: { phase: Phase.Restore, a: in.state.activity.changed_symbols.length, b: in.state.refinement.facts.nonnull.length, c: in.state.refinement.facts.capture_errors.length } })
-    const facts = refine({ facts: restoration.refinement.facts, expressions: expressions, first: first, count: count })
-    const refined: State = { ...restoration, refinement: { ...restoration.refinement, facts: facts } }
-    const result = schedule({ state: refined, frame: { phase: Phase.Expression, a: integers.widen(expressions.scope_results[payload]), b: in.frame.b + 1, c: in.frame.c } })
 
-    const state = loop({ state: result, expressions: expressions, owner: in.frame.a, first: first, index: count, depth: in.frame.b + 1, flags: in.frame.c }, {
+    const restoration = schedule({
+        state: in.state,
+        frame: {
+            phase: Phase.Restore,
+            a: in.state.activity.changed_symbols.length,
+            b: in.state.refinement.facts.nonnull.length,
+            c: in.state.refinement.facts.capture_errors.length
+        }
+    })
+
+    const facts = refine({
+        facts: restoration.refinement.facts,
+        expressions: expressions,
+        first: first,
+        count: count
+    })
+
+    const refined: State = {
+        ...restoration,
+        refinement: {
+            ...restoration.refinement,
+            facts: facts
+        }
+    }
+
+    const result = schedule({
+        state: refined,
+        frame: {
+            phase: Phase.Expression,
+            a: integers.widen(expressions.scope_results[payload]),
+            b: in.frame.b + 1,
+            c: in.frame.c
+        }
+    })
+
+    const state = loop({
+        state: result,
+        expressions: expressions,
+        owner: in.frame.a,
+        first: first,
+        index: count,
+        depth: in.frame.b + 1,
+        flags: in.frame.c
+    }, {
         while: current => current.index != 0,
         next: current => {
             current.index -= 1
@@ -30,12 +69,31 @@ export default function (in: Input): Output {
             const symbol = expressions.scope_symbols[position]
 
             if (symbol != null) {
-                current.state = schedule({ state: current.state, frame: { phase: Phase.ScopeDeclare, a: integers.widen(symbol), b: current.owner, c: 0 } })
+                current.state = schedule({
+                    state: current.state,
+                    frame: {
+                        phase: Phase.ScopeDeclare,
+                        a: integers.widen(symbol),
+                        b: current.owner,
+                        c: 0
+                    }
+                })
             }
 
-            current.state = schedule({ state: current.state, frame: { phase: Phase.Expression, a: integers.widen(expressions.scope_values[position]), b: current.depth, c: current.flags } })
+            current.state = schedule({
+                state: current.state,
+                frame: {
+                    phase: Phase.Expression,
+                    a: integers.widen(expressions.scope_values[position]),
+                    b: current.depth,
+                    c: current.flags
+                }
+            })
         }
     }).state
 
-    return { state: state, valid: true }
+    return {
+        state: state,
+        valid: true
+    }
 }

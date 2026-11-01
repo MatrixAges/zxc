@@ -2,7 +2,10 @@ import integers from "std:integer"
 
 import type { Cursor, Request, Step } from "./model"
 
-export type Input = { request: Request, cursor: Cursor }
+export type Input = {
+    request: Request,
+    cursor: Cursor
+}
 
 export type Output = Step
 
@@ -12,13 +15,28 @@ export default function (in: Input): Output {
     const cursor = in.cursor
 
     if (cursor.index >= record.function_ids.length) {
-        return { cursor: { stage: cursor.stage + 1, index: 0, section: 0, offset: 0 }, valid: true, found: false, id: 0 }
+        return {
+            cursor: {
+                stage: cursor.stage + 1,
+                index: 0,
+                section: 0,
+                offset: 0
+            },
+            valid: true,
+            found: false,
+            id: 0
+        }
     }
 
     const index = integers.widen(record.function_ids[cursor.index])
 
     if (index >= functions.count) {
-        return { cursor: cursor, valid: false, found: false, id: 0 }
+        return {
+            cursor: cursor,
+            valid: false,
+            found: false,
+            id: 0
+        }
     }
 
     if (cursor.section < 4) {
@@ -29,7 +47,15 @@ export default function (in: Input): Output {
             _ => functions.output_types[index]
         }
 
-        return { cursor: { ...cursor, section: cursor.section + 1 }, valid: true, found: true, id: id }
+        return {
+            cursor: {
+                ...cursor,
+                section: cursor.section + 1
+            },
+            valid: true,
+            found: true,
+            id: id
+        }
     }
 
     const module = functions.native_modules[index]
@@ -38,16 +64,38 @@ export default function (in: Input): Output {
         const native = integers.widen(module)
 
         if (native >= in.request.modules.specifiers.length) {
-            return { cursor: cursor, valid: false, found: false, id: 0 }
+            return {
+                cursor: cursor,
+                valid: false,
+                found: false,
+                id: 0
+            }
         }
 
         const values = in.request.modules.type_ids[native]
         const offset = cursor.section - 4
 
         if (offset < values.length) {
-            return { cursor: { ...cursor, section: cursor.section + 1 }, valid: true, found: true, id: values[offset] }
+            return {
+                cursor: {
+                    ...cursor,
+                    section: cursor.section + 1
+                },
+                valid: true,
+                found: true,
+                id: values[offset]
+            }
         }
     }
 
-    return { cursor: { ...cursor, index: cursor.index + 1, section: 0 }, valid: true, found: false, id: 0 }
+    return {
+        cursor: {
+            ...cursor,
+            index: cursor.index + 1,
+            section: 0
+        },
+        valid: true,
+        found: false,
+        id: 0
+    }
 }

@@ -25,10 +25,20 @@ export default function (in: Input): Output {
         const start = in.offset
 
         if (depth > 256) {
-            return fail({ state: in, offset: start, message: "template nesting exceeds 256 levels" })
+            return fail({
+                state: in,
+                offset: start,
+                message: "template nesting exceeds 256 levels"
+            })
         }
 
-        return open({ state: in, mode: Mode.Template, offset: offset, start: start, depth: depth })
+        return open({
+            state: in,
+            mode: Mode.Template,
+            offset: offset,
+            start: start,
+            depth: depth
+        })
     }
 
     const mode = match {
@@ -39,15 +49,26 @@ export default function (in: Input): Output {
     }
 
     const comment_start = mode == Mode.BlockComment ? in.offset : in.comment_start
-    const next_offset = mode == Mode.BlockComment || mode == Mode.LineComment ? offset + 1 : offset
+
+    const next_offset =
+        mode == Mode.BlockComment || mode == Mode.LineComment ? offset + 1 : offset
 
     return {
-        source: in.source, frames: in.frames,
-        frame: { ...in.frame, mode: mode, braces: match {
-            byte == 123 => braces + 1,
-            byte == 125 => braces - 1,
-            _ => braces
-        } },
-        offset: next_offset, comment_start: comment_start, done: false, message: "", issue: 0
+        source: in.source,
+        frames: in.frames,
+        frame: {
+            ...in.frame,
+            mode: mode,
+            braces: match {
+                byte == 123 => braces + 1,
+                byte == 125 => braces - 1,
+                _ => braces
+            }
+        },
+        offset: next_offset,
+        comment_start: comment_start,
+        done: false,
+        message: "",
+        issue: 0
     }
 }

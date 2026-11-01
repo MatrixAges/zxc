@@ -5,18 +5,46 @@
 
     <Switch on={$in.request.checked}>
         <Case value={true}>
-            <Call fn="merging/preflight/prefix" in={{ source: $in.request.source, target: $in.request.base, first: $in.request.first }} />
+            <Call
+                fn="merging/preflight/prefix"
+                in={{
+                    source: $in.request.source,
+                    target: $in.request.base,
+                    first: $in.request.first
+                }}
+            />
 
             <Switch on={$ctx.prefix}>
                 <Case value={false}>
-                    <Return value={{ ...$in.state, status: 3 }} />
+                    <Return
+                        value={{
+                            ...$in.state,
+                            status: 3
+                        }}
+                    />
                 </Case>
             </Switch>
         </Case>
     </Switch>
 
-    <Call fn="merging/initialize" in={{ mapping: $in.state.mapping, first: $in.request.first }} />
-    <Call fn="merging/append" in={{ request: $in.request, state: { ...$in.state, mapping: $ctx.initialize } }} />
+    <Call
+        fn="merging/initialize"
+        in={{
+            mapping: $in.state.mapping,
+            first: $in.request.first
+        }}
+    />
+
+    <Call
+        fn="merging/append"
+        in={{
+            request: $in.request,
+            state: {
+                ...$in.state,
+                mapping: $ctx.initialize
+            }
+        }}
+    />
 
     <Return value={$ctx.append} />
 </Module>

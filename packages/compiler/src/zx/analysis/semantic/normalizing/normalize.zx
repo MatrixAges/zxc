@@ -11,31 +11,92 @@ import type { Bindings } from "core/type_table/nominal"
 import type { Input, Output } from "./model"
 
 export default function (in: Input): Output {
-    const empty: Table = { kinds: [], first: [], second: [], labels: [], children: [], field_types: [], field_names: [], names: [] }
-    const origins: Bindings = { ids: [], kinds: [], owners: [], members: [] }
+    const empty: Table = {
+        kinds: [],
+        first: [],
+        second: [],
+        labels: [],
+        children: [],
+        field_types: [],
+        field_names: [],
+        names: []
+    }
+
+    const origins: Bindings = {
+        ids: [],
+        kinds: [],
+        owners: [],
+        members: []
+    }
+
     const mapping: u32[] = []
 
-    const state = loop({ input: in, delta: empty, origins: origins, mapping: mapping, index: 0, conflict: false }, {
-        while: current => !current.conflict && current.index < current.input.delta.kinds.length,
+    const state = loop({
+        input: in,
+        delta: empty,
+        origins: origins,
+        mapping: mapping,
+        index: 0,
+        conflict: false
+    }, {
+        while: current =>
+            !current.conflict && current.index < current.input.delta.kinds.length,
         next: current => {
-            const source = row({ table: current.input.delta, index: current.index })
-            const mapping = { first: current.input.base.kinds.length, ids: current.mapping }
-            const found = find({ source: source, tables: { base: current.input.base, delta: current.delta }, origins: { base: current.input.origins, delta: current.origins }, origin: current.input.origin, mapping: mapping })
+            const source = row({
+                table: current.input.delta,
+                index: current.index
+            })
+            const mapping = {
+                first: current.input.base.kinds.length,
+                ids: current.mapping
+            }
+            const found = find({
+                source: source,
+                tables: {
+                    base: current.input.base,
+                    delta: current.delta
+                },
+                origins: {
+                    base: current.input.origins,
+                    delta: current.origins
+                },
+                origin: current.input.origin,
+                mapping: mapping
+            })
 
             if (found.status == Status.Conflict) {
                 current.conflict = true
             } else {
-                const id = found.status == Status.Found ? found.id : integers.narrow(current.input.base.kinds.length + current.delta.kinds.length + 1) - 1
+                const id = found.status == Status.Found ? found.id :
+                    integers.narrow(
+                        current.input.base.kinds.length + current.delta.kinds.length + 1
+                    ) - 1
 
                 if (found.status == Status.Missing) {
-                    current.delta = append({ source: source, delta: current.delta, mapping: mapping })
+                    current.delta = append({
+                        source: source,
+                        delta: current.delta,
+                        mapping: mapping
+                    })
 
-                    if (source.kind == Kind.Enumeration || source.kind == Kind.NativeReference) {
+                    if (
+                        source.kind == Kind.Enumeration ||
+                            source.kind == Kind.NativeReference
+                    ) {
                         current.origins = {
                             ids: current.origins.ids.push(id)[0],
-                            kinds: current.origins.kinds.push(current.input.origin.kind)[0],
-                            owners: current.origins.owners.push(current.input.origin.owner)[0],
-                            members: current.origins.members.push(current.input.origin.member)[0]
+                            kinds:
+                                current.origins.kinds.push(
+                                    current.input.origin.kind
+                                )[0],
+                            owners:
+                                current.origins.owners.push(
+                                    current.input.origin.owner
+                                )[0],
+                            members:
+                                current.origins.members.push(
+                                    current.input.origin.member
+                                )[0]
                         }
                     }
                 }
@@ -47,5 +108,10 @@ export default function (in: Input): Output {
         }
     })
 
-    return { delta: state.delta, origins: state.origins, mapping: state.mapping, conflict: state.conflict }
+    return {
+        delta: state.delta,
+        origins: state.origins,
+        mapping: state.mapping,
+        conflict: state.conflict
+    }
 }

@@ -6,7 +6,12 @@ import type { BlockTree } from "../../../../frontend/parser/body/model"
 import type { Local } from "../../local"
 import type { Blocks, Frame } from "./model"
 
-export type Input = { blocks: Blocks, local: Local, tree: BlockTree, block: u64 }
+export type Input = {
+    blocks: Blocks,
+    local: Local,
+    tree: BlockTree,
+    block: u64
+}
 
 export type Output = Blocks
 
@@ -15,12 +20,19 @@ export default function (in: Input): Output {
 
     const frame: Frame = {
         source_block: in.block,
-        statements: order({ items: in.tree.items, head: source.head, count: source.count }),
+        statements: order({
+            items: in.tree.items,
+            head: source.head,
+            count: source.count
+        }),
         next: 0,
         pending_mark: pendingMark(in.blocks.pending),
         active_mark: in.local.active.length,
         facts_mark: factsMark(in.local.refinement.facts)
     }
 
-    return { ...in.blocks, frames: in.blocks.frames.push(frame)[0] }
+    return {
+        ...in.blocks,
+        frames: in.blocks.frames.push(frame)[0]
+    }
 }

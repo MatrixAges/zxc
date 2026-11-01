@@ -6,7 +6,14 @@ import type { Tables } from "core/type_table/model"
 import type { Layout } from "../places/model"
 import type { Storage } from "./storage"
 
-export type Input = { types: Tables, references: bool[], layout: Layout, storage: Storage, id: u64, fact: u64 }
+export type Input = {
+    types: Tables,
+    references: bool[],
+    layout: Layout,
+    storage: Storage,
+    id: u64,
+    fact: u64
+}
 
 export type Output = Storage
 
@@ -17,12 +24,28 @@ export default function (in: Input): Output {
         return in.storage
     }
 
-    const result = loop({ types: in.types, references: in.references, layout: in.layout, forest: in.storage.forest, facts: in.storage.facts, states: in.storage.states, id: in.id, root: in.id, fact: fact, ascending: true, leaving: false, active: true }, {
+    const result = loop({
+        types: in.types,
+        references: in.references,
+        layout: in.layout,
+        forest: in.storage.forest,
+        facts: in.storage.facts,
+        states: in.storage.states,
+        id: in.id,
+        root: in.id,
+        fact: fact,
+        ascending: true,
+        leaving: false,
+        active: true
+    }, {
         while: current => current.active,
         next: current => {
             if (current.ascending) {
                 current.facts[current.id] = current.fact
-                current.states[current.id] = summary({ forest: current.forest, fact: current.fact })
+                current.states[current.id] = summary({
+                    forest: current.forest,
+                    fact: current.fact
+                })
 
                 const parent = current.layout.parents[current.id]
 
@@ -30,7 +53,15 @@ export default function (in: Input): Output {
                     current.root = current.id
                     current.ascending = false
                 } else {
-                    const changed = replace({ types: current.types, references: current.references, forest: current.forest, fact: current.facts[parent - 1], type_id: current.layout.types[parent - 1], index: current.layout.field_indices[current.id], value: current.fact })
+                    const changed = replace({
+                        types: current.types,
+                        references: current.references,
+                        forest: current.forest,
+                        fact: current.facts[parent - 1],
+                        type_id: current.layout.types[parent - 1],
+                        index: current.layout.field_indices[current.id],
+                        value: current.fact
+                    })
 
                     current.forest = changed.forest
                     current.fact = changed.fact
@@ -39,10 +70,18 @@ export default function (in: Input): Output {
             } else if (!current.leaving) {
                 if (current.id != current.root) {
                     const parent = current.layout.parents[current.id] - 1
-                    const child_fact = project({ forest: current.forest, fact: current.facts[parent], index: current.layout.field_indices[current.id], reference: current.layout.references[current.id] })
+                    const child_fact = project({
+                        forest: current.forest,
+                        fact: current.facts[parent],
+                        index: current.layout.field_indices[current.id],
+                        reference: current.layout.references[current.id]
+                    })
 
                     current.facts[current.id] = child_fact
-                    current.states[current.id] = summary({ forest: current.forest, fact: child_fact })
+                    current.states[current.id] = summary({
+                        forest: current.forest,
+                        fact: child_fact
+                    })
                 }
 
                 const child = current.layout.children[current.id]
@@ -67,5 +106,9 @@ export default function (in: Input): Output {
         }
     })
 
-    return { forest: result.forest, facts: result.facts, states: result.states }
+    return {
+        forest: result.forest,
+        facts: result.facts,
+        states: result.states
+    }
 }

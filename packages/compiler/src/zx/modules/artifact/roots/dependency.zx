@@ -5,7 +5,11 @@ import kind from "../../../analysis/semantic/types/kind"
 
 import type { Table } from "core/type_table/model"
 
-export type Input = { table: Table, index: u64, edge: u64 }
+export type Input = {
+    table: Table,
+    index: u64,
+    edge: u64
+}
 
 export type Output = u32?
 
@@ -24,10 +28,16 @@ export type Output = u32?
             return in.edge == 0 ? in.table.first[in.index] : in.table.second[in.index]
         }
 
-        if ((type_kind == Kind.Tuple || type_kind == Kind.Object) && in.edge < integers.widen(in.table.second[in.index])) {
+        if (
+            (type_kind == Kind.Tuple || type_kind == Kind.Object) &&
+                in.edge < integers.widen(
+                    in.table.second[in.index]
+                )
+        ) {
             const index = integers.widen(in.table.first[in.index]) + in.edge
 
-            return type_kind == Kind.Tuple ? in.table.children[index] : in.table.field_types[index]
+            return type_kind == Kind.Tuple ? in.table.children[index] :
+                in.table.field_types[index]
         }
 
         return null

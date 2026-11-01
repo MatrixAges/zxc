@@ -11,6 +11,7 @@ pub const ParseResult = @import("frontend/parse.zig").Result;
 pub const ExpressionInput = @import("frontend/expression_result.zig");
 pub const parseExpressionInput = @import("frontend/parse_expression.zig").parseInput;
 pub const parseExpression = @import("frontend/parse_expression.zig").parse;
+pub const formatXml = @import("frontend/format_xml.zig").format;
 pub const parseExpressionXml = @import("frontend/attribute.zig").parseXml;
 pub const stringExpression = @import("frontend/attribute.zig").string;
 pub const ExpressionParseResult = @import("frontend/parse_expression.zig").Result;

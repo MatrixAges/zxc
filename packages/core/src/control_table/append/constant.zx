@@ -5,12 +5,20 @@ import header from "./header"
 
 import type { Control } from "../model"
 
-export type Input = { table: Control, symbol: u32, value: u32 }
+export type Input = {
+    table: Control,
+    symbol: u32,
+    value: u32
+}
 
 export type Output = Control
 
 export default function (in: Input): Output {
-    const table = header({ table: in.table, kind: StatementKind.Constant, payload: integers.narrow(in.table.constant_symbols.length) })
+    const table = header({
+        table: in.table,
+        kind: StatementKind.Constant,
+        payload: integers.narrow(in.table.constant_symbols.length)
+    })
 
     return {
         ...table,

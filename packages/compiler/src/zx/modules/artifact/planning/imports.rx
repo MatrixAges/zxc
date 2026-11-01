@@ -1,25 +1,61 @@
 <Module>
     <Type from="./model" as="Model" />
     <Type from="../../../ir/canonical/native/structure" as="Structure" />
-    <Type from="../../../analysis/semantic/extracting/planning/model" as="PlanningModel" />
+
+    <Type
+        from="../../../analysis/semantic/extracting/planning/model"
+        as="PlanningModel"
+    />
+
     <Type from="./type_imports" as="TypeImports" />
     <Type from="./native_dependencies" as="NativeDependencies" />
 
-    <Args in={{ dependencies: Model.Dependencies, modules: Structure.Input, natives: Model.NativePlan, request: PlanningModel.Request, state: TypeImports.Output, type_imports: u32[] }} out={NativeDependencies.Output} />
+    <Args
+        in={{
+            dependencies: Model.Dependencies,
+            modules: Structure.Input,
+            natives: Model.NativePlan,
+            request: PlanningModel.Request,
+            state: TypeImports.Output,
+            type_imports: u32[]
+        }}
+        out={NativeDependencies.Output}
+    />
 
     <Call fn="../../../analysis/semantic/extracting/planning/ready" in={$in.state} />
 
     <Switch on={$ctx.ready}>
         <Case value={true}>
-            <Call fn="type_imports" in={{ request: $in.request, state: $in.state, ids: $in.type_imports }} />
+            <Call
+                fn="type_imports"
+                in={{
+                    request: $in.request,
+                    state: $in.state,
+                    ids: $in.type_imports
+                }}
+            />
 
-            <Call module="declared_native" in={{ request: $in.request, state: $ctx.type_imports, modules: $in.modules, natives: $in.natives, dependencies: $in.dependencies }} />
+            <Call
+                module="declared_native"
+                in={{
+                    request: $in.request,
+                    state: $ctx.type_imports,
+                    modules: $in.modules,
+                    natives: $in.natives,
+                    dependencies: $in.dependencies
+                }}
+            />
 
             <Return value={$ctx.declared_native} />
         </Case>
 
         <Default>
-            <Return value={{ state: $in.state, natives: $in.natives }} />
+            <Return
+                value={{
+                    state: $in.state,
+                    natives: $in.natives
+                }}
+            />
         </Default>
     </Switch>
 </Module>

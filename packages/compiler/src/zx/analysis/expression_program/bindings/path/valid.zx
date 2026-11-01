@@ -11,20 +11,40 @@ export type Output = bool
 export default function (in: Input): Output {
     const bytes = encoding.encodeUtf8(in)
 
-    const result = loop({ bytes: bytes, index: 0, start: true, keyword: 0, valid: true }, {
+    const result = loop({
+        bytes: bytes,
+        index: 0,
+        start: true,
+        keyword: 0,
+        valid: true
+    }, {
         while: current => current.valid && current.index < current.bytes.length,
         next: current => {
             const byte = current.bytes[current.index]
 
             if (byte == 46) {
-                current.valid = !current.start && !keyword(value(current.keyword))
+                current.valid = !current.start && !keyword(
+                    value(
+                        current.keyword
+                    )
+                )
                 current.start = true
                 current.keyword = 0
             } else {
-                const letter = (byte >= 65 && byte <= 90) || (byte >= 97 && byte <= 122)
+                const letter =
+                    (byte >= 65 && byte <= 90) || (
+                        byte >= 97 && byte <= 122
+                    )
 
-                current.valid = letter || byte == 95 || (current.start ? byte == 36 : byte >= 48 && byte <= 57)
-                current.keyword = transition({ state: current.keyword, byte: byte })
+                current.valid =
+                    letter || byte == 95 ||
+                    (
+                        current.start ? byte == 36 : byte >= 48 && byte <= 57
+                    )
+                current.keyword = transition({
+                    state: current.keyword,
+                    byte: byte
+                })
                 current.start = false
             }
 

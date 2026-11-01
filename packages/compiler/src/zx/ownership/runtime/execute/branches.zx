@@ -15,19 +15,42 @@ export type Output = Machine
 
 export default function (in: Input): Output {
     return loop(in, {
-        while: current => current.active && current.complete && !current.failed && current.work.actions.length != 0 && family(current.work.actions[current.work.actions.length - 1]) == Family.Branches,
+        while: current =>
+            current.active && current.complete && !current.failed &&
+            current.work.actions.length != 0 &&
+            family(
+                current.work.actions[current.work.actions.length - 1]
+            ) == Family.Branches,
         next: current => {
             const action = current.work.actions[current.work.actions.length - 1]
 
-            if (action == WorkAction.BranchCondition || action == WorkAction.BranchYes || action == WorkAction.BranchNo) {
+            if (
+                action == WorkAction.BranchCondition ||
+                    action == WorkAction.BranchYes || action == WorkAction.BranchNo
+            ) {
                 current = statement(current)
-            } else if (action == WorkAction.SwitchSubject || action == WorkAction.SwitchCase || action == WorkAction.SwitchResult) {
+            } else if (
+                action == WorkAction.SwitchSubject ||
+                    action == WorkAction.SwitchCase ||
+                    action == WorkAction.SwitchResult
+            ) {
                 current = selection(current)
-            } else if (action == WorkAction.MatchSubject || action == WorkAction.MatchArm || action == WorkAction.MatchCondition || action == WorkAction.MatchResult || action == WorkAction.MatchFinish) {
+            } else if (
+                action == WorkAction.MatchSubject || action == WorkAction.MatchArm ||
+                    action == WorkAction.MatchCondition ||
+                    action == WorkAction.MatchResult ||
+                    action == WorkAction.MatchFinish
+            ) {
                 current = matchFlow(current)
-            } else if (action == WorkAction.BinaryLeft || action == WorkAction.BinaryRight) {
+            } else if (
+                action == WorkAction.BinaryLeft || action == WorkAction.BinaryRight
+            ) {
                 current = binary(current)
-            } else if (action == WorkAction.ConditionalCondition || action == WorkAction.ConditionalYes || action == WorkAction.ConditionalNo) {
+            } else if (
+                action == WorkAction.ConditionalCondition ||
+                    action == WorkAction.ConditionalYes ||
+                    action == WorkAction.ConditionalNo
+            ) {
                 current = conditional(current)
             }
         }

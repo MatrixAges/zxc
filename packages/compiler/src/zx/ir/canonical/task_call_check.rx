@@ -1,10 +1,29 @@
 <Module>
     <Type from="./functions/model" as="Model" />
 
-    <Args in={{ functions: Model.Functions, id: u32 }} out={bool} />
+    <Args
+        in={{
+            functions: Model.Functions,
+            id: u32
+        }}
+        out={bool}
+    />
 
-    <Call fn="./functions/analyze" in={{ functions: $in.functions, concurrent: true }} />
-    <Call fn="./functions/selected" in={{ values: $ctx.analyze, id: $in.id }} />
+    <Call
+        fn="./functions/analyze"
+        in={{
+            functions: $in.functions,
+            concurrent: true
+        }}
+    />
+
+    <Call
+        fn="./functions/selected"
+        in={{
+            values: $ctx.analyze,
+            id: $in.id
+        }}
+    />
 
     <Return value={$ctx.selected} />
 </Module>

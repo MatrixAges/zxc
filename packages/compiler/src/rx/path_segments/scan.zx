@@ -8,9 +8,19 @@ export type Input = u8[]
 export type Output = Span[]
 
 export default function (in: Input): Output {
-  const segments: Span[] = []
-  const initial: State = { offset: 0, start: 0, dots: true, segments: segments }
-  const state = finish(in.reduce((state, byte) => tick({ state: state, byte: byte }), initial))
+    const segments: Span[] = []
 
-  return state.segments
+    const initial: State = {
+        offset: 0,
+        start: 0,
+        dots: true,
+        segments: segments
+    }
+
+    const state = finish(in.reduce((state, byte) => tick({
+        state: state,
+        byte: byte
+    }), initial))
+
+    return state.segments
 }

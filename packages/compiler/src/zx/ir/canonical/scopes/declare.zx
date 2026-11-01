@@ -3,13 +3,23 @@ import { Declaration } from "./model"
 
 import type { Program, Result, State } from "./model"
 
-export type Input = { program: Program, state: State, symbol: u64, type_id: u32, owner: u64, mode: Declaration }
+export type Input = {
+    program: Program,
+    state: State,
+    symbol: u64,
+    type_id: u32,
+    owner: u64,
+    mode: Declaration
+}
 
 export type Output = Result
 
 export default function (in: Input): Output {
     if (in.symbol >= in.program.body.symbols.names.length) {
-        return { state: in.state, valid: false }
+        return {
+            state: in.state,
+            valid: false
+        }
     }
 
     const type_id = in.program.body.symbols.types[in.symbol]
@@ -17,26 +27,49 @@ export default function (in: Input): Output {
 
     if (in.mode == Declaration.Ordinary) {
         if (activity.declared[in.symbol] || type_id != in.type_id || type_id == 0) {
-            return { state: in.state, valid: false }
+            return {
+                state: in.state,
+                valid: false
+            }
         }
     } else {
-        if (activity.active[in.symbol] || (activity.declared[in.symbol] && activity.owners[in.symbol] != in.owner + 1)) {
-            return { state: in.state, valid: false }
+        if (
+            activity.active[in.symbol] ||
+                (
+                    activity.declared[in.symbol] &&
+                        activity.owners[in.symbol] != in.owner + 1
+                )
+        ) {
+            return {
+                state: in.state,
+                valid: false
+            }
         }
 
         if (in.mode == Declaration.Scope && type_id == 0) {
-            return { state: in.state, valid: false }
+            return {
+                state: in.state,
+                valid: false
+            }
         }
     }
 
-    const active = set({ activity: activity, symbol: in.symbol, value: true })
+    const active = set({
+        activity: activity,
+        symbol: in.symbol,
+        value: true
+    })
 
     return {
         state: {
             activity: {
                 active: active.active,
                 declared: active.declared.with(in.symbol, true),
-                owners: in.mode == Declaration.Ordinary ? active.owners : active.owners.with(in.symbol, in.owner + 1),
+                owners: in.mode == Declaration.Ordinary ? active.owners :
+                    active.owners.with(
+                        in.symbol,
+                        in.owner + 1
+                    ),
                 changed_symbols: active.changed_symbols,
                 changed_values: active.changed_values
             },

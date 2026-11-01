@@ -21,17 +21,48 @@ export default function (in: Input): Output {
     const first = integers.widen(control.destructure_first[payload])
     const count = integers.widen(control.destructure_count[payload])
 
-    if (kind(program.table.kinds[type_id]) != Kind.Tuple || integers.widen(program.table.second[type_id]) != count) {
-        return { state: in.state, valid: false }
+    if (
+        kind(program.table.kinds[type_id]) != Kind.Tuple ||
+            integers.widen(
+                program.table.second[type_id]
+            ) != count
+    ) {
+        return {
+            state: in.state,
+            valid: false
+        }
     }
 
-    const result = loop({ result: { state: in.state, valid: true }, program: program, first: first, count: count, type_first: integers.widen(program.table.first[type_id]), index: 0 }, {
+    const result = loop({
+        result: {
+            state: in.state,
+            valid: true
+        },
+        program: program,
+        first: first,
+        count: count,
+        type_first: integers.widen(program.table.first[type_id]),
+        index: 0
+    }, {
         while: current => current.result.valid && current.index < current.count,
         next: current => {
-            const symbol = current.program.body.control.destructure_symbols[current.first + current.index]
+            const symbol =
+                current.program.body.control
+                .destructure_symbols[current.first +
+                    current.index]
 
             if (symbol != null) {
-                current.result = declare({ program: current.program, state: current.result.state, symbol: integers.widen(symbol), type_id: current.program.table.children[current.type_first + current.index], owner: 0, mode: Declaration.Ordinary })
+                current.result = declare({
+                    program: current.program,
+                    state: current.result.state,
+                    symbol: integers.widen(symbol),
+                    type_id:
+                        current.program.table
+                        .children[current.type_first +
+                            current.index],
+                    owner: 0,
+                    mode: Declaration.Ordinary
+                })
             }
 
             current.index += 1
@@ -39,9 +70,25 @@ export default function (in: Input): Output {
     }).result
 
     if (result.valid && count == 2) {
-        const facts = bind({ facts: result.state.refinement.facts, expressions: program.body.expressions, value: value, count: count, err: control.destructure_symbols[first], result: control.destructure_symbols[first + 1] })
+        const facts = bind({
+            facts: result.state.refinement.facts,
+            expressions: program.body.expressions,
+            value: value,
+            count: count,
+            err: control.destructure_symbols[first],
+            result: control.destructure_symbols[first + 1]
+        })
 
-        return { state: { ...result.state, refinement: { ...result.state.refinement, facts: facts } }, valid: true }
+        return {
+            state: {
+                ...result.state,
+                refinement: {
+                    ...result.state.refinement,
+                    facts: facts
+                }
+            },
+            valid: true
+        }
     }
 
     return result

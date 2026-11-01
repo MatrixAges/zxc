@@ -1,4 +1,8 @@
-export type Origin = { kind: u8, owner: string, member: string }
+export type Origin = {
+    kind: u8,
+    owner: string,
+    member: string
+}
 
 export type Bindings = {
     ids: u32[]
@@ -7,4 +11,7 @@ export type Bindings = {
     members: string[]
 }
 
-export type Origins = { base: Bindings, delta: Bindings }
+export type Origins = {
+    base: Bindings,
+    delta: Bindings
+}

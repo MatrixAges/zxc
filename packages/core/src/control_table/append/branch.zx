@@ -5,12 +5,21 @@ import header from "./header"
 
 import type { Control } from "../model"
 
-export type Input = { table: Control, condition: u32, yes: u32, no: u32 }
+export type Input = {
+    table: Control,
+    condition: u32,
+    yes: u32,
+    no: u32
+}
 
 export type Output = Control
 
 export default function (in: Input): Output {
-    const table = header({ table: in.table, kind: StatementKind.Branch, payload: integers.narrow(in.table.branch_conditions.length) })
+    const table = header({
+        table: in.table,
+        kind: StatementKind.Branch,
+        payload: integers.narrow(in.table.branch_conditions.length)
+    })
 
     return {
         ...table,

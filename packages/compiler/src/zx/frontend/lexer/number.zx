@@ -11,18 +11,38 @@ export type Input = AdvanceInput
 export type Output = LexerState
 
 export default function (in: Input): Output {
-  const decimal_boundary = in.state.number.phase == Phase.Integer && in.byte == 46 && (!in.has_next || !isDigit(in.next))
-  const number = step({ byte: in.byte, state: in.state.number })
+    const decimal_boundary =
+        in.state.number.phase == Phase.Integer && in.byte == 46 &&
+        (
+            !in.has_next || !isDigit(
+                in.next
+            )
+        )
 
-  if (decimal_boundary || number.phase == Phase.Done) {
-    const ended = endNumber(in.state)
+    const number = step({
+        byte: in.byte,
+        state: in.state.number
+    })
 
-    if (ended.diagnostic.message != "") {
-      return ended
+    if (decimal_boundary || number.phase == Phase.Done) {
+        const ended = endNumber(in.state)
+
+        if (ended.diagnostic.message != "") {
+            return ended
+        }
+
+        return begin({
+            byte: in.byte,
+            next: in.next,
+            after: in.after,
+            has_next: in.has_next,
+            has_after: in.has_after,
+            state: ended
+        })
     }
 
-    return begin({ byte: in.byte, next: in.next, after: in.after, has_next: in.has_next, has_after: in.has_after, state: ended })
-  }
-
-  return { ...in.state, number: number }
+    return {
+        ...in.state,
+        number: number
+    }
 }

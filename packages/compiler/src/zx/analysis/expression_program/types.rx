@@ -6,30 +6,68 @@
 
     <Call fn="types/trusted" in={$in.input.mode} />
 
-    <Call module="../semantic/validate_types" in={{ table: $in.input.type_base, scalar_count: $in.input.scalar_count, maximum_count: $in.input.maximum_type_count, trusted: $ctx.trusted }} />
+    <Call
+        module="../semantic/validate_types"
+        in={{
+            table: $in.input.type_base,
+            scalar_count: $in.input.scalar_count,
+            maximum_count: $in.input.maximum_type_count,
+            trusted: $ctx.trusted
+        }}
+    />
 
     <Switch on={$in.input.type_base.kinds.length == 0 || $ctx.validate_types}>
         <Case value={true}>
             <Call fn="types/request" in={$in.analysis.state.types} />
 
-            <Task name="resolved" out={{ ...$in.analysis, state: { ...$in.analysis.state, types: { ...$in.analysis.state.types, delta: $ctx.resolve.delta, cache: $ctx.resolve.cache }, diagnostic: $ctx.resolve.diagnostic } }}>
+            <Task
+                name="resolved"
+                out={{
+                    ...$in.analysis,
+                    state: {
+                        ...$in.analysis.state,
+                        types: {
+                            ...$in.analysis.state.types,
+                            delta: $ctx.resolve.delta,
+                            cache: $ctx.resolve.cache
+                        },
+                        diagnostic: $ctx.resolve.diagnostic
+                    }
+                }}
+            >
                 <Call module="../semantic/resolving/resolve" in={$ctx.request} />
             </Task>
 
-            <Call fn="types/check" in={{
-                analysis: $ctx.task.resolved,
-                constant_values: $in.input.constant_values,
-                binding_types: $in.input.binding_types,
-                alias_types: $in.input.alias_types,
-                expected: $in.input.expected,
-                check_bindings: $in.analysis.program
-            }} />
+            <Call
+                fn="types/check"
+                in={{
+                    analysis: $ctx.task.resolved,
+                    constant_values: $in.input.constant_values,
+                    binding_types: $in.input.binding_types,
+                    alias_types: $in.input.alias_types,
+                    expected: $in.input.expected,
+                    check_bindings: $in.analysis.program
+                }}
+            />
 
             <Return value={$ctx.check} />
         </Case>
 
         <Default>
-            <Return value={{ ...$in.analysis, state: { ...$in.analysis.state, diagnostic: { code: "contract", message: "invalid shared type table", start: $in.analysis.span.start, end: $in.analysis.span.end } } }} />
+            <Return
+                value={{
+                    ...$in.analysis,
+                    state: {
+                        ...$in.analysis.state,
+                        diagnostic: {
+                            code: "contract",
+                            message: "invalid shared type table",
+                            start: $in.analysis.span.start,
+                            end: $in.analysis.span.end
+                        }
+                    }
+                }}
+            />
         </Default>
     </Switch>
 </Module>

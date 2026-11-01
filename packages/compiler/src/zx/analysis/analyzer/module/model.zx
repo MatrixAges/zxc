@@ -3,4 +3,14 @@ import type { Contracts } from "core/contract_table/model"
 import type { Ownership } from "core/symbol_table/model"
 import type { Prepared } from "../model"
 
-export type Analysis = { state: Prepared, constant_scope: Values?, constant_first: u64, root: u32?, contracts: Contracts, names: string[], types: u32[], ownership: Ownership, type_only: bool }
+export type Analysis = {
+    state: Prepared,
+    constant_scope: Values?,
+    constant_first: u64,
+    root: u32?,
+    contracts: Contracts,
+    names: string[],
+    types: u32[],
+    ownership: Ownership,
+    type_only: bool
+}

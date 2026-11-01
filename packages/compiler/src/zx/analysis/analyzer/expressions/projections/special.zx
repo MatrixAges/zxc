@@ -17,15 +17,29 @@ import type { Request } from "../request"
 
 export type Input = Request
 
-export type Output = { handled: bool, result: Result }
+export type Output = {
+    handled: bool,
+    result: Result
+}
 
 export default function (in: Input): Output {
     const node = in.source.tree.nodes[in.node]
     const owner = in.source.tree.nodes[node.first]
-    const unhandled: Output = { handled: false, result: { state: in.state, value: 0 } }
+
+    const unhandled: Output = {
+        handled: false,
+        result: {
+            state: in.state,
+            value: 0
+        }
+    }
 
     if (owner.kind != ExprKind.Identifier) {
-        if (owner.kind != ExprKind.Field || in.source.tree.nodes[owner.first].kind != ExprKind.Identifier || in.state.types.context.aliases.names.length == 0) {
+        if (
+            owner.kind != ExprKind.Field ||
+                in.source.tree.nodes[owner.first].kind != ExprKind.Identifier ||
+                in.state.types.context.aliases.names.length == 0
+        ) {
             return unhandled
         }
 
@@ -54,24 +68,91 @@ export default function (in: Input): Output {
         return unhandled
     }
 
-    const root = readName({ source: in.source, kind: NameKind.Expression, index: node.first })
-    const name = readName({ source: in.source, kind: NameKind.Expression, index: in.node })
-    const binding = injected({ local: in.state.local, source: in.source, node: node.first })
+    const root = readName({
+        source: in.source,
+        kind: NameKind.Expression,
+        index: node.first
+    })
 
-    if (root.text.length != 0 && root.text[0] == 36 && binding.symbol == null && !binding.unit) {
-        return { handled: true, result: readStore({ state: in.state, source: in.source, node: in.node }) }
+    const name = readName({
+        source: in.source,
+        kind: NameKind.Expression,
+        index: in.node
+    })
+
+    const binding = injected({
+        local: in.state.local,
+        source: in.source,
+        node: node.first
+    })
+
+    if (
+        root.text.length != 0 && root.text[0] == 36 && binding.symbol == null &&
+            !binding.unit
+    ) {
+        return {
+            handled: true,
+            result: readStore({
+                state: in.state,
+                source: in.source,
+                node: in.node
+            })
+        }
     }
 
-    const tables = { base: in.state.types.context.base, delta: in.state.types.delta }
+    const tables = {
+        base: in.state.types.context.base,
+        delta: in.state.types.delta
+    }
 
-    if (root.text == "error" && lookup({ active: in.state.local.active, names: in.state.local.symbols.names, scope_floor: in.state.local.scope_floor, name: root.text }) == null && (in.source.constant_values == null || constant({ active: in.state.local.active, names: in.state.local.symbols.names, constants: in.source.constant_values, name: root.text }) == null)) {
-        const expected = payload({ types: in.state.types, expected: in.expected })
+    if (root.text == "error" && lookup({
+        active: in.state.local.active,
+        names: in.state.local.symbols.names,
+        scope_floor: in.state.local.scope_floor,
+        name: root.text
+    }) == null && (in.source.constant_values == null || constant({
+        active: in.state.local.active,
+        names: in.state.local.symbols.names,
+        constants: in.source.constant_values,
+        name: root.text
+    }) == null)) {
+        const expected = payload({
+            types: in.state.types,
+            expected: in.expected
+        })
 
-        if (expected == null || row({ tables: tables, id: expected }).kind != Kind.ErrorSet) {
-            return { handled: true, result: { state: { ...in.state, diagnostic: { code: "type_mismatch", message: "an error member requires a finite error-set context", start: node.span.start, end: node.span.end } }, value: 0 } }
+        if (expected == null || row({
+            tables: tables,
+            id: expected
+        }).kind != Kind.ErrorSet) {
+            return {
+                handled: true,
+                result: {
+                    state: {
+                        ...in.state,
+                        diagnostic: {
+                            code: "type_mismatch",
+                            message:
+                                "an error member requires a finite error-set context",
+                            start: node.span.start,
+                            end: node.span.end
+                        }
+                    },
+                    value: 0
+                }
+            }
         }
 
-        return { handled: true, result: member({ state: in.state, type_id: expected, name: name, span: node.span, error_member: true }) }
+        return {
+            handled: true,
+            result: member({
+                state: in.state,
+                type_id: expected,
+                name: name,
+                span: node.span,
+                error_member: true
+            })
+        }
     }
 
     const type_id = enumOwner({
@@ -79,8 +160,20 @@ export default function (in: Input): Output {
         node: node.first
     })
 
-    if (type_id.found && row({ tables: tables, id: type_id.id }).kind == Kind.Enumeration) {
-        return { handled: true, result: member({ state: in.state, type_id: type_id.id, name: name, span: node.span, error_member: false }) }
+    if (type_id.found && row({
+        tables: tables,
+        id: type_id.id
+    }).kind == Kind.Enumeration) {
+        return {
+            handled: true,
+            result: member({
+                state: in.state,
+                type_id: type_id.id,
+                name: name,
+                span: node.span,
+                error_member: false
+            })
+        }
     }
 
     return unhandled

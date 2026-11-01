@@ -3,24 +3,81 @@ import type { Table } from "core/type_table/model"
 import type { Functions } from "../functions/model"
 import type { Refinement } from "../refinement/model"
 
-export enum Phase { Block, BlockNext, Expression, Declare, ScopeDeclare, Destructure, Branch, BranchPost, Switch, Restore, RestoreFacts, Assume, IterationCondition, IterationBody, Transform, Invalid }
+export enum Phase {
+    Block,
+    BlockNext,
+    Expression,
+    Declare,
+    ScopeDeclare,
+    Destructure,
+    Branch,
+    BranchPost,
+    Switch,
+    Restore,
+    RestoreFacts,
+    Assume,
+    IterationCondition,
+    IterationBody,
+    Transform,
+    Invalid
+}
 
-export type Frame = { phase: Phase, a: u64, b: u64, c: u64 }
+export type Frame = {
+    phase: Phase,
+    a: u64,
+    b: u64,
+    c: u64
+}
 
-export type Program = { table: Table, body: Body, functions: Functions, output_type: u32, transaction: bool }
+export type Program = {
+    table: Table,
+    body: Body,
+    functions: Functions,
+    output_type: u32,
+    transaction: bool
+}
 
-export type Prepared = { returns: bool[], pure: bool[], concurrent: bool[] }
+export type Prepared = {
+    returns: bool[],
+    pure: bool[],
+    concurrent: bool[]
+}
 
-export type Context = { program: Program, prepared: Prepared }
+export type Context = {
+    program: Program,
+    prepared: Prepared
+}
 
-export type Step = { context: Context, frame: Frame, state: State }
+export type Step = {
+    context: Context,
+    frame: Frame,
+    state: State
+}
 
 export enum Declaration { Ordinary, Scope, Callback }
 
-export type Activity = { active: bool[], declared: bool[], owners: u64[], changed_symbols: u64[], changed_values: bool[] }
+export type Activity = {
+    active: bool[],
+    declared: bool[],
+    owners: u64[],
+    changed_symbols: u64[],
+    changed_values: bool[]
+}
 
-export type Frames = { phases: Phase[], a: u64[], b: u64[], c: u64[] }
+export type Frames = {
+    phases: Phase[],
+    a: u64[],
+    b: u64[],
+    c: u64[]
+}
 
-export type State = { activity: Activity, refinement: Refinement, frames: Frames }
+export type State = {
+    activity: Activity,
+    refinement: Refinement,
+    frames: Frames
+}
 
-export type Result = { state: State, valid: bool }
+export type Result = {
+    state: State,
+    valid: bool
+}

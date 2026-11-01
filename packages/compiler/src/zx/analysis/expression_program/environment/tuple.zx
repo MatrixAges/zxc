@@ -4,7 +4,10 @@ import construct from "../../analyzer/types/construct"
 
 import type { Analysis } from "../model"
 
-export type Input = { analysis: Analysis, types: u32[] }
+export type Input = {
+    analysis: Analysis,
+    types: u32[]
+}
 
 export type Output = Analysis
 
@@ -13,7 +16,28 @@ export default function (in: Input): Output {
         return in.analysis
     }
 
-    const result = construct({ state: in.analysis.state, candidate: { kind: Kind.Tuple, first: 0, second: 0, label: "", children: in.types, fields: { names: [], types: [] }, names: [] }, span: in.analysis.span })
+    const result = construct({
+        state: in.analysis.state,
+        candidate: {
+            kind: Kind.Tuple,
+            first: 0,
+            second: 0,
+            label: "",
+            children: in.types,
+            fields: {
+                names: [],
+                types: []
+            },
+            names: []
+        },
+        span: in.analysis.span
+    })
 
-    return { ...in.analysis, state: { ...result.state, input_type: result.id } }
+    return {
+        ...in.analysis,
+        state: {
+            ...result.state,
+            input_type: result.id
+        }
+    }
 }

@@ -7,10 +7,18 @@ export type Input = State
 export type Output = State
 
 export default function (in: Input): Output {
-    const result = loop({ state: in, index: 0 }, {
-        while: current => current.index < current.state.context.aliases.names.length && current.state.diagnostic.message == "",
+    const result = loop({
+        state: in,
+        index: 0
+    }, {
+        while: current =>
+            current.index < current.state.context.aliases.names.length &&
+            current.state.diagnostic.message == "",
         next: current => {
-            current.state = imported({ state: current.state, index: current.index })
+            current.state = imported({
+                state: current.state,
+                index: current.index
+            })
             current.index += 1
         }
     })

@@ -7,5 +7,9 @@ export type Input = void
 export type Output = Blocks
 
 export default function (in: Input): Output {
-    return { pending: empty(), returns: [], frames: [] }
+    return {
+        pending: empty(),
+        returns: [],
+        frames: []
+    }
 }
