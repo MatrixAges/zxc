@@ -1,0 +1,16 @@
+import type { Columns } from "./model"
+
+export type Input = {}
+
+export type Output = Columns
+
+export default function (in: Input): Output {
+    return {
+        tags: [],
+        offsets: [],
+        constant_name: [],
+        constant_type_expr: [],
+        constant_value: [],
+        constant_exported: []
+    }
+}

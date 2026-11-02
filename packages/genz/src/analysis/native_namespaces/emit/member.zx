@@ -1,0 +1,43 @@
+import integers from "std:integer"
+import exportName from "core/native_module_table/export_name"
+
+import type { Group } from "../model"
+import type { Input as Source } from "./model"
+
+export type Input = {
+    source: Source,
+    group: Group,
+    signatures: u32[],
+    index: u64
+}
+
+export type Output = {
+    name: string,
+    value: u32
+}
+
+export default function (in: Input): Output {
+    if (in.index < in.group.types.length) {
+        const binding = in.group.types[in.index]
+
+        const id =
+            integers.widen(
+                in.source.modules.type_ids[binding.module][binding.binding]
+            )
+
+        return {
+            name: in.source.modules.type_names[binding.module][binding.binding],
+            value: in.source.types[id]
+        }
+    }
+
+    const index = in.index - in.group.types.length
+
+    return {
+        name: exportName({
+            functions: in.source.functions,
+            index: in.group.functions[index]
+        }),
+        value: in.signatures[index]
+    }
+}

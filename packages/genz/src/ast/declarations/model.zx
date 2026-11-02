@@ -1,0 +1,22 @@
+import type { DeclarationsKind } from "../../printer/model/declarations"
+
+export type Columns = {
+    tags: DeclarationsKind[],
+    offsets: u32[],
+    constant_name: u8[][],
+    constant_type_expr: u32?[],
+    constant_value: u32[],
+    constant_exported: bool[]
+}
+
+export type Result = {
+    table: Columns,
+    valid: bool
+}
+
+export type Constant = {
+    name: u8[],
+    type_expr?: u32,
+    value: u32,
+    exported: bool
+}

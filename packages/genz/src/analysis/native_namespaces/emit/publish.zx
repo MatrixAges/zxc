@@ -1,0 +1,61 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import namespace from "../../../ast/expressions/namespace"
+
+import type { State } from "./model"
+
+export type Input = {
+    state: State,
+    values: u32[]
+}
+
+export type Output = {
+    state: State,
+    value: u32
+}
+
+export default function (in: Input): Output {
+    const start = in.state.declarations.length
+
+    const result = loop({
+        source: in.state.source,
+        values: in.values,
+        declarations: in.state.declarations,
+        valid: in.state.valid,
+        index: 0
+    }, {
+        while: current => current.valid && current.index < current.values.length,
+        next: current => {
+            current.declarations = current.declarations.push({
+                name: bytes.fromText(
+                    current.source.plan.groups[current.index].key
+                ),
+                type_expr: null,
+                value: current.values[current.index],
+                exported: true
+            })[0]
+            current.index += 1
+        }
+    })
+
+    const expression = namespace({
+        table: in.state.expressions,
+        base: in.state.source.expression_base,
+        start:
+            integers.narrow(
+                integers.widen(in.state.source.declaration_base) + start
+            ),
+        count: integers.narrow(result.declarations.length - start)
+    })
+
+    return {
+        state: {
+            ...in.state,
+            declarations: result.declarations,
+            expressions: expression.table,
+            valid: result.valid && expression.valid
+        },
+        value: expression.id
+    }
+}

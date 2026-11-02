@@ -1,0 +1,41 @@
+<Module>
+    <Type from="./model" as="Emit" />
+
+    <Args in={Emit.Input} out={Emit.Output} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="signatures" in={$ctx.initialize} />
+    <Call fn="members" in={$ctx.signatures} />
+    <Call fn="layouts" in={$ctx.members} />
+
+    <Task name="native" out={$ctx.publish}>
+        <Call
+            fn="publish"
+            in={{
+                state: $ctx.layouts,
+                values: $ctx.layouts.members
+            }}
+        />
+    </Task>
+
+    <Task name="layouts" out={$ctx.publish}>
+        <Call
+            fn="publish"
+            in={{
+                state: $ctx.task.native.state,
+                values: $ctx.task.native.state.layouts
+            }}
+        />
+    </Task>
+
+    <Call
+        fn="finish"
+        in={{
+            state: $ctx.task.layouts.state,
+            native_value: $ctx.task.native.value,
+            layouts_value: $ctx.task.layouts.value
+        }}
+    />
+
+    <Return value={$ctx.finish} />
+</Module>

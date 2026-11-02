@@ -1,0 +1,20 @@
+import type { Input, State } from "./model"
+
+export type Output = State
+
+export default function (in: Input): Output {
+    return {
+        source: in,
+        expressions: {
+            tags: [],
+            offsets: [],
+            namespace_type_start: [],
+            namespace_type_len: []
+        },
+        declarations: [],
+        signatures: [],
+        members: [],
+        layouts: [],
+        valid: true
+    }
+}

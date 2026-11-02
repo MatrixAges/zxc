@@ -4,6 +4,15 @@ const owned = @import("owned.zig");
 pub const Error = std.mem.Allocator.Error || error{InvalidAst};
 
 pub fn append(allocator: std.mem.Allocator, target: anytype, source: anytype) Error!void {
+    return appendRows(allocator, target, source, true);
+}
+
+/// All slice payloads must outlive the target; the column descriptors themselves are copied.
+pub fn appendBorrowed(allocator: std.mem.Allocator, target: anytype, source: anytype) Error!void {
+    return appendRows(allocator, target, source, false);
+}
+
+fn appendRows(allocator: std.mem.Allocator, target: anytype, source: anytype, comptime copy_payloads: bool) Error!void {
     @setEvalBranchQuota(100_000);
 
     const View = std.meta.Child(@TypeOf(source));
@@ -56,7 +65,7 @@ pub fn append(allocator: std.mem.Allocator, target: anytype, source: anytype) Er
     };
 
     inline for (fields, 0..) |name, index| {
-        if (comptime owned.containsSlice(std.meta.Child(@FieldType(View, name)))) {
+        if (comptime copy_payloads and owned.containsSlice(std.meta.Child(@FieldType(View, name)))) {
             @field(prepared, name) = try owned.copy(allocator, @field(source, name));
 
             copied[index] = true;

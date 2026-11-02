@@ -1,0 +1,67 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+
+import { DeclarationsKind } from "../../printer/model/declarations"
+import empty from "./empty"
+
+import type { Constant, Result } from "./model"
+
+export type Input = {
+    values: Constant[],
+    base: u32
+}
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    if (integers.widen(in.base) + in.values.length > integers.widen(max_u32)) {
+        return {
+            table: empty({}),
+            valid: false
+        }
+    }
+
+    const tags: DeclarationsKind[] = []
+    const offsets: u32[] = []
+    const names: u8[][] = []
+    const types: u32?[] = []
+    const values: u32[] = []
+    const exported: bool[] = []
+
+    const result = loop({
+        source: in.values,
+        tags,
+        offsets,
+        names,
+        types,
+        values,
+        exported,
+        index: 0
+    }, {
+        while: current => current.index < current.source.length,
+        next: current => {
+            const value = current.source[current.index]
+
+            current.tags = current.tags.push(DeclarationsKind.Constant)[0]
+            current.offsets =
+                current.offsets.push(integers.narrow(current.index))[0]
+            current.names = current.names.push(value.name)[0]
+            current.types = current.types.push(value.type_expr)[0]
+            current.values = current.values.push(value.value)[0]
+            current.exported = current.exported.push(value.exported)[0]
+            current.index += 1
+        }
+    })
+
+    return {
+        valid: true,
+        table: {
+            tags: result.tags,
+            offsets: result.offsets,
+            constant_name: result.names,
+            constant_type_expr: result.types,
+            constant_value: result.values,
+            constant_exported: result.exported
+        }
+    }
+}

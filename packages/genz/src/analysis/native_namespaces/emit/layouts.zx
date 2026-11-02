@@ -1,0 +1,75 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import namespace from "../../../ast/expressions/namespace"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const result = loop({
+        source: in.source,
+        expressions: in.expressions,
+        declarations: in.declarations,
+        layouts: in.layouts,
+        valid: in.valid,
+        index: 0
+    }, {
+        while: current =>
+            current.valid && current.index < current.source.plan.groups.length,
+        next: current => {
+            const selected = current.source.plan.groups[current.index]
+            const start = current.declarations.length
+            const group = loop({
+                source: current.source,
+                types: selected.types,
+                declarations: current.declarations,
+                valid: current.valid,
+                index: 0
+            }, {
+                while: item => item.valid && item.index < item.types.length,
+                next: item => {
+                    const binding = item.types[item.index]
+                    const id = integers.widen(
+                        item.source.modules.type_ids[binding.module][binding.binding]
+                    )
+                    item.declarations = item.declarations.push({
+                        name: bytes.fromText(
+                            item.source.modules.type_names[binding.module][binding.binding]
+                        ),
+                        type_expr: null,
+                        value: item.source.layouts[id],
+                        exported: true
+                    })[0]
+                    item.index += 1
+                }
+            })
+
+            const expression = namespace({
+                table: current.expressions,
+                base: current.source.expression_base,
+                start:
+                    integers.narrow(
+                        integers.widen(
+                            current.source.declaration_base
+                        ) + start
+                    ),
+                count: integers.narrow(group.declarations.length - start)
+            })
+
+            current.declarations = group.declarations
+            current.expressions = expression.table
+            current.layouts = current.layouts.push(expression.id)[0]
+            current.valid = group.valid && expression.valid
+            current.index += 1
+        }
+    })
+
+    return {
+        ...in,
+        ...result.pick(["expressions", "declarations", "layouts", "valid"])
+    }
+}

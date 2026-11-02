@@ -44,7 +44,7 @@ fn fill(target: anytype, comptime prefix: []const u8, source: anytype) void {
     }
 }
 
-fn slice(comptime Target: type, source: anytype) Target {
+pub fn slice(comptime Target: type, source: anytype) Target {
     const From = @typeInfo(@TypeOf(source)).pointer.child;
     const To = @typeInfo(Target).pointer.child;
 

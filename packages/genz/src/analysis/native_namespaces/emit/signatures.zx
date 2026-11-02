@@ -1,0 +1,124 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import namespace from "../../../ast/expressions/namespace"
+import {
+    input_name,
+    output_name,
+    input_value_name,
+    output_value_name
+} from "./const"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const result = loop({
+        source: in.source,
+        expressions: in.expressions,
+        declarations: in.declarations,
+        signatures: in.signatures,
+        valid: in.valid,
+        group: 0
+    }, {
+        while: current =>
+            current.valid && current.group < current.source.plan.groups.length,
+        next: current => {
+            const group = current.source.plan.groups[current.group]
+            const signatures: u32[] = []
+            const selected = loop({
+                source: current.source,
+                functions: group.functions,
+                expressions: current.expressions,
+                declarations: current.declarations,
+                signatures,
+                valid: current.valid,
+                index: 0
+            }, {
+                while: item => item.valid && item.index < item.functions.length,
+                next: item => {
+                    const index = item.functions[item.index]
+                    const input =
+                        integers.widen(item.source.functions.input_types[index])
+                    const output =
+                        integers.widen(item.source.functions.output_types[index])
+                    const start = item.declarations.length
+                    const names: string[] =
+                        [
+                            input_name,
+                            output_name,
+                            input_value_name,
+                            output_value_name
+                        ]
+                    const values: u32[] =
+                        [
+                            item.source.types[input],
+                            item.source.types[output],
+                            item.source.layouts[input],
+                            item.source.layouts[output]
+                        ]
+
+                    const fields = loop({
+                        declarations: item.declarations,
+                        names,
+                        values,
+                        valid: item.valid,
+                        index: 0
+                    }, {
+                        while: field => field.valid && field.index < field.names.length,
+                        next: field => {
+                            field.declarations = field.declarations.push({
+                                name: bytes.fromText(
+                                    field.names[field.index]
+                                ),
+                                type_expr: null,
+                                value: field.values[field.index],
+                                exported: true
+                            })[0]
+                            field.index += 1
+                        }
+                    })
+
+                    const expression = namespace({
+                        table: item.expressions,
+                        base: item.source.expression_base,
+                        start:
+                            integers.narrow(
+                                integers.widen(
+                                    item.source.declaration_base
+                                ) + start
+                            ),
+                        count: integers.narrow(
+                            fields.declarations.length - start
+                        )
+                    })
+
+                    item.expressions = expression.table
+                    item.declarations = fields.declarations
+                    item.signatures = item.signatures.push(expression.id)[0]
+                    item.valid = fields.valid && expression.valid
+                    item.index += 1
+                }
+            })
+
+            current.expressions = selected.expressions
+            current.declarations = selected.declarations
+            current.signatures = current.signatures.push(selected.signatures)[0]
+            current.valid = selected.valid
+            current.group += 1
+        }
+    })
+
+    return {
+        ...in,
+        ...result.pick([
+            "expressions",
+            "declarations",
+            "signatures",
+            "valid"
+        ])
+    }
+}

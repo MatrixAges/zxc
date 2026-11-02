@@ -95,7 +95,7 @@ fn typesPrepared(allocator: std.mem.Allocator, backing: std.mem.Allocator, progr
 
     lower.shared_types = false;
 
-    return render(allocator, lower.builder.nodes, try @import("type_bundle.zig").declarations(&lower));
+    return @import("../render.zig").renderStored(allocator, lower.builder.nodes, try @import("type_bundle.zig").declarations(&lower));
 }
 
 fn functionPrepared(allocator: std.mem.Allocator, backing: std.mem.Allocator, program: ir.Program, id: ir.FunctionId, names: Names, facts: Analysis, regular: bool) Error![]u8 {
