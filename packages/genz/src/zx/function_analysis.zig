@@ -95,6 +95,7 @@ fn createWithConcurrency(backing: std.mem.Allocator, program: ir.Program, export
             .values = try owned.dupe(bool, facts.value.values),
             .state = .{
                 .selected = try owned.dupe(bool, facts.value.state.selected),
+                .queries = try owned.dupe(@import("state_value/queries.zig").Kind, facts.value.state.queries),
                 .keys = try owned.dupe([32]u8, facts.value.state.keys),
             },
         },

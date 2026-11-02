@@ -5,15 +5,17 @@ import { Kind } from "core/type_table/model"
 
 import body from "../calls/body"
 import parallel from "../control/parallel"
-import represented from "../types/represented"
+import { Property } from "../state/queries/model"
+import query from "../state/queries/read"
 import boundary from "./boundary"
 import purity from "./pure"
 
 import type { Program, Values } from "../model"
+import type { Query } from "../state/queries/model"
 
 export type Input = {
     program: Program,
-    selected: bool[]
+    queries: Query[]
 }
 
 export type Output = Values
@@ -24,7 +26,7 @@ export default function (in: Input): Output {
 
     const result = loop({
         program: in.program,
-        selected: in.selected,
+        queries: in.queries,
         local,
         values,
         index: 0
@@ -62,10 +64,9 @@ export default function (in: Input): Output {
                 kind(current.program.types.kinds[integers.widen(
                     output
                 )]) == Kind.Object
-            const state = functions.native_modules[index] == null && represented({
-                types: current.program.types,
-                selected: current.selected,
-                id: output
+            const state = functions.native_modules[index] == null && query({
+                value: current.queries[integers.widen(output)],
+                property: Property.Represented
             })
 
             current.values[index] = current.local[index] && (object || state)

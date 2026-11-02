@@ -3,6 +3,7 @@ import type { Control } from "core/control_table/model"
 import type { Expressions } from "core/expression_table/model"
 import type { Stores } from "core/store_table/model"
 import type { Table } from "core/type_table/model"
+import type { Query } from "./state/queries/model"
 
 export type Functions = {
     input_types: u32[]
@@ -41,6 +42,7 @@ export type Values = {
 }
 
 export type Facts = {
+    state_queries: Query[],
     pure: bool[],
     local: bool[],
     values: bool[],

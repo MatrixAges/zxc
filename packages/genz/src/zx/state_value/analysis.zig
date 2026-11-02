@@ -4,6 +4,7 @@ const Self = @This();
 
 selected: []bool,
 keys: [][32]u8,
+queries: []const @import("queries.zig").Kind = &.{},
 pub fn create(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!Self {
     const boxed = try allocator.alloc(bool, program.types.count());
 
@@ -63,6 +64,8 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocat
 
     const keys = try allocator.alloc([32]u8, program.types.count());
 
+    errdefer allocator.free(keys);
+
     for (0..program.types.count()) |index| {
         const value = program.types.at(index);
 
@@ -87,7 +90,9 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocat
         hash.final(&keys[index]);
     }
 
-    return .{ .selected = selected, .keys = keys };
+    const queries = try @import("queries.zig").create(allocator, program, selected);
+
+    return .{ .selected = selected, .keys = keys, .queries = queries };
 }
 
 fn duplicates(program: ir.Program, boxed: []bool, seen: []u32, round: u32, id: ir.TypeId) void {
@@ -117,6 +122,8 @@ fn duplicates(program: ir.Program, boxed: []bool, seen: []u32, round: u32, id: i
 }
 
 pub fn represented(self: Self, program: ir.Program, id: ir.TypeId) bool {
+    if (comptime @import("genz_options").generated_analysis) return @import("queries.zig").read(self.queries[@backingInt(id)], .Represented);
+
     return switch (program.typeOf(id)) {
         .optional => |child| self.represented(program, child),
         else => self.selected[@backingInt(id)],
@@ -134,6 +141,8 @@ pub fn name(self: Self, allocator: std.mem.Allocator, id: ir.TypeId, base: []con
 }
 
 pub fn nested(self: Self, program: ir.Program, id: ir.TypeId) bool {
+    if (comptime @import("genz_options").generated_analysis) return @import("queries.zig").read(self.queries[@backingInt(id)], .Nested);
+
     return switch (program.typeOf(id)) {
         .optional => |child| self.represented(program, child),
         .object => |fields| blk: {

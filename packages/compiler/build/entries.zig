@@ -102,6 +102,8 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/abi/names/build.rx", .name = "abi_type_names", .owner = .genz },
     .{ .path = "genz/analysis/abi/view/build.rx", .name = "abi_view", .owner = .genz },
     .{ .path = "genz/analysis/types/layout/query.zx", .name = "layout_query", .owner = .genz },
+    .{ .path = "genz/analysis/state/queries/read.zx", .name = "state_query", .owner = .genz },
+    .{ .path = "genz/analysis/state/queries/build.zx", .name = "state_query_plan", .owner = .genz },
     .{ .path = "genz/analysis/entry/analyze.rx", .name = "entry_flags", .owner = .genz },
     .{ .path = "genz/analysis/names/analyze.rx", .name = "stable_names", .owner = .genz },
     .{ .path = "genz/analysis/native_namespaces/plan.rx", .name = "native_namespaces", .owner = .genz },

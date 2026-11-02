@@ -1,0 +1,15 @@
+import type { Table } from "core/type_table/model"
+
+export enum Query { Plain, Represented, Nested, RepresentedNested }
+
+export enum Property { Represented, Nested }
+
+export type Input = {
+    types: Table,
+    selected: bool[]
+}
+
+export type Lookup = {
+    value: Query,
+    property: Property
+}

@@ -1,0 +1,70 @@
+import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import { Query, Property } from "./model"
+import read from "./read"
+
+import type { Input } from "./model"
+
+export type Output = Query[]
+
+export default function (in: Input): Output {
+    const values: Query[] = []
+
+    return loop({
+        source: in,
+        values,
+        index: 0
+    }, {
+        while: current => current.index < current.source.types.kinds.length,
+        next: current => {
+            const types = current.source.types
+            const target = kind(types.kinds[current.index])
+            const first = integers.widen(types.first[current.index])
+            const optional = target == Kind.Optional
+            const product = target == Kind.Object || target == Kind.Tuple
+
+            const child = optional && read({
+                value: current.values[first],
+                property: Property.Represented
+            })
+            const represented = optional ? child :
+                current.source.selected[current.index]
+
+            const members = loop({
+                types,
+                values: current.values,
+                object: target == Kind.Object,
+                index: first,
+                end: first + integers.widen(types.second[current.index]),
+                active: product,
+                found: false
+            }, {
+                while: fields =>
+                    fields.active && !fields.found && fields.index < fields.end,
+                next: fields => {
+                    const id = fields.object ? fields.types.field_types[fields.index] :
+                        fields.types.children[fields.index]
+
+                    fields.found = read({
+                        value: fields.values[integers.widen(id)],
+                        property: Property.Represented
+                    })
+                    fields.index += 1
+                }
+            }).found
+            const nested = optional ? child : members
+
+            const value = match {
+                represented && nested => Query.RepresentedNested,
+                represented => Query.Represented,
+                nested => Query.Nested,
+                _ => Query.Plain
+            }
+
+            current.values = current.values.push(value)[0]
+            current.index += 1
+        }
+    }).values
+}

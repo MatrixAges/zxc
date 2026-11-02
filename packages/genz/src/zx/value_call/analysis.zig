@@ -10,6 +10,7 @@ pub fn functions(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allo
     allocator.free(summary.local);
     allocator.free(summary.state.selected);
     allocator.free(summary.state.keys);
+    allocator.free(summary.state.queries);
 
     return summary.values;
 }
@@ -21,6 +22,7 @@ pub fn analyze(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloca
 
     errdefer allocator.free(state.selected);
     errdefer allocator.free(state.keys);
+    errdefer allocator.free(state.queries);
 
     const pure = try allocator.alloc(bool, program.functions.count());
 

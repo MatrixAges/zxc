@@ -1,6 +1,7 @@
 <Module>
     <Type from="../model" as="Model" />
     <Type from="../types/layout" as="Layout" />
+    <Type from="../state/queries/build" as="StateQueries" />
 
     <Args
         in={{
@@ -26,6 +27,7 @@
             process: bool[],
             pure: bool[],
             selected: bool[],
+            state_queries: StateQueries.Output,
             tasks: bool[],
             values: bool[]
         }}
@@ -33,13 +35,21 @@
 
     <Call module="../state/select" in={$in.program} />
 
+    <Call
+        fn="../state/queries/build"
+        in={{
+            types: $in.program.types,
+            selected: $ctx.select.selected
+        }}
+    />
+
     <Call fn="../types/layout" in={$in.program.types} />
 
     <Call
         fn="../value/summary"
         in={{
             program: $in.program,
-            selected: $ctx.select.selected
+            queries: $ctx.build
         }}
     />
 
@@ -64,6 +74,7 @@
             ...$ctx.summary,
             ...$ctx.select,
             layout_types: $ctx.layout,
+            state_queries: $ctx.build,
             io: $ctx.io,
             process: $ctx.process,
             tasks: $ctx.tasks,
