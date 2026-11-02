@@ -102,7 +102,7 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
         }
     } else {
         const query_types = b.createModule(.{ .root_source_file = b.path("bootstrap/query/types.zig"), .target = target, .optimize = optimize });
-        const query_string = b.createModule(.{ .root_source_file = b.path("standard/src/string.zig"), .target = target, .optimize = optimize });
+        const query_string = b.createModule(.{ .root_source_file = b.dependency("zxc_std", .{}).path("src/string.zig"), .target = target, .optimize = optimize });
 
         const query = b.createModule(.{
             .root_source_file = b.path("bootstrap/query/root.zig"),

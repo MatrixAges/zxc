@@ -1068,10 +1068,10 @@ pub fn build(b: *std.Build) void {
     standard_step.dependOn(@import("build/url_api_resources.zig").add(b, compiler, target, optimize));
     standard_step.dependOn(@import("build/url_parser.zig").add(b, compiler, target, optimize));
     standard_step.dependOn(@import("build/url_host.zig").add(b, compiler, target, optimize));
-    standard_step.dependOn(@import("build/url_idna.zig").add(b, compiler, target, optimize));
-    standard_step.dependOn(@import("build/url_punycode.zig").add(b, compiler, target, optimize));
-    standard_step.dependOn(@import("build/url_nfc.zig").add(b, compiler, target, optimize));
-    standard_step.dependOn(@import("build/url_primitives.zig").add(b, compiler, target, optimize));
+    standard_step.dependOn(@import("build/url_idna.zig").add(b, target, optimize));
+    standard_step.dependOn(@import("build/url_punycode.zig").add(b, target, optimize));
+    standard_step.dependOn(@import("build/url_nfc.zig").add(b, target, optimize));
+    standard_step.dependOn(@import("build/url_primitives.zig").add(b, target, optimize));
     standard_step.dependOn(@import("build/standard_fs.zig").add(b, compiler, target, optimize));
     standard_step.dependOn(@import("build/child_input.zig").add(b, compiler, target, optimize));
     standard_step.dependOn(@import("build/child_process.zig").add(b, compiler, cli_dependency, target, optimize));

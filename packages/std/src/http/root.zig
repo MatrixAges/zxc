@@ -72,7 +72,7 @@ pub fn request(allocator: std.mem.Allocator, io: std.Io, input: Options) !Respon
 
     const result = try allocator.create(api.request.OutputValue);
 
-    result.* = .{ .status = @intFromEnum(response.head.status), .headers = copied_headers, .body = body };
+    result.* = .{ .status = @backingInt(response.head.status), .headers = copied_headers, .body = body };
 
     return result;
 }

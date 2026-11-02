@@ -4,7 +4,7 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
     const abi = b.createModule(.{ .root_source_file = b.path("bootstrap/constants/types.zig"), .target = target, .optimize = optimize });
 
     const standard = b.createModule(.{
-        .root_source_file = b.path("standard/src/root.zig"),
+        .root_source_file = b.dependency("zxc_std", .{}).path("src/root.zig"),
         .target = target,
         .optimize = optimize,
         .imports = &.{.{ .name = "zxc_abi", .module = abi }},

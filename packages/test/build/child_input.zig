@@ -47,7 +47,7 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
         const abi = b.createModule(.{ .root_source_file = types, .target = target, .optimize = optimize });
 
         const standard = b.createModule(.{
-            .root_source_file = compiler.path("standard/src/root.zig"),
+            .root_source_file = b.dependency("zxc_std", .{}).path("src/root.zig"),
             .target = target,
             .optimize = optimize,
             .imports = &.{.{ .name = "zxc_abi", .module = abi }},

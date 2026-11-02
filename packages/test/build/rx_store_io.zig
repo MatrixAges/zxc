@@ -34,7 +34,7 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
             run.setEnvironmentVariable("ZXC_TEST_OPTIMIZE", @tagName(optimize));
             run.addDirectoryArg(directory);
             run.addFileArg(b.path(b.fmt("tests/rx/runtime/store/io/{s}_test.zig", .{name})));
-            run.addFileArg(compiler.path("standard/src/root.zig"));
+            run.addFileArg(b.dependency("zxc_std", .{}).path("src/root.zig"));
             run.addFileArg(b.path("tests/standard/resources/fs/fixture.zig"));
             step.dependOn(&run.step);
         }

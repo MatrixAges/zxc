@@ -6,9 +6,11 @@ pub fn create(b: *std.Build) *std.Build.Module {
 }
 
 fn generate(b: *std.Build) !*std.Build.Module {
-    b.dependOnFileContents(b.path("standard/modules.json"));
+    const standard = b.dependency("zxc_std", .{});
 
-    const manifest_path = try b.root.joinString(b.allocator, "standard/modules.json");
+    b.dependOnFileContents(standard.path("modules.json"));
+
+    const manifest_path = try standard.builder.root.joinString(b.allocator, "modules.json");
     const manifest = try std.Io.Dir.cwd().readFileAlloc(b.graph.io, manifest_path, b.allocator, .limited(1024 * 1024));
     const modules = try std.json.parseFromSliceLeaky([]const Module, b.allocator, manifest, .{});
     const files = b.addWriteFiles();
@@ -18,11 +20,11 @@ fn generate(b: *std.Build) !*std.Build.Module {
         const destination = b.fmt("interfaces/{d}.d.zx", .{index});
         const text = try fragments(b, module);
 
-        if (text == null) _ = files.addCopyFile(b.path(b.fmt("standard/{s}", .{module.path})), destination);
+        if (text == null) _ = files.addCopyFile(standard.path(module.path), destination);
 
         try entries.append(b.allocator, .{
             .specifier = module.specifier,
-            .path = if (text == null) b.fmt("standard/{s}", .{module.path}) else module.specifier,
+            .path = if (text == null) b.fmt("std/{s}", .{module.path}) else module.specifier,
             .source = destination,
             .text = text,
             .module = module.module,
@@ -59,11 +61,11 @@ fn fragments(b: *std.Build, module: Module) !?[]const u8 {
     @memcpy(paths[1..], module.fragments);
 
     for (paths) |path| {
-        const relative = b.fmt("standard/{s}", .{path});
+        const standard = b.dependency("zxc_std", .{});
 
-        b.dependOnFileContents(b.path(relative));
+        b.dependOnFileContents(standard.path(path));
 
-        const absolute = try b.root.joinString(b.allocator, relative);
+        const absolute = try standard.builder.root.joinString(b.allocator, path);
         const bytes = try std.Io.Dir.cwd().readFileAlloc(b.graph.io, absolute, b.allocator, .unlimited);
 
         try source.appendSlice(b.allocator, bytes);

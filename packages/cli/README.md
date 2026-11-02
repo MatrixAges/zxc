@@ -10,7 +10,7 @@
 
 ## Edges：职责边界
 
-编译语义通过 compiler 包完成。标准库源码属于 compiler/standard；CLI 将其作为发行资源嵌入，不另存一份实现。compiler 不依赖 CLI。
+编译语义通过 compiler 包完成。标准库源码属于 std；CLI 将其作为发行资源嵌入，不另存一份实现。compiler 不依赖 CLI。
 
 ## Answer：构建与验证
 

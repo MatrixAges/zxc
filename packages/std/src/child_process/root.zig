@@ -53,7 +53,7 @@ fn execute(allocator: std.mem.Allocator, io: std.Io, input: Options, bytes: ?[]c
         },
         .code = switch (captured.term) {
             .exited => |code| code,
-            .signal, .stopped => |signal| @intFromEnum(signal),
+            .signal, .stopped => |signal| @backingInt(signal),
             .unknown => |code| code,
         },
     };

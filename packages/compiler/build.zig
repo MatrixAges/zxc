@@ -4,7 +4,7 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
     const stage0 = b.option([]const u8, "stage0", "Pinned bootstrap generator executable; empty uses the initial seed") orelse "";
-    const standard = b.addModule("standard", .{ .root_source_file = b.path("standard/src/root.zig"), .target = target, .optimize = optimize });
+    const standard = b.addModule("standard", .{ .root_source_file = b.dependency("zxc_std", .{}).path("src/root.zig"), .target = target, .optimize = optimize });
     const lexer = @import("build/lexer.zig");
     const lexer_source = lexer.generate(b, optimize, stage0);
     const parser = @import("build/parser.zig");

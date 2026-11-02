@@ -29,8 +29,11 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
     source(run, "directory", "cli-build", b.path("build"));
     source(run, "file", "cli/build.zig", b.path("build.zig"));
     source(run, "file", "cli/build.zig.zon", b.path("build.zig.zon"));
-    source(run, "file", "standard/modules.json", compiler.path("standard/modules.json"));
-    source(run, "directory", "standard/interfaces", compiler.path("standard/interfaces"));
+
+    const standard = b.dependency("zxc_std", .{});
+
+    source(run, "file", "std/modules.json", standard.path("modules.json"));
+    source(run, "directory", "std/interfaces", standard.path("interfaces"));
 
     for ([_][]const u8{ "compiler", "core", "dsl", "lint", "genz", "pkgs", "napi" }) |name| {
         const dependency = if (std.mem.eql(u8, name, "compiler")) compiler else if (std.mem.eql(u8, name, "lint"))

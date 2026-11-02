@@ -35,11 +35,11 @@ pub fn build(b: *std.Build) void {
 
     // The identity changes with every compiler source; with a separate host object only the entry unit embeds it.
     if (partitions == 0) identity.addImport("cache_identity_embedded", cache_identity.module(b)) else identity.addOptions("cache_identity_embedded", b.addOptions());
+
     host.addImport("cache_identity", identity);
 
     const pkgs_index = b.dependency("pkgs", .{ .target = target, .optimize = optimize }).namedLazyPath("index");
-
-    const bundle = @import("build/toolchain.zig").create(b, target, pkgs_index, compiler.builder.root.join(b.allocator, "standard/src") catch @panic("OOM"));
+    const bundle = @import("build/toolchain.zig").create(b, target, pkgs_index, b.dependency("zxc_std", .{}).builder.root.join(b.allocator, "src") catch @panic("OOM"));
     // Only release packages embed the official Zig archive. Other builds read it from this build cache, or take
     // the Zig executable named by ZXC_ZIG, so linking zxc does not copy the archive into the binary.
     const zig_archive = b.addOptions();

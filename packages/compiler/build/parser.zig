@@ -74,7 +74,7 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode, stage0: []con
             .packages = @import("source_packages.zig").entries,
             .interfaces = &.{.{
                 .specifier = "zig:string",
-                .path = b.root.joinString(b.allocator, "standard/interfaces/string.d.zx") catch @panic("out of memory"),
+                .path = b.dependency("zxc_std", .{}).builder.root.joinString(b.allocator, "interfaces/string.d.zx") catch @panic("out of memory"),
                 .module = "zxc_string",
             }},
         };
@@ -83,7 +83,7 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode, stage0: []con
 
         run.addArg("--manifest");
         run.addFileArg(manifests.add(@tagName(set) ++ ".json", content));
-        run.addFileInput(b.path("standard/interfaces/string.d.zx"));
+        run.addFileInput(b.dependency("zxc_std", .{}).path("interfaces/string.d.zx"));
 
         for (roots, directories) |root, directory| {
             trackSources(b, run, root, directory) catch @panic("unable to track RX and ZX bootstrap sources");
@@ -163,13 +163,13 @@ pub fn shared(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
     const abi = b.createModule(.{ .root_source_file = source.main.path(b, "types.zig"), .target = target, .optimize = optimize, .strip = strip });
 
     const standard = b.createModule(.{
-        .root_source_file = b.path("standard/src/root.zig"),
+        .root_source_file = b.dependency("zxc_std", .{}).path("src/root.zig"),
         .target = target,
         .optimize = optimize,
         .imports = &.{.{ .name = "zxc_abi", .module = abi }},
     });
 
-    const string = b.createModule(.{ .root_source_file = b.path("standard/src/string.zig"), .target = target, .optimize = optimize, .strip = strip });
+    const string = b.createModule(.{ .root_source_file = b.dependency("zxc_std", .{}).path("src/string.zig"), .target = target, .optimize = optimize, .strip = strip });
 
     const generated = b.createModule(.{
         .root_source_file = source.main.path(b, "root.zig"),
@@ -257,12 +257,12 @@ fn selfHostedObjects(b: *std.Build, optimize: std.builtin.OptimizeMode, source: 
     const objects = run.addOutputDirectoryArg("objects");
 
     run.addArg(b.fmt("{d}", .{partitions}));
-    run.addDirectoryArg(b.path("standard/src"));
+    run.addDirectoryArg(b.dependency("zxc_std", .{}).path("src"));
     run.addArgs(&.{ "--", "build-obj", "-fno-llvm", "-fno-strip", level, "--dep", "zxc_abi", "--dep", "zxc_standard", "--dep", "zxc_string", "--dep", "zxc_bridge", "-Mroot=%generated%/part_%index%/root.zig" });
     run.addArgs(stripped);
-    run.addArgs(&.{ level, "-Mzxc_abi=%generated%/types.zig", level, "--dep", "zxc_abi", b.fmt("-Mzxc_standard={s}", .{b.root.joinString(b.allocator, "standard/src/root.zig") catch @panic("out of memory")}) });
+    run.addArgs(&.{ level, "-Mzxc_abi=%generated%/types.zig", level, "--dep", "zxc_abi", b.fmt("-Mzxc_standard={s}", .{b.dependency("zxc_std", .{}).builder.root.joinString(b.allocator, "src/root.zig") catch @panic("out of memory")}) });
     run.addArgs(stripped);
-    run.addArgs(&.{ level, b.fmt("-Mzxc_string={s}", .{b.root.joinString(b.allocator, "standard/src/string.zig") catch @panic("out of memory")}) });
+    run.addArgs(&.{ level, b.fmt("-Mzxc_string={s}", .{b.dependency("zxc_std", .{}).builder.root.joinString(b.allocator, "src/string.zig") catch @panic("out of memory")}) });
     run.addArgs(stripped);
     run.addArgs(&.{ level, "-Mzxc_bridge=%generated%/bridge.zig" });
     run.addArgs(&.{ "--name", "zxc_partition_%index%_self_hosted", "-femit-bin=%objects%/zxc_partition_%index%.o" });
