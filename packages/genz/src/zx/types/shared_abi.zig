@@ -7,7 +7,7 @@ const Lower = @import("../lower.zig");
 const generated = @import("generated_shared_abi");
 
 pub fn build(self: *Lower, index: usize) Lower.Error!void {
-    const Input = std.meta.Child(generated.Input);
+    const Input = @typeInfo(@TypeOf(generated.executeValue)).@"fn".param_types[1].?;
     const types = ir.TypeTable.borrow(std.meta.Child(@FieldType(Input, "types")), self.program.types);
     var scratch = std.heap.ArenaAllocator.init(self.workspace);
     var buffer: [std.heap.page_size_min]u8 = undefined;
@@ -23,7 +23,7 @@ pub fn build(self: *Lower, index: usize) Lower.Error!void {
         .base = @intCast(self.builder.nodes.expressions.tags.items.len),
     };
 
-    const output = generated.executeValue(buffered.allocator(), &input) catch |err| switch (err) {
+    const output = generated.executeValue(buffered.allocator(), input) catch |err| switch (err) {
         error.OutOfMemory, error.IntegerOverflow, error.Overflow => return error.OutOfMemory,
         else => unreachable,
     };

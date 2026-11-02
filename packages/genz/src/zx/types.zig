@@ -128,6 +128,8 @@ fn seedAbi(self: *Lower, index: usize) Lower.Error!void {
 /// The value layout of a type the state plan selected; other types keep their ABI expressions, and optionals wrap
 /// their child's state expression.
 fn state(self: *Lower, index: usize) Lower.Error!void {
+    if (@import("genz_options").generated_analysis) return @import("types/shared_state.zig").build(self, index, .State);
+
     const value = self.program.types.at(index);
     const id: ir.TypeId = @fromBackingInt(@intCast(index));
 
@@ -173,6 +175,8 @@ fn typeName(self: *Lower, index: usize) Lower.Error![]const u8 {
 }
 
 fn view(self: *Lower, index: usize) Lower.Error!void {
+    if (@import("genz_options").generated_analysis) return @import("types/shared_state.zig").build(self, index, .View);
+
     const id: ir.TypeId = @fromBackingInt(@intCast(index));
     const value = self.program.typeOf(id);
 

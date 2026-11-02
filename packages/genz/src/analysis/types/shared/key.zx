@@ -1,0 +1,25 @@
+import { state_key_size } from "./const"
+
+export type Input = {
+    bytes: u8[],
+    index: u64
+}
+
+export type Output = u8[]
+
+export default function (in: Input): Output {
+    const bytes: u8[] = []
+
+    return loop({
+        source: in.bytes,
+        start: in.index * state_key_size,
+        bytes
+    }, {
+        while: current => current.bytes.length < state_key_size,
+        next: current => {
+            current.bytes = current.bytes.push(
+                current.source[current.start + current.bytes.length]
+            )[0]
+        }
+    }).bytes
+}

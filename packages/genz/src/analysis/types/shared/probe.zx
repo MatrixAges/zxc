@@ -1,0 +1,52 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+
+import { query_modes } from "./const"
+import { Mode } from "./model"
+
+import type { Entry, Request } from "./model"
+
+export type Input = {
+    entries: Entry[],
+    buckets: u32[],
+    request: Request
+}
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    const mode = match in.request.mode {
+        Mode.Abi => 0,
+        Mode.State => 1,
+        _ => 2
+    }
+
+    return loop({
+        entries: in.entries,
+        buckets: in.buckets,
+        request: in.request,
+        slot:
+            (integers.widen(in.request.id) * query_modes + mode) % in.buckets.length,
+        found: false
+    }, {
+        while: current => !current.found,
+        next: current => {
+            const index = current.buckets[current.slot]
+
+            if (index == max_u32) {
+                current.found = true
+            } else {
+                const request = current.entries[integers.widen(index)].request
+
+                if (
+                    request.id == current.request.id &&
+                        request.mode == current.request.mode
+                ) {
+                    current.found = true
+                } else {
+                    current.slot = (current.slot + 1) % current.buckets.length
+                }
+            }
+        }
+    }).slot
+}

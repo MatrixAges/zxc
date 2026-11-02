@@ -1,0 +1,160 @@
+import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import lookup from "./lookup"
+import { Mode, Action } from "./model"
+
+import type { Input as Source, Entry, Frame, Decision, Request } from "./model"
+
+export type Input = {
+    source: Source,
+    entries: Entry[],
+    buckets: u32[],
+    frame: Frame
+}
+
+export type Output = Decision
+
+export default function (in: Input): Output {
+    const request = in.frame.request
+    const index = integers.widen(request.id)
+    const types = in.source.abi.types
+    const target = kind(types.kinds[index])
+    const first = types.first[index]
+    const count = integers.widen(types.second[index])
+    const selected = in.source.selected[index]
+
+    const decision: Decision = {
+        dependency: null,
+        advance: false,
+        action: Action.Alias,
+        child: 0,
+        value: 0,
+        layout: 0
+    }
+
+    if (request.mode == Mode.Abi) {
+        if (target != Kind.Optional && target != Kind.List && target != Kind.Task) {
+            return {
+                ...decision,
+                action: Action.Abi
+            }
+        }
+    } else if (request.mode == Mode.State) {
+        if (target != Kind.Optional && selected) {
+            return {
+                ...decision,
+                action: Action.StateName
+            }
+        }
+    } else if (
+        target == Kind.Optional || (
+            selected && (target == Kind.Object || target == Kind.Tuple)
+        )
+    ) {
+        const optional = target == Kind.Optional
+        const finished = !optional && in.frame.next == count
+
+        const child = match {
+            optional => first,
+            finished => request.id,
+            target == Kind.Object =>
+                types.field_types[integers.widen(first) + in.frame.next],
+            _ => types.children[integers.widen(first) + in.frame.next]
+        }
+
+        if (!finished) {
+            const view_request: Request = {
+                id: child,
+                mode: Mode.View
+            }
+
+            const view = lookup({
+                source: in.source,
+                entries: in.entries,
+                buckets: in.buckets,
+                request: view_request
+            })
+
+            if (!view.found) {
+                return {
+                    ...decision,
+                    dependency: view_request
+                }
+            }
+
+            const state_request: Request = {
+                id: child,
+                mode: Mode.State
+            }
+
+            const state = lookup({
+                source: in.source,
+                entries: in.entries,
+                buckets: in.buckets,
+                request: state_request
+            })
+
+            if (!state.found) {
+                return {
+                    ...decision,
+                    dependency: state_request
+                }
+            }
+
+            if (view.value != state.value) {
+                return {
+                    ...decision,
+                    action: optional ? Action.Optional : Action.ViewName,
+                    child: view.value
+                }
+            }
+
+            if (!optional) {
+                return {
+                    ...decision,
+                    advance: true
+                }
+            }
+        }
+    }
+
+    const dependency: Request = {
+        id: request.mode == Mode.Abi || (
+            request.mode == Mode.State && target == Kind.Optional
+        ) ? first : request.id,
+        mode: match {
+            request.mode == Mode.Abi => Mode.Abi,
+            request.mode == Mode.State && target == Kind.Optional => Mode.State,
+            request.mode == Mode.View && (
+                target == Kind.Optional ||
+                    (
+                        selected &&
+                            (target == Kind.Object || target == Kind.Tuple)
+                    )
+            ) => Mode.State,
+            _ => Mode.Abi
+        }
+    }
+
+    const resolved = lookup({
+        source: in.source,
+        entries: in.entries,
+        buckets: in.buckets,
+        request: dependency
+    })
+
+    return {
+        ...decision,
+        dependency: resolved.found ? null : dependency,
+        action: match {
+            request.mode == Mode.Abi => Action.Abi,
+            request.mode == Mode.State && target == Kind.Optional => Action.Optional,
+            _ => Action.Alias
+        },
+        child: resolved.value,
+        value: resolved.value,
+        layout: resolved.layout
+    }
+}

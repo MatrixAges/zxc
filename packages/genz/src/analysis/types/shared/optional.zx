@@ -1,0 +1,35 @@
+import { ExpressionsKind, ExpressionsPrimitive } from "../../../printer/model/expressions"
+
+import type { Expressions } from "../abi/model"
+
+export type Input = u32
+
+export type Output = Expressions
+
+export default function (in: Input): Output {
+    const primitive: ExpressionsPrimitive[] = []
+    const empty: u32[] = []
+    const names: u8[][] = []
+    const texts: u8[][][] = []
+    const errors: u8[][]?[] = []
+    const flags: bool[] = []
+    const arguments: u32[][] = []
+
+    return {
+        tags: [ExpressionsKind.OptionalType],
+        offsets: [0],
+        identifier: names,
+        primitive,
+        field_target: empty,
+        field_name: names,
+        const_pointer: empty,
+        optional_type: [in],
+        const_slice: empty,
+        error_set: texts,
+        error_union_payload: empty,
+        error_union_errors: errors,
+        error_union_inferred: flags,
+        call_callee: empty,
+        call_arguments: arguments
+    }
+}

@@ -1,0 +1,139 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+import { scalar_string } from "core/type_table/const"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import { leaf_nodes, wrapped_nodes, pointer_nodes, task_nodes } from "../abi/const"
+import decide from "./decide"
+import indexEntries from "./index"
+import lookup from "./lookup"
+import { Action } from "./model"
+
+import type { Input, Plan, Frame, Step, Entry } from "./model"
+
+export type Output = Plan
+
+export default function (in: Input): Output {
+    const stack: Frame[] = [{
+        request: in.request,
+        next: 0
+    }]
+
+    const steps: Step[] = []
+    const entries: Entry[] = []
+    const buckets: u32[] = []
+
+    const result = loop({
+        source: in,
+        stack,
+        steps,
+        entries,
+        buckets,
+        base: integers.widen(in.abi.base),
+        valid: true
+    }, {
+        while: current => current.valid && current.stack.length != 0,
+        next: current => {
+            const top = current.stack.length - 1
+            const frame = current.stack[top]
+            const cached = lookup({
+                source: current.source,
+                entries: current.entries,
+                buckets: current.buckets,
+                request: frame.request
+            })
+
+            if (cached.found) {
+                current.stack = current.stack.pop()[0]
+            } else {
+                const decision = decide({
+                    source: current.source,
+                    entries: current.entries,
+                    buckets: current.buckets,
+                    frame
+                })
+
+                if (decision.dependency != null) {
+                    current.stack = current.stack.push({
+                        request: decision.dependency,
+                        next: 0
+                    })[0]
+                } else if (decision.advance) {
+                    current.stack[top].next += 1
+                } else {
+                    const index = integers.widen(frame.request.id)
+                    const target = kind(current.source.abi.types.kinds[index])
+                    const named = target == Kind.Object || target == Kind.Tuple ||
+                        target == Kind.Enumeration || target == Kind.NativeReference
+                    const string = target == Kind.Scalar &&
+                        current.source.abi.types.first[index] == scalar_string
+                    const count = match decision.action {
+                        Action.Alias => 0,
+                        Action.Optional => leaf_nodes,
+                        Action.StateName => wrapped_nodes,
+                        Action.ViewName => wrapped_nodes,
+                        _ => match {
+                            named && target != Kind.Enumeration => pointer_nodes,
+                            named || string => wrapped_nodes,
+                            target == Kind.Task => task_nodes,
+                            _ => leaf_nodes
+                        }
+                    }
+
+                    if (current.base + count > integers.widen(max_u32)) {
+                        current.valid = false
+                    } else {
+                        const base = integers.narrow(current.base)
+                        const value = match decision.action {
+                            Action.Alias => decision.value,
+                            Action.Optional => base,
+                            Action.StateName => base + 1,
+                            Action.ViewName => base + 1,
+                            _ => match {
+                                named && target != Kind.Enumeration => base + 2,
+                                named || string => base + 1,
+                                target == Kind.Task => base + 4,
+                                _ => base
+                            }
+                        }
+                        const layout = match {
+                            decision.action == Action.Alias => decision.layout,
+                            decision.action == Action.Abi && named => base + 1,
+                            _ => value
+                        }
+
+                        current.stack = current.stack.pop()[0]
+                        current.entries = current.entries.push({
+                            request: frame.request,
+                            value,
+                            layout
+                        })[0]
+
+                        current.buckets = indexEntries({
+                            entries: current.entries,
+                            buckets: current.buckets
+                        })
+
+                        if (count != 0) {
+                            current.steps = current.steps.push({
+                                request: frame.request,
+                                action: decision.action,
+                                base,
+                                child: decision.child
+                            })[0]
+                            current.base += count
+                        }
+                    }
+                }
+            }
+        }
+    })
+
+    return {
+        source: in,
+        steps: result.steps,
+        entries: result.entries,
+        valid: result.valid
+    }
+}

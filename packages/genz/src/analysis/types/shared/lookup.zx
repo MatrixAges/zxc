@@ -1,0 +1,94 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+
+import { Mode } from "./model"
+import probe from "./probe"
+
+import type { Input as Source, Entry, Request, Lookup } from "./model"
+
+export type Input = {
+    source: Source,
+    entries: Entry[],
+    buckets: u32[],
+    request: Request
+}
+
+export type Output = Lookup
+
+export default function (in: Input): Output {
+    const index = integers.widen(in.request.id)
+
+    const value = match in.request.mode {
+        Mode.Abi => in.source.abi.cached[index],
+        Mode.State => in.source.states[index],
+        _ => in.source.views[index]
+    }
+
+    const layout = match in.request.mode {
+        Mode.Abi => in.source.abi_layouts[index],
+        Mode.State => in.source.state_layouts[index],
+        _ => value
+    }
+
+    if (value != max_u32) {
+        return {
+            found: true,
+            value,
+            layout
+        }
+    }
+
+    if (in.buckets.length == 0) {
+        const result = loop({
+            entries: in.entries,
+            request: in.request,
+            remaining: in.entries.length,
+            found: false,
+            value,
+            layout
+        }, {
+            while: current => !current.found && current.remaining != 0,
+            next: current => {
+                current.remaining -= 1
+                const entry = current.entries[current.remaining]
+
+                if (
+                    entry.request.id == current.request.id &&
+                        entry.request.mode == current.request.mode
+                ) {
+                    current.found = true
+                    current.value = entry.value
+                    current.layout = entry.layout
+                }
+            }
+        })
+
+        return {
+            found: result.found,
+            value: result.value,
+            layout: result.layout
+        }
+    }
+
+    const slot = probe({
+        entries: in.entries,
+        buckets: in.buckets,
+        request: in.request
+    })
+
+    const entry = in.buckets[slot]
+
+    if (entry == max_u32) {
+        return {
+            found: false,
+            value,
+            layout
+        }
+    }
+
+    return {
+        found: true,
+        value: in.entries[integers.widen(entry)].value,
+        layout: in.entries[integers.widen(entry)].layout
+    }
+}

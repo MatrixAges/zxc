@@ -1,0 +1,64 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+import strings from "std:string"
+
+import {
+    ExpressionsKind,
+    ExpressionsPrimitive
+} from "../../../printer/model/expressions"
+import { abi_binding } from "../abi/const"
+import { view_prefix } from "../state/const"
+import stateName from "../state/name"
+import key from "./key"
+import { Mode } from "./model"
+
+import type { Expressions } from "../abi/model"
+import type { Input as Source, Step } from "./model"
+
+export type Input = {
+    source: Source,
+    step: Step
+}
+
+export type Output = Expressions
+
+export default function (in: Input): Output {
+    const index = integers.widen(in.step.request.id)
+
+    const state = stateName({
+        names: in.source.abi.names,
+        key: key({
+            bytes: in.source.keys,
+            index
+        }),
+        index
+    })
+
+    const name = in.step.request.mode == Mode.View ?
+        strings.join("", [view_prefix, state]) : state
+
+    const primitive: ExpressionsPrimitive[] = []
+    const empty: u32[] = []
+    const texts: u8[][][] = []
+    const errors: u8[][]?[] = []
+    const flags: bool[] = []
+    const arguments: u32[][] = []
+
+    return {
+        tags: [ExpressionsKind.Identifier, ExpressionsKind.Field],
+        offsets: [0, 0],
+        identifier: [bytes.fromText(abi_binding)],
+        primitive,
+        field_target: [in.step.base],
+        field_name: [bytes.fromText(name)],
+        const_pointer: empty,
+        optional_type: empty,
+        const_slice: empty,
+        error_set: texts,
+        error_union_payload: empty,
+        error_union_errors: errors,
+        error_union_inferred: flags,
+        call_callee: empty,
+        call_arguments: arguments
+    }
+}

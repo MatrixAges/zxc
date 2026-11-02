@@ -1,0 +1,77 @@
+import type { Input as AbiInput, Expressions } from "../abi/model"
+
+export enum Mode {
+    Abi,
+    State,
+    View
+}
+
+export enum Action {
+    Alias,
+    Abi,
+    Optional,
+    StateName,
+    ViewName
+}
+
+export type Request = {
+    id: u32,
+    mode: Mode
+}
+
+export type Input = {
+    abi: AbiInput,
+    selected: bool[],
+    keys: u8[],
+    states: u32[],
+    state_layouts: u32[],
+    views: u32[],
+    abi_layouts: u32[],
+    request: Request
+}
+
+export type Entry = {
+    request: Request,
+    value: u32,
+    layout: u32
+}
+
+export type Lookup = {
+    found: bool,
+    value: u32,
+    layout: u32
+}
+
+export type Frame = {
+    request: Request,
+    next: u64
+}
+
+export type Decision = {
+    dependency?: Request,
+    advance: bool,
+    action: Action,
+    child: u32,
+    value: u32,
+    layout: u32
+}
+
+export type Step = {
+    request: Request,
+    action: Action,
+    base: u32,
+    child: u32
+}
+
+export type Plan = {
+    source: Input,
+    steps: Step[],
+    entries: Entry[],
+    valid: bool
+}
+
+export type Output = {
+    segments: Expressions[],
+    entries: Entry[],
+    valid: bool
+}

@@ -1,0 +1,53 @@
+import abi from "../abi/construct"
+import { Action } from "./model"
+import named from "./named"
+import optional from "./optional"
+
+import type { Expressions } from "../abi/model"
+import type { Plan as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const segments: Expressions[] = []
+
+    const result = loop({
+        source: in.source,
+        steps: in.steps,
+        index: 0,
+        segments,
+        valid: in.valid
+    }, {
+        while: current => current.valid && current.index < current.steps.length,
+        next: current => {
+            const step = current.steps[current.index]
+
+            if (step.action == Action.Abi) {
+                const output = abi({
+                    source: {
+                        ...current.source.abi,
+                        base: step.base
+                    },
+                    order: [step.request.id],
+                    child: step.child
+                })
+
+                current.valid = output.valid
+                current.segments = current.segments.push(output.expressions)[0]
+            } else {
+                current.segments = current.segments.push(
+                    step.action == Action.Optional ? optional(step.child) : named({
+                        source: current.source,
+                        step
+                    })
+                )[0]
+            }
+
+            current.index += 1
+        }
+    })
+
+    return {
+        segments: result.segments,
+        entries: in.entries,
+        valid: result.valid
+    }
+}

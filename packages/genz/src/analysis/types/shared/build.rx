@@ -1,0 +1,10 @@
+<Module>
+    <Type from="./model" as="Query" />
+
+    <Args in={Query.Input} out={Query.Output} />
+
+    <Call fn="plan" in={$in} />
+    <Call fn="construct" in={$ctx.plan} />
+
+    <Return value={$ctx.construct} />
+</Module>

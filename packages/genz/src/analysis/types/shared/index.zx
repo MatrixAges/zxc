@@ -1,0 +1,51 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+
+import { initial_buckets, linear_entries } from "./const"
+import probe from "./probe"
+
+import type { Entry } from "./model"
+
+export type Input = {
+    entries: Entry[],
+    buckets: u32[]
+}
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    if (in.entries.length <= linear_entries) {
+        return in.buckets
+    }
+
+    const grow = in.entries.length * 2 > in.buckets.length
+    const capacity = in.buckets.length == 0 ? initial_buckets : in.buckets.length * 2
+    const empty: u32[] = []
+
+    const buckets = grow ? loop({
+        values: empty,
+        capacity
+    }, {
+        while: current => current.values.length < current.capacity,
+        next: current => { current.values =
+            current.values.push(max_u32)[0] }
+    }).values : in.buckets
+
+    return loop({
+        entries: in.entries,
+        buckets,
+        index: grow ? 0 : in.entries.length - 1
+    }, {
+        while: current => current.index < current.entries.length,
+        next: current => {
+            const slot = probe({
+                entries: current.entries,
+                buckets: current.buckets,
+                request: current.entries[current.index].request
+            })
+
+            current.buckets[slot] = integers.narrow(current.index)
+            current.index += 1
+        }
+    }).buckets
+}
