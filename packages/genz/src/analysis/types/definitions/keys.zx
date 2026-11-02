@@ -1,0 +1,12 @@
+import type { Input, Plan } from "./model"
+
+export type Output = Plan
+
+export default function (in: Input): Output {
+    const names: string[] = []
+
+    return {
+        source: in,
+        names: in.names == null ? names : in.names.sort()[0]
+    }
+}

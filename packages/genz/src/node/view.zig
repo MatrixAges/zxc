@@ -1,5 +1,31 @@
 const std = @import("std");
 
+pub fn Joined(comptime Left: type, comptime Right: type) type {
+    const left = @typeInfo(Left).@"struct".field_names;
+    const right = @typeInfo(Right).@"struct".field_names;
+    const names = left ++ right;
+    var types: [names.len]type = undefined;
+
+    for (left, 0..) |name, index| types[index] = @FieldType(Left, name);
+
+    for (right, left.len..) |name, index| {
+        if (@hasField(Left, name)) @compileError("AST column views overlap");
+
+        types[index] = @FieldType(Right, name);
+    }
+
+    return @Struct(.auto, null, names, &types, &@splat(.{}));
+}
+
+pub fn join(left: anytype, right: anytype) Joined(@TypeOf(left), @TypeOf(right)) {
+    var result: Joined(@TypeOf(left), @TypeOf(right)) = undefined;
+
+    inline for (@typeInfo(@TypeOf(left)).@"struct".field_names) |name| @field(result, name) = @field(left, name);
+    inline for (@typeInfo(@TypeOf(right)).@"struct".field_names) |name| @field(result, name) = @field(right, name);
+
+    return result;
+}
+
 pub fn rows(comptime View: type, source: anytype) View {
     @setEvalBranchQuota(100_000);
 

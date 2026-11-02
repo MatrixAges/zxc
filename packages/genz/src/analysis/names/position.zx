@@ -1,0 +1,33 @@
+import bytes from "std:bytes"
+
+export type Input = {
+    names: string[],
+    name: string
+}
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    const result = loop({
+        ...in,
+        first: 0,
+        end: in.names.length
+    }, {
+        while: current => current.first < current.end,
+        next: current => {
+            const middle = current.first + (current.end - current.first) / 2
+            const less = bytes.lessThan(
+                bytes.fromText(current.names[middle]),
+                bytes.fromText(current.name)
+            )
+
+            if (less) {
+                current.first = middle + 1
+            } else {
+                current.end = middle
+            }
+        }
+    })
+
+    return result.first
+}

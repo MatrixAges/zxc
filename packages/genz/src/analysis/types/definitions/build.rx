@@ -1,0 +1,18 @@
+<Module>
+    <Type from="./model" as="Definitions" />
+
+    <Args in={Definitions.Input} out={Definitions.Output} />
+
+    <Call fn="keys" in={$in} />
+    <Call fn="construct" in={$ctx.keys} />
+
+    <Call
+        fn="fields"
+        in={{
+            source: $in,
+            types: $ctx.construct
+        }}
+    />
+
+    <Return value={$ctx.fields} />
+</Module>

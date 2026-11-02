@@ -8,6 +8,15 @@ const unset: node.ExpressionId = @fromBackingInt(std.math.maxInt(u32));
 pub fn lower(self: *Lower, output: *std.ArrayList(node.Declaration), exported: bool) Lower.Error!void {
     if (self.shared_types) return shared(self, output);
 
+    const has_lists = if (@import("genz_options").generated_analysis)
+        try @import("types/definitions.zig").build(self, output, exported)
+    else
+        try seedDefinitions(self, output, exported);
+    try @import("state_value/types.zig").lower(self, output, exported);
+    if (has_lists) try output.appendSlice(self.allocator, &try @import("growth.zig").declarations(self, exported));
+}
+
+fn seedDefinitions(self: *Lower, output: *std.ArrayList(node.Declaration), exported: bool) Lower.Error!bool {
     var declared: std.StringHashMapUnmanaged(void) = .empty;
     var has_lists = false;
 
@@ -61,8 +70,7 @@ pub fn lower(self: *Lower, output: *std.ArrayList(node.Declaration), exported: b
         if (value != .object and value != .tuple and value != .native_reference) self.layouts[index] = self.types[index];
     }
 
-    try @import("state_value/types.zig").lower(self, output, exported);
-    if (has_lists) try output.appendSlice(self.allocator, &try @import("growth.zig").declarations(self, exported));
+    return has_lists;
 }
 
 /// The expression `table` holds for `id`, built first when the file imports the shared type bundle.
