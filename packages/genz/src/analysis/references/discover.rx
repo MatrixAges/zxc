@@ -1,0 +1,17 @@
+<Module>
+    <Type from="./model" as="Graph" />
+
+    <Args in={Graph.Input} out={bool[]} />
+
+    <Call fn="roots" in={$in} />
+
+    <Call
+        fn="closure"
+        in={{
+            functions: $in.functions,
+            needed: $ctx.roots
+        }}
+    />
+
+    <Return value={$ctx.closure} />
+</Module>

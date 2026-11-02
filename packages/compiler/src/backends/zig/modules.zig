@@ -2,7 +2,7 @@ const std = @import("std");
 const Analysis = @import("frontend").AnalysisResult;
 const generating = @import("genz").zx.modules;
 const names = @import("names.zig");
-const references = @import("references.zig");
+const references = @import("genz").zx.references;
 const fingerprint = @import("fingerprint.zig");
 pub const Batch = @import("batch.zig");
 const Cache = @import("cache.zig");
@@ -44,12 +44,12 @@ pub fn createCached(allocator: std.mem.Allocator, analysis: *const Analysis, cac
     const owned = arena.allocator();
     const program = try @import("genz").zx.prepare(owned, analysis.value.ir);
     const identities = try names.create(owned, program, analysis.nominal_types);
-    const needed = try references.reachable(owned, program);
+    const needed = try references.reachable(owned, allocator, program);
     var batch = try Batch.create(allocator, program, identities, cache);
 
     defer batch.deinit();
 
-    const entry = File{ .name = "application", .source = try batch.emit(owned, .entry), .imports = try references.imports(owned, program.expressions, program.contracts, identities.functions) };
+    const entry = File{ .name = "application", .source = try batch.emit(owned, .entry), .imports = try references.imports(owned, allocator, program.expressions, program.contracts, identities.functions, &.{}) };
     const modules = try functionFilesAnalyzed(owned, &batch, needed, &.{entry.source});
     const type_source = try batch.emit(owned, .types);
     const type_names = try typeNamesAnalyzed(owned, program, identities, batch.analysis.value.value.state);
@@ -121,7 +121,7 @@ pub fn functionFilesFrom(owned: std.mem.Allocator, batch: *const Batch, units: [
         const file = File{
             .name = identities.functions[index],
             .source = source,
-            .imports = if (function.external) |external| try owned.dupe([]const u8, &.{try owned.dupe(u8, program.native_modules.at(@backingInt(external.module)).import_name)}) else try references.imports(owned, function.expressions, function.contracts, identities.functions),
+            .imports = if (function.external) |external| try owned.dupe([]const u8, &.{try owned.dupe(u8, program.native_modules.at(@backingInt(external.module)).import_name)}) else try references.imports(owned, batch.backing, function.expressions, function.contracts, identities.functions, &.{}),
         };
 
         const entry = try seen.getOrPut(owned, file.name);

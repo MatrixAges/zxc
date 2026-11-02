@@ -1,0 +1,70 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import type { Imports } from "./model"
+
+export type Input = Imports
+
+export type Output = string[]
+
+export default function (in: Input): Output {
+    const names: string[] = []
+
+    const collected = loop({
+        body: in.body,
+        names: in.names,
+        values: names,
+        table: 0
+    }, {
+        while: current => current.table <= current.body.contracts.expressions.length,
+        next: current => {
+            const expressions = current.table == 0 ? current.body.expressions :
+                current.body.contracts.expressions[current.table - 1]
+
+            current.values = loop({
+                expressions: expressions,
+                names: current.names,
+                values: current.values,
+                index: 0
+            }, {
+                while: items => items.index < items.expressions.kinds.length,
+                next: items => {
+                    if (
+                        items.expressions.kinds[items.index] == ExpressionKind.Call
+                    ) {
+                        const payload =
+                            integers.widen(
+                                items.expressions.payloads[items.index]
+                            )
+                        const callee =
+                            integers.widen(
+                                items.expressions.call_functions[payload]
+                            )
+
+                        items.values = items.values.push(items.names[callee])[0]
+                    }
+
+                    items.index += 1
+                }
+            }).values
+            current.table += 1
+        }
+    })
+
+    const result = loop({
+        members: in.members,
+        names: in.names,
+        values: collected.values,
+        index: 0
+    }, {
+        while: current => current.index < current.members.length,
+        next: current => {
+            const member = integers.widen(current.members[current.index])
+
+            current.values = current.values.push(current.names[member])[0]
+            current.index += 1
+        }
+    })
+
+    return result.values
+}

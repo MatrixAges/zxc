@@ -1,16 +1,6 @@
 const std = @import("std");
 const ir = @import("zx").ir;
 
-pub fn reachable(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error![]const bool {
-    const needed = try allocator.alloc(bool, program.functions.count());
-
-    @memset(needed, false);
-    markRoot(needed, program);
-    close(needed, program.functions);
-
-    return needed;
-}
-
 /// Marks the functions `program`'s own body calls.
 pub fn markRoot(needed: []bool, program: ir.Program) void {
     mark(needed, program.expressions, program.contracts);
@@ -40,11 +30,17 @@ fn mark(needed: []bool, expressions: ir.ExpressionTable, contracts: ir.ContractT
 }
 
 /// The names of the functions a body calls, each once, in name order.
-pub fn imports(allocator: std.mem.Allocator, expressions: ir.ExpressionTable, contracts: ir.ContractTable, function_names: []const []const u8) std.mem.Allocator.Error![]const []const u8 {
+pub fn importsWithMembers(allocator: std.mem.Allocator, expressions: ir.ExpressionTable, contracts: ir.ContractTable, function_names: []const []const u8, members: []const ir.FunctionId) std.mem.Allocator.Error![]const []const u8 {
     var seen: @import("zx").bytes.Map(void) = .empty;
     var output: std.ArrayList([]const u8) = .empty;
 
     try called(allocator, &seen, &output, expressions, contracts, function_names);
+
+    for (members) |id| {
+        const name = function_names[@backingInt(id)];
+
+        if (!(try seen.getOrPut(allocator, name)).found_existing) try output.append(allocator, name);
+    }
 
     std.mem.sort([]const u8, output.items, {}, lessThan);
 

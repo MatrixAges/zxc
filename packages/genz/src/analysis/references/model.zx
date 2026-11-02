@@ -1,0 +1,24 @@
+import type { Contracts } from "core/contract_table/model"
+import type { Expressions } from "core/expression_table/model"
+
+export type Body = {
+    expressions: Expressions,
+    contracts: Contracts
+}
+
+export type Functions = {
+    expressions: Expressions[],
+    contracts: Contracts[]
+}
+
+export type Input = {
+    functions: Functions,
+    roots: Body[],
+    members: u32[]
+}
+
+export type Imports = {
+    body: Body,
+    names: string[],
+    members: u32[]
+}

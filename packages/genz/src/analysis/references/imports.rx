@@ -1,0 +1,10 @@
+<Module>
+    <Type from="./model" as="Graph" />
+
+    <Args in={Graph.Imports} out={string[]} />
+
+    <Call fn="collect" in={$in} />
+    <Call fn="order" in={$ctx.collect} />
+
+    <Return value={$ctx.order} />
+</Module>

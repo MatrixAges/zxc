@@ -1,0 +1,35 @@
+import mark from "./mark"
+
+import type { Functions } from "./model"
+
+export type Input = {
+    functions: Functions,
+    needed: bool[]
+}
+
+export type Output = bool[]
+
+export default function (in: Input): Output {
+    const result = loop({
+        functions: in.functions,
+        needed: in.needed,
+        index: in.functions.expressions.length
+    }, {
+        while: current => current.index != 0,
+        next: current => {
+            current.index -= 1
+
+            if (current.needed[current.index]) {
+                current.needed = mark({
+                    body: {
+                        expressions: current.functions.expressions[current.index],
+                        contracts: current.functions.contracts[current.index]
+                    },
+                    needed: current.needed
+                })
+            }
+        }
+    })
+
+    return result.needed
+}

@@ -10,6 +10,7 @@ pub const value_call = @import("value_call/root.zig");
 pub const state_value = @import("state_value/root.zig");
 pub const capabilities = @import("capabilities.zig");
 pub const tasks = @import("tasks/root.zig");
+pub const references = @import("references.zig");
 pub const prepare = @import("inline_call/root.zig").prepare;
 pub const function_analysis = @import("function_analysis.zig");
 

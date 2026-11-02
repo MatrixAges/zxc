@@ -1,0 +1,54 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import type { Body } from "./model"
+
+export type Input = {
+    body: Body,
+    needed: bool[]
+}
+
+export type Output = bool[]
+
+export default function (in: Input): Output {
+    const result = loop({
+        body: in.body,
+        needed: in.needed,
+        table: 0
+    }, {
+        while: current => current.table <= current.body.contracts.expressions.length,
+        next: current => {
+            const expressions = current.table == 0 ? current.body.expressions :
+                current.body.contracts.expressions[current.table - 1]
+
+            current.needed = loop({
+                expressions: expressions,
+                needed: current.needed,
+                index: 0
+            }, {
+                while: items => items.index < items.expressions.kinds.length,
+                next: items => {
+                    if (
+                        items.expressions.kinds[items.index] == ExpressionKind.Call
+                    ) {
+                        const payload =
+                            integers.widen(
+                                items.expressions.payloads[items.index]
+                            )
+                        const callee =
+                            integers.widen(
+                                items.expressions.call_functions[payload]
+                            )
+
+                        items.needed[callee] = true
+                    }
+
+                    items.index += 1
+                }
+            }).needed
+            current.table += 1
+        }
+    })
+
+    return result.needed
+}

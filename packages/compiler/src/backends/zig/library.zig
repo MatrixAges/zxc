@@ -3,7 +3,7 @@ const model = @import("../../library/root.zig");
 const validation = @import("../../library/validate.zig");
 const modules = @import("modules.zig");
 const names = @import("names.zig");
-const references = @import("references.zig");
+const references = @import("genz").zx.references;
 const Cache = @import("cache.zig");
 pub const Error = modules.Error || validation.Error || error{InvalidModule};
 pub const PublicModule = struct { name: []const u8, file: modules.File, value_entry: bool = false, allocator_entry: bool = false, requirements: ?@import("genz").zx.state.Requirements = null };
@@ -46,7 +46,6 @@ fn create(allocator: std.mem.Allocator, output: std.mem.Allocator, library: *con
 
     const owned = arena.allocator();
     const program = try @import("genz").zx.prepare(owned, library.program);
-    const needed = try owned.alloc(bool, program.functions.count());
     const public_modules = try owned.alloc(PublicModule, library.exports.len);
     var function_count = library.exports.len;
 
@@ -105,11 +104,9 @@ fn create(allocator: std.mem.Allocator, output: std.mem.Allocator, library: *con
     if (loaded) |*value| try memos.save(allocator, cache, value);
 
     var prepared_library = library.*;
-
     prepared_library.program = program;
 
-    @memset(needed, false);
-
+    var member_roots: std.ArrayList(@import("zx").ir.FunctionId) = .empty;
     // Each export reenters the analysis with its own entry plan; their entries, the types and every needed function
     // are then generated together on all cores.
     const public_batches = try owned.alloc(modules.Batch, library.exports.len);
@@ -120,8 +117,7 @@ fn create(allocator: std.mem.Allocator, output: std.mem.Allocator, library: *con
         else
             try prepared_library.module(index);
 
-        references.markRoot(needed, view);
-
+        const member_first = member_roots.items.len;
         var member_count: usize = 0;
 
         for (exported.members) |member| {
@@ -137,7 +133,7 @@ fn create(allocator: std.mem.Allocator, output: std.mem.Allocator, library: *con
             members[member_index] = .{ .name = member.name, .function = member.id.? };
             member_index += 1;
 
-            needed[@backingInt(member.id.?)] = true;
+            try member_roots.append(owned, member.id.?);
         }
 
         var digest: [32]u8 = undefined;
@@ -149,34 +145,7 @@ fn create(allocator: std.mem.Allocator, output: std.mem.Allocator, library: *con
 
         try public_batch.analysis.value.reentry(owned, allocator, view);
 
-        const called = try references.imports(owned, view.expressions, view.contracts, identities.functions);
-        var imports = called;
-
-        if (members.len != 0) {
-            var seen: @import("zx").bytes.Map(void) = .empty;
-            var combined: std.ArrayList([]const u8) = .empty;
-
-            defer seen.deinit(owned);
-
-            for (called) |name| {
-                try seen.put(owned, name, {});
-                try combined.append(owned, name);
-            }
-
-            for (members) |member| {
-                const name = identities.functions[@backingInt(member.function)];
-
-                if (!(try seen.getOrPut(owned, name)).found_existing) try combined.append(owned, name);
-            }
-
-            std.mem.sort([]const u8, combined.items, {}, struct {
-                fn lessThan(_: void, left: []const u8, right: []const u8) bool {
-                    return std.mem.lessThan(u8, left, right);
-                }
-            }.lessThan);
-
-            imports = combined.items;
-        }
+        const imports = try references.imports(owned, allocator, view.expressions, view.contracts, identities.functions, member_roots.items[member_first..]);
 
         public_module.* = .{
             .name = try owned.dupe(u8, exported.name),
@@ -191,8 +160,11 @@ fn create(allocator: std.mem.Allocator, output: std.mem.Allocator, library: *con
         };
     }
 
-    references.close(needed, program.functions);
+    const entry_roots = try owned.alloc(*const @import("zx").ir.Program, public_batches.len);
 
+    for (entry_roots, public_batches) |*entry, *public_batch| entry.* = &public_batch.program;
+
+    const needed = try references.discover(owned, allocator, program.functions, entry_roots, member_roots.items);
     const units = try modules.functionUnits(owned, needed);
 
     if (function_count > library.exports.len) {
