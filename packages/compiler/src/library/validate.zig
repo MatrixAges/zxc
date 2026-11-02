@@ -6,3 +6,7 @@ pub const Error = std.mem.Allocator.Error || error{InvalidLibrary};
 pub fn validate(allocator: std.mem.Allocator, library: *const model.Result) Error!void {
     return compiled.validate(allocator, .{ .program = library.program, .exports = library.exports, .nominal_types = library.nominal_types, .store_initializers = library.store_initializers });
 }
+
+pub fn validateHeader(library: *const model.Result) error{InvalidLibrary}!void {
+    return compiled.validateHeader(&library.program, library.exports.len);
+}

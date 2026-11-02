@@ -7,7 +7,7 @@ pub const Error = std.mem.Allocator.Error || error{InvalidLibrary};
 pub fn validate(allocator: std.mem.Allocator, library: model.Graph) Error!void {
     const program = library.program;
 
-    if (!program.type_only or program.exports.len != 0 or program.constant_exports.len != 0 or program.stores.count() != 0 or library.exports.len == 0) return error.InvalidLibrary;
+    try validateHeader(&program, library.exports.len);
     if (try @import("../../ir/validate.zig").validate(allocator, program) != null) return error.InvalidLibrary;
 
     var temporary = std.heap.ArenaAllocator.init(allocator);
@@ -113,6 +113,10 @@ pub fn validate(allocator: std.mem.Allocator, library: model.Graph) Error!void {
             entry.value_ptr.* = slot.type_id;
         }
     }
+}
+
+pub fn validateHeader(program: *const ir.Program, public_count: usize) error{InvalidLibrary}!void {
+    if (!program.type_only or program.exports.len != 0 or program.constant_exports.len != 0 or program.stores.count() != 0 or public_count == 0) return error.InvalidLibrary;
 }
 
 fn text(value: []const u8) bool {

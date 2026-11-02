@@ -71,6 +71,7 @@ pub const main = [_]Entry{
     .{ .path = "zx/analysis/expression_program/compile.rx", .name = "expression_analysis" },
     .{ .path = "zx/ir/canonical/validation/validate.rx", .name = "ir_validation" },
     .{ .path = "zx/modules/compiled/execute.rx", .name = "compiled_library" },
+    .{ .path = "zx/modules/compiled/validation/publication.zx", .name = "compiled_header" },
     .{ .path = "zx/modules/semantic_cache/restoring/native/restore.rx", .name = "native_restore" },
     .{ .path = "verification/query/build.rx", .name = "verification_query", .owner = .compiler },
     .{ .path = "lint/naming/check.rx", .name = "naming", .owner = .lint },

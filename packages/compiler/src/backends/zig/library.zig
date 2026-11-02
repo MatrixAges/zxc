@@ -38,7 +38,11 @@ pub fn createFilesCachedConcurrent(allocator: std.mem.Allocator, output: std.mem
 }
 
 fn create(allocator: std.mem.Allocator, output: std.mem.Allocator, library: *const model.Result, cache: ?*Cache, file_imports: bool, comptime concurrent_analysis: bool) Error!Bundle {
-    if (@import("frontend").checks_internal_ir) try validation.validate(allocator, library);
+    if (@import("frontend").checks_internal_ir) {
+        try validation.validate(allocator, library);
+    } else {
+        try validation.validateHeader(library);
+    }
 
     var arena = std.heap.ArenaAllocator.init(output);
 
