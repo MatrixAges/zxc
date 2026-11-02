@@ -1,0 +1,34 @@
+import integers from "std:integer"
+
+export type Input = {
+    children: u32[],
+    first: u64,
+    count: u64,
+    values: u32[],
+    origin: u32
+}
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    const items: u32[] = []
+
+    const result = loop({
+        ...in,
+        index: in.first,
+        end: in.first + in.count,
+        items
+    }, {
+        while: current => current.index < current.end,
+        next: current => {
+            current.items = current.items.push(
+                current.values[integers.widen(
+                    current.children[current.index]
+                )]
+            )[0]
+            current.index += 1
+        }
+    })
+
+    return result.items.push(in.origin)[0]
+}

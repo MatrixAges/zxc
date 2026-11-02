@@ -1,0 +1,18 @@
+<Module>
+    <Type from="./model" as="State" />
+
+    <Args in={State.Input} out={State.Output} />
+
+    <Call fn="plan" in={$in} />
+    <Call fn="construct" in={$ctx.plan} />
+
+    <Call
+        fn="fields"
+        in={{
+            plan: $ctx.plan,
+            types: $ctx.construct
+        }}
+    />
+
+    <Return value={$ctx.fields} />
+</Module>

@@ -1,0 +1,81 @@
+import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import stateName from "./name"
+import origin from "./origin"
+
+import type { Input, Plan } from "./model"
+
+export type Output = Plan
+
+export default function (in: Input): Output {
+    const names: string[] = []
+    const changed: bool[] = []
+    const origins: u8[][] = []
+    const empty: u8[] = []
+
+    const result = loop({
+        source: in,
+        names,
+        changed,
+        origins,
+        empty,
+        index: 0
+    }, {
+        while: current => current.index < current.source.types.kinds.length,
+        next: current => {
+            const index = current.index
+            const target = kind(current.source.types.kinds[index])
+            const selected = current.source.selected[index]
+            const first = integers.widen(current.source.types.first[index])
+            const count = integers.widen(current.source.types.second[index])
+            const aggregate = target == Kind.Object || target == Kind.Tuple
+            const child = target == Kind.Optional ? current.changed[first] : false
+
+            const different = selected && aggregate ? loop({
+                source: current.source.types,
+                changed: current.changed,
+                object: target == Kind.Object,
+                index: first,
+                end: first + count,
+                different: false
+            }, {
+                while: children => !children.different && children.index < children.end,
+                next: children => {
+                    const child = children.object ?
+                        children.source.field_types[children.index] :
+                        children.source.children[children.index]
+
+                    children.different = children.changed[integers.widen(child)]
+                    children.index += 1
+                }
+            }).different : child || (selected && target == Kind.List)
+
+            current = {
+                ...current,
+                names: current.names.push(selected ? stateName({
+                    names: current.source.names,
+                    key: current.source.keys[index],
+                    index
+                }) : "")[0],
+                changed: current.changed.push(different)[0],
+                origins: current.origins.push(selected && target == Kind.Object ?
+                    origin({
+                        names: current.source.types.field_names,
+                        start: first,
+                        count
+                    }) : current.empty)[0],
+                index: current.index + 1
+            }
+        }
+    })
+
+    return {
+        source: in,
+        names: result.names,
+        ordered: result.names.sort()[0],
+        changed: result.changed,
+        origins: result.origins
+    }
+}

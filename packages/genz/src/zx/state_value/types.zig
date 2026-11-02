@@ -11,6 +11,8 @@ pub fn lower(self: *Lower, output: *std.ArrayList(node.Declaration), exported: b
     self.state_layouts = try self.allocator.dupe(node.ExpressionId, self.layouts);
     self.view_types = try self.allocator.dupe(node.ExpressionId, self.types);
 
+    if (@import("genz_options").generated_analysis) return @import("../types/state.zig").build(self, output, exported);
+
     var declared: std.StringHashMapUnmanaged(void) = .empty;
 
     for (0..self.program.types.count()) |index| {

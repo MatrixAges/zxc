@@ -3,15 +3,19 @@ const std = @import("std");
 pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) *std.Build.Step {
     const step = b.step("test-native-value-boundary", "Validate native borrowing and transitive value call classification");
     const files = b.addWriteFiles();
-    const root = files.add("root.zig", "pub const native = @import(\"zx/native_value.zig\");\npub const summary = @import(\"zx/value_call/analysis.zig\");\n");
-    _ = files.addCopyDirectory(b.path("../genz/src/zx"), "zx", .{});
+    const root = files.addCopyFile(b.path("tests/native/value_boundary/checks.zig"), "root.zig");
+
+    _ = files.addCopyDirectory(b.path("../genz/src"), "genz", .{});
 
     const checks = b.createModule(.{
         .root_source_file = root,
         .target = target,
         .optimize = optimize,
-        .imports = &.{.{ .name = "zx", .module = compiler.module("frontend").import_table.get("zx").? }},
     });
+
+    var imports = compiler.module("compiler").import_table.get("genz").?.import_table.iterator();
+
+    while (imports.next()) |entry| checks.addImport(entry.key_ptr.*, entry.value_ptr.*);
 
     for ([_][]const u8{ "borrowing", "guards", "allocation" }) |name| {
         const tests = b.addTest(.{

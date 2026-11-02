@@ -1,0 +1,32 @@
+import crypto from "std:crypto"
+import encoding from "std:encoding"
+import strings from "std:string"
+
+import typeName from "../abi/name"
+import { state_prefix, name_separator } from "./const"
+
+export type Input = {
+    names?: string[],
+    index: u64,
+    key: u8[]
+}
+
+export type Output = string
+
+export default function (in: Input): Output {
+    const base = typeName({
+        names: in.names,
+        index: in.index
+    })
+
+    const separator: u8[] = [name_separator]
+    const parts: u8[][] = [base, separator, in.key]
+
+    return strings.join(
+        "",
+        [
+            state_prefix,
+            encoding.encodeHex(crypto.sha256Parts(parts))
+        ]
+    )
+}

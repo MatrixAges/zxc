@@ -1,0 +1,55 @@
+import bytes from "std:bytes"
+
+import integer from "../../../printer/text/integer"
+import { origin_field, origin_suffix } from "./const"
+
+export type Input = {
+    names: string[],
+    start: u64,
+    count: u64
+}
+
+export type Output = u8[]
+
+export default function (in: Input): Output {
+    const result = loop({
+        ...in,
+        candidate: bytes.fromText(origin_field),
+        suffix: 0,
+        found: false
+    }, {
+        do: current => {
+            const present = loop({
+                source: current.names,
+                candidate: current.candidate,
+                index: current.start,
+                end: current.start + current.count,
+                found: false
+            }, {
+                while: fields => !fields.found && fields.index < fields.end,
+                next: fields => {
+                    fields.found = bytes.equals(
+                        bytes.fromText(
+                            fields.source[fields.index]
+                        ),
+                        fields.candidate
+                    )
+                    fields.index += 1
+                }
+            }).found
+
+            current.found = !present
+
+            if (present) {
+                current.suffix += 1
+                current.candidate = integer({
+                    output: bytes.fromText(origin_suffix),
+                    value: current.suffix
+                })
+            }
+        },
+        while: current => !current.found
+    })
+
+    return result.candidate
+}

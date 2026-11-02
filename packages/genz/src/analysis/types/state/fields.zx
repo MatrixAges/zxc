@@ -1,0 +1,81 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import { items_field, headered_field } from "./const"
+
+import type { Field } from "../definitions/model"
+import type { Plan, Types, Output } from "./model"
+
+export type Input = {
+    plan: Plan,
+    types: Types
+}
+
+export default function (in: Input): Output {
+    const fields: Field[] = []
+
+    const result = loop({
+        source: in.plan.source.types,
+        origins: in.plan.origins,
+        values: in.types.values,
+        views: in.types.views,
+        records: in.types.records,
+        valid: in.types.valid,
+        record: 0,
+        member: 0,
+        fields
+    }, {
+        while: current => current.valid && current.record < current.records.length,
+        next: current => {
+            const record = current.records[current.record]
+            const owner = record.owner
+            const list = kind(current.source.kinds[owner]) == Kind.List
+            const count = list ? 2 : integers.widen(current.source.second[owner]) + 1
+
+            if (current.member == count) {
+                current.record += 1
+                current.member = 0
+            } else {
+                if (list) {
+                    current.fields = current.fields.push({
+                        name: bytes.fromText(
+                            current.member == 0 ?
+                                items_field : headered_field
+                        ),
+                        value: record.start + integers.narrow(current.member),
+                        default_value: null,
+                        comptime_parameter: false
+                    })[0]
+                } else if (current.member + 1 == count) {
+                    current.fields = current.fields.push({
+                        name: current.origins[owner],
+                        value: record.start,
+                        default_value: record.start + 1,
+                        comptime_parameter: false
+                    })[0]
+                } else {
+                    const field = integers.widen(current.source.first[owner]) +
+                        current.member
+                    const child = integers.widen(current.source.field_types[field])
+
+                    current.fields = current.fields.push({
+                        name: bytes.fromText(current.source.field_names[field]),
+                        value: record.view ? current.views[child] :
+                            current.values[child],
+                        default_value: null,
+                        comptime_parameter: false
+                    })[0]
+                }
+
+                current.member += 1
+            }
+        }
+    })
+
+    return {
+        types: in.types,
+        fields: result.fields
+    }
+}

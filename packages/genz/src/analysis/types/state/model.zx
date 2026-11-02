@@ -1,0 +1,46 @@
+import type { Table } from "core/type_table/model"
+import type { Constant } from "../../../ast/declarations/model"
+import type { Expressions } from "../abi/model"
+import type { Definitions, Field } from "../definitions/model"
+
+export type Input = {
+    types: Table,
+    selected: bool[],
+    keys: u8[][],
+    names?: string[],
+    abi_types: u32[],
+    abi_layouts: u32[],
+    base: u32,
+    field_base: u32,
+    exported: bool
+}
+
+export type Plan = {
+    source: Input,
+    names: string[],
+    ordered: string[],
+    changed: bool[],
+    origins: u8[][]
+}
+
+export type Record = {
+    owner: u64,
+    view: bool,
+    start: u32
+}
+
+export type Types = {
+    expressions: Expressions,
+    definitions: Definitions,
+    declarations: Constant[],
+    records: Record[],
+    values: u32[],
+    layouts: u32[],
+    views: u32[],
+    valid: bool
+}
+
+export type Output = {
+    types: Types,
+    fields: Field[]
+}
