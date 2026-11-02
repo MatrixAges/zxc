@@ -1,0 +1,18 @@
+import {
+    native_namespace,
+    layouts_namespace,
+    scoped_native_namespace,
+    scoped_layouts_namespace
+} from "./const"
+
+import type { State, Output } from "./model"
+
+export type Input = State
+
+export default function (in: Input): Output {
+    return {
+        groups: in.groups,
+        native_name: in.scoped ? scoped_native_namespace : native_namespace,
+        layouts_name: in.scoped ? scoped_layouts_namespace : layouts_namespace
+    }
+}

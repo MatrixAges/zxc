@@ -1,0 +1,41 @@
+import type { Modules, Functions } from "core/native_module_table/model"
+
+export type Input = {
+    modules: Modules,
+    functions: Functions
+}
+
+export type Binding = {
+    module: u64,
+    binding: u64
+}
+
+export type Group = {
+    key: string,
+    names: string[],
+    claimed: bool[],
+    types: Binding[],
+    functions: u64[]
+}
+
+export type Index = {
+    names: string[],
+    scoped: bool
+}
+
+export type GroupInput = {
+    source: Input,
+    index: Index
+}
+
+export type State = {
+    source: Input,
+    groups: Group[],
+    scoped: bool
+}
+
+export type Output = {
+    groups: Group[],
+    native_name: string,
+    layouts_name: string
+}

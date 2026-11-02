@@ -1,0 +1,77 @@
+import integers from "std:integer"
+import { map } from "std:utils"
+import exportName from "core/native_module_table/export_name"
+import key from "core/native_module_table/key"
+
+import position from "./position"
+
+import type { Group, State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const groups: Group[] = []
+
+    const result = loop({
+        source: in.source,
+        previous: in.groups,
+        groups,
+        index: 0
+    }, {
+        while: current => current.index < current.previous.length,
+        next: current => {
+            const previous = current.previous[current.index]
+
+            const selected = loop({
+                source: current.source,
+                key: previous.key,
+                names: previous.names,
+                claimed: map(previous.claimed, item => item),
+                functions: previous.functions,
+                index: 0
+            }, {
+                while: functions =>
+                    functions.index < functions.source.functions.native_modules.length,
+                next: functions => {
+                    const module =
+                        functions.source.functions.native_modules[functions.index]
+
+                    if (module != null && key({
+                        modules: functions.source.modules,
+                        index: integers.widen(module)
+                    }) == functions.key) {
+                        const slot = position({
+                            names: functions.names,
+                            name: exportName({
+                                functions: functions.source.functions,
+                                index: functions.index
+                            })
+                        })
+
+                        if (!functions.claimed[slot]) {
+                            functions.claimed[slot] = true
+                            functions.functions =
+                                functions.functions.push(functions.index)[0]
+                        }
+                    }
+
+                    functions.index += 1
+                }
+            })
+
+            current.groups = current.groups.push({
+                ...previous,
+                claimed: selected.claimed,
+                functions: selected.functions
+            })[0]
+            current.index += 1
+        }
+    })
+
+    return {
+        ...in,
+        groups: result.groups
+    }
+}

@@ -6,17 +6,9 @@
     <Call fn="./native/exports/owner" in={$in} />
 
     <If on={$ctx.owner != null}>
-        <Call
-            fn="./native/export_name"
-            in={{
-                functions: $in.functions,
-                index: $in.index
-            }}
-        />
+        <Call fn="./native/exports/name" in={$in} />
 
-        <Call fn="./native/text" in={$ctx.export_name} />
-
-        <If on={$ctx.text}>
+        <If on={$ctx.name != null}>
             <Call
                 fn="./native/exports/effects"
                 in={{
@@ -31,7 +23,7 @@
                     in={{
                         modules: $in.modules,
                         owner: $ctx.owner,
-                        name: $ctx.export_name
+                        name: $ctx.name
                     }}
                 />
 
@@ -41,7 +33,7 @@
                         in={{
                             context: $in,
                             owner: $ctx.owner,
-                            name: $ctx.export_name
+                            name: $ctx.name
                         }}
                     />
 

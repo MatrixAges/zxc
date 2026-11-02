@@ -1,0 +1,87 @@
+import { map } from "std:utils"
+import key from "core/native_module_table/key"
+
+import position from "./position"
+
+import type { Group, State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const groups: Group[] = []
+
+    const result = loop({
+        source: in.source,
+        previous: in.groups,
+        groups,
+        index: 0
+    }, {
+        while: current => current.index < current.previous.length,
+        next: current => {
+            const previous = current.previous[current.index]
+
+            const selected = loop({
+                modules: current.source.modules,
+                key: previous.key,
+                names: previous.names,
+                claimed: map(previous.claimed, item => item),
+                types: previous.types,
+                index: 0
+            }, {
+                while: modules => modules.index < modules.modules.specifiers.length,
+                next: modules => {
+                    if (key({
+                        modules: modules.modules,
+                        index: modules.index
+                    }) == modules.key) {
+                        const bindings = loop({
+                            claimed: modules.claimed,
+                            types: modules.types,
+                            names: modules.names,
+                            bindings: modules.modules.type_names[modules.index],
+                            module: modules.index,
+                            index: 0
+                        }, {
+                            while: bindings => bindings.index < bindings.bindings.length,
+                            next: bindings => {
+                                const slot = position({
+                                    names: bindings.names,
+                                    name: bindings.bindings[bindings.index]
+                                })
+
+                                if (!bindings.claimed[slot]) {
+                                    bindings.claimed[slot] = true
+                                    bindings.types = bindings.types.push({
+                                        module: bindings.module,
+                                        binding: bindings.index
+                                    })[0]
+                                }
+
+                                bindings.index += 1
+                            }
+                        })
+
+                        modules.claimed = bindings.claimed
+                        modules.types = bindings.types
+                    }
+
+                    modules.index += 1
+                }
+            })
+
+            current.groups = current.groups.push({
+                ...previous,
+                claimed: selected.claimed,
+                types: selected.types
+            })[0]
+            current.index += 1
+        }
+    })
+
+    return {
+        ...in,
+        groups: result.groups
+    }
+}

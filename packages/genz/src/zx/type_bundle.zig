@@ -1,69 +1,65 @@
 const std = @import("std");
+const zx = @import("zx");
 const node = @import("../node.zig");
 const Lower = @import("lower.zig");
 
 pub fn declarations(self: *Lower) Lower.Error![]const node.Declaration {
-    var output: std.ArrayList(node.Declaration) = .empty;
-    var modules: std.ArrayList(node.Declaration) = .empty;
-    var layouts: std.ArrayList(node.Declaration) = .empty;
-    var scoped = false;
+    if (!@import("genz_options").generated_analysis) return @import("type_bundle/seed.zig").declarations(self);
 
-    for (0..self.program.native_modules.count()) |module_row| {
-        const module = self.program.native_modules.at(module_row);
+    const generated = @import("generated_native_namespaces");
+    const Input = std.meta.Child(generated.Input);
+    const Modules = std.meta.Child(@FieldType(Input, "modules"));
+    const Functions = std.meta.Child(@FieldType(Input, "functions"));
+    var scratch = std.heap.ArenaAllocator.init(self.workspace);
 
-        if (module.identity != null) scoped = true;
+    defer scratch.deinit();
+
+    var modules: Modules = undefined;
+    var functions: Functions = undefined;
+
+    inline for (@typeInfo(Modules).@"struct".field_names) |name| {
+        @field(modules, name) = zx.columns.slice(@FieldType(Modules, name), @field(self.program.native_modules, name));
     }
+
+    inline for (@typeInfo(Functions).@"struct".field_names) |name| {
+        @field(functions, name) = zx.columns.slice(@FieldType(Functions, name), @field(self.program.functions, name));
+    }
+
+    const plan = generated.executeIn(scratch.allocator(), &.{ .modules = &modules, .functions = &functions }) catch |err| switch (err) {
+        error.OutOfMemory => return error.OutOfMemory,
+        else => unreachable,
+    };
+
+    var output: std.ArrayList(node.Declaration) = .empty;
+    var namespaces: std.ArrayList(node.Declaration) = .empty;
+    var layouts: std.ArrayList(node.Declaration) = .empty;
 
     try @import("types.zig").lower(self, &output, true);
 
-    var seen: std.StringHashMapUnmanaged(void) = .empty;
-
-    for (0..self.program.native_modules.count()) |module_row| {
-        const module = self.program.native_modules.at(module_row);
-        const entry = try seen.getOrPut(self.allocator, module.key());
-
-        if (entry.found_existing) continue;
-
-        var names: std.StringHashMapUnmanaged(void) = .empty;
+    for (plan.groups) |group| {
         var members: std.ArrayList(node.Declaration) = .empty;
         var storage: std.ArrayList(node.Declaration) = .empty;
 
-        for (0..self.program.native_modules.count()) |implementation_row| {
-            const implementation = self.program.native_modules.at(implementation_row);
+        for (group.types) |entry| {
+            const implementation = self.program.native_modules.at(@intCast(entry.module));
+            const binding = implementation.types.at(@intCast(entry.binding));
 
-            if (!std.mem.eql(u8, implementation.key(), module.key())) continue;
+            try members.append(self.allocator, .{ .constant = .{
+                .name = binding.name,
+                .value = try self.typeExpr(binding.type_id),
+                .exported = true,
+            } });
 
-            for (0..implementation.types.count()) |binding_index| {
-                const binding = implementation.types.at(binding_index);
-                const name = try names.getOrPut(self.allocator, binding.name);
-
-                if (name.found_existing) continue;
-
-                try members.append(self.allocator, .{ .constant = .{
-                    .name = binding.name,
-                    .value = try self.typeExpr(binding.type_id),
-                    .exported = true,
-                } });
-
-                try storage.append(self.allocator, .{ .constant = .{
-                    .name = binding.name,
-                    .value = try self.layoutExpr(binding.type_id),
-                    .exported = true,
-                } });
-            }
+            try storage.append(self.allocator, .{ .constant = .{
+                .name = binding.name,
+                .value = try self.layoutExpr(binding.type_id),
+                .exported = true,
+            } });
         }
 
-        for (0..self.program.functions.count()) |function_row| {
-            const function = self.program.functions.at(function_row);
-            const external = function.external orelse continue;
-            const implementation = self.program.native_modules.at(@backingInt(external.module));
-
-            if (!std.mem.eql(u8, implementation.key(), module.key())) continue;
-
-            const name = try names.getOrPut(self.allocator, external.exportName());
-
-            if (name.found_existing) continue;
-
+        for (group.functions) |index| {
+            const function = self.program.functions.at(@intCast(index));
+            const external = function.external.?;
             const signature = try self.allocator.alloc(node.Declaration, 4);
             signature[0] = .{ .constant = .{ .name = "Input", .value = try self.typeExpr(function.input_type), .exported = true } };
             signature[1] = .{ .constant = .{ .name = "Output", .value = try self.typeExpr(function.output_type), .exported = true } };
@@ -77,27 +73,27 @@ pub fn declarations(self: *Lower) Lower.Error![]const node.Declaration {
             } });
         }
 
-        try modules.append(self.allocator, .{ .constant = .{
-            .name = module.key(),
+        try namespaces.append(self.allocator, .{ .constant = .{
+            .name = group.key,
             .value = try self.builder.expression(.{ .namespace_type = try members.toOwnedSlice(self.allocator) }),
             .exported = true,
         } });
 
         try layouts.append(self.allocator, .{ .constant = .{
-            .name = module.key(),
+            .name = group.key,
             .value = try self.builder.expression(.{ .namespace_type = try storage.toOwnedSlice(self.allocator) }),
             .exported = true,
         } });
     }
 
     try output.append(self.allocator, .{ .constant = .{
-        .name = if (scoped) "native_by_identity" else "native",
-        .value = try self.builder.expression(.{ .namespace_type = try modules.toOwnedSlice(self.allocator) }),
+        .name = plan.native_name,
+        .value = try self.builder.expression(.{ .namespace_type = try namespaces.toOwnedSlice(self.allocator) }),
         .exported = true,
     } });
 
     try output.append(self.allocator, .{ .constant = .{
-        .name = if (scoped) "layouts_by_identity" else "layouts",
+        .name = plan.layouts_name,
         .value = try self.builder.expression(.{ .namespace_type = try layouts.toOwnedSlice(self.allocator) }),
         .exported = true,
     } });

@@ -1,0 +1,63 @@
+import { map } from "std:utils"
+import key from "core/native_module_table/key"
+
+import candidates from "./candidates"
+import position from "./position"
+
+import type { Binding, Group, GroupInput, State } from "./model"
+
+export type Input = GroupInput
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const groups: Group[] = []
+
+    const result = loop({
+        source: in.source,
+        groups,
+        keys: in.index.names,
+        claimed: map(in.index.names, item => false),
+        index: 0
+    }, {
+        while: current => current.index < current.source.modules.specifiers.length,
+        next: current => {
+            const name = key({
+                modules: current.source.modules,
+                index: current.index
+            })
+
+            const slot = position({
+                names: current.keys,
+                name
+            })
+
+            if (!current.claimed[slot]) {
+                const names = candidates({
+                    source: current.source,
+                    key: name
+                })
+
+                const types: Binding[] = []
+                const functions: u64[] = []
+
+                current.groups = current.groups.push({
+                    key: name,
+                    names,
+                    claimed: map(names, item => false),
+                    types,
+                    functions
+                })[0]
+                current.claimed[slot] = true
+            }
+
+            current.index += 1
+        }
+    })
+
+    return {
+        source: result.source,
+        groups: result.groups,
+        scoped: in.index.scoped
+    }
+}

@@ -1,0 +1,35 @@
+import key from "core/native_module_table/key"
+
+import type { Modules } from "core/native_module_table/model"
+import type { Index } from "./model"
+
+export type Input = Modules
+
+export type Output = Index
+
+export default function (in: Input): Output {
+    const names: string[] = []
+
+    const result = loop({
+        modules: in,
+        names,
+        scoped: false,
+        index: 0
+    }, {
+        while: current => current.index < current.modules.specifiers.length,
+        next: current => {
+            current.names = current.names.push(key({
+                modules: current.modules,
+                index: current.index
+            }))[0]
+            current.scoped =
+                current.scoped || current.modules.identities[current.index] != null
+            current.index += 1
+        }
+    })
+
+    return {
+        names: result.names.sort()[0],
+        scoped: result.scoped
+    }
+}

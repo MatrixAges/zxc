@@ -1,0 +1,62 @@
+import integers from "std:integer"
+import exportName from "core/native_module_table/export_name"
+import key from "core/native_module_table/key"
+
+import type { Input as Source } from "./model"
+
+export type Input = {
+    source: Source,
+    key: string
+}
+
+export type Output = string[]
+
+export default function (in: Input): Output {
+    const names: string[] = []
+
+    const bindings = loop({
+        ...in,
+        names,
+        index: 0
+    }, {
+        while: current => current.index < current.source.modules.specifiers.length,
+        next: current => {
+            if (key({
+                modules: current.source.modules,
+                index: current.index
+            }) == current.key) {
+                current.names =
+                    current.names.concat(
+                        current.source.modules.type_names[current.index]
+                    )[0]
+            }
+
+            current.index += 1
+        }
+    }).names
+
+    const result = loop({
+        ...in,
+        names: bindings,
+        index: 0
+    }, {
+        while: current => current.index < current.source.functions.native_modules.length,
+        next: current => {
+            const module = current.source.functions.native_modules[current.index]
+
+            if (module != null && key({
+                modules: current.source.modules,
+                index: integers.widen(module)
+            }) == current.key) {
+                current.names = current.names.push(exportName({
+                    functions: current.source.functions,
+                    index: current.index
+                }))[0]
+            }
+
+            current.index += 1
+        }
+    })
+
+    return result.names.sort()[0]
+}

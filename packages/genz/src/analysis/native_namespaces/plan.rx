@@ -1,0 +1,21 @@
+<Module>
+    <Type from="./model" as="Namespaces" />
+
+    <Args in={Namespaces.Input} out={Namespaces.Output} />
+
+    <Call fn="keys" in={$in.modules} />
+
+    <Call
+        fn="group"
+        in={{
+            source: $in,
+            index: $ctx.keys
+        }}
+    />
+
+    <Call fn="types" in={$ctx.group} />
+    <Call fn="functions" in={$ctx.types} />
+    <Call fn="finish" in={$ctx.functions} />
+
+    <Return value={$ctx.finish} />
+</Module>
