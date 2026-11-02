@@ -1,0 +1,61 @@
+import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import children from "../types/children"
+import descendant from "../types/descendant"
+
+import type { Table } from "core/type_table/model"
+
+export type Input = {
+    types: Table,
+    input: u32,
+    output: u32
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const target = kind(in.types.kinds[integers.widen(in.input)])
+
+    if (target != Kind.Optional && target != Kind.Object && target != Kind.Tuple) {
+        return false
+    }
+
+    if ((target == Kind.Object || target == Kind.Tuple) && in.input == in.output) {
+        return true
+    }
+
+    const pending: u32[] = [in.input]
+
+    return loop({
+        types: in.types,
+        output: in.output,
+        pending: pending,
+        found: false
+    }, {
+        while: current => !current.found && current.pending.length != 0,
+        next: current => {
+            const id = current.pending[current.pending.length - 1]
+            const target = kind(current.types.kinds[integers.widen(id)])
+
+            current.pending = current.pending.pop()[0]
+
+            if (target == Kind.Object || target == Kind.Tuple) {
+                current.found = id == current.output || descendant({
+                    types: current.types,
+                    parent: current.output,
+                    root: id
+                })
+            }
+
+            if (!current.found) {
+                current.pending = current.pending.concat(children({
+                    types: current.types,
+                    id: id,
+                    deep: false
+                }))[0]
+            }
+        }
+    }).found
+}

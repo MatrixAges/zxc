@@ -1,0 +1,128 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import all from "./all"
+import selection from "./selection"
+
+import type { Expressions } from "core/expression_table/model"
+
+export type Input = {
+    table: Expressions,
+    allowed: bool[],
+    safe: bool[],
+    index: u64
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const safe = in.safe
+    const kind = in.table.kinds[in.index]
+    const payload = integers.widen(in.table.payloads[in.index])
+
+    if (
+        kind == ExpressionKind.List || kind == ExpressionKind.Tuple ||
+            kind == ExpressionKind.Template
+    ) {
+        return all({
+            safe: safe,
+            values: in.table.sequence_items,
+            first: integers.widen(in.table.sequence_first[payload]),
+            count: integers.widen(in.table.sequence_count[payload])
+        })
+    }
+
+    if (kind == ExpressionKind.ListOperation) {
+        return safe[integers.widen(in.table.collection_targets[payload])] && all({
+            safe: safe,
+            values: in.table.collection_arguments,
+            first: integers.widen(in.table.collection_first[payload]),
+            count: integers.widen(in.table.collection_count[payload])
+        })
+    }
+
+    if (kind == ExpressionKind.Call) {
+        const callee = integers.widen(in.table.call_functions[payload])
+
+        return callee < in.allowed.length && in.allowed[callee] &&
+            safe[integers.widen(in.table.call_arguments[payload])]
+    }
+
+    if (kind == ExpressionKind.Transform) {
+        const initial = in.table.transform_initials[payload]
+
+        return safe[integers.widen(in.table.transform_targets[payload])] &&
+            safe[integers.widen(in.table.transform_bodies[payload])] &&
+            (initial == null || safe[integers.widen(initial)])
+    }
+
+    if (kind == ExpressionKind.Scope) {
+        return all({
+            safe: safe,
+            values: in.table.scope_values,
+            first: integers.widen(in.table.scope_first[payload]),
+            count: integers.widen(in.table.scope_count[payload])
+        }) && safe[integers.widen(in.table.scope_results[payload])]
+    }
+
+    if (kind == ExpressionKind.Object) {
+        return all({
+            safe: safe,
+            values: in.table.object_evaluation_values,
+            first: integers.widen(in.table.object_evaluation_first[payload]),
+            count: integers.widen(in.table.object_evaluation_count[payload])
+        }) && all({
+            safe: safe,
+            values: in.table.object_field_values,
+            first: integers.widen(in.table.object_first[payload]),
+            count: integers.widen(in.table.object_count[payload])
+        })
+    }
+
+    return match kind {
+        ExpressionKind.Integer => true,
+        ExpressionKind.NegativeInteger => true,
+        ExpressionKind.Float => true,
+        ExpressionKind.String => true,
+        ExpressionKind.Boolean => true,
+        ExpressionKind.None => true,
+        ExpressionKind.Unit => true,
+        ExpressionKind.EnumValue => true,
+        ExpressionKind.ErrorValue => true,
+        ExpressionKind.Reference => true,
+        ExpressionKind.Some => safe[integers.widen(in.table.some[payload])],
+        ExpressionKind.OptionalValue =>
+            safe[integers.widen(in.table.optional_values[payload])],
+        ExpressionKind.Length => safe[integers.widen(in.table.lengths[payload])],
+        ExpressionKind.Field =>
+            safe[integers.widen(in.table.projection_targets[payload])],
+        ExpressionKind.TupleField =>
+            safe[integers.widen(in.table.projection_targets[payload])],
+        ExpressionKind.Index =>
+            safe[integers.widen(in.table.index_targets[payload])] &&
+            safe[integers.widen(in.table.index_values[payload])],
+        ExpressionKind.ListUpdate =>
+            safe[integers.widen(in.table.update_targets[payload])] &&
+            safe[integers.widen(in.table.update_indices[payload])] &&
+            safe[integers.widen(in.table.update_values[payload])],
+        ExpressionKind.Unary =>
+            safe[integers.widen(in.table.unary_operands[payload])],
+        ExpressionKind.Binary =>
+            safe[integers.widen(in.table.binary_left[payload])] &&
+            safe[integers.widen(in.table.binary_right[payload])],
+        ExpressionKind.Conditional =>
+            safe[integers.widen(in.table.conditional_conditions[payload])] &&
+            safe[integers.widen(in.table.conditional_yes[payload])] &&
+            safe[integers.widen(in.table.conditional_no[payload])],
+        ExpressionKind.Iteration =>
+            safe[integers.widen(in.table.iteration_initials[payload])] &&
+            safe[integers.widen(in.table.iteration_conditions[payload])] &&
+            safe[integers.widen(in.table.iteration_bodies[payload])],
+        ExpressionKind.Match => selection({
+            table: in.table,
+            safe: safe,
+            payload: payload
+        }),
+        _ => false
+    }
+}

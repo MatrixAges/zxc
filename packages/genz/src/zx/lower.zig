@@ -48,6 +48,7 @@ public_value_output: bool = false,
 stack_symbols: std.AutoHashMapUnmanaged(ir.SymbolId, void) = .empty,
 projected_symbols: ?[]const bool = null,
 iteration_value: ?*@import("iteration_value/root.zig") = null,
+loop_fields: ?*const @import("iteration/fields/root.zig") = null,
 uses_context: bool = false,
 uses_parallel: bool = false,
 shared_types: bool = false,
@@ -343,7 +344,11 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!node.ExpressionId {
 }
 
 fn projectedField(self: *Self, target: ir.ExprId, id: ir.TypeId, name: []const u8) Error!node.ExpressionId {
-    const value = try self.field(try self.projection(target), name);
+    var value = try self.field(try self.projection(target), name);
+
+    if (self.loop_fields) |context| {
+        if (context.field(self, target, name)) value = try self.builder.expression(.{ .dereference = value });
+    }
 
     if (!self.state_active or !self.state_plan.represented(self.program, id) or self.state_plan.represented(self.program, self.program.expression(target).type_id)) return value;
     if (self.program.typeOf(id) == .list) return @import("state_value/list.zig").borrowed(self, id, value);

@@ -1,0 +1,94 @@
+import integers from "std:integer"
+import { map } from "std:utils"
+import child from "core/expression_table/child"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import forwarded from "./forwarded"
+
+import type { Graph, Input } from "./model"
+
+export type Output = Graph
+
+export default function (in: Input): Output {
+    const pending: u32[] = [in.condition, in.body]
+
+    const result = loop({
+        input: in,
+        pending: pending,
+        seen: map(in.expressions.kinds, kind => false),
+        states: map(in.expressions.kinds, kind => false),
+        symbols: map(in.symbol_types, type_id => false),
+        valid: true
+    }, {
+        while: current => current.valid && current.pending.length != 0,
+        next: current => {
+            const id = integers.widen(current.pending[current.pending.length - 1])
+
+            current.pending = current.pending.pop()[0]
+
+            if (!current.seen[id]) {
+                current.seen[id] = true
+                current.states[id] =
+                    current.input.expressions.types[id] == current.input.state_type
+
+                const kind = current.input.expressions.kinds[id]
+                const payload = integers.widen(current.input.expressions.payloads[id])
+
+                current.valid =
+                    kind != ExpressionKind.Task && kind != ExpressionKind.Capture &&
+                    kind != ExpressionKind.Parallel && kind != ExpressionKind.Iteration
+
+                if (current.states[id] && kind == ExpressionKind.Reference) {
+                    current
+                        .symbols[integers.widen(
+                            current.input.expressions.references[payload]
+                        )] = true
+                }
+
+                const walked = loop({
+                    input: current.input,
+                    id: id,
+                    pending: current.pending,
+                    index: 0,
+                    active: current.valid,
+                    valid: current.valid
+                }, {
+                    while: items => items.active && items.valid,
+                    next: items => {
+                        const next = child({
+                            table: items.input.expressions,
+                            id: items.id,
+                            index: items.index
+                        })
+
+                        if (next == null) {
+                            items.active = false
+                        } else {
+                            items.valid =
+                                items.input.expressions.types[integers.widen(
+                                    next
+                                )] !=
+                                items.input.state_type || forwarded({
+                                    table: items.input.expressions,
+                                    id: items.id,
+                                    index: items.index
+                                })
+                            items.pending = items.pending.push(next)[0]
+                            items.index += 1
+                        }
+                    }
+                })
+
+                current.pending = walked.pending
+                current.valid = walked.valid
+            }
+        }
+    })
+
+    return {
+        seen: result.seen,
+        states: result.states,
+        symbols: result.symbols,
+        valid: result.valid
+    }
+}

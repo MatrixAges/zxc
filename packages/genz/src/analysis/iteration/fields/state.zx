@@ -1,0 +1,95 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import all from "../all"
+
+import type { Input as Loop } from "./model"
+
+export type Input = {
+    input: Loop,
+    states: bool[],
+    values: bool[],
+    binding: u32,
+    field: u64,
+    index: u64
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const kind = in.input.expressions.kinds[in.index]
+    const payload = integers.widen(in.input.expressions.payloads[in.index])
+
+    if (kind == ExpressionKind.Reference) {
+        const symbol = in.input.expressions.references[payload]
+
+        return symbol == in.input.parameter || symbol == in.input.condition_parameter ||
+            (in.binding != max_u32 && in.states[integers.widen(in.binding)])
+    }
+
+    if (kind == ExpressionKind.Scope) {
+        return in
+            .states[integers.widen(
+                in.input.expressions.scope_results[payload]
+            )]
+    }
+
+    if (kind == ExpressionKind.Conditional) {
+        return in
+            .states[integers.widen(
+                in.input.expressions.conditional_yes[payload]
+            )] &&
+            in.states[integers.widen(
+                in.input.expressions.conditional_no[payload]
+            )]
+    }
+
+    if (kind == ExpressionKind.Match) {
+        return in
+            .states[integers.widen(
+                in.input.expressions.match_fallbacks[payload]
+            )] && all({
+                safe: in.states,
+                values: in.input.expressions.match_results,
+                first: integers.widen(in.input.expressions.match_first[payload]),
+                count: integers.widen(in.input.expressions.match_count[payload])
+            })
+    }
+
+    if (kind != ExpressionKind.Object) {
+        return false
+    }
+
+    const first = integers.widen(in.input.expressions.object_first[payload])
+    const count = integers.widen(in.input.expressions.object_count[payload])
+
+    const found = loop({
+        table: in.input.expressions,
+        values: in.values,
+        field: in.field,
+        index: first,
+        end: first + count,
+        found: false,
+        preserved: false
+    }, {
+        while: current => !current.found && current.index < current.end,
+        next: current => {
+            if (
+                integers.widen(
+                    current.table.object_field_indices[current.index]
+                ) == current.field
+            ) {
+                current.found = true
+                current.preserved = current
+                    .values[integers.widen(
+                        current.table.object_field_values[current.index]
+                    )]
+            }
+
+            current.index += 1
+        }
+    })
+
+    return found.preserved
+}

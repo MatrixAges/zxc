@@ -41,9 +41,22 @@ fn objectMode(self: *Lower, id: ir.ExprId, value: @FieldType(@FieldType(ir.Expre
     const type_id = self.program.expression(id).type_id;
     const type_fields = self.program.typeOf(type_id).object;
     const fields = try self.allocator.alloc(node.Field, value.fields.len);
+    const context = if (self.loop_fields) |selected| (if (selected.expression(id)) selected else null) else null;
 
     for (0..value.fields.len) |index| {
         const field = value.fields.at(index);
+
+        if (context) |selected| if (selected.borrowed[field.index]) {
+            var evaluation: std.ArrayList(node.Statement) = .empty;
+
+            try evaluation.append(self.allocator, .{ .discard = try self.expr(field.value) });
+
+            const pointer = try self.builder.expression(.{ .address_of = try self.field(selected.seed, type_fields.at(field.index).name) });
+            fields[index] = .{ .name = type_fields.at(field.index).name, .value = try finish(self, &evaluation, pointer) };
+
+            continue;
+        };
+
         var expression = try self.expr(field.value);
 
         if (self.state_active and !self.state_plan.selected[@backingInt(type_id)]) expression = try @import("state_value/conversion.zig").convert(self, &body, self.program.expression(field.value).type_id, try bind(self, &body, expression), .pointer);
@@ -55,9 +68,9 @@ fn objectMode(self: *Lower, id: ir.ExprId, value: @FieldType(@FieldType(ir.Expre
         if (counts[index] == self.cache_reads[@backingInt(item)]) try body.append(self.allocator, .{ .discard = try self.builder.identifier(names[index]) });
     }
 
-    const result = try self.builder.expression(.{ .object = .{ .type_expr = try self.layoutExpr(type_id), .fields = fields } });
+    const result = try self.builder.expression(.{ .object = .{ .type_expr = if (context) |selected| selected.layout else try self.layoutExpr(type_id), .fields = fields } });
 
-    return finish(self, &body, if (layout) result else try self.construct(type_id, result));
+    return finish(self, &body, if (layout or context != null) result else try self.construct(type_id, result));
 }
 
 pub fn sequence(self: *Lower, value: ir.ExpressionRow, items: []const ir.ExprId) Lower.Error!node.ExpressionId {

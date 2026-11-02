@@ -1,0 +1,52 @@
+import { map } from "std:utils"
+import { max_u32 } from "core/const"
+
+import field from "./field"
+
+import type { Graph, Input as Loop, Proof } from "./model"
+
+export type Input = {
+    input: Loop,
+    graph: Graph,
+    bindings: u32[]
+}
+
+export type Output = Proof
+
+export default function (in: Input): Output {
+    const empty: bool[] = []
+
+    const result = loop({
+        input: in.input,
+        graph: in.graph,
+        bindings: in.bindings,
+        mutable: empty,
+        origins: map(in.input.expressions.kinds, kind => max_u32),
+        index: 0
+    }, {
+        while: current => current.index < current.input.field_count,
+        next: current => {
+            if (!current.input.candidates[current.index]) {
+                current.mutable = current.mutable.push(true)[0]
+            } else {
+                const checked = field({
+                    input: current.input,
+                    graph: current.graph,
+                    bindings: current.bindings,
+                    field: current.index,
+                    origins: current.origins
+                })
+
+                current.mutable = current.mutable.push(!checked.preserved)[0]
+                current.origins = checked.origins
+            }
+
+            current.index += 1
+        }
+    })
+
+    return {
+        mutable: result.mutable,
+        origins: result.origins
+    }
+}

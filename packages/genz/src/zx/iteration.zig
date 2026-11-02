@@ -24,7 +24,7 @@ pub fn consume(self: *Lower, id: ir.ExprId, consumer: @import("iteration_consume
     return lowerMode(self, id, self.program.expression(id).value.iteration, .consume, consumer);
 }
 
-const Mode = enum { reference, value, discard, consume };
+const Mode = @import("iteration/result.zig").Mode;
 
 fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, consumer: ?@import("iteration_consumer.zig").Consumer) Lower.Error!?node.ExpressionId {
     const projected_output = if (consumer) |selected| try @import("iteration_value/result.zig").candidate(self.allocator, self.program, selected) else false;
@@ -62,6 +62,12 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
     const state_scope = if (selected_state and !self.state_active) try @import("state_value/root.zig").enter(self) else null;
 
     defer if (state_scope) |scope| scope.restore();
+
+    const seed = try self.builder.identifier(try self.fresh("loop_seed"));
+    var fields = if (selected_state and selected_call == null and pure and !deep) try @import("iteration/fields/prepare.zig").prepare(self, iteration, type_id, &body, seed) else null;
+    const previous_fields = self.loop_fields;
+
+    defer self.loop_fields = previous_fields;
 
     const changed_name = if (local and !by_value and mode != .discard) try self.fresh("state_changed") else "";
     const condition_index = @backingInt(iteration.condition_parameter);
@@ -105,6 +111,83 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
         self.iteration_value = &context;
     }
 
+    const finish = @import("iteration/result.zig").Result{
+        .consumer = consumer,
+        .deep = deep,
+        .context = &context,
+        .converted = state_scope != null,
+        .type_id = type_id,
+        .by_value = by_value,
+        .local = local,
+        .selected_state = selected_state,
+        .initial = initial,
+        .changed_name = changed_name,
+        .mode = mode,
+    };
+
+    const initial_state = if (state_scope != null) try @import("state_value/conversion.zig").convert(self, &body, type_id, initial, if (by_value) .value_layout else .value) else if (selected_state or by_value or direct_initial) initial else if (deep) try @import("iteration_value/conversion.zig").convert(&context, type_id, initial, false) else if (layout) try self.builder.expression(.{ .dereference = initial }) else initial;
+
+    if (fields) |*selected| {
+        var renewed = false;
+
+        for (self.plan.renewals) |renewal| if (renewal.owner == id and !renewal.value) {
+            renewed = true;
+        };
+
+        const seed_name = self.builder.nodes.get(seed).identifier;
+        const declaration = node.Constant{ .name = seed_name, .type_expr = try self.layoutExpr(type_id), .value = initial_state };
+
+        try body.append(self.allocator, if (renewed) .{ .variable = declaration } else .{ .constant = declaration });
+
+        for (self.plan.renewals) |renewal| if (renewal.owner == id and !renewal.value) {
+            try @import("growth.zig").renew(self, &body, type_id, seed, renewal.path);
+        };
+
+        if (local and !by_value and mode != .discard) try body.append(self.allocator, .{ .variable = .{ .name = changed_name, .value = try self.builder.expression(.{ .boolean = renewed }) } });
+
+        self.names[condition_index] = seed_name;
+        self.names[step_index] = seed_name;
+
+        const first_condition = if (iteration.postcondition) null else try self.expr(iteration.condition);
+
+        self.names[condition_index] = name;
+        self.names[step_index] = name;
+        self.loop_fields = selected;
+        const condition = try self.expr(iteration.condition);
+        const next = try @import("value_call/root.zig").expression(self, iteration.body);
+
+        self.loop_fields = previous_fields;
+
+        var entered: std.ArrayList(node.Statement) = .empty;
+
+        try entered.append(self.allocator, .{ .variable = .{ .name = name, .type_expr = selected.layout, .value = try selected.initial(self) } });
+        try loop.append(self.allocator, .{ .assignment = .{ .target = state, .value = next } });
+        if (local and !by_value and mode != .discard) try loop.append(self.allocator, .{ .assignment = .{ .target = try self.builder.identifier(changed_name), .value = try self.builder.expression(.{ .boolean = true }) } });
+
+        try loop.append(self.allocator, .{ .branch = .{
+            .condition = try self.builder.expression(.{ .unary = .{ .operator = .not, .operand = condition } }),
+            .yes = try self.builder.statements(&.{.break_loop}),
+            .no = .{},
+        } });
+
+        try entered.append(self.allocator, .{ .while_loop = .{ .condition = try self.builder.expression(.{ .boolean = true }), .body = try self.builder.statements(loop.items) } });
+
+        const restored = try aggregate.bind(self, &entered, try selected.restore(self, state));
+        const result = try finish.lower(self, &entered, restored);
+
+        if (first_condition) |first| {
+            var skipped: std.ArrayList(node.Statement) = .empty;
+
+            return try aggregate.finish(self, &body, try self.builder.expression(.{ .conditional = .{
+                .condition = first,
+                .yes = result,
+                .no = try finish.lower(self, &skipped, seed),
+            } }));
+        }
+
+        return try aggregate.finish(self, &body, result);
+    }
+
     const condition = try self.expr(iteration.condition);
     const next = if (selected_call) |call| try @import("value_call/root.zig").expression(self, call) else if (layout) try @import("value_call/root.zig").expression(self, iteration.body) else try self.expr(iteration.body);
 
@@ -113,7 +196,7 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
     try body.append(self.allocator, .{ .variable = .{
         .name = name,
         .type_expr = if (deep) try @import("iteration_value/types.zig").get(&context, type_id) else if (layout) try self.layoutExpr(type_id) else try self.typeExpr(type_id),
-        .value = if (state_scope != null) try @import("state_value/conversion.zig").convert(self, &body, type_id, initial, if (by_value) .value_layout else .value) else if (selected_state or by_value or direct_initial) initial else if (deep) try @import("iteration_value/conversion.zig").convert(&context, type_id, initial, false) else if (layout) try self.builder.expression(.{ .dereference = initial }) else initial,
+        .value = initial_state,
     } });
 
     var renewed = false;
@@ -144,36 +227,7 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
         .body = try self.builder.statements(loop.items),
     } });
 
-    if (consumer) |selected| {
-        if (deep) {
-            const result = try @import("iteration_value/result.zig").lower(self, selected, state);
-
-            return try aggregate.finish(self, &body, result);
-        }
-
-        var result = try @import("iteration_consumer.zig").read(self, selected, selected.result, state);
-
-        if (state_scope != null) {
-            const bound = try aggregate.bind(self, &body, result);
-            result = try @import("state_value/conversion.zig").convert(self, &body, self.program.expression(selected.result).type_id, bound, .pointer);
-        }
-
-        return try aggregate.finish(self, &body, result);
-    }
-
-    if (mode == .discard) return try aggregate.finish(self, &body, try self.builder.expression(.unit));
-
-    var converted_body: std.ArrayList(node.Statement) = .empty;
-    const converted_state = if (state_scope != null) try @import("state_value/conversion.zig").convert(self, &converted_body, type_id, state, if (by_value) .layout else .pointer) else state;
-    const boundary = try aggregate.finish(self, &converted_body, converted_state);
-
-    const result = if (by_value) boundary else if (local) try self.builder.expression(.{ .conditional = .{
-        .condition = try self.builder.identifier(changed_name),
-        .yes = if (state_scope != null) boundary else if (selected_state) state else if (deep) try @import("iteration_value/conversion.zig").convert(&context, type_id, state, true) else try self.construct(type_id, state),
-        .no = initial,
-    } }) else state;
-
-    return try aggregate.finish(self, &body, result);
+    return try finish.lower(self, &body, state);
 }
 
 /// A loop whose body only forwards its state to a value function of the same type, which then runs on the state layout.

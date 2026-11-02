@@ -1,0 +1,21 @@
+import { root_parent } from "./const"
+
+export type Input = {
+    parents: u64[],
+    first: u64,
+    end: u64
+}
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    return loop({
+        parents: in.parents,
+        index: in.first,
+        end: in.end
+    }, {
+        while: current => current.index < current.end &&
+            current.parents[current.index] != root_parent,
+        next: current => { current.index += 1 }
+    }).index
+}

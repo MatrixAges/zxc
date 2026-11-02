@@ -29,18 +29,19 @@ pub fn compile(allocator: std.mem.Allocator, backing: std.mem.Allocator, derived
 
     const depths = try @import("source_graph/order.zig").depth(allocator, dependencies.modules, dependencies.order);
     var start: usize = 0;
+    var end: usize = 0;
 
     for (dependencies.order, 0..) |index, position| {
         const module = dependencies.modules[index];
 
         if (position == start) {
-            var end = start + 1;
+            if (start == end) {
+                end = start + 1;
 
-            while (end < dependencies.order.len and depths[dependencies.order[end]] == depths[index]) end += 1;
+                while (end < dependencies.order.len and depths[dependencies.order[end]] == depths[index]) end += 1;
+            }
 
-            try ahead.analyze(&state, cache, sources, derived, &reuse, dependencies.order[start..end]);
-
-            start = end;
+            start += try ahead.analyze(&state, cache, sources, derived, &reuse, dependencies.order[start..end]);
         }
 
         state.owner = index;

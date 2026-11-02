@@ -1,0 +1,87 @@
+import integers from "std:integer"
+import { map } from "std:utils"
+import { max_u32 } from "core/const"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import state from "./state"
+
+import type { Graph, Input as Loop } from "./model"
+
+export type Input = {
+    input: Loop,
+    graph: Graph,
+    bindings: u32[],
+    field: u64,
+    origins: u32[]
+}
+
+export type Output = {
+    preserved: bool,
+    origins: u32[]
+}
+
+export default function (in: Input): Output {
+    const result = loop({
+        input: in.omit(["origins"]),
+        states: map(in.graph.seen, seen => false),
+        values: map(in.graph.seen, seen => false),
+        origins: in.origins,
+        preserved: true,
+        index: 0
+    }, {
+        while: current => current.preserved &&
+            current.index < current.input.graph.seen.length,
+        next: current => {
+            const index = current.index
+
+            if (current.input.graph.seen[index]) {
+                const kind = current.input.input.expressions.kinds[index]
+                const payload =
+                    integers.widen(current.input.input.expressions.payloads[index])
+                const bound = kind == ExpressionKind.Reference ?
+                    current.input
+                    .bindings[integers.widen(
+                        current.input.input.expressions.references[payload]
+                    )] : max_u32
+
+                if (current.input.graph.states[index]) {
+                    current.states[index] = state({
+                        input: current.input.input,
+                        states: current.states,
+                        values: current.values,
+                        binding: bound,
+                        field: current.input.field,
+                        index: index
+                    })
+                    current.preserved = current.preserved && current.states[index]
+                } else if (
+                    kind == ExpressionKind.Field &&
+                        integers.widen(
+                            current.input.input.expressions.projection_indices[payload]
+                        ) ==
+                        current.input.field
+                ) {
+                    const target = integers.widen(
+                        current.input.input.expressions.projection_targets[payload]
+                    )
+
+                    current.values[index] =
+                        current.input.graph.states[target] && current.states[target]
+                } else if (bound != max_u32) {
+                    current.values[index] = current.values[integers.widen(bound)]
+                }
+
+                if (current.values[index]) {
+                    current.origins[index] = integers.narrow(current.input.field)
+                }
+            }
+
+            current.index += 1
+        }
+    })
+
+    return {
+        preserved: result.preserved,
+        origins: result.origins
+    }
+}

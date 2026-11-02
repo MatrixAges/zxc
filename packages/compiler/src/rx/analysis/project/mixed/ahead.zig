@@ -55,9 +55,9 @@ pub fn deinit(self: *Self) void {
     self.bindings.deinit();
 }
 
-/// Analyzes the bodies and lowers the RX modules of a run's `modules` that will not be reused; a run of one module is
-/// left to its turn.
-pub fn analyze(self: *Self, state: *State, cache: *frontend.project.ParseCache, sources: []const frontend.project.Source, derived: Frame, reuse: *const Reuse, modules: []const usize) std.mem.Allocator.Error!void {
+/// Analyzes a bounded prefix of the run and returns its module count. Runs below the parallel minimum are left to
+/// their turn; only successfully prepared modules consume the batch's parallel slots.
+pub fn analyze(self: *Self, state: *State, cache: *frontend.project.ParseCache, sources: []const frontend.project.Source, derived: Frame, reuse: *const Reuse, modules: []const usize) std.mem.Allocator.Error!usize {
     for (self.items.items) |item| self.positions[item.index()] = none;
     for (self.arenas) |*arena| _ = arena.reset(.retain_capacity);
 
@@ -67,14 +67,21 @@ pub fn analyze(self: *Self, state: *State, cache: *frontend.project.ParseCache, 
 
     var eligible_count: usize = 0;
 
-    for (modules) |index| eligible_count += @intFromBool(eligible(state, reuse, index));
-    if (eligible_count < minimum) return;
+    for (modules) |index| {
+        eligible_count += @intFromBool(eligible(state, reuse, index));
+
+        if (eligible_count == minimum) break;
+    }
+
+    if (eligible_count < minimum) return modules.len;
 
     const owner = state.owner;
 
     defer state.owner = owner;
 
-    for (modules) |index| {
+    var consumed = modules.len;
+
+    for (modules, 0..) |index, position| {
         if (!eligible(state, reuse, index)) continue;
 
         const issue = state.issue;
@@ -93,12 +100,18 @@ pub fn analyze(self: *Self, state: *State, cache: *frontend.project.ParseCache, 
         self.positions[item.index()] = @intCast(self.items.items.len);
 
         try self.items.append(state.allocator, item);
+
+        if (self.items.items.len == @max(self.arenas.len, minimum)) {
+            consumed = position + 1;
+
+            break;
+        }
     }
 
     if (self.items.items.len < minimum) {
         for (self.items.items) |item| self.positions[item.index()] = none;
 
-        return;
+        return consumed;
     }
 
     const Work = struct {
@@ -125,6 +138,8 @@ pub fn analyze(self: *Self, state: *State, cache: *frontend.project.ParseCache, 
     var work = Work{ .state = state, .items = self.items.items, .arenas = self.arenas };
 
     @import("zx").parallel.spread(Work, &work, Work.run, @min(self.arenas.len, self.items.items.len));
+
+    return consumed;
 }
 
 fn prepare(self: *Self, state: *State, cache: *frontend.project.ParseCache, sources: []const frontend.project.Source, derived: Frame, index: usize) State.Error!?Item {

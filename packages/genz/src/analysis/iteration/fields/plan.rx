@@ -1,0 +1,35 @@
+<Module>
+    <Type from="./model" as="Fields" />
+
+    <Args in={Fields.Input} out={Fields.Plan} />
+
+    <Call fn="graph" in={$in} />
+
+    <If on={!$ctx.graph.valid}>
+        <Return
+            value={{
+                ...$ctx.graph.omit(["seen"]),
+                mutable: [],
+                origins: []
+            }}
+        />
+    </If>
+
+    <Call fn="bindings" in={$in} />
+
+    <Call
+        fn="proof"
+        in={{
+            input: $in,
+            graph: $ctx.graph,
+            bindings: $ctx.bindings
+        }}
+    />
+
+    <Return
+        value={{
+            ...$ctx.graph.omit(["seen"]),
+            ...$ctx.proof
+        }}
+    />
+</Module>

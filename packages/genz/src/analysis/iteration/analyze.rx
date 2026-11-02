@@ -1,0 +1,31 @@
+<Module>
+    <Type from="./model" as="Layout" />
+
+    <Args in={Layout.Input} out={Layout.Output} />
+
+    <Call fn="boundary" in={$in} />
+
+    <If on={!$ctx.boundary.valid}>
+        <Return value={false} />
+    </If>
+
+    <Call
+        fn="expressions"
+        in={{
+            input: $in,
+            allowed: $ctx.boundary.allowed
+        }}
+    />
+
+    <Call
+        fn="all"
+        in={{
+            safe: $ctx.expressions,
+            values: $in.roots,
+            first: 0,
+            count: $in.roots.length
+        }}
+    />
+
+    <Return value={$ctx.all} />
+</Module>

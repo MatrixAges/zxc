@@ -1,0 +1,59 @@
+import integers from "std:integer"
+import { ExpressionKind, BinaryOperator } from "core/expression_table/kinds"
+
+import descendant from "../types/descendant"
+
+import type { Expressions } from "core/expression_table/model"
+import type { Table } from "core/type_table/model"
+
+export type Input = {
+    types: Table,
+    table: Expressions,
+    index: u64,
+    root: u32
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const payload = integers.widen(in.table.payloads[in.index])
+
+    if (in.table.kinds[in.index] == ExpressionKind.Binary) {
+        const operator = in.table.binary_operators[payload]
+
+        if (operator != BinaryOperator.Equal && operator != BinaryOperator.NotEqual) {
+            return false
+        }
+
+        const left = in.table.types[integers.widen(in.table.binary_left[payload])]
+
+        const right = in.table
+            .types[integers.widen(in.table.binary_right[payload])]
+
+        return left == in.root || right == in.root || descendant({
+            types: in.types,
+            parent: left,
+            root: in.root
+        }) || descendant({
+            types: in.types,
+            parent: right,
+            root: in.root
+        })
+    }
+
+    if (in.table.kinds[in.index] == ExpressionKind.Match) {
+        const subject = in.table.match_subjects[payload]
+
+        if (subject != null) {
+            const type_id = in.table.types[integers.widen(subject)]
+
+            return type_id == in.root || descendant({
+                types: in.types,
+                parent: type_id,
+                root: in.root
+            })
+        }
+    }
+
+    return false
+}

@@ -1,0 +1,102 @@
+import integers from "std:integer"
+import { ExpressionKind, BinaryOperator } from "core/expression_table/kinds"
+
+import represented from "../types/layout_represented"
+import escape from "./escape"
+
+import type { Input as Layout } from "./model"
+
+export type Input = {
+    input: Layout,
+    index: u64
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const kind = in.input.expressions.kinds[in.index]
+    const payload = integers.widen(in.input.expressions.payloads[in.index])
+
+    if (kind == ExpressionKind.Transform || kind == ExpressionKind.Iteration) {
+        return false
+    }
+
+    if (kind == ExpressionKind.List) {
+        return !represented({
+            types: in.input.types,
+            id:
+                in.input.types
+                .first[integers.widen(
+                    in.input.expressions.types[in.index]
+                )]
+        })
+    }
+
+    if (kind == ExpressionKind.ListUpdate) {
+        return !represented({
+            types: in.input.types,
+            id:
+                in.input.expressions
+                .types[integers.widen(
+                    in.input.expressions.update_values[payload]
+                )]
+        })
+    }
+
+    if (kind == ExpressionKind.ListOperation) {
+        const type_id =
+            in.input.expressions
+            .types[integers.widen(
+                in.input.expressions.collection_targets[payload]
+            )]
+
+        return !represented({
+            types: in.input.types,
+            id: in.input.types.first[integers.widen(type_id)]
+        })
+    }
+
+    if (kind == ExpressionKind.Call) {
+        const callee = integers.widen(in.input.expressions.call_functions[payload])
+
+        return !escape({
+            types: in.input.types,
+            input: in.input.function_inputs[callee],
+            output: in.input.function_outputs[callee]
+        })
+    }
+
+    if (kind == ExpressionKind.Binary) {
+        const operator = in.input.expressions.binary_operators[payload]
+        const left = integers.widen(in.input.expressions.binary_left[payload])
+        const right = integers.widen(in.input.expressions.binary_right[payload])
+
+        return operator == BinaryOperator.Coalesce || (
+            (
+                operator == BinaryOperator.Equal ||
+                    operator == BinaryOperator.NotEqual
+            ) &&
+                (
+                    in.input.expressions.kinds[left] == ExpressionKind.None ||
+                        in.input.expressions.kinds[right] == ExpressionKind.None
+                )
+        ) || (!represented({
+            types: in.input.types,
+            id: in.input.expressions.types[left]
+        }) && !represented({
+            types: in.input.types,
+            id: in.input.expressions.types[right]
+        }))
+    }
+
+    if (kind == ExpressionKind.Match) {
+        const subject = in.input.expressions.match_subjects[payload]
+
+        return subject == null || !represented({
+            types: in.input.types,
+            id: in.input.expressions.types[integers.widen(subject)]
+        })
+    }
+
+    return true
+}

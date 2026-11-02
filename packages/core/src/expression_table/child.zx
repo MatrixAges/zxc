@@ -1,0 +1,176 @@
+import integers from "std:integer"
+
+import { ExpressionKind } from "./kinds"
+
+import type { Expressions } from "./model"
+
+export type Input = {
+    table: Expressions,
+    id: u64,
+    index: u64
+}
+
+export type Output = u32?
+
+    export default function (in: Input): Output {
+        const kind = in.table.kinds[in.id]
+        const payload = integers.widen(in.table.payloads[in.id])
+
+        if (
+            kind == ExpressionKind.List || kind == ExpressionKind.Tuple ||
+                kind == ExpressionKind.Template
+        ) {
+            return in.index < integers.widen(in.table.sequence_count[payload]) ?
+                in.table
+                .sequence_items[integers.widen(
+                    in.table.sequence_first[payload]
+                ) + in.index] : null
+        }
+
+        if (kind == ExpressionKind.Parallel) {
+            return in.index < integers.widen(in.table.parallel_count[payload]) ?
+                in.table
+                .parallel_tasks[integers.widen(
+                    in.table.parallel_first[payload]
+                ) + in.index] : null
+        }
+
+        if (kind == ExpressionKind.ListOperation) {
+            if (in.index == 0) {
+                return in.table.collection_targets[payload]
+            }
+
+            return in.index <= integers.widen(in.table.collection_count[payload]) ?
+                in.table
+                .collection_arguments[integers.widen(
+                    in.table.collection_first[payload]
+                ) +
+                    in.index - 1] : null
+        }
+
+        if (kind == ExpressionKind.Transform) {
+            return match in.index {
+                0 => in.table.transform_targets[payload],
+                1 => in.table.transform_bodies[payload],
+                2 => in.table.transform_initials[payload],
+                _ => null
+            }
+        }
+
+        if (kind == ExpressionKind.Scope) {
+            const count = integers.widen(in.table.scope_count[payload])
+
+            if (in.index < count) {
+                return in.table
+                    .scope_values[integers.widen(
+                        in.table.scope_first[payload]
+                    ) + in.index]
+            }
+
+            return in.index == count ? in.table.scope_results[payload] : null
+        }
+
+        if (kind == ExpressionKind.Object) {
+            const fields = integers.widen(in.table.object_count[payload])
+
+            if (in.index < fields) {
+                return in.table
+                    .object_field_values[integers.widen(
+                        in.table.object_first[payload]
+                    ) +
+                        in.index]
+            }
+
+            const index = in.index - fields
+
+            return index < integers.widen(in.table.object_evaluation_count[payload]) ?
+                in.table
+                .object_evaluation_values[
+                    integers.widen(
+                        in.table.object_evaluation_first[payload]
+                    ) + index
+                ] : null
+        }
+
+        if (kind == ExpressionKind.Match) {
+            const subject = in.table.match_subjects[payload]
+
+            if (subject != null && in.index == 0) {
+                return subject
+            }
+
+            const index = in.index - (subject == null ? 0 : 1)
+            const count = integers.widen(in.table.match_count[payload])
+
+            if (index < count * 2) {
+                const arm = integers.widen(in.table.match_first[payload]) + index / 2
+
+                return index % 2 == 0 ? in.table.match_conditions[arm] :
+                    in.table.match_results[arm]
+            }
+
+            return index == count * 2 ? in.table.match_fallbacks[payload] : null
+        }
+
+        if (kind == ExpressionKind.Index) {
+            return match in.index {
+                0 => in.table.index_targets[payload],
+                1 => in.table.index_values[payload],
+                _ => null
+            }
+        }
+
+        if (kind == ExpressionKind.Binary) {
+            return match in.index {
+                0 => in.table.binary_left[payload],
+                1 => in.table.binary_right[payload],
+                _ => null
+            }
+        }
+
+        if (kind == ExpressionKind.Conditional) {
+            return match in.index {
+                0 => in.table.conditional_conditions[payload],
+                1 => in.table.conditional_yes[payload],
+                2 => in.table.conditional_no[payload],
+                _ => null
+            }
+        }
+
+        if (kind == ExpressionKind.Iteration) {
+            return match in.index {
+                0 => in.table.iteration_initials[payload],
+                1 => in.table.iteration_conditions[payload],
+                2 => in.table.iteration_bodies[payload],
+                _ => null
+            }
+        }
+
+        if (kind == ExpressionKind.ListUpdate) {
+            return match in.index {
+                0 => in.table.update_targets[payload],
+                1 => in.table.update_indices[payload],
+                2 => in.table.update_values[payload],
+                _ => null
+            }
+        }
+
+        if (in.index != 0) {
+            return null
+        }
+
+        return match kind {
+            ExpressionKind.Some => in.table.some[payload],
+            ExpressionKind.Capture => in.table.captures[payload],
+            ExpressionKind.Task => in.table.task_bodies[payload],
+            ExpressionKind.AwaitTask => in.table.awaits[payload],
+            ExpressionKind.CancelTask => in.table.cancellations[payload],
+            ExpressionKind.OptionalValue => in.table.optional_values[payload],
+            ExpressionKind.Length => in.table.lengths[payload],
+            ExpressionKind.Field => in.table.projection_targets[payload],
+            ExpressionKind.TupleField => in.table.projection_targets[payload],
+            ExpressionKind.Call => in.table.call_arguments[payload],
+            ExpressionKind.Unary => in.table.unary_operands[payload],
+            _ => null
+        }
+    }

@@ -1,0 +1,41 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import type { Expressions } from "core/expression_table/model"
+
+export type Input = {
+    table: Expressions,
+    id: u64,
+    index: u64
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const kind = in.table.kinds[in.id]
+    const payload = integers.widen(in.table.payloads[in.id])
+
+    if (kind == ExpressionKind.Field || kind == ExpressionKind.Scope) {
+        return true
+    }
+
+    if (kind == ExpressionKind.Conditional) {
+        return in.index != 0
+    }
+
+    if (kind == ExpressionKind.Object) {
+        return in.index >= integers.widen(in.table.object_count[payload])
+    }
+
+    if (kind == ExpressionKind.Match) {
+        const first = in.table.match_subjects[payload] == null ? 0 : 1
+        const count = integers.widen(in.table.match_count[payload])
+
+        return in.index >= first && (
+            in.index == first + count * 2 ||
+                (in.index - first) % 2 == 1
+        )
+    }
+
+    return false
+}

@@ -1,0 +1,76 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import type { Expressions } from "core/expression_table/model"
+
+export type Input = {
+    table: Expressions,
+    id: u32
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const kind = in.table.kinds[integers.widen(in.id)]
+
+    if (kind == ExpressionKind.Object || kind == ExpressionKind.Tuple) {
+        return true
+    }
+
+    if (
+        kind != ExpressionKind.Scope && kind != ExpressionKind.Conditional &&
+            kind != ExpressionKind.Match
+    ) {
+        return false
+    }
+
+    const pending: u32[] = [in.id]
+
+    return loop({
+        table: in.table,
+        pending: pending,
+        valid: true
+    }, {
+        while: current => current.valid && current.pending.length != 0,
+        next: current => {
+            const id = integers.widen(current.pending[current.pending.length - 1])
+            const payload = integers.widen(current.table.payloads[id])
+            const kind = current.table.kinds[id]
+
+            current.pending = current.pending.pop()[0]
+
+            if (kind == ExpressionKind.Scope) {
+                current.pending =
+                    current.pending.push(current.table.scope_results[payload])[0]
+            } else if (kind == ExpressionKind.Conditional) {
+                current.pending =
+                    current.pending.push(current.table.conditional_yes[payload])[0]
+                current.pending =
+                    current.pending.push(current.table.conditional_no[payload])[0]
+            } else if (kind == ExpressionKind.Match) {
+                current.pending = loop({
+                    table: current.table,
+                    pending:
+                        current.pending.push(
+                            current.table.match_fallbacks[payload]
+                        )[0],
+                    position: integers.widen(current.table.match_first[payload]),
+                    end: integers.widen(current.table.match_first[payload]) +
+                        integers.widen(current.table.match_count[payload])
+                }, {
+                    while: arms => arms.position < arms.end,
+                    next: arms => {
+                        arms.pending =
+                            arms.pending.push(
+                                arms.table.match_results[arms.position]
+                            )[0]
+                        arms.position += 1
+                    }
+                }).pending
+            } else {
+                current.valid =
+                    kind == ExpressionKind.Object || kind == ExpressionKind.Tuple
+            }
+        }
+    }).valid
+}

@@ -1,0 +1,20 @@
+import type { Expressions } from "core/expression_table/model"
+import type { Table } from "core/type_table/model"
+
+export type Boundary = {
+    type_id: u32,
+    result: u32
+}
+
+export type Input = {
+    types: Table,
+    expressions: Expressions,
+    function_inputs: u32[],
+    function_outputs: u32[],
+    allowed: bool[],
+    roots: u32[],
+    deep: bool,
+    boundary: Boundary?
+}
+
+export type Output = bool

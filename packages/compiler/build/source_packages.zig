@@ -58,6 +58,7 @@ pub const entries: []const Package = &.{
     .{ .specifier = "core/expression_table/append/unary", .entry = "core/expression_table/append/unary.zx" },
     .{ .specifier = "core/expression_table/append/update", .entry = "core/expression_table/append/update.zx" },
     .{ .specifier = "core/expression_table/append/value", .entry = "core/expression_table/append/value.zx" },
+    .{ .specifier = "core/expression_table/child", .entry = "core/expression_table/child.zx" },
     .{ .specifier = "core/expression_table/empty", .entry = "core/expression_table/empty.zx" },
     .{ .specifier = "core/expression_table/kinds", .entry = "core/expression_table/kinds.zx" },
     .{ .specifier = "core/expression_table/model", .entry = "core/expression_table/model.zx" },

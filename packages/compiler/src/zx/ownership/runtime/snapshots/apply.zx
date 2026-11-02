@@ -1,7 +1,9 @@
 import bind from "../../facts/bind"
 import rewrite from "../../facts/rewrite"
 import { RewriteAction } from "../../facts/rewrite/model"
+import nextRoot from "../../places/next_root"
 import { Action } from "./model"
+import restoreMemo from "./restore_memo"
 
 import type { Tables } from "core/type_table/model"
 import type { Layout } from "../../places/model"
@@ -21,14 +23,27 @@ export type Input = {
 export type Output = Memory
 
 export default function (in: Input): Output {
-    const count = in.action == Action.RestoreMemo ? in.memory.memo.length :
-        in.memory.facts.length
+    if (in.action == Action.RestoreMemo) {
+        const first = in.stack.memo_first[in.frame]
 
-    const state_first =
-        in.action == Action.ReleaseAllLoans || in.action == Action.RestoreMemo ? 0 :
+        if (in.memory.memo.length == 0) {
+            return in.memory
+        }
+
+        const memo = restoreMemo({
+            memo: in.memory.memo,
+            saved: in.stack.memo,
+            first: first
+        })
+
+        return {
+            ...in.memory,
+            memo: memo
+        }
+    }
+
+    const state_first = in.action == Action.ReleaseAllLoans ? 0 :
         in.stack.state_first[in.frame]
-
-    const memo_first = in.action == Action.RestoreMemo ? in.stack.memo_first[in.frame] : 0
 
     const rewrite_action =
         match in.action {
@@ -44,20 +59,24 @@ export default function (in: Input): Output {
         memory: in.memory,
         saved: in.stack,
         state_first: state_first,
-        memo_first: memo_first,
         action: in.action,
         rewrite_action: rewrite_action,
-        count: count,
-        index: 0
+        count: in.memory.facts.length,
+        index: nextRoot({
+            parents: in.layout.parents,
+            first: 0,
+            end: in.memory.facts.length
+        })
     }, {
         while: current => current.index < current.count,
         next: current => {
-            if (current.action == Action.RestoreMemo) {
-                current.memory.memo[current.index] =
-                    current.saved.memo[current.memo_first + current.index]
-            } else if (current.layout.parents[current.index] == 0) {
-                const saved = current.action == Action.ReleaseAllLoans ? 0 :
-                    current.saved.facts[current.state_first + current.index]
+            const saved = current.action == Action.ReleaseAllLoans ? 0 :
+                current.saved.facts[current.state_first + current.index]
+            const unchanged = current.action != Action.ReleaseAllLoans &&
+                saved == current.memory.facts[current.index] &&
+                current.layout.references[current.index]
+
+            if (!unchanged) {
                 const changed = current.action == Action.RestoreStates ? {
                     forest: current.memory.forest,
                     fact: saved
@@ -90,7 +109,11 @@ export default function (in: Input): Output {
                 }
             }
 
-            current.index += 1
+            current.index = nextRoot({
+                parents: current.layout.parents,
+                first: current.index + 1,
+                end: current.count
+            })
         }
     })
 

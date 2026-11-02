@@ -1,0 +1,28 @@
+import integers from "std:integer"
+import { map } from "std:utils"
+import { max_u32 } from "core/const"
+
+import type { Input } from "./model"
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    return loop({
+        symbols: in.expressions.scope_symbols,
+        values: in.expressions.scope_values,
+        bindings: map(in.symbol_types, id => max_u32),
+        index: 0
+    }, {
+        while: current => current.index < current.symbols.length,
+        next: current => {
+            const symbol = current.symbols[current.index]
+
+            if (symbol != null) {
+                current.bindings[integers.widen(symbol)] = current
+                    .values[current.index]
+            }
+
+            current.index += 1
+        }
+    }).bindings
+}

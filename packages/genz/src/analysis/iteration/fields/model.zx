@@ -1,0 +1,33 @@
+import type { Expressions } from "core/expression_table/model"
+
+export type Input = {
+    expressions: Expressions,
+    symbol_types: u32[],
+    parameter: u32,
+    condition_parameter: u32,
+    body: u32,
+    condition: u32,
+    state_type: u32,
+    field_count: u64,
+    candidates: bool[]
+}
+
+export type Graph = {
+    seen: bool[],
+    states: bool[],
+    symbols: bool[],
+    valid: bool
+}
+
+export type Proof = {
+    mutable: bool[],
+    origins: u32[]
+}
+
+export type Plan = {
+    states: bool[],
+    symbols: bool[],
+    mutable: bool[],
+    origins: u32[],
+    valid: bool
+}

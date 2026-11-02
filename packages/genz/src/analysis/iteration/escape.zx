@@ -1,0 +1,59 @@
+import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import children from "../types/children"
+import borrowed from "./borrowed"
+
+import type { Input } from "./borrowed"
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const index = integers.widen(in.output)
+    const target = kind(in.types.kinds[index])
+
+    if (target == Kind.List) {
+        return borrowed({
+            types: in.types,
+            input: in.input,
+            output: in.types.first[index]
+        })
+    }
+
+    if (target != Kind.Optional && target != Kind.Object && target != Kind.Tuple) {
+        return false
+    }
+
+    const pending: u32[] = [in.output]
+
+    return loop({
+        types: in.types,
+        input: in.input,
+        pending: pending,
+        found: false
+    }, {
+        while: current => !current.found && current.pending.length != 0,
+        next: current => {
+            const id = current.pending[current.pending.length - 1]
+            const index = integers.widen(id)
+            const target = kind(current.types.kinds[index])
+
+            current.pending = current.pending.pop()[0]
+
+            if (target == Kind.List) {
+                current.found = borrowed({
+                    types: current.types,
+                    input: current.input,
+                    output: current.types.first[index]
+                })
+            } else {
+                current.pending = current.pending.concat(children({
+                    types: current.types,
+                    id: id,
+                    deep: false
+                }))[0]
+            }
+        }
+    }).found
+}

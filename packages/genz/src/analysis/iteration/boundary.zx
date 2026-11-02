@@ -1,0 +1,55 @@
+import integers from "std:integer"
+import { map } from "std:utils"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import descendant from "../types/descendant"
+import fresh from "./fresh"
+
+import type { Input } from "./model"
+
+export type Output = {
+    valid: bool,
+    allowed: bool[]
+}
+
+export default function (in: Input): Output {
+    if (in.boundary == null) {
+        return {
+            valid: true,
+            allowed: in.allowed
+        }
+    }
+
+    const boundary = in.boundary
+    const target = kind(in.types.kinds[integers.widen(boundary.type_id)])
+
+    if ((target != Kind.Object && target != Kind.Tuple) || !fresh({
+        table: in.expressions,
+        id: boundary.result
+    })) {
+        return {
+            valid: false,
+            allowed: []
+        }
+    }
+
+    const allowed = map(in.function_inputs, (input, index) =>
+        input != boundary.type_id &&
+        in.function_outputs[index] != boundary.type_id &&
+        !descendant({
+            types: in.types,
+            parent: input,
+            root: boundary.type_id
+        }) && !descendant({
+            types: in.types,
+            parent: in.function_outputs[index],
+            root: boundary.type_id
+        })
+    )
+
+    return {
+        valid: true,
+        allowed: allowed
+    }
+}
