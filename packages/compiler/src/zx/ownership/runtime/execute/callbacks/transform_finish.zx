@@ -95,18 +95,17 @@ export default function (in: Input): Output {
                     forest: current.memory.forest,
                     fact: current.values[current.values.length - 1]
                 })
-                const type_id =
-                    integers.widen(
-                        current.program.expressions
-                            .types[integers.widen(
-                                current.program.expressions
-                                    .transform_targets[transform]
-                            )]
-                    )
-                const element = integers.widen(row({
-                    tables: current.program.types,
-                    id: integers.narrow(type_id)
-                }).first)
+                const element = integers.widen(
+                    current.program.expressions
+                        .types[integers.widen(
+                            current.program.expressions
+                                .transform_targets[transform]
+                        )]
+                )
+                    -> integers.widen(row({
+                        tables: current.program.types,
+                        id: integers.narrow(_)
+                    }).first)
                 const predicate =
                     current.program.expressions.transform_kinds[transform] ==
                     TransformKind.Every ||

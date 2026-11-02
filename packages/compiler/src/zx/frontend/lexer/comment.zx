@@ -40,19 +40,18 @@ export default function (in: Input): Output {
         in.state.mode == Mode.BlockComment && in.byte == ascii_asterisk && in.has_next &&
             in.next == ascii_slash
     ) {
-        const next_skip_until = in.state.offset + 2
-
-        return emit({
-            kind: "",
-            start: in.state.start,
-            end: in.state.offset + 2,
-            comment: true,
-            state: {
-                ...in.state,
-                skip_until: next_skip_until,
-                mode: Mode.Idle
-            }
-        })
+        return in.state.offset + 2
+            -> emit({
+                kind: "",
+                start: in.state.start,
+                end: in.state.offset + 2,
+                comment: true,
+                state: {
+                    ...in.state,
+                    skip_until: _,
+                    mode: Mode.Idle
+                }
+            })
     }
 
     return {

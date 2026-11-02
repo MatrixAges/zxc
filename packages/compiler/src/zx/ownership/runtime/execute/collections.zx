@@ -38,18 +38,17 @@ export default function (in: Input): Output {
                     integers.widen(
                         current.program.expressions.payloads[frame.subject]
                     )
-                const type_id =
-                    integers.widen(
-                        current.program.expressions
-                            .types[integers.widen(
-                                current.program.expressions
-                                    .collection_targets[collection]
-                            )]
-                    )
-                const element = integers.widen(row({
-                    tables: current.program.types,
-                    id: integers.narrow(type_id)
-                }).first)
+                const element = integers.widen(
+                    current.program.expressions
+                        .types[integers.widen(
+                            current.program.expressions
+                                .collection_targets[collection]
+                        )]
+                )
+                    -> integers.widen(row({
+                        tables: current.program.types,
+                        id: integers.narrow(_)
+                    }).first)
                 const shares =
                     current.program.expressions.collection_kinds[collection] ==
                     CollectionKind.Pop ||
@@ -149,22 +148,20 @@ export default function (in: Input): Output {
                     }
                 }
             } else if (frame.action == WorkAction.CollectionResult) {
-                const collection =
-                    integers.widen(
-                        current.program.expressions.payloads[frame.subject]
-                    )
-                const type_id =
-                    integers.widen(
+                const element = integers.widen(
+                    current.program.expressions.payloads[frame.subject]
+                )
+                    -> integers.widen(
                         current.program.expressions
                             .types[integers.widen(
                                 current.program.expressions
-                                    .collection_targets[collection]
+                                    .collection_targets[_]
                             )]
                     )
-                const element = integers.widen(row({
-                    tables: current.program.types,
-                    id: integers.narrow(type_id)
-                }).first)
+                    -> integers.widen(row({
+                        tables: current.program.types,
+                        id: integers.narrow(_)
+                    }).first)
 
                 if (current.references[element] && (summary({
                     forest: current.memory.forest,
@@ -237,14 +234,13 @@ export default function (in: Input): Output {
                     integers.widen(
                         current.program.expressions.payloads[frame.subject]
                     )
-                const type_id =
-                    integers.widen(
-                        current.program.expressions.types[frame.subject]
-                    )
-                const element = integers.widen(row({
-                    tables: current.program.types,
-                    id: integers.narrow(type_id)
-                }).first)
+                const element = integers.widen(
+                    current.program.expressions.types[frame.subject]
+                )
+                    -> integers.widen(row({
+                        tables: current.program.types,
+                        id: integers.narrow(_)
+                    }).first)
                 const borrowed = current.references[element] || summary({
                     forest: current.memory.forest,
                     fact: current.value

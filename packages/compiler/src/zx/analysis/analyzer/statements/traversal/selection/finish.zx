@@ -24,8 +24,7 @@ export default function (in: Input): Output {
         id: type_id
     })
 
-    const exhaustive =
-        frame.fallback ||
+    const pending = frame.fallback ||
         (
             (
                 target.kind == Kind.Enumeration || target.kind == Kind.ErrorSet
@@ -35,14 +34,13 @@ export default function (in: Input): Output {
         ) || (
             type_id == 1 && frame.bodies.length == 2
         )
-
-    const pending = append({
-        table: in.blocks.pending,
-        subject: frame.subject,
-        exhaustive,
-        values: frame.values,
-        bodies: frame.bodies
-    })
+        -> append({
+            table: in.blocks.pending,
+            subject: frame.subject,
+            exhaustive: _,
+            values: frame.values,
+            bodies: frame.bodies
+        })
 
     return {
         ...in,

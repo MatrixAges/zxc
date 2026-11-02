@@ -1,7 +1,4 @@
-import { ExprKind } from "../../../../../frontend/parser/expressions/state/model"
 import { Action, Phase } from "../model"
-import { stage_message, syntax_code } from "./const"
-import fail from "./fail"
 
 import type { Work } from "../model"
 import type { Frame } from "./model"
@@ -12,14 +9,6 @@ export type Output = Work
 
 export default function (in: Input): Output {
     const node = in.source.tree.nodes[in.node]
-
-    if (in.source.tree.nodes[node.second].kind != ExprKind.Call) {
-        return fail({
-            work: in,
-            code: syntax_code,
-            message: stage_message
-        })
-    }
 
     const frame: Frame = {
         node: in.node,

@@ -40,13 +40,12 @@ export default function (in: Input): Output {
             const kind = current.expressions.kinds[current.index]
 
             if (kind == ExpressionKind.Call) {
-                const payload =
+                const target =
                     integers.widen(
                         current.expressions.payloads[current.index]
                     )
-                const target =
-                    integers.widen(
-                        current.expressions.call_functions[payload]
+                    -> integers.widen(
+                        current.expressions.call_functions[_]
                     )
 
                 current.valid = target < current.limit && current.allowed[target]

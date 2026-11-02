@@ -69,13 +69,13 @@ export default function (in: Input): Output {
                 }
             } else if (!current.leaving) {
                 if (current.id != current.root) {
-                    const parent = current.layout.parents[current.id] - 1
-                    const child_fact = project({
-                        forest: current.forest,
-                        fact: current.facts[parent],
-                        index: current.layout.field_indices[current.id],
-                        reference: current.layout.references[current.id]
-                    })
+                    const child_fact = current.layout.parents[current.id] - 1
+                        -> project({
+                            forest: current.forest,
+                            fact: current.facts[_],
+                            index: current.layout.field_indices[current.id],
+                            reference: current.layout.references[current.id]
+                        })
 
                     current.facts[current.id] = child_fact
                     current.states[current.id] = summary({

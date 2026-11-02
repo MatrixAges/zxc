@@ -53,15 +53,14 @@ export default function (in: Input): Output {
     }
 
     if (byte == ascii_dollar && next == ascii_open_brace) {
-        const depth = in.frame.depth + 1
-
-        return open({
-            state: in,
-            mode: Mode.Interpolation,
-            offset: offset + 1,
-            start: offset + 1,
-            depth
-        })
+        return in.frame.depth + 1
+            -> open({
+                state: in,
+                mode: Mode.Interpolation,
+                offset: offset + 1,
+                start: offset + 1,
+                depth: _
+            })
     }
 
     return {

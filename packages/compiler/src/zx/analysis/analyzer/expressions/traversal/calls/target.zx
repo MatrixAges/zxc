@@ -28,8 +28,9 @@ export type Input = Work
 export type Output = Work
 
 export default function (in: Input): Output {
-    const position = in.frames.methods.length - 1
-    const frame = in.frames.methods[position]
+    const frame = in.frames.methods.length - 1
+        -> in.frames.methods[_]
+
     const node = in.source.tree.nodes[frame.node]
     const callee = in.source.tree.nodes[node.first]
 

@@ -51,13 +51,12 @@ export default function (in: Input): Output {
                 }
 
                 if (current.capture < count) {
-                    const offset =
+                    const symbol =
                         integers.widen(
                             current.expressions.task_capture_first[payload]
                         ) + current.capture
-                    const symbol =
-                        integers.widen(
-                            current.expressions.task_captures[offset]
+                        -> integers.widen(
+                            current.expressions.task_captures[_]
                         )
 
                     current.valid = current.valid && !contains({

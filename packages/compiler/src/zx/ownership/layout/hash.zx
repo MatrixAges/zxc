@@ -1,3 +1,10 @@
+import {
+    hash_primary_modulus,
+    hash_secondary_modulus,
+    hash_primary_multiplier,
+    hash_secondary_multiplier
+} from "../const"
+
 export type Input = {
     parent: u64,
     field: u64,
@@ -7,8 +14,11 @@ export type Input = {
 export type Output = u64
 
 export default function (in: Input): Output {
-    const parent = ((in.parent % 4294967291) * 2654435761) % 4294967291
-    const field = ((in.field % 4294967279) * 2246822519) % 4294967279
+    const parent =
+        ((in.parent % hash_primary_modulus) * hash_primary_multiplier) %
+        hash_primary_modulus
 
-    return (parent + field) % in.capacity
+    return ((in.field % hash_secondary_modulus) * hash_secondary_multiplier) %
+        hash_secondary_modulus
+        -> (parent + _) % in.capacity
 }

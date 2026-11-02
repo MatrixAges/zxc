@@ -127,17 +127,16 @@ export default function (in: Input): Output {
         length
     })
 
-    const next_skip_until = offset + length
-
-    return emit({
-        kind: kind_punctuation,
-        start: offset,
-        end: offset + length,
-        comment: false,
-        state: {
-            ...in.state,
-            symbol,
-            skip_until: next_skip_until
-        }
-    })
+    return offset + length
+        -> emit({
+            kind: kind_punctuation,
+            start: offset,
+            end: offset + length,
+            comment: false,
+            state: {
+                ...in.state,
+                symbol,
+                skip_until: _
+            }
+        })
 }

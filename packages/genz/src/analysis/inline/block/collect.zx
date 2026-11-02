@@ -16,8 +16,9 @@ export default function (in: Input): Output {
     const state = in.state
     const control = state.units[state.mappings.units[in.frame.mapping]].control
     const payload = in.frame.f
-    const position = integers.widen(control.block_first[in.frame.id - 1]) + in.frame.a
-    const kind = control.statement_kinds[position]
+
+    const kind = integers.widen(control.block_first[in.frame.id - 1]) + in.frame.a
+        -> control.statement_kinds[_]
 
     const code: u64 = match kind {
         StatementKind.Evaluate => 0,

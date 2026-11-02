@@ -127,17 +127,16 @@ export default function (in: Input): Output {
         })
     }
 
-    const depth = in.control.depth - 1
-
-    return resume({
-        prepared: in.prepared,
-        tree: in.tree,
-        types: in.types,
-        frames: in.frames,
-        control: {
-            ...in.control,
-            depth,
-            phase: Phase.Returning
-        }
-    })
+    return in.control.depth - 1
+        -> resume({
+            prepared: in.prepared,
+            tree: in.tree,
+            types: in.types,
+            frames: in.frames,
+            control: {
+                ...in.control,
+                depth: _,
+                phase: Phase.Returning
+            }
+        })
 }

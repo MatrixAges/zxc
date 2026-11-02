@@ -1,3 +1,10 @@
+import {
+    hash_primary_modulus,
+    hash_secondary_modulus,
+    hash_primary_multiplier,
+    hash_secondary_multiplier
+} from "../../const"
+
 export type Input = {
     left: u64,
     right: u64,
@@ -7,8 +14,11 @@ export type Input = {
 export type Output = u64
 
 export default function (in: Input): Output {
-    const left = ((in.left % 4294967291) * 2654435761) % 4294967291
-    const right = ((in.right % 4294967279) * 2246822519) % 4294967279
+    const left =
+        ((in.left % hash_primary_modulus) * hash_primary_multiplier) %
+        hash_primary_modulus
 
-    return (left + right) % in.capacity
+    return ((in.right % hash_secondary_modulus) * hash_secondary_multiplier) %
+        hash_secondary_modulus
+        -> (left + _) % in.capacity
 }

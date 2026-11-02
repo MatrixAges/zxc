@@ -161,16 +161,15 @@ export default function (in: Input): Output {
     }
 
     if (in.kind == ExpressionKind.Tuple) {
-        const count = integers.widen(row({
+        const builder = integers.widen(row({
             tables: in.machine.program.types,
             id: in.machine.program.expressions.types[in.frame.subject]
         }).second)
-
-        const builder = begin({
-            forest: in.machine.memory.forest,
-            builders: in.machine.builders,
-            count
-        })
+            -> begin({
+                forest: in.machine.memory.forest,
+                builders: in.machine.builders,
+                count: _
+            })
 
         return {
             ...in.machine,

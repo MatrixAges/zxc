@@ -6,11 +6,7 @@ const Builder = @import("collections/builder.zig");
 
 pub fn analyze(self: *Analyzer, expression: anytype, expected: ?ir.TypeId) zx.Error!ir.ExprId {
     const pipe = syntax.value(expression).pipeline;
-
-    if (syntax.value(pipe.stage) != .call) return self.reporter.fail(.syntax, pipe.stage.span, "a pipeline stage must be a call using _");
-
     const parent = self.pipeline;
-
     self.pipeline = null;
     defer self.pipeline = parent;
 

@@ -30,20 +30,19 @@ export default function (in: Input): Output {
             }
         }
 
-        const enumeration = in.control.token.word == Keyword.Enum
-
-        return consume({
-            state: {
-                declarations: in.declarations,
-                members: in.members,
-                types: in.types,
-                control: {
-                    ...in.control,
-                    enumeration
-                }
-            },
-            phase: Phase.Name
-        })
+        return in.control.token.word == Keyword.Enum
+            -> consume({
+                state: {
+                    declarations: in.declarations,
+                    members: in.members,
+                    types: in.types,
+                    control: {
+                        ...in.control,
+                        enumeration: _
+                    }
+                },
+                phase: Phase.Name
+            })
     }
 
     if (in.control.phase == Phase.Name) {

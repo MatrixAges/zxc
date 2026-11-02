@@ -31,13 +31,12 @@ export default function (in: Input): Output {
                     if (
                         items.expressions.kinds[items.index] == ExpressionKind.Call
                     ) {
-                        const payload =
+                        const callee =
                             integers.widen(
                                 items.expressions.payloads[items.index]
                             )
-                        const callee =
-                            integers.widen(
-                                items.expressions.call_functions[payload]
+                            -> integers.widen(
+                                items.expressions.call_functions[_]
                             )
 
                         items.needed[callee] = true

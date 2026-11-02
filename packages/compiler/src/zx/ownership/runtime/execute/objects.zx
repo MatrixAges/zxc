@@ -159,15 +159,14 @@ export default function (in: Input): Output {
                     })
                 }
             } else if (frame.action == WorkAction.ObjectFieldResult) {
-                const object =
+                const field =
                     integers.widen(
                         current.program.expressions.payloads[frame.subject]
                     )
-                const field =
-                    integers.widen(
+                    -> integers.widen(
                         current.program.expressions
                             .object_field_indices[integers.widen(
-                                current.program.expressions.object_first[object]
+                                current.program.expressions.object_first[_]
                             ) + frame.index]
                     )
                 const first =

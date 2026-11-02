@@ -10,19 +10,19 @@ export type Output = Boundary
 
 export default function (in: Input): Output {
     const length = in.lexer.source_length
-    const line_break = in.lexer.tokens.length != 0 && in.lexer.line_break
 
-    const tokens = in.lexer.tokens.push({
-        kind: Kind.Eof,
-        word: Keyword.Root,
-        symbol: Symbol.None,
-        span: {
-            start: length,
-            end: length
-        },
-        line_break,
-        dollar: false
-    })[0]
+    const tokens = in.lexer.tokens.length != 0 && in.lexer.line_break
+        -> in.lexer.tokens.push({
+            kind: Kind.Eof,
+            word: Keyword.Root,
+            symbol: Symbol.None,
+            span: {
+                start: length,
+                end: length
+            },
+            line_break: _,
+            dollar: false
+        })[0]
 
     return {
         lexed: {
