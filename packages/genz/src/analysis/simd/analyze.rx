@@ -1,0 +1,57 @@
+<Module>
+    <Type from="./model" as="Simd" />
+
+    <Args in={Simd.Input} out={Simd.Output} />
+
+    <Call module="select" in={$in} />
+
+    <If on={!$ctx.select.valid}>
+        <Return
+            value={{
+                accepted: false,
+                candidate: $ctx.select,
+                expression: {
+                    valid: false,
+                    nodes: [],
+                    uses_element: false
+                }
+            }}
+        />
+    </If>
+
+    <Call
+        fn="expression/plan"
+        in={{
+            expressions: $in.expressions,
+            context: $ctx.select.context,
+            subject: $ctx.select.callback,
+            scalar: $ctx.select.scalar
+        }}
+    />
+
+    <If on={!$ctx.plan.valid}>
+        <Return
+            value={{
+                accepted: false,
+                candidate: $ctx.select,
+                expression: $ctx.plan
+            }}
+        />
+    </If>
+
+    <Call
+        module="iteration/verify"
+        in={{
+            expressions: $in.expressions,
+            candidate: $ctx.select
+        }}
+    />
+
+    <Return
+        value={{
+            accepted: $ctx.verify,
+            candidate: $ctx.select,
+            expression: $ctx.plan
+        }}
+    />
+</Module>

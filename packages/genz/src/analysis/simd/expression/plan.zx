@@ -1,0 +1,98 @@
+import { Operation } from "../model"
+import classify from "./classify"
+
+import type { Expression, Node } from "../model"
+import type { Input } from "./classify"
+
+export type Frame = {
+    operation: Operation,
+    source: u32
+}
+
+export type Output = Expression
+
+export default function (in: Input): Output {
+    const frames: Frame[] = [{
+        operation: Operation.Invalid,
+        source: in.subject
+    }]
+
+    const nodes: Node[] = []
+    const results: u64[] = []
+
+    const result = loop({
+        source: in,
+        frames,
+        nodes,
+        results,
+        valid: true,
+        uses_element: false
+    }, {
+        while: current => current.valid && current.frames.length > 0,
+        next: current => {
+            const frame = current.frames[current.frames.length - 1]
+            current.frames = current.frames.pop()[0]
+
+            if (frame.operation == Operation.Invalid) {
+                const item = classify({
+                    ...current.source,
+                    subject: frame.source
+                })
+
+                if (item.operation == Operation.Invalid) {
+                    current.valid = false
+                } else if (
+                    item.operation == Operation.Element ||
+                        item.operation == Operation.Literal
+                ) {
+                    current.results = current.results.push(current.nodes.length)[0]
+                    current.nodes = current.nodes.push({
+                        operation: item.operation,
+                        source: item.source,
+                        left: 0,
+                        right: 0
+                    })[0]
+                    current.uses_element = current.uses_element ||
+                        item.operation == Operation.Element
+                } else {
+                    current.frames = current.frames.push({
+                        operation: item.operation,
+                        source: item.source
+                    })[0]
+
+                    if (item.operation != Operation.Negate) {
+                        current.frames = current.frames.push({
+                            operation: Operation.Invalid,
+                            source: item.right
+                        })[0]
+                    }
+
+                    current.frames = current.frames.push({
+                        operation: Operation.Invalid,
+                        source: item.left
+                    })[0]
+                }
+            } else {
+                const right = current.results[current.results.length - 1]
+                current.results = current.results.pop()[0]
+                const unary = frame.operation == Operation.Negate
+                const left = unary ? right :
+                    current.results[current.results.length - 1]
+
+                if (!unary) {
+                    current.results = current.results.pop()[0]
+                }
+
+                current.results = current.results.push(current.nodes.length)[0]
+                current.nodes = current.nodes.push({
+                    operation: frame.operation,
+                    source: frame.source,
+                    left,
+                    right
+                })[0]
+            }
+        }
+    })
+
+    return result.pick(["valid", "nodes", "uses_element"])
+}

@@ -1,0 +1,15 @@
+<Module>
+    <Type from="./model" as="Simd" />
+
+    <Args in={Simd.Input} out={Simd.Candidate} />
+
+    <If on={$in.consumer != null}>
+        <Call fn="iteration/select" in={$in} />
+
+        <Return value={$ctx.select} />
+    </If>
+
+    <Call fn="transform" in={$in} />
+
+    <Return value={$ctx.transform} />
+</Module>

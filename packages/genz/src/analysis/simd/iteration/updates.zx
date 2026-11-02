@@ -1,0 +1,69 @@
+import integers from "std:integer"
+import { ExpressionKind, BinaryOperator } from "core/expression_table/kinds"
+
+import field from "../expression/field"
+import integer from "./integer"
+
+import type { Input } from "./model"
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const iteration = in.candidate.iteration
+
+    if (iteration == null) {
+        return true
+    }
+
+    const expressions = in.expressions
+
+    const payload =
+        integers.widen(expressions.payloads[integers.widen(iteration.next)])
+
+    const first = integers.widen(expressions.object_first[payload])
+
+    const result = loop({
+        expressions,
+        iteration,
+        index: first,
+        end: first + integers.widen(expressions.object_count[payload]),
+        valid: true
+    }, {
+        while: current => current.valid && current.index < current.end,
+        next: current => {
+            const member = current.expressions.object_field_indices[current.index]
+            const subject = current.expressions.object_field_values[current.index]
+
+            if (member != current.iteration.result_index) {
+                if (member == current.iteration.index_index) {
+                    const index = integers.widen(subject)
+                    const step = integers.widen(current.expressions.payloads[index])
+
+                    current.valid =
+                        current.expressions.kinds[index] == ExpressionKind.Binary &&
+                        current.expressions.binary_operators[step] ==
+                        BinaryOperator.Add &&
+                        integer({
+                            expressions: current.expressions,
+                            subject: current.expressions.binary_right[step],
+                            expected: 1
+                        }) && field({
+                            expressions: current.expressions,
+                            subject: current.expressions.binary_left[step],
+                            symbol: current.iteration.parameter
+                        }) == member
+                } else {
+                    current.valid = field({
+                        expressions: current.expressions,
+                        subject,
+                        symbol: current.iteration.parameter
+                    }) == member
+                }
+            }
+
+            current.index += 1
+        }
+    })
+
+    return result.valid
+}

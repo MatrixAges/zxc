@@ -1,0 +1,37 @@
+<Module>
+    <Type from="./model" as="Verify" />
+
+    <Args in={Verify.Input} out={bool} />
+
+    <If on={$in.candidate.iteration == null}>
+        <Return value={true} />
+    </If>
+
+    <Call fn="bindings" in={$in} />
+
+    <If on={!$ctx.bindings}>
+        <Return value={false} />
+    </If>
+
+    <Call fn="updates" in={$in} />
+
+    <If on={!$ctx.updates}>
+        <Return value={false} />
+    </If>
+
+    <Call fn="initial" in={$in} />
+
+    <If on={!$ctx.initial}>
+        <Return value={false} />
+    </If>
+
+    <Call
+        fn="evaluations"
+        in={{
+            expressions: $in.expressions,
+            iteration: $in.candidate.iteration
+        }}
+    />
+
+    <Return value={$ctx.evaluations} />
+</Module>

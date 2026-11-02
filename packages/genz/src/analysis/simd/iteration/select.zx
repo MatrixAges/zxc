@@ -1,0 +1,248 @@
+import integers from "std:integer"
+import { type_id_f32, type_id_f64, type_id_u64 } from "core/const"
+import {
+    ExpressionKind,
+    BinaryOperator,
+    CollectionKind
+} from "core/expression_table/kinds"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import field from "../expression/field"
+import integer from "./integer"
+import member from "./member"
+
+import type { Input, Candidate } from "../model"
+
+export type Output = Candidate
+
+export default function (in: Input): Output {
+    const rejected: Candidate = {
+        valid: false,
+        source: in.subject,
+        callback: in.subject,
+        scalar: 0,
+        context: {
+            first: 0,
+            count: 0,
+            element: null,
+            iteration: null
+        },
+        iteration: null
+    }
+
+    const consumer = in.consumer
+    const expressions = in.expressions
+    const subject = integers.widen(in.subject)
+
+    if (consumer == null || expressions.kinds[subject] != ExpressionKind.Iteration) {
+        return rejected
+    }
+
+    const iteration = integers.widen(expressions.payloads[subject])
+    const output = expressions.types[integers.widen(consumer.result)]
+    const output_position = integers.widen(output)
+
+    if (
+        expressions.iteration_postconditions[iteration] ||
+            kind(in.types.kinds[output_position]) != Kind.List
+    ) {
+        return rejected
+    }
+
+    const scalar = in.types.first[output_position]
+    const scalar_position = integers.widen(scalar)
+    const scalar_code = in.types.first[scalar_position]
+
+    if (
+        kind(in.types.kinds[scalar_position]) != Kind.Scalar ||
+            (scalar_code != type_id_f32 && scalar_code != type_id_f64)
+    ) {
+        return rejected
+    }
+
+    const result_index = field({
+        expressions,
+        subject: consumer.result,
+        symbol: consumer.symbol
+    })
+
+    const condition_id = expressions.iteration_conditions[iteration]
+
+    const condition =
+        integers.widen(expressions.payloads[integers.widen(condition_id)])
+
+    if (
+        result_index == null ||
+            expressions.kinds[integers.widen(condition_id)] != ExpressionKind.Binary ||
+            expressions.binary_operators[condition] != BinaryOperator.Less
+    ) {
+        return rejected
+    }
+
+    const symbol = expressions.iteration_condition_parameters[iteration]
+
+    const index_index = field({
+        expressions,
+        subject: expressions.binary_left[condition],
+        symbol
+    })
+
+    const bound_id = expressions.binary_right[condition]
+    const bound = integers.widen(expressions.payloads[integers.widen(bound_id)])
+
+    if (
+        index_index == null ||
+            expressions.kinds[integers.widen(bound_id)] != ExpressionKind.Length
+    ) {
+        return rejected
+    }
+
+    const source_index = field({
+        expressions,
+        subject: expressions.lengths[bound],
+        symbol
+    })
+
+    if (
+        source_index == null || index_index == source_index ||
+            index_index == result_index || source_index == result_index
+    ) {
+        return rejected
+    }
+
+    const initial = expressions.iteration_initials[iteration]
+    const body = expressions.iteration_bodies[iteration]
+    const body_payload = integers.widen(expressions.payloads[integers.widen(body)])
+
+    if (
+        expressions.kinds[integers.widen(initial)] != ExpressionKind.Object ||
+            expressions.kinds[integers.widen(body)] != ExpressionKind.Scope
+    ) {
+        return rejected
+    }
+
+    const next = expressions.scope_results[body_payload]
+    const next_payload = integers.widen(expressions.payloads[integers.widen(next)])
+
+    const initial_payload =
+        integers.widen(expressions.payloads[integers.widen(initial)])
+
+    if (
+        expressions.kinds[integers.widen(next)] != ExpressionKind.Object ||
+            expressions.object_count[next_payload] !=
+            expressions.object_count[initial_payload]
+    ) {
+        return rejected
+    }
+
+    const source = member({
+        expressions,
+        subject: initial,
+        field: source_index
+    })
+
+    const start = member({
+        expressions,
+        subject: initial,
+        field: index_index
+    })
+
+    const empty = member({
+        expressions,
+        subject: initial,
+        field: result_index
+    })
+
+    if (source == null || start == null || empty == null) {
+        return rejected
+    }
+
+    if (
+        expressions.types[integers.widen(source)] != output ||
+            !integer({
+                expressions,
+                subject: start,
+                expected: 0
+            })
+    ) {
+        return rejected
+    }
+
+    const index_type = integers.widen(expressions.types[integers.widen(start)])
+    const empty_id = integers.widen(empty)
+    const empty_payload = integers.widen(expressions.payloads[empty_id])
+
+    if (
+        kind(in.types.kinds[index_type]) != Kind.Scalar ||
+            in.types.first[index_type] != type_id_u64 ||
+            expressions.kinds[empty_id] != ExpressionKind.List ||
+            expressions.sequence_count[empty_payload] != 0
+    ) {
+        return rejected
+    }
+
+    const appended = member({
+        expressions,
+        subject: next,
+        field: result_index
+    })
+
+    if (appended == null) {
+        return rejected
+    }
+
+    const appended_id = integers.widen(appended)
+    const projection = integers.widen(expressions.payloads[appended_id])
+
+    if (
+        expressions.kinds[appended_id] != ExpressionKind.TupleField ||
+            expressions.projection_indices[projection] != 0
+    ) {
+        return rejected
+    }
+
+    const push_id = integers.widen(expressions.projection_targets[projection])
+    const push = integers.widen(expressions.payloads[push_id])
+    const parameter = expressions.iteration_parameters[iteration]
+
+    if (
+        expressions.kinds[push_id] != ExpressionKind.ListOperation ||
+            expressions.collection_kinds[push] != CollectionKind.Push ||
+            expressions.collection_count[push] != 1 ||
+            field({
+                expressions,
+                subject: expressions.collection_targets[push],
+                symbol: parameter
+            }) != result_index
+    ) {
+        return rejected
+    }
+
+    return {
+        valid: true,
+        source,
+        callback: expressions
+            .collection_arguments[integers.widen(
+                expressions.collection_first[push]
+            )],
+        scalar,
+        context: {
+            first: integers.widen(expressions.scope_first[body_payload]),
+            count: integers.widen(expressions.scope_count[body_payload]),
+            element: null,
+            iteration: {
+                symbol: parameter,
+                source: source_index,
+                index: index_index
+            }
+        },
+        iteration: {
+            initial,
+            next,
+            parameter,
+            result_index,
+            index_index
+        }
+    }
+}

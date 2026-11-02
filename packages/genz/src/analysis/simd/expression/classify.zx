@@ -1,0 +1,98 @@
+import integers from "std:integer"
+import {
+    ExpressionKind,
+    UnaryOperator,
+    BinaryOperator
+} from "core/expression_table/kinds"
+
+import { Operation } from "../model"
+import element from "./element"
+import resolve from "./resolve"
+
+import type { Expressions } from "core/expression_table/model"
+import type { Context } from "../model"
+
+export type Input = {
+    expressions: Expressions,
+    context: Context,
+    subject: u32,
+    scalar: u32
+}
+
+export type Output = {
+    operation: Operation,
+    source: u32,
+    left: u32,
+    right: u32
+}
+
+export default function (in: Input): Output {
+    const source = resolve(in.pick(["expressions", "context", "subject"]))
+    const expressions = in.expressions
+    const subject = integers.widen(source)
+    const payload = integers.widen(expressions.payloads[subject])
+
+    const initial: Output = {
+        operation: Operation.Invalid,
+        source,
+        left: 0,
+        right: 0
+    }
+
+    if (expressions.types[subject] != in.scalar) {
+        return initial
+    }
+
+    if (element({
+        expressions,
+        context: in.context,
+        subject: source
+    })) {
+        return {
+            ...initial,
+            operation: Operation.Element
+        }
+    }
+
+    const tag = expressions.kinds[subject]
+
+    if (
+        tag == ExpressionKind.Integer || tag == ExpressionKind.NegativeInteger ||
+            tag == ExpressionKind.Float
+    ) {
+        return {
+            ...initial,
+            operation: Operation.Literal
+        }
+    }
+
+    if (
+        tag == ExpressionKind.Unary &&
+            expressions.unary_operators[payload] == UnaryOperator.Negate
+    ) {
+        return {
+            ...initial,
+            operation: Operation.Negate,
+            left: expressions.unary_operands[payload]
+        }
+    }
+
+    if (tag != ExpressionKind.Binary) {
+        return initial
+    }
+
+    const operation = match expressions.binary_operators[payload] {
+        BinaryOperator.Add => Operation.Add,
+        BinaryOperator.Subtract => Operation.Subtract,
+        BinaryOperator.Multiply => Operation.Multiply,
+        BinaryOperator.Divide => Operation.Divide,
+        _ => Operation.Invalid
+    }
+
+    return {
+        ...initial,
+        operation,
+        left: expressions.binary_left[payload],
+        right: expressions.binary_right[payload]
+    }
+}

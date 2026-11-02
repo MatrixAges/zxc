@@ -1,0 +1,43 @@
+import passive from "../expression/passive"
+import supported from "../expression/supported"
+
+import type { Input } from "./model"
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const result = loop({
+        expressions: in.expressions,
+        candidate: in.candidate,
+        index: 0,
+        valid: true
+    }, {
+        while: current => current.valid &&
+            current.index < current.candidate.context.count,
+        next: current => {
+            const context = {
+                ...current.candidate.context,
+                count: current.index
+            }
+
+            const subject = current.expressions
+                .scope_values[
+                    context.first + current.index
+                ]
+
+            const request = {
+                expressions: current.expressions,
+                context,
+                subject
+            }
+
+            current.valid = supported({
+                ...request,
+                scalar: current.candidate.scalar
+            }) || passive(request)
+            current.index += 1
+        }
+    })
+
+    return result.valid
+}

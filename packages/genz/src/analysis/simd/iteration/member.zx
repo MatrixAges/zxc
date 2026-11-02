@@ -1,0 +1,44 @@
+import integers from "std:integer"
+
+import type { Expressions } from "core/expression_table/model"
+
+export type Input = {
+    expressions: Expressions,
+    subject: u32,
+    field: u32
+}
+
+export type Output = u32?
+
+    export default function (in: Input): Output {
+        const expressions = in.expressions
+
+        const payload =
+            integers.widen(expressions.payloads[integers.widen(in.subject)])
+
+        const first = integers.widen(expressions.object_first[payload])
+        const absent: u32? = null
+
+        const result = loop({
+            expressions,
+            field: in.field,
+            index: first,
+            end: first + integers.widen(expressions.object_count[payload]),
+            value: absent
+        }, {
+            while: current => current.index < current.end && current.value == null,
+            next: current => {
+                if (
+                    current.expressions.object_field_indices[current.index] ==
+                        current.field
+                ) {
+                    current.value =
+                        current.expressions.object_field_values[current.index]
+                }
+
+                current.index += 1
+            }
+        })
+
+        return result.value
+    }

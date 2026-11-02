@@ -1,0 +1,53 @@
+import integers from "std:integer"
+
+import passive from "../expression/passive"
+
+import type { Input } from "./model"
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const iteration = in.candidate.iteration
+
+    if (iteration == null) {
+        return true
+    }
+
+    const expressions = in.expressions
+
+    const payload =
+        integers.widen(expressions.payloads[integers.widen(iteration.initial)])
+
+    const first = integers.widen(expressions.object_first[payload])
+
+    const result = loop({
+        expressions,
+        result_index: iteration.result_index,
+        index: first,
+        end: first + integers.widen(expressions.object_count[payload]),
+        valid: true
+    }, {
+        while: current => current.valid && current.index < current.end,
+        next: current => {
+            if (
+                current.expressions.object_field_indices[current.index] !=
+                    current.result_index
+            ) {
+                current.valid = passive({
+                    expressions: current.expressions,
+                    subject: current.expressions.object_field_values[current.index],
+                    context: {
+                        first: 0,
+                        count: 0,
+                        element: null,
+                        iteration: null
+                    }
+                })
+            }
+
+            current.index += 1
+        }
+    })
+
+    return result.valid
+}

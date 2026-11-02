@@ -5,24 +5,25 @@ const Lower = @import("../lower.zig");
 const aggregate = @import("../aggregate.zig");
 const intrinsic = @import("../intrinsics.zig");
 const expression = @import("expression.zig");
+const analysis = @import("analysis.zig");
 
 pub fn lower(self: *Lower, id: ir.ExprId, value: ir.Transform) Lower.Error!?node.ExpressionId {
-    if (value.kind != .map or value.initial != null) return null;
+    if (!@import("genz_options").generated_analysis) return @import("seed/root.zig").lower(self, id, value);
 
-    const input = self.program.typeOf(self.program.expression(value.target).type_id).list;
-    const output = self.program.typeOf(self.program.expression(id).type_id).list;
-    const scalar = self.program.typeOf(input);
+    var scratch = std.heap.ArenaAllocator.init(self.workspace);
 
-    if (input != output or scalar != .scalar or (scalar.scalar != .f32 and scalar.scalar != .f64)) return null;
+    defer scratch.deinit();
 
-    const context = expression.Context{ .element = value.parameters[0] };
+    const plan = try analysis.analyze(scratch.allocator(), self.program, id, null);
 
-    if (!expression.supported(self.program, value.body, context, input)) return null;
+    if (!plan.accepted) return null;
 
-    return try @import("../state_value/list.zig").wrap(self, self.program.expression(id).type_id, try emit(self, value.target, value.body, input, context), false);
+    return try @import("../state_value/list.zig").wrap(self, self.program.expression(id).type_id, try emit(self, plan), false);
 }
 
-pub fn emit(self: *Lower, target: ir.ExprId, callback: ir.ExprId, input: ir.TypeId, context: expression.Context) Lower.Error!node.ExpressionId {
+pub fn emit(self: *Lower, plan: analysis.Plan) Lower.Error!node.ExpressionId {
+    const target: ir.ExprId = @fromBackingInt(plan.candidate.source);
+    const input: ir.TypeId = @fromBackingInt(plan.candidate.scalar);
     var body: std.ArrayList(node.Statement) = .empty;
     const source = try aggregate.bind(self, &body, try @import("../state_value/list.zig").expression(self, target));
     const element_type = try self.typeExpr(input);
@@ -39,7 +40,7 @@ pub fn emit(self: *Lower, target: ir.ExprId, callback: ir.ExprId, input: ir.Type
 
     try vector_body.append(self.allocator, .{ .assignment = .{
         .target = try chunk(self, result, offset, width),
-        .value = try expression.lower(self, callback, context, vector_type, element),
+        .value = try expression.lower(self, plan, vector_type, element),
     } });
 
     try body.append(self.allocator, .{ .for_loop = .{
@@ -51,7 +52,7 @@ pub fn emit(self: *Lower, target: ir.ExprId, callback: ir.ExprId, input: ir.Type
     const tail = try aggregate.bind(self, &body, try intrinsic.binary(self, .multiply, chunks, width));
     const index_name = try self.fresh("index");
     const element_name = try self.fresh("element");
-    const tail_value = try expression.lower(self, callback, context, null, try self.builder.identifier(element_name));
+    const tail_value = try expression.lower(self, plan, null, try self.builder.identifier(element_name));
 
     const assignment = node.Statement{ .assignment = .{
         .target = try self.builder.expression(.{ .index = .{ .target = result, .index = try intrinsic.binary(self, .add, tail, try self.builder.identifier(index_name)) } }),
@@ -60,7 +61,7 @@ pub fn emit(self: *Lower, target: ir.ExprId, callback: ir.ExprId, input: ir.Type
 
     try body.append(self.allocator, .{ .for_loop = .{
         .iterable = try self.builder.expression(.{ .slice = .{ .target = source, .start = tail } }),
-        .capture = if (expression.usesElement(self.program, callback, context)) element_name else "_",
+        .capture = if (plan.expression.uses_element) element_name else "_",
         .index_capture = index_name,
         .body = try self.builder.statements(&.{assignment}),
     } });

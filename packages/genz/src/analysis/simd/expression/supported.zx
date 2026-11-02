@@ -1,0 +1,41 @@
+import { Operation } from "../model"
+import classify from "./classify"
+
+import type { Input } from "./classify"
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const roots = [in.subject]
+
+    const result = loop({
+        source: in,
+        roots,
+        valid: true
+    }, {
+        while: current => current.valid && current.roots.length > 0,
+        next: current => {
+            const subject = current.roots[current.roots.length - 1]
+            current.roots = current.roots.pop()[0]
+
+            const item = classify({
+                ...current.source,
+                subject
+            })
+
+            if (item.operation == Operation.Invalid) {
+                current.valid = false
+            } else if (item.operation == Operation.Negate) {
+                current.roots = current.roots.push(item.left)[0]
+            } else if (
+                item.operation != Operation.Element &&
+                    item.operation != Operation.Literal
+            ) {
+                current.roots =
+                    current.roots.push(item.right)[0].push(item.left)[0]
+            }
+        }
+    })
+
+    return result.valid
+}

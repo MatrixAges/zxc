@@ -1,0 +1,60 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import type { Expressions } from "core/expression_table/model"
+import type { Context } from "../model"
+
+export type Input = {
+    expressions: Expressions,
+    context: Context,
+    subject: u32
+}
+
+export type Output = u32
+
+export default function (in: Input): Output {
+    const result = loop({
+        expressions: in.expressions,
+        first: in.context.first,
+        remaining: in.context.count,
+        subject: in.subject
+    }, {
+        while: current => current.remaining > 0 &&
+            current.expressions.kinds[integers.widen(current.subject)] ==
+            ExpressionKind.Reference,
+        next: current => {
+            const payload = integers.widen(
+                current.expressions.payloads[integers.widen(
+                    current.subject
+                )]
+            )
+
+            const found = loop({
+                expressions: current.expressions,
+                first: current.first,
+                position: current.remaining,
+                symbol: current.expressions.references[payload],
+                subject: current.subject,
+                matched: false
+            }, {
+                while: search => search.position > 0 && !search.matched,
+                next: search => {
+                    search.position -= 1
+                    const position = search.first + search.position
+
+                    if (
+                        search.expressions.scope_symbols[position] == search.symbol
+                    ) {
+                        search.subject = search.expressions.scope_values[position]
+                        search.matched = true
+                    }
+                }
+            })
+
+            current.remaining = found.position
+            current.subject = found.subject
+        }
+    })
+
+    return result.subject
+}

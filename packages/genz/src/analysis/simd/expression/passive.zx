@@ -1,0 +1,68 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import resolve from "./resolve"
+
+import type { Input } from "./resolve"
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const roots = [in.subject]
+
+    const result = loop({
+        source: in,
+        roots,
+        valid: true
+    }, {
+        while: current => current.valid && current.roots.length > 0,
+        next: current => {
+            const subject = current.roots[current.roots.length - 1]
+            current.roots = current.roots.pop()[0]
+
+            const id = resolve({
+                ...current.source,
+                subject
+            })
+
+            const expressions = current.source.expressions
+            const index = integers.widen(id)
+            const payload = integers.widen(expressions.payloads[index])
+
+            const tag = expressions.kinds[index]
+
+            if (tag == ExpressionKind.Field || tag == ExpressionKind.TupleField) {
+                current.roots = current.roots.push(
+                    expressions.projection_targets[payload]
+                )[0]
+            } else if (tag == ExpressionKind.Tuple) {
+                const first = integers.widen(expressions.sequence_first[payload])
+                const count = integers.widen(expressions.sequence_count[payload])
+
+                current.roots = current.roots.concat(
+                    expressions.sequence_items.splice(
+                        first,
+                        count,
+                        []
+                    )[1]
+                )[0]
+            } else {
+                current.valid = match tag {
+                    ExpressionKind.Reference => true,
+                    ExpressionKind.Integer => true,
+                    ExpressionKind.NegativeInteger => true,
+                    ExpressionKind.Float => true,
+                    ExpressionKind.Boolean => true,
+                    ExpressionKind.Unit => true,
+                    ExpressionKind.None => true,
+                    ExpressionKind.String => true,
+                    ExpressionKind.EnumValue => true,
+                    ExpressionKind.ErrorValue => true,
+                    _ => false
+                }
+            }
+        }
+    })
+
+    return result.valid
+}

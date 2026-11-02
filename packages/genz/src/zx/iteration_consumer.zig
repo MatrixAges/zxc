@@ -12,7 +12,7 @@ pub fn lower(self: *Lower, symbol: ir.SymbolId, value: ir.ExprId, result: ir.Exp
     if (!self.cache.contains(result)) {
         const selected = Consumer{ .symbol = symbol, .result = result, .layout = layout };
 
-        if (try @import("simd/iteration.zig").lower(self, self.program.expression(value).value.iteration, selected)) |vector| return vector;
+        if (try @import("simd/iteration.zig").lower(self, value, selected)) |vector| return vector;
     }
 
     if (self.transaction()) return null;

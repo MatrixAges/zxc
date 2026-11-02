@@ -90,6 +90,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/types/layout/query.zx", .name = "layout_query", .owner = .genz },
     .{ .path = "genz/analysis/entry/analyze.rx", .name = "entry_flags", .owner = .genz },
     .{ .path = "genz/analysis/names/analyze.rx", .name = "stable_names", .owner = .genz },
+    .{ .path = "genz/analysis/simd/analyze.rx", .name = "simd_plan", .owner = .genz },
     .{ .path = "genz/analysis/references/discover.rx", .name = "reference_graph", .owner = .genz },
     .{ .path = "genz/analysis/references/imports.rx", .name = "reference_imports", .owner = .genz },
     .{ .path = "genz/analysis/iteration/fields/plan.rx", .name = "loop_fields", .owner = .genz },

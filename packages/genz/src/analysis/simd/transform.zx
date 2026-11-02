@@ -1,0 +1,73 @@
+import integers from "std:integer"
+import { type_id_f32, type_id_f64 } from "core/const"
+import { ExpressionKind, TransformKind } from "core/expression_table/kinds"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import type { Input, Candidate } from "./model"
+
+export type Output = Candidate
+
+export default function (in: Input): Output {
+    const expressions = in.expressions
+    const subject = integers.widen(in.subject)
+
+    const rejected: Candidate = {
+        valid: false,
+        source: in.subject,
+        callback: in.subject,
+        scalar: 0,
+        context: {
+            first: 0,
+            count: 0,
+            element: null,
+            iteration: null
+        },
+        iteration: null
+    }
+
+    if (expressions.kinds[subject] != ExpressionKind.Transform) {
+        return rejected
+    }
+
+    const payload = integers.widen(expressions.payloads[subject])
+
+    if (
+        expressions.transform_kinds[payload] != TransformKind.Map ||
+            expressions.transform_initials[payload] != null
+    ) {
+        return rejected
+    }
+
+    const source = expressions.transform_targets[payload]
+    const input = integers.widen(expressions.types[integers.widen(source)])
+    const output = integers.widen(expressions.types[subject])
+    const scalar = in.types.first[input]
+    const position = integers.widen(scalar)
+    const code = in.types.first[position]
+
+    if (
+        scalar != in.types.first[output] ||
+            kind(in.types.kinds[position]) != Kind.Scalar ||
+            (code != type_id_f32 && code != type_id_f64)
+    ) {
+        return rejected
+    }
+
+    return {
+        valid: true,
+        source,
+        callback: expressions.transform_bodies[payload],
+        scalar,
+        context: {
+            first: 0,
+            count: 0,
+            element: expressions
+                .transform_parameters[integers.widen(
+                    expressions.transform_first[payload]
+                )],
+            iteration: null
+        },
+        iteration: null
+    }
+}

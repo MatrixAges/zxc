@@ -1,0 +1,47 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import field from "./field"
+import resolve from "./resolve"
+
+import type { Input } from "./resolve"
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const expressions = in.expressions
+    const subject = integers.widen(in.subject)
+    const payload = integers.widen(expressions.payloads[subject])
+    const element = in.context.element
+
+    if (element != null) {
+        return expressions.kinds[subject] == ExpressionKind.Reference &&
+            expressions.references[payload] == element
+    }
+
+    const iteration = in.context.iteration
+
+    if (iteration == null || expressions.kinds[subject] != ExpressionKind.Index) {
+        return false
+    }
+
+    const target = resolve({
+        ...in,
+        subject: expressions.index_targets[payload]
+    })
+
+    const index = resolve({
+        ...in,
+        subject: expressions.index_values[payload]
+    })
+
+    return field({
+        expressions,
+        subject: target,
+        symbol: iteration.symbol
+    }) == iteration.source && field({
+        expressions,
+        subject: index,
+        symbol: iteration.symbol
+    }) == iteration.index
+}

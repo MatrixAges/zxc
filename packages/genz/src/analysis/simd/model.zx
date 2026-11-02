@@ -1,0 +1,72 @@
+import type { Expressions } from "core/expression_table/model"
+import type { Table } from "core/type_table/model"
+
+export type Consumer = {
+    symbol: u32,
+    result: u32
+}
+
+export type Input = {
+    types: Table,
+    expressions: Expressions,
+    subject: u32,
+    consumer: Consumer?
+}
+
+export type Context = {
+    first: u64,
+    count: u64,
+    element: u32?,
+    iteration: {
+        symbol: u32,
+        source: u32,
+        index: u32
+    }?
+}
+
+export type Validation = {
+    initial: u32,
+    next: u32,
+    parameter: u32,
+    result_index: u32,
+    index_index: u32
+}
+
+export type Candidate = {
+    valid: bool,
+    source: u32,
+    callback: u32,
+    scalar: u32,
+    context: Context,
+    iteration: Validation?
+}
+
+export enum Operation {
+    Invalid,
+    Element,
+    Literal,
+    Negate,
+    Add,
+    Subtract,
+    Multiply,
+    Divide
+}
+
+export type Node = {
+    operation: Operation,
+    source: u32,
+    left: u64,
+    right: u64
+}
+
+export type Expression = {
+    valid: bool,
+    nodes: Node[],
+    uses_element: bool
+}
+
+export type Output = {
+    accepted: bool,
+    candidate: Candidate,
+    expression: Expression
+}
