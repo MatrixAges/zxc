@@ -22,7 +22,7 @@ export default function (in: Input): Output {
                 current.body.contracts.expressions[current.table - 1]
 
             current.needed = loop({
-                expressions: expressions,
+                expressions,
                 needed: current.needed,
                 index: 0
             }, {
