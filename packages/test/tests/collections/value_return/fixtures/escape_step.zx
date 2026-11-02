@@ -2,7 +2,7 @@ export type Cell = { value: u64 }
 
 export type Input = Cell
 
-export type Output = { direct: Cell, optional: Cell?, list: Cell[], tuple: [Cell, u64] }
+export type Output = { direct: Cell, optional?: Cell, list: Cell[], tuple: [Cell, u64] }
 
 export default function (in: Input): Output {
   const optional: Cell = {value: in.value + 1}

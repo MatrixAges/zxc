@@ -10,18 +10,18 @@ export type Input = {
     types: Table,
     expressions: Expressions,
     subject: u32,
-    consumer: Consumer?
+    consumer?: Consumer
 }
 
 export type Context = {
     first: u64,
     count: u64,
-    element: u32?,
-    iteration: {
+    element?: u32,
+    iteration?: {
         symbol: u32,
         source: u32,
         index: u32
-    }?
+    }
 }
 
 export type Validation = {
@@ -38,7 +38,7 @@ export type Candidate = {
     callback: u32,
     scalar: u32,
     context: Context,
-    iteration: Validation?
+    iteration?: Validation
 }
 
 export enum Operation {

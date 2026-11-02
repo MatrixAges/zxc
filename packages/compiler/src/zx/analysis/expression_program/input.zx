@@ -8,17 +8,17 @@ export enum Mode { Expression, Program, Linking }
 export type CompileInput = {
     bytes: u8[]
     syntax: Expression
-    native: NativeModule?
-        type_base: Table
-    constant_values: Values?
-        binding_names: string[]
+    native?: NativeModule
+    type_base: Table
+    constant_values?: Values
+    binding_names: string[]
     binding_types: u32[]
     alias_names: string[]
     alias_types: u32[]
     unit_bindings: string[]
     nonnull_bindings: string[]
-    expected: u32?
-        mode: Mode
+    expected?: u32
+    mode: Mode
     scalar_count: u64
     maximum_type_count: u64
 }

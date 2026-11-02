@@ -1,15 +1,32 @@
 export type Url = {
-  scheme: string, username: string, password: string,
-  host: string?, port: u16?, path: string[], opaque_path: string?,
-  query: string?, fragment: string?
+    scheme: string,
+    username: string,
+    password: string,
+    host?: string,
+    port?: u16,
+    path: string[],
+    opaque_path?: string,
+    query?: string,
+    fragment?: string
 }
 
-export type Resolve = { input: string, base: string? }
+export type Resolve = {
+    input: string,
+    base?: string
+}
 
 export enum Platform { Posix, Windows }
 
-export type FilePath = { path: string, platform: Platform, cwd: string }
-export type FileUrl = { url: Url, platform: Platform }
+export type FilePath = {
+    path: string,
+    platform: Platform,
+    cwd: string
+}
+
+export type FileUrl = {
+    url: Url,
+    platform: Platform
+}
 
 export declare function parse(allocator, in: string): Url throws {
   CodepointTooLarge, InvalidDomain, InvalidHost, InvalidIpv4, InvalidIpv6,

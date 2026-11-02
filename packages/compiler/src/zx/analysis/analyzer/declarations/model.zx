@@ -7,8 +7,8 @@ import type { NativeModule } from "../source/model"
 export type DeclarationInput = {
     bytes: u8[]
     syntax: Program
-    native: NativeModule?
-        type_base: Table
+    native?: NativeModule
+    type_base: Table
     aliases: Cache
     nominal_base: Bindings
     nominal_origin: Origin

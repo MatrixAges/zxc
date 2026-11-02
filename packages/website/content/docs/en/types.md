@@ -32,7 +32,7 @@ Choose widths at boundaries deliberately. Existing integer variables do not impl
 ```typescript
 export type Input = {
   amount: u64
-  label: string?
+  label?: string
   adjustments: u64[]
 }
 
@@ -46,7 +46,7 @@ export default function (in: Input): Output {
 }
 ```
 
-`T?` is an optional value; object properties also support the `name?: T` form. `T[]` is a list. `[T, U]` is a tuple. Objects, named types, and enums let the compiler check the shape of a boundary before execution.
+Write nullable object fields as `name?: T`. Standalone nullable type expressions use `T?`, such as `export type Output = string?`. `items?: T[]` makes the list nullable; `items: T?[]` makes its elements nullable. `T[]` is a list. `[T, U]` is a tuple. Objects, named types, and enums let the compiler check the shape of a boundary before execution.
 
 ### Check arithmetic assumptions
 

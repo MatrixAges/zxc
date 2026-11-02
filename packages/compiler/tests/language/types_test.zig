@@ -40,7 +40,7 @@ test "types: fixed width integer boundaries are enforced before generation" {
 }
 
 test "types: missing optional object fields become none" {
-    try check("export type Input = void\n export type Output = { value: u64? }\n export default function (in: Input): Output { return {} }", true);
+    try check("export type Input = void\n export type Output = { value?: u64 }\n export default function (in: Input): Output { return {} }", true);
     try check("export type Input = void\n export type Output = { value: u64 }\n export default function (in: Input): Output { return {} }", false);
 }
 
@@ -52,7 +52,7 @@ test "types: tuple destructuring is explicit and arity checked" {
 
 test "types: optional containers and recursively nested aliases are distinct" {
     try check("export type Input = u64?[]\n export type Output = u64[]?\n export default function (in: Input): Output { return in }", false);
-    try check("export type Loop = { next: Loop? }\n", false);
+    try check("export type Loop = { next?: Loop }\n", false);
 }
 
 test "types: switch labels reject duplicate values and require total return paths" {

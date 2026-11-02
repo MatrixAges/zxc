@@ -24,8 +24,8 @@ export type Program = {
     contracts: Contract[]
     has_store: bool
     function_start: u64
-    body: u64?
-        diagnostic: Diagnostic
+    body?: u64
+    diagnostic: Diagnostic
 }
 
 export type Expression = {

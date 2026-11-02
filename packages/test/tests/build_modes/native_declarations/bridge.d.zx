@@ -7,10 +7,10 @@ export type Snapshot = { value: i32 }
 export type Request = { items: Item[]
  baseline: Snapshot[]
  offset: i32
- mode: Mode? }
+ mode?: Mode }
 
 export type Response = { items: Snapshot[]
  baseline: Snapshot[]
- mode: Mode? }
+ mode?: Mode }
 
 export declare function process(allocator, input: Request): Response throws

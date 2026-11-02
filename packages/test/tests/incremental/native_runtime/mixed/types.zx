@@ -2,7 +2,7 @@ import type { Mode } from "zig:choice"
 
 export type Request = {
   values: Mode[],
-  saved: u64?,
+  saved?: u64,
   record: { value: u64, enabled: bool },
   pair: [u64, bool],
   mode: Mode,
@@ -11,10 +11,10 @@ export type Request = {
 
 export type Response = {
   values: Mode[],
-  saved: u64?,
+  saved?: u64,
   record: { value: u64, enabled: bool },
   pair: [u64, bool],
   mode: Mode,
-  picked: Mode?,
+  picked?: Mode,
   missing: bool
 }

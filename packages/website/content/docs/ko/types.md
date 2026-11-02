@@ -32,7 +32,7 @@ ZX는 Zig를 생성하기 전에 구체적인 타입을 부여합니다. JavaScr
 ```typescript
 export type Input = {
   amount: u64
-  label: string?
+  label?: string
   adjustments: u64[]
 }
 
@@ -46,7 +46,7 @@ export default function (in: Input): Output {
 }
 ```
 
-`T?`는 선택적 값이며 객체 속성은 `name?: T` 형태도 지원합니다. `T[]`는 리스트이고 `[T, U]`는 튜플입니다. 객체, 이름 있는 타입, 열거형을 사용하면 실행 전에 경계의 데이터 형태를 검사할 수 있습니다.
+null을 허용하는 객체 필드는 `name?: T`로 통일합니다. 독립적인 타입 표현식은 `export type Output = string?`처럼 `T?`를 사용합니다. `items?: T[]`는 리스트 자체가, `items: T?[]`는 각 요소가 null을 허용합니다. `T[]`는 리스트이고 `[T, U]`는 튜플입니다. 객체, 이름 있는 타입, 열거형을 사용하면 실행 전에 경계의 데이터 형태를 검사할 수 있습니다.
 
 ### 산술 가정 확인
 

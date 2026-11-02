@@ -19,7 +19,7 @@ writeOutput(
     `tests/${base}/cases.zx`,
     zxSource(`export type Input = { items: i64[], count: u64 }
 
-export type Output = { removed: i64[], rest: i64[], popped: i64? }
+export type Output = { removed: i64[], rest: i64[], popped?: i64 }
 
 export default function (in: Input): Output {
   const owned = map(in.items, item => item)

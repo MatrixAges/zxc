@@ -3,7 +3,7 @@ import integers from "std:integer"
 export type Input = {
     input: u32,
     output: u32,
-    native_module: u32?,
+    native_module?: u32,
     types: u64[],
     natives: u64[]
 }
@@ -11,7 +11,7 @@ export type Input = {
 export type Output = {
     input: u32,
     output: u32,
-    native_module: u32?
+    native_module?: u32
 }?
 
     export default function (in: Input): Output {

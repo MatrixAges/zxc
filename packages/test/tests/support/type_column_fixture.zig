@@ -2,7 +2,7 @@ const std = @import("std");
 
 pub const source =
     \\export enum Phase { First, Second }
-    \\export type Input = { index: u64, record: { value: u64 }, pair: [u64, bool], values: Phase[], saved: u64? }
+    \\export type Input = { index: u64, record: { value: u64 }, pair: [u64, bool], values: Phase[], saved?: u64 }
     \\export type Output = Phase
     \\export default function (in: Input): Output {
     \\  const [err, res] = try in.values[in.index]

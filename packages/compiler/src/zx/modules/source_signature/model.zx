@@ -6,7 +6,7 @@ import type { Diagnostic } from "../../analysis/semantic/resolving/model"
 
 export type Input = {
     declarations: DeclarationInput,
-    imports: Values?
+    imports?: Values
 }
 
 export type Result = {
@@ -16,8 +16,8 @@ export type Result = {
     output_type: u32
     export_names: string[]
     export_types: u32[]
-    constant_scope: Values?
-        constant_first: u64
+    constant_scope?: Values
+    constant_first: u64
     type_only: bool
     has_store: bool
     diagnostic: Diagnostic

@@ -81,7 +81,7 @@ export type Binary = {
 
 export type Conditional = {
     node: u64,
-    expected: u32?,
+    expected?: u32,
     condition: u32,
     yes: u32,
     mark: Mark
@@ -89,8 +89,8 @@ export type Conditional = {
 
 export type Selection = {
     node: u64,
-    subject: u32?,
-    expected: u32?,
+    subject?: u32,
+    expected?: u32,
     arms: u64[],
     index: u64,
     conditions: u32[],
@@ -99,8 +99,8 @@ export type Selection = {
 
 export type Sequence = {
     node: u64,
-    tuple: u32?,
-    element: u32?,
+    tuple?: u32,
+    element?: u32,
     items: u64[],
     index: u64,
     values: u32[]
@@ -108,7 +108,7 @@ export type Sequence = {
 
 export type Object = {
     node: u64,
-    hint: u32?,
+    hint?: u32,
     fields: u64[],
     index: u64,
     entries: Entries,
@@ -126,7 +126,7 @@ export type Imported = {
 
 export type Method = {
     node: u64,
-    expected: u32?,
+    expected?: u32,
     target: u32
 }
 
@@ -152,7 +152,7 @@ export type Context = {
     active: u64,
     floor: u64,
     depth: u64,
-    captures: u32?,
+    captures?: u32,
     facts: Mark
     pipelines: PipelineFrame[]
 }
@@ -208,7 +208,7 @@ export type Work = {
     context: Context
     frames: Frames
     node: u64
-    expected: u32?
-        value: u32
+    expected?: u32
+    value: u32
     phase: Phase
 }

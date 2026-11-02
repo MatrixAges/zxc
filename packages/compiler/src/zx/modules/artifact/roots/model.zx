@@ -39,7 +39,7 @@ export type Record = {
     import_kinds: TargetKind[]
     import_specifiers: string[]
     has_body: bool
-    body_function: u32?
+    body_function?: u32
 }
 
 export type Request = {
@@ -55,7 +55,7 @@ export type Request = {
 
 export type Selection = {
     request: Request,
-    body: Body?
+    body?: Body
 }
 
 export type Cursor = {

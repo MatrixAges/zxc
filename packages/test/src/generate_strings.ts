@@ -64,7 +64,7 @@ function programs(): Record<string, string> {
         body: '  return { bytes: in.left.length, same: in.left == in.right, different: in.left != in.right, joined: `${in.left}${in.right}`, wrapped: `[${in.left}][${in.right}]` }\n'
     })
     const optional = wrap({
-        fields: 'left: string?, right: string?,',
+        fields: 'left?: string, right?: string,',
         output: '{ same: bool\n different: bool\n chosen: string }',
         body: '  return { same: in.left == in.right, different: in.left != in.right, chosen: in.left ?? (in.right ?? "") }\n'
     })

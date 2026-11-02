@@ -16,7 +16,7 @@ ZX uses no semicolons: an explicit `;` in code is a syntax error. Separate state
 | Construct  | Supported shape                                                               |
 | ---------- | ----------------------------------------------------------------------------- |
 | Scalar     | `void`, `boolean` / `bool`, `number` / `f64`, integer widths, `f32`, `string` |
-| Optional   | `T?`, optional object properties, `null`, `??`                                |
+| Optional   | `name?: T` fields, standalone `T?`, `null`, `??`                              |
 | Collection | `T[]` / `Array<T>`, tuple `[T, U]`                                            |
 | Structured | Named types, objects, enums                                                   |
 | Branch     | `if`, early `return`, conditional expression                                  |

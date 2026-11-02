@@ -22,8 +22,8 @@ writeOutput(
     base + '.zx',
     `export enum State { First, Second, Third }
 
-export type Input = { left: u8?
-    right: u8? }
+export type Input = { left?: u8
+    right?: u8 }
 
 export type Output = { equal: bool
     different: bool
@@ -69,8 +69,8 @@ for (const [name, operator] of [
 
 export enum Other { First, Second, Third }
 
-export type Input = { left: State?
- right: ${right_type}? }
+export type Input = { left?: State
+ right?: ${right_type} }
 
 export type Output = bool
 

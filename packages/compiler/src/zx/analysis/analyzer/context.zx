@@ -25,8 +25,8 @@ export type Context = {
     mode: Mode
     type_base: Table
     aliases: Cache
-    constant_imports: Values?
-        nominal_base: Bindings
+    constant_imports?: Values
+    nominal_base: Bindings
     nominal_names: string[]
     nominal_origin: Origin
     shared: bool
@@ -45,6 +45,6 @@ export type ModuleInput = {
     source_text: string,
     file_name: string,
     syntax: Program,
-    native: NativeModule?,
+    native?: NativeModule,
     context: Context
 }

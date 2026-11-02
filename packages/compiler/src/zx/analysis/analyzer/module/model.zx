@@ -5,9 +5,9 @@ import type { Prepared } from "../model"
 
 export type Analysis = {
     state: Prepared,
-    constant_scope: Values?,
+    constant_scope?: Values,
     constant_first: u64,
-    root: u32?,
+    root?: u32,
     contracts: Contracts,
     names: string[],
     types: u32[],

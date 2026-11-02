@@ -1,3 +1,18 @@
-export enum Kind { File, Directory, SymbolicLink, BlockDevice, CharacterDevice, Fifo, Socket, Unknown }
+export enum Kind {
+    File,
+    Directory,
+    SymbolicLink,
+    BlockDevice,
+    CharacterDevice,
+    Fifo,
+    Socket,
+    Unknown
+}
 
-export type Stat = { kind: Kind, size: u64, mtime_ms: i64, ctime_ms: i64, atime_ms: i64? }
+export type Stat = {
+    kind: Kind,
+    size: u64,
+    mtime_ms: i64,
+    ctime_ms: i64,
+    atime_ms?: i64
+}

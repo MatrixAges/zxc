@@ -25,7 +25,7 @@ export const programs: Record<string, [string, string, string]> = {
     push: [items + ' value: i64,', 'i64[]', consume('push(in.value)')],
     pop: [
         items,
-        '{ items: i64[]\n value: i64? }',
+        '{ items: i64[]\n value?: i64 }',
         '  const [items, value] = owned.pop()\n\n  return { items, value }\n'
     ],
     reverse: [items, 'i64[]', consume('reverse()')],

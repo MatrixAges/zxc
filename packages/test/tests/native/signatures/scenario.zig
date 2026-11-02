@@ -6,7 +6,7 @@ pub fn create(allocator: std.mem.Allocator, scenario: Scenario) !Source {
     var declarations: std.Io.Writer.Allocating = .init(allocator);
     var main: std.Io.Writer.Allocating = .init(allocator);
 
-    try declarations.writer.writeAll("export type Leaf = { value: u64 }\nexport type Packet = { right: Leaf[], left: Leaf? }\n");
+    try declarations.writer.writeAll("export type Leaf = { value: u64 }\nexport type Packet = { right: Leaf[], left?: Leaf }\n");
 
     for (0..scenario.aliases) |index| {
         const target = if (index == 0) "Packet" else try std.fmt.allocPrint(allocator, "Alias{d}", .{index - 1});

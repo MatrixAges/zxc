@@ -30,7 +30,7 @@ test "task cannot capture a native reference leaf" {
 }
 
 test "task cannot capture a nested optional native reference" {
-    try f.rejected(std.testing.allocator, .{ .input = "{ node: Node? }", .output = "u64", .body = "const work = async in.node\n\n  return 0" }, .{ .code = .capability, .message = "tasks cannot capture host references", .span_text = "async in.node" });
+    try f.rejected(std.testing.allocator, .{ .input = "{ node?: Node }", .output = "u64", .body = "const work = async in.node\n\n  return 0" }, .{ .code = .capability, .message = "tasks cannot capture host references", .span_text = "async in.node" });
 }
 
 test "parallel callback cannot capture a native reference list" {

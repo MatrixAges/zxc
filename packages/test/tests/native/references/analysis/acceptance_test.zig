@@ -38,7 +38,7 @@ test "object field access reads a reference field without exposing opaque host f
 }
 
 test "optional native reference supports null selection without address comparison" {
-    try f.accepted(std.testing.allocator, .{ .input = "{ node: Node, maybe: Node? }", .body = "return in.maybe ?? in.node" });
+    try f.accepted(std.testing.allocator, .{ .input = "{ node: Node, maybe?: Node }", .body = "return in.maybe ?? in.node" });
 }
 
 test "optional native reference can be compared with null for equality" {

@@ -4,7 +4,7 @@ export type Input = { frames: Frame[], optional: u64?[], texts: string[], flags:
 
 export type State = { frames: Frame[], optional: u64?[], texts: string[], flags: bool[], label: string, index: u64, count: u64 }
 
-export type Output = { optional: u64?[], texts: string[], flags: bool[], mirror: string[], observed: u64? }
+export type Output = { optional: u64?[], texts: string[], flags: bool[], mirror: string[], observed?: u64 }
 
 export default function (in: Input): Output {
     const initial: State = { frames: in.frames, optional: in.optional, texts: in.texts, flags: in.flags, label: in.label, index: 0, count: in.count }

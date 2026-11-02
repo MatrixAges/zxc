@@ -3,9 +3,9 @@ import type { Values } from "core/constant/model"
 export enum Comparison { Missing, Different, Equal }
 
 export type Request = {
-    previous: Values?,
-    current: Values?,
+    previous?: Values,
+    current?: Values,
     mapping: u32[],
-    current_mapping: u32[]?,
-    name: string?
+    current_mapping?: u32[],
+    name?: string
 }

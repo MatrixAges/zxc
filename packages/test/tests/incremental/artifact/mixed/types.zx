@@ -4,6 +4,6 @@ export enum Mode { First, Second }
 
 export type Record = { count: u64, mode: Mode }
 
-export type Request = { node: Node, record: Record, pair: [Mode, u64], values: Mode[], saved: Mode? }
+export type Request = { node: Node, record: Record, pair: [Mode, u64], values: Mode[], saved?: Mode }
 
-export type Response = { node: Node, record: Record, pair: [Mode, u64], values: Mode[], saved: Mode?, total: u64 }
+export type Response = { node: Node, record: Record, pair: [Mode, u64], values: Mode[], saved?: Mode, total: u64 }

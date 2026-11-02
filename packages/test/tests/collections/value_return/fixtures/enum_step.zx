@@ -1,6 +1,6 @@
 import { Phase } from "./phase"
 
-export type State = { phase: Phase, saved: Phase?, count: u64 }
+export type State = { phase: Phase, saved?: Phase, count: u64 }
 
 export type Input = { state: State, item: bool }
 

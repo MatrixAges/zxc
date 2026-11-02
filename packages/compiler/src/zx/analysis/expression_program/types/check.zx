@@ -7,10 +7,10 @@ import type { Analysis } from "../model"
 
 export type Input = {
     analysis: Analysis,
-    constant_values: Values?,
+    constant_values?: Values,
     binding_types: u32[],
     alias_types: u32[],
-    expected: u32?,
+    expected?: u32,
     check_bindings: bool
 }
 

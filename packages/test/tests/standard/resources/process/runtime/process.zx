@@ -2,7 +2,7 @@ import context from "./context"
 
 export type Input = string
 
-export type Output = { argv: string[], env: string?, cwd: string }
+export type Output = { argv: string[], env?: string, cwd: string }
 
 export default function (in: Input): Output {
   const value = context(in)

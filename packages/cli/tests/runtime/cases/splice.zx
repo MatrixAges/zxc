@@ -2,7 +2,7 @@ export type Input = u64[]
 
 export type Output = { values: u64[]
  removed: u64[]
- empty: u64? }
+ empty?: u64 }
 
 export default function (in: Input): Output {
   const initial: u64[] = []

@@ -32,7 +32,7 @@ ZX は Zig を生成する前に具体的な型を決定します。JavaScript �
 ```typescript
 export type Input = {
   amount: u64
-  label: string?
+  label?: string
   adjustments: u64[]
 }
 
@@ -46,7 +46,7 @@ export default function (in: Input): Output {
 }
 ```
 
-`T?` は省略可能な値です。オブジェクトのプロパティには `name?: T` も使えます。`T[]` はリスト、`[T, U]` はタプルです。オブジェクト、名前付き型、列挙型により、実行前に境界のデータ形状を検査できます。
+null 許容のオブジェクトフィールドは `name?: T` に統一します。独立した型式では `export type Output = string?` のように `T?` を使います。`items?: T[]` はリスト自体、`items: T?[]` は各要素が null 許容です。`T[]` はリスト、`[T, U]` はタプルです。オブジェクト、名前付き型、列挙型により、実行前に境界のデータ形状を検査できます。
 
 ### 算術の前提を確認する
 

@@ -1,13 +1,24 @@
-export type Entry = { key: string
- value: string }
-export type Lookup = { entries: Entry[]
- key: string }
-export type Match = { entries: Entry[]
- key: string
- value: string? }
-export type Update = { entries: Entry[]
- key: string
- value: string }
+export type Entry = {
+    key: string
+    value: string
+}
+
+export type Lookup = {
+    entries: Entry[]
+    key: string
+}
+
+export type Match = {
+    entries: Entry[]
+    key: string
+    value?: string
+}
+
+export type Update = {
+    entries: Entry[]
+    key: string
+    value: string
+}
 
 export declare function parse(allocator, in: string): Entry[] throws { OutOfMemory } concurrent
 

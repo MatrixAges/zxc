@@ -1,6 +1,6 @@
 export type Meta = { value: u64 }
 
-export type Frame = { meta: Meta, pair: [u64, bool], previous: Meta? }
+export type Frame = { meta: Meta, pair: [u64, bool], previous?: Meta }
 
 export type Input = { frames: Frame[], count: u64 }
 

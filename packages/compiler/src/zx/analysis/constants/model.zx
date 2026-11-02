@@ -25,8 +25,8 @@ export type Step = {
 
 export type Action = {
     frame: Frame,
-    child: u32?,
-    value: Value?,
+    child?: u32,
+    value?: Value,
     message: string
 }
 
@@ -37,6 +37,6 @@ export type Next = {
 }
 
 export type Result = {
-    value: Value?,
+    value?: Value,
     diagnostic: Diagnostic
 }

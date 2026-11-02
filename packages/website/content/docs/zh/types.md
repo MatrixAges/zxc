@@ -32,7 +32,7 @@ ZX 在生成 Zig 之前确定具体类型，不采用 JavaScript 的单一数值
 ```typescript
 export type Input = {
   amount: u64
-  label: string?
+  label?: string
   adjustments: u64[]
 }
 
@@ -46,7 +46,7 @@ export default function (in: Input): Output {
 }
 ```
 
-`T?` 表示可选值，对象属性也支持 `name?: T`。`T[]` 是列表，`[T, U]` 是元组。对象、命名类型与枚举让编译器能够在执行前检查边界的数据形状。
+可空对象字段统一写成 `name?: T`。独立类型表达式用 `T?`，例如 `export type Output = string?`；`items?: T[]` 表示列表可空，`items: T?[]` 表示列表元素可空。`T[]` 是列表，`[T, U]` 是元组。对象、命名类型与枚举让编译器能够在执行前检查边界的数据形状。
 
 ### 检查算术前提
 

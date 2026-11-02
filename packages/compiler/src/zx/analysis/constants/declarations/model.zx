@@ -9,14 +9,14 @@ import type { Name } from "../../semantic/resolving/source/model"
 export type Input = {
     bytes: u8[],
     syntax: Program,
-    native: NativeModule?,
+    native?: NativeModule,
     types: Types,
-    imports: Values?
+    imports?: Values
 }
 
 export type Result = {
     types: Types,
-    scope: Values?,
+    scope?: Values,
     first: u64,
     diagnostic: Diagnostic
 }
@@ -25,14 +25,14 @@ export type Item = {
     bytes: u8[],
     index: u64,
     constant: Constant,
-    native: NativeModule?,
+    native?: NativeModule,
     types: Types,
-    scope: Values?
+    scope?: Values
 }
 
 export type ItemResult = {
     name: Name,
     types: Types,
-    value: Literal?,
+    value?: Literal,
     diagnostic: Diagnostic
 }
