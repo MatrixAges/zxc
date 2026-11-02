@@ -1,0 +1,44 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+
+import finish from "../../../ast/finish"
+import { block_prefix } from "./const"
+
+import type { State, Output } from "./model"
+
+export type Input = State
+
+export default function (in: Input): Output {
+    const prefix = integers.widen(in.source.statement_base) + in.vector.tags.length +
+        in.tail.tags.length
+
+    if (!in.valid || prefix + in.main.tags.length + 1 > integers.widen(max_u32)) {
+        return {
+            expressions: in.expressions,
+            statements: [in.vector, in.tail, in.main],
+            root: 0,
+            serial: in.serial,
+            valid: false,
+            uses_allocator: true
+        }
+    }
+
+    const result = finish({
+        expressions: in.expressions,
+        statements: in.main,
+        expression_base: in.source.expression_base,
+        statement_base: integers.narrow(prefix),
+        serial: in.serial,
+        prefix: block_prefix,
+        value: in.values.result
+    })
+
+    return {
+        expressions: result.expressions,
+        statements: [in.vector, in.tail, result.statements],
+        root: result.id,
+        serial: result.serial,
+        valid: result.valid,
+        uses_allocator: true
+    }
+}

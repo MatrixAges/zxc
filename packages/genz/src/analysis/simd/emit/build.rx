@@ -1,0 +1,18 @@
+<Module>
+    <Type from="./model" as="Emit" />
+
+    <Args in={Emit.Input} out={Emit.Output} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="prepare/source" in={$ctx.initialize} />
+    <Call fn="prepare/allocation" in={$ctx.source} />
+    <Call fn="prepare/width" in={$ctx.allocation} />
+    <Call fn="prepare/chunks" in={$ctx.width} />
+
+    <Call module="vector" in={$ctx.chunks} />
+    <Call module="tail" in={$ctx.vector} />
+
+    <Call fn="finish" in={$ctx.tail} />
+
+    <Return value={$ctx.finish} />
+</Module>

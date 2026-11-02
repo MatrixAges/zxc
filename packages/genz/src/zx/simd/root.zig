@@ -2,10 +2,8 @@ const std = @import("std");
 const ir = @import("zx").ir;
 const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
-const aggregate = @import("../aggregate.zig");
-const intrinsic = @import("../intrinsics.zig");
-const expression = @import("expression.zig");
 const analysis = @import("analysis.zig");
+pub const emit = @import("emission.zig").emit;
 
 pub fn lower(self: *Lower, id: ir.ExprId, value: ir.Transform) Lower.Error!?node.ExpressionId {
     if (!@import("genz_options").generated_analysis) return @import("seed/root.zig").lower(self, id, value);
@@ -19,59 +17,4 @@ pub fn lower(self: *Lower, id: ir.ExprId, value: ir.Transform) Lower.Error!?node
     if (!plan.accepted) return null;
 
     return try @import("../state_value/list.zig").wrap(self, self.program.expression(id).type_id, try emit(self, plan), false);
-}
-
-pub fn emit(self: *Lower, plan: analysis.Plan) Lower.Error!node.ExpressionId {
-    const target: ir.ExprId = @fromBackingInt(plan.candidate.source);
-    const input: ir.TypeId = @fromBackingInt(plan.candidate.scalar);
-    var body: std.ArrayList(node.Statement) = .empty;
-    const source = try aggregate.bind(self, &body, try @import("../state_value/list.zig").expression(self, target));
-    const element_type = try self.typeExpr(input);
-    const length = try self.field(source, "len");
-    const result = try aggregate.bind(self, &body, try self.call(try self.field(try self.builder.identifier("allocator"), "alloc"), &.{ element_type, length }, true));
-    const suggested = try intrinsic.standard(self, &.{ "simd", "suggestVectorLength" }, &.{element_type}, false);
-    const width = try aggregate.bind(self, &body, try self.builder.expression(.{ .comptime_value = try intrinsic.binary(self, .coalesce, suggested, try self.builder.integer(1)) }));
-    const vector_type = try self.builtin(.Vector, &.{ width, element_type });
-    const chunks = try aggregate.bind(self, &body, try intrinsic.binary(self, .divide, length, width));
-    const chunk_name = try self.fresh("chunk");
-    var vector_body: std.ArrayList(node.Statement) = .empty;
-    const offset = try aggregate.bind(self, &vector_body, try intrinsic.binary(self, .multiply, try self.builder.identifier(chunk_name), width));
-    const element = try self.cast(vector_type, try chunk(self, source, offset, width));
-
-    try vector_body.append(self.allocator, .{ .assignment = .{
-        .target = try chunk(self, result, offset, width),
-        .value = try expression.lower(self, plan, vector_type, element),
-    } });
-
-    try body.append(self.allocator, .{ .for_loop = .{
-        .iterable = try self.builder.expression(.{ .range = .{ .start = try self.builder.integer(0), .end = chunks } }),
-        .capture = chunk_name,
-        .body = try self.builder.statements(vector_body.items),
-    } });
-
-    const tail = try aggregate.bind(self, &body, try intrinsic.binary(self, .multiply, chunks, width));
-    const index_name = try self.fresh("index");
-    const element_name = try self.fresh("element");
-    const tail_value = try expression.lower(self, plan, null, try self.builder.identifier(element_name));
-
-    const assignment = node.Statement{ .assignment = .{
-        .target = try self.builder.expression(.{ .index = .{ .target = result, .index = try intrinsic.binary(self, .add, tail, try self.builder.identifier(index_name)) } }),
-        .value = tail_value,
-    } };
-
-    try body.append(self.allocator, .{ .for_loop = .{
-        .iterable = try self.builder.expression(.{ .slice = .{ .target = source, .start = tail } }),
-        .capture = if (plan.expression.uses_element) element_name else "_",
-        .index_capture = index_name,
-        .body = try self.builder.statements(&.{assignment}),
-    } });
-
-    return try aggregate.finish(self, &body, result);
-}
-
-fn chunk(self: *Lower, target: node.ExpressionId, offset: node.ExpressionId, width: node.ExpressionId) Lower.Error!node.ExpressionId {
-    const remaining = try self.builder.expression(.{ .slice = .{ .target = target, .start = offset } });
-    const values = try self.builder.expression(.{ .slice = .{ .target = remaining, .start = try self.builder.integer(0), .end = width } });
-
-    return self.builder.expression(.{ .dereference = values });
 }

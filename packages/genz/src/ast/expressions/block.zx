@@ -1,0 +1,38 @@
+import { ExpressionsKind } from "../../printer/model/expressions"
+import header from "./header"
+
+import type { Columns, Result } from "./model"
+
+export type Input = {
+    table: Columns,
+    base: u32,
+    label: u8[],
+    start: u32,
+    count: u32
+}
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const result = header({
+        table: in.table,
+        base: in.base,
+        kind: ExpressionsKind.Block,
+        offset: in.table.block_label.length
+    })
+
+    if (!result.valid) {
+        return result
+    }
+
+    return {
+        ...result,
+        table: {
+            ...result.table,
+            block_label: result.table.block_label.push(in.label)[0],
+            block_statements_start:
+                result.table.block_statements_start.push(in.start)[0],
+            block_statements_len: result.table.block_statements_len.push(in.count)[0]
+        }
+    }
+}

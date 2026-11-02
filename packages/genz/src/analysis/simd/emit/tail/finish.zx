@@ -1,0 +1,71 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import binary from "../../../../ast/expressions/binary"
+import index from "../../../../ast/expressions/index"
+import slice from "../../../../ast/expressions/slice"
+import assignment from "../../../../ast/statements/assignment"
+import forLoop from "../../../../ast/statements/for_loop"
+import { ExpressionsBinaryOperator } from "../../../../printer/model/expressions"
+import { discard_capture } from "../const"
+
+import type { State } from "../model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const position = binary({
+        table: in.expressions,
+        base: in.source.expression_base,
+        operator: ExpressionsBinaryOperator.Add,
+        left: in.values.tail,
+        right: in.values.index
+    })
+
+    const target = index({
+        table: position.table,
+        base: in.source.expression_base,
+        target: in.values.result,
+        index: position.id
+    })
+
+    const written = assignment({
+        table: in.tail,
+        base: in.source.statement_base,
+        target: target.id,
+        value: in.values.mapped
+    })
+
+    const remaining = slice({
+        table: target.table,
+        base: in.source.expression_base,
+        target: in.values.source,
+        start: in.values.tail,
+        end: null
+    })
+
+    const main = forLoop({
+        table: in.main,
+        base: in.source.statement_base,
+        iterable: remaining.id,
+        capture: in.source.uses_element ? in.values.element_name :
+            bytes.fromText(discard_capture),
+        start: integers.narrow(
+            integers.widen(in.source.statement_base) +
+                in.vector.tags.length
+        ),
+        count: integers.narrow(written.table.tags.length),
+        index: in.values.index_name
+    })
+
+    return {
+        ...in,
+        expressions: remaining.table,
+        main: main.table,
+        tail: written.table,
+        valid: in.valid && position.valid && target.valid && written.valid &&
+            remaining.valid && main.valid
+    }
+}

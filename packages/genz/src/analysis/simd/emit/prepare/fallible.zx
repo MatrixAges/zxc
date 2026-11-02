@@ -1,0 +1,37 @@
+import catchValue from "../../../../ast/expressions/catch"
+import wrapper from "../../../../ast/expressions/wrapper"
+import { ExpressionsKind } from "../../../../printer/model/expressions"
+
+import type { Columns, Result } from "../../../../ast/expressions/model"
+import type { Capture } from "../model"
+
+export type Input = {
+    table: Columns,
+    base: u32,
+    value: u32,
+    capture: Capture?
+}
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const capture = in.capture
+
+    if (capture == null) {
+        return wrapper({
+            table: in.table,
+            base: in.base,
+            kind: ExpressionsKind.TryValue,
+            value: in.value
+        })
+    }
+
+    return catchValue({
+        table: in.table,
+        base: in.base,
+        value: in.value,
+        capture: capture.name,
+        label: capture.label,
+        result: capture.failure
+    })
+}

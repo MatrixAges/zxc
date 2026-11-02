@@ -1,0 +1,78 @@
+import bind from "../../../../ast/bind"
+import binary from "../../../../ast/expressions/binary"
+import builtin from "../../../../ast/expressions/builtin"
+import identifier from "../../../../ast/expressions/identifier"
+import fresh from "../../../../ast/fresh"
+import {
+    ExpressionsBinaryOperator,
+    ExpressionsBuiltinName
+} from "../../../../printer/model/expressions"
+import chunk from "../chunk"
+import { chunk_prefix, operand_prefix } from "../const"
+
+import type { State } from "../model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const name = fresh({
+        serial: in.serial,
+        prefix: chunk_prefix
+    })
+
+    const index = identifier({
+        table: in.expressions,
+        base: in.source.expression_base,
+        name: name.name
+    })
+
+    const position = binary({
+        table: index.table,
+        base: in.source.expression_base,
+        operator: ExpressionsBinaryOperator.Multiply,
+        left: index.id,
+        right: in.values.width
+    })
+
+    const offset = bind({
+        expressions: position.table,
+        statements: in.vector,
+        expression_base: in.source.expression_base,
+        statement_base: in.source.statement_base,
+        serial: name.serial,
+        prefix: operand_prefix,
+        value: position.id
+    })
+
+    const loaded = chunk({
+        table: offset.expressions,
+        base: in.source.expression_base,
+        target: in.values.source,
+        offset: offset.id,
+        width: in.values.width
+    })
+
+    const element = builtin({
+        table: loaded.table,
+        base: in.source.expression_base,
+        name: ExpressionsBuiltinName.As,
+        arguments: [in.values.vector_type, loaded.id]
+    })
+
+    return {
+        ...in,
+        expressions: element.table,
+        vector: offset.statements,
+        serial: offset.serial,
+        valid: in.valid && index.valid && position.valid && offset.valid &&
+            loaded.valid && element.valid,
+        values: {
+            ...in.values,
+            chunk_name: name.name,
+            offset: offset.id,
+            element: element.id
+        }
+    }
+}

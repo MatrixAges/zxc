@@ -1,0 +1,25 @@
+import bytes from "std:bytes"
+
+import integer from "../printer/text/integer"
+
+export type Input = {
+    serial: u64,
+    prefix: string
+}
+
+export type Output = {
+    serial: u64,
+    name: u8[]
+}
+
+export default function (in: Input): Output {
+    const serial = in.serial + 1
+
+    return {
+        serial,
+        name: integer({
+            output: bytes.fromText(in.prefix),
+            value: serial
+        })
+    }
+}

@@ -1,0 +1,70 @@
+import bind from "../../../../ast/bind"
+import binary from "../../../../ast/expressions/binary"
+import identifier from "../../../../ast/expressions/identifier"
+import fresh from "../../../../ast/fresh"
+import { ExpressionsBinaryOperator } from "../../../../printer/model/expressions"
+import { operand_prefix, index_prefix, element_prefix } from "../const"
+
+import type { State } from "../model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const offset = binary({
+        table: in.expressions,
+        base: in.source.expression_base,
+        operator: ExpressionsBinaryOperator.Multiply,
+        left: in.values.chunks,
+        right: in.values.width
+    })
+
+    const tail = bind({
+        expressions: offset.table,
+        statements: in.main,
+        expression_base: in.source.expression_base,
+        statement_base: in.source.statement_base,
+        serial: in.serial,
+        prefix: operand_prefix,
+        value: offset.id
+    })
+
+    const index_name = fresh({
+        serial: tail.serial,
+        prefix: index_prefix
+    })
+
+    const element_name = fresh({
+        serial: index_name.serial,
+        prefix: element_prefix
+    })
+
+    const index = identifier({
+        table: tail.expressions,
+        base: in.source.expression_base,
+        name: index_name.name
+    })
+
+    const element = identifier({
+        table: index.table,
+        base: in.source.expression_base,
+        name: element_name.name
+    })
+
+    return {
+        ...in,
+        expressions: element.table,
+        main: tail.statements,
+        serial: element_name.serial,
+        valid: in.valid && offset.valid && tail.valid && index.valid && element.valid,
+        values: {
+            ...in.values,
+            tail: tail.id,
+            index: index.id,
+            element: element.id,
+            index_name: index_name.name,
+            element_name: element_name.name
+        }
+    }
+}

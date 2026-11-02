@@ -1,0 +1,57 @@
+import type { Columns as Expressions } from "../../../ast/expressions/model"
+import type { Columns as Statements } from "../../../ast/statements/model"
+import type { Node } from "../model"
+
+export type Capture = {
+    name: u8[],
+    label: u8[],
+    failure: u32
+}
+
+export type Input = {
+    nodes: Node[],
+    uses_element: bool,
+    source: u32,
+    element_type: u32,
+    vector_literals: u32[],
+    tail_literals: u32[],
+    capture: Capture?,
+    expression_base: u32,
+    statement_base: u32,
+    serial: u64
+}
+
+export type State = {
+    source: Input,
+    expressions: Expressions,
+    main: Statements,
+    vector: Statements,
+    tail: Statements,
+    serial: u64,
+    valid: bool,
+    values: {
+        source: u32,
+        result: u32,
+        length: u32,
+        width: u32,
+        vector_type: u32,
+        chunks: u32,
+        offset: u32,
+        element: u32,
+        mapped: u32,
+        tail: u32,
+        index: u32,
+        chunk_name: u8[],
+        index_name: u8[],
+        element_name: u8[]
+    }
+}
+
+export type Output = {
+    expressions: Expressions,
+    statements: Statements[],
+    root: u32,
+    serial: u64,
+    valid: bool,
+    uses_allocator: bool
+}

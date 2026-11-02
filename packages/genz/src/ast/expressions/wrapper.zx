@@ -1,0 +1,60 @@
+import { ExpressionsKind } from "../../printer/model/expressions"
+import header from "./header"
+
+import type { Columns, Result } from "./model"
+
+export type Input = {
+    table: Columns,
+    base: u32,
+    kind: ExpressionsKind,
+    value: u32
+}
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const offset = match in.kind {
+        ExpressionsKind.TryValue => in.table.try_value.length,
+        ExpressionsKind.ComptimeValue => in.table.comptime_value.length,
+        _ => in.table.dereference.length
+    }
+
+    const result = header({
+        table: in.table,
+        base: in.base,
+        kind: in.kind,
+        offset
+    })
+
+    if (!result.valid) {
+        return result
+    }
+
+    return match in.kind {
+        ExpressionsKind.TryValue => {
+            ...result,
+            table: {
+                ...result.table,
+                try_value: result.table.try_value.push(in.value)[0]
+            }
+        },
+        ExpressionsKind.ComptimeValue => {
+            ...result,
+            table: {
+                ...result.table,
+                comptime_value: result.table.comptime_value.push(in.value)[0]
+            }
+        },
+        ExpressionsKind.Dereference => {
+            ...result,
+            table: {
+                ...result.table,
+                dereference: result.table.dereference.push(in.value)[0]
+            }
+        },
+        _ => {
+            ...result,
+            valid: false
+        }
+    }
+}

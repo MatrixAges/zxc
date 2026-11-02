@@ -1,0 +1,42 @@
+import bind from "../../../../ast/bind"
+import binary from "../../../../ast/expressions/binary"
+import { ExpressionsBinaryOperator } from "../../../../printer/model/expressions"
+import { operand_prefix } from "../const"
+
+import type { State } from "../model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const count = binary({
+        table: in.expressions,
+        base: in.source.expression_base,
+        operator: ExpressionsBinaryOperator.Divide,
+        left: in.values.length,
+        right: in.values.width
+    })
+
+    const chunks = bind({
+        expressions: count.table,
+        statements: in.main,
+        expression_base: in.source.expression_base,
+        statement_base: in.source.statement_base,
+        serial: in.serial,
+        prefix: operand_prefix,
+        value: count.id
+    })
+
+    return {
+        ...in,
+        expressions: chunks.expressions,
+        main: chunks.statements,
+        serial: chunks.serial,
+        valid: in.valid && count.valid && chunks.valid,
+        values: {
+            ...in.values,
+            chunks: chunks.id
+        }
+    }
+}

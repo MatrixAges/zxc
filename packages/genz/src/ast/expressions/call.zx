@@ -1,0 +1,35 @@
+import { ExpressionsKind } from "../../printer/model/expressions"
+import header from "./header"
+
+import type { Columns, Result } from "./model"
+
+export type Input = {
+    table: Columns,
+    base: u32,
+    callee: u32,
+    arguments: u32[]
+}
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const result = header({
+        table: in.table,
+        base: in.base,
+        kind: ExpressionsKind.Call,
+        offset: in.table.call_callee.length
+    })
+
+    if (!result.valid) {
+        return result
+    }
+
+    return {
+        ...result,
+        table: {
+            ...result.table,
+            call_callee: result.table.call_callee.push(in.callee)[0],
+            call_arguments: result.table.call_arguments.push(in.arguments)[0]
+        }
+    }
+}

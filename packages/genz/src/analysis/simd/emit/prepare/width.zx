@@ -1,0 +1,110 @@
+import bytes from "std:bytes"
+
+import bind from "../../../../ast/bind"
+import binary from "../../../../ast/expressions/binary"
+import builtin from "../../../../ast/expressions/builtin"
+import call from "../../../../ast/expressions/call"
+import field from "../../../../ast/expressions/field"
+import identifier from "../../../../ast/expressions/identifier"
+import integer from "../../../../ast/expressions/integer"
+import wrapper from "../../../../ast/expressions/wrapper"
+import {
+    ExpressionsKind,
+    ExpressionsBinaryOperator,
+    ExpressionsBuiltinName
+} from "../../../../printer/model/expressions"
+import {
+    standard_name,
+    simd_member,
+    vector_width_member,
+    minimum_vector_width,
+    operand_prefix
+} from "../const"
+
+import type { State } from "../model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const standard = identifier({
+        table: in.expressions,
+        base: in.source.expression_base,
+        name: bytes.fromText(standard_name)
+    })
+
+    const namespace = field({
+        table: standard.table,
+        base: in.source.expression_base,
+        target: standard.id,
+        name: bytes.fromText(simd_member)
+    })
+
+    const callee = field({
+        table: namespace.table,
+        base: in.source.expression_base,
+        target: namespace.id,
+        name: bytes.fromText(vector_width_member)
+    })
+
+    const suggested = call({
+        table: callee.table,
+        base: in.source.expression_base,
+        callee: callee.id,
+        arguments: [in.source.element_type]
+    })
+
+    const minimum = integer({
+        table: suggested.table,
+        base: in.source.expression_base,
+        value: minimum_vector_width
+    })
+
+    const selected = binary({
+        table: minimum.table,
+        base: in.source.expression_base,
+        operator: ExpressionsBinaryOperator.Coalesce,
+        left: suggested.id,
+        right: minimum.id
+    })
+
+    const constant_width = wrapper({
+        table: selected.table,
+        base: in.source.expression_base,
+        kind: ExpressionsKind.ComptimeValue,
+        value: selected.id
+    })
+
+    const width = bind({
+        expressions: constant_width.table,
+        statements: in.main,
+        expression_base: in.source.expression_base,
+        statement_base: in.source.statement_base,
+        serial: in.serial,
+        prefix: operand_prefix,
+        value: constant_width.id
+    })
+
+    const vector = builtin({
+        table: width.expressions,
+        base: in.source.expression_base,
+        name: ExpressionsBuiltinName.Vector,
+        arguments: [width.id, in.source.element_type]
+    })
+
+    return {
+        ...in,
+        expressions: vector.table,
+        main: width.statements,
+        serial: width.serial,
+        valid: in.valid && standard.valid && namespace.valid && callee.valid &&
+            suggested.valid && minimum.valid && selected.valid && constant_width.valid &&
+            width.valid && vector.valid,
+        values: {
+            ...in.values,
+            width: width.id,
+            vector_type: vector.id
+        }
+    }
+}

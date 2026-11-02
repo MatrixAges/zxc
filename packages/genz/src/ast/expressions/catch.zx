@@ -1,0 +1,39 @@
+import { ExpressionsKind } from "../../printer/model/expressions"
+import header from "./header"
+
+import type { Columns, Result } from "./model"
+
+export type Input = {
+    table: Columns,
+    base: u32,
+    value: u32,
+    capture: u8[],
+    label: u8[],
+    result: u32
+}
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const result = header({
+        table: in.table,
+        base: in.base,
+        kind: ExpressionsKind.CatchValue,
+        offset: in.table.catch_value_value.length
+    })
+
+    if (!result.valid) {
+        return result
+    }
+
+    return {
+        ...result,
+        table: {
+            ...result.table,
+            catch_value_value: result.table.catch_value_value.push(in.value)[0],
+            catch_value_capture: result.table.catch_value_capture.push(in.capture)[0],
+            catch_value_label: result.table.catch_value_label.push(in.label)[0],
+            catch_value_result: result.table.catch_value_result.push(in.result)[0]
+        }
+    }
+}

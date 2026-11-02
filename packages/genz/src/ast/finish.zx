@@ -1,0 +1,34 @@
+import integers from "std:integer"
+
+import block from "./expressions/block"
+import fresh from "./fresh"
+import breakValue from "./statements/break_value"
+
+import type { Input, Output } from "./bind"
+
+export default function (in: Input): Output {
+    const name = fresh(in.pick(["serial", "prefix"]))
+
+    const statements = breakValue({
+        table: in.statements,
+        base: in.statement_base,
+        label: name.name,
+        value: in.value
+    })
+
+    const expression = block({
+        table: in.expressions,
+        base: in.expression_base,
+        label: name.name,
+        start: in.statement_base,
+        count: integers.narrow(statements.table.tags.length)
+    })
+
+    return {
+        expressions: expression.table,
+        statements: statements.table,
+        serial: name.serial,
+        id: expression.id,
+        valid: statements.valid && expression.valid
+    }
+}

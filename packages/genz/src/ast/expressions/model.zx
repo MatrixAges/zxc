@@ -14,7 +14,30 @@ export type Columns = {
     binary_left: u32[],
     binary_right: u32[],
     builtin_name: ExpressionsBuiltinName[],
-    builtin_arguments: u32[][]
+    builtin_arguments: u32[][],
+    identifier: u8[][],
+    integer: u64[],
+    field_target: u32[],
+    field_name: u8[][],
+    call_callee: u32[],
+    call_arguments: u32[][],
+    try_value: u32[],
+    comptime_value: u32[],
+    dereference: u32[],
+    catch_value_value: u32[],
+    catch_value_capture: u8[][],
+    catch_value_label: u8[][],
+    catch_value_result: u32[],
+    slice_target: u32[],
+    slice_start: u32?[],
+    slice_end: u32?[],
+    range_start: u32[],
+    range_end: u32[],
+    index_target: u32[],
+    index_index: u32[],
+    block_label: u8[][],
+    block_statements_start: u32[],
+    block_statements_len: u32[]
 }
 
 export type Result = {

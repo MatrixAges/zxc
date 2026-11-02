@@ -1,0 +1,36 @@
+<Module>
+    <Type from="./model" as="Emit" />
+
+    <Args in={Emit.State} out={Emit.State} />
+
+    <Call fn="vector/prepare" in={$in} />
+
+    <Call
+        fn="../expression/emit/build"
+        in={{
+            source: {
+                nodes: $ctx.prepare.source.nodes,
+                literals: $ctx.prepare.source.vector_literals,
+                element: $ctx.prepare.values.element,
+                vector_type: $ctx.prepare.values.vector_type,
+                base: $ctx.prepare.source.expression_base
+            },
+            table: $ctx.prepare.expressions
+        }}
+    />
+
+    <Call
+        fn="vector/finish"
+        in={{
+            ...$ctx.prepare,
+            expressions: $ctx.build.table,
+            valid: $ctx.prepare.valid && $ctx.build.valid,
+            values: {
+                ...$ctx.prepare.values,
+                mapped: $ctx.build.root
+            }
+        }}
+    />
+
+    <Return value={$ctx.finish} />
+</Module>

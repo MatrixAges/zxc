@@ -1,0 +1,43 @@
+import bytes from "std:bytes"
+
+import bind from "../../../../ast/bind"
+import field from "../../../../ast/expressions/field"
+import { operand_prefix, length_member } from "../const"
+
+import type { State } from "../model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const source = bind({
+        expressions: in.expressions,
+        statements: in.main,
+        expression_base: in.source.expression_base,
+        statement_base: in.source.statement_base,
+        serial: in.serial,
+        prefix: operand_prefix,
+        value: in.source.source
+    })
+
+    const length = field({
+        table: source.expressions,
+        base: in.source.expression_base,
+        target: source.id,
+        name: bytes.fromText(length_member)
+    })
+
+    return {
+        ...in,
+        expressions: length.table,
+        main: source.statements,
+        serial: source.serial,
+        valid: in.valid && source.valid && length.valid,
+        values: {
+            ...in.values,
+            source: source.id,
+            length: length.id
+        }
+    }
+}

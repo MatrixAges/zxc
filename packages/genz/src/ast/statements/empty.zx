@@ -1,0 +1,26 @@
+import type { Columns } from "./model"
+
+export type Input = {}
+
+export type Output = Columns
+
+export default function (in: Input): Output {
+    return {
+        tags: [],
+        offsets: [],
+        constant_name: [],
+        constant_type_expr: [],
+        constant_value: [],
+        constant_exported: [],
+        assignment_target: [],
+        assignment_value: [],
+        for_loop_iterable: [],
+        for_loop_capture: [],
+        for_loop_body_start: [],
+        for_loop_body_len: [],
+        for_loop_capture_reference: [],
+        for_loop_index_capture: [],
+        break_value_label: [],
+        break_value_value: []
+    }
+}

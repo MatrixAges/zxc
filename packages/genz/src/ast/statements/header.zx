@@ -1,0 +1,34 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+
+import type { StatementsKind } from "../../printer/model/statements"
+import type { Columns, Result } from "./model"
+
+export type Input = {
+    table: Columns,
+    base: u32,
+    kind: StatementsKind,
+    offset: u64
+}
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    if (
+        integers.widen(in.base) + in.table.tags.length >= integers.widen(max_u32)
+    ) {
+        return {
+            table: in.table,
+            valid: false
+        }
+    }
+
+    return {
+        table: {
+            ...in.table,
+            tags: in.table.tags.push(in.kind)[0],
+            offsets: in.table.offsets.push(integers.narrow(in.offset))[0]
+        },
+        valid: true
+    }
+}

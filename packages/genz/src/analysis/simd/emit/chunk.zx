@@ -1,0 +1,52 @@
+import integer from "../../../ast/expressions/integer"
+import slice from "../../../ast/expressions/slice"
+import wrapper from "../../../ast/expressions/wrapper"
+import { ExpressionsKind } from "../../../printer/model/expressions"
+
+import type { Columns, Result } from "../../../ast/expressions/model"
+
+export type Input = {
+    table: Columns,
+    base: u32,
+    target: u32,
+    offset: u32,
+    width: u32
+}
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const remaining = slice({
+        table: in.table,
+        base: in.base,
+        target: in.target,
+        start: in.offset,
+        end: null
+    })
+
+    const zero = integer({
+        table: remaining.table,
+        base: in.base,
+        value: 0
+    })
+
+    const values = slice({
+        table: zero.table,
+        base: in.base,
+        target: remaining.id,
+        start: zero.id,
+        end: in.width
+    })
+
+    const result = wrapper({
+        table: values.table,
+        base: in.base,
+        kind: ExpressionsKind.Dereference,
+        value: values.id
+    })
+
+    return {
+        ...result,
+        valid: remaining.valid && zero.valid && values.valid && result.valid
+    }
+}

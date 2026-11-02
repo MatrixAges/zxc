@@ -1,0 +1,62 @@
+import integers from "std:integer"
+
+import integer from "../../../../ast/expressions/integer"
+import range from "../../../../ast/expressions/range"
+import assignment from "../../../../ast/statements/assignment"
+import forLoop from "../../../../ast/statements/for_loop"
+import chunk from "../chunk"
+
+import type { State } from "../model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const target = chunk({
+        table: in.expressions,
+        base: in.source.expression_base,
+        target: in.values.result,
+        offset: in.values.offset,
+        width: in.values.width
+    })
+
+    const written = assignment({
+        table: in.vector,
+        base: in.source.statement_base,
+        target: target.id,
+        value: in.values.mapped
+    })
+
+    const zero = integer({
+        table: target.table,
+        base: in.source.expression_base,
+        value: 0
+    })
+
+    const chunks = range({
+        table: zero.table,
+        base: in.source.expression_base,
+        start: zero.id,
+        end: in.values.chunks
+    })
+
+    const main = forLoop({
+        table: in.main,
+        base: in.source.statement_base,
+        iterable: chunks.id,
+        capture: in.values.chunk_name,
+        start: in.source.statement_base,
+        count: integers.narrow(written.table.tags.length),
+        index: null
+    })
+
+    return {
+        ...in,
+        expressions: chunks.table,
+        main: main.table,
+        vector: written.table,
+        valid: in.valid && target.valid && written.valid && zero.valid &&
+            chunks.valid && main.valid
+    }
+}

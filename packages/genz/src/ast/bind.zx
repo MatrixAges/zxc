@@ -1,0 +1,49 @@
+import identifier from "./expressions/identifier"
+import fresh from "./fresh"
+import binding from "./statements/binding"
+
+import type { Columns as Expressions } from "./expressions/model"
+import type { Columns as Statements } from "./statements/model"
+
+export type Input = {
+    expressions: Expressions,
+    statements: Statements,
+    expression_base: u32,
+    statement_base: u32,
+    serial: u64,
+    prefix: string,
+    value: u32
+}
+
+export type Output = {
+    expressions: Expressions,
+    statements: Statements,
+    serial: u64,
+    id: u32,
+    valid: bool
+}
+
+export default function (in: Input): Output {
+    const name = fresh(in.pick(["serial", "prefix"]))
+
+    const statements = binding({
+        table: in.statements,
+        base: in.statement_base,
+        name: name.name,
+        value: in.value
+    })
+
+    const expression = identifier({
+        table: in.expressions,
+        base: in.expression_base,
+        name: name.name
+    })
+
+    return {
+        expressions: expression.table,
+        statements: statements.table,
+        serial: name.serial,
+        id: expression.id,
+        valid: statements.valid && expression.valid
+    }
+}

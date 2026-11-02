@@ -1,0 +1,36 @@
+import expressions from "../../../ast/expressions/empty"
+import statements from "../../../ast/statements/empty"
+
+import type { Input, State } from "./model"
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const empty = statements({})
+
+    return {
+        source: in,
+        expressions: expressions({}),
+        main: empty,
+        vector: empty,
+        tail: empty,
+        serial: in.serial,
+        valid: true,
+        values: {
+            source: 0,
+            result: 0,
+            length: 0,
+            width: 0,
+            vector_type: 0,
+            chunks: 0,
+            offset: 0,
+            element: 0,
+            mapped: 0,
+            tail: 0,
+            index: 0,
+            chunk_name: [],
+            index_name: [],
+            element_name: []
+        }
+    }
+}

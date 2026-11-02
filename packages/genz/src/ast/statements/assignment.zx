@@ -1,0 +1,35 @@
+import { StatementsKind } from "../../printer/model/statements"
+import header from "./header"
+
+import type { Columns, Result } from "./model"
+
+export type Input = {
+    table: Columns,
+    base: u32,
+    target: u32,
+    value: u32
+}
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const result = header({
+        table: in.table,
+        base: in.base,
+        kind: StatementsKind.Assignment,
+        offset: in.table.assignment_target.length
+    })
+
+    if (!result.valid) {
+        return result
+    }
+
+    return {
+        ...result,
+        table: {
+            ...result.table,
+            assignment_target: result.table.assignment_target.push(in.target)[0],
+            assignment_value: result.table.assignment_value.push(in.value)[0]
+        }
+    }
+}

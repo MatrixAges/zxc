@@ -1,0 +1,25 @@
+import type { StatementsKind } from "../../printer/model/statements"
+
+export type Columns = {
+    tags: StatementsKind[],
+    offsets: u32[],
+    constant_name: u8[][],
+    constant_type_expr: u32?[],
+    constant_value: u32[],
+    constant_exported: bool[],
+    assignment_target: u32[],
+    assignment_value: u32[],
+    for_loop_iterable: u32[],
+    for_loop_capture: u8[][],
+    for_loop_body_start: u32[],
+    for_loop_body_len: u32[],
+    for_loop_capture_reference: bool[],
+    for_loop_index_capture: u8[]?[],
+    break_value_label: u8[][],
+    break_value_value: u32[]
+}
+
+export type Result = {
+    table: Columns,
+    valid: bool
+}

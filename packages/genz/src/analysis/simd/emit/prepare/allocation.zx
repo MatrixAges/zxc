@@ -1,0 +1,66 @@
+import bytes from "std:bytes"
+
+import bind from "../../../../ast/bind"
+import call from "../../../../ast/expressions/call"
+import field from "../../../../ast/expressions/field"
+import identifier from "../../../../ast/expressions/identifier"
+import { allocator_name, alloc_member, operand_prefix } from "../const"
+import fallible from "./fallible"
+
+import type { State } from "../model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const allocator = identifier({
+        table: in.expressions,
+        base: in.source.expression_base,
+        name: bytes.fromText(allocator_name)
+    })
+
+    const member = field({
+        table: allocator.table,
+        base: in.source.expression_base,
+        target: allocator.id,
+        name: bytes.fromText(alloc_member)
+    })
+
+    const allocated = call({
+        table: member.table,
+        base: in.source.expression_base,
+        callee: member.id,
+        arguments: [in.source.element_type, in.values.length]
+    })
+
+    const checked = fallible({
+        table: allocated.table,
+        base: in.source.expression_base,
+        value: allocated.id,
+        capture: in.source.capture
+    })
+
+    const result = bind({
+        expressions: checked.table,
+        statements: in.main,
+        expression_base: in.source.expression_base,
+        statement_base: in.source.statement_base,
+        serial: in.serial,
+        prefix: operand_prefix,
+        value: checked.id
+    })
+
+    return {
+        ...in,
+        expressions: result.expressions,
+        main: result.statements,
+        serial: result.serial,
+        valid: in.valid && allocator.valid && member.valid && allocated.valid &&
+            checked.valid && result.valid,
+        values: {
+            ...in.values,
+            result: result.id
+        }
+    }
+}
