@@ -25,6 +25,9 @@ pub fn append(self: *Lower, output: *std.ArrayList(node.Declaration), request: R
     helper.program.stores = function.stores;
     helper.program.store_mode = function.store_mode;
     helper.program.contracts = function.contracts;
+
+    try helper.refreshEntry();
+
     helper.plan = self.plans[index];
     helper.pending_name = try std.fmt.allocPrint(self.allocator, "zx_pending_{d}", .{index});
     helper.names = try self.allocator.alloc([]const u8, function.symbols.count());

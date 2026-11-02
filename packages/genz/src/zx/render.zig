@@ -94,6 +94,7 @@ pub fn initializeAnalyzed(temporary: std.mem.Allocator, workspace: std.mem.Alloc
         .allocator = temporary,
         .workspace = workspace,
         .program = program,
+        .entry_flags = facts.entry_flags,
         .builder = try @import("../builder.zig").init(temporary),
         .types = try temporary.alloc(node.ExpressionId, program.types.count()),
         .layouts = try temporary.alloc(node.ExpressionId, program.types.count()),

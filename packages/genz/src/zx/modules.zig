@@ -117,6 +117,9 @@ fn functionPrepared(allocator: std.mem.Allocator, backing: std.mem.Allocator, pr
     lower.program.stores = selected.stores;
     lower.program.store_mode = selected.store_mode;
     lower.program.contracts = selected.contracts;
+
+    try lower.refreshEntry();
+
     lower.plan = lower.plans[@backingInt(id)];
     lower.names = try temporary.alloc([]const u8, selected.symbols.count());
     lower.used = try temporary.alloc(bool, selected.symbols.count());

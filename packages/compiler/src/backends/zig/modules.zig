@@ -20,6 +20,7 @@ pub const Bundle = struct {
     native_modules: @import("zx").ir.NativeModuleTable = .{},
     store_initializers: []const StoreInitializer = &.{},
     state_module: ?[]const u8 = null,
+    requirements: ?@import("genz").zx.state.Requirements = null,
     runner: ?[]const u8 = null,
     signature: ?Signature = null,
     pub fn deinit(self: *Bundle) void {
@@ -60,7 +61,9 @@ pub fn createCached(allocator: std.mem.Allocator, analysis: *const Analysis, cac
         .output = program.output_type,
     };
 
-    return .{ .arena = arena, .entry = entry, .types = type_source, .modules = modules, .type_names = type_names, .native_modules = native_modules, .signature = signature };
+    const flags = batch.analysis.value.entry_flags;
+
+    return .{ .requirements = .{ .io = flags.io, .process = flags.process }, .arena = arena, .entry = entry, .types = type_source, .modules = modules, .type_names = type_names, .native_modules = native_modules, .signature = signature };
 }
 
 pub fn emit(allocator: std.mem.Allocator, program: @import("zx").ir.Program, identities: generating.Names, unit: fingerprint.Unit, cache: ?*Cache) Error![]const u8 {

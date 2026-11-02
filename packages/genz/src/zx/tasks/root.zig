@@ -2,7 +2,6 @@ const std = @import("std");
 const ir = @import("zx").ir;
 const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
-pub const required = @import("allocator.zig").required;
 
 pub fn start(self: *Lower, id: ir.ExprId, concurrent: bool) Lower.Error!node.ExpressionId {
     const task = self.program.expression(id).value.task;
@@ -13,7 +12,7 @@ pub fn start(self: *Lower, id: ir.ExprId, concurrent: bool) Lower.Error!node.Exp
     try arguments.append(self.allocator, try self.builder.identifier("allocator"));
     try arguments.append(self.allocator, try self.builder.identifier("io"));
 
-    const process = @import("../capabilities.zig").uses(self.program.expressions, .{}, self.process_functions);
+    const process = self.entry_flags.body_process;
 
     if (process) {
         self.uses_process = true;

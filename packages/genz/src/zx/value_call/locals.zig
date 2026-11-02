@@ -4,7 +4,7 @@ const Lower = @import("../lower.zig");
 const analysis = @import("analysis.zig");
 
 pub fn register(self: *Lower, statements: ir.Block) Lower.Error![]const ir.SymbolId {
-    if (!self.value_output and !analysis.scalarLocals(self.program, self.pure_functions)) return &.{};
+    if (!self.value_output and !self.entry_flags.scalar) return &.{};
 
     var symbols: std.ArrayList(ir.SymbolId) = .empty;
 

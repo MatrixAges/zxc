@@ -37,11 +37,8 @@ pub fn append(bundle: *modules.Bundle, options: Options) Error!void {
         imports[index + 1] = initial.module_name;
     }
 
-    const io_functions = try @import("genz").zx.io.functions(allocator, program);
-    const needs_io = @import("genz").zx.io.uses(program.expressions, program.contracts, io_functions);
-    const process_functions = try @import("genz").zx.capabilities.functions(allocator, program, .process);
-    const needs_process = @import("genz").zx.capabilities.uses(program.expressions, program.contracts, process_functions);
-    const source = try emit(allocator, objects, .{ .io = needs_io, .process = needs_process }, options.cache);
+    const requirements = bundle.requirements orelse return error.InvalidAnalysis;
+    const source = try emit(allocator, objects, requirements, options.cache);
     const files = try allocator.alloc(modules.File, bundle.modules.len + 1);
 
     @memcpy(files[0..bundle.modules.len], bundle.modules);

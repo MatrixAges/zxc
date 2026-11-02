@@ -1,5 +1,7 @@
 const std = @import("std");
 const ir = @import("zx").ir;
+const calls = @import("../entry_flags/seed.zig").calls;
+const parallel = @import("../entry_flags/seed.zig").parallel;
 
 pub fn functions(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error![]bool {
     const summary = try analyze(allocator, program);
@@ -13,23 +15,6 @@ pub fn functions(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allo
 }
 
 pub const Summary = struct { pure: []bool, local: []bool, values: []bool, state: @import("../state_value/analysis.zig") };
-
-pub fn scalarLocals(program: ir.Program, pure: []const bool) bool {
-    var output = program.typeOf(program.output_type);
-
-    while (output == .optional) output = program.typeOf(output.optional);
-
-    switch (output) {
-        .scalar, .enumeration, .error_set => {},
-        else => return false,
-    }
-
-    return eligibleEntry(program, pure);
-}
-
-pub fn eligibleEntry(program: ir.Program, callees: []const bool) bool {
-    return program.stores.count() == 0 and !parallel(program.body.block()) and calls(program.expressions, program.contracts, callees);
-}
 
 pub fn analyze(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!Summary {
     const state = try @import("../state_value/analysis.zig").create(allocator, program);
@@ -121,34 +106,4 @@ pub fn containsDescendant(program: ir.Program, parent: ir.TypeId, root: ir.TypeI
 
 fn contains(program: ir.Program, child: ir.TypeId, root: ir.TypeId) bool {
     return child == root or containsDescendant(program, child, root);
-}
-
-fn calls(expressions: ir.ExpressionTable, contracts: ir.ContractTable, pure: []const bool) bool {
-    for (0..expressions.count()) |expression_index| {
-        if (expressions.concurrent(expression_index)) return false;
-        if (expressions.callee(expression_index)) |function| if (!pure[@backingInt(function)]) return false;
-    }
-
-    for (contracts.expressions) |expressions_table| if (!calls(expressions_table.*, .{}, pure)) return false;
-
-    return true;
-}
-
-fn parallel(body: ir.Block) bool {
-    for (0..body.len) |statement_index| {
-        const statement = body.at(statement_index);
-
-        switch (statement) {
-            .parallel => return true,
-            .branch => |value| if (parallel(value.yes) or parallel(value.no)) return true,
-            .switch_stmt => |value| for (0..value.cases.len) |case_index| {
-                const case = value.cases.at(case_index);
-
-                if (parallel(case.body)) return true;
-            },
-            else => {},
-        }
-    }
-
-    return false;
 }

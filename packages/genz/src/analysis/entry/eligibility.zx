@@ -1,0 +1,25 @@
+import body from "../calls/body"
+
+import type { Input } from "./model"
+
+export type Output = {
+    local: bool,
+    pure: bool
+}
+
+export default function (in: Input): Output {
+    return {
+        local: body({
+            expressions: in.expressions,
+            contracts: in.contracts,
+            allowed: in.local,
+            limit: in.local.length
+        }),
+        pure: body({
+            expressions: in.expressions,
+            contracts: in.contracts,
+            allowed: in.pure,
+            limit: in.pure.length
+        })
+    }
+}

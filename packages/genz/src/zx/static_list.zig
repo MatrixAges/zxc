@@ -3,7 +3,7 @@ const node = @import("../node.zig");
 const Lower = @import("lower.zig");
 
 pub fn lower(self: *Lower, value: ir.ExpressionRow, items: []const ir.ExprId) Lower.Error!?node.ExpressionId {
-    if (!@import("value_call/analysis.zig").scalarLocals(self.program, self.pure_functions)) return null;
+    if (!self.entry_flags.scalar) return null;
 
     const element = self.program.typeOf(value.type_id).list;
 

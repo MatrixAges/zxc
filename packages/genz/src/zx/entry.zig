@@ -7,7 +7,7 @@ const Lower = @import("lower.zig");
 /// every allocation, and `execute` only hands its arena's allocator on. A body that starts tasks shares its allocator
 /// between threads, which `execute` sets up from the arena, so it keeps `execute` alone.
 pub fn declarations(lowering: *Lower, output: *std.ArrayList(node.Declaration)) Lower.Error!void {
-    if (@import("tasks/allocator.zig").required(lowering.program, lowering.task_functions)) return output.append(lowering.allocator, try lowering.function("execute", true));
+    if (lowering.entry_flags.tasks) return output.append(lowering.allocator, try lowering.function("execute", true));
 
     var inner = try lowering.function("executeIn", false);
 

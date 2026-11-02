@@ -3,7 +3,10 @@ const ir = @import("zx").ir;
 pub const Uniqueness = @import("uniqueness/root.zig");
 const Self = @This();
 
+pub const Entry = @import("entry_flags.zig");
+
 value: @import("value_call/analysis.zig").Summary,
+entry_flags: Entry.Flags,
 io: []const bool,
 process: []const bool,
 /// Functions that start tasks, themselves or through their callees.
@@ -22,6 +25,8 @@ entry_summaries: ?*Uniqueness.Summaries = null,
 /// Replaces the entry plan with one for `program`, an entry body over the same types and functions the facts were
 /// computed for.
 pub fn reentry(self: *Self, allocator: std.mem.Allocator, workspace: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!void {
+    self.entry_flags = try Entry.analyze(workspace, program, .{ .local = self.value.local, .pure = self.value.pure, .io = self.io, .process = self.process, .tasks = self.tasks });
+
     if (self.entry_summaries) |summaries| if (summaries.input.len == program.functions.count()) {
         self.uniqueness.entry = try Uniqueness.analyzeEntryWith(allocator, workspace, program, self.basis, summaries);
 
@@ -31,14 +36,14 @@ pub fn reentry(self: *Self, allocator: std.mem.Allocator, workspace: std.mem.All
     self.uniqueness.entry = try Uniqueness.analyzeEntry(allocator, workspace, program, self.basis);
 }
 
-pub fn hasValueEntry(self: Self, program: ir.Program) bool {
-    return @import("value_call/analysis.zig").eligibleEntry(program, self.value.local);
+pub fn hasValueEntry(self: Self) bool {
+    return self.entry_flags.value;
 }
 
 /// Whether the entry of `program` has `executeIn`: a body that starts tasks shares its allocator between threads, so
 /// it runs in the arena `execute` lends alone.
-pub fn hasAllocatorEntry(self: Self, program: ir.Program) bool {
-    return !@import("tasks/allocator.zig").required(program, self.tasks);
+pub fn hasAllocatorEntry(self: Self) bool {
+    return !self.entry_flags.tasks;
 }
 
 pub const Owned = struct {
@@ -93,6 +98,7 @@ fn createWithConcurrency(backing: std.mem.Allocator, program: ir.Program, export
                 .keys = try owned.dupe([32]u8, facts.value.state.keys),
             },
         },
+        .entry_flags = facts.entry_flags,
         .io = try owned.dupe(bool, facts.io),
         .process = try owned.dupe(bool, facts.process),
         .tasks = try owned.dupe(bool, facts.tasks),
@@ -151,6 +157,7 @@ fn analyzeFrom(allocator: std.mem.Allocator, workspace: std.mem.Allocator, progr
 
     value.uniqueness = if (concurrent) try copyPlans(allocator, try uniqueness.result) else try uniqueness.result;
     value.basis = source.basis();
+    value.entry_flags = try Entry.analyze(workspace, program, .{ .local = value.value.local, .pure = value.value.pure, .io = value.io, .process = value.process, .tasks = value.tasks });
 
     return value;
 }
@@ -209,6 +216,7 @@ fn remaining(allocator: std.mem.Allocator, workspace: std.mem.Allocator, program
             .identity_free = generated.identity_free,
             .errors = generated.errors,
             .layout_types = generated.layout_types,
+            .entry_flags = undefined,
             .uniqueness = undefined,
             .basis = undefined,
         };
@@ -224,6 +232,7 @@ fn remaining(allocator: std.mem.Allocator, workspace: std.mem.Allocator, program
         .fresh_outputs = try freshOutputs(allocator, program),
         .identity_free = try @import("iteration_layout/identity_free.zig").functions(allocator, program, value.pure),
         .errors = try @import("zx").error_effects.perFunction(allocator, program.types, program.functions),
+        .entry_flags = undefined,
         .uniqueness = undefined,
         .basis = undefined,
     };

@@ -1,0 +1,47 @@
+import expressions from "../calls/expressions"
+import uses from "../capability/uses"
+
+import type { Input, Effects } from "./model"
+
+export type Output = Effects
+
+export default function (in: Input): Output {
+    const io = uses({
+        expressions: in.expressions,
+        contracts: in.contracts,
+        required: in.io,
+        limit: in.io.length,
+        tasks: true
+    })
+
+    const process = uses({
+        expressions: in.expressions,
+        contracts: in.contracts,
+        required: in.process,
+        limit: in.process.length,
+        tasks: false
+    })
+
+    const body_process = !expressions({
+        expressions: in.expressions,
+        allowed: in.process,
+        expected: false,
+        limit: in.process.length,
+        tasks: false
+    })
+
+    const tasks = !expressions({
+        expressions: in.expressions,
+        allowed: in.tasks,
+        expected: false,
+        limit: in.tasks.length,
+        tasks: true
+    })
+
+    return {
+        io: io,
+        process: process,
+        body_process: body_process,
+        tasks: tasks
+    }
+}

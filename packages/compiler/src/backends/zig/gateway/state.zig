@@ -12,8 +12,6 @@ pub fn create(allocator: std.mem.Allocator, library: *const Library, bundle: Bun
 
     const independent = try @import("frontend").storesOwnValues(allocator, library.program);
     const identities = try names.create(allocator, library.program, library.nominal_types);
-    const io_functions = try generating.zx.capabilities.functions(allocator, library.program, .io);
-    const process_functions = try generating.zx.capabilities.functions(allocator, library.program, .process);
     const services = try allocator.alloc(generating.gateway.Service, library.exports.len);
     var objects: std.ArrayList(generating.zx.state.Object) = .empty;
     var slots: std.StringHashMapUnmanaged(struct { index: usize, type_id: ir.TypeId }) = .empty;
@@ -52,13 +50,15 @@ pub fn create(allocator: std.mem.Allocator, library: *const Library, bundle: Bun
             binding.* = .{ .index = global, .writable = slot.writable };
         }
 
+        const requirements = facade.requirements orelse return error.InvalidModule;
+
         service.* = .{
             .name = facade.name,
             .module_name = facade.file.name,
             .slots = bindings,
             .output = .{ .types = program.types, .id = program.output_type },
-            .requires_io = generating.zx.io.uses(program.expressions, program.contracts, io_functions),
-            .requires_process = generating.zx.capabilities.uses(program.expressions, program.contracts, process_functions),
+            .requires_io = requirements.io,
+            .requires_process = requirements.process,
         };
     }
 

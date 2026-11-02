@@ -9,6 +9,7 @@ pub const Error = std.mem.Allocator.Error;
 allocator: std.mem.Allocator,
 workspace: std.mem.Allocator,
 program: ir.Program,
+entry_flags: @import("entry_flags.zig").Flags,
 builder: Builder,
 types: []node.ExpressionId,
 layouts: []node.ExpressionId,
@@ -59,6 +60,10 @@ function_modules: ?[]const []const u8 = null,
 function_requests: *@import("functions/requests.zig") = undefined,
 comparisons: *std.ArrayList(ir.TypeId) = undefined,
 task_declarations: *std.ArrayList(node.Declaration) = undefined,
+pub fn refreshEntry(self: *Self) Error!void {
+    self.entry_flags = try @import("entry_flags.zig").analyze(self.workspace, self.program, .{ .local = self.local_functions, .pure = self.pure_functions, .io = self.io_functions, .process = self.process_functions, .tasks = self.task_functions });
+}
+
 pub fn declarations(self: *Self) Error![]const node.Declaration {
     var output: std.ArrayList(node.Declaration) = .empty;
     var comparisons: std.ArrayList(ir.TypeId) = .empty;
@@ -74,8 +79,8 @@ pub fn declarations(self: *Self) Error![]const node.Declaration {
     if (self.function_modules == null) self.native_names = try @import("imports.zig").lower(self, &output);
     try @import("types.zig").lower(self, &output, false);
     for (self.program.exports) |item| try output.append(self.allocator, .{ .constant = .{ .name = item.name, .value = try self.typeExpr(item.type_id), .exported = true } });
-    try output.append(self.allocator, .{ .constant = .{ .name = "requires_io", .value = try self.builder.expression(.{ .boolean = @import("io.zig").uses(self.program.expressions, self.program.contracts, self.io_functions) }), .exported = true } });
-    try output.append(self.allocator, .{ .constant = .{ .name = "requires_process", .value = try self.builder.expression(.{ .boolean = @import("capabilities.zig").uses(self.program.expressions, self.program.contracts, self.process_functions) }), .exported = true } });
+    try output.append(self.allocator, .{ .constant = .{ .name = "requires_io", .value = try self.builder.expression(.{ .boolean = self.entry_flags.io }), .exported = true } });
+    try output.append(self.allocator, .{ .constant = .{ .name = "requires_process", .value = try self.builder.expression(.{ .boolean = self.entry_flags.process }), .exported = true } });
     if (self.program.type_only) return output.toOwnedSlice(self.allocator);
     try @import("shape.zig").lower(self, &output);
 
@@ -134,8 +139,8 @@ pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declar
         if (std.mem.eql(u8, error_name, "OutOfMemory")) break true;
     } else false else true;
 
-    const needs_io = @import("io.zig").uses(self.program.expressions, self.program.contracts, self.io_functions);
-    const needs_process = @import("capabilities.zig").uses(self.program.expressions, self.program.contracts, self.process_functions);
+    const needs_io = self.entry_flags.io;
+    const needs_process = self.entry_flags.process;
 
     for (self.names, 0..) |*item, index| item.* = if (index == 0) "in" else try std.fmt.allocPrint(self.allocator, "value_{d}", .{index});
 
@@ -149,7 +154,7 @@ pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declar
     try body.append(self.allocator, .{ .expression = try self.builtin(.setRuntimeSafety, &.{try self.builder.expression(.{ .boolean = true })}) });
 
     if (exported and self.uses_allocator) {
-        if (@import("tasks/allocator.zig").required(self.program, self.task_functions)) {
+        if (self.entry_flags.tasks) {
             self.uses_io = true;
 
             try @import("tasks/allocator.zig").initialize(self, &body);

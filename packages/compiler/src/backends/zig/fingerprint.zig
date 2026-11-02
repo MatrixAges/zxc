@@ -15,10 +15,9 @@ value_functions: []const bool,
 pure_functions: []const bool,
 local_functions: []const bool,
 uniqueness: @import("genz").zx.function_analysis.Uniqueness.Result,
-task_functions: []const bool,
+entry_flags: @import("genz").zx.function_analysis.Entry.Flags,
 /// A caller's signature lists the errors of the functions it calls, so a call covers the callee's set.
 errors: []const ?[]const []const u8,
-
 /// A loop that calls a function lowers in place only when the callee compares no aggregates by identity.
 identity_free: []const bool,
 fresh_outputs: []const bool,
@@ -31,7 +30,7 @@ pub fn createAnalyzed(program: ir.Program, names: Names, unit: Unit, facts: @imp
         .pure_functions = facts.value.pure,
         .local_functions = facts.value.local,
         .uniqueness = facts.uniqueness,
-        .task_functions = facts.tasks,
+        .entry_flags = facts.entry_flags,
         .errors = facts.errors,
         .identity_free = facts.identity_free,
         .fresh_outputs = facts.fresh_outputs,
@@ -47,11 +46,11 @@ fn finish(self: *Self, unit: Unit) [32]u8 {
     const value_functions = self.value_functions;
     const state_plan = self.state_plan;
 
-    self.bytes("zxc.zig.input.v51");
+    self.bytes("zxc.zig.input.v52");
     self.bytes(@tagName(unit));
     self.write(program.version);
 
-    if (unit == .entry) self.write(@import("genz").zx.tasks.required(program, self.task_functions));
+    if (unit == .entry) self.write(self.entry_flags);
 
     switch (unit) {
         .function, .regular => |id| {

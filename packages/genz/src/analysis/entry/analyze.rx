@@ -1,0 +1,46 @@
+<Module>
+    <Type from="./model" as="Entry" />
+
+    <Args in={Entry.Input} out={Entry.Flags} />
+
+    <Call fn="effects" in={$in} />
+
+    <If on={$in.stores.paths.length != 0}>
+        <Return
+            value={{
+                ...$ctx.effects,
+                value: false,
+                scalar: false
+            }}
+        />
+    </If>
+
+    <Call
+        fn="../control/parallel"
+        in={{
+            control: $in.control,
+            root: $in.root
+        }}
+    />
+
+    <If on={$ctx.parallel}>
+        <Return
+            value={{
+                ...$ctx.effects,
+                value: false,
+                scalar: false
+            }}
+        />
+    </If>
+
+    <Call fn="eligibility" in={$in} />
+    <Call fn="scalar" in={$in} />
+
+    <Return
+        value={{
+            ...$ctx.effects,
+            value: $ctx.eligibility.local,
+            scalar: $ctx.eligibility.pure && $ctx.scalar
+        }}
+    />
+</Module>

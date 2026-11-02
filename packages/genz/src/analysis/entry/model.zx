@@ -1,0 +1,36 @@
+import type { Contracts } from "core/contract_table/model"
+import type { Control } from "core/control_table/model"
+import type { Expressions } from "core/expression_table/model"
+import type { Stores } from "core/store_table/model"
+import type { Table } from "core/type_table/model"
+
+export type Input = {
+    types: Table,
+    stores: Stores,
+    expressions: Expressions,
+    contracts: Contracts,
+    control: Control,
+    root: u32?,
+    output_type: u32,
+    local: bool[],
+    pure: bool[],
+    io: bool[],
+    process: bool[],
+    tasks: bool[]
+}
+
+export type Effects = {
+    io: bool,
+    process: bool,
+    body_process: bool,
+    tasks: bool
+}
+
+export type Flags = {
+    value: bool,
+    scalar: bool,
+    io: bool,
+    process: bool,
+    body_process: bool,
+    tasks: bool
+}
