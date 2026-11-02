@@ -1,0 +1,52 @@
+import bytes from "std:bytes"
+
+import type { Alias } from "genz/abi/model"
+import type { Defaults as Output } from "./model"
+
+export type Input = {
+    state: Output,
+    alias: Alias
+}
+
+export default function (in: Input): Output {
+    const result = loop({
+        state: in.state,
+        alias: in.alias,
+        index: 0,
+        found: false
+    }, {
+        while: current => !current.found && current.index < current.state.aliases.length,
+        next: current => {
+            const previous = current.state.aliases[current.index]
+
+            if (
+                bytes.equals(
+                    bytes.fromText(previous.name),
+                    bytes.fromText(current.alias.name)
+                )
+            ) {
+                current.found = true
+
+                if (
+                    !bytes.equals(
+                        bytes.fromText(previous.identity),
+                        bytes.fromText(current.alias.identity)
+                    )
+                ) {
+                    current.state.conflicts[current.index] = true
+                }
+            }
+
+            current.index += 1
+        }
+    })
+
+    if (result.found) {
+        return result.state
+    }
+
+    return {
+        aliases: in.state.aliases.push(in.alias)[0],
+        conflicts: in.state.conflicts.push(false)[0]
+    }
+}

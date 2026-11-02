@@ -1,0 +1,76 @@
+import type { Alias } from "genz/abi/model"
+import type { Bindings } from "../source_abi/model"
+
+export enum Status { Valid, ConflictingAlias, NameConflict }
+
+export type Scope = {
+    root: string,
+    interfaces: Bindings,
+    externals: Bindings
+}
+
+export type Native = {
+    name: string,
+    aliases?: Alias[]
+}
+
+export type Settings = {
+    names: string[],
+    roots: string[]
+}
+
+export type Input = {
+    modules: Bindings,
+    root: string,
+    scopes: Scope[],
+    natives: Native[],
+    settings: Settings,
+    files: string[]
+}
+
+export type ViewInput = {
+    source: Input,
+    native: Native,
+    aliases: Alias[]
+}
+
+export type Resolved = {
+    status: Status,
+    aliases: Alias[],
+    explicit: Alias[]
+}
+
+export type View = {
+    module: string,
+    name: string,
+    path: string,
+    aliases: Alias[]
+}
+
+export type ViewResult = {
+    status: Status,
+    view: View,
+    roots: Alias[]
+}
+
+export type Defaults = {
+    aliases: Alias[],
+    conflicts: bool[]
+}
+
+export type ViewsInput = {
+    source: Input,
+    defaults: Defaults
+}
+
+export type Views = {
+    status: Status,
+    views: View[],
+    defaults: Defaults
+}
+
+export type Output = {
+    status: Status,
+    aliases: Alias[],
+    views: View[]
+}

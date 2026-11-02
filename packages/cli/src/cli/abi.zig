@@ -22,115 +22,37 @@ pub fn createLibrary(allocator: std.mem.Allocator, bundle: compiler.zig.LibraryB
 }
 
 fn render(allocator: std.mem.Allocator, bundle: Bundle, loaded: Loaded) !Result {
-    var scoped = false;
+    var scratch = std.heap.ArenaAllocator.init(allocator);
+    var buffer: [std.heap.page_size_min]u8 = undefined;
+    var buffered = std.heap.BufferFirstAllocator.init(&buffer, scratch.allocator());
 
-    for (0..bundle.native_modules.count()) |module_row| {
-        const module = bundle.native_modules.at(module_row);
+    defer scratch.deinit();
 
-        if (module.identity != null) scoped = true;
-    }
+    const temporary = buffered.allocator();
+    const planner = compiler.zig.bundle_abi;
 
-    if (!scoped) return .{ .source = bundle.types };
+    if (!try planner.scoped(temporary, bundle.native_modules.identities)) return .{ .source = bundle.types };
 
-    var defaults: std.ArrayList(view.Alias) = .empty;
-    var conflicts: std.StringHashMapUnmanaged(void) = .empty;
-    var views: std.ArrayList(File) = .empty;
+    const input = try @import("abi/input.zig").create(temporary, bundle.native_modules, bundle.modules, loaded);
+    const plan = try planner.create(temporary, &input);
+    const views = try allocator.alloc(File, plan.views.len);
 
-    for (0..bundle.native_modules.count()) |module_row| {
-        const module = bundle.native_modules.at(module_row);
+    for (plan.views, views) |selected, *file| file.* = .{
+        .module = try allocator.dupe(u8, selected.module),
+        .name = try allocator.dupe(u8, selected.name),
+        .path = try allocator.dupe(u8, selected.path),
+        .source = try view.render(allocator, bundle.type_names, try aliases(temporary, selected.aliases), true),
+    };
 
-        if (module.identity == null) try append(allocator, &defaults, &conflicts, .{ .name = module.specifier, .identity = module.key() });
-    }
+    const root_view = try view.render(temporary, &.{}, try aliases(temporary, plan.aliases), false);
 
-    for (loaded.project.package_scopes) |scope| {
-        if (!std.mem.eql(u8, scope.root, loaded.project.root_dir)) continue;
-
-        for (scope.native_interfaces) |entry| if (contains(bundle, entry.key())) {
-            try append(allocator, &defaults, &conflicts, .{ .name = entry.specifier, .identity = entry.key() });
-        };
-
-        for (scope.externals) |entry| if (contains(bundle, entry.key())) {
-            try append(allocator, &defaults, &conflicts, .{ .name = entry.specifier, .identity = entry.key() });
-        };
-    }
-
-    for (loaded.config.native_modules) |module| {
-        const configured = module.abi_aliases orelse continue;
-        var aliases: std.ArrayList(view.Alias) = .empty;
-        var is_root = false;
-
-        for (loaded.native_settings) |setting| {
-            if (std.mem.eql(u8, setting.name, module.name)) is_root = std.mem.eql(u8, setting.root, loaded.project.root_dir);
-        }
-
-        for (configured) |alias| {
-            if (!contains(bundle, alias.specifier)) continue;
-
-            const resolved = view.Alias{ .name = alias.name, .identity = alias.specifier };
-
-            try aliases.append(allocator, resolved);
-            if (is_root) try append(allocator, &defaults, &conflicts, resolved);
-        }
-
-        for (0..bundle.native_modules.count()) |standard_row| {
-            const standard = bundle.native_modules.at(standard_row);
-
-            if (standard.identity != null) continue;
-
-            var found = false;
-
-            for (aliases.items) |alias| if (std.mem.eql(u8, alias.name, standard.specifier)) {
-                if (!std.mem.eql(u8, alias.identity, standard.key())) return error.ConflictingNativeAbiAlias;
-
-                found = true;
-
-                break;
-            };
-
-            if (!found) try aliases.append(allocator, .{ .name = standard.specifier, .identity = standard.key() });
-        }
-
-        const name = try std.fmt.allocPrint(allocator, "zxc_abi_view_{s}", .{module.name});
-
-        for (loaded.config.native_modules) |candidate| {
-            if (std.mem.eql(u8, candidate.name, name)) return error.NativeModuleNameConflict;
-        }
-
-        for (bundle.modules) |candidate| {
-            if (std.mem.eql(u8, candidate.name, name) or std.mem.eql(u8, candidate.name, module.name)) return error.NativeModuleNameConflict;
-        }
-
-        try views.append(allocator, .{ .module = module.name, .name = name, .path = try std.fmt.allocPrint(allocator, "abi_views/{s}.zig", .{name}), .source = try view.render(allocator, bundle.type_names, aliases.items, true) });
-    }
-
-    var aliases: std.ArrayList(view.Alias) = .empty;
-
-    for (defaults.items) |alias| {
-        if (!conflicts.contains(alias.name)) try aliases.append(allocator, alias);
-    }
-
-    const root_view = try view.render(allocator, &.{}, aliases.items, false);
-
-    return .{ .source = try std.mem.concat(allocator, u8, &.{ bundle.types, "\n", root_view }), .views = try views.toOwnedSlice(allocator) };
+    return .{ .source = try std.mem.concat(allocator, u8, &.{ bundle.types, "\n", root_view }), .views = views };
 }
 
-fn contains(bundle: Bundle, identity: []const u8) bool {
-    for (0..bundle.native_modules.count()) |module_row| {
-        const module = bundle.native_modules.at(module_row);
+fn aliases(allocator: std.mem.Allocator, source: anytype) std.mem.Allocator.Error![]const view.Alias {
+    const result = try allocator.alloc(view.Alias, source.len);
 
-        if (std.mem.eql(u8, module.key(), identity)) return true;
-    }
+    for (source, result) |alias, *target| target.* = .{ .name = alias.name, .identity = alias.identity };
 
-    return false;
-}
-
-fn append(allocator: std.mem.Allocator, aliases: *std.ArrayList(view.Alias), conflicts: *std.StringHashMapUnmanaged(void), value: view.Alias) !void {
-    for (aliases.items) |previous| {
-        if (!std.mem.eql(u8, previous.name, value.name)) continue;
-        if (!std.mem.eql(u8, previous.identity, value.identity)) try conflicts.put(allocator, value.name, {});
-
-        return;
-    }
-
-    try aliases.append(allocator, value);
+    return result;
 }

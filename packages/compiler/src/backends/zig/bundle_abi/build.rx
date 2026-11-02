@@ -1,0 +1,47 @@
+<Module>
+    <Type from="./model" as="Plan" />
+
+    <Args in={Plan.Input} out={Plan.Output} />
+
+    <Call fn="../source_abi/scoped" in={$in.modules.identities} />
+
+    <If on={!$ctx.scoped}>
+        <Return
+            value={{
+                status: Plan.Status.Valid,
+                aliases: [],
+                views: []
+            }}
+        />
+    </If>
+
+    <Call fn="defaults" in={$in} />
+
+    <Call
+        fn="views"
+        in={{
+            source: $in,
+            defaults: $ctx.defaults
+        }}
+    />
+
+    <If on={$ctx.views.status != Plan.Status.Valid}>
+        <Return
+            value={{
+                status: $ctx.views.status,
+                aliases: [],
+                views: []
+            }}
+        />
+    </If>
+
+    <Call fn="filter" in={$ctx.views.defaults} />
+
+    <Return
+        value={{
+            status: Plan.Status.Valid,
+            aliases: $ctx.filter,
+            views: $ctx.views.views
+        }}
+    />
+</Module>

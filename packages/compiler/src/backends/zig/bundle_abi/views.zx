@@ -1,0 +1,63 @@
+import view from "compiler/bundle_abi_view"
+
+import append from "./append"
+import { Status } from "./model"
+
+import type { ViewsInput as Input, View, Views as Output } from "./model"
+
+export default function (in: Input): Output {
+    const views: View[] = []
+
+    const result = loop({
+        source: in.source,
+        views,
+        defaults: in.defaults,
+        index: 0,
+        status: Status.Valid
+    }, {
+        while: current => current.status == Status.Valid &&
+            current.index < current.source.natives.length,
+        next: current => {
+            const native = current.source.natives[current.index]
+
+            if (native.aliases != null) {
+                const selected = view({
+                    source: current.source,
+                    native,
+                    aliases: native.aliases
+                })
+
+                current.status = selected.status
+
+                if (selected.status == Status.Valid) {
+                    current.views = current.views.push(selected.view)[0]
+
+                    const appended = loop({
+                        source: selected.roots,
+                        state: current.defaults,
+                        index: 0
+                    }, {
+                        while: entry => entry.index < entry.source.length,
+                        next: entry => {
+                            entry.state = append({
+                                state: entry.state,
+                                alias: entry.source[entry.index]
+                            })
+                            entry.index += 1
+                        }
+                    })
+
+                    current.defaults = appended.state
+                }
+            }
+
+            current.index += 1
+        }
+    })
+
+    return {
+        status: result.status,
+        views: result.views,
+        defaults: result.defaults
+    }
+}

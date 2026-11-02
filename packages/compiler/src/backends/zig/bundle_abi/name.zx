@@ -1,0 +1,58 @@
+import bytes from "std:bytes"
+import strings from "std:string"
+
+import { view_prefix, view_directory, source_suffix, empty_separator } from "./const"
+import { Status } from "./model"
+
+import type { ViewInput as Input } from "./model"
+
+export type Output = {
+    status: Status,
+    name: string,
+    path: string
+}
+
+export default function (in: Input): Output {
+    const name = strings.join(empty_separator, [view_prefix, in.native.name])
+
+    const natives = loop({
+        source: in.source.natives,
+        name: bytes.fromText(name),
+        index: 0,
+        conflict: false
+    }, {
+        while: current => !current.conflict && current.index < current.source.length,
+        next: current => {
+            current.conflict =
+                bytes.equals(
+                    bytes.fromText(current.source[current.index].name),
+                    current.name
+                )
+            current.index += 1
+        }
+    })
+
+    const files = loop({
+        source: in.source.files,
+        name: bytes.fromText(name),
+        module: bytes.fromText(in.native.name),
+        index: 0,
+        conflict: natives.conflict
+    }, {
+        while: current => !current.conflict && current.index < current.source.length,
+        next: current => {
+            const candidate = bytes.fromText(current.source[current.index])
+
+            current.conflict = bytes.equals(candidate, current.name) ||
+                bytes.equals(candidate, current.module)
+            current.index += 1
+        }
+    })
+
+    return {
+        status: files.conflict ? Status.NameConflict : Status.Valid,
+        name,
+        path: files.conflict ? "" :
+            strings.join(empty_separator, [view_directory, name, source_suffix])
+    }
+}

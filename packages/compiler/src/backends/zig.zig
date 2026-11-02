@@ -7,6 +7,7 @@ pub const ModuleBundle = modules.Bundle;
 pub const ModuleFile = modules.File;
 pub const GenerationCache = @import("zig/cache.zig");
 pub const host = @import("genz").host;
+pub const bundle_abi = @import("zig/bundle_abi.zig");
 pub const abi_view = @import("genz").zx.modules.abi_view;
 pub const store_initializers = @import("zig/store_initializers.zig");
 pub const gateway = @import("zig/gateway/root.zig");

@@ -1,0 +1,101 @@
+import bytes from "std:bytes"
+
+import contains from "../source_abi/contains"
+import append from "./append"
+
+import type { Alias } from "genz/abi/model"
+import type { Defaults as Output } from "./model"
+import type { Input } from "./model"
+
+export default function (
+    in: Input
+): Output {
+    const aliases: Alias[] = []
+    const conflicts: bool[] = []
+
+    const defaults = loop({
+        modules: in.modules,
+        state: {
+            aliases,
+            conflicts
+        },
+        index: 0
+    }, {
+        while: current => current.index < current.modules.specifiers.length,
+        next: current => {
+            if (current.modules.identities[current.index] == null) {
+                const name = current.modules.specifiers[current.index]
+
+                current.state = append({
+                    state: current.state,
+                    alias: {
+                        name,
+                        identity: name
+                    }
+                })
+            }
+
+            current.index += 1
+        }
+    })
+
+    const result = loop({
+        source: in,
+        state: defaults.state,
+        index: 0
+    }, {
+        while: current => current.index < current.source.scopes.length,
+        next: current => {
+            const scope = current.source.scopes[current.index]
+
+            if (
+                bytes.equals(
+                    bytes.fromText(scope.root),
+                    bytes.fromText(current.source.root)
+                )
+            ) {
+                const entries = loop({
+                    scope,
+                    modules: current.source.modules,
+                    state: current.state,
+                    index: 0,
+                    count:
+                        scope.interfaces.specifiers.length +
+                        scope.externals.specifiers.length
+                }, {
+                    while: entry => entry.index < entry.count,
+                    next: entry => {
+                        const first = entry.scope.interfaces.specifiers.length
+                        const external = entry.index >= first
+                        const source = external ? entry.scope.externals :
+                            entry.scope.interfaces
+                        const index = external ? entry.index - first : entry.index
+                        const name = source.specifiers[index]
+                        const identity = source.identities[index] ?? name
+
+                        if (contains({
+                            modules: entry.modules,
+                            identity
+                        })) {
+                            entry.state = append({
+                                state: entry.state,
+                                alias: {
+                                    name,
+                                    identity
+                                }
+                            })
+                        }
+
+                        entry.index += 1
+                    }
+                })
+
+                current.state = entries.state
+            }
+
+            current.index += 1
+        }
+    })
+
+    return result.state
+}

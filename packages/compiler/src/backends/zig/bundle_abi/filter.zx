@@ -1,0 +1,24 @@
+import type { Alias } from "genz/abi/model"
+import type { Defaults as Input } from "./model"
+
+export type Output = Alias[]
+
+export default function (in: Input): Output {
+    const aliases: Alias[] = []
+
+    return loop({
+        source: in,
+        aliases,
+        index: 0
+    }, {
+        while: current => current.index < current.source.aliases.length,
+        next: current => {
+            if (!current.source.conflicts[current.index]) {
+                current.aliases =
+                    current.aliases.push(current.source.aliases[current.index])[0]
+            }
+
+            current.index += 1
+        }
+    }).aliases
+}

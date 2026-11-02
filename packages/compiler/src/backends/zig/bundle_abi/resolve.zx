@@ -1,0 +1,98 @@
+import bytes from "std:bytes"
+
+import contains from "../source_abi/contains"
+import { Status } from "./model"
+
+import type { Alias } from "genz/abi/model"
+import type { ViewInput as Input, Resolved as Output } from "./model"
+
+export default function (in: Input): Output {
+    const aliases: Alias[] = []
+
+    const explicit = loop({
+        source: in,
+        aliases,
+        index: 0
+    }, {
+        while: current => current.index < current.source.aliases.length,
+        next: current => {
+            const alias = current.source.aliases[current.index]
+
+            if (contains({
+                modules: current.source.source.modules,
+                identity: alias.identity
+            })) {
+                current.aliases = current.aliases.push(alias)[0]
+            }
+
+            current.index += 1
+        }
+    }).aliases
+
+    const result = loop({
+        modules: in.source.modules,
+        aliases: explicit,
+        index: 0,
+        status: Status.Valid
+    }, {
+        while: current => current.status == Status.Valid &&
+            current.index < current.modules.specifiers.length,
+        next: current => {
+            if (current.modules.identities[current.index] == null) {
+                const name = current.modules.specifiers[current.index]
+                const matches = loop({
+                    aliases: current.aliases,
+                    name: bytes.fromText(name),
+                    index: 0,
+                    found: false,
+                    status: Status.Valid
+                }, {
+                    while: other => !other.found && other.status == Status.Valid &&
+                        other.index < other.aliases.length,
+                    next: other => {
+                        const alias = other.aliases[other.index]
+
+                        if (
+                            bytes.equals(
+                                bytes.fromText(alias.name),
+                                other.name
+                            )
+                        ) {
+                            other.found = true
+
+                            if (
+                                !bytes.equals(
+                                    bytes.fromText(
+                                        alias.identity
+                                    ),
+                                    other.name
+                                )
+                            ) {
+                                other.status = Status.ConflictingAlias
+                            }
+                        }
+
+                        other.index += 1
+                    }
+                })
+
+                current.status = matches.status
+
+                if (!matches.found) {
+                    current.aliases = current.aliases.push({
+                        name,
+                        identity: name
+                    })[0]
+                }
+            }
+
+            current.index += 1
+        }
+    })
+
+    return {
+        status: result.status,
+        aliases: result.aliases,
+        explicit
+    }
+}

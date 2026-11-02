@@ -1,0 +1,38 @@
+<Module>
+    <Type from="./model" as="Plan" />
+
+    <Args in={Plan.ViewInput} out={Plan.ViewResult} />
+
+    <Call fn="root" in={$in} />
+    <Call fn="resolve" in={$in} />
+
+    <If on={$ctx.resolve.status != Plan.Status.Valid}>
+        <Return
+            value={{
+                status: $ctx.resolve.status,
+                view: {
+                    module: $in.native.name,
+                    name: "",
+                    path: "",
+                    aliases: []
+                },
+                roots: []
+            }}
+        />
+    </If>
+
+    <Call fn="name" in={$in} />
+
+    <Return
+        value={{
+            status: $ctx.name.status,
+            view: {
+                module: $in.native.name,
+                name: $ctx.name.name,
+                path: $ctx.name.path,
+                aliases: $ctx.resolve.aliases
+            },
+            roots: $ctx.root ? $ctx.resolve.explicit : []
+        }}
+    />
+</Module>
