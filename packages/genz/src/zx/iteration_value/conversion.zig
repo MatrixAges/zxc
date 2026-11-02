@@ -9,6 +9,12 @@ pub fn convert(self: *Context, id: ir.TypeId, value: node.ExpressionId, output: 
     const layout = if (output) try lowering.layoutExpr(id) else try @import("types.zig").get(self, id);
 
     const result = switch (lowering.program.typeOf(id)) {
+        .list => {
+            if (!self.buffered(id)) return value;
+            if (output) unreachable;
+
+            return @import("buffer.zig").create(self, id, value);
+        },
         .optional => |child| {
             const present = try @import("../intrinsics.zig").binary(lowering, .not_equal, value, try lowering.builder.expression(.null_value));
             const payload = try lowering.builder.expression(.{ .optional_unwrap = value });

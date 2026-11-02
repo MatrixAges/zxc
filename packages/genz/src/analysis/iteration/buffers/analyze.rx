@@ -1,0 +1,48 @@
+<Module>
+    <Type from="./model" as="Buffers" />
+
+    <Args in={Buffers.Input} out={bool} />
+
+    <Call fn="eligible" in={$in} />
+
+    <If on={!$ctx.eligible}>
+        <Return value={false} />
+    </If>
+
+    <Call fn="graph" in={$in} />
+
+    <Call
+        fn="active"
+        in={{
+            source: $in,
+            seen: $ctx.graph.seen
+        }}
+    />
+
+    <If on={!$ctx.active}>
+        <Return value={false} />
+    </If>
+
+    <Call
+        fn="order"
+        in={{
+            source: $in,
+            graph: $ctx.graph
+        }}
+    />
+
+    <If on={!$ctx.order.valid}>
+        <Return value={false} />
+    </If>
+
+    <Call
+        fn="facts"
+        in={{
+            source: $in,
+            graph: $ctx.graph,
+            order: $ctx.order.values
+        }}
+    />
+
+    <Return value={$ctx.facts} />
+</Module>

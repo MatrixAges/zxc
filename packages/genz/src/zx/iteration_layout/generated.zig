@@ -63,3 +63,40 @@ pub fn analyze(allocator: std.mem.Allocator, program: *const ir.Program, roots: 
         else => unreachable,
     };
 }
+
+pub fn buffers(allocator: std.mem.Allocator, program: *const ir.Program, iteration: ir.Iteration, allowed: []const bool, flags: []const @import("../uniqueness/root.zig").Flags) std.mem.Allocator.Error!bool {
+    const generated = @import("generated_iteration_buffers");
+    const Input = std.meta.Child(generated.Input);
+    const Source = std.meta.Child(@FieldType(Input, "source"));
+    const types = ir.TypeTable.borrow(std.meta.Child(@FieldType(Source, "types")), program.types);
+    const roots = [_]u32{ @backingInt(iteration.condition), @backingInt(iteration.body) };
+
+    const source: Source = .{
+        .types = &types,
+        .expressions = zx.columns.pointer(@FieldType(Source, "expressions"), &program.expressions),
+        .function_inputs = zx.columns.slice(@FieldType(Source, "function_inputs"), program.functions.input_types),
+        .function_outputs = zx.columns.slice(@FieldType(Source, "function_outputs"), program.functions.output_types),
+        .allowed = allowed,
+        .roots = &roots,
+        .deep = true,
+        .boundary = null,
+    };
+
+    const input: Input = .{
+        .source = &source,
+        .flags = std.mem.sliceAsBytes(flags),
+        .parameter = @backingInt(iteration.parameter),
+        .condition_parameter = @backingInt(iteration.condition_parameter),
+        .symbol_count = program.symbols.count(),
+        .state_type = @backingInt(program.expression(iteration.initial).type_id),
+    };
+
+    var scratch = std.heap.ArenaAllocator.init(allocator);
+
+    defer scratch.deinit();
+
+    return generated.executeValue(scratch.allocator(), &input) catch |err| switch (err) {
+        error.OutOfMemory => return error.OutOfMemory,
+        else => unreachable,
+    };
+}

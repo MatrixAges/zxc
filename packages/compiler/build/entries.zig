@@ -93,6 +93,8 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/shape/plan.rx", .name = "shape_plan", .owner = .genz },
     .{ .path = "genz/analysis/inline/prepare.rx", .name = "inline_prepare", .owner = .genz },
     .{ .path = "genz/analysis/iteration/analyze.rx", .name = "iteration_layout", .owner = .genz },
+    .{ .path = "genz/analysis/iteration/buffers/analyze.rx", .name = "iteration_buffers", .owner = .genz },
+    .{ .path = "genz/analysis/iteration/buffers/owners.zx", .name = "iteration_owners", .owner = .genz },
     .{ .path = "genz/analysis/types/state/build.rx", .name = "state_types", .owner = .genz },
     .{ .path = "genz/analysis/types/definitions/build.rx", .name = "abi_definitions", .owner = .genz },
     .{ .path = "genz/analysis/types/abi/build.rx", .name = "shared_abi", .owner = .genz },

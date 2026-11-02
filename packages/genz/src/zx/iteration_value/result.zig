@@ -118,3 +118,49 @@ pub fn lower(lowering: *Lower, selected: consumer.Consumer, state: node.Expressi
 
     return if (selected.layout) @import("../value_call/root.zig").expression(lowering, selected.result) else lowering.expr(selected.result);
 }
+
+pub fn buffered(context: *@import("root.zig"), body: *std.ArrayList(node.Statement), selected: consumer.Consumer, state: node.ExpressionId) Lower.Error!node.ExpressionId {
+    const lowering = context.lowering;
+    const projection = @import("projection.zig");
+
+    if (primitive(lowering.program, lowering.program.expression(selected.result).type_id)) return projection.read(context, selected, selected.result, state);
+
+    var self = Self{ .allocator = lowering.allocator, .program = lowering.program, .cache = &lowering.cache, .selected = selected };
+
+    std.debug.assert(try self.visit(selected.result));
+
+    defer for (self.projections.items) |id| {
+        _ = lowering.cache.remove(id);
+    };
+
+    const Transfer = struct { path: []const usize, value: node.ExpressionId };
+    var transferred: std.ArrayList(Transfer) = .empty;
+
+    for (self.projections.items) |id| {
+        const type_id = lowering.program.expression(id).type_id;
+
+        if (!context.buffered(type_id)) continue;
+
+        const value = try projection.read(context, selected, id, state);
+        var path: std.ArrayList(usize) = .empty;
+
+        std.debug.assert(try self.collectPath(id, &path));
+
+        const shared = for (transferred.items) |previous| {
+            if (std.mem.eql(usize, previous.path, path.items)) break previous.value;
+        } else null;
+
+        const result = shared orelse try @import("transfer.zig").lower(context, body, type_id, value);
+
+        if (shared == null) try transferred.append(lowering.allocator, .{ .path = path.items, .value = context.transfers.items[context.transfers.items.len - 1].value });
+
+        try lowering.cache.put(lowering.allocator, id, result);
+    }
+
+    for (self.projections.items) |id| {
+        if (context.buffered(lowering.program.expression(id).type_id)) continue;
+        try lowering.cache.put(lowering.allocator, id, try projection.read(context, selected, id, state));
+    }
+
+    return if (selected.layout) @import("../value_call/root.zig").expression(lowering, selected.result) else lowering.expr(selected.result);
+}

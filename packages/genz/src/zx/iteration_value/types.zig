@@ -10,7 +10,18 @@ pub fn get(self: *Context, id: ir.TypeId) Lower.Error!node.ExpressionId {
 
     const definition = switch (lowering.program.typeOf(id)) {
         .optional => |child| return lowering.builder.expression(.{ .optional_type = try get(self, child) }),
-        .list => |child| return if (self.inline_lists and @import("../iteration_layout.zig").represented(lowering, child)) lowering.builder.expression(.{ .const_slice = try get(self, child) }) else try lowering.typeExpr(id),
+        .list => |child| blk: {
+            if (!self.buffered(id)) return try lowering.typeExpr(id);
+
+            const element_type = try get(self, child);
+            const owner = try @import("../intrinsics.zig").standard(lowering, &.{"ArrayList"}, &.{element_type}, false);
+
+            break :blk try lowering.builder.expression(.{ .struct_type = try lowering.allocator.dupe(node.Field, &.{
+                .{ .name = "owner", .value = try lowering.builder.expression(.{ .pointer = owner }) },
+                .{ .name = "items", .value = try lowering.builder.expression(.{ .const_slice = element_type }) },
+                .{ .name = "owned", .value = try lowering.builder.expression(.{ .primitive = .bool }) },
+            }) });
+        },
         .object => |fields| blk: {
             const items = try lowering.allocator.alloc(node.Field, fields.len);
 

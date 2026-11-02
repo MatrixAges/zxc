@@ -37,7 +37,9 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
     const local_calls = pure or try layout_analysis.eligible(self.allocator, self.program, iteration, self.local_functions);
     const selected_call = try forwarded(self, iteration);
     const type_id = self.program.expression(id).type_id;
-    const deep = !self.state_active and (projected_output or mode == .discard) and pure and !layout_analysis.flat(self, type_id) and layout_analysis.represented(self, type_id) and try layout_analysis.deep(self.allocator, self.program, iteration, self.identity_free_functions);
+    const deep_candidate = !self.state_active and (projected_output or mode == .discard) and pure and !layout_analysis.flat(self, type_id) and layout_analysis.represented(self, type_id);
+    const buffered = deep_candidate and self.plan.get(id).buffered and try layout_analysis.buffers(self.allocator, self.program, iteration, self.identity_free_functions, self.plan.flags);
+    const deep = buffered or (deep_candidate and try layout_analysis.deep(self.allocator, self.program, iteration, self.identity_free_functions));
     const selected_state = !deep and self.state_plan.represented(self.program, type_id) and (self.state_active or selected_call != null or local_calls);
     const layout = !deep and (selected_state or selected_call != null or ((local_calls or try layout_analysis.shallow(self.allocator, self.program, iteration)) and layout_analysis.aggregate(self, type_id)));
     const by_value = mode != .reference and layout;
@@ -47,8 +49,8 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
     if (consumer) |selected| if (!deep and !@import("iteration_consumer.zig").projection(self.program, selected.result, selected.symbol)) return null;
 
     const local = layout or deep;
-    var context = @import("iteration_value/root.zig"){ .lowering = self, .declarations = &body };
-    const direct_initial = deep and try layout_analysis.initialValue(self.allocator, self.program, iteration.initial, self.identity_free_functions);
+    var context = @import("iteration_value/root.zig"){ .lowering = self, .declarations = &body, .inline_lists = buffered };
+    const direct_initial = deep and !buffered and try layout_analysis.initialValue(self.allocator, self.program, iteration.initial, self.identity_free_functions);
 
     const initial_expression = if (direct_initial) initial: {
         const previous = self.iteration_value;
@@ -59,6 +61,7 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
     } else if (by_value) try @import("value_call/root.zig").expression(self, iteration.initial) else try self.expr(iteration.initial);
 
     const initial = if (local) try aggregate.bind(self, &body, initial_expression) else initial_expression;
+    var initial_guard: ?@import("iteration_value/initial.zig") = if (buffered and !iteration.postcondition) try @import("iteration_value/initial.zig").create(self, &body, iteration, consumer, initial) else null;
     const state_scope = if (selected_state and !self.state_active) try @import("state_value/root.zig").enter(self) else null;
 
     defer if (state_scope) |scope| scope.restore();
@@ -202,6 +205,7 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
     var entered: std.ArrayList(node.Statement) = .empty;
 
     for (self.plan.renewals) |renewal| if (renewal.owner == id and !renewal.value) {
+        if (context.bufferedPath(type_id, renewal.path)) continue;
         try @import("growth.zig").renew(self, &entered, type_id, state, renewal.path);
     };
 
@@ -214,7 +218,7 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
         try loop.append(self.allocator, .{ .assignment = .{ .target = try self.builder.identifier(changed_name), .value = try self.builder.expression(.{ .boolean = true }) } });
     }
 
-    if (iteration.postcondition or prepared) {
+    if (iteration.postcondition or prepared or initial_guard != null) {
         try loop.append(self.allocator, .{ .branch = .{
             .condition = try self.builder.expression(.{ .unary = .{ .operator = .not, .operand = condition } }),
             .yes = try self.builder.statements(&.{.break_loop}),
@@ -223,7 +227,7 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
     }
 
     try entered.append(self.allocator, .{ .while_loop = .{
-        .condition = if (iteration.postcondition or prepared) try self.builder.expression(.{ .boolean = true }) else condition,
+        .condition = if (iteration.postcondition or prepared or initial_guard != null) try self.builder.expression(.{ .boolean = true }) else condition,
         .body = try self.builder.statements(loop.items),
     } });
 
@@ -231,7 +235,11 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
         try body.append(self.allocator, .{ .branch = .{ .condition = condition, .yes = try self.builder.statements(entered.items), .no = .{} } });
     } else try body.appendSlice(self.allocator, entered.items);
 
-    return try finish.lower(self, &body, state);
+    const result = try finish.lower(self, &body, state);
+
+    if (initial_guard) |*guard| return try guard.finish(self, result);
+
+    return result;
 }
 
 /// A loop whose body only forwards its state to a value function of the same type, which then runs on the state layout.

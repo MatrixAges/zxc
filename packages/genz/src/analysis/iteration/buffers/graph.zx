@@ -1,0 +1,115 @@
+import integers from "std:integer"
+import { map } from "std:utils"
+import child from "core/expression_table/child"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import { Definition } from "./model"
+
+import type { Input, Graph as Output } from "./model"
+
+export default function (in: Input): Output {
+    const empty_kinds: Definition[] = []
+    const empty_values: u32[] = []
+
+    const symbols = loop({
+        count: in.symbol_count,
+        kinds: empty_kinds,
+        values: empty_values
+    }, {
+        while: current => current.values.length < current.count,
+        next: current => {
+            current.kinds = current.kinds.push(Definition.Missing)[0]
+            current.values = current.values.push(0)[0]
+        }
+    })
+
+    const result = loop({
+        source: in.source.expressions,
+        pending: in.source.roots,
+        seen: map(in.source.expressions.kinds, value => false),
+        kinds: symbols.kinds,
+        values: symbols.values
+    }, {
+        while: current => current.pending.length != 0,
+        next: current => {
+            const id = integers.widen(current.pending[current.pending.length - 1])
+
+            current.pending = current.pending.pop()[0]
+
+            if (!current.seen[id]) {
+                current.seen[id] = true
+
+                if (current.source.kinds[id] == ExpressionKind.Scope) {
+                    const payload = integers.widen(current.source.payloads[id])
+                    const bindings = loop({
+                        source: current.source,
+                        first: integers.widen(current.source.scope_first[payload]),
+                        count: integers.widen(current.source.scope_count[payload]),
+                        index: 0,
+                        kinds: current.kinds,
+                        values: current.values
+                    }, {
+                        while: entry => entry.index < entry.count,
+                        next: entry => {
+                            const slot = entry.first + entry.index
+                            const symbol = entry.source.scope_symbols[slot]
+
+                            if (symbol != null) {
+                                const index = integers.widen(symbol)
+                                const value = entry.source.scope_values[slot]
+                                const previous = entry.kinds[index]
+
+                                entry.kinds[index] = match {
+                                    previous == Definition.Missing => Definition.Value,
+                                    previous == Definition.Value &&
+                                        entry.values[index] == value => previous,
+                                    _ => Definition.Conflict
+                                }
+                                entry.values[index] = value
+                            }
+
+                            entry.index += 1
+                        }
+                    })
+
+                    current.kinds = bindings.kinds
+                    current.values = bindings.values
+                }
+
+                const nested = loop({
+                    source: current.source,
+                    id,
+                    pending: current.pending,
+                    index: 0,
+                    active: true
+                }, {
+                    while: entry => entry.active,
+                    next: entry => {
+                        const value = child({
+                            table: entry.source,
+                            id: entry.id,
+                            index: entry.index
+                        })
+
+                        if (value == null) {
+                            entry.active = false
+                        } else {
+                            entry.pending = entry.pending.push(value)[0]
+                            entry.index += 1
+                        }
+                    }
+                })
+
+                current.pending = nested.pending
+            }
+        }
+    })
+
+    return {
+        seen: result.seen,
+        definitions: {
+            kinds: result.kinds,
+            values: result.values
+        }
+    }
+}

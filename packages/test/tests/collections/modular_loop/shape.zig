@@ -1,5 +1,6 @@
 const std = @import("std");
 const ir = @import("compiler").ir;
+const GeneratedLoop = @import("generated_loop");
 
 fn helperCount(source: []const u8, program: ir.Program) !usize {
     var count: usize = 0;
@@ -29,10 +30,13 @@ fn helperCount(source: []const u8, program: ir.Program) !usize {
     return count;
 }
 
-pub fn check(source: []const u8, mode: []const u8, program: ir.Program) !void {
-    const start = std.mem.indexOf(u8, source, "pub fn execute(") orelse return error.MissingExecute;
-    const execute = source[start..];
-    const loops = std.mem.count(u8, execute, "while (");
+pub fn check(allocator: std.mem.Allocator, source: []const u8, mode: []const u8, program: ir.Program) !void {
+    var generated = try GeneratedLoop.parse(allocator, source);
+
+    defer generated.deinit();
+
+    const execute = generated.entrySource();
+    const loops = std.mem.count(u8, source, "while (");
     const helpers = try helperCount(execute, program);
     const escaping = std.mem.eql(u8, mode, "escaping");
     const nested = std.mem.eql(u8, mode, "nested");
@@ -47,18 +51,11 @@ pub fn check(source: []const u8, mode: []const u8, program: ir.Program) !void {
 
     if (!nested and helpers != 0) return error.RemainingAggregateHelper;
     if (!std.mem.eql(u8, mode, "simple")) return;
-    if (std.mem.count(u8, execute, ".ArrayList(state_type_") != 1) return error.MissingFrameValueBuffer;
-
-    const loop = std.mem.indexOf(u8, execute, "while (").?;
-    const open = std.mem.indexOfScalarPos(u8, execute, loop, '{') orelse return error.MissingLoopBody;
-    var depth: usize = 1;
-    var end = open + 1;
-
-    while (end < execute.len and depth > 0) : (end += 1) {
-        if (execute[end] == '{') depth += 1;
-        if (execute[end] == '}') depth -= 1;
-    }
-
-    if (depth != 0) return error.UnclosedLoopBody;
-    if (std.mem.indexOf(u8, execute[open + 1 .. end - 1], "(allocator).create(") != null) return error.PerIterationFrameBox;
+    if (generated.owners() != 1) return error.MissingFrameValueBuffer;
+    if (generated.loop == null) return error.MissingLoop;
+    if (std.mem.count(u8, execute, ").deinit(allocator)") != generated.totalOwners()) return error.InvalidBufferCleanupCount;
+    if (std.mem.count(u8, generated.before(), ").ensureTotalCapacity(") != 1) return error.InvalidInitialConversionCount;
+    if (std.mem.count(u8, generated.before(), "for (") != 1) return error.InvalidInitialFillCount;
+    if (std.mem.indexOf(u8, generated.body(), "(allocator).create(") != null) return error.PerIterationFrameBox;
+    if (std.mem.indexOf(u8, generated.body(), "(allocator).dupe(") != null) return error.PerIterationListCopy;
 }

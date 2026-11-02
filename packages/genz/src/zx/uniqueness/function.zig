@@ -84,16 +84,22 @@ pub fn analyze(allocator: std.mem.Allocator, functions: ir.FunctionTable, unit: 
     const levels = try allocator.alloc(Known, sites.slot_first[sites.slot_first.len - 1] - sites.slot_first[unit.symbols.count()]);
     var self = Self{ .allocator = allocator, .functions = functions, .expressions = unit.expressions, .order = order, .sites = sites, .slots = slots, .summaries = summaries, .input = unit.input, .function = unit.function, .normalized = unit.normalized, .renewed = unit.renewed, .operations = unit.operations, .rows = unit.rows, .levels = levels };
 
-    for (order.repeated.items) |id| {
+    try self.close();
+
+    return self;
+}
+
+fn close(self: *Self) std.mem.Allocator.Error!void {
+    for (self.order.repeated.items) |id| {
         const state = self.carriedState(id) orelse continue;
-        const values = try allocator.alloc(Level, slots.count(self.row(id).type_id));
+        const values = try self.allocator.alloc(Level, self.slots.count(self.row(id).type_id));
 
         for (values, 0..) |*value, slot| value.* = .{
             .headered = true,
-            .unique = sites.linear(Sites.symbolRoot(state.parameter), @intCast(slot)) and (state.condition == null or sites.observed(Sites.symbolRoot(state.condition.?), @intCast(slot))),
+            .unique = self.sites.linear(Sites.symbolRoot(state.parameter), @intCast(slot)) and (state.condition == null or self.sites.observed(Sites.symbolRoot(state.condition.?), @intCast(slot))),
         };
 
-        try self.carried.put(allocator, id, values);
+        try self.carried.put(self.allocator, id, values);
     }
 
     var changed = true;
@@ -120,8 +126,6 @@ pub fn analyze(allocator: std.mem.Allocator, functions: ir.FunctionTable, unit: 
     }
 
     try self.settled();
-
-    return self;
 }
 
 fn settled(self: Self) std.mem.Allocator.Error!void {
@@ -268,7 +272,7 @@ pub fn renewals(self: *Self, allocator: std.mem.Allocator) std.mem.Allocator.Err
     return result.items;
 }
 
-pub const Flags = packed struct(u8) { frontier: bool = false, retract: bool = false, in_place: bool = false, normalize: bool = false, renew: bool = false, grow: bool = false, lazy: bool = false, padding: u1 = 0 };
+pub const Flags = packed struct(u8) { frontier: bool = false, retract: bool = false, in_place: bool = false, normalize: bool = false, renew: bool = false, grow: bool = false, lazy: bool = false, buffered: bool = false };
 
 /// How each list update lowers: appends check the frontier of a headered target, pops of a unique headered target hand
 /// the frontier back, element writes of a unique target happen in place and those of a shared headered target copy into
@@ -330,7 +334,120 @@ pub fn flags(self: *Self, values: []Flags) std.mem.Allocator.Error!void {
         }
     }
 
+    try self.bufferFlags(values);
+
     return self.settled();
+}
+
+fn bufferLoop(self: *const Self, id: ir.ExprId) bool {
+    const value = self.row(id);
+
+    if (value.value != .iteration) return false;
+
+    const target_type = self.slots.types.get(value.type_id);
+
+    if (target_type != .object and target_type != .tuple) return false;
+
+    var product = false;
+
+    for (0..self.slots.count(value.type_id)) |slot| {
+        const list_type = self.slots.listType(value.type_id, @intCast(slot));
+        const child = self.slots.types.get(list_type).list;
+
+        if (self.slots.count(child) != 0) return false;
+
+        const target = self.slots.types.get(self.slots.unwrapped[@backingInt(child)]);
+
+        product = product or target == .object or target == .tuple;
+    }
+
+    return product;
+}
+
+fn bufferFlags(self: *Self, values: []Flags) std.mem.Allocator.Error!void {
+    if (comptime !@import("genz_options").generated_analysis) return;
+
+    const writes = for (self.operations) |id| {
+        const target = switch (self.row(id).value) {
+            .list_update => |update| update.target,
+            .list_operation => |operation| if (operation.kind == .push) operation.target else continue,
+            else => continue,
+        };
+
+        const element = self.slots.types.get(self.row(target).type_id).list;
+        const child = self.slots.types.get(self.slots.unwrapped[@backingInt(element)]);
+
+        if (child == .object or child == .tuple) break true;
+    } else false;
+
+    if (!writes) return;
+
+    const needed = for (self.order.repeated.items) |id| {
+        if (self.bufferLoop(id)) break true;
+    } else false;
+
+    if (!needed) return;
+
+    var arena = std.heap.ArenaAllocator.init(self.allocator);
+
+    defer arena.deinit();
+
+    const temporary = arena.allocator();
+    const generated = @import("generated_iteration_owners");
+    const Input = std.meta.Child(generated.Input);
+    const types = ir.TypeTable.borrow(std.meta.Child(@FieldType(Input, "types")), self.slots.types);
+
+    const input: Input = .{
+        .types = &types,
+        .expressions = @import("zx").columns.pointer(@FieldType(Input, "expressions"), &@as(*const Self, self).expressions),
+        .loops = @as([*]const u32, @ptrCast(self.order.repeated.items.ptr))[0..self.order.repeated.items.len],
+    };
+
+    const owners = generated.executeValue(temporary, &input) catch |err| switch (err) {
+        error.OutOfMemory => return error.OutOfMemory,
+        else => unreachable,
+    };
+
+    if (owners.len == 0) return;
+
+    var normalized = std.AutoHashMap(ir.ExprId, Level).init(temporary);
+    var renewed = std.AutoHashMap(u64, Level).init(temporary);
+
+    for (owners) |index| {
+        const id: ir.ExprId = @fromBackingInt(index);
+
+        values[index].buffered = true;
+
+        for (0..self.slots.count(self.row(id).type_id)) |slot| try renewed.put(renewal(id, @intCast(slot)), .all);
+    }
+
+    var reads: std.ArrayList(Read) = .empty;
+    var owned = self.*;
+    owned.allocator = temporary;
+    owned.normalized = &normalized;
+    owned.renewed = &renewed;
+    owned.carried = .empty;
+    owned.levels = try temporary.alloc(Known, self.levels.len);
+    owned.failed = false;
+    owned.reads = if (self.reads != null) &reads else null;
+
+    try owned.close();
+
+    for (self.operations) |id| {
+        const target = switch (self.row(id).value) {
+            .list_operation => |operation| switch (operation.kind) {
+                .push, .pop => operation.target,
+                else => continue,
+            },
+            .list_update => |update| update.target,
+            else => continue,
+        };
+
+        values[@backingInt(id)].buffered = owned.level(target, 0).unique;
+    }
+
+    try owned.settled();
+    if (self.reads) |recorded| try recorded.appendSlice(self.allocator, reads.items);
 }
 
 const State = struct { parameter: ir.SymbolId, condition: ?ir.SymbolId, initial: ir.ExprId, body: ir.ExprId };

@@ -1,0 +1,101 @@
+import integers from "std:integer"
+import { map } from "std:utils"
+import child from "core/expression_table/child"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import contains from "./contains"
+import { Definition, Visit } from "./model"
+
+import type { OrderInput as Input, Order as Output } from "./model"
+
+export default function (in: Input): Output {
+    const empty_ids: u32[] = []
+    const empty_indices: u64[] = []
+    const empty_bools: bool[] = []
+
+    const result = loop({
+        source: in.source,
+        definitions: in.graph.definitions,
+        roots: in.source.source.roots,
+        visits: map(in.source.source.expressions.kinds, kind => Visit.Unknown),
+        stack: empty_ids,
+        indices: empty_indices,
+        aliases: empty_bools,
+        order: empty_ids,
+        valid: true,
+        root: 0
+    }, {
+        while: current => current.valid &&
+            (current.stack.length != 0 || current.root < current.roots.length),
+        next: current => {
+            if (current.stack.length == 0) {
+                const id = current.roots[current.root]
+
+                current.root += 1
+
+                if (current.visits[integers.widen(id)] != Visit.Done) {
+                    current.stack = current.stack.push(id)[0]
+                    current.indices = current.indices.push(0)[0]
+                    current.aliases = current.aliases.push(false)[0]
+                }
+            } else {
+                const last = current.stack.length - 1
+                const id = current.stack[last]
+                const index = integers.widen(id)
+                const table = current.source.source.expressions
+
+                current.visits[index] = Visit.Active
+
+                const next = child({
+                    table,
+                    id: index,
+                    index: current.indices[last]
+                })
+                const aliased = next == null && !current.aliases[last]
+
+                current.indices[last] += 1
+
+                const payload = integers.widen(table.payloads[index])
+                const reference = table.kinds[index] == ExpressionKind.Reference
+                const symbol = reference ? table.references[payload] :
+                    current.source.parameter
+                const defined = reference && symbol != current.source.parameter &&
+                    symbol != current.source.condition_parameter && contains({
+                        types: current.source.source.types,
+                        id: table.types[index],
+                        products: false
+                    }) &&
+                    current.definitions.kinds[integers.widen(symbol)] == Definition.Value
+                const dependency: u32? = aliased && defined ?
+                    current.definitions.values[integers.widen(symbol)] : next
+
+                if (aliased) {
+                    current.aliases[last] = true
+                }
+
+                if (dependency == null) {
+                    current.visits[index] = Visit.Done
+                    current.order = current.order.push(id)[0]
+                    current.stack = current.stack.pop()[0]
+                    current.indices = current.indices.pop()[0]
+                    current.aliases = current.aliases.pop()[0]
+                } else {
+                    const status = current.visits[integers.widen(dependency)]
+
+                    if (status == Visit.Active) {
+                        current.valid = false
+                    } else if (status != Visit.Done) {
+                        current.stack = current.stack.push(dependency)[0]
+                        current.indices = current.indices.push(0)[0]
+                        current.aliases = current.aliases.push(false)[0]
+                    }
+                }
+            }
+        }
+    })
+
+    return {
+        values: result.order,
+        valid: result.valid
+    }
+}

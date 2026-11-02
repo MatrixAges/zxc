@@ -1,0 +1,40 @@
+import type { Input as Layout } from "../model"
+
+export enum Definition { Missing, Value, Conflict }
+
+export enum Visit { Unknown, Active, Done }
+
+export type Input = {
+    source: Layout,
+    flags: u8[],
+    parameter: u32,
+    condition_parameter: u32,
+    symbol_count: u64,
+    state_type: u32
+}
+
+export type Definitions = {
+    kinds: Definition[],
+    values: u32[]
+}
+
+export type Graph = {
+    seen: bool[],
+    definitions: Definitions
+}
+
+export type OrderInput = {
+    source: Input,
+    graph: Graph
+}
+
+export type Order = {
+    values: u32[],
+    valid: bool
+}
+
+export type FactsInput = {
+    source: Input,
+    graph: Graph,
+    order: u32[]
+}

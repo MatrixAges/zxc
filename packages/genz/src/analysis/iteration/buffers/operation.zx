@@ -1,0 +1,111 @@
+import integers from "std:integer"
+import { ExpressionKind, BinaryOperator } from "core/expression_table/kinds"
+import { CollectionKind } from "core/expression_table/kinds"
+import kindOf from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import ordinary from "../operation"
+import { buffered_flag, flag_radix } from "./const"
+import contains from "./contains"
+
+import type { Input as Request } from "./model"
+
+export type Input = {
+    source: Request,
+    index: u64
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const table = in.source.source.expressions
+    const kind = table.kinds[in.index]
+    const payload = integers.widen(table.payloads[in.index])
+    const flags: u8 = in.index < in.source.flags.length ? in.source.flags[in.index] : 0
+
+    if (kind == ExpressionKind.List) {
+        return false
+    }
+
+    if (kind == ExpressionKind.ListUpdate) {
+        return (flags / buffered_flag) % flag_radix != 0
+    }
+
+    if (kind == ExpressionKind.ListOperation) {
+        const operation = table.collection_kinds[payload]
+
+        return match operation {
+            CollectionKind.Push => (flags / buffered_flag) % flag_radix != 0,
+            CollectionKind.Pop => (flags / buffered_flag) % flag_radix != 0,
+            _ => false
+        }
+    }
+
+    if (kind == ExpressionKind.Binary) {
+        const left = integers.widen(table.binary_left[payload])
+        const right = integers.widen(table.binary_right[payload])
+        const operator = table.binary_operators[payload]
+
+        if (
+            (
+                operator == BinaryOperator.Equal ||
+                    operator == BinaryOperator.NotEqual
+            ) &&
+                (
+                    kindOf(
+                        in.source.source.types
+                            .kinds[integers.widen(
+                                table.types[left]
+                            )]
+                    ) == Kind.List ||
+                        kindOf(
+                            in.source.source.types
+                                .kinds[integers.widen(
+                                    table.types[right]
+                                )]
+                        ) == Kind.List
+                )
+        ) {
+            return false
+        }
+    }
+
+    if (kind == ExpressionKind.Match) {
+        const subject = table.match_subjects[payload]
+
+        if (
+            subject != null &&
+                kindOf(
+                    in.source.source.types
+                        .kinds[integers.widen(
+                            table.types[integers.widen(
+                                subject
+                            )]
+                        )]
+                ) == Kind.List
+        ) {
+            return false
+        }
+    }
+
+    if (kind == ExpressionKind.Call) {
+        const callee = integers.widen(table.call_functions[payload])
+
+        if (contains({
+            types: in.source.source.types,
+            id: in.source.source.function_inputs[callee],
+            products: false
+        }) || contains({
+            types: in.source.source.types,
+            id: in.source.source.function_outputs[callee],
+            products: false
+        })) {
+            return false
+        }
+    }
+
+    return ordinary({
+        input: in.source.source,
+        index: in.index
+    })
+}

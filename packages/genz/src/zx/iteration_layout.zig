@@ -48,3 +48,9 @@ fn analyze(allocator: std.mem.Allocator, program: ir.Program, roots: []const ir.
 
     return @import("iteration_layout/generated.zig").analyze(allocator, &program, roots, functions, deep_layout, if (root) |id| .{ .type_id = id, .result = roots[roots.len - 1] } else null);
 }
+
+pub fn buffers(allocator: std.mem.Allocator, program: ir.Program, iteration: ir.Iteration, safe: []const bool, flags: []const @import("uniqueness/root.zig").Flags) std.mem.Allocator.Error!bool {
+    if (comptime !@import("genz_options").generated_analysis) return false;
+
+    return @import("iteration_layout/generated.zig").buffers(allocator, &program, iteration, safe, flags);
+}

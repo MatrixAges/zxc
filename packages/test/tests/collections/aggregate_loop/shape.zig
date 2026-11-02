@@ -1,37 +1,29 @@
 const std = @import("std");
+const GeneratedLoop = @import("generated_loop");
 
-pub fn check(source: []const u8, mode: []const u8) !void {
-    const start = std.mem.indexOf(u8, source, "pub fn execute(") orelse return error.MissingExecute;
-    const end_of_execute = std.mem.indexOfPos(u8, source, start, "\n}") orelse return error.MissingExecuteEnd;
-    const execute = source[start .. end_of_execute + 2];
+pub fn check(allocator: std.mem.Allocator, source: []const u8, mode: []const u8) !void {
+    var generated = try GeneratedLoop.parse(allocator, source);
+
+    defer generated.deinit();
+
+    const execute = generated.entrySource();
     const inline_mode = std.mem.eql(u8, mode, "stack") or std.mem.eql(u8, mode, "nested") or std.mem.eql(u8, mode, "two_lanes") or std.mem.eql(u8, mode, "bounds") or std.mem.eql(u8, mode, "consumer") or std.mem.eql(u8, mode, "call");
     const lanes: usize = if (!inline_mode) 0 else if (std.mem.eql(u8, mode, "two_lanes")) 2 else 1;
 
-    if (std.mem.count(u8, execute, ".ArrayList(state_type_") != lanes) return error.InvalidValueBufferCount;
+    if (generated.owners() != lanes) return error.InvalidValueBufferCount;
     if (std.mem.count(u8, execute, ").deinit(allocator)") != lanes) return error.InvalidBufferCleanupCount;
     if (!inline_mode) return;
+    if (generated.loop == null) return error.MissingLoop;
 
-    const loop = std.mem.indexOf(u8, execute, "while (") orelse return error.MissingLoop;
-    const before = execute[0..loop];
+    const before = generated.before();
 
     if (std.mem.count(u8, before, ").ensureTotalCapacity(") != lanes) return error.InvalidInitialConversionCount;
     if (std.mem.count(u8, before, "for (") != lanes) return error.InvalidInitialFillCount;
     if (std.mem.indexOf(u8, execute, "toOwnedSlice") != null) return error.UnexpectedEscapingValueBuffer;
 
-    const open = std.mem.indexOfScalarPos(u8, execute, loop, '{') orelse return error.MissingLoopBody;
-    var depth: usize = 1;
-    var end = open + 1;
-
-    while (end < execute.len and depth > 0) : (end += 1) {
-        if (execute[end] == '{') depth += 1;
-        if (execute[end] == '}') depth -= 1;
-    }
-
-    if (depth != 0) return error.UnclosedLoopBody;
-
-    const body = execute[open + 1 .. end - 1];
+    const body = generated.body();
 
     if (std.mem.indexOf(u8, body, "(allocator).create(") != null) return error.PerIterationProductBox;
     if (std.mem.indexOf(u8, body, "(allocator).dupe(") != null) return error.PerIterationListCopy;
-    if (std.mem.eql(u8, mode, "consumer") and std.mem.count(u8, execute[end..], "(allocator, (in).selection)") != 1) return error.InvalidConsumerAbiPlacement;
+    if (std.mem.eql(u8, mode, "consumer") and !generated.projectedOnce("selection")) return error.InvalidConsumerAbiPlacement;
 }

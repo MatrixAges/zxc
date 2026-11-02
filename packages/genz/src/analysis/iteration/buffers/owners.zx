@@ -1,0 +1,54 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import eligible from "./eligible_type"
+import mutates from "./mutates"
+
+import type { Expressions } from "core/expression_table/model"
+import type { Table } from "core/type_table/model"
+
+export type Input = {
+    types: Table,
+    expressions: Expressions,
+    loops: u32[]
+}
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    const owners: u32[] = []
+
+    return loop({
+        source: in,
+        owners,
+        index: 0
+    }, {
+        while: current => current.index < current.source.loops.length,
+        next: current => {
+            const id = current.source.loops[current.index]
+            const index = integers.widen(id)
+
+            if (current.source.expressions.kinds[index] == ExpressionKind.Iteration &&
+                eligible({
+                    types: current.source.types,
+                    id: current.source.expressions.types[index]
+                })) {
+                    const payload =
+                        integers.widen(current.source.expressions.payloads[index])
+
+                    if (mutates({
+                        types: current.source.types,
+                        expressions: current.source.expressions,
+                        roots: [
+                            current.source.expressions.iteration_conditions[payload],
+                            current.source.expressions.iteration_bodies[payload]
+                        ]
+                    })) {
+                        current.owners = current.owners.push(id)[0]
+                    }
+                }
+
+            current.index += 1
+        }
+    }).owners
+}

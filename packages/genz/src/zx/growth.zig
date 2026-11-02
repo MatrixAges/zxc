@@ -23,6 +23,8 @@ pub fn declarations(self: *Lower, exported: bool) Lower.Error![4]node.Declaratio
 /// Gives the list at `path` of a loop state variable its own growth buffer: `try zxRenew(allocator, &state, &.{...})`
 /// with one field name and record origin name per record on the way.
 pub fn renew(self: *Lower, body: *std.ArrayList(node.Statement), type_id: ir.TypeId, state: node.ExpressionId, path: []const u32) Lower.Error!void {
+    if (self.iteration_value) |context| if (context.bufferedPath(type_id, path)) return;
+
     const steps = try self.allocator.alloc(node.ExpressionId, path.len);
     const text = try self.builder.expression(.{ .const_slice = try self.builder.expression(.{ .primitive = .u8 }) });
     var current = type_id;
@@ -68,6 +70,8 @@ pub fn reserve(self: *Lower, body: *std.ArrayList(node.Statement), element: node
 
 /// One growth copy of a plain list the plan found flowing into appends, so they extend it in place from then on.
 pub fn normalize(self: *Lower, id: ir.ExprId, value: node.ExpressionId) Lower.Error!node.ExpressionId {
+    if (self.iteration_value) |context| if (context.buffered(self.program.expression(id).type_id)) return value;
+
     var body: std.ArrayList(node.Statement) = .empty;
     const child = self.program.typeOf(self.program.expression(id).type_id).list;
     const element = try @import("iteration_value/types.zig").element(self, child);

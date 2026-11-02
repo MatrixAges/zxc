@@ -13,9 +13,30 @@ types: std.AutoHashMapUnmanaged(ir.TypeId, node.ExpressionId) = .empty,
 symbols: std.AutoHashMapUnmanaged(ir.SymbolId, void) = .empty,
 cache: std.AutoHashMapUnmanaged(ir.ExprId, node.ExpressionId) = .empty,
 reads: std.AutoHashMapUnmanaged(ir.ExprId, usize) = .empty,
+transfers: std.ArrayList(struct { type_id: ir.TypeId, owner: node.ExpressionId, value: node.ExpressionId, ready: node.ExpressionId }) = .empty,
 argument: ?struct { id: ir.ExprId, value: node.ExpressionId } = null,
 pub fn represented(self: *const Self, id: ir.TypeId) bool {
-    return analysis.represented(self.lowering, id) or (self.inline_lists and self.lowering.program.typeOf(id) == .list);
+    return analysis.represented(self.lowering, id) or self.buffered(id);
+}
+
+pub fn buffered(self: *const Self, id: ir.TypeId) bool {
+    return self.inline_lists and self.lowering.program.typeOf(id) == .list;
+}
+
+pub fn bufferedPath(self: *const Self, id: ir.TypeId, path: []const u32) bool {
+    var current = id;
+
+    for (path) |step| {
+        while (self.lowering.program.typeOf(current) == .optional) current = self.lowering.program.typeOf(current).optional;
+
+        current = switch (self.lowering.program.typeOf(current)) {
+            .object => |fields| fields.at(step).type_id,
+            .tuple => |items| items.at(step),
+            else => return false,
+        };
+    }
+
+    return self.buffered(current);
 }
 
 pub fn expression(self: *Self, id: ir.ExprId) Lower.Error!?node.ExpressionId {
@@ -56,9 +77,11 @@ pub fn expression(self: *Self, id: ir.ExprId) Lower.Error!?node.ExpressionId {
             return try lowering.field(try lowering.expr(field.target), try std.fmt.allocPrint(lowering.allocator, "{d}", .{field.index}));
         },
         .scope => |scope| return try @import("scope.zig").lower(self, scope),
-        .index => |item| if (self.inline_lists) return try @import("../intrinsics.zig").index(lowering, try lowering.expr(item.target), try lowering.expr(item.index)),
-        .list_update => if (self.inline_lists) return try @import("../list_update.zig").lower(lowering, id),
-        .list => |items| if (self.inline_lists) return try @import("list.zig").lower(self, value.type_id, items),
+        .index => |item| if (self.buffered(lowering.program.expression(item.target).type_id)) return try @import("../intrinsics.zig").index(lowering, try lowering.field(try lowering.expr(item.target), "items"), try lowering.expr(item.index)),
+        .length => |child| if (self.buffered(lowering.program.expression(child).type_id)) return try lowering.cast(try lowering.typeExpr(value.type_id), try lowering.field(try lowering.field(try lowering.expr(child), "items"), "len")),
+        .list_update => |write| if (self.buffered(lowering.program.expression(write.target).type_id)) return try @import("mutation.zig").update(self, id),
+        .list_operation => |operation| if (self.buffered(lowering.program.expression(operation.target).type_id)) return try @import("mutation.zig").operation(self, id),
+        .list => |items| if (self.buffered(value.type_id)) return try @import("list.zig").lower(self, value.type_id, items),
         .call => |call| {
             if (analysis.represented(lowering, lowering.program.expression(call.argument).type_id)) return try @import("invocation.zig").lower(self, id, call.argument);
         },

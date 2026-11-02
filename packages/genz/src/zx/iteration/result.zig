@@ -31,6 +31,8 @@ pub const Result = struct {
 
         if (consumer) |selected| {
             if (deep) {
+                if (context.inline_lists) return aggregate.finish(self, body, try @import("../iteration_value/result.zig").buffered(context, body, selected, state));
+
                 const result = try @import("../iteration_value/result.zig").lower(self, selected, state);
 
                 return try aggregate.finish(self, body, result);

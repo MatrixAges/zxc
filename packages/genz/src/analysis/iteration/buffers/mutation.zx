@@ -1,0 +1,38 @@
+import integers from "std:integer"
+import { ExpressionKind, CollectionKind } from "core/expression_table/kinds"
+
+import represented from "../../types/layout_represented"
+
+import type { Expressions } from "core/expression_table/model"
+import type { Table } from "core/type_table/model"
+
+export type Input = {
+    types: Table,
+    expressions: Expressions,
+    index: u64
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const kind = in.expressions.kinds[in.index]
+    const payload = integers.widen(in.expressions.payloads[in.index])
+    const update = kind == ExpressionKind.ListUpdate
+
+    const push = kind == ExpressionKind.ListOperation &&
+        in.expressions.collection_kinds[payload] == CollectionKind.Push
+
+    if (!update && !push) {
+        return false
+    }
+
+    const target = update ? in.expressions.update_targets[payload] :
+        in.expressions.collection_targets[payload]
+
+    const list_type = in.expressions.types[integers.widen(target)]
+
+    return represented({
+        types: in.types,
+        id: in.types.first[integers.widen(list_type)]
+    })
+}

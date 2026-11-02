@@ -1,0 +1,72 @@
+import integers from "std:integer"
+import { map } from "std:utils"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import all from "../all"
+import supported from "../supported"
+import value from "../value"
+import contains from "./contains"
+import { Definition } from "./model"
+import operation from "./operation"
+
+import type { FactsInput as Input } from "./model"
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const result = loop({
+        source: in.source,
+        definitions: in.graph.definitions,
+        order: in.order,
+        safe: map(in.source.source.expressions.kinds, kind => false),
+        index: 0
+    }, {
+        while: current => current.index < current.order.length,
+        next: current => {
+            const index = integers.widen(current.order[current.index])
+            const table = current.source.source.expressions
+            const payload = integers.widen(table.payloads[index])
+            const allowed = supported({
+                types: current.source.source.types,
+                id: table.types[index]
+            }) && operation({
+                source: current.source,
+                index
+            })
+            const reference = table.kinds[index] == ExpressionKind.Reference
+            const symbol = reference ? table.references[payload] :
+                current.source.parameter
+            const local = !reference || !contains({
+                types: current.source.source.types,
+                id: table.types[index],
+                products: false
+            }) || symbol == current.source.parameter ||
+                symbol == current.source.condition_parameter ||
+                (
+                    current.definitions.kinds[integers.widen(symbol)] ==
+                        Definition.Value &&
+                        current
+                        .safe[integers.widen(
+                            current.definitions.values[integers.widen(
+                                symbol
+                            )]
+                        )]
+                )
+
+            current.safe[index] = allowed && local && value({
+                table,
+                allowed: current.source.source.allowed,
+                safe: current.safe,
+                index
+            })
+            current.index += 1
+        }
+    })
+
+    return all({
+        safe: result.safe,
+        values: in.source.source.roots,
+        first: 0,
+        count: in.source.source.roots.length
+    })
+}

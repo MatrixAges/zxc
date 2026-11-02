@@ -53,7 +53,7 @@ fn emit(init: std.process.Init, program: compiler.ir.Program, mode: []const u8, 
 
     defer bundle.deinit(allocator);
 
-    try @import("shape.zig").check(bundle.source, mode);
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = paths[0], .data = bundle.source });
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = paths[1], .data = bundle.types });
+    try @import("shape.zig").check(allocator, bundle.source, mode);
 }

@@ -10,6 +10,8 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
         .imports = &.{.{ .name = "compiler", .module = compiler.module("compiler") }},
     }) });
 
+    tool.root_module.addAnonymousImport("generated_loop", .{ .root_source_file = b.path("tests/support/generated_loop.zig"), .target = target, .optimize = optimize });
+
     for ([_][]const u8{ "mixed", "direct", "borrowed", "shrink", "nested", "dual", "leaves", "consumer", "fallback" }) |mode| {
         const compile = b.addRunArtifact(tool);
 
