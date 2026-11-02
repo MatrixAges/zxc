@@ -16,23 +16,30 @@ export type Output = Result
 
 export default function (in: Input): Output {
     const result = header({
-        table: in.table,
+        ...in.table.pick(["tags", "offsets"]),
         base: in.base,
         kind: ExpressionsKind.Binary,
         offset: in.table.binary_operator.length
     })
 
     if (!result.valid) {
-        return result
+        return {
+            table: in.table,
+            id: result.id,
+            valid: false
+        }
     }
 
     return {
-        ...result,
+        id: result.id,
+        valid: result.valid,
         table: {
-            ...result.table,
-            binary_operator: result.table.binary_operator.push(in.operator)[0],
-            binary_left: result.table.binary_left.push(in.left)[0],
-            binary_right: result.table.binary_right.push(in.right)[0]
+            ...in.table,
+            tags: result.tags,
+            offsets: result.offsets,
+            binary_operator: in.table.binary_operator.push(in.operator)[0],
+            binary_left: in.table.binary_left.push(in.left)[0],
+            binary_right: in.table.binary_right.push(in.right)[0]
         }
     }
 }

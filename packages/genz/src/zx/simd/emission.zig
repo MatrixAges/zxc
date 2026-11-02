@@ -38,14 +38,21 @@ pub fn emit(self: *Lower, plan: Plan) Lower.Error!node.ExpressionId {
         .serial = self.serial,
     };
 
-    const output = generated.executeIn(scratch.allocator(), &input) catch |err| switch (err) {
+    const output = generated.executeValue(scratch.allocator(), &input) catch |err| switch (err) {
         error.OutOfMemory, error.IntegerOverflow => return error.OutOfMemory,
         else => unreachable,
     };
 
     if (!output.valid) return error.OutOfMemory;
 
-    rows.append(self.allocator, &self.builder.nodes.expressions, output.expressions) catch |err| switch (err) {
+    const Expressions = std.meta.Child(@FieldType(std.meta.Child(generated.Output), "expressions"));
+    var expressions: Expressions = undefined;
+
+    inline for (@typeInfo(Expressions).@"struct".field_names) |name| {
+        @field(expressions, name) = @field(output.expressions, name);
+    }
+
+    rows.append(self.allocator, &self.builder.nodes.expressions, &expressions) catch |err| switch (err) {
         error.OutOfMemory => return error.OutOfMemory,
         error.InvalidAst => unreachable,
     };

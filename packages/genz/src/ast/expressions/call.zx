@@ -14,22 +14,29 @@ export type Output = Result
 
 export default function (in: Input): Output {
     const result = header({
-        table: in.table,
+        ...in.table.pick(["tags", "offsets"]),
         base: in.base,
         kind: ExpressionsKind.Call,
         offset: in.table.call_callee.length
     })
 
     if (!result.valid) {
-        return result
+        return {
+            table: in.table,
+            id: result.id,
+            valid: false
+        }
     }
 
     return {
-        ...result,
+        id: result.id,
+        valid: result.valid,
         table: {
-            ...result.table,
-            call_callee: result.table.call_callee.push(in.callee)[0],
-            call_arguments: result.table.call_arguments.push(in.arguments)[0]
+            ...in.table,
+            tags: result.tags,
+            offsets: result.offsets,
+            call_callee: in.table.call_callee.push(in.callee)[0],
+            call_arguments: in.table.call_arguments.push(in.arguments)[0]
         }
     }
 }

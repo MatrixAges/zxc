@@ -16,24 +16,31 @@ export type Output = Result
 
 export default function (in: Input): Output {
     const result = header({
-        table: in.table,
+        ...in.table.pick(["tags", "offsets"]),
         base: in.base,
         kind: ExpressionsKind.CatchValue,
         offset: in.table.catch_value_value.length
     })
 
     if (!result.valid) {
-        return result
+        return {
+            table: in.table,
+            id: result.id,
+            valid: false
+        }
     }
 
     return {
-        ...result,
+        id: result.id,
+        valid: result.valid,
         table: {
-            ...result.table,
-            catch_value_value: result.table.catch_value_value.push(in.value)[0],
-            catch_value_capture: result.table.catch_value_capture.push(in.capture)[0],
-            catch_value_label: result.table.catch_value_label.push(in.label)[0],
-            catch_value_result: result.table.catch_value_result.push(in.result)[0]
+            ...in.table,
+            tags: result.tags,
+            offsets: result.offsets,
+            catch_value_value: in.table.catch_value_value.push(in.value)[0],
+            catch_value_capture: in.table.catch_value_capture.push(in.capture)[0],
+            catch_value_label: in.table.catch_value_label.push(in.label)[0],
+            catch_value_result: in.table.catch_value_result.push(in.result)[0]
         }
     }
 }

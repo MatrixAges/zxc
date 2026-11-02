@@ -14,22 +14,29 @@ export type Output = Result
 
 export default function (in: Input): Output {
     const result = header({
-        table: in.table,
+        ...in.table.pick(["tags", "offsets"]),
         base: in.base,
         kind: ExpressionsKind.Index,
         offset: in.table.index_target.length
     })
 
     if (!result.valid) {
-        return result
+        return {
+            table: in.table,
+            id: result.id,
+            valid: false
+        }
     }
 
     return {
-        ...result,
+        id: result.id,
+        valid: result.valid,
         table: {
-            ...result.table,
-            index_target: result.table.index_target.push(in.target)[0],
-            index_index: result.table.index_index.push(in.index)[0]
+            ...in.table,
+            tags: result.tags,
+            offsets: result.offsets,
+            index_target: in.table.index_target.push(in.target)[0],
+            index_index: in.table.index_index.push(in.index)[0]
         }
     }
 }

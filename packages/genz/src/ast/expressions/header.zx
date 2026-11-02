@@ -2,34 +2,37 @@ import integers from "std:integer"
 import { max_u32 } from "core/const"
 
 import type { ExpressionsKind } from "../../printer/model/expressions"
-import type { Columns, Result } from "./model"
 
 export type Input = {
-    table: Columns,
+    tags: ExpressionsKind[],
+    offsets: u32[],
     base: u32,
     kind: ExpressionsKind,
     offset: u64
 }
 
-export type Output = Result
+export type Output = {
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    id: u32,
+    valid: bool
+}
 
 export default function (in: Input): Output {
-    const id = integers.widen(in.base) + in.table.tags.length
+    const id = integers.widen(in.base) + in.tags.length
 
     if (id >= integers.widen(max_u32)) {
         return {
-            table: in.table,
+            tags: in.tags,
+            offsets: in.offsets,
             id: 0,
             valid: false
         }
     }
 
     return {
-        table: {
-            ...in.table,
-            tags: in.table.tags.push(in.kind)[0],
-            offsets: in.table.offsets.push(integers.narrow(in.offset))[0]
-        },
+        tags: in.tags.push(in.kind)[0],
+        offsets: in.offsets.push(integers.narrow(in.offset))[0],
         id: integers.narrow(id),
         valid: true
     }
