@@ -1,0 +1,81 @@
+import binary from "../../../../ast/expressions/binary"
+import unary from "../../../../ast/expressions/unary"
+import {
+    ExpressionsUnaryOperator,
+    ExpressionsBinaryOperator
+} from "../../../../printer/model/expressions"
+import { Operation } from "../../model"
+import literal from "./literal"
+
+import type { Columns, Result } from "../../../../ast/expressions/model"
+import type { Input as Source, Output } from "./model"
+
+export type Input = {
+    source: Source,
+    table: Columns
+}
+
+export default function (in: Input): Output {
+    const results: u32[] = []
+
+    const result = loop({
+        source: in.source,
+        table: in.table,
+        results,
+        index: 0,
+        valid: true
+    }, {
+        while: current => current.valid && current.index < current.source.nodes.length,
+        next: current => {
+            const item = current.source.nodes[current.index]
+            const initial: Result = {
+                table: current.table,
+                id: current.source.element,
+                valid: true
+            }
+
+            const value = match item.operation {
+                Operation.Invalid => {
+                    ...initial,
+                    valid: false
+                },
+                Operation.Element => initial,
+                Operation.Literal => literal({
+                    table: current.table,
+                    base: current.source.base,
+                    value: current.source.literals[current.index],
+                    vector_type: current.source.vector_type
+                }),
+                Operation.Negate => unary({
+                    table: current.table,
+                    base: current.source.base,
+                    operator: ExpressionsUnaryOperator.Negate,
+                    operand: current.results[item.left]
+                }),
+                _ => binary({
+                    table: current.table,
+                    base: current.source.base,
+                    operator: match item.operation {
+                        Operation.Add => ExpressionsBinaryOperator.Add,
+                        Operation.Subtract => ExpressionsBinaryOperator.Subtract,
+                        Operation.Multiply => ExpressionsBinaryOperator.Multiply,
+                        _ => ExpressionsBinaryOperator.Divide
+                    },
+                    left: current.results[item.left],
+                    right: current.results[item.right]
+                })
+            }
+
+            current.table = value.table
+            current.results = current.results.push(value.id)[0]
+            current.valid = value.valid
+            current.index += 1
+        }
+    })
+
+    return {
+        table: result.table,
+        root: result.results[result.results.length - 1],
+        valid: result.valid
+    }
+}

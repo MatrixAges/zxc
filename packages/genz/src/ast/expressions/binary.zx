@@ -1,0 +1,38 @@
+import { ExpressionsKind } from "../../printer/model/expressions"
+import header from "./header"
+
+import type { ExpressionsBinaryOperator } from "../../printer/model/expressions"
+import type { Columns, Result } from "./model"
+
+export type Input = {
+    table: Columns,
+    base: u32,
+    operator: ExpressionsBinaryOperator,
+    left: u32,
+    right: u32
+}
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const result = header({
+        table: in.table,
+        base: in.base,
+        kind: ExpressionsKind.Binary,
+        offset: in.table.binary_operator.length
+    })
+
+    if (!result.valid) {
+        return result
+    }
+
+    return {
+        ...result,
+        table: {
+            ...result.table,
+            binary_operator: result.table.binary_operator.push(in.operator)[0],
+            binary_left: result.table.binary_left.push(in.left)[0],
+            binary_right: result.table.binary_right.push(in.right)[0]
+        }
+    }
+}

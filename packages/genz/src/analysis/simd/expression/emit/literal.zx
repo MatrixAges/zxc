@@ -1,0 +1,43 @@
+import builtin from "../../../../ast/expressions/builtin"
+import { ExpressionsBuiltinName } from "../../../../printer/model/expressions"
+
+import type { Columns, Result } from "../../../../ast/expressions/model"
+
+export type Input = {
+    table: Columns,
+    base: u32,
+    value: u32,
+    vector_type: u32?
+}
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const vector_type = in.vector_type
+
+    if (vector_type == null) {
+        return {
+            table: in.table,
+            id: in.value,
+            valid: true
+        }
+    }
+
+    const splat = builtin({
+        table: in.table,
+        base: in.base,
+        name: ExpressionsBuiltinName.Splat,
+        arguments: [in.value]
+    })
+
+    if (!splat.valid) {
+        return splat
+    }
+
+    return builtin({
+        table: splat.table,
+        base: in.base,
+        name: ExpressionsBuiltinName.As,
+        arguments: [vector_type, splat.id]
+    })
+}

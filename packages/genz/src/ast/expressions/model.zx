@@ -1,0 +1,24 @@
+import type {
+    ExpressionsKind,
+    ExpressionsUnaryOperator,
+    ExpressionsBinaryOperator,
+    ExpressionsBuiltinName
+} from "../../printer/model/expressions"
+
+export type Columns = {
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    unary_operator: ExpressionsUnaryOperator[],
+    unary_operand: u32[],
+    binary_operator: ExpressionsBinaryOperator[],
+    binary_left: u32[],
+    binary_right: u32[],
+    builtin_name: ExpressionsBuiltinName[],
+    builtin_arguments: u32[][]
+}
+
+export type Result = {
+    table: Columns,
+    id: u32,
+    valid: bool
+}

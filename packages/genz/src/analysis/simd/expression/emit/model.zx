@@ -1,0 +1,16 @@
+import type { Columns } from "../../../../ast/expressions/model"
+import type { Node } from "../../model"
+
+export type Input = {
+    nodes: Node[],
+    literals: u32[],
+    element: u32,
+    vector_type: u32?,
+    base: u32
+}
+
+export type Output = {
+    table: Columns,
+    root: u32,
+    valid: bool
+}

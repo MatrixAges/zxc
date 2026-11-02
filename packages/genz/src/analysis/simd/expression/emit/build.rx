@@ -1,0 +1,17 @@
+<Module>
+    <Type from="./model" as="Emit" />
+
+    <Args in={Emit.Input} out={Emit.Output} />
+
+    <Call fn="../../../../ast/expressions/empty" in={{}} />
+
+    <Call
+        fn="build"
+        in={{
+            source: $in,
+            table: $ctx.empty
+        }}
+    />
+
+    <Return value={$ctx.build} />
+</Module>
