@@ -4,6 +4,8 @@ const project = @import("frontend").project;
 const view = @import("genz").zx.modules.abi_view;
 
 pub fn render(allocator: std.mem.Allocator, modules: ir.NativeModuleTable, options: project.Options) ![]u8 {
+    if (@import("parser_options").generated_parser) return @import("source_abi/generated.zig").render(allocator, modules, options);
+
     var arena = std.heap.ArenaAllocator.init(allocator);
 
     defer arena.deinit();

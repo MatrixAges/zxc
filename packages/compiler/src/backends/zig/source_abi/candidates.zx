@@ -1,0 +1,71 @@
+import contains from "./contains"
+
+import type { Bindings, Sources, Candidates } from "./model"
+
+export type Input = {
+    modules: Bindings,
+    sources: Sources
+}
+
+export type Output = Candidates
+
+export default function (in: Input): Output {
+    const names: string[] = []
+    const identities: string[] = []
+
+    const defaults = loop({
+        modules: in.modules,
+        names,
+        identities,
+        index: 0
+    }, {
+        while: current => current.index < current.modules.specifiers.length,
+        next: current => {
+            if (current.modules.identities[current.index] == null) {
+                const name = current.modules.specifiers[current.index]
+
+                current.names = current.names.push(name)[0]
+                current.identities = current.identities.push(name)[0]
+            }
+
+            current.index += 1
+        }
+    })
+
+    const result = loop({
+        modules: in.modules,
+        sources: in.sources,
+        names: defaults.names,
+        identities: defaults.identities,
+        index: 0,
+        count:
+            in.sources.interfaces.specifiers.length +
+            in.sources.externals.specifiers.length
+    }, {
+        while: current => current.index < current.count,
+        next: current => {
+            const first = current.sources.interfaces.specifiers.length
+            const external = current.index >= first
+            const source = external ? current.sources.externals :
+                current.sources.interfaces
+            const index = external ? current.index - first : current.index
+            const name = source.specifiers[index]
+            const identity = source.identities[index] ?? name
+
+            if (contains({
+                modules: current.modules,
+                identity
+            })) {
+                current.names = current.names.push(name)[0]
+                current.identities = current.identities.push(identity)[0]
+            }
+
+            current.index += 1
+        }
+    })
+
+    return {
+        names: result.names,
+        identities: result.identities
+    }
+}

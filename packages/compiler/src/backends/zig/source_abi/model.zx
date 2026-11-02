@@ -1,0 +1,34 @@
+import type { Alias } from "genz/abi/model"
+
+export type Bindings = {
+    specifiers: string[],
+    identities: string?[]
+}
+
+export type Sources = {
+    interfaces: Bindings,
+    externals: Bindings
+}
+
+export type PlanInput = {
+    identities: string?[],
+    roots: string[],
+    root: string
+}
+
+export type Plan = {
+    scoped: bool,
+    scope?: u64
+}
+
+export type Input = {
+    modules: Bindings,
+    sources: Sources
+}
+
+export type Candidates = {
+    names: string[],
+    identities: string[]
+}
+
+export type Output = Alias[]

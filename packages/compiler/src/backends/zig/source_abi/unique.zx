@@ -1,0 +1,63 @@
+import bytes from "std:bytes"
+
+import type { Alias } from "genz/abi/model"
+import type { Candidates as Input } from "./model"
+
+export type Output = Alias[]
+
+export default function (in: Input): Output {
+    const aliases: Alias[] = []
+
+    return loop({
+        source: in,
+        aliases,
+        index: 0
+    }, {
+        while: current => current.index < current.source.names.length,
+        next: current => {
+            const name = current.source.names[current.index]
+            const identity = current.source.identities[current.index]
+            const matches = loop({
+                source: current.source,
+                name: bytes.fromText(name),
+                identity: bytes.fromText(identity),
+                selected: current.index,
+                index: 0,
+                repeated: false,
+                conflicting: false
+            }, {
+                while: other =>
+                    !other.conflicting && other.index < other.source.names.length,
+                next: other => {
+                    if (
+                        bytes.equals(
+                            bytes.fromText(
+                                other.source.names[other.index]
+                            ),
+                            other.name
+                        )
+                    ) {
+                        other.conflicting = !bytes.equals(
+                            bytes.fromText(
+                                other.source.identities[other.index]
+                            ),
+                            other.identity
+                        )
+                        other.repeated = other.repeated || other.index < other.selected
+                    }
+
+                    other.index += 1
+                }
+            })
+
+            if (!matches.repeated && !matches.conflicting) {
+                current.aliases = current.aliases.push({
+                    name,
+                    identity
+                })[0]
+            }
+
+            current.index += 1
+        }
+    }).aliases
+}

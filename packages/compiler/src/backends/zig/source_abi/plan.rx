@@ -1,0 +1,25 @@
+<Module>
+    <Type from="./model" as="Aliases" />
+
+    <Args in={Aliases.PlanInput} out={Aliases.Plan} />
+
+    <Call fn="scoped" in={$in.identities} />
+
+    <If on={!$ctx.scoped}>
+        <Return
+            value={{
+                scoped: false,
+                scope: null
+            }}
+        />
+    </If>
+
+    <Call fn="scope" in={$in} />
+
+    <Return
+        value={{
+            scoped: true,
+            scope: $ctx.scope
+        }}
+    />
+</Module>
