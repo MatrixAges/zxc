@@ -1,0 +1,20 @@
+import { Layout } from "../layout"
+
+export enum Property { Flat, Aggregate, Represented }
+
+export type Input = {
+    value: Layout,
+    property: Property
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    return match in.property {
+        Property.Flat => in.value == Layout.FlatProduct,
+        Property.Aggregate => in.value == Layout.Product ||
+            in.value == Layout.FlatProduct,
+        _ => in.value == Layout.Product ||
+            in.value == Layout.FlatProduct || in.value == Layout.WrappedProduct
+    }
+}

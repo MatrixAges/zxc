@@ -1,5 +1,6 @@
 <Module>
     <Type from="../model" as="Model" />
+    <Type from="../types/layout" as="Layout" />
 
     <Args
         in={{
@@ -21,6 +22,7 @@
             io: bool[],
             keys: u8[],
             local: bool[],
+            layout_types: Layout.Output,
             process: bool[],
             pure: bool[],
             selected: bool[],
@@ -30,6 +32,8 @@
     />
 
     <Call module="../state/select" in={$in.program} />
+
+    <Call fn="../types/layout" in={$in.program.types} />
 
     <Call
         fn="../value/summary"
@@ -59,6 +63,7 @@
         value={{
             ...$ctx.summary,
             ...$ctx.select,
+            layout_types: $ctx.layout,
             io: $ctx.io,
             process: $ctx.process,
             tasks: $ctx.tasks,

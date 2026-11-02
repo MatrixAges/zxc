@@ -177,7 +177,7 @@ fn walk(self: *Self, value: @FieldType(ir.ExpressionRow, "value"), marking: bool
 
 fn productList(program: ir.Program, id: ir.TypeId) bool {
     return switch (program.typeOf(id)) {
-        .list => |child| @import("../iteration_layout.zig").represented(program, child),
+        .list => |child| @import("../iteration_layout/types_seed.zig").represented(program, child),
         .object => |fields| blk: {
             for (0..fields.len) |index| if (productList(program, fields.at(index).type_id)) break :blk true;
 

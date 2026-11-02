@@ -1,6 +1,6 @@
 const std = @import("std");
 const ir = @import("zx").ir;
-const layout = @import("../iteration_layout.zig");
+const layout = @import("types_seed.zig");
 const aggregate = layout.aggregate;
 const supported = layout.supported;
 const represented = layout.represented;

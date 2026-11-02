@@ -1,0 +1,76 @@
+import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import type { Table } from "core/type_table/model"
+
+export type Input = Table
+
+export enum Layout { Other, Leaf, Product, FlatProduct, WrappedProduct }
+
+export type Output = Layout[]
+
+export default function (in: Input): Output {
+    const empty: Layout[] = []
+
+    const result = loop({
+        types: in,
+        values: empty,
+        index: 0
+    }, {
+        while: current => current.index < current.types.kinds.length,
+        next: current => {
+            const index = current.index
+            const target = kind(current.types.kinds[index])
+            const product = target == Kind.Object || target == Kind.Tuple
+            const primitive = match target {
+                Kind.Scalar => true,
+                Kind.Enumeration => true,
+                Kind.ErrorSet => true,
+                Kind.NativeReference => true,
+                _ => false
+            }
+            const first = integers.widen(current.types.first[index])
+            const leaf = primitive || (
+                (target == Kind.Optional || target == Kind.List) &&
+                    current.values[first] == Layout.Leaf
+            )
+            const represented = target == Kind.Optional && (
+                current.values[first] == Layout.Product ||
+                    current.values[first] == Layout.FlatProduct ||
+                    current.values[first] == Layout.WrappedProduct
+            )
+
+            const members = loop({
+                types: current.types,
+                values: current.values,
+                object: target == Kind.Object,
+                index: first,
+                end: first + integers.widen(current.types.second[index]),
+                valid: product
+            }, {
+                while: items => items.valid && items.index < items.end,
+                next: items => {
+                    const child = items.object ? items.types.field_types[items.index] :
+                        items.types.children[items.index]
+
+                    items.valid = items.values[integers.widen(child)] == Layout.Leaf
+                    items.index += 1
+                }
+            })
+
+            const value = match {
+                leaf => Layout.Leaf,
+                product && members.valid => Layout.FlatProduct,
+                product => Layout.Product,
+                represented => Layout.WrappedProduct,
+                _ => Layout.Other
+            }
+
+            current.values = current.values.push(value)[0]
+            current.index += 1
+        }
+    })
+
+    return result.values
+}

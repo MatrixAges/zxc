@@ -1,6 +1,6 @@
 const std = @import("std");
 const ir = @import("zx").ir;
-const represented = @import("../iteration_layout.zig").represented;
+const represented = @import("types_seed.zig").represented;
 
 /// The pure `functions` that compare no represented aggregates by identity, themselves or through their callees; a
 /// fact of the whole program, computed once. A function may only rely on functions before it, so every body is

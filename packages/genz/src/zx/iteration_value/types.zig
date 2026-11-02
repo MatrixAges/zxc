@@ -10,7 +10,7 @@ pub fn get(self: *Context, id: ir.TypeId) Lower.Error!node.ExpressionId {
 
     const definition = switch (lowering.program.typeOf(id)) {
         .optional => |child| return lowering.builder.expression(.{ .optional_type = try get(self, child) }),
-        .list => |child| return if (self.inline_lists and @import("../iteration_layout.zig").represented(lowering.program, child)) lowering.builder.expression(.{ .const_slice = try get(self, child) }) else try lowering.typeExpr(id),
+        .list => |child| return if (self.inline_lists and @import("../iteration_layout.zig").represented(lowering, child)) lowering.builder.expression(.{ .const_slice = try get(self, child) }) else try lowering.typeExpr(id),
         .object => |fields| blk: {
             const items = try lowering.allocator.alloc(node.Field, fields.len);
 
@@ -45,7 +45,7 @@ pub fn get(self: *Context, id: ir.TypeId) Lower.Error!node.ExpressionId {
 }
 
 pub fn element(lowering: *Lower, id: ir.TypeId) Lower.Error!node.ExpressionId {
-    if (lowering.iteration_value) |context| if (context.inline_lists and @import("../iteration_layout.zig").represented(lowering.program, id)) return get(context, id);
+    if (lowering.iteration_value) |context| if (context.inline_lists and @import("../iteration_layout.zig").represented(lowering, id)) return get(context, id);
 
     return try lowering.typeExpr(id);
 }

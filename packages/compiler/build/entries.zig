@@ -87,6 +87,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/shape/plan.rx", .name = "shape_plan", .owner = .genz },
     .{ .path = "genz/analysis/inline/prepare.rx", .name = "inline_prepare", .owner = .genz },
     .{ .path = "genz/analysis/iteration/analyze.rx", .name = "iteration_layout", .owner = .genz },
+    .{ .path = "genz/analysis/types/layout/query.zx", .name = "layout_query", .owner = .genz },
     .{ .path = "genz/analysis/iteration/fields/plan.rx", .name = "loop_fields", .owner = .genz },
 };
 

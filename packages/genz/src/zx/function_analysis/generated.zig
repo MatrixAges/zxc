@@ -16,6 +16,7 @@ pub const Facts = struct {
     fresh_outputs: []bool,
     identity_free: []bool,
     errors: []const ?[]const []const u8,
+    layout_types: []const @import("../iteration_layout/generated.zig").Type,
 };
 
 /// Borrows the program columns for the generated facts and copies the results into the caller allocator.
@@ -91,5 +92,6 @@ pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, progr
         .fresh_outputs = try allocator.dupe(bool, output.fresh_outputs),
         .identity_free = try allocator.dupe(bool, output.identity_free),
         .errors = errors,
+        .layout_types = try allocator.dupe(@import("../iteration_layout/generated.zig").Type, output.layout_types),
     };
 }

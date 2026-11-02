@@ -15,7 +15,7 @@ cache: std.AutoHashMapUnmanaged(ir.ExprId, node.ExpressionId) = .empty,
 reads: std.AutoHashMapUnmanaged(ir.ExprId, usize) = .empty,
 argument: ?struct { id: ir.ExprId, value: node.ExpressionId } = null,
 pub fn represented(self: *const Self, id: ir.TypeId) bool {
-    return analysis.represented(self.lowering.program, id) or (self.inline_lists and self.lowering.program.typeOf(id) == .list);
+    return analysis.represented(self.lowering, id) or (self.inline_lists and self.lowering.program.typeOf(id) == .list);
 }
 
 pub fn expression(self: *Self, id: ir.ExprId) Lower.Error!?node.ExpressionId {
@@ -60,7 +60,7 @@ pub fn expression(self: *Self, id: ir.ExprId) Lower.Error!?node.ExpressionId {
         .list_update => if (self.inline_lists) return try @import("../list_update.zig").lower(lowering, id),
         .list => |items| if (self.inline_lists) return try @import("list.zig").lower(self, value.type_id, items),
         .call => |call| {
-            if (analysis.represented(lowering.program, lowering.program.expression(call.argument).type_id)) return try @import("invocation.zig").lower(self, id, call.argument);
+            if (analysis.represented(lowering, lowering.program.expression(call.argument).type_id)) return try @import("invocation.zig").lower(self, id, call.argument);
         },
         else => {},
     }

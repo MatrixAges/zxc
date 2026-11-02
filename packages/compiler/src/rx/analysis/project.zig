@@ -121,9 +121,10 @@ fn derive(allocator: std.mem.Allocator, options: Options, cache: *frontend.proje
     for (registered, checked.value.data, modules) |source, module, *item| item.* = .{ .path = module.path, .node = source.node, .packages = source.packages };
 
     const entry_index = if (is_zx) null else prepare.find(modules, entry) orelse return failed(allocator, .{ .path = entry, .location = .{ .offset = 0, .line = 1, .column = 1 }, .code = "module", .message = "RX entry is not registered in the module collection" });
-    const roots = try allocator.alloc([]const u8, modules.len);
+    const roots = try allocator.alloc([]const u8, modules.len + options.exports.len);
 
-    for (modules, roots) |module, *path| path.* = module.path;
+    for (modules, roots[0..modules.len]) |module, *path| path.* = module.path;
+    for (options.exports, roots[modules.len..]) |exported, *path| path.* = exported.path;
 
     const dependencies = try source_graph.build(allocator, .{
         .entry = entry,

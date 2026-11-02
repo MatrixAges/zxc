@@ -27,7 +27,7 @@ fn lowerMode(self: *Lower, scope: ir.ScopeRow, layout: bool) Lower.Error!node.Ex
     };
 
     const result_type = self.program.expression(scope.result).type_id;
-    const local_root = layout and analysis.aggregate(self.program, result_type);
+    const local_root = layout and analysis.aggregate(self, result_type);
     const projected = self.state_active and self.value_output;
 
     if ((local_root or projected) and self.projected_symbols == null) self.projected_symbols = try @import("value_call/projections.zig").symbols(self.allocator, self.program);
@@ -42,7 +42,7 @@ fn lowerMode(self: *Lower, scope: ir.ScopeRow, layout: bool) Lower.Error!node.Ex
 
                 if (!snapshot and !self.projected_symbols.?[@backingInt(symbol)]) continue;
                 if (@import("state_value/root.zig").selected(self, type_id)) continue;
-                if (!analysis.aggregate(self.program, type_id) or self.stack_symbols.contains(symbol)) continue;
+                if (!analysis.aggregate(self, type_id) or self.stack_symbols.contains(symbol)) continue;
                 try stacked.append(self.allocator, symbol);
                 try self.stack_symbols.put(self.allocator, symbol, {});
             }

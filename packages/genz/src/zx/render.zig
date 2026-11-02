@@ -98,6 +98,7 @@ pub fn initializeAnalyzed(temporary: std.mem.Allocator, workspace: std.mem.Alloc
         .types = try temporary.alloc(node.ExpressionId, program.types.count()),
         .layouts = try temporary.alloc(node.ExpressionId, program.types.count()),
         .state_plan = facts.value.state,
+        .layout_types = facts.layout_types,
         .names = try temporary.alloc([]const u8, program.symbols.count()),
         .cache_reads = try temporary.alloc(usize, program.expressions.count()),
         .used = try temporary.alloc(bool, program.symbols.count()),

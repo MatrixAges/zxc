@@ -15,7 +15,7 @@ fn borrow(self: *Context, body: *std.ArrayList(node.Statement), id: ir.TypeId, v
 
     const result = switch (lowering.program.typeOf(id)) {
         .optional => |child| {
-            if (!@import("../iteration_layout.zig").represented(lowering.program, child)) return value;
+            if (!@import("../iteration_layout.zig").represented(lowering, child)) return value;
 
             const present = try @import("../intrinsics.zig").binary(lowering, .not_equal, value, try lowering.builder.expression(.null_value));
             const condition = if (guard) |parent| try @import("../intrinsics.zig").binary(lowering, .logical_and, parent, present) else present;

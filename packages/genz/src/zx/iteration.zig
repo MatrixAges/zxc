@@ -37,9 +37,9 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
     const local_calls = pure or try layout_analysis.eligible(self.allocator, self.program, iteration, self.local_functions);
     const selected_call = try forwarded(self, iteration);
     const type_id = self.program.expression(id).type_id;
-    const deep = !self.state_active and (projected_output or mode == .discard) and pure and !layout_analysis.flat(self.program, type_id) and layout_analysis.represented(self.program, type_id) and try layout_analysis.deep(self.allocator, self.program, iteration, self.identity_free_functions);
+    const deep = !self.state_active and (projected_output or mode == .discard) and pure and !layout_analysis.flat(self, type_id) and layout_analysis.represented(self, type_id) and try layout_analysis.deep(self.allocator, self.program, iteration, self.identity_free_functions);
     const selected_state = !deep and self.state_plan.represented(self.program, type_id) and (self.state_active or selected_call != null or local_calls);
-    const layout = !deep and (selected_state or selected_call != null or ((local_calls or try layout_analysis.shallow(self.allocator, self.program, iteration)) and layout_analysis.aggregate(self.program, type_id)));
+    const layout = !deep and (selected_state or selected_call != null or ((local_calls or try layout_analysis.shallow(self.allocator, self.program, iteration)) and layout_analysis.aggregate(self, type_id)));
     const by_value = mode != .reference and layout;
 
     if (mode == .value and !layout) return try self.builder.expression(.{ .dereference = try lower(self, id, iteration) });

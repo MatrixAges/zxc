@@ -10,7 +10,7 @@ process: []const bool,
 tasks: []const bool,
 /// The errors each function raises, null where unknown.
 errors: []const ?[]const []const u8 = &.{},
-
+layout_types: []const @import("iteration_layout/generated.zig").Type = &.{},
 /// The pure functions that compare no represented aggregates by identity, themselves or through their callees.
 identity_free: []const bool = &.{},
 /// The functions whose output holds no part of their input.
@@ -97,6 +97,7 @@ fn createWithConcurrency(backing: std.mem.Allocator, program: ir.Program, export
         .process = try owned.dupe(bool, facts.process),
         .tasks = try owned.dupe(bool, facts.tasks),
         .errors = try copyErrors(owned, facts.errors),
+        .layout_types = try owned.dupe(@import("iteration_layout/generated.zig").Type, facts.layout_types),
         .identity_free = try owned.dupe(bool, facts.identity_free),
         .fresh_outputs = try owned.dupe(bool, facts.fresh_outputs),
         .uniqueness = try copyPlans(owned, facts.uniqueness),
@@ -207,6 +208,7 @@ fn remaining(allocator: std.mem.Allocator, workspace: std.mem.Allocator, program
             .fresh_outputs = generated.fresh_outputs,
             .identity_free = generated.identity_free,
             .errors = generated.errors,
+            .layout_types = generated.layout_types,
             .uniqueness = undefined,
             .basis = undefined,
         };
