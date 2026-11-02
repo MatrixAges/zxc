@@ -1,0 +1,69 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+
+import {
+    ExpressionsKind,
+    ExpressionsBuiltinName
+} from "../../../printer/model/expressions"
+import { canonical_name, canonical_module } from "./const"
+
+import type { Expressions, State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const expressions: Expressions = {
+        ...in.expressions,
+        tags: in.expressions.tags.concat(
+            [
+                ExpressionsKind.String,
+                ExpressionsKind.Builtin
+            ]
+        )[0],
+        offsets: in.expressions.offsets.concat([0, 0])[0],
+        string: [bytes.fromText(canonical_module)],
+        builtin_name: [ExpressionsBuiltinName.Import],
+        builtin_arguments: [[1]]
+    }
+
+    return loop({
+        ...in,
+        expressions,
+        roots: in.roots.push({
+            name: bytes.fromText(canonical_name),
+            type_expr: null,
+            value: 2,
+            exported: false
+        })[0],
+        index: 0
+    }, {
+        while: current => current.valid && current.index < current.source.names.length,
+        next: current => {
+            const start = current.expressions.tags.length
+
+            if (start >= integers.widen(max_u32)) {
+                current.valid = false
+            } else {
+                const name = bytes.fromText(current.source.names[current.index])
+
+                current.expressions = {
+                    ...current.expressions,
+                    tags: current.expressions.tags.push(ExpressionsKind.Field)[0],
+                    offsets: current.expressions.offsets.push(
+                        integers.narrow(
+                            current.expressions.field_target.length
+                        )
+                    )[0],
+                    field_target: current.expressions.field_target.push(0)[0],
+                    field_name: current.expressions.field_name.push(name)[0]
+                }
+                current.roots = current.roots.push({
+                    name,
+                    type_expr: null,
+                    value: integers.narrow(start),
+                    exported: true
+                })[0]
+                current.index += 1
+            }
+        }
+    }).omit(["index"])
+}

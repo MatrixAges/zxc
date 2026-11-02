@@ -92,6 +92,8 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/types/definitions/build.rx", .name = "abi_definitions", .owner = .genz },
     .{ .path = "genz/analysis/types/abi/build.rx", .name = "shared_abi", .owner = .genz },
     .{ .path = "genz/analysis/types/shared/build.rx", .name = "shared_state", .owner = .genz },
+    .{ .path = "genz/analysis/abi/names/build.rx", .name = "abi_type_names", .owner = .genz },
+    .{ .path = "genz/analysis/abi/view/build.rx", .name = "abi_view", .owner = .genz },
     .{ .path = "genz/analysis/types/layout/query.zx", .name = "layout_query", .owner = .genz },
     .{ .path = "genz/analysis/entry/analyze.rx", .name = "entry_flags", .owner = .genz },
     .{ .path = "genz/analysis/names/analyze.rx", .name = "stable_names", .owner = .genz },

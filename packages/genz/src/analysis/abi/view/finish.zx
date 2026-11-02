@@ -1,0 +1,24 @@
+import integers from "std:integer"
+
+import constants from "../../../ast/declarations/constants"
+
+import type { State as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const members = constants({
+        values: in.members,
+        base: 0
+    })
+
+    const roots = constants({
+        values: in.roots,
+        base: integers.narrow(in.members.length)
+    })
+
+    return {
+        expressions: in.expressions,
+        members: members.table,
+        roots: roots.table,
+        valid: in.valid && members.valid && roots.valid
+    }
+}

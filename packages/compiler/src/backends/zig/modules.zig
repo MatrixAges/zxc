@@ -52,7 +52,7 @@ pub fn createCached(allocator: std.mem.Allocator, analysis: *const Analysis, cac
     const entry = File{ .name = "application", .source = try batch.emit(owned, .entry), .imports = try references.imports(owned, allocator, program.expressions, program.contracts, identities.functions, &.{}) };
     const modules = try functionFilesAnalyzed(owned, &batch, needed, &.{entry.source});
     const type_source = try batch.emit(owned, .types);
-    const type_names = try typeNamesAnalyzed(owned, program, identities, batch.analysis.value.value.state);
+    const type_names = try typeNamesAnalyzed(owned, batch.backing, program, identities, batch.analysis.value.value.state);
     const native_modules = try nativeModules(owned, program);
 
     const signature = Signature{
@@ -146,33 +146,11 @@ pub fn typeNames(owned: std.mem.Allocator, program: @import("zx").ir.Program, id
     defer owned.free(state_plan.selected);
     defer owned.free(state_plan.keys);
 
-    return typeNamesAnalyzed(owned, program, identities, state_plan);
+    return typeNamesAnalyzed(owned, owned, program, identities, state_plan);
 }
 
-pub fn typeNamesAnalyzed(owned: std.mem.Allocator, program: @import("zx").ir.Program, identities: generating.Names, state_plan: @import("genz").zx.state_value.Analysis) std.mem.Allocator.Error![]const []const u8 {
-    var type_names: std.ArrayList([]const u8) = .empty;
-    var type_set: @import("zx").bytes.Map(void) = .empty;
-
-    for (0..program.types.count(), identities.types, 0..) |view_index, name, index| {
-        const value = program.types.at(view_index);
-
-        if (value != .list and value != .object and value != .tuple and value != .enumeration and value != .native_reference) continue;
-        if (value != .list and !(try type_set.getOrPut(owned, name)).found_existing) try type_names.append(owned, name);
-
-        if (state_plan.selected[index]) {
-            const internal_name = try state_plan.name(owned, @fromBackingInt(@intCast(index)), name);
-
-            if (!(try type_set.getOrPut(owned, internal_name)).found_existing) try type_names.append(owned, internal_name);
-
-            if (value == .object or value == .tuple) {
-                const view_name = try std.fmt.allocPrint(owned, "view_{s}", .{internal_name});
-
-                if (!(try type_set.getOrPut(owned, view_name)).found_existing) try type_names.append(owned, view_name);
-            }
-        }
-    }
-
-    return type_names.toOwnedSlice(owned);
+pub fn typeNamesAnalyzed(owned: std.mem.Allocator, workspace: std.mem.Allocator, program: @import("zx").ir.Program, identities: generating.Names, state_plan: @import("genz").zx.state_value.Analysis) std.mem.Allocator.Error![]const []const u8 {
+    return generating.typeNames(owned, workspace, program, identities.types, state_plan);
 }
 
 pub fn nativeModules(owned: std.mem.Allocator, program: @import("zx").ir.Program) std.mem.Allocator.Error!@import("zx").ir.NativeModuleTable {

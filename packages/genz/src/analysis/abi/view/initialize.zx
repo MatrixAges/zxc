@@ -1,0 +1,29 @@
+import bytes from "std:bytes"
+
+import { ExpressionsKind } from "../../../printer/model/expressions"
+import { canonical_name } from "./const"
+
+import type { Input, State } from "./model"
+
+export type Output = State
+
+export default function (in: Input): Output {
+    return {
+        source: in,
+        expressions: {
+            tags: [ExpressionsKind.Identifier],
+            offsets: [0],
+            identifier: [bytes.fromText(canonical_name)],
+            string: [],
+            builtin_name: [],
+            builtin_arguments: [],
+            field_target: [],
+            field_name: [],
+            namespace_type_start: [],
+            namespace_type_len: []
+        },
+        members: [],
+        roots: [],
+        valid: true
+    }
+}

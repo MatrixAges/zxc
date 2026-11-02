@@ -76,3 +76,4 @@ import bytes from "std:bytes"
 | `lessThan`          | `(u8[], u8[])` → `bool`        | 按无符号字节字典序比较左侧切片是否小于右侧切片 |
 
 `std:bytes` 直接扫描或比较借用切片，不分配内存、不做字符编码校验，支持并发调用。
+`hash(bytes)` 返回 seed 为 0 的 Wyhash 64 位值，可用于内存哈希索引。

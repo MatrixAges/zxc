@@ -9,6 +9,7 @@ pub const Names = struct { types: []const []const u8, functions: []const []const
 /// with the pointer-ABI `call` as well, for value functions some caller reaches through it.
 pub const Unit = union(enum) { entry, function: ir.FunctionId, types, regular: ir.FunctionId };
 pub const abi_view = @import("abi_view.zig");
+pub const typeNames = @import("types/export_names.zig").build;
 pub const Error = std.mem.Allocator.Error || error{ InvalidNames, InvalidFunction };
 pub const PublicMember = struct { name: []const u8, function: ir.FunctionId };
 

@@ -1,0 +1,10 @@
+<Module>
+    <Type from="./model" as="Names" />
+
+    <Args in={Names.Input} out={Names.Output} />
+
+    <Call fn="candidates" in={$in} />
+    <Call fn="unique" in={$ctx.candidates} />
+
+    <Return value={$ctx.unique} />
+</Module>

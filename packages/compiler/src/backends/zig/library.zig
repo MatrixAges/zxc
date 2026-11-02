@@ -208,7 +208,7 @@ fn create(allocator: std.mem.Allocator, output: std.mem.Allocator, library: *con
 
     const functions = try modules.functionFilesFrom(owned, &batch, units, generated[public_batches.len + 1 ..], roots);
     const files = try std.mem.concat(owned, modules.File, &.{ functions, initializers.files });
-    const type_names = try modules.typeNamesAnalyzed(owned, program, identities, batch.analysis.value.value.state);
+    const type_names = try modules.typeNamesAnalyzed(owned, batch.backing, program, identities, batch.analysis.value.value.state);
     const native_modules = try modules.nativeModules(owned, program);
 
     return .{

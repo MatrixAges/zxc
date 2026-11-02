@@ -1,3 +1,5 @@
+import { state_key_size } from "./const"
+
 export type Input = {
     keys: u8[],
     bytes: u8[],
@@ -10,8 +12,8 @@ export default function (in: Input): Output {
     const result = loop({
         keys: in.keys,
         bytes: in.bytes,
-        position: in.id * 32,
-        end: in.id * 32 + 32
+        position: in.id * state_key_size,
+        end: in.id * state_key_size + state_key_size
     }, {
         while: current => current.position < current.end,
         next: current => {

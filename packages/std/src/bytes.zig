@@ -51,3 +51,7 @@ pub fn equals(left: []const u8, right: []const u8) bool {
 pub fn lessThan(left: []const u8, right: []const u8) bool {
     return std.mem.lessThan(u8, left, right);
 }
+
+pub fn hash(in: []const u8) u64 {
+    return std.hash.Wyhash.hash(0, in);
+}

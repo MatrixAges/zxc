@@ -4,6 +4,8 @@ const Builder = @import("../builder.zig");
 pub const Alias = struct { name: []const u8, identity: []const u8 };
 
 pub fn render(allocator: std.mem.Allocator, type_names: []const []const u8, aliases: []const Alias, imported: bool) std.mem.Allocator.Error![]u8 {
+    if (@import("genz_options").generated_analysis) return @import("abi_view/generated.zig").render(allocator, type_names, aliases, imported);
+
     var arena = std.heap.ArenaAllocator.init(allocator);
 
     defer arena.deinit();

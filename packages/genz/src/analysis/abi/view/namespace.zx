@@ -1,0 +1,127 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+
+import namespace from "../../../ast/expressions/namespace"
+import { ExpressionsKind } from "../../../printer/model/expressions"
+import {
+    native_namespace,
+    layouts_namespace,
+    scoped_native_namespace,
+    scoped_layouts_namespace
+} from "../../native_namespaces/const"
+
+import type { State } from "./model"
+
+export type Input = {
+    state: State,
+    layouts: bool
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const name = in.layouts ? layouts_namespace : native_namespace
+    const scoped = in.layouts ? scoped_layouts_namespace : scoped_native_namespace
+    const start = in.state.expressions.tags.length
+    const member_start = in.state.members.length
+
+    if (start >= integers.widen(max_u32)) {
+        return {
+            ...in.state,
+            valid: false
+        }
+    }
+
+    const expressions = in.state.expressions
+
+    const target = in.state.source.imported ? {
+        ...expressions,
+        tags: expressions.tags.push(ExpressionsKind.Field)[0],
+        offsets: expressions.offsets.push(
+            integers.narrow(
+                expressions.field_target.length
+            )
+        )[0],
+        field_target: expressions.field_target.push(0)[0],
+        field_name: expressions.field_name.push(bytes.fromText(scoped))[0]
+    } : {
+        ...expressions,
+        tags: expressions.tags.push(ExpressionsKind.Identifier)[0],
+        offsets: expressions.offsets.push(
+            integers.narrow(expressions.identifier.length)
+        )[0],
+        identifier: expressions.identifier.push(bytes.fromText(scoped))[0]
+    }
+
+    const members = loop({
+        ...in.state,
+        expressions: target,
+        target: integers.narrow(start),
+        index: 0
+    }, {
+        while: current => current.valid && current.index < current.source.aliases.length,
+        next: current => {
+            const alias = current.source.aliases[current.index]
+            const id = current.expressions.tags.length
+
+            if (id >= integers.widen(max_u32)) {
+                current.valid = false
+            } else {
+                current.expressions = {
+                    ...current.expressions,
+                    tags: current.expressions.tags.push(ExpressionsKind.Field)[0],
+                    offsets: current.expressions.offsets.push(
+                        integers.narrow(
+                            current.expressions.field_target.length
+                        )
+                    )[0],
+                    field_target:
+                        current.expressions.field_target.push(current.target)[0],
+                    field_name: current.expressions.field_name.push(
+                        bytes.fromText(
+                            alias.identity
+                        )
+                    )[0]
+                }
+                current.members = current.members.push({
+                    name: bytes.fromText(alias.name),
+                    type_expr: null,
+                    value: integers.narrow(id),
+                    exported: true
+                })[0]
+                current.index += 1
+            }
+        }
+    })
+
+    const value = namespace({
+        table: members.expressions.pick(
+            [
+                "tags",
+                "offsets",
+                "namespace_type_start",
+                "namespace_type_len"
+            ]
+        ),
+        base: 0,
+        start: integers.narrow(member_start),
+        count: integers.narrow(members.members.length - member_start)
+    })
+
+    return {
+        source: in.state.source,
+        expressions: {
+            ...members.expressions,
+            ...value.table
+        },
+        members: members.members,
+        roots: members.roots.push({
+            name: bytes.fromText(name),
+            type_expr: null,
+            value: value.id,
+            exported: true
+        })[0],
+        valid: members.valid && value.valid
+    }
+}

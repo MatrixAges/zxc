@@ -1,0 +1,67 @@
+import integers from "std:integer"
+import strings from "std:string"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import { view_prefix } from "../../types/state/const"
+import stateName from "../../types/state/name"
+
+import type { Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const names: string[] = []
+    const origins: u32?[] = []
+
+    const result = loop({
+        source: in,
+        names,
+        origins,
+        index: 0
+    }, {
+        while: current => current.index < current.source.kinds.length,
+        next: current => {
+            const index = current.index
+            const target = kind(current.source.kinds[index])
+            const aggregate = target == Kind.Object || target == Kind.Tuple
+            const eligible = aggregate || target == Kind.List ||
+                target == Kind.Enumeration || target == Kind.NativeReference
+
+            if (eligible) {
+                if (target != Kind.List) {
+                    current.names =
+                        current.names.push(current.source.names[index])[0]
+                    current.origins =
+                        current.origins.push(integers.narrow(index))[0]
+                }
+
+                if (current.source.selected[index]) {
+                    const state = stateName({
+                        names: current.source.names,
+                        index,
+                        key: current.source.keys[index]
+                    })
+
+                    current.names = current.names.push(state)[0]
+                    current.origins = current.origins.push(null)[0]
+
+                    if (aggregate) {
+                        current.names = current.names.push(
+                            strings.join(
+                                "",
+                                [view_prefix, state]
+                            )
+                        )[0]
+                        current.origins = current.origins.push(null)[0]
+                    }
+                }
+            }
+
+            current.index += 1
+        }
+    })
+
+    return {
+        names: result.names,
+        origins: result.origins
+    }
+}

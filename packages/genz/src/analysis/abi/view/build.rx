@@ -1,0 +1,33 @@
+<Module>
+    <Type from="./model" as="View" />
+
+    <Args in={View.Input} out={View.Output} />
+
+    <Call fn="initialize" in={$in} />
+
+    <Call module="prefix" in={$ctx.initialize} />
+
+    <Task name="native" out={$ctx.namespace}>
+        <Call
+            fn="namespace"
+            in={{
+                state: $ctx.prefix,
+                layouts: false
+            }}
+        />
+    </Task>
+
+    <Task name="layouts" out={$ctx.namespace}>
+        <Call
+            fn="namespace"
+            in={{
+                state: $ctx.task.native,
+                layouts: true
+            }}
+        />
+    </Task>
+
+    <Call fn="finish" in={$ctx.task.layouts} />
+
+    <Return value={$ctx.finish} />
+</Module>

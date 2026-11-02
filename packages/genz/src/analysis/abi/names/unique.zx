@@ -1,0 +1,64 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import probe from "./probe"
+
+import type { Output } from "./model"
+
+export type Input = Output
+
+export default function (in: Input): Output {
+    if (in.names.length == 0) {
+        return in
+    }
+
+    const empty: u32?[] = []
+
+    const buckets = loop({
+        values: empty,
+        count: in.names.length * 2 + 1
+    }, {
+        while: current => current.values.length < current.count,
+        next: current => { current.values = current.values.push(null)[0] }
+    }).values
+
+    const names: string[] = []
+    const origins: u32?[] = []
+
+    const result = loop({
+        source: in.names,
+        source_origins: in.origins,
+        buckets,
+        names,
+        origins,
+        index: 0
+    }, {
+        while: current => current.index < current.source.length,
+        next: current => {
+            const name = current.source[current.index]
+            const text = bytes.fromText(name)
+            const slot = probe({
+                source: current.source,
+                buckets: current.buckets,
+                name: text,
+                slot: bytes.hash(text) % current.buckets.length
+            })
+            const fresh = current.buckets[slot] == null
+
+            if (fresh) {
+                current.buckets[slot] = integers.narrow(current.index)
+                current.names = current.names.push(name)[0]
+                current.origins = current.origins.push(
+                    current.source_origins[current.index]
+                )[0]
+            }
+
+            current.index += 1
+        }
+    })
+
+    return {
+        names: result.names,
+        origins: result.origins
+    }
+}
