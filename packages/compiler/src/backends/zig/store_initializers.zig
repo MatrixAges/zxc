@@ -12,7 +12,7 @@ pub fn append(bundle: *modules.Bundle, options: Options) Error!void {
 
     const allocator = bundle.arena.allocator();
     const application = options.analysis.value.ir;
-    const shared = try names.create(allocator, application, options.analysis.nominal_types);
+    const shared = try names.create(allocator, bundle.arena.child_allocator, application, options.analysis.nominal_types);
     var files: std.ArrayList(modules.File) = .empty;
     var metadata: std.ArrayList(modules.StoreInitializer) = .empty;
     var identities: std.StringHashMapUnmanaged(ir.TypeId) = .empty;
@@ -64,7 +64,7 @@ pub fn append(bundle: *modules.Bundle, options: Options) Error!void {
         if (program.types.at(@backingInt(program.input_type)) != .scalar or program.types.at(@backingInt(program.input_type)).scalar != .void) return error.InvalidInitializer;
         if (program.types.at(@backingInt(program.output_type)) != .object) return error.InvalidInitializer;
 
-        const own = try names.create(allocator, program, options.analysis.nominal_types);
+        const own = try names.create(allocator, bundle.arena.child_allocator, program, options.analysis.nominal_types);
 
         if (own.types.len != shared.types.len) return error.InvalidInitializer;
         for (own.types, shared.types) |left, right| if (!std.mem.eql(u8, left, right)) return error.InvalidInitializer;

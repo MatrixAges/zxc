@@ -43,8 +43,8 @@
         }}
     />
 
-    <Call fn="../capability/io" in={$in.program} />
-    <Call fn="../capability/process" in={$in.program} />
+    <Call fn="../capability/io" in={$in.program.functions} />
+    <Call fn="../capability/process" in={$in.program.functions} />
     <Call fn="../capability/tasks" in={$in.program} />
     <Call fn="../types/fresh_outputs" in={$in.program} />
 

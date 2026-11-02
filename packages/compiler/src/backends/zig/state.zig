@@ -17,7 +17,7 @@ pub fn append(bundle: *modules.Bundle, options: Options) Error!void {
     for (bundle.modules) |file| if (std.mem.eql(u8, file.name, "zxc_state")) return error.DuplicateState;
 
     const allocator = bundle.arena.allocator();
-    const shared = try names.create(allocator, program, options.analysis.nominal_types);
+    const shared = try names.create(allocator, bundle.arena.child_allocator, program, options.analysis.nominal_types);
     const objects = try allocator.alloc(generating.Object, program.stores.count());
     const imports = try allocator.alloc([]const u8, objects.len + 1);
     imports[0] = "application";

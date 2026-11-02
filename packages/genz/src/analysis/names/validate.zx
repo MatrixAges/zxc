@@ -1,0 +1,104 @@
+import integers from "std:integer"
+import { map } from "std:utils"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import { external_origin, native_origin } from "./const"
+import nativeOwner from "./native_owner"
+
+import type { Input } from "./model"
+
+export type Output = {
+    valid: bool,
+    positions: u64?[]
+}
+
+export default function (in: Input): Output {
+    const origins = in.origins
+    const empty: u64?[] = []
+    const count = origins.ids.length
+
+    if (
+        origins.kinds.length != count || origins.owners.length != count ||
+            origins.members.length != count || origins.names.length != count
+    ) {
+        return {
+            valid: false,
+            positions: empty
+        }
+    }
+
+    const shape = loop({
+        origins,
+        index: 0,
+        valid: true
+    }, {
+        while: current => current.valid && current.index < current.origins.ids.length,
+        next: current => {
+            const code = current.origins.kinds[current.index]
+
+            current.valid = code <= external_origin &&
+                (
+                    code == external_origin ||
+                        current.origins.members[current.index] == ""
+                )
+            current.index += 1
+        }
+    })
+
+    if (!shape.valid) {
+        return {
+            valid: false,
+            positions: empty
+        }
+    }
+
+    const absent: u64? = null
+
+    const result = loop({
+        source: in,
+        positions: map(in.types.kinds, item => absent),
+        index: 0,
+        valid: true
+    }, {
+        while: current =>
+            current.valid && current.index < current.source.origins.ids.length,
+        next: current => {
+            const origins = current.source.origins
+            const id = origins.ids[current.index]
+            const target = integers.widen(id)
+
+            if (
+                target >= current.positions.length ||
+                    current.positions[target] != null
+            ) {
+                current.valid = false
+            } else {
+                const tag = kind(current.source.types.kinds[target])
+                const nominal = tag == Kind.Enumeration || tag == Kind.NativeReference
+
+                current.valid = nominal &&
+                    origins.names[current.index] == current.source.types.labels[target]
+
+                if (current.valid && tag == Kind.NativeReference) {
+                    current.valid = origins.kinds[current.index] == native_origin &&
+                        nativeOwner({
+                            modules: current.source.modules,
+                            id,
+                            name: origins.names[current.index],
+                            owner: origins.owners[current.index]
+                        })
+                }
+
+                current.positions[target] = current.index
+            }
+
+            current.index += 1
+        }
+    })
+
+    return {
+        valid: result.valid,
+        positions: result.positions
+    }
+}

@@ -1,0 +1,49 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import { native_tag } from "./const"
+
+import type { Input as Source } from "./model"
+
+export type Input = {
+    source: Source,
+    index: u64,
+    module: u32,
+    fields: u8[][]
+}
+
+export type Output = u8[][]
+
+export default function (in: Input): Output {
+    const position = integers.widen(in.module)
+    const members = in.source.native_members[in.index]
+    const renamed = in.source.native_exports[in.index]
+    const export_name = renamed ?? members[members.length - 1]
+
+    const initial = in.fields.concat(
+        [
+            bytes.fromText(native_tag),
+            bytes.fromText(in.source.modules.specifiers[position]),
+            bytes.fromText(in.source.modules.import_names[position]),
+            bytes.fromText(export_name)
+        ]
+    )[0]
+
+    const result = loop({
+        fields: initial,
+        members,
+        index: 0
+    }, {
+        while: current => current.index < current.members.length,
+        next: current => {
+            current.fields = current.fields.push(
+                bytes.fromText(
+                    current.members[current.index]
+                )
+            )[0]
+            current.index += 1
+        }
+    })
+
+    return result.fields
+}

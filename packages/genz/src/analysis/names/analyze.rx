@@ -1,0 +1,53 @@
+<Module>
+    <Type from="./model" as="Names" />
+
+    <Args in={Names.Input} out={Names.Output} />
+
+    <Call fn="validate" in={$in} />
+
+    <If on={!$ctx.validate.valid}>
+        <Return
+            value={{
+                status: Names.Status.InvalidOrigin,
+                types: [],
+                functions: []
+            }}
+        />
+    </If>
+
+    <Call
+        fn="types"
+        in={{
+            source: $in,
+            positions: $ctx.validate.positions
+        }}
+    />
+
+    <If on={!$ctx.types.valid}>
+        <Return
+            value={{
+                status: Names.Status.MissingOrigin,
+                types: [],
+                functions: []
+            }}
+        />
+    </If>
+
+    <Call module="capabilities" in={$in} />
+
+    <Call
+        fn="functions"
+        in={{
+            source: $in,
+            capabilities: $ctx.capabilities
+        }}
+    />
+
+    <Return
+        value={{
+            status: Names.Status.Valid,
+            types: $ctx.types.names,
+            functions: $ctx.functions
+        }}
+    />
+</Module>

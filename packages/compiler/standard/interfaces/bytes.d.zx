@@ -1,3 +1,10 @@
+export declare function fromText(in: string): u8[] concurrent
+
+export declare function encodeU64Le(
+    allocator,
+    in: u64
+): u8[] throws { OutOfMemory } concurrent
+
 export declare function count(haystack: u8[], needle: u8): u64 concurrent
 
 export declare function indexOfScalar(haystack: u8[], start: u64, needle: u8): u64? concurrent

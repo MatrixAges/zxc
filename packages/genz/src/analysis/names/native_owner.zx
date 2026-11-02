@@ -1,0 +1,98 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+
+import type { Modules } from "core/native_module_table/model"
+
+export type Input = {
+    modules: Modules,
+    id: u32,
+    name: string,
+    owner: string
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const modules = in.modules
+    const count = modules.specifiers.length
+
+    if (
+        count > integers.widen(max_u32) || modules.identities.length != count ||
+            modules.import_names.length != count || modules.type_ids.length != count ||
+            modules.type_names.length != count || modules.type_namespaces.length != count
+    ) {
+        return false
+    }
+
+    const shape = loop({
+        modules,
+        count,
+        index: 0,
+        valid: true
+    }, {
+        while: current => current.valid && current.index < current.count,
+        next: current => {
+            const size = current.modules.type_names[current.index].length
+
+            current.valid = size <= integers.widen(max_u32) &&
+                size == current.modules.type_ids[current.index].length
+            current.index += 1
+        }
+    })
+
+    if (!shape.valid) {
+        return false
+    }
+
+    const identity: string = ""
+
+    const result = loop({
+        source: in,
+        identity,
+        found: false,
+        declared: false,
+        valid: true,
+        index: 0
+    }, {
+        while: current =>
+            current.valid && current.index < current.source.modules.specifiers.length,
+        next: current => {
+            const saved = current.source.modules.identities[current.index]
+            const key = saved ?? current.source.modules.specifiers[current.index]
+
+            const bindings = loop({
+                ids: current.source.modules.type_ids[current.index],
+                names: current.source.modules.type_names[current.index],
+                target: current.source.id,
+                name: current.source.name,
+                identity: current.identity,
+                found: current.found,
+                declared: current.declared,
+                valid: current.valid,
+                key,
+                index: 0
+            }, {
+                while: items => items.valid && items.index < items.ids.length,
+                next: items => {
+                    if (items.ids[items.index] == items.target) {
+                        items.valid = !items.found || items.identity == items.key
+                        items.found = true
+                        items.identity = items.key
+                        items.declared = items.declared ||
+                            items.names[items.index] == items.name
+                    }
+
+                    items.index += 1
+                }
+            })
+
+            current.identity = bindings.identity
+            current.found = bindings.found
+            current.declared = bindings.declared
+            current.valid = bindings.valid
+            current.index += 1
+        }
+    })
+
+    return result.valid && result.declared && result.identity == in.owner
+}

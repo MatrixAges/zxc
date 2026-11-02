@@ -1,0 +1,68 @@
+import encoding from "std:encoding"
+import strings from "std:string"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import { type_prefix } from "./const"
+import digest from "./digest"
+import fields from "./fields"
+
+import type { Input as Source } from "./model"
+
+export type Input = {
+    source: Source,
+    positions: u64?[]
+}
+
+export type Output = {
+    valid: bool,
+    names: string[]
+}
+
+export default function (in: Input): Output {
+    const keys: u8[][] = []
+    const names: string[] = []
+
+    const result = loop({
+        source: in.source,
+        positions: in.positions,
+        digests: keys,
+        names,
+        index: 0,
+        valid: true
+    }, {
+        while: current =>
+            current.valid && current.index < current.source.types.kinds.length,
+        next: current => {
+            const tag = kind(current.source.types.kinds[current.index])
+            const position = current.positions[current.index]
+            const nominal = tag == Kind.Enumeration || tag == Kind.NativeReference
+
+            if (nominal && position == null) {
+                current.valid = false
+            } else {
+                const key = digest(fields({
+                    source: current.source,
+                    index: current.index,
+                    position: position ?? 0,
+                    digests: current.digests
+                }))
+
+                current.digests = current.digests.push(key)[0]
+                current.names = current.names.push(
+                    strings.join(
+                        "",
+                        [type_prefix, encoding.encodeHex(key)]
+                    )
+                )[0]
+            }
+
+            current.index += 1
+        }
+    })
+
+    return {
+        valid: result.valid,
+        names: result.names
+    }
+}

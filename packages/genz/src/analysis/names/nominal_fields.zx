@@ -1,0 +1,74 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import {
+    source_origin,
+    native_origin,
+    external_origin,
+    source_tag,
+    native_tag,
+    external_tag
+} from "./const"
+
+import type { Input as Source } from "./model"
+
+export type Input = {
+    source: Source,
+    index: u64,
+    position: u64,
+    fields: u8[][]
+}
+
+export type Output = u8[][]
+
+export default function (in: Input): Output {
+    const origins = in.source.origins
+    const code = origins.kinds[in.position]
+
+    const tag =
+        match code {
+            source_origin => source_tag,
+            native_origin => native_tag,
+            _ => external_tag
+        }
+
+    const fields = in.fields.concat(
+        [
+            bytes.fromText(tag),
+            bytes.fromText(origins.owners[in.position])
+        ]
+    )[0]
+
+    const with_member = code == external_origin ?
+        fields.push(bytes.fromText(origins.members[in.position]))[0] : fields
+
+    const with_name = with_member.push(
+        bytes.fromText(in.source.types.labels[in.index])
+    )[0]
+
+    if (kind(in.source.types.kinds[in.index]) != Kind.Enumeration) {
+        return with_name
+    }
+
+    const result = loop({
+        types: in.source.types,
+        fields: with_name,
+        index: integers.widen(in.source.types.first[in.index]),
+        end: integers.widen(in.source.types.first[in.index]) +
+            integers.widen(in.source.types.second[in.index])
+    }, {
+        while: current => current.index < current.end,
+        next: current => {
+            current.fields = current.fields.push(
+                bytes.fromText(
+                    current.types.names[current.index]
+                )
+            )[0]
+            current.index += 1
+        }
+    })
+
+    return result.fields
+}

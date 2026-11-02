@@ -1,0 +1,24 @@
+<Module>
+    <Type from="./model" as="Names" />
+
+    <Args in={Names.Input} out={Names.Capabilities} />
+
+    <If on={$in.known}>
+        <Return
+            value={{
+                io: $in.io,
+                process: $in.process
+            }}
+        />
+    </If>
+
+    <Call fn="../capability/io" in={$in.functions} />
+    <Call fn="../capability/process" in={$in.functions} />
+
+    <Return
+        value={{
+            io: $ctx.io,
+            process: $ctx.process
+        }}
+    />
+</Module>

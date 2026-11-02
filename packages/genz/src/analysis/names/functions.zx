@@ -1,0 +1,64 @@
+import bytes from "std:bytes"
+import encoding from "std:encoding"
+import strings from "std:string"
+
+import {
+    function_domain,
+    function_prefix,
+    io_marker,
+    process_marker,
+    source_tag
+} from "./const"
+import digest from "./digest"
+import nativeFields from "./native_fields"
+
+import type { Input as Source, Capabilities } from "./model"
+
+export type Input = {
+    source: Source,
+    capabilities: Capabilities
+}
+
+export type Output = string[]
+
+export default function (in: Input): Output {
+    const names: string[] = []
+
+    const result = loop({
+        source: in.source,
+        capabilities: in.capabilities,
+        names,
+        index: 0
+    }, {
+        while: current => current.index < current.source.files.length,
+        next: current => {
+            const index = current.index
+            const base: u8[][] = [
+                bytes.fromText(function_domain),
+                bytes.fromText(current.source.files[index])
+            ]
+            const with_io = current.capabilities.io[index] ?
+                base.push(bytes.fromText(io_marker))[0] : base
+            const with_process = current.capabilities.process[index] ?
+                with_io.push(bytes.fromText(process_marker))[0] : with_io
+            const module = current.source.functions.native_modules[index]
+            const fields = module != null ? nativeFields({
+                source: current.source,
+                index,
+                module,
+                fields: with_process
+            }) : with_process.push(bytes.fromText(source_tag))[0]
+            const key = digest(fields)
+
+            current.names = current.names.push(
+                strings.join(
+                    "",
+                    [function_prefix, encoding.encodeHex(key)]
+                )
+            )[0]
+            current.index += 1
+        }
+    })
+
+    return result.names
+}

@@ -8,6 +8,11 @@ export type ScryptOptions = { password: u8[]
 
 export declare function sha256(allocator, in: u8[]): u8[] throws { OutOfMemory } concurrent
 
+export declare function sha256Parts(
+    allocator,
+    in: u8[][]
+): u8[] throws { OutOfMemory } concurrent
+
 export declare function sha512(allocator, in: u8[]): u8[] throws { OutOfMemory } concurrent
 
 export declare function timingSafeEqual(in: { left: u8[]

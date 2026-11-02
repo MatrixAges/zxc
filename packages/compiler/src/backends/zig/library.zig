@@ -83,7 +83,7 @@ fn create(allocator: std.mem.Allocator, output: std.mem.Allocator, library: *con
         try Analysis.createRemembered(allocator, program, exported_functions[0..exported_count], memo);
 
     // Names take the capabilities the analysis already found instead of tracing the call graph again.
-    var identities = names.createWith(owned, program, library.nominal_types, .{ .io = analysis.value.io, .process = analysis.value.process }) catch |err| {
+    var identities = names.createWith(owned, allocator, program, library.nominal_types, .{ .io = analysis.value.io, .process = analysis.value.process }) catch |err| {
         analysis.deinit();
 
         return err;

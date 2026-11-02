@@ -1,0 +1,144 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+import {
+    type_name_void,
+    type_name_bool,
+    type_name_u8,
+    type_name_u16,
+    type_name_u32,
+    type_name_u64,
+    type_name_i32,
+    type_name_i64,
+    type_name_f32,
+    type_name_f64,
+    type_name_string
+} from "core/const"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import {
+    scalar_kind_tag,
+    object_kind_tag,
+    optional_kind_tag,
+    list_kind_tag,
+    tuple_kind_tag,
+    error_set_kind_tag,
+    task_kind_tag,
+    enumeration_kind_tag,
+    native_reference_kind_tag,
+    type_domain
+} from "./const"
+import nominal from "./nominal_fields"
+
+import type { Input as Source } from "./model"
+
+export type Input = {
+    source: Source,
+    index: u64,
+    position: u64,
+    digests: u8[][]
+}
+
+export type Output = u8[][]
+
+export default function (in: Input): Output {
+    const types = in.source.types
+    const tag = kind(types.kinds[in.index])
+    const first = integers.widen(types.first[in.index])
+
+    const type_tag = match tag {
+        Kind.Scalar => scalar_kind_tag,
+        Kind.Object => object_kind_tag,
+        Kind.Optional => optional_kind_tag,
+        Kind.List => list_kind_tag,
+        Kind.Tuple => tuple_kind_tag,
+        Kind.ErrorSet => error_set_kind_tag,
+        Kind.Task => task_kind_tag,
+        Kind.Enumeration => enumeration_kind_tag,
+        _ => native_reference_kind_tag
+    }
+
+    const fields: u8[][] = [bytes.fromText(type_domain), bytes.fromText(type_tag)]
+
+    if (tag == Kind.Scalar) {
+        const tags: string[] = [
+            type_name_void,
+            type_name_bool,
+            type_name_u8,
+            type_name_u16,
+            type_name_u32,
+            type_name_u64,
+            type_name_i32,
+            type_name_i64,
+            type_name_f32,
+            type_name_f64,
+            type_name_string,
+        ]
+
+        return fields.push(bytes.fromText(tags[first]))[0]
+    }
+
+    if (tag == Kind.Task) {
+        return fields.concat(
+            [
+                in.digests[first],
+                in.digests[integers.widen(types.second[in.index])]
+            ]
+        )[0]
+    }
+
+    if (tag == Kind.Optional || tag == Kind.List) {
+        return fields.push(in.digests[first])[0]
+    }
+
+    if (tag == Kind.Enumeration || tag == Kind.NativeReference) {
+        return nominal({
+            source: in.source,
+            index: in.index,
+            position: in.position,
+            fields
+        })
+    }
+
+    const result = loop({
+        types,
+        tag,
+        fields,
+        digests: in.digests,
+        index: first,
+        end: first + integers.widen(types.second[in.index])
+    }, {
+        while: current => current.index < current.end,
+        next: current => {
+            if (current.tag == Kind.ErrorSet) {
+                current.fields = current.fields.push(
+                    bytes.fromText(
+                        current.types.names[current.index]
+                    )
+                )[0]
+            } else {
+                const object = current.tag == Kind.Object
+                const child = object ? current.types.field_types[current.index] :
+                    current.types.children[current.index]
+
+                if (object) {
+                    current.fields = current.fields.push(
+                        bytes.fromText(
+                            current.types.field_names[current.index]
+                        )
+                    )[0]
+                }
+
+                current.fields = current.fields.push(
+                    current.digests[integers.widen(
+                        child
+                    )]
+                )[0]
+            }
+
+            current.index += 1
+        }
+    })
+
+    return result.fields
+}

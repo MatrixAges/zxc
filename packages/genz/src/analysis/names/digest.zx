@@ -1,0 +1,31 @@
+import bytes from "std:bytes"
+import crypto from "std:crypto"
+
+export type Input = u8[][]
+
+export type Output = u8[]
+
+export default function (in: Input): Output {
+    const empty: u8[][] = []
+
+    const framed = loop({
+        fields: in,
+        parts: empty,
+        index: 0
+    }, {
+        while: current => current.index < current.fields.length,
+        next: current => {
+            const field = current.fields[current.index]
+
+            current.parts = current.parts.concat(
+                [
+                    bytes.encodeU64Le(field.length),
+                    field
+                ]
+            )[0]
+            current.index += 1
+        }
+    })
+
+    return crypto.sha256Parts(framed.parts)
+}

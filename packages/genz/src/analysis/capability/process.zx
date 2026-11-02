@@ -2,17 +2,17 @@ import { map } from "std:utils"
 
 import uses from "./uses"
 
-import type { Program } from "../model"
+import type { Functions } from "../model"
 
-export type Input = Program
+export type Input = Functions
 
 export type Output = bool[]
 
 export default function (in: Input): Output {
-    const required = map(in.functions.output_types, id => false)
+    const required = map(in.output_types, id => false)
 
     const result = loop({
-        functions: in.functions,
+        functions: in,
         required,
         index: 0
     }, {

@@ -1,5 +1,17 @@
 const std = @import("std");
 
+pub fn fromText(text: []const u8) []const u8 {
+    return text;
+}
+
+pub fn encodeU64Le(allocator: std.mem.Allocator, value: u64) std.mem.Allocator.Error![]const u8 {
+    const output = try allocator.create([@sizeOf(u64)]u8);
+
+    std.mem.writeInt(u64, output, value, .little);
+
+    return output;
+}
+
 pub fn count(haystack: []const u8, needle: u8) u64 {
     return std.mem.countScalar(u8, haystack, needle);
 }

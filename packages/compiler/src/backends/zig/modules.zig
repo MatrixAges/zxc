@@ -43,7 +43,7 @@ pub fn createCached(allocator: std.mem.Allocator, analysis: *const Analysis, cac
 
     const owned = arena.allocator();
     const program = try @import("genz").zx.prepare(owned, analysis.value.ir);
-    const identities = try names.create(owned, program, analysis.nominal_types);
+    const identities = try names.create(owned, allocator, program, analysis.nominal_types);
     const needed = try references.reachable(owned, allocator, program);
     var batch = try Batch.create(allocator, program, identities, cache);
 
