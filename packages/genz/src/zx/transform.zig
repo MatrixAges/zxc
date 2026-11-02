@@ -31,9 +31,17 @@ pub fn lower(self: *Lower, id: ir.ExprId, value: ir.Transform) Lower.Error!node.
 
         try body.append(self.allocator, .{ .variable = .{ .name = accumulator, .type_expr = result_type, .value = try self.expr(value.initial.?) } });
 
+        var entered: std.ArrayList(node.Statement) = .empty;
+
         for (self.plan.renewals) |renewal| if (renewal.owner == id and !renewal.value) {
-            try @import("growth.zig").renew(self, &body, self.program.expression(id).type_id, try self.builder.identifier(accumulator), renewal.path);
+            try @import("growth.zig").renew(self, &entered, self.program.expression(id).type_id, try self.builder.identifier(accumulator), renewal.path);
         };
+
+        if (entered.items.len != 0) try body.append(self.allocator, .{ .branch = .{
+            .condition = try self.builder.expression(.{ .binary = .{ .operator = .not_equal, .left = try self.field(source, "len"), .right = try self.builder.integer(0) } }),
+            .yes = try self.builder.statements(entered.items),
+            .no = .{},
+        } });
 
         try loop.append(self.allocator, .{ .assignment = .{ .target = try self.builder.identifier(accumulator), .value = callback } });
 

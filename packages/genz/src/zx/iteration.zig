@@ -139,11 +139,7 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
 
         try body.append(self.allocator, if (renewed) .{ .variable = declaration } else .{ .constant = declaration });
 
-        for (self.plan.renewals) |renewal| if (renewal.owner == id and !renewal.value) {
-            try @import("growth.zig").renew(self, &body, type_id, seed, renewal.path);
-        };
-
-        if (local and !by_value and mode != .discard) try body.append(self.allocator, .{ .variable = .{ .name = changed_name, .value = try self.builder.expression(.{ .boolean = renewed }) } });
+        if (local and !by_value and mode != .discard) try body.append(self.allocator, .{ .variable = .{ .name = changed_name, .value = try self.builder.expression(.{ .boolean = false }) } });
 
         self.names[condition_index] = seed_name;
         self.names[step_index] = seed_name;
@@ -159,6 +155,10 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
         self.loop_fields = previous_fields;
 
         var entered: std.ArrayList(node.Statement) = .empty;
+
+        for (self.plan.renewals) |renewal| if (renewal.owner == id and !renewal.value) {
+            try @import("growth.zig").renew(self, &entered, type_id, seed, renewal.path);
+        };
 
         try entered.append(self.allocator, .{ .variable = .{ .name = name, .type_expr = selected.layout, .value = try selected.initial(self) } });
         try loop.append(self.allocator, .{ .assignment = .{ .target = state, .value = next } });
@@ -199,22 +199,22 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
         .value = initial_state,
     } });
 
-    var renewed = false;
+    var entered: std.ArrayList(node.Statement) = .empty;
 
     for (self.plan.renewals) |renewal| if (renewal.owner == id and !renewal.value) {
-        try @import("growth.zig").renew(self, &body, type_id, state, renewal.path);
-
-        renewed = true;
+        try @import("growth.zig").renew(self, &entered, type_id, state, renewal.path);
     };
+
+    const prepared = entered.items.len != 0;
 
     try loop.append(self.allocator, .{ .assignment = .{ .target = state, .value = next } });
 
     if (local and !by_value and mode != .discard) {
-        try body.append(self.allocator, .{ .variable = .{ .name = changed_name, .value = try self.builder.expression(.{ .boolean = renewed }) } });
+        try body.append(self.allocator, .{ .variable = .{ .name = changed_name, .value = try self.builder.expression(.{ .boolean = false }) } });
         try loop.append(self.allocator, .{ .assignment = .{ .target = try self.builder.identifier(changed_name), .value = try self.builder.expression(.{ .boolean = true }) } });
     }
 
-    if (iteration.postcondition) {
+    if (iteration.postcondition or prepared) {
         try loop.append(self.allocator, .{ .branch = .{
             .condition = try self.builder.expression(.{ .unary = .{ .operator = .not, .operand = condition } }),
             .yes = try self.builder.statements(&.{.break_loop}),
@@ -222,10 +222,14 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
         } });
     }
 
-    try body.append(self.allocator, .{ .while_loop = .{
-        .condition = if (iteration.postcondition) try self.builder.expression(.{ .boolean = true }) else condition,
+    try entered.append(self.allocator, .{ .while_loop = .{
+        .condition = if (iteration.postcondition or prepared) try self.builder.expression(.{ .boolean = true }) else condition,
         .body = try self.builder.statements(loop.items),
     } });
+
+    if (!iteration.postcondition and prepared) {
+        try body.append(self.allocator, .{ .branch = .{ .condition = condition, .yes = try self.builder.statements(entered.items), .no = .{} } });
+    } else try body.appendSlice(self.allocator, entered.items);
 
     return try finish.lower(self, &body, state);
 }

@@ -439,7 +439,8 @@ fn definition(self: *Self, symbol: ir.SymbolId, slot: u32) Level {
         .input => if (slot < self.input.len) self.read(.input, self.function.?, self.input, slot) else .none,
         .value => |id| self.level(id, slot),
         .part => |part| self.level(part.value, self.slots.member(self.row(part.value).type_id, part.index).offset + slot),
-        .carried, .condition => |id| self.carried.get(id).?[slot],
+        .carried => |id| self.carried.get(id).?[slot],
+        .condition => |id| if (self.row(id).value.iteration.postcondition) self.carried.get(id).?[slot] else self.carried.get(id).?[slot].meet(self.level(self.row(id).value.iteration.initial, slot)),
         .element, .unknown => .none,
     };
 }
@@ -476,12 +477,12 @@ fn node(self: *Self, id: ir.ExprId, slot: u32) Level {
         .list_update => |update| written(self.level(update.target, 0)),
         .transform => |transform| switch (transform.kind) {
             .map, .filter => .fresh,
-            .reduce => self.carried.get(id).?[slot],
+            .reduce => self.carried.get(id).?[slot].meet(self.level(transform.initial.?, slot)),
             .every, .some => .none,
         },
         .scope => |scope| self.level(scope.result, slot),
         .binary => |binary| if (binary.operator == .coalesce) (self.level(binary.left, slot)).meet(self.level(binary.right, slot)) else .none,
-        .iteration => self.carried.get(id).?[slot],
+        .iteration => |iteration| if (iteration.postcondition) self.carried.get(id).?[slot] else self.carried.get(id).?[slot].meet(self.level(iteration.initial, slot)),
         .conditional => |conditional| (self.level(conditional.yes, slot)).meet(self.level(conditional.no, slot)),
         .match_expr => |selection| blk: {
             var result = self.level(selection.fallback, slot);
@@ -615,8 +616,8 @@ fn trace(self: *Self, id: ir.ExprId, slot: u32, outer: ?ir.ExprId, repeat: bool,
         // The rest of a pop and the prefix a splice removes from the front keep the target's buffer; the popped element
         // is read out of it like any element.
         .list_operation => |operation| if ((operation.kind == .pop and slot == 0) or (slot == 1 and self.prefix(operation))) try self.trace(operation.target, 0, leaf, repeat, want) else if (repeat) try self.provide(id, slot, leaf, want),
-        .iteration => try self.carry(id, slot, want),
-        .transform => |transform| if (transform.kind == .reduce) try self.carry(id, slot, want) else if (repeat) try self.normalize(leaf, want),
+        .iteration => try self.provide(id, slot, leaf, want),
+        .transform => |transform| if (transform.kind == .reduce) try self.provide(id, slot, leaf, want) else if (repeat) try self.normalize(leaf, want),
         .call => |invocation| {
             const callee = @backingInt(invocation.function);
 
@@ -655,8 +656,8 @@ fn linearAt(self: *Self, id: ir.ExprId, slot: u32) bool {
     };
 }
 
-/// A loop slot needs its initial value copied once before the loop and every step to keep the demanded properties;
-/// a unique buffer also needs the state used linearly, or no copy could provide it.
+/// A loop slot is prepared when its body first runs; its initial value retains its own properties on the zero-round
+/// path. A unique buffer also needs the state used linearly, or no copy could provide it.
 fn carry(self: *Self, owner: ir.ExprId, slot: u32, wanted: Level) std.mem.Allocator.Error!void {
     const carried = self.carriedState(owner).?;
     var want = wanted;
@@ -664,7 +665,6 @@ fn carry(self: *Self, owner: ir.ExprId, slot: u32, wanted: Level) std.mem.Alloca
     if (want.unique) want.unique = self.sites.linear(Sites.symbolRoot(carried.parameter), slot) and (carried.condition == null or self.sites.observed(Sites.symbolRoot(carried.condition.?), slot));
     if (want == Level.none) return;
     try self.renew(owner, slot, want);
-    try self.trace(carried.initial, slot, null, true, want);
     try self.trace(carried.body, slot, null, false, want);
 }
 
