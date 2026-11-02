@@ -1,0 +1,10 @@
+<Module>
+    <Type from="./model" as="Abi" />
+
+    <Args in={Abi.Input} out={Abi.Output} />
+
+    <Call fn="dependencies" in={$in} />
+    <Call fn="construct" in={$ctx.dependencies} />
+
+    <Return value={$ctx.construct} />
+</Module>

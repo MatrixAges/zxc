@@ -93,6 +93,12 @@ fn shared(self: *Lower, output: *std.ArrayList(node.Declaration)) Lower.Error!vo
 }
 
 fn abi(self: *Lower, index: usize) Lower.Error!void {
+    if (@import("genz_options").generated_analysis) return @import("types/shared_abi.zig").build(self, index);
+
+    return seedAbi(self, index);
+}
+
+fn seedAbi(self: *Lower, index: usize) Lower.Error!void {
     const value = self.program.types.at(index);
 
     switch (value) {

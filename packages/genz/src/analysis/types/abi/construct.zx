@@ -1,0 +1,286 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+import { scalar_string } from "core/type_table/const"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import {
+    ExpressionsKind,
+    ExpressionsPrimitive
+} from "../../../printer/model/expressions"
+import { abi_binding, standard_binding, io_member, future_member } from "./const"
+import { leaf_nodes, wrapped_nodes, pointer_nodes, task_nodes } from "./const"
+import members from "./members"
+import typeName from "./name"
+import scalar from "./scalar"
+
+import type { Plan, Output } from "./model"
+
+export type Input = Plan
+
+export default function (in: Input): Output {
+    const tags: ExpressionsKind[] = []
+    const offsets: u32[] = []
+    const identifier: u8[][] = []
+    const primitive: ExpressionsPrimitive[] = []
+    const field_target: u32[] = []
+    const field_name: u8[][] = []
+    const const_pointer: u32[] = []
+    const optional_type: u32[] = []
+    const const_slice: u32[] = []
+    const error_set: u8[][][] = []
+    const error_union_payload: u32[] = []
+    const error_union_errors: u8[][]?[] = []
+    const error_union_inferred: bool[] = []
+    const call_callee: u32[] = []
+    const call_arguments: u32[][] = []
+    const ids: u32[] = []
+    const values: u32[] = []
+    const layouts: u32[] = []
+
+    const result = loop({
+        source: in.source,
+        order: in.order,
+        child: in.child,
+        remaining: in.order.length,
+        valid: true,
+        tags,
+        offsets,
+        identifier,
+        primitive,
+        field_target,
+        field_name,
+        const_pointer,
+        optional_type,
+        const_slice,
+        error_set,
+        error_union_payload,
+        error_union_errors,
+        error_union_inferred,
+        call_callee,
+        call_arguments,
+        ids,
+        values,
+        layouts,
+    }, {
+        while: current => current.valid && current.remaining != 0,
+        next: current => {
+            current.remaining -= 1
+            const id = current.order[current.remaining]
+            const index = integers.widen(id)
+            const target = kind(current.source.types.kinds[index])
+            const named = target == Kind.Object || target == Kind.Tuple ||
+                target == Kind.Enumeration || target == Kind.NativeReference
+            const first = current.source.types.first[index]
+            const second = current.source.types.second[index]
+            const string = target == Kind.Scalar && first == scalar_string
+            const count = match {
+                named && target != Kind.Enumeration => pointer_nodes,
+                named || string => wrapped_nodes,
+                target == Kind.Task => task_nodes,
+                _ => leaf_nodes
+            }
+            const end =
+                integers.widen(current.source.base) + current.tags.length + count
+
+            if (end > integers.widen(max_u32)) {
+                current.valid = false
+            } else {
+                const start =
+                    integers.narrow(
+                        integers.widen(current.source.base) + current.tags.length
+                    )
+                const value = match {
+                    named && target != Kind.Enumeration => start + 2,
+                    named || string => start + 1,
+                    target == Kind.Task => start + 4,
+                    _ => start
+                }
+                const layout = named ? start + 1 : value
+
+                if (named) {
+                    const name = typeName({
+                        names: current.source.names,
+                        index
+                    })
+
+                    current.tags = current.tags.push(ExpressionsKind.Identifier)[0]
+                    current.offsets =
+                        current.offsets.push(
+                            integers.narrow(
+                                current.identifier.length
+                            )
+                        )[0]
+                    current.identifier =
+                        current.identifier.push(bytes.fromText(abi_binding))[0]
+                    current.tags = current.tags.push(ExpressionsKind.Field)[0]
+                    current.offsets =
+                        current.offsets.push(
+                            integers.narrow(
+                                current.field_target.length
+                            )
+                        )[0]
+                    current.field_target = current.field_target.push(start)[0]
+                    current.field_name = current.field_name.push(name)[0]
+
+                    if (target != Kind.Enumeration) {
+                        current.tags =
+                            current.tags.push(ExpressionsKind.ConstPointer)[0]
+                        current.offsets =
+                            current.offsets.push(
+                                integers.narrow(
+                                    current.const_pointer.length
+                                )
+                            )[0]
+                        current.const_pointer =
+                            current.const_pointer.push(start + 1)[0]
+                    }
+                } else if (target == Kind.Scalar) {
+                    current.tags = current.tags.push(ExpressionsKind.Primitive)[0]
+                    current.offsets =
+                        current.offsets.push(
+                            integers.narrow(
+                                current.primitive.length
+                            )
+                        )[0]
+                    current.primitive = current.primitive.push(scalar(first))[0]
+
+                    if (string) {
+                        current.tags =
+                            current.tags.push(ExpressionsKind.ConstSlice)[0]
+                        current.offsets =
+                            current.offsets.push(
+                                integers.narrow(
+                                    current.const_slice.length
+                                )
+                            )[0]
+                        current.const_slice = current.const_slice.push(start)[0]
+                    }
+                } else if (target == Kind.Optional) {
+                    current.tags = current.tags.push(ExpressionsKind.OptionalType)[0]
+                    current.offsets =
+                        current.offsets.push(
+                            integers.narrow(
+                                current.optional_type.length
+                            )
+                        )[0]
+                    current.optional_type =
+                        current.optional_type.push(current.child)[0]
+                } else if (target == Kind.List) {
+                    current.tags = current.tags.push(ExpressionsKind.ConstSlice)[0]
+                    current.offsets =
+                        current.offsets.push(
+                            integers.narrow(
+                                current.const_slice.length
+                            )
+                        )[0]
+                    current.const_slice = current.const_slice.push(current.child)[0]
+                } else if (target == Kind.ErrorSet) {
+                    current.tags = current.tags.push(ExpressionsKind.ErrorSet)[0]
+                    current.offsets =
+                        current.offsets.push(
+                            integers.narrow(
+                                current.error_set.length
+                            )
+                        )[0]
+                    current.error_set = current.error_set.push(members({
+                        names: current.source.types.names,
+                        start: first,
+                        count: second
+                    }))[0]
+                } else {
+                    const errors = integers.widen(second)
+
+                    current.tags = current.tags.push(ExpressionsKind.Identifier)[0]
+                    current.offsets =
+                        current.offsets.push(
+                            integers.narrow(
+                                current.identifier.length
+                            )
+                        )[0]
+                    current.identifier =
+                        current.identifier.push(bytes.fromText(
+                            standard_binding
+                        ))[0]
+                    current.tags = current.tags.push(ExpressionsKind.Field)[0]
+                    current.offsets =
+                        current.offsets.push(
+                            integers.narrow(
+                                current.field_target.length
+                            )
+                        )[0]
+                    current.field_target = current.field_target.push(start)[0]
+                    current.field_name =
+                        current.field_name.push(bytes.fromText(io_member))[0]
+                    current.tags = current.tags.push(ExpressionsKind.Field)[0]
+                    current.offsets =
+                        current.offsets.push(
+                            integers.narrow(
+                                current.field_target.length
+                            )
+                        )[0]
+                    current.field_target = current.field_target.push(start + 1)[0]
+                    current.field_name =
+                        current.field_name.push(bytes.fromText(future_member))[0]
+                    current.tags = current.tags.push(ExpressionsKind.ErrorUnion)[0]
+                    current.offsets =
+                        current.offsets.push(
+                            integers.narrow(
+                                current.error_union_payload.length
+                            )
+                        )[0]
+                    current.error_union_payload =
+                        current.error_union_payload.push(current.child)[0]
+                    current.error_union_errors =
+                        current.error_union_errors.push(members({
+                            names: current.source.types.names,
+                            start: current.source.types.first[errors],
+                            count: current.source.types.second[errors]
+                        }))[0]
+                    current.error_union_inferred =
+                        current.error_union_inferred.push(false)[0]
+                    current.tags = current.tags.push(ExpressionsKind.Call)[0]
+                    current.offsets =
+                        current.offsets.push(
+                            integers.narrow(
+                                current.call_callee.length
+                            )
+                        )[0]
+                    current.call_callee = current.call_callee.push(start + 2)[0]
+                    const arguments: u32[] = [start + 3]
+                    current.call_arguments = current.call_arguments.push(arguments)[0]
+                }
+
+                current.ids = current.ids.push(id)[0]
+                current.values = current.values.push(value)[0]
+                current.layouts = current.layouts.push(layout)[0]
+                current.child = value
+            }
+        }
+    })
+
+    return {
+        expressions: {
+            tags: result.tags,
+            offsets: result.offsets,
+            identifier: result.identifier,
+            primitive: result.primitive,
+            field_target: result.field_target,
+            field_name: result.field_name,
+            const_pointer: result.const_pointer,
+            optional_type: result.optional_type,
+            const_slice: result.const_slice,
+            error_set: result.error_set,
+            error_union_payload: result.error_union_payload,
+            error_union_errors: result.error_union_errors,
+            error_union_inferred: result.error_union_inferred,
+            call_callee: result.call_callee,
+            call_arguments: result.call_arguments
+        },
+        ids: result.ids,
+        values: result.values,
+        layouts: result.layouts,
+        valid: result.valid
+    }
+}

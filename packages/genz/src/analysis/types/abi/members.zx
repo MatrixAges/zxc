@@ -1,0 +1,30 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+export type Input = {
+    names: string[],
+    start: u32,
+    count: u32
+}
+
+export type Output = u8[][]
+
+export default function (in: Input): Output {
+    const names: u8[][] = []
+
+    return loop({
+        source: in.names,
+        names,
+        index: integers.widen(in.start),
+        end: integers.widen(in.start) + integers.widen(in.count)
+    }, {
+        while: current => current.index < current.end,
+        next: current => {
+            current.names =
+                current.names.push(bytes.fromText(
+                    current.source[current.index]
+                ))[0]
+            current.index += 1
+        }
+    }).names
+}

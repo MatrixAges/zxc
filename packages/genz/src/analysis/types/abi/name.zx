@@ -1,0 +1,22 @@
+import bytes from "std:bytes"
+
+import integer from "../../../printer/text/integer"
+import { type_prefix } from "../../names/const"
+
+export type Input = {
+    names?: string[],
+    index: u64
+}
+
+export type Output = u8[]
+
+export default function (in: Input): Output {
+    if (in.names != null) {
+        return bytes.fromText(in.names[in.index])
+    }
+
+    return integer({
+        output: bytes.fromText(type_prefix),
+        value: in.index
+    })
+}

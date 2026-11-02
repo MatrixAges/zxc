@@ -1,0 +1,45 @@
+import type { Table } from "core/type_table/model"
+import type {
+    ExpressionsKind,
+    ExpressionsPrimitive
+} from "../../../printer/model/expressions"
+
+export type Input = {
+    types: Table,
+    names?: string[],
+    cached: u32[],
+    root: u32,
+    base: u32
+}
+
+export type Plan = {
+    source: Input,
+    order: u32[],
+    child: u32
+}
+
+export type Expressions = {
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    identifier: u8[][],
+    primitive: ExpressionsPrimitive[],
+    field_target: u32[],
+    field_name: u8[][],
+    const_pointer: u32[],
+    optional_type: u32[],
+    const_slice: u32[],
+    error_set: u8[][][],
+    error_union_payload: u32[],
+    error_union_errors: u8[][]?[],
+    error_union_inferred: bool[],
+    call_callee: u32[],
+    call_arguments: u32[][]
+}
+
+export type Output = {
+    expressions: Expressions,
+    ids: u32[],
+    values: u32[],
+    layouts: u32[],
+    valid: bool
+}

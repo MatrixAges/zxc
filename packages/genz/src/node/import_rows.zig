@@ -4,15 +4,20 @@ const owned = @import("owned.zig");
 pub const Error = std.mem.Allocator.Error || error{InvalidAst};
 
 pub fn append(allocator: std.mem.Allocator, target: anytype, source: anytype) Error!void {
-    return appendRows(allocator, target, source, true);
+    return appendRows(allocator, target, source, true, false);
 }
 
 /// All slice payloads must outlive the target; the column descriptors themselves are copied.
 pub fn appendBorrowed(allocator: std.mem.Allocator, target: anytype, source: anytype) Error!void {
-    return appendRows(allocator, target, source, false);
+    return appendRows(allocator, target, source, false, false);
 }
 
-fn appendRows(allocator: std.mem.Allocator, target: anytype, source: anytype, comptime copy_payloads: bool) Error!void {
+/// Text bytes must outlive the target; nested non-text slices receive owned storage.
+pub fn appendBorrowingText(allocator: std.mem.Allocator, target: anytype, source: anytype) Error!void {
+    return appendRows(allocator, target, source, true, true);
+}
+
+fn appendRows(allocator: std.mem.Allocator, target: anytype, source: anytype, comptime copy_payloads: bool, comptime borrow_text: bool) Error!void {
     @setEvalBranchQuota(100_000);
 
     const View = std.meta.Child(@TypeOf(source));
@@ -60,15 +65,19 @@ fn appendRows(allocator: std.mem.Allocator, target: anytype, source: anytype, co
 
     errdefer inline for (fields, 0..) |name, index| {
         if (comptime owned.containsSlice(std.meta.Child(@FieldType(View, name)))) {
-            if (copied[index]) for (@field(prepared, name)) |value| owned.release(allocator, value);
+            if (copied[index]) for (@field(prepared, name)) |value| {
+                if (comptime borrow_text) owned.releaseBorrowingText(allocator, value) else owned.release(allocator, value);
+            };
         }
     };
 
     inline for (fields, 0..) |name, index| {
-        if (comptime copy_payloads and owned.containsSlice(std.meta.Child(@FieldType(View, name)))) {
-            @field(prepared, name) = try owned.copy(allocator, @field(source, name));
+        if (comptime copy_payloads and owned.containsSlice(std.meta.Child(@FieldType(View, name))) and !(borrow_text and std.meta.Child(@FieldType(View, name)) == []const u8)) {
+            if (@field(source, name).len != 0) {
+                @field(prepared, name) = if (comptime borrow_text) try owned.copyBorrowingText(allocator, @field(source, name)) else try owned.copy(allocator, @field(source, name));
 
-            copied[index] = true;
+                copied[index] = true;
+            }
         }
     }
 

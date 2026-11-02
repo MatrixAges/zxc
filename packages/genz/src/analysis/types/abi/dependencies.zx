@@ -1,0 +1,49 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import type { Input, Plan } from "./model"
+
+export type Output = Plan
+
+export default function (in: Input): Output {
+    const order: u32[] = []
+
+    const result = loop({
+        source: in,
+        order,
+        index: in.root,
+        child: 0,
+        active: true
+    }, {
+        while: current => current.active,
+        next: current => {
+            const index = integers.widen(current.index)
+            const cached = current.source.cached[index]
+
+            if (cached != max_u32) {
+                current.child = integers.widen(cached)
+                current.active = false
+            } else {
+                current.order = current.order.push(current.index)[0]
+                const target = kind(current.source.types.kinds[index])
+
+                if (
+                    target == Kind.Optional || target == Kind.List ||
+                        target == Kind.Task
+                ) {
+                    current.index = current.source.types.first[index]
+                } else {
+                    current.active = false
+                }
+            }
+        }
+    })
+
+    return {
+        source: in,
+        order: result.order,
+        child: integers.narrow(result.child)
+    }
+}
