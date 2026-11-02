@@ -11,9 +11,9 @@ export default function (in: Input): Output {
     const needs_edit = in.offset - in.scanned.start != count || in.scanned.has_tab
 
     return {
-        needs_edit: needs_edit,
+        needs_edit,
         start: in.scanned.start,
         end: in.offset,
-        count: count
+        count
     }
 }

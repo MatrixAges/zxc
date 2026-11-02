@@ -16,7 +16,7 @@ export default function (in: Input): Output {
             const name = current.names[current.index]
             const previous = loop({
                 names: current.names,
-                name: name,
+                name,
                 count: current.index,
                 index: 0,
                 found: false
@@ -29,7 +29,7 @@ export default function (in: Input): Output {
             })
 
             current.valid = check({
-                name: name,
+                name,
                 kind: NameKind.TypeDecl
             }) && !previous.found
             current.index += 1

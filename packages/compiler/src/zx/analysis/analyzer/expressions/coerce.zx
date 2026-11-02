@@ -28,10 +28,10 @@ export default function (in: Input): Output {
     }
 
     const path = loop({
-        tables: tables,
-        actual: actual,
+        tables,
+        actual,
         expected: in.expected,
-        wrappers: wrappers,
+        wrappers,
         failed: false
     }, {
         while: current => current.expected != current.actual && !current.failed,

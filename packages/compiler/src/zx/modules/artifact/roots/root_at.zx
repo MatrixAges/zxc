@@ -20,23 +20,23 @@ export default function (in: Input): Output {
     return match cursor.stage {
         0 => listRoot({
             values: request.record.declaration_types,
-            cursor: cursor
+            cursor
         }),
         1 => listRoot({
             values: request.record.type_imports,
-            cursor: cursor
+            cursor
         }),
         2 => functionRoot({
-            request: request,
-            cursor: cursor
+            request,
+            cursor
         }),
         3 => nativeRoot({
-            request: request,
-            cursor: cursor
+            request,
+            cursor
         }),
         _ => body != null ? bodyRoot({
-            body: body,
-            cursor: cursor
+            body,
+            cursor
         }) : {
             cursor: {
                 stage: 5,

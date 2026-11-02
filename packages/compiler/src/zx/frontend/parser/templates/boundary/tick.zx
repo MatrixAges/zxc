@@ -53,9 +53,9 @@ export default function (in: Input): Output {
     return {
         lexer: {
             ...next.lexer,
-            ahead_one: ahead_one,
-            ahead_two: ahead_two,
-            offset: offset
+            ahead_one,
+            ahead_two,
+            offset
         },
         graph: next.graph
     }

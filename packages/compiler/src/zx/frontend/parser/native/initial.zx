@@ -21,9 +21,9 @@ export default function (in: Input): Output {
             start: 0,
             depth: 0
         }),
-        functions: functions,
-        parameters: parameters,
-        errors: errors,
+        functions,
+        parameters,
+        errors,
         control: {
             phase: failed ? Phase.Done : Phase.Declarations,
             index: 0,

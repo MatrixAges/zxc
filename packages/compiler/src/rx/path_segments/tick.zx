@@ -15,7 +15,7 @@ export default function (in: Input): Output {
         const offset = state.offset + 1
 
         return {
-            offset: offset,
+            offset,
             start: offset,
             dots: true,
             segments: state.segments
@@ -27,7 +27,7 @@ export default function (in: Input): Output {
 
     return {
         ...in.state,
-        offset: offset,
-        dots: dots
+        offset,
+        dots
     }
 }

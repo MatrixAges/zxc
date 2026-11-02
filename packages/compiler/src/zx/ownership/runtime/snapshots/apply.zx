@@ -33,12 +33,12 @@ export default function (in: Input): Output {
         const memo = restoreMemo({
             memo: in.memory.memo,
             saved: in.stack.memo,
-            first: first
+            first
         })
 
         return {
             ...in.memory,
-            memo: memo
+            memo
         }
     }
 
@@ -58,9 +58,9 @@ export default function (in: Input): Output {
         layout: in.layout,
         memory: in.memory,
         saved: in.stack,
-        state_first: state_first,
+        state_first,
         action: in.action,
-        rewrite_action: rewrite_action,
+        rewrite_action,
         count: in.memory.facts.length,
         index: nextRoot({
             parents: in.layout.parents,

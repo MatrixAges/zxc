@@ -29,8 +29,8 @@ export default function (in: Input): Output {
 
     const path = loop({
         source: in.context.source,
-        tables: tables,
-        expressions: expressions,
+        tables,
+        expressions,
         node: in.node,
         value: in.value,
         remaining: expressions.kinds.length,
@@ -62,13 +62,13 @@ export default function (in: Input): Output {
                     )
                 const tables = current.tables
                 const type_row = row({
-                    tables: tables,
+                    tables,
                     id: current.expressions.types[target]
                 })
                 const table = type_row.delta ? tables.delta : tables.base
                 const index = current.expressions.projection_indices[payload]
                 const name = readName({
-                    source: source,
+                    source,
                     kind: NameKind.Expression,
                     index: current.node
                 }).text
@@ -103,8 +103,8 @@ export default function (in: Input): Output {
     const source = in.context.source
 
     const binding = injected({
-        local: local,
-        source: source,
+        local,
+        source,
         node: path.node
     })
 
@@ -115,7 +115,7 @@ export default function (in: Input): Output {
             names: local.symbols.names,
             scope_floor: local.scope_floor,
             name: readName({
-                source: source,
+                source,
                 kind: NameKind.Expression,
                 index: path.node
             }).text

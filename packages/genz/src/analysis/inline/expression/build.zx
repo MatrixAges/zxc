@@ -27,12 +27,12 @@ export default function (in: Input): Output {
 
     const values = mapped({
         stack: state.stack,
-        start: start
+        start
     })
 
     const made = copy({
         target: state.tables.expressions,
-        source: source,
+        source,
         id: in.frame.id,
         mapped: values,
         offset: state.mappings.offsets[mapping]
@@ -56,7 +56,7 @@ export default function (in: Input): Output {
             state: updated,
             id: made.id
         }),
-        mapping: mapping,
+        mapping,
         id: in.frame.id,
         value: integers.widen(made.id)
     })

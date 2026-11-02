@@ -38,10 +38,10 @@ export default function (in: Input): Output {
         return {
             state: {
                 ...state,
-                activity: activity,
+                activity,
                 refinement: {
                     ...state.refinement,
-                    facts: facts
+                    facts
                 }
             },
             valid: true
@@ -62,7 +62,7 @@ export default function (in: Input): Output {
                 ...state,
                 refinement: {
                     ...state.refinement,
-                    facts: facts
+                    facts
                 }
             },
             valid: true
@@ -80,7 +80,7 @@ export default function (in: Input): Output {
         return {
             state: {
                 ...state,
-                refinement: refinement
+                refinement
             },
             valid: true
         }
@@ -91,16 +91,16 @@ export default function (in: Input): Output {
         Phase.BlockNext => block(in),
         Phase.Expression => expression(in),
         Phase.Declare => declare({
-            program: program,
-            state: state,
+            program,
+            state,
             symbol: frame.a,
             type_id: program.body.expressions.types[frame.b],
             owner: 0,
             mode: Declaration.Ordinary
         }),
         Phase.ScopeDeclare => declare({
-            program: program,
-            state: state,
+            program,
+            state,
             symbol: frame.a,
             type_id: 0,
             owner: frame.b,
@@ -114,7 +114,7 @@ export default function (in: Input): Output {
         Phase.IterationBody => callback(in),
         Phase.Transform => callback(in),
         _ => {
-            state: state,
+            state,
             valid: false
         }
     }

@@ -17,7 +17,7 @@ export default function (in: Input): Output {
         graph: in.graph,
         kind: PartKind.Text,
         span: {
-            start: start,
+            start,
             end: in.offset
         },
         interpolation: 0,
@@ -33,7 +33,7 @@ export default function (in: Input): Output {
     return {
         templates: graph.templates,
         parts: graph.parts,
-        events: events,
+        events,
         frames: graph.frames,
         interpolations: graph.interpolations,
         token_templates: graph.token_templates

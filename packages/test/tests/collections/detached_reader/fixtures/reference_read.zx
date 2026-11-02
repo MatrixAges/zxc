@@ -7,5 +7,5 @@ export type Output = { cell: Cell, values: Cell[] }
 export default function (in: Input): Output {
     const cell = in.values[in.selected]
 
-    return { cell: cell, values: in.values }
+    return { cell, values: in.values }
 }

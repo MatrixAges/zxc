@@ -43,7 +43,7 @@ export default function (in: Input): Output {
     const result = append({
         local: in.local,
         name: in.name,
-        type_id: type_id,
+        type_id,
         scope_start: in.scope_start
     })
 
@@ -72,7 +72,7 @@ export default function (in: Input): Output {
     return {
         scopes: {
             ...in.scopes,
-            bindings: bindings
+            bindings
         },
         local: result.local,
         symbol: result.id,

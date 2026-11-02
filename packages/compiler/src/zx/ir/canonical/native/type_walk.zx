@@ -15,8 +15,8 @@ export default function (in: Input): Output {
 
     const result = loop({
         input: in,
-        type_ids: type_ids,
-        positions: positions,
+        type_ids,
+        positions,
         position: 0,
         valid: true
     }, {
@@ -40,7 +40,7 @@ export default function (in: Input): Output {
                         names: current.input.binding_names,
                         types: current.input.binding_types,
                         name: current.input.names[current.position],
-                        type_id: type_id,
+                        type_id,
                         required: type_kind == Kind.NativeReference
                     })
                     current.position += 1

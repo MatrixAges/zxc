@@ -15,7 +15,7 @@ export default function (in: Input): Output {
         items: in.items,
         head: in.head,
         remaining: in.count,
-        statements: statements
+        statements
     }, {
         while: current => current.remaining != 0,
         next: current => {

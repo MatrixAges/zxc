@@ -7,8 +7,8 @@ export default function (in: Input): Output {
     const slots: u64[] = []
 
     const empty = loop({
-        slots: slots,
-        capacity: capacity
+        slots,
+        capacity
     }, {
         while: current => current.slots.length < current.capacity,
         next: current => { current.slots = current.slots.push(0)[0] }

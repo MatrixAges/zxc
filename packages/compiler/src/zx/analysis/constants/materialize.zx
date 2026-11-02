@@ -31,29 +31,29 @@ export default function (in: Input): Output {
 
     const appended = match value.kind {
         ExpressionKind.Integer => appendInteger({
-            table: table,
-            metadata: metadata,
+            table,
+            metadata,
             value: value.integer,
             negative: value.negative
         }),
         ExpressionKind.Float => appendFloat({
-            table: table,
-            metadata: metadata,
+            table,
+            metadata,
             value: value.floating
         }),
         ExpressionKind.Boolean => appendBoolean({
-            table: table,
-            metadata: metadata,
+            table,
+            metadata,
             value: value.boolean
         }),
         ExpressionKind.String => appendString({
-            table: table,
-            metadata: metadata,
+            table,
+            metadata,
             value: value.text
         }),
         _ => appendEnum({
-            table: table,
-            metadata: metadata,
+            table,
+            metadata,
             value: value.enumeration,
             kind: ValueKind.EnumValue
         })

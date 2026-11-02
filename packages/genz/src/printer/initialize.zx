@@ -31,7 +31,7 @@ export default function (in: Input): Output {
     const result = loop({
         state: initial,
         remaining: in.source.count,
-        frame: frame
+        frame
     }, {
         while: current => current.remaining != 0,
         next: current => {

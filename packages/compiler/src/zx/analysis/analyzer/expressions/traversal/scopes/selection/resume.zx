@@ -84,7 +84,7 @@ export default function (in: Input): Output {
         if (state.diagnostic.message != "") {
             return {
                 ...work,
-                state: state
+                state
             }
         }
 
@@ -103,12 +103,12 @@ export default function (in: Input): Output {
 
         return {
             ...work,
-            state: state,
-            scopes: scopes,
+            state,
+            scopes,
             phase: Phase.ScopeNext,
             frames: {
                 ...work.frames,
-                switches: switches,
+                switches,
                 actions: work.frames.actions.push(Action.StateCase)[0]
             }
         }
@@ -119,7 +119,7 @@ export default function (in: Input): Output {
     const updated = {
         ...frame,
         index: frame.index + 1,
-        fallback: fallback,
+        fallback,
         results: source.value == 0 ? frame.results : frame.results.push(work.value)[0]
     }
 

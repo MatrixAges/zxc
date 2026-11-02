@@ -39,7 +39,7 @@ export default function (in: Input): Output {
     const pending = append({
         table: in.blocks.pending,
         subject: frame.subject,
-        exhaustive: exhaustive,
+        exhaustive,
         values: frame.values,
         bodies: frame.bodies
     })
@@ -48,7 +48,7 @@ export default function (in: Input): Output {
         ...in,
         blocks: {
             ...in.blocks,
-            pending: pending
+            pending
         },
         selections: in.selections.pop()[0],
         phase: Phase.Next

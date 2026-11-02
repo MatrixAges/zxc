@@ -26,7 +26,7 @@ export default function (in: Input): Output {
 
     const result = loop({
         input: in,
-        stores: stores,
+        stores,
         diagnostic: in.signature.diagnostic,
         index: 0
     }, {
@@ -36,7 +36,7 @@ export default function (in: Input): Output {
         next: current => {
             const bindings = current.input.context.store_bindings
             const selected = binding({
-                bindings: bindings,
+                bindings,
                 index: current.index,
                 types: current.input.signature.types,
                 type_count: current.input.context.store_type_count

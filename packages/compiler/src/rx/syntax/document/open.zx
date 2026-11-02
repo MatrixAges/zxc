@@ -32,7 +32,7 @@ export default function (in: Input): Output {
     }
 
     const location = {
-        offset: offset,
+        offset,
         line: in.control.location.line,
         column: in.control.location.column
     }
@@ -51,7 +51,7 @@ export default function (in: Input): Output {
 
     if (parsed.message != no_diagnostic) {
         return fail({
-            state: state,
+            state,
             message: parsed.message
         })
     }
@@ -63,9 +63,9 @@ export default function (in: Input): Output {
         frame: {
             name: {
                 start: offset + 1,
-                end: end
+                end
             },
-            location: location,
+            location,
             attributes: 0,
             attribute_count: 0,
             children: 0,

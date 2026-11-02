@@ -12,7 +12,7 @@ export default function (in: Input): Output {
     const bytes = encoding.encodeUtf8(in)
 
     const result = loop({
-        bytes: bytes,
+        bytes,
         index: 0,
         start: true,
         keyword: 0,
@@ -43,7 +43,7 @@ export default function (in: Input): Output {
                     )
                 current.keyword = transition({
                     state: current.keyword,
-                    byte: byte
+                    byte
                 })
                 current.start = false
             }

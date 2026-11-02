@@ -23,10 +23,10 @@ export default function (in: Input): Output {
 
     return loop({
         input: in,
-        type_only: type_only,
+        type_only,
         stage: Section.Types,
         index: 0,
-        result: result
+        result
     }, {
         while: current => current.stage != Section.Done,
         next: current => {

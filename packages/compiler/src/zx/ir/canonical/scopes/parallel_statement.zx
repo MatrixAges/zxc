@@ -25,8 +25,8 @@ export default function (in: Input): Output {
 
     const declarations = loop({
         state: in.state,
-        control: control,
-        first: first,
+        control,
+        first,
         index: count
     }, {
         while: current => current.index != 0,
@@ -59,7 +59,7 @@ export default function (in: Input): Output {
             valid: true
         },
         context: in.context,
-        first: first,
+        first,
         index: count
     }, {
         while: current => current.result.valid && current.index != 0,

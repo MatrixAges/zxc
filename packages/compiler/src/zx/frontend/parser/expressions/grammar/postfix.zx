@@ -80,8 +80,8 @@ export default function (in: Input): Output {
                 prepared: in.prepared,
                 tree: in.tree,
                 types: in.types,
-                frames: frames,
-                control: control
+                frames,
+                control
             },
             phase: Phase.BeginBinary
         })
@@ -104,7 +104,7 @@ export default function (in: Input): Output {
             frames: initial.frames,
             control: {
                 ...initial.control,
-                index: index
+                index
             }
         }
 
@@ -112,7 +112,7 @@ export default function (in: Input): Output {
             state: {
                 prepared: in.prepared,
                 tree: in.tree,
-                types: types,
+                types,
                 frames: in.frames,
                 control: in.control
             },
@@ -136,7 +136,7 @@ export default function (in: Input): Output {
         frames: in.frames,
         control: {
             ...in.control,
-            depth: depth,
+            depth,
             phase: Phase.Returning
         }
     })

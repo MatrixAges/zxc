@@ -16,7 +16,7 @@ export type Output = State
 
 export default function (in: Input): Output {
     return reduce(in.tokens, (state, token) => step({
-        state: state,
+        state,
         token: {
             kind: token.kind,
             word: token.word,

@@ -16,13 +16,13 @@ export default function (in: Input): Output {
 
     return {
         lexed: {
-            tokens: tokens,
-            comments: comments,
+            tokens,
+            comments,
             diagnostic: in
         },
-        templates: templates,
-        parts: parts,
-        events: events,
-        token_templates: token_templates
+        templates,
+        parts,
+        events,
+        token_templates
     }
 }

@@ -22,7 +22,7 @@ export default function (in: Input): Output {
                 start: 0,
                 depth: 0
             }),
-            cursor: cursor
+            cursor
         }
 
         const frames = in.frames.push(continuation)[0]
@@ -37,8 +37,8 @@ export default function (in: Input): Output {
             prepared: in.prepared,
             tree: in.tree,
             types: in.types,
-            frames: frames,
-            control: control
+            frames,
+            control
         }
     }
 
@@ -67,11 +67,11 @@ export default function (in: Input): Output {
 
         const control = {
             ...taken.state.control,
-            depth: depth,
+            depth,
             primary_start: start,
             last_end: end,
-            index: index,
-            stream: stream,
+            index,
+            stream,
             template_head: head,
             template_count: count,
             template_maximum: maximum,
@@ -84,7 +84,7 @@ export default function (in: Input): Output {
                 tree: taken.state.tree,
                 types: taken.state.types,
                 frames: taken.state.frames,
-                control: control
+                control
             },
             node: value
         })
@@ -104,8 +104,8 @@ export default function (in: Input): Output {
 
         const parts = taken.state.tree.parts.push({
             span: {
-                start: start,
-                end: end
+                start,
+                end
             },
             value: 0,
             expression: false,
@@ -125,12 +125,12 @@ export default function (in: Input): Output {
                 items: taken.state.tree.items,
                 fields: taken.state.tree.fields,
                 parameters: taken.state.tree.parameters,
-                parts: parts,
+                parts,
                 arms: taken.state.tree.arms
             },
             types: taken.state.types,
             frames: taken.state.frames,
-            control: control
+            control
         }
     }
 
@@ -159,10 +159,10 @@ export default function (in: Input): Output {
     const continuation = {
         ...frame({
             kind: FrameKind.Interpolation,
-            start: start,
+            start,
             depth: taken.state.control.depth
         }),
-        cursor: cursor,
+        cursor,
         stream: taken.state.control.stream,
         index: taken.state.control.index,
         end: taken.state.control.last_end
@@ -173,10 +173,10 @@ export default function (in: Input): Output {
 
     const control: ExprControl = {
         ...taken.state.control,
-        stream: stream,
+        stream,
         index: 0,
         last_end: start,
-        depth: depth,
+        depth,
         minimum: 0,
         allow_lambda: true,
         fresh_family: true,
@@ -187,7 +187,7 @@ export default function (in: Input): Output {
         prepared: taken.state.prepared,
         tree: taken.state.tree,
         types: taken.state.types,
-        frames: frames,
-        control: control
+        frames,
+        control
     }
 }

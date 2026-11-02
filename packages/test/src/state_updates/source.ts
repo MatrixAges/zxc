@@ -4,7 +4,7 @@ export default function sourceProgram(args: { operator: string; scalar: string; 
         ? `initialized: ${scalar}
     `
         : ''
-    const initial_value = initialized ? 'initialized: initialized, ' : ''
+    const initial_value = initialized ? 'initialized, ' : ''
     const initial_capture = initialized ? '\n    const initialized = initial.scalar' : ''
     const input_flag = initialized ? ', assign_first: bool' : ''
     const state_fields = initialized ? ', left: in.left, assign_first: in.assign_first' : ''

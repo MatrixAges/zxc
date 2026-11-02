@@ -56,7 +56,7 @@ export default function (in: Input): Output {
 
     if (frame.uses == 0) {
         return fail({
-            work: work,
+            work,
             code: name_code,
             message: unused_message
         })

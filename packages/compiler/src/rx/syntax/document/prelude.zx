@@ -22,13 +22,13 @@ export default function (in: Input): Output {
 
     const declared = starts({
         source: in.source,
-        offset: offset,
+        offset,
         text: xml_declaration_start
     })
 
     const parsed = declared ? declaration({
         source: in.source,
-        offset: offset
+        offset
     }) : {
         end: offset,
         message: no_diagnostic
@@ -41,13 +41,13 @@ export default function (in: Input): Output {
 
     if (parsed.message != no_diagnostic) {
         return fail({
-            state: state,
+            state,
             message: parsed.message
         })
     }
 
     return transition({
-        state: state,
+        state,
         phase: Phase.BeforeRoot
     })
 }

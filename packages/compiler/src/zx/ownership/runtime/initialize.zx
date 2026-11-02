@@ -19,7 +19,7 @@ export default function (in: Input): Output {
     const types: u32[] = []
 
     const allocated = loop({
-        states: states,
+        states,
         facts: numbers,
         memo: numbers,
         places: in.layout.tree.parents.length,
@@ -42,11 +42,11 @@ export default function (in: Input): Output {
 
     const memory: Memory = {
         forest: {
-            types: types,
+            types,
             first: numbers,
             count: numbers,
             shells: states,
-            states: states,
+            states,
             children: numbers
         },
         facts: allocated.facts,
@@ -59,7 +59,7 @@ export default function (in: Input): Output {
         types: in.program.types,
         references: in.references,
         layout: in.layout.tree,
-        memory: memory,
+        memory,
         id: 0,
         operation: Operation.Assign,
         fact: 3

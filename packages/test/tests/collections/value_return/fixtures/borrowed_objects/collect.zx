@@ -11,5 +11,5 @@ export default function (in: Input): Output {
     const first = advance({ index: 0, total: in.seed + in.ordinal * 2, values: in.values, saved: in.saved })
     const second = advance({ index: 0, total: in.seed + in.ordinal * 2 + 1, values: in.values, saved: in.saved })
 
-    return { empty: empty, first: first, second: second }
+    return { empty, first, second }
 }

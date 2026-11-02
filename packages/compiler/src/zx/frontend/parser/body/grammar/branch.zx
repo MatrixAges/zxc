@@ -38,7 +38,7 @@ export default function (in: Input): Output {
         }
 
         return expect({
-            state: state,
+            state,
             symbol: Symbol.CloseParen,
             phase: Phase.BlockOpen,
             message: "expected )"
@@ -56,7 +56,7 @@ export default function (in: Input): Output {
             state: in,
             kind: FrameKind.Block,
             phase: Phase.BlockOpen,
-            resume: resume,
+            resume,
             nested: true
         })
 
@@ -65,7 +65,7 @@ export default function (in: Input): Output {
         }
 
         return expect({
-            state: state,
+            state,
             symbol: Symbol.OpenBrace,
             phase: Phase.BlockNext,
             message: "{"

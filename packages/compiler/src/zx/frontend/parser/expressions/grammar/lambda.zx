@@ -25,7 +25,7 @@ export default function (in: Input): Output {
             frames: in.frames,
             control: {
                 ...in.control,
-                phase: phase
+                phase
             }
         }
     }
@@ -52,7 +52,7 @@ export default function (in: Input): Output {
                 tree: in.tree,
                 types: in.types,
                 frames: in.frames,
-                control: control
+                control
             },
             phase: Phase.LambdaBody
         })
@@ -102,15 +102,15 @@ export default function (in: Input): Output {
 
     const frames = taken.state.frames.push({
         ...taken.frame,
-        head: head,
-        count: count
+        head,
+        count
     })[0]
 
     const tree = {
         nodes: taken.state.tree.nodes,
         items: taken.state.tree.items,
         fields: taken.state.tree.fields,
-        parameters: parameters,
+        parameters,
         parts: taken.state.tree.parts,
         arms: taken.state.tree.arms
     }
@@ -118,9 +118,9 @@ export default function (in: Input): Output {
     return consume({
         state: {
             prepared: taken.state.prepared,
-            tree: tree,
+            tree,
             types: taken.state.types,
-            frames: frames,
+            frames,
             control: taken.state.control
         },
         phase: Phase.LambdaSeparator

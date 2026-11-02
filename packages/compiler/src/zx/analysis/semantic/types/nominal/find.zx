@@ -25,7 +25,7 @@ export default function (in: Input): Output {
         origins: in.origins,
         origin: in.origin,
         candidate: in.candidate,
-        count: count,
+        count,
         index: 0,
         status: Status.Missing,
         id: initial_id
@@ -43,13 +43,13 @@ export default function (in: Input): Output {
                 bindings.members[position] == current.origin.member
             const matches = same_origin && row({
                 tables: current.tables,
-                id: id
+                id
             }).label == current.candidate.label
             const status = match {
                 !matches => Status.Missing,
                 equal({
                     tables: current.tables,
-                    id: id,
+                    id,
                     candidate: current.candidate
                 }) => Status.Found,
                 _ => Status.Conflict
@@ -58,7 +58,7 @@ export default function (in: Input): Output {
             current = {
                 ...current,
                 index: current.index + 1,
-                status: status,
+                status,
                 id: matches ? id : current.id
             }
         }

@@ -23,14 +23,14 @@ export default function (in: Input): Output {
         in.control.phase
 
     return {
-        expression: expression,
+        expression,
         tree: in.tree,
         frames: in.frames,
         suspended: in.suspended,
         frame: in.frame,
         control: {
             ...in.control,
-            phase: phase,
+            phase,
             expression_diagnostic: failed
         }
     }

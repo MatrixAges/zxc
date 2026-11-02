@@ -44,7 +44,7 @@ export default function (in: Input): Output {
 
     const reference = value({
         table: state.tables.expressions,
-        metadata: metadata,
+        metadata,
         kind: ValueKind.Reference,
         value: symbol.id
     })
@@ -67,11 +67,11 @@ export default function (in: Input): Output {
 
     const fields = loop({
         state: prepared,
-        control: control,
-        first: first,
+        control,
+        first,
         offset: prepared.mappings.offsets[in.frame.mapping],
         reference: reference.id,
-        tuple: tuple,
+        tuple,
         frame: in.frame,
         result: in.frame.b - 1,
         position: integers.widen(control.destructure_count[payload])

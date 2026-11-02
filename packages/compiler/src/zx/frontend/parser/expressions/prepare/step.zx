@@ -38,15 +38,15 @@ export default function (in: Input): Output {
         in.word == Keyword.Delete || in.word == Keyword.Transaction
 
     const hint = {
-        lambda: lambda,
-        generic: generic,
+        lambda,
+        generic,
         binary: operator(in.symbol)
     }
 
     return {
         arrow: in.symbol == Symbol.Arrow,
-        parameter_start: parameter_start,
-        after_identifier: after_identifier,
+        parameter_start,
+        after_identifier,
         hints: in.state.hints.push(hint)[0]
     }
 }

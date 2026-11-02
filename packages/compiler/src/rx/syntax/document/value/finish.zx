@@ -30,10 +30,10 @@ export default function (in: Input): Output {
 
     return publish({
         state: advance({
-            state: state,
-            count: count
+            state,
+            count
         }),
-        value: value,
+        value,
         expression: false
     })
 }

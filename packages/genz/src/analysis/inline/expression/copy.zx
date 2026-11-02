@@ -64,17 +64,17 @@ export default function (in: Input): Output {
 
         return integer({
             table: target,
-            metadata: metadata,
+            metadata,
             value: negative ? source.negative_integers[payload] :
                 source.integers[payload],
-            negative: negative
+            negative
         })
     }
 
     if (kind == ExpressionKind.Float) {
         return float({
             table: target,
-            metadata: metadata,
+            metadata,
             value: source.floats[payload]
         })
     }
@@ -82,7 +82,7 @@ export default function (in: Input): Output {
     if (kind == ExpressionKind.String) {
         return string({
             table: target,
-            metadata: metadata,
+            metadata,
             value: source.strings[payload]
         })
     }
@@ -90,7 +90,7 @@ export default function (in: Input): Output {
     if (kind == ExpressionKind.Boolean) {
         return boolean({
             table: target,
-            metadata: metadata,
+            metadata,
             value: source.booleans[payload]
         })
     }
@@ -98,7 +98,7 @@ export default function (in: Input): Output {
     if (kind == ExpressionKind.None || kind == ExpressionKind.Unit) {
         return empty({
             table: target,
-            metadata: metadata,
+            metadata,
             optional: kind == ExpressionKind.None
         })
     }
@@ -119,7 +119,7 @@ export default function (in: Input): Output {
 
         return value({
             table: target,
-            metadata: metadata,
+            metadata,
             kind: selected,
             value: mapped[0]
         })
@@ -128,7 +128,7 @@ export default function (in: Input): Output {
     if (kind == ExpressionKind.EnumValue) {
         return value({
             table: target,
-            metadata: metadata,
+            metadata,
             kind: ValueKind.EnumValue,
             value: source.enumerations[payload]
         })
@@ -137,7 +137,7 @@ export default function (in: Input): Output {
     if (kind == ExpressionKind.ErrorValue) {
         return value({
             table: target,
-            metadata: metadata,
+            metadata,
             kind: ValueKind.ErrorValue,
             value: source.errors[payload]
         })
@@ -146,7 +146,7 @@ export default function (in: Input): Output {
     if (kind == ExpressionKind.Reference) {
         return value({
             table: target,
-            metadata: metadata,
+            metadata,
             kind: ValueKind.Reference,
             value:
                 integers.narrow(
@@ -160,7 +160,7 @@ export default function (in: Input): Output {
     if (kind == ExpressionKind.StoreGet) {
         return value({
             table: target,
-            metadata: metadata,
+            metadata,
             kind: ValueKind.StoreGet,
             value: source.stores[payload]
         })
@@ -169,7 +169,7 @@ export default function (in: Input): Output {
     if (kind == ExpressionKind.Task) {
         return task({
             table: target,
-            metadata: metadata,
+            metadata,
             body: mapped[0],
             captures: shift({
                 ids: range({
@@ -210,16 +210,16 @@ export default function (in: Input): Output {
 
         return parallel({
             table: target,
-            metadata: metadata,
+            metadata,
             tasks: mapped,
-            fields: fields
+            fields
         })
     }
 
     if (kind == ExpressionKind.Field || kind == ExpressionKind.TupleField) {
         return projection({
             table: target,
-            metadata: metadata,
+            metadata,
             target: mapped[0],
             index: source.projection_indices[payload],
             tuple: kind == ExpressionKind.TupleField
@@ -229,7 +229,7 @@ export default function (in: Input): Output {
     if (kind == ExpressionKind.Index) {
         return index({
             table: target,
-            metadata: metadata,
+            metadata,
             target: mapped[0],
             index: mapped[1]
         })
@@ -247,7 +247,7 @@ export default function (in: Input): Output {
 
         return sequence({
             table: target,
-            metadata: metadata,
+            metadata,
             kind: selected,
             values: mapped
         })
@@ -256,7 +256,7 @@ export default function (in: Input): Output {
     if (kind == ExpressionKind.ListOperation) {
         return collection({
             table: target,
-            metadata: metadata,
+            metadata,
             kind: source.collection_kinds[payload],
             target: mapped[0],
             arguments: split({
@@ -271,11 +271,11 @@ export default function (in: Input): Output {
 
         return transform({
             table: target,
-            metadata: metadata,
+            metadata,
             kind: source.transform_kinds[payload],
             target: mapped[0],
             body: mapped[1],
-            initial: initial,
+            initial,
             parameters: shift({
                 ids: range({
                     items: source.transform_parameters,
@@ -297,7 +297,7 @@ export default function (in: Input): Output {
         const count = integers.widen(source.scope_count[payload])
 
         const bindings = loop({
-            source: source,
+            source,
             offset: in.offset,
             position: first,
             end: first + count,
@@ -325,7 +325,7 @@ export default function (in: Input): Output {
 
         return scope({
             table: target,
-            metadata: metadata,
+            metadata,
             result: mapped[mapped.length - 1],
             symbols: bindings.symbols,
             values: split({
@@ -339,7 +339,7 @@ export default function (in: Input): Output {
     if (kind == ExpressionKind.Iteration) {
         return iteration({
             table: target,
-            metadata: metadata,
+            metadata,
             initial: mapped[0],
             condition_parameter:
                 integers.narrow(
@@ -362,7 +362,7 @@ export default function (in: Input): Output {
     if (kind == ExpressionKind.ListUpdate) {
         return update({
             table: target,
-            metadata: metadata,
+            metadata,
             target: mapped[0],
             index: mapped[1],
             value: mapped[2]
@@ -372,7 +372,7 @@ export default function (in: Input): Output {
     if (kind == ExpressionKind.Call) {
         return call({
             table: target,
-            metadata: metadata,
+            metadata,
             function_id: source.call_functions[payload],
             argument: mapped[0],
             stores: range({
@@ -387,7 +387,7 @@ export default function (in: Input): Output {
     if (kind == ExpressionKind.Unary) {
         return unary({
             table: target,
-            metadata: metadata,
+            metadata,
             operator: source.unary_operators[payload],
             operand: mapped[0]
         })
@@ -396,7 +396,7 @@ export default function (in: Input): Output {
     if (kind == ExpressionKind.Binary) {
         return binary({
             table: target,
-            metadata: metadata,
+            metadata,
             operator: source.binary_operators[payload],
             left: mapped[0],
             right: mapped[1]
@@ -406,7 +406,7 @@ export default function (in: Input): Output {
     if (kind == ExpressionKind.Conditional) {
         return conditional({
             table: target,
-            metadata: metadata,
+            metadata,
             condition: mapped[0],
             yes: mapped[1],
             no: mapped[2]
@@ -418,7 +418,7 @@ export default function (in: Input): Output {
         const start = subject == null ? 0 : 1
 
         const arms = loop({
-            mapped: mapped,
+            mapped,
             position: start,
             end: mapped.length - 1,
             conditions: none,
@@ -440,8 +440,8 @@ export default function (in: Input): Output {
 
         return matched({
             table: target,
-            metadata: metadata,
-            subject: subject,
+            metadata,
+            subject,
             fallback: mapped[mapped.length - 1],
             conditions: arms.conditions,
             results: arms.results
@@ -459,8 +459,8 @@ export default function (in: Input): Output {
 
     return object({
         table: target,
-        metadata: metadata,
-        indices: indices,
+        metadata,
+        indices,
         values: split({
             items: mapped,
             from: 0

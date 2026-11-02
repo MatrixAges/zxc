@@ -75,10 +75,10 @@ export default function (in: Input): Output {
     }
 
     return {
-        kind: kind,
-        replacement: replacement,
-        hints: hints,
+        kind,
+        replacement,
+        hints,
         code: !known ? name_code : type_code,
-        message: message
+        message
     }
 }

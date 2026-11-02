@@ -42,7 +42,7 @@ export default function (in: Input): Output {
     if (present) {
         return add({
             facts: in.facts,
-            expressions: expressions,
+            expressions,
             value: integers.narrow(reference)
         })
     }

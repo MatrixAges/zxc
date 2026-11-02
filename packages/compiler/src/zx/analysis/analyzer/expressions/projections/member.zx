@@ -26,7 +26,7 @@ export default function (in: Input): Output {
     }
 
     const target = row({
-        tables: tables,
+        tables,
         id: in.type_id
     })
 
@@ -56,7 +56,7 @@ export default function (in: Input): Output {
                 ...in.state,
                 diagnostic: {
                     code: "name",
-                    message: message,
+                    message,
                     start: in.name.start,
                     end: in.name.end
                 }

@@ -74,7 +74,7 @@ export default function (in: Input): Output {
                         symbols: current.program.symbols,
                         position: located.position,
                         current: current.memory.states[located.position],
-                        moving: moving
+                        moving
                     })
 
                     const observed = rewrite({
@@ -125,10 +125,10 @@ export default function (in: Input): Output {
 
                     const context = {
                         machine: current,
-                        frame: frame,
-                        kind: kind,
-                        payload: payload,
-                        container: container
+                        frame,
+                        kind,
+                        payload,
+                        container
                     }
 
                     const selected = group(kind)

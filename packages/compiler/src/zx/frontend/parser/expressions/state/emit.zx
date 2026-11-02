@@ -28,7 +28,7 @@ export default function (in: Input): Output {
             control: {
                 ...in.state.control,
                 phase: Phase.Done,
-                diagnostic: diagnostic
+                diagnostic
             }
         }
     }
@@ -39,7 +39,7 @@ export default function (in: Input): Output {
     return {
         prepared: in.state.prepared,
         tree: {
-            nodes: nodes,
+            nodes,
             items: in.state.tree.items,
             fields: in.state.tree.fields,
             parameters: in.state.tree.parameters,
@@ -50,7 +50,7 @@ export default function (in: Input): Output {
         frames: in.state.frames,
         control: {
             ...in.state.control,
-            result: result
+            result
         }
     }
 }

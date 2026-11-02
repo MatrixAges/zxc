@@ -35,7 +35,7 @@ export default function (in: Input): Output {
     }
 
     const target = row({
-        tables: tables,
+        tables,
         id: in.state.local.expressions.types[integers.widen(in.value)]
     })
 
@@ -62,7 +62,7 @@ export default function (in: Input): Output {
     const order = loop({
         names: in.source.blocks.names,
         head: statement.head,
-        ids: ids
+        ids
     }, {
         while: current => current.head != 0,
         next: current => {
@@ -81,9 +81,9 @@ export default function (in: Input): Output {
         source: in.source,
         types: table.children,
         first: integers.widen(target.first),
-        order: order,
-        symbols: symbols,
-        start: start,
+        order,
+        symbols,
+        start,
         index: 0
     }, {
         while: current =>
@@ -114,8 +114,8 @@ export default function (in: Input): Output {
                 if (current.state.diagnostic.message == "") {
                     const bound = bind({
                         local: current.state.local,
-                        name: name,
-                        type_id: type_id,
+                        name,
+                        type_id,
                         scope_start: current.start
                     })
 
@@ -152,7 +152,7 @@ export default function (in: Input): Output {
                 ...result.state.local,
                 refinement: {
                     ...result.state.local.refinement,
-                    facts: facts
+                    facts
                 }
             }
         },

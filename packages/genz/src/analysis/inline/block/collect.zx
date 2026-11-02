@@ -37,7 +37,7 @@ export default function (in: Input): Output {
             1 + integers.widen(
                 control.selection_count[payload]
             ) + loop({
-                control: control,
+                control,
                 position: integers.widen(control.selection_first[payload]),
                 end:
                     integers.widen(control.selection_first[payload]) +
@@ -70,12 +70,12 @@ export default function (in: Input): Output {
     const pool = copy({
         pool: described,
         stack: state.stack,
-        start: start
+        start
     })
 
     return {
         ...state,
-        pool: pool,
+        pool,
         stack: truncate({
             items: state.stack,
             length: start

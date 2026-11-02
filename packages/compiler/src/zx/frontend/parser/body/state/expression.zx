@@ -26,12 +26,12 @@ export default function (in: Input): Output {
 
     const expression = restart({
         state: in.state.expression,
-        depth: depth,
+        depth,
         minimum: in.minimum
     })
 
     return {
-        expression: expression,
+        expression,
         tree: in.state.tree,
         frames: in.state.frames,
         suspended: in.state.suspended,

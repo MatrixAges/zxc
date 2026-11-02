@@ -49,15 +49,15 @@ export default function (in: Input): Output {
     }
 
     const signature: Signature = {
-        types: types,
+        types,
         span: in.contract.span,
         input_type: in.input_type,
         output_type: 0,
-        diagnostic: diagnostic
+        diagnostic
     }
 
     const local = initial({
-        signature: signature,
+        signature,
         stores: {
             paths: [],
             types: [],
@@ -69,9 +69,9 @@ export default function (in: Input): Output {
     })
 
     return {
-        types: types,
-        local: local,
+        types,
+        local,
         input_type: in.input_type,
-        diagnostic: diagnostic
+        diagnostic
     }
 }

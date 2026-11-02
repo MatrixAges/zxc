@@ -28,13 +28,13 @@ export default function (in: Input): Output {
     const optional: u32?[] = []
 
     const appended = loop({
-        source: source,
+        source,
         offset: in.offset,
         table: in.table,
         list: in.pool,
         position: in.start,
-        none: none,
-        optional: optional
+        none,
+        optional
     }, {
         while: current => current.position < current.list.length,
         next: current => {
@@ -65,11 +65,11 @@ export default function (in: Input): Output {
                 const shifted = symbols({
                     symbols: source.parallel_symbols,
                     first: integers.widen(source.parallel_first[payload]),
-                    count: count,
+                    count,
                     offset: current.offset
                 })
                 const mapped = loop({
-                    list: list,
+                    list,
                     position: values,
                     end: values + count,
                     items: current.none
@@ -117,8 +117,8 @@ export default function (in: Input): Output {
                 })
             } else if (code == 5) {
                 const cases = loop({
-                    source: source,
-                    list: list,
+                    source,
+                    list,
                     position: integers.widen(
                         source.selection_first[payload]
                     ),
@@ -181,7 +181,7 @@ export default function (in: Input): Output {
 
                 current.table = result({
                     table: current.table,
-                    value: value
+                    value
                 })
             }
 

@@ -23,7 +23,7 @@ export default function (in: Input): Output {
     const first = integers.widen(control.selection_first[payload])
 
     const returning = loop({
-        control: control,
+        control,
         position: first,
         end: first + integers.widen(control.selection_count[payload]),
         found: false

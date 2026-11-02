@@ -21,7 +21,7 @@ export default function (in: Input): Output {
 
         const declarations = declarationStep({
             state: in.declarations,
-            token: token
+            token
         })
 
         const failed =
@@ -41,13 +41,13 @@ export default function (in: Input): Output {
             functions: in.functions,
             parameters: in.parameters,
             errors: in.errors,
-            declarations: declarations,
+            declarations,
             control: {
                 injected: in.control.injected,
                 parameter: in.control.parameter,
                 current: in.control.current,
-                phase: phase,
-                index: index,
+                phase,
+                index,
                 diagnostic: in.control.diagnostic
             }
         }

@@ -86,7 +86,7 @@ export default function (in: Input): Output {
     const bound = symbol({
         table: state.local.symbols,
         name: state.local.symbols.names[integers.widen(in.source)],
-        type_id: type_id,
+        type_id,
         span_start: in.span.start,
         span_end: in.span.end,
         ownership: Ownership.Borrowed
@@ -106,7 +106,7 @@ export default function (in: Input): Output {
             local: {
                 ...state.local,
                 symbols: bound.table,
-                captures: captures
+                captures
             }
         },
         symbol: bound.id

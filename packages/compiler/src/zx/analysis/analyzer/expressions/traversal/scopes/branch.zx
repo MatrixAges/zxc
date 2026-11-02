@@ -36,12 +36,12 @@ export default function (in: Input): Output {
 
         const local = {
             ...work.state.local,
-            refinement: refinement
+            refinement
         }
 
         const scopes = enter({
             scopes: work.scopes,
-            local: local,
+            local,
             tree: work.source.blocks,
             block: statement.second,
             state_symbol: frame.state_symbol
@@ -57,13 +57,13 @@ export default function (in: Input): Output {
             ...work,
             state: {
                 ...work.state,
-                local: local
+                local
             },
-            scopes: scopes,
+            scopes,
             phase: Phase.ScopeNext,
             frames: {
                 ...work.frames,
-                branches: branches,
+                branches,
                 actions: work.frames.actions.push(Action.StateYes)[0]
             }
         }
@@ -76,7 +76,7 @@ export default function (in: Input): Output {
 
     const restored = {
         ...work.state.local.refinement,
-        facts: facts
+        facts
     }
 
     if (in.action == Action.StateYes) {
@@ -91,7 +91,7 @@ export default function (in: Input): Output {
             ...work.state,
             local: {
                 ...work.state.local,
-                refinement: refinement
+                refinement
             }
         }
 
@@ -102,13 +102,13 @@ export default function (in: Input): Output {
 
         const frames = {
             ...work.frames,
-            branches: branches,
+            branches,
             actions: work.frames.actions.push(Action.StateNo)[0]
         }
 
         if (statement.third == 0) {
             const result = reference({
-                state: state,
+                state,
                 symbol: frame.state_symbol,
                 span: statement.span
             })
@@ -118,7 +118,7 @@ export default function (in: Input): Output {
                 state: result.state,
                 value: result.value,
                 phase: Phase.Complete,
-                frames: frames
+                frames
             }
         }
 
@@ -132,10 +132,10 @@ export default function (in: Input): Output {
 
         return {
             ...work,
-            state: state,
-            scopes: scopes,
+            state,
+            scopes,
             phase: Phase.ScopeNext,
-            frames: frames
+            frames
         }
     }
 

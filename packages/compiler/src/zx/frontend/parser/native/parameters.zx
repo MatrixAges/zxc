@@ -106,7 +106,7 @@ export default function (in: Input): Output {
         frames: initial.frames,
         control: {
             ...initial.control,
-            index: index
+            index
         }
     }
 
@@ -123,10 +123,10 @@ export default function (in: Input): Output {
                 declarations: in.declarations.declarations,
                 members: in.declarations.members,
                 control: in.declarations.control,
-                types: types
+                types
             }
         },
-        phase: phase,
+        phase,
         count: 1
     })
 }

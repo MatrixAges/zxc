@@ -10,5 +10,5 @@ export default function (in: Input): Output {
     const items = source(in.items)
     const data = context(in.tag)
 
-    return items.filter(item => visit({ item: item, context: data }))
+    return items.filter(item => visit({ item, context: data }))
 }

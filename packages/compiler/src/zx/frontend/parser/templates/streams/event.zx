@@ -30,7 +30,7 @@ export default function (in: Input): Output {
     switch (kind) {
         case EventKind.TemplateOpen: return openTemplate(state)
         case EventKind.TemplateClose: return closeTemplate({
-            state: state,
+            state,
             template: reference
         })
         case EventKind.InterpolationOpen: return openInterpolation(state)

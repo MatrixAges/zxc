@@ -28,8 +28,8 @@ export default function (in: Input): Output {
     const result = loop({
         types: in.types,
         optional: in.optional,
-        pending: pending,
-        leaves: leaves
+        pending,
+        leaves
     }, {
         while: current => current.pending.length != 0,
         next: current => {

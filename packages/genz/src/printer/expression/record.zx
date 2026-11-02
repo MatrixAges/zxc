@@ -68,10 +68,10 @@ export default function (in: Input): Output {
     const fields = loop({
         frames: opening,
         index: zero,
-        object: object,
+        object,
         first: field_first,
         count: field_count,
-        frame: frame
+        frame
     }, {
         while: current => current.index < current.count,
         next: current => {
@@ -111,7 +111,7 @@ export default function (in: Input): Output {
         index: zero,
         first: declaration_first,
         count: declaration_count,
-        frame: frame
+        frame
     }, {
         while: current => current.index < current.count,
         next: current => {

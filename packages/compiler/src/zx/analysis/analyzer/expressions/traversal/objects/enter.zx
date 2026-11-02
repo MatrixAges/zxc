@@ -44,7 +44,7 @@ export default function (in: Input): Output {
     const ordered = loop({
         tree: in.source.tree,
         head: node.head,
-        fields: fields
+        fields
     }, {
         while: current => current.head != 0,
         next: current => {
@@ -55,7 +55,7 @@ export default function (in: Input): Output {
 
     const frame: Object = {
         node: in.node,
-        hint: hint,
+        hint,
         fields: ordered.fields.reverse()[0],
         index: 0,
         entries: {

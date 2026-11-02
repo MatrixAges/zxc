@@ -10,9 +10,9 @@ export default function (in: Input): Output {
 
     const result = loop({
         input: in,
-        nodes: nodes,
-        enumerations: enumerations,
-        aliases: aliases,
+        nodes,
+        enumerations,
+        aliases,
         remaining: in.count
     }, {
         while: current => current.remaining != 0,
@@ -35,7 +35,7 @@ export default function (in: Input): Output {
             enumerations: result.enumerations,
             aliases: result.aliases
         },
-        names: names,
+        names,
         valid: true
     }
 }

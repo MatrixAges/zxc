@@ -66,7 +66,7 @@ export default function (in: Input): Output {
 
         return {
             forest: in.forest,
-            fact: fact
+            fact
         }
     }
 
@@ -75,7 +75,7 @@ export default function (in: Input): Output {
         references: in.references,
         forest: in.forest,
         action: in.action,
-        paired: paired,
+        paired,
         left: [in.left],
         right: [right],
         indices: [0],
@@ -97,8 +97,8 @@ export default function (in: Input): Output {
             const first = current.first[top]
             const saved = find({
                 cache: current.cache,
-                left: left,
-                right: right
+                left,
+                right
             })
             const identical = current.paired && left == right
             const unchanged =
@@ -148,8 +148,8 @@ export default function (in: Input): Output {
                 if (index < count) {
                     const child_type = fieldType({
                         types: current.types,
-                        type_id: type_id,
-                        index: index
+                        type_id,
+                        index
                     })
                     const reference =
                         current.references[integers.widen(
@@ -158,14 +158,14 @@ export default function (in: Input): Output {
                     const child_left = project({
                         forest: current.forest,
                         fact: left,
-                        index: index,
-                        reference: reference
+                        index,
+                        reference
                     })
                     const child_right = current.paired ? project({
                         forest: current.forest,
                         fact: right,
-                        index: index,
-                        reference: reference
+                        index,
+                        reference
                     }) : 0
 
                     current.indices[top] = index + 1
@@ -192,11 +192,11 @@ export default function (in: Input): Output {
                         references: current.references,
                         forest: current.forest,
                         fact: left,
-                        type_id: type_id,
-                        shell: shell,
+                        type_id,
+                        shell,
                         children: current.children,
-                        first: first,
-                        count: count
+                        first,
+                        count
                     })
 
                     current.value = left
@@ -204,11 +204,11 @@ export default function (in: Input): Output {
                     if (!unchanged) {
                         const built = product({
                             forest: current.forest,
-                            type_id: type_id,
-                            shell: shell,
+                            type_id,
+                            shell,
                             children: current.children,
-                            first: first,
-                            count: count
+                            first,
+                            count
                         })
 
                         current.forest = built.forest
@@ -217,8 +217,8 @@ export default function (in: Input): Output {
 
                     current.cache = cache({
                         cache: current.cache,
-                        left: left,
-                        right: right,
+                        left,
+                        right,
                         value: current.value
                     })
                 }

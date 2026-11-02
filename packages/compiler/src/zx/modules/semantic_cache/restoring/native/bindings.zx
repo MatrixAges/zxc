@@ -50,8 +50,8 @@ export default function (in: Input): Output {
                 const name =
                     signatures.native_exports[index] ?? member[namespace.length]
                 const same_namespace = loop({
-                    member: member,
-                    namespace: namespace,
+                    member,
+                    namespace,
                     index: 0,
                     valid: true
                 }, {

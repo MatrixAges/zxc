@@ -21,7 +21,7 @@ export default function (in: Input): Output {
 
     const result = loop({
         control: in.control,
-        blocks: blocks,
+        blocks,
         found: false
     }, {
         while: current => !current.found && current.blocks.length != 0,

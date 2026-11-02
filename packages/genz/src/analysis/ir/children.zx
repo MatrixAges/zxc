@@ -146,7 +146,7 @@ export default function (in: Input): Output {
         const prefix = subject == null ? empty : empty.push(subject)[0]
 
         const arms = loop({
-            table: table,
+            table,
             items: prefix,
             position: integers.widen(table.match_first[payload]),
             end:

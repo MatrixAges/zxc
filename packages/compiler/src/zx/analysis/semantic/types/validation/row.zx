@@ -58,7 +58,7 @@ export default function (in: Input): Output {
         return children({
             table: in.table,
             index: in.index,
-            first: first,
+            first,
             count: second,
             object: type_kind == Kind.Object
         })
@@ -75,7 +75,7 @@ export default function (in: Input): Output {
 
     return members({
         values: in.table.names,
-        first: first,
+        first,
         count: second,
         errors: type_kind == Kind.ErrorSet
     })

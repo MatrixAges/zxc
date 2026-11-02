@@ -50,7 +50,7 @@ export default function (in: Input): Output {
         return {
             ...work,
             frames: work.frames.push({
-                operation: operation,
+                operation,
                 node: in.node
             })[0].push(child)[0]
         }
@@ -141,8 +141,8 @@ export default function (in: Input): Output {
         })[0]
 
         const scheduled = loop({
-            tree: tree,
-            frames: frames,
+            tree,
+            frames,
             head: node.head
         }, {
             while: current => current.head != 0,

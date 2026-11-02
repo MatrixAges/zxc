@@ -18,7 +18,7 @@ export default function (in: Input): Output {
         graph: in.graph,
         kind: PartKind.Text,
         span: {
-            start: start,
+            start,
             end: in.offset
         },
         interpolation: 0,
@@ -40,13 +40,13 @@ export default function (in: Input): Output {
     const events = graph.events.push({
         kind: EventKind.TemplateClose,
         offset: in.offset,
-        reference: reference
+        reference
     })[0]
 
     return {
-        templates: templates,
+        templates,
         parts: graph.parts,
-        events: events,
+        events,
         frames: graph.frames.pop()[0],
         interpolations: graph.interpolations,
         token_templates: graph.token_templates

@@ -11,7 +11,7 @@ export default function (in: Input): Output {
 
     const result = loop({
         graph: in,
-        wraps: wraps,
+        wraps,
         index: 0
     }, {
         while: current => current.index < current.graph.input.tokens.length,

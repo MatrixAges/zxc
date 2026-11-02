@@ -20,7 +20,7 @@ export default function (in: Input): Output {
     const result = loop({
         source: in.source,
         node: in.node,
-        path: path,
+        path,
         end: path.length,
         done: false,
         matches: false
@@ -39,10 +39,10 @@ export default function (in: Input): Output {
                 }).text
                 const size = name.length
                 const compared = loop({
-                    name: name,
+                    name,
                     path: current.path,
                     end: current.end,
-                    size: size,
+                    size,
                     index: 0,
                     equal: size <= current.end
                 }, {

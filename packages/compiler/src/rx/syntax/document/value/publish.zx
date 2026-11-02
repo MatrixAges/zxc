@@ -34,7 +34,7 @@ export default function (in: Input): Output {
                 line: in.state.control.attribute_location.line,
                 column: in.state.control.attribute_location.column
             },
-            value_location: value_location,
+            value_location,
             previous: in.state.frame.attributes
         })[0]
 
@@ -42,7 +42,7 @@ export default function (in: Input): Output {
             source: in.state.source,
             tree: {
                 nodes: in.state.tree.nodes,
-                attributes: attributes,
+                attributes,
                 text: in.state.tree.text,
                 children: in.state.tree.children,
                 parts: in.state.tree.parts
@@ -74,7 +74,7 @@ export default function (in: Input): Output {
         tree: {
             nodes: in.state.tree.nodes,
             attributes: in.state.tree.attributes,
-            text: text,
+            text,
             children: in.state.tree.children,
             parts: in.state.tree.parts
         },

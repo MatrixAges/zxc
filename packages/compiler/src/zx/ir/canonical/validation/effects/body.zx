@@ -53,7 +53,7 @@ export default function (in: Input): Output {
     }
 
     return loop({
-        context: context,
+        context,
         unit: in.unit,
         index: 0,
         valid: true
@@ -75,7 +75,7 @@ export default function (in: Input): Output {
                     expressions.captures[payload]
                 const members = analyze({
                     context: current.context,
-                    expressions: expressions,
+                    expressions,
                     control: current.unit.body.control,
                     root: current.unit.body.root,
                     contracts: current.unit.contracts,
@@ -114,8 +114,8 @@ export default function (in: Input): Output {
                     if (current.valid) {
                         current.valid = loop({
                             names: table.names,
-                            members: members,
-                            first: first,
+                            members,
+                            first,
                             index: 0,
                             valid: true
                         }, {

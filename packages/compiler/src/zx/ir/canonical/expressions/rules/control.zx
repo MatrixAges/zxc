@@ -17,19 +17,19 @@ export default function (in: Input): Output {
 
     if (in.kind == ExpressionKind.Conditional) {
         return typed({
-            expressions: expressions,
+            expressions,
             index: context.index,
             id: expressions.conditional_conditions[in.payload],
             type_id: 1
         }) &&
             typed({
-                expressions: expressions,
+                expressions,
                 index: context.index,
                 id: expressions.conditional_yes[in.payload],
                 type_id: in.type_id
             }) &&
             typed({
-                expressions: expressions,
+                expressions,
                 index: context.index,
                 id: expressions.conditional_no[in.payload],
                 type_id: in.type_id
@@ -64,8 +64,8 @@ export default function (in: Input): Output {
     }
 
     const result = loop({
-        context: context,
-        condition_type: condition_type,
+        context,
+        condition_type,
         result_type: in.type_id,
         first: integers.widen(expressions.match_first[in.payload]),
         count: integers.widen(expressions.match_count[in.payload]),
@@ -94,7 +94,7 @@ export default function (in: Input): Output {
     })
 
     return result.valid && typed({
-        expressions: expressions,
+        expressions,
         index: context.index,
         id: expressions.match_fallbacks[in.payload],
         type_id: in.type_id

@@ -41,7 +41,7 @@ export default function (in: Input): Output {
     }
 
     const result = in.kind == TransformKind.Map ? construct({
-        state: state,
+        state,
         candidate: {
             kind: Kind.List,
             first: state.local.expressions.types[integers.widen(in.body)],
@@ -56,7 +56,7 @@ export default function (in: Input): Output {
         },
         span: in.span
     }) : {
-        state: state,
+        state,
         id: in.result_type
     }
 
@@ -64,7 +64,7 @@ export default function (in: Input): Output {
         state: result.state,
         callback: {
             parameters: in.parameters,
-            captures: captures,
+            captures,
             body: in.body
         },
         result_type: result.id

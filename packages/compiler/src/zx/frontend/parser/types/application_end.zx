@@ -26,15 +26,15 @@ export default function (in: Input): Output {
 
     const state = {
         tree: in.tree,
-        frames: frames,
+        frames,
         control: in.control
     }
 
     const completed = addNode({
-        state: state,
+        state,
         kind: TypeKind.Application,
         name: frame.name,
-        child: child,
+        child,
         head: 0,
         count: 0
     })

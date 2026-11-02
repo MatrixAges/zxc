@@ -18,7 +18,7 @@ export default function (in: Input): Output {
         action: Action.Text,
         token: Token.Empty,
         bytes: ByteSource.None,
-        id: id,
+        id,
         count: 0,
         index: 0,
         number: 0
@@ -58,7 +58,7 @@ export default function (in: Input): Output {
         index: zero,
         first: tree.function_parameters_start[row],
         count: tree.function_parameters_len[row],
-        frame: frame
+        frame
     }, {
         while: current => current.index < current.count,
         next: current => {

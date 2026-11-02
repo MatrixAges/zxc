@@ -21,12 +21,12 @@ export default function (in: Input): Output {
     return (subject == null || in.safe[integers.widen(subject)]) && all({
         safe: in.safe,
         values: in.table.match_conditions,
-        first: first,
-        count: count
+        first,
+        count
     }) && all({
         safe: in.safe,
         values: in.table.match_results,
-        first: first,
-        count: count
+        first,
+        count
     }) && in.safe[integers.widen(in.table.match_fallbacks[payload])]
 }

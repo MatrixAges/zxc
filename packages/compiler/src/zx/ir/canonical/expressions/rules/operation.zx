@@ -56,11 +56,11 @@ export default function (in: Input): Output {
     const element = table.first[source_type]
 
     const arguments = loop({
-        context: context,
+        context,
         first: integers.widen(expressions.collection_first[in.payload]),
-        count: count,
-        operation: operation,
-        element: element,
+        count,
+        operation,
+        element,
         source: source_id,
         index: 0,
         valid: true

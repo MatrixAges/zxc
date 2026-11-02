@@ -58,9 +58,9 @@ export default function (in: Input): Output {
     const root = functions.roots[in.index]
 
     const registered = source({
-        state: state,
+        state,
         expressions: functions.expressions[in.index],
-        control: control
+        control
     })
 
     const frames = root == null ? registered.state.frames :
@@ -78,7 +78,7 @@ export default function (in: Input): Output {
     return contracts({
         state: {
             ...registered.state,
-            frames: frames
+            frames
         },
         contracts: functions.contracts[in.index]
     })

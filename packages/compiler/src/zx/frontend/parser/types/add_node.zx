@@ -27,14 +27,14 @@ export default function (in: Input): Output {
 
     return {
         tree: {
-            nodes: nodes,
+            nodes,
             fields: in.state.tree.fields,
             items: in.state.tree.items
         },
         frames: in.state.frames,
         control: {
             ...in.state.control,
-            result: result
+            result
         }
     }
 }

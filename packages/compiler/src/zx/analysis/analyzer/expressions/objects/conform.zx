@@ -40,7 +40,7 @@ export default function (in: Input): Output {
     }
 
     const target = row({
-        tables: tables,
+        tables,
         id: hint
     })
 
@@ -64,7 +64,7 @@ export default function (in: Input): Output {
             const type_id = current.types[current.first + current.index]
             const found = loop({
                 names: current.entries.names,
-                name: name,
+                name,
                 index: 0
             }, {
                 while: item =>
@@ -105,7 +105,7 @@ export default function (in: Input): Output {
                 const value = append({
                     table: current.state.local.expressions,
                     metadata: {
-                        type_id: type_id,
+                        type_id,
                         span_start: current.span.start,
                         span_end: current.span.end
                     },
@@ -138,7 +138,7 @@ export default function (in: Input): Output {
     return {
         state: {
             ...result.state,
-            diagnostic: diagnostic
+            diagnostic
         },
         entries: result.entries,
         evaluation: result.evaluation

@@ -9,7 +9,7 @@ export default function (in: Input): Output {
     const object: Record = { values: [], marker: in.marker }
     const tuple: Pair = [[], in.marker]
 
-    const state = loop({ input: in, generated: generated, object: object, tuple: tuple, untouched: in.prefix, records: in.records, pairs: in.pairs, index: 0 }, {
+    const state = loop({ input: in, generated, object, tuple, untouched: in.prefix, records: in.records, pairs: in.pairs, index: 0 }, {
         while: current => current.index < current.input.count,
         next: current => {
             current.generated = append({ columns: current.generated, value: current.index, label: current.input.label })

@@ -20,13 +20,13 @@ export default function (in: Input): Output {
             start: length,
             end: length
         },
-        line_break: line_break,
+        line_break,
         dollar: false
     })[0]
 
     return {
         lexed: {
-            tokens: tokens,
+            tokens,
             comments: in.lexer.comments,
             diagnostic: in.lexer.diagnostic
         },

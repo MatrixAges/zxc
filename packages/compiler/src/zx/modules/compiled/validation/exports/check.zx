@@ -62,12 +62,12 @@ export default function (in: Input): Output {
         members: exports.members[in.index],
         types: exports.type_names[in.index],
         constants: exports.constants[in.index],
-        functions: functions
+        functions
     }) && types({
         names: exports.type_names[in.index],
         ids: exports.type_ids[in.index],
         count: in.graph.program.context.table.kinds.length,
-        function_id: function_id,
-        functions: functions
+        function_id,
+        functions
     })
 }

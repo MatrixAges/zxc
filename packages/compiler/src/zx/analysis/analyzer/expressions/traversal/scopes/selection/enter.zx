@@ -14,7 +14,7 @@ export default function (in: Input): Output {
     const order = loop({
         cases: in.source.blocks.cases,
         head: statement.head,
-        ids: ids
+        ids
     }, {
         while: current => current.head != 0,
         next: current => {
@@ -31,7 +31,7 @@ export default function (in: Input): Output {
         cases: order,
         index: 0,
         subject: 0,
-        state_symbol: state_symbol,
+        state_symbol,
         conditions: [],
         results: [],
         fallback: null

@@ -25,7 +25,7 @@ export default function (in: Input): Output {
     }
 
     return {
-        id: id,
+        id,
         floating: id == type_id_f32 || id == type_id_f64,
         single: id == type_id_f32,
         integer: id >= type_id_u8 && id <= type_id_i64,

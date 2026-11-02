@@ -18,7 +18,7 @@ export default function (in: Input): Output {
 
     if (in.kind == ExpressionKind.Task) {
         if (in.target != Kind.Task || !typed({
-            expressions: expressions,
+            expressions,
             index: context.index,
             id: expressions.task_bodies[in.payload],
             type_id: table.first[integers.widen(in.type_id)]
@@ -27,7 +27,7 @@ export default function (in: Input): Output {
         }
 
         const captures = loop({
-            context: context,
+            context,
             first: integers.widen(expressions.task_capture_first[in.payload]),
             count: integers.widen(expressions.task_capture_count[in.payload]),
             index: 0,
@@ -55,7 +55,7 @@ export default function (in: Input): Output {
                         captures: context.expressions.task_captures,
                         first: current.first,
                         limit: current.index,
-                        symbol: symbol,
+                        symbol,
                         index: 0,
                         found: false
                     }, {
@@ -131,7 +131,7 @@ export default function (in: Input): Output {
                 result
             )]
         ) == Kind.Optional && typed({
-            expressions: expressions,
+            expressions,
             index: context.index,
             id: child,
             type_id: table.first[integers.widen(result)]

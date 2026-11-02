@@ -74,7 +74,7 @@ export default function (in: Input): Output {
         state: {
             types: signature.types,
             local: local({
-                signature: signature,
+                signature,
                 stores: {
                     paths: [],
                     types: [],
@@ -92,6 +92,6 @@ export default function (in: Input): Output {
                 enumeration: false,
                 index: in.constant.annotation
             },
-        name: name
+        name
     }
 }

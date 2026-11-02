@@ -20,7 +20,7 @@ export default function (in: Input): Output {
             const result = match frame.operation {
                 Operation.Expression => expression({
                     state: current,
-                    frame: frame
+                    frame
                 }),
                 Operation.Function => call({
                     state: current,
@@ -28,7 +28,7 @@ export default function (in: Input): Output {
                 }),
                 _ => block({
                     state: current,
-                    frame: frame
+                    frame
                 }),
             }
 

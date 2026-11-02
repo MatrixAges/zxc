@@ -29,7 +29,7 @@ export default function (in: Input): Output {
         index: in.first,
         symbols: in.symbol_count,
         concurrent: in.concurrent,
-        captures: captures,
+        captures,
         span: in.span
     }, {
         while: current =>
@@ -55,12 +55,12 @@ export default function (in: Input): Output {
                         delta: current.state.types.delta
                     }
                     const host = contains({
-                        tables: tables,
+                        tables,
                         id: type_id,
                         native_references: true
                     })
                     const task = row({
-                        tables: tables,
+                        tables,
                         id: type_id
                     }).kind == Kind.Task
 
@@ -75,7 +75,7 @@ export default function (in: Input): Output {
                     } else {
                         const found = loop({
                             values: current.captures,
-                            symbol: symbol,
+                            symbol,
                             index: 0,
                             found: false
                         }, {

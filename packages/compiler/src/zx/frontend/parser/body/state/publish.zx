@@ -31,7 +31,7 @@ export default function (in: Input): Output {
         const result = in.tree.blocks.length
 
         const blocks = in.tree.blocks.push({
-            span: span,
+            span,
             head: in.frame.head,
             count: in.frame.count
         })[0]
@@ -50,7 +50,7 @@ export default function (in: Input): Output {
 
         const tree = {
             statements: in.tree.statements,
-            blocks: blocks,
+            blocks,
             items: in.tree.items,
             names: in.tree.names,
             cases: in.tree.cases
@@ -58,14 +58,14 @@ export default function (in: Input): Output {
 
         return {
             expression: in.expression,
-            tree: tree,
+            tree,
             frames: popped[0],
             suspended: in.suspended,
             frame: next,
             control: {
                 ...in.control,
                 phase: complete_phase,
-                result: result
+                result
             }
         }
     }
@@ -99,22 +99,22 @@ export default function (in: Input): Output {
         const block = in.tree.blocks.length + 1
 
         const blocks = in.tree.blocks.push({
-            span: span,
-            head: head,
+            span,
+            head,
             count: 1
         })[0]
 
         const tree = {
-            statements: statements,
-            blocks: blocks,
-            items: items,
+            statements,
+            blocks,
+            items,
             names: in.tree.names,
             cases: in.tree.cases
         }
 
         return {
             expression: in.expression,
-            tree: tree,
+            tree,
             frames: popped[0],
             suspended: in.suspended,
             frame: {
@@ -132,27 +132,27 @@ export default function (in: Input): Output {
 
     const next = {
         ...parent,
-        head: head,
-        count: count
+        head,
+        count
     }
 
     const tree = {
-        statements: statements,
+        statements,
         blocks: in.tree.blocks,
-        items: items,
+        items,
         names: in.tree.names,
         cases: in.tree.cases
     }
 
     return {
         expression: in.expression,
-        tree: tree,
+        tree,
         frames: popped[0],
         suspended: in.suspended,
         frame: next,
         control: {
             ...in.control,
-            phase: phase
+            phase
         }
     }
 }

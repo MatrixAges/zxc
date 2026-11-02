@@ -40,7 +40,7 @@ export default function (in: Input): Output {
                 frames: in.state.frames,
                 control: {
                     ...in.state.control,
-                    depth: depth,
+                    depth,
                     primary_start: start
                 }
             },
@@ -61,9 +61,9 @@ export default function (in: Input): Output {
 
         const value = {
             ...node({
-                kind: kind,
-                start: start,
-                end: end,
+                kind,
+                start,
+                end,
                 depth: child_depth + 1
             }),
             first: result
@@ -81,7 +81,7 @@ export default function (in: Input): Output {
                 tree: in.state.tree,
                 types: in.state.types,
                 frames: in.state.frames,
-                control: control
+                control
             },
             node: value
         })
@@ -94,8 +94,8 @@ export default function (in: Input): Output {
         const value = {
             ...node({
                 kind: lambda ? ExprKind.Lambda : ExprKind.Unary,
-                start: start,
-                end: end,
+                start,
+                end,
                 depth: child_depth + 1
             }),
             first: result,
@@ -106,7 +106,7 @@ export default function (in: Input): Output {
 
         const control = {
             ...in.state.control,
-            depth: depth,
+            depth,
             phase: Phase.Returning
         }
 
@@ -116,7 +116,7 @@ export default function (in: Input): Output {
                 tree: in.state.tree,
                 types: in.state.types,
                 frames: in.state.frames,
-                control: control
+                control
             },
             node: value
         })
@@ -137,7 +137,7 @@ export default function (in: Input): Output {
         const value = {
             ...node({
                 kind: ExprKind.Index,
-                start: start,
+                start,
                 end: in.state.control.token.span.end,
                 depth: (target_depth > child_depth ? target_depth : child_depth) + 1
             }),
@@ -147,7 +147,7 @@ export default function (in: Input): Output {
 
         const control = {
             ...in.state.control,
-            depth: depth,
+            depth,
             primary_start: start
         }
 
@@ -158,7 +158,7 @@ export default function (in: Input): Output {
                     tree: in.state.tree,
                     types: in.state.types,
                     frames: in.state.frames,
-                    control: control
+                    control
                 },
                 phase: Phase.Postfix
             }),
@@ -186,7 +186,7 @@ export default function (in: Input): Output {
         const control: ExprControl = {
             ...in.state.control,
             minimum: 0,
-            allow_lambda: allow_lambda,
+            allow_lambda,
             fresh_family: true
         }
 
@@ -195,8 +195,8 @@ export default function (in: Input): Output {
                 prepared: in.state.prepared,
                 tree: in.state.tree,
                 types: in.state.types,
-                frames: frames,
-                control: control
+                frames,
+                control
             },
             phase: Phase.BeginBinary
         })
@@ -210,7 +210,7 @@ export default function (in: Input): Output {
         ...node({
             kind: ExprKind.Conditional,
             start: in.state.tree.nodes[in.frame.first].span.start,
-            end: end,
+            end,
             depth:
                 (
                     condition_depth > branch_depth ? condition_depth : branch_depth

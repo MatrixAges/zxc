@@ -29,7 +29,7 @@ export default function (in: Input): Output {
             contracts: in.contracts,
             control: {
                 ...in.control,
-                phase: phase,
+                phase,
                 expression_diagnostic: failed,
                 diagnostic: parsed.control.diagnostic
             }

@@ -13,9 +13,9 @@ export default function (in: Input): Output {
     const count = left.length < right.length ? left.length : right.length
 
     const equal = loop({
-        left: left,
-        right: right,
-        count: count,
+        left,
+        right,
+        count,
         index: 0,
         equal: true
     }, {

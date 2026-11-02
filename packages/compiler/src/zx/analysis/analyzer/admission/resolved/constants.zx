@@ -16,7 +16,7 @@ export default function (in: Input): Output {
     }
 
     if (!valid({
-        constants: constants,
+        constants,
         types: {
             base: in.table,
             delta: {
@@ -48,13 +48,13 @@ export default function (in: Input): Output {
                 source_text: current.input.source_text,
                 native: current.input.native,
                 syntax: current.input.syntax,
-                name: name,
+                name,
                 kind: DeclarationKind.Constant
             })
 
             const matching = loop({
                 names: current.input.aliases.names,
-                name: name,
+                name,
                 index: 0,
                 found: false
             }, {

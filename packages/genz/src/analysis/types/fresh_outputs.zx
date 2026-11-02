@@ -17,9 +17,9 @@ export default function (in: Input): Output {
     const result = loop({
         types: in.types,
         functions: in.functions,
-        seen: seen,
-        pending: pending,
-        fresh: fresh,
+        seen,
+        pending,
+        fresh,
         index: 0
     }, {
         while: current => current.index < current.functions.input_types.length,
@@ -54,7 +54,7 @@ export default function (in: Input): Output {
 
                         const nested = children({
                             types: walk.types,
-                            id: id,
+                            id,
                             pending: walk.pending,
                             count: walk.count
                         })

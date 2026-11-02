@@ -36,12 +36,12 @@ export default function (in: Input): Output {
 
         const local = {
             ...state.local,
-            refinement: refinement
+            refinement
         }
 
         const blocks = enter({
             blocks: body.blocks,
-            local: local,
+            local,
             tree: body.expression.source.blocks,
             block: statement.second
         })
@@ -58,11 +58,11 @@ export default function (in: Input): Output {
                 ...body.expression,
                 state: {
                     ...state,
-                    local: local
+                    local
                 }
             },
-            blocks: blocks,
-            branches: branches,
+            blocks,
+            branches,
             actions: body.actions.push(Action.Yes)[0],
             phase: Phase.Next
         }
@@ -75,7 +75,7 @@ export default function (in: Input): Output {
 
     const restored = {
         ...state.local.refinement,
-        facts: facts
+        facts
     }
 
     if (in.action == Action.Yes) {
@@ -88,7 +88,7 @@ export default function (in: Input): Output {
 
         const local = {
             ...state.local,
-            refinement: refinement
+            refinement
         }
 
         const branches = body.branches.splice(position, 1, [{
@@ -101,7 +101,7 @@ export default function (in: Input): Output {
         if (statement.third == 0) {
             const result = empty({
                 blocks: body.blocks,
-                local: local
+                local
             })
 
             return {
@@ -114,8 +114,8 @@ export default function (in: Input): Output {
                     }
                 },
                 blocks: result.blocks,
-                branches: branches,
-                actions: actions,
+                branches,
+                actions,
                 value: result.id,
                 phase: Phase.Resume
             }
@@ -123,7 +123,7 @@ export default function (in: Input): Output {
 
         const blocks = enter({
             blocks: body.blocks,
-            local: local,
+            local,
             tree: body.expression.source.blocks,
             block: statement.third - 1
         })
@@ -134,12 +134,12 @@ export default function (in: Input): Output {
                 ...body.expression,
                 state: {
                     ...state,
-                    local: local
+                    local
                 }
             },
-            blocks: blocks,
-            branches: branches,
-            actions: actions,
+            blocks,
+            branches,
+            actions,
             phase: Phase.Next
         }
     }
@@ -173,13 +173,13 @@ export default function (in: Input): Output {
                 ...state,
                 local: {
                     ...state.local,
-                    refinement: refinement
+                    refinement
                 }
             }
         },
         blocks: {
             ...body.blocks,
-            pending: pending
+            pending
         },
         branches: body.branches.pop()[0],
         phase: Phase.Next

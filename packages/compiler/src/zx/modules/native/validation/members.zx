@@ -34,13 +34,13 @@ export default function (in: Input): Output {
                 current.input.native.errors[position]
             const name = text({
                 source: current.input.native.source,
-                span: span
+                span
             })
             const kind = current.input.parameter ? NameKind.Value : NameKind.TypeDecl
 
             if (!checkName({
                 name: name.text,
-                kind: kind
+                kind
             })) {
                 current.code = "naming"
                 current.message =

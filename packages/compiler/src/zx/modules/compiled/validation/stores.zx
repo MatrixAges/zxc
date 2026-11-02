@@ -12,8 +12,8 @@ export default function (in: Input): Output {
 
     const collected = loop({
         stores: in,
-        names: names,
-        types: types,
+        names,
+        types,
         index: 0
     }, {
         while: current => current.index < current.stores.length,

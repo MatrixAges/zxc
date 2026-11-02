@@ -17,5 +17,5 @@ export default function (in: Input): Output {
     _ => in.shipping_fee
   }
 
-  return { shipping: shipping, payable: discounted + shipping }
+  return { shipping, payable: discounted + shipping }
 }

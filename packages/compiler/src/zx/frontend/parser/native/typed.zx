@@ -14,7 +14,7 @@ export default function (in: Input): Output {
 
     const types = typeStep({
         state: in.declarations.types,
-        token: token
+        token
     })
 
     const index = types.control.index
@@ -31,7 +31,7 @@ export default function (in: Input): Output {
             declarations: in.declarations.declarations,
             members: in.declarations.members,
             control: in.declarations.control,
-            types: types
+            types
         },
         control: {
             phase: in.control.phase,
@@ -39,7 +39,7 @@ export default function (in: Input): Output {
             parameter: in.control.parameter,
             current: in.control.current,
             diagnostic: in.control.diagnostic,
-            index: index
+            index
         }
     }
 
@@ -81,7 +81,7 @@ export default function (in: Input): Output {
             declarations: state.declarations,
             functions: state.functions,
             errors: state.errors,
-            parameters: parameters,
+            parameters,
             control: {
                 index: state.control.index,
                 injected: state.control.injected,

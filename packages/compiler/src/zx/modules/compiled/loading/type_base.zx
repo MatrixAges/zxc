@@ -31,8 +31,8 @@ export default function (in: Input): Output {
     return loop({
         table: empty,
         count: in.scalar_count,
-        scalar: scalar,
-        zero: zero,
+        scalar,
+        zero,
         index: 0
     }, {
         while: current => current.index < current.count,

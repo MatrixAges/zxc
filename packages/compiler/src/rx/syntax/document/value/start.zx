@@ -14,7 +14,7 @@ export default function (in: Input): Output {
     const offset = in.state.control.location.offset
 
     const location = {
-        offset: offset,
+        offset,
         line: in.state.control.location.line,
         column: in.state.control.location.column
     }

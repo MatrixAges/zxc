@@ -38,7 +38,7 @@ export default function (in: Input): Output {
     }
 
     const target = row({
-        tables: tables,
+        tables,
         id: input
     })
 
@@ -50,7 +50,7 @@ export default function (in: Input): Output {
     return {
         ...in,
         node: frame.arguments[frame.index],
-        expected: expected,
+        expected,
         phase: Phase.Evaluate,
         frames: {
             ...in.frames,

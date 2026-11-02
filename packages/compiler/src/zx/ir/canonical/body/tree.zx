@@ -29,7 +29,7 @@ export default function (in: Input): Output {
 
     const initialized = loop({
         count: in.control.block_first.length,
-        root: root,
+        root,
         owned: flags,
         depths: numbers
     }, {

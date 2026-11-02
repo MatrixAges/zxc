@@ -35,7 +35,7 @@ export default function (in: Input): Output {
     const tables = in.tables
 
     const target = row({
-        tables: tables,
+        tables,
         id: type_id
     })
 
@@ -112,7 +112,7 @@ export default function (in: Input): Output {
     })
 
     const field = row({
-        tables: tables,
+        tables,
         id: table.field_types[found.first + found.index]
     })
 

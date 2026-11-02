@@ -15,12 +15,12 @@ export default function (in: Input): Output {
 
     const state = {
         tree: in.tree,
-        frames: frames,
+        frames,
         control: in.control
     }
 
     const completed = addNode({
-        state: state,
+        state,
         kind: frame.kind,
         name: frame.name,
         child: 0,

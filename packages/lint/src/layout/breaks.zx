@@ -27,11 +27,11 @@ export default function (in: Input): Output {
 
     return loop({
         plan: in,
-        breaks: breaks,
-        levels: levels,
-        continuations: continuations,
+        breaks,
+        levels,
+        continuations,
         level: in.graph.input.level,
-        continuation: continuation,
+        continuation,
         previous_priority: no_operator,
         pending: false,
         column: in.graph.input.level * indent_width + in.graph.input.prefix,
@@ -64,7 +64,7 @@ export default function (in: Input): Output {
             const limit = width > graph.input.suffix ? width - graph.input.suffix : 0
             const previous_operator = current.previous_priority != no_operator
             const segment = layout && previous_operator ? segmentWidth({
-                graph: graph,
+                graph,
                 index: current.index,
                 priority: current.previous_priority
             }) : 0

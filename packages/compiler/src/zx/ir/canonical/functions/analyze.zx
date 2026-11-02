@@ -17,7 +17,7 @@ export default function (in: Input): Output {
     const result = loop({
         functions: in.functions,
         concurrent: in.concurrent,
-        values: values,
+        values,
         index: 0
     }, {
         while: current => current.index < current.values.length,

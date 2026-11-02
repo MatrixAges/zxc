@@ -25,13 +25,13 @@ export default function (in: Input): Output {
 
     const closed = starts({
         source: in.source,
-        offset: offset,
+        offset,
         text: xml_self_close
     })
 
     const content = starts({
         source: in.source,
-        offset: offset,
+        offset,
         text: xml_tag_end
     })
 
@@ -42,7 +42,7 @@ export default function (in: Input): Output {
 
     if (closed) {
         return publish(advance({
-            state: state,
+            state,
             count: xml_self_close.length
         }))
     }
@@ -50,7 +50,7 @@ export default function (in: Input): Output {
     if (content) {
         return transition({
             state: advance({
-                state: state,
+                state,
                 count: 1
             }),
             phase: Phase.Content
@@ -59,7 +59,7 @@ export default function (in: Input): Output {
 
     if (offset == start) {
         return fail({
-            state: state,
+            state,
             message: attribute_whitespace_required
         })
     }

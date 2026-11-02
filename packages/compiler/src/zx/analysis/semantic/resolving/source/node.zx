@@ -29,7 +29,7 @@ export default function (in: Input): Output {
                 enumeration: false,
                 index: 0
             },
-            count: count,
+            count,
             position: 0
         }
     }
@@ -50,7 +50,7 @@ export default function (in: Input): Output {
     }
 
     return {
-        kind: kind,
+        kind,
         name: text({
             source: in.source.indexed.bytes,
             span: node.name

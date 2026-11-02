@@ -33,7 +33,7 @@ export default function (in: Input): Output {
         return {
             present: true,
             start: in.session.start,
-            lexer: lexer,
+            lexer,
             token_templates: in.session.token_templates
         }
     }

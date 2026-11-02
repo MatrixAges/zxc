@@ -14,7 +14,7 @@ export default function (in: Input): Output {
 
     const result = loop({
         input: in,
-        pending: pending,
+        pending,
         seen: map(in.expressions.kinds, kind => false),
         states: map(in.expressions.kinds, kind => false),
         symbols: map(in.symbol_types, type_id => false),
@@ -47,7 +47,7 @@ export default function (in: Input): Output {
 
                 const walked = loop({
                     input: current.input,
-                    id: id,
+                    id,
                     pending: current.pending,
                     index: 0,
                     active: current.valid,

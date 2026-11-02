@@ -33,21 +33,21 @@ export default function (in: Input): Output {
         )] : in.result
 
     const previous = bindings({
-        table: table,
+        table,
         id: index,
-        nested: nested,
+        nested,
         symbol: in.symbol,
         value: in.value
     })
 
     const made = scope({
-        table: table,
+        table,
         metadata: {
             type_id: in.type_id,
             span_start: in.span_start,
             span_end: in.span_end
         },
-        result: result,
+        result,
         symbols: previous.symbols,
         values: previous.values,
         borrows: previous.borrows
@@ -63,7 +63,7 @@ export default function (in: Input): Output {
 
     return {
         state: append({
-            state: state,
+            state,
             id: made.id
         }),
         id: made.id

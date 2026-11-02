@@ -41,13 +41,13 @@ export default function (in: Input): Output {
     const argument = match {
         frame.tuple => sequence({
             table: in.state.local.expressions,
-            metadata: metadata,
+            metadata,
             kind: SequenceKind.Tuple,
             values: frame.values
         }),
         frame.values.length == 0 => empty({
             table: in.state.local.expressions,
-            metadata: metadata,
+            metadata,
             optional: false
         }),
         _ => {
@@ -62,7 +62,7 @@ export default function (in: Input): Output {
             ...metadata,
             type_id: output
         },
-        function_id: function_id,
+        function_id,
         argument: argument.id,
         stores: []
     })

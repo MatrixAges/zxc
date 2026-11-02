@@ -28,7 +28,7 @@ export default function (in: Input): Output {
 
     return loop({
         table: in.table,
-        pending: pending,
+        pending,
         valid: true
     }, {
         while: current => current.valid && current.pending.length != 0,

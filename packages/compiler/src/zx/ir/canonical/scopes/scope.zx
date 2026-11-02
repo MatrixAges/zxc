@@ -28,16 +28,16 @@ export default function (in: Input): Output {
 
     const facts = refine({
         facts: restoration.refinement.facts,
-        expressions: expressions,
-        first: first,
-        count: count
+        expressions,
+        first,
+        count
     })
 
     const refined: State = {
         ...restoration,
         refinement: {
             ...restoration.refinement,
-            facts: facts
+            facts
         }
     }
 
@@ -53,9 +53,9 @@ export default function (in: Input): Output {
 
     const state = loop({
         state: result,
-        expressions: expressions,
+        expressions,
         owner: in.frame.a,
-        first: first,
+        first,
         index: count,
         depth: in.frame.b + 1,
         flags: in.frame.c
@@ -93,7 +93,7 @@ export default function (in: Input): Output {
     }).state
 
     return {
-        state: state,
+        state,
         valid: true
     }
 }

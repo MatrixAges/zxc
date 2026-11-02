@@ -15,8 +15,8 @@ export default function (in: Input): Output {
     const payload = in.frame.f
 
     const index = next({
-        control: control,
-        payload: payload,
+        control,
+        payload,
         from: in.frame.n,
         valued: false
     })

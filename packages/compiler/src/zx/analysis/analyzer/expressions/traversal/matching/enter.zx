@@ -14,7 +14,7 @@ export default function (in: Input): Output {
     const ordered = loop({
         tree: in.source.tree,
         head: node.head,
-        arms: arms
+        arms
     }, {
         while: current => current.head != 0,
         next: current => {

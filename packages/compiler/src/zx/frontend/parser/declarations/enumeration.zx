@@ -50,11 +50,11 @@ export default function (in: Input): Output {
     return consume({
         state: {
             declarations: in.declarations,
-            members: members,
+            members,
             types: in.types,
             control: {
                 ...in.control,
-                count: count
+                count
             }
         },
         phase: Phase.Separator

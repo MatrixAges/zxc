@@ -7,7 +7,7 @@ export default function (in: Input): Output {
 
     const result = loop({
         source: in,
-        bytes: bytes,
+        bytes,
         index: 0
     }, {
         while: current => current.index < current.source.length,

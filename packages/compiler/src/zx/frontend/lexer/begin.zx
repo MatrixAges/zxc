@@ -43,7 +43,7 @@ export default function (in: Input): Output {
     ) {
         return {
             ...in.state,
-            line_break: line_break
+            line_break
         }
     }
 
@@ -124,7 +124,7 @@ export default function (in: Input): Output {
     const symbol = punctuationSymbol({
         byte: in.byte,
         next: in.next,
-        length: length
+        length
     })
 
     const next_skip_until = offset + length
@@ -136,7 +136,7 @@ export default function (in: Input): Output {
         comment: false,
         state: {
             ...in.state,
-            symbol: symbol,
+            symbol,
             skip_until: next_skip_until
         }
     })

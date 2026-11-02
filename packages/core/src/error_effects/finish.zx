@@ -13,8 +13,8 @@ export type Output = string[]?
         const values: string[] = []
 
         const result = loop({
-            names: names,
-            values: values,
+            names,
+            values,
             index: 0
         }, {
             while: current => current.index < current.names.length,

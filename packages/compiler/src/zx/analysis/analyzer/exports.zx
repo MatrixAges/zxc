@@ -28,8 +28,8 @@ export default function (in: Input): Output {
     const result = loop({
         state: in.state,
         count: count(in.state.types.context.source),
-        names: names,
-        types: types,
+        names,
+        types,
         index: 0
     }, {
         while: current =>
@@ -45,7 +45,7 @@ export default function (in: Input): Output {
                 cache: current.state.types.cache,
                 initialize: false,
                 named: true,
-                name: name,
+                name,
                 reference: {
                     enumeration: false,
                     index: 0

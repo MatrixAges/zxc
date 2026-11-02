@@ -34,10 +34,10 @@ export default function (in: Input): Output {
             const position = current.positions[current.remaining]
             const selected = current.object ? field({
                 source: current.state.source,
-                position: position
+                position
             }).value : item({
                 source: current.state.source,
-                position: position
+                position
             }).value
 
             current.state.work.nodes =

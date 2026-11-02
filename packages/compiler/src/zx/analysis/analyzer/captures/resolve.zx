@@ -24,7 +24,7 @@ export default function (in: Input): Output {
         local: in.state.local,
         name: in.name.text,
         frame: in.state.local.captures.current,
-        path: path,
+        path,
         symbol: missing
     }, {
         while: current => current.frame != null && current.symbol == null,
@@ -35,7 +35,7 @@ export default function (in: Input): Output {
                 current.path = current.path.push(frame)[0]
                 current.symbol = locate({
                     local: current.local,
-                    frame: frame,
+                    frame,
                     name: current.name
                 })
                 current.frame =
@@ -59,7 +59,7 @@ export default function (in: Input): Output {
         state: in.state,
         path: found.path,
         index: found.path.length,
-        symbol: symbol,
+        symbol,
         span: {
             start: in.name.start,
             end: in.name.end

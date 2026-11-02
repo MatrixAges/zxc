@@ -48,9 +48,9 @@ export default function (in: Input): Output {
 
             value = {
                 ...value,
-                offset: offset,
+                offset,
                 done: finish || eof || double_dash,
-                issue: issue
+                issue
             }
         }
     })

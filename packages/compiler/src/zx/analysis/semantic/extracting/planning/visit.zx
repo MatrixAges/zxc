@@ -28,8 +28,8 @@ export default function (in: Input): Output {
         request: in.request,
         plan: in.state,
         pending: {
-            ids: ids,
-            ready: ready
+            ids,
+            ready
         }
     }, {
         while: current =>
@@ -48,7 +48,7 @@ export default function (in: Input): Output {
                     current.pending.ready = current.pending.ready.push(true)[0]
                     current.pending = dependencies({
                         table: current.request.table,
-                        index: index,
+                        index,
                         pending: current.pending
                     })
                 } else {
@@ -67,7 +67,7 @@ export default function (in: Input): Output {
                         const selected = origin({
                             origins: current.request.origins,
                             names: current.request.names,
-                            index: index,
+                            index,
                             name: current.request.table.labels[index]
                         })
 

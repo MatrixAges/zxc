@@ -26,7 +26,7 @@ export default function (in: Input): Output {
 
     return loop({
         types: in.types,
-        pending: pending,
+        pending,
         valid: true
     }, {
         while: current => current.valid && current.pending.length != 0,
@@ -42,7 +42,7 @@ export default function (in: Input): Output {
             ) {
                 current.pending = current.pending.concat(children({
                     types: current.types,
-                    id: id,
+                    id,
                     deep: false
                 }))[0]
             } else {

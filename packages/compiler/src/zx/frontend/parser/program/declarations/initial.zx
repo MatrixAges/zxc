@@ -30,7 +30,7 @@ export default function (in: Input): Output {
             types: state.types,
             control: {
                 ...state.control,
-                index: index,
+                index,
                 phase: failed ? Phase.Done : Phase.Start
             }
         }

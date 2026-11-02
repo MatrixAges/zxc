@@ -34,10 +34,10 @@ export default function (in: Input): Output {
         state: in.state,
         node: {
             ...node({
-                kind: kind,
-                start: start,
-                end: end,
-                depth: depth
+                kind,
+                start,
+                end,
+                depth
             }),
             first: left,
             second: right,
@@ -60,7 +60,7 @@ export default function (in: Input): Output {
                 next_family != state.control.family
         ) {
             return fail({
-                state: state,
+                state,
                 code: "syntax",
                 message: "?? cannot be mixed with && or || without parentheses"
             })
@@ -86,10 +86,10 @@ export default function (in: Input): Output {
 
         const control = {
             ...state.control,
-            minimum: minimum,
-            allow_lambda: allow_lambda,
+            minimum,
+            allow_lambda,
             fresh_family: false,
-            family: family
+            family
         }
 
         return consume({
@@ -97,8 +97,8 @@ export default function (in: Input): Output {
                 prepared: state.prepared,
                 tree: state.tree,
                 types: state.types,
-                frames: frames,
-                control: control
+                frames,
+                control
             },
             phase: Phase.BeginBinary
         })
@@ -118,7 +118,7 @@ export default function (in: Input): Output {
         const control: ExprControl = {
             ...state.control,
             minimum: 0,
-            allow_lambda: allow_lambda,
+            allow_lambda,
             fresh_family: true
         }
 
@@ -127,15 +127,15 @@ export default function (in: Input): Output {
                 prepared: state.prepared,
                 tree: state.tree,
                 types: state.types,
-                frames: frames,
-                control: control
+                frames,
+                control
             },
             phase: Phase.BeginBinary
         })
     }
 
     return finishBinary({
-        state: state,
+        state,
         frame: in.frame
     })
 }

@@ -15,13 +15,13 @@ export default function (in: Input): Output {
         scopes: in.scopes,
         local: in.state.local,
         tree: in.source.blocks,
-        block: block,
+        block,
         state_symbol: frame.parameter
     })
 
     return {
         ...in,
-        scopes: scopes,
+        scopes,
         phase: Phase.ScopeNext
     }
 }

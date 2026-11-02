@@ -24,7 +24,7 @@ export default function (in: Input): Output {
     const condition = symbol({
         state: in.state,
         name: "$collection_condition",
-        type_id: type_id,
+        type_id,
         ownership: Ownership.Borrowed,
         span: in.span
     })
@@ -32,7 +32,7 @@ export default function (in: Input): Output {
     const body = symbol({
         state: condition.state,
         name: "$collection_state",
-        type_id: type_id,
+        type_id,
         ownership: Ownership.Borrowed,
         span: in.span
     })

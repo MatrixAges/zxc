@@ -17,8 +17,8 @@ export default function (in: Input): Output {
     const value = {
         ...node({
             kind: ExprKind.StateBlock,
-            start: start,
-            end: end,
+            start,
+            end,
             depth: 1
         }),
         first: result
@@ -33,17 +33,17 @@ export default function (in: Input): Output {
 
     const saved = popped[1] ?? {
         expression: in.expression.control,
-        expression_frames: expression_frames,
-        frames: frames,
+        expression_frames,
+        frames,
         frame: in.frame,
         control: in.control
     }
 
     const control = {
         ...saved.expression,
-        index: index,
-        root_index: root_index,
-        last_end: last_end,
+        index,
+        root_index,
+        last_end,
         phase: Phase.Returning
     }
 
@@ -53,13 +53,13 @@ export default function (in: Input): Output {
             tree: in.expression.tree,
             types: in.expression.types,
             frames: saved.expression_frames,
-            control: control
+            control
         },
         node: value
     })
 
     return {
-        expression: expression,
+        expression,
         tree: in.tree,
         frames: saved.frames,
         suspended: popped[0],

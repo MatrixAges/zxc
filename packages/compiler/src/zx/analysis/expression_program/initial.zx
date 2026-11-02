@@ -71,11 +71,11 @@ export default function (in: Input): Output {
 
     const scope = local({
         signature: {
-            types: types,
-            span: span,
+            types,
+            span,
             input_type: 0,
             output_type: 0,
-            diagnostic: diagnostic
+            diagnostic
         },
         stores: {
             paths: [],
@@ -91,12 +91,12 @@ export default function (in: Input): Output {
         program: in.mode != Mode.Expression,
         linking: in.mode == Mode.Linking,
         state: {
-            types: types,
+            types,
             local: scope,
             input_type: 0,
-            diagnostic: diagnostic
+            diagnostic
         },
-        span: span,
+        span,
         input_value: 0,
         binding_values: [],
         value: 0,

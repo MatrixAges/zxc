@@ -39,7 +39,7 @@ export default function (in: Input): Output {
         index: zero,
         source: in.source,
         block: in.frame,
-        frame: frame
+        frame
     }, {
         while: current => current.index < current.block.count,
         next: current => {
@@ -69,7 +69,7 @@ export default function (in: Input): Output {
             current.frames = current.frames.push({
                 ...current.frame,
                 action: Action.Statement,
-                id: id
+                id
             })[0]
             current.index += 1
         }

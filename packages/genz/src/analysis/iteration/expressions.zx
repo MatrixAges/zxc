@@ -29,12 +29,12 @@ export default function (in: Input): Output {
                 id: current.input.expressions.types[index]
             }) && operation({
                 input: current.input,
-                index: index
+                index
             }))
             const observed = current.input.boundary != null && observes({
                 types: current.input.types,
                 table: current.input.expressions,
-                index: index,
+                index,
                 root: current.input.boundary.type_id
             })
 
@@ -42,7 +42,7 @@ export default function (in: Input): Output {
                 table: current.input.expressions,
                 allowed: current.allowed,
                 safe: current.safe,
-                index: index
+                index
             }))[0]
             current.index += 1
         }

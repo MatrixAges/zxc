@@ -27,7 +27,7 @@ export default function (in: Input): Output {
 
     const types = typeStep({
         state: in.types,
-        token: token
+        token
     })
 
     const index = types.control.index
@@ -41,11 +41,11 @@ export default function (in: Input): Output {
     const state = {
         declarations: in.declarations,
         members: in.members,
-        types: types,
+        types,
         control: {
             ...in.control,
-            index: index,
-            last_end: last_end
+            index,
+            last_end
         }
     }
 
@@ -68,7 +68,7 @@ export default function (in: Input): Output {
 
     if (state.control.token.symbol == Symbol.Semicolon) {
         return fail({
-            state: state,
+            state,
             message: "semicolons are not allowed in ZX"
         })
     }
@@ -79,7 +79,7 @@ export default function (in: Input): Output {
             !state.control.token.line_break
     ) {
         return fail({
-            state: state,
+            state,
             message: "expected a newline, closing block or end of source"
         })
     }

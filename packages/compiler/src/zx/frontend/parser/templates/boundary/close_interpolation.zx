@@ -18,7 +18,7 @@ export default function (in: Input): Output {
         graph: in.graph,
         kind: PartKind.Expression,
         span: {
-            start: start,
+            start,
             end: in.offset
         },
         interpolation: reference,
@@ -28,13 +28,13 @@ export default function (in: Input): Output {
     const events = graph.events.push({
         kind: EventKind.InterpolationClose,
         offset: in.offset,
-        reference: reference
+        reference
     })[0]
 
     return {
         templates: graph.templates,
         parts: graph.parts,
-        events: events,
+        events,
         frames: graph.frames,
         interpolations: reference,
         token_templates: graph.token_templates

@@ -55,7 +55,7 @@ export default function (in: Input): Output {
 
         if (!contains({
             facts: in.state.refinement.facts,
-            expressions: expressions,
+            expressions,
             value: integers.narrow(child)
         })) {
             return {

@@ -16,7 +16,7 @@ export default function (in: Input): Output {
     const state = loop({
         cache: in.cache,
         mapping: in.mapping,
-        ids: ids,
+        ids,
         index: 0
     }, {
         while: current => current.index < current.cache.ids.length,

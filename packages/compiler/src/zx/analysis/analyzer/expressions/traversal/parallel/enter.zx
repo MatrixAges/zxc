@@ -32,7 +32,7 @@ export default function (in: Input): Output {
     const fields = loop({
         fields: in.source.tree.fields,
         head: object.head,
-        ids: ids
+        ids
     }, {
         while: current => current.head != 0,
         next: current => {
@@ -44,7 +44,7 @@ export default function (in: Input): Output {
 
     const frame: ParallelFrame = {
         node: in.node,
-        fields: fields,
+        fields,
         index: 0,
         names: [],
         type_names: [],

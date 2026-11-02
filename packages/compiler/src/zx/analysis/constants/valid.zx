@@ -30,7 +30,7 @@ export default function (in: Input): Output {
     }
 
     return loop({
-        constants: constants,
+        constants,
         types: in.types,
         count: in.types.base.kinds.length + in.types.delta.kinds.length,
         index: 0,
@@ -48,7 +48,7 @@ export default function (in: Input): Output {
             if (current.valid) {
                 const unique = loop({
                     names: current.constants.names,
-                    name: name,
+                    name,
                     index: 0,
                     end: current.index,
                     valid: true

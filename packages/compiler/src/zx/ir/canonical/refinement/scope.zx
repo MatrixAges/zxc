@@ -35,10 +35,10 @@ export default function (in: Input): Output {
             ) {
                 const empty: u32? = null
                 const pair = loop({
-                    expressions: expressions,
+                    expressions,
                     first: current.first,
                     count: current.count,
-                    symbol: symbol,
+                    symbol,
                     index: current.index + 1,
                     err: empty,
                     result: empty
@@ -92,8 +92,8 @@ export default function (in: Input): Output {
 
                 current.facts = bind({
                     facts: current.facts,
-                    expressions: expressions,
-                    value: value,
+                    expressions,
+                    value,
                     count: 2,
                     err: pair.err,
                     result: pair.result

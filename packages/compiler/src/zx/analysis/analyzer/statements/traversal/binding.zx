@@ -35,7 +35,7 @@ export default function (in: Input): Output {
                 pending: setter({
                     table: body.blocks.pending,
                     slot: body.slot,
-                    value: value
+                    value
                 })
             }
         }
@@ -43,32 +43,32 @@ export default function (in: Input): Output {
 
     const completed = match in.action {
         Action.Constant => constant({
-            state: state,
+            state,
             blocks: body.blocks,
             name: readName({
                 source: body.expression.source,
                 kind: NameKind.Statement,
                 index: body.statement
             }),
-            value: value
+            value
         }),
         Action.Destructure => destructure({
-            state: state,
+            state,
             blocks: body.blocks,
             source: body.expression.source,
             statement: body.statement,
-            value: value
+            value
         }),
         Action.Evaluate => evaluate({
-            state: state,
+            state,
             blocks: body.blocks,
-            value: value,
+            value,
             span: body.expression.source.tree.nodes[statement.first].span
         }),
         _ => result({
-            state: state,
+            state,
             blocks: body.blocks,
-            value: value,
+            value,
             span: statement.span
         }),
     }

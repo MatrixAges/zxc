@@ -9,7 +9,7 @@ export default function (in: Input): Output {
 
     const result = loop({
         names: in,
-        slots: slots,
+        slots,
         capacity: in.length == 0 ? 0 : in.length * 2 + 1,
         index: 0
     }, {

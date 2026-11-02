@@ -21,8 +21,8 @@ export default function (in: Input): Output {
     const result = loop({
         types: in.types,
         boxed: in.boxed,
-        seen: seen,
-        stack: stack
+        seen,
+        stack
     }, {
         while: current => current.stack.length != 0,
         next: current => {
@@ -48,13 +48,13 @@ export default function (in: Input): Output {
 
                     const next = children({
                         types: current.types,
-                        id: id,
+                        id,
                         deep: false
                     })
 
                     current.stack = loop({
                         stack: current.stack,
-                        next: next,
+                        next,
                         remaining: next.length
                     }, {
                         while: pending => pending.remaining != 0,

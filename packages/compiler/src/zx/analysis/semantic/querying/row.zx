@@ -47,7 +47,7 @@ export default function (in: Input): Output {
 
     const state = loop({
         flags: in.flags,
-        children: children,
+        children,
         offset: integers.widen(selected.first),
         count: integers.widen(selected.second),
         index: 0,

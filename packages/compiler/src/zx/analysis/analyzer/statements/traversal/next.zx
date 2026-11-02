@@ -100,7 +100,7 @@ export default function (in: Input): Output {
                     ...body.expression,
                     state: {
                         ...state,
-                        diagnostic: diagnostic
+                        diagnostic
                     }
                 }
             }
@@ -110,10 +110,10 @@ export default function (in: Input): Output {
             state: Prepared,
             id: u32
         } = statement.annotation == 0 ? {
-            state: state,
+            state,
             id: 0
         } : annotation({
-            state: state,
+            state,
             reference: reference({
                 source: body.expression.source,
                 index: statement.annotation - 1
@@ -136,7 +136,7 @@ export default function (in: Input): Output {
 
     if (statement.kind == StatementKind.Result && statement.first == 0) {
         const completed = result({
-            state: state,
+            state,
             blocks: body.blocks,
             value: null,
             span: statement.span
@@ -154,7 +154,7 @@ export default function (in: Input): Output {
 
     if (statement.kind == StatementKind.StoreSet) {
         const resolved = writeSlot({
-            state: state,
+            state,
             source: body.expression.source,
             node: statement.first,
             span: statement.span
@@ -204,7 +204,7 @@ export default function (in: Input): Output {
     }
 
     return request({
-        body: body,
+        body,
         node: statement.kind == StatementKind.Result ? statement.first - 1 :
             statement.first,
         expected: statement.kind == StatementKind.Result ? state.local.output_type :

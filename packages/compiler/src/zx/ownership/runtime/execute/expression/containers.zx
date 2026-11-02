@@ -27,7 +27,7 @@ export default function (in: Input): Output {
         return {
             ...in.machine,
             work: push({
-                work: work,
+                work,
                 frame: {
                     action: WorkAction.Value,
                     subject:
@@ -57,7 +57,7 @@ export default function (in: Input): Output {
         const builder = begin({
             forest: in.machine.memory.forest,
             builders: in.machine.builders,
-            count: count
+            count
         })
 
         const work = push({
@@ -79,7 +79,7 @@ export default function (in: Input): Output {
                 forest: builder.forest
             },
             work: push({
-                work: work,
+                work,
                 frame: {
                     action: WorkAction.ObjectEvaluation,
                     subject: in.frame.subject,
@@ -169,7 +169,7 @@ export default function (in: Input): Output {
         const builder = begin({
             forest: in.machine.memory.forest,
             builders: in.machine.builders,
-            count: count
+            count
         })
 
         return {

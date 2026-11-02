@@ -24,7 +24,7 @@ export default function (in: Input): Output {
 
     const result = scan({
         source: in.source,
-        start: start
+        start
     })
 
     const state = {
@@ -42,7 +42,7 @@ export default function (in: Input): Output {
     if (result.message != no_diagnostic) {
         return fail({
             state: advance({
-                state: state,
+                state,
                 count: result.offset - offset
             }),
             message: result.message
@@ -51,12 +51,12 @@ export default function (in: Input): Output {
 
     return publish({
         state: advance({
-            state: state,
+            state,
             count: result.end + 1 - offset
         }),
         value: {
             span: {
-                start: start,
+                start,
                 end: result.end
             },
             head: 0,

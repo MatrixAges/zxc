@@ -36,7 +36,7 @@ export default function (in: Input): Output {
     return {
         ...in,
         node: arm.condition,
-        expected: expected,
+        expected,
         phase: Phase.Evaluate,
         frames: {
             ...in.frames,

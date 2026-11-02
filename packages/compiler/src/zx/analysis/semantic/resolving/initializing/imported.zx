@@ -34,7 +34,7 @@ export default function (in: Input): Output {
 
     if (contains({
         names: previous,
-        name: name
+        name
     })) {
         return fail({
             state: in.state,
@@ -50,7 +50,7 @@ export default function (in: Input): Output {
 
     const found = find({
         source: in.state.context.source,
-        name: name,
+        name,
         limit: count(in.state.context.source)
     })
 

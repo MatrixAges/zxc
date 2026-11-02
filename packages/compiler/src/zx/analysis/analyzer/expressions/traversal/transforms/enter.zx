@@ -41,11 +41,11 @@ export default function (in: Input): Output {
 
     const frame: Frame = {
         node: in.node,
-        kind: kind,
+        kind,
         target: in.target,
         expected: in.expected,
         second: null,
-        arguments: arguments,
+        arguments,
         capture_frame: 0,
         parameters: [],
         result_type: 0
@@ -71,7 +71,7 @@ export default function (in: Input): Output {
     return {
         ...work,
         node: arguments[1],
-        expected: expected,
+        expected,
         phase: Phase.Evaluate,
         frames: {
             ...work.frames,

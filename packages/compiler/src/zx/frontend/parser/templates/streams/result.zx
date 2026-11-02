@@ -24,11 +24,11 @@ export default function (in: Input): Output {
                 end: in.end
             },
             lexed: {
-                tokens: tokens,
-                comments: comments,
+                tokens,
+                comments,
                 diagnostic: in.session.lexer.diagnostic
             },
-            token_templates: token_templates
+            token_templates
         }
     }
 
@@ -42,7 +42,7 @@ export default function (in: Input): Output {
             start: in.end,
             end: in.end
         },
-        line_break: line_break,
+        line_break,
         dollar: false
     })[0]
 
@@ -52,7 +52,7 @@ export default function (in: Input): Output {
             end: in.end
         },
         lexed: {
-            tokens: tokens,
+            tokens,
             comments: in.session.lexer.comments,
             diagnostic: in.session.lexer.diagnostic
         },

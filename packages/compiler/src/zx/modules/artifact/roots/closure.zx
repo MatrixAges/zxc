@@ -27,7 +27,7 @@ export default function (in: Input): Output {
             const index = current.remaining - 1
             const child = current.needed[index] ? dependency({
                 table: current.table,
-                index: index,
+                index,
                 edge: current.edge
             }) : null
 

@@ -85,22 +85,22 @@ export default function (in: Input): Output {
         case Phase.IfElse: return branch(state)
         case Phase.IfAlternative: return branch(state)
         case Phase.BeginCondition: return expression({
-            state: state,
+            state,
             resume: Phase.IfClose,
             minimum: 0
         })
         case Phase.BeginSwitch: return expression({
-            state: state,
+            state,
             resume: Phase.SwitchClose,
             minimum: 0
         })
         case Phase.BeginCase: return expression({
-            state: state,
+            state,
             resume: Phase.CaseColon,
             minimum: 0
         })
         case Phase.BeginValue: return expression({
-            state: state,
+            state,
             resume: Phase.Value,
             minimum: 0
         })
@@ -119,7 +119,7 @@ export default function (in: Input): Output {
                 suspended: state.suspended,
                 frame: {
                     ...state.frame,
-                    first: first
+                    first
                 },
                 control: state.control
             })
@@ -134,7 +134,7 @@ export default function (in: Input): Output {
                 frame: {
                     ...state.frame,
                     name: {
-                        start: start,
+                        start,
                         end: start
                     }
                 },

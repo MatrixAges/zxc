@@ -25,7 +25,7 @@ export default function (in: Input): Output {
             kind == ExpressionKind.Template
     ) {
         return all({
-            safe: safe,
+            safe,
             values: in.table.sequence_items,
             first: integers.widen(in.table.sequence_first[payload]),
             count: integers.widen(in.table.sequence_count[payload])
@@ -34,7 +34,7 @@ export default function (in: Input): Output {
 
     if (kind == ExpressionKind.ListOperation) {
         return safe[integers.widen(in.table.collection_targets[payload])] && all({
-            safe: safe,
+            safe,
             values: in.table.collection_arguments,
             first: integers.widen(in.table.collection_first[payload]),
             count: integers.widen(in.table.collection_count[payload])
@@ -58,7 +58,7 @@ export default function (in: Input): Output {
 
     if (kind == ExpressionKind.Scope) {
         return all({
-            safe: safe,
+            safe,
             values: in.table.scope_values,
             first: integers.widen(in.table.scope_first[payload]),
             count: integers.widen(in.table.scope_count[payload])
@@ -67,12 +67,12 @@ export default function (in: Input): Output {
 
     if (kind == ExpressionKind.Object) {
         return all({
-            safe: safe,
+            safe,
             values: in.table.object_evaluation_values,
             first: integers.widen(in.table.object_evaluation_first[payload]),
             count: integers.widen(in.table.object_evaluation_count[payload])
         }) && all({
-            safe: safe,
+            safe,
             values: in.table.object_field_values,
             first: integers.widen(in.table.object_first[payload]),
             count: integers.widen(in.table.object_count[payload])
@@ -120,8 +120,8 @@ export default function (in: Input): Output {
             safe[integers.widen(in.table.iteration_bodies[payload])],
         ExpressionKind.Match => selection({
             table: in.table,
-            safe: safe,
-            payload: payload
+            safe,
+            payload
         }),
         _ => false
     }

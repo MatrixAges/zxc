@@ -8,7 +8,7 @@ export default function (in: Input): Output {
     const generated: Columns = { values: [], offsets: [], labels: [] }
     const direct: Pair = [in.prefix, in.marker]
 
-    const state = loop({ input: in, generated: generated, direct: direct, untouched: in.prefix, records: in.records, pairs: in.pairs, index: 0 }, {
+    const state = loop({ input: in, generated, direct, untouched: in.prefix, records: in.records, pairs: in.pairs, index: 0 }, {
         while: current => current.index < current.input.count,
         next: current => {
             current.generated = append({ columns: current.generated, value: current.index, label: current.input.label })

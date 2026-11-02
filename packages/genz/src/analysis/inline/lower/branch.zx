@@ -17,10 +17,10 @@ export default function (in: Input): Output {
     const no = control.branch_no[payload]
 
     const continuing = !returns({
-        control: control,
+        control,
         block: yes
     }) && !returns({
-        control: control,
+        control,
         block: no
     })
 

@@ -37,13 +37,13 @@ export default function (in: Input): Output {
             ) {
                 const bytes = source({
                     source: current.source,
-                    frame: frame
+                    frame
                 })
 
                 if (frame.action == Action.Quoted) {
                     current.output = quoted({
                         output: current.output,
-                        bytes: bytes
+                        bytes
                     })
                 } else {
                     const discard =
@@ -56,7 +56,7 @@ export default function (in: Input): Output {
                             bytes
                         )[0] : quoted({
                             output: current.output.push(ascii_at)[0],
-                            bytes: bytes
+                            bytes
                         })
                 }
             } else if (frame.action == Action.Integer) {
@@ -85,7 +85,7 @@ export default function (in: Input): Output {
             } else {
                 const step = {
                     source: current.source,
-                    frame: frame
+                    frame
                 }
                 const frames = match frame.action {
                     Action.Expression => expression(step),
@@ -97,7 +97,7 @@ export default function (in: Input): Output {
                 const expanded = loop({
                     stack: current.stack,
                     remaining: frames.length,
-                    frames: frames
+                    frames
                 }, {
                     while: pending => pending.remaining != 0,
                     next: pending => {

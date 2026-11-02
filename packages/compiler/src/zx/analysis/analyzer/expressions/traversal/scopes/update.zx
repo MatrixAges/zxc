@@ -31,7 +31,7 @@ export default function (in: Input): Output {
             state: work.state,
             scopes: work.scopes,
             target: work.value,
-            state_symbol: state_symbol,
+            state_symbol,
             read_value: statement.operator != Operator.None
         })
 
@@ -48,7 +48,7 @@ export default function (in: Input): Output {
         const updates = work.frames.updates.splice(position, 1, [{
             ...frame,
             places: prepared.places,
-            target: target
+            target
         }])[0]
 
         return {
@@ -62,7 +62,7 @@ export default function (in: Input): Output {
             phase: Phase.Evaluate,
             frames: {
                 ...work.frames,
-                updates: updates,
+                updates,
                 actions: work.frames.actions.push(Action.StateValue)[0]
             }
         }
@@ -92,7 +92,7 @@ export default function (in: Input): Output {
     const value = compound ? append({
         table: work.state.local.expressions,
         metadata: {
-            type_id: type_id,
+            type_id,
             span_start: statement.span.start,
             span_end: statement.span.end
         },

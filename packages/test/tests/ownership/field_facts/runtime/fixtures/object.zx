@@ -15,10 +15,10 @@ export default function (in: Input): Output {
     const fresh = map(in.values, item => item + 1)
 
     const box = in.choice ? {
-        fresh: fresh,
+        fresh,
         view: in.values
     } : {
-        fresh: fresh,
+        fresh,
         view: fresh
     }
 

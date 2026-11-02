@@ -18,7 +18,7 @@ export default function (in: Input): Output {
     const result = loop({
         sources: in.sources,
         components: in.components,
-        groups: groups,
+        groups,
         index: 0
     }, {
         while: current => current.index + 1 < current.components.first.length,

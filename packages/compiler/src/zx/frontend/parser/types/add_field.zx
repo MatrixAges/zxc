@@ -20,7 +20,7 @@ export default function (in: Input): Output {
             start: 0,
             end: 0
         },
-        child: child,
+        child,
         head: 0,
         count: 0
     }) : in
@@ -40,7 +40,7 @@ export default function (in: Input): Output {
     const updated = {
         tree: {
             nodes: state.tree.nodes,
-            fields: fields,
+            fields,
             items: state.tree.items
         },
         frames: state.frames,
@@ -51,8 +51,8 @@ export default function (in: Input): Output {
         state: updated,
         frame: {
             ...frame,
-            head: head,
-            count: count
+            head,
+            count
         }
     })
 }

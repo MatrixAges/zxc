@@ -49,7 +49,7 @@ export default function (in: Input): Output {
             children: [],
             fields: {
                 names: in.fields.names,
-                types: types
+                types
             },
             names: []
         },
@@ -69,7 +69,7 @@ export default function (in: Input): Output {
     }
 
     const target = row({
-        tables: tables,
+        tables,
         id: constructed.id
     })
 

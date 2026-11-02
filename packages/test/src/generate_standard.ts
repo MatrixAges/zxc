@@ -24,11 +24,11 @@ export default function (in: Input): Output {
   const utf8 = encoding.encodeUtf8(in.text)
 
   return {
-    base64: base64,
-    hex: hex,
+    base64,
+    hex,
     base64_bytes: encoding.decodeBase64(base64),
     hex_bytes: encoding.decodeHex(hex),
-    utf8: utf8,
+    utf8,
     text: encoding.decodeUtf8(utf8),
     sha256: crypto.sha256(in.bytes),
     sha512: crypto.sha512(in.bytes)
@@ -42,38 +42,38 @@ const rows = []
 const identities = new Set<string>()
 
 for (const length of lengths) {
-	for (const pattern of ['zero', 'ones', 'ramp']) {
-		const bytes = Array.from({ length }, (_, index) =>
-			pattern === 'zero' ? 0 : pattern === 'ones' ? 255 : index % 256
-		)
-		const buffer = Buffer.from(bytes)
+    for (const pattern of ['zero', 'ones', 'ramp']) {
+        const bytes = Array.from({ length }, (_, index) =>
+            pattern === 'zero' ? 0 : pattern === 'ones' ? 255 : index % 256
+        )
+        const buffer = Buffer.from(bytes)
 
-		for (const text of texts) {
-			const input = { bytes, text }
-			const identity = createHash('sha256').update(JSON.stringify(input)).digest('hex').slice(0, 16)
+        for (const text of texts) {
+            const input = { bytes, text }
+            const identity = createHash('sha256').update(JSON.stringify(input)).digest('hex').slice(0, 16)
 
-			if (identities.has(identity)) continue
+            if (identities.has(identity)) continue
 
-			identities.add(identity)
+            identities.add(identity)
 
-			rows.push({
-				id: `standard/encoding_crypto/${identity}`,
-				input,
-				expected: {
-					value: {
-						base64: buffer.toString('base64'),
-						hex: buffer.toString('hex'),
-						base64_bytes: bytes,
-						hex_bytes: bytes,
-						utf8: [...Buffer.from(text)],
-						text,
-						sha256: [...createHash('sha256').update(buffer).digest()],
-						sha512: [...createHash('sha512').update(buffer).digest()]
-					}
-				}
-			})
-		}
-	}
+            rows.push({
+                id: `standard/encoding_crypto/${identity}`,
+                input,
+                expected: {
+                    value: {
+                        base64: buffer.toString('base64'),
+                        hex: buffer.toString('hex'),
+                        base64_bytes: bytes,
+                        hex_bytes: bytes,
+                        utf8: [...Buffer.from(text)],
+                        text,
+                        sha256: [...createHash('sha256').update(buffer).digest()],
+                        sha512: [...createHash('sha512').update(buffer).digest()]
+                    }
+                }
+            })
+        }
+    }
 }
 
 const base = 'tests/standard/encoding_crypto/values'

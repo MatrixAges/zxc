@@ -30,7 +30,7 @@ export default function (in: Input): Output {
     }
 
     const element = row({
-        tables: tables,
+        tables,
         id: source
     }).first
 
@@ -48,7 +48,7 @@ export default function (in: Input): Output {
     })
 
     const target = row({
-        tables: tables,
+        tables,
         id: hint ?? 0
     })
 
@@ -72,8 +72,8 @@ export default function (in: Input): Output {
         ] : [element, 5, source]
 
     return {
-        parameters: parameters,
-        body: body,
+        parameters,
+        body,
         result: match in.kind {
             TransformKind.Filter => source,
             TransformKind.Reduce => accumulator,

@@ -45,7 +45,7 @@ export default function (in: Input): Output {
         activation: in.index,
         first: in.loops.first[in.index],
         count: in.loops.count[in.index],
-        seen: seen,
+        seen,
         index: 0
     }, {
         while: current => current.index <= current.count,
@@ -62,7 +62,7 @@ export default function (in: Input): Output {
                     action: RewriteAction.Join
                 }) : {
                     forest: current.forest,
-                    fact: fact
+                    fact
                 }
 
                 current.forest = joined.forest

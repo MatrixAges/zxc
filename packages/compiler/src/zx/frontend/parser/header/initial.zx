@@ -27,10 +27,10 @@ export default function (in: Input): Output {
     return {
         expression: in,
         body: emptyTree(),
-        contracts: contracts,
+        contracts,
         control: {
             phase: failed ? HeaderPhase.Done : HeaderPhase.Open,
-            token: token,
+            token,
             has_store: false,
             has_ensures: false,
             ensures: false,

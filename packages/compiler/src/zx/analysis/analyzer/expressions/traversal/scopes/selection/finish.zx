@@ -19,7 +19,7 @@ export default function (in: Input): Output {
     const value = fallback == null ? reference({
         state: in.state,
         symbol: frame.state_symbol,
-        span: span
+        span
     }) : {
         state: in.state,
         value: fallback
@@ -48,7 +48,7 @@ export default function (in: Input): Output {
             expressions: result.table
         },
         value: result.id,
-        span: span
+        span
     })
 
     return {

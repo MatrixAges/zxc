@@ -18,8 +18,8 @@ export default function (in: Input): Output {
     const members: Span[] = []
 
     const result = loop({
-        bytes: bytes,
-        members: members,
+        bytes,
+        members,
         first: 0,
         index: 0,
         valid: bytes.length > 0 && validate(bytes)

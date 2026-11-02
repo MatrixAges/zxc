@@ -20,7 +20,7 @@ export default function (in: Input): Output {
         depth: in.depth
     })
         -> reduce(in.tokens, (state, token) => step({
-            state: state,
+            state,
             token: {
                 kind: token.kind,
                 word: token.word,

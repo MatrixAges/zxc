@@ -31,7 +31,7 @@ export default function (in: Input): Output {
 
     const result = loop({
         input: in,
-        members: members,
+        members,
         index: 0
     }, {
         while: current => current.index < current.input.functions.length,
@@ -43,12 +43,12 @@ export default function (in: Input): Output {
             }).text
             const names: string[]? = declaration.errors_present ? errors({
                 source: current.input.source,
-                declaration: declaration,
+                declaration,
                 errors: current.input.errors
             }) : null
 
             current.members = current.members.push({
-                name: name,
+                name,
                 signature: current.input.signatures[current.index],
                 allocator_argument: declaration.allocator_argument,
                 io_argument: declaration.io_argument,

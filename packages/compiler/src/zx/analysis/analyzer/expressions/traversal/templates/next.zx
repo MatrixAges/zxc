@@ -19,8 +19,8 @@ export default function (in: Input): Output {
     const text = loop({
         state: in.state,
         source: in.source,
-        frame: frame,
-        span: span
+        frame,
+        span
     }, {
         while: current =>
             current.frame.index < current.frame.parts.length &&

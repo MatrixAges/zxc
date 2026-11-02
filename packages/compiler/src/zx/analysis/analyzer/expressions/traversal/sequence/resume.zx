@@ -19,7 +19,7 @@ export default function (in: Input): Output {
 
     const sequences = in.frames.sequences.splice(position, 1, [{
         ...frame,
-        element: element,
+        element,
         index: frame.index + 1,
         values: frame.values.push(in.value)[0]
     }])[0]
@@ -28,7 +28,7 @@ export default function (in: Input): Output {
         ...in,
         frames: {
             ...in.frames,
-            sequences: sequences
+            sequences
         }
     })
 }

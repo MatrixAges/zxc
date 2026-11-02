@@ -23,14 +23,14 @@ export default function (in: Input): Output {
 
     const result = loop({
         request: in,
-        files: files,
+        files,
         inputs: input_types,
         outputs: output_types,
-        modules: modules,
-        symbols: symbols,
-        expressions: expressions,
-        stores: stores,
-        contracts: contracts,
+        modules,
+        symbols,
+        expressions,
+        stores,
+        contracts,
         index: 0
     }, {
         while: current => current.index < current.request.source.files.length,

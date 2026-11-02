@@ -27,7 +27,7 @@ export default function (in: Input): Output {
     const child = state.mappings.units.length
 
     const extended = symbols({
-        state: state,
+        state,
         unit: callee
     })
 
@@ -70,8 +70,8 @@ export default function (in: Input): Output {
 
     return {
         ...extended,
-        ids: ids,
-        mappings: mappings,
+        ids,
+        mappings,
         frames: extended.frames.concat([done, start])[0]
     }
 }

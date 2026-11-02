@@ -14,7 +14,7 @@ export default function (in: Input): Output {
 
     const result = loop({
         symbols: in.state.tables.symbols,
-        source: source,
+        source,
         position: 0
     }, {
         while: current => current.position < current.source.names.length,

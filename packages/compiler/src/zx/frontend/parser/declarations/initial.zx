@@ -18,8 +18,8 @@ export default function (in: Input): Output {
     const members: Span[] = []
 
     return {
-        declarations: declarations,
-        members: members,
+        declarations,
+        members,
         types: typeInitial(in),
         control: {
             phase: Phase.Start,

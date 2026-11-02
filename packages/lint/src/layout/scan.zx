@@ -30,19 +30,19 @@ export default function (in: Input): Output {
 
     const result = loop({
         input: in,
-        partners: partners,
-        owners: owners,
-        depths: depths,
-        widths: widths,
-        stack: stack,
+        partners,
+        owners,
+        depths,
+        widths,
+        stack,
         index: 0,
         width: 0,
         prefix: 0,
         vertical_count: 0,
-        prefixes: prefixes,
-        vertical_counts: vertical_counts,
-        gaps: gaps,
-        selections: selections,
+        prefixes,
+        vertical_counts,
+        gaps,
+        selections,
         selection_depth: 0
     }, {
         while: current => current.index < current.input.tokens.length,
@@ -59,7 +59,7 @@ export default function (in: Input): Output {
             const previous = current.index == 0 ? "" :
                 current.input.tokens[current.index - 1].text
             const gap = gapWidth({
-                previous: previous,
+                previous,
                 current: token.text,
                 actual: token.gap
             })

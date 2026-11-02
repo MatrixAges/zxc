@@ -27,8 +27,8 @@ export default function (in: Input): Output {
 
     const result = loop({
         types: in.types,
-        kind: kind,
-        single: single,
+        kind,
+        single,
         first: in.types.first[index],
         pending: in.pending,
         count: in.count,

@@ -36,7 +36,7 @@ export default function (in: Input): Output {
 
     const control = {
         ...in.state.control,
-        depth: depth,
+        depth,
         primary_start: start
     }
 
@@ -47,7 +47,7 @@ export default function (in: Input): Output {
                 tree: in.state.tree,
                 types: in.state.types,
                 frames: in.state.frames,
-                control: control
+                control
             },
             phase: Phase.Postfix
         }),

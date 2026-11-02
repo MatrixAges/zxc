@@ -53,8 +53,8 @@ export default function (in: Input): Output {
         types: in.types,
         table: in.table,
         symbol: in.symbol,
-        stack: stack,
-        none: none,
+        stack,
+        none,
         seen: map(in.table.kinds, kind => false),
         valid: true
     }, {
@@ -68,8 +68,8 @@ export default function (in: Input): Output {
             current.stack = current.stack.pop()[0]
 
             if (!independent({
-                table: table,
-                id: id,
+                table,
+                id,
                 symbol: current.symbol
             }) && !current.seen[id]) {
                 current.seen[id] = true
@@ -78,21 +78,21 @@ export default function (in: Input): Output {
                     types: current.types,
                     id: table.types[id]
                 }) && projection({
-                    table: table,
+                    table,
                     result: id,
                     symbol: current.symbol
                 }))) {
                     if (kind == ExpressionKind.Object) {
                         const nested = children({
-                            table: table,
-                            id: id
+                            table,
+                            id
                         })
                         const fields = integers.widen(
                             table.object_count[payload]
                         )
                         const ordered = loop({
-                            nested: nested,
-                            fields: fields,
+                            nested,
+                            fields,
                             items: current.none,
                             position: fields
                         }, {
@@ -108,8 +108,8 @@ export default function (in: Input): Output {
                             }
                         }).items
                         const all = loop({
-                            nested: nested,
-                            fields: fields,
+                            nested,
+                            fields,
                             items: ordered,
                             position: 0
                         }, {
@@ -127,7 +127,7 @@ export default function (in: Input): Output {
 
                         current.stack = loop({
                             stack: current.stack,
-                            all: all,
+                            all,
                             remaining: all.length
                         }, {
                             while: pending => pending.remaining != 0,
@@ -141,13 +141,13 @@ export default function (in: Input): Output {
                         }).stack
                     } else if (kind == ExpressionKind.Tuple) {
                         const items = children({
-                            table: table,
-                            id: id
+                            table,
+                            id
                         })
 
                         current.stack = loop({
                             stack: current.stack,
-                            items: items,
+                            items,
                             remaining: items.length
                         }, {
                             while: pending => pending.remaining != 0,
@@ -174,8 +174,8 @@ export default function (in: Input): Output {
                             })
 
                         current.valid = list && path({
-                            table: table,
-                            id: id,
+                            table,
+                            id,
                             symbol: current.symbol
                         })
                     } else {

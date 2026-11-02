@@ -122,7 +122,7 @@ export default function (in: Input): Output {
         })
 
         if (expected == null || row({
-            tables: tables,
+            tables,
             id: expected
         }).kind != Kind.ErrorSet) {
             return {
@@ -148,7 +148,7 @@ export default function (in: Input): Output {
             result: member({
                 state: in.state,
                 type_id: expected,
-                name: name,
+                name,
                 span: node.span,
                 error_member: true
             })
@@ -161,7 +161,7 @@ export default function (in: Input): Output {
     })
 
     if (type_id.found && row({
-        tables: tables,
+        tables,
         id: type_id.id
     }).kind == Kind.Enumeration) {
         return {
@@ -169,7 +169,7 @@ export default function (in: Input): Output {
             result: member({
                 state: in.state,
                 type_id: type_id.id,
-                name: name,
+                name,
                 span: node.span,
                 error_member: false
             })

@@ -35,8 +35,8 @@ export default function (in: Input): Output {
         input: in,
         count: count(in.source),
         index: 0,
-        exports: exports,
-        diagnostic: diagnostic
+        exports,
+        diagnostic
     }, {
         while: current =>
             current.index < current.count && current.diagnostic.message == "",

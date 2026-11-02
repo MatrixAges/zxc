@@ -18,7 +18,7 @@ export default function (in: Input): Output {
     if (in.control.token.symbol == Symbol.Semicolon) {
         return fail({
             state: in,
-            span: span,
+            span,
             message: "semicolons are not allowed in ZX"
         })
     }
@@ -29,7 +29,7 @@ export default function (in: Input): Output {
     ) {
         return fail({
             state: in,
-            span: span,
+            span,
             message: "expected a newline, closing block or end of source"
         })
     }
@@ -62,7 +62,7 @@ export default function (in: Input): Output {
     }
 
     const item = {
-        kind: kind,
+        kind,
         exported: in.control.exported,
         wildcard: in.control.wildcard,
         span: {
@@ -81,6 +81,6 @@ export default function (in: Input): Output {
 
     return begin({
         ...in,
-        imports: imports
+        imports
     })
 }

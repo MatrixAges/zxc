@@ -22,7 +22,7 @@ export default function (in: Input): Output {
             const name = current.names[current.index]
             const diagnostic = check({
                 local: current.analysis.state.local,
-                name: name,
+                name,
                 span: current.analysis.span
             })
 

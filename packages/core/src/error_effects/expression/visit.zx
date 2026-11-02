@@ -42,13 +42,13 @@ export default function (in: Input): Output {
 
     const names = intrinsic({
         tables: in.state.context.types,
-        expressions: expressions,
+        expressions,
         index: in.frame.index,
         names: in.state.names
     })
 
     const values = children({
-        expressions: expressions,
+        expressions,
         index: in.frame.index
     })
 
@@ -67,9 +67,9 @@ export default function (in: Input): Output {
         })[0] : in.state.frames
 
     const scheduled = loop({
-        frames: frames,
+        frames,
         source: in.frame.source,
-        values: values,
+        values,
         index: values.length
     }, {
         while: current => current.index > 0,
@@ -86,8 +86,8 @@ export default function (in: Input): Output {
 
     return {
         ...in.state,
-        sources: sources,
-        names: names,
+        sources,
+        names,
         frames: scheduled
     }
 }

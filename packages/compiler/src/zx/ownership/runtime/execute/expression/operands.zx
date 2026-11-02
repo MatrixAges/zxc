@@ -70,7 +70,7 @@ export default function (in: Input): Output {
         return {
             ...in.machine,
             work: push({
-                work: work,
+                work,
                 frame: {
                     action: WorkAction.Value,
                     subject:
@@ -103,7 +103,7 @@ export default function (in: Input): Output {
         return {
             ...in.machine,
             work: push({
-                work: work,
+                work,
                 frame: {
                     action: WorkAction.Value,
                     subject: field.target,
@@ -128,7 +128,7 @@ export default function (in: Input): Output {
         return {
             ...in.machine,
             work: push({
-                work: work,
+                work,
                 frame: {
                     action: WorkAction.Value,
                     subject:
@@ -179,7 +179,7 @@ export default function (in: Input): Output {
         return {
             ...in.machine,
             work: push({
-                work: work,
+                work,
                 frame: {
                     action: WorkAction.Value,
                     subject: child,

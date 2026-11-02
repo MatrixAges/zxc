@@ -32,7 +32,7 @@ export default function (in: Input): Output {
     const iterated = iteration({
         table: in.state.local.expressions,
         metadata: {
-            type_id: type_id,
+            type_id,
             span_start: in.span.start,
             span_end: in.span.end
         },
@@ -53,7 +53,7 @@ export default function (in: Input): Output {
             }
         },
         name: "$collection_result",
-        type_id: type_id,
+        type_id,
         ownership: Ownership.Copy,
         span: in.span
     })

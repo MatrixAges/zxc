@@ -18,7 +18,7 @@ export default function (in: Input): Output {
 
     if (in.kind == ExpressionKind.Some) {
         return in.target == Kind.Optional && typed({
-            expressions: expressions,
+            expressions,
             index: context.index,
             id: expressions.some[in.payload],
             type_id: table.first[integers.widen(in.type_id)]
@@ -53,7 +53,7 @@ export default function (in: Input): Output {
 
     if (in.kind == ExpressionKind.Index) {
         return typed({
-            expressions: expressions,
+            expressions,
             index: context.index,
             id: expressions.index_values[in.payload],
             type_id: 5

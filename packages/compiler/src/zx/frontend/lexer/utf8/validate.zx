@@ -17,8 +17,8 @@ export default function (in: Input): Output {
     }
 
     const state = reduce(in, (state, byte) => step({
-        byte: byte,
-        state: state
+        byte,
+        state
     }), initial)
 
     return state.valid && state.remaining == 0

@@ -27,10 +27,10 @@ export default function (in: Input): Output {
             lambda_depth: in.lambda_depth + 1,
             captures: {
                 ...in.captures,
-                frames: frames,
+                frames,
                 current: frame
             }
         },
-        frame: frame
+        frame
     }
 }

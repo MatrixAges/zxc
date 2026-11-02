@@ -21,18 +21,18 @@ export default function (in: Input): Output {
         tree: {
             nodes: in.tree.nodes,
             fields: in.tree.fields,
-            items: items
+            items
         },
         frames: in.frames,
         control: in.control
     }
 
     return replaceFrame({
-        state: state,
+        state,
         frame: {
             ...frame,
-            head: head,
-            count: count
+            head,
+            count
         }
     })
 }

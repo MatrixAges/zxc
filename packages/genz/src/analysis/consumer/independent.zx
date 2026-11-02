@@ -20,7 +20,7 @@ export default function (in: Input): Output {
     const result = loop({
         table: in.table,
         symbol: in.symbol,
-        stack: stack,
+        stack,
         valid: true
     }, {
         while: current => current.valid && current.stack.length != 0,
@@ -56,8 +56,8 @@ export default function (in: Input): Output {
                     kind == ExpressionKind.Template
             ) {
                 current.stack = current.stack.concat(map(children({
-                    table: table,
-                    id: id
+                    table,
+                    id
                 }), child => integers.widen(child)))[0]
             } else {
                 current.valid = false

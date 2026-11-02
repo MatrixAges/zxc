@@ -36,7 +36,7 @@ export default function (in: Input): Output {
     }
 
     const target = row({
-        tables: tables,
+        tables,
         id: in.state.local.expressions.types[integers.widen(in.value)]
     })
 
@@ -63,7 +63,7 @@ export default function (in: Input): Output {
     const order = loop({
         names: in.source.blocks.names,
         head: statement.head,
-        ids: ids
+        ids
     }, {
         while: current => current.head != 0,
         next: current => {
@@ -92,10 +92,10 @@ export default function (in: Input): Output {
         source: in.source,
         types: table.children,
         first: integers.widen(target.first),
-        order: order,
-        symbols: symbols,
+        order,
+        symbols,
         saved: saved.value,
-        start: start,
+        start,
         index: 0
     }, {
         while: current =>
@@ -114,7 +114,7 @@ export default function (in: Input): Output {
                 current.state.diagnostic = bindingName({
                     scopes: current.scopes,
                     local: current.state.local,
-                    name: name
+                    name
                 })
 
                 if (current.state.diagnostic.message == "") {
@@ -136,7 +136,7 @@ export default function (in: Input): Output {
                             ...current.state.local,
                             expressions: item.table
                         },
-                        name: name,
+                        name,
                         value: item.id,
                         scope_start: current.start
                     })
@@ -160,7 +160,7 @@ export default function (in: Input): Output {
         expressions: result.state.local.expressions,
         value: integers.widen(in.value),
         count: result.symbols.length,
-        err: err,
+        err,
         result: value
     }) : result.state.local.refinement.facts
 
@@ -171,7 +171,7 @@ export default function (in: Input): Output {
                 ...result.state.local,
                 refinement: {
                     ...result.state.local.refinement,
-                    facts: facts
+                    facts
                 }
             }
         },

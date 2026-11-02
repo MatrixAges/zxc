@@ -54,7 +54,7 @@ export default function (in: Input): Output {
             } else {
                 const value = aggregate({
                     state: current.state,
-                    parent: parent,
+                    parent,
                     selected: place.index,
                     value: current.value,
                     tuple: place.kind == ExpressionKind.TupleField

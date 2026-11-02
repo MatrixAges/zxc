@@ -97,7 +97,7 @@ export default function (in: Input): Output {
 
     if (selected.kind == NodeKind.Object || selected.kind == NodeKind.Tuple) {
         return children({
-            state: state,
+            state,
             position: selected.position,
             count: selected.count,
             object: selected.kind == NodeKind.Object

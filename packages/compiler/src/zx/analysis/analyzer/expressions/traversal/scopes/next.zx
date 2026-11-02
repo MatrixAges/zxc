@@ -50,7 +50,7 @@ export default function (in: Input): Output {
 
     const work: Work = {
         ...in,
-        scopes: scopes,
+        scopes,
         node: statement.first,
         expected: null,
         phase: Phase.Evaluate
@@ -88,7 +88,7 @@ export default function (in: Input): Output {
         const diagnostic = bindingName({
             scopes: work.scopes,
             local: work.state.local,
-            name: name
+            name
         })
 
         if (diagnostic.message != "") {
@@ -96,7 +96,7 @@ export default function (in: Input): Output {
                 ...work,
                 state: {
                     ...work.state,
-                    diagnostic: diagnostic
+                    diagnostic
                 }
             }
         }

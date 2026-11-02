@@ -61,10 +61,10 @@ export default function (in: Input): Output {
     }
 
     const parameters = loop({
-        context: context,
+        context,
         first: integers.widen(expressions.transform_first[in.payload]),
-        count: count,
-        operation: operation,
+        count,
+        operation,
         context_type:
             initial != null ? expressions.types[integers.widen(
                 initial
@@ -98,30 +98,30 @@ export default function (in: Input): Output {
 
     return match operation {
         TransformKind.Map => in.target == Kind.List && typed({
-            expressions: expressions,
+            expressions,
             index: context.index,
             id: body,
             type_id: table.first[integers.widen(in.type_id)]
         }),
         TransformKind.Filter => in.type_id == source_id && typed({
-            expressions: expressions,
+            expressions,
             index: context.index,
             id: body,
             type_id: 1
         }),
         TransformKind.Reduce => initial != null && typed({
-            expressions: expressions,
+            expressions,
             index: context.index,
             id: initial,
             type_id: in.type_id
         }) && typed({
-            expressions: expressions,
+            expressions,
             index: context.index,
             id: body,
             type_id: in.type_id
         }),
         _ => in.type_id == 1 && typed({
-            expressions: expressions,
+            expressions,
             index: context.index,
             id: body,
             type_id: 1

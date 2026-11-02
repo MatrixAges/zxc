@@ -52,7 +52,7 @@ export default function (in: Input): Output {
         return bound({
             state: counted,
             frame: in.frame,
-            symbol: symbol,
+            symbol,
             value: integers.widen(made.id)
         })
     }

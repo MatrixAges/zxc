@@ -40,7 +40,7 @@ export default function (in: Input): Output {
                 ...in.state,
                 diagnostic: {
                     code: "type_mismatch",
-                    message: message,
+                    message,
                     start: node.span.start,
                     end: node.span.end
                 }
@@ -56,7 +56,7 @@ export default function (in: Input): Output {
     const order = loop({
         tree: in.source.tree,
         head: node.head,
-        ids: ids
+        ids
     }, {
         while: current => current.head != 0,
         next: current => {
@@ -76,7 +76,7 @@ export default function (in: Input): Output {
         source: in.source,
         order: order.ids.reverse()[0],
         types: in.types,
-        parameters: parameters,
+        parameters,
         start: in.state.local.active.length,
         index: 0
     }, {
@@ -92,8 +92,8 @@ export default function (in: Input): Output {
             const type_id = current.types[current.index]
             const binding = bind({
                 local: current.state.local,
-                name: name,
-                type_id: type_id,
+                name,
+                type_id,
                 scope_start: current.start
             })
 

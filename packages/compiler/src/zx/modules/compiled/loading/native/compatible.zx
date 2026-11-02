@@ -36,8 +36,8 @@ export default function (in: Input): Output {
     }).valid
 
     return loop({
-        names: names,
-        ids: ids,
+        names,
+        ids,
         value: in.value,
         index: 0,
         valid: same_namespace

@@ -18,8 +18,8 @@ export default function (in: Input): Output {
     const origins: u64[] = map(in.kinds, item => 0)
 
     const initialized = loop({
-        mapping: mapping,
-        order: order,
+        mapping,
+        order,
         index: 0,
         scalar_count: in.scalar_count
     }, {
@@ -34,7 +34,7 @@ export default function (in: Input): Output {
     return {
         mapping: initialized.mapping,
         order: initialized.order,
-        origins: origins,
+        origins,
         count: in.scalar_count,
         status: Status.Ready
     }

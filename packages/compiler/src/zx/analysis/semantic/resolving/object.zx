@@ -59,11 +59,11 @@ export default function (in: Input): Output {
         )[1]
 
     if (contains({
-        names: names,
+        names,
         name: selected.name.text
     })) {
         return fail({
-            state: state,
+            state,
             code: "name",
             message: "duplicate object field",
             name: selected.name
@@ -71,7 +71,7 @@ export default function (in: Input): Output {
     }
 
     const waiting = replace({
-        state: state,
+        state,
         frame: {
             ...head,
             name: selected.name,

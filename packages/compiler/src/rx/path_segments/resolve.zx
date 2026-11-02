@@ -16,11 +16,11 @@ export default function (in: Input): Output {
 
     const initial: Resolution = {
         parents: 0,
-        segments: segments
+        segments
     }
 
     const state = reduce(in.reverse()[0], (state, segment) => cancelStep({
-        state: state,
+        state,
         start: segment.start,
         end: segment.end,
         parent: segment.parent

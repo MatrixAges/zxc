@@ -79,10 +79,10 @@ export default function (in: Input): Output {
     }
 
     const result = in.expected == null ? {
-        state: state,
+        state,
         value: value.value
     } : coerce({
-        state: state,
+        state,
         value: value.value,
         expected: in.expected,
         span: node.span

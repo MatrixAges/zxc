@@ -16,7 +16,7 @@ export default function (in: Input): Output {
     const control = program.body.control
 
     if (!valid({
-        program: program,
+        program,
         payload: in.frame.a
     })) {
         return {
@@ -27,7 +27,7 @@ export default function (in: Input): Output {
 
     const state = loop({
         state: in.state,
-        program: program,
+        program,
         payload: in.frame.a,
         facts: in.state.refinement.facts.nonnull.length,
         captures: in.state.refinement.facts.capture_errors.length,
@@ -44,7 +44,7 @@ export default function (in: Input): Output {
             const truth = switchTruth({
                 program: current.program,
                 payload: current.payload,
-                position: position
+                position
             })
 
             current.state = schedule({
@@ -98,7 +98,7 @@ export default function (in: Input): Output {
     }).state
 
     return {
-        state: state,
+        state,
         valid: true
     }
 }

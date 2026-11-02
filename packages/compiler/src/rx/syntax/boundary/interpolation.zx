@@ -47,9 +47,9 @@ export default function (in: Input): Output {
         return open({
             state: in,
             mode: Mode.Template,
-            offset: offset,
-            start: start,
-            depth: depth
+            offset,
+            start,
+            depth
         })
     }
 
@@ -70,7 +70,7 @@ export default function (in: Input): Output {
         frames: in.frames,
         frame: {
             ...in.frame,
-            mode: mode,
+            mode,
             braces: match byte {
                 ascii_open_brace => braces + 1,
                 ascii_close_brace => braces - 1,
@@ -78,7 +78,7 @@ export default function (in: Input): Output {
             }
         },
         offset: next_offset,
-        comment_start: comment_start,
+        comment_start,
         done: false,
         message: no_diagnostic,
         issue: 0

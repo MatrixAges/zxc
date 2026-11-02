@@ -17,7 +17,7 @@ export default function (in: Input): Output {
 
     const state = loop({
         selection: in,
-        needed: needed,
+        needed,
         range: in.request.record.start,
         cursor: {
             stage: 0,

@@ -17,7 +17,7 @@ export default function (in: Input): Output {
 
     const values = loop({
         input: in,
-        owners: owners,
+        owners,
         index: 0
     }, {
         while: current => current.index < current.input.origins.ids.length,

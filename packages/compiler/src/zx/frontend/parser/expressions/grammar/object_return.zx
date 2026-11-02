@@ -30,7 +30,7 @@ export default function (in: Input): Output {
     const maximum = depth > in.frame.maximum ? depth : in.frame.maximum
 
     const fields = in.state.tree.fields.push({
-        name: name,
+        name,
         value: result,
         spread: in.frame.flag,
         previous: in.frame.head
@@ -38,9 +38,9 @@ export default function (in: Input): Output {
 
     const continuation = {
         ...in.frame,
-        head: head,
-        count: count,
-        maximum: maximum
+        head,
+        count,
+        maximum
     }
 
     const state = {
@@ -48,7 +48,7 @@ export default function (in: Input): Output {
         tree: {
             nodes: in.state.tree.nodes,
             items: in.state.tree.items,
-            fields: fields,
+            fields,
             parameters: in.state.tree.parameters,
             parts: in.state.tree.parts,
             arms: in.state.tree.arms
@@ -66,7 +66,7 @@ export default function (in: Input): Output {
                 prepared: state.prepared,
                 tree: state.tree,
                 types: state.types,
-                frames: frames,
+                frames,
                 control: state.control
             },
             phase: Phase.ObjectName
@@ -75,14 +75,14 @@ export default function (in: Input): Output {
 
     if (state.control.token.symbol != Symbol.CloseBrace) {
         return fail({
-            state: state,
+            state,
             code: "syntax",
             message: ","
         })
     }
 
     return finish({
-        state: state,
+        state,
         frame: continuation
     })
 }

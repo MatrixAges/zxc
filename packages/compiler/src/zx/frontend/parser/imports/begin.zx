@@ -23,9 +23,9 @@ export default function (in: Input): Output {
         control: {
             ...in.control,
             phase: importing ? Phase.Binding : Phase.Done,
-            index: index,
-            opening: opening,
-            first: first,
+            index,
+            opening,
+            first,
             count: 0,
             named: false,
             exported: in.control.token.word == Keyword.Export,

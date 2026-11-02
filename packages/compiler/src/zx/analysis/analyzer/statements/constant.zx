@@ -31,7 +31,7 @@ export default function (in: Input): Output {
     }
 
     if (row({
-        tables: tables,
+        tables,
         id: type_id
     }).kind == Kind.Task &&
         in.state.local.expressions.kinds[integers.widen(
@@ -72,7 +72,7 @@ export default function (in: Input): Output {
     const result = bind({
         local: in.state.local,
         name: in.name,
-        type_id: type_id,
+        type_id,
         scope_start: frame.active_mark
     })
 
@@ -83,7 +83,7 @@ export default function (in: Input): Output {
     }
 
     return {
-        state: state,
+        state,
         blocks: result.diagnostic.message == "" ? {
             ...in.blocks,
             pending: append({

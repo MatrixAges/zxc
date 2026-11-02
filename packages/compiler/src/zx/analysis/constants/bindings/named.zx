@@ -18,7 +18,7 @@ export default function (in: Input): Output {
 
     const previous = lookup({
         constants: in.previous,
-        name: name
+        name
     })
 
     if (previous == null) {
@@ -27,7 +27,7 @@ export default function (in: Input): Output {
 
     const current = lookup({
         constants: in.current,
-        name: name
+        name
     })
 
     return current != null && literalMatches({

@@ -57,7 +57,7 @@ export default function (in: Input): Output {
 
     const length = appendValue({
         table: source.expressions,
-        metadata: metadata,
+        metadata,
         kind: ValueKind.Length,
         value: source.value
     })
@@ -101,7 +101,7 @@ export default function (in: Input): Output {
 
     if (in.kind != TransformKind.Every && in.kind != TransformKind.Some) {
         return {
-            state: state,
+            state,
             value: bound.id
         }
     }

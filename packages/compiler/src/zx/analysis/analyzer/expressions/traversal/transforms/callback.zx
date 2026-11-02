@@ -49,7 +49,7 @@ export default function (in: Input): Output {
         phase: Phase.Evaluate,
         frames: {
             ...in.frames,
-            transforms: transforms,
+            transforms,
             actions: in.frames.actions.push(Action.TransformBody)[0]
         }
     }

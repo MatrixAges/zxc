@@ -87,14 +87,14 @@ export default function (in: Input): Output {
             control: emptyControl(),
             symbols: unit.symbols
         },
-        costs: costs,
+        costs,
         depth: 0,
         failed: false,
-        mappings: mappings,
+        mappings,
         ids: map(unit.expressions.kinds, kind => 0),
         frames: scheduled,
-        stack: stack,
-        pool: pool
+        stack,
+        pool
     }
 
     const finished = run(state)

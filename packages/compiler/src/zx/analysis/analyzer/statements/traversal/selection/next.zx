@@ -67,8 +67,8 @@ export default function (in: Input): Output {
 
     return {
         ...in,
-        blocks: blocks,
-        selections: selections,
+        blocks,
+        selections,
         actions: in.actions.push(Action.Case)[0],
         phase: Phase.Next
     }

@@ -17,7 +17,7 @@ export default function (in: Input): Output {
     return function_index < context.functions.input_types.length &&
         in.type_id == context.functions.output_types[function_index] &&
         typed({
-            expressions: expressions,
+            expressions,
             index: context.index,
             id: expressions.call_arguments[in.payload],
             type_id: context.functions.input_types[function_index]

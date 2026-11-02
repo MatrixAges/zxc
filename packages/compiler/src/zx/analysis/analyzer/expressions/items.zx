@@ -13,7 +13,7 @@ export default function (in: Input): Output {
     const result = loop({
         items: in.items,
         head: in.head,
-        values: values
+        values
     }, {
         while: current => current.head != 0,
         next: current => {

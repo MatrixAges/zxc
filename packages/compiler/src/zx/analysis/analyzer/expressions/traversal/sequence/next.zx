@@ -25,7 +25,7 @@ export default function (in: Input): Output {
     }
 
     const target = row({
-        tables: tables,
+        tables,
         id: tuple ?? 0
     })
 
@@ -39,7 +39,7 @@ export default function (in: Input): Output {
     return {
         ...in,
         node: frame.items[frame.index],
-        expected: expected,
+        expected,
         phase: Phase.Evaluate,
         frames: {
             ...in.frames,

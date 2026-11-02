@@ -23,7 +23,7 @@ export default function (in: Input): Output {
     const operation = in.named ? Operation.Name : Operation.Node
 
     const frames: Frame[] = in.initialize ? [] : [frame({
-        operation: operation,
+        operation,
         name: in.name,
         reference: in.reference
     })]
@@ -34,7 +34,7 @@ export default function (in: Input): Output {
             in.initialize && in.context.base.kinds.length == 0 &&
             in.delta.kinds.length == 0 ? scalars : in.delta,
         cache: in.cache,
-        frames: frames,
+        frames,
         scratch: {
             types: [],
             names: []

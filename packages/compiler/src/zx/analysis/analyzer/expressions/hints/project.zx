@@ -31,7 +31,7 @@ export type Output = u32?
         }
 
         const target = row({
-            tables: tables,
+            tables,
             id: in.type_id
         })
 
@@ -57,7 +57,7 @@ export type Output = u32?
             }
 
             const value = parseInteger(literal({
-                source: source,
+                source,
                 index: node.second,
                 template: false
             }))
@@ -71,7 +71,7 @@ export type Output = u32?
         }
 
         const name = readName({
-            source: source,
+            source,
             kind: NameKind.Expression,
             index: in.frame.node
         }).text
@@ -89,9 +89,9 @@ export type Output = u32?
 
         const found = loop({
             names: table.field_names,
-            first: first,
-            count: count,
-            name: name,
+            first,
+            count,
+            name,
             index: 0
         }, {
             while: current =>
@@ -107,7 +107,7 @@ export type Output = u32?
         const type_id = table.field_types[first + found.index]
 
         const field = row({
-            tables: tables,
+            tables,
             id: type_id
         })
 

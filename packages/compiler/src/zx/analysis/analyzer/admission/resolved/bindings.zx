@@ -48,9 +48,9 @@ export default function (in: Input): Output {
 
             if (current.valid) {
                 current.valid = loop({
-                    bindings: bindings,
+                    bindings,
                     limit: index,
-                    name: name,
+                    name,
                     namespace: namespace ?? "",
                     index: 0,
                     valid: true

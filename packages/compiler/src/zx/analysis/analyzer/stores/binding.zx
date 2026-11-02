@@ -36,8 +36,8 @@ export default function (in: Input): Output {
     }
 
     const duplicate = loop({
-        handles: handles,
-        paths: paths,
+        handles,
+        paths,
         target: in.index,
         index: 0,
         found: false
@@ -100,7 +100,7 @@ export default function (in: Input): Output {
     }
 
     if (contains({
-        tables: tables,
+        tables,
         id: selected.id,
         native_references: true
     })) {
@@ -112,7 +112,7 @@ export default function (in: Input): Output {
     }
 
     if (row({
-        tables: tables,
+        tables,
         id: selected.id
     }).kind != Kind.Object) {
         return {

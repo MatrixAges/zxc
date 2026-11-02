@@ -46,7 +46,7 @@ export default function (in: Input): Output {
             state.expression.control.token.symbol == Symbol.Assign
     ) {
         return expect({
-            state: state,
+            state,
             symbol: Symbol.Assign,
             phase: Phase.BeginValue,
             message: "="
@@ -82,8 +82,8 @@ export default function (in: Input): Output {
 
         const diagnostic = {
             code: "syntax",
-            start: start,
-            end: end,
+            start,
+            end,
             message: "expected a state update, call, await or cancel"
         }
 
@@ -96,7 +96,7 @@ export default function (in: Input): Output {
             control: {
                 ...state.control,
                 phase: Phase.Done,
-                diagnostic: diagnostic
+                diagnostic
             }
         }
     }
@@ -107,7 +107,7 @@ export default function (in: Input): Output {
             operator != Operator.Remainder
     ) {
         return fail({
-            state: state,
+            state,
             code: "syntax",
             message: "expected a state update or a standalone call"
         })
@@ -121,7 +121,7 @@ export default function (in: Input): Output {
             suspended: state.suspended,
             frame: {
                 ...state.frame,
-                operator: operator
+                operator
             },
             control: state.control
         },

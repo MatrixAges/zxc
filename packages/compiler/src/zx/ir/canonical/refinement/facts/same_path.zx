@@ -28,9 +28,9 @@ export default function (in: Input): Output {
     }
 
     return loop({
-        expressions: expressions,
-        left: left,
-        right: right,
+        expressions,
+        left,
+        right,
         left_remaining: expressions.kinds.length,
         right_remaining: expressions.kinds.length,
         active: true,

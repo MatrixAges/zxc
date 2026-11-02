@@ -40,12 +40,12 @@ export default function (in: Input): Output {
 
     const completed = lookup({
         cache: in.cache,
-        name: name
+        name
     })
 
     const resolved = completed.found ? completed : lookup({
         cache: in.context.resolved,
-        name: name
+        name
     })
 
     if (resolved.found) {
@@ -58,7 +58,7 @@ export default function (in: Input): Output {
 
     const alias = lookup({
         cache: in.context.aliases,
-        name: name
+        name
     })
 
     if (alias.found) {
@@ -71,10 +71,10 @@ export default function (in: Input): Output {
 
     if (contains({
         names: in.active,
-        name: name
+        name
     }) || contains({
         names: in.context.visiting,
-        name: name
+        name
     })) {
         return fail({
             state: in,
@@ -95,7 +95,7 @@ export default function (in: Input): Output {
 
     const selected = find({
         source: in.context.source,
-        name: name,
+        name,
         limit: count(in.context.source)
     })
 

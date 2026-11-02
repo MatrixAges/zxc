@@ -21,9 +21,9 @@ export default function (in: Input): Output {
             frames: in.state.expression.frames,
             control: {
                 ...in.state.expression.control,
-                index: index,
+                index,
                 root_index: index,
-                last_end: last_end
+                last_end
             }
         },
         body: in.state.body,

@@ -27,16 +27,16 @@ export default function (in: Input): Output {
 
     const continuation = {
         ...in.frame,
-        head: head,
-        count: count,
-        maximum: maximum
+        head,
+        count,
+        maximum
     }
 
     const state = {
         prepared: in.state.prepared,
         tree: {
             nodes: in.state.tree.nodes,
-            items: items,
+            items,
             fields: in.state.tree.fields,
             parameters: in.state.tree.parameters,
             parts: in.state.tree.parts,
@@ -55,7 +55,7 @@ export default function (in: Input): Output {
                 prepared: state.prepared,
                 tree: state.tree,
                 types: state.types,
-                frames: frames,
+                frames,
                 control: state.control
             },
             phase: Phase.Arguments
@@ -64,14 +64,14 @@ export default function (in: Input): Output {
 
     if (state.control.token.symbol != closing) {
         return fail({
-            state: state,
+            state,
             code: "syntax",
             message: ","
         })
     }
 
     return finish({
-        state: state,
+        state,
         frame: continuation
     })
 }

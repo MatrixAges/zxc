@@ -17,7 +17,7 @@ export default function (in: Input): Output {
 
     const result = loop({
         program: in.program,
-        pure: pure,
+        pure,
         index: 0
     }, {
         while: current =>

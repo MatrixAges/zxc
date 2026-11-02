@@ -39,7 +39,7 @@ export default function (in: Input): Output {
     }
 
     const result = loop({
-        names: names,
+        names,
         index: 0,
         slots: slots(names.length),
         code: "",
@@ -51,7 +51,7 @@ export default function (in: Input): Output {
             const name = current.names[current.index]
 
             if (!checkName({
-                name: name,
+                name,
                 kind: NameKind.TypeDecl
             })) {
                 current.code = "naming"
@@ -59,7 +59,7 @@ export default function (in: Input): Output {
             } else {
                 const selected = slot({
                     slots: current.slots,
-                    name: name
+                    name
                 })
 
                 if (selected.found) {

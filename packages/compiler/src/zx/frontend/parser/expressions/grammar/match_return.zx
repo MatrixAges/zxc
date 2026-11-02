@@ -31,7 +31,7 @@ export default function (in: Input): Output {
             ...in.frame,
             kind: FrameKind.MatchCondition,
             first: result + 1,
-            maximum: maximum
+            maximum
         })[0]
 
         return consume({
@@ -39,7 +39,7 @@ export default function (in: Input): Output {
                 prepared: in.state.prepared,
                 tree: in.state.tree,
                 types: in.state.types,
-                frames: frames,
+                frames,
                 control: in.state.control
             },
             phase: Phase.MatchCondition
@@ -59,7 +59,7 @@ export default function (in: Input): Output {
             ...in.frame,
             kind: FrameKind.MatchResult,
             second: result,
-            maximum: maximum
+            maximum
         })[0]
 
         const control: ExprControl = {
@@ -74,8 +74,8 @@ export default function (in: Input): Output {
                 prepared: in.state.prepared,
                 tree: in.state.tree,
                 types: in.state.types,
-                frames: frames,
-                control: control
+                frames,
+                control
             },
             phase: Phase.BeginBinary
         })
@@ -95,16 +95,16 @@ export default function (in: Input): Output {
 
         const arms = in.state.tree.arms.push({
             condition: in.frame.second,
-            result: result,
+            result,
             previous: in.frame.head
         })[0]
 
         const frames = in.state.frames.push({
             ...in.frame,
             kind: FrameKind.MatchCondition,
-            head: head,
-            count: count,
-            maximum: maximum
+            head,
+            count,
+            maximum
         })[0]
 
         const tree = {
@@ -113,15 +113,15 @@ export default function (in: Input): Output {
             fields: in.state.tree.fields,
             parameters: in.state.tree.parameters,
             parts: in.state.tree.parts,
-            arms: arms
+            arms
         }
 
         return consume({
             state: {
                 prepared: in.state.prepared,
-                tree: tree,
+                tree,
                 types: in.state.types,
-                frames: frames,
+                frames,
                 control: in.state.control
             },
             phase: Phase.MatchCondition
@@ -136,7 +136,7 @@ export default function (in: Input): Output {
                 prepared: in.state.prepared,
                 tree: in.state.tree,
                 types: in.state.types,
-                frames: frames,
+                frames,
                 control: in.state.control
             },
             phase: Phase.MatchEnd

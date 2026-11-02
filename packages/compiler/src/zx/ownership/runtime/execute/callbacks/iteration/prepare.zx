@@ -59,7 +59,7 @@ export default function (in: Input): Output {
     })
 
     const captured = save({
-        memory: memory,
+        memory,
         stack: machine.snapshots,
         capture: Capture.States
     })
@@ -76,11 +76,11 @@ export default function (in: Input): Output {
     })
 
     return {
-        memory: memory,
+        memory,
         snapshots: captured.stack,
         boundary: captured.frame,
         work: push({
-            work: work,
+            work,
             frame: {
                 action: WorkAction.Value,
                 subject: expression,

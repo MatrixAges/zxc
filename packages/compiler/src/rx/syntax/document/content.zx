@@ -31,7 +31,7 @@ export default function (in: Input): Output {
 
     if (starts({
         source: in.source,
-        offset: offset,
+        offset,
         text: xml_close_start
     })) {
         return close(in)
@@ -39,12 +39,12 @@ export default function (in: Input): Output {
 
     if (starts({
         source: in.source,
-        offset: offset,
+        offset,
         text: xml_comment_start
     })) {
         const parsed = comment({
             source: in.source,
-            offset: offset
+            offset
         })
 
         const state = advance({
@@ -53,14 +53,14 @@ export default function (in: Input): Output {
         })
 
         return parsed.message == no_diagnostic ? state : fail({
-            state: state,
+            state,
             message: parsed.message
         })
     }
 
     if (starts({
         source: in.source,
-        offset: offset,
+        offset,
         text: xml_cdata_start
     })) {
         return start({

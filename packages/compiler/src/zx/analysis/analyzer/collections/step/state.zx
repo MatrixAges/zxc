@@ -53,10 +53,10 @@ export default function (in: Input): Output {
 
     if (!in.captures) {
         return object({
-            state: state,
+            state,
             fields: {
-                names: names,
-                values: values
+                names,
+                values
             },
             span: in.span
         })

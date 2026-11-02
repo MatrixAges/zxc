@@ -23,15 +23,15 @@ export default function (in: Input): Output {
     const values = map(in.seed, cell => cell)
 
     const initial: State = {
-        values: values,
+        values,
         seen: 0,
         label: in.label,
         count: 0
     }
 
     const state = reduce(in.steps, (state, item) => step({
-        state: state,
-        item: item
+        state,
+        item
     }), initial)
 
     return {

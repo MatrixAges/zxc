@@ -57,14 +57,14 @@ export default function (in: Input): Output {
                     }
                 },
                 expected: type_id,
-                left: left
+                left
             }
         }
 
         return {
             state: in.state,
             expected: target.first,
-            left: left
+            left
         }
     }
 
@@ -80,10 +80,10 @@ export default function (in: Input): Output {
             ...in.state,
             local: {
                 ...in.state.local,
-                refinement: refinement
+                refinement
             }
         },
         expected: type_id,
-        left: left
+        left
     }
 }

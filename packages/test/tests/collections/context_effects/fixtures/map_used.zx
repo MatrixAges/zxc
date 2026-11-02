@@ -15,7 +15,7 @@ export default function (in: Input): Output {
     const data = context(in.tag)
 
     return map(items, item => visit({
-        item: item,
+        item,
         context: data
     }))
 }

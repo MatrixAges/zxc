@@ -23,8 +23,8 @@ export default function (in: Input): Output {
 
         const diagnostic = {
             code: "syntax",
-            start: start,
-            end: end,
+            start,
+            end,
             message: "only calls, await and cancel can be used as standalone expressions"
         }
 
@@ -37,7 +37,7 @@ export default function (in: Input): Output {
             control: {
                 ...in.control,
                 phase: Phase.Done,
-                diagnostic: diagnostic
+                diagnostic
             }
         }
     }

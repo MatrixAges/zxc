@@ -23,8 +23,8 @@ export default function (in: Input): Output {
     }
 
     return loop({
-        previous: previous,
-        current: current,
+        previous,
+        current,
         mapping: in.mapping,
         current_mapping: in.current_mapping,
         index: 0,

@@ -30,7 +30,7 @@ export default function (in: Input): Output {
                 left: current.state,
                 right: summary({
                     forest: current.forest,
-                    fact: fact
+                    fact
                 })
             })
             current.index += 1
@@ -48,6 +48,6 @@ export default function (in: Input): Output {
             states: result.forest.states.push(result.state)[0],
             children: result.forest.children
         },
-        fact: fact
+        fact
     }
 }

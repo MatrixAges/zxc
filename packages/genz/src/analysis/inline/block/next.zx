@@ -22,7 +22,7 @@ export default function (in: Input): Output {
 
     if (in.frame.a == count) {
         return finish({
-            state: state,
+            state,
             frame: in.frame
         })
     }
@@ -94,7 +94,7 @@ export default function (in: Input): Output {
 
     if (kind == StatementKind.Parallel) {
         const values = loop({
-            control: control,
+            control,
             frames: pending,
             mapping: in.frame.mapping,
             first: integers.widen(control.parallel_first[payload]),
@@ -130,7 +130,7 @@ export default function (in: Input): Output {
         }))[0]
 
         const cases = loop({
-            control: control,
+            control,
             frames: subject,
             mapping: in.frame.mapping,
             first: integers.widen(control.selection_first[payload]),

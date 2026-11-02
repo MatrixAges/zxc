@@ -47,7 +47,7 @@ export default function (in: Input): Output {
                     end: node.span.end
                 }
             },
-            context: context,
+            context,
             parameter: 0,
             body: 0
         }
@@ -66,7 +66,7 @@ export default function (in: Input): Output {
                     end: body.span.end
                 }
             },
-            context: context,
+            context,
             parameter: 0,
             body: 0
         }
@@ -89,8 +89,8 @@ export default function (in: Input): Output {
     })
 
     const binding = bind({
-        local: local,
-        name: name,
+        local,
+        name,
         type_id: in.type_id,
         scope_start: context.active
     })
@@ -101,7 +101,7 @@ export default function (in: Input): Output {
                 ...in.state,
                 diagnostic: binding.diagnostic
             },
-            context: context,
+            context,
             parameter: 0,
             body: 0
         }
@@ -123,11 +123,11 @@ export default function (in: Input): Output {
                 ...binding.local,
                 symbols: {
                     ...binding.local.symbols,
-                    ownership: ownership
+                    ownership
                 }
             }
         },
-        context: context,
+        context,
         parameter: binding.id,
         body: node.first
     }

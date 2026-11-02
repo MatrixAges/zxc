@@ -23,9 +23,9 @@ export default function (in: Input): Output {
 
     if (!in.nested) {
         return {
-            symbols: symbols,
-            values: values,
-            borrows: borrows
+            symbols,
+            values,
+            borrows
         }
     }
 
@@ -33,9 +33,9 @@ export default function (in: Input): Output {
 
     const result = loop({
         table: in.table,
-        symbols: symbols,
-        values: values,
-        borrows: borrows,
+        symbols,
+        values,
+        borrows,
         position: integers.widen(in.table.scope_first[payload]),
         end:
             integers.widen(in.table.scope_first[payload]) +

@@ -23,13 +23,13 @@ export default function (in: Input): Output {
     }
 
     const input_reference = contains({
-        tables: tables,
+        tables,
         id: in.input,
         native_references: true
     })
 
     const output_reference = contains({
-        tables: tables,
+        tables,
         id: in.state.result,
         native_references: true
     })
@@ -45,7 +45,7 @@ export default function (in: Input): Output {
             state: in.state,
             code: "capability",
             message: "host reference accessors cannot declare concurrency",
-            name: name
+            name
         })
     }
 
@@ -54,7 +54,7 @@ export default function (in: Input): Output {
             state: in.state,
             code: "ownership",
             message: "native reference results require a host reference input",
-            name: name
+            name
         })
     }
 

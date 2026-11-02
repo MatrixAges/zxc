@@ -18,14 +18,14 @@ export default function (in: Input): Output {
     }).ids
 
     return {
-        lexer: lexer,
+        lexer,
         graph: {
             templates: in.graph.templates,
             parts: in.graph.parts,
             events: in.graph.events,
             frames: in.graph.frames,
             interpolations: in.graph.interpolations,
-            token_templates: token_templates
+            token_templates
         }
     }
 }

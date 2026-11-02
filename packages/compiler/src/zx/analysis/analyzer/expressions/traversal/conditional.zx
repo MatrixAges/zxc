@@ -48,11 +48,11 @@ export default function (in: Input): Output {
                 ...work.state,
                 local: {
                     ...work.state.local,
-                    refinement: refinement
+                    refinement
                 }
             },
             node: node.second,
-            expected: expected,
+            expected,
             phase: Phase.Evaluate,
             frames: {
                 ...work.frames,
@@ -73,7 +73,7 @@ export default function (in: Input): Output {
 
     const restored = {
         ...work.state.local.refinement,
-        facts: facts
+        facts
     }
 
     if (in.action == Action.Yes) {
@@ -90,7 +90,7 @@ export default function (in: Input): Output {
                 ...work.state,
                 local: {
                     ...work.state.local,
-                    refinement: refinement
+                    refinement
                 }
             },
             node: node.third,

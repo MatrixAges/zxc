@@ -37,9 +37,9 @@ export default function (in: Input): Output {
 
             value = {
                 ...value,
-                offset: offset,
-                line: line,
-                column: column,
+                offset,
+                line,
+                column,
                 previous_cr: byte == ascii_carriage_return
             }
         }

@@ -28,7 +28,7 @@ export default function (in: Input): Output {
     const first = loop({
         tables: in.tables,
         limit: index,
-        target: target,
+        target,
         index: 0,
         found: false
     }, {
@@ -53,7 +53,7 @@ export default function (in: Input): Output {
         index: 0,
         first: first.index - 1,
         limit: index + 1,
-        flags: flags,
+        flags,
         native_references: in.native_references
     }, {
         while: current => current.index < current.limit,

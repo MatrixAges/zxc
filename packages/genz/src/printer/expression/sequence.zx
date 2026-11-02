@@ -79,9 +79,9 @@ export default function (in: Input): Output {
     const expanded = loop({
         frames: opening,
         index: 0,
-        values: values,
-        arguments: arguments,
-        frame: frame
+        values,
+        arguments,
+        frame
     }, {
         while: current => current.index < current.values.length,
         next: current => {

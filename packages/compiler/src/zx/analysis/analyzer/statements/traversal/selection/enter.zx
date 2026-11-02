@@ -14,7 +14,7 @@ export default function (in: Input): Output {
     const cases = loop({
         cases: in.expression.source.blocks.cases,
         head: statement.head,
-        ids: ids
+        ids
     }, {
         while: current => current.head != 0,
         next: current => {
@@ -26,7 +26,7 @@ export default function (in: Input): Output {
 
     const frame: Selection = {
         statement: in.statement,
-        cases: cases,
+        cases,
         index: 0,
         subject: 0,
         labels: [],

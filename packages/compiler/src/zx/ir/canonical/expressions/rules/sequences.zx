@@ -41,7 +41,7 @@ export default function (in: Input): Output {
     const result = loop({
         check: in,
         first: integers.widen(expressions.sequence_first[in.payload]),
-        count: count,
+        count,
         index: 0,
         valid: true
     }, {

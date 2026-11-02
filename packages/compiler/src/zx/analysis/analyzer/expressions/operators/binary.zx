@@ -31,7 +31,7 @@ export default function (in: Input): Output {
     }
 
     const target = row({
-        tables: tables,
+        tables,
         id: operand
     })
 
@@ -40,7 +40,7 @@ export default function (in: Input): Output {
 
     const optional_aggregate =
         flags.equality && target.kind == Kind.Optional && !comparable({
-            tables: tables,
+            tables,
             type_id: operand
         })
 
@@ -98,7 +98,7 @@ export default function (in: Input): Output {
     const result = append({
         table: expressions,
         metadata: {
-            type_id: type_id,
+            type_id,
             span_start: in.span.start,
             span_end: in.span.end
         },

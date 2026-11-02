@@ -37,7 +37,7 @@ export default function (in: Input): Output {
         ...in.frames,
         actions: in.frames.actions.push(Action.Coerce)[0],
         coercions: in.frames.coercions.push({
-            expected: expected,
+            expected,
             span: node.span
         })[0]
     }
@@ -46,12 +46,12 @@ export default function (in: Input): Output {
         state: in.state,
         source: in.source,
         node: in.node,
-        expected: expected
+        expected
     })
 
     const work = {
         ...in,
-        frames: frames,
+        frames,
         state: result.result.state
     }
 
@@ -107,7 +107,7 @@ export default function (in: Input): Output {
             !unary => null,
             node.flag => payload({
                 types: work.state.types,
-                expected: expected
+                expected
             }),
             _ => 1,
         }
@@ -148,7 +148,7 @@ export default function (in: Input): Output {
                 imports: work.imports
             },
             node: in.node,
-            expected: expected
+            expected
         })
 
         return {
@@ -180,7 +180,7 @@ export default function (in: Input): Output {
                 actions: frames.actions.push(Action.Condition)[0],
                 conditionals: frames.conditionals.push({
                     node: in.node,
-                    expected: expected,
+                    expected,
                     condition: 0,
                     yes: 0,
                     mark: {

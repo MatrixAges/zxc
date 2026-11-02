@@ -37,7 +37,7 @@ export default function (in: Input): Output {
         frames: in.frames,
         control: {
             ...in.control,
-            depth: depth,
+            depth,
             primary_start: start
         }
     }
@@ -45,8 +45,8 @@ export default function (in: Input): Output {
     if (state.control.token.word == Keyword.Match) {
         const continuation = frame({
             kind: FrameKind.MatchSubject,
-            start: start,
-            depth: depth
+            start,
+            depth
         })
 
         const frames = state.frames.push(continuation)[0]
@@ -56,7 +56,7 @@ export default function (in: Input): Output {
                 prepared: state.prepared,
                 tree: state.tree,
                 types: state.types,
-                frames: frames,
+                frames,
                 control: state.control
             },
             phase: Phase.MatchStart
@@ -77,9 +77,9 @@ export default function (in: Input): Output {
         }
 
         const continuation = frame({
-            kind: kind,
-            start: start,
-            depth: depth
+            kind,
+            start,
+            depth
         })
 
         const frames = state.frames.push(continuation)[0]
@@ -89,7 +89,7 @@ export default function (in: Input): Output {
                 prepared: state.prepared,
                 tree: state.tree,
                 types: state.types,
-                frames: frames,
+                frames,
                 control: state.control
             },
             phase: Phase.Primary
@@ -103,8 +103,8 @@ export default function (in: Input): Output {
         const continuation = {
             ...frame({
                 kind: FrameKind.Unary,
-                start: start,
-                depth: depth
+                start,
+                depth
             }),
             flag: state.control.token.symbol == Symbol.Minus
         }
@@ -116,7 +116,7 @@ export default function (in: Input): Output {
                 prepared: state.prepared,
                 tree: state.tree,
                 types: state.types,
-                frames: frames,
+                frames,
                 control: state.control
             },
             phase: Phase.Primary
@@ -125,7 +125,7 @@ export default function (in: Input): Output {
 
     if (state.control.allow_lambda && state.control.hint.lambda) {
         return startLambda({
-            state: state,
+            state,
             updating: false
         })
     }
@@ -133,8 +133,8 @@ export default function (in: Input): Output {
     if (state.control.token.symbol == Symbol.OpenParen) {
         const continuation = frame({
             kind: FrameKind.Group,
-            start: start,
-            depth: depth
+            start,
+            depth
         })
 
         const frames = state.frames.push(continuation)[0]
@@ -151,8 +151,8 @@ export default function (in: Input): Output {
                 prepared: state.prepared,
                 tree: state.tree,
                 types: state.types,
-                frames: frames,
-                control: control
+                frames,
+                control
             },
             phase: Phase.BeginBinary
         })
@@ -167,8 +167,8 @@ export default function (in: Input): Output {
         const continuation = {
             ...frame({
                 kind: object ? FrameKind.ObjectValue : FrameKind.Arguments,
-                start: start,
-                depth: depth
+                start,
+                depth
             }),
             flag: false
         }
@@ -180,7 +180,7 @@ export default function (in: Input): Output {
                 prepared: state.prepared,
                 tree: state.tree,
                 types: state.types,
-                frames: frames,
+                frames,
                 control: state.control
             },
             phase: object ? Phase.ObjectName : Phase.Arguments
@@ -205,7 +205,7 @@ export default function (in: Input): Output {
             state.control.token.kind != Kind.Identifier
     ) {
         return fail({
-            state: state,
+            state,
             code: "syntax",
             message: "expected an identifier"
         })
@@ -221,14 +221,14 @@ export default function (in: Input): Output {
 
     const value = {
         ...node({
-            kind: kind,
-            start: start,
-            end: end,
+            kind,
+            start,
+            end,
             depth: 1
         }),
         name: {
-            start: start,
-            end: end
+            start,
+            end
         },
         flag:
             state.control.token.word == Keyword.True ||
@@ -237,7 +237,7 @@ export default function (in: Input): Output {
 
     return emit({
         state: consume({
-            state: state,
+            state,
             phase: Phase.Postfix
         }),
         node: value

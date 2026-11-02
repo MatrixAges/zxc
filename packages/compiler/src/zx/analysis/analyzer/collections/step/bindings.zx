@@ -208,8 +208,8 @@ export default function (in: Input): Output {
     const parameters = loop({
         bindings: captured.bindings,
         parameters: in.callback.parameters,
-        values: values,
-        reducing: reducing,
+        values,
+        reducing,
         index: 0
     }, {
         while: active => active.index < active.parameters.length,
@@ -261,6 +261,6 @@ export default function (in: Input): Output {
         previous: previous.value,
         item: item.value,
         value: value.value,
-        bindings: bindings
+        bindings
     }
 }

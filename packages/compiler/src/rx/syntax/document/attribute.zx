@@ -30,14 +30,14 @@ export default function (in: Input): Output {
     const offset = in.control.location.offset
 
     const location = {
-        offset: offset,
+        offset,
         line: in.control.location.line,
         column: in.control.location.column
     }
 
     const parsed = name({
         source: in.source,
-        offset: offset
+        offset
     })
 
     const end = parsed.end
@@ -48,7 +48,7 @@ export default function (in: Input): Output {
         head: in.frame.attributes,
         name: {
             start: offset,
-            end: end
+            end
         }
     })
 
@@ -110,7 +110,7 @@ export default function (in: Input): Output {
             ...advanced.control,
             attribute: {
                 start: offset,
-                end: end
+                end
             },
             attribute_location: location
         }
@@ -124,14 +124,14 @@ export default function (in: Input): Output {
 
     if (quote != ascii_double_quote && quote != ascii_single_quote) {
         return fail({
-            state: state,
+            state,
             message: attribute_quote_required
         })
     }
 
     return start({
         state: advance({
-            state: state,
+            state,
             count: 1
         }),
         kind: ValueKind.Attribute,

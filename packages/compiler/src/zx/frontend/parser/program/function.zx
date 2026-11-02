@@ -46,16 +46,16 @@ export default function (in: Input): Output {
 
     if (lexical.message != "" || imports.message != "" || declarations.message != "") {
         return {
-            index: index,
+            index,
             start: token.span.start,
             present: false,
-            diagnostic: diagnostic
+            diagnostic
         }
     }
 
     if (token.kind == Kind.Eof) {
         return {
-            index: index,
+            index,
             start: token.span.start,
             present: false,
             diagnostic:
@@ -74,7 +74,7 @@ export default function (in: Input): Output {
             tokens[index + 1].word != Keyword.Default
     ) {
         return {
-            index: index,
+            index,
             start: token.span.start,
             present: false,
             diagnostic: {
@@ -107,6 +107,6 @@ export default function (in: Input): Output {
         index: index + 3,
         start: token.span.start,
         present: true,
-        diagnostic: diagnostic
+        diagnostic
     }
 }

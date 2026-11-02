@@ -46,7 +46,7 @@ export default function (in: Input): Output {
                 ...in.state,
                 diagnostic: {
                     code: "type_mismatch",
-                    message: message,
+                    message,
                     start: node.span.start,
                     end: node.span.end
                 }
@@ -59,7 +59,7 @@ export default function (in: Input): Output {
     const ordered = loop({
         tree: in.source.tree,
         head: node.head,
-        items: items
+        items
     }, {
         while: current => current.head != 0,
         next: current => {

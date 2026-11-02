@@ -26,7 +26,7 @@ export default function (in: Input): Output {
         functions: in.functions,
         parameters: in.parameters,
         index: 0,
-        signatures: signatures
+        signatures
     }, {
         while: current =>
             current.index < current.functions.length &&
@@ -35,7 +35,7 @@ export default function (in: Input): Output {
             const declaration = current.functions[current.index]
             const inputs = input(parameters({
                 state: current.resolution,
-                declaration: declaration,
+                declaration,
                 parameters: current.parameters
             }))
             const output = inputs.diagnostic.message == "" ? node({
@@ -44,7 +44,7 @@ export default function (in: Input): Output {
             }) : inputs
             const checked = check({
                 state: output,
-                declaration: declaration,
+                declaration,
                 input: inputs.result
             })
 

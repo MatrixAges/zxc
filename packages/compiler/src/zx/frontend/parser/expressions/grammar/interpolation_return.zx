@@ -32,8 +32,8 @@ export default function (in: Input): Output {
 
     const parts = in.state.tree.parts.push({
         span: {
-            start: start,
-            end: end
+            start,
+            end
         },
         value: in.state.control.result,
         expression: true,
@@ -47,10 +47,10 @@ export default function (in: Input): Output {
 
     const control = {
         ...in.state.control,
-        stream: stream,
-        index: index,
-        depth: depth,
-        last_end: last_end,
+        stream,
+        index,
+        depth,
+        last_end,
         template_head: head,
         template_count: count,
         template_maximum: maximum,
@@ -64,11 +64,11 @@ export default function (in: Input): Output {
             items: in.state.tree.items,
             fields: in.state.tree.fields,
             parameters: in.state.tree.parameters,
-            parts: parts,
+            parts,
             arms: in.state.tree.arms
         },
         types: in.state.types,
         frames: in.state.frames,
-        control: control
+        control
     }
 }

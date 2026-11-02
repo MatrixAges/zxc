@@ -21,8 +21,8 @@ export default function (in: Input): Output {
         input: in,
         position: in.position,
         index: 0,
-        names: names,
-        positions: positions
+        names,
+        positions
     }, {
         while: current => current.index < current.input.count,
         next: current => {

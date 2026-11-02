@@ -23,9 +23,9 @@ export default function (in: Input): Output {
     const index = loop({
         base: in.base,
         delta: in.state.delta,
-        name: name,
+        name,
         import_name: in.value.import_name,
-        count: count,
+        count,
         index: 0,
         found: false
     }, {
@@ -38,7 +38,7 @@ export default function (in: Input): Output {
 
             current.found = key({
                 modules: table,
-                index: index
+                index
             }) == current.name &&
                 table.import_names[index] == current.import_name
 

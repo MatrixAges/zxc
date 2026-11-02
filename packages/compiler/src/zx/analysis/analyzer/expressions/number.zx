@@ -51,11 +51,11 @@ export default function (in: Input): Output {
 
     const result = value.target.floating ? appendFloat({
         table: in.state.local.expressions,
-        metadata: metadata,
+        metadata,
         value: value.floating
     }) : appendInteger({
         table: in.state.local.expressions,
-        metadata: metadata,
+        metadata,
         value: value.integer,
         negative: in.negative
     })

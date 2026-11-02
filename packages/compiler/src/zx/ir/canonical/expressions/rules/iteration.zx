@@ -16,19 +16,19 @@ export default function (in: Input): Output {
 
     if (in.kind == ExpressionKind.ListUpdate) {
         return in.target == Kind.List && typed({
-            expressions: expressions,
+            expressions,
             index: context.index,
             id: expressions.update_targets[in.payload],
             type_id: in.type_id
         }) &&
             typed({
-                expressions: expressions,
+                expressions,
                 index: context.index,
                 id: expressions.update_indices[in.payload],
                 type_id: 5
             }) &&
             typed({
-                expressions: expressions,
+                expressions,
                 index: context.index,
                 id: expressions.update_values[in.payload],
                 type_id: context.table.first[integers.widen(in.type_id)]
@@ -43,19 +43,19 @@ export default function (in: Input): Output {
         )
 
     return in.type_id != 0 && typed({
-        expressions: expressions,
+        expressions,
         index: context.index,
         id: expressions.iteration_initials[in.payload],
         type_id: in.type_id
     }) &&
         typed({
-            expressions: expressions,
+            expressions,
             index: context.index,
             id: expressions.iteration_bodies[in.payload],
             type_id: in.type_id
         }) &&
         typed({
-            expressions: expressions,
+            expressions,
             index: context.index,
             id: expressions.iteration_conditions[in.payload],
             type_id: 1

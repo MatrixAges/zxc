@@ -20,7 +20,7 @@ export default function (in: Input): Output {
     const continuation = {
         ...frame({
             kind: FrameKind.Lambda,
-            start: start,
+            start,
             depth: in.state.control.depth + (in.updating ? 1 : 0)
         }),
         flag: in.updating
@@ -34,7 +34,7 @@ export default function (in: Input): Output {
                 prepared: in.state.prepared,
                 tree: in.state.tree,
                 types: in.state.types,
-                frames: frames,
+                frames,
                 control: in.state.control
             },
             phase: Phase.LambdaParameter
@@ -45,15 +45,15 @@ export default function (in: Input): Output {
 
     const parameters = in.state.tree.parameters.push({
         name: {
-            start: start,
-            end: end
+            start,
+            end
         },
         previous: 0
     })[0]
 
     const frames = in.state.frames.push({
         ...continuation,
-        head: head,
+        head,
         count: 1
     })[0]
 
@@ -61,7 +61,7 @@ export default function (in: Input): Output {
         nodes: in.state.tree.nodes,
         items: in.state.tree.items,
         fields: in.state.tree.fields,
-        parameters: parameters,
+        parameters,
         parts: in.state.tree.parts,
         arms: in.state.tree.arms
     }
@@ -69,9 +69,9 @@ export default function (in: Input): Output {
     return consume({
         state: {
             prepared: in.state.prepared,
-            tree: tree,
+            tree,
             types: in.state.types,
-            frames: frames,
+            frames,
             control: in.state.control
         },
         phase: Phase.LambdaArrow

@@ -46,8 +46,8 @@ export default function (in: Input): Output {
 
     const check = {
         context: in,
-        type_id: type_id,
-        target: target,
+        type_id,
+        target,
         kind: expression_kind,
         payload: integers.widen(in.expressions.payloads[in.index])
     }

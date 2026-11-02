@@ -14,7 +14,7 @@ export default function (in: Input): Output {
     const token = tokens[in.start]
 
     const checked = loop({
-        tokens: tokens,
+        tokens,
         part: Part.Export,
         index: in.start,
         name: token.span,

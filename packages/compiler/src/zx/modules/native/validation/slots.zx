@@ -6,7 +6,7 @@ export default function (in: Input): Output {
     const slots: Output = []
 
     const result = loop({
-        slots: slots,
+        slots,
         remaining: in == 0 ? 0 : in * 2 + 1
     }, {
         while: current => current.remaining != 0,

@@ -27,10 +27,10 @@ export default function (in: Input): Output {
 
     const cases = loop({
         state: fallback,
-        expressions: expressions,
+        expressions,
         first: integers.widen(expressions.match_first[payload]),
         index: integers.widen(expressions.match_count[payload]),
-        depth: depth,
+        depth,
         flags: in.frame.c
     }, {
         while: current => current.index != 0,

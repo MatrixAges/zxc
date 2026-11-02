@@ -44,7 +44,7 @@ export default function (in: Input): Output {
         return {
             state: value.state,
             source: value.value,
-            bindings: bindings
+            bindings
         }
     }
 
@@ -65,7 +65,7 @@ export default function (in: Input): Output {
     const argument = symbol({
         state: value.state,
         name: "$collection_argument",
-        type_id: type_id,
+        type_id,
         ownership: Ownership.Copy,
         span: in.span
     })

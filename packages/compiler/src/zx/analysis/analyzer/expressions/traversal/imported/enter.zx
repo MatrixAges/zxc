@@ -85,7 +85,7 @@ export default function (in: Input): Output {
                 ...work.state,
                 diagnostic: {
                     code: "type_mismatch",
-                    message: message,
+                    message,
                     start: node.span.start,
                     end: node.span.end
                 }
@@ -96,7 +96,7 @@ export default function (in: Input): Output {
     const frame: Imported = {
         node: work.node,
         import_index: in.index,
-        tuple: tuple,
+        tuple,
         arguments: items({
             items: work.source.tree.items,
             head: node.head

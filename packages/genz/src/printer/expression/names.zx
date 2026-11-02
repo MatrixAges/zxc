@@ -20,7 +20,7 @@ export default function (in: Input): Output {
         action: Action.Text,
         token: Token.Empty,
         bytes: ByteSource.None,
-        id: id,
+        id,
         count: 0,
         index: 0,
         number: 0
@@ -63,9 +63,9 @@ export default function (in: Input): Output {
     const expanded = loop({
         frames: opening,
         index: 0,
-        names: names,
-        bytes: bytes,
-        frame: frame
+        names,
+        bytes,
+        frame
     }, {
         while: current => current.index < current.names.length,
         next: current => {

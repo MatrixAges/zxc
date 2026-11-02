@@ -27,12 +27,12 @@ export default function (in: Input): Output {
     const active = {
         present: in.state.active.present,
         start: in.state.active.start,
-        lexer: lexer,
-        token_templates: token_templates
+        lexer,
+        token_templates
     }
 
     return {
-        active: active,
+        active,
         parents: in.state.parents,
         interpolations: in.state.interpolations,
         events: in.state.events,

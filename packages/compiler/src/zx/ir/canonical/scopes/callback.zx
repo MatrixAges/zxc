@@ -39,7 +39,7 @@ export default function (in: Input): Output {
                 state: cleared,
                 valid: true
             },
-            program: program,
+            program,
             owner: in.frame.a,
             first: integers.widen(expressions.transform_first[payload]),
             count: integers.widen(expressions.transform_count[payload]),
@@ -58,7 +58,7 @@ export default function (in: Input): Output {
                 current.result = declare({
                     program: current.program,
                     state: current.result.state,
-                    symbol: symbol,
+                    symbol,
                     type_id: 0,
                     owner: current.owner,
                     mode: Declaration.Callback
@@ -94,7 +94,7 @@ export default function (in: Input): Output {
         expressions.iteration_bodies[payload]
 
     const declared = declare({
-        program: program,
+        program,
         state: cleared,
         symbol: integers.widen(parameter),
         type_id: 0,
@@ -129,7 +129,7 @@ export default function (in: Input): Output {
     })
 
     return {
-        state: state,
+        state,
         valid: true
     }
 }

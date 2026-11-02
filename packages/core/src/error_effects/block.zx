@@ -48,7 +48,7 @@ export default function (in: Input): Output {
                     )]
                 )]
         ) || (kind == StatementKind.Switch && selectionReturns({
-            control: control,
+            control,
             selection: integers.widen(payload),
             returns: source.returns
         }))
@@ -108,7 +108,7 @@ export default function (in: Input): Output {
 
     if (kind == StatementKind.Switch) {
         const pending = loop({
-            control: control,
+            control,
             source: in.frame.source,
             first:
                 integers.widen(
@@ -122,7 +122,7 @@ export default function (in: Input): Output {
                         payload
                     )]
                 ),
-            frames: frames
+            frames
         }, {
             while: current => current.index > 0,
             next: current => {
@@ -199,7 +199,7 @@ export default function (in: Input): Output {
     ) {
         return {
             ...in.state,
-            frames: frames
+            frames
         }
     }
 

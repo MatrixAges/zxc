@@ -50,7 +50,7 @@ export default function (in: Input): Output {
 
         return loop({
             tables: in.tables,
-            expressions: expressions,
+            expressions,
             index:
                 integers.widen(
                     expressions.parallel_first[integers.widen(

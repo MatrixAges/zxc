@@ -37,12 +37,12 @@ export default function (in: Input): Output {
             control: {
                 ...in.control,
                 ensures: word == Keyword.Ensures,
-                contract_start: contract_start
+                contract_start
             }
         }
 
         return consume({
-            state: state,
+            state,
             phase: HeaderPhase.ContractOpen
         })
     }
@@ -80,12 +80,12 @@ export default function (in: Input): Output {
     const has_ensures = state.control.has_ensures || state.control.ensures
 
     return {
-        expression: expression,
+        expression,
         body: state.body,
         contracts: state.contracts,
         control: {
             ...state.control,
-            has_ensures: has_ensures
+            has_ensures
         }
     }
 }

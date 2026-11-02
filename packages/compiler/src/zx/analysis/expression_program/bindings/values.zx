@@ -47,8 +47,8 @@ export default function (in: Input): Output {
                 },
                 _ => check({
                     local: current.analysis.state.local,
-                    name: name,
-                    span: span
+                    name,
+                    span
                 }),
             }
 
@@ -57,8 +57,8 @@ export default function (in: Input): Output {
             if (diagnostic.message == "") {
                 const binding = symbol({
                     table: current.analysis.state.local.symbols,
-                    name: name,
-                    type_id: type_id,
+                    name,
+                    type_id,
                     span_start: span.start,
                     span_end: span.end,
                     ownership: Ownership.Copy

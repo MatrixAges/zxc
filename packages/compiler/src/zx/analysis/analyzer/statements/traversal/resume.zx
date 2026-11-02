@@ -19,20 +19,20 @@ export default function (in: Input): Output {
 
     if (action == Action.Condition || action == Action.Yes || action == Action.No) {
         return branch({
-            body: body,
-            action: action
+            body,
+            action
         })
     }
 
     if (action == Action.Subject || action == Action.Label || action == Action.Case) {
         return selection({
-            body: body,
-            action: action
+            body,
+            action
         })
     }
 
     return binding({
-        body: body,
-        action: action
+        body,
+        action
     })
 }

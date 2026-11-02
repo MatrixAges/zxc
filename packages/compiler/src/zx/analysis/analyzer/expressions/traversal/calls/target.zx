@@ -53,7 +53,7 @@ export default function (in: Input): Output {
                 ...in.state,
                 diagnostic: {
                     code: unsupported_code,
-                    message: message,
+                    message,
                     start: node.span.start,
                     end: node.span.end
                 }
@@ -140,7 +140,7 @@ export default function (in: Input): Output {
     const planned = plan({
         name: name.text,
         count: node.count,
-        list: list,
+        list,
         element: target.first
     })
 

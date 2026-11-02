@@ -21,7 +21,7 @@ export default function (in: Input): Output {
     })
 
     const local = initialLocal({
-        signature: signature,
+        signature,
         stores: {
             paths: [],
             types: [],
@@ -34,7 +34,7 @@ export default function (in: Input): Output {
 
     return {
         types: in.types,
-        local: local,
+        local,
         input_type: signature.input_type,
         diagnostic: in.diagnostic
     }

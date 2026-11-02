@@ -31,7 +31,7 @@ export default function (in: Input): Output {
         left: in.frame.name,
         right: {
             start: offset + xml_close_start.length,
-            end: end
+            end
         }
     })
 
@@ -42,14 +42,14 @@ export default function (in: Input): Output {
 
     if (parsed.message != no_diagnostic) {
         return fail({
-            state: state,
+            state,
             message: parsed.message
         })
     }
 
     if (!matched) {
         return fail({
-            state: state,
+            state,
             message: mismatched_closing_tag
         })
     }
@@ -63,7 +63,7 @@ export default function (in: Input): Output {
         finish < state.source.length && state.source[finish] == ascii_greater_than
 
     const advanced = advance({
-        state: state,
+        state,
         count: finish - end
     })
 

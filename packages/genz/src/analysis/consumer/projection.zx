@@ -39,7 +39,7 @@ export default function (in: Input): Output {
             } else if (kind == ExpressionKind.Length) {
                 current.id = integers.widen(table.lengths[payload])
             } else if (kind == ExpressionKind.Index && independent({
-                table: table,
+                table,
                 id: integers.widen(table.index_values[payload]),
                 symbol: current.symbol
             })) {

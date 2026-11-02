@@ -31,7 +31,7 @@ export default function (in: Input): Output {
     return loop({
         types: in.types,
         output: in.output,
-        pending: pending,
+        pending,
         found: false
     }, {
         while: current => !current.found && current.pending.length != 0,
@@ -52,7 +52,7 @@ export default function (in: Input): Output {
             if (!current.found) {
                 current.pending = current.pending.concat(children({
                     types: current.types,
-                    id: id,
+                    id,
                     deep: false
                 }))[0]
             }

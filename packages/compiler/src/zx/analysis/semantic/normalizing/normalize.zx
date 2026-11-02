@@ -34,8 +34,8 @@ export default function (in: Input): Output {
     const state = loop({
         input: in,
         delta: empty,
-        origins: origins,
-        mapping: mapping,
+        origins,
+        mapping,
         index: 0,
         conflict: false
     }, {
@@ -51,7 +51,7 @@ export default function (in: Input): Output {
                 ids: current.mapping
             }
             const found = find({
-                source: source,
+                source,
                 tables: {
                     base: current.input.base,
                     delta: current.delta
@@ -61,7 +61,7 @@ export default function (in: Input): Output {
                     delta: current.origins
                 },
                 origin: current.input.origin,
-                mapping: mapping
+                mapping
             })
 
             if (found.status == Status.Conflict) {
@@ -74,9 +74,9 @@ export default function (in: Input): Output {
 
                 if (found.status == Status.Missing) {
                     current.delta = append({
-                        source: source,
+                        source,
                         delta: current.delta,
-                        mapping: mapping
+                        mapping
                     })
 
                     if (

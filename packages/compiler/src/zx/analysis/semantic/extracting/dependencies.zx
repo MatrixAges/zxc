@@ -37,10 +37,10 @@ export default function (in: Input): Output {
         const values = type_kind == Kind.Tuple ? in.table.children : in.table.field_types
 
         const state = loop({
-            values: values,
+            values,
             first: integers.widen(in.table.first[in.index]),
             remaining: integers.widen(in.table.second[in.index]),
-            pending: pending
+            pending
         }, {
             while: current => current.remaining > 0,
             next: current => {

@@ -32,7 +32,7 @@ export default function (in: Input): Output {
 
     const value = reference({
         table: in.local.expressions,
-        metadata: metadata,
+        metadata,
         kind: ValueKind.Reference,
         value: frame.state_symbol
     })
@@ -42,7 +42,7 @@ export default function (in: Input): Output {
 
     const result = scope({
         table: value.table,
-        metadata: metadata,
+        metadata,
         result: value.id,
         symbols: in.scopes.bindings.symbols.splice(first, count, [])[1],
         values: in.scopes.bindings.values.splice(first, count, [])[1],
@@ -69,7 +69,7 @@ export default function (in: Input): Output {
             active: in.local.active.splice(0, frame.active_mark, [])[1],
             refinement: {
                 ...in.local.refinement,
-                facts: facts
+                facts
             }
         },
         value: result.id

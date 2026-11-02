@@ -28,8 +28,8 @@ export default function (in: Input): Output {
                 values: expressions.sequence_items,
                 first: integers.widen(expressions.sequence_first[payload]),
                 count: integers.widen(expressions.sequence_count[payload]),
-                depth: depth,
-                flags: flags
+                depth,
+                flags
             }),
             valid: true
         }
@@ -42,8 +42,8 @@ export default function (in: Input): Output {
                 values: expressions.parallel_tasks,
                 first: integers.widen(expressions.parallel_first[payload]),
                 count: integers.widen(expressions.parallel_count[payload]),
-                depth: depth,
-                flags: flags
+                depth,
+                flags
             }),
             valid: true
         }
@@ -55,8 +55,8 @@ export default function (in: Input): Output {
             values: expressions.object_field_values,
             first: integers.widen(expressions.object_first[payload]),
             count: integers.widen(expressions.object_count[payload]),
-            depth: depth,
-            flags: flags
+            depth,
+            flags
         })
 
         const evaluation = sequence({
@@ -64,8 +64,8 @@ export default function (in: Input): Output {
             values: expressions.object_evaluation_values,
             first: integers.widen(expressions.object_evaluation_first[payload]),
             count: integers.widen(expressions.object_evaluation_count[payload]),
-            depth: depth,
-            flags: flags
+            depth,
+            flags
         })
 
         return {
@@ -80,8 +80,8 @@ export default function (in: Input): Output {
         values: expressions.collection_arguments,
         first: integers.widen(expressions.collection_first[payload]),
         count: integers.widen(expressions.collection_count[payload]),
-        depth: depth,
-        flags: flags
+        depth,
+        flags
     })
     : in.state
 

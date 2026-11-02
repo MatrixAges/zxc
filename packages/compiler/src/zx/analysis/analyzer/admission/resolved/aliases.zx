@@ -28,7 +28,7 @@ export default function (in: Input): Output {
                     source_text: current.input.source_text,
                     native: current.input.native,
                     syntax: current.input.syntax,
-                    name: name,
+                    name,
                     kind: DeclarationKind.Alias
                 })
 
@@ -36,7 +36,7 @@ export default function (in: Input): Output {
                 current.valid = loop({
                     names: current.input.aliases.names,
                     limit: current.index,
-                    name: name,
+                    name,
                     index: 0,
                     valid: true
                 }, {

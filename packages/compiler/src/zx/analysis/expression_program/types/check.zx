@@ -27,7 +27,7 @@ export default function (in: Input): Output {
 
     const aliases_valid = loop({
         types: in.alias_types,
-        count: count,
+        count,
         index: 0,
         valid: true
     }, {
@@ -84,7 +84,7 @@ export default function (in: Input): Output {
 
     const valid = loop({
         types: in.binding_types,
-        count: count,
+        count,
         index: 0,
         valid: true
     }, {

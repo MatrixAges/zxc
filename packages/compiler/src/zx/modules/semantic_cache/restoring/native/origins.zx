@@ -22,8 +22,8 @@ export default function (in: Input): Output {
     const key = in.declaration.identity ?? in.declaration.specifier
 
     return loop({
-        origins: origins,
-        key: key,
+        origins,
+        key,
         index: 0,
         valid: true
     }, {

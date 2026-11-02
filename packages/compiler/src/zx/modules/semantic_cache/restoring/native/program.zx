@@ -86,7 +86,7 @@ export default function (in: Input): Output {
         expected_version: in.version,
         context: {
             table: in.types,
-            functions: functions,
+            functions,
             modules: in.request.modules,
             max_offset: in.max_offset,
             scalar_count: in.scalar_count,
@@ -94,8 +94,8 @@ export default function (in: Input): Output {
             verified: 0
         },
         unit: {
-            body: body,
-            contracts: contracts,
+            body,
+            contracts,
             input_type: zero,
             output_type: zero,
             output_ownership: Ownership.Borrowed,

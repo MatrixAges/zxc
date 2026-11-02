@@ -21,10 +21,10 @@ export default function (in: Input): Output {
     const result = loop({
         types: in.types,
         counts: in.counts,
-        empty: empty,
-        offsets: offsets,
-        members: members,
-        unwrapped: unwrapped,
+        empty,
+        offsets,
+        members,
+        unwrapped,
         index: 0
     }, {
         while: current => current.index < current.types.kinds.length,
@@ -37,7 +37,7 @@ export default function (in: Input): Output {
                 types: current.types,
                 counts: current.counts,
                 object: target == Kind.Object,
-                first: first,
+                first,
                 count:
                     product ? integers.widen(
                         current.types.second[current.index]

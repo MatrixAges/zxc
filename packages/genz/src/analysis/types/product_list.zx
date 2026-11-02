@@ -16,7 +16,7 @@ export default function (in: Input): Output {
 
     const result = loop({
         types: in.types,
-        stack: stack,
+        stack,
         found: false
     }, {
         while: current => !current.found && current.stack.length != 0,

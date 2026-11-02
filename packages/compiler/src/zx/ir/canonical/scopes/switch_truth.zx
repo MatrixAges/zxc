@@ -32,8 +32,8 @@ export type Output = bool?
         }
 
         const result = loop({
-            control: control,
-            expressions: expressions,
+            control,
+            expressions,
             first: integers.widen(control.selection_first[in.payload]),
             count: integers.widen(control.selection_count[in.payload]),
             index: 0,

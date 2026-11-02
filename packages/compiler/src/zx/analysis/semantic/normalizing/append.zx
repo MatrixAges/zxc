@@ -60,7 +60,7 @@ export default function (in: Input): Output {
         source.kind == Kind.ErrorSet || source.kind == Kind.Enumeration
 
     const state = loop({
-        source: source,
+        source,
         mapping: in.mapping,
         delta: in.delta,
         index: 0,

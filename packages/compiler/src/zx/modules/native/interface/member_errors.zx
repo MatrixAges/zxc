@@ -16,7 +16,7 @@ export default function (in: Input): Output {
 
     const result = loop({
         input: in,
-        names: names,
+        names,
         index: 0
     }, {
         while: current => current.index < current.input.declaration.error_count,
@@ -27,7 +27,7 @@ export default function (in: Input): Output {
                     current.index]
             const name = text({
                 source: current.input.source,
-                span: span
+                span
             }).text
 
             current.names = current.names.push(name)[0]

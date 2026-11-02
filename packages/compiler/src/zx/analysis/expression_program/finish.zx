@@ -36,7 +36,7 @@ export default function (in: Input): Output {
 
     const body = block({
         table: returned,
-        first: first
+        first
     })
 
     const local = {
@@ -51,7 +51,7 @@ export default function (in: Input): Output {
         ...in,
         state: {
             ...in.state,
-            local: local
+            local
         },
         root: body.id
     }

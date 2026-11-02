@@ -46,7 +46,7 @@ export default function (in: Input): Output {
             state: work.state,
             source: work.source,
             node: frame.condition_node,
-            type_id: type_id,
+            type_id,
             updating: false
         })
 
@@ -65,7 +65,7 @@ export default function (in: Input): Output {
             phase: Phase.Evaluate,
             frames: {
                 ...work.frames,
-                iterations: iterations,
+                iterations,
                 actions: work.frames.actions.push(Action.IterationCondition)[0]
             }
         }
@@ -81,7 +81,7 @@ export default function (in: Input): Output {
 
     if (in.action == Action.IterationCondition) {
         const entered = callback({
-            state: state,
+            state,
             source: work.source,
             node: frame.step_node,
             type_id: state.local.expressions.types[integers.widen(
@@ -105,7 +105,7 @@ export default function (in: Input): Output {
             phase: Phase.StateBlock,
             frames: {
                 ...work.frames,
-                iterations: iterations,
+                iterations,
                 actions: work.frames.actions.push(Action.IterationStep)[0]
             }
         }

@@ -28,7 +28,7 @@ export default function (in: Input): Output {
 
     const binding = loop({
         name: in.name,
-        bytes: bytes,
+        bytes,
         bindings: in.bindings,
         symbols: in.symbols,
         index: 0,
@@ -76,12 +76,12 @@ export default function (in: Input): Output {
     if (binding.length == bytes.length) {
         const facts = add({
             facts: in.state.facts,
-            symbol: symbol
+            symbol
         })
 
         return {
             ...in.state,
-            facts: facts
+            facts
         }
     }
 
@@ -90,7 +90,7 @@ export default function (in: Input): Output {
         tables: in.tables,
         facts: in.state.facts,
         type_id: in.symbol_types[integers.widen(symbol)],
-        symbol: symbol,
+        symbol,
         span: in.span
     })
 
@@ -101,7 +101,7 @@ export default function (in: Input): Output {
         diagnostic: in.state.diagnostic,
         value: root.value,
         name: in.name,
-        bytes: bytes,
+        bytes,
         start: binding.length + 1,
         end: binding.length + 1,
         span: in.span
@@ -168,6 +168,6 @@ export default function (in: Input): Output {
 
     return {
         ...state,
-        facts: facts
+        facts
     }
 }

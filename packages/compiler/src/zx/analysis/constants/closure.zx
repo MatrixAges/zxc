@@ -37,8 +37,8 @@ export default function (in: Input): Output {
     }
 
     return loop({
-        expressions: expressions,
-        root: root,
+        expressions,
+        root,
         index: root + 1,
         required: map(expressions.kinds, kind => false),
         diagnostic: empty

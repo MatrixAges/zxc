@@ -29,7 +29,7 @@ export default function (in: Input): Output {
 
     const control: ExprControl = {
         ...in.control,
-        cursor: cursor,
+        cursor,
         template_head: 0,
         template_count: 0,
         template_maximum: 0
@@ -40,8 +40,8 @@ export default function (in: Input): Output {
             prepared: in.prepared,
             tree: in.tree,
             types: in.types,
-            frames: frames,
-            control: control
+            frames,
+            control
         },
         phase: Phase.TemplateGather
     })

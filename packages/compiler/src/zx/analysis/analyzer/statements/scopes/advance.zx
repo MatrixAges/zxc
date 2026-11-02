@@ -33,7 +33,7 @@ export default function (in: Input): Output {
     const result = bind({
         scopes: in.scopes,
         local: in.local,
-        name: name,
+        name,
         value: in.value,
         scope_start: in.local.active.length
     })
@@ -54,7 +54,7 @@ export default function (in: Input): Output {
     return {
         scopes: {
             ...result.scopes,
-            frames: frames
+            frames
         },
         local: result.local,
         diagnostic: result.diagnostic

@@ -32,7 +32,7 @@ export default function (in: Input): Output {
 
     if (starts({
         source: in.source,
-        offset: offset,
+        offset,
         text: xml_declaration_end
     })) {
         return {
@@ -53,7 +53,7 @@ export default function (in: Input): Output {
 
     const field = name({
         source: in.source,
-        offset: offset
+        offset
     })
 
     if (field.message != no_diagnostic) {
@@ -119,7 +119,7 @@ export default function (in: Input): Output {
 
     const value_span = {
         start: quoted + 1,
-        end: end
+        end
     }
 
     const version = matches({
@@ -192,6 +192,6 @@ export default function (in: Input): Output {
         encoding: in.encoding || encoding,
         standalone: in.standalone || standalone,
         done: issue != Issue.None,
-        issue: issue
+        issue
     }
 }

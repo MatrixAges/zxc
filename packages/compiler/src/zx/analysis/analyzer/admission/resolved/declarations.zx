@@ -30,7 +30,7 @@ export default function (in: Input): Output {
             if (current.valid && !item.exported) {
                 current.valid = loop({
                     input: current.input,
-                    item: item,
+                    item,
                     index: 0,
                     forwarded: current.forwarded,
                     valid: true
@@ -48,7 +48,7 @@ export default function (in: Input): Output {
                         names.valid = loop({
                             input: names.input,
                             limit: position,
-                            name: name,
+                            name,
                             forwarded: names.forwarded,
                             index: 0,
                             valid: true
@@ -80,7 +80,7 @@ export default function (in: Input): Output {
                             names.valid && names.item.kind != ImportKind.TypeOnly &&
                             loop({
                                 bindings: names.input.bindings,
-                                name: name,
+                                name,
                                 index: 0,
                                 found: false
                             }, {
@@ -111,12 +111,12 @@ export default function (in: Input): Output {
                                 names.item.kind == ImportKind.Enumeration &&
                                 names.input.constants != null ? constant({
                                     constants: names.input.constants,
-                                    name: name
+                                    name
                                 }) : null
 
                             const matched = loop({
                                 input: names.input,
-                                name: name,
+                                name,
                                 kind: names.item.kind,
                                 index: 0,
                                 found: false,

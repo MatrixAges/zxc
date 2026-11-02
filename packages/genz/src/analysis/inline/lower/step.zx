@@ -25,7 +25,7 @@ export default function (in: Input): Output {
         }
 
         const made = unit({
-            state: state,
+            state,
             type_id: integers.narrow(current.c),
             span_start: current.d,
             span_end: current.e
@@ -57,7 +57,7 @@ export default function (in: Input): Output {
 
         if (value == null) {
             const made = unit({
-                state: state,
+                state,
                 type_id: integers.narrow(current.c),
                 span_start: current.d,
                 span_end: current.e

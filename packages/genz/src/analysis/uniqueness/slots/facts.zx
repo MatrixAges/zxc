@@ -18,8 +18,8 @@ export default function (in: Input): Output {
 
     const result = loop({
         types: in,
-        counts: counts,
-        texts: texts,
+        counts,
+        texts,
         index: 0
     }, {
         while: current => current.index < current.types.kinds.length,
@@ -43,7 +43,7 @@ export default function (in: Input): Output {
                     texts: current.texts,
                     members: target == Kind.Object ? current.types.field_types :
                         current.types.children,
-                    first: first,
+                    first,
                     count: integers.widen(
                         current.types.second[current.index]
                     )

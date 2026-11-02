@@ -27,7 +27,7 @@ export default function (in: Input): Output {
                 control.branch_no[payload]
             )],
         StatementKind.Switch => selectionReturns({
-            control: control,
+            control,
             selection: payload,
             returns: in.context.prepared.returns
         }),

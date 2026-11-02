@@ -53,7 +53,7 @@ export default function (in: Input): Output {
 
     const cdata_end = starts({
         source: in.source,
-        offset: offset,
+        offset,
         text: xml_cdata_end
     })
 
@@ -95,7 +95,7 @@ export default function (in: Input): Output {
         const result = decode({
             source: in.source,
             start: offset + 1,
-            end: end
+            end
         })
 
         if (result.message != no_diagnostic) {
@@ -122,7 +122,7 @@ export default function (in: Input): Output {
     ) {
         const has_crlf = starts({
             source: in.source,
-            offset: offset,
+            offset,
             text: crlf
         })
 

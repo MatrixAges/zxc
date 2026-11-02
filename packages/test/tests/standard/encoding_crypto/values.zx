@@ -21,11 +21,11 @@ export default function (in: Input): Output {
   const utf8 = encoding.encodeUtf8(in.text)
 
   return {
-    base64: base64,
-    hex: hex,
+    base64,
+    hex,
     base64_bytes: encoding.decodeBase64(base64),
     hex_bytes: encoding.decodeHex(hex),
-    utf8: utf8,
+    utf8,
     text: encoding.decodeUtf8(utf8),
     sha256: crypto.sha256(in.bytes),
     sha512: crypto.sha512(in.bytes)

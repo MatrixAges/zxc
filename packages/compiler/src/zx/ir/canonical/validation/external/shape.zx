@@ -24,7 +24,7 @@ export type Output = {
 
         return {
             table: in.context.table,
-            names: names,
+            names,
             binding_names: in.context.modules.type_names[integers.widen(module_id)],
             binding_types: in.context.modules.type_ids[integers.widen(module_id)],
             type_id: in.context.functions.input_types[in.index],

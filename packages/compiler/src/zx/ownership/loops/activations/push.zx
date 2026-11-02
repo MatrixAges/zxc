@@ -21,7 +21,7 @@ export default function (in: Input): Output {
     const flags: bool[] = []
 
     const initialized = loop({
-        flags: flags,
+        flags,
         count: in.layout.parents.length,
         symbols: in.program.symbols.types.length
     }, {

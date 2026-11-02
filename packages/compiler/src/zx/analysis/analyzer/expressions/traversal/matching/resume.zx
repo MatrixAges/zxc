@@ -99,7 +99,7 @@ export default function (in: Input): Output {
             ...work,
             frames: {
                 ...work.frames,
-                selections: selections
+                selections
             }
         })
     }
@@ -107,7 +107,7 @@ export default function (in: Input): Output {
     const result = append({
         table: work.state.local.expressions,
         metadata: {
-            type_id: type_id,
+            type_id,
             span_start: node.span.start,
             span_end: node.span.end
         },

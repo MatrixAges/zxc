@@ -37,9 +37,9 @@ export default function (in: Input): Output {
 
     const state = loop({
         tables: in.tables,
-        entry: entry,
-        direct: direct,
-        count: count,
+        entry,
+        direct,
+        count,
         index: 0,
         found: false,
         id: initial_id
@@ -59,7 +59,7 @@ export default function (in: Input): Output {
             if (kind(table.kinds[position]) == current.entry.kind && shape) {
                 current.found = equal({
                     left: row({
-                        table: table,
+                        table,
                         index: position
                     }),
                     right: current.entry

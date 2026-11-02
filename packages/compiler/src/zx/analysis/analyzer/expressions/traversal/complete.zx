@@ -46,8 +46,8 @@ export default function (in: Input): Output {
 
     if (action == Action.PipelineInput || action == Action.PipelineStage) {
         return pipeline({
-            work: work,
-            action: action
+            work,
+            action
         })
     }
 
@@ -82,15 +82,15 @@ export default function (in: Input): Output {
 
     if (action == Action.BinaryLeft || action == Action.BinaryRight) {
         return binary({
-            work: work,
-            action: action
+            work,
+            action
         })
     }
 
     if (action == Action.Condition || action == Action.Yes || action == Action.No) {
         return conditional({
-            work: work,
-            action: action
+            work,
+            action
         })
     }
 
@@ -99,8 +99,8 @@ export default function (in: Input): Output {
             action == Action.MatchResult || action == Action.MatchFallback
     ) {
         return matching({
-            work: work,
-            action: action
+            work,
+            action
         })
     }
 
@@ -126,8 +126,8 @@ export default function (in: Input): Output {
 
     if (action == Action.TransformSecond || action == Action.TransformBody) {
         return transform({
-            work: work,
-            action: action
+            work,
+            action
         })
     }
 
@@ -136,8 +136,8 @@ export default function (in: Input): Output {
             action == Action.IterationStep
     ) {
         return iteration({
-            work: work,
-            action: action
+            work,
+            action
         })
     }
 
@@ -146,15 +146,15 @@ export default function (in: Input): Output {
             action == Action.StateDestructure
     ) {
         return binding({
-            work: work,
-            action: action
+            work,
+            action
         })
     }
 
     if (action == Action.StateTarget || action == Action.StateValue) {
         return update({
-            work: work,
-            action: action
+            work,
+            action
         })
     }
 
@@ -163,8 +163,8 @@ export default function (in: Input): Output {
             action == Action.StateNo
     ) {
         return branch({
-            work: work,
-            action: action
+            work,
+            action
         })
     }
 
@@ -173,13 +173,13 @@ export default function (in: Input): Output {
             action == Action.StateCase
     ) {
         return selection({
-            work: work,
-            action: action
+            work,
+            action
         })
     }
 
     return action == Action.Sequence ? sequence(work) : projection({
-        work: work,
-        action: action
+        work,
+        action
     })
 }

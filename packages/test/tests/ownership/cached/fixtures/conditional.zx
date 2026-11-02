@@ -16,8 +16,8 @@ export default function (in: Input): Output {
     const second = map(in.second, (item) => item)
 
     const source: Output = {
-        first: first,
-        second: second
+        first,
+        second
     }
 
     return in.choice ? {

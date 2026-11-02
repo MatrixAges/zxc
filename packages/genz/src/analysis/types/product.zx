@@ -16,7 +16,7 @@ export default function (in: Input): Output {
 
     const result = loop({
         types: in.types,
-        stack: stack,
+        stack,
         valid: true
     }, {
         while: current => current.valid && current.stack.length != 0,
@@ -58,7 +58,7 @@ export default function (in: Input): Output {
             } else {
                 current.valid = detached({
                     types: current.types,
-                    id: id
+                    id
                 })
             }
         }

@@ -27,13 +27,13 @@ export default function (in: Input): Output {
             const index = current.index
             const remapped = references({
                 source: request.source,
-                index: index,
+                index,
                 mapping: current.state.mapping,
                 references: current.state.references
             })
             const value = candidate({
                 source: request.source,
-                index: index,
+                index,
                 references: remapped
             })
             const type_kind = kind(request.source.kinds[index])
@@ -63,7 +63,7 @@ export default function (in: Input): Output {
                     delta: current.state.delta
                 }
                 const result = is_nominal ? nominal({
-                    tables: tables,
+                    tables,
                     origins: {
                         base: request.base_origins,
                         delta: current.state.origins
@@ -71,7 +71,7 @@ export default function (in: Input): Output {
                     origin: identity,
                     candidate: value
                 }) : structural({
-                    tables: tables,
+                    tables,
                     candidate: value
                 })
 
@@ -96,12 +96,12 @@ export default function (in: Input): Output {
                     const bound = result == 0 && is_nominal ? origin({
                         bindings: current.state.origins,
                         origin: identity,
-                        id: id
+                        id
                     }) : current.state.origins
                     const mapping = current.state.mapping.with(index, id)
 
                     current.state = {
-                        mapping: mapping,
+                        mapping,
                         delta: added,
                         origins: bound,
                         references: remapped,

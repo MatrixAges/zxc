@@ -55,10 +55,10 @@ export default function (in: Input): Output {
     const kind = tokenKind(in.kind)
 
     const token = {
-        kind: kind,
-        word: word,
+        kind,
+        word,
         symbol: in.state.symbol,
-        span: span,
+        span,
         line_break: in.state.tokens.length != 0 && in.state.line_break,
         dollar: in.state.dollar
     }

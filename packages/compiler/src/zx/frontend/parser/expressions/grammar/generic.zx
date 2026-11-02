@@ -44,7 +44,7 @@ export default function (in: Input): Output {
 
     const types = typeStep({
         state: in.types,
-        token: token
+        token
     })
 
     const index = types.control.index
@@ -59,17 +59,17 @@ export default function (in: Input): Output {
 
     const control = {
         ...in.control,
-        index: index,
-        root_index: root_index,
-        last_end: last_end
+        index,
+        root_index,
+        last_end
     }
 
     const state = {
         prepared: in.prepared,
         tree: in.tree,
-        types: types,
+        types,
         frames: in.frames,
-        control: control
+        control
     }
 
     if (failed) {
@@ -92,7 +92,7 @@ export default function (in: Input): Output {
 
     if (state.control.token.symbol != Symbol.Greater) {
         return fail({
-            state: state,
+            state,
             code: "syntax",
             message: ">"
         })

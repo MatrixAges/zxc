@@ -34,7 +34,7 @@ export default function (in: Input): Output {
                     expression: current.index
                 })
                 const collected = loop({
-                    locals: locals,
+                    locals,
                     symbols: current.symbols,
                     index: 0
                 }, {

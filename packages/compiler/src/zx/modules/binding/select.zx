@@ -48,7 +48,7 @@ export default function (in: Input): Output {
                 request.kind == ImportKind.TypeOnly => null,
                 _ => position({
                     names: request.members,
-                    name: name
+                    name
                 })
             }
             const constant: u64? =

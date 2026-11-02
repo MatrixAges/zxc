@@ -46,7 +46,7 @@ export default function (in: Input): Output {
     const result = header({
         table: in.table,
         metadata: in.metadata,
-        kind: kind,
+        kind,
         payload: integers.narrow(count)
     })
 

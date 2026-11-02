@@ -21,10 +21,10 @@ export default function (in: Input): Output {
         control: {
             ...in.control,
             phase: exporting ? Phase.Kind : Phase.Done,
-            index: index,
-            opening: opening,
-            opening_index: opening_index,
-            first: first,
+            index,
+            opening,
+            opening_index,
+            first,
             count: 0
         }
     }

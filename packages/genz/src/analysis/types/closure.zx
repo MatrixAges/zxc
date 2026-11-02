@@ -29,7 +29,7 @@ export default function (in: Input): Output {
                 current.boxed[index] = true
                 current.stack = current.stack.concat(children({
                     types: current.types,
-                    id: id,
+                    id,
                     deep: true
                 }))[0]
             }

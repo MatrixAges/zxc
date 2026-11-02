@@ -18,6 +18,6 @@ export default function (in: Input): Output {
     return {
         logical: in == BinaryOperator.LogicalAnd || in == BinaryOperator.LogicalOr,
         comparison: equality || ordered,
-        equality: equality
+        equality
     }
 }

@@ -29,7 +29,7 @@ export default function (in: Input): Output {
         prepared: in.prepared,
         tree: in.tree,
         types: in.types,
-        frames: frames,
+        frames,
         control: {
             phase: failed ? Phase.Done : Phase.BeginBinary,
             index: in.start,
@@ -43,7 +43,7 @@ export default function (in: Input): Output {
             family: Family.None,
             result: 0,
             primary_start: 0,
-            last_end: last_end,
+            last_end,
             template_head: 0,
             template_count: 0,
             template_maximum: 0,

@@ -81,7 +81,7 @@ export default function (in: Input): Output {
     }
 
     const target = row({
-        tables: tables,
+        tables,
         id: constructed.id
     })
 
@@ -93,7 +93,7 @@ export default function (in: Input): Output {
         fields: table.field_names,
         first: integers.widen(target.first),
         count: integers.widen(target.second),
-        indices: indices,
+        indices,
         index: 0
     }, {
         while: current => current.index < current.names.length,

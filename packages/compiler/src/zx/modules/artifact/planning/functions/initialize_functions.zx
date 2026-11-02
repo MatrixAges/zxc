@@ -14,8 +14,8 @@ export default function (in: Input): Output {
     const order: u32[] = map(in.inputs, value => integers.narrow(0))
 
     return {
-        mapping: mapping,
-        order: order,
+        mapping,
+        order,
         count: 0
     }
 }

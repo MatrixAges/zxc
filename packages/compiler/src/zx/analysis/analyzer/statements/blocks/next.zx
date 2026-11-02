@@ -46,7 +46,7 @@ export default function (in: Input): Output {
         return {
             blocks: in.blocks,
             done: false,
-            source: source,
+            source,
             diagnostic: {
                 code: "return_path",
                 message: "unreachable statement after a terminating branch or return",
@@ -64,10 +64,10 @@ export default function (in: Input): Output {
     return {
         blocks: {
             ...in.blocks,
-            frames: frames
+            frames
         },
         done: false,
-        source: source,
+        source,
         diagnostic: {
             code: "",
             message: "",

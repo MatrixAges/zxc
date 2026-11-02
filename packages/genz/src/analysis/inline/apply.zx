@@ -50,9 +50,9 @@ export default function (in: Input): Output {
         types: in.types,
         units: in.units,
         plan: in.plan,
-        void_type: void_type,
-        bool_type: bool_type,
-        results: results,
+        void_type,
+        bool_type,
+        results,
         index: 0
     }, {
         while: current => current.index < current.units.length,
@@ -71,7 +71,7 @@ export default function (in: Input): Output {
             } else {
                 const selected = selection({
                     types: current.types,
-                    unit: unit,
+                    unit,
                     costs: current.plan,
                     limit: inline_budget
                 })

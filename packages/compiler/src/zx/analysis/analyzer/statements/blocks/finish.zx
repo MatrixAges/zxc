@@ -42,7 +42,7 @@ export default function (in: Input): Output {
             active: in.local.active.splice(0, frame.active_mark, [])[1],
             refinement: {
                 ...in.local.refinement,
-                facts: facts
+                facts
             }
         },
         id: result.id

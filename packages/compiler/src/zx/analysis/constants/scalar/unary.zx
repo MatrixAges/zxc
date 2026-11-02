@@ -39,13 +39,13 @@ export default function (in: Input): Output {
 
     const limit = maximum({
         id: value.type_id,
-        negative: negative
+        negative
     })
 
     return {
         value: {
             ...value,
-            negative: negative
+            negative
         },
         message: value.integer > limit ? message_negation_overflow : ""
     }

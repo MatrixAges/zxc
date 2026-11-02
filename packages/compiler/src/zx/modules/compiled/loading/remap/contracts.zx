@@ -18,8 +18,8 @@ export default function (in: Input): Output {
 
     const result = loop({
         input: in,
-        symbols: symbols,
-        expressions: expressions,
+        symbols,
+        expressions,
         index: 0
     }, {
         while: current => current.index < current.input.source.kinds.length,

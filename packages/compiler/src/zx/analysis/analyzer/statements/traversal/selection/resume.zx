@@ -74,8 +74,8 @@ export default function (in: Input): Output {
 
     if (in.action == Action.Label) {
         const checked = label({
-            state: state,
-            value: value,
+            state,
+            value,
             previous: frame.labels,
             span: body.expression.source.tree.nodes[source.value - 1].span
         })
@@ -109,8 +109,8 @@ export default function (in: Input): Output {
                 ...body.expression,
                 state: checked
             },
-            blocks: blocks,
-            selections: selections,
+            blocks,
+            selections,
             actions: body.actions.push(Action.Case)[0],
             phase: Phase.Next
         }

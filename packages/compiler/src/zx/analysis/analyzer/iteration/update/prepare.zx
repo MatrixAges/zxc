@@ -41,7 +41,7 @@ export default function (in: Input): Output {
                 diagnostic: source.diagnostic
             },
             scopes: in.scopes,
-            places: places
+            places
         }
     }
 
@@ -50,7 +50,7 @@ export default function (in: Input): Output {
         scopes: in.scopes,
         frames: source.frames,
         index: source.frames.length,
-        places: places
+        places
     }, {
         while: current => current.index > 0 && current.state.diagnostic.message == "",
         next: current => {
@@ -78,7 +78,7 @@ export default function (in: Input): Output {
                 current.places[current.places.length - 1].value
             const initial: Place = {
                 value: frame.expression,
-                kind: kind,
+                kind,
                 index: 0
             }
 
@@ -102,7 +102,7 @@ export default function (in: Input): Output {
                 if (saved.diagnostic.message == "") {
                     const value = appendIndex({
                         table: saved.local.expressions,
-                        metadata: metadata,
+                        metadata,
                         target: parent,
                         index: saved.value
                     })
@@ -110,7 +110,7 @@ export default function (in: Input): Output {
                     current.state.local.expressions = value.table
                     current.places = current.places.splice(position, 1, [{
                         value: value.id,
-                        kind: kind,
+                        kind,
                         index: saved.value
                     }])[0]
                 }
@@ -124,17 +124,17 @@ export default function (in: Input): Output {
                     )]
                 const value = project({
                     table: expressions,
-                    metadata: metadata,
+                    metadata,
                     target: parent,
-                    index: index,
+                    index,
                     tuple: kind == ExpressionKind.TupleField
                 })
 
                 current.state.local.expressions = value.table
                 current.places = current.places.splice(position, 1, [{
                     value: value.id,
-                    kind: kind,
-                    index: index
+                    kind,
+                    index
                 }])[0]
             }
 

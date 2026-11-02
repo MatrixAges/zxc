@@ -34,7 +34,7 @@ export default function (in: Input): Output {
 
         const maximum = integerMaximum({
             id: in.type_id,
-            negative: negative
+            negative
         })
 
         const magnitude = negative ? expressions.negative_integers[in.payload] :

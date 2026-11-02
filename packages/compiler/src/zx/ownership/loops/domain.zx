@@ -27,10 +27,10 @@ export default function (in: Input): Output {
     const initialized = loop({
         reachable: empty,
         locals: empty,
-        count: count,
+        count,
         symbols: in.program.symbols.types.length,
-        condition: condition,
-        body: body
+        condition,
+        body
     }, {
         while: current =>
             current.reachable.length < current.count ||
@@ -74,14 +74,14 @@ export default function (in: Input): Output {
                 if (current.index == 0) {
                     current.locals = declarations({
                         expressions: current.expressions,
-                        expression: expression,
+                        expression,
                         locals: current.locals
                     })
                 }
 
                 const child = children({
                     expressions: current.expressions,
-                    expression: expression,
+                    expression,
                     index: current.index
                 })
 

@@ -23,7 +23,7 @@ export default function (in: Input): Output {
 
     const types = typeStep({
         state: in.expression.types,
-        token: token
+        token
     })
 
     const index = types.control.index
@@ -42,13 +42,13 @@ export default function (in: Input): Output {
     const expression = {
         prepared: in.expression.prepared,
         tree: in.expression.tree,
-        types: types,
+        types,
         frames: in.expression.frames,
         control: {
             ...in.expression.control,
-            index: index,
-            root_index: root_index,
-            last_end: last_end,
+            index,
+            root_index,
+            last_end,
             type_diagnostic: failed
         }
     }
@@ -60,17 +60,17 @@ export default function (in: Input): Output {
     }
 
     return {
-        expression: expression,
+        expression,
         tree: in.tree,
         frames: in.frames,
         suspended: in.suspended,
         frame: {
             ...in.frame,
-            annotation: annotation
+            annotation
         },
         control: {
             ...in.control,
-            phase: phase,
+            phase,
             expression_diagnostic: failed
         }
     }

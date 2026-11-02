@@ -28,7 +28,7 @@ export default function (in: Input): Output {
     }
 
     if (functions.stores[in.position].paths.length != 0 || !outputLeaf({
-        types: types,
+        types,
         id: functions.output_types[in.position]
     })) {
         return false
@@ -38,7 +38,7 @@ export default function (in: Input): Output {
 
     if (!functions.native_tuples[in.position]) {
         return inputLeaf({
-            types: types,
+            types,
             id: input,
             borrowed: in.borrowed
         })
@@ -51,7 +51,7 @@ export default function (in: Input): Output {
     }
 
     const result = loop({
-        types: types,
+        types,
         borrowed: in.borrowed,
         position: integers.widen(types.first[index]),
         end:

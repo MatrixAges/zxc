@@ -20,7 +20,7 @@ export type Output = u32?
 
         const initial: Work = {
             context: in.context,
-            frames: frames,
+            frames,
             result: null
         }
 
@@ -60,8 +60,8 @@ export type Output = u32?
                     if (type_id != null) {
                         current.result = project({
                             context: current.context,
-                            frame: frame,
-                            type_id: type_id
+                            frame,
+                            type_id
                         })
                     }
                 }

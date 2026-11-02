@@ -40,7 +40,7 @@ export default function (in: Input): Output {
     const loops = {
         heads: values,
         exits: values,
-        seen: seen,
+        seen,
         entries: values,
         boundaries: values,
         first: values,
@@ -51,7 +51,7 @@ export default function (in: Input): Output {
     }
 
     const result = loop({
-        loops: loops,
+        loops,
         program: in.program,
         references: in.references,
         returns: in.returns,
@@ -70,7 +70,7 @@ export default function (in: Input): Output {
             indices: [0]
         },
         value: 0,
-        values: values,
+        values,
         returned: State.Copy,
         stores_owned: true,
         failed: false,

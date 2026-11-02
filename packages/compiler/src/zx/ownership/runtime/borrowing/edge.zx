@@ -123,7 +123,7 @@ export default function (in: Input): Output {
             )
 
         return {
-            found: found,
+            found,
             expression: initial != null ? integers.widen(initial) : 0
         }
     }

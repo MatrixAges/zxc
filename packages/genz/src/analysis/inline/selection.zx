@@ -32,8 +32,8 @@ export default function (in: Input): Output {
 
     const walked = loop({
         types: in.types,
-        table: table,
-        control: control,
+        table,
+        control,
         blocks: start,
         finds: ids,
         marks: ids
@@ -87,7 +87,7 @@ export default function (in: Input): Output {
             const scanned = loop({
                 types: current.types,
                 table: current.table,
-                control: control,
+                control,
                 blocks: current.blocks,
                 finds: current.finds,
                 marks: current.marks,
@@ -135,7 +135,7 @@ export default function (in: Input): Output {
                             )[0]
 
                         const cases = loop({
-                            control: control,
+                            control,
                             finds: statements.finds,
                             blocks: statements.blocks,
                             item:
@@ -177,7 +177,7 @@ export default function (in: Input): Output {
                             )[0]
                     } else if (kind == StatementKind.Parallel) {
                         statements.finds = loop({
-                            control: control,
+                            control,
                             finds: statements.finds,
                             item:
                                 integers.widen(
@@ -230,7 +230,7 @@ export default function (in: Input): Output {
 
     const found = loop({
         types: in.types,
-        table: table,
+        table,
         finds: walked.finds,
         marks: walked.marks,
         seen: map(table.kinds, kind => false)
@@ -257,7 +257,7 @@ export default function (in: Input): Output {
                         if (symbol != null) {
                             current.marks = current.marks.concat(consume({
                                 types: current.types,
-                                table: table,
+                                table,
                                 symbol: integers.widen(symbol),
                                 value:
                                     integers.widen(
@@ -273,7 +273,7 @@ export default function (in: Input): Output {
 
                     current.marks = loop({
                         types: current.types,
-                        table: table,
+                        table,
                         marks: current.marks,
                         position: first,
                         end: first + count
@@ -309,8 +309,8 @@ export default function (in: Input): Output {
                         kind != ExpressionKind.Transform
                 ) {
                     current.finds = current.finds.concat(children({
-                        table: table,
-                        id: id
+                        table,
+                        id
                     }))[0]
                 }
             }
@@ -318,7 +318,7 @@ export default function (in: Input): Output {
     })
 
     const marked = loop({
-        table: table,
+        table,
         marks: found.marks,
         marked: map(table.kinds, kind => false)
     }, {
@@ -332,15 +332,15 @@ export default function (in: Input): Output {
                 current.marked[id] = true
                 current.marks = current.marks.concat(children({
                     table: current.table,
-                    id: id
+                    id
                 }))[0]
             }
         }
     }).marked
 
     const cost = loop({
-        table: table,
-        marked: marked,
+        table,
+        marked,
         costs: in.costs,
         limit: in.limit,
         position: 0,
@@ -370,6 +370,6 @@ export default function (in: Input): Output {
 
     return {
         selected: cost != 0 && cost <= in.limit,
-        marked: marked
+        marked
     }
 }

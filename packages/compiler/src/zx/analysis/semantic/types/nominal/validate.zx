@@ -19,7 +19,7 @@ export default function (in: Input): Output {
         origins: in.origins,
         names: in.names,
         index: 0,
-        count: count,
+        count,
         valid: true
     }, {
         while: current => current.valid && current.index < current.count,

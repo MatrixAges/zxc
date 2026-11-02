@@ -28,7 +28,7 @@ export default function (in: Input): Output {
             ...in.state,
             control: {
                 ...in.state.control,
-                index: index
+                index
             }
         }
     }
@@ -67,7 +67,7 @@ export default function (in: Input): Output {
             control: {
                 ...state.control,
                 type_only: true,
-                index: index
+                index
             }
         }
     }
@@ -80,7 +80,7 @@ export default function (in: Input): Output {
                 named: true,
                 wildcard: true,
                 phase: Phase.From,
-                index: index
+                index
             }
         }
     }
@@ -92,7 +92,7 @@ export default function (in: Input): Output {
                 ...state.control,
                 aliased: true,
                 phase: Phase.Alias,
-                index: index
+                index
             }
         }
     }
@@ -103,8 +103,8 @@ export default function (in: Input): Output {
                 !(state.control.exported && word == Keyword.Default)
         ) {
             return fail({
-                state: state,
-                span: span,
+                state,
+                span,
                 message: expected_alias
             })
         }
@@ -116,7 +116,7 @@ export default function (in: Input): Output {
             control: {
                 ...state.control,
                 phase: Phase.Separator,
-                index: index
+                index
             }
         }
     }
@@ -126,8 +126,8 @@ export default function (in: Input): Output {
             !state.control.aliased && !state.control.exported
     ) {
         return fail({
-            state: state,
-            span: span,
+            state,
+            span,
             message: default_alias
         })
     }
@@ -139,7 +139,7 @@ export default function (in: Input): Output {
                 ...state.control,
                 named: true,
                 phase: Phase.Name,
-                index: index
+                index
             }
         }
     }
@@ -152,7 +152,7 @@ export default function (in: Input): Output {
             control: {
                 ...state.control,
                 phase: Phase.From,
-                index: index
+                index
             }
         }
     }
@@ -163,8 +163,8 @@ export default function (in: Input): Output {
                 !(phase == Phase.Name && word == Keyword.Default)
         ) {
             return fail({
-                state: state,
-                span: span,
+                state,
+                span,
                 message: "expected an identifier"
             })
         }
@@ -174,15 +174,15 @@ export default function (in: Input): Output {
 
         return {
             ...state,
-            names: names,
+            names,
             sources: state.sources.push(span)[0],
             control: {
                 ...state.control,
                 phase: phase == Phase.Binding ? Phase.From : Phase.Separator,
-                count: count,
+                count,
                 aliased: false,
                 default_binding: word == Keyword.Default,
-                index: index
+                index
             }
         }
     }
@@ -190,8 +190,8 @@ export default function (in: Input): Output {
     if (phase == Phase.Separator) {
         if (symbol != Symbol.Comma) {
             return fail({
-                state: state,
-                span: span,
+                state,
+                span,
                 message: "expected }"
             })
         }
@@ -201,7 +201,7 @@ export default function (in: Input): Output {
             control: {
                 ...state.control,
                 phase: Phase.Name,
-                index: index
+                index
             }
         }
     }
@@ -209,8 +209,8 @@ export default function (in: Input): Output {
     if (phase == Phase.From) {
         if (word != Keyword.From) {
             return fail({
-                state: state,
-                span: span,
+                state,
+                span,
                 message: "expected from"
             })
         }
@@ -220,15 +220,15 @@ export default function (in: Input): Output {
             control: {
                 ...state.control,
                 phase: Phase.Path,
-                index: index
+                index
             }
         }
     }
 
     if (kind != Kind.String) {
         return fail({
-            state: state,
-            span: span,
+            state,
+            span,
             message: "import path must be a string literal"
         })
     }
@@ -239,7 +239,7 @@ export default function (in: Input): Output {
             ...state.control,
             phase: Phase.End,
             path: span,
-            index: index
+            index
         }
     }
 }

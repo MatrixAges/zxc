@@ -30,12 +30,12 @@ export default function (in: Input): Output {
 
     const state = {
         tree: in.state.tree,
-        frames: frames,
+        frames,
         control: in.state.control
     }
 
     return consume({
-        state: state,
+        state,
         phase: in.phase
     })
 }

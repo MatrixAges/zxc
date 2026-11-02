@@ -28,7 +28,7 @@ export default function (in: Input): Output {
         })
 
         return consume({
-            state: state,
+            state,
             phase: Phase.FieldColon
         })
     }
@@ -79,7 +79,7 @@ export default function (in: Input): Output {
     })
 
     return consume({
-        state: state,
+        state,
         phase: Phase.FieldOptional
     })
 }

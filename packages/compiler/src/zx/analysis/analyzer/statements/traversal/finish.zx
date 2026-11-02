@@ -19,7 +19,7 @@ export default function (in: Input): Output {
 
     if (state.diagnostic.message != "") {
         return {
-            state: state,
+            state,
             root: null
         }
     }
@@ -45,7 +45,7 @@ export default function (in: Input): Output {
     }
 
     return {
-        state: state,
+        state,
         root: in.body.value
     }
 }

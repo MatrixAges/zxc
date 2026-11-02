@@ -22,14 +22,14 @@ export default function (in: Input): Output {
 
     const selections = in.frames.selections.splice(index, 1, [{
         ...frame,
-        expected: expected
+        expected
     }])[0]
 
     return next({
         ...in,
         frames: {
             ...in.frames,
-            selections: selections
+            selections
         }
     })
 }

@@ -106,7 +106,7 @@ export default function (in: Input): Output {
         const initial: u32[] = subject == null ? [] : [subject]
 
         const values = loop({
-            table: table,
+            table,
             index: integers.widen(table.match_first[integers.widen(
                 payload
             )]),

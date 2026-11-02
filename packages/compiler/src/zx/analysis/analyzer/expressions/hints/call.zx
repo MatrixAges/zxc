@@ -29,7 +29,7 @@ export type Output = u32?
         }
 
         const root_name = readName({
-            source: source,
+            source,
             kind: NameKind.Expression,
             index: field ? callee.first : in.callee
         }).text
@@ -53,7 +53,7 @@ export type Output = u32?
         }
 
         const name = readName({
-            source: source,
+            source,
             kind: NameKind.Expression,
             index: in.callee
         }).text
@@ -63,8 +63,8 @@ export type Output = u32?
 
         const found = loop({
             imports: in.context.imports,
-            namespace: namespace,
-            name: name,
+            namespace,
+            name,
             index: 0,
             result: missing
         }, {

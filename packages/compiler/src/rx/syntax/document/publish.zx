@@ -15,7 +15,7 @@ export default function (in: Input): Output {
         return {
             source: in.source,
             tree: {
-                nodes: nodes,
+                nodes,
                 attributes: in.tree.attributes,
                 text: in.tree.text,
                 children: in.tree.children,
@@ -26,7 +26,7 @@ export default function (in: Input): Output {
             control: {
                 ...in.control,
                 phase: Phase.AfterRoot,
-                result: result
+                result
             }
         }
     }
@@ -44,10 +44,10 @@ export default function (in: Input): Output {
     return {
         source: in.source,
         tree: {
-            nodes: nodes,
+            nodes,
             attributes: in.tree.attributes,
             text: in.tree.text,
-            children: children,
+            children,
             parts: in.tree.parts
         },
         frames: popped[0],

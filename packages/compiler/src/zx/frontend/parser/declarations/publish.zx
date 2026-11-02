@@ -25,7 +25,7 @@ export default function (in: Input): Output {
     const declarations = in.declarations.push(declaration)[0]
 
     return {
-        declarations: declarations,
+        declarations,
         members: in.members,
         types: in.types,
         control: {

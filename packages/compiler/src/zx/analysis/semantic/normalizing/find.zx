@@ -46,14 +46,14 @@ export default function (in: Input): Output {
 
     const state = loop({
         input: in,
-        nominal: nominal,
-        direct: direct,
-        known: known,
-        mapped: mapped,
-        count: count,
+        nominal,
+        direct,
+        known,
+        mapped,
+        count,
         index: 0,
         status: Status.Missing,
-        id: id
+        id
     }, {
         while: current =>
             current.status == Status.Missing && current.index < current.count,
@@ -103,7 +103,7 @@ export default function (in: Input): Output {
                 const matches = equal({
                     source: current.input.source,
                     target: row({
-                        table: table,
+                        table,
                         index: local
                     }),
                     mapping: current.input.mapping

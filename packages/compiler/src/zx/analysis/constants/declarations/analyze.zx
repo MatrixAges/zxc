@@ -15,7 +15,7 @@ export default function (in: Input): Output {
     const initial: Result = {
         types: in.types,
         scope: imports,
-        first: first,
+        first,
         diagnostic: {
             code: "",
             message: "",
@@ -69,7 +69,7 @@ export default function (in: Input): Output {
             const evaluated = analyze({
                 bytes: current.input.bytes,
                 index: current.index,
-                constant: constant,
+                constant,
                 native: current.input.native,
                 types: current.types,
                 scope: current.names.length != 0 ? {
@@ -107,7 +107,7 @@ export default function (in: Input): Output {
             names: result.names,
             values: result.values
         } : null,
-        first: first,
+        first,
         diagnostic: result.diagnostic
     }
 }

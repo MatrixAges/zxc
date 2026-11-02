@@ -26,7 +26,7 @@ export default function (in: Input): Output {
 
     const limit = maximum({
         id: in.target.id,
-        negative: negative
+        negative
     })
 
     const invalid_sign = negative && !in.target.signed
@@ -52,7 +52,7 @@ export default function (in: Input): Output {
 
             return {
                 value: {
-                    magnitude: magnitude,
+                    magnitude,
                     negative: magnitude != 0 && negative
                 },
                 message: ""
@@ -68,7 +68,7 @@ export default function (in: Input): Output {
 
         return {
             value: {
-                magnitude: magnitude,
+                magnitude,
                 negative: magnitude != 0 && sign
             },
             message:
@@ -94,7 +94,7 @@ export default function (in: Input): Output {
 
         return {
             value: {
-                magnitude: magnitude,
+                magnitude,
                 negative: magnitude != 0 && negative
             },
             message: ""
@@ -115,7 +115,7 @@ export default function (in: Input): Output {
 
     return {
         value: {
-            magnitude: magnitude,
+            magnitude,
             negative: magnitude != 0 && (remainder ? left.negative : negative)
         },
         message:

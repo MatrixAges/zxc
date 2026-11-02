@@ -13,7 +13,7 @@ export type Output = LexerState
 
 export default function (in: Input): Output {
     return reduce(in.source, (state, byte) => tick({
-        byte: byte,
-        state: state
+        byte,
+        state
     }), in.state)
 }

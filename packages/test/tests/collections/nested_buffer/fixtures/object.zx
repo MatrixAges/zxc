@@ -7,7 +7,7 @@ export type Output = ObjectResult
 export default function (in: Input): Output {
     const generated: Columns = { values: [], offsets: [], labels: [] }
 
-    const state = loop({ input: in, generated: generated, direct: { values: in.prefix, marker: in.marker }, untouched: in.prefix, records: in.records, pairs: in.pairs, index: 0 }, {
+    const state = loop({ input: in, generated, direct: { values: in.prefix, marker: in.marker }, untouched: in.prefix, records: in.records, pairs: in.pairs, index: 0 }, {
         while: current => current.index < current.input.count,
         next: current => {
             current.generated = append({ columns: current.generated, value: current.index, label: current.input.label })

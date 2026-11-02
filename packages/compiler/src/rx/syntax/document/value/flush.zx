@@ -17,7 +17,7 @@ export default function (in: Input): Output {
     const parts = in.tree.parts.push({
         span: {
             start: in.control.text_start,
-            end: end
+            end
         },
         character: false,
         codepoint: 0,
@@ -31,7 +31,7 @@ export default function (in: Input): Output {
             attributes: in.tree.attributes,
             text: in.tree.text,
             children: in.tree.children,
-            parts: parts
+            parts
         },
         frames: in.frames,
         frame: in.frame,

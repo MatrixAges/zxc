@@ -38,7 +38,7 @@ export default function (in: Input): Output {
         return fail({
             state: in,
             offset: issue,
-            message: message
+            message
         })
     }
 
@@ -78,7 +78,7 @@ export default function (in: Input): Output {
             ...in.frame,
             mode: finished ? Mode.Interpolation : mode
         },
-        offset: offset,
+        offset,
         comment_start: in.comment_start,
         done: false,
         message: no_diagnostic,

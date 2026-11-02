@@ -25,8 +25,8 @@ export default function (in: Input): Output {
         boxed: in.boxed,
         prefix: encoding.encodeUtf8(value_layout_identity),
         index: 0,
-        selected: selected,
-        keys: keys
+        selected,
+        keys
     }, {
         while: current => current.index < current.types.kinds.length,
         next: current => {
@@ -43,7 +43,7 @@ export default function (in: Input): Output {
                 keys: current.keys,
                 bytes: current.prefix.push(flag)[0],
                 index: current.index,
-                chosen: chosen
+                chosen
             })
 
             current.selected = current.selected.push(chosen)[0]

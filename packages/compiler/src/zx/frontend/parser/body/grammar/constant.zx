@@ -51,7 +51,7 @@ export default function (in: Input): Output {
             frames: initial.frames,
             control: {
                 ...initial.control,
-                index: index
+                index
             }
         }
 
@@ -59,7 +59,7 @@ export default function (in: Input): Output {
             expression: {
                 prepared: in.expression.prepared,
                 tree: in.expression.tree,
-                types: types,
+                types,
                 frames: in.expression.frames,
                 control: in.expression.control
             },
@@ -71,7 +71,7 @@ export default function (in: Input): Output {
         }
 
         return consume({
-            state: state,
+            state,
             phase: Phase.Type
         })
     }
@@ -90,7 +90,7 @@ export default function (in: Input): Output {
         }
 
         return consume({
-            state: state,
+            state,
             phase: Phase.PatternName
         })
     }
@@ -140,7 +140,7 @@ export default function (in: Input): Output {
                 suspended: in.suspended,
                 frame: {
                     ...in.frame,
-                    name: name
+                    name
                 },
                 control: in.control
             },
@@ -160,20 +160,20 @@ export default function (in: Input): Output {
         statements: in.tree.statements,
         blocks: in.tree.blocks,
         items: in.tree.items,
-        names: names,
+        names,
         cases: in.tree.cases
     }
 
     return consume({
         state: {
             expression: in.expression,
-            tree: tree,
+            tree,
             frames: in.frames,
             suspended: in.suspended,
             frame: {
                 ...in.frame,
-                head: head,
-                count: count
+                head,
+                count
             },
             control: in.control
         },

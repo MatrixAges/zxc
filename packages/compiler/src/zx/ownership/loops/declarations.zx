@@ -30,9 +30,9 @@ export default function (in: Input): Output {
     const result = loop({
         expressions: in.expressions,
         locals: in.locals,
-        kind: kind,
-        payload: payload,
-        count: count,
+        kind,
+        payload,
+        count,
         index: 0
     }, {
         while: current => current.index < current.count,

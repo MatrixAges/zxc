@@ -21,8 +21,8 @@ export default function (in: Input): Output {
     const key = integers.widen(in.id) + 1
 
     const position = loop({
-        slots: slots,
-        key: key,
+        slots,
+        key,
         position: (key * 2654435761) % slots.length
     }, {
         while: current =>
@@ -40,6 +40,6 @@ export default function (in: Input): Output {
             slots: fresh ? slots.splice(position, 1, [key])[0] : slots,
             count: fresh ? in.seen.count + 1 : in.seen.count
         },
-        fresh: fresh
+        fresh
     }
 }

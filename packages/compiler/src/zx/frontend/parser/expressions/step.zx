@@ -45,7 +45,7 @@ export default function (in: Input): Output {
             state.control.token.symbol == Symbol.Semicolon
     ) {
         return fail({
-            state: state,
+            state,
             code: "syntax",
             message: "semicolons are not allowed in ZX"
         })
@@ -65,11 +65,11 @@ export default function (in: Input): Output {
         case Phase.LambdaArrow: return lambda(state)
         case Phase.LambdaBody: return lambda(state)
         case Phase.Callback: return state.control.hint.lambda ? startLambda({
-            state: state,
+            state,
             updating: true
         }) : beginBinary(state)
         case Phase.StateBlock: return fail({
-            state: state,
+            state,
             code: "contract",
             message: "state block requires the statement driver"
         })

@@ -58,7 +58,7 @@ export default function (in: Input): Output {
 
     return pure && slots({
         stores: functions.stores,
-        identity: identity,
+        identity,
         type_id: functions.output_types[index]
     })
 }

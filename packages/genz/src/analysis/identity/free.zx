@@ -21,7 +21,7 @@ export default function (in: Input): Output {
         expressions: in.functions.expressions,
         contracts: in.functions.contracts,
         pure: in.pure,
-        safe: safe,
+        safe,
         index: 0
     }, {
         while: current => current.index < current.expressions.length,

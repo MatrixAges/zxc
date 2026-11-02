@@ -36,27 +36,27 @@ export default function (in: Input): Output {
             end: in.expression.control.last_end
         },
         value: in.frame.first,
-        body: body,
+        body,
         previous: parent.head
     })[0]
 
     const tree = {
         statements: in.tree.statements,
-        blocks: blocks,
+        blocks,
         items: in.tree.items,
         names: in.tree.names,
-        cases: cases
+        cases
     }
 
     return {
         expression: in.expression,
-        tree: tree,
+        tree,
         frames: popped[0],
         suspended: in.suspended,
         frame: {
             ...parent,
-            head: head,
-            count: count
+            head,
+            count
         },
         control: {
             ...in.control,

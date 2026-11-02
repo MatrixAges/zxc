@@ -30,7 +30,7 @@ export default function (in: Input): Output {
 
     const binding = injected({
         local: state.local,
-        source: source,
+        source,
         node: in.node
     })
 
@@ -48,7 +48,7 @@ export default function (in: Input): Output {
             names: state.local.symbols.names,
             scope_floor: state.local.scope_floor,
             name: readName({
-                source: source,
+                source,
                 kind: NameKind.Expression,
                 index: in.node
             }).text
@@ -68,7 +68,7 @@ export default function (in: Input): Output {
                     delta: state.types.delta
                 },
                 type_id: state.local.symbols.types[integers.widen(symbol)],
-                symbol: symbol
+                symbol
             })
         }
     }
@@ -79,7 +79,7 @@ export default function (in: Input): Output {
             names: state.local.symbols.names,
             constants: source.constant_values,
             name: readName({
-                source: source,
+                source,
                 kind: NameKind.Expression,
                 index: in.node
             }).text
@@ -121,8 +121,8 @@ export default function (in: Input): Output {
             )
     ) {
         const type_id = enumOwner({
-            state: state,
-            source: source,
+            state,
+            source,
             node: node.first,
             expected: null
         })
@@ -140,13 +140,13 @@ export default function (in: Input): Output {
             source.tree.nodes[node.first].kind == ExprKind.Identifier
     ) {
         const owner = readName({
-            source: source,
+            source,
             kind: NameKind.Expression,
             index: node.first
         }).text
 
         const name = readName({
-            source: source,
+            source,
             kind: NameKind.Expression,
             index: in.node
         }).text
@@ -155,8 +155,8 @@ export default function (in: Input): Output {
 
         const found = loop({
             stores: state.local.stores,
-            owner: owner,
-            name: name,
+            owner,
+            name,
             index: 0,
             type_id: missing
         }, {

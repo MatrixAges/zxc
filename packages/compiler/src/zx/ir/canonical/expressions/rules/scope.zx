@@ -14,7 +14,7 @@ export default function (in: Input): Output {
     const expressions = context.expressions
 
     const result = loop({
-        context: context,
+        context,
         first: integers.widen(expressions.scope_first[in.payload]),
         count: integers.widen(expressions.scope_count[in.payload]),
         index: 0,
@@ -55,7 +55,7 @@ export default function (in: Input): Output {
     })
 
     return result.valid && typed({
-        expressions: expressions,
+        expressions,
         index: context.index,
         id: expressions.scope_results[in.payload],
         type_id: in.type_id

@@ -10,8 +10,8 @@ export default function (in: Input): Output {
         text: in,
         index: 0,
         remaining: 0,
-        low: low,
-        high: high,
+        low,
+        high,
         valid: true
     }, {
         while: current => current.valid && current.index < current.text.length,

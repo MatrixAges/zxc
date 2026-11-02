@@ -25,9 +25,9 @@ export default function (in: Input): Output {
     return {
         has_newline: true,
         start: in.start,
-        newline_start: newline_start,
+        newline_start,
         last_end: last + 1,
-        crlf: crlf,
+        crlf,
         separate: in.separate
     }
 }

@@ -54,7 +54,7 @@ export default function (in: Input): Output {
         memory: memo,
         symbols: in.domains.symbols,
         local_first: in.domains.first[in.expression],
-        locals: locals,
+        locals,
         roots: in.loops.roots,
         facts: in.exiting ? in.loops.outputs : in.loops.facts,
         first: in.loops.first[in.index],
@@ -77,8 +77,8 @@ export default function (in: Input): Output {
                     facts: current.memory.facts,
                     states: current.memory.states
                 },
-                id: id,
-                fact: fact
+                id,
+                fact
             })
 
             current.memory = {

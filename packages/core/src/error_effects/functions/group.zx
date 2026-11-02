@@ -24,7 +24,7 @@ export default function (in: Input): Output {
         components: in.components,
         groups: in.groups,
         component: in.index,
-        names: names,
+        names,
         unknown: false,
         index: in.components.first[in.index],
         end: in.components.first[in.index + 1]
@@ -91,7 +91,7 @@ export default function (in: Input): Output {
 
     if (collected.unknown) {
         return {
-            names: names,
+            names,
             unknown: true
         }
     }

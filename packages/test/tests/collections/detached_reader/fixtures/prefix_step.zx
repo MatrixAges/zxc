@@ -8,8 +8,8 @@ export type Output = State
 
 export default function (in: Input): Output {
     const selected = in.state.values.length <= 1 ? 0 : in.item % (in.state.values.length - 1)
-    const old = read({ values: in.state.values, selected: selected })
+    const old = read({ values: in.state.values, selected })
     const values = in.state.values.push({ value: old[selected].value + in.item + 1, label: old[selected].label })[0]
 
-    return { values: values, seen: in.state.seen + old[selected].value + old.length, label: old[selected].label, count: in.state.count + 1 }
+    return { values, seen: in.state.seen + old[selected].value + old.length, label: old[selected].label, count: in.state.count + 1 }
 }
