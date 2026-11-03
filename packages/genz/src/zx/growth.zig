@@ -9,12 +9,13 @@ const aggregate = @import("aggregate.zig");
 /// frontier; any other value copies, so older values never see the write. Only the values the uniqueness plan proves
 /// headered are checked, and a pop of a unique headered value hands the frontier back. A loop whose state must own a
 /// list renews it once on entry, copying the records on the way so the loop never writes into its initial value.
-pub fn declarations(self: *Lower, exported: bool) Lower.Error![4]node.Declaration {
+pub fn declarations(self: *Lower, exported: bool) Lower.Error![5]node.Declaration {
     var emitter = Emitter{ .lowering = self };
 
     return .{
         .{ .constant = .{ .name = "ZxHeader", .value = try emitter.header(), .exported = exported } },
         .{ .function = try emitter.reserve(exported) },
+        .{ .function = try emitter.allocate(exported) },
         .{ .function = try emitter.retract(exported) },
         .{ .function = try emitter.renew(exported) },
     };
@@ -127,6 +128,32 @@ const Emitter = struct {
             }, &.{}),
         });
 
+        return .{
+            .name = "zxReserve",
+            .parameters = try lowering.allocator.dupe(node.Field, &.{
+                .{ .name = "T", .value = try self.primitive(.type), .comptime_parameter = true },
+                .{ .name = "allocator", .value = try self.standard(&.{ "mem", "Allocator" }) },
+                .{ .name = "items", .value = try lowering.builder.expression(.{ .const_slice = element }) },
+                .{ .name = "count", .value = try self.primitive(.usize) },
+                .{ .name = "frontier", .value = try self.primitive(.bool), .comptime_parameter = true },
+            }),
+            .return_type = try lowering.builder.expression(.{ .error_union = .{ .payload = try lowering.builder.expression(.{ .mutable_slice = element }), .errors = &.{"OutOfMemory"} } }),
+            .body = try lowering.builder.statements(&.{
+                try lowering.builder.branch(try self.binary(.logical_and, try self.id("frontier"), try self.binary(.not_equal, try lowering.field(items, "len"), try lowering.builder.integer(0))), &.{.{ .scope = in_place }}, &.{}),
+                .{ .result = try lowering.call(try self.id("zxAllocate"), &.{ element, try self.id("allocator"), items, count }, true) },
+            }),
+            .exported = exported,
+            .inlined = true,
+        };
+    }
+
+    fn allocate(self: Emitter, exported: bool) Lower.Error!node.Function {
+        const lowering = self.lowering;
+        const items = try self.id("items");
+        const count = try self.id("count");
+        const element = try self.id("T");
+        const header_type = try self.headerType();
+        const header_size = try lowering.builtin(.sizeOf, &.{header_type});
         const alignment = try lowering.call(try lowering.field(try lowering.call(try self.standard(&.{ "mem", "Alignment", "of" }), &.{element}, false), "max"), &.{try lowering.call(try self.standard(&.{ "mem", "Alignment", "of" }), &.{header_type}, false)}, false);
         const offset = try lowering.call(try lowering.field(try lowering.call(try self.standard(&.{ "mem", "Alignment", "of" }), &.{element}, false), "forward"), &.{header_size}, false);
 
@@ -143,7 +170,6 @@ const Emitter = struct {
 
         const statements = [_]node.Statement{
             .{ .constant = .{ .name = "offset", .value = try lowering.builder.expression(.{ .comptime_value = offset }) } },
-            try lowering.builder.branch(try self.binary(.logical_and, try self.id("frontier"), try self.binary(.not_equal, try lowering.field(items, "len"), try lowering.builder.integer(0))), &.{.{ .scope = in_place }}, &.{}),
             .{ .constant = .{ .name = "capacity", .type_expr = try self.primitive(.usize), .value = capacity } },
             .{ .constant = .{ .name = "bytes", .value = bytes } },
             .{ .constant = .{ .name = "data", .type_expr = try lowering.builder.expression(.{ .many_pointer = element }), .value = try lowering.builtin(.ptrCast, &.{try lowering.builtin(.alignCast, &.{start})}) } },
@@ -154,13 +180,12 @@ const Emitter = struct {
         };
 
         return .{
-            .name = "zxReserve",
+            .name = "zxAllocate",
             .parameters = try lowering.allocator.dupe(node.Field, &.{
                 .{ .name = "T", .value = try self.primitive(.type), .comptime_parameter = true },
                 .{ .name = "allocator", .value = try self.standard(&.{ "mem", "Allocator" }) },
                 .{ .name = "items", .value = try lowering.builder.expression(.{ .const_slice = element }) },
                 .{ .name = "count", .value = try self.primitive(.usize) },
-                .{ .name = "frontier", .value = try self.primitive(.bool), .comptime_parameter = true },
             }),
             .return_type = try lowering.builder.expression(.{ .error_union = .{ .payload = try lowering.builder.expression(.{ .mutable_slice = element }), .errors = &.{"OutOfMemory"} } }),
             .body = try lowering.builder.statements(&statements),
