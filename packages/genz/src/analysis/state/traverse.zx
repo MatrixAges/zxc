@@ -1,5 +1,6 @@
 import integers from "std:integer"
-import { map } from "std:utils"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
 
 import children from "../types/children"
 import closure from "../types/closure"
@@ -9,33 +10,52 @@ import type { Table } from "core/type_table/model"
 export type Input = {
     types: Table,
     boxed: bool[],
+    seen: u64[],
+    generation: u64,
     root: u32
 }
 
-export type Output = bool[]
+export type Output = {
+    boxed: bool[],
+    seen: u64[]
+}
 
 export default function (in: Input): Output {
-    const seen = map(in.types.kinds, kind => false)
+    const root = integers.widen(in.root)
+    const target = kind(in.types.kinds[root])
+
+    if (
+        in.boxed[root] || (
+            target != Kind.Object && target != Kind.Tuple && target != Kind.Optional
+        )
+    ) {
+        return {
+            boxed: in.boxed,
+            seen: in.seen
+        }
+    }
+
     const stack: u32[] = [in.root]
 
     const result = loop({
         types: in.types,
         boxed: in.boxed,
-        seen,
+        seen: in.seen,
+        generation: in.generation,
         stack
     }, {
         while: current => current.stack.length != 0,
         next: current => {
             const id = current.stack[current.stack.length - 1]
             const index = integers.widen(id)
-            const kind = current.types.kinds[index]
+            const target = kind(current.types.kinds[index])
 
             current.stack = current.stack.pop()[0]
 
             if (!current.boxed[index]) {
-                const aggregate = kind == 1 || kind == 4
+                const aggregate = target == Kind.Object || target == Kind.Tuple
 
-                if (aggregate && current.seen[index]) {
+                if (aggregate && current.seen[index] == current.generation) {
                     current.boxed = closure({
                         types: current.types,
                         boxed: current.boxed,
@@ -43,7 +63,7 @@ export default function (in: Input): Output {
                     })
                 } else {
                     if (aggregate) {
-                        current.seen[index] = true
+                        current.seen[index] = current.generation
                     }
 
                     const next = children({
@@ -71,5 +91,8 @@ export default function (in: Input): Output {
         }
     })
 
-    return result.boxed
+    return {
+        boxed: result.boxed,
+        seen: result.seen
+    }
 }

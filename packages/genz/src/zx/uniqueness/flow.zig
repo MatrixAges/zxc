@@ -210,6 +210,8 @@ const Layer = struct {
             };
         }
 
+        if (held.len == 0) return;
+
         defer _ = walker.bodies.reset(.retain_capacity);
         const body = try Body.create(walker.bodies.allocator(), function, self.slots);
         const walk = &walker.walk.?;
@@ -233,9 +235,9 @@ fn settle(self: Self, allocator: std.mem.Allocator, program: ir.Program, slots: 
     for (0..count) |index| {
         const function = program.functions.at(index);
 
-        bodies[index] = if (function.external == null) try Body.create(allocator, function, slots) else null;
+        bodies[index] = if (function.external == null and self.held[index].len != 0) try Body.create(allocator, function, slots) else null;
 
-        if (function.external != null) continue;
+        if (bodies[index] == null) continue;
 
         for (function.expressions.kinds, 0..) |_, expression| {
             const callee = function.expressions.callee(expression) orelse continue;
@@ -313,7 +315,7 @@ const Body = struct {
             }
         }
 
-        return .{ .function = function, .order = try Order.create(allocator, function.symbols, function.expressions, function.body.block()), .elements = elements, .first = first };
+        return .{ .function = function, .order = try Order.create(allocator, allocator, function.symbols, function.expressions, function.body.block()), .elements = elements, .first = first };
     }
 };
 
@@ -329,7 +331,7 @@ const Walk = struct {
     /// Marks the input slots the output may hold; whether any was new.
     fn held(self: *Walk, body: *const Body, reached: []bool) std.mem.Allocator.Error!bool {
         try self.begin(body, true);
-        for (body.order.results.items) |result| try self.whole(result);
+        for (body.order.results) |result| try self.whole(result);
 
         return self.finish(reached);
     }
@@ -354,7 +356,7 @@ const Walk = struct {
         for (0..expressions.count()) |index| {
             const id: ir.ExprId = @fromBackingInt(@intCast(index));
 
-            if (body.order.time[index] == Order.none) continue;
+            if (body.order.timeAt(index) == Order.none) continue;
 
             switch (expressions.get(id).value) {
                 .list_update => |update| try self.push(update.target, 0),
@@ -410,7 +412,7 @@ const Walk = struct {
         const value = expressions.get(id);
 
         switch (value.value) {
-            .reference => |symbol| switch (self.body.order.defs[@backingInt(symbol)]) {
+            .reference => |symbol| switch (self.body.order.definition(symbol)) {
                 .input => if (slot < reached.len and !reached[slot]) {
                     reached[slot] = true;
                     grew.* = true;

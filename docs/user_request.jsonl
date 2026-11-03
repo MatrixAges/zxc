@@ -408,3 +408,5 @@
 {"time": "2026-11-02 08:44:45", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "编译器自举与语法规范", "source": "user", "text": "我发现packages下的utils包没必要存在 移除掉"}
 {"time": "2026-11-02 08:53:31", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "编译器自举与语法规范", "source": "user", "text": "standard包怎么在compiler下 应该移动到packages下 并改名为std"}
 {"time": "2026-11-02 09:02:04", "estimated": true, "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "编译器自举与语法规范", "source": "user", "text": "build和bootstrap 为啥放在compiler非src目录 为啥不放packages下", "note": "架构提问；尚未明确要求移动 build/bootstrap。"}
+{"time": "2026-11-03 02:08:24", "estimated": true, "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "user", "text": "0.02s CPU 0.1s内的时间都可以接受", "note": "接受当前 0.02 秒 CPU 差异和 0.1 秒以内的耗时差异；按该容差收口，避免继续为微小差异绕圈。"}
+{"time": "2026-11-03 02:10:27", "estimated": true, "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "user", "text": "对于不断增长的CPU时间时 也需要警惕退化 当忽略过多0.1s 以下的之后 不断累积", "note": "容差不能逐阶段累加或随提交重置；同时跟踪固定基线的累计 CPU/耗时变化与持续增长趋势。"}

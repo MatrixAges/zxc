@@ -18,8 +18,8 @@ pub fn lower(self: *Lower, id: ir.ExprId) Lower.Error!node.ExpressionId {
     try intrinsics.failIf(self, &body, try intrinsics.binary(self, .greater_equal, index, try self.field(source, "len")), "IndexOutOfBounds");
 
     const evaluated = try aggregate.bind(self, &body, try self.expr(update.value));
-    const value = if (self.state_active) try @import("state_value/conversion.zig").convert(self, &body, self.program.expression(update.value).type_id, evaluated, .pointer) else evaluated;
-    const element = try @import("types.zig").get(self, self.abi_types, self.program.typeOf(type_id).list);
+    const value = try @import("state_value/elements.zig").write(self, &body, type_id, evaluated);
+    const element = try @import("state_value/elements.zig").typeExpr(self, type_id);
     const flags = self.plan.get(id);
 
     const buffer = if (flags.in_place)

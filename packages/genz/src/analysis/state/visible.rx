@@ -1,0 +1,33 @@
+<Module>
+    <Type from="../model" as="Model" />
+
+    <Args
+        in={{
+            program: Model.Program,
+            roots: u32[],
+            local: bool[],
+            boxed: bool[]
+        }}
+        out={bool[]}
+    />
+
+    <Call
+        fn="boundaries"
+        in={{
+            program: $in.program,
+            roots: $in.roots,
+            local: $in.local
+        }}
+    />
+
+    <Call
+        fn="../types/closure"
+        in={{
+            types: $in.program.types,
+            boxed: $in.boxed,
+            roots: $ctx.boundaries
+        }}
+    />
+
+    <Return value={$ctx.closure} />
+</Module>

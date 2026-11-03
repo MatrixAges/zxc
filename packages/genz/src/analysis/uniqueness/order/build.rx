@@ -1,0 +1,35 @@
+<Module>
+    <Type from="./model" as="Order" />
+    <Type from="./plan" as="Published" />
+
+    <Args in={Order.Input} out={Published.Plan} />
+
+    <Call fn="../../../../core/control_table/terminates" in={$in.control} />
+    <Call fn="initial" in={$in} />
+
+    <Call
+        fn="walk"
+        in={{
+            source: $in,
+            returns: $ctx.terminates,
+            state: $ctx.initial
+        }}
+    />
+
+    <Call
+        fn="nodes"
+        in={{
+            kinds: $in.expressions.kinds,
+            values: $ctx.walk.completed
+        }}
+    />
+
+    <Call fn="publish" in={$ctx.walk.graph} />
+
+    <Return
+        value={{
+            nodes: $ctx.nodes,
+            graph: $ctx.publish
+        }}
+    />
+</Module>

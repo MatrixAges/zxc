@@ -7,7 +7,7 @@ const types = @import("../types.zig");
 
 pub fn convert(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.TypeId, value: node.ExpressionId, input: bool) Lower.Error!node.ExpressionId {
     if (!self.state_plan.represented(self.program, id)) return value;
-    if (self.program.typeOf(id) == .list) return if (input) @import("list.zig").borrowed(self, id, value) else self.field(value, "items");
+    if (self.program.typeOf(id) == .list) return @import("elements.zig").convert(self, body, id, value, input);
 
     const private = try types.get(self, self.state_types, id);
     const public = try types.get(self, self.view_types, id);

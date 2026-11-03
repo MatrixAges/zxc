@@ -1,0 +1,127 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+
+import { Action } from "./model"
+import push from "./push"
+
+import type { Input as Source, Stack } from "./model"
+
+export type Input = {
+    source: Source,
+    stack: Stack,
+    action: Action,
+    index: u32,
+    fork: u32
+}
+
+export type Output = Stack
+
+export default function (in: Input): Output {
+    const control = in.source.control
+    const table = in.source.expressions
+    const index = integers.widen(in.index)
+
+    if (in.action == Action.Branch) {
+        const payload = index
+
+        const pending = push({
+            stack: in.stack,
+            event: {
+                action: Action.BlockArm,
+                first: max_u32,
+                second: in.fork,
+                third: integers.narrow(1),
+                fourth: control.branch_no[payload]
+            }
+        })
+
+        return push({
+            stack: pending,
+            event: {
+                action: Action.BlockArm,
+                first: max_u32,
+                second: in.fork,
+                third: integers.narrow(0),
+                fourth: control.branch_yes[payload]
+            }
+        })
+    }
+
+    if (in.action == Action.Conditional) {
+        const payload = integers.widen(table.payloads[index])
+
+        const pending = push({
+            stack: in.stack,
+            event: {
+                action: Action.ValueArm,
+                first: in.index,
+                second: in.fork,
+                third: integers.narrow(1),
+                fourth: table.conditional_no[payload]
+            }
+        })
+
+        return push({
+            stack: pending,
+            event: {
+                action: Action.ValueArm,
+                first: in.index,
+                second: in.fork,
+                third: integers.narrow(0),
+                fourth: table.conditional_yes[payload]
+            }
+        })
+    }
+
+    const selection = in.action == Action.Switch
+    const payload = selection ? index : integers.widen(table.payloads[index])
+
+    const first = integers.widen(
+        selection ? control.selection_first[payload] :
+            table.match_first[payload]
+    )
+
+    const count = selection ? control.selection_count[payload] :
+        table.match_count[payload]
+
+    const stack = selection ? in.stack : push({
+        stack: in.stack,
+        event: {
+            action: Action.ValueArm,
+            first: in.index,
+            second: in.fork,
+            third: count,
+            fourth: table.match_fallbacks[payload]
+        }
+    })
+
+    return loop({
+        source: in,
+        stack,
+        first,
+        selection,
+        index: integers.widen(count)
+    }, {
+        while: current => current.index > 0,
+        next: current => {
+            current.index -= 1
+
+            const source = current.source
+            const position = current.first + current.index
+            const child = current.selection ?
+                source.source.control.case_bodies[position] :
+                source.source.expressions.match_results[position]
+
+            current.stack = push({
+                stack: current.stack,
+                event: {
+                    action: current.selection ? Action.BlockArm : Action.ValueArm,
+                    first: current.selection ? max_u32 : source.index,
+                    second: source.fork,
+                    third: integers.narrow(current.index),
+                    fourth: child
+                }
+            })
+        }
+    }).stack
+}

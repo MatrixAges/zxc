@@ -1,0 +1,35 @@
+import { map } from "std:utils"
+
+import type { Graph as Input } from "./model"
+import type { Graph as Output } from "./plan"
+
+export default function (in: Input): Output {
+    return {
+        regions: {
+            parent: map(in.regions, row => row.parent),
+            fork: map(in.regions, row => row.fork),
+            arm: map(in.regions, row => row.arm),
+            depth: map(in.regions, row => row.depth),
+            returns: map(in.regions, row => row.returns)
+        },
+        edges: {
+            parent: map(in.edges, row => row.parent),
+            child: map(in.edges, row => row.child),
+            role: map(in.edges, row => row.role),
+            index: map(in.edges, row => row.index),
+            region: map(in.edges, row => row.region)
+        },
+        definitions: {
+            kind: map(in.definitions, row => row.kind),
+            value: map(in.definitions, row => row.value),
+            index: map(in.definitions, row => row.index),
+            repeated: map(in.definitions, row => row.repeated)
+        },
+        results: in.results,
+        repeated: {
+            owner: map(in.repeated, row => row.owner),
+            parent: map(in.repeated, row => row.parent),
+            concurrent: map(in.repeated, row => row.concurrent)
+        }
+    }
+}

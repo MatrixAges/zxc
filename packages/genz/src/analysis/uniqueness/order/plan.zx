@@ -1,0 +1,50 @@
+import type { Definition, Role } from "./model"
+
+export type Nodes = {
+    time: u32[],
+    finish: u32[],
+    region: u32[],
+    repeated: u32[]
+}
+
+export type Regions = {
+    parent: u32[],
+    fork: u32[],
+    arm: u32[],
+    depth: u32[],
+    returns: bool[]
+}
+
+export type Edges = {
+    parent: u32[],
+    child: u32[],
+    role: Role[],
+    index: u32[],
+    region: u32[]
+}
+
+export type Definitions = {
+    kind: Definition[],
+    value: u32[],
+    index: u32[],
+    repeated: u32[]
+}
+
+export type Repetitions = {
+    owner: u32[],
+    parent: u32[],
+    concurrent: bool[]
+}
+
+export type Graph = {
+    regions: Regions,
+    edges: Edges,
+    definitions: Definitions,
+    results: u32[],
+    repeated: Repetitions
+}
+
+export type Plan = {
+    nodes: Nodes,
+    graph: Graph
+}

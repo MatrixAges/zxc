@@ -73,11 +73,11 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocat
 
         var hash = @import("zx").Sha256.init(.{});
 
-        hash.update("state.value.origin.v2");
+        hash.update("state.value.origin.v3");
         hash.update(&.{@intFromBool(selected[index])});
 
         switch (value) {
-            .optional => |child| hash.update(&keys[@backingInt(child)]),
+            .optional, .list => |child| hash.update(&keys[@backingInt(child)]),
             .object => |fields| if (selected[index]) {
                 for (0..fields.len) |position| hash.update(&keys[@backingInt(fields.at(position).type_id)]);
             },

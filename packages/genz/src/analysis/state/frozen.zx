@@ -1,5 +1,7 @@
 import integers from "std:integer"
 import { map } from "std:utils"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
 
 import closure from "../types/closure"
 import written from "./written"
@@ -48,7 +50,7 @@ export default function (in: Input): Output {
         while: current => current.index < current.types.kinds.length,
         next: current => {
             if (
-                current.types.kinds[current.index] == 1 &&
+                kind(current.types.kinds[current.index]) == Kind.Object &&
                     !current.boxed[current.index] && !current.written[current.index]
             ) {
                 current.roots =

@@ -1,0 +1,44 @@
+import integers from "std:integer"
+import { map } from "std:utils"
+import { max_u32 } from "core/const"
+
+import type { ExpressionKind } from "core/expression_table/kinds"
+import type { Node } from "./model"
+import type { Nodes } from "./plan"
+
+export type Input = {
+    kinds: ExpressionKind[],
+    values: Node[]
+}
+
+export type Output = Nodes
+
+export default function (in: Input): Output {
+    const time: u32[] = map(in.kinds, kind => max_u32)
+    const finish: u32[] = map(in.kinds, kind => max_u32)
+    const region: u32[] = map(in.kinds, kind => 0)
+    const repeated: u32[] = map(in.kinds, kind => max_u32)
+
+    const result = loop({
+        values: in.values,
+        time,
+        finish,
+        region,
+        repeated,
+        index: 0
+    }, {
+        while: current => current.index < current.values.length,
+        next: current => {
+            const value = current.values[current.index]
+            const id = integers.widen(value.id)
+
+            current.time[id] = value.time
+            current.finish[id] = value.finish
+            current.region[id] = value.region
+            current.repeated[id] = value.repeated
+            current.index += 1
+        }
+    })
+
+    return result.pick(["time", "finish", "region", "repeated"])
+}

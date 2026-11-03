@@ -271,12 +271,11 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!node.ExpressionId {
             const indexed = try @import("intrinsics.zig").index(self, try @import("state_value/list.zig").expression(self, item.target), try self.expr(item.index));
 
             if (!self.state_active or !self.state_plan.represented(self.program, value.type_id)) break :blk indexed;
-            if (self.program.typeOf(value.type_id) == .list) break :blk @import("state_value/list.zig").borrowed(self, value.type_id, indexed);
 
             var body: std.ArrayList(node.Statement) = .empty;
-            const source = try @import("aggregate.zig").bind(self, &body, indexed);
+            const converted = try @import("state_value/elements.zig").read(self, &body, self.program.expression(item.target).type_id, indexed);
 
-            break :blk @import("aggregate.zig").finish(self, &body, try @import("state_value/conversion.zig").convert(self, &body, value.type_id, source, .value));
+            break :blk @import("aggregate.zig").finish(self, &body, converted);
         },
         .length => |child| self.cast(value_type, try self.field(try @import("state_value/list.zig").expression(self, child), "len")),
         .unary => |unary| self.builder.expression(.{ .unary = .{ .operator = if (unary.operator == .not) .not else .negate, .operand = try self.expr(unary.operand) } }),

@@ -20,7 +20,7 @@ pub const Facts = struct {
 };
 
 /// Borrows the program columns for the generated facts and copies the results into the caller allocator.
-pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!Facts {
+pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, program: ir.Program, exported: []const ir.FunctionId) std.mem.Allocator.Error!Facts {
     var scratch = std.heap.ArenaAllocator.init(workspace);
 
     defer scratch.deinit();
@@ -51,6 +51,7 @@ pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, progr
 
     const view = Program{
         .types = &types,
+        .symbols = columns.pointer(@FieldType(Program, "symbols"), &program.symbols),
         .functions = &functions,
         .stores = columns.pointer(@FieldType(Program, "stores"), &program.stores),
         .expressions = columns.pointer(@FieldType(Program, "expressions"), &program.expressions),
@@ -61,7 +62,19 @@ pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, progr
     };
 
     const error_sources = Errors{ .names = names, .unknown = unknown, .callees = callees };
-    const input = Input{ .program = &view, .errors = &error_sources };
+    const boundaries = try temporary.alloc(u32, 2 + program.exports.len + exported.len * 2);
+    boundaries[0] = @backingInt(program.input_type);
+    boundaries[1] = @backingInt(program.output_type);
+
+    for (program.exports, boundaries[2..][0..program.exports.len]) |item, *target| target.* = @backingInt(item.type_id);
+
+    for (exported, 0..) |id, index| {
+        const function = program.functions.at(@backingInt(id));
+        boundaries[2 + program.exports.len + index * 2] = @backingInt(function.input_type);
+        boundaries[3 + program.exports.len + index * 2] = @backingInt(function.output_type);
+    }
+
+    const input = Input{ .program = &view, .errors = &error_sources, .boundaries = boundaries };
 
     const output = generated.execute(&scratch, &input) catch |err| switch (err) {
         error.OutOfMemory => return error.OutOfMemory,

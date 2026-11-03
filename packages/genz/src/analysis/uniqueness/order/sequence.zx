@@ -1,0 +1,53 @@
+import integers from "std:integer"
+
+import { Action } from "./model"
+import push from "./push"
+
+import type { Role, Stack } from "./model"
+
+export type Input = {
+    stack: Stack,
+    parent: u32,
+    values: u32[],
+    first: u32,
+    count: u32,
+    role: Role,
+    positions: bool,
+    indices: u32[],
+    repeated: bool
+}
+
+export type Output = Stack
+
+export default function (in: Input): Output {
+    return loop({
+        source: in,
+        stack: in.stack,
+        index: integers.widen(in.count)
+    }, {
+        while: current => current.index > 0,
+        next: current => {
+            current.index -= 1
+
+            const source = current.source
+            const index = integers.widen(source.first) + current.index
+            const indices = source.indices
+            const position = match {
+                indices.length != 0 => indices[index],
+                source.positions => integers.narrow(current.index),
+                _ => integers.narrow(0)
+            }
+
+            current.stack = push({
+                stack: current.stack,
+                event: {
+                    action: source.repeated ? Action.Repeat : Action.Operand,
+                    first: source.parent,
+                    second: source.values[index],
+                    third: position,
+                    role: source.role
+                }
+            })
+        }
+    }).stack
+}

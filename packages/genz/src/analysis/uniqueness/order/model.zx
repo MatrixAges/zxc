@@ -1,0 +1,124 @@
+import type { Control } from "core/control_table/model"
+import type { Expressions } from "core/expression_table/model"
+
+export enum Role { observe, use, argument, evaluation, flow, member, bind }
+
+export enum Definition { Unknown, Input, Value, Part, Carried, Condition, Element }
+
+export enum Action {
+    Block,
+    Operand,
+    Finish,
+    Define,
+    Parts,
+    Result,
+    Scope,
+    Transform,
+    Iteration,
+    Repeat,
+    RestoreLoop,
+    RestoreRegion,
+    Branch,
+    Switch,
+    Conditional,
+    Match,
+    BlockArm,
+    ValueArm
+}
+
+export type Node = {
+    id: u32,
+    time: u32,
+    finish: u32,
+    region: u32,
+    repeated: u32
+}
+
+export type Region = {
+    parent: u32,
+    fork: u32,
+    arm: u32,
+    depth: u32,
+    returns: bool
+}
+
+export type Edge = {
+    parent: u32,
+    child: u32,
+    role: Role,
+    index: u32,
+    region: u32
+}
+
+export type Defined = {
+    kind: Definition,
+    value: u32,
+    index: u32,
+    repeated: u32
+}
+
+export type Repetition = {
+    owner: u32,
+    parent: u32,
+    concurrent: bool
+}
+
+export type Graph = {
+    regions: Region[],
+    edges: Edge[],
+    definitions: Defined[],
+    results: u32[],
+    repeated: Repetition[]
+}
+
+export type Trace = {
+    completed: Node[],
+    graph: Graph
+}
+
+export type Frame = {
+    parent: u32,
+    action: Action,
+    first: u32,
+    second: u32,
+    third: u32,
+    fourth: u32,
+    role: Role
+}
+
+export type Stack = {
+    top: u32,
+    nodes: Frame[]
+}
+
+export type Event = {
+    action: Action,
+    first?: u32,
+    second?: u32,
+    third?: u32,
+    fourth?: u32,
+    role?: Role
+}
+
+export type State = {
+    graph: Graph,
+    stack: Stack,
+    clock: u32,
+    forks: u32,
+    region: u32,
+    repeated: u32
+}
+
+export type Input = {
+    expressions: Expressions,
+    control: Control,
+    symbols: u64,
+    first: u32,
+    count: u32
+}
+
+export type Walk = {
+    source: Input,
+    returns: bool[],
+    state: State
+}

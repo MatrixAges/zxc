@@ -1,0 +1,58 @@
+import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import type { Program } from "../model"
+
+export type Input = {
+    program: Program,
+    roots: u32[],
+    local: bool[]
+}
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    return loop({
+        types: in.program.types,
+        functions: in.program.functions,
+        local: in.local,
+        roots: in.roots,
+        index: 0
+    }, {
+        while: current => current.index < current.functions.output_types.length,
+        next: current => {
+            const index = current.index
+            const functions = current.functions
+
+            const output = kind(
+                current.types.kinds[
+                    integers.widen(
+                        functions.output_types[index]
+                    )
+                ]
+            )
+            const scalar = output == Kind.Scalar || output == Kind.Enumeration ||
+                output == Kind.ErrorSet
+
+            if (scalar) {
+                current.roots =
+                    current.roots.concat(functions.expressions[index].types)[0]
+            }
+
+            if (
+                scalar || !current.local[index] ||
+                    functions.native_modules[index] != null
+            ) {
+                current.roots = current.roots.concat(
+                    [
+                        functions.input_types[index],
+                        functions.output_types[index]
+                    ]
+                )[0]
+            }
+
+            current.index += 1
+        }
+    }).roots
+}

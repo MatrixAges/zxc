@@ -3,11 +3,8 @@ import { map } from "std:utils"
 import kind from "core/type_table/kind"
 import { Kind } from "core/type_table/model"
 
-import body from "../calls/body"
-import parallel from "../control/parallel"
 import { Property } from "../state/queries/model"
 import query from "../state/queries/read"
-import boundary from "./boundary"
 import purity from "./pure"
 
 import type { Program, Values } from "../model"
@@ -15,19 +12,19 @@ import type { Query } from "../state/queries/model"
 
 export type Input = {
     program: Program,
-    queries: Query[]
+    queries: Query[],
+    local: bool[]
 }
 
 export type Output = Values
 
 export default function (in: Input): Output {
-    const local = map(in.program.functions.output_types, id => false)
     const values = map(in.program.functions.output_types, id => false)
 
     const result = loop({
         program: in.program,
         queries: in.queries,
-        local,
+        local: in.local,
         values,
         index: 0
     }, {
@@ -36,28 +33,6 @@ export default function (in: Input): Output {
         next: current => {
             const index = current.index
             const functions = current.program.functions
-
-            if (functions.native_modules[index] != null) {
-                current.local[index] = boundary({
-                    program: current.program,
-                    position: index,
-                    borrowed: true
-                })
-            } else {
-                const plain =
-                    functions.stores[index].paths.length == 0 && !parallel({
-                        control: functions.control[index],
-                        root: functions.roots[index]
-                    })
-
-                current.local[index] = plain && body({
-                    expressions: functions.expressions[index],
-                    contracts: functions.contracts[index],
-                    allowed: current.local,
-                    limit: index
-                })
-            }
-
             const output = functions.output_types[index]
 
             const object =

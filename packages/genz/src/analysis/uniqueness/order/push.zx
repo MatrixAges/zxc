@@ -1,0 +1,27 @@
+import integers from "std:integer"
+
+import { Role } from "./model"
+
+import type { Event, Stack } from "./model"
+
+export type Input = {
+    stack: Stack,
+    event: Event
+}
+
+export type Output = Stack
+
+export default function (in: Input): Output {
+    return {
+        top: integers.narrow(in.stack.nodes.length),
+        nodes: in.stack.nodes.push({
+            parent: in.stack.top,
+            action: in.event.action,
+            first: in.event.first ?? 0,
+            second: in.event.second ?? 0,
+            third: in.event.third ?? 0,
+            fourth: in.event.fourth ?? 0,
+            role: in.event.role ?? Role.observe
+        })[0]
+    }
+}

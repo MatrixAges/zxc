@@ -37,7 +37,7 @@ pub fn collectOperations(allocator: std.mem.Allocator, order: *const Order, expr
     var result: std.ArrayList(ir.ExprId) = .empty;
 
     for (0..expressions.count()) |index| {
-        if (order.time[index] == Order.none) continue;
+        if (order.timeAt(index) == Order.none) continue;
 
         const id: ir.ExprId = @fromBackingInt(@intCast(index));
 
@@ -90,7 +90,7 @@ pub fn analyze(allocator: std.mem.Allocator, functions: ir.FunctionTable, unit: 
 }
 
 fn close(self: *Self) std.mem.Allocator.Error!void {
-    for (self.order.repeated.items) |id| {
+    for (self.order.repeated) |id| {
         const state = self.carriedState(id) orelse continue;
         const values = try self.allocator.alloc(Level, self.slots.count(self.row(id).type_id));
 
@@ -134,9 +134,9 @@ fn settled(self: Self) std.mem.Allocator.Error!void {
 
 /// The output slots every return guarantees.
 pub fn output(self: *Self, values: []Level) std.mem.Allocator.Error!void {
-    @memset(values, if (self.order.results.items.len == 0) .none else .all);
+    @memset(values, if (self.order.results.len == 0) .none else .all);
 
-    for (self.order.results.items) |result| {
+    for (self.order.results) |result| {
         for (values, 0..) |*value, slot| value.* = value.meet(self.level(result, @intCast(slot)));
     }
 
@@ -250,7 +250,7 @@ pub fn renewals(self: *Self, allocator: std.mem.Allocator) std.mem.Allocator.Err
         const owner: ir.ExprId = @fromBackingInt(@intCast((entry.key_ptr.* & ~value_renewal) >> 32));
         const slot: u32 = @truncate(entry.key_ptr.*);
 
-        if (self.order.time[@backingInt(owner)] == Order.none) continue;
+        if (self.order.timeAt(@backingInt(owner)) == Order.none) continue;
 
         const start = if (value) self.raw(owner, slot) else self.level(self.carriedState(owner).?.initial, slot);
 
@@ -286,7 +286,7 @@ pub fn flags(self: *Self, values: []Flags) std.mem.Allocator.Error!void {
         const id = entry.key_ptr.*;
         const want = entry.value_ptr.*;
 
-        if (self.order.time[@backingInt(id)] == Order.none) continue;
+        if (self.order.timeAt(@backingInt(id)) == Order.none) continue;
 
         const raw_level = self.raw(id, 0);
 
@@ -300,7 +300,7 @@ pub fn flags(self: *Self, values: []Flags) std.mem.Allocator.Error!void {
 
         const id: ir.ExprId = @fromBackingInt(@intCast((entry.key_ptr.* & ~value_renewal) >> 32));
 
-        if (self.order.time[@backingInt(id)] == Order.none) continue;
+        if (self.order.timeAt(@backingInt(id)) == Order.none) continue;
         if (entry.value_ptr.unique and lacks(self.raw(id, @truncate(entry.key_ptr.*)), entry.value_ptr.*)) values[@backingInt(id)].renew = true;
     }
 
@@ -382,7 +382,7 @@ fn bufferFlags(self: *Self, values: []Flags) std.mem.Allocator.Error!void {
 
     if (!writes) return;
 
-    const needed = for (self.order.repeated.items) |id| {
+    const needed = for (self.order.repeated) |id| {
         if (self.bufferLoop(id)) break true;
     } else false;
 
@@ -400,7 +400,7 @@ fn bufferFlags(self: *Self, values: []Flags) std.mem.Allocator.Error!void {
     const input: Input = .{
         .types = &types,
         .expressions = @import("zx").columns.pointer(@FieldType(Input, "expressions"), &@as(*const Self, self).expressions),
-        .loops = @as([*]const u32, @ptrCast(self.order.repeated.items.ptr))[0..self.order.repeated.items.len],
+        .loops = @as([*]const u32, @ptrCast(self.order.repeated.ptr))[0..self.order.repeated.len],
     };
 
     const owners = generated.executeValue(temporary, &input) catch |err| switch (err) {
@@ -517,7 +517,7 @@ fn raw(self: *Self, id: ir.ExprId, slot: u32) Level {
         .reference => |symbol| {
             const index = @backingInt(symbol);
 
-            if (self.order.crossesConcurrent(self.order.loop[@backingInt(id)], self.order.def_loop[index])) return .none;
+            if (self.order.crossesConcurrent(self.order.loopAt(@backingInt(id)), self.order.defLoopAt(index))) return .none;
 
             var result = self.definition(symbol, slot);
             result.unique = result.unique and (self.empty(symbol) or self.sites.linear(Sites.symbolRoot(symbol), slot));
@@ -536,7 +536,7 @@ fn raw(self: *Self, id: ir.ExprId, slot: u32) Level {
 
 /// Whether a symbol is bound to an empty list literal, whose uses may share it as `emptyList` says.
 fn empty(self: Self, symbol: ir.SymbolId) bool {
-    return switch (self.order.defs[@backingInt(symbol)]) {
+    return switch (self.order.definition(symbol)) {
         .value => |id| self.emptyList(id),
         else => false,
     };
@@ -552,7 +552,7 @@ fn emptyList(self: Self, id: ir.ExprId) bool {
 }
 
 fn definition(self: *Self, symbol: ir.SymbolId, slot: u32) Level {
-    return switch (self.order.defs[@backingInt(symbol)]) {
+    return switch (self.order.definition(symbol)) {
         .input => if (slot < self.input.len) self.read(.input, self.function.?, self.input, slot) else .none,
         .value => |id| self.level(id, slot),
         .part => |part| self.level(part.value, self.slots.member(self.row(part.value).type_id, part.index).offset + slot),
@@ -667,7 +667,7 @@ pub fn demand(self: *Self, changed: *std.ArrayList(usize), marked: *std.ArrayLis
         const want = self.read(.outputs, function, self.summaries.outputs[function], @intCast(slot));
 
         if (want == Level.none) continue;
-        for (self.order.results.items) |result| try self.trace(result, @intCast(slot), null, true, want);
+        for (self.order.results) |result| try self.trace(result, @intCast(slot), null, true, want);
     }
 
     return self.settled();
@@ -695,7 +695,7 @@ fn trace(self: *Self, id: ir.ExprId, slot: u32, outer: ?ir.ExprId, repeat: bool,
     switch (value.value) {
         .field, .tuple_field => |projection| try self.trace(projection.target, self.slots.member(self.row(projection.target).type_id, projection.index).offset + slot, leaf, repeat, want),
         .optional_value => |child| try self.trace(child, slot, leaf, repeat, want),
-        .reference => |symbol| switch (self.order.defs[@backingInt(symbol)]) {
+        .reference => |symbol| switch (self.order.definition(symbol)) {
             .input => {
                 if (self.function) |function| try self.mark(.{ .output = false, .function = @intCast(function), .slot = slot, .want = want });
                 try self.normalize(leaf, want);

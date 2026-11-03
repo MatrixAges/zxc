@@ -150,7 +150,7 @@ fn analyzeFrom(allocator: std.mem.Allocator, workspace: std.mem.Allocator, progr
         uniqueness.result = analyzeUniqueness(if (concurrent) uniqueness.arena.allocator() else allocator, workspace, program, exported, source, memo, concurrent);
     }
 
-    const others = remaining(allocator, workspace, program);
+    const others = remaining(allocator, workspace, program, exported);
 
     if (thread) |running| running.join();
 
@@ -204,9 +204,9 @@ fn children(allocator: std.mem.Allocator, program: ir.Program, id: ir.TypeId, pe
 }
 
 /// Every fact but the uniqueness plans.
-fn remaining(allocator: std.mem.Allocator, workspace: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!Self {
+fn remaining(allocator: std.mem.Allocator, workspace: std.mem.Allocator, program: ir.Program, exported: []const ir.FunctionId) std.mem.Allocator.Error!Self {
     if (@import("genz_options").generated_analysis) {
-        const generated = try @import("function_analysis/generated.zig").analyze(allocator, workspace, program);
+        const generated = try @import("function_analysis/generated.zig").analyze(allocator, workspace, program, exported);
 
         return .{
             .value = generated.value,

@@ -73,9 +73,14 @@ pub fn normalize(self: *Lower, id: ir.ExprId, value: node.ExpressionId) Lower.Er
     if (self.iteration_value) |context| if (context.buffered(self.program.expression(id).type_id)) return value;
 
     var body: std.ArrayList(node.Statement) = .empty;
-    const child = self.program.typeOf(self.program.expression(id).type_id).list;
-    const element = try @import("iteration_value/types.zig").element(self, child);
     const type_id = self.program.expression(id).type_id;
+    const child = self.program.typeOf(type_id).list;
+
+    const element = if (self.state_active)
+        try @import("state_value/elements.zig").typeExpr(self, type_id)
+    else
+        try @import("iteration_value/types.zig").element(self, child);
+
     const source = try aggregate.bind(self, &body, try @import("state_value/list.zig").items(self, type_id, value));
     const buffer = try reserve(self, &body, element, source, try self.field(source, "len"), false);
 

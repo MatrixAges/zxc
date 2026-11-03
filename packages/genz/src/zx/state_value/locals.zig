@@ -41,7 +41,10 @@ pub fn scope(self: *Lower, value: ir.ScopeRow) Lower.Error![]const ir.SymbolId {
 pub fn parameters(self: *Lower, transform: ir.Transform) Lower.Error![]const ir.SymbolId {
     var symbols: std.ArrayList(ir.SymbolId) = .empty;
 
-    if (self.state_active and transform.kind == .reduce) try add(self, &symbols, transform.parameters[0]);
+    if (self.state_active) {
+        if (transform.kind == .reduce) try add(self, &symbols, transform.parameters[0]);
+        if (@import("elements.zig").inlineStored(self, self.program.expression(transform.target).type_id)) try add(self, &symbols, transform.parameters[if (transform.kind == .reduce) @as(usize, 1) else 0]);
+    }
 
     return symbols.toOwnedSlice(self.allocator);
 }

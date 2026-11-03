@@ -1,0 +1,44 @@
+import integers from "std:integer"
+
+import type { Expressions } from "core/expression_table/model"
+import type { Symbols } from "core/symbol_table/model"
+
+export type Input = {
+    tables: Expressions[],
+    symbols: Symbols
+}
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    const roots: u32[] = []
+
+    return loop({
+        tables: in.tables,
+        symbols: in.symbols,
+        roots,
+        index: 0
+    }, {
+        while: current => current.index < current.tables.length,
+        next: current => {
+            const table = current.tables[current.index]
+
+            current.roots = loop({
+                table,
+                symbols: current.symbols,
+                roots: current.roots,
+                index: 0
+            }, {
+                while: tasks => tasks.index < tasks.table.task_captures.length,
+                next: tasks => {
+                    const symbol =
+                        integers.widen(tasks.table.task_captures[tasks.index])
+
+                    tasks.roots = tasks.roots.push(tasks.symbols.types[symbol])[0]
+                    tasks.index += 1
+                }
+            }).roots
+            current.index += 1
+        }
+    }).roots
+}

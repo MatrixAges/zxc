@@ -1,0 +1,198 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+import { StatementKind } from "core/control_table/model"
+
+import { Action, Role } from "./model"
+import push from "./push"
+import sequence from "./sequence"
+
+import type { Control } from "core/control_table/model"
+import type { Stack } from "./model"
+
+export type Input = {
+    table: Control,
+    stack: Stack,
+    index: u32
+}
+
+export type Output = Stack
+
+export default function (in: Input): Output {
+    const table = in.table
+    const index = integers.widen(in.index)
+    const kind = table.statement_kinds[index]
+    const payload = integers.widen(table.statement_payloads[index])
+
+    if (kind == StatementKind.Evaluate) {
+        return push({
+            stack: in.stack,
+            event: {
+                action: Action.Operand,
+                first: max_u32,
+                second: table.evaluations[payload],
+                role: Role.observe
+            }
+        })
+    }
+
+    if (kind == StatementKind.StoreSet) {
+        return push({
+            stack: in.stack,
+            event: {
+                action: Action.Operand,
+                first: max_u32,
+                second: table.setter_values[payload],
+                role: Role.use
+            }
+        })
+    }
+
+    if (kind == StatementKind.Constant) {
+        const value = table.constant_values[payload]
+        const symbol = table.constant_symbols[payload]
+
+        const pending = push({
+            stack: in.stack,
+            event: {
+                action: Action.Define,
+                first: symbol,
+                second: value
+            }
+        })
+
+        return push({
+            stack: pending,
+            event: {
+                action: Action.Operand,
+                first: max_u32,
+                second: value,
+                third: symbol,
+                role: Role.bind
+            }
+        })
+    }
+
+    if (kind == StatementKind.Destructure) {
+        const pending = push({
+            stack: in.stack,
+            event: {
+                action: Action.Parts,
+                first: integers.narrow(payload)
+            }
+        })
+
+        return push({
+            stack: pending,
+            event: {
+                action: Action.Operand,
+                first: max_u32,
+                second: table.destructure_values[payload],
+                role: Role.use
+            }
+        })
+    }
+
+    if (kind == StatementKind.Parallel) {
+        return sequence({
+            stack: in.stack,
+            parent: max_u32,
+            values: table.parallel_values,
+            first: table.parallel_first[payload],
+            count: table.parallel_count[payload],
+            role: Role.use,
+            positions: false,
+            indices: [],
+            repeated: true
+        })
+    }
+
+    if (kind == StatementKind.Branch) {
+        const pending = push({
+            stack: in.stack,
+            event: {
+                action: Action.Branch,
+                first: integers.narrow(payload)
+            }
+        })
+
+        return push({
+            stack: pending,
+            event: {
+                action: Action.Operand,
+                first: max_u32,
+                second: table.branch_conditions[payload],
+                role: Role.observe
+            }
+        })
+    }
+
+    if (kind == StatementKind.Switch) {
+        const pending = push({
+            stack: in.stack,
+            event: {
+                action: Action.Switch,
+                first: integers.narrow(payload)
+            }
+        })
+
+        const conditions = loop({
+            table,
+            stack: pending,
+            first: integers.widen(table.selection_first[payload]),
+            index: integers.widen(table.selection_count[payload])
+        }, {
+            while: current => current.index > 0,
+            next: current => {
+                current.index -= 1
+
+                const value = current.table.case_values[current.first + current.index]
+
+                if (value != null) {
+                    current.stack = push({
+                        stack: current.stack,
+                        event: {
+                            action: Action.Operand,
+                            first: max_u32,
+                            second: value,
+                            role: Role.observe
+                        }
+                    })
+                }
+            }
+        }).stack
+
+        return push({
+            stack: conditions,
+            event: {
+                action: Action.Operand,
+                first: max_u32,
+                second: table.selection_subjects[payload],
+                role: Role.observe
+            }
+        })
+    }
+
+    const value = table.results[payload]
+
+    if (value == null) {
+        return in.stack
+    }
+
+    const pending = push({
+        stack: in.stack,
+        event: {
+            action: Action.Result,
+            first: value
+        }
+    })
+
+    return push({
+        stack: pending,
+        event: {
+            action: Action.Operand,
+            first: max_u32,
+            second: value,
+            role: Role.use
+        }
+    })
+}

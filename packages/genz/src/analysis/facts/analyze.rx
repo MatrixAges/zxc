@@ -5,6 +5,7 @@
 
     <Args
         in={{
+            boundaries: u32[],
             errors: {
                 callees: u32[][],
                 names: string[][],
@@ -33,7 +34,16 @@
         }}
     />
 
-    <Call module="../state/select" in={$in.program} />
+    <Call fn="../value/local" in={$in.program} />
+
+    <Call
+        module="../state/select"
+        in={{
+            program: $in.program,
+            boundaries: $in.boundaries,
+            local: $ctx.local
+        }}
+    />
 
     <Call
         fn="../state/queries/build"
@@ -49,7 +59,8 @@
         fn="../value/summary"
         in={{
             program: $in.program,
-            queries: $ctx.build
+            queries: $ctx.build,
+            local: $ctx.local
         }}
     />
 

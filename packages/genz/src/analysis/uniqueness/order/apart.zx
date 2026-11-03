@@ -1,0 +1,64 @@
+import integers from "std:integer"
+
+import type { Regions } from "./plan"
+
+export type Input = {
+    regions: Regions,
+    left: u32,
+    left_time: u32,
+    right: u32,
+    right_time: u32
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const result = loop({
+        regions: in.regions,
+        left: in.left,
+        right: in.right,
+        left_returns: false,
+        right_returns: false
+    }, {
+        while: current => current.regions.depth[integers.widen(current.left)] !=
+            current.regions.depth[integers.widen(current.right)] ||
+            (
+                current.left != current.right &&
+                    current.regions.parent[integers.widen(current.left)] !=
+                    current.regions.parent[integers.widen(current.right)]
+            ),
+        next: current => {
+            const left = integers.widen(current.left)
+            const right = integers.widen(current.right)
+            const left_depth = current.regions.depth[left]
+            const right_depth = current.regions.depth[right]
+
+            if (left_depth >= right_depth) {
+                current.left_returns =
+                    current.left_returns || current.regions.returns[left]
+                current.left = current.regions.parent[left]
+            }
+
+            if (right_depth >= left_depth) {
+                current.right_returns =
+                    current.right_returns || current.regions.returns[right]
+                current.right = current.regions.parent[right]
+            }
+        }
+    })
+
+    const left = integers.widen(result.left)
+    const right = integers.widen(result.right)
+    const different = left != right
+
+    if (
+        different && in.regions.fork[left] == in.regions.fork[right] &&
+            in.regions.arm[left] != in.regions.arm[right]
+    ) {
+        return true
+    }
+
+    return in.left_time < in.right_time ?
+        result.left_returns || (different && in.regions.returns[left]) :
+        result.right_returns || (different && in.regions.returns[right])
+}

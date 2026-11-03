@@ -2,15 +2,41 @@
     <Type from="./built" as="Built" />
     <Type from="./keys" as="Keys" />
 
-    <Args in={Built.Input} out={Keys.Output} />
+    <Args
+        in={{
+            program: Built.Input,
+            boundaries: u32[],
+            local: bool[]
+        }}
+        out={Keys.Output}
+    />
 
-    <Call fn="../types/unmarked" in={$in.types} />
-    <Call fn="roots" in={$in} />
+    <Call fn="../types/unmarked" in={$in.program.types} />
+    <Call fn="records" in={$in.program.types} />
+
+    <Call
+        module="visible"
+        in={{
+            program: $in.program,
+            roots: $in.boundaries,
+            local: $in.local,
+            boxed: $ctx.unmarked
+        }}
+    />
+
+    <Call
+        fn="roots"
+        in={{
+            program: $in.program,
+            records: $ctx.records,
+            visible: $ctx.visible
+        }}
+    />
 
     <Call
         fn="../types/closure"
         in={{
-            types: $in.types,
+            types: $in.program.types,
             boxed: $ctx.unmarked,
             roots: $ctx.roots
         }}
@@ -19,17 +45,17 @@
     <Call
         fn="duplicates"
         in={{
-            program: $in,
+            program: $in.program,
             boxed: $ctx.closure
         }}
     />
 
-    <Call fn="built" in={$in} />
+    <Call fn="built" in={$in.program} />
 
     <Call
         fn="frozen"
         in={{
-            types: $in.types,
+            types: $in.program.types,
             boxed: $ctx.duplicates,
             built: $ctx.built
         }}
@@ -38,7 +64,7 @@
     <Call
         fn="keys"
         in={{
-            types: $in.types,
+            types: $in.program.types,
             boxed: $ctx.frozen
         }}
     />

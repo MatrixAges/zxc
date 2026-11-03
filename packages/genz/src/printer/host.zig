@@ -26,7 +26,7 @@ pub fn renderStored(allocator: std.mem.Allocator, nodes: *Storage, selected: @im
 
     defer arena.deinit();
 
-    const output = generated.executeIn(arena.allocator(), &.{ .source = &source, .output = &.{} }) catch |err| switch (err) {
+    const output = generated.executeValue(arena.allocator(), &.{ .source = &source, .output = &.{} }) catch |err| switch (err) {
         error.OutOfMemory, error.Overflow => return error.OutOfMemory,
         else => unreachable,
     };

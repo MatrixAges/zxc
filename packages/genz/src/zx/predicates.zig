@@ -22,10 +22,16 @@ pub fn lower(self: *Lower, value: ir.Transform) Lower.Error!node.ExpressionId {
 
     try @import("transform/context.zig").bind(self, &body, value);
 
+    var loop: std.ArrayList(node.Statement) = .empty;
+
+    try loop.append(self.allocator, decision);
+
+    const capture = try @import("state_value/elements.zig").captureName(self, &loop, self.program.expression(value.target).type_id, element);
+
     try body.append(self.allocator, .{ .for_loop = .{
         .iterable = source,
-        .capture = if (self.used[@backingInt(element)]) self.names[@backingInt(element)] else "_",
-        .body = try self.builder.statements(&.{decision}),
+        .capture = capture,
+        .body = try self.builder.statements(loop.items),
     } });
 
     try body.append(self.allocator, .{ .break_value = .{ .label = label, .value = try self.builder.expression(.{ .boolean = identity }) } });

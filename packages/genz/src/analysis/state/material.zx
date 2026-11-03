@@ -20,7 +20,7 @@ export default function (in: Input): Output {
     const target = kind(in.types.kinds[in.index])
     const first = integers.widen(in.types.first[in.index])
 
-    if (target == Kind.Optional) {
+    if (target == Kind.Optional || target == Kind.List) {
         return key({
             keys: in.keys,
             bytes: in.bytes,
@@ -28,7 +28,7 @@ export default function (in: Input): Output {
         })
     }
 
-    if (!in.chosen || target == Kind.List) {
+    if (!in.chosen) {
         return in.bytes
     }
 

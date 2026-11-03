@@ -1,0 +1,403 @@
+import integers from "std:integer"
+import { map } from "std:utils"
+import { max_u32 } from "core/const"
+import { TransformKind } from "core/expression_table/kinds"
+
+import alternatives from "./alternatives"
+import expression from "./expression"
+import { Action, Definition, Role } from "./model"
+import push from "./push"
+import statement from "./statement"
+
+import type { Walk as Input, Node, Trace as Output } from "./model"
+
+export default function (in: Input): Output {
+    const completed: Node[] = []
+
+    const result = loop({
+        source: in.source,
+        returns: in.returns,
+        ...in.state.graph,
+        seen: map(in.source.expressions.kinds, kind => false),
+        completed,
+        stack: in.state.stack,
+        clock: in.state.clock,
+        forks: in.state.forks,
+        active_region: in.state.region,
+        active_loop: in.state.repeated
+    }, {
+        while: current => current.stack.top != max_u32,
+        next: current => {
+            const last = integers.widen(current.stack.top)
+            const event = current.stack.nodes[last]
+            const action = event.action
+            const first = event.first
+            const second = event.second
+            const third = event.third
+            const fourth = event.fourth
+            const role = event.role
+            const table = current.source.expressions
+            const control = current.source.control
+            const index = integers.widen(first)
+
+            current.stack.top = event.parent
+
+            const dispatch = match action {
+                Action.ValueArm => Action.BlockArm,
+                Action.Switch => Action.Branch,
+                Action.Conditional => Action.Branch,
+                Action.Match => Action.Branch,
+                Action.Transform => Action.Repeat,
+                Action.Iteration => Action.Repeat,
+                _ => action
+            }
+
+            switch (dispatch) {
+                case Action.Block:
+                    if (second != 0) {
+                        const pending = push({
+                            stack: current.stack,
+                            event: {
+                                action: Action.Block,
+                                first: first + 1,
+                                second: second - 1
+                            }
+                        })
+
+                        current.stack = statement({
+                            table: control,
+                            stack: pending,
+                            index: first
+                        })
+                    }
+
+                case Action.Operand:
+                    const child = integers.widen(second)
+
+                    current.edges = current.edges.push({
+                        parent: first,
+                        child: second,
+                        role,
+                        index: third,
+                        region: current.active_region
+                    })[0]
+
+                    if (!current.seen[child]) {
+                        const time = current.clock
+
+                        current.seen[child] = true
+                        current.clock += 1
+
+                        const pending = push({
+                            stack: current.stack,
+                            event: {
+                                action: Action.Finish,
+                                first: second,
+                                second: time,
+                                third: current.active_region,
+                                fourth: current.active_loop
+                            }
+                        })
+
+                        current.stack = expression({
+                            table,
+                            stack: pending,
+                            id: second
+                        })
+                    }
+
+                case Action.Finish:
+                    current.completed = current.completed.push({
+                        id: first,
+                        time: second,
+                        finish: current.clock,
+                        region: third,
+                        repeated: fourth
+                    })[0]
+
+                case Action.RestoreRegion:
+                    current.active_region = first
+
+                case Action.RestoreLoop:
+                    current.active_loop = first
+
+                case Action.Define:
+                    current.definitions[index] = {
+                        ...current.definitions[index],
+                        kind: Definition.Value,
+                        value: second,
+                        repeated: current.active_loop
+                    }
+
+                case Action.Parts:
+                    const definitions = loop({
+                        control,
+                        definitions: current.definitions,
+                        repeated: current.active_loop,
+                        first: integers.widen(control.destructure_first[index]),
+                        count: integers.widen(control.destructure_count[index]),
+                        value: control.destructure_values[index],
+                        index: 0
+                    }, {
+                        while: items => items.index < items.count,
+                        next: items => {
+                            const symbol = items.control
+                                .destructure_symbols[
+                                    items.first + items.index
+                                ]
+
+                            if (symbol != null) {
+                                const target = integers.widen(symbol)
+
+                                items.definitions[target] = {
+                                    kind: Definition.Part,
+                                    value: items.value,
+                                    index: integers.narrow(items.index),
+                                    repeated: items.repeated
+                                }
+                            }
+
+                            items.index += 1
+                        }
+                    })
+
+                    current.definitions = definitions.definitions
+
+                case Action.Result:
+                    current.results = current.results.push(first)[0]
+
+                case Action.Scope:
+                    const payload = integers.widen(table.payloads[index])
+
+                    if (second == table.scope_count[payload]) {
+                        current.stack = push({
+                            stack: current.stack,
+                            event: {
+                                action: Action.Operand,
+                                first,
+                                second: table.scope_results[payload],
+                                role: Role.flow
+                            }
+                        })
+                    } else {
+                        const position = integers.widen(table.scope_first[payload]) +
+                            integers.widen(second)
+                        const symbol = table.scope_symbols[position]
+                        const value = table.scope_values[position]
+                        const pending = push({
+                            stack: current.stack,
+                            event: {
+                                action: Action.Scope,
+                                first,
+                                second: second + 1
+                            }
+                        })
+                        const defined = symbol == null ? pending : push({
+                            stack: pending,
+                            event: {
+                                action: Action.Define,
+                                first: symbol,
+                                second: value
+                            }
+                        })
+
+                        current.stack = push({
+                            stack: defined,
+                            event: {
+                                action: Action.Operand,
+                                first,
+                                second: value,
+                                third: symbol ?? 0,
+                                role: symbol == null ? Role.use : Role.bind
+                            }
+                        })
+                    }
+
+                case Action.BlockArm:
+                    const region =
+                    integers.narrow(current.regions.length)
+                    const parent = current.active_region
+                    const repeated = push({
+                        stack: current.stack,
+                        event: {
+                            action: Action.RestoreRegion,
+                            first: parent
+                        }
+                    })
+                    const block = action == Action.BlockArm
+                    const target = integers.widen(fourth)
+
+                    current.regions = current.regions.push({
+                        parent,
+                        fork: second,
+                        arm: third,
+                        depth: current.regions[integers.widen(parent)].depth + 1,
+                        returns: block && current.returns[target]
+                    })[0]
+                    current.active_region = region
+                    current.stack = block ? push({
+                        stack: repeated,
+                        event: {
+                            action: Action.Block,
+                            first: control.block_first[target],
+                            second: control.block_count[target]
+                        }
+                    }) : push({
+                        stack: repeated,
+                        event: {
+                            action: Action.Operand,
+                            first,
+                            second: fourth,
+                            role: Role.flow
+                        }
+                    })
+
+                case Action.Branch:
+                    current.forks += 1
+                    current.stack = alternatives({
+                        source: current.source,
+                        stack: current.stack,
+                        action,
+                        index: first,
+                        fork: current.forks
+                    })
+
+                case Action.Repeat:
+                    const repeated = integers.narrow(current.repeated.length)
+                    const pending = push({
+                        stack: current.stack,
+                        event: {
+                            action: Action.RestoreLoop,
+                            first: current.active_loop
+                        }
+                    })
+
+                    current.repeated = current.repeated.push({
+                        owner: first == max_u32 ? second : first,
+                        parent: current.active_loop,
+                        concurrent: action == Action.Repeat
+                    })[0]
+                    current.active_loop = repeated
+
+                    if (action == Action.Repeat) {
+                        current.stack = push({
+                            stack: pending,
+                            event: {
+                                action: Action.Operand,
+                                first,
+                                second,
+                                role: Role.use
+                            }
+                        })
+                    } else {
+                        const payload = integers.widen(table.payloads[index])
+
+                        if (action == Action.Iteration) {
+                            const condition = integers.widen(
+                                table.iteration_condition_parameters[payload]
+                            )
+                            const parameter =
+                                integers.widen(table.iteration_parameters[payload])
+                            const post = table.iteration_postconditions[payload]
+                            const tail = push({
+                                stack: pending,
+                                event: {
+                                    action: Action.Operand,
+                                    first,
+                                    second: post ? table.iteration_conditions[payload] :
+                                        table.iteration_bodies[payload],
+                                    role: post ? Role.observe : Role.use
+                                }
+                            })
+
+                            current.definitions[condition] = {
+                                ...current.definitions[condition],
+                                kind: Definition.Condition,
+                                value: first,
+                                repeated
+                            }
+                            current.definitions[parameter] = {
+                                ...current.definitions[parameter],
+                                kind: Definition.Carried,
+                                value: first,
+                                repeated
+                            }
+                            current.stack = push({
+                                stack: tail,
+                                event: {
+                                    action: Action.Operand,
+                                    first,
+                                    second: post ? table.iteration_bodies[payload] :
+                                        table.iteration_conditions[payload],
+                                    role: post ? Role.use : Role.observe
+                                }
+                            })
+                        } else {
+                            const definitions = loop({
+                                table,
+                                definitions: current.definitions,
+                                repeated,
+                                owner: first,
+                                first: integers.widen(
+                                    table.transform_first[payload]
+                                ),
+                                count: integers.widen(
+                                    table.transform_count[payload]
+                                ),
+                                reduce:
+                                    table.transform_kinds[payload] ==
+                                    TransformKind.Reduce,
+                                index: 0
+                            }, {
+                                while: parameters => parameters.index < parameters.count,
+                                next: parameters => {
+                                    const target =
+                                        integers.widen(
+                                            parameters.table
+                                                .transform_parameters[
+                                                    parameters.first + parameters.index
+                                                ]
+                                        )
+                                    const carried =
+                                        parameters.reduce && parameters.index == 0
+
+                                    parameters.definitions[target] = {
+                                        ...parameters.definitions[target],
+                                        kind: carried ? Definition.Carried :
+                                            Definition.Element,
+                                        value: parameters.owner,
+                                        repeated: parameters.repeated
+                                    }
+                                    parameters.index += 1
+                                }
+                            })
+
+                            current.definitions = definitions.definitions
+                            current.stack = push({
+                                stack: pending,
+                                event: {
+                                    action: Action.Operand,
+                                    first,
+                                    second: table.transform_bodies[payload],
+                                    role: Role.use
+                                }
+                            })
+                        }
+                    }
+
+                default:
+            }
+        }
+    })
+
+    return {
+        completed: result.completed,
+        graph: {
+            regions: result.regions,
+            edges: result.edges,
+            definitions: result.definitions,
+            results: result.results,
+            repeated: result.repeated
+        }
+    }
+}

@@ -47,23 +47,21 @@ pub fn lower(self: *Lower, id: ir.ExprId, value: ir.Transform) Lower.Error!node.
 
         result = try self.builder.identifier(accumulator);
     } else if (value.kind == .map) {
-        const list_type = self.program.typeOf(self.program.expression(id).type_id);
-        const allocation = try self.call(try self.field(try self.builder.identifier("allocator"), "alloc"), &.{ try @import("types.zig").get(self, self.abi_types, list_type.list), try self.field(source, "len") }, true);
+        const allocation = try self.call(try self.field(try self.builder.identifier("allocator"), "alloc"), &.{ try @import("state_value/elements.zig").typeExpr(self, self.program.expression(id).type_id), try self.field(source, "len") }, true);
         result = try aggregate.bind(self, &body, allocation);
         index_capture = try self.fresh("index");
 
         try loop.append(self.allocator, .{ .assignment = .{
             .target = try self.builder.expression(.{ .index = .{ .target = result, .index = try self.builder.identifier(index_capture.?) } }),
-            .value = if (self.state_active) try @import("state_value/conversion.zig").convert(self, &loop, list_type.list, try aggregate.bind(self, &loop, callback), .pointer) else callback,
+            .value = try @import("state_value/elements.zig").write(self, &loop, self.program.expression(id).type_id, try aggregate.bind(self, &loop, callback)),
         } });
     } else {
         const name = try self.fresh("items");
-        const list_type = self.program.typeOf(self.program.expression(id).type_id);
-        const buffer_type = try self.call(try self.field(try self.builder.identifier("std"), "ArrayList"), &.{try @import("types.zig").get(self, self.abi_types, list_type.list)}, false);
+        const buffer_type = try self.call(try self.field(try self.builder.identifier("std"), "ArrayList"), &.{try @import("state_value/elements.zig").typeExpr(self, self.program.expression(id).type_id)}, false);
 
         try body.append(self.allocator, .{ .variable = .{ .name = name, .type_expr = buffer_type, .value = try self.builder.expression(.{ .enum_literal = "empty" }) } });
 
-        const append_value = try self.builder.identifier(capture);
+        const append_value = try @import("state_value/elements.zig").write(self, &loop, self.program.expression(id).type_id, try self.builder.identifier(capture));
         const append = node.Statement{ .expression = try self.call(try self.field(try self.builder.identifier(name), "append"), &.{ try self.builder.identifier("allocator"), append_value }, true) };
 
         self.used[@backingInt(element)] = true;
@@ -73,7 +71,9 @@ pub fn lower(self: *Lower, id: ir.ExprId, value: ir.Transform) Lower.Error!node.
         result = try self.call(try self.field(try self.builder.identifier(name), "toOwnedSlice"), &.{try self.builder.identifier("allocator")}, true);
     }
 
-    try body.append(self.allocator, .{ .for_loop = .{ .iterable = source, .capture = if (self.used[@backingInt(element)]) capture else "_", .body = try self.builder.statements(loop.items), .index_capture = index_capture } });
+    const element_capture = try @import("state_value/elements.zig").captureName(self, &loop, self.program.expression(value.target).type_id, element);
+
+    try body.append(self.allocator, .{ .for_loop = .{ .iterable = source, .capture = element_capture, .body = try self.builder.statements(loop.items), .index_capture = index_capture } });
 
     return aggregate.finish(self, &body, if (value.kind == .reduce) result else try @import("state_value/list.zig").wrap(self, self.program.expression(id).type_id, result, false));
 }

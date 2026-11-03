@@ -33,6 +33,30 @@ fn lowerMode(self: *Lower, selection: ir.MatchRow, layout: bool) Lower.Error!nod
     var result = if (layout) try values.expression(self, selection.fallback) else try self.expr(selection.fallback);
     var index = selection.arms.len;
 
+    if (try @import("selection.zig").constantLabels(self, selection)) {
+        index -= 1;
+        const last = selection.arms.at(index);
+        const condition = try self.binary(.{ .operator = .equal, .left = selection.subject.?, .right = last.condition });
+        const yes = if (layout) try values.expression(self, last.result) else try self.expr(last.result);
+        result = try self.builder.expression(.{ .conditional = .{ .condition = condition, .yes = yes, .no = result } });
+        const arms = try self.allocator.alloc(node.SelectionArm, index + 1);
+
+        arms[index] = .{ .result = result };
+
+        while (index != 0) {
+            index -= 1;
+            const arm = selection.arms.at(index);
+            const label = try self.expr(arm.condition);
+            const value = if (layout) try values.expression(self, arm.result) else try self.expr(arm.result);
+
+            arms[index] = .{ .value = label, .result = value };
+        }
+
+        const selected = try self.builder.expression(.{ .selection = .{ .subject = try self.expr(selection.subject.?), .arms = arms } });
+
+        return aggregate.finish(self, &body, selected);
+    }
+
     while (index > 0) {
         index -= 1;
         const arm = selection.arms.at(index);

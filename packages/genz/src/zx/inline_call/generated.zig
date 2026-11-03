@@ -26,6 +26,7 @@ pub fn prepare(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloca
 
     const view = Program{
         .types = &types,
+        .symbols = columns.pointer(@FieldType(Program, "symbols"), &program.symbols),
         .functions = &functions,
         .stores = columns.pointer(@FieldType(Program, "stores"), &program.stores),
         .expressions = columns.pointer(@FieldType(Program, "expressions"), &program.expressions),
@@ -56,7 +57,6 @@ pub fn prepare(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloca
 
         if (rebuilt.changed) {
             const owned = try own(allocator, rebuilt);
-
             function.symbols = owned.symbols;
             function.expressions = owned.expressions;
             function.body = owned.body;

@@ -1,0 +1,59 @@
+import integers from "std:integer"
+import { scalar_string, scalar_void } from "core/type_table/const"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import type { Table } from "core/type_table/model"
+
+export type Input = Table
+
+export type Output = bool[]
+
+export default function (in: Input): Output {
+    const values: bool[] = []
+
+    return loop({
+        types: in,
+        values,
+        index: 0
+    }, {
+        while: current => current.index < current.types.kinds.length,
+        next: current => {
+            const target = kind(current.types.kinds[current.index])
+            const first = integers.widen(current.types.first[current.index])
+            const scalar = target == Kind.Scalar &&
+                current.types.first[current.index] != scalar_string &&
+                current.types.first[current.index] != scalar_void
+
+            const fields = loop({
+                types: current.types,
+                values: current.values,
+                index: first,
+                end: first + integers.widen(current.types.second[current.index]),
+                valid: target == Kind.Object
+            }, {
+                while: fields => fields.valid && fields.index < fields.end,
+                next: fields => {
+                    const child =
+                        integers.widen(fields.types.field_types[fields.index])
+
+                    fields.valid = fields.values[child] &&
+                        kind(fields.types.kinds[child]) != Kind.Object
+                    fields.index += 1
+                }
+            }).valid
+
+            const leaf = match target {
+                Kind.Optional => current.values[first] &&
+                    kind(current.types.kinds[first]) != Kind.Object,
+                Kind.Enumeration => true,
+                Kind.ErrorSet => true,
+                Kind.Object => fields,
+                _ => scalar
+            }
+
+            current.values = current.values.push(leaf)[0]
+            current.index += 1
+        }
+    }).values
+}

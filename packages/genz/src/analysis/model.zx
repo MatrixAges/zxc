@@ -2,10 +2,12 @@ import type { Contracts } from "core/contract_table/model"
 import type { Control } from "core/control_table/model"
 import type { Expressions } from "core/expression_table/model"
 import type { Stores } from "core/store_table/model"
+import type { Symbols } from "core/symbol_table/model"
 import type { Table } from "core/type_table/model"
 import type { Query } from "./state/queries/model"
 
 export type Functions = {
+    symbols: Symbols[]
     input_types: u32[]
     output_types: u32[]
     stores: Stores[]
@@ -21,6 +23,7 @@ export type Functions = {
 
 export type Program = {
     types: Table
+    symbols: Symbols
     functions: Functions
     stores: Stores
     expressions: Expressions

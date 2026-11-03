@@ -1,9 +1,19 @@
+import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import captures from "./captures"
 import comparisons from "./comparisons"
 import contractComparisons from "./contract_comparisons"
+import sharing from "./sharing"
 
 import type { Program } from "../model"
 
-export type Input = Program
+export type Input = {
+    program: Program,
+    records: bool[],
+    visible: bool[]
+}
 
 export type Output = u32[]
 
@@ -11,15 +21,24 @@ export default function (in: Input): Output {
     const empty: u32[] = []
 
     const containers = loop({
-        types: in.types,
+        types: in.program.types,
+        visible: in.visible,
+        records: in.records,
         index: 0,
         roots: empty
     }, {
         while: current => current.index < current.types.kinds.length,
         next: current => {
-            const kind = current.types.kinds[current.index]
+            const target = kind(current.types.kinds[current.index])
 
-            if (kind == 3 || kind == 6) {
+            const child = integers.widen(current.types.first[current.index])
+            const boxed_list = target == Kind.List &&
+                (
+                    current.visible[current.index] || current.visible[child] ||
+                        !current.records[child]
+                )
+
+            if (boxed_list || target == Kind.Task) {
                 current.roots =
                     current.roots.push(
                         current.types.first[current.index]
@@ -31,20 +50,32 @@ export default function (in: Input): Output {
     }).roots
 
     const program =
-        containers.concat(in.stores.types)[0].concat(
+        containers.concat(in.program.stores.types)[0].concat(
             comparisons(
-                in.expressions
+                in.program.expressions
             )
         )[0].concat(
             contractComparisons(
-                in.contracts
+                in.program.contracts
             )
-        )[0]
+        )[0].concat(captures({
+            tables:
+                [in.program.expressions].concat(in.program.contracts.expressions)[0],
+            symbols: in.program.symbols
+        }))[0]
+
+    const shared = program.concat(sharing({
+        types: in.program.types,
+        records: in.records,
+        tables: [in.program.expressions].concat(in.program.contracts.expressions)[0]
+    }))[0]
 
     const result = loop({
-        functions: in.functions,
+        functions: in.program.functions,
+        types: in.program.types,
+        records: in.records,
         index: 0,
-        roots: program
+        roots: shared
     }, {
         while: current => current.index < current.functions.output_types.length,
         next: current => {
@@ -61,7 +92,20 @@ export default function (in: Input): Output {
                     )
                 )[0].concat(
                     current.functions.stores[position].types
+                )[0].concat(captures({
+                    tables: [current.functions.expressions[position]].concat(
+                        current.functions.contracts[position].expressions
+                    )[0],
+                    symbols: current.functions.symbols[position]
+                }))[0]
+
+            current.roots = current.roots.concat(sharing({
+                types: current.types,
+                records: current.records,
+                tables: [current.functions.expressions[position]].concat(
+                    current.functions.contracts[position].expressions
                 )[0]
+            }))[0]
 
             if (current.functions.native_modules[position] != null) {
                 current.roots =

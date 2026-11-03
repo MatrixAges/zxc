@@ -1,0 +1,35 @@
+import shared from "./shared"
+
+import type { Expressions } from "core/expression_table/model"
+import type { Table } from "core/type_table/model"
+
+export type Input = {
+    types: Table,
+    records: bool[],
+    tables: Expressions[]
+}
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    const roots: u32[] = []
+
+    return loop({
+        types: in.types,
+        records: in.records,
+        tables: in.tables,
+        roots,
+        index: 0
+    }, {
+        while: current => current.index < current.tables.length,
+        next: current => {
+            current.roots = shared({
+                types: current.types,
+                records: current.records,
+                expressions: current.tables[current.index],
+                roots: current.roots
+            })
+            current.index += 1
+        }
+    }).roots
+}

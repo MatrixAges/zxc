@@ -42,11 +42,16 @@ fn lowerMode(self: *Lower, id: ir.ExprId, layout: ?node.ExpressionId, removed_on
     for (operation.arguments, arguments) |argument, *value| {
         const evaluated = try aggregate.bind(self, &body, try self.expr(argument));
 
-        value.* = if (self.state_active) try @import("state_value/conversion.zig").convert(self, &body, self.program.expression(argument).type_id, evaluated, .pointer) else evaluated;
+        value.* = if (operation.kind == .push)
+            try @import("state_value/elements.zig").write(self, &body, source_type, evaluated)
+
+        else if (operation.kind == .concat or (operation.kind == .splice and argument == operation.arguments[2]))
+            try provenance.items(self, self.program.expression(argument).type_id, evaluated)
+        else evaluated;
     }
 
-    const child = self.program.typeOf(self.program.expression(operation.target).type_id).list;
-    const child_type = try @import("types.zig").get(self, self.abi_types, child);
+    const child = self.program.typeOf(source_type).list;
+    const child_type = try @import("state_value/elements.zig").typeExpr(self, source_type);
     const length = try self.field(source, "len");
     const unit = try self.builder.expression(.unit);
     var result: node.ExpressionId = undefined;
@@ -56,8 +61,10 @@ fn lowerMode(self: *Lower, id: ir.ExprId, layout: ?node.ExpressionId, removed_on
             const last = try intrinsic.binary(self, .subtract, length, try self.builder.integer(1));
             const remaining = try listResult(self, source_type, try slice(self, source, null, last), source_headered);
             const selected = try self.builder.expression(.{ .index = .{ .target = source, .index = last } });
-            const element = if (self.state_active) try @import("state_value/conversion.zig").convert(self, &body, child, selected, .value) else selected;
-            const nonempty = try pair(self, remaining, element);
+            var nonempty_body: std.ArrayList(node.Statement) = .empty;
+            const element = try @import("state_value/elements.zig").read(self, &nonempty_body, source_type, selected);
+            const values = try @import("state_value/origin.zig").tuple(self, type_id, try pair(self, remaining, element));
+            const nonempty = if (nonempty_body.items.len == 0) values else try aggregate.finish(self, &nonempty_body, values);
 
             if (flags.retract) {
                 var retract: std.ArrayList(node.Statement) = .empty;

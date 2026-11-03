@@ -19,13 +19,13 @@ pub const Site = struct { lo: u32, hi: u32, delta: i32, top: ir.ExprId, region: 
 pub const Arms = struct {
     items: [4]u32 = @splat(0),
     len: u8 = 0,
-    fn enter(self: Arms, regions: []const Order.Region, region: u32) Arms {
-        if (regions[region].depth == 0) return self;
+    fn enter(self: Arms, order: *const Order, region: u32) Arms {
+        if (order.regionDepth(region) == 0) return self;
 
         if (self.len != 0) {
             var last = self.items[self.len - 1];
 
-            while (regions[last].depth > regions[region].depth) last = regions[last].parent;
+            while (order.regionDepth(last) > order.regionDepth(region)) last = order.regionParent(last);
             if (last == region) return self;
         }
 
@@ -75,7 +75,7 @@ pub fn create(allocator: std.mem.Allocator, order: *const Order, slots: Slots, s
     var walker = Walker{ .allocator = allocator, .order = order, .slots = slots, .expressions = expressions, .consumers = consumers, .references = try references(allocator, order, expressions, symbol_count), .buckets = buckets };
 
     for (0..expressions.count()) |index| {
-        if (order.time[index] == Order.none) continue;
+        if (order.timeAt(index) == Order.none) continue;
 
         const id: ir.ExprId = @fromBackingInt(@intCast(index));
         const value = expressions.get(id);
@@ -138,7 +138,7 @@ pub fn rootType(self: Self, root: u32) ir.TypeId {
 fn defLoop(self: Self, root: u32) u32 {
     const symbol_count = self.symbols.count();
 
-    return if (root < symbol_count) self.order.def_loop[root] else self.order.loop[root - symbol_count];
+    return if (root < symbol_count) self.order.defLoopAt(root) else self.order.loopAt(root - symbol_count);
 }
 
 /// Only observations read the slot, as a loop condition must for its state to stay in place.
@@ -176,12 +176,12 @@ fn decide(self: *Self, root: u32, slot: u32) bool {
 
     for (range, 0..) |site, index| {
         if (slot < site.lo or slot >= site.hi or self.role(site, slot) == .observe) continue;
-        if (order.loop[@backingInt(site.top)] != home) return false;
+        if (order.loopAt(@backingInt(site.top)) != home) return false;
 
         for (range, 0..) |other, other_index| {
             if (other_index == index or slot < other.lo or slot >= other.hi or (other.edge == site.edge and other.delta == site.delta)) continue;
-            if (order.apart(site.region, order.time[@backingInt(site.top)], other.region, order.time[@backingInt(other.top)])) continue;
-            if (site.arms.apart(order, order.time[@backingInt(site.top)], other.arms, order.time[@backingInt(other.top)])) continue;
+            if (order.apart(site.region, order.timeAt(@backingInt(site.top)), other.region, order.timeAt(@backingInt(other.top)))) continue;
+            if (site.arms.apart(order, order.timeAt(@backingInt(site.top)), other.arms, order.timeAt(@backingInt(other.top)))) continue;
             if (self.role(other, slot) != .observe) return false;
             if (!before(order, other, site)) return false;
         }
@@ -194,13 +194,13 @@ fn decide(self: *Self, root: u32, slot: u32) bool {
 /// both read through one shared node, when the observing node finishes before the consuming node starts. A statement
 /// consumes its value once the value is built, so whatever the building reads comes first.
 fn before(order: *const Order, observation: Site, consumer: Site) bool {
-    const seen = order.time[@backingInt(observation.top)];
+    const seen = order.timeAt(@backingInt(observation.top));
 
-    if (seen < order.time[@backingInt(consumer.top)]) return true;
-    if (consumer.parent == Order.none) return seen < order.finish[@backingInt(consumer.top)];
-    if (observation.parent != Order.none and order.finish[observation.parent] <= order.time[consumer.parent]) return true;
+    if (seen < order.timeAt(@backingInt(consumer.top))) return true;
+    if (consumer.parent == Order.none) return seen < order.finishAt(@backingInt(consumer.top));
+    if (observation.parent != Order.none and order.finishAt(observation.parent) <= order.timeAt(consumer.parent)) return true;
 
-    return seen > order.time[consumer.parent] and seen < order.finish[consumer.parent];
+    return seen > order.timeAt(consumer.parent) and seen < order.finishAt(consumer.parent);
 }
 
 /// A call argument slot only observes unless the callee may write that input slot in place or return it.
@@ -223,11 +223,10 @@ const Walker = struct {
     buckets: []std.ArrayList(Site),
     fn walk(self: *Walker, root: usize, node: ir.ExprId, outer: u32, entered: Arms, delta: i32, lo: u32, hi: u32) std.mem.Allocator.Error!void {
         const index = @backingInt(node);
-        const regions = self.order.regions.items;
 
         for (self.consumers.edges[self.consumers.first[index]..self.consumers.first[index + 1]], self.consumers.first[index]..) |edge, position| {
-            const anchor = if (regions[edge.region].depth > regions[outer].depth) edge.region else outer;
-            const arms = entered.enter(regions, edge.region);
+            const anchor = if (self.order.regionDepth(edge.region) > self.order.regionDepth(outer)) edge.region else outer;
+            const arms = entered.enter(self.order, edge.region);
 
             switch (edge.role) {
                 .evaluation => continue,
@@ -289,7 +288,7 @@ fn references(allocator: std.mem.Allocator, order: *const Order, expressions: ir
     @memset(first, 0);
 
     for (0..expressions.count()) |index| {
-        if (order.time[index] == Order.none) continue;
+        if (order.timeAt(index) == Order.none) continue;
 
         switch (expressions.get(@fromBackingInt(@intCast(index))).value) {
             .reference => |symbol| {
@@ -307,7 +306,7 @@ fn references(allocator: std.mem.Allocator, order: *const Order, expressions: ir
     const cursor = try allocator.dupe(u32, first[0..count]);
 
     for (0..expressions.count()) |index| {
-        if (order.time[index] == Order.none) continue;
+        if (order.timeAt(index) == Order.none) continue;
 
         switch (expressions.get(@fromBackingInt(@intCast(index))).value) {
             .reference => |symbol| {
@@ -327,16 +326,17 @@ const Consumers = struct { first: []u32, edges: []Order.Edge };
 
 fn group(allocator: std.mem.Allocator, order: *const Order, count: usize) std.mem.Allocator.Error!Consumers {
     const first = try allocator.alloc(u32, count + 1);
-    const edges = try allocator.alloc(Order.Edge, order.edges.items.len);
+    const edges = try allocator.alloc(Order.Edge, order.edgeCount());
 
     @memset(first, 0);
 
-    for (order.edges.items) |edge| first[@backingInt(edge.child) + 1] += 1;
+    for (0..order.edgeCount()) |index| first[order.edgeChild(index) + 1] += 1;
     for (1..first.len) |index| first[index] += first[index - 1];
 
     const cursor = try allocator.dupe(u32, first[0..count]);
 
-    for (order.edges.items) |edge| {
+    for (0..order.edgeCount()) |position| {
+        const edge = order.edge(position);
         const slot = &cursor[@backingInt(edge.child)];
 
         edges[slot.*] = edge;

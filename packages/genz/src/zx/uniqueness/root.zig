@@ -55,7 +55,7 @@ pub const Unit = struct {
     /// The passes over the body are built on first use in `lasting`, which outlives every later analysis.
     pub fn analyze(self: *Unit, allocator: std.mem.Allocator, lasting: std.mem.Allocator, functions: ir.FunctionTable, slots: Slots, summaries: *Summaries, growth: ?Growth) std.mem.Allocator.Error!Function {
         if (self.passes == null) {
-            const order = try Order.create(lasting, self.unit.symbols, self.unit.expressions, self.body);
+            const order = try Order.create(lasting, allocator, self.unit.symbols, self.unit.expressions, self.body);
 
             self.passes = .{ .order = order, .sites = undefined };
             const passes = &self.passes.?;

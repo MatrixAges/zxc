@@ -13,26 +13,67 @@ export type Input = {
 export type Output = bool[]
 
 export default function (in: Input): Output {
-    const result = loop({
-        types: in.types,
-        boxed: in.boxed,
-        stack: in.roots
-    }, {
-        while: current => current.stack.length != 0,
-        next: current => {
-            const id = current.stack[current.stack.length - 1]
-            const index = integers.widen(id)
+    const queue: u32[] = []
 
-            current.stack = current.stack.pop()[0]
+    const seeded = loop({
+        boxed: in.boxed,
+        roots: in.roots,
+        queue,
+        index: 0
+    }, {
+        while: current => current.index < current.roots.length,
+        next: current => {
+            const id = current.roots[current.index]
+            const index = integers.widen(id)
 
             if (!current.boxed[index]) {
                 current.boxed[index] = true
-                current.stack = current.stack.concat(children({
-                    types: current.types,
-                    id,
-                    deep: true
-                }))[0]
+                current.queue = current.queue.push(id)[0]
             }
+
+            current.index += 1
+        }
+    })
+
+    const result = loop({
+        types: in.types,
+        boxed: seeded.boxed,
+        queue: seeded.queue,
+        index: 0
+    }, {
+        while: current => current.index < current.queue.length,
+        next: current => {
+            const id = current.queue[current.index]
+
+            const reached = children({
+                types: current.types,
+                id,
+                deep: true
+            })
+
+            const discovered = loop({
+                boxed: current.boxed,
+                queue: current.queue,
+                children: reached,
+                index: 0
+            }, {
+                while: pending => pending.index < pending.children.length,
+                next: pending => {
+                    const child = pending.children[pending.index]
+                    const index = integers.widen(child)
+
+                    if (!pending.boxed[index]) {
+                        pending.boxed[index] = true
+                        pending.queue = pending.queue.push(child)[0]
+                    }
+
+                    pending.index += 1
+                }
+            })
+
+            current.boxed = discovered.boxed
+            current.queue = discovered.queue
+            current.index += 1
         }
     })
 

@@ -90,7 +90,11 @@ fn sequenceMode(self: *Lower, value: ir.ExpressionRow, items: []const ir.ExprId,
     for (items, 0..) |item, index| {
         var expression = try bind(self, &body, try self.expr(item));
 
-        if (self.state_active and (value.value == .list or (value.value == .tuple and !self.state_plan.selected[@backingInt(value.type_id)]))) expression = try @import("state_value/conversion.zig").convert(self, &body, self.program.expression(item).type_id, expression, .pointer);
+        if (value.value == .list) {
+            expression = try @import("state_value/elements.zig").write(self, &body, value.type_id, expression);
+        } else if (self.state_active and value.value == .tuple and !self.state_plan.selected[@backingInt(value.type_id)]) {
+            expression = try @import("state_value/conversion.zig").convert(self, &body, self.program.expression(item).type_id, expression, .pointer);
+        }
 
         expressions[index] = expression;
     }
@@ -102,7 +106,7 @@ fn sequenceMode(self: *Lower, value: ir.ExpressionRow, items: []const ir.ExprId,
             break :blk if (layout) try @import("state_value/origin.zig").tuple(self, value.type_id, tuple) else try self.construct(value.type_id, tuple);
         },
         .list => blk: {
-            const element_type = try @import("types.zig").get(self, self.abi_types, self.program.typeOf(value.type_id).list);
+            const element_type = try @import("state_value/elements.zig").typeExpr(self, value.type_id);
             const array = try self.builder.expression(.{ .array = .{ .element_type = element_type, .values = expressions } });
 
             break :blk try self.call(try self.field(try self.builder.identifier("allocator"), "dupe"), &.{ element_type, try self.builder.expression(.{ .address_of = array }) }, true);

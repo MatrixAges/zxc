@@ -1,0 +1,71 @@
+import { max_u32 } from "core/const"
+
+import { Action, Definition, Role } from "./model"
+
+import type { Defined, Edge, Input, Repetition, State } from "./model"
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const ids: u32[] = []
+    const edges: Edge[] = []
+    const repeated: Repetition[] = []
+    const definitions: Defined[] = []
+
+    const unknown: Defined[] = [{
+        kind: Definition.Unknown,
+        value: max_u32,
+        index: max_u32,
+        repeated: max_u32
+    }]
+
+    const symbols = loop({
+        count: in.symbols,
+        definitions,
+        unknown,
+        index: 0
+    }, {
+        while: current => current.index < current.count,
+        next: current => {
+            current.definitions = current.definitions.push(current.index == 0 ? {
+                kind: Definition.Input,
+                value: max_u32,
+                index: max_u32,
+                repeated: max_u32
+            } : current.unknown[0])[0]
+            current.index += 1
+        }
+    }).definitions
+
+    return {
+        graph: {
+            regions: [{
+                parent: max_u32,
+                fork: max_u32,
+                arm: 0,
+                depth: 0,
+                returns: false
+            }],
+            edges,
+            definitions: symbols,
+            results: ids,
+            repeated
+        },
+        stack: {
+            top: 0,
+            nodes: [{
+                parent: max_u32,
+                action: Action.Block,
+                first: in.first,
+                second: in.count,
+                third: 0,
+                fourth: 0,
+                role: Role.observe
+            }]
+        },
+        clock: 0,
+        forks: 0,
+        region: 0,
+        repeated: max_u32
+    }
+}

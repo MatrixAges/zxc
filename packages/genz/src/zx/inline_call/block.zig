@@ -120,17 +120,11 @@ fn select(mapping: *Mapping, selection: @FieldType(ir.StatementRow, "switch_stmt
             continue;
         }
 
-        const condition = try unit.append(.{ .type_id = scalarType(unit.plan.program, .bool), .span = span, .value = .{ .binary = .{
-            .operator = .equal,
-            .left = reference,
-            .right = try mapping.expression(value),
-        } } });
-
-        try arms.append(unit.allocator, .{ .condition = condition, .result = body });
+        try arms.append(unit.allocator, .{ .condition = try mapping.expression(value), .result = body });
     }
 
     const last = fallback orelse try lower(mapping, (ir.ControlBody{}).block(), null, type_id, span);
-    const result = try unit.append(.{ .type_id = type_id, .span = span, .value = .{ .match_expr = .{ .subject = null, .arms = try arms.toOwnedSlice(unit.allocator), .fallback = last } } });
+    const result = try unit.append(.{ .type_id = type_id, .span = span, .value = .{ .match_expr = .{ .subject = reference, .arms = try arms.toOwnedSlice(unit.allocator), .fallback = last } } });
 
     return bind(mapping, .{ .symbol = symbol, .value = subject }, result, type_id, span);
 }

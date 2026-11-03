@@ -184,9 +184,14 @@ export default function (in: Input): Output {
                                 )[0],
                             const_slice:
                                 current.const_slice.push(
-                                    source.abi_types[integers.widen(
-                                        first
-                                    )]
+                                    kind(
+                                        source.types.kinds[integers.widen(
+                                            first
+                                        )]
+                                    ) == Kind.Object &&
+                                        source.selected[integers.widen(first)] ?
+                                        source.abi_layouts[integers.widen(first)] :
+                                        source.abi_types[integers.widen(first)]
                                 )[0]
                         }
                         current = {

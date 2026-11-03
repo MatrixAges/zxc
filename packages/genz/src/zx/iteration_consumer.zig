@@ -108,7 +108,12 @@ pub fn read(self: *Lower, consumer: Consumer, id: ir.ExprId, state: node.Express
         .index => |item| value: {
             const projected = try @import("intrinsics.zig").index(self, try @import("state_value/list.zig").items(self, self.program.expression(item.target).type_id, try read(self, consumer, item.target, state)), try self.expr(item.index));
 
-            break :value if (self.state_active) fromAbi(self, expression.type_id, projected) else projected;
+            if (!self.state_active or !self.state_plan.represented(self.program, expression.type_id)) break :value projected;
+
+            var body: std.ArrayList(node.Statement) = .empty;
+            const converted = try @import("state_value/elements.zig").read(self, &body, self.program.expression(item.target).type_id, projected);
+
+            break :value @import("aggregate.zig").finish(self, &body, converted);
         },
         .length => |child| self.cast(try self.typeExpr(expression.type_id), try self.field(try @import("state_value/list.zig").items(self, self.program.expression(child).type_id, try read(self, consumer, child, state)), "len")),
         else => unreachable,

@@ -10,7 +10,7 @@ pub fn selected(self: *const Lower, id: ir.TypeId) bool {
 
 pub fn definition(self: *Lower, child: ir.TypeId) Lower.Error!node.ExpressionId {
     return self.builder.expression(.{ .struct_type = try self.allocator.dupe(node.Field, &.{
-        .{ .name = "items", .value = try self.builder.expression(.{ .const_slice = try @import("../types.zig").get(self, self.abi_types, child) }) },
+        .{ .name = "items", .value = try self.builder.expression(.{ .const_slice = try @import("../types.zig").get(self, if (self.program.typeOf(child) == .object and self.state_plan.selected[@backingInt(child)]) self.abi_layouts else self.abi_types, child) }) },
         .{ .name = "headered", .value = try self.builder.expression(.{ .primitive = .bool }) },
     }) });
 }
@@ -49,12 +49,11 @@ pub fn items(self: *Lower, id: ir.TypeId, value: node.ExpressionId) Lower.Error!
 }
 
 pub fn reserve(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.TypeId, value: node.ExpressionId, count: node.ExpressionId, frontier: bool) Lower.Error!node.ExpressionId {
-    const child = self.program.typeOf(id).list;
     const source = try aggregate.bind(self, body, value);
     const view = try self.field(source, "items");
     var yes: std.ArrayList(node.Statement) = .empty;
     var no: std.ArrayList(node.Statement) = .empty;
-    const element = try @import("../types.zig").get(self, self.abi_types, child);
+    const element = try @import("elements.zig").typeExpr(self, id);
     const copied = try @import("../growth.zig").reserve(self, &no, element, view, count, false);
 
     const result = if (frontier) chosen: {
