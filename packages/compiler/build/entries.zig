@@ -99,6 +99,8 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/uniqueness/slots/list_type.zx", .name = "uniqueness_list_type", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/slots/path.zx", .name = "uniqueness_slot_path", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/flow/initial/build.rx", .name = "uniqueness_flow_initial", .owner = .genz },
+    .{ .path = "genz/analysis/uniqueness/level/evaluate.zx", .name = "uniqueness_level", .owner = .genz },
+    .{ .path = "genz/analysis/uniqueness/level/lacks.zx", .name = "uniqueness_level_lacks", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/flow/body/prepare.rx", .name = "uniqueness_flow_prepare", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/flow/body/analyze.rx", .name = "uniqueness_flow_body", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/layers/plan.rx", .name = "uniqueness_layers", .owner = .genz },

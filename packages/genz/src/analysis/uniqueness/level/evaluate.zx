@@ -1,0 +1,29 @@
+import constant from "./const"
+import join from "./join"
+import meet from "./meet"
+import { Operation } from "./model"
+
+import type { Input, Level as Output } from "./model"
+
+export default function (in: Input): Output {
+    return match in.operation {
+        Operation.None => constant(in.operation),
+        Operation.All => constant(in.operation),
+        Operation.Fresh => constant(in.operation),
+        Operation.Join => join(in.pick(["left", "right"])),
+        Operation.Meet => meet(in.pick(["left", "right"])),
+        Operation.Materialized => in.right.unique ? {
+            headered: true,
+            unique: in.linear,
+            deferred: false
+        } : {
+            ...in.left,
+            deferred: true
+        },
+        _ => in.left.unique ? in.left : {
+            headered: in.left.headered,
+            unique: true,
+            deferred: false
+        }
+    }
+}

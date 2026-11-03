@@ -221,7 +221,7 @@ fn entering(self: *Self, owner: ir.ExprId, initial: ir.ExprId, slot: u32) Level 
     const result = self.level(initial, slot);
     const want = self.renewed.get(renewal(owner, slot)) orelse return result;
 
-    return if (lacks(result, want)) materialized(result, want, true) else result;
+    return if (Level.lacks(result, want)) Level.materialized(result, want, true) else result;
 }
 
 fn renewal(owner: ir.ExprId, slot: u32) u64 {
@@ -230,11 +230,6 @@ fn renewal(owner: ir.ExprId, slot: u32) u64 {
 
 /// Marks a key whose growth copy renews the value of its expression rather than the state a loop enters with.
 const value_renewal: u64 = 1 << 63;
-
-fn lacks(level_value: Level, want: Level) bool {
-    return (want.headered and !level_value.headered and !level_value.deferred) or (want.unique and !level_value.unique);
-}
-
 /// A list slot of a loop state, or of an expression's own value when `value` is set, that starts from a growth copy.
 pub const Renewal = struct { owner: ir.ExprId, path: []const u32, value: bool = false };
 
@@ -254,7 +249,7 @@ pub fn renewals(self: *Self, allocator: std.mem.Allocator) std.mem.Allocator.Err
 
         const start = if (value) self.raw(owner, slot) else self.level(self.carriedState(owner).?.initial, slot);
 
-        if (!lacks(start, entry.value_ptr.*)) continue;
+        if (!Level.lacks(start, entry.value_ptr.*)) continue;
         try result.append(allocator, .{ .owner = owner, .path = try self.slots.path(allocator, self.row(owner).type_id, slot), .value = value });
     }
 
@@ -290,7 +285,7 @@ pub fn flags(self: *Self, values: []Flags) std.mem.Allocator.Error!void {
 
         const raw_level = self.raw(id, 0);
 
-        values[@backingInt(id)].normalize = want.unique and lacks(raw_level, want);
+        values[@backingInt(id)].normalize = want.unique and Level.lacks(raw_level, want);
     }
 
     var renewed = self.renewed.iterator();
@@ -301,7 +296,7 @@ pub fn flags(self: *Self, values: []Flags) std.mem.Allocator.Error!void {
         const id: ir.ExprId = @fromBackingInt(@intCast((entry.key_ptr.* & ~value_renewal) >> 32));
 
         if (self.order.timeAt(@backingInt(id)) == Order.none) continue;
-        if (entry.value_ptr.unique and lacks(self.raw(id, @truncate(entry.key_ptr.*)), entry.value_ptr.*)) values[@backingInt(id)].renew = true;
+        if (entry.value_ptr.unique and Level.lacks(self.raw(id, @truncate(entry.key_ptr.*)), entry.value_ptr.*)) values[@backingInt(id)].renew = true;
     }
 
     for (self.operations) |id| {
@@ -488,15 +483,9 @@ fn compute(self: *Self, id: ir.ExprId, slot: u32) Level {
     const result = self.raw(id, slot);
     const want = (if (slot == 0) self.normalized.get(id) else null) orelse self.renewed.get(renewal(id, slot) | value_renewal) orelse return result;
 
-    if (!lacks(result, want)) return result;
+    if (!Level.lacks(result, want)) return result;
 
-    return materialized(result, want, self.copyLinear(id, slot));
-}
-
-fn materialized(result: Level, want: Level, linear: bool) Level {
-    if (want.unique) return .{ .headered = true, .unique = linear };
-
-    return .{ .headered = result.headered, .unique = result.unique, .deferred = true };
+    return Level.materialized(result, want, self.copyLinear(id, slot));
 }
 
 /// Whether the new copy stays unique at this expression; symbol uses belong to the symbol.
@@ -588,10 +577,10 @@ fn node(self: *Self, id: ir.ExprId, slot: u32) Level {
                 break :blk .{ .headered = true, .unique = (!target.headered and !target.deferred) or target.unique };
             },
             .pop => self.level(operation.target, 0),
-            .sort, .reverse => written(self.level(operation.target, 0)),
+            .sort, .reverse => Level.written(self.level(operation.target, 0)),
             .splice => .fresh,
         },
-        .list_update => |update| written(self.level(update.target, 0)),
+        .list_update => |update| Level.written(self.level(update.target, 0)),
         .transform => |transform| switch (transform.kind) {
             .map, .filter => .fresh,
             .reduce => self.carried.get(id).?[slot].meet(self.level(transform.initial.?, slot)),
@@ -622,12 +611,6 @@ fn node(self: *Self, id: ir.ExprId, slot: u32) Level {
 /// is.
 fn prefix(self: Self, operation: anytype) bool {
     return @import("basis.zig").prefix(self.expressions, operation);
-}
-
-/// An element write keeps a unique target's buffer and otherwise copies into a fresh one, with a header when the target
-/// had one.
-fn written(target: Level) Level {
-    return if (target.unique) target else .{ .headered = target.headered, .unique = true };
 }
 
 /// Demand for growth copies: appends want a header and element writes want a unique buffer. Each demand traces back to

@@ -1,0 +1,11 @@
+import type { Level as Output, Pair as Input } from "./model"
+
+export default function (in: Input): Output {
+    const headered = in.left.headered || in.right.headered
+
+    return {
+        headered,
+        unique: in.left.unique || in.right.unique,
+        deferred: !headered && (in.left.deferred || in.right.deferred)
+    }
+}

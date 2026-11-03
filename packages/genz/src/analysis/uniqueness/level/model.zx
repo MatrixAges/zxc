@@ -1,0 +1,19 @@
+export type Level = {
+    headered: bool,
+    unique: bool,
+    deferred: bool
+}
+
+export enum Operation { None, All, Fresh, Join, Meet, Materialized, Written }
+
+export type Pair = {
+    left: Level,
+    right: Level
+}
+
+export type Input = {
+    operation: Operation,
+    left: Level,
+    right: Level,
+    linear: bool
+}
