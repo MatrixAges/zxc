@@ -1,0 +1,43 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+
+import type { Query } from "./model"
+
+export type Input = {
+    query: Query,
+    observation: u64,
+    consumer: u64
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const sites = in.query.plan.sites
+    const nodes = in.query.nodes
+    const observation = integers.widen(sites.top[in.observation])
+    const consumer = integers.widen(sites.top[in.consumer])
+    const seen = nodes.time[observation]
+
+    if (seen < nodes.time[consumer]) {
+        return true
+    }
+
+    const parent = sites.parent[in.consumer]
+
+    if (parent == max_u32) {
+        return seen < nodes.finish[consumer]
+    }
+
+    const other_parent = sites.parent[in.observation]
+
+    if (
+        other_parent != max_u32 &&
+            nodes.finish[integers.widen(other_parent)] <=
+            nodes.time[integers.widen(parent)]
+    ) {
+        return true
+    }
+
+    return seen > nodes.time[integers.widen(parent)] &&
+        seen < nodes.finish[integers.widen(parent)]
+}

@@ -4,4 +4,8 @@ export declare function widenShort(value: u16): u64 concurrent
 
 export declare function widenByte(value: u8): u64 concurrent
 
+export declare function widenSigned(value: u32): i64 concurrent
+
 export declare function narrow(value: u64): u32 throws { IntegerOverflow } concurrent
+
+export declare function narrowSigned(value: i64): u32 throws { IntegerOverflow } concurrent

@@ -1,0 +1,227 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import { Role } from "../order/model"
+import enter from "./enter"
+import push from "./push"
+
+import type { Frame, Site, Walk } from "./model"
+
+export type Input = {
+    walk: Walk,
+    node: u32,
+    size: u32,
+    sites: Site[]
+}
+
+export type Output = Site[]
+
+export default function (in: Input): Output {
+    const frames: Frame[] = []
+    const cursors: u64[] = []
+
+    const stack = push({
+        stack: {
+            top: max_u32,
+            frames,
+            cursors
+        },
+        consumers: in.walk.consumers,
+        node: in.node,
+        frame: {
+            parent: max_u32,
+            node: in.node,
+            end: 0,
+            region: 0,
+            a: 0,
+            b: 0,
+            c: 0,
+            d: 0,
+            arms: 0,
+            delta: 0,
+            lo: 0,
+            hi: in.size
+        }
+    })
+
+    return loop({
+        stack,
+        sites: in.sites
+    }, {
+        while: current => current.stack.top != max_u32,
+        next: (current, walk) => {
+            const top = integers.widen(current.stack.top)
+            const frame = current.stack.frames[top]
+            const cursor = current.stack.cursors[top]
+
+            if (cursor == frame.end) {
+                current.stack.top = frame.parent
+            } else {
+                const source = walk.source
+                const edges = source.edges
+                const edge = integers.widen(walk.consumers.items[cursor])
+                const role = edges.role[edge]
+                const region = edges.region[edge]
+                const parent = edges.parent[edge]
+                const anchor = source.regions.depth[integers.widen(region)] >
+                    source.regions.depth[integers.widen(frame.region)] ?
+                    region : frame.region
+
+                current.stack.cursors[top] += 1
+
+                if (role != Role.evaluation) {
+                    const arms = enter({
+                        regions: source.regions,
+                        arms: {
+                            a: frame.a,
+                            b: frame.b,
+                            c: frame.c,
+                            d: frame.d,
+                            count: frame.arms
+                        },
+                        region
+                    })
+
+                    const path = {
+                        ...frame,
+                        region: anchor,
+                        a: arms.a,
+                        b: arms.b,
+                        c: arms.c,
+                        d: arms.d,
+                        arms: arms.count
+                    }
+
+                    if (role == Role.flow || role == Role.member) {
+                        const type_id = integers.widen(
+                            source.expressions.types[integers.widen(
+                                parent
+                            )]
+                        )
+                        const owner = integers.widen(source.layout.unwrapped[type_id])
+                        const offset = role == Role.member ?
+                            source.layout.offsets[owner][integers.widen(
+                                edges.index[edge]
+                            )] :
+                            0
+
+                        current.stack = push({
+                            stack: current.stack,
+                            consumers: walk.consumers,
+                            node: parent,
+                            frame: {
+                                ...path,
+                                delta: frame.delta + integers.widenSigned(
+                                    offset
+                                )
+                            }
+                        })
+                    } else if (role == Role.bind) {
+                        const symbol = integers.widen(edges.index[edge])
+
+                        const first = integers.widen(walk.references.first[symbol])
+                        const references = walk.references.items
+
+                        current.stack = loop({
+                            stack: current.stack,
+                            end: integers.widen(
+                                walk.references.first[symbol + 1]
+                            )
+                        }, {
+                            while: (bind, context) => bind.end > context.first,
+                            next: (bind, context) => {
+                                bind.end -= 1
+                                bind.stack = push({
+                                    stack: bind.stack,
+                                    consumers: context.consumers,
+                                    node: context.references[bind.end],
+                                    frame: context.path
+                                })
+                            }
+                        }, {
+                            first,
+                            references,
+                            path,
+                            consumers: walk.consumers
+                        }).stack
+                    } else {
+                        const parent_index = integers.widen(parent)
+                        const target = parent == max_u32 ? ExpressionKind.Unit :
+                            source.expressions.kinds[parent_index]
+                        const projected = target == ExpressionKind.Field ||
+                            target == ExpressionKind.TupleField
+                        const payload = parent == max_u32 ? 0 :
+                            integers.widen(source.expressions.payloads[parent_index])
+                        const projection_target = projected ?
+                            source.expressions.projection_targets[payload] : max_u32
+
+                        if (projected && projection_target == frame.node) {
+                            const type_id = integers.widen(
+                                source.expressions.types[integers.widen(
+                                    frame.node
+                                )]
+                            )
+                            const owner =
+                                integers.widen(source.layout.unwrapped[type_id])
+                            const member = integers.widen(
+                                source.expressions.projection_indices[payload]
+                            )
+                            const offset = source.layout.offsets[owner][member]
+                            const member_type = source.layout.members[owner][member]
+                            const start = integers.widenSigned(offset) - frame.delta
+                            const first = start > integers.widenSigned(frame.lo) ?
+                                start : integers.widenSigned(frame.lo)
+                            const limit = start + integers.widenSigned(
+                                source.counts[integers.widen(
+                                    member_type
+                                )]
+                            )
+                            const clipped = limit < integers.widenSigned(frame.hi) ?
+                                limit : integers.widenSigned(frame.hi)
+                            const last = clipped > first ? clipped : first
+
+                            if (first < last) {
+                                current.stack = push({
+                                    stack: current.stack,
+                                    consumers: walk.consumers,
+                                    node: parent,
+                                    frame: {
+                                        ...path,
+                                        delta:
+                                            frame.delta - integers.widenSigned(offset),
+                                        lo: integers.narrowSigned(first),
+                                        hi: integers.narrowSigned(last)
+                                    }
+                                })
+                            }
+                        } else if (target == ExpressionKind.OptionalValue) {
+                            current.stack = push({
+                                stack: current.stack,
+                                consumers: walk.consumers,
+                                node: parent,
+                                frame: path
+                            })
+                        } else if (target != ExpressionKind.Length) {
+                            current.sites = current.sites.push({
+                                lo: frame.lo,
+                                hi: frame.hi,
+                                delta: frame.delta,
+                                top: frame.node,
+                                region: anchor,
+                                a: arms.a,
+                                b: arms.b,
+                                c: arms.c,
+                                d: arms.d,
+                                arms: arms.count,
+                                edge: walk.consumers.items[cursor],
+                                parent,
+                                role
+                            })[0]
+                        }
+                    }
+                }
+            }
+        }
+    }, in.walk).sites
+}

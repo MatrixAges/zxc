@@ -5,9 +5,20 @@ export type Context = {
     captures?: u32
 }
 
+export type Readonly = {
+    node: u64,
+    initial: u32,
+    initial_symbol: u32,
+    value: u32,
+    reference: u32,
+    symbol: u32,
+    parameter?: u32
+}
+
 export type IterationFrame = {
     node: u64,
     initial_node: u64,
+    readonly?: Readonly,
     condition_node: u64,
     step_node: u64,
     postcondition: bool,

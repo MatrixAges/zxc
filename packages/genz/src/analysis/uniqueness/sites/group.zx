@@ -1,0 +1,75 @@
+import integers from "std:integer"
+import { map } from "std:utils"
+
+import type { Index as Output } from "./model"
+
+export type Input = {
+    count: u64,
+    owners: u32[],
+    items: u32[]
+}
+
+export default function (in: Input): Output {
+    const empty: u32[] = []
+
+    const first: u32[] = loop({
+        count: in.count + 1,
+        values: empty
+    }, {
+        while: current => current.values.length < current.count,
+        next: current => {
+            current.values = current.values.push(0)[0]
+        }
+    }).values
+
+    const counts = loop({
+        owners: in.owners,
+        first,
+        index: 0
+    }, {
+        while: current => current.index < current.owners.length,
+        next: current => {
+            const owner = integers.widen(current.owners[current.index]) + 1
+
+            current.first[owner] += 1
+            current.index += 1
+        }
+    }).first
+
+    const starts = loop({
+        first: counts,
+        index: 1
+    }, {
+        while: current => current.index < current.first.length,
+        next: current => {
+            current.first[current.index] += current.first[current.index - 1]
+            current.index += 1
+        }
+    }).first
+
+    const values: u32[] = map(in.items, item => 0)
+    const cursors = map(starts, item => item)
+
+    const result = loop({
+        owners: in.owners,
+        items: in.items,
+        cursors,
+        values,
+        index: 0
+    }, {
+        while: current => current.index < current.items.length,
+        next: current => {
+            const owner = integers.widen(current.owners[current.index])
+            const cursor = integers.widen(current.cursors[owner])
+
+            current.values[cursor] = current.items[current.index]
+            current.cursors[owner] += 1
+            current.index += 1
+        }
+    }).values
+
+    return {
+        first: starts,
+        items: result
+    }
+}

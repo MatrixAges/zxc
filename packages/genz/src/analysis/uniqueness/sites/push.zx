@@ -1,0 +1,45 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+
+import type { Frame, Index, Stack } from "./model"
+
+export type Input = {
+    stack: Stack,
+    frame: Frame,
+    consumers: Index,
+    node: u32
+}
+
+export type Output = Stack
+
+export default function (in: Input): Output {
+    const node = integers.widen(in.node)
+    const first = in.consumers.first[node]
+    const end = in.consumers.first[node + 1]
+
+    if (first == end) {
+        return in.stack
+    }
+
+    const index = in.stack.top == max_u32 ? 0 : integers.widen(in.stack.top) + 1
+
+    const frame = {
+        ...in.frame,
+        parent: in.stack.top,
+        node: in.node,
+        end: integers.widen(end)
+    }
+
+    const cursor = integers.widen(first)
+
+    return {
+        top: integers.narrow(index),
+        frames: index < in.stack.frames.length ? in.stack.frames.with(index, {
+            ...frame
+        }) : in.stack.frames.push({
+            ...frame
+        })[0],
+        cursors: index < in.stack.cursors.length ?
+            in.stack.cursors.with(index, cursor) : in.stack.cursors.push(cursor)[0]
+    }
+}

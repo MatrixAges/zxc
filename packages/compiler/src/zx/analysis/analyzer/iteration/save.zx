@@ -1,0 +1,55 @@
+import integers from "std:integer"
+import { ValueKind } from "core/expression_table/append/model"
+import appendValue from "core/expression_table/append/value"
+import appendSymbol from "core/symbol_table/append"
+import { Ownership } from "core/symbol_table/model"
+
+import type { Local } from "../local"
+
+export type Input = {
+    local: Local,
+    value: u32,
+    name: string
+}
+
+export type Output = {
+    local: Local,
+    symbol: u32,
+    reference: u32
+}
+
+export default function (in: Input): Output {
+    const index = integers.widen(in.value)
+
+    const metadata = {
+        type_id: in.local.expressions.types[index],
+        span_start: in.local.expressions.span_start[index],
+        span_end: in.local.expressions.span_end[index]
+    }
+
+    const symbol = appendSymbol({
+        table: in.local.symbols,
+        name: in.name,
+        type_id: metadata.type_id,
+        span_start: metadata.span_start,
+        span_end: metadata.span_end,
+        ownership: Ownership.Copy
+    })
+
+    const reference = appendValue({
+        table: in.local.expressions,
+        metadata,
+        kind: ValueKind.Reference,
+        value: symbol.id
+    })
+
+    return {
+        local: {
+            ...in.local,
+            symbols: symbol.table,
+            expressions: reference.table
+        },
+        symbol: symbol.id,
+        reference: reference.id
+    }
+}

@@ -1,0 +1,35 @@
+import integers from "std:integer"
+
+import { Role } from "../order/model"
+import group from "./group"
+
+import type { Input, Index as Output } from "./model"
+
+export default function (in: Input): Output {
+    const empty: u32[] = []
+
+    const values = loop({
+        edges: in.edges,
+        owners: empty,
+        items: empty,
+        index: 0
+    }, {
+        while: current => current.index < current.edges.child.length,
+        next: current => {
+            if (current.edges.role[current.index] != Role.evaluation) {
+                current.owners =
+                    current.owners.push(current.edges.child[current.index])[0]
+                current.items =
+                    current.items.push(integers.narrow(current.index))[0]
+            }
+
+            current.index += 1
+        }
+    })
+
+    return group({
+        count: in.expressions.kinds.length,
+        owners: values.owners,
+        items: values.items
+    })
+}

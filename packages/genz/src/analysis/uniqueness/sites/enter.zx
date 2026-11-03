@@ -1,0 +1,65 @@
+import integers from "std:integer"
+
+import { arm_capacity } from "./const"
+
+import type { Regions } from "../order/plan"
+import type { Arms } from "./model"
+
+export type Input = {
+    regions: Regions,
+    arms: Arms,
+    region: u32
+}
+
+export type Output = Arms
+
+export default function (in: Input): Output {
+    const depth = in.regions.depth[integers.widen(in.region)]
+
+    if (depth == 0) {
+        return in.arms
+    }
+
+    const last = match in.arms.count {
+        1 => in.arms.a,
+        2 => in.arms.b,
+        3 => in.arms.c,
+        _ => in.arms.d
+    }
+
+    const ancestor = loop({
+        regions: in.regions,
+        depth,
+        last
+    }, {
+        while: current =>
+            current.regions.depth[integers.widen(current.last)] > current.depth,
+        next: current => {
+            current.last = current.regions.parent[integers.widen(
+                current.last
+            )]
+        }
+    }).last
+
+    if (in.arms.count != 0 && ancestor == in.region) {
+        return in.arms
+    }
+
+    if (in.arms.count == arm_capacity) {
+        return {
+            a: in.arms.b,
+            b: in.arms.c,
+            c: in.arms.d,
+            d: in.region,
+            count: arm_capacity
+        }
+    }
+
+    return {
+        a: in.arms.count == 0 ? in.region : in.arms.a,
+        b: in.arms.count == 1 ? in.region : in.arms.b,
+        c: in.arms.count == 2 ? in.region : in.arms.c,
+        d: in.arms.count == 3 ? in.region : in.arms.d,
+        count: in.arms.count + 1
+    }
+}

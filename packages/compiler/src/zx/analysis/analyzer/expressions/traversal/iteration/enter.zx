@@ -28,6 +28,15 @@ export default function (in: Input): Output {
     const frame: IterationFrame = {
         node: in.node,
         initial_node: prepared.initial,
+        readonly: prepared.readonly_node != null ? {
+            node: prepared.readonly_node,
+            initial: 0,
+            initial_symbol: 0,
+            value: 0,
+            reference: 0,
+            symbol: 0,
+            parameter: null
+        } : null,
         condition_node: prepared.condition,
         step_node: prepared.step,
         postcondition: prepared.postcondition,

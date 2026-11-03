@@ -13,6 +13,7 @@ export type Input = {
 
 export type Output = {
     initial: u64,
+    readonly_node?: u64,
     condition: u64,
     step: u64,
     postcondition: bool,
@@ -22,7 +23,7 @@ export type Output = {
 export default function (in: Input): Output {
     const node = in.source.tree.nodes[in.node]
 
-    if (node.count != 2) {
+    if (node.count != 2 && node.count != 3) {
         return {
             initial: 0,
             condition: 0,
@@ -156,6 +157,7 @@ export default function (in: Input): Output {
 
     return {
         initial: arguments[0],
+        readonly_node: node.count == 3 ? arguments[2] : null,
         condition: found.condition ?? 0,
         step: found.step ?? 0,
         postcondition: found.postcondition,

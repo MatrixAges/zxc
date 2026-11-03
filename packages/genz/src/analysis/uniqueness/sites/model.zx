@@ -1,0 +1,127 @@
+import type { Expressions } from "core/expression_table/model"
+import type { Role } from "../order/model"
+import type { Edges, Nodes, Regions } from "../order/plan"
+import type { Layout } from "../slots/model"
+
+export type Index = {
+    first: u32[],
+    items: u32[]
+}
+
+export type Effects = {
+    kind: Role[],
+    limit: u32[]
+}
+
+export type Input = {
+    expressions: Expressions,
+    symbols: u32[],
+    counts: u32[],
+    layout: Layout,
+    nodes: Nodes,
+    regions: Regions,
+    edges: Edges,
+    def_loop: u32[],
+    held: bool[][],
+    written: bool[][],
+    effects: Effects
+}
+
+export type Arms = {
+    a: u32,
+    b: u32,
+    c: u32,
+    d: u32,
+    count: u32
+}
+
+export type Site = {
+    lo: u32,
+    hi: u32,
+    delta: i64,
+    top: u32,
+    region: u32,
+    a: u32,
+    b: u32,
+    c: u32,
+    d: u32,
+    arms: u32,
+    edge: u32,
+    parent: u32,
+    role: Role
+}
+
+export type Frame = {
+    parent: u32,
+    node: u32,
+    end: u64,
+    region: u32,
+    a: u32,
+    b: u32,
+    c: u32,
+    d: u32,
+    arms: u32,
+    delta: i64,
+    lo: u32,
+    hi: u32
+}
+
+export type Stack = {
+    top: u32,
+    frames: Frame[],
+    cursors: u64[]
+}
+
+export type Walk = {
+    source: Input,
+    consumers: Index,
+    references: Index
+}
+
+export type Trace = {
+    first: u32[],
+    sites: Site[]
+}
+
+export type Columns = {
+    lo: u32[],
+    hi: u32[],
+    delta: i64[],
+    top: u32[],
+    region: u32[],
+    a: u32[],
+    b: u32[],
+    c: u32[],
+    d: u32[],
+    arms: u32[],
+    edge: u32[],
+    parent: u32[],
+    role: Role[]
+}
+
+export type Plan = {
+    first: u32[],
+    slot_first: u32[],
+    sites: Columns
+}
+
+export enum Usage { Observed, Linear, Shared }
+
+export type Facts = {
+    plan: Plan,
+    states: Usage[]
+}
+
+export type Query = {
+    plan: Plan,
+    nodes: Nodes,
+    regions: Regions,
+    expressions: Expressions,
+    def_loop: u32[],
+    symbols: u64,
+    held: bool[][],
+    written: bool[][],
+    root: u32,
+    slot: u32,
+    observe: bool
+}

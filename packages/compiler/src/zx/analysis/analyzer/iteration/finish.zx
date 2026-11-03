@@ -1,0 +1,65 @@
+import integers from "std:integer"
+import appendIteration from "core/expression_table/append/iteration"
+import appendScope from "core/expression_table/append/scope"
+
+import type { Local } from "../local"
+import type { IterationFrame } from "./model"
+
+export type Input = {
+    local: Local,
+    frame: IterationFrame,
+    body: u32,
+    start: u64,
+    end: u64
+}
+
+export type Output = {
+    local: Local,
+    value: u32
+}
+
+export default function (in: Input): Output {
+    const metadata = {
+        type_id: in.local.expressions.types[integers.widen(in.frame.initial)],
+        span_start: in.start,
+        span_end: in.end
+    }
+
+    const iteration = appendIteration({
+        table: in.local.expressions,
+        metadata,
+        initial: in.frame.initial,
+        condition_parameter: in.frame.condition_parameter,
+        parameter: in.frame.parameter,
+        condition: in.frame.condition,
+        body: in.body,
+        postcondition: in.frame.postcondition
+    })
+
+    if (in.frame.readonly != null) {
+        const result = appendScope({
+            table: iteration.table,
+            metadata,
+            result: iteration.id,
+            symbols: [in.frame.readonly.initial_symbol, in.frame.readonly.symbol],
+            values: [in.frame.readonly.initial, in.frame.readonly.value],
+            borrows: [false, false]
+        })
+
+        return {
+            local: {
+                ...in.local,
+                expressions: result.table
+            },
+            value: result.id
+        }
+    }
+
+    return {
+        local: {
+            ...in.local,
+            expressions: iteration.table
+        },
+        value: iteration.id
+    }
+}

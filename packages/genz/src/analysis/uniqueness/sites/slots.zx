@@ -1,0 +1,32 @@
+import integers from "std:integer"
+
+import type { Input } from "./model"
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    const first: u32[] = []
+
+    const result = loop({
+        symbols: in.symbols,
+        types: in.expressions.types,
+        counts: in.counts,
+        first,
+        total: integers.narrow(0),
+        index: 0
+    }, {
+        while: current => current.index <
+            current.symbols.length + current.types.length,
+        next: current => {
+            const type_id = current.index < current.symbols.length ?
+                current.symbols[current.index] :
+                current.types[current.index - current.symbols.length]
+
+            current.first = current.first.push(current.total)[0]
+            current.total += current.counts[integers.widen(type_id)]
+            current.index += 1
+        }
+    })
+
+    return result.first.push(result.total)[0]
+}

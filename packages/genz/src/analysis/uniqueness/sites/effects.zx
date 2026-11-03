@@ -1,0 +1,64 @@
+import integers from "std:integer"
+
+import { Role } from "../order/model"
+
+import type { Effects as Output } from "./model"
+
+export type Input = {
+    held: bool[][],
+    written: bool[][]
+}
+
+export default function (in: Input): Output {
+    const kinds: Role[] = []
+    const limits: u32[] = []
+
+    const result = loop({
+        held: in.held,
+        written: in.written,
+        kinds,
+        limits,
+        index: 0
+    }, {
+        while: current => current.index < current.held.length,
+        next: current => {
+            const held = current.held[current.index]
+            const written = current.written[current.index]
+            const count = held.length < written.length ? held.length : written.length
+
+            const flags = loop({
+                held,
+                written,
+                count,
+                observed: true,
+                consumed: true,
+                index: 0
+            }, {
+                while: flags => flags.index < flags.count &&
+                    (flags.observed || flags.consumed),
+                next: flags => {
+                    const used = flags.held[flags.index] || flags.written[flags.index]
+
+                    flags.observed = flags.observed && !used
+                    flags.consumed = flags.consumed && used
+                    flags.index += 1
+                }
+            })
+
+            const kind = match {
+                count == 0 || flags.consumed => Role.use,
+                flags.observed => Role.observe,
+                _ => Role.argument
+            }
+
+            current.kinds = current.kinds.push(kind)[0]
+            current.limits = current.limits.push(integers.narrow(count))[0]
+            current.index += 1
+        }
+    })
+
+    return {
+        kind: result.kinds,
+        limit: result.limits
+    }
+}

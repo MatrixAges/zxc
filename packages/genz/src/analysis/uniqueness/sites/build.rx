@@ -1,0 +1,55 @@
+<Module>
+    <Type from="./model" as="Sites" />
+
+    <Args in={Sites.Input} out={Sites.Facts} />
+
+    <Task
+        name="plan"
+        out={{
+            first: $ctx.walk.first,
+            slot_first: $ctx.slots,
+            sites: {
+                ...$ctx.publish,
+                role: $ctx.resolve_roles
+            }
+        }}
+    >
+        <Call fn="consumers" in={$in} />
+        <Call fn="references" in={$in} />
+        <Call fn="slots" in={$in} />
+
+        <Call
+            fn="walk"
+            in={{
+                source: $in,
+                consumers: $ctx.consumers,
+                references: $ctx.references
+            }}
+        />
+
+        <Call fn="publish" in={$ctx.walk.sites} />
+
+        <Call
+            fn="resolve_roles"
+            in={{
+                source: $in,
+                sites: $ctx.publish
+            }}
+        />
+    </Task>
+
+    <Call
+        fn="classify"
+        in={{
+            source: $in,
+            plan: $ctx.task.plan
+        }}
+    />
+
+    <Return
+        value={{
+            plan: $ctx.task.plan,
+            states: $ctx.classify
+        }}
+    />
+</Module>

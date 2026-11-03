@@ -1,0 +1,45 @@
+import integers from "std:integer"
+import append from "core/expression_table/append/scope"
+
+import type { Local } from "../local"
+
+export type Input = {
+    local: Local,
+    value: u32,
+    parameter?: u32,
+    reference?: u32
+}
+
+export type Output = {
+    local: Local,
+    value: u32
+}
+
+export default function (in: Input): Output {
+    if (in.parameter == null || in.reference == null) {
+        return in.pick(["local", "value"])
+    }
+
+    const index = integers.widen(in.value)
+
+    const result = append({
+        table: in.local.expressions,
+        metadata: {
+            type_id: in.local.expressions.types[index],
+            span_start: in.local.expressions.span_start[index],
+            span_end: in.local.expressions.span_end[index]
+        },
+        result: in.value,
+        symbols: [in.parameter],
+        values: [in.reference],
+        borrows: [false]
+    })
+
+    return {
+        local: {
+            ...in.local,
+            expressions: result.table
+        },
+        value: result.id
+    }
+}

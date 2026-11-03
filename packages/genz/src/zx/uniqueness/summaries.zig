@@ -3,6 +3,8 @@ const ir = @import("zx").ir;
 const Level = @import("level.zig").Level;
 const Basis = @import("basis.zig");
 const Self = @This();
+const generated_analysis = @import("genz_options").generated_analysis;
+const Generated = if (generated_analysis) @import("generated_uniqueness_effects") else void;
 
 /// Per function: what every caller guarantees about each input list slot, what every return guarantees about each
 /// output list slot, which input slots the output can hold, and which input slots the function may write in place.
@@ -13,6 +15,7 @@ inputs: [][]Level,
 outputs: [][]Level,
 held: []const []const bool,
 written: []const []const bool,
+effects: if (generated_analysis) Generated.Output else void,
 pub fn create(allocator: std.mem.Allocator, program: ir.Program, basis: *const Basis) std.mem.Allocator.Error!Self {
     const slots = basis.slots;
     const count = program.functions.count();
@@ -36,7 +39,12 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program, basis: *const B
         @memset(outputs[index], .none);
     }
 
-    return .{ .input = input, .output = output, .inputs = inputs, .outputs = outputs, .held = basis.flow.held, .written = basis.flow.written };
+    const effects = if (generated_analysis) Generated.executeIn(allocator, &.{ .held = basis.flow.held, .written = basis.flow.written }) catch |err| switch (err) {
+        error.OutOfMemory => return error.OutOfMemory,
+        else => unreachable,
+    } else {};
+
+    return .{ .input = input, .output = output, .inputs = inputs, .outputs = outputs, .held = basis.flow.held, .written = basis.flow.written, .effects = effects };
 }
 
 pub fn mayHold(self: Self, function: ir.FunctionId, slot: u32) bool {

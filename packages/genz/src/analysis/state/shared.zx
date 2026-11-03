@@ -72,7 +72,10 @@ export default function (in: Input): Output {
 
             if (
                 current.records[index] &&
-                    kind(current.types.kinds[index]) == Kind.Object
+                    kind(current.types.kinds[index]) == Kind.Object && !fresh({
+                        expressions: current.expressions,
+                        id: current.expressions.update_values[current.index]
+                    })
             ) {
                 current.roots = current.roots.push(child)[0]
             }

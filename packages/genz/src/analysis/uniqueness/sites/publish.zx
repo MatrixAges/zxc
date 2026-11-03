@@ -1,0 +1,23 @@
+import { map } from "std:utils"
+
+import type { Columns as Output, Site } from "./model"
+
+export type Input = Site[]
+
+export default function (in: Input): Output {
+    return {
+        lo: map(in, site => site.lo),
+        hi: map(in, site => site.hi),
+        delta: map(in, site => site.delta),
+        top: map(in, site => site.top),
+        region: map(in, site => site.region),
+        a: map(in, site => site.a),
+        b: map(in, site => site.b),
+        c: map(in, site => site.c),
+        d: map(in, site => site.d),
+        arms: map(in, site => site.arms),
+        edge: map(in, site => site.edge),
+        parent: map(in, site => site.parent),
+        role: map(in, site => site.role)
+    }
+}

@@ -1,0 +1,40 @@
+import integers from "std:integer"
+
+import { Role } from "../order/model"
+
+import type { Query } from "./model"
+
+export type Input = {
+    query: Query,
+    site: u64
+}
+
+export type Output = Role
+
+export default function (in: Input): Output {
+    const query = in.query
+    const sites = query.plan.sites
+    const role = sites.role[in.site]
+
+    if (role != Role.argument) {
+        return role
+    }
+
+    const parent = integers.widen(sites.parent[in.site])
+    const payload = integers.widen(query.expressions.payloads[parent])
+    const callee = integers.widen(query.expressions.call_functions[payload])
+
+    const slot = integers.widen(
+        integers.narrowSigned(
+            integers.widenSigned(query.slot) + sites.delta[in.site]
+        )
+    )
+
+    const held = query.held[callee]
+    const written = query.written[callee]
+
+    const consumed = slot >= held.length || held[slot] ||
+        slot >= written.length || written[slot]
+
+    return consumed ? Role.use : Role.observe
+}

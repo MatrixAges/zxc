@@ -1,0 +1,239 @@
+import integers from "std:integer"
+
+import { Role } from "../order/model"
+import before from "./before"
+import exclusive from "./exclusive"
+import { Usage } from "./model"
+import role from "./role"
+
+import type { Input as Source, Plan, Query } from "./model"
+
+export type Input = {
+    source: Source,
+    plan: Plan
+}
+
+export type Output = Usage[]
+
+export default function (in: Input): Output {
+    const empty: Usage[] = []
+
+    const states = loop({
+        states: empty,
+        count: integers.widen(in.plan.slot_first[in.plan.slot_first.length - 1])
+    }, {
+        while: current => current.states.length < current.count,
+        next: current => {
+            current.states = current.states.push(Usage.Observed)[0]
+        }
+    }).states
+
+    const query: Query = {
+        plan: in.plan,
+        nodes: in.source.nodes,
+        regions: in.source.regions,
+        expressions: in.source.expressions,
+        def_loop: in.source.def_loop,
+        symbols: in.source.symbols.length,
+        held: in.source.held,
+        written: in.source.written,
+        root: 0,
+        slot: 0,
+        observe: false
+    }
+
+    return loop({
+        states,
+        root: 0
+    }, {
+        while: (current, source) => current.root + 1 < source.plan.first.length,
+        next: (current, source) => {
+            const query = {
+                ...source,
+                root: integers.narrow(current.root)
+            }
+            const base = integers.widen(query.plan.slot_first[current.root])
+            const first = integers.widen(query.plan.first[current.root])
+            const end = integers.widen(query.plan.first[current.root + 1])
+            const home = current.root < query.symbols ?
+                query.def_loop[current.root] :
+                query.nodes.repeated[current.root - query.symbols]
+
+            current.states = loop({
+                states: current.states,
+                index: first
+            }, {
+                while: (site, context) => site.index < context.end,
+                next: (site, context) => {
+                    const sites = context.query.plan.sites
+                    const index = site.index
+
+                    if (sites.role[index] != Role.observe) {
+                        const observed = loop({
+                            states: site.states,
+                            active: 0,
+                            slot: integers.widen(sites.lo[index])
+                        }, {
+                            while: (slot, context) => slot.slot < context.end,
+                            next: (slot, context) => {
+                                const position = context.base + slot.slot
+
+                                if (
+                                    slot.states[position] != Usage.Shared &&
+                                        (context.query.plan.sites.role[context.site] !=
+                                            Role.argument || role({
+                                                query: {
+                                                    ...context.query,
+                                                    slot: integers.narrow(
+                                                        slot.slot
+                                                    )
+                                                },
+                                                site: context.site
+                                            }) != Role.observe)
+                                ) {
+                                    if (context.repeated) {
+                                        slot.states[position] = Usage.Shared
+                                    } else {
+                                        slot.states[position] = Usage.Linear
+                                        slot.active += 1
+                                    }
+                                }
+
+                                slot.slot += 1
+                            }
+                        }, {
+                            query: context.query,
+                            base: context.base,
+                            site: index,
+                            repeated: context.query.nodes
+                                .repeated[integers.widen(
+                                    sites.top[index]
+                                )] != context.home,
+                            end: integers.widen(
+                                sites.hi[index] < context.count ? sites.hi[index] :
+                                    context.count
+                            )
+                        })
+
+                        site.states = loop({
+                            states: observed.states,
+                            active: observed.active,
+                            index: context.first
+                        }, {
+                            while: (pair, context) =>
+                                pair.active != 0 && pair.index < context.end,
+                            next: (pair, context) => {
+                                const sites = context.query.plan.sites
+                                const left = context.site
+                                const right = pair.index
+                                const first = sites.lo[left] > sites.lo[right] ?
+                                    sites.lo[left] : sites.lo[right]
+                                const last = sites.hi[left] < sites.hi[right] ?
+                                    sites.hi[left] : sites.hi[right]
+                                const end = last < context.count ? last : context.count
+                                const same = sites.edge[left] == sites.edge[right] &&
+                                    sites.delta[left] == sites.delta[right]
+
+                                if (
+                                    left != right && first < end && !same &&
+                                        !exclusive({
+                                            query: context.query,
+                                            left,
+                                            right
+                                        })
+                                ) {
+                                    const ordered = before({
+                                        query: context.query,
+                                        observation: right,
+                                        consumer: left
+                                    })
+
+                                    const result = loop({
+                                        states: pair.states,
+                                        active: pair.active,
+                                        slot: integers.widen(first)
+                                    }, {
+                                        while: (slot, context) =>
+                                            slot.active != 0 && slot.slot < context.end,
+                                        next: (slot, context) => {
+                                            const position = context.base + slot.slot
+                                            const left_role =
+                                                context.query.plan.sites
+                                                .role[context.left]
+                                            const right_role =
+                                                context.query.plan.sites
+                                                .role[context.right]
+
+                                            if (
+                                                slot.states[position] != Usage.Shared &&
+                                                    (left_role != Role.argument || role({
+                                                        query: {
+                                                            ...context.query,
+                                                            slot:
+                                                                integers.narrow(
+                                                                    slot.slot
+                                                                )
+                                                        },
+                                                        site: context.left
+                                                    }) != Role.observe) &&
+                                                    (!context.ordered ||
+                                                        (right_role != Role.observe &&
+                                                            (right_role !=
+                                                                Role.argument || role({
+                                                                    query: {
+                                                                        ...context.query,
+                                                                        slot:
+                                                                            integers
+                                                                            .narrow(
+                                                                                slot.slot
+                                                                            )
+                                                                    },
+                                                                    site: context.right
+                                                                }) !=
+                                                                Role.observe)))
+                                            ) {
+                                                slot.states[position] = Usage.Shared
+                                                slot.active -= 1
+                                            }
+
+                                            slot.slot += 1
+                                        }
+                                    }, {
+                                        query: context.query,
+                                        base: context.base,
+                                        left,
+                                        right,
+                                        ordered,
+                                        end: integers.widen(end)
+                                    })
+
+                                    pair.states = result.states
+                                    pair.active = result.active
+                                }
+
+                                pair.index += 1
+                            }
+                        }, {
+                            query: context.query,
+                            base: context.base,
+                            count: context.count,
+                            site: index,
+                            end: context.end
+                        }).states
+                    }
+
+                    site.index += 1
+                }
+            }, {
+                query,
+                base,
+                home,
+                first,
+                end,
+                count: query.plan.slot_first[current.root + 1] -
+                    query.plan.slot_first[current.root]
+            }).states
+            current.root += 1
+        }
+    }, query).states
+}

@@ -1,0 +1,44 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import group from "./group"
+
+import type { Input, Index as Output } from "./model"
+
+export default function (in: Input): Output {
+    const empty: u32[] = []
+
+    const values = loop({
+        expressions: in.expressions,
+        time: in.nodes.time,
+        owners: empty,
+        items: empty,
+        index: 0
+    }, {
+        while: current => current.index < current.expressions.kinds.length,
+        next: current => {
+            if (
+                current.time[current.index] != max_u32 &&
+                    current.expressions.kinds[current.index] == ExpressionKind.Reference
+            ) {
+                const payload =
+                    integers.widen(current.expressions.payloads[current.index])
+
+                current.owners = current.owners.push(
+                    current.expressions.references[payload]
+                )[0]
+                current.items =
+                    current.items.push(integers.narrow(current.index))[0]
+            }
+
+            current.index += 1
+        }
+    })
+
+    return group({
+        count: in.symbols.length,
+        owners: values.owners,
+        items: values.items
+    })
+}

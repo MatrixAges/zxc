@@ -5,6 +5,7 @@ import { ExprKind } from "../../../frontend/parser/expressions/state/model"
 import bind from "../bindings/append"
 import { NameKind } from "../source/model"
 import readName from "../source/name"
+import { context_parameters } from "./const"
 
 import type { Source } from "../expressions/request"
 import type { Local } from "../local"
@@ -16,13 +17,15 @@ export type Input = {
     source: Source,
     node: u64,
     type_id: u32,
-    updating: bool
+    updating: bool,
+    readonly_value?: u32
 }
 
 export type Output = {
     state: Prepared,
     context: Context,
     parameter: u32,
+    readonly_parameter?: u32,
     body: u64
 }
 
@@ -36,13 +39,17 @@ export default function (in: Input): Output {
         captures: in.state.local.captures.current
     }
 
-    if (node.kind != ExprKind.Lambda || node.count != 1) {
+    if (
+        node.kind != ExprKind.Lambda ||
+            (node.count != 1 && !(in.readonly_value != null && node.count == 2))
+    ) {
         return {
             state: {
                 ...in.state,
                 diagnostic: {
                     code: "type_mismatch",
-                    message: "loop callbacks require one inline state parameter",
+                    message: in.readonly_value != null ? context_parameters :
+                        "loop callbacks require one inline state parameter",
                     start: node.span.start,
                     end: node.span.end
                 }
@@ -85,7 +92,8 @@ export default function (in: Input): Output {
     const name = readName({
         source: in.source,
         kind: NameKind.Parameter,
-        index: node.head - 1
+        index: node.count == 2 ?
+            in.source.tree.parameters[node.head - 1].previous - 1 : node.head - 1
     })
 
     const binding = bind({
@@ -107,28 +115,54 @@ export default function (in: Input): Output {
         }
     }
 
-    const ownership =
-        binding.local.symbols.ownership.splice(
-            integers.widen(
-                binding.id
-            ),
-            1,
-            [Ownership.Borrowed]
-        )[0]
+    const secondary = node.count == 2 && in.readonly_value != null ? bind({
+        local: binding.local,
+        name: readName({
+            source: in.source,
+            kind: NameKind.Parameter,
+            index: node.head - 1
+        }),
+        type_id: binding.local.expressions.types[integers.widen(in.readonly_value)],
+        scope_start: context.active
+    }) : binding
+
+    if (secondary.diagnostic.message != "") {
+        return {
+            state: {
+                ...in.state,
+                diagnostic: secondary.diagnostic
+            },
+            context,
+            parameter: 0,
+            body: 0
+        }
+    }
+
+    const ownership = secondary.local.symbols.ownership.with(
+        integers.widen(binding.id),
+        Ownership.Borrowed
+    )
+
+    const borrowed = node.count == 2 ? ownership.with(
+        integers.widen(secondary.id),
+        Ownership.Borrowed
+    ) : ownership
 
     return {
         state: {
             ...in.state,
+            diagnostic: secondary.diagnostic,
             local: {
-                ...binding.local,
+                ...secondary.local,
                 symbols: {
-                    ...binding.local.symbols,
-                    ownership
+                    ...secondary.local.symbols,
+                    ownership: borrowed
                 }
             }
         },
         context,
         parameter: binding.id,
+        readonly_parameter: node.count == 2 ? secondary.id : null,
         body: node.first
     }
 }

@@ -1,0 +1,60 @@
+import integers from "std:integer"
+
+import { Role } from "../order/model"
+
+import type { Columns, Input as Source } from "./model"
+
+export type Input = {
+    source: Source,
+    sites: Columns
+}
+
+export type Output = Role[]
+
+export default function (in: Input): Output {
+    const roles: Role[] = []
+
+    return loop({
+        source: in.source,
+        sites: in.sites,
+        roles,
+        role: Role.argument,
+        index: 0
+    }, {
+        while: current => current.index < current.sites.role.length,
+        next: current => {
+            const index = current.index
+
+            current.role = current.sites.role[index]
+
+            if (current.role == Role.argument) {
+                const parent = integers.widen(current.sites.parent[index])
+                const payload =
+                    integers.widen(current.source.expressions.payloads[parent])
+                const callee =
+                    integers.widen(
+                        current.source.expressions.call_functions[payload]
+                    )
+                const kind = current.source.effects.kind[callee]
+
+                if (kind == Role.use) {
+                    current.role = Role.use
+                } else if (kind == Role.observe) {
+                    const delta = current.sites.delta[index]
+                    const first =
+                        integers.widenSigned(current.sites.lo[index]) + delta
+                    const end = integers.widenSigned(current.sites.hi[index]) + delta
+                    const limit =
+                        integers.widenSigned(current.source.effects.limit[callee])
+
+                    if (first >= 0 && end <= limit) {
+                        current.role = Role.observe
+                    }
+                }
+            }
+
+            current.roles = current.roles.push(current.role)[0]
+            current.index += 1
+        }
+    }).roles
+}

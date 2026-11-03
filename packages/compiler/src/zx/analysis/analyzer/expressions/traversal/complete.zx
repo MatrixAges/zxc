@@ -132,7 +132,8 @@ export default function (in: Input): Output {
     }
 
     if (
-        action == Action.IterationInitial || action == Action.IterationCondition ||
+        action == Action.IterationInitial || action == Action.IterationContext ||
+            action == Action.IterationCondition ||
             action == Action.IterationStep
     ) {
         return iteration({

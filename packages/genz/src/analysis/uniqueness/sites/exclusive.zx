@@ -1,0 +1,83 @@
+import integers from "std:integer"
+
+import apart from "../order/apart"
+
+import type { Query } from "./model"
+
+export type Input = {
+    query: Query,
+    left: u64,
+    right: u64
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const sites = in.query.plan.sites
+    const left_time = in.query.nodes.time[integers.widen(sites.top[in.left])]
+    const right_time = in.query.nodes.time[integers.widen(sites.top[in.right])]
+
+    if (apart({
+        regions: in.query.regions,
+        left: sites.region[in.left],
+        left_time,
+        right: sites.region[in.right],
+        right_time
+    })) {
+        return true
+    }
+
+    return loop({
+        regions: in.query.regions,
+        sites,
+        left: in.left,
+        right: in.right,
+        left_time,
+        right_time,
+        index: integers.narrow(0),
+        found: false
+    }, {
+        while: current =>
+            !current.found && current.index < current.sites.arms[current.left],
+        next: current => {
+            const left = match current.index {
+                0 => current.sites.a[current.left],
+                1 => current.sites.b[current.left],
+                2 => current.sites.c[current.left],
+                _ => current.sites.d[current.left]
+            }
+
+            current.found = loop({
+                regions: current.regions,
+                sites: current.sites,
+                right: current.right,
+                left,
+                left_time: current.left_time,
+                right_time: current.right_time,
+                index: integers.narrow(0),
+                found: false
+            }, {
+                while: other =>
+                    !other.found && other.index < other.sites.arms[other.right],
+                next: other => {
+                    const right = match other.index {
+                        0 => other.sites.a[other.right],
+                        1 => other.sites.b[other.right],
+                        2 => other.sites.c[other.right],
+                        _ => other.sites.d[other.right]
+                    }
+
+                    other.found = apart({
+                        regions: other.regions,
+                        left: other.left,
+                        left_time: other.left_time,
+                        right,
+                        right_time: other.right_time
+                    })
+                    other.index += 1
+                }
+            }).found
+            current.index += 1
+        }
+    }).found
+}

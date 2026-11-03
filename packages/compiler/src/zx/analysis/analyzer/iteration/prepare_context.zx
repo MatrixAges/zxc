@@ -1,0 +1,49 @@
+import { context_binding, initial_binding } from "./const"
+import save from "./save"
+
+import type { Local } from "../local"
+import type { IterationFrame } from "./model"
+
+export type Input = {
+    local: Local,
+    frame: IterationFrame,
+    value: u32
+}
+
+export type Output = {
+    local: Local,
+    frame: IterationFrame
+}
+
+export default function (in: Input): Output {
+    if (in.frame.readonly == null) {
+        return in.pick(["local", "frame"])
+    }
+
+    const initial = save({
+        local: in.local,
+        value: in.frame.readonly.initial,
+        name: initial_binding
+    })
+
+    const context = save({
+        local: initial.local,
+        value: in.value,
+        name: context_binding
+    })
+
+    return {
+        local: context.local,
+        frame: {
+            ...in.frame,
+            initial: initial.reference,
+            readonly: {
+                ...in.frame.readonly,
+                initial_symbol: initial.symbol,
+                value: in.value,
+                reference: context.reference,
+                symbol: context.symbol
+            }
+        }
+    }
+}

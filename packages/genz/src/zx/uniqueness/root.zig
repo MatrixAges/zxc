@@ -59,7 +59,7 @@ pub const Unit = struct {
 
             self.passes = .{ .order = order, .sites = undefined };
             const passes = &self.passes.?;
-            passes.sites = try Sites.create(lasting, &passes.order, slots, self.unit.symbols, self.unit.expressions, summaries);
+            passes.sites = try Sites.create(lasting, allocator, &passes.order, slots, self.unit.symbols, self.unit.expressions, summaries);
             self.unit.operations = try Function.collectOperations(lasting, &passes.order, self.unit.expressions);
             self.unit.rows = try Function.readRows(lasting, self.unit.expressions);
         }

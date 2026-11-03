@@ -1,0 +1,117 @@
+import integers from "std:integer"
+
+import callback from "../../../iteration/callback"
+import { context_void } from "../../../iteration/const"
+import prepare from "../../../iteration/prepare_context"
+import { Phase, Action } from "../model"
+
+import type { Readonly } from "../../../iteration/model"
+import type { Work } from "../model"
+
+export type Input = {
+    work: Work,
+    action: Action
+}
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const work = in.work
+    const position = work.frames.iterations.length - 1
+    const current = work.frames.iterations[position]
+    const initial = in.action == Action.IterationInitial
+    const type_id = work.state.local.expressions.types[integers.widen(work.value)]
+
+    if (type_id == 0) {
+        const node = !initial && current.readonly != null ? current.readonly.node :
+            current.initial_node
+
+        const span = work.source.tree.nodes[node].span
+
+        return {
+            ...work,
+            state: {
+                ...work.state,
+                diagnostic: {
+                    code: "type_mismatch",
+                    message: initial ? "loop state cannot be void" : context_void,
+                    start: span.start,
+                    end: span.end
+                }
+            }
+        }
+    }
+
+    const readonly: Readonly? = current.readonly != null ? {
+        ...current.readonly,
+        initial: work.value
+    } : null
+
+    const frame = initial ? {
+        ...current,
+        initial: work.value,
+        readonly
+    } : current
+
+    if (initial && frame.readonly != null) {
+        return {
+            ...work,
+            node: frame.readonly.node,
+            expected: null,
+            phase: Phase.Evaluate,
+            frames: {
+                ...work.frames,
+                iterations: work.frames.iterations.splice(position, 1, [frame])[0],
+                actions: work.frames.actions.push(Action.IterationContext)[0]
+            }
+        }
+    }
+
+    const prepared = initial ? {
+        local: work.state.local,
+        frame
+    } : prepare({
+        local: work.state.local,
+        frame,
+        value: work.value
+    })
+
+    const entered = callback({
+        state: {
+            ...work.state,
+            local: prepared.local
+        },
+        source: work.source,
+        node: frame.condition_node,
+        type_id: prepared.local.expressions
+            .types[integers.widen(
+                prepared.frame.initial
+            )],
+        updating: false,
+        readonly_value: prepared.frame.readonly != null ?
+            prepared.frame.readonly.reference : null
+    })
+
+    const iterations = work.frames.iterations.splice(position, 1, [{
+        ...prepared.frame,
+        condition_parameter: entered.parameter,
+        readonly: prepared.frame.readonly != null ? {
+            ...prepared.frame.readonly,
+            parameter: entered.readonly_parameter
+        } : null,
+        context: entered.context
+    }])[0]
+
+    return {
+        ...work,
+        state: entered.state,
+        node: entered.body,
+        expected: 1,
+        phase: Phase.Evaluate,
+        frames: {
+            ...work.frames,
+            iterations,
+            actions: work.frames.actions.push(Action.IterationCondition)[0]
+        }
+    }
+}

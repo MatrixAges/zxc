@@ -12,6 +12,14 @@ pub fn widenByte(value: u8) u64 {
     return value;
 }
 
+pub fn widenSigned(value: u32) i64 {
+    return value;
+}
+
 pub fn narrow(value: u64) error{IntegerOverflow}!u32 {
+    return std.math.cast(u32, value) orelse error.IntegerOverflow;
+}
+
+pub fn narrowSigned(value: i64) error{IntegerOverflow}!u32 {
     return std.math.cast(u32, value) orelse error.IntegerOverflow;
 }
