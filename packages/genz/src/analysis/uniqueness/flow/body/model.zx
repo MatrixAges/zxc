@@ -57,12 +57,13 @@ export type Point = {
 export type Queue = {
     count: u64,
     pending: Point[],
-    visited: bool[]
+    visited: u64[]
 }
 
 export type State = {
     remaining: u64,
     queue: Queue,
+    expanded: bool[],
     reached: bool[],
     changed: bool,
     every: bool

@@ -1,0 +1,29 @@
+import integers from "std:integer"
+
+import type { Input, Rows as Output } from "./model"
+
+export default function (in: Input): Output {
+    const sizes: u32[] = []
+    const texts: bool[] = []
+    const external: bool[] = []
+
+    return loop({
+        index: 0,
+        sizes,
+        texts,
+        external
+    }, {
+        while: (state, context) => state.index < context.input_types.length,
+        next: (state, context) => {
+            const input = integers.widen(context.input_types[state.index])
+            const output = integers.widen(context.output_types[state.index])
+
+            state.sizes = state.sizes.push(context.counts[input])[0]
+            state.texts = state.texts.push(context.texts[output])[0]
+            state.external = state.external.push(
+                context.native_modules[state.index] != null
+            )[0]
+            state.index += 1
+        }
+    }, in).pick(["sizes", "texts", "external"])
+}

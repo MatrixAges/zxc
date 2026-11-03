@@ -23,3 +23,17 @@ pub fn narrow(value: u64) error{IntegerOverflow}!u32 {
 pub fn narrowSigned(value: i64) error{IntegerOverflow}!u32 {
     return std.math.cast(u32, value) orelse error.IntegerOverflow;
 }
+
+pub fn bitMask(index: u64) error{IntegerOverflow}!u64 {
+    if (index >= @bitSizeOf(u64)) return error.IntegerOverflow;
+
+    return @as(u64, 1) << @as(u6, @intCast(index));
+}
+
+pub fn andBits(left: u64, right: u64) u64 {
+    return left & right;
+}
+
+pub fn orBits(left: u64, right: u64) u64 {
+    return left | right;
+}

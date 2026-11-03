@@ -1,0 +1,37 @@
+import row from "./row"
+
+import type { Input as Program, Plan as Output, Rows } from "./model"
+
+export type Input = {
+    program: Program,
+    rows: Rows
+}
+
+export default function (in: Input): Output {
+    const held: bool[][] = []
+    const text_held: bool[][] = []
+    const written: bool[][] = []
+
+    return loop({
+        held,
+        text_held,
+        written,
+        index: 0
+    }, {
+        while: (state, context) => state.index < context.rows.sizes.length,
+        next: (state, context) => {
+            const value = row({
+                program: context.program,
+                index: state.index,
+                size: context.rows.sizes[state.index],
+                text: context.rows.texts[state.index],
+                external: context.rows.external[state.index]
+            })
+
+            state.held = state.held.push(value.held)[0]
+            state.text_held = state.text_held.push(value.text_held)[0]
+            state.written = state.written.push(value.written)[0]
+            state.index += 1
+        }
+    }, in).pick(["held", "text_held", "written"])
+}

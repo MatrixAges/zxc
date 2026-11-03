@@ -9,3 +9,9 @@ export declare function widenSigned(value: u32): i64 concurrent
 export declare function narrow(value: u64): u32 throws { IntegerOverflow } concurrent
 
 export declare function narrowSigned(value: i64): u32 throws { IntegerOverflow } concurrent
+
+export declare function bitMask(index: u64): u64 throws { IntegerOverflow } concurrent
+
+export declare function andBits(left: u64, right: u64): u64 concurrent
+
+export declare function orBits(left: u64, right: u64): u64 concurrent

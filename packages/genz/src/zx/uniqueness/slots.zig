@@ -156,6 +156,8 @@ pub fn unwrap(self: *const Self, type_id: ir.TypeId) ir.TypeId {
 
 /// The list type stored at slot `slot` of a value of `type_id`.
 pub fn listType(self: *const Self, type_id: ir.TypeId, slot: u32) ir.TypeId {
+    if (@import("genz_options").generated_analysis) return @import("slots/query.zig").listType(self, type_id, slot);
+
     var current = self.unwrap(type_id);
     var remaining = slot;
 
@@ -171,6 +173,8 @@ pub fn listType(self: *const Self, type_id: ir.TypeId, slot: u32) ir.TypeId {
 
 /// Member indices leading from a value of `type_id` to slot `slot`.
 pub fn path(self: *const Self, allocator: std.mem.Allocator, type_id: ir.TypeId, slot: u32) std.mem.Allocator.Error![]const u32 {
+    if (@import("genz_options").generated_analysis) return @import("slots/query.zig").path(allocator, self, type_id, slot);
+
     var steps: std.ArrayList(u32) = .empty;
     var current = self.unwrap(type_id);
     var remaining = slot;

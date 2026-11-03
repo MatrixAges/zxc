@@ -1,0 +1,28 @@
+import integers from "std:integer"
+
+export type Input = {
+    offsets: u32[],
+    slot: u32
+}
+
+export type Output = u32
+
+export default function (in: Input): Output {
+    const result = loop({
+        first: 0,
+        last: in.offsets.length
+    }, {
+        while: state => state.last - state.first > 1,
+        next: (state, context) => {
+            const middle = state.first + (state.last - state.first) / 2
+
+            if (context.offsets[middle] <= context.slot) {
+                state.first = middle
+            } else {
+                state.last = middle
+            }
+        }
+    }, in)
+
+    return integers.narrow(result.first)
+}

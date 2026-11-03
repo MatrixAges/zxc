@@ -1,0 +1,26 @@
+import type { Layout } from "../../slots/model"
+import type { Summary } from "../body/model"
+
+export type Input = {
+    input_types: u32[],
+    output_types: u32[],
+    native_modules: u32?[],
+    texts: bool[],
+    counts: u32[],
+    kinds: u8[],
+    layout: Layout
+}
+
+export type Rows = {
+    sizes: u32[],
+    texts: bool[],
+    external: bool[]
+}
+
+export type Plan = {
+    held: bool[][],
+    text_held: bool[][],
+    written: bool[][]
+}
+
+export type Row = Summary

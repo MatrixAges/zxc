@@ -1,6 +1,8 @@
+import { bits_per_word } from "./const"
+
 export type Input = u64
 
-export type Output = bool[]
+export type Output = u64[]
 
 export default function (in: Input): Output {
     if (in == 0) {
@@ -8,8 +10,8 @@ export default function (in: Input): Output {
     }
 
     return loop({
-        values: [false],
-        count: in
+        values: [0],
+        count: (in + bits_per_word - 1) / bits_per_word
     }, {
         while: state => state.values.length < state.count,
         next: state => {

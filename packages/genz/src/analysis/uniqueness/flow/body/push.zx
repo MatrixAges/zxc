@@ -1,5 +1,7 @@
 import integers from "std:integer"
 
+import { bits_per_word } from "./const"
+
 import type { Point, Queue } from "./model"
 
 export type Input = {
@@ -14,7 +16,15 @@ export default function (in: Input): Output {
     const node = integers.widen(in.point.node)
     const bit = integers.widen(in.first[node] + in.point.slot)
 
-    if (bit >= integers.widen(in.first[node + 1]) || in.queue.visited[bit]) {
+    if (bit >= integers.widen(in.first[node + 1])) {
+        return in.queue
+    }
+
+    const word = bit / bits_per_word
+    const mask = integers.bitMask(bit % bits_per_word)
+    const previous = in.queue.visited[word]
+
+    if (integers.andBits(previous, mask) != 0) {
         return in.queue
     }
 
@@ -28,6 +38,6 @@ export default function (in: Input): Output {
     return {
         count: in.queue.count + 1,
         pending,
-        visited: in.queue.visited.with(bit, true)
+        visited: in.queue.visited.with(word, integers.orBits(previous, mask))
     }
 }

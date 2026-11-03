@@ -21,38 +21,12 @@ written: []const []const bool,
 /// the bodies whose content or callees changed.
 pub fn create(allocator: std.mem.Allocator, program: ir.Program, slots: Slots, texts: []const bool, contents: []const [32]u8, types: [32]u8, memo: ?*Memo) std.mem.Allocator.Error!Self {
     const count = program.functions.count();
-    const held = try allocator.alloc([]bool, count);
-    const text_held = try allocator.alloc([]bool, count);
-    const written = try allocator.alloc([]bool, count);
     var scratch = std.heap.ArenaAllocator.init(allocator);
 
     defer scratch.deinit();
 
     const temporary = scratch.allocator();
-
-    for (0..count) |index| {
-        const function = program.functions.at(index);
-        const size = slots.count(function.input_type);
-        held[index] = try allocator.alloc(bool, size);
-        written[index] = try allocator.alloc(bool, size);
-        text_held[index] = try allocator.alloc(bool, if (texts[@backingInt(function.output_type)]) size else 0);
-
-        @memset(held[index], false);
-        @memset(text_held[index], false);
-        @memset(written[index], false);
-
-        if (function.external == null) continue;
-
-        @memset(text_held[index], true);
-
-        for (text_held[index], 0..) |value, slot| held[index][slot] = value;
-
-        const outputs = try @import("basis.zig").lists(temporary, slots, function.output_type);
-
-        for (held[index], 0..) |*value, slot| value.* = value.* or std.mem.indexOfScalar(ir.TypeId, outputs, slots.listType(function.input_type, @intCast(slot))) != null;
-    }
-
-    const self = Self{ .held = held, .text_held = text_held, .written = written };
+    const self = try @import("flow/initial.zig").create(allocator, program, slots, texts);
 
     if (try @import("flow/layers/root.zig").build(temporary, program.functions)) |found| {
         const remembered: ?Remembered = if (memo) |value| .{

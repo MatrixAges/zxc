@@ -1,0 +1,17 @@
+<Module>
+    <Type from="./model" as="Flow" />
+
+    <Args in={Flow.Input} out={Flow.Plan} />
+
+    <Call fn="dimensions" in={$in} />
+
+    <Call
+        fn="summaries"
+        in={{
+            program: $in,
+            rows: $ctx.dimensions
+        }}
+    />
+
+    <Return value={$ctx.summaries} />
+</Module>

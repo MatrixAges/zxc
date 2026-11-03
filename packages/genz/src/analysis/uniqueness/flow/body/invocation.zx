@@ -1,0 +1,53 @@
+import integers from "std:integer"
+
+import push from "./push"
+
+import type { State as Output, Step as Input } from "./model"
+
+export default function (in: Input): Output {
+    const body = in.context.body
+    const expressions = body.expressions
+
+    const payload =
+        integers.widen(expressions.payloads[integers.widen(in.point.node)])
+
+    const callee = expressions.call_functions[payload]
+    const self = callee == in.context.function_index
+
+    if (!self && in.state.expanded[payload]) {
+        return in.state
+    }
+
+    const expanded = self ? in.state.expanded : in.state.expanded.with(payload, true)
+    const own = in.context.tracking ? in.state.reached : in.context.own
+    const values = self ? own : in.context.held[integers.widen(callee)]
+
+    return {
+        ...in.state,
+        expanded,
+        queue: loop({
+            queue: in.state.queue,
+            slot: 0
+        }, {
+            while: (state, context) => state.slot < context.values.length,
+            next: (state, context) => {
+                if (context.values[state.slot]) {
+                    state.queue = push({
+                        queue: state.queue,
+                        first: context.first,
+                        point: {
+                            node: context.argument,
+                            slot: integers.narrow(state.slot)
+                        }
+                    })
+                }
+
+                state.slot += 1
+            }
+        }, {
+            first: body.prepared.first,
+            values,
+            argument: expressions.call_arguments[payload]
+        }).queue
+    }
+}
