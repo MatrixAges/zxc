@@ -1,0 +1,75 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import push from "./push"
+
+import type { State as Output, Step as Input } from "./model"
+
+export default function (in: Input): Output {
+    const body = in.context.body
+    const expressions = body.expressions
+    const node = integers.widen(in.point.node)
+    const payload = integers.widen(expressions.payloads[node])
+
+    const owner = integers.widen(
+        body.layout.unwrapped[integers.widen(
+            expressions.types[node]
+        )]
+    )
+
+    const offsets = body.layout.offsets[owner]
+
+    const candidate = integers.widen(in.point.slot)
+
+    const direct = candidate < offsets.length && offsets[candidate] <= in.point.slot &&
+        (candidate + 1 == offsets.length || offsets[candidate + 1] > in.point.slot)
+
+    const position = direct ? candidate + 1 : loop({
+        first: 0,
+        last: offsets.length
+    }, {
+        while: state => state.first < state.last,
+        next: (state, context) => {
+            const middle = state.first + (state.last - state.first) / 2
+
+            if (context.offsets[middle] <= context.slot) {
+                state.first = middle + 1
+            } else {
+                state.last = middle
+            }
+        }
+    }, {
+        offsets,
+        slot: in.point.slot
+    }).first
+
+    if (position == 0) {
+        return in.state
+    }
+
+    const member = position - 1
+    const offset = offsets[member]
+    const type_id = body.layout.members[owner][member]
+
+    if (in.point.slot >= offset + body.counts[integers.widen(type_id)]) {
+        return in.state
+    }
+
+    const object = expressions.kinds[node] == ExpressionKind.Object
+
+    const first = object ? body.prepared.object_first[payload] :
+        integers.widen(expressions.sequence_first[payload])
+
+    return {
+        ...in.state,
+        queue: push({
+            queue: in.state.queue,
+            first: body.prepared.first,
+            point: {
+                node: object ? body.prepared.objects[first + member] :
+                    expressions.sequence_items[first + member],
+                slot: in.point.slot - offset
+            }
+        })
+    }
+}

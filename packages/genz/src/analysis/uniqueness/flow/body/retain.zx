@@ -1,0 +1,26 @@
+import type { Result } from "./model"
+
+export type Input = {
+    held: Result,
+    text: Result
+}
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    return loop({
+        reached: in.held.reached,
+        changed: in.held.changed || in.text.changed,
+        index: 0
+    }, {
+        while: (state, context) => state.index < context.length,
+        next: (state, context) => {
+            if (context[state.index] && !state.reached[state.index]) {
+                state.reached[state.index] = true
+                state.changed = true
+            }
+
+            state.index += 1
+        }
+    }, in.text.reached).pick(["reached", "changed"])
+}

@@ -1,0 +1,34 @@
+<Module>
+    <Type from="./model" as="Flow" />
+
+    <Args in={Flow.Input} out={Flow.Result} />
+
+    <If on={$in.current.text_held.length == 0}>
+        <Return
+            value={{
+                reached: $in.current.text_held,
+                changed: false
+            }}
+        />
+    </If>
+
+    <Call fn="calls" in={$in} />
+
+    <Call
+        fn="walk"
+        in={{
+            context: {
+                body: $in.body,
+                held: $in.held,
+                contents: true,
+                function_index: $in.function_index,
+                own: $in.current.held,
+                tracking: false
+            },
+            roots: $ctx.calls,
+            reached: $in.current.text_held
+        }}
+    />
+
+    <Return value={$ctx.walk} />
+</Module>

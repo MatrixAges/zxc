@@ -1,0 +1,33 @@
+import integers from "std:integer"
+
+import type { Point, Queue } from "./model"
+
+export type Input = {
+    queue: Queue,
+    first: u32[],
+    point: Point
+}
+
+export type Output = Queue
+
+export default function (in: Input): Output {
+    const node = integers.widen(in.point.node)
+    const bit = integers.widen(in.first[node] + in.point.slot)
+
+    if (bit >= integers.widen(in.first[node + 1]) || in.queue.visited[bit]) {
+        return in.queue
+    }
+
+    const pending = in.queue.count < in.queue.pending.length ?
+        in.queue.pending.with(in.queue.count, {
+            ...in.point
+        }) : in.queue.pending.push({
+            ...in.point
+        })[0]
+
+    return {
+        count: in.queue.count + 1,
+        pending,
+        visited: in.queue.visited.with(bit, true)
+    }
+}

@@ -1,0 +1,64 @@
+<Module>
+    <Type from="./model" as="Flow" />
+
+    <Args in={Flow.Input} out={Flow.Output} />
+
+    <Call module="text" in={$in} />
+
+    <Task name="held" out={$ctx.walk}>
+        <Call fn="returns" in={$in.body} />
+
+        <Call
+            fn="walk"
+            in={{
+                context: {
+                    body: $in.body,
+                    held: $in.held,
+                    contents: true,
+                    function_index: $in.function_index,
+                    own: $in.current.held,
+                    tracking: true
+                },
+                roots: $ctx.returns,
+                reached: $in.current.held
+            }}
+        />
+    </Task>
+
+    <Call
+        fn="retain"
+        in={{
+            held: $ctx.task.held,
+            text: $ctx.text
+        }}
+    />
+
+    <Task name="written" out={$ctx.walk}>
+        <Call fn="writes" in={$in} />
+
+        <Call
+            fn="walk"
+            in={{
+                context: {
+                    body: $in.body,
+                    held: $in.held,
+                    contents: false,
+                    function_index: $in.function_index,
+                    own: $ctx.retain.reached,
+                    tracking: false
+                },
+                roots: $ctx.writes,
+                reached: $in.current.written
+            }}
+        />
+    </Task>
+
+    <Return
+        value={{
+            held: $ctx.retain.reached,
+            text_held: $ctx.text.reached,
+            written: $ctx.task.written.reached,
+            changed: $ctx.retain.changed || $ctx.task.written.changed
+        }}
+    />
+</Module>

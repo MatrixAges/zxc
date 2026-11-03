@@ -1,0 +1,207 @@
+import integers from "std:integer"
+import { BinaryOperator, ExpressionKind } from "core/expression_table/kinds"
+
+import aggregate from "./aggregate"
+import collection from "./collection"
+import offset from "./offset"
+import push from "./push"
+import reference from "./reference"
+
+import type { State as Output, Step as Input } from "./model"
+
+export default function (in: Input): Output {
+    const body = in.context.body
+    const expressions = body.expressions
+    const node = integers.widen(in.point.node)
+    const payload = integers.widen(expressions.payloads[node])
+    const kind = expressions.kinds[node]
+    const slot = in.point.slot
+
+    if (kind == ExpressionKind.Reference) {
+        return reference(in)
+    }
+
+    if (kind == ExpressionKind.Object || kind == ExpressionKind.Tuple) {
+        return aggregate(in)
+    }
+
+    if (
+        kind == ExpressionKind.List || kind == ExpressionKind.ListOperation ||
+            kind == ExpressionKind.ListUpdate || kind == ExpressionKind.Index ||
+            kind == ExpressionKind.Transform
+    ) {
+        return collection(in)
+    }
+
+    if (kind == ExpressionKind.Field || kind == ExpressionKind.TupleField) {
+        const target = expressions.projection_targets[payload]
+
+        return {
+            ...in.state,
+            queue: push({
+                queue: in.state.queue,
+                first: body.prepared.first,
+                point: {
+                    node: target,
+                    slot: offset({
+                        body,
+                        node: target,
+                        index: expressions.projection_indices[payload]
+                    }) + slot
+                }
+            })
+        }
+    }
+
+    if (
+        kind == ExpressionKind.OptionalValue || kind == ExpressionKind.Some ||
+            kind == ExpressionKind.Capture || kind == ExpressionKind.Scope
+    ) {
+        const target = match kind {
+            ExpressionKind.OptionalValue => expressions.optional_values[payload],
+            ExpressionKind.Some => expressions.some[payload],
+            ExpressionKind.Capture => expressions.captures[payload],
+            _ => expressions.scope_results[payload]
+        }
+
+        return {
+            ...in.state,
+            queue: push({
+                queue: in.state.queue,
+                first: body.prepared.first,
+                point: {
+                    node: target,
+                    slot
+                }
+            })
+        }
+    }
+
+    if (
+        kind == ExpressionKind.Conditional || kind == ExpressionKind.Iteration ||
+            (
+                kind == ExpressionKind.Binary &&
+                    expressions.binary_operators[payload] == BinaryOperator.Coalesce
+            )
+    ) {
+        const left = match kind {
+            ExpressionKind.Conditional => expressions.conditional_yes[payload],
+            ExpressionKind.Iteration => expressions.iteration_initials[payload],
+            _ => expressions.binary_left[payload]
+        }
+
+        const right = match kind {
+            ExpressionKind.Conditional => expressions.conditional_no[payload],
+            ExpressionKind.Iteration => expressions.iteration_bodies[payload],
+            _ => expressions.binary_right[payload]
+        }
+
+        const queue = push({
+            queue: in.state.queue,
+            first: body.prepared.first,
+            point: {
+                node: left,
+                slot
+            }
+        })
+
+        return {
+            ...in.state,
+            queue: push({
+                queue,
+                first: body.prepared.first,
+                point: {
+                    node: right,
+                    slot
+                }
+            })
+        }
+    }
+
+    if (kind == ExpressionKind.Match) {
+        const first = integers.widen(expressions.match_first[payload])
+        const count = integers.widen(expressions.match_count[payload])
+
+        const queue = loop({
+            queue: in.state.queue,
+            index: first
+        }, {
+            while: (state, context) => state.index < context.end,
+            next: (state, context) => {
+                state.queue = push({
+                    queue: state.queue,
+                    first: context.body.prepared.first,
+                    point: {
+                        node: context.body.expressions.match_results[state.index],
+                        slot: context.slot
+                    }
+                })
+                state.index += 1
+            }
+        }, {
+            body,
+            slot,
+            end: first + count
+        }).queue
+
+        return {
+            ...in.state,
+            queue: push({
+                queue,
+                first: body.prepared.first,
+                point: {
+                    node: expressions.match_fallbacks[payload],
+                    slot
+                }
+            })
+        }
+    }
+
+    if (kind == ExpressionKind.Call) {
+        const callee = expressions.call_functions[payload]
+        const own = in.context.tracking ? in.state.reached : in.context.own
+
+        const values = callee == in.context.function_index ? own :
+            in.context.held[integers.widen(callee)]
+
+        return {
+            ...in.state,
+            queue: loop({
+                queue: in.state.queue,
+                slot: 0
+            }, {
+                while: (state, context) => state.slot < context.values.length,
+                next: (state, context) => {
+                    if (context.values[state.slot]) {
+                        state.queue = push({
+                            queue: state.queue,
+                            first: context.first,
+                            point: {
+                                node: context.argument,
+                                slot: integers.narrow(state.slot)
+                            }
+                        })
+                    }
+
+                    state.slot += 1
+                }
+            }, {
+                first: body.prepared.first,
+                values,
+                argument: expressions.call_arguments[payload]
+            }).queue
+        }
+    }
+
+    if (
+        kind == ExpressionKind.Task || kind == ExpressionKind.AwaitTask ||
+            kind == ExpressionKind.Parallel || kind == ExpressionKind.StoreGet
+    ) {
+        return {
+            ...in.state,
+            every: true
+        }
+    }
+
+    return in.state
+}

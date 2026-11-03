@@ -1,0 +1,39 @@
+import integers from "std:integer"
+
+import push from "./push"
+
+import type { Queue } from "./model"
+
+export type Input = {
+    queue: Queue,
+    first: u32[],
+    node: u32
+}
+
+export type Output = Queue
+
+export default function (in: Input): Output {
+    const node = integers.widen(in.node)
+
+    return loop({
+        queue: in.queue,
+        slot: integers.narrow(0)
+    }, {
+        while: (state, context) => state.slot < context.count,
+        next: (state, context) => {
+            state.queue = push({
+                queue: state.queue,
+                first: context.first,
+                point: {
+                    node: context.node,
+                    slot: state.slot
+                }
+            })
+            state.slot += 1
+        }
+    }, {
+        first: in.first,
+        node: in.node,
+        count: in.first[node + 1] - in.first[node]
+    }).queue
+}

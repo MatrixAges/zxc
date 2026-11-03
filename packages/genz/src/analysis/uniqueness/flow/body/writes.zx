@@ -1,0 +1,80 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+import { CollectionKind, ExpressionKind } from "core/expression_table/kinds"
+
+import { buffer_slot } from "./const"
+import prefix from "./prefix"
+
+import type { Input, Point } from "./model"
+
+export type Output = Point[]
+
+export default function (in: Input): Output {
+    const roots: Point[] = []
+
+    return loop({
+        roots,
+        index: 0
+    }, {
+        while: (state, source) => state.index < source.body.expressions.kinds.length,
+        next: (state, source) => {
+            const expressions = source.body.expressions
+            const index = state.index
+
+            if (source.body.time[index] != max_u32) {
+                const payload = integers.widen(expressions.payloads[index])
+                const kind = expressions.kinds[index]
+
+                if (kind == ExpressionKind.ListUpdate) {
+                    state.roots = state.roots.push({
+                        node: expressions.update_targets[payload],
+                        slot: buffer_slot
+                    })[0]
+                } else if (kind == ExpressionKind.ListOperation) {
+                    const writes = match expressions.collection_kinds[payload] {
+                        CollectionKind.Sort => true,
+                        CollectionKind.Reverse => true,
+                        CollectionKind.Pop => true,
+                        CollectionKind.Splice => prefix({
+                            expressions,
+                            operation: payload
+                        }),
+                        _ => false
+                    }
+
+                    if (writes) {
+                        state.roots = state.roots.push({
+                            node: expressions.collection_targets[payload],
+                            slot: buffer_slot
+                        })[0]
+                    }
+                } else if (kind == ExpressionKind.Call) {
+                    const callee = expressions.call_functions[payload]
+                    const values = source.written[integers.widen(callee)]
+
+                    state.roots = loop({
+                        roots: state.roots,
+                        slot: 0
+                    }, {
+                        while: (slot, context) => slot.slot < context.values.length,
+                        next: (slot, context) => {
+                            if (context.values[slot.slot]) {
+                                slot.roots = slot.roots.push({
+                                    node: context.argument,
+                                    slot: integers.narrow(slot.slot)
+                                })[0]
+                            }
+
+                            slot.slot += 1
+                        }
+                    }, {
+                        values,
+                        argument: expressions.call_arguments[payload]
+                    }).roots
+                }
+            }
+
+            state.index += 1
+        }
+    }, in).roots
+}

@@ -1,0 +1,24 @@
+import whole from "./seed_whole"
+
+import type { Body as Input, Point } from "./model"
+
+export type Output = Point[]
+
+export default function (in: Input): Output {
+    const roots: Point[] = []
+
+    return loop({
+        roots,
+        index: 0
+    }, {
+        while: (state, source) => state.index < source.results.length,
+        next: (state, source) => {
+            state.roots = whole({
+                roots: state.roots,
+                first: source.prepared.first,
+                node: source.results[state.index]
+            })
+            state.index += 1
+        }
+    }, in).roots
+}

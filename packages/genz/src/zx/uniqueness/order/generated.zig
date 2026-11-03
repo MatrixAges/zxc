@@ -12,6 +12,7 @@ const ApartInput = std.meta.Child(generated_apart.Input);
 const generated_concurrent = @import("generated_uniqueness_concurrent");
 pub const Nodes = std.meta.Child(@FieldType(Output, "nodes"));
 pub const Regions = std.meta.Child(@FieldType(Graph, "regions"));
+pub const Definitions = std.meta.Child(@FieldType(Graph, "definitions"));
 pub const Edges = std.meta.Child(@FieldType(Graph, "edges"));
 
 pub fn build(allocator: std.mem.Allocator, workspace: std.mem.Allocator, symbols: ir.SymbolTable, expressions: ir.ExpressionTable, body: ir.Block) std.mem.Allocator.Error!Order {
@@ -32,21 +33,7 @@ pub fn build(allocator: std.mem.Allocator, workspace: std.mem.Allocator, symbols
         else => unreachable,
     };
 
-    const definitions = try allocator.alloc(Order.Def, output.graph.definitions.kind.len);
-
-    for (output.graph.definitions.kind, definitions, 0..) |kind, *target, index| {
-        const value: ir.ExprId = @fromBackingInt(output.graph.definitions.value[index]);
-
-        target.* = switch (kind) {
-            .Unknown => .unknown,
-            .Input => .input,
-            .Value => .{ .value = value },
-            .Part => .{ .part = .{ .value = value, .index = output.graph.definitions.index[index] } },
-            .Carried => .{ .carried = value },
-            .Condition => .{ .condition = value },
-            .Element => .element,
-        };
-    }
+    const definitions = try ownColumns(allocator, output.graph.definitions);
 
     comptime {
         std.debug.assert(@typeInfo(ir.ExprId).@"enum".tag_type == u32);
@@ -61,7 +48,7 @@ pub fn build(allocator: std.mem.Allocator, workspace: std.mem.Allocator, symbols
         .regions = try ownColumns(allocator, output.graph.regions),
         .edges = try ownColumns(allocator, output.graph.edges),
         .definitions = definitions,
-        .def_loop = try allocator.dupe(u32, output.graph.definitions.repeated),
+        .def_loop = definitions.repeated,
         .results = @ptrCast(try allocator.dupe(u32, output.graph.results)),
         .repeated = @ptrCast(try allocator.dupe(u32, output.graph.repeated.owner)),
         .repeated_parent = try allocator.dupe(u32, output.graph.repeated.parent),

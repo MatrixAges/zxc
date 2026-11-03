@@ -1,0 +1,26 @@
+import integers from "std:integer"
+import { CollectionKind, ExpressionKind } from "core/expression_table/kinds"
+
+import type { Expressions } from "core/expression_table/model"
+
+export type Input = {
+    expressions: Expressions,
+    operation: u64
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const expressions = in.expressions
+    const operation = in.operation
+
+    if (expressions.collection_kinds[operation] != CollectionKind.Splice) {
+        return false
+    }
+
+    const first = integers.widen(expressions.collection_first[operation])
+    const start = integers.widen(expressions.collection_arguments[first])
+
+    return expressions.kinds[start] == ExpressionKind.Integer &&
+        expressions.integers[integers.widen(expressions.payloads[start])] == 0
+}

@@ -1,0 +1,43 @@
+import integers from "std:integer"
+
+import type { Input, Point } from "./model"
+
+export type Output = Point[]
+
+export default function (in: Input): Output {
+    const roots: Point[] = []
+
+    return loop({
+        roots,
+        index: 0
+    }, {
+        while: (state, source) =>
+            state.index < source.body.expressions.call_functions.length,
+        next: (state, source) => {
+            const expressions = source.body.expressions
+            const callee = expressions.call_functions[state.index]
+            const values = source.text_held[integers.widen(callee)]
+
+            state.roots = loop({
+                roots: state.roots,
+                slot: 0
+            }, {
+                while: (slot, context) => slot.slot < context.values.length,
+                next: (slot, context) => {
+                    if (context.values[slot.slot]) {
+                        slot.roots = slot.roots.push({
+                            node: context.argument,
+                            slot: integers.narrow(slot.slot)
+                        })[0]
+                    }
+
+                    slot.slot += 1
+                }
+            }, {
+                values,
+                argument: expressions.call_arguments[state.index]
+            }).roots
+            state.index += 1
+        }
+    }, in).roots
+}

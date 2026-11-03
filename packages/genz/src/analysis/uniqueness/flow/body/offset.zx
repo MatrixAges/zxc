@@ -1,0 +1,18 @@
+import integers from "std:integer"
+
+import type { Body } from "./model"
+
+export type Input = {
+    body: Body,
+    node: u32,
+    index: u32
+}
+
+export type Output = u32
+
+export default function (in: Input): Output {
+    const type_id = in.body.expressions.types[integers.widen(in.node)]
+    const owner = integers.widen(in.body.layout.unwrapped[integers.widen(type_id)])
+
+    return in.body.layout.offsets[owner][integers.widen(in.index)]
+}

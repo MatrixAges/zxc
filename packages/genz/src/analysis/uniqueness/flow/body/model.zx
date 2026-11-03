@@ -1,0 +1,95 @@
+import type { Expressions } from "core/expression_table/model"
+import type { Definitions } from "../../order/plan"
+import type { Layout } from "../../slots/model"
+
+export type Prepared = {
+    first: u32[],
+    elements: u32[],
+    objects: u32[],
+    object_first: u64[]
+}
+
+export type Preparation = {
+    expressions: Expressions,
+    counts: u32[],
+    symbols: u64
+}
+
+export type Body = {
+    expressions: Expressions,
+    type_kinds: u8[],
+    type_first: u32[],
+    layout: Layout,
+    counts: u32[],
+    time: u32[],
+    definitions: Definitions,
+    results: u32[],
+    prepared: Prepared
+}
+
+export type Summary = {
+    held: bool[],
+    text_held: bool[],
+    written: bool[]
+}
+
+export type Input = {
+    function_index: u32,
+    body: Body,
+    held: bool[][],
+    text_held: bool[][],
+    written: bool[][],
+    current: Summary
+}
+
+export type Output = {
+    held: bool[],
+    text_held: bool[],
+    written: bool[],
+    changed: bool
+}
+
+export type Point = {
+    node: u32,
+    slot: u32
+}
+
+export type Queue = {
+    count: u64,
+    pending: Point[],
+    visited: bool[]
+}
+
+export type State = {
+    remaining: u64,
+    queue: Queue,
+    reached: bool[],
+    changed: bool,
+    every: bool
+}
+
+export type Context = {
+    body: Body,
+    held: bool[][],
+    contents: bool,
+    function_index: u32,
+    own: bool[],
+    tracking: bool
+}
+
+export type Trace = {
+    context: Context,
+    roots: Point[],
+    reached: bool[]
+}
+
+export type Result = {
+    reached: bool[],
+    changed: bool
+}
+
+export type Step = {
+    state: State,
+    context: Context,
+    point: Point
+}

@@ -1,0 +1,55 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+import { TransformKind } from "core/expression_table/kinds"
+
+import type { Preparation as Input } from "./model"
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    const empty: u32[] = []
+
+    if (in.expressions.transform_parameters.length == 0) {
+        return empty
+    }
+
+    const values = loop({
+        values: empty,
+        count: in.symbols
+    }, {
+        while: state => state.values.length < state.count,
+        next: state => {
+            state.values = state.values.push(max_u32)[0]
+        }
+    }).values
+
+    return loop({
+        values,
+        index: 0
+    }, {
+        while: (state, source) => state.index < source.transform_kinds.length,
+        next: (state, source) => {
+            const index = state.index
+            const first = integers.widen(source.transform_first[index])
+            const begin = source.transform_kinds[index] == TransformKind.Reduce ?
+                first + 1 : first
+
+            state.values = loop({
+                values: state.values,
+                position: begin
+            }, {
+                while: (parameter, context) => parameter.position < context.end,
+                next: (parameter, context) => {
+                    const symbol = context.parameters[parameter.position]
+                    parameter.values[integers.widen(symbol)] = context.target
+                    parameter.position += 1
+                }
+            }, {
+                parameters: source.transform_parameters,
+                target: source.transform_targets[index],
+                end: first + integers.widen(source.transform_count[index])
+            }).values
+            state.index += 1
+        }
+    }, in.expressions).values
+}

@@ -1,0 +1,218 @@
+import integers from "std:integer"
+import {
+    CollectionKind,
+    ExpressionKind,
+    TransformKind
+} from "core/expression_table/kinds"
+
+import { buffer_slot, splice_retained_slot, splice_replacement_argument } from "./const"
+import nested from "./nested"
+import push from "./push"
+import whole from "./whole"
+
+import type { State as Output, Step as Input } from "./model"
+
+export default function (in: Input): Output {
+    const body = in.context.body
+    const expressions = body.expressions
+    const node = integers.widen(in.point.node)
+    const payload = integers.widen(expressions.payloads[node])
+    const kind = expressions.kinds[node]
+    const contents = in.context.contents
+
+    if (kind == ExpressionKind.ListOperation) {
+        const operation = expressions.collection_kinds[payload]
+        const target = expressions.collection_targets[payload]
+
+        const aliased =
+            in.point.slot ==
+            (operation == CollectionKind.Splice ? splice_retained_slot : buffer_slot)
+
+        const queue = aliased || (contents && nested({
+            body,
+            node: target
+        })) ? push({
+            queue: in.state.queue,
+            first: body.prepared.first,
+            point: {
+                node: target,
+                slot: buffer_slot
+            }
+        }) : in.state.queue
+
+        if (!contents) {
+            return {
+                ...in.state,
+                queue
+            }
+        }
+
+        const first = integers.widen(expressions.collection_first[payload])
+        const count = integers.widen(expressions.collection_count[payload])
+
+        const result = loop({
+            queue,
+            index: first
+        }, {
+            while: (state, context) => state.index < context.first + context.count,
+            next: (state, context) => {
+                const node = context.body.expressions.collection_arguments[state.index]
+                const used = match context.operation {
+                    CollectionKind.Push => true,
+                    CollectionKind.Concat => nested({
+                        body: context.body,
+                        node
+                    }),
+                    CollectionKind.Splice =>
+                        state.index == context.first + splice_replacement_argument &&
+                        nested({
+                            body: context.body,
+                            node
+                        }),
+                    _ => false
+                }
+
+                if (used) {
+                    state.queue = whole({
+                        queue: state.queue,
+                        first: context.body.prepared.first,
+                        node
+                    })
+                }
+
+                state.index += 1
+            }
+        }, {
+            body,
+            operation,
+            first,
+            count
+        }).queue
+
+        return {
+            ...in.state,
+            queue: result
+        }
+    }
+
+    if (kind == ExpressionKind.ListUpdate) {
+        const queue = push({
+            queue: in.state.queue,
+            first: body.prepared.first,
+            point: {
+                node: expressions.update_targets[payload],
+                slot: buffer_slot
+            }
+        })
+
+        return {
+            ...in.state,
+            queue: contents ? whole({
+                queue,
+                first: body.prepared.first,
+                node: expressions.update_values[payload]
+            }) : queue
+        }
+    }
+
+    if (kind == ExpressionKind.Transform) {
+        const operation = expressions.transform_kinds[payload]
+        const target = expressions.transform_targets[payload]
+        const initial = expressions.transform_initials[payload]
+
+        if (operation == TransformKind.Reduce && initial != null) {
+            const queue = push({
+                queue: in.state.queue,
+                first: body.prepared.first,
+                point: {
+                    node: initial,
+                    slot: in.point.slot
+                }
+            })
+
+            return {
+                ...in.state,
+                queue: push({
+                    queue,
+                    first: body.prepared.first,
+                    point: {
+                        node: expressions.transform_bodies[payload],
+                        slot: in.point.slot
+                    }
+                })
+            }
+        }
+
+        if (contents && operation == TransformKind.Map) {
+            return {
+                ...in.state,
+                queue: whole({
+                    queue: in.state.queue,
+                    first: body.prepared.first,
+                    node: expressions.transform_bodies[payload]
+                })
+            }
+        }
+
+        if (contents && operation == TransformKind.Filter && nested({
+            body,
+            node: target
+        })) {
+            return {
+                ...in.state,
+                queue: push({
+                    queue: in.state.queue,
+                    first: body.prepared.first,
+                    point: {
+                        node: target,
+                        slot: buffer_slot
+                    }
+                })
+            }
+        }
+
+        return in.state
+    }
+
+    if (!contents) {
+        return in.state
+    }
+
+    if (kind == ExpressionKind.Index) {
+        return {
+            ...in.state,
+            queue: push({
+                queue: in.state.queue,
+                first: body.prepared.first,
+                point: {
+                    node: expressions.index_targets[payload],
+                    slot: buffer_slot
+                }
+            })
+        }
+    }
+
+    const first = integers.widen(expressions.sequence_first[payload])
+    const count = integers.widen(expressions.sequence_count[payload])
+
+    return {
+        ...in.state,
+        queue: loop({
+            queue: in.state.queue,
+            index: first
+        }, {
+            while: (state, context) => state.index < context.end,
+            next: (state, context) => {
+                state.queue = whole({
+                    queue: state.queue,
+                    first: context.body.prepared.first,
+                    node: context.body.expressions.sequence_items[state.index]
+                })
+                state.index += 1
+            }
+        }, {
+            body,
+            end: first + count
+        }).queue
+    }
+}

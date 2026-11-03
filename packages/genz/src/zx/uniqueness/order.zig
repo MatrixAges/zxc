@@ -13,7 +13,7 @@ const Generated = if (generated_analysis) @import("order/generated.zig") else vo
 nodes: if (generated_analysis) Generated.Nodes else void,
 regions: if (generated_analysis) Generated.Regions else void,
 edges: if (generated_analysis) Generated.Edges else void,
-definitions: if (generated_analysis) []const Def else void,
+definitions: if (generated_analysis) Generated.Definitions else void,
 def_loop: if (generated_analysis) []const u32 else void,
 results: []const ir.ExprId,
 repeated: []const ir.ExprId,
@@ -41,13 +41,24 @@ pub fn crossesConcurrent(self: *const Self, inner: u32, outer: u32) bool {
 pub fn definition(self: *const Self, symbol: ir.SymbolId) Def {
     if (!generated_analysis) return self.seed.defs[@backingInt(symbol)];
 
-    return self.definitions[@backingInt(symbol)];
+    const index = @backingInt(symbol);
+    const value: ir.ExprId = @fromBackingInt(self.definitions.value[index]);
+
+    return switch (self.definitions.kind[index]) {
+        .Unknown => .unknown,
+        .Input => .input,
+        .Value => .{ .value = value },
+        .Part => .{ .part = .{ .value = value, .index = self.definitions.index[index] } },
+        .Carried => .{ .carried = value },
+        .Condition => .{ .condition = value },
+        .Element => .element,
+    };
 }
 
 pub fn edge(self: *const Self, index: usize) Edge {
     if (!generated_analysis) return self.seed.edges.items[index];
 
-    return .{ .parent = self.edges.parent[index], .child = @fromBackingInt(self.edges.child[index]), .role = @enumFromInt(@backingInt(self.edges.role[index])), .index = self.edges.index[index], .region = self.edges.region[index] };
+    return .{ .parent = self.edges.parent[index], .child = @fromBackingInt(self.edges.child[index]), .role = @fromBackingInt(@intCast(@backingInt(self.edges.role[index]))), .index = self.edges.index[index], .region = self.edges.region[index] };
 }
 
 pub fn edgeCount(self: *const Self) usize {

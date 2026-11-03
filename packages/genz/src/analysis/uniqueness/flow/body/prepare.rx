@@ -1,0 +1,18 @@
+<Module>
+    <Type from="./model" as="Flow" />
+
+    <Args in={Flow.Preparation} out={Flow.Prepared} />
+
+    <Call fn="first" in={$in} />
+    <Call fn="elements" in={$in} />
+    <Call fn="objects" in={$in.expressions} />
+
+    <Return
+        value={{
+            first: $ctx.first,
+            elements: $ctx.elements,
+            objects: $ctx.objects.values,
+            object_first: $ctx.objects.first
+        }}
+    />
+</Module>

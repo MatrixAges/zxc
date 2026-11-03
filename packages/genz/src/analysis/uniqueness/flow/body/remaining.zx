@@ -1,0 +1,19 @@
+export type Input = bool[]
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    return loop({
+        count: 0,
+        index: 0
+    }, {
+        while: (state, values) => state.index < values.length,
+        next: (state, values) => {
+            if (!values[state.index]) {
+                state.count += 1
+            }
+
+            state.index += 1
+        }
+    }, in).count
+}

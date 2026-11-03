@@ -1,0 +1,140 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import { Definition } from "../../order/model"
+import { buffer_slot } from "./const"
+import offset from "./offset"
+import push from "./push"
+
+import type { State as Output, Step as Input } from "./model"
+
+export default function (in: Input): Output {
+    const body = in.context.body
+    const expressions = body.expressions
+    const node = integers.widen(in.point.node)
+    const payload = integers.widen(expressions.payloads[node])
+    const symbol = integers.widen(expressions.references[payload])
+    const kind = body.definitions.kind[symbol]
+    const state = in.state
+    const slot = in.point.slot
+
+    if (kind == Definition.Input) {
+        const index = integers.widen(slot)
+
+        if (index < state.reached.length && !state.reached[index]) {
+            return {
+                ...state,
+                reached: state.reached.with(index, true),
+                changed: true,
+                remaining: state.remaining - 1
+            }
+        }
+
+        return state
+    }
+
+    if (kind == Definition.Value || kind == Definition.Part) {
+        const target = body.definitions.value[symbol]
+
+        const shift = kind == Definition.Part ? offset({
+            body,
+            node: target,
+            index: body.definitions.index[symbol]
+        }) : 0
+
+        return {
+            ...state,
+            queue: push({
+                queue: state.queue,
+                first: body.prepared.first,
+                point: {
+                    node: target,
+                    slot: shift + slot
+                }
+            })
+        }
+    }
+
+    if (kind == Definition.Carried || kind == Definition.Condition) {
+        const owner = integers.widen(body.definitions.value[symbol])
+        const payload = integers.widen(expressions.payloads[owner])
+
+        if (expressions.kinds[owner] == ExpressionKind.Iteration) {
+            const initial = push({
+                queue: state.queue,
+                first: body.prepared.first,
+                point: {
+                    node: expressions.iteration_initials[payload],
+                    slot
+                }
+            })
+
+            return {
+                ...state,
+                queue: push({
+                    queue: initial,
+                    first: body.prepared.first,
+                    point: {
+                        node: expressions.iteration_bodies[payload],
+                        slot
+                    }
+                })
+            }
+        }
+
+        if (expressions.kinds[owner] == ExpressionKind.Transform) {
+            const origin = expressions.transform_initials[payload]
+
+            if (origin != null) {
+                const initial = push({
+                    queue: state.queue,
+                    first: body.prepared.first,
+                    point: {
+                        node: origin,
+                        slot
+                    }
+                })
+
+                return {
+                    ...state,
+                    queue: push({
+                        queue: initial,
+                        first: body.prepared.first,
+                        point: {
+                            node: expressions.transform_bodies[payload],
+                            slot
+                        }
+                    })
+                }
+            }
+        }
+    }
+
+    if (kind == Definition.Element) {
+        if (!in.context.contents) {
+            return state
+        }
+
+        const target = body.prepared.elements[symbol]
+
+        if (target != max_u32) {
+            return {
+                ...state,
+                queue: push({
+                    queue: state.queue,
+                    first: body.prepared.first,
+                    point: {
+                        node: target,
+                        slot: buffer_slot
+                    }
+                })
+            }
+        }
+    }
+
+    return {
+        ...state,
+        every: true
+    }
+}

@@ -30,6 +30,18 @@ pub fn check(source: []const u8, mode: []const u8) !void {
         const call = tree.fullCall(&buffer, node) orelse continue;
         const target = unwrap(tree, call.ast.fn_expr);
 
+        const name = switch (tree.nodeTag(target)) {
+            .identifier => tree.tokenSlice(tree.nodeMainToken(target)),
+            .field_access => tree.tokenSlice(tree.nodeData(target).node_and_token[1]),
+            else => continue,
+        };
+
+        if (std.mem.eql(u8, name, "zxRenew") and call.ast.params.len == 3) {
+            copies += 1;
+
+            continue;
+        }
+
         if (tree.nodeTag(target) != .field_access or call.ast.params.len != 2) continue;
         if (!std.mem.eql(u8, tree.tokenSlice(tree.nodeData(target).node_and_token[1]), "dupe")) continue;
         if (!emptyArray(tree, call.ast.params[1])) copies += 1;
@@ -42,17 +54,21 @@ pub fn check(source: []const u8, mode: []const u8) !void {
 }
 
 fn entry(tree: Ast) ?Ast.Node.Index {
+    var wrapper: ?Ast.Node.Index = null;
+
     for (tree.rootDecls()) |node| {
         if (tree.nodeTag(node) != .fn_decl) continue;
 
         var buffer: [1]Ast.Node.Index = undefined;
         const function = tree.fullFnProto(&buffer, node) orelse continue;
         const name = function.name_token orelse continue;
+        const text = tree.tokenSlice(name);
 
-        if (std.mem.eql(u8, tree.tokenSlice(name), "execute")) return node;
+        if (std.mem.eql(u8, text, "executeIn")) return node;
+        if (std.mem.eql(u8, text, "execute")) wrapper = node;
     }
 
-    return null;
+    return wrapper;
 }
 
 fn emptyArray(tree: Ast, source: Ast.Node.Index) bool {
