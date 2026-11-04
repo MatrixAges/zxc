@@ -626,18 +626,42 @@ pub fn demand(self: *Self, changed: *std.ArrayList(usize), marked: *std.ArrayLis
     for (self.operations) |id| {
         switch (self.row(id).value) {
             .list_operation => |operation| switch (operation.kind) {
-                .push, .concat => try self.trace(operation.target, 0, null, false, .{ .headered = true, .unique = false }),
-                .sort, .reverse => try self.trace(operation.target, 0, null, false, .fresh),
+                .push, .concat => try self.trace(.{
+                    .id = operation.target,
+                    .slot = 0,
+                    .outer = null,
+                    .repeat = false,
+                    .wanted = .{ .headered = true, .unique = false },
+                }),
+                .sort, .reverse => try self.trace(.{
+                    .id = operation.target,
+                    .slot = 0,
+                    .outer = null,
+                    .repeat = false,
+                    .wanted = .fresh,
+                }),
                 .pop, .splice => {},
             },
-            .list_update => |update| try self.trace(update.target, 0, null, false, .fresh),
+            .list_update => |update| try self.trace(.{
+                .id = update.target,
+                .slot = 0,
+                .outer = null,
+                .repeat = false,
+                .wanted = .fresh,
+            }),
             .call => |invocation| {
                 const callee = @backingInt(invocation.function);
 
                 for (0..self.summaries.inputs[callee].len) |slot| {
                     const want = self.read(.inputs, callee, self.summaries.inputs[callee], @intCast(slot));
 
-                    if (want != Level.none) try self.trace(invocation.argument, @intCast(slot), null, true, want);
+                    if (want != Level.none) try self.trace(.{
+                        .id = invocation.argument,
+                        .slot = @intCast(slot),
+                        .outer = null,
+                        .repeat = true,
+                        .wanted = want,
+                    });
                 }
             },
             else => {},
@@ -650,81 +674,189 @@ pub fn demand(self: *Self, changed: *std.ArrayList(usize), marked: *std.ArrayLis
         const want = self.read(.outputs, function, self.summaries.outputs[function], @intCast(slot));
 
         if (want == Level.none) continue;
-        for (self.order.results) |result| try self.trace(result, @intCast(slot), null, true, want);
+
+        for (self.order.results) |result| try self.trace(.{
+            .id = result,
+            .slot = @intCast(slot),
+            .outer = null,
+            .repeat = true,
+            .wanted = want,
+        });
     }
 
     return self.settled();
 }
 
+const TraceRequest = struct {
+    id: ir.ExprId,
+    slot: u32,
+    outer: ?ir.ExprId,
+    repeat: bool,
+    wanted: Level,
+};
+
 /// Follows a demand for the `wanted` properties of one list slot back to where a growth copy can provide them; only the
 /// properties the value lacks and could keep count, so a unique buffer is never demanded of a value used twice.
 /// `repeat` places the copy where the value enters even when no update follows it here: a loop's initial value, or a
 /// value a callee or caller wants, since a summary that lacks the property makes every other caller copy on each call.
-fn trace(self: *Self, id: ir.ExprId, slot: u32, outer: ?ir.ExprId, repeat: bool, wanted: Level) std.mem.Allocator.Error!void {
-    const current = self.level(id, slot);
-    var want = wanted;
+fn trace(self: *Self, request: TraceRequest) std.mem.Allocator.Error!void {
+    const current = self.level(request.id, request.slot);
+    var want = request.wanted;
     want.headered = want.headered and !current.headered and !current.deferred;
-    want.unique = want.unique and !current.unique and self.linearAt(id, slot);
+    want.unique = want.unique and !current.unique and self.linearAt(request.id, request.slot);
 
     if (want == Level.none) return;
 
-    const key = (@as(u64, @backingInt(id)) << 36) | (@as(u64, slot) << 4) | (@as(u64, @as(u3, @bitCast(want))) << 1) | @intFromBool(repeat);
+    const key = (@as(u64, @backingInt(request.id)) << 36) | (@as(u64, request.slot) << 4) | (@as(u64, @as(u3, @bitCast(want))) << 1) | @intFromBool(request.repeat);
 
     if ((try self.traced.getOrPut(self.allocator, key)).found_existing) return;
 
-    const value = self.row(id);
-    const leaf = if (slot == 0 and self.slots.types.get(value.type_id) == .list) id else outer;
+    const value = self.row(request.id);
+    const leaf = if (request.slot == 0 and self.slots.types.get(value.type_id) == .list) request.id else request.outer;
 
     switch (value.value) {
-        .field, .tuple_field => |projection| try self.trace(projection.target, self.slots.member(self.row(projection.target).type_id, projection.index).offset + slot, leaf, repeat, want),
-        .optional_value => |child| try self.trace(child, slot, leaf, repeat, want),
+        .field, .tuple_field => |projection| try self.trace(.{
+            .id = projection.target,
+            .slot = self.slots.member(self.row(projection.target).type_id, projection.index).offset + request.slot,
+            .outer = leaf,
+            .repeat = request.repeat,
+            .wanted = want,
+        }),
+        .optional_value => |child| try self.trace(.{
+            .id = child,
+            .slot = request.slot,
+            .outer = leaf,
+            .repeat = request.repeat,
+            .wanted = want,
+        }),
         .reference => |symbol| switch (self.order.definition(symbol)) {
             .input => {
-                if (self.function) |function| try self.mark(.{ .output = false, .function = @intCast(function), .slot = slot, .want = want });
+                if (self.function) |function| try self.mark(.{ .output = false, .function = @intCast(function), .slot = request.slot, .want = want });
                 try self.normalize(leaf, want);
             },
-            .value => |bound| try self.trace(bound, slot, leaf, repeat, want),
-            .part => |part| try self.trace(part.value, self.slots.member(self.row(part.value).type_id, part.index).offset + slot, leaf, repeat, want),
-            .carried, .condition => |owner| try self.carry(owner, slot, want),
-            .element, .unknown => if (repeat) try self.provide(id, slot, leaf, want),
+            .value => |bound| try self.trace(.{
+                .id = bound,
+                .slot = request.slot,
+                .outer = leaf,
+                .repeat = request.repeat,
+                .wanted = want,
+            }),
+            .part => |part| try self.trace(.{
+                .id = part.value,
+                .slot = self.slots.member(self.row(part.value).type_id, part.index).offset + request.slot,
+                .outer = leaf,
+                .repeat = request.repeat,
+                .wanted = want,
+            }),
+            .carried, .condition => |owner| try self.carry(owner, request.slot, want),
+            .element, .unknown => if (request.repeat) try self.provide(request.id, request.slot, leaf, want),
         },
         .object => |object| for (0..object.fields.len) |item| {
             const field = object.fields.at(item);
             const member = self.slots.member(value.type_id, field.index);
 
-            if (slot >= member.offset and slot < member.offset + self.slots.count(member.type_id)) try self.trace(field.value, slot - member.offset, null, repeat, want);
+            if (request.slot >= member.offset and request.slot < member.offset + self.slots.count(member.type_id)) try self.trace(.{
+                .id = field.value,
+                .slot = request.slot - member.offset,
+                .outer = null,
+                .repeat = request.repeat,
+                .wanted = want,
+            });
         },
         .tuple => |items| for (items, 0..) |item, position| {
             const member = self.slots.member(value.type_id, @intCast(position));
 
-            if (slot >= member.offset and slot < member.offset + self.slots.count(member.type_id)) try self.trace(item, slot - member.offset, null, repeat, want);
+            if (request.slot >= member.offset and request.slot < member.offset + self.slots.count(member.type_id)) try self.trace(.{
+                .id = item,
+                .slot = request.slot - member.offset,
+                .outer = null,
+                .repeat = request.repeat,
+                .wanted = want,
+            });
         },
-        .some => |child| try self.trace(child, slot, null, repeat, want),
-        .scope => |scope| try self.trace(scope.result, slot, leaf, repeat, want),
+        .some => |child| try self.trace(.{
+            .id = child,
+            .slot = request.slot,
+            .outer = null,
+            .repeat = request.repeat,
+            .wanted = want,
+        }),
+        .scope => |scope| try self.trace(.{
+            .id = scope.result,
+            .slot = request.slot,
+            .outer = leaf,
+            .repeat = request.repeat,
+            .wanted = want,
+        }),
         .conditional => |conditional| {
-            try self.trace(conditional.yes, slot, null, repeat, want);
-            try self.trace(conditional.no, slot, null, repeat, want);
+            try self.trace(.{
+                .id = conditional.yes,
+                .slot = request.slot,
+                .outer = null,
+                .repeat = request.repeat,
+                .wanted = want,
+            });
+
+            try self.trace(.{
+                .id = conditional.no,
+                .slot = request.slot,
+                .outer = null,
+                .repeat = request.repeat,
+                .wanted = want,
+            });
         },
         .match_expr => |selection| {
-            for (0..selection.arms.len) |item| try self.trace(selection.arms.at(item).result, slot, null, repeat, want);
-            try self.trace(selection.fallback, slot, null, repeat, want);
+            for (0..selection.arms.len) |item| try self.trace(.{
+                .id = selection.arms.at(item).result,
+                .slot = request.slot,
+                .outer = null,
+                .repeat = request.repeat,
+                .wanted = want,
+            });
+
+            try self.trace(.{
+                .id = selection.fallback,
+                .slot = request.slot,
+                .outer = null,
+                .repeat = request.repeat,
+                .wanted = want,
+            });
         },
         .binary => |binary| if (binary.operator == .coalesce) {
-            try self.trace(binary.left, slot, null, repeat, want);
-            try self.trace(binary.right, slot, null, repeat, want);
+            try self.trace(.{
+                .id = binary.left,
+                .slot = request.slot,
+                .outer = null,
+                .repeat = request.repeat,
+                .wanted = want,
+            });
+
+            try self.trace(.{
+                .id = binary.right,
+                .slot = request.slot,
+                .outer = null,
+                .repeat = request.repeat,
+                .wanted = want,
+            });
         },
         // The rest of a pop and the prefix a splice removes from the front keep the target's buffer; the popped element
         // is read out of it like any element.
-        .list_operation => |operation| if ((operation.kind == .pop and slot == 0) or (slot == 1 and self.prefix(operation))) try self.trace(operation.target, 0, leaf, repeat, want) else if (repeat) try self.provide(id, slot, leaf, want),
-        .iteration => try self.provide(id, slot, leaf, want),
-        .transform => |transform| if (transform.kind == .reduce) try self.provide(id, slot, leaf, want) else if (repeat) try self.normalize(leaf, want),
+        .list_operation => |operation| if ((operation.kind == .pop and request.slot == 0) or (request.slot == 1 and self.prefix(operation))) try self.trace(.{
+            .id = operation.target,
+            .slot = 0,
+            .outer = leaf,
+            .repeat = request.repeat,
+            .wanted = want,
+        }) else if (request.repeat) try self.provide(request.id, request.slot, leaf, want),
+        .iteration => try self.provide(request.id, request.slot, leaf, want),
+        .transform => |transform| if (transform.kind == .reduce) try self.provide(request.id, request.slot, leaf, want) else if (request.repeat) try self.normalize(leaf, want),
         .call => |invocation| {
             const callee = @backingInt(invocation.function);
 
-            if (self.functions.at(callee).external == null) try self.mark(.{ .output = true, .function = @intCast(callee), .slot = slot, .want = want });
+            if (self.functions.at(callee).external == null) try self.mark(.{ .output = true, .function = @intCast(callee), .slot = request.slot, .want = want });
             try self.normalize(leaf, want);
         },
-        else => if (repeat) try self.provide(id, slot, leaf, want),
+        else => if (request.repeat) try self.provide(request.id, request.slot, leaf, want),
     }
 }
 
@@ -765,7 +897,14 @@ fn carry(self: *Self, owner: ir.ExprId, slot: u32, wanted: Level) std.mem.Alloca
     if (want.unique) want.unique = self.sites.linear(Sites.symbolRoot(carried.parameter), slot) and (carried.condition == null or self.sites.observed(Sites.symbolRoot(carried.condition.?), slot));
     if (want == Level.none) return;
     try self.renew(owner, slot, want);
-    try self.trace(carried.body, slot, null, false, want);
+
+    try self.trace(.{
+        .id = carried.body,
+        .slot = slot,
+        .outer = null,
+        .repeat = false,
+        .wanted = want,
+    });
 }
 
 /// A demand for the `want` properties of one input or output slot of a function.
