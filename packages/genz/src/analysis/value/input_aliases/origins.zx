@@ -1,0 +1,56 @@
+import integers from "std:integer"
+import { map } from "std:utils"
+import { max_u32 } from "core/const"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import type { Expressions } from "core/expression_table/model"
+import type { Bindings } from "./model"
+
+export type Input = {
+    expressions: Expressions,
+    bindings: Bindings
+}
+
+export type Output = bool[]
+
+export default function (in: Input): Output {
+    const result = loop({
+        aliases: map(in.expressions.kinds, kind => false),
+        index: 0
+    }, {
+        while: (state, source) => state.index < source.expressions.kinds.length,
+        next: (state, source) => {
+            const table = source.expressions
+            const kind = table.kinds[state.index]
+            const payload = integers.widen(table.payloads[state.index])
+
+            if (
+                kind == ExpressionKind.Field || kind == ExpressionKind.TupleField
+            ) {
+                const target = integers.widen(table.projection_targets[payload])
+
+                state.aliases[state.index] = target < state.index &&
+                    state.aliases[target]
+            } else if (kind == ExpressionKind.OptionalValue) {
+                const child = integers.widen(table.optional_values[payload])
+
+                state.aliases[state.index] = child < state.index &&
+                    state.aliases[child]
+            } else if (kind == ExpressionKind.Reference) {
+                const symbol = integers.widen(table.references[payload])
+                const binding = source.bindings.values[symbol]
+
+                state.aliases[state.index] = symbol == 0 ||
+                    (
+                        !source.bindings.repeated[symbol] && binding != max_u32 &&
+                            integers.widen(binding) < state.index &&
+                            state.aliases[integers.widen(binding)]
+                    )
+            }
+
+            state.index += 1
+        }
+    }, in)
+
+    return result.aliases
+}

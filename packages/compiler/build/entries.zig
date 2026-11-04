@@ -88,6 +88,7 @@ pub const main = [_]Entry{
     .{ .path = "lint/configuration/yaml/gap/resolve.rx", .name = "yaml_gap", .owner = .lint },
     .{ .path = "genz/printer/render.rx", .name = "printer", .owner = .genz },
     .{ .path = "genz/analysis/facts/analyze.rx", .name = "function_facts", .owner = .genz },
+    .{ .path = "genz/analysis/value/input_aliases/analyze.rx", .name = "input_aliases", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/order/build.rx", .name = "uniqueness_order", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/order/apart.zx", .name = "uniqueness_apart", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/order/crosses_concurrent.zx", .name = "uniqueness_concurrent", .owner = .genz },

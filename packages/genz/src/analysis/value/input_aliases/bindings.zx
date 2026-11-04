@@ -1,0 +1,65 @@
+import integers from "std:integer"
+import { map } from "std:utils"
+import { max_u32 } from "core/const"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import type { Input, Bindings as Output } from "./model"
+
+export default function (in: Input): Output {
+    const constants = loop({
+        values: map(in.names, name => max_u32),
+        repeated: map(in.names, name => false),
+        index: 0
+    }, {
+        while: (state, control) => state.index < control.constant_symbols.length,
+        next: (state, control) => {
+            const symbol = integers.widen(control.constant_symbols[state.index])
+
+            if (state.values[symbol] != max_u32) {
+                state.repeated[symbol] = true
+            }
+
+            state.values[symbol] = control.constant_values[state.index]
+            state.index += 1
+        }
+    }, in.control)
+
+    const scopes = loop({
+        ...constants.pick(["values", "repeated"]),
+        index: 0,
+        position: 0,
+        end: 0
+    }, {
+        while: (state, table) =>
+            state.index < table.kinds.length || state.position < state.end,
+        next: (state, table) => {
+            if (state.position < state.end) {
+                const symbol = table.scope_symbols[state.position]
+
+                if (symbol != null) {
+                    const index = integers.widen(symbol)
+
+                    if (state.values[index] != max_u32) {
+                        state.repeated[index] = true
+                    }
+
+                    state.values[index] = table.scope_values[state.position]
+                }
+
+                state.position += 1
+            } else {
+                if (table.kinds[state.index] == ExpressionKind.Scope) {
+                    const payload = integers.widen(table.payloads[state.index])
+
+                    state.position = integers.widen(table.scope_first[payload])
+                    state.end = state.position +
+                        integers.widen(table.scope_count[payload])
+                }
+
+                state.index += 1
+            }
+        }
+    }, in.expressions)
+
+    return scopes.pick(["values", "repeated"])
+}

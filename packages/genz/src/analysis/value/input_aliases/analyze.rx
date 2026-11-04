@@ -1,0 +1,18 @@
+<Module>
+    <Type from="./model" as="Aliases" />
+    <Type from="./origins" as="Origins" />
+
+    <Args in={Aliases.Input} out={Origins.Output} />
+
+    <Call fn="bindings" in={$in} />
+
+    <Call
+        fn="origins"
+        in={{
+            expressions: $in.expressions,
+            bindings: $ctx.bindings
+        }}
+    />
+
+    <Return value={$ctx.origins} />
+</Module>

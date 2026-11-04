@@ -1,0 +1,13 @@
+import type { Control } from "core/control_table/model"
+import type { Expressions } from "core/expression_table/model"
+
+export type Input = {
+    names: string[],
+    expressions: Expressions,
+    control: Control
+}
+
+export type Bindings = {
+    values: u32[],
+    repeated: bool[]
+}
