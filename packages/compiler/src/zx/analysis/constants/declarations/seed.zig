@@ -44,6 +44,7 @@ fn evaluate(types: *Types, declaration: zx.ast.Constant, scope: []const zx.ir.Co
     const program = zx.ir.Program{
         .file_name = declaration.name.text,
         .types = analyzer.types.items.view(),
+        .native_modules = analyzer.types.native_modules,
         .symbols = analyzer.symbols.view(),
         .expressions = analyzer.nodes.view(),
         .input_type = Types.scalarId(.void),

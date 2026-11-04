@@ -323,6 +323,7 @@ const Project = struct {
                 .aliases = aliases.items,
                 .shared = .{ .origins = &self.nominal_origins, .origin = .{ .source = unit.path } },
                 .items = self.types,
+                .native_modules = self.native_modules.view(),
             };
 
             self.types = .{};

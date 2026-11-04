@@ -35,6 +35,7 @@ pub const Native = struct {
                 .reporter = context.reporter,
                 .declarations = self.value.ast.declarations,
                 .items = context.types.*,
+                .native_modules = context.native_modules,
                 .aliases = context.aliases,
                 .shared = .{ .origins = context.origins, .origin = context.origin },
             },
