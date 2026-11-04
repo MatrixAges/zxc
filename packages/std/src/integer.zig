@@ -41,3 +41,13 @@ pub fn andBits(left: u64, right: u64) u64 {
 pub fn orBits(left: u64, right: u64) u64 {
     return left | right;
 }
+
+pub fn shiftLeft(value: u64, amount: u64) error{IntegerOverflow}!u64 {
+    if (amount >= @bitSizeOf(u64)) return error.IntegerOverflow;
+
+    return value << @as(u6, @intCast(amount));
+}
+
+pub fn hash(value: u64) u64 {
+    return std.hash.Wyhash.hash(0, std.mem.asBytes(&value));
+}

@@ -17,3 +17,10 @@ export declare function bitMask(index: u64): u64 throws { IntegerOverflow } conc
 export declare function andBits(left: u64, right: u64): u64 concurrent
 
 export declare function orBits(left: u64, right: u64): u64 concurrent
+
+export declare function shiftLeft(
+    value: u64,
+    amount: u64
+): u64 throws { IntegerOverflow } concurrent
+
+export declare function hash(value: u64): u64 concurrent
