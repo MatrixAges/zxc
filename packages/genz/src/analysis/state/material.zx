@@ -32,7 +32,7 @@ export default function (in: Input): Output {
         return in.bytes
     }
 
-    const result = loop({
+    return loop({
         types: in.types,
         keys: in.keys,
         bytes: in.bytes,
@@ -57,6 +57,5 @@ export default function (in: Input): Output {
             current.position += 1
         }
     })
-
-    return result.bytes
+        -> _.bytes
 }

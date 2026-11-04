@@ -27,7 +27,7 @@ export default function (in: Input): Output {
             )]
         )[0] : direct
 
-    const result = loop({
+    return loop({
         types: in.types,
         root: in.root,
         stack,
@@ -62,6 +62,5 @@ export default function (in: Input): Output {
             }
         }
     })
-
-    return result.found
+        -> _.found
 }

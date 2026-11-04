@@ -8,7 +8,7 @@ export type Output = u64
 export default function (in: Input): Output {
     const bytes = encoding.encodeUtf8(in)
 
-    const result = loop({
+    return loop({
         bytes,
         index: 0,
         value: 0
@@ -25,6 +25,5 @@ export default function (in: Input): Output {
             current.index += 1
         }
     })
-
-    return result.value
+        -> _.value
 }

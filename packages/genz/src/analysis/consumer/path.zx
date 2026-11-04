@@ -12,7 +12,7 @@ export type Input = {
 export type Output = bool
 
 export default function (in: Input): Output {
-    const result = loop({
+    return loop({
         table: in.table,
         symbol: in.symbol,
         id: in.id,
@@ -41,6 +41,5 @@ export default function (in: Input): Output {
             }
         }
     })
-
-    return result.valid
+        -> _.valid
 }

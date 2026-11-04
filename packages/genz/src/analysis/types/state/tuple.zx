@@ -13,7 +13,7 @@ export type Output = u32[]
 export default function (in: Input): Output {
     const items: u32[] = []
 
-    const result = loop({
+    return loop({
         ...in,
         index: in.first,
         end: in.first + in.count,
@@ -29,6 +29,5 @@ export default function (in: Input): Output {
             current.index += 1
         }
     })
-
-    return result.items.push(in.origin)[0]
+        -> _.items.push(in.origin)[0]
 }

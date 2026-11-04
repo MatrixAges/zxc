@@ -12,7 +12,7 @@ export type Input = {
 export type Output = u8[]
 
 export default function (in: Input): Output {
-    const result = loop({
+    return loop({
         ...in,
         candidate: bytes.fromText(origin_field),
         suffix: 0,
@@ -50,6 +50,5 @@ export default function (in: Input): Output {
         },
         while: current => !current.found
     })
-
-    return result.candidate
+        -> _.candidate
 }

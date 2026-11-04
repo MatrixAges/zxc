@@ -11,7 +11,7 @@ export type Output = u32[]
 export default function (in: Input): Output {
     const steps: u32[] = []
 
-    const result = loop({
+    return loop({
         current: in.layout.unwrapped[integers.widen(in.type_id)],
         remaining: in.slot,
         steps
@@ -31,6 +31,5 @@ export default function (in: Input): Output {
             state.current = context.layout.unwrapped[integers.widen(selected)]
         }
     }, in)
-
-    return result.steps
+        -> _.steps
 }

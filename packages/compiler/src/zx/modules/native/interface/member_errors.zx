@@ -14,7 +14,7 @@ export type Output = string[]
 export default function (in: Input): Output {
     const names: string[] = []
 
-    const result = loop({
+    return loop({
         input: in,
         names,
         index: 0
@@ -34,6 +34,5 @@ export default function (in: Input): Output {
             current.index += 1
         }
     })
-
-    return result.names
+        -> _.names
 }

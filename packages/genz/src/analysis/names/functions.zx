@@ -24,7 +24,7 @@ export type Output = string[]
 export default function (in: Input): Output {
     const names: string[] = []
 
-    const result = loop({
+    return loop({
         source: in.source,
         capabilities: in.capabilities,
         names,
@@ -62,6 +62,5 @@ export default function (in: Input): Output {
             current.index += 1
         }
     })
-
-    return result.names
+        -> _.names
 }

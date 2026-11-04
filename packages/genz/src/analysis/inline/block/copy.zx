@@ -7,7 +7,7 @@ export type Input = {
 export type Output = u64[]
 
 export default function (in: Input): Output {
-    const result = loop({
+    return loop({
         pool: in.pool,
         stack: in.stack,
         position: in.start
@@ -18,6 +18,5 @@ export default function (in: Input): Output {
             current.position += 1
         }
     })
-
-    return result.pool
+        -> _.pool
 }

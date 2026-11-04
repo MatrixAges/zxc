@@ -12,7 +12,7 @@ export type Output = u32?
     export default function (in: Input): Output {
         const missing: u32? = null
 
-        const result = loop({
+        return loop({
             active: in.active,
             names: in.names,
             scope_floor: in.scope_floor,
@@ -32,6 +32,5 @@ export type Output = u32?
                 }
             }
         })
-
-        return result.found
+            -> _.found
     }

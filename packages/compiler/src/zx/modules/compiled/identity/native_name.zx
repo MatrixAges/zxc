@@ -11,9 +11,9 @@ export type Input = {
 export type Output = string
 
 export default function (in: Input): Output {
-    const identity = scope(in)
-    const digest = crypto.sha256(encoding.encodeUtf8(identity))
-    const encoded = encoding.encodeHex(digest)
-
-    return `library_native_${encoded}`
+    return scope(in)
+        -> encoding.encodeUtf8(_)
+        -> crypto.sha256(_)
+        -> encoding.encodeHex(_)
+        -> `library_native_${_}`
 }

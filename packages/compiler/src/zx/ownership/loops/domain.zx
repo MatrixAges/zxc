@@ -57,7 +57,7 @@ export default function (in: Input): Output {
         locals: initialized.locals
     })
 
-    const result = loop({
+    return loop({
         expressions: in.program.expressions,
         reachable: initialized.reachable,
         locals: parameters,
@@ -95,6 +95,5 @@ export default function (in: Input): Output {
             }
         }
     })
-
-    return result.locals
+        -> _.locals
 }

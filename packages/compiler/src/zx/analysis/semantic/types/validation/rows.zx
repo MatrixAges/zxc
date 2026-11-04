@@ -14,7 +14,7 @@ export default function (in: Input): Output {
         return false
     }
 
-    const state = loop({
+    return loop({
         table: in.table,
         scalar_count: in.scalar_count,
         index: 0,
@@ -30,6 +30,5 @@ export default function (in: Input): Output {
             current.index += 1
         }
     })
-
-    return state.valid
+        -> _.valid
 }

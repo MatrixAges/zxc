@@ -7,7 +7,7 @@ export type Output = u64?[]
 export default function (in: Input): Output {
     const slots: Output = []
 
-    const result = loop({
+    return loop({
         names: in,
         slots,
         capacity: in.length == 0 ? 0 : in.length * 2 + 1,
@@ -31,6 +31,5 @@ export default function (in: Input): Output {
             }
         }
     })
-
-    return result.slots
+        -> _.slots
 }

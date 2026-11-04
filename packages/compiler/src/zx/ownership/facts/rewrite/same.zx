@@ -28,7 +28,7 @@ export default function (in: Input): Output {
         fact: in.fact
     }) : in.forest.shells[in.fact - 5]
 
-    const result = loop({
+    return loop({
         types: in.types,
         references: in.references,
         forest: in.forest,
@@ -61,6 +61,5 @@ export default function (in: Input): Output {
             current.index += 1
         }
     })
-
-    return result.same
+        -> _.same
 }

@@ -49,7 +49,7 @@ export default function (in: Input): Output {
 
     const none: u64[] = []
 
-    const result = loop({
+    return loop({
         types: in.types,
         table: in.table,
         symbol: in.symbol,
@@ -194,6 +194,5 @@ export default function (in: Input): Output {
             }
         }
     })
-
-    return result.valid
+        -> _.valid
 }

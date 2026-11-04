@@ -29,10 +29,11 @@ fn lowerMode(self: *Lower, scope: ir.ScopeRow, layout: bool) Lower.Error!node.Ex
     const result_type = self.program.expression(scope.result).type_id;
     const local_root = layout and analysis.aggregate(self, result_type);
     const projected = self.state_active and self.value_output;
+    const scalar_entry = !layout and self.entry_flags.scalar;
 
     if ((local_root or projected) and self.projected_symbols == null) self.projected_symbols = try @import("value_call/projections.zig").symbols(self.allocator, self.program);
 
-    if (local_root or projected) {
+    if (local_root or projected or scalar_entry) {
         for (0..scope.bindings.len) |record_index| {
             const binding = scope.bindings.at(record_index);
 
@@ -40,7 +41,8 @@ fn lowerMode(self: *Lower, scope: ir.ScopeRow, layout: bool) Lower.Error!node.Ex
                 const type_id = self.program.symbols.at(@backingInt(symbol)).type_id;
                 const snapshot = local_root and type_id == result_type;
 
-                if (!snapshot and !self.projected_symbols.?[@backingInt(symbol)]) continue;
+                if (scalar_entry and self.program.typeOf(type_id) != .object) continue;
+                if (!snapshot and !scalar_entry and !self.projected_symbols.?[@backingInt(symbol)]) continue;
                 if (@import("state_value/root.zig").selected(self, type_id)) continue;
                 if (!analysis.aggregate(self, type_id) or self.stack_symbols.contains(symbol)) continue;
                 if (try @import("value_call/locals.zig").borrowed(self, symbol, binding.value)) continue;

@@ -6,7 +6,7 @@ export type Input = {
 export type Output = u64
 
 export default function (in: Input): Output {
-    const result = loop({
+    return loop({
         slots: in.slots,
         position: in.first
     }, {
@@ -16,6 +16,5 @@ export default function (in: Input): Output {
                 current.position + 1
         }
     })
-
-    return result.position
+        -> _.position
 }

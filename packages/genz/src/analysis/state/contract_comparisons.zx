@@ -9,7 +9,7 @@ export type Output = u32[]
 export default function (in: Input): Output {
     const empty: u32[] = []
 
-    const result = loop({
+    return loop({
         contracts: in,
         index: 0,
         types: empty
@@ -25,6 +25,5 @@ export default function (in: Input): Output {
             current.index += 1
         }
     })
-
-    return result.types
+        -> _.types
 }

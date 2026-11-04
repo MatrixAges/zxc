@@ -8,7 +8,7 @@ export type Input = {
 export type Output = u32[]
 
 export default function (in: Input): Output {
-    const result = loop({
+    return loop({
         items: in.items,
         position: in.first,
         end: in.first + in.count,
@@ -23,6 +23,5 @@ export default function (in: Input): Output {
             current.position += 1
         }
     })
-
-    return result.output
+        -> _.output
 }

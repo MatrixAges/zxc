@@ -29,7 +29,7 @@ export type Output = Member[]
 export default function (in: Input): Output {
     const members: Member[] = []
 
-    const result = loop({
+    return loop({
         input: in,
         members,
         index: 0
@@ -61,6 +61,5 @@ export default function (in: Input): Output {
             current.index += 1
         }
     })
-
-    return result.members
+        -> _.members
 }

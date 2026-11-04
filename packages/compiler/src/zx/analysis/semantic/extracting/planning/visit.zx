@@ -24,7 +24,7 @@ export default function (in: Input): Output {
     const ids: u64[] = [in.index]
     const ready: bool[] = [false]
 
-    const state = loop({
+    return loop({
         request: in.request,
         plan: in.state,
         pending: {
@@ -83,6 +83,5 @@ export default function (in: Input): Output {
             }
         }
     })
-
-    return state.plan
+        -> _.plan
 }

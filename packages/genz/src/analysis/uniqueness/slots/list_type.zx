@@ -9,7 +9,7 @@ import type { Query as Input } from "./model"
 export type Output = u32
 
 export default function (in: Input): Output {
-    const result = loop({
+    return loop({
         current: in.layout.unwrapped[integers.widen(in.type_id)],
         remaining: in.slot
     }, {
@@ -27,6 +27,5 @@ export default function (in: Input): Output {
             state.current = context.layout.unwrapped[integers.widen(selected)]
         }
     }, in)
-
-    return result.current
+        -> _.current
 }

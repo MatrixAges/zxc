@@ -6,7 +6,7 @@ export type Input = {
 export type Output = bool
 
 export default function (in: Input): Output {
-    const state = loop({
+    return loop({
         names: in.names,
         name: in.name,
         index: 0,
@@ -18,6 +18,5 @@ export default function (in: Input): Output {
             current.index += 1
         }
     })
-
-    return state.found
+        -> _.found
 }

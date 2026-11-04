@@ -10,7 +10,7 @@ export type Output = u64[]
 export default function (in: Input): Output {
     const values: u64[] = []
 
-    const result = loop({
+    return loop({
         items: in.items,
         head: in.head,
         values
@@ -23,6 +23,5 @@ export default function (in: Input): Output {
             current.head = item.previous
         }
     })
-
-    return result.values.reverse()[0]
+        -> _.values.reverse()[0]
 }

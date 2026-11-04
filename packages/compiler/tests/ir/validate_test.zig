@@ -84,7 +84,7 @@ test "ir: accepts pure type modules and rejects phantom executable bodies" {
     try expectInvalid(program);
 }
 
-test "ir: foreign self-recursion cannot bypass source module cycle checks" {
+test "ir: accepts same-function recursion supplied by a foreign frontend" {
     var parsed = try helpers.parseValid("export type Input = u64\n export type Output = u64\n export default function (in: Input): Output { return in + 1 }");
 
     defer parsed.deinit();
@@ -122,7 +122,7 @@ test "ir: foreign self-recursion cannot bypass source module cycle checks" {
 
     program.functions = try zx.ir.FunctionTable.fromValues(analyzed.arena.allocator(), &functions);
 
-    try expectInvalid(program);
+    try std.testing.expect(try frontend.validateIr(std.testing.allocator, program) == null);
 }
 
 test "ir: a supplied Store slot cannot bypass its read permission" {

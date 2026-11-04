@@ -119,7 +119,7 @@ export default function (in: Input): Output {
         }
     })
 
-    const checked = loop({
+    return loop({
         table: in.table,
         expressions: in.body.expressions,
         uses: result.uses,
@@ -140,6 +140,5 @@ export default function (in: Input): Output {
             current.index += 1
         }
     })
-
-    return checked.valid
+        -> _.valid
 }

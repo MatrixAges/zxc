@@ -23,7 +23,7 @@ export type Output = u32?
             delta: in.types.delta
         }
 
-        const result = loop({
+        return loop({
             tables,
             id: expected,
             done: false
@@ -42,6 +42,5 @@ export type Output = u32?
                 }
             }
         })
-
-        return result.id
+            -> _.id
     }

@@ -21,7 +21,7 @@ export default function (in: Input): Output {
         object: in.object
     })
 
-    const result = loop({
+    return loop({
         state: in.state,
         positions: ordered,
         remaining: ordered.length,
@@ -51,6 +51,5 @@ export default function (in: Input): Output {
             current.state.work.aliases = current.state.work.aliases.push(null)[0]
         }
     })
-
-    return result.state
+        -> _.state
 }

@@ -151,7 +151,7 @@ export default function (in: Input): Output {
         const subject = table.match_subjects[payload]
         const prefix = subject == null ? empty : empty.push(subject)[0]
 
-        const arms = loop({
+        return loop({
             table,
             items: prefix,
             position: integers.widen(table.match_first[payload]),
@@ -173,8 +173,7 @@ export default function (in: Input): Output {
                 current.position += 1
             }
         }).items
-
-        return arms.push(table.match_fallbacks[payload])[0]
+            -> _.push(table.match_fallbacks[payload])[0]
     }
 
     if (kind == ExpressionKind.Object) {

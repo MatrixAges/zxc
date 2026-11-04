@@ -13,7 +13,7 @@ export type Output = u32?
     export default function (in: Input): Output {
         const missing: u32? = null
 
-        const result = loop({
+        return loop({
             local: in.local,
             name: in.name,
             index: in.local.captures.frames.starts[integers.widen(in.frame)],
@@ -33,6 +33,5 @@ export type Output = u32?
                 }
             }
         })
-
-        return result.found
+            -> _.found
     }

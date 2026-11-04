@@ -5,7 +5,7 @@ export type Output = string?[]
 export default function (in: Input): Output {
     const slots: Output = []
 
-    const result = loop({
+    return loop({
         slots,
         remaining: in == 0 ? 0 : in * 2 + 1
     }, {
@@ -15,6 +15,5 @@ export default function (in: Input): Output {
             current.remaining -= 1
         }
     })
-
-    return result.slots
+        -> _.slots
 }

@@ -14,7 +14,7 @@ export default function (in: Input): Output {
         return 0
     }
 
-    const result = loop({
+    return loop({
         tree: in.tree,
         kind: in.node.kind,
         current: in.node.head,
@@ -32,6 +32,5 @@ export default function (in: Input): Output {
             current.remaining -= 1
         }
     })
-
-    return result.first
+        -> _.first
 }

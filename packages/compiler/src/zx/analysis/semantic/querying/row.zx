@@ -45,7 +45,7 @@ export default function (in: Input): Output {
     const table = selected.delta ? in.tables.delta : in.tables.base
     const children = type_kind == Kind.Tuple ? table.children : table.field_types
 
-    const state = loop({
+    return loop({
         flags: in.flags,
         children,
         offset: integers.widen(selected.first),
@@ -63,6 +63,5 @@ export default function (in: Input): Output {
             current.index += 1
         }
     })
-
-    return state.found
+        -> _.found
 }

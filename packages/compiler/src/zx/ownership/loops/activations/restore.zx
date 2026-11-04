@@ -47,7 +47,7 @@ export default function (in: Input): Output {
 
     const locals = in.domains.count[in.expression]
 
-    const result = loop({
+    return loop({
         types: in.types,
         references: in.references,
         layout: in.layout,
@@ -90,6 +90,5 @@ export default function (in: Input): Output {
             current.index += 1
         }
     })
-
-    return result.memory
+        -> _.memory
 }

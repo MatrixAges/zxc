@@ -12,7 +12,7 @@ export type Output = u32?[]
 export default function (in: Input): Output {
     const empty: u32?[] = []
 
-    const result = loop({
+    return loop({
         symbols: in.symbols,
         offset: in.offset,
         position: in.first,
@@ -33,6 +33,5 @@ export default function (in: Input): Output {
             current.position += 1
         }
     })
-
-    return result.items
+        -> _.items
 }

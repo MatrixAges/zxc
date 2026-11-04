@@ -36,7 +36,7 @@ export default function (in: Input): Output {
     } else if (type_kind == Kind.Tuple || type_kind == Kind.Object) {
         const values = type_kind == Kind.Tuple ? in.table.children : in.table.field_types
 
-        const state = loop({
+        return loop({
             values,
             first: integers.widen(in.table.first[in.index]),
             remaining: integers.widen(in.table.second[in.index]),
@@ -55,8 +55,7 @@ export default function (in: Input): Output {
                 current.pending.ready = current.pending.ready.push(false)[0]
             }
         })
-
-        return state.pending
+            -> _.pending
     }
 
     return pending

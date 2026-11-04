@@ -14,7 +14,7 @@ export default function (in: Input): Output {
         next: current => { current.slots = current.slots.push(0)[0] }
     }).slots
 
-    const result = loop({
+    return loop({
         previous: in,
         slots: empty,
         index: 0
@@ -40,6 +40,5 @@ export default function (in: Input): Output {
             current.index += 1
         }
     })
-
-    return result.slots
+        -> _.slots
 }

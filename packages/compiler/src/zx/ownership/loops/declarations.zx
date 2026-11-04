@@ -27,7 +27,7 @@ export default function (in: Input): Output {
             _ => 0
         }
 
-    const result = loop({
+    return loop({
         expressions: in.expressions,
         locals: in.locals,
         kind,
@@ -62,6 +62,5 @@ export default function (in: Input): Output {
             current.index += 1
         }
     })
-
-    return result.locals
+        -> _.locals
 }

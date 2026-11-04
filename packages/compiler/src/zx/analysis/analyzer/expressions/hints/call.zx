@@ -61,7 +61,7 @@ export type Output = u32?
         const namespace: string? = field ? root_name : null
         const missing: u32? = null
 
-        const found = loop({
+        return loop({
             imports: in.context.imports,
             namespace,
             name,
@@ -81,6 +81,5 @@ export type Output = u32?
                 current.index += 1
             }
         })
-
-        return found.result
+            -> _.result
     }

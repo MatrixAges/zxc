@@ -10,7 +10,7 @@ export type Input = {
 export type Output = bool[]
 
 export default function (in: Input): Output {
-    const result = loop({
+    return loop({
         functions: in.functions,
         needed: in.needed,
         index: in.functions.expressions.length
@@ -30,6 +30,5 @@ export default function (in: Input): Output {
             }
         }
     })
-
-    return result.needed
+        -> _.needed
 }

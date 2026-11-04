@@ -20,7 +20,7 @@ export default function (in: Input): Output {
 
     const first = integers.widen(expressions.object_first[payload])
 
-    const result = loop({
+    return loop({
         expressions,
         result_index: iteration.result_index,
         index: first,
@@ -48,6 +48,5 @@ export default function (in: Input): Output {
             current.index += 1
         }
     })
-
-    return result.valid
+        -> _.valid
 }

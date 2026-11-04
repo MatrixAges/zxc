@@ -13,7 +13,7 @@ export type Input = {
 export type Output = bool
 
 export default function (in: Input): Output {
-    const state = loop({
+    return loop({
         values: in.values,
         first: in.first,
         count: in.count,
@@ -59,6 +59,5 @@ export default function (in: Input): Output {
             current.index += 1
         }
     })
-
-    return state.valid
+        -> _.valid
 }

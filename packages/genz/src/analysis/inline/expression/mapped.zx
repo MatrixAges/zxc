@@ -10,7 +10,7 @@ export type Output = u32[]
 export default function (in: Input): Output {
     const none: u32[] = []
 
-    const result = loop({
+    return loop({
         stack: in.stack,
         position: in.start,
         mapped: none
@@ -26,6 +26,5 @@ export default function (in: Input): Output {
             current.position += 1
         }
     })
-
-    return result.mapped
+        -> _.mapped
 }

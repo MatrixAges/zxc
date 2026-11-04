@@ -23,7 +23,7 @@ export default function (in: Input): Output {
         return empty
     }
 
-    const result = loop({
+    return loop({
         types: in.types,
         object: kind == 1,
         first: integers.widen(in.types.first[index]),
@@ -43,6 +43,5 @@ export default function (in: Input): Output {
             current.position += 1
         }
     })
-
-    return result.items
+        -> _.items
 }

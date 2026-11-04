@@ -26,7 +26,7 @@ export default function (in: Input): Output {
         while: current => current.value != 0
     }).output
 
-    const reversed = loop({
+    return loop({
         output: written,
         left: first,
         right: written.length - 1
@@ -41,6 +41,5 @@ export default function (in: Input): Output {
             current.right -= 1
         }
     })
-
-    return reversed.output
+        -> _.output
 }

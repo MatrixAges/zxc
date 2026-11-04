@@ -58,7 +58,7 @@ export default function (in: Input): Output {
         stores: []
     }
 
-    const result = loop({
+    return loop({
         table: program.table,
         symbols,
         expressions,
@@ -83,6 +83,5 @@ export default function (in: Input): Output {
             current.index += 1
         }
     })
-
-    return result.valid
+        -> _.valid
 }

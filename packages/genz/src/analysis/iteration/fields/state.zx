@@ -64,7 +64,7 @@ export default function (in: Input): Output {
     const first = integers.widen(in.input.expressions.object_first[payload])
     const count = integers.widen(in.input.expressions.object_count[payload])
 
-    const found = loop({
+    return loop({
         table: in.input.expressions,
         values: in.values,
         field: in.field,
@@ -90,6 +90,5 @@ export default function (in: Input): Output {
             current.index += 1
         }
     })
-
-    return found.preserved
+        -> _.preserved
 }

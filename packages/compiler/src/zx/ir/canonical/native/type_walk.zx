@@ -13,7 +13,7 @@ export default function (in: Input): Output {
     const type_ids: u32[] = [in.type_id]
     const positions: u32?[] = [null]
 
-    const result = loop({
+    return loop({
         input: in,
         type_ids,
         positions,
@@ -89,6 +89,5 @@ export default function (in: Input): Output {
             }
         }
     })
-
-    return result.valid
+        -> _.valid
 }

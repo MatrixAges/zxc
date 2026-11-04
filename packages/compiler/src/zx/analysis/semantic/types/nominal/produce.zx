@@ -15,7 +15,7 @@ export type Input = {
 export type Output = Bindings
 
 export default function (in: Input): Output {
-    const result = loop({
+    return loop({
         index: in.first,
         kinds: in.kinds,
         origin: in.origin,
@@ -45,6 +45,5 @@ export default function (in: Input): Output {
             current.index += 1
         }
     })
-
-    return result.bindings
+        -> _.bindings
 }

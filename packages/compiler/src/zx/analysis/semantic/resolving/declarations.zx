@@ -11,7 +11,7 @@ export type Input = State
 export type Output = State
 
 export default function (in: Input): Output {
-    const completed = loop({
+    return loop({
         state: in,
         index: 0,
         count: count(in.context.source)
@@ -36,6 +36,5 @@ export default function (in: Input): Output {
             current.index += 1
         }
     })
-
-    return completed.state
+        -> _.state
 }

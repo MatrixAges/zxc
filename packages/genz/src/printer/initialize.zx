@@ -28,7 +28,7 @@ export default function (in: Input): Output {
         number: 0
     }
 
-    const result = loop({
+    return loop({
         state: initial,
         remaining: in.source.count,
         frame
@@ -47,6 +47,5 @@ export default function (in: Input): Output {
             })[0]
         }
     })
-
-    return result.state
+        -> _.state
 }

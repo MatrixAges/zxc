@@ -5,7 +5,7 @@ export type Output = string[]
 export default function (in: Input): Output {
     const empty: string[] = []
 
-    const result = loop({
+    return loop({
         names: in.sort()[0],
         values: empty,
         index: 0
@@ -23,6 +23,5 @@ export default function (in: Input): Output {
             current.index += 1
         }
     })
-
-    return result.values
+        -> _.values
 }

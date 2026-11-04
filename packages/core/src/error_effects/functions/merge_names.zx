@@ -6,7 +6,7 @@ export type Input = {
 export type Output = string[]
 
 export default function (in: Input): Output {
-    const result = loop({
+    return loop({
         names: in.names,
         added: in.added,
         index: 0
@@ -22,6 +22,5 @@ export default function (in: Input): Output {
             current.index += 1
         }
     })
-
-    return result.names
+        -> _.names
 }

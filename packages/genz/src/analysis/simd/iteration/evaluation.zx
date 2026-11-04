@@ -18,7 +18,7 @@ export default function (in: Input): Output {
         return false
     }
 
-    const result = loop({
+    return loop({
         expressions,
         first: integers.widen(expressions.object_evaluation_first[payload]),
         field_first: integers.widen(expressions.object_first[payload]),
@@ -73,6 +73,5 @@ export default function (in: Input): Output {
             current.index += 1
         }
     })
-
-    return result.valid
+        -> _.valid
 }

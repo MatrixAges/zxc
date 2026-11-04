@@ -19,7 +19,7 @@ export type Output = bool
 export default function (in: Input): Output {
     const values = in.object ? in.table.field_types : in.table.children
 
-    const state = loop({
+    return loop({
         table: in.table,
         values,
         owner: in.index,
@@ -52,6 +52,5 @@ export default function (in: Input): Output {
             current.index += 1
         }
     })
-
-    return state.valid
+        -> _.valid
 }

@@ -26,7 +26,7 @@ export default function (in: Input): Output {
         binary_right: in.expressions.binary_right,
     }
 
-    const result = loop({
+    return loop({
         types: in.types,
         expressions: columns,
         allowed: in.allowed,
@@ -88,6 +88,5 @@ export default function (in: Input): Output {
             current.index += 1
         }
     })
-
-    return result.valid
+        -> _.valid
 }

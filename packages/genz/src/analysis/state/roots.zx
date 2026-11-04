@@ -70,7 +70,7 @@ export default function (in: Input): Output {
         tables: [in.program.expressions].concat(in.program.contracts.expressions)[0]
     }))[0]
 
-    const result = loop({
+    return loop({
         functions: in.program.functions,
         types: in.program.types,
         records: in.records,
@@ -120,6 +120,5 @@ export default function (in: Input): Output {
             current.index += 1
         }
     })
-
-    return result.roots
+        -> _.roots
 }

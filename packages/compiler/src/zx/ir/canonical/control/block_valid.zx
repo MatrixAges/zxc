@@ -14,7 +14,7 @@ export default function (in: Input): Output {
     const first = integers.widen(in.control.block_first[in.block])
     const count = integers.widen(in.control.block_count[in.block])
 
-    const result = loop({
+    return loop({
         control: in.control,
         block: in.block,
         index: first,
@@ -70,6 +70,5 @@ export default function (in: Input): Output {
             current.index += 1
         }
     })
-
-    return result.valid
+        -> _.valid
 }

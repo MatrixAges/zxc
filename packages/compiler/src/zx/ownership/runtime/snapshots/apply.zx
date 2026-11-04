@@ -52,7 +52,7 @@ export default function (in: Input): Output {
             _ => RewriteAction.ReleaseAllLoans
         }
 
-    const result = loop({
+    return loop({
         types: in.types,
         references: in.references,
         layout: in.layout,
@@ -116,6 +116,5 @@ export default function (in: Input): Output {
             })
         }
     })
-
-    return result.memory
+        -> _.memory
 }

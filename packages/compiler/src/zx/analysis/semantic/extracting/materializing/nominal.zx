@@ -18,7 +18,7 @@ export default function (in: Input): Output {
         members: []
     }
 
-    const result = loop({
+    return loop({
         source: in.origins,
         plan: in.plan,
         origins: empty,
@@ -54,6 +54,5 @@ export default function (in: Input): Output {
             current.index += 1
         }
     })
-
-    return result.origins
+        -> _.origins
 }

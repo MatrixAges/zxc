@@ -18,7 +18,7 @@ export default function (in: Input): Output {
     const empty: u64[] = []
     const capacity = in.cache.slots.length == 0 ? 16 : in.cache.slots.length * 2
 
-    const result = loop({
+    return loop({
         cache: {
             ...in.cache,
             slots: grow ? empty : in.cache.slots
@@ -65,6 +65,5 @@ export default function (in: Input): Output {
             }
         }
     })
-
-    return result.cache
+        -> _.cache
 }

@@ -21,7 +21,7 @@ export default function (in: Input): Output {
         }
     })
 
-    const result = loop({
+    return loop({
         depths: in.values,
         counts: initial.values,
         index: 0
@@ -34,6 +34,5 @@ export default function (in: Input): Output {
             current.index += 1
         }
     })
-
-    return result.counts
+        -> _.counts
 }

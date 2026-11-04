@@ -10,7 +10,7 @@ export type Input = Request
 export type Output = State[]
 
 export default function (in: Input): Output {
-    const result = loop({
+    return loop({
         layout: in.layout,
         root: in.id,
         operation: in.operation,
@@ -89,6 +89,5 @@ export default function (in: Input): Output {
             }
         }
     })
-
-    return result.states
+        -> _.states
 }

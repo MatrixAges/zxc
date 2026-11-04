@@ -17,7 +17,7 @@ export type Output = bool
 export default function (in: Input): Output {
     const stack: u64[] = [in.id]
 
-    const result = loop({
+    return loop({
         table: in.table,
         symbol: in.symbol,
         stack,
@@ -64,6 +64,5 @@ export default function (in: Input): Output {
             }
         }
     })
-
-    return result.valid
+        -> _.valid
 }

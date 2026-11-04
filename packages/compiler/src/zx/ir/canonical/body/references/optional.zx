@@ -8,7 +8,7 @@ export type Input = {
 export type Output = bool
 
 export default function (in: Input): Output {
-    const result = loop({
+    return loop({
         input: in,
         index: 0,
         valid: true
@@ -25,6 +25,5 @@ export default function (in: Input): Output {
             current.index += 1
         }
     })
-
-    return result.valid
+        -> _.valid
 }

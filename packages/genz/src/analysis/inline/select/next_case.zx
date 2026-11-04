@@ -15,7 +15,7 @@ export default function (in: Input): Output {
     const first = integers.widen(in.control.selection_first[in.payload])
     const count = integers.widen(in.control.selection_count[in.payload])
 
-    const result = loop({
+    return loop({
         control: in.control,
         first,
         count,
@@ -38,6 +38,5 @@ export default function (in: Input): Output {
             current.position += 1
         }
     })
-
-    return result.found
+        -> _.found
 }

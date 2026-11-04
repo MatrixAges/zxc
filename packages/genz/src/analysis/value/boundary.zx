@@ -50,7 +50,7 @@ export default function (in: Input): Output {
         return false
     }
 
-    const result = loop({
+    return loop({
         types,
         borrowed: in.borrowed,
         position: integers.widen(types.first[index]),
@@ -71,6 +71,5 @@ export default function (in: Input): Output {
             current.position += 1
         }
     })
-
-    return result.valid
+        -> _.valid
 }

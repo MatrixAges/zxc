@@ -14,7 +14,7 @@ export default function (in: Input): Output {
     const pending: u32[] = []
     const fresh = map(in.functions.input_types, id => true)
 
-    const result = loop({
+    return loop({
         types: in.types,
         functions: in.functions,
         seen,
@@ -71,6 +71,5 @@ export default function (in: Input): Output {
             current.index += 1
         }
     })
-
-    return result.fresh
+        -> _.fresh
 }

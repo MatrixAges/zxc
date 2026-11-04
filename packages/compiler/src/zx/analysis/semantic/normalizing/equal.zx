@@ -52,7 +52,7 @@ export default function (in: Input): Output {
         return false
     }
 
-    const state = loop({
+    return loop({
         source,
         target,
         mapping: in.mapping,
@@ -82,6 +82,5 @@ export default function (in: Input): Output {
             current.index += 1
         }
     })
-
-    return state.equal
+        -> _.equal
 }

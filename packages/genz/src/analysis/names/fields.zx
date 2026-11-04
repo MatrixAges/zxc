@@ -103,7 +103,7 @@ export default function (in: Input): Output {
         })
     }
 
-    const result = loop({
+    return loop({
         types,
         tag,
         fields,
@@ -142,6 +142,5 @@ export default function (in: Input): Output {
             current.index += 1
         }
     })
-
-    return result.fields
+        -> _.fields
 }

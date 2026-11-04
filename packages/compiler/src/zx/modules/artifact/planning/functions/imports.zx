@@ -18,7 +18,7 @@ export type Input = {
 export type Output = Plan
 
 export default function (in: Input): Output {
-    const result = loop({
+    return loop({
         request: in.request,
         modules: in.modules,
         signatures: in.signatures,
@@ -64,6 +64,5 @@ export default function (in: Input): Output {
             current.index += 1
         }
     })
-
-    return result.plan
+        -> _.plan
 }

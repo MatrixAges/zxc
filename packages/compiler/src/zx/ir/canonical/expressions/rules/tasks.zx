@@ -26,7 +26,7 @@ export default function (in: Input): Output {
             return false
         }
 
-        const captures = loop({
+        return loop({
             context,
             first: integers.widen(expressions.task_capture_first[in.payload]),
             count: integers.widen(expressions.task_capture_count[in.payload]),
@@ -76,8 +76,7 @@ export default function (in: Input): Output {
                 current.index += 1
             }
         })
-
-        return captures.valid
+            -> _.valid
     }
 
     const child = match in.kind {

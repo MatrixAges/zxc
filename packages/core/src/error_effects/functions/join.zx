@@ -15,7 +15,7 @@ export default function (in: Input): Output {
         unknown: []
     }
 
-    const result = loop({
+    return loop({
         sources: in.sources,
         components: in.components,
         groups,
@@ -36,6 +36,5 @@ export default function (in: Input): Output {
             current.index += 1
         }
     })
-
-    return result.groups
+        -> _.groups
 }

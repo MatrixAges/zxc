@@ -73,7 +73,7 @@ export default function (in: Input): Output {
         return Kind.File
     }
 
-    const segments = loop({
+    return loop({
         source: in,
         offset: 0,
         start: 0,
@@ -102,6 +102,5 @@ export default function (in: Input): Output {
             value.offset += 1
         }
     })
-
-    return segments.valid ? Kind.Package : Kind.Invalid
+        -> _.valid ? Kind.Package : Kind.Invalid
 }

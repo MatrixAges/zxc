@@ -13,7 +13,7 @@ export type Output = u32?
         const node = in.source.tree.nodes[in.node]
         const missing: u32? = null
 
-        const result = loop({
+        return loop({
             source: in.source,
             head: node.head,
             fallback: node.second,
@@ -35,6 +35,5 @@ export type Output = u32?
                 current.head = arm.previous
             }
         })
-
-        return result.type_id
+            -> _.type_id
     }

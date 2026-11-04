@@ -26,7 +26,7 @@ export default function (in: Input): Output {
         return false
     }
 
-    const result = loop({
+    return loop({
         available: in.available,
         required: in.required,
         slots: in.slots,
@@ -79,6 +79,5 @@ export default function (in: Input): Output {
             current.index += 1
         }
     })
-
-    return result.valid
+        -> _.valid
 }

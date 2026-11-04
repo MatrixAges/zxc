@@ -25,7 +25,7 @@ export default function (in: Input): Output {
 
     const leaves: u32[][] = []
 
-    const result = loop({
+    return loop({
         types: in.types,
         optional: in.optional,
         pending,
@@ -78,6 +78,5 @@ export default function (in: Input): Output {
             }
         }
     })
-
-    return result.leaves
+        -> _.leaves
 }

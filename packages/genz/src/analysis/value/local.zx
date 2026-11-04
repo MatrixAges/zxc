@@ -13,7 +13,7 @@ export type Output = bool[]
 export default function (in: Input): Output {
     const local = map(in.functions.output_types, id => false)
 
-    const result = loop({
+    return loop({
         program: in,
         local,
         index: 0
@@ -49,6 +49,5 @@ export default function (in: Input): Output {
             current.index += 1
         }
     })
-
-    return result.local
+        -> _.local
 }

@@ -53,7 +53,7 @@ export default function (in: Input): Output {
         return collected.positions
     }
 
-    const result = loop({
+    return loop({
         names: collected.names,
         positions: collected.positions,
         count: in.count,
@@ -114,6 +114,5 @@ export default function (in: Input): Output {
             }
         }
     })
-
-    return result.positions
+        -> _.positions
 }

@@ -9,7 +9,7 @@ export type Input = {
 export type Output = u8[]
 
 export default function (in: Input): Output {
-    const result = loop({
+    return loop({
         keys: in.keys,
         bytes: in.bytes,
         position: in.id * state_key_size,
@@ -22,6 +22,5 @@ export default function (in: Input): Output {
             current.position += 1
         }
     })
-
-    return result.bytes
+        -> _.bytes
 }

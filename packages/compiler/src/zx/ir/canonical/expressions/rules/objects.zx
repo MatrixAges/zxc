@@ -58,7 +58,7 @@ export default function (in: Input): Output {
         return false
     }
 
-    const fields = loop({
+    return loop({
         context,
         first: integers.widen(expressions.object_first[in.payload]),
         type_first: integers.widen(context.table.first[type_index]),
@@ -111,6 +111,5 @@ export default function (in: Input): Output {
             current.index += 1
         }
     })
-
-    return fields.valid
+        -> _.valid
 }

@@ -13,7 +13,7 @@ export type Output = u32?
     export default function (in: Input): Output {
         const missing: u32? = null
 
-        const result = loop({
+        return loop({
             bindings: in.captures.bindings,
             row: in.captures.frames.first[integers.widen(in.frame)],
             source: in.source,
@@ -38,6 +38,5 @@ export type Output = u32?
                 }
             }
         })
-
-        return result.found
+            -> _.found
     }

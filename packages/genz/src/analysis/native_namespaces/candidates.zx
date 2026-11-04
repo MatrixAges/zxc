@@ -35,7 +35,7 @@ export default function (in: Input): Output {
         }
     }).names
 
-    const result = loop({
+    return loop({
         ...in,
         names: bindings,
         index: 0
@@ -57,6 +57,5 @@ export default function (in: Input): Output {
             current.index += 1
         }
     })
-
-    return result.names.sort()[0]
+        -> _.names.sort()[0]
 }

@@ -46,7 +46,7 @@ export default function (in: Input): Output {
         return false
     }
 
-    const result = loop({
+    return loop({
         control: in,
         block: 0,
         valid: true
@@ -61,6 +61,5 @@ export default function (in: Input): Output {
             current.block += 1
         }
     })
-
-    return result.valid
+        -> _.valid
 }

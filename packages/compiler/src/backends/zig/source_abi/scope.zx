@@ -7,7 +7,7 @@ export type Output = u64?
     export default function (in: Input): Output {
         const empty: u64? = null
 
-        const result = loop({
+        return loop({
             roots: in.roots,
             root: bytes.fromText(in.root),
             selected: empty,
@@ -31,6 +31,5 @@ export type Output = u64?
                 current.index += 1
             }
         })
-
-        return result.selected
+            -> _.selected
     }
