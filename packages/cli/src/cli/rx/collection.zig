@@ -78,6 +78,7 @@ fn loadIn(allocator: std.mem.Allocator, options: Options) !?Data {
 
         const real = std.Io.Dir.cwd().realPathFileAlloc(io, absolute, allocator) catch |err| {
             if (err == error.OutOfMemory) return err;
+            if (err == error.FileNotFound and index != 0 and std.mem.endsWith(u8, path, ".zx")) continue;
             try writer.print("{s}: {s}\n", .{ path, @errorName(err) });
 
             return null;
@@ -102,6 +103,7 @@ fn loadIn(allocator: std.mem.Allocator, options: Options) !?Data {
 
         const source = std.Io.Dir.cwd().readFileAlloc(io, absolute, allocator, .limited(16 * 1024 * 1024)) catch |err| {
             if (err == error.OutOfMemory) return err;
+            if (err == error.FileNotFound and index != 0 and std.mem.endsWith(u8, path, ".zx")) continue;
             try writer.print("{s}: {s}\n", .{ path, @errorName(err) });
 
             return null;

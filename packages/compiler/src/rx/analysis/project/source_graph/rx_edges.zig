@@ -65,7 +65,7 @@ fn reference(collector: anytype, owner: []const u8, node: rx.ast.Node) @TypeOf(c
     const resolved = path catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 
-        return collector.fail(value.value_location, "source dependency must stay within the project root and name the expected module kind");
+        return collector.fail(value.value_location, "source dependency escapes the project root or is not a valid module path");
     };
 
     if (is_store) return collector.store(resolved, value.value_location, owner);
