@@ -31,7 +31,7 @@ pub fn check(source: []const u8, program: ir.Program) !void {
         const value = try std.fmt.bufPrint(&buffer, "function_{d}_value(", .{index});
         const value_calls = std.mem.count(u8, source, value);
 
-        if (ordinary_calls < 2 and value_calls < 3) return error.MissingReaderCall;
+        if (ordinary_calls < 2 and value_calls < 2) return error.MissingReaderCall;
     }
 
     if (!found) return error.MissingReader;

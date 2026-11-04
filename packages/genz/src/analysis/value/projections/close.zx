@@ -1,0 +1,77 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import observe from "./observe"
+
+import type { Expressions } from "core/expression_table/model"
+import type { State, Output } from "./model"
+
+export type Input = {
+    expressions: Expressions,
+    state: State
+}
+
+export default function (in: Input): Output {
+    return loop({
+        state: in.state
+    }, {
+        while: current => current.state.pending.length != 0,
+        next: (current, table) => {
+            const id = integers.widen(
+                current.state.pending[current.state.pending.length - 1]
+            )
+
+            current.state.pending = current.state.pending.pop()[0]
+
+            const kind = table.kinds[id]
+            const payload = integers.widen(table.payloads[id])
+
+            if (kind == ExpressionKind.Reference) {
+                const symbol = integers.widen(table.references[payload])
+                const value = current.state.bindings[symbol]
+
+                current.state.projected[symbol] = false
+
+                if (value != max_u32) {
+                    current.state = observe({
+                        state: current.state,
+                        id: value
+                    })
+                }
+            } else if (kind == ExpressionKind.Conditional) {
+                current.state = observe({
+                    state: observe({
+                        state: current.state,
+                        id: table.conditional_yes[payload]
+                    }),
+                    id: table.conditional_no[payload]
+                })
+            } else if (kind == ExpressionKind.Match) {
+                current.state = loop({
+                    state: observe({
+                        state: current.state,
+                        id: table.match_fallbacks[payload]
+                    }),
+                    position: integers.widen(table.match_first[payload]),
+                    end: integers.widen(table.match_first[payload]) +
+                        integers.widen(table.match_count[payload])
+                }, {
+                    while: row => row.position < row.end,
+                    next: (row, expressions) => {
+                        row.state = observe({
+                            state: row.state,
+                            id: expressions.match_results[row.position]
+                        })
+                        row.position += 1
+                    }
+                }, table).state
+            } else if (kind == ExpressionKind.Scope) {
+                current.state = observe({
+                    state: current.state,
+                    id: table.scope_results[payload]
+                })
+            }
+        }
+    }, in.expressions).state.projected
+}

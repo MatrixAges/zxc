@@ -11,6 +11,25 @@ observed: []bool,
 bindings: []?ir.ExprId,
 pending: std.ArrayList(ir.ExprId) = .empty,
 pub fn symbols(allocator: std.mem.Allocator, program: ir.Program) Error![]const bool {
+    if (@import("genz_options").generated_analysis) {
+        const generated = @import("generated_value_projections");
+        const Input = std.meta.Child(generated.Input);
+        const columns = @import("zx").columns;
+
+        return generated.executeIn(allocator, &.{
+            .names = program.symbols.names,
+            .expressions = columns.pointer(@FieldType(Input, "expressions"), &program.expressions),
+            .control = columns.pointer(@FieldType(Input, "control"), program.body.control),
+        }) catch |err| switch (err) {
+            error.OutOfMemory => return error.OutOfMemory,
+            else => unreachable,
+        };
+    }
+
+    return seed(allocator, program);
+}
+
+fn seed(allocator: std.mem.Allocator, program: ir.Program) Error![]const bool {
     var self = Self{
         .allocator = allocator,
         .program = program,

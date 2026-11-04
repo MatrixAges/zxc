@@ -1,0 +1,25 @@
+<Module>
+    <Type from="./model" as="Projections" />
+
+    <Args in={Projections.Input} out={Projections.Output} />
+
+    <Call fn="expressions" in={$in} />
+
+    <Call
+        fn="control"
+        in={{
+            control: $in.control,
+            state: $ctx.expressions
+        }}
+    />
+
+    <Call
+        fn="close"
+        in={{
+            expressions: $in.expressions,
+            state: $ctx.control
+        }}
+    />
+
+    <Return value={$ctx.close} />
+</Module>

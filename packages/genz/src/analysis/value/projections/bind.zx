@@ -1,0 +1,37 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+
+import observe from "./observe"
+
+import type { State } from "./model"
+
+export type Input = {
+    state: State,
+    symbol: u32,
+    value: u32
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const index = integers.widen(in.symbol)
+    const previous = in.state.bindings[index]
+
+    if (previous == max_u32) {
+        return {
+            ...in.state,
+            bindings: in.state.bindings.with(index, in.value)
+        }
+    }
+
+    return observe({
+        state: observe({
+            state: {
+                ...in.state,
+                projected: in.state.projected.with(index, false)
+            },
+            id: previous
+        }),
+        id: in.value
+    })
+}

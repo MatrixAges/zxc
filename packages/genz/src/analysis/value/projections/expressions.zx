@@ -1,0 +1,137 @@
+import integers from "std:integer"
+import { map } from "std:utils"
+import { max_u32 } from "core/const"
+import child from "core/expression_table/child"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import bind from "./bind"
+import observe from "./observe"
+
+import type { Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const pending: u32[] = []
+
+    return loop({
+        state: {
+            projected: map(in.names, name => true),
+            observed: map(in.expressions.kinds, kind => false),
+            bindings: map(in.names, name => max_u32),
+            pending
+        },
+        index: 0
+    }, {
+        while: (current, table) => current.index < table.kinds.length,
+        next: (current, table) => {
+            const kind = table.kinds[current.index]
+            const payload = integers.widen(table.payloads[current.index])
+
+            if (kind == ExpressionKind.Conditional) {
+                current.state = observe({
+                    state: current.state,
+                    id: table.conditional_conditions[payload]
+                })
+            } else if (kind == ExpressionKind.Match) {
+                const subject = table.match_subjects[payload]
+
+                if (subject != null) {
+                    current.state = observe({
+                        state: current.state,
+                        id: subject
+                    })
+                }
+
+                current.state = loop({
+                    state: current.state,
+                    position: integers.widen(table.match_first[payload]),
+                    end: integers.widen(table.match_first[payload]) +
+                        integers.widen(table.match_count[payload])
+                }, {
+                    while: row => row.position < row.end,
+                    next: (row, expressions) => {
+                        row.state = observe({
+                            state: row.state,
+                            id: expressions.match_conditions[row.position]
+                        })
+                        row.position += 1
+                    }
+                }, table).state
+            } else if (kind == ExpressionKind.Scope) {
+                current.state = loop({
+                    state: observe({
+                        state: current.state,
+                        id: table.scope_results[payload]
+                    }),
+                    position: integers.widen(table.scope_first[payload]),
+                    end: integers.widen(table.scope_first[payload]) +
+                        integers.widen(table.scope_count[payload])
+                }, {
+                    while: row => row.position < row.end,
+                    next: (row, expressions) => {
+                        const symbol = expressions.scope_symbols[row.position]
+                        const value = expressions.scope_values[row.position]
+
+                        row.state = symbol == null ? observe({
+                            state: row.state,
+                            id: value
+                        }) : bind({
+                            state: row.state,
+                            symbol,
+                            value
+                        })
+                        row.position += 1
+                    }
+                }, table).state
+            } else if (
+                kind != ExpressionKind.Field && kind != ExpressionKind.TupleField &&
+                    kind != ExpressionKind.Reference
+            ) {
+                current.state = loop({
+                    state: current.state,
+                    index: 0,
+                    id: current.index,
+                    done: false
+                }, {
+                    while: row => !row.done,
+                    next: (row, expressions) => {
+                        const value = child({
+                            table: expressions,
+                            id: row.id,
+                            index: row.index
+                        })
+
+                        if (value == null) {
+                            row.done = true
+                        } else {
+                            row.state = observe({
+                                state: row.state,
+                                id: value
+                            })
+                            row.index += 1
+                        }
+                    }
+                }, table).state
+
+                if (kind == ExpressionKind.Task) {
+                    current.state.projected = loop({
+                        values: current.state.projected,
+                        position: integers.widen(table.task_capture_first[payload]),
+                        end: integers.widen(table.task_capture_first[payload]) +
+                            integers.widen(table.task_capture_count[payload])
+                    }, {
+                        while: row => row.position < row.end,
+                        next: (row, expressions) => {
+                            row
+                                .values[integers.widen(
+                                    expressions.task_captures[row.position]
+                                )] = false
+                            row.position += 1
+                        }
+                    }, table).values
+                }
+            }
+
+            current.index += 1
+        }
+    }, in.expressions).state
+}

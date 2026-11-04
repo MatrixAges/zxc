@@ -1,0 +1,110 @@
+import { max_u32 } from "core/const"
+
+import bind from "./bind"
+import observe from "./observe"
+
+import type { Control } from "core/control_table/model"
+import type { State } from "./model"
+
+export type Input = {
+    control: Control,
+    state: State
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const constants = loop({
+        state: in.state,
+        index: 0
+    }, {
+        while: (current, control) => current.index < control.constant_symbols.length,
+        next: (current, control) => {
+            current.state = bind({
+                state: current.state,
+                symbol: control.constant_symbols[current.index],
+                value: control.constant_values[current.index]
+            })
+            current.index += 1
+        }
+    }, in.control).state
+
+    const roots = [
+        in.control.evaluations,
+        in.control.parallel_values,
+        in.control.destructure_values,
+        in.control.branch_conditions,
+        in.control.selection_subjects,
+        in.control.setter_values
+    ]
+
+    const observed = loop({
+        state: constants,
+        index: 0,
+        position: 0
+    }, {
+        while: (current, sources) => current.index < sources.length,
+        next: (current, sources) => {
+            const values = sources[current.index]
+
+            if (current.position < values.length) {
+                current.state = observe({
+                    state: current.state,
+                    id: values[current.position]
+                })
+                current.position += 1
+            } else {
+                current.index += 1
+                current.position = 0
+            }
+        }
+    }, roots).state
+
+    const optional = [in.control.case_values, in.control.results]
+
+    const results = loop({
+        state: observed,
+        index: 0,
+        position: 0
+    }, {
+        while: (current, sources) => current.index < sources.length,
+        next: (current, sources) => {
+            const values = sources[current.index]
+
+            if (current.position < values.length) {
+                const value = values[current.position]
+
+                if (value != null) {
+                    current.state = observe({
+                        state: current.state,
+                        id: value
+                    })
+                }
+
+                current.position += 1
+            } else {
+                current.index += 1
+                current.position = 0
+            }
+        }
+    }, optional).state
+
+    return loop({
+        state: results,
+        index: 0
+    }, {
+        while: current => current.index < current.state.projected.length,
+        next: current => {
+            const value = current.state.bindings[current.index]
+
+            if (!current.state.projected[current.index] && value != max_u32) {
+                current.state = observe({
+                    state: current.state,
+                    id: value
+                })
+            }
+
+            current.index += 1
+        }
+    }).state
+}

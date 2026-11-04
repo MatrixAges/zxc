@@ -1,0 +1,12 @@
+import type { Input as Aliases } from "../input_aliases/model"
+
+export type Input = Aliases
+
+export type State = {
+    projected: bool[],
+    observed: bool[],
+    bindings: u32[],
+    pending: u32[]
+}
+
+export type Output = bool[]
