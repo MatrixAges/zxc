@@ -199,8 +199,11 @@ pub fn expression(self: *Self, value: node.ExpressionId) Error!void {
             try self.identifier(name);
         },
         .block => |item| {
-            try self.identifier(item.label);
-            try self.write(": ");
+            if (item.label.len != 0) {
+                try self.identifier(item.label);
+                try self.write(": ");
+            }
+
             try self.block(item.statements);
         },
         .identifier => |name| try self.identifier(name),

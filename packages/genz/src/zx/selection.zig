@@ -7,7 +7,21 @@ const Dense = std.StaticBitSet(@as(usize, std.math.maxInt(u8)) + 1);
 pub fn constantLabels(self: *Lower, selection: ir.MatchRow) Lower.Error!bool {
     const subject = selection.subject orelse return false;
 
-    if (selection.arms.len < 2) return false;
+    return labels(self, subject, selection.arms.conditions[0..selection.arms.len]);
+}
+
+pub fn literal(self: *Lower, id: ir.ExprId) Lower.Error!@import("../node.zig").ExpressionId {
+    const previous = self.cache.get(id);
+
+    if (previous != null) _ = self.cache.remove(id);
+
+    defer if (previous) |value| self.cache.put(self.allocator, id, value) catch unreachable;
+
+    return self.regular(id);
+}
+
+pub fn labels(self: *Lower, subject: ir.ExprId, conditions: []const u32) Lower.Error!bool {
+    if (conditions.len < 2) return false;
 
     const table = &self.program.expressions;
     const type_id = table.types[@backingInt(subject)];
@@ -26,9 +40,7 @@ pub fn constantLabels(self: *Lower, selection: ir.MatchRow) Lower.Error!bool {
 
     defer seen.deinit(self.allocator);
 
-    for (0..selection.arms.len) |index| {
-        const label = @backingInt(selection.arms.at(index).condition);
-
+    for (conditions) |label| {
         if (table.types[label] != type_id) return false;
 
         const payload = table.payloads[label];

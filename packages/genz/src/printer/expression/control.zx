@@ -45,6 +45,17 @@ export default function (in: Input): Output {
     }
 
     if (kind == ExpressionsKind.Block) {
+        const body: Frame = {
+            ...frame,
+            action: Action.Block,
+            id: tree.block_statements_start[row],
+            count: tree.block_statements_len[row]
+        }
+
+        if (tree.block_label[row].length == 0) {
+            return [body]
+        }
+
         return [{
             ...frame,
             action: Action.Identifier,
@@ -52,12 +63,7 @@ export default function (in: Input): Output {
         }, {
             ...frame,
             token: Token.Colon
-        }, {
-            ...frame,
-            action: Action.Block,
-            id: tree.block_statements_start[row],
-            count: tree.block_statements_len[row]
-        }]
+        }, body]
     }
 
     if (kind == ExpressionsKind.Selection) {

@@ -46,7 +46,7 @@ fn lowerMode(self: *Lower, selection: ir.MatchRow, layout: bool) Lower.Error!nod
         while (index != 0) {
             index -= 1;
             const arm = selection.arms.at(index);
-            const label = try self.expr(arm.condition);
+            const label = try @import("selection.zig").literal(self, arm.condition);
             const value = if (layout) try values.expression(self, arm.result) else try self.expr(arm.result);
 
             arms[index] = .{ .value = label, .result = value };
