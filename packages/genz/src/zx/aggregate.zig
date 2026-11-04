@@ -108,8 +108,9 @@ fn sequenceMode(self: *Lower, value: ir.ExpressionRow, items: []const ir.ExprId,
         .list => blk: {
             const element_type = try @import("state_value/elements.zig").typeExpr(self, value.type_id);
             const array = try self.builder.expression(.{ .array = .{ .element_type = element_type, .values = expressions } });
+            const address = try self.builder.expression(.{ .address_of = array });
 
-            break :blk try self.call(try self.field(try self.builder.identifier("allocator"), "dupe"), &.{ element_type, try self.builder.expression(.{ .address_of = array }) }, true);
+            break :blk if (items.len == 0) address else try self.call(try self.field(try self.builder.identifier("allocator"), "dupe"), &.{ element_type, address }, true);
         },
         .template => try @import("templates.zig").lower(self, items, expressions),
         else => unreachable,
