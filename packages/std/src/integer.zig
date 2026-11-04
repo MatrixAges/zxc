@@ -20,6 +20,10 @@ pub fn narrow(value: u64) error{IntegerOverflow}!u32 {
     return std.math.cast(u32, value) orelse error.IntegerOverflow;
 }
 
+pub fn narrowByte(value: u64) error{IntegerOverflow}!u8 {
+    return std.math.cast(u8, value) orelse error.IntegerOverflow;
+}
+
 pub fn narrowSigned(value: i64) error{IntegerOverflow}!u32 {
     return std.math.cast(u32, value) orelse error.IntegerOverflow;
 }

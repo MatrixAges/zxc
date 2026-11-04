@@ -1,4 +1,9 @@
 const std = @import("std");
+pub const AtomicRows = @import("bytes/atomic_rows.zig");
+pub const atomicRowsCount = AtomicRows.count;
+pub const atomicRowLength = AtomicRows.rowLength;
+pub const loadAtomicCell = AtomicRows.load;
+pub const storeAtomicCell = AtomicRows.store;
 
 pub fn fromText(text: []const u8) []const u8 {
     return text;
@@ -54,4 +59,10 @@ pub fn lessThan(left: []const u8, right: []const u8) bool {
 
 pub fn hash(in: []const u8) u64 {
     return std.hash.Wyhash.hash(0, in);
+}
+
+pub fn loadAtomic(in: []const u8, index: u64) error{IndexOutOfBounds}!u8 {
+    if (index >= in.len) return error.IndexOutOfBounds;
+
+    return @atomicLoad(u8, &in[@intCast(index)], .monotonic);
 }

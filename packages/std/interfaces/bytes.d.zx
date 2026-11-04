@@ -1,3 +1,5 @@
+export type AtomicRows = opaque
+
 export declare function fromText(in: string): u8[] concurrent
 
 export declare function encodeU64Le(
@@ -24,3 +26,24 @@ export declare function equals(left: u8[], right: u8[]): bool concurrent
 export declare function lessThan(left: u8[], right: u8[]): bool concurrent
 
 export declare function hash(in: u8[]): u64 concurrent
+
+export declare function loadAtomic(in: u8[], index: u64): u8 throws {
+    IndexOutOfBounds
+} concurrent
+
+export declare function atomicRowsCount(in: AtomicRows): u64
+
+export declare function atomicRowLength(in: AtomicRows, row: u64): u64 throws {
+    IndexOutOfBounds
+}
+
+export declare function loadAtomicCell(in: AtomicRows, row: u64, index: u64): u8 throws {
+    IndexOutOfBounds
+}
+
+export declare function storeAtomicCell(
+    in: AtomicRows,
+    row: u64,
+    index: u64,
+    value: u8
+): void throws { IndexOutOfBounds }
