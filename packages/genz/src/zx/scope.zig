@@ -43,6 +43,7 @@ fn lowerMode(self: *Lower, scope: ir.ScopeRow, layout: bool) Lower.Error!node.Ex
                 if (!snapshot and !self.projected_symbols.?[@backingInt(symbol)]) continue;
                 if (@import("state_value/root.zig").selected(self, type_id)) continue;
                 if (!analysis.aggregate(self, type_id) or self.stack_symbols.contains(symbol)) continue;
+                if (try @import("value_call/locals.zig").borrowed(self, symbol, binding.value)) continue;
                 try stacked.append(self.allocator, symbol);
                 try self.stack_symbols.put(self.allocator, symbol, {});
             }
