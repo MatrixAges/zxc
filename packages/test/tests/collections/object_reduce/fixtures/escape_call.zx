@@ -1,5 +1,3 @@
-import { reduce } from "std:utils"
-
 import step from "./step"
 
 export type Child = {
@@ -23,8 +21,8 @@ export type Input = {
 export type Output = State
 
 export default function (in: Input): Output {
-    return reduce(in.steps, (state, item) => ({
+    return in.steps.reduce((state, item) => ({
         ...step(state),
         total: state.total + state.count + item
-    }), in.seed)
+    }), in.seed)[1]
 }

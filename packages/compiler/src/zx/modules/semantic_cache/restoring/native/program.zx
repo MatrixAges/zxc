@@ -1,4 +1,3 @@
-import { map } from "std:utils"
 import emptyControl from "core/control_table/empty"
 import emptyExpressions from "core/expression_table/empty"
 import { StoreMode } from "core/function_table/complete"
@@ -59,8 +58,8 @@ export default function (in: Input): Output {
         input_types: source.input_types,
         output_types: source.output_types,
         ownership: source.ownership,
-        store_modes: map(source.files, file => StoreMode.transaction),
-        contracts: map(source.files, file => contracts),
+        store_modes: source.files.map(file => StoreMode.transaction)[0],
+        contracts: source.files.map(file => contracts)[0],
         native_inputs: source.native_inputs,
         native_modules: source.native_modules,
         native_members: source.native_members,
@@ -72,11 +71,11 @@ export default function (in: Input): Output {
         native_fallible: source.native_fallible,
         native_errors: source.native_errors,
         native_concurrent: source.native_concurrent,
-        symbols: map(source.files, file => body.symbols),
-        expressions: map(source.files, file => body.expressions),
-        control: map(source.files, file => body.control),
-        roots: map(source.files, file => body.root),
-        stores: map(source.files, file => body.stores)
+        symbols: source.files.map(file => body.symbols)[0],
+        expressions: source.files.map(file => body.expressions)[0],
+        control: source.files.map(file => body.control)[0],
+        roots: source.files.map(file => body.root)[0],
+        stores: source.files.map(file => body.stores)[0]
     }
 
     const zero: u32 = 0

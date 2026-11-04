@@ -1,5 +1,3 @@
-import { map, reduce } from "std:utils"
-
 export type Input = { kind: u64
  items: i64[]
  seed: i64 }
@@ -9,29 +7,31 @@ export type Output = i64[]
 export default function (in: Input): Output {
   switch (in.kind) {
     case 0:
-      return map(in.items, x => x)
+      return in.items.map(x => x)[0]
     case 1:
-      return map(in.items, x =>
-x)
+      return in.items.map(x =>
+x)[0]
     case 2:
-      return map(in.items, (x) => x)
+      return in.items.map((x) => x)[0]
     case 3:
-      return map(in.items, (x) =>
-x)
+      return in.items.map((x) =>
+x)[0]
     case 4:
-      return map(in.items, x =>x)
+      return in.items.map(x =>
+x)[0]
     case 5:
-      return map(in.items, (x) =>x)
+      return in.items.map((x) =>
+x)[0]
     case 6:
-      return map(in.items, x =>
-x)
+      return in.items.map(x =>
+x)[0]
     case 7:
-      return map(in.items, (x) =>
-x)
+      return in.items.map((x) =>
+x)[0]
     case 8:
-      return map(in.items, a => a + 1)
+      return in.items.map(a => a + 1)[0]
     case 9:
-      return [reduce(in.items, (a, b) => a + b, in.seed)]
+      return [in.items.reduce((a, b) => a + b, in.seed)[1]]
     default:
       return []
   }

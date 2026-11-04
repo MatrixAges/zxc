@@ -1,4 +1,3 @@
-import { map } from "std:utils"
 import { max_u32 } from "core/const"
 
 import type { Request, State } from "./model"
@@ -10,7 +9,7 @@ export type Output = State
 export default function (in: Input): Output {
     return {
         request: in,
-        numbers: map(in.kinds, kind => max_u32),
+        numbers: in.kinds.map(kind => max_u32)[0],
         type_ids: [],
         nodes: [],
         cursors: [],

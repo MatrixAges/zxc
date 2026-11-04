@@ -1,9 +1,7 @@
-import { map } from "std:utils"
-
 export type Input = i64[]
 
 export type Output = i64[]
 
 export default function (in: Input): Output {
-    return map(in, item => item * 2)
+    return in.map(item => item * 2)[0]
 }

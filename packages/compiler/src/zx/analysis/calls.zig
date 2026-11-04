@@ -6,6 +6,13 @@ const Analyzer = @import("analyzer.zig");
 const Types = @import("types.zig");
 
 pub fn analyze(self: *Analyzer, expression: anytype, expected: ?ir.TypeId) zx.Error!ir.ExprId {
+    var projected = false;
+
+    return analyzeProjected(self, expression, expected, null, &projected);
+}
+
+pub fn analyzeProjected(self: *Analyzer, expression: anytype, expected: ?ir.TypeId, projection: ?u64, projected: *bool) zx.Error!ir.ExprId {
+    const call_expected = if (projection == null) expected else null;
     const call = syntax.value(expression).call;
     const callee = syntax.value(call.callee);
 
@@ -26,16 +33,16 @@ pub fn analyze(self: *Analyzer, expression: anytype, expected: ?ir.TypeId) zx.Er
         }
 
         if (self.self_function) |function| {
-            if (std.mem.eql(u8, function.name, name.text)) return importedCall(self, expression, function, expected);
+            if (std.mem.eql(u8, function.name, name.text)) return importedCall(self, expression, function, call_expected);
         }
 
         for (self.function_imports) |function| {
             if (function.namespace != null or !std.mem.eql(u8, function.name, name.text)) continue;
 
-            return importedCall(self, expression, function, expected);
+            return importedCall(self, expression, function, call_expected);
         }
 
-        if (std.mem.eql(u8, name.text, "loop")) return @import("iteration/root.zig").analyze(self, expression, expected);
+        if (std.mem.eql(u8, name.text, "loop")) return @import("iteration/root.zig").analyze(self, expression, call_expected);
         if (std.mem.eql(u8, name.text, "parallel")) return @import("tasks.zig").parallel(self, expression);
 
         return self.reporter.fail(.name, name.span, "unknown imported function");
@@ -70,7 +77,7 @@ pub fn analyze(self: *Analyzer, expression: anytype, expected: ?ir.TypeId) zx.Er
 
                 known_namespace = true;
 
-                if (std.mem.eql(u8, function.name, field.name.text)) return importedCall(self, expression, function, expected);
+                if (std.mem.eql(u8, function.name, field.name.text)) return importedCall(self, expression, function, call_expected);
             }
 
             if (known_namespace) return self.reporter.fail(.name, field.name.span, "unknown module member");
@@ -81,7 +88,6 @@ pub fn analyze(self: *Analyzer, expression: anytype, expected: ?ir.TypeId) zx.Er
     const target_type = self.node(target).type_id;
     const name = field.name.text;
 
-    if (std.mem.eql(u8, name, "map") or std.mem.eql(u8, name, "reduce")) return self.reporter.fail(.unsupported, field.name.span, "map and reduce are utils functions; import them explicitly or use loop");
     if (std.mem.eql(u8, name, "clone")) return self.reporter.fail(.unsupported, expression.span, "deep copying is not supported; move an owned value or borrow it read-only");
 
     if (self.types.get(target_type) != .list) {
@@ -92,7 +98,11 @@ pub fn analyze(self: *Analyzer, expression: anytype, expected: ?ir.TypeId) zx.Er
 
     const kind = std.meta.stringToEnum(@FieldType(ir.Transform, "kind"), name);
 
-    if (kind) |transform_kind| return @import("transforms.zig").analyze(self, expression, target, transform_kind, expected);
+    if (kind) |transform_kind| {
+        projected.* = projection != null and projection.? < 2 and (transform_kind == .map or transform_kind == .filter or transform_kind == .reduce);
+
+        return @import("transforms.zig").analyzeProjected(self, expression, target, transform_kind, expected, if (projected.*) projection else null);
+    }
 
     return @import("list_operations.zig").analyze(self, expression, target);
 }

@@ -11,7 +11,7 @@ fn expectInvalid(program: zx.ir.Program) !void {
 }
 
 test "ir: rejects a callback capture supplied by a foreign frontend" {
-    var parsed = try helpers.parseValid("import { map } from \"std:utils\"\n\nexport type Input = u64[]\n export type Output = u64[]\n export default function (in: Input): Output { const offset = 1\n return map(in, (item) => item + 1) }");
+    var parsed = try helpers.parseValid("export type Input = u64[]\n export type Output = u64[]\n export default function (in: Input): Output { const offset = 1\n return in.map((item) => item + 1)[0] }");
 
     defer parsed.deinit();
 

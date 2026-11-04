@@ -1,5 +1,4 @@
 import integers from "std:integer"
-import { map } from "std:utils"
 import { max_u32 } from "core/const"
 
 import type { ExpressionKind } from "core/expression_table/kinds"
@@ -14,10 +13,10 @@ export type Input = {
 export type Output = Nodes
 
 export default function (in: Input): Output {
-    const time: u32[] = map(in.kinds, kind => max_u32)
-    const finish: u32[] = map(in.kinds, kind => max_u32)
-    const region: u32[] = map(in.kinds, kind => 0)
-    const repeated: u32[] = map(in.kinds, kind => max_u32)
+    const time: u32[] = in.kinds.map(kind => max_u32)[0]
+    const finish: u32[] = in.kinds.map(kind => max_u32)[0]
+    const region: u32[] = in.kinds.map(kind => 0)[0]
+    const repeated: u32[] = in.kinds.map(kind => max_u32)[0]
 
     const result = loop({
         values: in.values,

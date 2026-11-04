@@ -1,5 +1,4 @@
 import integers from "std:integer"
-import { map } from "std:utils"
 import { max_u32 } from "core/const"
 import { ExpressionKind } from "core/expression_table/kinds"
 
@@ -23,8 +22,8 @@ export type Output = {
 export default function (in: Input): Output {
     const result = loop({
         input: in.omit(["origins"]),
-        states: map(in.graph.seen, seen => false),
-        values: map(in.graph.seen, seen => false),
+        states: in.graph.seen.map(seen => false)[0],
+        values: in.graph.seen.map(seen => false)[0],
         origins: in.origins,
         preserved: true,
         index: 0

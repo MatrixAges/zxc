@@ -22,7 +22,7 @@ writeOutput(
 export type Output = { removed: i64[], rest: i64[], popped?: i64 }
 
 export default function (in: Input): Output {
-  const owned = map(in.items, item => item)
+  const owned = in.items.map(item => item)[0]
 
   const [trimmed, removed] = owned.splice(0, in.count, [])
   const [rest, popped] = trimmed.pop()

@@ -1,5 +1,4 @@
 import integers from "std:integer"
-import { map } from "std:utils"
 import { max_u32 } from "core/const"
 import { ExpressionKind } from "core/expression_table/kinds"
 
@@ -7,8 +6,8 @@ import type { Input, Bindings as Output } from "./model"
 
 export default function (in: Input): Output {
     const constants = loop({
-        values: map(in.names, name => max_u32),
-        repeated: map(in.names, name => false),
+        values: in.names.map(name => max_u32)[0],
+        repeated: in.names.map(name => false)[0],
         index: 0
     }, {
         while: (state, control) => state.index < control.constant_symbols.length,

@@ -1,5 +1,4 @@
 import integers from "std:integer"
-import { map } from "std:utils"
 
 import depth from "./depth"
 
@@ -10,7 +9,7 @@ export type Input = Functions
 export type Output = Depths
 
 export default function (in: Input): Output {
-    const values: u32[] = map(in.native_modules, module => 0)
+    const values: u32[] = in.native_modules.map(module => 0)[0]
 
     const result = loop({
         functions: in,

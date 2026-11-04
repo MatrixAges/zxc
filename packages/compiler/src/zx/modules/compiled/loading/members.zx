@@ -1,5 +1,4 @@
 import integers from "std:integer"
-import { map } from "std:utils"
 
 import ids from "./remap/ids"
 
@@ -19,20 +18,17 @@ export default function (in: Input): Output {
     return {
         ...in.source,
         ids:
-            map(
-                in.source.ids,
+            in.source.ids.map(
                 value => value == null ? null :
                     integers.narrow(first + integers.widen(value))
-            ),
-        input_types: map(
-            in.source.input_types,
+            )[0],
+        input_types: in.source.input_types.map(
             value =>
                 value == null ? null : in.mapping[integers.widen(value)]
-        ),
-        output_types: map(
-            in.source.output_types,
+        )[0],
+        output_types: in.source.output_types.map(
             value =>
                 value == null ? null : in.mapping[integers.widen(value)]
-        )
+        )[0]
     }
 }

@@ -55,10 +55,10 @@ export type Output = { value: i64, visits: { previous: i64, current: i64, index:
 export default function (in: Input): Output {
     const initial: Output = { value: in.seed, visits: [] }
 
-    return reduce(in.items, (state, item, index, source) => ({
+    return in.items.reduce((state, item, index, source) => ({
         value: item,
         visits: state.visits.push({ previous: state.value, current: item, index, source_value: source[index], source_length: source.length })[0]
-    }), initial)
+    }), initial)[1]
 }
 `)
 )

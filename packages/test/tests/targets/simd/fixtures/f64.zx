@@ -1,5 +1,3 @@
-import { map } from "std:utils"
-
 export type Input = f64[]
 
 export type Output = {
@@ -18,16 +16,16 @@ export type Output = {
 
 export default function (in: Input): Output {
     return {
-        identity: map(in, value => value),
-        negative: map(in, value => -value),
-        broadcast: map(in, value => 1.5),
-        add: map(in, value => value + 1.5),
-        subtract: map(in, value => 1.5 - value),
-        multiply: map(in, value => value * value),
-        divide: map(in, value => value / 2.0),
-        chain: map(in, value => value * value + value),
-        grouped: map(in, value => (value + 1.5) * (value - 1.5)),
-        cancellation: map(in, value => (value + 16777216.0) - 16777216.0),
-        conditional: map(in, value => value < 0.0 ? -value : value)
+        identity: in.map(value => value)[0],
+        negative: in.map(value => -value)[0],
+        broadcast: in.map(value => 1.5)[0],
+        add: in.map(value => value + 1.5)[0],
+        subtract: in.map(value => 1.5 - value)[0],
+        multiply: in.map(value => value * value)[0],
+        divide: in.map(value => value / 2.0)[0],
+        chain: in.map(value => value * value + value)[0],
+        grouped: in.map(value => (value + 1.5) * (value - 1.5))[0],
+        cancellation: in.map(value => (value + 16777216.0) - 16777216.0)[0],
+        conditional: in.map(value => value < 0.0 ? -value : value)[0]
     }
 }

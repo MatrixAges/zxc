@@ -1,5 +1,3 @@
-import { reduce } from "std:utils"
-
 import step from "./step"
 
 import type { Utf8State } from "./model"
@@ -16,10 +14,10 @@ export default function (in: Input): Output {
         high: 191
     }
 
-    const state = reduce(in, (state, byte) => step({
+    const state = in.reduce((state, byte) => step({
         byte,
         state
-    }), initial)
+    }), initial)[1]
 
     return state.valid && state.remaining == 0
 }

@@ -1,5 +1,4 @@
 import integers from "std:integer"
-import { map } from "std:utils"
 
 import ids from "./ids"
 
@@ -21,13 +20,12 @@ export default function (in: Input): Output {
             mapping: in.mapping
         }),
         call_functions:
-            map(
-                in.source.call_functions,
+            in.source.call_functions.map(
                 value => integers.narrow(
                     in.first + integers.widen(
                         value
                     )
                 )
-            )
+            )[0]
     }
 }

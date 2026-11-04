@@ -1,5 +1,4 @@
 import integers from "std:integer"
-import { map } from "std:utils"
 import emptyControl from "core/control_table/empty"
 import emptyExpressions from "core/expression_table/empty"
 
@@ -94,7 +93,7 @@ export default function (in: Input): Output {
         depth: 0,
         failed: false,
         mappings,
-        ids: map(unit.expressions.kinds, kind => 0),
+        ids: unit.expressions.kinds.map(kind => 0)[0],
         frames: scheduled,
         stack,
         pool

@@ -67,6 +67,10 @@ Program/Function.output_ownership 描述 copy、owned 或 borrowed 返回。普�
 
 list_operation 统一产生 `[新列表, 业务值]`。push、sort、reverse、concat 的业务值为 void；pop 为 T?；splice 为被删除列表。destructure 必须覆盖全部槽，void 槽必须丢弃。
 
+源码数组回调方法也使用显式二元结果：map/filter 返回 `[结果数组, void]`，reduce 返回
+`[原数组, 累计值]`。every/some 是只读判断，仍返回 bool。调用者显式解构或索引元组，
+不隐式提取结果。map/reduce 不从 std:utils 导出；方法名与参数顺序复用 TypeScript。
+
 concat/splice 的结果缓冲区可以容纳标量或引用槽；聚合借用参数使结果保守地保持借用状态。普通参数只读求值，接收者也可以作为其它参数再次使用；Task 的线性校验不适用于普通列表。当前后端完整的聚合引用表示还在迁移，不能把已有值布局当作最终 ABI。
 
 源码集合回调在分析阶段展开为普通 iteration、scope、索引与列表操作。map/filter/every/some 参数为元素、u64 索引和源数组；reduce 依次为累加值、元素、索引和源数组，参数可省略后缀。reduce 无初值时从首项初始化，空源产生 IndexOutOfBounds。外围源表达式和显式实参各求值一次；词法捕获通过 SymbolId 解析并作为循环状态传入，引用投影以 borrow scope binding 绑定。循环本体依然是封闭作用域，不允许直接引用外层符号；任务句柄和 Store 权限限制继续生效。

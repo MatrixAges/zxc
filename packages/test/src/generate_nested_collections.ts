@@ -11,16 +11,16 @@ const inputs: Array<{ name: string; input: Array<Array<number>> }> = [
     { name: 'varied_rows', input: [[2], [3, 4]] }
 ]
 const shapes = [
-    { name: 'nested_map', output: 'i64[][]', expression: 'map(in, row => map(row, item => item + 1))' },
+    { name: 'nested_map', output: 'i64[][]', expression: 'in.map(row => row.map(item => item + 1)[0])[0]' },
     {
         name: 'nested_initial',
         output: 'i64[]',
-        expression: 'map(in, row => reduce(row, (sum, item) => sum + item, row[0]))'
+        expression: 'in.map(row => row.reduce((sum, item) => sum + item, row[0])[1])[0]'
     },
     {
         name: 'restored_row',
         output: 'i64[]',
-        expression: 'map(in, row => reduce(row, (sum, item) => sum + item, 0) + row[0])'
+        expression: 'in.map(row => row.reduce((sum, item) => sum + item, 0)[1] + row[0])[0]'
     }
 ]
 

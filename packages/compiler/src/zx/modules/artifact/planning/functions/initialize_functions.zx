@@ -1,5 +1,4 @@
 import integers from "std:integer"
-import { map } from "std:utils"
 
 import type { FunctionPlan } from "./model"
 
@@ -10,8 +9,8 @@ export type Input = {
 export type Output = FunctionPlan
 
 export default function (in: Input): Output {
-    const mapping: u64[] = map(in.inputs, value => 0)
-    const order: u32[] = map(in.inputs, value => integers.narrow(0))
+    const mapping: u64[] = in.inputs.map(value => 0)[0]
+    const order: u32[] = in.inputs.map(value => integers.narrow(0))[0]
 
     return {
         mapping,

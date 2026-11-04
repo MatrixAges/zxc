@@ -12,7 +12,7 @@ writeOutput(
 export type Output = string
 
 export default function (in: Input): Output {
-    return reduce(in, (previous, current) => current)
+    return in.reduce((previous, current) => current)[1]
 }
 `)
 )

@@ -6,7 +6,7 @@ const Types = @import("../types.zig");
 const Builder = @import("builder.zig");
 const Callback = @import("callback.zig").Result;
 
-pub const Options = struct { span: zx.Span, kind: @FieldType(ir.Transform, "kind"), target: ir.ExprId, initial: ?ir.ExprId, ignored: ?ir.ExprId, callback: Callback, result_type: ir.TypeId };
+pub const Options = struct { tuple_result: bool = false, projection: ?u64 = null, span: zx.Span, kind: @FieldType(ir.Transform, "kind"), target: ir.ExprId, initial: ?ir.ExprId, ignored: ?ir.ExprId, callback: Callback, result_type: ir.TypeId };
 
 pub fn lower(analyzer: *Analyzer, options: Options) zx.Error!ir.ExprId {
     const builder = Builder{ .analyzer = analyzer, .span = options.span };
@@ -65,9 +65,23 @@ pub fn lower(analyzer: *Analyzer, options: Options) zx.Error!ir.ExprId {
 
     try bindings.append(analyzer.allocator, .{ .symbol = result_symbol, .value = iteration });
 
-    return builder.expression(options.result_type, .{ .scope = .{
+    var result = try builder.field(try builder.reference(result_symbol), "result");
+
+    if (options.tuple_result) {
+        if (options.projection) |slot| {
+            if (options.kind == .reduce) {
+                if (slot == 0) result = source;
+            } else if (slot == 1) result = try builder.expression(Types.scalarId(.void), .unit);
+        } else if (options.kind == .reduce) {
+            result = try builder.tuple(&.{ source, result });
+        } else {
+            result = try builder.tuple(&.{ result, try builder.expression(Types.scalarId(.void), .unit) });
+        }
+    }
+
+    return builder.expression(analyzer.node(result).type_id, .{ .scope = .{
         .bindings = try bindings.toOwnedSlice(analyzer.allocator),
-        .result = try builder.field(try builder.reference(result_symbol), "result"),
+        .result = result,
     } });
 }
 

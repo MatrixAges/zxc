@@ -1,5 +1,4 @@
 import integers from "std:integer"
-import { map } from "std:utils"
 import { max_u32 } from "core/const"
 import { TransformKind } from "core/expression_table/kinds"
 
@@ -18,7 +17,7 @@ export default function (in: Input): Output {
         source: in.source,
         returns: in.returns,
         ...in.state.graph,
-        seen: map(in.source.expressions.kinds, kind => false),
+        seen: in.source.expressions.kinds.map(kind => false)[0],
         completed,
         stack: in.state.stack,
         clock: in.state.clock,

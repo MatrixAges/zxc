@@ -1,5 +1,4 @@
 import integers from "std:integer"
-import { map } from "std:utils"
 
 import type { Complete } from "core/function_table/complete"
 import type { Table } from "core/type_table/model"
@@ -26,12 +25,10 @@ export default function (in: Input): Output {
             functions: in.functions,
             export_names: in.request.export_names,
             export_types:
-                map(in.request.export_types,
-                    id => in.mapping[integers.widen(
-                        id
-                    )]
-                ),
-            member_names: map(in.request.imports, binding => binding.name)
+                in.request.export_types.map(id => in.mapping[integers.widen(
+                    id
+                )])[0],
+            member_names: in.request.imports.map(binding => binding.name)[0]
         }
     }
 }

@@ -1,4 +1,3 @@
-import { reduce } from "std:utils"
 import host from "zig:host"
 
 export type Input = {
@@ -9,11 +8,11 @@ export type Input = {
 export type Output = string
 
 export default function (in: Input): Output {
-    return reduce(host.source(in.items), (previous, current, index, source) =>
+    return host.source(in.items).reduce((previous, current, index, source) =>
         host.visit({
             previous,
             current,
             index,
             source
-        }))
+        }))[1]
 }

@@ -6,7 +6,9 @@ import { Ownership } from "core/symbol_table/model"
 import field from "../../expressions/projections/field"
 import reference from "../building/reference"
 import symbol from "../building/symbol"
+import resultValue from "./result"
 
+import type { TransformKind } from "core/expression_table/kinds"
 import type { Span } from "../../../../frontend/lexer/token_model"
 import type { Result } from "../../expressions/model"
 import type { Prepared } from "../../model"
@@ -14,6 +16,11 @@ import type { Bindings } from "../model"
 
 export type Input = {
     state: Prepared,
+    tuple?: {
+        kind: TransformKind,
+        projection?: u64,
+        source: u32
+    },
     initial: u32,
     condition_parameter: u32,
     parameter: u32,
@@ -81,14 +88,32 @@ export default function (in: Input): Output {
         span: in.span
     })
 
+    const selected = resultValue({
+        state: {
+            ...current.state,
+            local: {
+                ...current.state.local,
+                expressions: value.expressions
+            },
+            diagnostic: value.diagnostic
+        },
+        tuple: in.tuple,
+        value: value.value,
+        span: in.span
+    })
+
     const result = scope({
-        table: value.expressions,
+        table: selected.state.local.expressions,
         metadata: {
-            type_id: in.result_type,
+            type_id:
+                selected.state.local.expressions
+                .types[integers.widen(
+                    selected.value
+                )],
             span_start: in.span.start,
             span_end: in.span.end
         },
-        result: value.value,
+        result: selected.value,
         symbols: in.bindings.symbols.push(result_symbol.symbol)[0],
         values: in.bindings.values.push(iterated.id)[0],
         borrows: in.bindings.borrows.push(false)[0]
@@ -96,12 +121,11 @@ export default function (in: Input): Output {
 
     return {
         state: {
-            ...current.state,
+            ...selected.state,
             local: {
-                ...current.state.local,
+                ...selected.state.local,
                 expressions: result.table
-            },
-            diagnostic: value.diagnostic
+            }
         },
         value: result.id
     }

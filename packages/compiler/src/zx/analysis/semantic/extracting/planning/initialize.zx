@@ -1,5 +1,4 @@
 import integers from "std:integer"
-import { map } from "std:utils"
 
 import { Status } from "./model"
 
@@ -13,9 +12,9 @@ export type Input = {
 export type Output = State
 
 export default function (in: Input): Output {
-    const mapping: u64[] = map(in.kinds, item => 0)
-    const order: u32[] = map(in.kinds, item => integers.narrow(0))
-    const origins: u64[] = map(in.kinds, item => 0)
+    const mapping: u64[] = in.kinds.map(item => 0)[0]
+    const order: u32[] = in.kinds.map(item => integers.narrow(0))[0]
+    const origins: u64[] = in.kinds.map(item => 0)[0]
 
     const initialized = loop({
         mapping,

@@ -5,9 +5,7 @@ import arity from "../../utilities/arity"
 import boolean from "../../utilities/building/boolean"
 import {
     type_code,
-    arity_message,
-    binary_arity,
-    ternary_arity
+    arity_message
 } from "../../utilities/const"
 import invalid from "../imported/invalid"
 import next from "../imported/next"
@@ -34,9 +32,7 @@ export default function (in: Input): Output {
         })
     }
 
-    const valid = operation == Operation.Reduce ?
-        node.count == binary_arity || node.count == ternary_arity :
-        node.count == arity(operation)
+    const valid = node.count == arity(operation)
 
     if (!valid) {
         return {
@@ -80,8 +76,7 @@ export default function (in: Input): Output {
         node: work.node,
         import_index: in.index,
         tuple: false,
-        arguments: operation == Operation.Pick || operation == Operation.Omit ||
-            operation == Operation.Map || operation == Operation.Reduce ?
+        arguments: operation == Operation.Pick || operation == Operation.Omit ?
             [arguments[0]] : arguments,
         index: 0,
         values: []
@@ -91,13 +86,7 @@ export default function (in: Input): Output {
         ...work,
         frames: {
             ...work.frames,
-            imported: work.frames.imported.push(frame)[0],
-            methods: operation == Operation.Map || operation == Operation.Reduce ?
-                work.frames.methods.push({
-                    node: work.node,
-                    expected: work.expected,
-                    target: 0
-                })[0] : work.frames.methods
+            imported: work.frames.imported.push(frame)[0]
         }
     })
 }

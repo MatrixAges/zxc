@@ -18,18 +18,18 @@ pub fn run(case: Case) !void {
 }
 
 pub fn allocated(allocator: std.mem.Allocator, case: Case) !void {
-    const source = try std.fmt.allocPrint(allocator, "import {{ map, reduce }} from \"std:utils\"\n\nimport consume from \"./consume\"\n\nexport type Input = {s}\n\nexport type Output = {s}\n\nexport default function (in: {s}Input): Output {{\n{s}\n}}\n", .{ case.input, case.output, if (case.legacy_input) "owned " else "", case.body });
+    const source = try std.fmt.allocPrint(allocator, "import consume from \"./consume\"\n\nexport type Input = {s}\n\nexport type Output = {s}\n\nexport default function (in: {s}Input): Output {{\n{s}\n}}\n", .{ case.input, case.output, if (case.legacy_input) "owned " else "", case.body });
 
     defer allocator.free(source);
 
-    const helper = try std.fmt.allocPrint(allocator, "import {{ map, reduce }} from \"std:utils\"\n\n{s}export type Input = {s}\n\nexport type Output = {s}\n\nexport default function (in: Input): Output {{\n{s}\n}}\n", .{ if (case.helper_borrows) "import view from \"./view\"\n" else "", case.helper_input, case.helper_output, case.helper_body });
+    const helper = try std.fmt.allocPrint(allocator, "{s}export type Input = {s}\n\nexport type Output = {s}\n\nexport default function (in: Input): Output {{\n{s}\n}}\n", .{ if (case.helper_borrows) "import view from \"./view\"\n" else "", case.helper_input, case.helper_output, case.helper_body });
 
     defer allocator.free(helper);
 
     const sources = [_]compiler.project.Source{
         .{ .path = "main.zx", .source = source },
         .{ .path = "consume.zx", .source = helper },
-        .{ .path = "view.zx", .source = "import { map, reduce } from \"std:utils\"\n\nexport type Input = u64[]\nexport type Output = u64[]\nexport default function (in: Input): Output { return in }\n" },
+        .{ .path = "view.zx", .source = "export type Input = u64[]\nexport type Output = u64[]\nexport default function (in: Input): Output { return in }\n" },
     };
 
     var result = try compiler.project.analyze(allocator, sources[0..if (case.helper_borrows) 3 else 2], .{ .entry = "main.zx", .root_dir = "/project" });

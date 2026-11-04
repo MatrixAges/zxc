@@ -37,10 +37,12 @@ function expectedValue(name: Sample['name'], item: number): number {
 }
 
 for (const sample of samples) {
-    const mapped = `map(in.items, ${sample.parameter} => ${sample.expression})`
+    const mapped = `in.items.map(${sample.parameter} => ${sample.expression})[0]`
     const body =
         sample.name === 'object_key'
-            ? `    const cells = ${mapped}\n\n    return map(cells, cell => cell.key)`
+            ? `    const cells = ${mapped}
+
+    return cells.map(cell => cell.key)[0]`
             : `    return ${mapped}`
 
     writeOutput(

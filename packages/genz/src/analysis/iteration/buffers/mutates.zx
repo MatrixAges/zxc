@@ -1,5 +1,4 @@
 import integers from "std:integer"
-import { map } from "std:utils"
 import child from "core/expression_table/child"
 
 import mutation from "./mutation"
@@ -19,7 +18,7 @@ export default function (in: Input): Output {
     return loop({
         source: in,
         pending: in.roots,
-        seen: map(in.expressions.kinds, kind => false),
+        seen: in.expressions.kinds.map(kind => false)[0],
         found: false
     }, {
         while: current => !current.found && current.pending.length != 0,

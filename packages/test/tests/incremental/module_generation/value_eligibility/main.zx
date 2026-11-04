@@ -1,5 +1,3 @@
-import { reduce } from "std:utils"
-
 import step from "./step"
 
 export type State = {
@@ -14,8 +12,8 @@ export type Input = {
 export type Output = State
 
 export default function (in: Input): Output {
-    return reduce(in.items, (state, item) => step({
+    return in.items.reduce((state, item) => step({
         state,
         item
-    }), in.seed)
+    }), in.seed)[1]
 }

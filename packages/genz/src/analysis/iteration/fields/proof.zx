@@ -1,4 +1,3 @@
-import { map } from "std:utils"
 import { max_u32 } from "core/const"
 
 import field from "./field"
@@ -21,7 +20,7 @@ export default function (in: Input): Output {
         graph: in.graph,
         bindings: in.bindings,
         mutable: empty,
-        origins: map(in.input.expressions.kinds, kind => max_u32),
+        origins: in.input.expressions.kinds.map(kind => max_u32)[0],
         index: 0
     }, {
         while: current => current.index < current.input.field_count,

@@ -1,5 +1,4 @@
 import integers from "std:integer"
-import { map } from "std:utils"
 import { type_id_string } from "core/const"
 import kind from "core/type_table/kind"
 import { Kind } from "core/type_table/model"
@@ -13,8 +12,8 @@ export type Input = Types
 export type Output = Facts
 
 export default function (in: Input): Output {
-    const counts: u32[] = map(in.kinds, code => 0)
-    const texts: bool[] = map(in.kinds, code => false)
+    const counts: u32[] = in.kinds.map(code => 0)[0]
+    const texts: bool[] = in.kinds.map(code => false)[0]
 
     const result = loop({
         types: in,

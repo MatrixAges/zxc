@@ -3,7 +3,7 @@ const check = @import("check.zig");
 const feedback = @import("feedback.zig");
 const h = @import("ownership_case");
 const initial = "    const fresh: u64[] = []\n\n    const initial = {fresh: fresh, view: in}\n\n";
-const reduce = "    const result = reduce(in, (state, item) => {fresh: state.fresh.push(item)[0], view: state.view}, initial)\n\n";
+const reduce = "    const result = in.reduce((state, item) => {fresh: state.fresh.push(item)[0], view: state.view}, initial)[1]\n\n";
 
 test "feedback reaches borrowed provenance through multiple field transfers" {
     for ([_]usize{ 2, 5, 17 }) |fields| {

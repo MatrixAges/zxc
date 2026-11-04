@@ -71,7 +71,7 @@ function programs(): Record<string, string> {
     const reduce = wrap({
         fields: 'items: string[], seed: string,',
         output: 'string',
-        body: '  return reduce(in.items, (sum, item) => `${sum}${item}`, in.seed)\n'
+        body: '  return in.items.reduce((sum, item) => `${sum}${item}`, in.seed)[1]\n'
     })
     const branches = literals
         .map(

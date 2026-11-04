@@ -1,0 +1,92 @@
+import { type_id_void } from "core/const"
+import empty from "core/expression_table/append/empty"
+import { TransformKind } from "core/expression_table/kinds"
+
+import tuple from "../building/tuple"
+
+import type { Span } from "../../../../frontend/lexer/token_model"
+import type { Result } from "../../expressions/model"
+import type { Prepared } from "../../model"
+
+export type Input = {
+    state: Prepared,
+    tuple?: {
+        kind: TransformKind,
+        projection?: u64,
+        source: u32
+    },
+    value: u32,
+    span: Span
+}
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const selected = in.tuple
+
+    if (selected == null) {
+        return in.pick([
+            "state",
+            "value"
+        ])
+    }
+
+    if (selected.kind == TransformKind.Reduce) {
+        if (selected.projection != null) {
+            return {
+                state: in.state,
+                value: selected.projection == 0 ? selected.source : in.value
+            }
+        }
+
+        return tuple({
+            state: in.state,
+            values: [
+                selected.source,
+                in.value
+            ],
+            span: in.span
+        })
+    }
+
+    if (selected.projection == 0) {
+        return in.pick([
+            "state",
+            "value"
+        ])
+    }
+
+    const unit = empty({
+        table: in.state.local.expressions,
+        metadata: {
+            type_id: type_id_void,
+            span_start: in.span.start,
+            span_end: in.span.end
+        },
+        optional: false
+    })
+
+    const state = {
+        ...in.state,
+        local: {
+            ...in.state.local,
+            expressions: unit.table
+        }
+    }
+
+    if (selected.projection != null) {
+        return {
+            state,
+            value: unit.id
+        }
+    }
+
+    return tuple({
+        state,
+        values: [
+            in.value,
+            unit.id
+        ],
+        span: in.span
+    })
+}

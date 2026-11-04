@@ -1,5 +1,3 @@
-import { map, reduce } from "std:utils"
-
 export type Input = {
     first: u64[],
     second: u64[],
@@ -15,8 +13,8 @@ export type State = {
 export type Output = State
 
 export default function (in: Input): Output {
-    const primary = map(in.first, (item) => item)
-    const secondary = map(in.second, (item) => item)
+    const primary = in.first.map((item) => item)[0]
+    const secondary = in.second.map((item) => item)[0]
 
     const initial: State = {
         primary,
@@ -24,9 +22,12 @@ export default function (in: Input): Output {
         total: 7
     }
 
-    return reduce(in.steps, (state, item) => ({
+    return in.steps.reduce((state, item) => ({
         total: state.total + state.primary.length + state.secondary.length,
-        secondary: state.secondary.concat([item, item + 10])[0],
+        secondary: state.secondary.concat([
+            item,
+            item + 10
+        ])[0],
         primary: state.primary.push(item)[0]
-    }), initial)
+    }), initial)[1]
 }

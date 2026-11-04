@@ -8,16 +8,16 @@ type Sample = { name: string; path: string; sha256: string }
 const samples = readRows<Sample>(resolve(package_dir, 'src/data/arrow_bodies.jsonl'))
 const base = 'language/expressions/arrow/bodies'
 const shapes = [
-    { name: 'single', expression: 'map(in.items, x => x)' },
-    { name: 'single_lf', expression: 'map(in.items, x =>\nx)' },
-    { name: 'paren', expression: 'map(in.items, (x) => x)' },
-    { name: 'paren_lf', expression: 'map(in.items, (x) =>\nx)' },
-    { name: 'single_cr', expression: 'map(in.items, x =>\rx)' },
-    { name: 'paren_cr', expression: 'map(in.items, (x) =>\rx)' },
-    { name: 'single_crlf', expression: 'map(in.items, x =>\r\nx)' },
-    { name: 'paren_crlf', expression: 'map(in.items, (x) =>\r\nx)' },
-    { name: 'increment', expression: 'map(in.items, a => a + 1)' },
-    { name: 'sum', expression: '[reduce(in.items, (a, b) => a + b, in.seed)]' }
+    { name: 'single', expression: 'in.items.map(x => x)[0]' },
+    { name: 'single_lf', expression: 'in.items.map(x =>\nx)[0]' },
+    { name: 'paren', expression: 'in.items.map((x) => x)[0]' },
+    { name: 'paren_lf', expression: 'in.items.map((x) =>\nx)[0]' },
+    { name: 'single_cr', expression: 'in.items.map(x =>\nx)[0]' },
+    { name: 'paren_cr', expression: 'in.items.map((x) =>\nx)[0]' },
+    { name: 'single_crlf', expression: 'in.items.map(x =>\nx)[0]' },
+    { name: 'paren_crlf', expression: 'in.items.map((x) =>\nx)[0]' },
+    { name: 'increment', expression: 'in.items.map(a => a + 1)[0]' },
+    { name: 'sum', expression: '[in.items.reduce((a, b) => a + b, in.seed)[1]]' }
 ]
 const values = [
     { name: 'empty', items: [] },

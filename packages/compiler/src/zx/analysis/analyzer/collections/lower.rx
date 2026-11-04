@@ -67,6 +67,11 @@
                 fn="lowering/finish"
                 in={{
                     state: $ctx.step.state,
+                    tuple: $in.tuple_result ? {
+                        kind: $in.kind,
+                        projection: $in.projection,
+                        source: $ctx.source.source
+                    } : null,
                     initial: $ctx.initial_state.value,
                     condition_parameter: $ctx.parameters.condition_parameter,
                     parameter: $ctx.parameters.parameter,

@@ -14,11 +14,11 @@ pub fn run(case: Case) !void {
 }
 
 pub fn allocated(allocator: std.mem.Allocator, case: Case) !void {
-    const writer = try std.fmt.allocPrint(allocator, "import {{ map, reduce }} from \"std:utils\"\n\n{s}{s}export type Output = void\n\nexport default function (in: Input, {{ store }}): Output {{\n  store.jobs.snapshot = {s}\n\n  return\n}}\n", .{ if (case.helper) "import make from \"./make\"\n\n" else "", types, if (case.helper) "make(in)" else case.value });
+    const writer = try std.fmt.allocPrint(allocator, "{s}{s}export type Output = void\n\nexport default function (in: Input, {{ store }}): Output {{\n  store.jobs.snapshot = {s}\n\n  return\n}}\n", .{ if (case.helper) "import make from \"./make\"\n\n" else "", types, if (case.helper) "make(in)" else case.value });
 
     defer allocator.free(writer);
 
-    const helper = try std.fmt.allocPrint(allocator, "import {{ map, reduce }} from \"std:utils\"\n\n{s}export type Output = State\n\nexport default function (in: Input): Output {{\n  return {s}\n}}\n", .{ types, case.value });
+    const helper = try std.fmt.allocPrint(allocator, "{s}export type Output = State\n\nexport default function (in: Input): Output {{\n  return {s}\n}}\n", .{ types, case.value });
 
     defer allocator.free(helper);
 

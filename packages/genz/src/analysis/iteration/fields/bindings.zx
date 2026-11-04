@@ -1,5 +1,4 @@
 import integers from "std:integer"
-import { map } from "std:utils"
 import { max_u32 } from "core/const"
 
 import type { Input } from "./model"
@@ -10,7 +9,7 @@ export default function (in: Input): Output {
     return loop({
         symbols: in.expressions.scope_symbols,
         values: in.expressions.scope_values,
-        bindings: map(in.symbol_types, id => max_u32),
+        bindings: in.symbol_types.map(id => max_u32)[0],
         index: 0
     }, {
         while: current => current.index < current.symbols.length,

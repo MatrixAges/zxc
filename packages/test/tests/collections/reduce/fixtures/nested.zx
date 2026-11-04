@@ -1,5 +1,3 @@
-import { map, reduce } from "std:utils"
-
 export type Input = {
     seed: u64[],
     steps: {
@@ -12,10 +10,9 @@ export type Input = {
 export type Output = u64[]
 
 export default function (in: Input): Output {
-    const initial = map(in.seed, item => item)
+    const initial = in.seed.map(item => item)[0]
 
-    return reduce(
-        in.steps,
+    return in.steps.reduce(
         (items, step) => match {
             step.enabled => (
                 match {
@@ -26,5 +23,5 @@ export default function (in: Input): Output {
             _ => items
         },
         initial
-    )
+    )[1]
 }

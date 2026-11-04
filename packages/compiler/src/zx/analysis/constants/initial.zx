@@ -1,5 +1,3 @@
-import { map } from "std:utils"
-
 import type { Cursor, Request } from "./model"
 import type { Value } from "./scalar/model"
 
@@ -8,7 +6,7 @@ export type Input = Request
 export type Output = Cursor
 
 export default function (in: Input): Output {
-    const values: Value?[] = map(in.expressions.kinds, kind => null)
+    const values: Value?[] = in.expressions.kinds.map(kind => null)[0]
 
     return {
         frames: [{

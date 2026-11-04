@@ -1,5 +1,4 @@
 import integers from "std:integer"
-import { map } from "std:utils"
 import kind from "core/type_table/kind"
 import { Kind } from "core/type_table/model"
 
@@ -21,7 +20,7 @@ export default function (in: Input): Output {
         types: in.types,
         boxed: in.boxed,
         built: in.built,
-        written: map(in.types.kinds, kind => false),
+        written: in.types.kinds.map(kind => false)[0],
         changed: true
     }, {
         while: current => current.changed,

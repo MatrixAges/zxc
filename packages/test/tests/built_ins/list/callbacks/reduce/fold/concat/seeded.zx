@@ -1,5 +1,3 @@
-import { reduce } from "std:utils"
-
 export type Input = {
     items: string[],
     seed: string
@@ -8,9 +6,5 @@ export type Input = {
 export type Output = string
 
 export default function (in: Input): Output {
-    return reduce(
-        in.items,
-        (previous, current) => `${previous}${current}`,
-        in.seed
-    )
+    return in.items.reduce((previous, current) => `${previous}${current}`, in.seed)[1]
 }

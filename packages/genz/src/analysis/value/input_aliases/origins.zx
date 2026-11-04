@@ -1,5 +1,4 @@
 import integers from "std:integer"
-import { map } from "std:utils"
 import { max_u32 } from "core/const"
 import { ExpressionKind } from "core/expression_table/kinds"
 
@@ -15,7 +14,7 @@ export type Output = bool[]
 
 export default function (in: Input): Output {
     return loop({
-        aliases: map(in.expressions.kinds, kind => false),
+        aliases: in.expressions.kinds.map(kind => false)[0],
         index: 0
     }, {
         while: (state, source) => state.index < source.expressions.kinds.length,

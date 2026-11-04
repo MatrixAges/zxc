@@ -1,5 +1,4 @@
 import integers from "std:integer"
-import { map } from "std:utils"
 
 import mark from "./mark"
 
@@ -10,7 +9,7 @@ export type Output = bool[]
 export default function (in: Input): Output {
     const marked = loop({
         members: in.members,
-        needed: map(in.functions.expressions, body => false),
+        needed: in.functions.expressions.map(body => false)[0],
         index: 0
     }, {
         while: current => current.index < current.members.length,

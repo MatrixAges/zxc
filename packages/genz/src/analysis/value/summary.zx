@@ -1,5 +1,4 @@
 import integers from "std:integer"
-import { map } from "std:utils"
 import kind from "core/type_table/kind"
 import { Kind } from "core/type_table/model"
 
@@ -19,7 +18,7 @@ export type Input = {
 export type Output = Values
 
 export default function (in: Input): Output {
-    const values = map(in.program.functions.output_types, id => false)
+    const values = in.program.functions.output_types.map(id => false)[0]
 
     const result = loop({
         program: in.program,

@@ -1,5 +1,4 @@
 import integers from "std:integer"
-import { map } from "std:utils"
 
 import push from "./push"
 import remaining from "./remaining"
@@ -51,7 +50,8 @@ export default function (in: Input): Output {
         first
     }).queue
 
-    const expanded = map(in.context.body.expressions.call_functions, callee => false)
+    const expanded =
+        in.context.body.expressions.call_functions.map(callee => false)[0]
 
     const initial: State = {
         remaining: count,

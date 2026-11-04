@@ -44,7 +44,7 @@ for (const method of ['map', 'filter', 'every', 'some'] as const) {
     )
 
     const callback = 'item => in.context.res'
-    const expression = method === 'map' ? `map(in.items, ${callback})` : `in.items.${method}(${callback})`
+    const expression = `in.items.${method}(${callback})${method === 'map' || method === 'filter' ? '[0]' : ''}`
 
     writeOutput(
         `tests/${base}/cases.zx`,

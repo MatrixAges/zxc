@@ -21,6 +21,8 @@ export type Bindings = {
 }
 
 export type Options = {
+    tuple_result: bool,
+    projection?: u64,
     state: Prepared,
     span: Span,
     kind: TransformKind,
@@ -32,6 +34,8 @@ export type Options = {
 }
 
 export type Frame = {
+    tuple_result: bool,
+    projection?: u64,
     node: u64,
     kind: TransformKind,
     target: u32,

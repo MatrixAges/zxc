@@ -1,5 +1,3 @@
-import { reduce } from "std:utils"
-
 import scalar from "./scalar"
 
 export type Child = {
@@ -23,10 +21,10 @@ export type Input = {
 export type Output = State
 
 export default function (in: Input): Output {
-    return reduce(in.steps, (state, item) => ({
+    return in.steps.reduce((state, item) => ({
         ...state,
         count: state.count + 1,
         total: scalar(state.total) + state.count + item,
         last: state.count
-    }), in.seed)
+    }), in.seed)[1]
 }

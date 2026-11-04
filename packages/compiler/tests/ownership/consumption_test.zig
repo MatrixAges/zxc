@@ -53,11 +53,11 @@ test "ownership: nested fields and their parent remain readable" {
 }
 
 test "ownership: an escaping nested view permits persistent updates" {
-    try check("const rows = [[1]]\n const view = rows.filter((row) => true)\n const [next, _] = rows.reverse()\n return view[0][0] + next[0][0] + rows[0][0]\n");
+    try check("const rows = [[1]]\n const view = rows.filter((row) => true)[0]\n const [next, _] = rows.reverse()\n return view[0][0] + next[0][0] + rows[0][0]\n");
 }
 
 test "ownership: a fresh scalar map output does not alias its source" {
-    try helpers.analyzeCase("import { map } from \"std:utils\"\n\nexport type Input = bool\nexport type Output = u64\nexport default function (in: Input): Output { const values = [1]\n const mapped = map(values, (item) => item + 1)\n const [next, _] = values.reverse()\n return mapped[0] + next[0] }", null);
+    try helpers.analyzeCase("export type Input = bool\nexport type Output = u64\nexport default function (in: Input): Output { const values = [1]\n const mapped = values.map((item) => item + 1)[0]\n const [next, _] = values.reverse()\n return mapped[0] + next[0] }", null);
 }
 
 test "ownership: clone cannot create an independent owner" {

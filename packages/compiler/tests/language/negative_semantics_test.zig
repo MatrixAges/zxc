@@ -77,23 +77,23 @@ test "negative analyze: conditional branches must agree" {
 }
 
 test "negative analyze: map argument arity" {
-    try h.analyzeCase("import { map } from \"std:utils\"\n\nexport type Input = u64[]\n export type Output = u64[]\n export default function (in: Input): Output { return map(in) }", .type_mismatch);
+    try h.analyzeCase("export type Input = u64[]\n export type Output = u64[]\n export default function (in: Input): Output { return in.map()[0] }", .type_mismatch);
 }
 
 test "negative analyze: map requires lambda" {
-    try h.analyzeCase("import { map } from \"std:utils\"\n\nexport type Input = u64[]\n export type Output = u64[]\n export default function (in: Input): Output { return map(in, 1) }", .type_mismatch);
+    try h.analyzeCase("export type Input = u64[]\n export type Output = u64[]\n export default function (in: Input): Output { return in.map(1)[0] }", .type_mismatch);
 }
 
-test "negative analyze: utils map rejects excess parameters" {
-    try h.analyzeCase("import { map } from \"std:utils\"\n\nexport type Input = u64[]\n export type Output = u64[]\n export default function (in: Input): Output { return map(in, (item, index, source, extra) => item) }", .type_mismatch);
+test "negative analyze: array map rejects excess parameters" {
+    try h.analyzeCase("export type Input = u64[]\n export type Output = u64[]\n export default function (in: Input): Output { return in.map((item, index, source, extra) => item)[0] }", .type_mismatch);
 }
 
 test "negative analyze: filter predicate bool" {
-    try h.analyzeCase("export type Input = u64[]\n export type Output = u64[]\n export default function (in: Input): Output { return in.filter(item => item) }", .type_mismatch);
+    try h.analyzeCase("export type Input = u64[]\n export type Output = u64[]\n export default function (in: Input): Output { return in.filter(item => item)[0] }", .type_mismatch);
 }
 
-test "negative analyze: utils reduce rejects extra arguments" {
-    try h.analyzeCase("import { reduce } from \"std:utils\"\n\nexport type Input = u64[]\n export type Output = u64\n export default function (in: Input): Output { return reduce(in, (sum, item) => sum + item, 0, 1) }", .type_mismatch);
+test "negative analyze: array reduce rejects extra arguments" {
+    try h.analyzeCase("export type Input = u64[]\n export type Output = u64\n export default function (in: Input): Output { return in.reduce((sum, item) => sum + item, 0, 1)[1] }", .type_mismatch);
 }
 
 test "negative analyze: clone remains unsupported with arguments" {

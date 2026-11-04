@@ -1,5 +1,3 @@
-import { map, reduce } from "std:utils"
-
 import step from "./escape_optional_step"
 
 export type Cell = {
@@ -16,9 +14,9 @@ export type Input = u64[]
 export type Output = Bundle[]
 
 export default function (in: Input): Output {
-    return map(in, item => reduce([item], (state, value) => step({
+    return in.map(item => [item].reduce((state, value) => step({
         value
     }), step({
         value: 0
-    })))
+    }))[1])[0]
 }

@@ -1,35 +1,33 @@
-import { map } from "std:utils"
-
 import type { Graph as Input } from "./model"
 import type { Graph as Output } from "./plan"
 
 export default function (in: Input): Output {
     return {
         regions: {
-            parent: map(in.regions, row => row.parent),
-            fork: map(in.regions, row => row.fork),
-            arm: map(in.regions, row => row.arm),
-            depth: map(in.regions, row => row.depth),
-            returns: map(in.regions, row => row.returns)
+            parent: in.regions.map(row => row.parent)[0],
+            fork: in.regions.map(row => row.fork)[0],
+            arm: in.regions.map(row => row.arm)[0],
+            depth: in.regions.map(row => row.depth)[0],
+            returns: in.regions.map(row => row.returns)[0]
         },
         edges: {
-            parent: map(in.edges, row => row.parent),
-            child: map(in.edges, row => row.child),
-            role: map(in.edges, row => row.role),
-            index: map(in.edges, row => row.index),
-            region: map(in.edges, row => row.region)
+            parent: in.edges.map(row => row.parent)[0],
+            child: in.edges.map(row => row.child)[0],
+            role: in.edges.map(row => row.role)[0],
+            index: in.edges.map(row => row.index)[0],
+            region: in.edges.map(row => row.region)[0]
         },
         definitions: {
-            kind: map(in.definitions, row => row.kind),
-            value: map(in.definitions, row => row.value),
-            index: map(in.definitions, row => row.index),
-            repeated: map(in.definitions, row => row.repeated)
+            kind: in.definitions.map(row => row.kind)[0],
+            value: in.definitions.map(row => row.value)[0],
+            index: in.definitions.map(row => row.index)[0],
+            repeated: in.definitions.map(row => row.repeated)[0]
         },
         results: in.results,
         repeated: {
-            owner: map(in.repeated, row => row.owner),
-            parent: map(in.repeated, row => row.parent),
-            concurrent: map(in.repeated, row => row.concurrent)
+            owner: in.repeated.map(row => row.owner)[0],
+            parent: in.repeated.map(row => row.parent)[0],
+            concurrent: in.repeated.map(row => row.concurrent)[0]
         }
     }
 }

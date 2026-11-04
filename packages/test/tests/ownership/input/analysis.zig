@@ -4,7 +4,7 @@ const h = @import("check.zig");
 
 test "fresh mapped value passes to immutable helper" {
     try h.run(.{
-        .body = "  return consume(map(in, item => item))",
+        .body = "  return consume(in.map(item => item)[0])",
     });
 }
 
@@ -23,31 +23,31 @@ test "borrowed entry passes input without consumption" {
 
 test "new results pass through repeated helper calls" {
     try h.run(.{
-        .body = "  const values = map(in, item => item)\n  const next = consume(values)\n\n  return consume(next)",
+        .body = "  const values = in.map(item => item)[0]\n  const next = consume(values)\n\n  return consume(next)",
     });
 }
 
 test "old binding remains usable after helper call" {
     try h.run(.{
-        .body = "  const values = map(in, item => item)\n  const next = consume(values)\n\n  return values",
+        .body = "  const values = in.map(item => item)[0]\n  const next = consume(values)\n\n  return values",
     });
 }
 
 test "second call can reuse old binding" {
     try h.run(.{
-        .body = "  const values = map(in, item => item)\n  const next = consume(values)\n\n  return consume(values)",
+        .body = "  const values = in.map(item => item)[0]\n  const next = consume(values)\n\n  return consume(values)",
     });
 }
 
 test "scalar filter creates an owned value for consumption" {
     try h.run(.{
-        .body = "  return consume(in.filter(item => item > 0))",
+        .body = "  return consume(in.filter(item => item > 0)[0])",
     });
 }
 
 test "reference element map remains borrowed" {
     try h.run(.{
-        .body = "  return consume(map(in, item => item))",
+        .body = "  return consume(in.map(item => item)[0])",
         .input = "u64[][]",
         .output = "u64[][]",
         .helper_input = "u64[][]",
@@ -67,7 +67,7 @@ test "aggregate containing borrowed list can produce new list" {
 
 test "aggregate containing new list can produce new list" {
     try h.run(.{
-        .body = "  return consume({items: map(in, item => item), count: 1})",
+        .body = "  return consume({items: in.map(item => item)[0], count: 1})",
         .helper_input = "{items: u64[], count: u64}",
         .helper_body = "  const count = in.count\n\n  return in.items.push(count)[0]",
     });
@@ -87,7 +87,7 @@ test "scalar input remains copyable" {
 
 test "helper does not consume newly allocated argument" {
     try h.run(.{
-        .body = "  const values = map(in, item => item)\n  const count = consume(values)\n\n  return values.push(count)[0]",
+        .body = "  const values = in.map(item => item)[0]\n  const count = consume(values)\n\n  return values.push(count)[0]",
         .helper_output = "u64",
         .helper_body = "  return in.length",
     });
@@ -95,7 +95,7 @@ test "helper does not consume newly allocated argument" {
 
 test "scalar-returning helper preserves reference argument" {
     try h.run(.{
-        .body = "  const values = map(in, item => item)\n  const count = consume(values)\n\n  return values.push(count)[0]",
+        .body = "  const values = in.map(item => item)[0]\n  const count = consume(values)\n\n  return values.push(count)[0]",
         .helper_output = "u64",
         .helper_body = "  return in.length",
     });
@@ -103,27 +103,27 @@ test "scalar-returning helper preserves reference argument" {
 
 test "reduce passes accumulator through immutable helper calls" {
     try h.run(.{
-        .body = "  const initial: u64[] = []\n\n  return reduce(in, (items, item) => consume(items), initial)",
+        .body = "  const initial: u64[] = []\n\n  return in.reduce((items, item) => consume(items), initial)[1]",
     });
 }
 
 test "reduce preserves borrowed initial accumulator" {
     try h.run(.{
-        .body = "  return reduce(in, (items, item) => consume(items), in)",
+        .body = "  return in.reduce((items, item) => consume(items), in)[1]",
         .ownership = "borrowed",
     });
 }
 
 test "one branch calling helper preserves later reuse" {
     try h.run(.{
-        .body = "  const values = map(in, item => item)\n  if (in.length > 0) {\n    const next = consume(values)\n  }\n\n  return values",
+        .body = "  const values = in.map(item => item)[0]\n  if (in.length > 0) {\n    const next = consume(values)\n  }\n\n  return values",
     });
 }
 
 test "immutable input can produce fresh mapped result" {
     try h.run(.{
         .body = "  return consume(in)",
-        .helper_body = "  return map(in, item => item)",
+        .helper_body = "  return in.map(item => item)[0]",
     });
 }
 
@@ -136,7 +136,7 @@ test "identity result can be reversed into a new list" {
 
 test "immutable helper success releases allocation failures" {
     try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{
-        .body = "  return consume(map(in, item => item))",
+        .body = "  return consume(in.map(item => item)[0])",
     }});
 }
 
@@ -148,7 +148,7 @@ test "borrowed helper call releases allocation failures" {
 
 test "immutable call retains borrowed result provenance" {
     try h.run(.{
-        .body = "  return consume(map(in, item => item))",
+        .body = "  return consume(in.map(item => item)[0])",
         .helper_borrows = true,
         .helper_body = "  return view(in)",
         .ownership = "borrowed",
@@ -157,7 +157,7 @@ test "immutable call retains borrowed result provenance" {
 
 test "borrowed output can be reversed into a new list" {
     try h.run(.{
-        .body = "  const result = consume(map(in, item => item))\n\n  return result.reverse()[0]",
+        .body = "  const result = consume(in.map(item => item)[0])\n\n  return result.reverse()[0]",
         .helper_borrows = true,
         .helper_body = "  return view(in)",
     });

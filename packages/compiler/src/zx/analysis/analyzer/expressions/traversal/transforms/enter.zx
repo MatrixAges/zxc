@@ -9,6 +9,8 @@ import type { Work } from "../model"
 
 export type Input = {
     work: Work,
+    tuple_result: bool,
+    projection?: u64,
     node: u64,
     kind: TransformKind,
     target: u32,
@@ -40,6 +42,8 @@ export default function (in: Input): Output {
     }
 
     const frame: Frame = {
+        tuple_result: in.tuple_result,
+        projection: in.projection,
         node: in.node,
         kind,
         target: in.target,

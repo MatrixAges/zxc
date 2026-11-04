@@ -1,5 +1,3 @@
-import { reduce } from "std:utils"
-
 import tick from "./tick"
 
 import type { LexerState } from "./model"
@@ -12,8 +10,8 @@ export type Input = {
 export type Output = LexerState
 
 export default function (in: Input): Output {
-    return reduce(in.source, (state, byte) => tick({
+    return in.source.reduce((state, byte) => tick({
         byte,
         state
-    }), in.state)
+    }), in.state)[1]
 }

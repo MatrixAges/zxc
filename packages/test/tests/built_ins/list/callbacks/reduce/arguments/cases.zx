@@ -1,5 +1,3 @@
-import { reduce } from "std:utils"
-
 export type Input = {
     items: i64[],
     seed: i64
@@ -8,9 +6,8 @@ export type Input = {
 export type Output = i64
 
 export default function (in: Input): Output {
-    return reduce(
-        in.items,
+    return in.items.reduce(
         (previous, current) => current > 10 && previous == 1 ? 2 : 0,
         in.seed
-    )
+    )[1]
 }

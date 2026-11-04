@@ -1,5 +1,4 @@
 import integers from "std:integer"
-import { map } from "std:utils"
 import { ExpressionKind } from "core/expression_table/kinds"
 
 import all from "../all"
@@ -18,7 +17,7 @@ export default function (in: Input): Output {
         source: in.source,
         definitions: in.graph.definitions,
         order: in.order,
-        safe: map(in.source.source.expressions.kinds, kind => false),
+        safe: in.source.source.expressions.kinds.map(kind => false)[0],
         index: 0
     }, {
         while: current => current.index < current.order.length,

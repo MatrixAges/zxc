@@ -1,16 +1,13 @@
 import integers from "std:integer"
-import { TransformKind } from "core/expression_table/kinds"
 import { Kind } from "core/type_table/model"
 
 import { Operation } from "../../../../../modules/intrinsic/model"
 import row from "../../../../semantic/types/row"
-import items from "../../items"
 import select from "../../selection/select"
 import { object_message, type_code } from "../../utilities/const"
 import lower from "../../utilities/lower.rx"
 import invalid from "../imported/invalid"
 import { Phase } from "../model"
-import transform from "../transforms/enter"
 
 import type { Result } from "../../model"
 import type { Work } from "../model"
@@ -54,30 +51,6 @@ export default function (in: Input): Output {
             frame.values[0]
         )]
     })
-
-    if (
-        (operation == Operation.Map || operation == Operation.Reduce) &&
-            target.kind == Kind.List
-    ) {
-        return transform({
-            work: {
-                ...in,
-                frames: {
-                    ...in.frames,
-                    imported: in.frames.imported.pop()[0],
-                    methods: in.frames.methods.pop()[0]
-                }
-            },
-            node: frame.node,
-            kind: operation == Operation.Map ? TransformKind.Map : TransformKind.Reduce,
-            target: frame.values[0],
-            expected: in.frames.methods[in.frames.methods.length - 1].expected,
-            arguments: items({
-                items: in.source.tree.items,
-                head: in.source.tree.nodes[frame.node].head
-            }).splice(0, 1, [])[0]
-        })
-    }
 
     const result: Result = match {
         selection && target.kind != Kind.Object => {

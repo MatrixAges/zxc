@@ -51,25 +51,25 @@ export const programs: Record<string, [string, string, string]> = {
         splice_output,
         '  const [next, deleted] = owned.splice(in.start, in.count, in.other)\n  const [items, _] = next.reverse()\n  const [removed, _] = deleted.reverse()\n\n  return { items, removed }\n'
     ],
-    map_double: [items, 'i64[]', '  return map(in.items, item => item * 2)\n'],
-    map_plus_ten: [items, 'i64[]', '  return map(in.items, item => item + 10)\n'],
-    map_greater_ten: [items, 'bool[]', '  return map(in.items, item => item > 10)\n'],
-    map_true: [items, 'bool[]', '  return map(in.items, item => true)\n'],
-    filter_odd: [items, 'i64[]', '  return in.items.filter(item => item % 2 != 0)\n'],
-    filter_true: [items, 'i64[]', '  return in.items.filter(item => true)\n'],
-    reduce_sum: [items + ' value: i64,', 'i64', '  return reduce(in.items, (sum, item) => sum + item, in.value)\n'],
+    map_double: [items, 'i64[]', '  return in.items.map(item => item * 2)[0]\n'],
+    map_plus_ten: [items, 'i64[]', '  return in.items.map(item => item + 10)[0]\n'],
+    map_greater_ten: [items, 'bool[]', '  return in.items.map(item => item > 10)[0]\n'],
+    map_true: [items, 'bool[]', '  return in.items.map(item => true)[0]\n'],
+    filter_odd: [items, 'i64[]', '  return in.items.filter(item => item % 2 != 0)[0]\n'],
+    filter_true: [items, 'i64[]', '  return in.items.filter(item => true)[0]\n'],
+    reduce_sum: [items + ' value: i64,', 'i64', '  return in.items.reduce((sum, item) => sum + item, in.value)[1]\n'],
     reduce_digits: [
         items + ' value: i64,',
         'i64',
-        '  return reduce(in.items, (sum, item) => sum * 10 + item, in.value)\n'
+        '  return in.items.reduce((sum, item) => sum * 10 + item, in.value)[1]\n'
     ],
     index: [items + ' start: u64,', 'i64', '  return in.items[in.start]\n'],
-    map_index: ['items: i64[][],', 'i64[]', '  return map(in.items, row => row[0])\n'],
-    filter_index: ['items: i64[][],', 'i64[][]', '  return in.items.filter(row => row[0] > 0)\n'],
+    map_index: ['items: i64[][],', 'i64[]', '  return in.items.map(row => row[0])[0]\n'],
+    filter_index: ['items: i64[][],', 'i64[][]', '  return in.items.filter(row => row[0] > 0)[0]\n'],
     reduce_index: [
         'items: i64[][], value: i64,',
         'i64',
-        '  return reduce(in.items, (sum, row) => sum + row[0], in.value)\n'
+        '  return in.items.reduce((sum, row) => sum + row[0], in.value)[1]\n'
     ]
 }
 

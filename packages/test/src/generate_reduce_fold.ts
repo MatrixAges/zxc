@@ -50,7 +50,7 @@ for (const seeded of [false, true]) {
         name: `concat/${mode}`,
         input: seeded ? '{ items: string[], seed: string }' : 'string[]',
         output: 'string',
-        expression: `reduce(${argument}, (previous, current) => \`\${previous}\${current}\`${initial})`,
+        expression: `${argument}.reduce((previous, current) => \`\${previous}\${current}\`${initial})[1]`,
         rows: (seeded ? ['', '0', 'prefix', '🌿', '\0'] : ['']).flatMap(seed =>
             text_inputs.map(input => ({
                 name: `${input.name}/seed_${Buffer.from(seed).toString('hex') || 'empty'}`,
@@ -62,7 +62,7 @@ for (const seeded of [false, true]) {
         name: `sum/${mode}`,
         input: seeded ? '{ items: i64[], seed: i64 }' : 'i64[]',
         output: 'i64',
-        expression: `reduce(${argument}, (previous, current) => previous + current${initial})`,
+        expression: `${argument}.reduce((previous, current) => previous + current${initial})[1]`,
         rows: (seeded ? [-7, 0, 1, 11, 65535] : [0]).flatMap(seed =>
             numeric_inputs.map(input => ({
                 name: `${input.name}/seed_${seed}`,
@@ -76,7 +76,7 @@ suites.push({
     name: 'constant/unseeded',
     input: '{ items: i64[], returned: i64 }',
     output: '{ value: i64, items: i64[] }',
-    expression: '{ value: reduce(in.items, (previous, current) => in.returned), items: in.items }',
+    expression: '{ value: in.items.reduce((previous, current) => in.returned)[1], items: in.items }',
     rows: [-7, 0, 1, 11, 65535].flatMap(returned =>
         numeric_inputs.map(input => ({
             name: `${input.name}/returned_${returned}`,

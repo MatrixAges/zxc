@@ -1,3 +1,5 @@
+import { max_u32 } from "core/const"
+
 import { ExprKind } from "../../../../frontend/parser/expressions/state/model"
 import { NameKind } from "../../source/model"
 import readName from "../../source/name"
@@ -115,6 +117,17 @@ export default function (in: Input): Output {
     const node = work.source.tree.nodes[frame.node]
 
     if (in.action == Action.IndexTarget) {
+        if (frame.target == max_u32) {
+            return {
+                ...work,
+                phase: Phase.Complete,
+                frames: {
+                    ...work.frames,
+                    indices: work.frames.indices.pop()[0]
+                }
+            }
+        }
+
         const state = indexable({
             state: work.state,
             target: work.value,

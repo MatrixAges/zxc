@@ -32,7 +32,14 @@ for (const operation of Object.keys(programs) as Array<Spec['operation']>) {
     writeOutput(
         `tests/${base}/${operation}.zx`,
         zxSource(
-            `export type Input = { items: i64[]${program.fields ? `, ${program.fields}` : ''} }\n\nexport type Output = { mapped: ${program.type}[], items: i64[] }\n\nexport default function (in: Input): Output {\n    return { mapped: map(in.items, (item, index, source) => ${program.expression}), items: in.items }\n}\n`
+            `export type Input = { items: i64[]${program.fields ? `, ${program.fields}` : ''} }
+
+export type Output = { mapped: ${program.type}[], items: i64[] }
+
+export default function (in: Input): Output {
+    return { mapped: in.items.map((item, index, source) => ${program.expression})[0], items: in.items }
+}
+`
         )
     )
     writeCatalog(

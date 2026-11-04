@@ -1,0 +1,103 @@
+import integers from "std:integer"
+import { type_id_u64, max_u32 } from "core/const"
+import { TransformKind } from "core/expression_table/kinds"
+import { Kind } from "core/type_table/model"
+
+import { ExprKind } from "../../../frontend/parser/expressions/state/model"
+import row from "../../semantic/types/row"
+import decode from "../expressions/numbers/decode"
+import literal from "../source/literal"
+import payload from "../types/payload"
+
+import type { Work } from "../expressions/traversal/model"
+
+export type Input = {
+    work: Work,
+    node: u64,
+    expected?: u32,
+    kind: TransformKind
+}
+
+export type Output = {
+    expected?: u32,
+    projection?: u64
+}
+
+export default function (in: Input): Output {
+    const transformed = in.kind == TransformKind.Map ||
+        in.kind == TransformKind.Filter || in.kind == TransformKind.Reduce
+
+    if (!transformed) {
+        return {
+            expected: in.expected,
+            projection: null
+        }
+    }
+
+    const slot: u64 = in.kind == TransformKind.Reduce ? 1 : 0
+    const indices = in.work.frames.indices
+
+    if (indices.length != 0) {
+        const frame = indices[indices.length - 1]
+        const node = in.work.source.tree.nodes[frame.node]
+
+        if (
+            node.first == in.node &&
+                in.work.source.tree.nodes[node.second].kind == ExprKind.Number
+        ) {
+            const value = decode({
+                source: literal({
+                    source: in.work.source,
+                    index: node.second,
+                    template: false
+                }),
+                expected: type_id_u64,
+                negative: false
+            })
+
+            if (value.message == "" && value.integer < 2) {
+                return {
+                    expected: value.integer == slot && frame.output_hint != max_u32 ?
+                        frame.output_hint : null,
+                    projection: value.integer
+                }
+            }
+        }
+    }
+
+    const hint = payload({
+        types: in.work.state.types,
+        expected: in.expected
+    })
+
+    if (hint == null) {
+        return {
+            expected: null,
+            projection: null
+        }
+    }
+
+    const tables = {
+        base: in.work.state.types.context.base,
+        delta: in.work.state.types.delta
+    }
+
+    const target = row({
+        tables,
+        id: hint
+    })
+
+    if (target.kind != Kind.Tuple || target.second != 2) {
+        return {
+            expected: null,
+            projection: null
+        }
+    }
+
+    const table = target.delta ? tables.delta : tables.base
+
+    return {
+        expected: table.children[integers.widen(target.first) + slot],
+        projection: null
+    }
+}

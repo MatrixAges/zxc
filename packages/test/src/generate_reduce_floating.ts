@@ -31,7 +31,7 @@ for (const width of [32, 64] as const) {
 export type Output = f${width}
 
 export default function (in: Input): Output {
-    return reduce(in.items, (previous, current) => previous ${operators[operation]} current${seeded ? ', in.seed' : ''})
+    return in.items.reduce((previous, current) => previous ${operators[operation]} current${seeded ? ', in.seed' : ''})[1]
 }
 `)
             )

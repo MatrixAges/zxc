@@ -3,8 +3,6 @@ const compiler = @import("compiler");
 const allocations = @import("../../support/allocation_testing.zig");
 
 const source =
-    \\import { map } from "std:utils"
-    \\
     \\import transform from "./transform"
     \\
     \\import type { Shape } from "./shape"
@@ -20,7 +18,7 @@ const source =
     \\  const [first, _] = [in.values[0], null]
     \\
     \\  if (true) {
-    \\    const mapped = map(in.values, (item) => item[1] ?? "fallback")
+    \\    const mapped = in.values.map((item) => item[1] ?? "fallback")[0]
     \\
     \\    return `mapped-${transform({ ...in, values: mapped })}`
     \\  } else {
@@ -60,10 +58,10 @@ fn check(allocator: std.mem.Allocator) !void {
     const comment = input.lexed.comments[0];
 
     try std.testing.expectEqualStrings("// retained comment", input.source[comment.start..comment.end]);
-    try std.testing.expectEqualStrings("transform", program.imports[1].names[0].text);
-    try std.testing.expectEqualStrings("./transform", program.imports[1].path);
-    try std.testing.expectEqualStrings("Shape", program.imports[2].names[0].text);
-    try std.testing.expectEqualStrings("./shape", program.imports[2].path);
+    try std.testing.expectEqualStrings("transform", program.imports[0].names[0].text);
+    try std.testing.expectEqualStrings("./transform", program.imports[0].path);
+    try std.testing.expectEqualStrings("Shape", program.imports[1].names[0].text);
+    try std.testing.expectEqualStrings("./shape", program.imports[1].path);
     try std.testing.expectEqualStrings("Input", program.declarations[0].name.text);
 
     const values = program.declarations[0].value.object[0];
@@ -83,10 +81,10 @@ fn check(allocator: std.mem.Allocator) !void {
     try std.testing.expect(destructure.value.value.list[1].value == .null_value);
 
     const branch = statements[1].value.branch;
-    const call = branch.yes.statements[0].value.constant.value.value.call;
-    const lambda = call.arguments[1].value.lambda;
+    const call = branch.yes.statements[0].value.constant.value.value.index.target.value.call;
+    const lambda = call.arguments[0].value.lambda;
 
-    try std.testing.expectEqualStrings("map", call.callee.value.identifier.text);
+    try std.testing.expectEqualStrings("map", call.callee.value.field.name.text);
     try std.testing.expectEqualStrings("item", lambda.parameters[0].text);
     try std.testing.expectEqualStrings("\"fallback\"", lambda.body.value.binary.right.value.string);
     try std.testing.expectEqualStrings("1", lambda.body.value.binary.left.value.index.index.value.number);

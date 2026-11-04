@@ -1,5 +1,4 @@
 import integers from "std:integer"
-import { map } from "std:utils"
 import { ExpressionKind } from "core/expression_table/kinds"
 
 import children from "../ir/children"
@@ -55,7 +54,7 @@ export default function (in: Input): Output {
         symbol: in.symbol,
         stack,
         none,
-        seen: map(in.table.kinds, kind => false),
+        seen: in.table.kinds.map(kind => false)[0],
         valid: true
     }, {
         while: current => current.valid && current.stack.length != 0,

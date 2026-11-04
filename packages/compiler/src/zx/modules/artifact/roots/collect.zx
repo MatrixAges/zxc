@@ -1,5 +1,4 @@
 import integers from "std:integer"
-import { map } from "std:utils"
 
 import rootAt from "./root_at"
 
@@ -13,7 +12,7 @@ export type Output = {
 }
 
 export default function (in: Input): Output {
-    const needed = map(in.request.table.kinds, item => false)
+    const needed = in.request.table.kinds.map(item => false)[0]
 
     const state = loop({
         selection: in,

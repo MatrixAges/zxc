@@ -1,5 +1,3 @@
-import { map, reduce } from "std:utils"
-
 import step from "./step"
 
 export type State = {
@@ -16,12 +14,12 @@ export type Output = State
 
 export default function (in: Input): Output {
     const initial: State = {
-        values: map(in.seed, item => item),
+        values: in.seed.map(item => item)[0],
         count: 0
     }
 
-    return reduce(in.steps, (state, item) => step({
+    return in.steps.reduce((state, item) => step({
         state,
         item
-    }), initial)
+    }), initial)[1]
 }

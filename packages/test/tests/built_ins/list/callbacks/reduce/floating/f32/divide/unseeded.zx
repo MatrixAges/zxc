@@ -1,5 +1,3 @@
-import { reduce } from "std:utils"
-
 export type Input = {
     items: f32[],
     seed: f32
@@ -8,5 +6,5 @@ export type Input = {
 export type Output = f32
 
 export default function (in: Input): Output {
-    return reduce(in.items, (previous, current) => previous / current)
+    return in.items.reduce((previous, current) => previous / current)[1]
 }

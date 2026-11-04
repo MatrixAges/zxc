@@ -46,7 +46,7 @@ for (const method of ['map', 'filter', 'every', 'some'] as const) {
     const output_type = method === 'map' ? 'bool[]' : method === 'filter' ? 'i64[]' : 'bool'
     const operator = method === 'some' ? '!=' : '=='
     const callback = `(item, index, source) => source[index] ${operator} item`
-    const expression = method === 'map' ? `map(in, ${callback})` : `in.${method}(${callback})`
+    const expression = `in.${method}(${callback})${method === 'map' || method === 'filter' ? '[0]' : ''}`
 
     writeOutput(
         `tests/${base}.zx`,

@@ -1,5 +1,4 @@
 import integers from "std:integer"
-import { map } from "std:utils"
 import kind from "core/type_table/kind"
 import { Kind } from "core/type_table/model"
 
@@ -16,7 +15,7 @@ export default function (in: Input): Output {
     const empty: u32[] = []
     const offsets: u32[][] = []
     const members: u32[][] = []
-    const unwrapped: u32[] = map(in.types.kinds, code => 0)
+    const unwrapped: u32[] = in.types.kinds.map(code => 0)[0]
 
     const result = loop({
         types: in.types,

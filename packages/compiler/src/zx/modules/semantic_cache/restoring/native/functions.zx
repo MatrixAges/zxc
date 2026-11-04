@@ -1,5 +1,4 @@
 import integers from "std:integer"
-import { map } from "std:utils"
 
 import type { Complete } from "core/function_table/complete"
 
@@ -16,18 +15,15 @@ export default function (in: Input): Output {
 
     return {
         ...in.source,
-        input_types: map(
-            in.source.input_types,
+        input_types: in.source.input_types.map(
             id => in.mapping[integers.widen(
                 id
             )]
-        ),
+        )[0],
         output_types:
-            map(in.source.output_types,
-                id => in.mapping[integers.widen(
-                    id
-                )]
-            ),
-        native_modules: map(in.source.native_modules, id => module_id)
+            in.source.output_types.map(id => in.mapping[integers.widen(
+                id
+            )])[0],
+        native_modules: in.source.native_modules.map(id => module_id)[0]
     }
 }

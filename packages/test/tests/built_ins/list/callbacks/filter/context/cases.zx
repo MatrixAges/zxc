@@ -8,5 +8,5 @@ export type Input = {
 export type Output = i64[]
 
 export default function (in: Input): Output {
-    return in.items.filter(item => in.context.res)
+    return in.items.filter(item => in.context.res)[0]
 }

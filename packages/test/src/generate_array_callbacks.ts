@@ -36,7 +36,7 @@ writeSuite({
     name: 'map/predicate',
     input: 'i64[]',
     output: 'bool[]',
-    expression: 'map(in, item => item > 10)',
+    expression: 'in.map(item => item > 10)[0]',
     rows: mapping.map(row => ({ ...row, expected: { value: row.input.map(item => item > 10) } }))
 })
 
@@ -56,7 +56,7 @@ writeSuite({
     name: 'filter/predicate',
     input: 'i64[]',
     output: 'i64[]',
-    expression: 'in.filter(val => val > 10)',
+    expression: 'in.filter(val => val > 10)[0]',
     rows: filtering.map(({ name, input, value }) => ({ name, input, expected: { value } }))
 })
 
@@ -79,7 +79,7 @@ for (const keep of [false, true]) {
         name: `filter/constant_${keep}`,
         input: 'i64[]',
         output: 'i64[]',
-        expression: `in.filter(item => ${keep})`,
+        expression: `in.filter(item => ${keep})[0]`,
         rows: constant_inputs.map(row => ({ ...row, expected: { value: row.input.filter(() => keep) } }))
     })
 }
@@ -100,7 +100,7 @@ writeSuite({
     name: 'reduce/empty',
     input: '{ items: i64[][], seed: i64 }',
     output: 'i64',
-    expression: 'reduce(in.items, (sum, row) => sum + row[0], in.seed)',
+    expression: 'in.items.reduce((sum, row) => sum + row[0], in.seed)[1]',
     rows: empty.map(({ name, ...input }) => ({
         name,
         input,
@@ -124,7 +124,7 @@ writeSuite({
     name: 'reduce/order',
     input: '{ items: string[], seed: string }',
     output: 'string',
-    expression: 'reduce(in.items, (sum, item) => `${sum}${item}`, in.seed)',
+    expression: 'in.items.reduce((sum, item) => `${sum}${item}`, in.seed)[1]',
     rows: ordered.map(({ name, ...input }) => ({
         name,
         input,
@@ -145,7 +145,7 @@ writeSuite({
     name: 'reduce/arguments',
     input: '{ items: i64[], seed: i64 }',
     output: 'i64',
-    expression: 'reduce(in.items, (previous, current) => current > 10 && previous == 1 ? 2 : 0, in.seed)',
+    expression: 'in.items.reduce((previous, current) => current > 10 && previous == 1 ? 2 : 0, in.seed)[1]',
     rows: arguments_cases.map(({ name, ...input }) => ({
         name,
         input,

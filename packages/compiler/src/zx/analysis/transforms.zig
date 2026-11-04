@@ -6,19 +6,22 @@ const Types = @import("types.zig");
 const aggregates = @import("aggregates.zig");
 
 pub fn analyze(self: *Analyzer, expression: anytype, target: ir.ExprId, kind: @FieldType(ir.Transform, "kind"), expected: ?ir.TypeId) zx.Error!ir.ExprId {
-    return analyzeAt(self, expression, target, kind, expected, 0);
+    return analyzeProjected(self, expression, target, kind, expected, null);
 }
 
-pub fn analyzeAt(self: *Analyzer, expression: anytype, target: ir.ExprId, kind: @FieldType(ir.Transform, "kind"), expected: ?ir.TypeId, offset: usize) zx.Error!ir.ExprId {
+pub fn analyzeProjected(self: *Analyzer, expression: anytype, target: ir.ExprId, kind: @FieldType(ir.Transform, "kind"), expected: ?ir.TypeId, projection: ?u64) zx.Error!ir.ExprId {
+    const tuple_result = kind == .map or kind == .filter or kind == .reduce;
+    const result_slot: u64 = if (kind == .reduce) 1 else 0;
+    const hint = if (!tuple_result) aggregates.payload(self, expected) else if (projection) |slot| (if (slot == result_slot) aggregates.payload(self, expected) else null) else resultHint(self, expected, result_slot);
     const arguments = syntax.value(expression).call.arguments;
-    const count = arguments.len - offset;
+    const count = arguments.len;
 
     if (count < 1 or count > 2) return self.reporter.fail(.type_mismatch, expression.span, "collection operations require a callback and at most one optional method argument");
 
     const source_type = self.node(target).type_id;
     const element_type = self.types.get(source_type).list;
     const reducing = kind == .reduce;
-    const second = if (count == 2) try self.expression(syntax.item(arguments, offset + 1), if (reducing) aggregates.payload(self, expected) else null) else null;
+    const second = if (count == 2) try self.expression(syntax.item(arguments, 1), if (reducing) hint else null) else null;
     const accumulator_type = if (reducing and second != null) self.node(second.?).type_id else element_type;
 
     const parameters: []const ir.TypeId = if (reducing)
@@ -27,15 +30,13 @@ pub fn analyzeAt(self: *Analyzer, expression: anytype, target: ir.ExprId, kind: 
     else
         &.{ element_type, Types.scalarId(.u64), source_type };
 
-    const hint = aggregates.payload(self, expected);
-
     const body_hint: ?ir.TypeId = switch (kind) {
         .filter, .every, .some => Types.scalarId(.bool),
         .reduce => accumulator_type,
         .map => if (hint != null and self.types.get(hint.?) == .list) self.types.get(hint.?).list else null,
     };
 
-    const callback = try @import("collections/callback.zig").analyze(self, syntax.item(arguments, offset), parameters, body_hint);
+    const callback = try @import("collections/callback.zig").analyze(self, syntax.item(arguments, 0), parameters, body_hint);
 
     const type_id = switch (kind) {
         .filter => source_type,
@@ -46,6 +47,8 @@ pub fn analyzeAt(self: *Analyzer, expression: anytype, target: ir.ExprId, kind: 
 
     return @import("collections/lower.zig").lower(self, .{
         .span = expression.span,
+        .tuple_result = tuple_result,
+        .projection = projection,
         .kind = kind,
         .target = target,
         .initial = if (reducing) second else null,
@@ -53,4 +56,11 @@ pub fn analyzeAt(self: *Analyzer, expression: anytype, target: ir.ExprId, kind: 
         .callback = callback,
         .result_type = type_id,
     });
+}
+
+fn resultHint(self: *const Analyzer, expected: ?ir.TypeId, slot: u64) ?ir.TypeId {
+    const hint = aggregates.payload(self, expected) orelse return null;
+    const value = self.types.get(hint);
+
+    return if (value == .tuple and value.tuple.len == 2) value.tuple.at(@intCast(slot)) else null;
 }

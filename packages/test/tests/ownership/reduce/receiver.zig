@@ -3,7 +3,7 @@ const allocation_testing = @import("allocation_testing");
 const h = @import("check.zig");
 
 const scalar_read = h.Case{
-    .body = "  const values = map(in, item => item)\n\n  return values.push(values.length)[0]",
+    .body = "  const values = in.map(item => item)[0]\n\n  return values.push(values.length)[0]",
 };
 
 test "immutable receiver permits scalar length argument before move" {
@@ -18,13 +18,13 @@ test "immutable receiver permits scalar indexed argument before move" {
 
 test "immutable receiver allows nested copying inside argument" {
     try h.run(.{
-        .body = "  const values = map(in, item => item)\n\n  return values.push(values.reverse()[0].length)[0]",
+        .body = "  const values = in.map(item => item)[0]\n\n  return values.push(values.reverse()[0].length)[0]",
     });
 }
 
 test "immutable receiver remains usable after scalar argument read" {
     try h.run(.{
-        .body = "  const values = map(in, item => item)\n  const next = values.push(values.length)[0]\n\n  return values",
+        .body = "  const values = in.map(item => item)[0]\n  const next = values.push(values.length)[0]\n\n  return values",
     });
 }
 
@@ -64,12 +64,12 @@ test "consuming nested list receiver preserves parent value" {
 
 test "temporary transform in argument preserves receiver reservation" {
     try h.run(.{
-        .body = "  const values = map(in, item => item)\n\n  return values.push(map(values, item => item).length)[0]",
+        .body = "  const values = in.map(item => item)[0]\n\n  return values.push(values.map(item => item)[0].length)[0]",
     });
 }
 
 test "receiver can be shared as a reference argument" {
     try h.run(.{
-        .body = "  const values = map(in, item => item)\n\n  return values.concat(values)[0]",
+        .body = "  const values = in.map(item => item)[0]\n\n  return values.concat(values)[0]",
     });
 }

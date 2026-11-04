@@ -1,4 +1,3 @@
-import { map } from "std:utils"
 import context from "lib:context"
 import source from "lib:source"
 import visit from "lib:visit"
@@ -14,8 +13,8 @@ export default function (in: Input): Output {
     const items = source(in.items)
     const ignored = context(in.tag)
 
-    return map(items, item => visit({
+    return items.map(item => visit({
         item,
         context: 0
-    }))
+    }))[0]
 }

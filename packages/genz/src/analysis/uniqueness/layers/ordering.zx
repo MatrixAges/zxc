@@ -1,5 +1,4 @@
 import integers from "std:integer"
-import { map } from "std:utils"
 
 import type { Plan } from "./model"
 
@@ -11,7 +10,7 @@ export type Input = {
 export type Output = Plan
 
 export default function (in: Input): Output {
-    const order: u32[] = map(in.depths, depth => 0)
+    const order: u32[] = in.depths.map(depth => 0)[0]
 
     const result = loop({
         depths: in.depths,

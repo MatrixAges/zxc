@@ -184,7 +184,16 @@ pub fn analyze(self: *Analyzer, expression: anytype, expected: ?ir.TypeId) zx.Er
             return self.append(.{ .span = span, .type_id = type_id, .value = .none });
         },
         .index => |item| {
-            const target = try self.expression(item.target, null);
+            const projection = if (syntax.value(item.index) == .number) std.fmt.parseInt(u64, syntax.value(item.index).number, 0) catch null else null;
+            var projected = false;
+
+            const target = if (projection != null and syntax.value(item.target) == .call)
+                try @import("calls.zig").analyzeProjected(self, item.target, expected, projection, &projected)
+            else
+                try self.expression(item.target, null);
+
+            if (projected) return target;
+
             var target_type = self.types.get(self.node(target).type_id);
             const is_string = self.node(target).type_id == Types.scalarId(.string);
 

@@ -1,5 +1,4 @@
 import integers from "std:integer"
-import { map } from "std:utils"
 import kind from "core/type_table/kind"
 import { Kind } from "core/type_table/model"
 
@@ -34,7 +33,7 @@ export default function (in: Input): Output {
         }
     }
 
-    const allowed = map(in.function_inputs, (input, index) =>
+    const allowed = in.function_inputs.map((input, index) =>
         input != boundary.type_id &&
         in.function_outputs[index] != boundary.type_id &&
         !descendant({
@@ -45,8 +44,7 @@ export default function (in: Input): Output {
             types: in.types,
             parent: in.function_outputs[index],
             root: boundary.type_id
-        })
-    )
+        }))[0]
 
     return {
         valid: true,

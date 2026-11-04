@@ -1,5 +1,3 @@
-import { reduce } from "std:utils"
-
 export type Input = {
     items: i64[],
     seed: i64
@@ -22,7 +20,7 @@ export default function (in: Input): Output {
         visits: []
     }
 
-    return reduce(in.items, (state, item, index, source) => ({
+    return in.items.reduce((state, item, index, source) => ({
         value: item,
         visits: state.visits.push({
             previous: state.value,
@@ -31,5 +29,5 @@ export default function (in: Input): Output {
             source_value: source[index],
             source_length: source.length
         })[0]
-    }), initial)
+    }), initial)[1]
 }

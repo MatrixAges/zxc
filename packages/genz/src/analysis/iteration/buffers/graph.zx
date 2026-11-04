@@ -1,5 +1,4 @@
 import integers from "std:integer"
-import { map } from "std:utils"
 import child from "core/expression_table/child"
 import { ExpressionKind } from "core/expression_table/kinds"
 
@@ -26,7 +25,7 @@ export default function (in: Input): Output {
     const result = loop({
         source: in.source.expressions,
         pending: in.source.roots,
-        seen: map(in.source.expressions.kinds, value => false),
+        seen: in.source.expressions.kinds.map(value => false)[0],
         kinds: symbols.kinds,
         values: symbols.values
     }, {

@@ -1,5 +1,3 @@
-import { map } from "std:utils"
-
 export type Input = {
     values: u64[],
     count: u64,
@@ -12,11 +10,17 @@ export type Output = {
 }
 
 export default function (in: Input): Output {
-    const fresh = map(in.values, item => item + 1)
+    const fresh = in.values.map(item => item + 1)[0]
 
     const box: [u64[], u64[]] = match in.choice {
-        true => [fresh, in.values],
-        _ => [fresh, fresh]
+        true => [
+            fresh,
+            in.values
+        ],
+        _ => [
+            fresh,
+            fresh
+        ]
     }
 
     return {

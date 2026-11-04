@@ -4,6 +4,7 @@ import cases from './filter_selection/cases.ts'
 import expectation from './models/filter_selection.ts'
 import { package_dir, writeCatalog, writeOutput } from './shared/catalog.ts'
 import { readRows } from './shared/json.ts'
+import zxSource from './shared/zx_source.ts'
 
 type Sample = { name: string; path: string; sha256: string; spec: Spec; reason: string }
 const samples = readRows<Sample>(resolve(package_dir, 'src/data/filter_selection.jsonl'))
@@ -25,7 +26,14 @@ for (const operation of Object.keys(programs) as Array<Spec['operation']>) {
 
     writeOutput(
         `tests/${base}/${operation}.zx`,
-        `export type Input = { items: i64[], ${program.fields} }\n\nexport type Output = { selected: i64[], items: i64[] }\n\nexport default function (in: Input): Output {\n    return { selected: in.items.filter((item, index, source) => ${program.predicate}), items: in.items }\n}\n`
+        zxSource(`export type Input = { items: i64[], ${program.fields} }
+
+export type Output = { selected: i64[], items: i64[] }
+
+export default function (in: Input): Output {
+    return { selected: in.items.filter((item, index, source) => ${program.predicate})[0], items: in.items }
+}
+`)
     )
     writeCatalog(
         `tests/${base}/${operation}.jsonl`,

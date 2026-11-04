@@ -1,5 +1,4 @@
 import integers from "std:integer"
-import { map } from "std:utils"
 
 import traverse from "./traverse"
 
@@ -13,7 +12,7 @@ export type Input = {
 export type Output = bool[]
 
 export default function (in: Input): Output {
-    const seen: u64[] = map(in.program.types.kinds, kind => 0)
+    const seen: u64[] = in.program.types.kinds.map(kind => 0)[0]
 
     const first = traverse({
         types: in.program.types,

@@ -1,5 +1,4 @@
 import integers from "std:integer"
-import { map } from "std:utils"
 import { BinaryOperator, ExpressionKind } from "core/expression_table/kinds"
 
 import {
@@ -40,7 +39,7 @@ export default function (in: Input): Output {
         expressions,
         root,
         index: root + 1,
-        required: map(expressions.kinds, kind => false),
+        required: expressions.kinds.map(kind => false)[0],
         diagnostic: empty
     }, {
         while: current => current.index != 0 && current.diagnostic.message == "",

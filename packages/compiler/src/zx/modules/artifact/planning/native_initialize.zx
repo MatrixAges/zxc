@@ -1,5 +1,4 @@
 import integers from "std:integer"
-import { map } from "std:utils"
 
 import type { NativePlan } from "./model"
 
@@ -10,8 +9,8 @@ export type Input = {
 export type Output = NativePlan
 
 export default function (in: Input): Output {
-    const mapping: u64[] = map(in.specifiers, value => 0)
-    const order: u32[] = map(in.specifiers, value => integers.narrow(0))
+    const mapping: u64[] = in.specifiers.map(value => 0)[0]
+    const order: u32[] = in.specifiers.map(value => integers.narrow(0))[0]
 
     return {
         mapping,

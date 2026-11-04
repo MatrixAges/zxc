@@ -1,4 +1,3 @@
-import { map } from "std:utils"
 import host from "zig:host"
 
 import type { Node } from "zig:host"
@@ -8,5 +7,5 @@ export type Input = Node
 export type Output = u64[]
 
 export default function (in: Input): Output {
-    return map(host.references(in), node => host.read(node))
+    return host.references(in).map(node => host.read(node))[0]
 }

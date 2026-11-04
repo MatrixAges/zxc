@@ -1,4 +1,3 @@
-import { map } from "std:utils"
 import key from "core/native_module_table/key"
 
 import position from "../names/position"
@@ -17,7 +16,7 @@ export default function (in: Input): Output {
         source: in.source,
         groups,
         keys: in.index.names,
-        claimed: map(in.index.names, item => false),
+        claimed: in.index.names.map(item => false)[0],
         index: 0
     }, {
         while: current => current.index < current.source.modules.specifiers.length,
@@ -44,7 +43,7 @@ export default function (in: Input): Output {
                 current.groups = current.groups.push({
                     key: name,
                     names,
-                    claimed: map(names, item => false),
+                    claimed: names.map(item => false)[0],
                     types,
                     functions
                 })[0]

@@ -1,5 +1,4 @@
 import integers from "std:integer"
-import { map } from "std:utils"
 import exportName from "core/native_module_table/export_name"
 import key from "core/native_module_table/key"
 
@@ -28,7 +27,7 @@ export default function (in: Input): Output {
                 source: current.source,
                 key: previous.key,
                 names: previous.names,
-                claimed: map(previous.claimed, item => item),
+                claimed: previous.claimed.map(item => item)[0],
                 functions: previous.functions,
                 index: 0
             }, {

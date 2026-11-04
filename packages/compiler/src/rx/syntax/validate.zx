@@ -1,4 +1,3 @@
-import { reduce } from "std:utils"
 import {
     ascii_carriage_return,
     ascii_line_feed,
@@ -36,7 +35,7 @@ export default function (in: Input): Output {
         first: 0
     }
 
-    const checked = reduce(in, (state, byte) => ({
+    const checked = in.reduce((state, byte) => ({
         valid:
             state.valid &&
             (
@@ -49,7 +48,7 @@ export default function (in: Input): Output {
             ),
         second: state.first,
         first: byte
-    }), initial)
+    }), initial)[1]
 
     return checked.valid ? no_diagnostic : forbidden_character
 }

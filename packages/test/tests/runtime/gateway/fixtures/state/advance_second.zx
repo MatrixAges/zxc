@@ -1,5 +1,3 @@
-import { map } from "std:utils"
-
 export type State = {
     value: u64,
     history: u64[],
@@ -19,7 +17,7 @@ export default function (in: Input, {
     const next = {
         ...in.state,
         value: in.state.value + in.increment,
-        history: map(in.state.history, item => item + 1)
+        history: in.state.history.map(item => item + 1)[0]
     }
 
     store.inner.counter = next

@@ -109,6 +109,7 @@ export default function (in: Input): Output {
     })
 
     const result = lower({
+        tuple_result: false,
         state: body.state,
         span: in.span,
         kind: TransformKind.Reduce,

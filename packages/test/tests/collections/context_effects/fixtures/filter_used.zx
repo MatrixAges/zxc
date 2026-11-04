@@ -2,7 +2,10 @@ import context from "lib:context"
 import source from "lib:source"
 import visit from "lib:visit"
 
-export type Input = { items: i64[], tag: i64 }
+export type Input = {
+    items: i64[],
+    tag: i64
+}
 
 export type Output = i64[]
 
@@ -10,5 +13,8 @@ export default function (in: Input): Output {
     const items = source(in.items)
     const data = context(in.tag)
 
-    return items.filter(item => visit({ item, context: data }))
+    return items.filter(item => visit({
+        item,
+        context: data
+    }))[0]
 }

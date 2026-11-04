@@ -1,5 +1,3 @@
-import { map } from "std:utils"
-
 export type Input = {
     items: i64[],
     context: {
@@ -10,5 +8,5 @@ export type Input = {
 export type Output = bool[]
 
 export default function (in: Input): Output {
-    return map(in.items, item => in.context.res)
+    return in.items.map(item => in.context.res)[0]
 }

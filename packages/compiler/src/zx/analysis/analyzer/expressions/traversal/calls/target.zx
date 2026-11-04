@@ -1,8 +1,10 @@
 import integers from "std:integer"
+import { max_u32 } from "core/const"
 import { TransformKind } from "core/expression_table/kinds"
 import { Kind } from "core/type_table/model"
 
 import row from "../../../../semantic/types/row"
+import methodHint from "../../../collections/method_hint"
 import { NameKind } from "../../../source/model"
 import readName from "../../../source/name"
 import {
@@ -10,7 +12,6 @@ import {
     method_reduce,
     method_clone,
     unsupported_code,
-    removed_method_message,
     clone_message
 } from "../../calls/const"
 import plan from "../../calls/list/plan"
@@ -42,8 +43,6 @@ export default function (in: Input): Output {
 
     const message = match name.text {
         method_clone => clone_message,
-        method_map => removed_method_message,
-        method_reduce => removed_method_message,
         _ => ""
     }
 
@@ -113,24 +112,45 @@ export default function (in: Input): Output {
     }
 
     if (
-        name.text == "filter" || name.text == "every" || name.text == "some"
+        name.text == method_map || name.text == method_reduce ||
+            name.text == "filter" || name.text == "every" || name.text == "some"
     ) {
+        const kind = match name.text {
+            method_map => TransformKind.Map,
+            method_reduce => TransformKind.Reduce,
+            "filter" => TransformKind.Filter,
+            "every" => TransformKind.Every,
+            _ => TransformKind.Some
+        }
+
+        const hint = methodHint({
+            work: in,
+            node: frame.node,
+            expected: frame.expected,
+            kind
+        })
+
         return transform({
+            projection: hint.projection,
+            tuple_result:
+                kind == TransformKind.Map || kind == TransformKind.Filter ||
+                kind == TransformKind.Reduce,
             work: {
                 ...in,
                 frames: {
                     ...in.frames,
-                    methods: in.frames.methods.pop()[0]
+                    methods: in.frames.methods.pop()[0],
+                    indices: hint.projection == null ? in.frames.indices :
+                        in.frames.indices.splice(in.frames.indices.length - 1, 1, [{
+                            ...in.frames.indices[in.frames.indices.length - 1],
+                            target: max_u32
+                        }])[0]
                 }
             },
             node: frame.node,
-            kind: match name.text {
-                "filter" => TransformKind.Filter,
-                "every" => TransformKind.Every,
-                _ => TransformKind.Some
-            },
+            kind,
             target: in.value,
-            expected: frame.expected,
+            expected: hint.expected,
             arguments: items({
                 items: in.source.tree.items,
                 head: node.head

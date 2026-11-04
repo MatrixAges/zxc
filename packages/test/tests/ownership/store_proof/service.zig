@@ -47,7 +47,7 @@ test "Store proof service borrowed_rows" {
 
 test "Store proof service shallow_rows" {
     try h.run(.{
-        .value = "{ count: 9, rows: map(in.rows, row => row), labels: [\"fresh\"] }",
+        .value = "{ count: 9, rows: in.rows.map(row => row)[0], labels: [\"fresh\"] }",
         .expected = false,
         .helper = false,
         .service = true,
@@ -56,7 +56,7 @@ test "Store proof service shallow_rows" {
 
 test "Store proof service deep_rows" {
     try h.run(.{
-        .value = "{ count: 9, rows: map(in.rows, row => map(row, item => item)), labels: [\"fresh\"] }",
+        .value = "{ count: 9, rows: in.rows.map(row => row.map(item => item)[0])[0], labels: [\"fresh\"] }",
         .expected = true,
         .helper = false,
         .service = true,
@@ -74,7 +74,7 @@ test "Store proof service borrowed_labels" {
 
 test "Store proof service shallow_labels" {
     try h.run(.{
-        .value = "{ count: 9, rows: [[1]], labels: map(in.labels, label => label) }",
+        .value = "{ count: 9, rows: [[1]], labels: in.labels.map(label => label)[0] }",
         .expected = false,
         .helper = false,
         .service = true,
@@ -83,7 +83,7 @@ test "Store proof service shallow_labels" {
 
 test "Store proof service fresh_labels" {
     try h.run(.{
-        .value = "{ count: 9, rows: [[1]], labels: map(in.labels, label => `${label}!`) }",
+        .value = "{ count: 9, rows: [[1]], labels: in.labels.map(label => `${label}!`)[0] }",
         .expected = true,
         .helper = false,
         .service = true,
@@ -92,7 +92,7 @@ test "Store proof service fresh_labels" {
 
 test "Store proof service deep_both" {
     try h.run(.{
-        .value = "{ count: in.count, rows: map(in.rows, row => map(row, item => item)), labels: map(in.labels, label => `${label}!`) }",
+        .value = "{ count: in.count, rows: in.rows.map(row => row.map(item => item)[0])[0], labels: in.labels.map(label => `${label}!`)[0] }",
         .expected = true,
         .helper = false,
         .service = true,
@@ -137,7 +137,7 @@ test "Store proof service copied_element" {
 
 test "Store proof service spread_replace_all" {
     try h.run(.{
-        .value = "{ ...in, rows: map(in.rows, row => map(row, item => item)), labels: map(in.labels, label => `${label}!`) }",
+        .value = "{ ...in, rows: in.rows.map(row => row.map(item => item)[0])[0], labels: in.labels.map(label => `${label}!`)[0] }",
         .expected = true,
         .helper = false,
         .service = true,

@@ -1,9 +1,7 @@
-import { reduce } from "std:utils"
-
 export type Input = u64[]
 
 export type Output = u64
 
 export default function (in: Input): Output {
-    return reduce(in, (sum, item) => sum + item, 0)
+    return in.reduce((sum, item) => sum + item, 0)[1]
 }

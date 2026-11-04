@@ -19,8 +19,6 @@ pub const Operation = enum {
     max,
     clamp,
     inRange,
-    map,
-    reduce,
 };
 
 pub const exports: [std.enums.values(Operation).len]Binding = blk: {

@@ -41,7 +41,7 @@ for (const rule of ['cursor', 'violations'] as const) {
     writeOutput(
         `tests/${base}/${rule}.zx`,
         zxSource(
-            'import host from "zig:host"\n\nexport type Input = i64[]\n\nexport type Output = bool[]\n\nexport default function (in: Input): Output {\n    return map(host.source(in), (item, index, source) => host.visit({ item, index, source }))\n}\n'
+            'import host from "zig:host"\n\nexport type Input = i64[]\n\nexport type Output = bool[]\n\nexport default function (in: Input): Output {\n    return host.source(in).map((item, index, source) => host.visit({ item, index, source }))[0]\n}\n'
         )
     )
     writeCatalog(

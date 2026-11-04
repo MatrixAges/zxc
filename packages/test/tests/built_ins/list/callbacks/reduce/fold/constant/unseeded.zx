@@ -1,5 +1,3 @@
-import { reduce } from "std:utils"
-
 export type Input = {
     items: i64[],
     returned: i64
@@ -12,7 +10,7 @@ export type Output = {
 
 export default function (in: Input): Output {
     return {
-        value: reduce(in.items, (previous, current) => in.returned),
+        value: in.items.reduce((previous, current) => in.returned)[1],
         items: in.items
     }
 }

@@ -1,5 +1,4 @@
 import integers from "std:integer"
-import { map } from "std:utils"
 import { max_u32 } from "core/const"
 import child from "core/expression_table/child"
 import { ExpressionKind } from "core/expression_table/kinds"
@@ -14,9 +13,9 @@ export default function (in: Input): Output {
 
     return loop({
         state: {
-            projected: map(in.names, name => true),
-            observed: map(in.expressions.kinds, kind => false),
-            bindings: map(in.names, name => max_u32),
+            projected: in.names.map(name => true)[0],
+            observed: in.expressions.kinds.map(kind => false)[0],
+            bindings: in.names.map(name => max_u32)[0],
             pending
         },
         index: 0

@@ -9,28 +9,22 @@ pub const Operation = @import("../modules/intrinsic.zig").Operation;
 
 pub fn arity(operation: Operation) usize {
     return switch (operation) {
-        .pick, .omit, .take, .takeRight, .drop, .dropRight, .map, .reduce => 2,
+        .pick, .omit, .take, .takeRight, .drop, .dropRight => 2,
         .clamp, .inRange => 3,
         else => 1,
     };
 }
 
-pub fn analyze(self: *Analyzer, expression: anytype, operation: Operation, expected: ?ir.TypeId) zx.Error!ir.ExprId {
+pub fn analyze(self: *Analyzer, expression: anytype, operation: Operation, _: ?ir.TypeId) zx.Error!ir.ExprId {
     const call = syntax.value(expression).call;
 
-    if (if (operation == .reduce) (call.arguments.len < 2 or call.arguments.len > 3) else call.arguments.len != arity(operation)) return self.reporter.fail(.type_mismatch, expression.span, "utility argument count mismatch");
+    if (call.arguments.len != arity(operation)) return self.reporter.fail(.type_mismatch, expression.span, "utility argument count mismatch");
     if ((operation == .isNil or operation == .isNotNil) and syntax.value(syntax.item(call.arguments, 0)) == .null_value) return self.append(.{ .type_id = Types.scalarId(.bool), .span = expression.span, .value = .{ .boolean = operation == .isNil } });
 
     const first = try self.expression(syntax.item(call.arguments, 0), null);
     const first_type = self.node(first).type_id;
 
     if (operation == .identity) return first;
-
-    if (operation == .map or operation == .reduce) {
-        if (self.types.get(first_type) != .list) return self.reporter.fail(.type_mismatch, expression.span, "array utility requires a list");
-
-        return @import("transforms.zig").analyzeAt(self, expression, first, if (operation == .map) .map else .reduce, expected, 1);
-    }
 
     if (operation == .pick or operation == .omit) {
         if (self.types.get(first_type) != .object) return self.reporter.fail(.type_mismatch, expression.span, "object selection requires an object");

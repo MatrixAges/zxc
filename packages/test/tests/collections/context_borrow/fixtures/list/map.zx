@@ -1,4 +1,3 @@
-import { map } from "std:utils"
 import host from "zig:host"
 
 import type { Context } from "zig:host"
@@ -13,5 +12,5 @@ export type Output = i64[]
 export default function (in: Input): Output {
     const data = host.echo(in.context)
 
-    return map(in.items, item => host.mapValue(item, data))
+    return in.items.map(item => host.mapValue(item, data))[0]
 }

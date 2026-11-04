@@ -1,5 +1,4 @@
 import integers from "std:integer"
-import { map } from "std:utils"
 
 import { Phase } from "./model"
 
@@ -46,9 +45,10 @@ export default function (in: Input): Output {
     return {
         state: {
             activity: {
-                active: map(in.body.symbols.names, (value, index) => index == 0),
-                declared: map(in.body.symbols.names, (value, index) => index == 0),
-                owners: map(in.body.symbols.names, value => 0),
+                active: in.body.symbols.names.map((value, index) => index == 0)[0],
+                declared:
+                    in.body.symbols.names.map((value, index) => index == 0)[0],
+                owners: in.body.symbols.names.map(value => 0)[0],
                 changed_symbols: [],
                 changed_values: []
             },

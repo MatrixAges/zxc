@@ -7,8 +7,6 @@ export type Output = u64
 
 export default function (in: Input): Output {
     return match in {
-        Operation.Map => binary_arity,
-        Operation.Reduce => binary_arity,
         Operation.Pick => binary_arity,
         Operation.Omit => binary_arity,
         Operation.Take => binary_arity,

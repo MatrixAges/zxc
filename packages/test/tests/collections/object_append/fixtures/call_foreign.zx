@@ -1,5 +1,3 @@
-import { reduce } from "std:utils"
-
 import step from "./push_step"
 
 export type Input = {
@@ -22,8 +20,8 @@ export default function (in: Input): Output {
         values: in.seed
     }
 
-    return reduce(in.steps, (state, item) => step({
+    return in.steps.reduce((state, item) => step({
         state,
         item
-    }), initial)
+    }), initial)[1]
 }

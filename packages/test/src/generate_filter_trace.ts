@@ -3,6 +3,7 @@ import { resolve } from 'node:path'
 import expectation from './models/filter_trace.ts'
 import { package_dir, writeCatalog, writeOutput } from './shared/catalog.ts'
 import { readRows } from './shared/json.ts'
+import zxSource from './shared/zx_source.ts'
 
 type Sample = Spec & { name: string; path: string; sha256: string; reason: string }
 const samples = readRows<Sample>(resolve(package_dir, 'src/data/filter_trace.jsonl'))
@@ -39,7 +40,9 @@ for (const rule of ['cursor', 'ordered', 'violations'] as const) {
 
     writeOutput(
         `tests/${base}/${rule}.zx`,
-        'import host from "zig:host"\n\nexport type Input = i64[]\n\nexport type Output = i64[]\n\nexport default function (in: Input): Output {\n    return host.source(in).filter((item, index, source) => host.visit({ item, index, source }))\n}\n'
+        zxSource(
+            'import host from "zig:host"\n\nexport type Input = i64[]\n\nexport type Output = i64[]\n\nexport default function (in: Input): Output {\n    return host.source(in).filter((item, index, source) => host.visit({ item, index, source }))[0]\n}\n'
+        )
     )
     writeCatalog(
         `tests/${base}/${rule}.jsonl`,

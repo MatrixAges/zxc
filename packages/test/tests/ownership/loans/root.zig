@@ -67,7 +67,7 @@ test "completed scalar inner call does not loan its input into outer argument" {
 test "fresh mapped argument does not loan its scalar source list" {
     try h.run(.{
         .input = consumed,
-        .body = "  return inspect({first: map(values, item => item + 1), second: values.reverse()})",
+        .body = "  return inspect({first: values.map(item => item + 1)[0], second: values.reverse()})",
     });
 }
 

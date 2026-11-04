@@ -24,7 +24,7 @@ writeOutput(
 export type Output = i64[]
 
 export default function (in: Input): Output {
-  const owned = map(in.items, item => item)
+  const owned = in.items.map(item => item)[0]
 
   const [next, _] = owned.reverse()
 

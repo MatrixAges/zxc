@@ -1,5 +1,3 @@
-import { map } from "std:utils"
-
 export type Input = {
     items: i64[]
 }
@@ -12,11 +10,10 @@ export type Output = {
 export default function (in: Input): Output {
     return {
         mapped:
-            map(
-                in.items,
+            in.items.map(
                 (item, index, source) =>
                     source[index + 1 == source.length ? 0 : index + 1]
-            ),
+            )[0],
         items: in.items
     }
 }

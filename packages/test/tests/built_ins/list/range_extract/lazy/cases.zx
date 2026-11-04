@@ -1,5 +1,3 @@
-import { map } from "std:utils"
-
 export type Input = {
     items: i64[],
     start: u64,
@@ -27,7 +25,7 @@ export default function (in: Input): Output {
         }
     }
 
-    const owned = map(in.items, item => item)
+    const owned = in.items.map(item => item)[0]
 
     const [remaining, removed] = owned.splice(in.start, in.count, in.other)
 

@@ -14,18 +14,18 @@ pub fn run(case: Case) !void {
 }
 
 pub fn allocated(allocator: std.mem.Allocator, case: Case) !void {
-    const source = try std.fmt.allocPrint(allocator, "import {{ map, reduce }} from \"std:utils\"\n\nimport inspect from \"./inspect\"\nimport count from \"./count\"\n\nexport type Input = void\n\nexport type Output = u64\n\nexport default function (in: Input): Output {{\n  const values: u64[] = [1, 2, 3]\n\n{s}\n}}\n", .{case.body});
+    const source = try std.fmt.allocPrint(allocator, "import inspect from \"./inspect\"\nimport count from \"./count\"\n\nexport type Input = void\n\nexport type Output = u64\n\nexport default function (in: Input): Output {{\n  const values: u64[] = [1, 2, 3]\n\n{s}\n}}\n", .{case.body});
 
     defer allocator.free(source);
 
-    const helper = try std.fmt.allocPrint(allocator, "import {{ map, reduce }} from \"std:utils\"\n\nexport type Input = {s}\n\nexport type Output = {s}\n\nexport default function (in: Input): Output {{\n{s}\n}}\n", .{ case.input, case.helper_output, case.helper_body });
+    const helper = try std.fmt.allocPrint(allocator, "export type Input = {s}\n\nexport type Output = {s}\n\nexport default function (in: Input): Output {{\n{s}\n}}\n", .{ case.input, case.helper_output, case.helper_body });
 
     defer allocator.free(helper);
 
     var result = try compiler.project.analyze(allocator, &.{
         .{ .path = "main.zx", .source = source },
         .{ .path = "inspect.zx", .source = helper },
-        .{ .path = "count.zx", .source = "import { map, reduce } from \"std:utils\"\n\nexport type Input = u64[]\n\nexport type Output = u64\n\nexport default function (in: Input): Output {\n  return in.length\n}\n" },
+        .{ .path = "count.zx", .source = "export type Input = u64[]\n\nexport type Output = u64\n\nexport default function (in: Input): Output {\n  return in.length\n}\n" },
     }, .{ .entry = "main.zx", .root_dir = "/project" });
 
     defer result.deinit();

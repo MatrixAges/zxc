@@ -1,5 +1,4 @@
 import integers from "std:integer"
-import { map } from "std:utils"
 
 import type { Index as Output } from "./model"
 
@@ -47,8 +46,8 @@ export default function (in: Input): Output {
         }
     }).first
 
-    const values: u32[] = map(in.items, item => 0)
-    const cursors = map(starts, item => item)
+    const values: u32[] = in.items.map(item => 0)[0]
+    const cursors = starts.map(item => item)[0]
 
     const result = loop({
         owners: in.owners,

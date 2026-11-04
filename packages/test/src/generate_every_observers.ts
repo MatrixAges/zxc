@@ -71,9 +71,9 @@ export type Output = { result: bool, calls: u64, visited: i64[]${extra} }
 export default function (in: Input): Output {
     const initial: Output = { result: true, calls: 0, visited: []${initial} }
 
-    return reduce(in.items, (state, item) => state.result ? {
+    return in.items.reduce((state, item) => state.result ? {
         result: ${predicate}, calls: state.calls + 1, visited: state.visited.push(item)[0]${retained}
-    } : state, initial)
+    } : state, initial)[1]
 }
 `)
     )
@@ -107,10 +107,10 @@ export type Output = { result: bool, calls: u64, visited: i64[], threshold: i64 
 export default function (in: Input): Output {
     const initial: Output = { result: true, calls: 0, visited: [], threshold: in.threshold }
 
-    return reduce(in.items, (state, item) => state.result ? {
+    return in.items.reduce((state, item) => state.result ? {
         result: item[0] > state.threshold, calls: state.calls + 1,
         visited: state.visited.push(item[0])[0], threshold: state.threshold
-    } : state, initial)
+    } : state, initial)[1]
 }
 `)
 )

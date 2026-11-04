@@ -1,3 +1,5 @@
+import { max_u32 } from "core/const"
+
 import { ExprKind } from "../../../../frontend/parser/expressions/state/model"
 import payload from "../../types/payload"
 import binaryHint from "../hints/binary"
@@ -133,6 +135,7 @@ export default function (in: Input): Output {
                 ...frames,
                 actions: frames.actions.push(Action.IndexTarget)[0],
                 indices: frames.indices.push({
+                    output_hint: expected ?? max_u32,
                     node: in.node,
                     target: 0
                 })[0]

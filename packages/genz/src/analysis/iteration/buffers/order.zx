@@ -1,5 +1,4 @@
 import integers from "std:integer"
-import { map } from "std:utils"
 import child from "core/expression_table/child"
 import { ExpressionKind } from "core/expression_table/kinds"
 
@@ -17,7 +16,7 @@ export default function (in: Input): Output {
         source: in.source,
         definitions: in.graph.definitions,
         roots: in.source.source.roots,
-        visits: map(in.source.source.expressions.kinds, kind => Visit.Unknown),
+        visits: in.source.source.expressions.kinds.map(kind => Visit.Unknown)[0],
         stack: empty_ids,
         indices: empty_indices,
         aliases: empty_bools,
