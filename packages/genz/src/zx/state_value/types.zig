@@ -75,6 +75,10 @@ pub fn lower(self: *Lower, output: *std.ArrayList(node.Declaration), exported: b
         self.state_types[index] = selected;
         self.state_layouts[index] = selected;
 
+        if (value == .list and @import("elements.zig").inlineStored(self, id)) {
+            self.view_types[index] = try self.builder.expression(.{ .const_slice = self.abi_layouts[@backingInt(value.list)] });
+        }
+
         if (value == .object or value == .tuple) {
             const changed = switch (value) {
                 .object => |fields| changed: {

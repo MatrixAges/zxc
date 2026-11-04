@@ -2,7 +2,10 @@ import { ExpressionsKind, ExpressionsPrimitive } from "../../../printer/model/ex
 
 import type { Expressions } from "../abi/model"
 
-export type Input = u32
+export type Input = {
+    child: u32,
+    slice: bool
+}
 
 export type Output = Expressions
 
@@ -16,15 +19,15 @@ export default function (in: Input): Output {
     const arguments: u32[][] = []
 
     return {
-        tags: [ExpressionsKind.OptionalType],
+        tags: [in.slice ? ExpressionsKind.ConstSlice : ExpressionsKind.OptionalType],
         offsets: [0],
         identifier: names,
         primitive,
         field_target: empty,
         field_name: names,
         const_pointer: empty,
-        optional_type: [in],
-        const_slice: empty,
+        optional_type: in.slice ? empty : [in.child],
+        const_slice: in.slice ? [in.child] : empty,
         error_set: texts,
         error_union_payload: empty,
         error_union_errors: errors,

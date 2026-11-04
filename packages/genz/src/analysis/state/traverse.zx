@@ -26,7 +26,8 @@ export default function (in: Input): Output {
 
     if (
         in.boxed[root] || (
-            target != Kind.Object && target != Kind.Tuple && target != Kind.Optional
+            target != Kind.Object && target != Kind.Tuple &&
+                target != Kind.Optional && target != Kind.List
         )
     ) {
         return {
@@ -69,7 +70,7 @@ export default function (in: Input): Output {
                     const next = children({
                         types: current.types,
                         id,
-                        deep: false
+                        deep: true
                     })
 
                     current.stack = loop({

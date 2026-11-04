@@ -127,6 +127,9 @@ export default function (in: Input): Output {
                     source.abi_layouts[index]
                 const view = match {
                     target == Kind.Optional => changed ? start + 1 : value,
+                    target == Kind.List &&
+                        kind(source.types.kinds[integers.widen(first)]) == Kind.Object &&
+                        source.selected[integers.widen(first)] => start,
                     selected && aggregate => changed ?
                         start + integers.narrow(count) - 1 : value,
                     _ => source.abi_types[index]

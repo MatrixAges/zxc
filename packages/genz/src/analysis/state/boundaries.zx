@@ -44,12 +44,11 @@ export default function (in: Input): Output {
                 scalar || !current.local[index] ||
                     functions.native_modules[index] != null
             ) {
-                current.roots = current.roots.concat(
-                    [
-                        functions.input_types[index],
-                        functions.output_types[index]
-                    ]
-                )[0]
+                current.roots = current.roots.push(functions.input_types[index])[0]
+            }
+
+            if (functions.native_modules[index] != null) {
+                current.roots = current.roots.push(functions.output_types[index])[0]
             }
 
             current.index += 1

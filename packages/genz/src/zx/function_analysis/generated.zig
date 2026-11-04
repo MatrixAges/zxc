@@ -62,16 +62,14 @@ pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, progr
     };
 
     const error_sources = Errors{ .names = names, .unknown = unknown, .callees = callees };
-    const boundaries = try temporary.alloc(u32, 2 + program.exports.len + exported.len * 2);
-    boundaries[0] = @backingInt(program.input_type);
-    boundaries[1] = @backingInt(program.output_type);
+    const boundaries = try temporary.alloc(u32, 1 + exported.len);
 
-    for (program.exports, boundaries[2..][0..program.exports.len]) |item, *target| target.* = @backingInt(item.type_id);
+    boundaries[0] = @backingInt(program.input_type);
 
     for (exported, 0..) |id, index| {
         const function = program.functions.at(@backingInt(id));
-        boundaries[2 + program.exports.len + index * 2] = @backingInt(function.input_type);
-        boundaries[3 + program.exports.len + index * 2] = @backingInt(function.output_type);
+
+        boundaries[index + 1] = @backingInt(function.input_type);
     }
 
     const input = Input{ .program = &view, .errors = &error_sources, .boundaries = boundaries };

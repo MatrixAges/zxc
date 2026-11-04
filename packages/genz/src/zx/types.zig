@@ -184,6 +184,8 @@ fn view(self: *Lower, index: usize) Lower.Error!void {
         const child = try get(self, self.view_types, value.optional);
 
         self.view_types[index] = if (child == try get(self, self.state_types, value.optional)) try get(self, self.state_types, id) else try self.builder.expression(.{ .optional_type = child });
+    } else if (value == .list and @import("state_value/elements.zig").inlineStored(self, id)) {
+        self.view_types[index] = try self.builder.expression(.{ .const_slice = try get(self, self.abi_layouts, value.list) });
     } else if ((value == .object or value == .tuple) and self.state_plan.selected[index]) {
         const changed = switch (value) {
             .object => |fields| changed: {

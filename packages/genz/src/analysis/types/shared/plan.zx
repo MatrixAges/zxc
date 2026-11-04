@@ -71,6 +71,7 @@ export default function (in: Input): Output {
                     const count = match decision.action {
                         Action.Alias => 0,
                         Action.Optional => leaf_nodes,
+                        Action.Slice => leaf_nodes,
                         Action.StateName => wrapped_nodes,
                         Action.ViewName => wrapped_nodes,
                         _ => match {
@@ -88,6 +89,7 @@ export default function (in: Input): Output {
                         const value = match decision.action {
                             Action.Alias => decision.value,
                             Action.Optional => base,
+                            Action.Slice => base,
                             Action.StateName => base + 1,
                             Action.ViewName => base + 1,
                             _ => match {

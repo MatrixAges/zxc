@@ -25,6 +25,10 @@ export default function (in: Input): Output {
     const count = integers.widen(types.second[index])
     const selected = in.source.selected[index]
 
+    const inline_list = target == Kind.List &&
+        kind(types.kinds[integers.widen(first)]) == Kind.Object &&
+        in.source.selected[integers.widen(first)]
+
     const decision: Decision = {
         dependency: null,
         advance: false,
@@ -123,7 +127,7 @@ export default function (in: Input): Output {
     const dependency: Request = {
         id: request.mode == Mode.Abi || (
             request.mode == Mode.State && target == Kind.Optional
-        ) ? first : request.id,
+        ) || (request.mode == Mode.View && inline_list) ? first : request.id,
         mode: match {
             request.mode == Mode.Abi => Mode.Abi,
             request.mode == Mode.State && target == Kind.Optional => Mode.State,
@@ -151,9 +155,11 @@ export default function (in: Input): Output {
         action: match {
             request.mode == Mode.Abi => Action.Abi,
             request.mode == Mode.State && target == Kind.Optional => Action.Optional,
+            request.mode == Mode.View && inline_list => Action.Slice,
             _ => Action.Alias
         },
-        child: resolved.value,
+        child: request.mode == Mode.View && inline_list ?
+            resolved.layout : resolved.value,
         value: resolved.value,
         layout: resolved.layout
     }

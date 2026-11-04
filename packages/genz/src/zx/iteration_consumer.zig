@@ -122,7 +122,7 @@ pub fn read(self: *Lower, consumer: Consumer, id: ir.ExprId, state: node.Express
 
 fn fromAbi(self: *Lower, id: ir.TypeId, value: node.ExpressionId) Lower.Error!node.ExpressionId {
     if (!self.state_plan.represented(self.program, id)) return value;
-    if (self.program.typeOf(id) == .list) return @import("state_value/list.zig").borrowed(self, id, value);
+    if (self.program.typeOf(id) == .list and !@import("state_value/elements.zig").inlineStored(self, id)) return @import("state_value/list.zig").borrowed(self, id, value);
 
     var body: std.ArrayList(node.Statement) = .empty;
     const source = try @import("aggregate.zig").bind(self, &body, value);

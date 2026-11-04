@@ -358,7 +358,7 @@ fn projectedField(self: *Self, target: ir.ExprId, id: ir.TypeId, name: []const u
     }
 
     if (!self.state_active or !self.state_plan.represented(self.program, id) or self.state_plan.represented(self.program, self.program.expression(target).type_id)) return value;
-    if (self.program.typeOf(id) == .list) return @import("state_value/list.zig").borrowed(self, id, value);
+    if (self.program.typeOf(id) == .list and !@import("state_value/elements.zig").inlineStored(self, id)) return @import("state_value/list.zig").borrowed(self, id, value);
 
     var body: std.ArrayList(node.Statement) = .empty;
     const bound = try @import("aggregate.zig").bind(self, &body, value);
