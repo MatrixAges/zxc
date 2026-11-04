@@ -40,6 +40,8 @@ pub fn borrowed(self: *Lower, symbol: ir.SymbolId, value: ir.ExprId) Lower.Error
     }
 
     if (inputProjection(self.program, value)) return true;
+    if (self.input_aliases == null) self.input_aliases = try @import("input_aliases.zig").expressions(self.allocator, self.program);
+    if (self.input_aliases.?[@backingInt(value)]) return true;
     if (self.projected_symbols == null) self.projected_symbols = try @import("projections.zig").symbols(self.allocator, self.program);
 
     return self.projected_symbols.?[@backingInt(symbol)];

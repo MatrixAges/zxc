@@ -48,6 +48,7 @@ value_output: bool = false,
 public_value_output: bool = false,
 stack_symbols: std.AutoHashMapUnmanaged(ir.SymbolId, void) = .empty,
 projected_symbols: ?[]const bool = null,
+input_aliases: ?[]const bool = null,
 iteration_value: ?*@import("iteration_value/root.zig") = null,
 loop_fields: ?*const @import("iteration/fields/root.zig") = null,
 layout_types: []const @import("iteration_layout/generated.zig").Type = &.{},
@@ -128,6 +129,7 @@ pub fn functionValue(self: *Self, name: []const u8) Error!node.Declaration {
 
 pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declaration {
     self.projected_symbols = null;
+    self.input_aliases = null;
     self.uses_allocator = false;
     self.uses_context = false;
     self.uses_io = false;
