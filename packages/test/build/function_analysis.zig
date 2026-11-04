@@ -3,24 +3,30 @@ const std = @import("std");
 pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) *std.Build.Step {
     const step = b.step("test-function-analysis", "Validate owned function summaries and independent generation units");
     const files = b.addWriteFiles();
-    const root = files.add("root.zig", "pub const summary = @import(\"genz/zx/function_analysis.zig\");\npub const modules = @import(\"genz/zx/modules.zig\");\npub const lanes = @import(\"genz/zx/function_analysis/lanes.zig\");\npub const flow = @import(\"genz/zx/buffer_call/analysis/flow.zig\");\n");
+    const root = files.addCopyFile(b.path("tests/incremental/function_analysis/checks.zig"), "root.zig");
     _ = files.addCopyDirectory(b.path("../genz/src"), "genz", .{});
 
     const core = compiler.module("frontend").import_table.get("zx").?;
 
     const checks = b.createModule(.{
-        .root_source_file = root, .target = target, .optimize = optimize,
-        .imports = &.{.{ .name = "zx", .module = core }},
+        .root_source_file = root,
+        .target = target,
+        .optimize = optimize,
     });
+
+    var imports = compiler.module("compiler").import_table.get("genz").?.import_table.iterator();
+
+    while (imports.next()) |entry| checks.addImport(entry.key_ptr.*, entry.value_ptr.*);
 
     step.dependOn(@import("function_analysis_runtime.zig").add(b, checks, core, target, optimize));
 
-    for ([_][]const u8{ "summary", "lanes", "resources", "emission", "buffer" }) |name| {
+    for ([_][]const u8{ "summary", "resources", "emission", "buffer" }) |name| {
         const tests = b.addTest(.{
             .name = b.fmt("function-analysis-{s}", .{name}),
             .root_module = b.createModule(.{
                 .root_source_file = b.path(b.fmt("tests/incremental/function_analysis/{s}_test.zig", .{name})),
-                .target = target, .optimize = optimize,
+                .target = target,
+                .optimize = optimize,
                 .imports = &.{ .{ .name = "checks", .module = checks }, .{ .name = "zx", .module = core } },
             }),
         });

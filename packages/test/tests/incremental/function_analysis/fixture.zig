@@ -12,7 +12,10 @@ fn function(allocator: std.mem.Allocator, previous: ?u32) !ir.Function {
     });
 
     return .{
-        .file_name = "step.zx", .input_type = scalar, .output_type = scalar, .output_ownership = .copy,
+        .file_name = "step.zx",
+        .input_type = scalar,
+        .output_type = scalar,
+        .output_ownership = .copy,
         .symbols = try ir.SymbolTable.fromValues(allocator, &.{.{ .name = "in", .type_id = scalar, .span = span }}),
         .expressions = expressions,
         .body = try ir.ControlBody.fromValues(allocator, &.{.{ .result = @fromBackingInt(1) }}),
@@ -39,9 +42,14 @@ pub fn program(allocator: std.mem.Allocator, count: usize, capability: Capabilit
     const entry = try function(allocator, if (count == 0) null else @intCast(count - 1));
 
     const value: ir.Program = .{
-        .file_name = "main.zx", .types = try types.finish(allocator),
-        .input_type = scalar, .output_type = scalar, .output_ownership = .copy,
-        .symbols = entry.symbols, .expressions = entry.expressions, .body = entry.body,
+        .file_name = "main.zx",
+        .types = try types.finish(allocator),
+        .input_type = scalar,
+        .output_type = scalar,
+        .output_ownership = .copy,
+        .symbols = entry.symbols,
+        .expressions = entry.expressions,
+        .body = entry.body,
         .functions = try ir.FunctionTable.fromValues(allocator, functions),
         .native_modules = try ir.NativeModuleTable.fromValues(allocator, if (capability == .none) &.{} else &.{.{ .specifier = "zig:host", .import_name = "host" }}),
     };
@@ -61,8 +69,9 @@ pub fn program(allocator: std.mem.Allocator, count: usize, capability: Capabilit
 
 pub fn expected(summary: checks.summary, count: usize, capability: Capability) !void {
     try std.testing.expectEqual(count, summary.value.pure.len);
-    try std.testing.expectEqual(count, summary.buffers.len);
-    try std.testing.expectEqual(count, summary.transfers.len);
+    try std.testing.expectEqual(count, summary.errors.len);
+    try std.testing.expectEqual(count, summary.tasks.len);
+    try std.testing.expectEqual(count, summary.uniqueness.functions.len);
     try std.testing.expectEqual(std.meta.tags(ir.Scalar).len, summary.value.state.selected.len);
     for (summary.value.state.selected) |selected| try std.testing.expect(!selected);
 
@@ -70,11 +79,11 @@ pub fn expected(summary: checks.summary, count: usize, capability: Capability) !
         try std.testing.expect(summary.value.pure[index]);
         try std.testing.expectEqual(capability == .none, summary.value.local[index]);
         try std.testing.expect(!summary.value.values[index]);
-        try std.testing.expect(!summary.allocated[index]);
+        try std.testing.expect(!summary.tasks[index]);
         try std.testing.expectEqual(capability == .io, summary.io[index]);
         try std.testing.expectEqual(capability == .process, summary.process[index]);
-        try std.testing.expectEqual(@as(usize, 0), summary.buffers[index].len);
-        try std.testing.expectEqual(@as(usize, 0), summary.transfers[index].len);
+        try std.testing.expectEqual(@as(usize, 0), summary.basis.flow.held[index].len);
+        try std.testing.expectEqual(@as(usize, 0), summary.basis.flow.written[index].len);
     }
 }
 
@@ -84,11 +93,23 @@ pub fn check(count: usize, capability: Capability) !void {
     defer arena.deinit();
 
     const value = try program(arena.allocator(), count, capability);
-    const borrowed = try checks.summary.analyze(arena.allocator(), value);
+    const basis = try checks.summary.Uniqueness.Basis.create(arena.allocator(), value, null);
+    const borrowed = try checks.summary.analyze(arena.allocator(), arena.allocator(), value, &.{}, &basis, null);
     var owned = try checks.summary.create(std.testing.allocator, value);
 
     defer owned.deinit();
 
     try expected(owned.value, count, capability);
-    try std.testing.expectEqualDeep(borrowed, owned.value);
+    try expected(borrowed, count, capability);
+    try std.testing.expectEqualDeep(borrowed.value, owned.value.value);
+    try std.testing.expectEqualDeep(borrowed.entry_flags, owned.value.entry_flags);
+    try std.testing.expectEqualDeep(borrowed.io, owned.value.io);
+    try std.testing.expectEqualDeep(borrowed.process, owned.value.process);
+    try std.testing.expectEqualDeep(borrowed.tasks, owned.value.tasks);
+    try std.testing.expectEqualDeep(borrowed.errors, owned.value.errors);
+    try std.testing.expectEqualDeep(borrowed.layout_types, owned.value.layout_types);
+    try std.testing.expectEqualDeep(borrowed.identity_free, owned.value.identity_free);
+    try std.testing.expectEqualDeep(borrowed.fresh_outputs, owned.value.fresh_outputs);
+    try std.testing.expectEqualDeep(borrowed.uniqueness, owned.value.uniqueness);
+    try std.testing.expectEqualDeep(borrowed.basis.*, owned.value.basis.*);
 }

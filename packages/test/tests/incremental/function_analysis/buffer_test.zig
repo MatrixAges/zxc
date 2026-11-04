@@ -2,7 +2,7 @@ const std = @import("std");
 const allocation_testing = @import("allocation_testing");
 const f = @import("buffer_fixture.zig");
 
-test "owned summaries retain real nested list lanes after scratch release" {
+test "owned summaries retain real nested list slots and flow after scratch release" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
 
     defer arena.deinit();

@@ -31,7 +31,7 @@ pub fn main(init: std.process.Init) !void {
             const unit: modules.Unit = switch (index) {
                 0 => .types,
                 1 => .entry,
-                else => .{ .function = @fromBackingInt(@intCast(index - 2)) },
+                else => .{ .regular = @fromBackingInt(@intCast(index - 2)) },
             };
 
             source.* = if (shared) |summary| try modules.analyzed(allocator, std.heap.page_allocator, program, names, unit, summary.value) else try modules.prepared(allocator, program, names, unit);
