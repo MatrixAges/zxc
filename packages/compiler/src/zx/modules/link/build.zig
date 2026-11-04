@@ -169,7 +169,7 @@ fn imports(self: *Self, index: usize, nodes: *Nodes) Error!void {
             var imported: ?ir.TypeId = null;
 
             for (target.exports) |item| {
-                if (!std.mem.eql(u8, item.name, name)) continue;
+                if (!std.mem.eql(u8, item.name, original)) continue;
                 if (@backingInt(item.type_id) >= self.type_mappings[target_index].len) return error.InvalidModule;
                 if (dependency.kind == .enumeration and target.types.at(@backingInt(item.type_id)) != .enumeration) return error.ConflictingInterface;
 
