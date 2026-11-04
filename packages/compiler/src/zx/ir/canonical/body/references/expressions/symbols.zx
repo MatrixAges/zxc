@@ -44,6 +44,13 @@ export default function (in: Input): Output {
     }
 
     if (!optional({
+        values: in.expressions.iteration_environment_symbols,
+        count: in.symbols.names.length
+    })) {
+        return false
+    }
+
+    if (!optional({
         values: in.expressions.scope_symbols,
         count: in.symbols.names.length
     })) {

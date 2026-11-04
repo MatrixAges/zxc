@@ -56,6 +56,9 @@ pub const Native = struct {
     pub fn functionStart(self: Native) usize {
         return self.program.function_start;
     }
+    pub fn functionName(self: Native) ?ast.Name {
+        return self.program.function_name;
+    }
 
     pub fn hasBody(self: Native) bool {
         return self.program.body != null;

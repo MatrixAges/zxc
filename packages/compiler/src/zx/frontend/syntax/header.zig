@@ -57,6 +57,13 @@ pub fn View(comptime Storage: type) type {
         pub fn functionStart(self: Self) usize {
             return @intCast(self.storage.function_start);
         }
+        pub fn functionName(self: Self) ?zx.ast.Name {
+            const Value = if (@typeInfo(Storage) == .pointer) @typeInfo(Storage).pointer.child else Storage;
+
+            if (comptime !@hasField(Value, "function_name")) return null;
+
+            return if (self.storage.function_name) |position| self.named(position) else null;
+        }
 
         pub fn hasBody(self: Self) bool {
             return self.storage.body != null;

@@ -15,7 +15,7 @@ fn encode(allocator: std.mem.Allocator) !void {
 
     defer allocator.free(bytes);
 
-    try std.testing.expect(std.mem.startsWith(u8, bytes, "zxc.module.v4\n"));
+    try std.testing.expect(std.mem.startsWith(u8, bytes, f.codec.marker));
 }
 
 fn decode(allocator: std.mem.Allocator) !void {

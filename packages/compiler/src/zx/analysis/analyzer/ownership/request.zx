@@ -1,3 +1,5 @@
+import { Ownership } from "core/symbol_table/model"
+
 import type { Program } from "../../../ownership/ir/input_model"
 import type { Functions } from "../functions"
 import type { Prepared } from "../model"
@@ -22,8 +24,10 @@ export default function (in: Input): Output {
         control: in.state.local.control,
         body: in.root,
         functions: {
-            ownership: in.functions.ownership,
-            stores: in.functions.stores
+            ownership: in.state.local.self_function == null ? in.functions.ownership :
+                in.functions.ownership.push(Ownership.Borrowed)[0],
+            stores: in.state.local.self_function == null ? in.functions.stores :
+                in.functions.stores.push(in.state.local.stores)[0]
         },
         type_only: in.type_only
     }

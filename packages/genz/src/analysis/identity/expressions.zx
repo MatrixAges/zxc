@@ -48,7 +48,8 @@ export default function (in: Input): Output {
                         current.expressions.call_functions[_]
                     )
 
-                current.valid = target < current.limit && current.allowed[target]
+                current.valid = target == current.limit ||
+                    (target < current.limit && current.allowed[target])
             } else if (kind == ExpressionKind.Binary) {
                 const payload =
                     integers.widen(

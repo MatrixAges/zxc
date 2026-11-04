@@ -448,7 +448,7 @@ const Project = struct {
             if (restored == null) cache.analyzed += 1;
         }
 
-        const program = restored orelse analyze_block: {
+        var program = restored orelse analyze_block: {
             var analyzer = HostContext{
                 .allocator = self.allocator,
                 .reporter = self.reporter,
@@ -467,19 +467,28 @@ const Project = struct {
                 .store_type_count = self.options.context.types.count(),
             };
 
-            var analyzed = try input.analyze(&analyzer, unit.path);
-
-            analyzed.functions = try self.functions.view().snapshot(self.allocator);
-
-            if (!@TypeOf(input).completes_ownership) analyzed.output_ownership = try @import("../ownership/check.zig").analyze(self.allocator, analyzed, self.reporter);
-
-            break :analyze_block analyzed;
+            break :analyze_block try input.analyze(&analyzer, unit.path);
         };
 
         if (!program.type_only) {
             unit.function = @fromBackingInt(@intCast(self.functions.count()));
 
-            try self.functions.append(self.allocator, .{ .stores = program.stores, .store_mode = program.store_mode, .output_ownership = program.output_ownership, .file_name = program.file_name, .input_type = program.input_type, .output_type = program.output_type, .symbols = program.symbols, .expressions = program.expressions, .body = program.body, .contracts = program.contracts });
+            try self.functions.append(self.allocator, @import("function_body.zig").value(program));
+        }
+
+        const recursive = !program.type_only and input.header().functionName() != null and @import("function_body.zig").calls(program.expressions, unit.function.?);
+        const count = self.functions.count() - @intFromBool(!program.type_only and !recursive);
+
+        program.functions = try self.functions.view().prefix(count).snapshot(self.allocator);
+
+        if (restored == null and !@TypeOf(input).completes_ownership) {
+            program.output_ownership = try @import("../ownership/check.zig").analyze(self.allocator, program, self.reporter);
+
+            if (unit.function) |id| self.functions.ownership.items[@backingInt(id)] = switch (program.output_ownership) {
+                .copy => .Copy,
+                .borrowed => .Borrowed,
+                .owned => .Owned,
+            };
         }
 
         const own: []const FunctionImport = if (unit.function) |id| try self.allocator.dupe(FunctionImport, &.{.{ .name = "", .id = id, .input_type = program.input_type, .output_type = program.output_type }}) else &.{};
@@ -505,6 +514,7 @@ const Project = struct {
             .type_imports = aliases.items,
             .function_imports = imports.items,
             .body = if (program.type_only) .types else if (std.mem.eql(u8, unit.path, self.options.entry)) .entry else .{ .function = unit.function.? },
+            .own_function = if (recursive) unit.function else null,
         });
 
         unit.program = program;
@@ -859,8 +869,13 @@ fn analyzeWithCaches(allocator: std.mem.Allocator, raw_sources: []const Source, 
 
     program.types = project.types.view();
     program.native_modules = project.native_modules.view();
-    program.functions = try project.functions.view().prefix(project.functions.count() - @intFromBool(!project.units[root].program.?.type_only)).snapshot(temporary);
+    const own = project.units[root].function;
+    const recursive = if (own) |id| @import("function_body.zig").calls(program.expressions, id) else false;
+    const count = project.functions.count() - @intFromBool(!program.type_only and !recursive);
 
+    program.functions = try project.functions.view().prefix(count).snapshot(temporary);
+
+    if (recursive) try @import("function_body.zig").entry(temporary, &program, own.?);
     if (try @import("../ir/validate.zig").validate(allocator, program)) |issue| return .{ .arena = arena, .value = .{ .diagnostic = issue } };
 
     var result = Analysis.Result{ .arena = arena, .value = .{ .ir = program }, .nominal_types = project.nominal_origins.items.view(), .modules = project.modules.items, .store_initializers = project.store_initializers.items };

@@ -59,6 +59,7 @@ pub fn Model(comptime Context: type) type {
             body: ?Block,
             contracts: Sequence(.contracts),
             has_store: bool,
+            function_name: ?zx.ast.Name = null,
         };
         pub fn Sequence(comptime kind: Kind) type {
             return struct {

@@ -133,7 +133,17 @@ pub fn link(state: *State, temporary: std.mem.Allocator, analyzed: Analyzed) Sta
     const base = state.functions.view().prefix(analyzed.functions);
 
     destination.temporary = temporary;
+    const functions = program.functions;
     program.functions = base;
+
+    if (functions.count() > analyzed.functions) {
+        var delta: @import("zx").ir.FunctionTable = .{};
+
+        inline for (@typeInfo(@TypeOf(delta)).@"struct".field_names) |name| @field(delta, name) = @field(functions, name)[analyzed.functions..];
+
+        program.functions = try frontend.project.artifact.function_table.join(temporary, base, delta);
+    }
+
     program.native_modules = state.native_modules.view();
     program.exports = analyzed.exports;
     program.constant_exports = analyzed.constant_exports;

@@ -16,6 +16,7 @@ nodes: ir.ExpressionStorage = .{},
 control: ir.ControlStorage = .{},
 output_type: ir.TypeId = undefined,
 function_imports: []const FunctionImport = &.{},
+self_function: ?FunctionImport = null,
 functions: ir.FunctionTable = .{},
 stores: ir.StoreTable = .{},
 store_bindings: []const @import("analyze.zig").StoreBinding = &.{},
@@ -53,6 +54,7 @@ fn runInitialized(self: *Self, program: anytype, view: anytype, file_name: []con
     self.constants = constants.scope;
 
     try self.resolveStores(program.has_store, contract_span);
+    if (program.function_name) |name| self.self_function = .{ .name = name.text, .id = @fromBackingInt(@intCast(self.functions.count())), .input_type = input_type, .output_type = self.output_type };
 
     const body: ?ir.BlockId = if (program.body) |source_body| blk: {
         _ = try self.bind(.{ .text = "in", .span = contract_span }, input_type, 0);

@@ -12,6 +12,7 @@ export type Input = {
     initial: u32,
     condition_parameter: u32,
     parameter: u32,
+    environment_symbol?: u32,
     condition: u32,
     body: u32,
     postcondition: bool
@@ -39,6 +40,8 @@ export default function (in: Input): Output {
                 result.table.iteration_parameters.push(
                     in.parameter
                 )[0],
+            iteration_environment_symbols:
+                result.table.iteration_environment_symbols.push(in.environment_symbol)[0],
             iteration_conditions:
                 result.table.iteration_conditions.push(
                     in.condition

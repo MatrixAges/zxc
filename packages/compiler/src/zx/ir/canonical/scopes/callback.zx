@@ -1,5 +1,6 @@
 import integers from "std:integer"
 
+import activate from "./activity/set"
 import clear from "./clear"
 import declare from "./declare"
 import { Declaration, Phase } from "./model"
@@ -16,6 +17,23 @@ export default function (in: Input): Output {
     const expressions = program.body.expressions
     const payload = integers.widen(expressions.payloads[in.frame.a])
 
+    const environment = in.frame.phase == Phase.Transform ? null :
+        expressions.iteration_environment_symbols[payload]
+
+    if (environment != null) {
+        const symbol = integers.widen(environment)
+
+        if (
+            symbol >= in.state.activity.active.length ||
+                !in.state.activity.active[symbol]
+        ) {
+            return {
+                state: in.state,
+                valid: false
+            }
+        }
+    }
+
     const restoration = in.frame.phase == Phase.IterationBody
     ? in.state
     : schedule({
@@ -30,7 +48,11 @@ export default function (in: Input): Output {
 
     const cleared: State = {
         ...restoration,
-        activity: clear(restoration.activity)
+        activity: environment == null ? clear(restoration.activity) : activate({
+            activity: clear(restoration.activity),
+            symbol: integers.widen(environment),
+            value: true
+        })
     }
 
     if (in.frame.phase == Phase.Transform) {

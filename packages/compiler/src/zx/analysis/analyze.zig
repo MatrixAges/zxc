@@ -58,7 +58,11 @@ fn analyzeInput(allocator: std.mem.Allocator, input: anytype, file_name: []const
 
     errdefer arena.deinit();
 
-    const result = try analyzeInputIn(arena.allocator(), input, file_name, context, null);
+    var result = try analyzeInputIn(arena.allocator(), input, file_name, context, null);
+
+    if (result.value == .ir) {
+        if (@import("../modules/function_body.zig").own(result.value.ir)) |id| try @import("../modules/function_body.zig").entry(arena.allocator(), &result.value.ir, id);
+    }
 
     return .{ .arena = arena, .value = result.value, .nominal_types = result.nominal_types, .store_initializers = result.store_initializers };
 }
@@ -126,7 +130,10 @@ fn analyzeInputIn(allocator: std.mem.Allocator, input: anytype, file_name: []con
         return .{ .value = .{ .diagnostic = reporter.diagnostic.? } };
     };
 
-    program.functions = functions;
+    if (input.header().functionName() != null) {
+        try @import("../modules/function_body.zig").complete(allocator, &program, functions);
+    } else program.functions = functions;
+
     program.native_modules = if (resolved != null) context.native_modules else try @import("../modules/native_context.zig").copy(allocator, context.native_modules);
 
     if (!@TypeOf(input).completes_ownership) program.output_ownership = @import("../ownership/check.zig").analyze(allocator, program, &reporter) catch |err| {
@@ -134,6 +141,14 @@ fn analyzeInputIn(allocator: std.mem.Allocator, input: anytype, file_name: []con
 
         return .{ .value = .{ .diagnostic = reporter.diagnostic.? } };
     };
+
+    if (!@TypeOf(input).completes_ownership and program.functions.count() > functions.count()) {
+        @constCast(program.functions.ownership)[functions.count()] = switch (program.output_ownership) {
+            .copy => .Copy,
+            .borrowed => .Borrowed,
+            .owned => .Owned,
+        };
+    }
 
     if (resolved) |bindings| {
         if (@import("../ir/validate.zig").internal) if (try @import("../ir/validate.zig").validateExtending(allocator, program, bindings.verified_functions)) |issue| return .{ .value = .{ .diagnostic = issue } };

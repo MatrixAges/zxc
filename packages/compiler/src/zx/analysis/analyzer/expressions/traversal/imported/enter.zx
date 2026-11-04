@@ -35,7 +35,12 @@ export default function (in: Input): Output {
         })
     }
 
-    if (work.functions.stores[integers.widen(id)].types.length != 0) {
+    const self_call = work.state.local.self_function == id
+
+    const stores = self_call ? work.state.local.stores :
+        work.functions.stores[integers.widen(id)]
+
+    if (stores.types.length != 0) {
         return {
             ...work,
             state: {
@@ -52,7 +57,7 @@ export default function (in: Input): Output {
     }
 
     const native_tuple =
-        work.functions.native_modules[integers.widen(id)] != null &&
+        !self_call && work.functions.native_modules[integers.widen(id)] != null &&
         work.functions.native_tuples[integers.widen(
             id
         )]

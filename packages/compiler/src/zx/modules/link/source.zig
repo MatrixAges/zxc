@@ -49,7 +49,7 @@ pub fn appendBody(input: Input, destination: program_link.Destination) program_l
     defer destination.temporary.free(functions);
     defer destination.temporary.free(native_modules);
 
-    for (functions, 0..) |*id, index| id.* = @fromBackingInt(@intCast(index));
+    for (functions, 0..) |*id, index| id.* = @fromBackingInt(@intCast(if (index < base.count()) index else destination.functions.count() + index - base.count()));
     for (native_modules, 0..) |*id, index| id.* = @fromBackingInt(@intCast(index));
 
     var nodes = Nodes{
@@ -70,8 +70,11 @@ fn finish(input: Input, destination: program_link.Destination, nodes: *Nodes) pr
     const allocator = destination.allocator;
     const program = input.program;
     var function: ?ir.FunctionId = null;
+    const extended = if (input.base_functions) |base| program.functions.count() > base.count() else true;
 
-    if (!program.type_only) {
+    if (if (extended) @import("../function_body.zig").own(program) else null) |id| {
+        function = try nodes.functionId(id);
+    } else if (!program.type_only) {
         const mapped = try nodes.function(.{
             .file_name = program.file_name,
             .input_type = program.input_type,

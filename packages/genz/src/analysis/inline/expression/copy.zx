@@ -337,6 +337,8 @@ export default function (in: Input): Output {
     }
 
     if (kind == ExpressionKind.Iteration) {
+        const environment = source.iteration_environment_symbols[payload]
+
         return iteration({
             table: target,
             metadata,
@@ -355,7 +357,10 @@ export default function (in: Input): Output {
                 ),
             condition: mapped[1],
             body: mapped[2],
-            postcondition: source.iteration_postconditions[payload]
+            postcondition: source.iteration_postconditions[payload],
+            environment_symbol: environment == null ? null : integers.narrow(
+                integers.widen(environment) + in.offset
+            )
         })
     }
 

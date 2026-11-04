@@ -11,18 +11,22 @@ pub fn functions(allocator: std.mem.Allocator, program: ir.Program, kind: Kind) 
         required[index] = if (function.external) |external| switch (kind) {
             .io => external.io_argument,
             .process => external.process_argument,
-        } else if (kind == .io) @import("io.zig").uses(function.expressions, function.contracts, required[0..index]) else uses(function.expressions, function.contracts, required[0..index]);
+        } else if (kind == .io) @import("io.zig").usesWithin(function.expressions, function.contracts, required[0..index], index) else usesWithin(function.expressions, function.contracts, required[0..index], index);
     }
 
     return required;
 }
 
 pub fn uses(expressions: ir.ExpressionTable, contracts: ir.ContractTable, required: []const bool) bool {
+    return usesWithin(expressions, contracts, required, null);
+}
+
+pub fn usesWithin(expressions: ir.ExpressionTable, contracts: ir.ContractTable, required: []const bool, self_function: ?usize) bool {
     for (0..expressions.count()) |expression_index| {
-        if (expressions.callee(expression_index)) |function| if (required[@backingInt(function)]) return true;
+        if (expressions.callee(expression_index)) |function| if (@backingInt(function) != self_function and (@backingInt(function) >= required.len or required[@backingInt(function)])) return true;
     }
 
-    for (contracts.expressions) |expressions_table| if (uses(expressions_table.*, .{}, required)) return true;
+    for (contracts.expressions) |expressions_table| if (usesWithin(expressions_table.*, .{}, required, self_function)) return true;
 
     return false;
 }

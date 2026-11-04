@@ -1,7 +1,7 @@
 const std = @import("std");
 const zx_abi = @import("zxc_abi");
 
-pub fn callValue(allocator: ((std).mem).Allocator, in: (zx_abi).zx_type_c2cf793e3172a7ed4a668fba2693ad110a34623e2f0f6b109fb61f2967243a7a) error{ OutOfMemory, }!(zx_abi).value_8f568b3b17837d2cfc380f3eb13c0b6101bbce8c12497f629d23ff5912b77c07 {
+pub fn callValue(allocator: ((std).mem).Allocator, in: (zx_abi).zx_type_c2cf793e3172a7ed4a668fba2693ad110a34623e2f0f6b109fb61f2967243a7a) error{ OutOfMemory, }!(zx_abi).value_6486f8f42834a1fcf300f4901a4d6183cb4c4d0ef3b622b76393808c096fd123 {
     @setRuntimeSafety(true);
 
     _ = allocator;
@@ -22,7 +22,7 @@ pub fn callValue(allocator: ((std).mem).Allocator, in: (zx_abi).zx_type_c2cf793e
             break :block_6 value_1;
         };
 
-        break :block_7 @as((zx_abi).value_8f568b3b17837d2cfc380f3eb13c0b6101bbce8c12497f629d23ff5912b77c07, (zx_abi).value_8f568b3b17837d2cfc380f3eb13c0b6101bbce8c12497f629d23ff5912b77c07{ .logical = operand_1, .comparison = operand_2, .equality = operand_5, });
+        break :block_7 @as((zx_abi).value_6486f8f42834a1fcf300f4901a4d6183cb4c4d0ef3b622b76393808c096fd123, (zx_abi).value_6486f8f42834a1fcf300f4901a4d6183cb4c4d0ef3b622b76393808c096fd123{ .logical = operand_1, .comparison = operand_2, .equality = operand_5, });
     };
 }
 

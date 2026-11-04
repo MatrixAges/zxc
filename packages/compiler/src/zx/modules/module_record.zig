@@ -27,6 +27,7 @@ imports: []const Import,
 type_imports: []const zx.ir.Export,
 function_imports: []const @import("function_import.zig"),
 body: union(enum) { types, entry, function: zx.ir.FunctionId },
+own_function: ?zx.ir.FunctionId = null,
 pub fn copyImport(allocator: std.mem.Allocator, item: anytype, target: Target) std.mem.Allocator.Error!Import {
     const names = try allocator.alloc([]const u8, item.nameCount());
 

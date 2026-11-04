@@ -72,7 +72,8 @@ fn body(allocator: std.mem.Allocator, program: ir.Program, expressions: ir.Expre
         .call => |call| {
             const callee = @backingInt(call.function);
 
-            if (callee >= limit) return false;
+            if (callee > limit) return false;
+            if (callee == limit) continue;
             try callees.append(allocator, @intCast(callee));
         },
         .binary => |binary| {

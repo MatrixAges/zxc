@@ -9,8 +9,7 @@ pub fn functions(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allo
 
     for (0..program.functions.count()) |index| {
         const function = program.functions.at(index);
-
-        result[index] = uses(function.expressions, result[0..index]);
+        result[index] = uses(function.expressions, result[0..index], index);
     }
 
     return result;
@@ -18,13 +17,13 @@ pub fn functions(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allo
 
 /// Whether the entry body needs the task allocator, given `functions` of the same program.
 pub fn required(program: ir.Program, task_functions: []const bool) bool {
-    return uses(program.expressions, task_functions);
+    return uses(program.expressions, task_functions, null);
 }
 
-fn uses(expressions: ir.ExpressionTable, task_functions: []const bool) bool {
+fn uses(expressions: ir.ExpressionTable, task_functions: []const bool, self_function: ?usize) bool {
     for (0..expressions.count()) |expression_index| {
         if (expressions.concurrent(expression_index)) return true;
-        if (expressions.callee(expression_index)) |function| if (task_functions[@backingInt(function)]) return true;
+        if (expressions.callee(expression_index)) |function| if (@backingInt(function) != self_function and (@backingInt(function) >= task_functions.len or task_functions[@backingInt(function)])) return true;
     }
 
     return false;

@@ -57,6 +57,6 @@ pub fn project(comptime Target: type, allocator: std.mem.Allocator, record: Reco
         .import_kinds = import_kinds,
         .import_specifiers = import_specifiers,
         .has_body = record.body != .types,
-        .body_function = if (record.body == .function) @backingInt(record.body.function) else null,
+        .body_function = if (record.own_function) |id| @backingInt(id) else if (record.body == .function) @backingInt(record.body.function) else null,
     };
 }

@@ -3,7 +3,7 @@ const zx = @import("zx");
 const Parser = @import("parser.zig");
 const ast = zx.ast;
 const grammar = @import("combinators.zig");
-const Header = struct { has_store: bool, contracts: []const ast.Contract };
+const Header = struct { name: ?ast.Name, has_store: bool, contracts: []const ast.Contract };
 const Exports = struct { imports: []const ast.Import, declarations: []const ast.Declaration, constants: []const ast.Constant };
 const Function = grammar.sequence(.{ grammar.token("export"), grammar.token("default"), grammar.required(grammar.token("function"), "expected function"), grammar.reference(Header, header), grammar.reference(ast.Block, Parser.block) });
 
@@ -11,8 +11,8 @@ pub fn parse(parser: *Parser) zx.Error!ast.Program {
     const prefix = try exports(parser);
     const function = try grammar.run(grammar.optional(Function), parser, "expected a ZX file");
 
-    if (parser.current().kind != .eof) return parser.reporter.fail(.contract, parser.current().span, "imports and types must precede the single anonymous default function");
-    if (function) |value| return .{ .imports = prefix.imports, .declarations = prefix.declarations, .constants = prefix.constants, .function_start = value[0].span.start, .body = value[4], .has_store = value[3].has_store, .contracts = value[3].contracts };
+    if (parser.current().kind != .eof) return parser.reporter.fail(.contract, parser.current().span, "imports and types must precede the single default function");
+    if (function) |value| return .{ .imports = prefix.imports, .declarations = prefix.declarations, .constants = prefix.constants, .function_name = value[3].name, .function_start = value[0].span.start, .body = value[4], .has_store = value[3].has_store, .contracts = value[3].contracts };
 
     var reexports = false;
 
@@ -52,6 +52,8 @@ fn exports(parser: *Parser) zx.Error!Exports {
 }
 
 fn header(parser: *Parser) zx.Error!Header {
+    const name = if (parser.current().kind == .identifier) try parser.name() else null;
+
     try parser.expect("(");
     try parser.expect("in");
     try parser.expect(":");
@@ -72,5 +74,5 @@ fn header(parser: *Parser) zx.Error!Header {
     try parser.expect(":");
     try parser.expect("Output");
 
-    return .{ .has_store = has_store, .contracts = try @import("parser_contracts.zig").parse(parser) };
+    return .{ .name = name, .has_store = has_store, .contracts = try @import("parser_contracts.zig").parse(parser) };
 }

@@ -101,6 +101,12 @@ fn enter(self: *Self, values: ir.ExpressionTable) std.mem.Allocator.Error!void {
 }
 
 pub fn call(self: *Self, id: ir.FunctionId) std.mem.Allocator.Error!void {
+    if (@backingInt(id) >= self.functions.count()) {
+        self.unknown = true;
+
+        return;
+    }
+
     const entry = try self.called.getOrPut(self.allocator, id);
 
     if (entry.found_existing) return;

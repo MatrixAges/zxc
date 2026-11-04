@@ -30,6 +30,10 @@ pub fn checkViewNames(view: anytype, contracts: anytype, body: anytype) ?zx.Diag
 }
 
 pub fn checkHeaderNames(view: anytype) ?zx.Diagnostic {
+    if (view.functionName()) |name| {
+        if (checkBinding(name, .callable)) |issue| return issue;
+    }
+
     for (0..view.importCount()) |index| {
         const item = view.importAt(index);
 

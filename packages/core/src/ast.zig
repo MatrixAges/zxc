@@ -89,6 +89,7 @@ pub const Program = struct {
     imports: []const Import = &.{},
     has_store: bool = false,
     contracts: []const Contract = &.{},
+    function_name: ?Name = null,
     function_start: usize,
     body: ?Block,
 };

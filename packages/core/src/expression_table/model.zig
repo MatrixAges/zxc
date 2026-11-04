@@ -88,12 +88,10 @@ pub const Table = struct {
     pub fn get(self: Table, id: @import("../ir.zig").ExprId) @import("row.zig").Expression {
         return self.at(@backingInt(id));
     }
-
     /// The function the expression at `index` calls, read without decoding the rest of its row.
     pub fn callee(self: Table, index: usize) ?@import("../ir.zig").FunctionId {
         return if (self.kinds[index] == .Call) @fromBackingInt(self.call_functions[self.payloads[index]]) else null;
     }
-
     /// Whether the expression at `index` starts, awaits or cancels tasks.
     pub fn concurrent(self: Table, index: usize) bool {
         return switch (self.kinds[index]) {
@@ -143,6 +141,7 @@ pub const Table = struct {
     iteration_bodies: []const u32 = &.{},
     iteration_condition_parameters: []const u32 = &.{},
     iteration_conditions: []const u32 = &.{},
+    iteration_environment_symbols: []const ?u32 = &.{},
     iteration_initials: []const u32 = &.{},
     iteration_parameters: []const u32 = &.{},
     iteration_postconditions: []const bool = &.{},

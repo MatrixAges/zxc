@@ -43,6 +43,7 @@ pub fn expression(self: *const Self, value: ir.ExpressionRow) Error!ir.Expressio
         .template => |items| .{ .template = try self.ids(items) },
         .list_update => |update| .{ .list_update = .{ .target = try self.id(update.target), .index = try self.id(update.index), .value = try self.id(update.value) } },
         .iteration => |item| .{ .iteration = .{
+            .environment_symbol = if (item.environment_symbol) |source| try self.symbol(source) else null,
             .initial = try self.id(item.initial),
             .condition_parameter = try self.symbol(item.condition_parameter),
             .parameter = try self.symbol(item.parameter),

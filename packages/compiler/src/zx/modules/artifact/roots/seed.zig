@@ -6,7 +6,10 @@ const Self = @This();
 
 needed: []bool,
 program: ir.Program,
-pub fn collect(allocator: std.mem.Allocator, program: ir.Program, record: Record) Error![]const bool {
+pub fn collect(allocator: std.mem.Allocator, program: ir.Program, source_record: Record) Error![]const bool {
+    var record = source_record;
+
+    if (record.own_function) |id| record.body = .{ .function = id };
     if (!program.native_modules.validStructure()) return error.InvalidModule;
 
     const needed = try allocator.alloc(bool, program.types.count());

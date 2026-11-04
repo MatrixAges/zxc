@@ -59,7 +59,7 @@ pub fn convert(comptime contents: enum { header, full }, allocator: std.mem.Allo
         };
     }
 
-    const tables = try @import("finish.zig").apply(&context, program.declarations, import_names.items);
+    const tables = try @import("finish.zig").apply(&context, program.declarations, import_names.items, if (program.function_name) |name| name.text else null);
     const constants = try allocator.alloc(*const model.Constant, program.constants.len);
 
     for (program.constants, roots, constants) |item, root, *value| value.* = try context.keep(model.Constant, .{
@@ -73,25 +73,36 @@ pub fn convert(comptime contents: enum { header, full }, allocator: std.mem.Allo
         .blocks = tables.blocks,
     });
 
-    const syntax = try context.keep(model.Syntax, .{
+    const fields = .{
         .types = &model.empty_types,
         .type_order = &model.empty_order,
         .expressions = tables.expressions,
         .blocks = tables.blocks,
-        .tokens = &.{},
-        .comments = &.{},
+        .tokens = @as(@FieldType(model.Syntax, "tokens"), &.{}),
+        .comments = @as(@FieldType(model.Syntax, "comments"), &.{}),
         .imports = imports,
         .import_names = import_spans.items,
         .import_sources = import_sources.items,
-        .declarations = &.{},
+        .declarations = @as(@FieldType(model.Syntax, "declarations"), &.{}),
         .constants = constants,
-        .members = &.{},
+        .members = @as(@FieldType(model.Syntax, "members"), &.{}),
         .contracts = contracts,
         .has_store = program.has_store,
         .function_start = program.function_start,
         .body = body,
         .diagnostic = &model.empty_diagnostic,
-    });
+    };
+
+    var syntax_value: model.Syntax = undefined;
+
+    inline for (@typeInfo(model.Syntax).@"struct".field_names) |name| {
+        @field(syntax_value, name) = if (comptime std.mem.eql(u8, name, "function_name"))
+            if (program.function_name) |function| try context.span(function.span) else null
+        else
+            @field(fields, name);
+    }
+
+    const syntax = try context.keep(model.Syntax, syntax_value);
 
     return .{ .syntax = syntax, .native = tables.native };
 }

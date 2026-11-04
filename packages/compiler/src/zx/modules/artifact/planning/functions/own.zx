@@ -1,0 +1,43 @@
+import integers from "std:integer"
+
+import { Status } from "../../../../analysis/semantic/extracting/planning/model"
+
+import type { Plan } from "./model"
+
+export type Input = {
+    plan: Plan,
+    own_function?: u32
+}
+
+export type Output = Plan
+
+export default function (in: Input): Output {
+    if (in.own_function == null) {
+        return in.plan
+    }
+
+    const index = integers.widen(in.own_function)
+
+    if (
+        index >= in.plan.functions.mapping.length ||
+            in.plan.functions.mapping[index] != 0
+    ) {
+        return {
+            ...in.plan,
+            state: {
+                ...in.plan.state,
+                status: Status.Invalid
+            }
+        }
+    }
+
+    const functions = in.plan.functions
+
+    return {
+        ...in.plan,
+        functions: {
+            ...functions,
+            mapping: functions.mapping.with(index, functions.count + 1)
+        }
+    }
+}

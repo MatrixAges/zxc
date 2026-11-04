@@ -6,7 +6,7 @@ const borrow = @import("../../../../ir/canonical/borrow.zig");
 const Reference = @import("../../../semantic/resolving/host/model.zig").Reference;
 pub const Result = struct { expressions: *const model.Expressions, blocks: *const model.Blocks, native: *const model.Native };
 
-pub fn apply(context: *Context, declarations: []const zx.ast.Declaration, import_names: []const []const u8) std.mem.Allocator.Error!Result {
+pub fn apply(context: *Context, declarations: []const zx.ast.Declaration, import_names: []const []const u8, function_name: ?[]const u8) std.mem.Allocator.Error!Result {
     while (context.pending.pop()) |pending| switch (pending) {
         .expression => |value| try @import("expressions.zig").fill(context, value),
         .block => |value| try @import("blocks.zig").fill(context, value),
@@ -26,11 +26,18 @@ pub fn apply(context: *Context, declarations: []const zx.ast.Declaration, import
         .type_references = borrow.slice(@FieldType(model.Text, "type_references"), @as([]const *const Reference, context.type_references.items)),
     });
 
-    const native = try context.keep(model.Native, .{
+    const native_fields = .{
         .types = borrow.pointer(@FieldType(model.Native, "types"), types.source),
         .text = text,
         .import_names = import_names,
-    });
+        .function_name = function_name,
+    };
+
+    var native_value: model.Native = undefined;
+
+    inline for (@typeInfo(model.Native).@"struct".field_names) |name| @field(native_value, name) = @field(native_fields, name);
+
+    const native = try context.keep(model.Native, native_value);
 
     const expressions = try context.keep(model.Expressions, .{
         .nodes = context.nodes.items,

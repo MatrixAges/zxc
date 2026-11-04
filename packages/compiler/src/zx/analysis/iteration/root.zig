@@ -58,6 +58,7 @@ pub fn analyze(self: *Analyzer, expression: anytype, expected: ?ir.TypeId) zx.Er
         .initial = if (saved_initial) |saved| saved.reference else initial_value,
         .condition_parameter = predicate.parameter,
         .parameter = next.parameter,
+        .environment_symbol = if (saved_context) |saved| saved.symbol else null,
         .condition = predicate.body,
         .body = next.body,
         .postcondition = postcondition,

@@ -32,12 +32,16 @@ pub fn eligibleEntry(program: ir.Program, callees: []const bool) bool {
 }
 
 pub fn calls(expressions: ir.ExpressionTable, contracts: ir.ContractTable, pure: []const bool) bool {
+    return callsWithin(expressions, contracts, pure, null);
+}
+
+pub fn callsWithin(expressions: ir.ExpressionTable, contracts: ir.ContractTable, pure: []const bool, self_function: ?usize) bool {
     for (0..expressions.count()) |expression_index| {
         if (expressions.concurrent(expression_index)) return false;
-        if (expressions.callee(expression_index)) |function| if (!pure[@backingInt(function)]) return false;
+        if (expressions.callee(expression_index)) |function| if (@backingInt(function) != self_function and (@backingInt(function) >= pure.len or !pure[@backingInt(function)])) return false;
     }
 
-    for (contracts.expressions) |expressions_table| if (!calls(expressions_table.*, .{}, pure)) return false;
+    for (contracts.expressions) |expressions_table| if (!callsWithin(expressions_table.*, .{}, pure, self_function)) return false;
 
     return true;
 }

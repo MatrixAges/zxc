@@ -22,7 +22,7 @@ pub fn envelope(payload: []const u8) ![]u8 {
 
     std.crypto.hash.sha2.Sha256.hash(payload, &digest, .{});
 
-    return std.fmt.allocPrint(std.testing.allocator, "zxc.module.v4\n{s}\n{s}\n{s}", .{ std.fmt.bytesToHex(identity, .lower), std.fmt.bytesToHex(digest, .lower), payload });
+    return std.fmt.allocPrint(std.testing.allocator, codec.marker ++ "{s}\n{s}\n{s}", .{ std.fmt.bytesToHex(identity, .lower), std.fmt.bytesToHex(digest, .lower), payload });
 }
 
 pub fn reject(bytes_value: []const u8) !void {

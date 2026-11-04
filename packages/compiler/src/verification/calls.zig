@@ -11,6 +11,13 @@ pub fn evaluate(self: *Expressions, expression: ir.ExpressionRow) zx.Error!terms
 
     if (function.stores.count() != 0) return self.reporter.fail(.unsupported, expression.span, "verification does not model Store calls");
     if (function.external != null) return self.reporter.fail(.unsupported, expression.span, "verification requires a ZX body for each executed call; external semantics are not modeled");
+
+    for (0..function.expressions.count()) |index| {
+        if (function.expressions.callee(index)) |callee| {
+            if (callee == invocation.function) return self.reporter.fail(.unsupported, expression.span, "symbolic execution does not support recursive functions");
+        }
+    }
+
     if (self.call_depth >= 128) return self.reporter.fail(.unsupported, expression.span, "verification call depth exceeds 128");
 
     const argument = try self.evaluate(invocation.argument);

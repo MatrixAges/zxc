@@ -1,7 +1,9 @@
 import { Keyword } from "../../lexer/keyword_model"
 import { Kind } from "../../lexer/token_model"
+import { default_function_message } from "./const"
 
 import type { Diagnostic } from "../../lexer/model"
+import type { Span } from "../../lexer/token_model"
 import type { DeclarationStage } from "./declarations/model"
 
 export type Input = DeclarationStage
@@ -10,6 +12,7 @@ export type Output = {
     index: u64,
     start: u64,
     present: bool,
+    name?: Span,
     diagnostic: Diagnostic
 }
 
@@ -49,6 +52,7 @@ export default function (in: Input): Output {
             index,
             start: token.span.start,
             present: false,
+            name: null,
             diagnostic
         }
     }
@@ -58,6 +62,7 @@ export default function (in: Input): Output {
             index,
             start: token.span.start,
             present: false,
+            name: null,
             diagnostic:
                 in.declarations.declarations.length == 0 && in.constants.length == 0 &&
                 !in.prefix.imports.imports.some(item => item.exported) ? {
@@ -77,12 +82,12 @@ export default function (in: Input): Output {
             index,
             start: token.span.start,
             present: false,
+            name: null,
             diagnostic: {
                 code: "contract",
                 start: token.span.start,
                 end: token.span.end,
-                message:
-                    "imports and types must precede the single anonymous default function"
+                message: default_function_message
             }
         }
     }
@@ -94,6 +99,7 @@ export default function (in: Input): Output {
             index: index + 2,
             start: token.span.start,
             present: false,
+            name: null,
             diagnostic: {
                 code: "syntax",
                 start: function_token.span.start,
@@ -103,10 +109,14 @@ export default function (in: Input): Output {
         }
     }
 
+    const next = index + 3
+    const named = tokens[next].kind == Kind.Identifier
+
     return {
-        index: index + 3,
+        index: named ? next + 1 : next,
         start: token.span.start,
         present: true,
+        name: named ? tokens[next].span : null,
         diagnostic
     }
 }

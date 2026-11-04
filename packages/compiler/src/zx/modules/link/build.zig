@@ -18,7 +18,7 @@ pub fn module(self: *Self, index: usize) Error!?ir.Function {
 
     if (!value.native_modules.validStructure() or !value.functions.validStructure()) return error.InvalidModule;
 
-    const function_mapping = try self.temporary.alloc(?ir.FunctionId, value.functions.count());
+    const function_mapping = try self.temporary.alloc(?ir.FunctionId, value.functions.count() + @intFromBool(value.function != null));
     const native_mapping = try self.temporary.alloc(?ir.NativeModuleId, value.native_modules.count());
 
     @memset(function_mapping, null);
@@ -40,7 +40,7 @@ pub fn module(self: *Self, index: usize) Error!?ir.Function {
         id.* = try native.append(self.allocator, &self.native_modules, item, &nodes);
     }
 
-    for (0..value.functions.count(), function_mapping) |row, *id| {
+    for (0..value.functions.count(), function_mapping[0..value.functions.count()]) |row, *id| {
         const signature = value.functions.at(row);
         const input = try nodes.types.include(signature.input_type);
         const output = try nodes.types.include(signature.output_type);
@@ -65,9 +65,16 @@ pub fn module(self: *Self, index: usize) Error!?ir.Function {
         }
     }
 
+    for ([_][]const @import("../function_import.zig"){ value.function_imports, value.members }) |bindings| for (bindings) |binding| {
+        if (!binding.valid()) return error.InvalidModule;
+        if (binding.intrinsic == null and @backingInt(binding.id.?) >= value.functions.count()) return error.InvalidModule;
+    };
+
     try self.imports(index, &nodes);
 
     if (value.function) |function| {
+        function_mapping[value.functions.count()] = @fromBackingInt(@intCast(self.functions.count()));
+
         if (function.external != null or !std.mem.eql(u8, function.file_name, value.path)) return error.InvalidModule;
 
         return try nodes.function(function);

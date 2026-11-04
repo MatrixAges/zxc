@@ -53,6 +53,7 @@ pub const Task = struct { body: ExprId, captures: []const SymbolId };
 pub const ParallelBranch = struct { task: ExprId, field: ?u32 };
 
 pub const Iteration = struct {
+    environment_symbol: ?SymbolId = null,
     initial: ExprId,
     condition_parameter: SymbolId,
     parameter: SymbolId,

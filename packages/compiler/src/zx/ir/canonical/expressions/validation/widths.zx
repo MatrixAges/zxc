@@ -81,6 +81,7 @@ export default function (in: Input): Output {
     if (
         in.iteration_initials.length != in.iteration_condition_parameters.length ||
             in.iteration_initials.length != in.iteration_parameters.length ||
+            in.iteration_initials.length != in.iteration_environment_symbols.length ||
             in.iteration_initials.length != in.iteration_conditions.length ||
             in.iteration_initials.length != in.iteration_bodies.length ||
             in.iteration_initials.length != in.iteration_postconditions.length

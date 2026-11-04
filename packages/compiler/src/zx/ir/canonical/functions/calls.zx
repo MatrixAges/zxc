@@ -49,7 +49,10 @@ export default function (in: Input): Output {
 
                 current.valid =
                     current.expressions.call_store_count[payload] == 0 &&
-                    target < current.limit && current.allowed[target]
+                    (
+                        target == current.limit ||
+                            (target < current.limit && current.allowed[target])
+                    )
             }
 
             current.index += 1

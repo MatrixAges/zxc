@@ -29,7 +29,7 @@ pub fn expression(self: *Storage, allocator: std.mem.Allocator, source: ir.Expre
         .unary => try prepare(self, allocator, &.{ "unary_operators", "unary_operands" }, 1),
         .binary => try prepare(self, allocator, &.{ "binary_operators", "binary_left", "binary_right" }, 1),
         .conditional => try prepare(self, allocator, &.{ "conditional_conditions", "conditional_yes", "conditional_no" }, 1),
-        .iteration => try prepare(self, allocator, &.{ "iteration_initials", "iteration_condition_parameters", "iteration_parameters", "iteration_conditions", "iteration_bodies", "iteration_postconditions" }, 1),
+        .iteration => try prepare(self, allocator, &.{ "iteration_initials", "iteration_condition_parameters", "iteration_parameters", "iteration_environment_symbols", "iteration_conditions", "iteration_bodies", "iteration_postconditions" }, 1),
         .list_update => try prepare(self, allocator, &.{ "update_targets", "update_indices", "update_values" }, 1),
         .list, .tuple, .template => |value| {
             try prepare(self, allocator, &.{ "sequence_first", "sequence_count" }, 1);

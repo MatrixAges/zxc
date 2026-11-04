@@ -31,6 +31,7 @@ export default function (in: Input): Output {
         initial: in.frame.initial,
         condition_parameter: in.frame.condition_parameter,
         parameter: in.frame.parameter,
+        environment_symbol: in.frame.readonly == null ? null : in.frame.readonly.symbol,
         condition: in.frame.condition,
         body: in.body,
         postcondition: in.frame.postcondition

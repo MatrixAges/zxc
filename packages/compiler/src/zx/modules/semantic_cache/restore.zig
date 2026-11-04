@@ -69,7 +69,7 @@ fn restoreChecked(module: model.Module, current: Current) Error!Result {
     if (!try constants.validate(allocator, module.types, module.constant_imports)) return error.InvalidModule;
     if (try @import("../../analysis/constants/bindings.zig").compare(allocator, .{ .previous = module.constant_imports, .current = current.constant_imports, .mapping = mapping }) != .Equal) return error.InvalidModule;
 
-    const function_mapping = try allocator.alloc(?ir.FunctionId, module.functions.count());
+    const function_mapping = try allocator.alloc(?ir.FunctionId, module.functions.count() + @intFromBool(module.function != null));
     const native_mapping = try allocator.alloc(?ir.NativeModuleId, module.native_modules.count());
 
     @memset(function_mapping, null);
@@ -113,7 +113,7 @@ fn restoreChecked(module: model.Module, current: Current) Error!Result {
 
         const index = @backingInt(previous.id.?);
 
-        if (index >= function_mapping.len or @backingInt(binding.id.?) >= current.functions.count()) return error.InvalidModule;
+        if (index >= module.functions.count() or @backingInt(binding.id.?) >= current.functions.count()) return error.InvalidModule;
 
         if (function_mapping[index]) |mapped| {
             if (mapped != binding.id) return error.InvalidModule;
@@ -122,7 +122,7 @@ fn restoreChecked(module: model.Module, current: Current) Error!Result {
         function_mapping[index] = binding.id;
     }
 
-    for (0..module.functions.count(), function_mapping) |row, id| {
+    for (0..module.functions.count(), function_mapping[0..module.functions.count()]) |row, id| {
         const signature = module.functions.at(row);
         const function = current.functions.at(@backingInt(id orelse return error.InvalidModule));
 
@@ -138,6 +138,8 @@ fn restoreChecked(module: model.Module, current: Current) Error!Result {
         } else if (function.external != null) return error.InvalidModule;
     }
 
+    if (module.function != null) function_mapping[module.functions.count()] = @fromBackingInt(@intCast(current.functions.count()));
+
     const function = if (module.function) |value| try nodes.function(value) else null;
     const exports = try allocator.dupe(ir.Export, module.exports);
     const stores = try nodes.stores(module.stores);
@@ -147,7 +149,7 @@ fn restoreChecked(module: model.Module, current: Current) Error!Result {
         item.type_id = try nodes.types.include(item.type_id);
     }
 
-    const result = Result{ .nominal_types = types.origins.items.view(), .program = .{
+    var result = Result{ .nominal_types = types.origins.items.view(), .program = .{
         .file_name = try allocator.dupe(u8, module.path),
         .types = types.items.view(),
         .input_type = if (function) |value| value.input_type else @fromBackingInt(@intCast(0)),
@@ -166,6 +168,7 @@ fn restoreChecked(module: model.Module, current: Current) Error!Result {
         .type_only = function == null,
     } };
 
+    try @import("../function_body.zig").complete(allocator, &result.program, current.functions);
     if (try @import("../../ir/validate.zig").validate(allocator, result.program) != null) return error.InvalidIr;
 
     return result;

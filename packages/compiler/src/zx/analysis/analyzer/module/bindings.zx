@@ -1,0 +1,65 @@
+import integers from "std:integer"
+
+import text from "../../semantic/resolving/source/text"
+
+import type { FunctionImports, ModuleInput } from "../context"
+import type { Prepared } from "../model"
+
+export type Input = {
+    state: Prepared,
+    module: ModuleInput
+}
+
+export type Output = {
+    state: Prepared,
+    imports: FunctionImports
+}
+
+export default function (in: Input): Output {
+    const imports = in.module.context.function_imports
+    const span = in.module.syntax.function_name
+
+    if (span == null) {
+        return {
+            state: in.state,
+            imports
+        }
+    }
+
+    const native = in.module.native
+
+    const name = native != null && native.function_name != null ? native.function_name :
+        text({
+            source: in.module.bytes,
+            span
+        }).text
+
+    const id = integers.narrow(in.module.context.functions.input_types.length)
+
+    const binding: FunctionImports = {
+        namespaces: [null],
+        names: [name],
+        ids: [id],
+        input_types: [in.state.input_type],
+        output_types: [in.state.local.output_type],
+        intrinsics: [null]
+    }
+
+    return {
+        state: {
+            ...in.state,
+            local: {
+                ...in.state.local,
+                self_function: id
+            }
+        },
+        imports: {
+            namespaces: binding.namespaces.concat(imports.namespaces)[0],
+            names: binding.names.concat(imports.names)[0],
+            ids: binding.ids.concat(imports.ids)[0],
+            input_types: binding.input_types.concat(imports.input_types)[0],
+            output_types: binding.output_types.concat(imports.output_types)[0],
+            intrinsics: binding.intrinsics.concat(imports.intrinsics)[0]
+        }
+    }
+}

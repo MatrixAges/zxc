@@ -15,6 +15,7 @@
             dependencies: PlanningModel.Dependencies,
             function_imports: FunctionsModel.Imports,
             modules: Structure.Input,
+            own_function?: u32,
             request: ExtractingPlanningModel.Request,
             signatures: FunctionsModel.Signatures,
             type_imports: u32[]
@@ -89,5 +90,13 @@
         }}
     />
 
-    <Return value={$ctx.function_imports} />
+    <Call
+        fn="functions/own"
+        in={{
+            plan: $ctx.function_imports,
+            own_function: $in.own_function
+        }}
+    />
+
+    <Return value={$ctx.own} />
 </Module>

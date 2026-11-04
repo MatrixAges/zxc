@@ -7,6 +7,7 @@ export type Input = {
     expressions: Expressions,
     contracts: Contracts,
     allowed: bool[],
+    self_function?: u64,
     limit: u64
 }
 
@@ -17,6 +18,7 @@ export default function (in: Input): Output {
         expressions: in.expressions,
         allowed: in.allowed,
         expected: true,
+        self_function: in.self_function,
         limit: in.limit,
         tasks: true
     })) {
@@ -26,6 +28,7 @@ export default function (in: Input): Output {
     const result = loop({
         contracts: in.contracts,
         allowed: in.allowed,
+        self_function: in.self_function,
         limit: in.limit,
         index: 0,
         valid: true
@@ -37,6 +40,7 @@ export default function (in: Input): Output {
                 expressions: current.contracts.expressions[current.index],
                 allowed: current.allowed,
                 expected: true,
+                self_function: current.self_function,
                 limit: current.limit,
                 tasks: true
             })

@@ -12,9 +12,17 @@
 
     <If on={$in.analysis.state.diagnostic.message == "" && !$in.analysis.type_only}>
         <Call
-            module="../body"
+            fn="./bindings"
             in={{
                 state: $in.analysis.state,
+                module: $in.module
+            }}
+        />
+
+        <Call
+            module="../body"
+            in={{
+                state: $ctx.bindings.state,
                 source: {
                     bytes: $in.module.bytes,
                     tree: $in.module.syntax.expressions,
@@ -22,7 +30,7 @@
                     constant_values: $in.analysis.constant_scope,
                     native: $in.module.native
                 },
-                imports: $in.module.context.function_imports,
+                imports: $ctx.bindings.imports,
                 functions: $in.module.context.functions,
                 block: $in.module.syntax.body ?? 0,
                 span:

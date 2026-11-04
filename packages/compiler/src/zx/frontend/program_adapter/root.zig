@@ -5,6 +5,7 @@ const Context = @import("context.zig");
 pub fn convert(allocator: std.mem.Allocator, source: []const u8, output: anytype) !zx.ast.Program {
     const program = output;
     const context = try Context.init(allocator, source, program);
+    const header = @import("../syntax/header.zig").View(@TypeOf(program)){ .source = source, .storage = program };
 
     try @import("types.zig").fill(context);
     try @import("blocks.zig").fill(context);
@@ -84,6 +85,7 @@ pub fn convert(allocator: std.mem.Allocator, source: []const u8, output: anytype
         .constants = constants,
         .contracts = contracts,
         .has_store = program.has_store,
+        .function_name = header.functionName(),
         .function_start = @intCast(program.function_start),
         .body = if (program.body) |index| context.block(index) else null,
     };

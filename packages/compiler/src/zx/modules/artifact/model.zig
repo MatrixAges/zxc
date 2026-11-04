@@ -17,6 +17,7 @@ pub const Module = struct {
     members: []const @import("../function_import.zig") = &.{},
     functions: ir.SignatureTable,
     native_modules: ir.NativeModuleTable,
+    /// The body owns the local FunctionId immediately after the imported signatures.
     function: ?ir.Function,
     stores: ir.StoreTable,
 };

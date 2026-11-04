@@ -177,6 +177,12 @@ fn expression(self: *Self, id: ir.ExprId, depth: usize) std.mem.Allocator.Error!
         .iteration => |iteration| blk: {
             if (!try self.expression(iteration.initial, depth + 1)) break :blk false;
 
+            if (iteration.environment_symbol) |symbol| {
+                const environment = @backingInt(symbol);
+
+                if (environment >= self.active.len or !self.active[environment]) break :blk false;
+            }
+
             const saved = try self.allocator.dupe(bool, self.active);
 
             defer self.allocator.free(saved);
@@ -189,6 +195,8 @@ fn expression(self: *Self, id: ir.ExprId, depth: usize) std.mem.Allocator.Error!
 
             for (parameters, callbacks) |parameter, callback| {
                 @memset(self.active, false);
+
+                if (iteration.environment_symbol) |symbol| self.active[@backingInt(symbol)] = true;
 
                 const index = @backingInt(parameter);
 

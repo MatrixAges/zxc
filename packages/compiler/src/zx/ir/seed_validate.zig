@@ -24,7 +24,7 @@ pub fn validate(allocator: std.mem.Allocator, program: ir.Program, verified: usi
         for (0..item.expressions.count()) |expression_index| {
             const expression = item.expressions.at(expression_index);
 
-            if (expression.value == .call and @backingInt(expression.value.call.function) >= function_index) return invalid();
+            if (expression.value == .call and @backingInt(expression.value.call.function) > function_index) return invalid();
         }
 
         if (item.external) |external| {

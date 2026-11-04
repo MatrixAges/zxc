@@ -43,6 +43,7 @@ export default function (in: Input): Output {
                     expressions: functions.expressions[index],
                     contracts: functions.contracts[index],
                     allowed: current.pure,
+                    self_function: index,
                     limit: index
                 })
             }

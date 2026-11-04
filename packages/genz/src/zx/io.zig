@@ -3,9 +3,13 @@ const ir = @import("zx").ir;
 const capabilities = @import("capabilities.zig");
 
 pub fn uses(expressions: ir.ExpressionTable, contracts: ir.ContractTable, required: []const bool) bool {
+    return usesWithin(expressions, contracts, required, null);
+}
+
+pub fn usesWithin(expressions: ir.ExpressionTable, contracts: ir.ContractTable, required: []const bool, self_function: ?usize) bool {
     for (0..expressions.count()) |expression_index| if (expressions.concurrent(expression_index)) return true;
 
-    return capabilities.uses(expressions, contracts, required);
+    return capabilities.usesWithin(expressions, contracts, required, self_function);
 }
 
 pub fn functions(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error![]bool {

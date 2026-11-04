@@ -1,6 +1,6 @@
 const std = @import("std");
 const ir = @import("zx").ir;
-const calls = @import("../entry_flags/seed.zig").calls;
+const calls = @import("../entry_flags/seed.zig").callsWithin;
 const parallel = @import("../entry_flags/seed.zig").parallel;
 
 pub fn functions(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error![]bool {
@@ -37,7 +37,7 @@ pub fn analyze(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloca
     for (0..program.functions.count()) |index| {
         const function = program.functions.at(index);
         pure[index] = isPure(program, function, pure[0..index]);
-        local[index] = if (function.external != null) @import("../native_value.zig").isolated(program, function) else function.stores.count() == 0 and !parallel(function.body.block()) and calls(function.expressions, function.contracts, local[0..index]);
+        local[index] = if (function.external != null) @import("../native_value.zig").isolated(program, function) else function.stores.count() == 0 and !parallel(function.body.block()) and calls(function.expressions, function.contracts, local[0..index], index);
         eligible[index] = local[index] and (program.typeOf(function.output_type) == .object or (function.external == null and state.represented(program, function.output_type)));
     }
 
@@ -57,7 +57,7 @@ pub fn pureFunctions(allocator: std.mem.Allocator, program: ir.Program) std.mem.
 fn isPure(program: ir.Program, function: ir.Function, before: []const bool) bool {
     if (function.external != null) return @import("../native_value.zig").valueBoundary(program, function);
 
-    return function.stores.count() == 0 and !parallel(function.body.block()) and calls(function.expressions, function.contracts, before);
+    return function.stores.count() == 0 and !parallel(function.body.block()) and calls(function.expressions, function.contracts, before, before.len);
 }
 
 pub fn sharesAggregate(program: ir.Program, input: ir.TypeId, output: ir.TypeId) bool {

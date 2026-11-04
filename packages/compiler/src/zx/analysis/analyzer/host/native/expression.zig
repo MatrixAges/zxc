@@ -10,7 +10,7 @@ pub const Result = struct { syntax: *const Syntax, native: @FieldType(Input, "na
 pub fn convert(allocator: std.mem.Allocator, expression: *const zx.ast.Expression) std.mem.Allocator.Error!Result {
     var context = Context{ .allocator = allocator, .types = .{ .allocator = allocator } };
     const result = try context.expression(expression);
-    const tables = try @import("finish.zig").apply(&context, &.{}, &.{});
+    const tables = try @import("finish.zig").apply(&context, &.{}, &.{}, null);
     const syntax = try allocator.create(Syntax);
 
     syntax.* = .{

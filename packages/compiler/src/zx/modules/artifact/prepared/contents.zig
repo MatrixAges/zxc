@@ -48,7 +48,7 @@ pub fn dependencies(nodes: *Nodes, source: []const Record.Import) Error![]const 
 pub fn function(nodes: *Nodes, program: ir.Program, record: Record) Error!?ir.Function {
     const value: ir.Function = switch (record.body) {
         .types => return null,
-        .entry => .{ .stores = program.stores, .store_mode = program.store_mode, .file_name = program.file_name, .input_type = program.input_type, .output_type = program.output_type, .output_ownership = program.output_ownership, .symbols = program.symbols, .expressions = program.expressions, .body = program.body, .contracts = program.contracts },
+        .entry => if (record.own_function) |id| program.functions.at(@backingInt(id)) else .{ .stores = program.stores, .store_mode = program.store_mode, .file_name = program.file_name, .input_type = program.input_type, .output_type = program.output_type, .output_ownership = program.output_ownership, .symbols = program.symbols, .expressions = program.expressions, .body = program.body, .contracts = program.contracts },
         .function => |id| program.functions.at(@backingInt(id)),
     };
 

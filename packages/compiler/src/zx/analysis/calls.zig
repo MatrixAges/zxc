@@ -25,6 +25,10 @@ pub fn analyze(self: *Analyzer, expression: anytype, expected: ?ir.TypeId) zx.Er
             }
         }
 
+        if (self.self_function) |function| {
+            if (std.mem.eql(u8, function.name, name.text)) return importedCall(self, expression, function, expected);
+        }
+
         for (self.function_imports) |function| {
             if (function.namespace != null or !std.mem.eql(u8, function.name, name.text)) continue;
 
@@ -96,12 +100,14 @@ pub fn analyze(self: *Analyzer, expression: anytype, expected: ?ir.TypeId) zx.Er
 fn importedCall(self: *Analyzer, expression: anytype, function: Analyzer.FunctionImport, expected: ?ir.TypeId) zx.Error!ir.ExprId {
     if (function.intrinsic) |operation| return @import("utilities.zig").analyze(self, expression, operation, expected);
 
-    const signature = self.functions.at(@backingInt(function.id.?));
+    const self_call = if (self.self_function) |current| current.id == function.id else false;
+    const signature: ?ir.Function = if (self_call) null else self.functions.at(@backingInt(function.id.?));
+    const stores = if (signature) |value| value.stores else self.stores;
 
-    if (signature.stores.count() != 0) return self.reporter.fail(.capability, expression.span, "Store functions require an explicitly authorized orchestration Call");
+    if (stores.count() != 0) return self.reporter.fail(.capability, expression.span, "Store functions require an explicitly authorized orchestration Call");
 
     const call = syntax.value(expression).call;
-    const native_tuple = if (signature.external) |external| external.expand_tuple else false;
+    const native_tuple = if (signature) |value| if (value.external) |external| external.expand_tuple else false else false;
     const input = self.types.get(function.input_type.?);
     const expand_tuple = native_tuple or (input == .tuple and call.arguments.len > 1);
 

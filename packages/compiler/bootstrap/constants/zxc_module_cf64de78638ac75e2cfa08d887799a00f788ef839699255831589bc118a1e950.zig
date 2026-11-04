@@ -1,11 +1,11 @@
 const std = @import("std");
 const zx_abi = @import("zxc_abi");
 
-pub fn callValue(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_3425a43fd8455c89a26bbf3ccd1009e459c685a636082fd3a553b2166db51923) error{ IndexOutOfBounds, OutOfMemory, }!(zx_abi).zx_type_308af60039628ab4f4c6af8f1a9f436729424c0f23744dd60fe8973cd7a15dc6 {
+pub fn callValue(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_70cc73e2d4def4cea2ef2031e5a44f78bd47edce381ada1465ee5b5bfd0992e2) error{ IndexOutOfBounds, OutOfMemory, }!(zx_abi).zx_type_308af60039628ab4f4c6af8f1a9f436729424c0f23744dd60fe8973cd7a15dc6 {
     @setRuntimeSafety(true);
 
-    const value_1: (zx_abi).zx_type_3a713b7f1a7f30d962aa6fe24fb9c2564ae93bb56dd45463864f9f4a742b599c = (((in).input).expressions).*;
-    const value_2: u64 = (try (@import("zxc_module_03685fb27fcc6f02d805a9f9d6b50d67090f3367551a4132692450cae75d6f8d.zig")).call(allocator, (in).id));
+    const value_1: (zx_abi).zx_type_7172f221b5abe933ec705af5a9f87a7f7b6db5c720117ee4399833dfc85d12fb = (((in).input).expressions).*;
+    const value_2: u64 = (try (@import("zxc_module_1556558f3553681db94a81603f876ffbf274fcc003da60e284e06b42ec076761.zig")).call(allocator, (in).id));
 
     const value_3: (zx_abi).zx_type_2af9665120767ed61dc0e8028c12ae89cfa0b236b6cd3a6cef89b0359def17b5 = block_38: {
         const operand_36 = ((&value_1)).kinds;
@@ -18,7 +18,7 @@ pub fn callValue(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_3
         break :block_38 (operand_36)[@intCast(operand_37)];
     };
 
-    const value_4: u64 = (try (@import("zxc_module_03685fb27fcc6f02d805a9f9d6b50d67090f3367551a4132692450cae75d6f8d.zig")).call(allocator, block_35: {
+    const value_4: u64 = (try (@import("zxc_module_1556558f3553681db94a81603f876ffbf274fcc003da60e284e06b42ec076761.zig")).call(allocator, block_35: {
         const operand_33 = ((&value_1)).payloads;
         const operand_34 = value_2;
 
@@ -34,7 +34,7 @@ pub fn callValue(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_3
     const value_6: u64 = block_32: {
         const operand_25 = value_3;
 
-        break :block_32 (if ((operand_25 == @as((zx_abi).zx_type_2af9665120767ed61dc0e8028c12ae89cfa0b236b6cd3a6cef89b0359def17b5, .Integer))) block_31: {
+        break :block_32 switch (operand_25) { @as((zx_abi).zx_type_2af9665120767ed61dc0e8028c12ae89cfa0b236b6cd3a6cef89b0359def17b5, .Integer) => block_31: {
             const operand_29 = ((&value_1)).integers;
             const operand_30 = value_4;
 
@@ -43,7 +43,7 @@ pub fn callValue(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_3
             }
 
             break :block_31 (operand_29)[@intCast(operand_30)];
-        } else (if ((operand_25 == @as((zx_abi).zx_type_2af9665120767ed61dc0e8028c12ae89cfa0b236b6cd3a6cef89b0359def17b5, .NegativeInteger))) block_28: {
+        }, else => (if ((operand_25 == @as((zx_abi).zx_type_2af9665120767ed61dc0e8028c12ae89cfa0b236b6cd3a6cef89b0359def17b5, .NegativeInteger))) block_28: {
             const operand_26 = ((&value_1)).negative_integers;
             const operand_27 = value_4;
 
@@ -52,7 +52,7 @@ pub fn callValue(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_3
             }
 
             break :block_28 (operand_26)[@intCast(operand_27)];
-        } else @as(u64, 0)));
+        } else @as(u64, 0)), };
     };
 
     return block_24: {

@@ -1,16 +1,16 @@
 const std = @import("std");
 const zx_abi = @import("zxc_abi");
 
-pub fn callValue(allocator: ((std).mem).Allocator, in: (zx_abi).value_9665061c1684657adf2f7d7bb1d3cae18bfd07f85cc1b7701ce65593d567c0be) error{ OutOfMemory, }!(zx_abi).value_b8158d62b5c164a2d0aac9fde6849ee1b0cf6a0c9c3479e7f6f9d6e8218509a2 {
+pub fn callValue(allocator: ((std).mem).Allocator, in: (zx_abi).value_8ba89f6fd24b0d685288fcbd2d68ba4f61dabc30ebd626fb829a319904883aba) error{ OutOfMemory, }!(zx_abi).value_368995f44f4ef4a2eb1f30d8e31e16c607e34b7636afa681c693d0d17558fb22 {
     @setRuntimeSafety(true);
 
-    const value_1: (zx_abi).value_1e90546f6982f1ef7f90613f34c60e8d93b00a5485317b1a6eeab83c3362fc43 = (in).left;
+    const value_1: (zx_abi).value_fc38e1f7fc73d0600fb854b11cd42411216908ef592d60497594b82b992070a8 = (in).left;
 
-    const value_2: (zx_abi).value_1e90546f6982f1ef7f90613f34c60e8d93b00a5485317b1a6eeab83c3362fc43 = block_74: {
+    const value_2: (zx_abi).value_fc38e1f7fc73d0600fb854b11cd42411216908ef592d60497594b82b992070a8 = block_74: {
         const operand_72 = ((in).right).magnitude;
         const operand_73 = (if ((((in).operator == @as((zx_abi).zx_type_c2cf793e3172a7ed4a668fba2693ad110a34623e2f0f6b109fb61f2967243a7a, .Subtract)) and (((in).right).magnitude != @as(u64, 0)))) (!((in).right).negative) else ((in).right).negative);
 
-        break :block_74 @as((zx_abi).value_1e90546f6982f1ef7f90613f34c60e8d93b00a5485317b1a6eeab83c3362fc43, (zx_abi).value_1e90546f6982f1ef7f90613f34c60e8d93b00a5485317b1a6eeab83c3362fc43{ .magnitude = operand_72, .negative = operand_73, });
+        break :block_74 @as((zx_abi).value_fc38e1f7fc73d0600fb854b11cd42411216908ef592d60497594b82b992070a8, (zx_abi).value_fc38e1f7fc73d0600fb854b11cd42411216908ef592d60497594b82b992070a8{ .magnitude = operand_72, .negative = operand_73, });
     };
 
     const value_3: bool = (((in).operator == @as((zx_abi).zx_type_c2cf793e3172a7ed4a668fba2693ad110a34623e2f0f6b109fb61f2967243a7a, .Add)) or ((in).operator == @as((zx_abi).zx_type_c2cf793e3172a7ed4a668fba2693ad110a34623e2f0f6b109fb61f2967243a7a, .Subtract)));
@@ -35,11 +35,11 @@ pub fn callValue(allocator: ((std).mem).Allocator, in: (zx_abi).value_9665061c16
         break :block_65 value_4;
     } and (!((in).target).signed));
 
-    const value_7: (zx_abi).value_1e90546f6982f1ef7f90613f34c60e8d93b00a5485317b1a6eeab83c3362fc43 = block_64: {
+    const value_7: (zx_abi).value_fc38e1f7fc73d0600fb854b11cd42411216908ef592d60497594b82b992070a8 = block_64: {
         const operand_62 = @as(u64, 0);
         const operand_63 = false;
 
-        break :block_64 @as((zx_abi).value_1e90546f6982f1ef7f90613f34c60e8d93b00a5485317b1a6eeab83c3362fc43, (zx_abi).value_1e90546f6982f1ef7f90613f34c60e8d93b00a5485317b1a6eeab83c3362fc43{ .magnitude = operand_62, .negative = operand_63, });
+        break :block_64 @as((zx_abi).value_fc38e1f7fc73d0600fb854b11cd42411216908ef592d60497594b82b992070a8, (zx_abi).value_fc38e1f7fc73d0600fb854b11cd42411216908ef592d60497594b82b992070a8{ .magnitude = operand_62, .negative = operand_63, });
     };
 
     if (block_33: {
@@ -57,7 +57,7 @@ pub fn callValue(allocator: ((std).mem).Allocator, in: (zx_abi).value_9665061c16
                     const operand_59 = value_7;
                     const operand_60 = @as([]const u8, "integer constant arithmetic overflows its type");
 
-                    break :block_61 @as((zx_abi).value_b8158d62b5c164a2d0aac9fde6849ee1b0cf6a0c9c3479e7f6f9d6e8218509a2, (zx_abi).value_b8158d62b5c164a2d0aac9fde6849ee1b0cf6a0c9c3479e7f6f9d6e8218509a2{ .value = operand_59, .message = operand_60, });
+                    break :block_61 @as((zx_abi).value_368995f44f4ef4a2eb1f30d8e31e16c607e34b7636afa681c693d0d17558fb22, (zx_abi).value_368995f44f4ef4a2eb1f30d8e31e16c607e34b7636afa681c693d0d17558fb22{ .value = operand_59, .message = operand_60, });
                 };
             }
 
@@ -74,12 +74,12 @@ pub fn callValue(allocator: ((std).mem).Allocator, in: (zx_abi).value_9665061c16
                         break :block_52 value_4;
                     });
 
-                    break :block_53 @as((zx_abi).value_1e90546f6982f1ef7f90613f34c60e8d93b00a5485317b1a6eeab83c3362fc43, (zx_abi).value_1e90546f6982f1ef7f90613f34c60e8d93b00a5485317b1a6eeab83c3362fc43{ .magnitude = operand_48, .negative = operand_50, });
+                    break :block_53 @as((zx_abi).value_fc38e1f7fc73d0600fb854b11cd42411216908ef592d60497594b82b992070a8, (zx_abi).value_fc38e1f7fc73d0600fb854b11cd42411216908ef592d60497594b82b992070a8{ .magnitude = operand_48, .negative = operand_50, });
                 };
 
                 const operand_54 = @as([]const u8, "");
 
-                break :block_55 @as((zx_abi).value_b8158d62b5c164a2d0aac9fde6849ee1b0cf6a0c9c3479e7f6f9d6e8218509a2, (zx_abi).value_b8158d62b5c164a2d0aac9fde6849ee1b0cf6a0c9c3479e7f6f9d6e8218509a2{ .value = operand_47, .message = operand_54, });
+                break :block_55 @as((zx_abi).value_368995f44f4ef4a2eb1f30d8e31e16c607e34b7636afa681c693d0d17558fb22, (zx_abi).value_368995f44f4ef4a2eb1f30d8e31e16c607e34b7636afa681c693d0d17558fb22{ .value = operand_47, .message = operand_54, });
             };
         }
 
@@ -105,7 +105,7 @@ pub fn callValue(allocator: ((std).mem).Allocator, in: (zx_abi).value_9665061c16
                     break :block_39 value_11;
                 });
 
-                break :block_40 @as((zx_abi).value_1e90546f6982f1ef7f90613f34c60e8d93b00a5485317b1a6eeab83c3362fc43, (zx_abi).value_1e90546f6982f1ef7f90613f34c60e8d93b00a5485317b1a6eeab83c3362fc43{ .magnitude = operand_35, .negative = operand_37, });
+                break :block_40 @as((zx_abi).value_fc38e1f7fc73d0600fb854b11cd42411216908ef592d60497594b82b992070a8, (zx_abi).value_fc38e1f7fc73d0600fb854b11cd42411216908ef592d60497594b82b992070a8{ .magnitude = operand_35, .negative = operand_37, });
             };
 
             const operand_41 = (if ((((block_42: {
@@ -114,7 +114,7 @@ pub fn callValue(allocator: ((std).mem).Allocator, in: (zx_abi).value_9665061c16
                 break :block_43 value_11;
             }) and (!((in).target).signed))) @as([]const u8, "integer constant arithmetic overflows its type") else @as([]const u8, ""));
 
-            break :block_44 @as((zx_abi).value_b8158d62b5c164a2d0aac9fde6849ee1b0cf6a0c9c3479e7f6f9d6e8218509a2, (zx_abi).value_b8158d62b5c164a2d0aac9fde6849ee1b0cf6a0c9c3479e7f6f9d6e8218509a2{ .value = operand_34, .message = operand_41, });
+            break :block_44 @as((zx_abi).value_368995f44f4ef4a2eb1f30d8e31e16c607e34b7636afa681c693d0d17558fb22, (zx_abi).value_368995f44f4ef4a2eb1f30d8e31e16c607e34b7636afa681c693d0d17558fb22{ .value = operand_34, .message = operand_41, });
         };
     }
 
@@ -128,7 +128,7 @@ pub fn callValue(allocator: ((std).mem).Allocator, in: (zx_abi).value_9665061c16
                 const operand_30 = value_7;
                 const operand_31 = @as([]const u8, "integer constant arithmetic overflows its type");
 
-                break :block_32 @as((zx_abi).value_b8158d62b5c164a2d0aac9fde6849ee1b0cf6a0c9c3479e7f6f9d6e8218509a2, (zx_abi).value_b8158d62b5c164a2d0aac9fde6849ee1b0cf6a0c9c3479e7f6f9d6e8218509a2{ .value = operand_30, .message = operand_31, });
+                break :block_32 @as((zx_abi).value_368995f44f4ef4a2eb1f30d8e31e16c607e34b7636afa681c693d0d17558fb22, (zx_abi).value_368995f44f4ef4a2eb1f30d8e31e16c607e34b7636afa681c693d0d17558fb22{ .value = operand_30, .message = operand_31, });
             };
         }
 
@@ -145,12 +145,12 @@ pub fn callValue(allocator: ((std).mem).Allocator, in: (zx_abi).value_9665061c16
                     break :block_24 value_4;
                 });
 
-                break :block_25 @as((zx_abi).value_1e90546f6982f1ef7f90613f34c60e8d93b00a5485317b1a6eeab83c3362fc43, (zx_abi).value_1e90546f6982f1ef7f90613f34c60e8d93b00a5485317b1a6eeab83c3362fc43{ .magnitude = operand_20, .negative = operand_22, });
+                break :block_25 @as((zx_abi).value_fc38e1f7fc73d0600fb854b11cd42411216908ef592d60497594b82b992070a8, (zx_abi).value_fc38e1f7fc73d0600fb854b11cd42411216908ef592d60497594b82b992070a8{ .magnitude = operand_20, .negative = operand_22, });
             };
 
             const operand_26 = @as([]const u8, "");
 
-            break :block_27 @as((zx_abi).value_b8158d62b5c164a2d0aac9fde6849ee1b0cf6a0c9c3479e7f6f9d6e8218509a2, (zx_abi).value_b8158d62b5c164a2d0aac9fde6849ee1b0cf6a0c9c3479e7f6f9d6e8218509a2{ .value = operand_19, .message = operand_26, });
+            break :block_27 @as((zx_abi).value_368995f44f4ef4a2eb1f30d8e31e16c607e34b7636afa681c693d0d17558fb22, (zx_abi).value_368995f44f4ef4a2eb1f30d8e31e16c607e34b7636afa681c693d0d17558fb22{ .value = operand_19, .message = operand_26, });
         };
     }
 
@@ -159,7 +159,7 @@ pub fn callValue(allocator: ((std).mem).Allocator, in: (zx_abi).value_9665061c16
             const operand_16 = value_7;
             const operand_17 = @as([]const u8, "integer constant division by zero");
 
-            break :block_18 @as((zx_abi).value_b8158d62b5c164a2d0aac9fde6849ee1b0cf6a0c9c3479e7f6f9d6e8218509a2, (zx_abi).value_b8158d62b5c164a2d0aac9fde6849ee1b0cf6a0c9c3479e7f6f9d6e8218509a2{ .value = operand_16, .message = operand_17, });
+            break :block_18 @as((zx_abi).value_368995f44f4ef4a2eb1f30d8e31e16c607e34b7636afa681c693d0d17558fb22, (zx_abi).value_368995f44f4ef4a2eb1f30d8e31e16c607e34b7636afa681c693d0d17558fb22{ .value = operand_16, .message = operand_17, });
         };
     }
 
@@ -183,7 +183,7 @@ pub fn callValue(allocator: ((std).mem).Allocator, in: (zx_abi).value_9665061c16
                 break :block_7 value_4;
             }));
 
-            break :block_8 @as((zx_abi).value_1e90546f6982f1ef7f90613f34c60e8d93b00a5485317b1a6eeab83c3362fc43, (zx_abi).value_1e90546f6982f1ef7f90613f34c60e8d93b00a5485317b1a6eeab83c3362fc43{ .magnitude = operand_2, .negative = operand_4, });
+            break :block_8 @as((zx_abi).value_fc38e1f7fc73d0600fb854b11cd42411216908ef592d60497594b82b992070a8, (zx_abi).value_fc38e1f7fc73d0600fb854b11cd42411216908ef592d60497594b82b992070a8{ .magnitude = operand_2, .negative = operand_4, });
         };
 
         const operand_9 = (if (((!block_10: {
@@ -196,7 +196,7 @@ pub fn callValue(allocator: ((std).mem).Allocator, in: (zx_abi).value_9665061c16
             break :block_13 value_5;
         })))) @as([]const u8, "integer constant arithmetic overflows its type") else @as([]const u8, ""));
 
-        break :block_14 @as((zx_abi).value_b8158d62b5c164a2d0aac9fde6849ee1b0cf6a0c9c3479e7f6f9d6e8218509a2, (zx_abi).value_b8158d62b5c164a2d0aac9fde6849ee1b0cf6a0c9c3479e7f6f9d6e8218509a2{ .value = operand_1, .message = operand_9, });
+        break :block_14 @as((zx_abi).value_368995f44f4ef4a2eb1f30d8e31e16c607e34b7636afa681c693d0d17558fb22, (zx_abi).value_368995f44f4ef4a2eb1f30d8e31e16c607e34b7636afa681c693d0d17558fb22{ .value = operand_1, .message = operand_9, });
     };
 }
 

@@ -15,6 +15,13 @@ export type Input = {
 export type Output = State
 
 export default function (in: Input): Output {
+    if (in.index >= in.state.context.functions.input_types.length) {
+        return {
+            ...in.state,
+            unknown: true
+        }
+    }
+
     const called = insert({
         seen: in.state.called,
         id: integers.narrow(in.index)

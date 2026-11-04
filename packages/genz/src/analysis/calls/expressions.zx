@@ -7,6 +7,7 @@ export type Input = {
     expressions: Expressions,
     allowed: bool[],
     expected: bool,
+    self_function?: u64,
     limit: u64,
     tasks: bool
 }
@@ -20,6 +21,7 @@ export default function (in: Input): Output {
         call_functions: in.expressions.call_functions,
         allowed: in.allowed,
         expected: in.expected,
+        self_function: in.self_function,
         limit: in.limit,
         tasks: in.tasks,
         index: 0,
@@ -48,8 +50,14 @@ export default function (in: Input): Output {
                     )
 
                 current.valid =
-                    target < current.limit &&
-                    current.allowed[target] == current.expected
+                    (
+                        current.self_function != null &&
+                            target == current.self_function
+                    ) ||
+                    (
+                        target < current.limit &&
+                            current.allowed[target] == current.expected
+                    )
             }
 
             current.index += 1

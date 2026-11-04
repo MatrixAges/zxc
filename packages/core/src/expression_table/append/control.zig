@@ -32,6 +32,7 @@ pub fn iteration(self: *Storage, value: ir.Iteration) usize {
     self.iteration_initials.appendAssumeCapacity(@backingInt(value.initial));
     self.iteration_condition_parameters.appendAssumeCapacity(@backingInt(value.condition_parameter));
     self.iteration_parameters.appendAssumeCapacity(@backingInt(value.parameter));
+    self.iteration_environment_symbols.appendAssumeCapacity(if (value.environment_symbol) |id| @backingInt(id) else null);
     self.iteration_conditions.appendAssumeCapacity(@backingInt(value.condition));
     self.iteration_bodies.appendAssumeCapacity(@backingInt(value.body));
     self.iteration_postconditions.appendAssumeCapacity(value.postcondition);

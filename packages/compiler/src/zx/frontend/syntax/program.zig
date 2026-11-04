@@ -29,8 +29,10 @@ pub fn View(comptime Storage: type) type {
                 .body = if (self.storage.body) |index| self.block(index) else null,
                 .contracts = .{ .context = self, .first = 0, .len = self.storage.contracts.len },
                 .has_store = self.storage.has_store,
+                .function_name = (@import("header.zig").View(Storage){ .source = self.source, .storage = self.storage }).functionName(),
             };
         }
+
         pub fn expression(self: *const Self, index: u64) Model.Expression {
             const id: usize = @intCast(index);
 

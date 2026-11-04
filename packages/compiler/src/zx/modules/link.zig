@@ -45,12 +45,23 @@ pub fn link(allocator: std.mem.Allocator, modules: []const model.Module, entry: 
 
     var builder = Builder{ .allocator = owned, .temporary = scratch, .modules = sorted, .type_mappings = mappings, .module_functions = function_ids };
     var root: ?ir.Function = null;
+    var recursive_root: ?ir.FunctionId = null;
 
     for (sorted, 0..) |module, index| {
         const function = try builder.module(index);
 
         if (index + 1 == sorted.len) {
             root = function;
+
+            if (function) |value| {
+                const id: ir.FunctionId = @fromBackingInt(@intCast(builder.functions.count()));
+
+                if (@import("function_body.zig").calls(value.expressions, id)) {
+                    recursive_root = id;
+
+                    try builder.functions.append(owned, value);
+                }
+            }
         } else {
             if (module.stores.count() != 0) return error.InvalidModule;
 
@@ -73,7 +84,7 @@ pub fn link(allocator: std.mem.Allocator, modules: []const model.Module, entry: 
         item.type_id = try mapping.include(item.type_id);
     }
 
-    const program = ir.Program{
+    var program = ir.Program{
         .file_name = try owned.dupe(u8, module.path),
         .types = types.items.view(),
         .input_type = if (root) |value| value.input_type else @fromBackingInt(@intCast(0)),
@@ -92,6 +103,7 @@ pub fn link(allocator: std.mem.Allocator, modules: []const model.Module, entry: 
         .type_only = root == null,
     };
 
+    if (recursive_root) |id| try @import("function_body.zig").entry(owned, &program, id);
     if (try @import("../ir/validate.zig").validate(scratch, program) != null) return error.InvalidIr;
 
     return .{ .arena = arena, .program = program, .nominal_types = types.origins.items.view() };

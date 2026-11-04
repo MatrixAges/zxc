@@ -23,6 +23,7 @@ export default function (in: Input): Output {
             declarations: in.declarations.declarations,
             members: in.declarations.members,
             function_start: info.start,
+            function_name: info.name,
             present: info.present,
             type_diagnostic,
             import_diagnostic: in.prefix.imports.control.diagnostic,

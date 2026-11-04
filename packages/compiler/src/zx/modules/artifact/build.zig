@@ -71,6 +71,15 @@ pub fn extract(self: *Self, record: Record) Error!model.Module {
     const function_imports = try self.bindings(record.function_imports);
     const members = try self.bindings(record.reexports.functions);
     const exported = try self.exports(record.exports);
+
+    if (record.own_function) |id| {
+        const index = @backingInt(id);
+
+        if (index >= self.function_mapping.len or self.function_mapping[index] != null) return error.InvalidModule;
+
+        self.function_mapping[index] = @fromBackingInt(@intCast(self.functions.count()));
+    }
+
     const function = try self.copyFunction(record);
     var nodes = self.nodeCopier();
     const stores = try nodes.stores(if (record.body == .entry) self.program.stores else if (record.body == .function) self.program.functions.at(@backingInt(record.body.function)).stores else .{});
@@ -113,6 +122,7 @@ fn copyFunction(self: *Self, record: Record) Error!?ir.Function {
         .types => return null,
         .entry => blk: {
             if (self.program.type_only or !std.mem.eql(u8, record.path, self.program.file_name)) return error.InvalidModule;
+            if (record.own_function) |id| break :blk self.program.functions.at(@backingInt(id));
 
             break :blk .{ .stores = self.program.stores, .store_mode = self.program.store_mode, .file_name = self.program.file_name, .input_type = self.program.input_type, .output_type = self.program.output_type, .output_ownership = self.program.output_ownership, .symbols = self.program.symbols, .expressions = self.program.expressions, .body = self.program.body, .contracts = self.program.contracts };
         },

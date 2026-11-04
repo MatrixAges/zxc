@@ -29,6 +29,7 @@
             contracts: $ctx.body.contracts,
             has_store: $ctx.body.header.has_store,
             function_start: $ctx.body.prefix.function_start,
+            function_name: $ctx.body.prefix.function_name,
             body: $ctx.body.prefix.present ? $ctx.body.body.control.result : null,
             diagnostic: $ctx.diagnostic
         }}

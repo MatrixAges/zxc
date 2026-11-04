@@ -105,7 +105,7 @@ pub fn callSafe(allocator: std.mem.Allocator, functions: ir.FunctionTable, id: i
                 .call => |call| {
                     const target = @backingInt(call.function);
 
-                    if (target >= index or !safe[target] or call.stores.len != 0) safe[index] = false;
+                    if (target > index or (target < index and !safe[target]) or call.stores.len != 0) safe[index] = false;
                 },
                 else => {},
             }
