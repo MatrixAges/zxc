@@ -19,7 +19,10 @@ export default function (in: Input): Output {
                 ExpressionsKind.Builtin
             ]
         )[0],
-        offsets: in.expressions.offsets.concat([0, 0])[0],
+        offsets: in.expressions.offsets.concat([
+            0,
+            0
+        ])[0],
         string: [bytes.fromText(canonical_module)],
         builtin_name: [ExpressionsBuiltinName.Import],
         builtin_arguments: [[1]]

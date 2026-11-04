@@ -29,31 +29,41 @@ export default function (in: Input): Output {
         token: Token.PubPrefix
     }] : []
 
-    const binding = visibility.concat([{
-        ...frame,
-        token: in.mutable ? Token.VarPrefix : Token.ConstPrefix
-    }, in.name])[0]
+    const binding = visibility.concat([
+        {
+            ...frame,
+            token: in.mutable ? Token.VarPrefix : Token.ConstPrefix
+        },
+        in.name
+    ])[0]
 
     const annotation = in.type_expr
 
-    const typed = annotation == null ? binding : binding.concat([{
-        ...frame,
-        token: Token.Colon
-    }, {
-        ...frame,
-        action: Action.Expression,
-        id: annotation
-    }])[0]
+    const typed = annotation == null ? binding : binding.concat([
+        {
+            ...frame,
+            token: Token.Colon
+        },
+        {
+            ...frame,
+            action: Action.Expression,
+            id: annotation
+        }
+    ])[0]
 
-    return typed.concat([{
-        ...frame,
-        token: Token.Assignment
-    }, {
-        ...frame,
-        action: Action.Expression,
-        id: in.value
-    }, {
-        ...frame,
-        token: Token.StatementEnd
-    }])[0]
+    return typed.concat([
+        {
+            ...frame,
+            token: Token.Assignment
+        },
+        {
+            ...frame,
+            action: Action.Expression,
+            id: in.value
+        },
+        {
+            ...frame,
+            token: Token.StatementEnd
+        }
+    ])[0]
 }

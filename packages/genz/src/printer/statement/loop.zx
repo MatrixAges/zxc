@@ -29,14 +29,17 @@ export default function (in: Input): Output {
     if (kind == StatementsKind.ForLoop) {
         const indexed = tree.for_loop_index_capture[row] != null
 
-        const opening: Frame[] = [{
-            ...frame,
-            token: Token.ForOpen
-        }, {
-            ...frame,
-            action: Action.Expression,
-            id: tree.for_loop_iterable[row]
-        }]
+        const opening: Frame[] = [
+            {
+                ...frame,
+                token: Token.ForOpen
+            },
+            {
+                ...frame,
+                action: Action.Expression,
+                id: tree.for_loop_iterable[row]
+            }
+        ]
 
         const range = indexed ? opening.push({
             ...frame,
@@ -59,60 +62,78 @@ export default function (in: Input): Output {
             bytes: ByteSource.ForCapture
         })[0]
 
-        const bound = indexed ? named.concat([{
-            ...frame,
-            token: Token.CommaSpace
-        }, {
-            ...frame,
-            action: Action.Identifier,
-            bytes: ByteSource.ForIndexCapture
-        }])[0] : named
+        const bound = indexed ? named.concat([
+            {
+                ...frame,
+                token: Token.CommaSpace
+            },
+            {
+                ...frame,
+                action: Action.Identifier,
+                bytes: ByteSource.ForIndexCapture
+            }
+        ])[0] : named
 
-        return bound.concat([{
-            ...frame,
-            token: Token.CaptureClose
-        }, {
-            ...frame,
-            action: Action.Block,
-            id: tree.for_loop_body_start[row],
-            count: tree.for_loop_body_len[row]
-        }, {
-            ...frame,
-            token: Token.Newline
-        }])[0]
+        return bound.concat([
+            {
+                ...frame,
+                token: Token.CaptureClose
+            },
+            {
+                ...frame,
+                action: Action.Block,
+                id: tree.for_loop_body_start[row],
+                count: tree.for_loop_body_len[row]
+            },
+            {
+                ...frame,
+                token: Token.Newline
+            }
+        ])[0]
     }
 
-    const opening: Frame[] = [{
-        ...frame,
-        token: Token.WhileOpen
-    }, {
-        ...frame,
-        action: Action.Expression,
-        id: tree.while_loop_condition[row]
-    }, {
-        ...frame,
-        token: Token.CloseSpace
-    }]
+    const opening: Frame[] = [
+        {
+            ...frame,
+            token: Token.WhileOpen
+        },
+        {
+            ...frame,
+            action: Action.Expression,
+            id: tree.while_loop_condition[row]
+        },
+        {
+            ...frame,
+            token: Token.CloseSpace
+        }
+    ]
 
-    const captured = tree.while_loop_capture[row] == null ? opening : opening.concat([{
-        ...frame,
-        token: Token.CaptureOpen
-    }, {
-        ...frame,
-        action: Action.Identifier,
-        bytes: ByteSource.WhileCapture
-    }, {
-        ...frame,
-        token: Token.CaptureClose
-    }])[0]
+    const captured = tree.while_loop_capture[row] == null ? opening : opening.concat([
+        {
+            ...frame,
+            token: Token.CaptureOpen
+        },
+        {
+            ...frame,
+            action: Action.Identifier,
+            bytes: ByteSource.WhileCapture
+        },
+        {
+            ...frame,
+            token: Token.CaptureClose
+        }
+    ])[0]
 
-    return captured.concat([{
-        ...frame,
-        action: Action.Block,
-        id: tree.while_loop_body_start[row],
-        count: tree.while_loop_body_len[row]
-    }, {
-        ...frame,
-        token: Token.Newline
-    }])[0]
+    return captured.concat([
+        {
+            ...frame,
+            action: Action.Block,
+            id: tree.while_loop_body_start[row],
+            count: tree.while_loop_body_len[row]
+        },
+        {
+            ...frame,
+            token: Token.Newline
+        }
+    ])[0]
 }

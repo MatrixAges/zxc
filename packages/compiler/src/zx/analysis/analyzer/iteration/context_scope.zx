@@ -17,7 +17,10 @@ export type Output = {
 
 export default function (in: Input): Output {
     if (in.parameter == null || in.reference == null) {
-        return in.pick(["local", "value"])
+        return in.pick([
+            "local",
+            "value"
+        ])
     }
 
     const index = integers.widen(in.value)

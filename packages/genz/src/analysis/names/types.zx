@@ -52,7 +52,10 @@ export default function (in: Input): Output {
                 current.names = current.names.push(
                     strings.join(
                         "",
-                        [type_prefix, encoding.encodeHex(key)]
+                        [
+                            type_prefix,
+                            encoding.encodeHex(key)
+                        ]
                     )
                 )[0]
             }

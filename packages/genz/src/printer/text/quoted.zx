@@ -35,7 +35,10 @@ export default function (in: Input): Output {
             const byte = current.bytes[current.index]
 
             if (byte == ascii_double_quote || byte == ascii_backslash) {
-                current.output = current.output.concat([ascii_backslash, byte])[0]
+                current.output = current.output.concat([
+                    ascii_backslash,
+                    byte
+                ])[0]
             } else if (
                 byte == ascii_line_feed || byte == ascii_carriage_return ||
                     byte == ascii_tab

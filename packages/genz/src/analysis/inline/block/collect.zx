@@ -61,7 +61,12 @@ export default function (in: Input): Output {
     }
 
     const start = state.stack.length - count
-    const header: u64[] = [code, payload, count]
+
+    const header: u64[] = [
+        code,
+        payload,
+        count
+    ]
 
     const described = append({
         pool: state.pool,

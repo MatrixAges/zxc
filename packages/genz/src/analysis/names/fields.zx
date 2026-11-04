@@ -58,7 +58,10 @@ export default function (in: Input): Output {
         _ => native_reference_kind_tag
     }
 
-    const fields: u8[][] = [bytes.fromText(type_domain), bytes.fromText(type_tag)]
+    const fields: u8[][] = [
+        bytes.fromText(type_domain),
+        bytes.fromText(type_tag)
+    ]
 
     if (tag == Kind.Scalar) {
         const tags: string[] = [

@@ -202,8 +202,17 @@ export default function (in: Input): Output {
 
     const reducing = in.kind == TransformKind.Reduce
 
-    const values = reducing ? [previous.value, item.value, index.value, source.value] :
-        [item.value, index.value, source.value]
+    const values = reducing ? [
+        previous.value,
+        item.value,
+        index.value,
+        source.value
+    ] :
+        [
+            item.value,
+            index.value,
+            source.value
+        ]
 
     const parameters = loop({
         bindings: captured.bindings,

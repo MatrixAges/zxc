@@ -14,7 +14,10 @@ export type Output = Result
 
 export default function (in: Input): Output {
     const result = header({
-        ...in.table.pick(["tags", "offsets"]),
+        ...in.table.pick([
+            "tags",
+            "offsets"
+        ]),
         base: in.base,
         kind: ExpressionsKind.Index,
         offset: in.table.index_target.length

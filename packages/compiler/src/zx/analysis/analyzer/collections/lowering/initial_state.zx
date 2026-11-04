@@ -27,8 +27,17 @@ export default function (in: Input): Output {
         span: in.span
     })
 
-    const names = ["source", "index", "result"]
-    const values = [in.source, index.value, in.result]
+    const names = [
+        "source",
+        "index",
+        "result"
+    ]
+
+    const values = [
+        in.source,
+        index.value,
+        in.result
+    ]
 
     if (in.captures.length == 0) {
         return object({

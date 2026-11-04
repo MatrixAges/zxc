@@ -10,7 +10,10 @@ import type { Graph, Input } from "./model"
 export type Output = Graph
 
 export default function (in: Input): Output {
-    const pending: u32[] = [in.condition, in.body]
+    const pending: u32[] = [
+        in.condition,
+        in.body
+    ]
 
     const result = loop({
         input: in,

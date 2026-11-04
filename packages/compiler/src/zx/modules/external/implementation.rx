@@ -26,7 +26,11 @@
         <If on={$ctx.tuple.message == ""}>
             <Call
                 fn="implementation/errors"
-                in={$in.input.pick(["errors", "fallible", "span"])}
+                in={$in.input.pick([
+                    "errors",
+                    "fallible",
+                    "span"
+                ])}
             />
 
             <If on={$ctx.errors.message == ""}>

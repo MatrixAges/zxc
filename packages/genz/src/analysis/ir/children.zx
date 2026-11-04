@@ -59,11 +59,17 @@ export default function (in: Input): Output {
     }
 
     if (kind == ExpressionKind.Index) {
-        return [table.index_targets[payload], table.index_values[payload]]
+        return [
+            table.index_targets[payload],
+            table.index_values[payload]
+        ]
     }
 
     if (kind == ExpressionKind.Binary) {
-        return [table.binary_left[payload], table.binary_right[payload]]
+        return [
+            table.binary_left[payload],
+            table.binary_right[payload]
+        ]
     }
 
     if (kind == ExpressionKind.Iteration) {

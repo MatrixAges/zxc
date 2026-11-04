@@ -33,10 +33,13 @@ export default function (in: Input): Output {
 
             return {
                 ...state,
-                frames: state.frames.concat([{
-                    ...in.frame,
-                    op: InlineOp.SwitchFinish
-                }, start])[0]
+                frames: state.frames.concat([
+                    {
+                        ...in.frame,
+                        op: InlineOp.SwitchFinish
+                    },
+                    start
+                ])[0]
             }
         }
 
@@ -66,10 +69,13 @@ export default function (in: Input): Output {
 
     return {
         ...state,
-        frames: state.frames.concat([{
-            ...in.frame,
-            op: InlineOp.SwitchCaseBody,
-            n: index
-        }, start])[0]
+        frames: state.frames.concat([
+            {
+                ...in.frame,
+                op: InlineOp.SwitchCaseBody,
+                n: index
+            },
+            start
+        ])[0]
     }
 }

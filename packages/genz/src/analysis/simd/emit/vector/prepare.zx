@@ -58,7 +58,10 @@ export default function (in: Input): Output {
         table: loaded.table,
         base: in.source.expression_base,
         name: ExpressionsBuiltinName.As,
-        arguments: [in.values.vector_type, loaded.id]
+        arguments: [
+            in.values.vector_type,
+            loaded.id
+        ]
     })
 
     return {

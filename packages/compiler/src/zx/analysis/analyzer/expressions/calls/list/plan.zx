@@ -55,10 +55,17 @@ export default function (in: Input): Output {
         in.name == method_reverse || in.name == method_splice || in.name == method_concat
 
     const hints: u32[] = match {
-        replacement => [type_id_u64, in.element],
+        replacement => [
+            type_id_u64,
+            in.element
+        ],
         kind == CollectionKind.Push => [in.element],
         kind == CollectionKind.Concat => [text ? type_id_string : in.list],
-        kind == CollectionKind.Splice => [type_id_u64, type_id_u64, in.list],
+        kind == CollectionKind.Splice => [
+            type_id_u64,
+            type_id_u64,
+            in.list
+        ],
         _ => [],
     }
 

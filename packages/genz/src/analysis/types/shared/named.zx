@@ -35,7 +35,10 @@ export default function (in: Input): Output {
     })
 
     const name = in.step.request.mode == Mode.View ?
-        strings.join("", [view_prefix, state]) : state
+        strings.join("", [
+            view_prefix,
+            state
+        ]) : state
 
     const primitive: ExpressionsPrimitive[] = []
     const empty: u32[] = []
@@ -45,8 +48,14 @@ export default function (in: Input): Output {
     const arguments: u32[][] = []
 
     return {
-        tags: [ExpressionsKind.Identifier, ExpressionsKind.Field],
-        offsets: [0, 0],
+        tags: [
+            ExpressionsKind.Identifier,
+            ExpressionsKind.Field
+        ],
+        offsets: [
+            0,
+            0
+        ],
         identifier: [bytes.fromText(abi_binding)],
         primitive,
         field_target: [in.step.base],

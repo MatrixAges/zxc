@@ -45,35 +45,46 @@ export default function (in: Input): Output {
             ...frame,
             token: Token.TupleOpen
         }],
-        ExpressionsKind.Array => [{
-            ...frame,
-            token: Token.InferredArray
-        }, {
-            ...frame,
-            action: Action.Expression,
-            id: tree.array_element_type[row]
-        }, {
-            ...frame,
-            token: Token.BraceOpen
-        }],
-        ExpressionsKind.Builtin => [{
-            ...frame,
-            token: Token.Builtin
-        }, {
-            ...frame,
-            token: builtin(tree.builtin_name[row])
-        }, {
-            ...frame,
-            token: Token.Open
-        }],
-        _ => [{
-            ...frame,
-            action: Action.Expression,
-            id: tree.call_callee[row]
-        }, {
-            ...frame,
-            token: Token.Open
-        }],
+        ExpressionsKind.Array => [
+            {
+                ...frame,
+                token: Token.InferredArray
+            },
+            {
+                ...frame,
+                action: Action.Expression,
+                id: tree.array_element_type[row]
+            },
+            {
+                ...frame,
+                token: Token.BraceOpen
+            }
+        ],
+        ExpressionsKind.Builtin => [
+            {
+                ...frame,
+                token: Token.Builtin
+            },
+            {
+                ...frame,
+                token: builtin(tree.builtin_name[row])
+            },
+            {
+                ...frame,
+                token: Token.Open
+            }
+        ],
+        _ => [
+            {
+                ...frame,
+                action: Action.Expression,
+                id: tree.call_callee[row]
+            },
+            {
+                ...frame,
+                token: Token.Open
+            }
+        ],
     }
 
     const expanded = loop({

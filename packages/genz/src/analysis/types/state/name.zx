@@ -20,7 +20,12 @@ export default function (in: Input): Output {
     })
 
     const separator: u8[] = [name_separator]
-    const parts: u8[][] = [base, separator, in.key]
+
+    const parts: u8[][] = [
+        base,
+        separator,
+        in.key
+    ]
 
     return strings.join(
         "",

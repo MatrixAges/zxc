@@ -59,7 +59,17 @@ fn attributes(allocator: std.mem.Allocator, node: dsl.ast.Node, level: usize, ed
 
         if (tokens.tokens.len <= 2 and std.mem.indexOfScalar(u8, raw, '\n') == null) continue;
 
-        const projection = try lint.layout.Projection.init(allocator, raw, tokens.tokens, tokens.comments);
+        var projection = try lint.layout.Projection.init(allocator, raw, tokens.tokens, tokens.comments);
+        const type_attribute = std.mem.eql(u8, node.name, "Args") or (std.mem.eql(u8, node.name, "Field") and std.mem.eql(u8, attribute.name, "type"));
+
+        if (!type_attribute and std.mem.indexOfScalar(u8, raw, '[') != null) {
+            var parsed = try @import("parse_expression.zig").parse(allocator, raw, "");
+
+            defer parsed.deinit();
+
+            if (parsed.value == .parsed) @import("layout.zig").expression(&projection, parsed.value.parsed.expression);
+        }
+
         const structured = try lint.layout.formatAttribute(allocator, raw, projection.tokens, level + 1, attribute.name.len + 2, newline);
         const text = std.mem.trimStart(u8, structured, " ");
 

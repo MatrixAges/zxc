@@ -48,7 +48,10 @@ export default function (in: Input): Output {
                         current.names = current.names.push(
                             strings.join(
                                 "",
-                                [view_prefix, state]
+                                [
+                                    view_prefix,
+                                    state
+                                ]
                             )
                         )[0]
                         current.origins = current.origins.push(null)[0]

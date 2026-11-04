@@ -72,6 +72,9 @@ export default function (in: Input): Output {
         ...extended,
         ids,
         mappings,
-        frames: extended.frames.concat([done, start])[0]
+        frames: extended.frames.concat([
+            done,
+            start
+        ])[0]
     }
 }

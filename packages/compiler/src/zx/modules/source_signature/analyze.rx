@@ -38,7 +38,11 @@
                 <Call
                     fn="../../analysis/constants/declarations/analyze"
                     in={{
-                        ...$in.declarations.pick(["bytes", "syntax", "native"]),
+                        ...$in.declarations.pick([
+                            "bytes",
+                            "syntax",
+                            "native"
+                        ]),
                         types: $ctx.exports.state.types,
                         imports: $in.imports
                     }}

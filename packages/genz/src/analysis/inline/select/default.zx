@@ -48,10 +48,13 @@ export default function (in: Input): Output {
 
     return {
         ...state,
-        frames: state.frames.concat([{
-            ...in.frame,
-            op: InlineOp.SwitchDefaultDone,
-            n: index
-        }, start])[0]
+        frames: state.frames.concat([
+            {
+                ...in.frame,
+                op: InlineOp.SwitchDefaultDone,
+                n: index
+            },
+            start
+        ])[0]
     }
 }

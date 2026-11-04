@@ -27,7 +27,12 @@ export default function (in: Input): Output {
         state: current.state,
         span: in.span,
         target: current.value,
-        names: [field_source, field_index, field_end, field_result]
+        names: [
+            field_source,
+            field_index,
+            field_end,
+            field_result
+        ]
     })
 
     const element = index({
@@ -63,7 +68,12 @@ export default function (in: Input): Output {
         state: next.state,
         span: in.span,
         fields: {
-            names: [field_source, field_index, field_end, field_result],
+            names: [
+                field_source,
+                field_index,
+                field_end,
+                field_result
+            ],
             values: [
                 values.values[0],
                 next.value,

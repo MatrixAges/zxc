@@ -25,5 +25,9 @@ export default function (in: Input): Output {
             )[0]
             state.index += 1
         }
-    }, in).pick(["sizes", "texts", "external"])
+    }, in).pick([
+        "sizes",
+        "texts",
+        "external"
+    ])
 }

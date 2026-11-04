@@ -38,6 +38,9 @@ export default function (in: Input): Output {
         table: splat.table,
         base: in.base,
         name: ExpressionsBuiltinName.As,
-        arguments: [vector_type, splat.id]
+        arguments: [
+            vector_type,
+            splat.id
+        ]
     })
 }

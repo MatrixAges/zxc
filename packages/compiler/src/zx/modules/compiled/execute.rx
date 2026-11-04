@@ -19,7 +19,11 @@
 
     <Call
         fn="identity/valid"
-        in={$in.pick(["instance", "artifact", "load"])}
+        in={$in.pick([
+            "instance",
+            "artifact",
+            "load"
+        ])}
     />
 
     <If on={!$ctx.valid}>

@@ -332,7 +332,10 @@ export default function (in: Input): Output {
                     }
 
                     if (aggregate) {
-                        const view_name = strings.join("", [view_prefix, name])
+                        const view_name = strings.join("", [
+                            view_prefix,
+                            name
+                        ])
 
                         if (changed) {
                             const view_start = value + 1

@@ -142,17 +142,51 @@ export default function (in: Input): Output {
                 token_export,
                 keyword_extern
             ],
-        ascii_lower_f => [keyword_fn, keyword_for],
-        ascii_lower_i => [keyword_if, keyword_inline],
+        ascii_lower_f => [
+            keyword_fn,
+            keyword_for
+        ],
+        ascii_lower_i => [
+            keyword_if,
+            keyword_inline
+        ],
         ascii_lower_l => [keyword_linksection],
-        ascii_lower_n => [keyword_noalias, keyword_noinline, keyword_nosuspend],
-        ascii_lower_o => [keyword_opaque, token_or, token_orelse],
-        ascii_lower_p => [keyword_packed, keyword_pub],
-        ascii_lower_r => [keyword_resume, token_return],
-        ascii_lower_s => [keyword_struct, keyword_suspend, keyword_switch],
-        ascii_lower_t => [keyword_test, keyword_threadlocal, keyword_try],
-        ascii_lower_u => [keyword_union, token_unreachable],
-        ascii_lower_v => [keyword_var, keyword_volatile],
+        ascii_lower_n => [
+            keyword_noalias,
+            keyword_noinline,
+            keyword_nosuspend
+        ],
+        ascii_lower_o => [
+            keyword_opaque,
+            token_or,
+            token_orelse
+        ],
+        ascii_lower_p => [
+            keyword_packed,
+            keyword_pub
+        ],
+        ascii_lower_r => [
+            keyword_resume,
+            token_return
+        ],
+        ascii_lower_s => [
+            keyword_struct,
+            keyword_suspend,
+            keyword_switch
+        ],
+        ascii_lower_t => [
+            keyword_test,
+            keyword_threadlocal,
+            keyword_try
+        ],
+        ascii_lower_u => [
+            keyword_union,
+            token_unreachable
+        ],
+        ascii_lower_v => [
+            keyword_var,
+            keyword_volatile
+        ],
         ascii_lower_w => [keyword_while],
         _ => [],
     }

@@ -48,8 +48,17 @@ export default function (in: Input): Output {
         }
     }
 
-    const names = ["source", "index", "result"]
-    const values = [in.source, index.id, in.result]
+    const names = [
+        "source",
+        "index",
+        "result"
+    ]
+
+    const values = [
+        in.source,
+        index.id,
+        in.result
+    ]
 
     if (!in.captures) {
         return object({

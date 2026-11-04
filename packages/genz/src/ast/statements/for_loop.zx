@@ -17,7 +17,10 @@ export type Output = Result
 
 export default function (in: Input): Output {
     const result = header({
-        ...in.table.pick(["tags", "offsets"]),
+        ...in.table.pick([
+            "tags",
+            "offsets"
+        ]),
         base: in.base,
         kind: StatementsKind.ForLoop,
         offset: in.table.for_loop_iterable.length

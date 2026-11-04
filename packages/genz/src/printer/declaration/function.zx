@@ -39,17 +39,21 @@ export default function (in: Input): Output {
         token: Token.InlinePrefix
     })[0] : exported
 
-    const opening = inlined.concat([{
-        ...frame,
-        token: Token.FnPrefix
-    }, {
-        ...frame,
-        action: Action.Identifier,
-        bytes: ByteSource.FunctionName
-    }, {
-        ...frame,
-        token: Token.Open
-    }])[0]
+    const opening = inlined.concat([
+        {
+            ...frame,
+            token: Token.FnPrefix
+        },
+        {
+            ...frame,
+            action: Action.Identifier,
+            bytes: ByteSource.FunctionName
+        },
+        {
+            ...frame,
+            token: Token.Open
+        }
+    ])[0]
 
     const zero: u32 = 0
 
@@ -85,17 +89,21 @@ export default function (in: Input): Output {
 
     const convention = tree.function_calling_convention[row]
 
-    const calling = convention == null ? signature : signature.concat([{
-        ...frame,
-        token: Token.CallConvention
-    }, {
-        ...frame,
-        action: Action.Expression,
-        id: convention
-    }, {
-        ...frame,
-        token: Token.CloseSpace
-    }])[0]
+    const calling = convention == null ? signature : signature.concat([
+        {
+            ...frame,
+            token: Token.CallConvention
+        },
+        {
+            ...frame,
+            action: Action.Expression,
+            id: convention
+        },
+        {
+            ...frame,
+            token: Token.CloseSpace
+        }
+    ])[0]
 
     return calling.concat([
         {

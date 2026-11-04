@@ -146,7 +146,7 @@ export default function (in: Input): Output {
                     graph.input.tokens[partner].text.length
 
                 if (
-                    token.object ||
+                    token.object || token.multiline ||
                         !children && current.column + token.gap + size + tail > limit
                 ) {
                     current.plan.wraps[current.index] = true

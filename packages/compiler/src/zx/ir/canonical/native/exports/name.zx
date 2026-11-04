@@ -9,7 +9,10 @@ export type Input = ExportContext
 export type Output = string?
 
     export default function (in: Input): Output {
-        const name = exportName(in.pick(["functions", "index"]))
+        const name = exportName(in.pick([
+            "functions",
+            "index"
+        ]))
 
         return text(name) ? name : null
     }

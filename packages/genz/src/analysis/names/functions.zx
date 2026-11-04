@@ -53,7 +53,10 @@ export default function (in: Input): Output {
             current.names = current.names.push(
                 strings.join(
                     "",
-                    [function_prefix, encoding.encodeHex(key)]
+                    [
+                        function_prefix,
+                        encoding.encodeHex(key)
+                    ]
                 )
             )[0]
             current.index += 1

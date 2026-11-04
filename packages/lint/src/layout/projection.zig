@@ -87,6 +87,14 @@ pub const Projection = struct {
 
         self.tokens[index].boundary = true;
     }
+    pub fn list(self: *Projection, start: usize, count: usize) void {
+        if (count < 2) return;
+
+        var index = self.find(start) orelse return;
+
+        while (index < self.tokens.len and (self.tokens[index].comment or std.mem.eql(u8, self.tokens[index].text, "("))) : (index += 1) {}
+        if (index < self.tokens.len and std.mem.eql(u8, self.tokens[index].text, "[")) self.tokens[index].multiline = true;
+    }
     pub fn excludeRange(self: *Projection, span: zx.Span) void {
         self.boundary(span.start);
 

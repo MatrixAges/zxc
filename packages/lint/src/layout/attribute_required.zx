@@ -1,3 +1,5 @@
+import { ascii_open_bracket } from "core/ascii/const"
+
 import {
     print_width,
     indent_width,
@@ -21,6 +23,7 @@ export default function (in: Input): Output {
 
     return in.source.some(
         byte =>
-            byte == object_byte || byte == line_feed || byte == carriage_return
+            byte == object_byte || byte == ascii_open_bracket ||
+            byte == line_feed || byte == carriage_return
     )
 }

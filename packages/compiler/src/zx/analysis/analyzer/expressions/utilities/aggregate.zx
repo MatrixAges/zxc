@@ -116,7 +116,10 @@ export default function (in: Input): Output {
         initial: initial.value,
         ignored: null,
         callback: {
-            parameters: [accumulator.symbol, item.symbol],
+            parameters: [
+                accumulator.symbol,
+                item.symbol
+            ],
             captures: {
                 sources: [],
                 targets: [],

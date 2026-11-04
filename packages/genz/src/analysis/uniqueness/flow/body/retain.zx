@@ -22,5 +22,8 @@ export default function (in: Input): Output {
 
             state.index += 1
         }
-    }, in.text.reached).pick(["reached", "changed"])
+    }, in.text.reached).pick([
+        "reached",
+        "changed"
+    ])
 }

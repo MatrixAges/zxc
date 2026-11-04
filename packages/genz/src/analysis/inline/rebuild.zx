@@ -62,15 +62,18 @@ export default function (in: Input): Output {
         while: current => current.remaining != 0,
         next: current => {
             current.remaining -= 1
-            current.frames = current.frames.concat([frame({
-                op: InlineOp.Discard,
-                mapping: 0,
-                id: 0
-            }), frame({
-                op: InlineOp.Map,
-                mapping: 0,
-                id: current.remaining
-            })])[0]
+            current.frames = current.frames.concat([
+                frame({
+                    op: InlineOp.Discard,
+                    mapping: 0,
+                    id: 0
+                }),
+                frame({
+                    op: InlineOp.Map,
+                    mapping: 0,
+                    id: current.remaining
+                })
+            ])[0]
         }
     }).frames
 

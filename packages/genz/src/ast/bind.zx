@@ -24,7 +24,10 @@ export type Output = {
 }
 
 export default function (in: Input): Output {
-    const name = fresh(in.pick(["serial", "prefix"]))
+    const name = fresh(in.pick([
+        "serial",
+        "prefix"
+    ]))
 
     const statements = binding({
         table: in.statements,

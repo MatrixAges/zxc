@@ -1,11 +1,15 @@
 <Module>
-  <Call module="carts/load" in={$in.cart_id} />
-  <Call fn="quote" in={$ctx.load} />
+    <Call module="carts/load" in={$in.cart_id} />
 
-  <Call
-    module="orders/create"
-    in={{cart_id:$in.cart_id,quote:$ctx.quote}}
-  />
-  <Return value={$ctx.create} />
+    <Call fn="quote" in={$ctx.load} />
 
+    <Call
+        module="orders/create"
+        in={{
+            cart_id:$in.cart_id,
+            quote:$ctx.quote
+        }}
+    />
+
+    <Return value={$ctx.create} />
 </Module>

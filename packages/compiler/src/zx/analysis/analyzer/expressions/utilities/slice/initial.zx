@@ -34,8 +34,18 @@ export default function (in: Input): Output {
         },
         span: in.span,
         fields: {
-            names: [field_source, field_index, field_end, field_result],
-            values: [in.source, in.start, in.end, empty.id]
+            names: [
+                field_source,
+                field_index,
+                field_end,
+                field_result
+            ],
+            values: [
+                in.source,
+                in.start,
+                in.end,
+                empty.id
+            ]
         }
     })
 }

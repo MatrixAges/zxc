@@ -32,14 +32,17 @@ export default function (in: Input): Output {
             token: Token.Anyerror
         }]
 
-        return prefix.concat([{
-            ...frame,
-            token: Token.ErrorUnion
-        }, {
-            ...frame,
-            action: Action.Expression,
-            id: tree.error_union_payload[row]
-        }])[0]
+        return prefix.concat([
+            {
+                ...frame,
+                token: Token.ErrorUnion
+            },
+            {
+                ...frame,
+                action: Action.Expression,
+                id: tree.error_union_payload[row]
+            }
+        ])[0]
     }
 
     const names = match kind {
@@ -88,12 +91,15 @@ export default function (in: Input): Output {
         token: Token.BraceClose
     })[0]
 
-    return kind == ExpressionsKind.ErrorUnion ? closed.concat([{
-        ...frame,
-        token: Token.ErrorUnion
-    }, {
-        ...frame,
-        action: Action.Expression,
-        id: tree.error_union_payload[row]
-    }])[0] : closed
+    return kind == ExpressionsKind.ErrorUnion ? closed.concat([
+        {
+            ...frame,
+            token: Token.ErrorUnion
+        },
+        {
+            ...frame,
+            action: Action.Expression,
+            id: tree.error_union_payload[row]
+        }
+    ])[0] : closed
 }

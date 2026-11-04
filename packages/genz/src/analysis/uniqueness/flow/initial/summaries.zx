@@ -33,5 +33,9 @@ export default function (in: Input): Output {
             state.written = state.written.push(value.written)[0]
             state.index += 1
         }
-    }, in).pick(["held", "text_held", "written"])
+    }, in).pick([
+        "held",
+        "text_held",
+        "written"
+    ])
 }

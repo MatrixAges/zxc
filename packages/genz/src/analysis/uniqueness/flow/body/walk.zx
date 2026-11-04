@@ -78,7 +78,10 @@ export default function (in: Input): Output {
     }, in.context)
 
     if (!result.every) {
-        return result.pick(["reached", "changed"])
+        return result.pick([
+            "reached",
+            "changed"
+        ])
     }
 
     return loop({
@@ -95,5 +98,8 @@ export default function (in: Input): Output {
 
             state.index += 1
         }
-    }).pick(["reached", "changed"])
+    }).pick([
+        "reached",
+        "changed"
+    ])
 }

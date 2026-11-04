@@ -25,7 +25,12 @@
 
     <Call
         fn="normalize"
-        in={$in.pick(["base", "delta", "origins", "origin"])}
+        in={$in.pick([
+            "base",
+            "delta",
+            "origins",
+            "origin"
+        ])}
     />
 
     <If on={$ctx.normalize.conflict}>

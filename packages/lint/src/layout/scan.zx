@@ -103,7 +103,8 @@ export default function (in: Input): Output {
             }
 
             if (
-                token.object && current.index + 1 < current.input.tokens.length &&
+                token.multiline ||
+                    token.object && current.index + 1 < current.input.tokens.length &&
                     current.input.tokens[current.index + 1].text != close_object
             ) {
                 current.vertical_count += 1

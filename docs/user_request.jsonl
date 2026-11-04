@@ -413,3 +413,7 @@
 {"time": "2026-11-03 21:41:33", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "user", "text": "为啥从zig迁移自举到zxc 会出现实现不一致导致的性能下降，是不是zxc缺少相关特性导致无法平滑水平迁移相关代码，如果是，是不是应该先做特性支持再迁移代码，这样更平滑，也能在自举过程中不断发现zxc的不足，不断完善"}
 {"time": "2026-11-04", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "user", "text": "Type标签的 from字段 也可以省略 ./ 对齐 Call的fn"}
 {"time": "2026-11-04", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "user", "text": "把所有Type from过一遍 按我的标准省略"}
+{"time": "2026-11-04", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "user", "text": "我还发现几个问题：\n- 数组多元素自动多行显示，像对象那样［］单独一行\n- map reduce这些不是array自带的函数吗，怎么弄到utils里了"}
+{"time": "2026-11-04", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "user", "text": "记住 zx是ts like语言，ts中已经存在的语法，直接复用表达，尽量不要自己发明新的"}
+{"time": "2026-11-04", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "user", "text": "还有 管道语法实现了怎么不用啊 我看很多地方都可以用 这样可以简化表达 省去中间变量"}
+{"time": "2026-11-04", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "user", "text": "关于map和reduce 我之前的不可变设计原则中有提及 它们返回元组"}

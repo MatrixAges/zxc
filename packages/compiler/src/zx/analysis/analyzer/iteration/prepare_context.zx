@@ -17,7 +17,10 @@ export type Output = {
 
 export default function (in: Input): Output {
     if (in.frame.readonly == null) {
-        return in.pick(["local", "frame"])
+        return in.pick([
+            "local",
+            "frame"
+        ])
     }
 
     const initial = save({

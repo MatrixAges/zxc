@@ -61,43 +61,54 @@ export default function (in: Input): Output {
     }
 
     if (kind == DeclarationsKind.ComptimeScope) {
-        return [{
-            ...frame,
-            token: Token.ComptimePrefix
-        }, {
-            ...frame,
-            action: Action.Block,
-            id: tree.comptime_scope_start[row],
-            count: tree.comptime_scope_len[row]
-        }, {
-            ...frame,
-            token: Token.Newline
-        }]
+        return [
+            {
+                ...frame,
+                token: Token.ComptimePrefix
+            },
+            {
+                ...frame,
+                action: Action.Block,
+                id: tree.comptime_scope_start[row],
+                count: tree.comptime_scope_len[row]
+            },
+            {
+                ...frame,
+                token: Token.Newline
+            }
+        ]
     }
 
     const initial = tree.field_default_value[row]
 
-    const typed: Frame[] = [{
-        ...frame,
-        action: Action.Identifier,
-        bytes: ByteSource.DeclarationField
-    }, {
-        ...frame,
-        token: Token.Colon
-    }, {
-        ...frame,
-        action: Action.Expression,
-        id: tree.field_value[row]
-    }]
+    const typed: Frame[] = [
+        {
+            ...frame,
+            action: Action.Identifier,
+            bytes: ByteSource.DeclarationField
+        },
+        {
+            ...frame,
+            token: Token.Colon
+        },
+        {
+            ...frame,
+            action: Action.Expression,
+            id: tree.field_value[row]
+        }
+    ]
 
-    const initialized = initial == null ? typed : typed.concat([{
-        ...frame,
-        token: Token.Assignment
-    }, {
-        ...frame,
-        action: Action.Expression,
-        id: initial
-    }])[0]
+    const initialized = initial == null ? typed : typed.concat([
+        {
+            ...frame,
+            token: Token.Assignment
+        },
+        {
+            ...frame,
+            action: Action.Expression,
+            id: initial
+        }
+    ])[0]
 
     return initialized.push({
         ...frame,

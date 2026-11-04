@@ -71,37 +71,48 @@ export default function (in: Input): Output {
         ]
     }
 
-    const opening: Frame[] = [{
-        ...frame,
-        token: Token.Open
-    }, {
-        ...frame,
-        action: Action.Expression,
-        id: tree.catch_scope_value[row]
-    }, {
-        ...frame,
-        token: Token.Catch
-    }]
+    const opening: Frame[] = [
+        {
+            ...frame,
+            token: Token.Open
+        },
+        {
+            ...frame,
+            action: Action.Expression,
+            id: tree.catch_scope_value[row]
+        },
+        {
+            ...frame,
+            token: Token.Catch
+        }
+    ]
 
-    const captured = tree.catch_scope_capture[row] == null ? opening : opening.concat([{
-        ...frame,
-        token: Token.CaptureOpen
-    }, {
-        ...frame,
-        action: Action.Identifier,
-        bytes: ByteSource.CatchScopeCapture
-    }, {
-        ...frame,
-        token: Token.CaptureClose
-    }])[0]
+    const captured = tree.catch_scope_capture[row] == null ? opening : opening.concat([
+        {
+            ...frame,
+            token: Token.CaptureOpen
+        },
+        {
+            ...frame,
+            action: Action.Identifier,
+            bytes: ByteSource.CatchScopeCapture
+        },
+        {
+            ...frame,
+            token: Token.CaptureClose
+        }
+    ])[0]
 
-    return captured.concat([{
-        ...frame,
-        action: Action.Block,
-        id: tree.catch_scope_body_start[row],
-        count: tree.catch_scope_body_len[row]
-    }, {
-        ...frame,
-        token: Token.Close
-    }])[0]
+    return captured.concat([
+        {
+            ...frame,
+            action: Action.Block,
+            id: tree.catch_scope_body_start[row],
+            count: tree.catch_scope_body_len[row]
+        },
+        {
+            ...frame,
+            token: Token.Close
+        }
+    ])[0]
 }

@@ -13,7 +13,10 @@ export type Output = {
 }
 
 export default function (in: Input): Output {
-    const name = strings.join(empty_separator, [view_prefix, in.native.name])
+    const name = strings.join(empty_separator, [
+        view_prefix,
+        in.native.name
+    ])
 
     const natives = loop({
         source: in.source.natives,
@@ -53,6 +56,10 @@ export default function (in: Input): Output {
         status: files.conflict ? Status.NameConflict : Status.Valid,
         name,
         path: files.conflict ? "" :
-            strings.join(empty_separator, [view_directory, name, source_suffix])
+            strings.join(empty_separator, [
+                view_directory,
+                name,
+                source_suffix
+            ])
     }
 }

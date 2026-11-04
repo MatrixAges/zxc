@@ -37,12 +37,15 @@ export default function (in: Input): Output {
 
     return {
         ...state,
-        frames: state.frames.concat([{
-            ...in.frame,
-            op: InlineOp.LowerYes,
-            g: continuing ? 1 : 0,
-            h: branch_type,
-            i: tail
-        }, start])[0]
+        frames: state.frames.concat([
+            {
+                ...in.frame,
+                op: InlineOp.LowerYes,
+                g: continuing ? 1 : 0,
+                h: branch_type,
+                i: tail
+            },
+            start
+        ])[0]
     }
 }

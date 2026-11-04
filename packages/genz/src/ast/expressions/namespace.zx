@@ -23,7 +23,10 @@ export type Output = {
 
 export default function (in: Input): Output {
     const result = header({
-        ...in.table.pick(["tags", "offsets"]),
+        ...in.table.pick([
+            "tags",
+            "offsets"
+        ]),
         base: in.base,
         kind: ExpressionsKind.NamespaceType,
         offset: in.table.namespace_type_start.length

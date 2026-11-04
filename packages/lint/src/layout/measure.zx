@@ -46,7 +46,7 @@ export default function (in: Input): Output {
             const wrap =
                 opening && nonempty && !token.block &&
                 (
-                    token.object || (
+                    token.object || token.multiline || (
                         !children && prefix + width + tail > limit
                     )
                 )

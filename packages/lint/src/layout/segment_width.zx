@@ -52,7 +52,7 @@ export default function (in: Input): Output {
                 const priority = operatorPriority(token.text)
 
                 current.done =
-                    token.object ||
+                    token.object || token.multiline ||
                     parent == owner && priority != no_operator &&
                     priority <= current.input.priority
                 current.index += 1

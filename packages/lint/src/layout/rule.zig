@@ -10,6 +10,7 @@ pub const Token = struct {
     gap: u64 = 0,
     newline: bool = false,
     object: bool = false,
+    multiline: bool = false,
     opening: bool = false,
     separator: bool = false,
     start: u64,
@@ -38,7 +39,9 @@ pub fn plan(allocator: std.mem.Allocator, tokens: []const Token, options: Option
 
     for (tokens, values) |token, *slot| {
         const value = try temporary.create(Item);
-        value.* = .{ .block = token.block, .boundary = token.boundary, .closing = token.closing, .comment = token.comment, .end = token.end, .gap = token.gap, .newline = token.newline, .object = token.object, .opening = token.opening, .separator = token.separator, .start = token.start, .text = token.text };
+
+        inline for (@typeInfo(Item).@"struct".field_names) |name| @field(value, name) = @field(token, name);
+
         slot.* = value;
     }
 

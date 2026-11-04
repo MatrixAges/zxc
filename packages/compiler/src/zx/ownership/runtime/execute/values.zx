@@ -59,7 +59,10 @@ export default function (in: Input): Output {
                     forest: current.memory.forest,
                     type_id: current.program.expressions.types[frame.subject],
                     shell: State.Owned,
-                    children: [0, current.value],
+                    children: [
+                        0,
+                        current.value
+                    ],
                     first: 0,
                     count: 2
                 })

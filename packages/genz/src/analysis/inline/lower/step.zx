@@ -74,92 +74,110 @@ export default function (in: Input): Output {
 
         return {
             ...state,
-            frames: state.frames.concat([{
-                ...next,
-                op: InlineOp.LowerResult
-            }, frame({
-                op: map,
-                mapping: current.mapping,
-                id: integers.widen(value)
-            })])[0]
+            frames: state.frames.concat([
+                {
+                    ...next,
+                    op: InlineOp.LowerResult
+                },
+                frame({
+                    op: map,
+                    mapping: current.mapping,
+                    id: integers.widen(value)
+                })
+            ])[0]
         }
     }
 
     if (kind == StatementKind.Constant) {
         return {
             ...state,
-            frames: state.frames.concat([{
-                ...next,
-                op: InlineOp.LowerConstant
-            }, frame({
-                op: map,
-                mapping: current.mapping,
-                id: integers.widen(
-                    control.constant_values[payload]
-                )
-            })])[0]
+            frames: state.frames.concat([
+                {
+                    ...next,
+                    op: InlineOp.LowerConstant
+                },
+                frame({
+                    op: map,
+                    mapping: current.mapping,
+                    id: integers.widen(
+                        control.constant_values[payload]
+                    )
+                })
+            ])[0]
         }
     }
 
     if (kind == StatementKind.Evaluate) {
         return {
             ...state,
-            frames: state.frames.concat([{
-                ...next,
-                op: InlineOp.LowerEvaluate
-            }, frame({
-                op: map,
-                mapping: current.mapping,
-                id: integers.widen(
-                    control.evaluations[payload]
-                )
-            })])[0]
+            frames: state.frames.concat([
+                {
+                    ...next,
+                    op: InlineOp.LowerEvaluate
+                },
+                frame({
+                    op: map,
+                    mapping: current.mapping,
+                    id: integers.widen(
+                        control.evaluations[payload]
+                    )
+                })
+            ])[0]
         }
     }
 
     if (kind == StatementKind.Destructure) {
         return {
             ...state,
-            frames: state.frames.concat([{
-                ...next,
-                op: InlineOp.LowerDestructure
-            }, frame({
-                op: map,
-                mapping: current.mapping,
-                id: integers.widen(
-                    control.destructure_values[payload]
-                )
-            })])[0]
+            frames: state.frames.concat([
+                {
+                    ...next,
+                    op: InlineOp.LowerDestructure
+                },
+                frame({
+                    op: map,
+                    mapping: current.mapping,
+                    id: integers.widen(
+                        control.destructure_values[payload]
+                    )
+                })
+            ])[0]
         }
     }
 
     if (kind == StatementKind.Branch) {
         return {
             ...state,
-            frames: state.frames.concat([{
-                ...next,
-                op: InlineOp.LowerBranch
-            }, frame({
-                op: map,
-                mapping: current.mapping,
-                id: integers.widen(
-                    control.branch_conditions[payload]
-                )
-            })])[0]
+            frames: state.frames.concat([
+                {
+                    ...next,
+                    op: InlineOp.LowerBranch
+                },
+                frame({
+                    op: map,
+                    mapping: current.mapping,
+                    id: integers.widen(
+                        control.branch_conditions[payload]
+                    )
+                })
+            ])[0]
         }
     }
 
     return {
         ...state,
-        frames: state.frames.concat([{
-            ...next,
-            op: InlineOp.LowerSwitch
-        }, frame({
-            op: map,
-            mapping: current.mapping,
-            id: integers.widen(
-                control.selection_subjects[payload]
-            )
-        })])[0]
+        frames: state.frames.concat([
+            {
+                ...next,
+                op: InlineOp.LowerSwitch
+            },
+            frame({
+                op: map,
+                mapping: current.mapping,
+                id: integers.widen(
+                    control.selection_subjects[payload]
+                )
+            })
+        ])[0]
     }
 }

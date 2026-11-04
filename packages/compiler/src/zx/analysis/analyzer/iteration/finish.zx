@@ -42,9 +42,18 @@ export default function (in: Input): Output {
             table: iteration.table,
             metadata,
             result: iteration.id,
-            symbols: [in.frame.readonly.initial_symbol, in.frame.readonly.symbol],
-            values: [in.frame.readonly.initial, in.frame.readonly.value],
-            borrows: [false, false]
+            symbols: [
+                in.frame.readonly.initial_symbol,
+                in.frame.readonly.symbol
+            ],
+            values: [
+                in.frame.readonly.initial,
+                in.frame.readonly.value
+            ],
+            borrows: [
+                false,
+                false
+            ]
         })
 
         return {

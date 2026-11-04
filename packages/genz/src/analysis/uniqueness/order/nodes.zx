@@ -40,5 +40,10 @@ export default function (in: Input): Output {
         }
     })
 
-    return result.pick(["time", "finish", "region", "repeated"])
+    return result.pick([
+        "time",
+        "finish",
+        "region",
+        "repeated"
+    ])
 }

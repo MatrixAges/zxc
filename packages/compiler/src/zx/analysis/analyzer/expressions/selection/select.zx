@@ -24,7 +24,11 @@ export type Output = Result
 export default function (in: Input): Output {
     const node = in.source.tree.nodes[in.node]
 
-    const fields = keys(pick(in, ["source", "node", "offset"]))
+    const fields = keys(pick(in, [
+        "source",
+        "node",
+        "offset"
+    ]))
 
     if (fields.diagnostic.message != "") {
         return {

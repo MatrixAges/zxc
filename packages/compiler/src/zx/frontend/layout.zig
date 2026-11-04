@@ -47,6 +47,7 @@ pub fn indexed(allocator: std.mem.Allocator, source: []const u8, output: anytype
     }
 
     for (output.expressions.nodes) |item| {
+        if (item.kind == .List) result.list(@intCast(item.span.start), @intCast(item.count));
         if (item.kind == .Match or item.kind == .Index) result.excludeEnding(@intCast(item.span.end), item.kind == .Index);
     }
 
@@ -95,7 +96,7 @@ fn block(result: *Projection, value: anytype) void {
     }
 }
 
-fn expression(result: *Projection, value: anytype) void {
+pub fn expression(result: *Projection, value: anytype) void {
     switch (syntax.value(value)) {
         .field => |item| expression(result, item.target),
         .index => |item| {
@@ -120,7 +121,11 @@ fn expression(result: *Projection, value: anytype) void {
         },
         .lambda => |item| expression(result, item.body),
         .state_block => |item| block(result, item),
-        .list => |items| for (0..items.len) |index| expression(result, syntax.item(items, index)),
+        .list => |items| {
+            result.list(value.span.start, items.len);
+
+            for (0..items.len) |index| expression(result, syntax.item(items, index));
+        },
         .object => |items| for (0..items.len) |index| expression(result, syntax.item(items, index).value),
         .call => |item| {
             expression(result, item.callee);

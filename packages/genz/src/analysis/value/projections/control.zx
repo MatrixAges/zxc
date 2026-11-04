@@ -60,7 +60,10 @@ export default function (in: Input): Output {
         }
     }, roots).state
 
-    const optional = [in.control.case_values, in.control.results]
+    const optional = [
+        in.control.case_values,
+        in.control.results
+    ]
 
     const results = loop({
         state: observed,

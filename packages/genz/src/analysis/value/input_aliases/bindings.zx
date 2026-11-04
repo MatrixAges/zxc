@@ -25,7 +25,10 @@ export default function (in: Input): Output {
     }, in.control)
 
     const scopes = loop({
-        ...constants.pick(["values", "repeated"]),
+        ...constants.pick([
+            "values",
+            "repeated"
+        ]),
         index: 0,
         position: 0,
         end: 0
@@ -61,5 +64,8 @@ export default function (in: Input): Output {
         }
     }, in.expressions)
 
-    return scopes.pick(["values", "repeated"])
+    return scopes.pick([
+        "values",
+        "repeated"
+    ])
 }

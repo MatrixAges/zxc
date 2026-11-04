@@ -31,7 +31,10 @@ export default function (in: Input): Output {
         table: member.table,
         base: in.source.expression_base,
         callee: member.id,
-        arguments: [in.source.element_type, in.values.length]
+        arguments: [
+            in.source.element_type,
+            in.values.length
+        ]
     })
 
     const checked = fallible({

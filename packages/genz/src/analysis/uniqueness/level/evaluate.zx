@@ -10,8 +10,14 @@ export default function (in: Input): Output {
         Operation.None => constant(in.operation),
         Operation.All => constant(in.operation),
         Operation.Fresh => constant(in.operation),
-        Operation.Join => join(in.pick(["left", "right"])),
-        Operation.Meet => meet(in.pick(["left", "right"])),
+        Operation.Join => join(in.pick([
+            "left",
+            "right"
+        ])),
+        Operation.Meet => meet(in.pick([
+            "left",
+            "right"
+        ])),
         Operation.Materialized => in.right.unique ? {
             headered: true,
             unique: in.linear,

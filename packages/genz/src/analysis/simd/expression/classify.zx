@@ -27,7 +27,12 @@ export type Output = {
 }
 
 export default function (in: Input): Output {
-    const source = resolve(in.pick(["expressions", "context", "subject"]))
+    const source = resolve(in.pick([
+        "expressions",
+        "context",
+        "subject"
+    ]))
+
     const expressions = in.expressions
     const subject = integers.widen(source)
     const payload = integers.widen(expressions.payloads[subject])

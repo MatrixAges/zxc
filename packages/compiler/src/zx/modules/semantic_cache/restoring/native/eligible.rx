@@ -29,7 +29,11 @@
 
         <Call
             fn="bindings"
-            in={$in.pick(["signatures", "imports", "declaration"])}
+            in={$in.pick([
+                "signatures",
+                "imports",
+                "declaration"
+            ])}
         />
 
         <Return value={$ctx.descriptor && $ctx.origins && $ctx.bindings} />

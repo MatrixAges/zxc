@@ -61,21 +61,25 @@ export default function (in: Input): Output {
             mapping: in.frame.mapping,
             id: integers.widen(control.setter_values[payload])
         }))[0],
-        StatementKind.Branch => scheduled.concat([frame({
-            op: InlineOp.BlockStart,
-            mapping: in.frame.mapping,
-            id: integers.widen(control.branch_no[payload]) + 1
-        }), frame({
-            op: InlineOp.BlockStart,
-            mapping: in.frame.mapping,
-            id: integers.widen(control.branch_yes[payload]) + 1
-        }), frame({
-            op: map,
-            mapping: in.frame.mapping,
-            id: integers.widen(
-                control.branch_conditions[payload]
-            )
-        })])[0],
+        StatementKind.Branch => scheduled.concat([
+            frame({
+                op: InlineOp.BlockStart,
+                mapping: in.frame.mapping,
+                id: integers.widen(control.branch_no[payload]) + 1
+            }),
+            frame({
+                op: InlineOp.BlockStart,
+                mapping: in.frame.mapping,
+                id: integers.widen(control.branch_yes[payload]) + 1
+            }),
+            frame({
+                op: map,
+                mapping: in.frame.mapping,
+                id: integers.widen(
+                    control.branch_conditions[payload]
+                )
+            })
+        ])[0],
         _ => scheduled,
     }
 

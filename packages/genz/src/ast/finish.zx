@@ -7,7 +7,10 @@ import breakValue from "./statements/break_value"
 import type { Input, Output } from "./bind"
 
 export default function (in: Input): Output {
-    const name = fresh(in.pick(["serial", "prefix"]))
+    const name = fresh(in.pick([
+        "serial",
+        "prefix"
+    ]))
 
     const statements = breakValue({
         table: in.statements,

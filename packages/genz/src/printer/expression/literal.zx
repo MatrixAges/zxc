@@ -45,10 +45,13 @@ export default function (in: Input): Output {
         const prefix = kind == ExpressionsKind.EnumLiteral ? Token.Dot : Token.ErrorValue
 
         return kind == ExpressionsKind.EnumLiteral ||
-            kind == ExpressionsKind.ErrorValue ? [{
-                ...frame,
-                token: prefix
-            }, leaf] : [leaf]
+            kind == ExpressionsKind.ErrorValue ? [
+                {
+                    ...frame,
+                    token: prefix
+                },
+                leaf
+            ] : [leaf]
     }
 
     if (kind == ExpressionsKind.Integer || kind == ExpressionsKind.Float) {
@@ -59,13 +62,17 @@ export default function (in: Input): Output {
                 tree.float[row]
         }
 
-        return kind == ExpressionsKind.Float ? [{
-            ...frame,
-            token: Token.FloatOpen
-        }, number, {
-            ...frame,
-            token: Token.FloatClose
-        }] : [number]
+        return kind == ExpressionsKind.Float ? [
+            {
+                ...frame,
+                token: Token.FloatOpen
+            },
+            number,
+            {
+                ...frame,
+                token: Token.FloatClose
+            }
+        ] : [number]
     }
 
     return [{

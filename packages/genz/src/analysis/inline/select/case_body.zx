@@ -41,13 +41,16 @@ export default function (in: Input): Output {
 
     return {
         ...state,
-        frames: state.frames.concat([{
-            ...in.frame,
-            op: InlineOp.SwitchCaseCondition
-        }, frame({
-            op: InlineOp.Map,
-            mapping: in.frame.mapping,
-            id: target
-        })])[0]
+        frames: state.frames.concat([
+            {
+                ...in.frame,
+                op: InlineOp.SwitchCaseCondition
+            },
+            frame({
+                op: InlineOp.Map,
+                mapping: in.frame.mapping,
+                id: target
+            })
+        ])[0]
     }
 }

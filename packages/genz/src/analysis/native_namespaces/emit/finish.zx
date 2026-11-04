@@ -24,17 +24,20 @@ export default function (in: Input): Output {
             integers.widen(in.state.source.prefix_count)
     )
 
-    const values: Constant[] = [{
-        name: bytes.fromText(in.state.source.plan.native_name),
-        type_expr: null,
-        value: in.native_value,
-        exported: true
-    }, {
-        name: bytes.fromText(in.state.source.plan.layouts_name),
-        type_expr: null,
-        value: in.layouts_value,
-        exported: true
-    }]
+    const values: Constant[] = [
+        {
+            name: bytes.fromText(in.state.source.plan.native_name),
+            type_expr: null,
+            value: in.native_value,
+            exported: true
+        },
+        {
+            name: bytes.fromText(in.state.source.plan.layouts_name),
+            type_expr: null,
+            value: in.layouts_value,
+            exported: true
+        }
+    ]
 
     const roots = constants({
         values,
