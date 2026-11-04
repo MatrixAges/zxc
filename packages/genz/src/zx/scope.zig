@@ -96,7 +96,8 @@ fn lowerMode(self: *Lower, scope: ir.ScopeRow, layout: bool) Lower.Error!node.Ex
         }
 
         const by_value = if (binding.symbol) |symbol| self.stack_symbols.contains(symbol) else false;
-        const value = if (binding.symbol == null) try @import("iteration.zig").discard(self, binding.value) else if (by_value) try values.expression(self, binding.value) else try self.expr(binding.value);
+        const borrowed = if (binding.symbol) |symbol| try @import("value_call/locals.zig").optionalCall(self, &output, symbol, binding.value, result_type) else null;
+        const value = borrowed orelse if (binding.symbol == null) try @import("iteration.zig").discard(self, binding.value) else if (by_value) try values.expression(self, binding.value) else try self.expr(binding.value);
 
         if (binding.symbol) |symbol| {
             const index = @backingInt(symbol);

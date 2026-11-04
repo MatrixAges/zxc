@@ -37,7 +37,8 @@ pub fn lower(self: *Lower, values: ir.Block) Lower.Error![]const node.Statement 
                     break :binding_block;
                 }
 
-                const value = if (self.stack_symbols.contains(binding.symbol)) try @import("value_call/root.zig").expression(self, binding.value) else try self.expr(binding.value);
+                const borrowed = try locals.optionalCall(self, &output, binding.symbol, binding.value, self.program.output_type);
+                const value = borrowed orelse if (self.stack_symbols.contains(binding.symbol)) try @import("value_call/root.zig").expression(self, binding.value) else try self.expr(binding.value);
                 const index = @backingInt(binding.symbol);
 
                 if (self.used[index]) try output.append(self.allocator, .{ .constant = .{ .name = self.names[index], .type_expr = if (self.stack_symbols.contains(binding.symbol)) try self.layoutExpr(self.program.symbols.at(index).type_id) else try self.typeExpr(self.program.symbols.at(index).type_id), .value = value } }) else try output.append(self.allocator, .{ .discard = value });

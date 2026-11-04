@@ -63,9 +63,10 @@ pub fn pointerInvocation(self: *Lower, value: @FieldType(@FieldType(ir.Expressio
 fn lowerInvocation(self: *Lower, body: *std.ArrayList(node.Statement), value: @FieldType(@FieldType(ir.ExpressionRow, "value"), "call"), borrowed: bool, result_mode: @import("../state_value/conversion.zig").Mode) Lower.Error!node.ExpressionId {
     const function = self.program.functions.at(@backingInt(value.function));
     const can_stack = !containsDescendant(self.program, function.output_type, function.input_type);
+    const shared = if (!self.state_active and can_stack and self.program.expression(value.argument).value == .object and !self.cache.contains(value.argument)) analysis.sharesAggregate(self.program, function.input_type, function.output_type) else true;
 
-    var argument = if (result_mode != .pointer and !self.state_active and can_stack and self.program.expression(value.argument).value == .object and !self.cache.contains(value.argument)) temporary: {
-        if (borrowed or !analysis.sharesAggregate(self.program, function.input_type, function.output_type)) break :temporary try @import("argument.zig").borrow(self, body, value.argument);
+    var argument = if ((result_mode != .pointer or !shared) and !self.state_active and can_stack and self.program.expression(value.argument).value == .object and !self.cache.contains(value.argument)) temporary: {
+        if (borrowed or !shared) break :temporary try @import("argument.zig").borrow(self, body, value.argument);
 
         const layout = try aggregate.bind(self, body, try aggregate.objectValue(self, value.argument));
 

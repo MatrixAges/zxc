@@ -1,5 +1,6 @@
 const std = @import("std");
 const ir = @import("zx").ir;
+const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
 const analysis = @import("analysis.zig");
 
@@ -45,6 +46,28 @@ pub fn borrowed(self: *Lower, symbol: ir.SymbolId, value: ir.ExprId) Lower.Error
     if (self.projected_symbols == null) self.projected_symbols = try @import("projections.zig").symbols(self.allocator, self.program);
 
     return self.projected_symbols.?[@backingInt(symbol)];
+}
+
+pub fn optionalCall(self: *Lower, body: *std.ArrayList(node.Statement), symbol: ir.SymbolId, value: ir.ExprId, boundary: ir.TypeId) Lower.Error!?node.ExpressionId {
+    if (self.state_active or !self.entry_flags.scalar or self.entry_flags.tasks or !self.used[@backingInt(symbol)]) return null;
+    if (self.cache.contains(value) or self.plan.get(value).normalize or self.plan.get(value).renew) return null;
+
+    const expression = self.program.expression(value);
+    const result = self.program.typeOf(expression.type_id);
+
+    if (result != .optional or expression.value != .call) return null;
+    if (!self.state_plan.represented(self.program, expression.type_id)) return null;
+
+    const child = self.program.typeOf(result.optional);
+
+    if (child != .object and child != .tuple) return null;
+    if (analysis.sharesAggregate(self.program, expression.type_id, boundary)) return null;
+
+    const invocation = expression.value.call;
+
+    if (!self.value_functions[@backingInt(invocation.function)]) return null;
+
+    return try @import("root.zig").borrowInvocation(self, body, invocation);
 }
 
 fn inputProjection(program: ir.Program, id: ir.ExprId) bool {
