@@ -8,7 +8,7 @@
 
 ```xml
 <Module>
-    <Type from="./calculate_total" as="Total" />
+    <Type from="calculate_total" as="Total" />
 
     <Args in={Total.Input} out={Total.Output} />
 

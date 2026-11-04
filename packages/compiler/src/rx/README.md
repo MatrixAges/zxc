@@ -45,15 +45,15 @@ RX 测试位于 compiler 包的 `tests/rx/`，实现文件不包含内嵌 test�
 
 ## 输入输出契约
 
-Type 声明 ZX 公开类型的来源，as 必填且在当前 Module 内唯一；from 通常省略 .zx。Args 放在 Type 声明之后、编排之前，in/out 使用普通 ZX 类型表达式，不使用字符串类型或重复的 Field 列表。
+Type 声明 ZX 公开类型的来源，as 必填且在当前 Module 内唯一；from 默认省略前导 ./ 和 .zx，本地路径与 Call.fn 一样相对当前模块解析，../ 保留。Args 放在 Type 声明之后、编排之前，in/out 使用普通 ZX 类型表达式，不使用字符串类型或重复的 Field 列表。
 
 ```xml
 <Module>
-    <Type from="./calculate_total" as="Total" />
+    <Type from="calculate_total" as="Total" />
 
     <Args in={Total.Input} out={Total.Output} />
 
-    <Call fn="./calculate_total" in={$in} />
+    <Call fn="calculate_total" in={$in} />
 
     <Return value={$ctx.calculate_total} />
 </Module>
@@ -103,7 +103,7 @@ Call 使用 in 传参；读取输入写 `in={$in}`，字符串写 `in="$in"`；�
 
 ```xml
 <Module>
-  <Type from="./checkout_types" as="Checkout" />
+  <Type from="checkout_types" as="Checkout" />
 
   <Args in={Checkout.Input} out={void} />
 

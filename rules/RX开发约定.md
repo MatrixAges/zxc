@@ -22,7 +22,7 @@
 
 ## 不可放宽的约束
 
-Call 目标只接受 fn/module，service 仅用于 Route；Call 参数属性为 in；Call 不接受 out；Task.out 为可选花括号表达式，在子步骤结束后聚合结果，不能与同一任务的 Return 并用。Call 不接受 name，直接取调用目标最后路径段并去掉源码后缀，结果固定为 $ctx.<name>；Task 使用 $ctx.task.<name>，包括带 out 的顺序 Task。Call 目标文件名不得为保留名 task；两类结果可同名，同一作用域同类结果不得重名，void 调用保留执行但不产生值绑定。Module 的显式输入输出契约由 Type 声明后的 Args.in/out 类型表达式定义；Type.from 默认省略 .zx，as 必填且当前模块唯一。Input/Output 标签及 Module.in/out 名称标注已移除。纯单函数转发使用 Module.fn，继承目标接口且与子节点互斥；实际编排保留完整 Module。
+Call 目标只接受 fn/module，service 仅用于 Route；Call 参数属性为 in；Call 不接受 out；Task.out 为可选花括号表达式，在子步骤结束后聚合结果，不能与同一任务的 Return 并用。Call 不接受 name，直接取调用目标最后路径段并去掉源码后缀，结果固定为 $ctx.<name>；Task 使用 $ctx.task.<name>，包括带 out 的顺序 Task。Call 目标文件名不得为保留名 task；两类结果可同名，同一作用域同类结果不得重名，void 调用保留执行但不产生值绑定。Module 的显式输入输出契约由 Type 声明后的 Args.in/out 类型表达式定义；Type.from 默认省略前导 ./ 和 .zx，本地路径与 Call.fn 一样相对当前模块解析，../ 保留；as 必填且当前模块唯一。Input/Output 标签及 Module.in/out 名称标注已移除。纯单函数转发使用 Module.fn，继承目标接口且与子节点互斥；实际编排保留完整 Module。
 
 RX 属性值仅负责数据引用、组装和简单运算；禁止普通函数/方法调用、lambda 和状态更新块，包括嵌套对象、分支或模板中的普通调用。pick/omit 仅作为静态字段组装：一个字符串字面量数组，解码后拒绝未知与重复字段，receiver 递归执行同一值边界；不得据方法名放开导入函数调用。loop、集合处理及其他计算在 ZX 中实现，由 Call.fn 或 Call.module 编排。普通属性编译、项目类型推导和 Store 初值必须共用这一边界。
 
