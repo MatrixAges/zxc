@@ -31,6 +31,7 @@ pub fn prepare(self: *Lower, iteration: ir.Iteration, type_id: ir.TypeId, body: 
         .symbol_types = zx.columns.slice(@FieldType(Input, "symbol_types"), self.program.symbols.types),
         .parameter = @backingInt(iteration.parameter),
         .condition_parameter = @backingInt(iteration.condition_parameter),
+        .initial = @backingInt(iteration.initial),
         .body = @backingInt(iteration.body),
         .condition = @backingInt(iteration.condition),
         .state_type = @backingInt(type_id),
@@ -92,6 +93,7 @@ pub fn prepare(self: *Lower, iteration: ir.Iteration, type_id: ir.TypeId, body: 
         .type_id = type_id,
         .layout = try self.builder.identifier(name),
         .seed = seed,
+        .capacity = if (!iteration.postcondition) if (plan.capacity) |capacity| .{ .operation = @fromBackingInt(capacity.operation), .source = capacity.source } else null else null,
     };
 }
 

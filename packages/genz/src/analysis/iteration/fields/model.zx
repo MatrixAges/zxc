@@ -5,6 +5,7 @@ export type Input = {
     symbol_types: u32[],
     parameter: u32,
     condition_parameter: u32,
+    initial: u32,
     body: u32,
     condition: u32,
     state_type: u32,
@@ -30,4 +31,10 @@ export type Plan = {
     mutable: bool[],
     origins: u32[],
     valid: bool
+    capacity?: Capacity
+}
+
+export type Capacity = {
+    operation: u32,
+    source: u32
 }

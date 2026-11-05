@@ -1,0 +1,24 @@
+<Module>
+    <Type from="bound" as="Bound" />
+    <Type from="append" as="Append" />
+
+    <Args in={Bound.Input} out={Append.Output} />
+
+    <Call fn="bound" in={$in} />
+
+    <If on={$ctx.bound != null}>
+        <Call
+            fn="append"
+            in={{
+                bound: $ctx.bound,
+                expressions: $in.input.expressions
+            }}
+        />
+
+        <Return value={$ctx.append} />
+
+        <Else>
+            <Return value={null} />
+        </Else>
+    </If>
+</Module>

@@ -116,8 +116,12 @@ fn lowerMode(self: *Lower, id: ir.ExprId, layout: ?node.ExpressionId, removed_on
             const added = if (operation.kind == .push) try self.builder.integer(1) else try self.field(arguments[0], "len");
             const count = try aggregate.bind(self, &body, try addLength(self, length, added));
             var append: std.ArrayList(node.Statement) = .empty;
+            const minimum = if (self.loop_fields) |context| try context.minimum(self, id) else null;
 
-            const buffer = if (provenance.selected(self, source_type) and flags.lazy)
+            const buffer = if (minimum != null and flags.frontier)
+                try growth.reserveBounded(self, &append, child_type, source, count, minimum.?)
+
+            else if (provenance.selected(self, source_type) and flags.lazy)
                 try provenance.reserve(self, &append, source_type, source_value, count, true)
             else
                 try growth.reserve(self, &append, child_type, source, count, flags.frontier);

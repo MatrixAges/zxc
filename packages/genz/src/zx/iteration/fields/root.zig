@@ -10,6 +10,19 @@ borrowed: []const bool,
 type_id: ir.TypeId,
 layout: node.ExpressionId,
 seed: node.ExpressionId,
+capacity: ?struct { operation: ir.ExprId, source: u32 } = null,
+pub fn minimum(self: *const Self, lowering: *Lower, operation: ir.ExprId) Lower.Error!?node.ExpressionId {
+    const capacity = self.capacity orelse return null;
+
+    if (capacity.operation != operation) return null;
+
+    const member = lowering.program.typeOf(self.type_id).object.at(capacity.source);
+    const source = try lowering.field(self.seed, member.name);
+    const items = try @import("../../state_value/list.zig").items(lowering, member.type_id, source);
+
+    return try lowering.field(items, "len");
+}
+
 pub fn expression(self: *const Self, id: ir.ExprId) bool {
     return self.states[@backingInt(id)];
 }

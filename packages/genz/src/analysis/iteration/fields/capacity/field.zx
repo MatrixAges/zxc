@@ -1,0 +1,32 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import type { Expressions } from "core/expression_table/model"
+
+export type Input = {
+    expressions: Expressions,
+    value: u32,
+    parameter: u32
+}
+
+export type Output = u32?
+
+    export default function (in: Input): Output {
+        const value = integers.widen(in.value)
+
+        if (in.expressions.kinds[value] != ExpressionKind.Field) {
+            return null
+        }
+
+        const payload = integers.widen(in.expressions.payloads[value])
+        const target = integers.widen(in.expressions.projection_targets[payload])
+
+        if (in.expressions.kinds[target] != ExpressionKind.Reference) {
+            return null
+        }
+
+        const reference = integers.widen(in.expressions.payloads[target])
+
+        return in.expressions.references[reference] == in.parameter ?
+            in.expressions.projection_indices[payload] : null
+    }

@@ -10,7 +10,8 @@
             value={{
                 ...$ctx.graph.omit(["seen"]),
                 mutable: [],
-                origins: []
+                origins: [],
+                capacity: null
             }}
         />
     </If>
@@ -26,10 +27,19 @@
         }}
     />
 
+    <Call
+        module="capacity/plan"
+        in={{
+            input: $in,
+            mutable: $ctx.proof.mutable
+        }}
+    />
+
     <Return
         value={{
             ...$ctx.graph.omit(["seen"]),
-            ...$ctx.proof
+            ...$ctx.proof,
+            capacity: $ctx.plan
         }}
     />
 </Module>
