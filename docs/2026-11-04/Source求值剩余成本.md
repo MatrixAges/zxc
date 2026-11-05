@@ -495,3 +495,60 @@ unchanged/replay/applyMark，属于下一项全局调度与摘要重放迁移，
 comparison.json、function-closure-cache-comparison.json及function-plan-facts.json，
 均在/tmp/zxc-function-levels。此前实际Source语义编辑的增量/冷生成和恢复证据一并
 保留。完整编译器仍待传递依赖审计和严格seed→1→2→3最终验收。
+
+## 全局读集校验逻辑迁移
+
+Intent：把Ahead接受后台结果前的读集一致性判断迁入普通RX/ZX，继续缩小全局
+调度对Native语义的依赖；不把本项等同于Root调度、摘要重放或完整自举完成。
+
+Data：Native Read是连续记录，普通Source对象数组入站仍是指针数组，不能直接
+强转；每条记录只读table、function、slot和packed Level。摘要四张表的形状在
+校验期间稳定，单元通过现有std:bytes AtomicRows按monotonic读取。
+
+Edges：借用现有记录的只读字节视图；ABI适配仅提供size/offset/endian和按Native
+枚举序排列的四张表，不新增Read专用原生读取器，不逐项装箱或复制。std:bytes
+补通用readU32，支持显式大小端、非对齐读取和越界错误。packed Level比较沿用
+Source decode屏蔽未使用的高位；遇到首个不一致立即停止，不再读取后续摘要。
+空记录返回true。Native入口使用零容量分配器暴露意外分配，而不隐藏分配成本。
+记录布局仍来自Native，属于过渡表示；最终仍须迁移读集状态的持有和全局调度。
+
+Answer：正式generated_analysis路径接入reads/check.rx及unchanged.zx；保留seed
+旧路径。复用现有function-analysis行为与资源检查，检查实际生成代码和两代产物，
+完整回归结束后才做受影响路径性能对照。初次构建的两个
+ABI编译错误已修复：Zig 0.17枚举反射使用field_names/field_values；opaque指针
+使用生成的具体元素类型，不能直接赋值anyopaque指针数组。最终相关检查句柄
+88893已成功结束，58/58步骤、49/49既有检查通过，包括资源/OOM范围。
+
+```mermaid
+flowchart LR
+    A[Native Ahead 接受边界] --> V[同步只读布局适配]
+    V --> R[RX 读集校验入口]
+    R --> Z[ZX 逐记录校验]
+    Z --> B[std bytes 整数及原子读取]
+```
+
+```mermaid
+flowchart LR
+    N[连续 Native Read 数组] --> D[字节视图与字段偏移]
+    T[稳定形状的四张摘要表] --> C[单元原子读取]
+    D --> C
+    C --> M[Source packed Level 比较]
+    M --> E[首个不匹配停止]
+    E --> O[接受或丢弃后台结果]
+```
+
+正式新生成器已成功生成116入口、2042模块。仅把Native读集判断恢复为HEAD的
+独立对照生成器，在相同Source输入下产生的2051个文件全部相同；`.zxc-inputs`
+仅是工具/输入身份摘要，不属于源码产物，显式排除。Source再构建第二代并生成
+第三代，同样2051文件全部相同。新入口使用零容量FBA贯通真实完整生成路径，
+未出现意外分配错误。不是仅凭静态签名推断零分配，也不把固定点当最终自举完成。
+
+证据为reads-migration-checks-abi-fixed.log、reads-baseline-output-comparison-excluded.json、
+reads-fixedpoint-comparison.json，均在/tmp/zxc-function-levels；生成器命令及临时
+Native基线副本同目录保存。未新增测试用例，未调整既有断言或容量预算。
+
+自我复核：这项交付迁移的是完整读集判断算法，尚未迁移Native持有读集的状态
+模型、Root/Ahead队列和摘要重放。std:bytes.readU32仅执行通用二进制读取；布局
+适配也仍是显式过渡依赖，不把它描述为最终零桥接架构。完整回归63253尚活跃，
+未在并行编译干扰下计时；局部性能及累计约0.91s CPU差距留待隔离验证和优化，
+不宣称本提交通过性能门禁，也不撤回已迁入Source的实现。

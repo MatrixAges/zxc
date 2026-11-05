@@ -187,6 +187,8 @@ pub const Table = enum(u8) { input, output, inputs, outputs };
 
 /// Whether every level `reads` lists still holds in `summaries`.
 pub fn unchanged(summaries: *const Summaries, reads: []const Read) bool {
+    if (@import("genz_options").generated_analysis) return @import("function/reads.zig").unchanged(summaries, reads);
+
     for (reads) |entry| {
         const values = switch (entry.table) {
             .input => summaries.input[entry.function],

@@ -27,6 +27,12 @@ export declare function lessThan(left: u8[], right: u8[]): bool concurrent
 
 export declare function hash(in: u8[]): u64 concurrent
 
+export declare function readU32(
+    in: u8[],
+    offset: u64,
+    little_endian: bool
+): u32 throws { IndexOutOfBounds } concurrent
+
 export declare function loadAtomic(in: u8[], index: u64): u8 throws {
     IndexOutOfBounds
 } concurrent
