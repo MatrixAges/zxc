@@ -32,10 +32,11 @@ export default function (in: Input): Output {
             state.text_held = state.text_held.push(value.text_held)[0]
             state.written = state.written.push(value.written)[0]
             state.index += 1
-        }
-    }, in).pick([
-        "held",
-        "text_held",
-        "written"
-    ])
+        },
+        return: state => state.pick([
+            "held",
+            "text_held",
+            "written"
+        ])
+    }, in)
 }

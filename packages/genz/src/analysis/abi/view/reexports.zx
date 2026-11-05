@@ -67,6 +67,7 @@ export default function (in: Input): Output {
                 })[0]
                 current.index += 1
             }
-        }
-    }).omit(["index"])
+        },
+        return: state => state.omit(["index"])
+    })
 }

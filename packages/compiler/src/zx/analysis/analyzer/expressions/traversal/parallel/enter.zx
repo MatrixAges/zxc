@@ -40,8 +40,8 @@ export default function (in: Input): Output {
             current.head = current.fields[current.head -
                 1].previous
         },
-        return: state => state.ids
-    }).reverse()[0]
+        return: state => state.ids.reverse()[0]
+    })
 
     const frame: ParallelFrame = {
         node: in.node,

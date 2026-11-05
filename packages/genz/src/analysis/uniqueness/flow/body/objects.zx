@@ -62,9 +62,10 @@ export default function (in: Input): Output {
                 target
             })
             state.index += 1
-        }
-    }, in).pick([
-        "first",
-        "values"
-    ])
+        },
+        return: state => state.pick([
+            "first",
+            "values"
+        ])
+    }, in)
 }

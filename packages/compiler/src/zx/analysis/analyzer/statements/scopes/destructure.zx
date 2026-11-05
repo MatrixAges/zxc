@@ -71,8 +71,8 @@ export default function (in: Input): Output {
             current.head = current.names[current.head -
                 1].previous
         },
-        return: state => state.ids
-    }).reverse()[0]
+        return: state => state.ids.reverse()[0]
+    })
 
     const saved = temporary({
         scopes: in.scopes,

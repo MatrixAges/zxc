@@ -18,6 +18,8 @@ export default function (in: Input): Output {
         active: false,
         uses: 0,
         depth: in.state.local.lambda_depth,
+        owner: in.state.local.captures.current,
+        scope_start: in.state.local.active.length,
         asynchronous: in.frames.asynchronous.length
     }
 

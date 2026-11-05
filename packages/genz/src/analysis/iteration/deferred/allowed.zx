@@ -16,9 +16,9 @@ export default function (in: Input): Output {
     if (kind == ExpressionKind.ListUpdate) {
         const payload = integers.widen(in.source.expressions.payloads[in.id])
         const target = integers.widen(in.source.expressions.update_targets[payload])
-        const type_id = integers.widen(in.source.expressions.types[target])
 
-        return in.source.selected[type_id]
+        return integers.widen(in.source.expressions.types[target])
+            -> in.source.selected[_]
     }
 
     return match kind {

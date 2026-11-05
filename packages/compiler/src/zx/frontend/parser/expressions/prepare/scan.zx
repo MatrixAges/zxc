@@ -33,6 +33,6 @@ export default function (in: Input): Output {
             })
             current.remaining = index
         },
-        return: state => state.state
-    }).hints.reverse()[0]
+        return: state => state.state.hints.reverse()[0]
+    })
 }

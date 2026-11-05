@@ -88,11 +88,12 @@ export default function (in: Input): Output {
             })[0]
 
             state.index += 1
-        }
-    }, in.source).pick([
-        "known",
-        "reads",
-        "passed",
-        "changed"
-    ])
+        },
+        return: state => state.pick([
+            "known",
+            "reads",
+            "passed",
+            "changed"
+        ])
+    }, in.source)
 }

@@ -27,7 +27,7 @@ allow_store: bool = false,
 lambda_depth: usize = 0,
 scope_floor: usize = 0,
 collection_captures: ?*@import("collections/captures.zig") = null,
-pipeline: ?struct { symbol: ir.SymbolId, depth: usize, uses: usize = 0 } = null,
+pipeline: ?struct { symbol: ir.SymbolId, depth: usize, owner: ?*@import("collections/captures.zig"), scope_start: usize, uses: usize = 0 } = null,
 refinement: if (@import("parser_options").generated_parser) @import("semantic/flow/refinement.zig") else @import("refinement_seed") = .{},
 pub const FunctionImport = @import("../modules/function_import.zig");
 

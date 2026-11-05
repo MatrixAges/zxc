@@ -31,6 +31,21 @@ pub fn parse(allocator: std.mem.Allocator, attribute: rx.ast.Attribute, owner: [
     return result;
 }
 
+pub fn checkStyle(allocator: std.mem.Allocator, input: *const frontend.ExpressionInput.Result) std.mem.Allocator.Error!?zx.Diagnostic {
+    return switch (input.*) {
+        .native => |result| lint.checkStyleExpression(result.value.parsed.expression),
+        .indexed => |result| if (frontend.ExpressionInput.indexed_enabled) block: {
+            var scratch = std.heap.ArenaAllocator.init(allocator);
+
+            defer scratch.deinit();
+
+            const view = try result.view(scratch.allocator());
+
+            break :block lint.checkStyleExpression(view.expression(result.output.result));
+        } else unreachable,
+    };
+}
+
 fn validate(allocator: std.mem.Allocator, input: *const frontend.ExpressionInput.Result) std.mem.Allocator.Error!?zx.Diagnostic {
     return switch (input.*) {
         .native => |result| check(result.value.parsed.expression),

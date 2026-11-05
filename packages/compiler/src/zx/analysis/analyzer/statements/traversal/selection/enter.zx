@@ -22,8 +22,8 @@ export default function (in: Input): Output {
             current.head = current.cases[current.head -
                 1].previous
         },
-        return: state => state.ids
-    }).reverse()[0]
+        return: state => state.ids.reverse()[0]
+    })
 
     const frame: Selection = {
         statement: in.statement,

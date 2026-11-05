@@ -13,7 +13,7 @@ pub fn analyze(self: *Analyzer, expression: anytype, expected: ?ir.TypeId) zx.Er
     const input = try self.expression(pipe.input, null);
     const builder = Builder{ .analyzer = self, .span = expression.span };
     const symbol = try builder.symbol("$pipeline_input", self.node(input).type_id);
-    self.pipeline = .{ .symbol = symbol, .depth = self.lambda_depth };
+    self.pipeline = .{ .symbol = symbol, .depth = self.lambda_depth, .owner = self.collection_captures, .scope_start = self.active.items.len };
 
     const result = try self.expression(pipe.stage, expected);
 

@@ -69,10 +69,11 @@ export default function (in: Input): Output {
             state.reads = row.reads
             state.levels = row.levels
             state.index += 1
-        }
-    }, in.source).pick([
-        "known",
-        "reads",
-        "levels"
-    ])
+        },
+        return: state => state.pick([
+            "known",
+            "reads",
+            "levels"
+        ])
+    }, in.source)
 }

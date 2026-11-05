@@ -1,0 +1,80 @@
+import integers from "std:integer"
+
+import ensure from "./ensure"
+
+import type { Span } from "../../../frontend/lexer/token_model"
+import type { Prepared } from "../model"
+
+export type Input = {
+    state: Prepared,
+    owner?: u32,
+    symbol: u32,
+    span: Span
+}
+
+export type Output = {
+    state: Prepared,
+    symbol?: u32
+}
+
+export default function (in: Input): Output {
+    const path: u32[] = []
+
+    const route = loop({
+        frame: in.state.local.captures.current,
+        path
+    }, {
+        while: (state, source) =>
+            state.frame != null &&
+            (source.owner == null || state.frame != source.owner),
+        next: (state, source) => {
+            const frame = state.frame
+
+            if (frame != null) {
+                state.path = state.path.push(frame)[0]
+                state.frame = source.state.local.captures.frames
+                    .parents[
+                        integers.widen(
+                            frame
+                        )
+                    ]
+            }
+        }
+    }, in)
+
+    if (route.frame != in.owner) {
+        return {
+            state: in.state,
+            symbol: null
+        }
+    }
+
+    return loop({
+        state: in.state,
+        symbol: in.symbol,
+        remaining: route.path.length
+    }, {
+        while: current => current.remaining > 0 &&
+            current.state.diagnostic.message == "",
+        next: (current, source) => {
+            current.remaining -= 1
+
+            const captured = ensure({
+                state: current.state,
+                frame: source.path[current.remaining],
+                source: current.symbol,
+                span: source.span
+            })
+
+            current.state = captured.state
+            current.symbol = captured.symbol
+        },
+        return: current => ({
+            state: current.state,
+            symbol: current.symbol
+        })
+    }, {
+        path: route.path,
+        span: in.span
+    })
+}

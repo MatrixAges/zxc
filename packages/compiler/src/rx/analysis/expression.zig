@@ -25,6 +25,7 @@ pub fn checkValues(allocator: std.mem.Allocator, node: rx.ast.Node, owner: []con
         defer parsed.deinit();
 
         if (parsed.diagnostic()) |issue| return diagnostic(attribute, try issue.clone(allocator));
+        if (try @import("attribute.zig").checkStyle(allocator, &parsed)) |issue| return diagnostic(attribute, try issue.clone(allocator));
     }
 
     for (node.children) |child| {

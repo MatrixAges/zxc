@@ -27,6 +27,14 @@ pub fn resolve(self: *Self, analyzer: *Analyzer, name: zx.ast.Name) zx.Error!?ir
     return null;
 }
 
+pub fn bySymbol(self: *Self, analyzer: *Analyzer, owner: ?*Self, source: ir.SymbolId, span: zx.Span) zx.Error!?ir.SymbolId {
+    if (self == owner) return source;
+
+    const parent_symbol = if (self.parent) |parent| try parent.bySymbol(analyzer, owner, source, span) else if (owner == null) source else null;
+
+    return if (parent_symbol) |symbol| try self.capture(analyzer, symbol, span) else null;
+}
+
 fn capture(self: *Self, analyzer: *Analyzer, source: ir.SymbolId, span: zx.Span) zx.Error!ir.SymbolId {
     for (self.bindings.items) |binding| if (binding.source == source) return binding.target;
 

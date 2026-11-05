@@ -25,11 +25,30 @@ pub fn analyze(self: *Analyzer, expression: anytype, expected: ?ir.TypeId) zx.Er
         .identifier => |name| {
             if (std.mem.eql(u8, name.text, "_")) {
                 if (self.pipeline) |*pipe| {
-                    if (pipe.depth != self.lambda_depth) return self.reporter.fail(.name, span, "pipeline placeholders cannot cross callback boundaries");
+                    var shadowed = false;
+                    var index = self.active.items.len;
 
-                    pipe.uses += 1;
+                    while (index > pipe.scope_start and index > self.scope_floor) {
+                        index -= 1;
 
-                    return @import("refinement.zig").reference(self, pipe.symbol, span);
+                        if (std.mem.eql(u8, self.symbols.at(@backingInt(self.active.items[index])).name, "_")) {
+                            shadowed = true;
+
+                            break;
+                        }
+                    }
+
+                    if (!shadowed) {
+                        const source = if (self.collection_captures != pipe.owner) captured: {
+                            const captures = self.collection_captures orelse return self.reporter.fail(.name, span, "pipeline placeholders cannot cross callback boundaries");
+
+                            break :captured try captures.bySymbol(self, pipe.owner, pipe.symbol, span) orelse return self.reporter.fail(.name, span, "pipeline placeholders cannot cross callback boundaries");
+                        } else if (pipe.depth == self.lambda_depth) pipe.symbol else return self.reporter.fail(.name, span, "pipeline placeholders cannot cross callback boundaries");
+
+                        pipe.uses += 1;
+
+                        return @import("refinement.zig").reference(self, source, span);
+                    }
                 }
             }
 

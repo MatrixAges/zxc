@@ -69,10 +69,11 @@ export default function (in: Input): Output {
 
             state.carried = state.carried.with(owner, row)
             state.index += 1
-        }
-    }, in).pick([
-        "known",
-        "carried",
-        "reads"
-    ])
+        },
+        return: state => state.pick([
+            "known",
+            "carried",
+            "reads"
+        ])
+    }, in)
 }

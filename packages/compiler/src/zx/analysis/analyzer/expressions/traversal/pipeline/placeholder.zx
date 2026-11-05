@@ -1,6 +1,7 @@
 import integers from "std:integer"
 
 import { ExprKind } from "../../../../../frontend/parser/expressions/state/model"
+import capture from "../../../captures/by_symbol"
 import { NameKind } from "../../../source/model"
 import readName from "../../../source/name"
 import coerce from "../../coerce"
@@ -44,9 +45,38 @@ export default function (in: Input): Output {
     const index = in.context.pipelines.length - 1
     const frame = in.context.pipelines[index]
 
+    const shadowed = loop({
+        index: in.state.local.active.length,
+        found: false
+    }, {
+        while: (state, source) => !state.found &&
+            state.index > source.frame.scope_start &&
+            state.index > source.local.scope_floor,
+        next: (state, source) => {
+            state.index -= 1
+            state.found = source.local.symbols
+                .names[integers.widen(
+                    source.local.active[state.index]
+                )] == placeholder_name
+        },
+        return: state => state.found
+    }, {
+        local: in.state.local,
+        frame
+    })
+
+    if (shadowed) {
+        return {
+            handled: false,
+            work: in
+        }
+    }
+
+    const crossed = frame.depth != in.state.local.lambda_depth
+
     if (
-        !frame.active || frame.depth != in.state.local.lambda_depth ||
-            frame.asynchronous != in.frames.asynchronous.length
+        !frame.active || frame.asynchronous != in.frames.asynchronous.length ||
+            (crossed && in.state.local.captures.current == frame.owner)
     ) {
         return {
             handled: true,
@@ -58,22 +88,40 @@ export default function (in: Input): Output {
         }
     }
 
-    const value = reference({
-        expressions: in.state.local.expressions,
-        tables: {
-            base: in.state.types.context.base,
-            delta: in.state.types.delta
-        },
-        facts: in.state.local.refinement.facts,
-        type_id: in.state.local.symbols.types[integers.widen(frame.symbol)],
+    const captured = capture({
+        state: in.state,
+        owner: frame.owner,
         symbol: frame.symbol,
         span: node.span
     })
 
+    if (captured.symbol == null) {
+        return {
+            handled: true,
+            work: fail({
+                work: in,
+                code: name_code,
+                message: boundary_message
+            })
+        }
+    }
+
+    const value = reference({
+        expressions: captured.state.local.expressions,
+        tables: {
+            base: captured.state.types.context.base,
+            delta: captured.state.types.delta
+        },
+        facts: captured.state.local.refinement.facts,
+        type_id: captured.state.local.symbols.types[integers.widen(captured.symbol)],
+        symbol: captured.symbol,
+        span: node.span
+    })
+
     const state = {
-        ...in.state,
+        ...captured.state,
         local: {
-            ...in.state.local,
+            ...captured.state.local,
             expressions: value.expressions
         }
     }

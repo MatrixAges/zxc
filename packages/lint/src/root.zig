@@ -11,8 +11,8 @@ pub const length = @import("length");
 pub const rx = @import("rx/root.zig");
 pub const configuration = @import("configuration/root.zig");
 pub const NameKind = @import("naming").NameKind;
-const ExpressionContext = enum { zx, rx };
-
+const ExpressionContext = enum { zx, rx, zx_style, rx_style };
+const loop_postfix = @import("loop_postfix");
 pub const checkName = @import("naming").checkName;
 
 pub fn checkNames(program: zx.ast.Program) ?zx.Diagnostic {
@@ -26,7 +26,7 @@ pub fn checkViewNames(view: anytype, contracts: anytype, body: anytype) ?zx.Diag
         if (checkExpression(syntax.item(contracts, index).predicate)) |issue| return issue;
     }
 
-    return if (body) |value| checkBlock(value) else null;
+    return if (body) |value| checkBlock(value, .zx) else null;
 }
 
 pub fn checkHeaderNames(view: anytype) ?zx.Diagnostic {
@@ -68,16 +68,16 @@ fn checkBinding(name: zx.ast.Name, kind: NameKind) ?zx.Diagnostic {
     } };
 }
 
-fn checkBlock(block: anytype) ?zx.Diagnostic {
+fn checkBlock(block: anytype, comptime context: ExpressionContext) ?zx.Diagnostic {
     for (0..block.statements.len) |statement_index| {
         const statement = syntax.item(block.statements, statement_index);
 
         switch (statement.value) {
-            .state_update => |value| if (checkExpression(value.target) orelse checkExpression(value.value)) |issue| return issue,
-            .evaluate => |value| if (checkExpression(value)) |issue| return issue,
+            .state_update => |value| if (checkNestedExpression(value.target, false, context) orelse checkNestedExpression(value.value, false, context)) |issue| return issue,
+            .evaluate => |value| if (checkNestedExpression(value, false, context)) |issue| return issue,
             .constant => |binding| {
                 if (checkBinding(binding.name, .value)) |issue| return issue;
-                if (checkExpression(binding.value)) |issue| return issue;
+                if (checkNestedExpression(binding.value, false, context)) |issue| return issue;
             },
             .destructure => |binding| {
                 for (0..binding.names.len) |name_index| {
@@ -88,39 +88,53 @@ fn checkBlock(block: anytype) ?zx.Diagnostic {
                     }
                 }
 
-                if (checkExpression(binding.value)) |issue| return issue;
+                if (checkNestedExpression(binding.value, false, context)) |issue| return issue;
             },
             .branch => |branch| {
-                if (checkExpression(branch.condition)) |issue| return issue;
-                if (checkBlock(branch.yes)) |issue| return issue;
+                if (checkNestedExpression(branch.condition, false, context)) |issue| return issue;
+                if (checkBlock(branch.yes, context)) |issue| return issue;
 
                 if (branch.no) |no| {
-                    if (checkBlock(no)) |issue| return issue;
+                    if (checkBlock(no, context)) |issue| return issue;
                 }
             },
             .switch_stmt => |selection| {
-                if (checkExpression(selection.subject)) |issue| return issue;
+                if (checkNestedExpression(selection.subject, false, context)) |issue| return issue;
 
                 for (0..selection.cases.len) |case_index| {
                     const case = syntax.item(selection.cases, case_index);
 
                     if (case.value) |value| {
-                        if (checkExpression(value)) |issue| return issue;
+                        if (checkNestedExpression(value, false, context)) |issue| return issue;
                     }
 
-                    if (checkBlock(case.body)) |issue| return issue;
+                    if (checkBlock(case.body, context)) |issue| return issue;
                 }
             },
             .store_set => |setter| {
-                if (checkExpression(setter.target) orelse checkExpression(setter.value)) |issue| return issue;
+                if (checkNestedExpression(setter.target, false, context) orelse checkNestedExpression(setter.value, false, context)) |issue| return issue;
             },
             .result => |value| if (value) |item| {
-                if (checkExpression(item)) |issue| return issue;
+                if (checkNestedExpression(item, false, context)) |issue| return issue;
             },
         }
     }
 
     return null;
+}
+
+pub fn checkViewStyle(view: anytype, contracts: anytype, body: anytype) ?zx.Diagnostic {
+    if (checkHeaderNames(view)) |issue| return issue;
+
+    for (0..contracts.len) |index| {
+        if (checkStyleExpression(syntax.item(contracts, index).predicate)) |issue| return issue;
+    }
+
+    return if (body) |value| checkBlock(value, .zx_style) else null;
+}
+
+pub fn checkStyleExpression(expression: anytype) ?zx.Diagnostic {
+    return checkNestedExpression(expression, false, .zx_style);
 }
 
 pub fn checkExpression(expression: anytype) ?zx.Diagnostic {
@@ -132,8 +146,29 @@ pub fn checkRxExpression(expression: anytype) ?zx.Diagnostic {
 }
 
 fn checkNestedExpression(expression: anytype, nested: bool, comptime context: ExpressionContext) ?zx.Diagnostic {
+    if (context == .zx_style or context == .rx_style) {
+        const value = syntax.value(expression);
+
+        const receiver: ?@TypeOf(expression) = switch (value) {
+            .field => |field| field.target,
+            .index => |index| index.target,
+            .call => |call| call.callee,
+            else => null,
+        };
+
+        if (receiver) |target| {
+            const target_value = syntax.value(target);
+            const callee = if (target_value == .call) syntax.value(target_value.call.callee) else target_value;
+            const kind: loop_postfix.Kind = switch (value) { .field => .Field, .index => .Index, .call => .Call, else => .Other };
+
+            if (loop_postfix.check(kind, if (target_value == .call) .Call else .Other, if (callee == .identifier) .Identifier else .Other, if (callee == .identifier) callee.identifier.text else "")) {
+                return .{ .code = .style, .span = .{ .start = target.span.end, .end = expression.span.end }, .message = "move loop result processing into its return callback" };
+            }
+        }
+    }
+
     switch (syntax.value(expression)) {
-        .state_block => |body| return checkBlock(body),
+        .state_block => |body| return checkBlock(body, context),
         .lambda => |lambda| {
             for (0..lambda.parameters.len) |name_index| {
                 const name = syntax.item(lambda.parameters, name_index);
@@ -150,7 +185,7 @@ fn checkNestedExpression(expression: anytype, nested: bool, comptime context: Ex
         .binary => |binary| return checkNestedExpression(binary.left, nested, context) orelse checkNestedExpression(binary.right, nested, context),
         .pipeline => |pipe| return checkNestedExpression(pipe.input, nested, context) orelse checkNestedExpression(pipe.stage, nested, context),
         .conditional => |value| {
-            if (nested) return .{ .code = .style, .span = expression.span, .message = if (context == .rx) "nested conditional values are not allowed in RX; use If or Switch, or move the decision to ZX and use Call.fn" else "nested conditional expressions are not allowed; use match" };
+            if (nested) return .{ .code = .style, .span = expression.span, .message = if (context == .rx or context == .rx_style) "nested conditional values are not allowed in RX; use If or Switch, or move the decision to ZX and use Call.fn" else "nested conditional expressions are not allowed; use match" };
 
             return checkNestedExpression(value.condition, true, context) orelse checkNestedExpression(value.yes, true, context) orelse checkNestedExpression(value.no, true, context);
         },

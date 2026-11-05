@@ -98,9 +98,10 @@ export default function (in: Input): Output {
             }
 
             state.index += 1
-        }
-    }).pick([
-        "reached",
-        "changed"
-    ])
+        },
+        return: state => state.pick([
+            "reached",
+            "changed"
+        ])
+    })
 }

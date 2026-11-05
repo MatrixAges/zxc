@@ -13,10 +13,8 @@ export default function (in: Input): Output {
     }, {
         while: (state, source) => state.index < source.length,
         next: (state, source) => {
-            const index = state.index
-
-            state.values[index] =
-                source[index].some(value => integers.widen(value) == index)
+            state.values[state.index] = state.index
+                -> source[_].some(value => integers.widen(value) == _)
             state.index += 1
         },
         return: state => state.values

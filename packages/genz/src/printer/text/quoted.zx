@@ -73,6 +73,6 @@ export default function (in: Input): Output {
 
             current.index += 1
         },
-        return: state => state.output
-    }).push(ascii_double_quote)[0]
+        return: state => state.output.push(ascii_double_quote)[0]
+    })
 }

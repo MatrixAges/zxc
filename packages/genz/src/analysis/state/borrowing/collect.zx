@@ -62,9 +62,10 @@ export default function (in: Input): Output {
             state.counts = result.counts
             state.roots = result.roots
             state.index += 1
-        }
-    }, in).pick([
-        "counts",
-        "roots"
-    ])
+        },
+        return: state => state.pick([
+            "counts",
+            "roots"
+        ])
+    }, in)
 }
