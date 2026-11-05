@@ -105,6 +105,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/uniqueness/level/lacks.zx", .name = "uniqueness_level_lacks", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/function/levels/close.rx", .name = "uniqueness_function_close", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/function/reads/check.rx", .name = "uniqueness_function_reads", .owner = .genz },
+    .{ .path = "genz/analysis/uniqueness/function/updates/apply.rx", .name = "uniqueness_function_updates", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/function/plan/plan.rx", .name = "uniqueness_function_plan", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/function/summary/settle.rx", .name = "uniqueness_function_settlement", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/function/demand/analyze.rx", .name = "uniqueness_function_demand", .owner = .genz },

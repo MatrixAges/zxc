@@ -75,6 +75,10 @@ pub fn reserveBounded(self: *Lower, body: *std.ArrayList(node.Statement), elemen
     return aggregate.bind(self, body, try self.call(try reference(self, "zxReserveBounded"), &.{ element, try self.builder.identifier("allocator"), source, count, minimum }, true));
 }
 
+pub fn copy(self: *Lower, body: *std.ArrayList(node.Statement), element: node.ExpressionId, source: node.ExpressionId, exact: bool) Lower.Error!node.ExpressionId {
+    return aggregate.bind(self, body, try self.call(try reference(self, "zxAllocate"), &.{ element, try self.builder.identifier("allocator"), source, try self.field(source, "len"), try self.builder.expression(.{ .boolean = exact }), try self.builder.integer(0) }, true));
+}
+
 /// One growth copy of a plain list the plan found flowing into appends, so they extend it in place from then on.
 pub fn normalize(self: *Lower, id: ir.ExprId, value: node.ExpressionId) Lower.Error!node.ExpressionId {
     if (self.iteration_value) |context| if (context.buffered(self.program.expression(id).type_id)) return value;

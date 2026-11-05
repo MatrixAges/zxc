@@ -218,6 +218,12 @@ fn read(self: *Self, table: Table, function: usize, values: []const Level, slot:
 pub const Contribution = struct { callee: u32, levels: []const Level };
 
 pub fn replay(allocator: std.mem.Allocator, summaries: *Summaries, contribution: Contribution, changed: *std.ArrayList(usize)) std.mem.Allocator.Error!void {
+    if (generated_analysis) {
+        const count = @import("function/updates.zig").merge(summaries.input, contribution.callee, 0, contribution.levels, false);
+
+        return changed.appendNTimes(allocator, contribution.callee, count);
+    }
+
     for (contribution.levels, 0..) |value, slot| try meet(allocator, summaries, contribution.callee, @intCast(slot), value, changed);
 }
 
@@ -832,6 +838,13 @@ fn mark(self: *Self, value: Mark) std.mem.Allocator.Error!void {
 }
 
 pub fn applyMark(allocator: std.mem.Allocator, summaries: *Summaries, value: Mark, changed: *std.ArrayList(usize)) std.mem.Allocator.Error!void {
+    if (generated_analysis) {
+        const rows = if (value.output) summaries.outputs else summaries.inputs;
+        const count = @import("function/updates.zig").merge(rows, value.function, value.slot, &.{value.want}, true);
+
+        return changed.appendNTimes(allocator, value.function, count);
+    }
+
     const values = if (value.output) summaries.outputs[value.function] else summaries.inputs[value.function];
     const next = values[value.slot].join(value.want);
 

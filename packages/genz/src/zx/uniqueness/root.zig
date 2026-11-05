@@ -364,17 +364,24 @@ fn settle(workspace: std.mem.Allocator, work: *Work, program: ir.Program, slots:
         for (changed.items) |callee| if (units[callee] != null) try requeue(workspace, work, ahead, callee);
         if (index == count) continue;
 
-        var weakened = false;
+        const weakened = if (@import("genz_options").generated_analysis)
+            @import("function/updates.zig").merge(summaries.output, @intCast(index), 0, output, false) != 0
 
-        for (output, summaries.output[index]) |next, *current| {
-            const met = current.meet(next);
+        else weakened: {
+            var changed_output = false;
 
-            if (met == current.*) continue;
+            for (output, summaries.output[index]) |next, *current| {
+                const met = current.meet(next);
 
-            Level.store(current, met);
+                if (met == current.*) continue;
 
-            weakened = true;
-        }
+                Level.store(current, met);
+
+                changed_output = true;
+            }
+
+            break :weakened changed_output;
+        };
 
         if (!weakened) continue;
         for (callers[index].items) |caller| try requeue(workspace, work, ahead, caller);

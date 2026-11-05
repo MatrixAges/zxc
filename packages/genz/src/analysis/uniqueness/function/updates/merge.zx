@@ -1,0 +1,51 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import join from "../../level/join"
+import decode from "../levels/decode"
+import encode from "../levels/encode"
+import knowledge from "../levels/knowledge"
+import meet from "../levels/meet"
+import value from "../levels/value"
+
+import type { AtomicRows } from "std:bytes"
+
+export type Input = {
+    rows: AtomicRows,
+    row: u32,
+    first: u32,
+    levels: u8[],
+    joining: bool
+}
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    return loop({
+        index: 0,
+        changed: 0
+    }, {
+        while: (state, source) => state.index < source.levels.length,
+        next: (state, source) => {
+            const row = integers.widen(source.row)
+            const slot = integers.widen(source.first) + state.index
+            const before = decode(bytes.loadAtomicCell(source.rows, row, slot))
+            const incoming = decode(source.levels[state.index])
+            const next = source.joining ? knowledge(join({
+                left: value(before),
+                right: value(incoming)
+            })) : meet({
+                left: before,
+                right: incoming
+            })
+
+            if (next != before) {
+                bytes.storeAtomicCell(source.rows, row, slot, encode(next))
+
+                state.changed += 1
+            }
+
+            state.index += 1
+        }
+    }, in).changed
+}

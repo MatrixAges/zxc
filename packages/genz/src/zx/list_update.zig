@@ -28,7 +28,7 @@ pub fn lower(self: *Lower, id: ir.ExprId) Lower.Error!node.ExpressionId {
 
     const buffer = if (deferred) guarded: {
         var copied: std.ArrayList(node.Statement) = .empty;
-        const private = try @import("growth.zig").reserve(self, &copied, element, source, try self.field(source, "len"), false);
+        const private = try @import("growth.zig").copy(self, &copied, element, source, !self.may_grow);
 
         break :guarded try aggregate.bind(self, &body, try self.builder.expression(.{ .conditional = .{
             .condition = try @import("state_value/list.zig").exclusive(self, source_value),
