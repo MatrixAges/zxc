@@ -28,14 +28,19 @@ test "dots in directory names do not suppress ZX suffix completion" {
     }
 }
 
-test "directory references and explicit extensions preserve import diagnostics" {
+test "directory references resolve index modules and explicit extensions preserve diagnostics" {
+    const directories = [_]struct { path: []const u8, expected: []const u8 }{
+        .{ .path = "./", .expected = "/project/app/index.zx" },
+        .{ .path = "../", .expected = "/project/index.zx" },
+        .{ .path = "@/", .expected = "/project/index.zx" },
+        .{ .path = "./folder/", .expected = "/project/app/folder/index.zx" },
+        .{ .path = "./folder/.", .expected = "/project/app/folder/index.zx" },
+        .{ .path = "./folder/..", .expected = "/project/app/index.zx" },
+    };
+
+    for (directories) |directory| try check(std.testing.allocator, directory.path, directory.expected);
+
     const cases = [_]struct { path: []const u8, message: []const u8 }{
-        .{ .path = "./", .message = "project imports must name a ZX module" },
-        .{ .path = "../", .message = "project imports must name a ZX module" },
-        .{ .path = "@/", .message = "project imports must name a ZX module" },
-        .{ .path = "./folder/", .message = "project imports must name a ZX module" },
-        .{ .path = "./folder/.", .message = "project imports must name a ZX module" },
-        .{ .path = "./folder/..", .message = "project imports must name a ZX module" },
         .{ .path = "./helper.zx", .message = "project imports must omit the .zx extension; runtime and RX imports are forbidden" },
         .{ .path = "../app/helper.zx", .message = "project imports must omit the .zx extension; runtime and RX imports are forbidden" },
         .{ .path = "@/app/helper.zx", .message = "project imports must omit the .zx extension; runtime and RX imports are forbidden" },

@@ -4,10 +4,16 @@ pub fn index(allocator: std.mem.Allocator, candidate: []const u8) std.mem.Alloca
     std.debug.assert(std.mem.endsWith(u8, candidate, ".zx"));
 
     if (@import("parser_options").generated_parser) {
-        return @import("generated_module_path").executeValue(allocator, candidate) catch |err| switch (err) {
-            error.OutOfMemory, error.WriteFailed => error.OutOfMemory,
+        var temporary = std.heap.ArenaAllocator.init(allocator);
+
+        defer temporary.deinit();
+
+        const result = @import("generated_module_path").execute(&temporary, candidate) catch |err| switch (err) {
+            error.OutOfMemory, error.WriteFailed => return error.OutOfMemory,
             else => unreachable,
         };
+
+        return allocator.dupe(u8, result);
     }
 
     return std.fs.path.join(allocator, &.{ candidate[0 .. candidate.len - ".zx".len], "index.zx" });

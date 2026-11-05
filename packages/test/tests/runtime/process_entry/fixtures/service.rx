@@ -1,4 +1,8 @@
 <Module>
-  <Call module="workflow" in={$in}/>
-  <Return value={$ctx.workflow}/>
+    <Type from="snapshot" as="Snapshot" />
+
+    <Args in={Snapshot.Input} out={Snapshot.Output} />
+
+    <Call module="workflow" in={$in} />
+    <Return value={$ctx.workflow} />
 </Module>

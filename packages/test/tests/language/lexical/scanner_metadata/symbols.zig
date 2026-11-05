@@ -24,6 +24,7 @@ pub const all = [_]Symbol{
     .{ .text = "&", .tag = "Ampersand" },
     .{ .text = "|", .tag = "Pipe" },
     .{ .text = "=>", .tag = "Arrow" },
+    .{ .text = "->", .tag = "Pipeline" },
     .{ .text = "==", .tag = "Equal" },
     .{ .text = "!=", .tag = "NotEqual" },
     .{ .text = "<=", .tag = "LessEqual" },

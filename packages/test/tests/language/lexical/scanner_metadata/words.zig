@@ -2,7 +2,7 @@ const std = @import("std");
 const f = @import("fixture.zig");
 
 pub const reserved = [_][]const u8{ "export", "type", "default", "function", "const", "if", "else", "return", "true", "false", "import", "enum", "switch", "null", "let", "var", "for", "while", "new", "throw", "async", "await", "case", "break", "match" };
-pub const contextual = [_][]const u8{ "in", "Input", "Output", "from", "store", "requires", "ensures", "_", "queryOne", "queryMany", "insert", "update", "delete", "transaction" };
+pub const contextual = [_][]const u8{ "in", "Input", "Output", "from", "store", "requires", "ensures", "_", "queryOne", "queryMany", "insert", "update", "delete", "transaction", "as" };
 pub const ordinary = [_][]const u8{"owned"};
 pub const recognized = reserved ++ contextual;
 pub const all = recognized ++ ordinary;

@@ -348,3 +348,82 @@ routing-policy-paired-comparison.json，均在/tmp/zxc-function-levels。
 本阶段减少CPU而未证明墙钟或RSS改善，不能把三项指标混用。完整自举仍需继续迁移
 及最终传递依赖和seed→1→2→3核对；固定累计锚点ca03eb0011e3efd13221e1baefca7fcc10a1da77
 不变，本次5.02s仍未消除相对约4.11s Native记录的差距，不宣称整体性能门禁通过。
+
+2026-11-05继续Function收口。使用最新routing-policy生成物重新构建带Mach探针的
+临时生成器routing-hot；生成2046产物与正式S3一致。采样中visit168、root.settle66、
+memcpy132，visit仍为主要单函数热点；样本只用于定位，不能当作CPU占比。
+
+只读逐分支对照发现Reference的emptyList元数据在递归之前提前读取；Native先得
+结果，仅unique为true时才因&&短路读取。最小Source调整保留reference默认empty
+为false，只在Value/Part递归结果返回后，对Value且unique结果检查目标是否为空。
+Input/Carried/Condition原来均不属于Value，保持false；原子读、递归、complete缓存
+发布和materialize顺序不变，空列表仍先于usage获得唯一性豁免。
+该内部改动属于尚未收口的Function迁移，不另造缺依赖提交。先看真实产物及实际
+成本，只有有收益才集中补现有相关回归；不为每个无收益尝试重复整套验收。
+
+延后empty检查的三对CPU5.16/5.14/5.11→5.15/5.11/5.07s，中位5.14→5.11，范围
+重叠且收益弱；六次产物均与各自参考2046文件一致。未继续为此微调或重复计时，
+已恢复该visit调整，保留此前已验证的Function实现和通用inline优化。
+
+Function提交边界只读审查确认：close、settle、demand、plan和操作收集均已正式
+转入五个Source入口；Function/{levels,summary,demand,plan,operations}.zig仍负责
+ABI/表示及结果发布。旧level/raw/trace只在generated_analysis=false引导路径使用。
+unchanged/replay/applyMark仍由正式Ahead/Root调用，是后续全局缓存接受、摘要重放
+与工作队列迁移范围；本阶段不能称function.zig已只剩ABI，更不能称全局自举完成。
+
+审查发现实际遗漏：Native ownership.eligible读取Plan.transfers与slot_first，决定
+生成代码是否清除exclusive，但fingerprint.plan只包含flags及renewals。已将两列
+以带长度的连续字节写入指纹，复用批量hash避免逐元素包装，并升v54隔离旧键。
+同一工具内资格事实变化现在参与失效；生成器摘要变化不能替代这个输入依赖。
+
+按先实现再优化原则，集中收口Function级逻辑迁移及必要的conditional/State/growth
+消费接线；累计性能差距作为仍未完成的目标保留，不让微调反复阻止完整职责验收。
+本轮完整既有packages/test test门禁已启动（small，-j6），不新增测试、不修改期望
+或容量阈值。继续核对真实增量/冷生成及恢复、串行并行和阶段固定点；最终只对
+完整职责提交，原生全局调度和最终性能门禁继续明确列为未完成。
+
+完整回归已暴露旧合同对齐项：scanner元数据清单遗漏Pipeline/As；semantic持久
+缓存断言仍要求module.v3，实际源码及落盘均为module.v7；目录index已支持但CLI、
+project、resolve三份旧断言仍要求拒绝；process service缺显式void入口契约。
+本轮仅修正这些既有断言/清单及fixture，保留原调用图、后缀/环/包边界诊断和容量
+阈值，不新增命名测试。scanner原5项通过，持久缓存原5项通过，CLI导入14项及
+process原46项通过；原生目录解析的旧拒绝断言也需同步，补跑该失败组。
+
+Safe CLI后端SIGSEGV在全新HEAD导出中同样出现，原命令和对照日志保留；不是本轮
+Function变更新增。完整回归还有内部Source模板/类型解析CLI未声明core包的问题，
+以及高负载HTTP进程SIGKILL，尚未排除，不将整套验收报告为通过。
+product-transfer日志中的w及stderr诊断是过程报告，不能在总结果前误计为失败。
+
+复用现有borrowed.zx作只读诊断，Source和library两路flags相同且renewals均为0：
+重复first别名使transfers12288→0，slot_first不变；second由列表改标量使transfers
+12288→64、slot_first由4/6/.../18变2/3/.../9。两种编辑均完成热/冷6文件一致及
+恢复一致。诊断只在/tmp修改副本，未修改既有测试源。编辑本身也改变body/type，
+不能把它宣称为同旧key碰撞反例；本次hash修正由实际消费者依赖及完整Plan输入
+保证，证据边界明确。
+
+目录正向断言发现原生module_path.index存在32字节临时数组泄漏：Source path.join
+的列表字面量经executeValue分配到普通caller allocator，caller只释放返回字符串。
+修复既有ABI边界：临时arena持有Source中间分配，返回路径复制到caller拥有的结果，
+defer释放临时资源。Source路径语义不变，不新增原生规则/运行库；这仍是待移除的
+原生表示边界，不宣称全编译器数据零复制已完成。
+
+适配初版catch分支未显式return error，局部result保留error union导致编译错误；
+已修正并冻结源码补跑。完整回归当时仍在执行，后续报告必须区分这些构建失败，
+复用已通过行为检查而补跑受影响失败步骤，不能把旧过程失败当最终结果或直接丢弃。
+
+未迁移HEAD Small从全新git归档构建成功；同样复现RX compiled Store发布的
+ConflictingFunction和Store initial lint断言失败。HEAD Safe同样后端SIGSEGV。
+基线日志为function-closure-head-{small-build,safe-build,rx-compiled,lint-rx}.log；
+这些共同问题仍需处理，但不归因为本次Function规则迁移。此前实现和性能欠账不撤回。
+
+目录适配修复最终通过工作区73/73步骤、11/11检查，CLI14项通过且无泄漏。
+仅从HEAD加入该适配与七份既有fixture/断言的独立副本，四组90/90步骤、29/29
+检查通过；另外Node报告导入14、持久缓存5及process46项通过，保留各报告口径，
+不把构建统计和Node重复累加。工作区与该副本八个文件逐字节相同。
+
+本次独立可提交范围为目录路径生命周期修复及合同对齐；fingerprint v54和完整
+Function/conditional/State/growth迁移仍在工作区，不随这次小范围职责提交。
+完整门禁原句柄63253仍活跃，已通过结果保留，未完成/失败步骤继续核对。
+验证日志contract-lifetime-independent-checks.log、function-closure-import-owned-final.log、
+function-closure-scanner-fixed.log、function-closure-persistent-fixed-final.log、
+function-closure-process-fixed.log，均位于/tmp/zxc-function-levels。

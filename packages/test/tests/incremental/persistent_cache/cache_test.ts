@@ -69,7 +69,7 @@ test('corrupted on disk entry is discarded and repaired', () => {
 
         stats(repaired.stderr, [1, 1, 1, 1, 1, 0])
         assert.equal(repaired.stdout, expected)
-        assert.ok(readFileSync(file, 'utf8').startsWith('zxc.module.v3\n'))
+        assert.ok(readFileSync(file, 'utf8').startsWith('zxc.module.v7\n'))
         stats(fixture.compile().stderr, [0, 2, 2, 0, 0, 0])
     } finally {
         fixture.close()

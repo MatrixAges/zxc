@@ -107,17 +107,23 @@ test "extensionless parent traversal cannot cross package boundaries" {
     }, .{ .entry = "/workspace/a/main.zx", .root_dir = "/workspace", .package_scopes = &scopes }, "file import crosses a package boundary; declare and import the package dependency");
 }
 
-test "extensionless imports do not fall back to directory index modules" {
+test "extensionless imports resolve directory index modules" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
 
     defer arena.deinit();
 
     const source = try f.main(arena.allocator(), "./helper");
 
-    try f.expectFailure(&.{
+    var result = try compiler.project.analyze(std.testing.allocator, &.{
         .{ .path = "main.zx", .source = source },
         .{ .path = "helper/index.zx", .source = f.helper },
-    }, .{ .entry = "main.zx", .root_dir = "/project" }, "import target is missing from the source set");
+    }, .{ .entry = "main.zx", .root_dir = "/project" });
+
+    defer result.deinit();
+
+    try std.testing.expect(result.value == .ir);
+    try std.testing.expectEqual(@as(usize, 1), result.value.ir.functions.count());
+    try std.testing.expectEqualStrings("/project/helper/index.zx", result.modules[0].path);
 }
 
 test "normalized extensionless paths cannot hide cycles through unused imports" {
