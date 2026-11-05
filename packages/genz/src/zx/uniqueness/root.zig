@@ -111,7 +111,11 @@ fn analyzeWithConcurrency(allocator: std.mem.Allocator, workspace: std.mem.Alloc
     const memo = persistent orelse &local;
     const temporary = scratch.allocator();
     const slots = basis.slots;
-    var summaries = try Summaries.create(temporary, program, basis);
+    var summary_memory = std.heap.ArenaAllocator.init(workspace);
+
+    defer summary_memory.deinit();
+
+    var summaries = try Summaries.create(summary_memory.allocator(), program, basis);
     const count = program.functions.count();
     const units = try temporary.alloc(?*Unit, count + 1);
     const callers = try temporary.alloc(std.ArrayList(usize), count);

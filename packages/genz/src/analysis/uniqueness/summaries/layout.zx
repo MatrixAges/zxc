@@ -1,0 +1,41 @@
+import integers from "std:integer"
+
+import type { Shape as Input, Layout as Output } from "./model"
+
+export default function (in: Input): Output {
+    const input_first: u64[] = in.input_types.map(type_id => 0)[0]
+    const output_first: u64[] = in.output_types.map(type_id => 0)[0]
+
+    const result = loop({
+        index: 0,
+        input_count: 0,
+        output_count: 0,
+        input_first,
+        output_first
+    }, {
+        while: (state, source) => state.index < source.input_types.length,
+        next: (state, source) => {
+            state.input_first[state.index] = state.input_count
+            state.output_first[state.index] = state.output_count
+            state.input_count += integers.widen(
+                source.counts[integers.widen(
+                    source.input_types[state.index]
+                )]
+            )
+            state.output_count += integers.widen(
+                source.counts[integers.widen(
+                    source.output_types[state.index]
+                )]
+            )
+
+            state.index += 1
+        }
+    }, in)
+
+    return {
+        input_first: result.input_first,
+        output_first: result.output_first,
+        input_count: result.input_count,
+        output_count: result.output_count
+    }
+}

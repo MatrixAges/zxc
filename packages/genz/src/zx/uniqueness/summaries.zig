@@ -16,7 +16,10 @@ outputs: [][]Level,
 held: []const []const bool,
 written: []const []const bool,
 effects: if (generated_analysis) Generated.Output else void,
+storage: if (generated_analysis) @import("summaries/storage.zig").Model else void,
 pub fn create(allocator: std.mem.Allocator, program: ir.Program, basis: *const Basis) std.mem.Allocator.Error!Self {
+    if (generated_analysis) return @import("summaries/storage.zig").create(allocator, program, basis);
+
     const slots = basis.slots;
     const count = program.functions.count();
     const input = try allocator.alloc([]Level, count);
@@ -44,7 +47,7 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program, basis: *const B
         else => unreachable,
     } else {};
 
-    return .{ .input = input, .output = output, .inputs = inputs, .outputs = outputs, .held = basis.flow.held, .written = basis.flow.written, .effects = effects };
+    return .{ .input = input, .output = output, .inputs = inputs, .outputs = outputs, .held = basis.flow.held, .written = basis.flow.written, .effects = effects, .storage = {} };
 }
 
 pub fn mayHold(self: Self, function: ir.FunctionId, slot: u32) bool {
@@ -61,6 +64,8 @@ pub fn mayMutate(self: Self, function: ir.FunctionId, slot: u32) bool {
 
 /// Optimistic facts for every body; inputs stay unknown unless every caller is a known call site.
 pub fn reset(self: Self, program: ir.Program, known: []const bool) void {
+    if (generated_analysis) return @import("summaries/lifecycle.zig").apply(self, .Reset, program.functions.native_modules, known);
+
     for (self.input, self.output, known, 0..) |input, output, callers, index| {
         const internal = program.functions.at(index).external == null;
 
@@ -70,12 +75,14 @@ pub fn reset(self: Self, program: ir.Program, known: []const bool) void {
 }
 
 pub fn clear(self: Self) void {
+    if (generated_analysis) return @import("summaries/lifecycle.zig").apply(self, .Clear, &.{}, &.{});
     for (self.input) |values| @memset(values, .none);
     for (self.output) |values| @memset(values, .none);
 }
 
 /// Forgets what updates downstream of each slot want, as `create` leaves it.
 pub fn clearWants(self: Self) void {
+    if (generated_analysis) return @import("summaries/lifecycle.zig").apply(self, .ClearWants, &.{}, &.{});
     for (self.inputs) |values| @memset(values, .none);
     for (self.outputs) |values| @memset(values, .none);
 }

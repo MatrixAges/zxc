@@ -1,5 +1,11 @@
 export type AtomicRows = opaque
 
+export declare function repeat(
+    allocator,
+    count: u64,
+    value: u8
+): u8[] throws { OutOfMemory } concurrent
+
 export declare function fromText(in: string): u8[] concurrent
 
 export declare function encodeU64Le(
@@ -51,5 +57,11 @@ export declare function storeAtomicCell(
     in: AtomicRows,
     row: u64,
     index: u64,
+    value: u8
+): void throws { IndexOutOfBounds }
+
+export declare function fillAtomicRow(
+    in: AtomicRows,
+    row: u64,
     value: u8
 ): void throws { IndexOutOfBounds }

@@ -4,6 +4,16 @@ pub const atomicRowsCount = AtomicRows.count;
 pub const atomicRowLength = AtomicRows.rowLength;
 pub const loadAtomicCell = AtomicRows.load;
 pub const storeAtomicCell = AtomicRows.store;
+pub const fillAtomicRow = AtomicRows.fill;
+
+pub fn repeat(allocator: std.mem.Allocator, count_value: u64, value: u8) std.mem.Allocator.Error![]const u8 {
+    const length = std.math.cast(usize, count_value) orelse return error.OutOfMemory;
+    const output = try allocator.alloc(u8, length);
+
+    @memset(output, value);
+
+    return output;
+}
 
 pub fn fromText(text: []const u8) []const u8 {
     return text;

@@ -1,0 +1,18 @@
+import bytes from "std:bytes"
+
+import encode from "../function/levels/encode"
+import { Knowledge } from "../function/levels/model"
+
+import type { Layout as Input, Storage as Output } from "./model"
+
+export default function (in: Input): Output {
+    const empty = encode(Knowledge.None)
+
+    return {
+        layout: in,
+        input: bytes.repeat(in.input_count, empty),
+        output: bytes.repeat(in.output_count, empty),
+        inputs: bytes.repeat(in.input_count, empty),
+        outputs: bytes.repeat(in.output_count, empty)
+    }
+}

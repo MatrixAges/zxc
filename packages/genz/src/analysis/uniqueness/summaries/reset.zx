@@ -1,0 +1,44 @@
+import bytes from "std:bytes"
+
+import encode from "../function/levels/encode"
+import { Knowledge } from "../function/levels/model"
+import { Mode } from "./model"
+
+import type { Lifecycle as Input } from "./model"
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const count = bytes.atomicRowsCount(in.input)
+    const all = encode(Knowledge.All)
+    const none = encode(Knowledge.None)
+
+    const result = loop({
+        index: 0
+    }, {
+        while: (state, source) => state.index < source.count,
+        next: (state, source) => {
+            const internal = source.input.native_modules[state.index] == null
+            const reached = source.input.mode == Mode.Initialize ||
+                source.input.known[state.index]
+
+            bytes.fillAtomicRow(
+                source.input.input,
+                state.index,
+                internal && reached ? source.all : source.none
+            )
+            bytes.fillAtomicRow(
+                source.input.output,
+                state.index,
+                internal ? source.all : source.none
+            )
+
+            state.index += 1
+        }
+    }, {
+        input: in,
+        count,
+        all,
+        none
+    })
+}

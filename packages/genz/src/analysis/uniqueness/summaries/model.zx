@@ -1,0 +1,34 @@
+import type { AtomicRows } from "std:bytes"
+
+export type Shape = {
+    counts: u32[],
+    input_types: u32[],
+    output_types: u32[]
+}
+
+export type Layout = {
+    input_first: u64[],
+    output_first: u64[],
+    input_count: u64,
+    output_count: u64
+}
+
+export type Storage = {
+    layout: Layout,
+    input: u8[],
+    output: u8[],
+    inputs: u8[],
+    outputs: u8[]
+}
+
+export enum Mode { Initialize, Reset, Clear, ClearWants }
+
+export type Lifecycle = {
+    mode: Mode,
+    input: AtomicRows,
+    output: AtomicRows,
+    inputs: AtomicRows,
+    outputs: AtomicRows,
+    native_modules: u32?[],
+    known: bool[]
+}

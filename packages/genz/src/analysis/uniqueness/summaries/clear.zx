@@ -1,0 +1,34 @@
+import bytes from "std:bytes"
+
+import encode from "../function/levels/encode"
+import { Knowledge } from "../function/levels/model"
+
+import type { AtomicRows } from "std:bytes"
+
+export type Input = {
+    left: AtomicRows,
+    right: AtomicRows
+}
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const count = bytes.atomicRowsCount(in.left)
+    const none = encode(Knowledge.None)
+
+    const result = loop({
+        index: 0
+    }, {
+        while: (state, source) => state.index < source.count,
+        next: (state, source) => {
+            bytes.fillAtomicRow(source.input.left, state.index, source.none)
+            bytes.fillAtomicRow(source.input.right, state.index, source.none)
+
+            state.index += 1
+        }
+    }, {
+        input: in,
+        count,
+        none
+    })
+}

@@ -1,0 +1,10 @@
+<Module>
+    <Type from="model" as="State" />
+
+    <Args in={State.Shape} out={State.Storage} />
+
+    <Call fn="layout" in={$in} />
+    <Call fn="allocate" in={$ctx.layout} />
+
+    <Return value={$ctx.allocate} />
+</Module>

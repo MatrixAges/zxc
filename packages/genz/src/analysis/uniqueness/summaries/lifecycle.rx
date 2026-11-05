@@ -1,0 +1,35 @@
+<Module>
+    <Type from="model" as="State" />
+
+    <Args in={State.Lifecycle} out={void} />
+
+    <Switch on={$in.mode}>
+        <Case value={State.Mode.Initialize}>
+            <Call fn="reset" in={$in} />
+        </Case>
+
+        <Case value={State.Mode.Reset}>
+            <Call fn="reset" in={$in} />
+        </Case>
+
+        <Case value={State.Mode.Clear}>
+            <Call
+                fn="clear"
+                in={{
+                    left: $in.input,
+                    right: $in.output
+                }}
+            />
+        </Case>
+
+        <Case value={State.Mode.ClearWants}>
+            <Call
+                fn="clear"
+                in={{
+                    left: $in.inputs,
+                    right: $in.outputs
+                }}
+            />
+        </Case>
+    </Switch>
+</Module>
