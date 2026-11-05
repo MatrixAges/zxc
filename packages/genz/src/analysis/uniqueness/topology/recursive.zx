@@ -1,0 +1,23 @@
+import integers from "std:integer"
+
+export type Input = u32[][]
+
+export type Output = bool[]
+
+export default function (in: Input): Output {
+    const values = in.map(row => false)[0]
+
+    return loop({
+        values,
+        index: 0
+    }, {
+        while: (state, source) => state.index < source.length,
+        next: (state, source) => {
+            const index = state.index
+
+            state.values[index] =
+                source[index].some(value => integers.widen(value) == index)
+            state.index += 1
+        }
+    }, in).values
+}

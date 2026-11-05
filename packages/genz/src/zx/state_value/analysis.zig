@@ -2,6 +2,7 @@ const std = @import("std");
 const ir = @import("zx").ir;
 const Self = @This();
 
+element_storage: []const bool = &.{},
 selected: []bool,
 borrowed: []const bool,
 keys: [][32]u8,
@@ -79,7 +80,7 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocat
 
         var hash = @import("zx").Sha256.init(.{});
 
-        hash.update("state.value.origin.v7");
+        hash.update("state.value.origin.v8");
         hash.update(&.{@intFromBool(selected[index])});
 
         switch (value) {

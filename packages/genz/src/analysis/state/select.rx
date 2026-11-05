@@ -69,11 +69,14 @@
         }}
     />
 
+    <Call fn="element_storage" in={$in.program} />
+
     <Call
         fn="keys"
         in={{
             types: $in.program.types,
             boxed: $ctx.frozen,
+            element_storage: $ctx.element_storage,
             borrowed: $ctx.plan
         }}
     />

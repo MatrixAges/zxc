@@ -9,9 +9,11 @@ pub fn selected(self: *const Lower, id: ir.TypeId) bool {
     return self.state_active and self.state_plan.selected[@backingInt(id)] and self.program.typeOf(id) == .list;
 }
 
-pub fn definition(self: *Lower, child: ir.TypeId) Lower.Error!node.ExpressionId {
+pub fn definition(self: *Lower, id: ir.TypeId, child: ir.TypeId) Lower.Error!node.ExpressionId {
+    const element = if (self.program.typeOf(child) == .list and @import("elements.zig").inlineStored(self, id)) self.state_types else if (self.program.typeOf(child) == .object and self.state_plan.selected[@backingInt(child)]) self.abi_layouts else self.abi_types;
+
     return self.builder.expression(.{ .struct_type = try self.allocator.dupe(node.Field, &.{
-        .{ .name = "items", .value = try self.builder.expression(.{ .const_slice = try @import("../types.zig").get(self, if (self.program.typeOf(child) == .object and self.state_plan.selected[@backingInt(child)]) self.abi_layouts else self.abi_types, child) }) },
+        .{ .name = "items", .value = try self.builder.expression(.{ .const_slice = try @import("../types.zig").get(self, element, child) }) },
         .{ .name = "storage", .value = try self.builder.expression(.{ .enum_type = &.{ "plain", "shared", "exclusive" } }) },
     }) });
 }

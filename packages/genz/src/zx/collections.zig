@@ -121,7 +121,7 @@ fn lowerMode(self: *Lower, id: ir.ExprId, layout: ?node.ExpressionId, removed_on
             const buffer = if (minimum != null and flags.frontier)
                 try growth.reserveBounded(self, &append, child_type, source, count, minimum.?)
 
-            else if (provenance.selected(self, source_type) and flags.lazy)
+            else if (provenance.selected(self, source_type) and (flags.lazy or !flags.frontier))
                 try provenance.reserve(self, &append, source_type, source_value, count, true)
             else
                 try growth.reserve(self, &append, child_type, source, count, flags.frontier);
@@ -131,10 +131,7 @@ fn lowerMode(self: *Lower, id: ir.ExprId, layout: ?node.ExpressionId, removed_on
             } else try copy(self, &append, try slice(self, buffer, length, null), arguments[0]);
 
             const wrapped = if (provenance.selected(self, source_type)) wrapped: {
-                const exclusive = if (flags.frontier or flags.lazy)
-                    try intrinsic.binary(self, .logical_or, if (flags.frontier) try intrinsic.binary(self, .equal, length, try self.builder.integer(0)) else try self.builder.expression(.{ .unary = .{ .operator = .not, .operand = source_headered } }), try provenance.exclusive(self, source_value))
-                else
-                    try self.builder.expression(.{ .boolean = true });
+                const exclusive = try intrinsic.binary(self, .logical_or, if (flags.frontier) try intrinsic.binary(self, .equal, length, try self.builder.integer(0)) else try self.builder.expression(.{ .unary = .{ .operator = .not, .operand = source_headered } }), try provenance.exclusive(self, source_value));
 
                 break :wrapped try provenance.proven(self, source_type, buffer, try self.builder.expression(.{ .boolean = true }), exclusive);
             } else buffer;

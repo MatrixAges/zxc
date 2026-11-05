@@ -99,7 +99,7 @@ pub fn request(self: *Self, comptime kind: Memo.Kind, memo: *Memo, indices: []co
             .running, .failed => continue,
         }
 
-        if (self.units[index].?.recursive(index)) continue;
+        if (self.units[index].?.recursive) continue;
 
         self.dirty[index] = false;
 

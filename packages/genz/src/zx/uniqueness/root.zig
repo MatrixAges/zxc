@@ -9,6 +9,7 @@ pub const Memo = @import("memo.zig");
 const Sites = @import("sites.zig");
 const Pool = @import("pool.zig");
 const Ahead = @import("ahead.zig");
+const Topology = @import("topology.zig");
 pub const Basis = @import("basis.zig");
 pub const Slots = @import("slots.zig");
 pub const Summaries = @import("summaries.zig");
@@ -41,15 +42,11 @@ pub const Unit = struct {
     normalized: std.AutoHashMap(ir.ExprId, Level),
     renewed: std.AutoHashMap(u64, Level),
     callees: []const u32,
+    recursive: bool,
     identity: [32]u8 = @splat(0),
     const Passes = struct { order: Order, sites: Sites };
     /// Growth copies a demand pass grows apart from the body's own.
     pub const Growth = struct { normalized: *std.AutoHashMap(ir.ExprId, Level), renewed: *std.AutoHashMap(u64, Level) };
-
-    /// Whether the body calls itself, so that its visit changes what it reads.
-    pub fn recursive(self: *const Unit, index: usize) bool {
-        return std.mem.indexOfScalar(u32, self.callees, @intCast(index)) != null;
-    }
 
     pub fn state(self: *const Unit, index: usize) Memo.State {
         return .{ .identity = self.identity, .index = index, .input = self.unit.input, .callees = self.callees, .normalized = &self.normalized, .renewed = &self.renewed };
@@ -118,18 +115,15 @@ fn analyzeWithConcurrency(allocator: std.mem.Allocator, workspace: std.mem.Alloc
     var summaries = try Summaries.create(summary_memory.allocator(), program, basis);
     const count = program.functions.count();
     const units = try temporary.alloc(?*Unit, count + 1);
-    const callers = try temporary.alloc(std.ArrayList(usize), count);
-    const known = try temporary.alloc(bool, count);
-
-    for (callers) |*values| values.* = .empty;
+    const topology = try Topology.collect(temporary, program);
 
     for (0..count) |index| {
         const function = program.functions.at(index);
 
-        units[index] = if (function.external != null) null else try prepare(temporary, .{ .symbols = function.symbols, .expressions = function.expressions, .input_type = function.input_type, .output_type = function.output_type, .input = summaries.input[index], .function = index, .normalized = undefined, .renewed = undefined }, function.body.block());
+        units[index] = if (function.external != null) null else try prepare(temporary, .{ .symbols = function.symbols, .expressions = function.expressions, .input_type = function.input_type, .output_type = function.output_type, .input = summaries.input[index], .function = index, .normalized = undefined, .renewed = undefined }, function.body.block(), topology.callees[index], topology.recursive[index]);
     }
 
-    units[count] = if (program.type_only) null else try prepare(temporary, .{ .symbols = program.symbols, .expressions = program.expressions, .input_type = program.input_type, .output_type = program.output_type, .input = &.{}, .function = null, .normalized = undefined, .renewed = undefined }, program.body.block());
+    units[count] = if (program.type_only) null else try prepare(temporary, .{ .symbols = program.symbols, .expressions = program.expressions, .input_type = program.input_type, .output_type = program.output_type, .input = &.{}, .function = null, .normalized = undefined, .renewed = undefined }, program.body.block(), topology.callees[count], topology.recursive[count]);
 
     const shared = if (memo.persistent) Identity.program(program, basis) else @as([32]u8, @splat(0));
 
@@ -144,16 +138,9 @@ fn analyzeWithConcurrency(allocator: std.mem.Allocator, workspace: std.mem.Alloc
     defer pool.deinit();
 
     var ahead = try Ahead.init(temporary, &pool, program.functions, slots, &summaries, units);
-
-    for (units, 0..) |entry, caller| {
-        const unit = entry orelse continue;
-
-        for (unit.callees) |callee| try callers[callee].append(temporary, caller);
-    }
-
-    for (callers, known) |list, *reached| reached.* = list.items.len != 0;
-    for (exported) |id| known[@backingInt(id)] = false;
-
+    const reverse = try Topology.build(temporary, topology.callees, exported);
+    const callers = reverse.callers;
+    const known = reverse.known;
     var work = Work{ .queued = try temporary.alloc(bool, count + 1) };
 
     defer work.queue.deinit(workspace);
@@ -241,7 +228,7 @@ pub fn analyzeEntryWith(allocator: std.mem.Allocator, workspace: std.mem.Allocat
     summaries.clear();
     summaries.clearWants();
 
-    const unit = try prepare(temporary, .{ .symbols = program.symbols, .expressions = program.expressions, .input_type = program.input_type, .output_type = program.output_type, .input = &.{}, .function = null, .normalized = undefined, .renewed = undefined }, program.body.block());
+    const unit = try prepare(temporary, .{ .symbols = program.symbols, .expressions = program.expressions, .input_type = program.input_type, .output_type = program.output_type, .input = &.{}, .function = null, .normalized = undefined, .renewed = undefined }, program.body.block(), try Topology.callees(temporary, program.expressions), false);
 
     while (true) {
         var changed: std.ArrayList(usize) = .empty;
@@ -315,7 +302,7 @@ fn restoreGrowth(unit: *Unit, normalized: []const Memo.Normalized, renewed: []co
 
 /// The greatest fixpoint of the summaries for the current growth copies, or no facts if it does not settle in time. A
 /// body is analyzed again only when a callee output it reads or its own input weakened.
-fn settle(workspace: std.mem.Allocator, work: *Work, program: ir.Program, slots: Slots, summaries: *Summaries, units: []const ?*Unit, callers: []const std.ArrayList(usize), memo: *Memo, replay: *Trace.Replay, ahead: *Ahead) std.mem.Allocator.Error!void {
+fn settle(workspace: std.mem.Allocator, work: *Work, program: ir.Program, slots: Slots, summaries: *Summaries, units: []const ?*Unit, callers: []const []const u64, memo: *Memo, replay: *Trace.Replay, ahead: *Ahead) std.mem.Allocator.Error!void {
     const count = program.functions.count();
     var round = std.heap.ArenaAllocator.init(workspace);
 
@@ -388,12 +375,13 @@ fn settle(workspace: std.mem.Allocator, work: *Work, program: ir.Program, slots:
         };
 
         if (!weakened) continue;
-        for (callers[index].items) |caller| try requeue(workspace, work, ahead, caller);
+
+        for (callers[index]) |caller| try requeue(workspace, work, ahead, @intCast(caller));
     }
 }
 
 /// Spreads the growth-copy demand until no input, output or copy is newly demanded; reports whether copies were added.
-fn demand(workspace: std.mem.Allocator, work: *Work, program: ir.Program, slots: Slots, summaries: *Summaries, units: []const ?*Unit, callers: []const std.ArrayList(usize), memo: *Memo, replay: *Trace.Replay, ahead: *Ahead) std.mem.Allocator.Error!bool {
+fn demand(workspace: std.mem.Allocator, work: *Work, program: ir.Program, slots: Slots, summaries: *Summaries, units: []const ?*Unit, callers: []const []const u64, memo: *Memo, replay: *Trace.Replay, ahead: *Ahead) std.mem.Allocator.Error!bool {
     var round = std.heap.ArenaAllocator.init(workspace);
 
     defer round.deinit();
@@ -441,7 +429,7 @@ fn demand(workspace: std.mem.Allocator, work: *Work, program: ir.Program, slots:
 
         for (changed.items) |function| {
             if (function == index) {
-                for (callers[function].items) |caller| try requeue(workspace, work, ahead, caller);
+                for (callers[function]) |caller| try requeue(workspace, work, ahead, @intCast(caller));
             } else if (units[function] != null) try requeue(workspace, work, ahead, function);
         }
     }
@@ -568,9 +556,9 @@ fn follow(allocator: std.mem.Allocator, memo: *const Memo, shared: [32]u8, expor
     return .init(allocator, previous, hash.finalResult(), identities, calls);
 }
 
-fn prepare(allocator: std.mem.Allocator, unit: Function.Unit, body: ir.Block) std.mem.Allocator.Error!*Unit {
+fn prepare(allocator: std.mem.Allocator, unit: Function.Unit, body: ir.Block, called: []const u32, recursive: bool) std.mem.Allocator.Error!*Unit {
     const result = try allocator.create(Unit);
-    result.* = .{ .unit = unit, .body = body, .normalized = .init(allocator), .renewed = .init(allocator), .callees = try callees(allocator, unit.expressions) };
+    result.* = .{ .unit = unit, .body = body, .normalized = .init(allocator), .renewed = .init(allocator), .callees = called, .recursive = recursive };
     result.unit.normalized = &result.normalized;
     result.unit.renewed = &result.renewed;
 
@@ -609,17 +597,4 @@ fn copyRenewals(allocator: std.mem.Allocator, renewals: []const Renewal) std.mem
     for (renewals, result) |renewal, *target| target.* = .{ .owner = renewal.owner, .path = try allocator.dupe(u32, renewal.path), .value = renewal.value };
 
     return result;
-}
-
-/// The functions a body calls, each once in order of first call.
-fn callees(allocator: std.mem.Allocator, expressions: ir.ExpressionTable) std.mem.Allocator.Error![]const u32 {
-    var result: std.ArrayList(u32) = .empty;
-
-    for (0..expressions.count()) |index| {
-        const function = @backingInt(expressions.callee(index) orelse continue);
-
-        if (std.mem.indexOfScalar(u32, result.items, function) == null) try result.append(allocator, function);
-    }
-
-    return result.items;
 }

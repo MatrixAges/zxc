@@ -17,6 +17,7 @@ pub fn build(self: *Lower, declarations: *std.ArrayList(node.Declaration), expor
     const input: Input = .{
         .types = &types,
         .selected = self.state_plan.selected,
+        .element_storage = self.state_plan.element_storage,
         .borrowed = self.state_plan.borrowed,
         .keys = keys,
         .names = self.type_names,

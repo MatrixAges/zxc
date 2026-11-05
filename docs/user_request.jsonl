@@ -419,3 +419,9 @@
 {"time": "2026-11-04", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "user", "text": "关于map和reduce 我之前的不可变设计原则中有提及 它们返回元组"}
 {"time": "2026-11-04", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "user", "text": "除了map reduce 我记得还有array其他关联函数的"}
 {"time": "2026-11-05", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "user", "text": "沿用现有协议：map 返回 [映射数组, void]，reduce 返回 [原数组, 累计值]"}
+{"time": "2026-11-05", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "user", "text": "有三个完善和优化：\n- loop支持return字段（放next后，也是一个函数），这样就无需在loop后面写 .* 很丑陋\n- pipeline完善，我发现现在pipeline实现有问题，大部分多行连续const明明可以用pipeline，但是pipeline实现好像不支持闭包导致无法使用\n- 添加一个 用于组装 if (condition) 字段的表达\n比如\nif(\n- value\n- and value_a\n- or (value_b&&value_c)\n- ! value_d\n)\ncondition 语法\nconst = (\n-\n-\n)\nif内超过两个condition 不允许写在括号里，必须用condition变量单独声明\n快捷condition a&&b||C 不允许超过三个连接变量（包括() 包裹的）,如果超过就必须用 const condition表达式，const condition 写在 if这样前面已经有 () 时可忽略它自身的()\n执行这三个优化和特性，整理现存的代码 对齐这三种写法，写出来的代码必须要保证优雅 易读"}
+{"time": "2026-11-05", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "user", "text": "关系需要写在 - and !value 这样"}
+{"time": "2026-11-05", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "user", "text": "运算优先级 按顺序来"}
+{"time": "2026-11-05", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "user", "text": "再支持 nand、nor"}
+{"time": "2026-11-05", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "user", "text": "还有注意 const condition 也是零成本抽象"}
+{"time": "2026-11-05", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "user", "text": "pipeline虽然要支持闭包 但也要做到零成本抽象"}

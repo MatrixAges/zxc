@@ -6,7 +6,8 @@ import { Kind } from "core/type_table/model"
 import {
     value_layout_identity,
     inline_layout_flag,
-    reference_layout_flag
+    reference_layout_flag,
+    element_layout_flag
 } from "./const"
 import material from "./material"
 
@@ -15,6 +16,7 @@ import type { State } from "../model"
 
 export type Input = {
     types: Table,
+    element_storage: bool[],
     boxed: bool[]
     borrowed: bool[]
 }
@@ -27,6 +29,7 @@ export default function (in: Input): Output {
 
     const result = loop({
         types: in.types,
+        element_storage: in.element_storage,
         boxed: in.boxed,
         borrowed: in.borrowed,
         prefix: encoding.encodeUtf8(value_layout_identity),
@@ -51,7 +54,10 @@ export default function (in: Input): Output {
             const bytes = material({
                 types: current.types,
                 keys: current.keys,
-                bytes: current.prefix.push(flag)[0],
+                bytes: current.prefix.push(
+                    current.element_storage[current.index] ?
+                        flag + element_layout_flag : flag
+                )[0],
                 index: current.index,
                 chosen
             })
@@ -63,6 +69,7 @@ export default function (in: Input): Output {
     })
 
     return {
+        element_storage: in.element_storage,
         selected: result.selected,
         borrowed: in.borrowed,
         keys: result.keys

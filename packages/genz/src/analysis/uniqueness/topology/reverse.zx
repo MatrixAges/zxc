@@ -1,0 +1,41 @@
+import integers from "std:integer"
+
+export type Input = u32[][]
+
+export type Output = u64[][]
+
+export default function (in: Input): Output {
+    const empty: u64[] = []
+    const callers: u64[][] = in.map(row => empty)[0]
+
+    const result = loop({
+        callers,
+        index: 0
+    }, {
+        while: (state, source) => state.index < source.length,
+        next: (state, source) => {
+            const row = source[state.index]
+            const changed = loop({
+                callers: state.callers,
+                child: 0
+            }, {
+                while: (current, calls) => current.child < calls.row.length,
+                next: (current, calls) => {
+                    const target = integers.widen(calls.row[current.child])
+
+                    current.callers[target] =
+                        current.callers[target].push(calls.index)[0]
+                    current.child += 1
+                }
+            }, {
+                row,
+                index: state.index
+            })
+
+            state.callers = changed.callers
+            state.index += 1
+        }
+    }, in)
+
+    return result.callers
+}

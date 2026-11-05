@@ -94,6 +94,7 @@ pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, progr
             .local = try allocator.dupe(bool, output.local),
             .values = try allocator.dupe(bool, output.values),
             .state = .{
+                .element_storage = try allocator.dupe(bool, output.element_storage),
                 .selected = try allocator.dupe(bool, output.selected),
                 .borrowed = try allocator.dupe(bool, output.borrowed),
                 .queries = try allocator.dupe(@import("../state_value/queries.zig").Kind, output.state_queries),

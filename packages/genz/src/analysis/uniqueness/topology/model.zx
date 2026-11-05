@@ -1,0 +1,23 @@
+import type { Expressions } from "core/expression_table/model"
+
+export type Bodies = {
+    expressions: Expressions[],
+    native_modules: u32?[],
+    entry: Expressions,
+    type_only: bool
+}
+
+export type Calls = {
+    callees: u32[][],
+    recursive: bool[]
+}
+
+export type Input = {
+    callees: u32[][],
+    exported: u32[]
+}
+
+export type Plan = {
+    callers: u64[][],
+    known: bool[]
+}

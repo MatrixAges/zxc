@@ -1,0 +1,29 @@
+import callees from "./callees"
+
+import type { Bodies as Input } from "./model"
+
+export type Output = u32[][]
+
+export default function (in: Input): Output {
+    const empty: u32[] = []
+    const rows: u32[][] = []
+
+    const functions = loop({
+        rows,
+        index: 0
+    }, {
+        while: (state, source) => state.index < source.input.native_modules.length,
+        next: (state, source) => {
+            const row = source.input.native_modules[state.index] == null ?
+                callees(source.input.expressions[state.index]) : source.empty
+
+            state.rows = state.rows.push(row)[0]
+            state.index += 1
+        }
+    }, {
+        input: in,
+        empty
+    }).rows
+
+    return functions.push(in.type_only ? empty : callees(in.entry))[0]
+}

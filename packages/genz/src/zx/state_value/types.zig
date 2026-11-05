@@ -34,7 +34,7 @@ pub fn lower(self: *Lower, output: *std.ArrayList(node.Declaration), exported: b
 
         const selected = blk: {
             const definition = switch (value) {
-                .list => |child| try @import("list.zig").definition(self, child),
+                .list => |child| try @import("list.zig").definition(self, id, child),
                 .object => |fields| object: {
                     const items = try self.allocator.alloc(node.Field, fields.len + 1);
 
@@ -75,7 +75,7 @@ pub fn lower(self: *Lower, output: *std.ArrayList(node.Declaration), exported: b
         self.state_types[index] = selected;
         self.state_layouts[index] = selected;
 
-        if (value == .list and @import("elements.zig").inlineStored(self, id)) {
+        if (value == .list and @import("elements.zig").inlineStored(self, id) and self.program.typeOf(value.list) == .object) {
             self.view_types[index] = try self.builder.expression(.{ .const_slice = self.abi_layouts[@backingInt(value.list)] });
         }
 

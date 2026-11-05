@@ -188,6 +188,17 @@ export default function (in: Input): Output {
                     current.state_claimed[slot] = true
 
                     if (target == Kind.List) {
+                        const child = integers.widen(first)
+                        const child_kind = kind(source.types.kinds[child])
+                        const element = match {
+                            source.element_storage[index] && source.selected[child] &&
+                                child_kind == Kind.List =>
+                                current.values[child],
+                            source.selected[child] && child_kind == Kind.Object =>
+                                source.abi_layouts[child],
+                            _ => source.abi_types[child]
+                        }
+
                         current = {
                             ...current,
                             tags: current.tags.push(ExpressionsKind.ConstSlice)[0],
@@ -197,17 +208,7 @@ export default function (in: Input): Output {
                                         current.const_slice.length
                                     )
                                 )[0],
-                            const_slice:
-                                current.const_slice.push(
-                                    kind(
-                                        source.types.kinds[integers.widen(
-                                            first
-                                        )]
-                                    ) == Kind.Object &&
-                                        source.selected[integers.widen(first)] ?
-                                        source.abi_layouts[integers.widen(first)] :
-                                        source.abi_types[integers.widen(first)]
-                                )[0]
+                            const_slice: current.const_slice.push(element)[0]
                         }
                         current = {
                             ...current,

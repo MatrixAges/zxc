@@ -1,0 +1,31 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import type { Expressions as Input } from "core/expression_table/model"
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    const values: u32[] = []
+
+    return loop({
+        values,
+        index: 0
+    }, {
+        while: (state, source) => state.index < source.kinds.length,
+        next: (state, source) => {
+            if (source.kinds[state.index] == ExpressionKind.Call) {
+                const callee = source
+                    .call_functions[integers.widen(
+                        source.payloads[state.index]
+                    )]
+
+                if (!state.values.some(value => value == callee)) {
+                    state.values = state.values.push(callee)[0]
+                }
+            }
+
+            state.index += 1
+        }
+    }, in).values
+}

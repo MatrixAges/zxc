@@ -1,0 +1,15 @@
+<Module>
+    <Type from="model" as="Graph" />
+
+    <Args in={Graph.Bodies} out={Graph.Calls} />
+
+    <Call fn="collect" in={$in} />
+    <Call fn="recursive" in={$ctx.collect} />
+
+    <Return
+        value={{
+            callees: $ctx.collect,
+            recursive: $ctx.recursive
+        }}
+    />
+</Module>

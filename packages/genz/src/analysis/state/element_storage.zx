@@ -1,0 +1,85 @@
+import integers from "std:integer"
+import { ExpressionKind, CollectionKind } from "core/expression_table/kinds"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import type { Program as Input } from "../model"
+
+export type Output = bool[]
+
+export default function (in: Input): Output {
+    const tables = [in.expressions].concat(in.functions.expressions)[0]
+
+    const marked = loop({
+        values: in.types.kinds.map(value => false)[0],
+        index: 0
+    }, {
+        while: (state, source) => state.index < source.length,
+        next: (state, source) => {
+            const expressions = source[state.index]
+
+            state.values = loop({
+                values: state.values,
+                node: 0
+            }, {
+                while: (row, expressions) => row.node < expressions.kinds.length,
+                next: (row, expressions) => {
+                    if (
+                        expressions.kinds[row.node] == ExpressionKind.ListOperation
+                    ) {
+                        const payload = integers.widen(expressions.payloads[row.node])
+                        const operation = expressions.collection_kinds[payload]
+                        const target =
+                            integers.widen(
+                                expressions.collection_targets[payload]
+                            )
+
+                        if (
+                            (
+                                operation == CollectionKind.Push ||
+                                    operation == CollectionKind.Concat
+                            ) &&
+                                expressions.kinds[target] == ExpressionKind.Index
+                        ) {
+                            const indexed = integers.widen(
+                                expressions
+                                    .index_targets[
+                                        integers.widen(
+                                            expressions.payloads[target]
+                                        )
+                                    ]
+                            )
+
+                            row.values[integers.widen(
+                                expressions.types[indexed]
+                            )] = true
+                        }
+                    }
+
+                    row.node += 1
+                }
+            }, expressions).values
+            state.index += 1
+        }
+    }, tables).values
+
+    return loop({
+        values: marked,
+        index: 0
+    }, {
+        while: (state, source) => state.index < source.kinds.length,
+        next: (state, source) => {
+            if (kind(source.kinds[state.index]) == Kind.List) {
+                const child = integers.widen(source.first[state.index])
+
+                state.values[state.index] = state.values[state.index] ||
+                    (
+                        kind(source.kinds[child]) == Kind.List &&
+                            state.values[child]
+                    )
+            }
+
+            state.index += 1
+        }
+    }, in.types).values
+}

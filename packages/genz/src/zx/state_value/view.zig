@@ -9,7 +9,7 @@ pub fn convert(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.TypeId
     if (!self.state_plan.represented(self.program, id)) return value;
 
     if (self.program.typeOf(id) == .list) {
-        if (@import("elements.zig").inlineStored(self, id)) return if (input) @import("list.zig").borrowed(self, id, value) else self.field(value, "items");
+        if (@import("elements.zig").inlineStored(self, id) and self.program.typeOf(self.program.typeOf(id).list) == .object) return if (input) @import("list.zig").borrowed(self, id, value) else self.field(value, "items");
 
         return @import("elements.zig").convert(self, body, id, value, input);
     }

@@ -1,0 +1,22 @@
+<Module>
+    <Type from="model" as="Graph" />
+
+    <Args in={Graph.Input} out={Graph.Plan} />
+
+    <Call fn="reverse" in={$in.callees} />
+
+    <Call
+        fn="known"
+        in={{
+            callers: $ctx.reverse,
+            exported: $in.exported
+        }}
+    />
+
+    <Return
+        value={{
+            callers: $ctx.reverse,
+            known: $ctx.known
+        }}
+    />
+</Module>
