@@ -5,6 +5,7 @@
     <Args
         in={{
             first: u64,
+            complete: bool,
             names: string[],
             origins: Origin.Output,
             source: Delta.Output,
@@ -37,7 +38,8 @@
                 in={$in.pick([
                     "source",
                     "target",
-                    "first"
+                    "first",
+                    "complete"
                 ])}
             />
 

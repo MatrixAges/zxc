@@ -13,8 +13,8 @@ pub const Result = struct {
 
 pub const Error = std.mem.Allocator.Error || error{InvalidModule};
 
-pub fn prepare(allocator: std.mem.Allocator, temporary: std.mem.Allocator, source: ir.TypeTable, origins: Origins.Table, target: ir.TypeTable, first: usize) Error!Result {
-    if (!@import("parser_options").generated_parser) return @import("seed_preflight.zig").prepare(allocator, temporary, source, origins, target, first);
+pub fn prepare(allocator: std.mem.Allocator, temporary: std.mem.Allocator, source: ir.TypeTable, origins: Origins.Table, target: ir.TypeTable, first: usize, complete: bool) Error!Result {
+    if (!@import("parser_options").generated_parser) return @import("seed_preflight.zig").prepare(allocator, temporary, source, origins, target, first, complete);
 
     const generated = @import("generated_merge_preflight");
     const Input = @typeInfo(generated.Input).pointer.child;
@@ -23,7 +23,7 @@ pub fn prepare(allocator: std.mem.Allocator, temporary: std.mem.Allocator, sourc
     const source_table = ir.TypeTable.borrow(Table, source);
     const target_table = ir.TypeTable.borrow(Table, target);
     const bindings = Origins.Table.borrow(Bindings, origins);
-    const input: Input = .{ .source = &source_table, .target = &target_table, .origins = &bindings, .names = origins.names, .first = first };
+    const input: Input = .{ .source = &source_table, .target = &target_table, .origins = &bindings, .names = origins.names, .first = first, .complete = complete };
     var arena = std.heap.ArenaAllocator.init(temporary);
 
     errdefer arena.deinit();

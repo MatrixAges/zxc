@@ -3,7 +3,7 @@ const ir = @import("zx").ir;
 const Origins = @import("nominal_data");
 const Preflight = @import("preflight.zig");
 
-pub fn prepare(allocator: std.mem.Allocator, temporary: std.mem.Allocator, values: ir.TypeTable, nominal_types: Origins.Table, target: ir.TypeTable, first: usize) Preflight.Error!Preflight.Result {
+pub fn prepare(allocator: std.mem.Allocator, temporary: std.mem.Allocator, values: ir.TypeTable, nominal_types: Origins.Table, target: ir.TypeTable, first: usize, complete: bool) Preflight.Error!Preflight.Result {
     if (!nominal_types.hasValidShape()) return error.InvalidModule;
 
     var arena = std.heap.ArenaAllocator.init(temporary);
@@ -29,14 +29,13 @@ pub fn prepare(allocator: std.mem.Allocator, temporary: std.mem.Allocator, value
     }
 
     if (first > values.count() or first > target.count()) return error.InvalidModule;
+    if (complete and first != 0 and first != target.count()) return error.InvalidModule;
 
     const mapping = try allocator.alloc(ir.TypeId, values.count());
 
     errdefer allocator.free(mapping);
 
-    // Tables extending this one (`first` > 0) come from the project's own analysis or from the table itself, so as
-    // with their type rules only internal builds check that their prefix still matches.
-    if (@import("../../ir/validate.zig").internal) for (0..first) |index| {
+    if (complete or @import("../../ir/validate.zig").internal) for (0..first) |index| {
         if (!sameType(values.at(index), target.at(index))) return error.InvalidModule;
     };
 

@@ -42,7 +42,7 @@ pub fn appendBody(input: Input, destination: program_link.Destination) program_l
     if (!@import("function_table.zig").hasPrefix(program.functions, base)) return error.InvalidModule;
     if (@import("../../ir/validate.zig").internal and try @import("../../ir/validate.zig").validateExtending(destination.temporary, program, input.verified_functions) != null) return error.InvalidIr;
 
-    const mapping = try destination.types.appendFrom(destination.temporary, program.types, input.nominal_types, input.base_types orelse destination.types.items.count());
+    const mapping = try destination.types.appendAnalyzed(destination.temporary, program.types, input.nominal_types, input.base_types orelse destination.types.items.count());
     const functions = try destination.temporary.alloc(?ir.FunctionId, program.functions.count());
     const native_modules = try destination.temporary.alloc(?ir.NativeModuleId, program.native_modules.count());
 

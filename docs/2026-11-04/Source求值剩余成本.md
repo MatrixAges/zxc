@@ -593,3 +593,68 @@ reads-mask-paired-results.json及对应六份比较报告，均位于/tmp/zxc-fu
 将fixtures目录误当suite而读取不存在cases.zx，primitive-libraries在切换cwd后
 仍执行相对CLI路径，均有静态证据。SIMD debug位置、Store发布/回滚与lint、HTTP
 SIGKILL仍需分别处理。旧图32个编译失败对应的10组补验范围已列入该清单。
+
+## 类型合并前缀可信边界修复
+
+Intent：恢复公开appendFrom对错误共享前缀的拒绝，同时保留内部已分析结果的
+增量快路，不以扩大校验成本或修改断言掩盖失败。
+
+Data：preflight的18个内容变体和2个分配顺序断言失败；Native merge仅Debug
+设置checked，Small按first>0隐式信任任意表。现有appendBody允许分析期间共享表
+继续增长，base_types可小于当前目标长度；compact处理自身表的已知前缀。
+
+Edges：公开appendFrom始终检查；内部分析扩展通过显式appendAnalyzed进入现有
+快路，Debug仍审计。受检入口的非零first必须是完整目标前缀；来源索引、范围、
+owner mapping分配及内容比较的错误顺序保持。合法旧前缀扩展不增加全表扫描。
+ZX负责前缀规则，Native只选择已明确的调用契约和传递ABI；seed保持同样边界。
+
+Answer：贯通类型表入口、preflight RX/ZX、Source merge和seed调用，冻结源码后
+集中运行既有test-type-merge及受影响的增量链接范围；不新增用例、不改错误预期。
+
+```mermaid
+flowchart LR
+    P[公开 appendFrom] --> C[受检合并]
+    A[内部分析与自身 compact] --> F[显式已分析快路]
+    C --> R[RX 前置流程]
+    F --> R
+    R --> Z[ZX 范围与前缀规则]
+    Z --> M[Source 类型驻留]
+```
+
+```mermaid
+flowchart LR
+    O[来源形状与索引] --> B[前缀范围]
+    B --> A[分配 mapping]
+    A --> V[受检路径比较内容]
+    V --> I[填 identity 并合并后缀]
+```
+
+实现将范围complete与内容checked分开：appendFrom要求完整目标前缀且始终
+检查；appendAnalyzed的Small路径不扫描已知前缀，Debug仍审计内容但允许
+first小于已增长的目标。analyzed使用comptime分派，避免增加运行时策略分支。
+seed、Source preflight/merge与编译库加载调用已贯通；初次构建定位到加载RX
+漏传complete，修复后冻结源码再进行下述整组验收。没有修改任何错误预期。
+
+既有test-type-merge、test-url-api-library（含native）和test-primitive-libraries
+集中105/105步骤、123/123 Zig检查通过；原18项prefix内容和2项资源顺序失败
+已解决。URL发布ZX消费者与独立Zig消费者各6193例，primitive的source/compiled
+共26套执行、2540例，按各报告口径记录，不与Zig构建统计混算。
+
+URL脚本按cases.jsonl识别套件，排除fixtures辅助目录，6193总数断言保留；
+primitive在切换cwd前将CLI路径realpath化，并移除按可执行文件目录猜测的错误
+zig-lib-dir覆盖，让Zig自行定位标准库。未新增用例，未调整数值/身份/容量断言。
+两个脚本问题属于验收入口修复，将独立于类型前缀逻辑提交。
+
+新生成器运行当前116入口后，两代2051产物全部相同（仅排除工具身份.zxc-inputs）。
+确认所有活动编译结束后，三组交错冷生成CPU before5.17/5.05/5.06s，
+after5.06/5.04/5.07s，中位5.06→5.06s；wall1171.59→1161.03ms，
+MaxRSS665993216→656900096B。CPU样本重叠，不宣称提速或内存优化；六次2051
+产物全部等于当前固定点。本修复没有可辨别新增CPU成本，累计Native锚点不变，
+既有约0.95s CPU差距仍未解决，不能宣称整体性能门禁通过。
+
+证据prefix-and-harness-checks-linked.log、prefix-fixedpoint-comparison.json、
+prefix-paired-results.json、prefix-paired-output-summary.json，均在/tmp/zxc-function-levels。
+自我复核：没有因测试失败而恢复全内部前缀扫描，也没有把Small中的失败改成
+忽略；明确区分了公开受检契约和内部已分析来源。Debug旧base_types许可由静态
+调用链复核，本轮实际运行模式为Small，未声称额外执行Debug专项。
+完整回归旧构建图影响的32个编译范围仍待冻结输入补验，后续不重跑全量。

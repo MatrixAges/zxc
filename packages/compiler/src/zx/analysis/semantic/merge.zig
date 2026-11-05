@@ -14,6 +14,7 @@ pub const Request = struct {
     items: *ir.TypeStorage,
     nominal: *Origins.Storage,
     first: usize,
+    checked: bool,
 };
 
 pub fn append(request: Request) Error!void {
@@ -39,9 +40,7 @@ pub fn append(request: Request) Error!void {
             .base = if (@typeInfo(Table) == .pointer) &base else base,
             .base_origins = Origins.Table.borrow(Bindings, request.nominal.view()),
             .first = request.first,
-            // Tables extending this one come from the project's own analysis, so their prefix is compared only where
-            // internal IR is validated.
-            .checked = @import("../../ir/validate.zig").internal,
+            .checked = request.checked,
         },
         .state = .{
             .mapping = mapping,
