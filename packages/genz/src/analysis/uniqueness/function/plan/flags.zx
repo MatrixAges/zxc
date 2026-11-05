@@ -1,0 +1,70 @@
+import integers from "std:integer"
+import { CollectionKind, ExpressionKind } from "core/expression_table/kinds"
+
+import prefix from "../levels/prefix"
+import query from "../levels/query"
+import value from "../levels/value"
+import updateFlags from "./update_flags"
+
+import type { Stage as Input, Working as Output } from "./model"
+
+export default function (in: Input): Output {
+    return loop({
+        index: 0,
+        working: in.working
+    }, {
+        while: (state, context) => state.index < context.source.operations.length,
+        next: (state, context) => {
+            const source = context.source
+            const expressions = source.context.metadata.expressions
+            const node = integers.widen(source.operations[state.index])
+            const kind = expressions.kinds[node]
+            const payload = integers.widen(expressions.payloads[node])
+
+            if (
+                kind == ExpressionKind.ListOperation ||
+                    kind == ExpressionKind.ListUpdate
+            ) {
+                const target = kind == ExpressionKind.ListUpdate ?
+                    expressions.update_targets[payload] :
+                    expressions.collection_targets[payload]
+
+                const result = query({
+                    context: source.context,
+                    state: {
+                        known: state.working.known,
+                        carried: source.state.carried,
+                        reads: state.working.reads
+                    },
+                    request: {
+                        node: target,
+                        slot: 0,
+                        raw: false
+                    }
+                })
+
+                const flag = updateFlags({
+                    kind,
+                    operation: kind == ExpressionKind.ListUpdate ? CollectionKind.Push :
+                        expressions.collection_kinds[payload],
+                    target: value(result.value),
+                    prefix: kind == ExpressionKind.ListOperation && prefix({
+                        expressions,
+                        payload: expressions.payloads[node]
+                    })
+                })
+
+                state.working = {
+                    known: result.known,
+                    reads: result.reads,
+                    flags: state.working.flags.with(
+                        node,
+                        integers.orBits(state.working.flags[node], flag)
+                    )
+                }
+            }
+
+            state.index += 1
+        }
+    }, in).working
+}

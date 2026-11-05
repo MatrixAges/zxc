@@ -25,7 +25,8 @@ export default function (in: Input): Output {
                 const kind = expressions.kinds[current.index]
 
                 if (
-                    kind == ExpressionKind.Object || kind == ExpressionKind.Tuple
+                    kind == ExpressionKind.Object || kind == ExpressionKind.Tuple ||
+                        kind == ExpressionKind.Parallel
                 ) {
                     current.built[integers.widen(
                         expressions.types[current.index]

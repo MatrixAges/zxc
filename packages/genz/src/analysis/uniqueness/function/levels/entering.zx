@@ -1,0 +1,44 @@
+import evaluate from "../../level/evaluate"
+import lacks from "../../level/lacks"
+import { Operation } from "../../level/model"
+import knowledge from "./knowledge"
+import { GrowthKind } from "./model"
+import value from "./value"
+import want from "./want"
+
+import type { Context, Knowledge } from "./model"
+
+export type Input = {
+    context: Context,
+    owner: u32,
+    slot: u32,
+    value: Knowledge
+}
+
+export type Output = Knowledge
+
+export default function (in: Input): Output {
+    const wanted = want({
+        values: in.context.renewed,
+        kind: GrowthKind.Carried,
+        owner: in.owner,
+        slot: in.slot
+    })
+
+    if (wanted == null) {
+        return in.value
+    }
+
+    const left = value(in.value)
+    const right = value(wanted)
+
+    return lacks({
+        left,
+        right
+    }) ? knowledge(evaluate({
+        operation: Operation.Materialized,
+        left,
+        right,
+        linear: true
+    })) : in.value
+}

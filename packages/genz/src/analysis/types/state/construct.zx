@@ -10,7 +10,15 @@ import {
     ExpressionsPrimitive
 } from "../../../printer/model/expressions"
 import position from "../../names/position"
-import { list_nodes, object_nodes, tuple_nodes, view_prefix } from "./const"
+import {
+    list_nodes,
+    object_nodes,
+    tuple_nodes,
+    view_prefix,
+    storage_plain,
+    storage_shared,
+    storage_exclusive
+} from "./const"
 import tuple from "./tuple"
 
 import type { Constant } from "../../../ast/declarations/model"
@@ -70,6 +78,7 @@ export default function (in: Input): Output {
         const_pointer,
         const_slice,
         tuple_type,
+        enum_type,
         struct_type_start,
         struct_type_len,
         declarations,
@@ -202,15 +211,22 @@ export default function (in: Input): Output {
                         }
                         current = {
                             ...current,
-                            tags: current.tags.push(ExpressionsKind.Primitive)[0],
+                            tags: current.tags.push(ExpressionsKind.EnumType)[0],
                             offsets:
                                 current.offsets.push(
                                     integers.narrow(
-                                        current.primitive.length
+                                        current.enum_type.length
                                     )
                                 )[0],
-                            primitive:
-                                current.primitive.push(ExpressionsPrimitive.Bool)[0]
+                            enum_type: current.enum_type.push(
+                                [
+                                    bytes.fromText(
+                                        storage_plain
+                                    ),
+                                    bytes.fromText(storage_shared),
+                                    bytes.fromText(storage_exclusive)
+                                ]
+                            )[0]
                         }
                         current = {
                             ...current,
@@ -510,7 +526,7 @@ export default function (in: Input): Output {
         },
         definitions: {
             tuple_type: result.tuple_type,
-            enum_type,
+            enum_type: result.enum_type,
             struct_type_start: result.struct_type_start,
             struct_type_len: result.struct_type_len
         },

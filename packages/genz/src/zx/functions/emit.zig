@@ -31,6 +31,7 @@ pub fn append(self: *Lower, output: *std.ArrayList(node.Declaration), request: R
 
     helper.plan = self.plans[index];
     helper.pending_name = try std.fmt.allocPrint(self.allocator, "zx_pending_{d}", .{index});
+    helper.may_grow = if (index < self.growth_functions.len) self.growth_functions[index] else true;
     helper.names = try self.allocator.alloc([]const u8, function.symbols.count());
     helper.used = try self.allocator.alloc(bool, function.symbols.count());
     helper.cache_reads = try self.allocator.alloc(usize, function.expressions.count());

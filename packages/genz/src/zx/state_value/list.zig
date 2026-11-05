@@ -3,6 +3,7 @@ const ir = @import("zx").ir;
 const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
 const aggregate = @import("../aggregate.zig");
+pub const Storage = enum { plain, shared, exclusive };
 
 pub fn selected(self: *const Lower, id: ir.TypeId) bool {
     return self.state_active and self.state_plan.selected[@backingInt(id)] and self.program.typeOf(id) == .list;
@@ -11,16 +12,58 @@ pub fn selected(self: *const Lower, id: ir.TypeId) bool {
 pub fn definition(self: *Lower, child: ir.TypeId) Lower.Error!node.ExpressionId {
     return self.builder.expression(.{ .struct_type = try self.allocator.dupe(node.Field, &.{
         .{ .name = "items", .value = try self.builder.expression(.{ .const_slice = try @import("../types.zig").get(self, if (self.program.typeOf(child) == .object and self.state_plan.selected[@backingInt(child)]) self.abi_layouts else self.abi_types, child) }) },
-        .{ .name = "headered", .value = try self.builder.expression(.{ .primitive = .bool }) },
+        .{ .name = "storage", .value = try self.builder.expression(.{ .enum_type = &.{ "plain", "shared", "exclusive" } }) },
     }) });
 }
 
-pub fn create(self: *Lower, id: ir.TypeId, slice: node.ExpressionId, headered: node.ExpressionId) Lower.Error!node.ExpressionId {
+pub fn tag(self: *Lower, storage: Storage) Lower.Error!node.ExpressionId {
+    return self.builder.expression(.{ .enum_literal = @tagName(storage) });
+}
+
+pub fn headered(self: *Lower, value: node.ExpressionId) Lower.Error!node.ExpressionId {
+    return @import("../intrinsics.zig").binary(self, .not_equal, try self.field(value, "storage"), try tag(self, .plain));
+}
+
+pub fn exclusive(self: *Lower, value: node.ExpressionId) Lower.Error!node.ExpressionId {
+    return @import("../intrinsics.zig").binary(self, .equal, try self.field(value, "storage"), try tag(self, .exclusive));
+}
+
+pub fn weakened(self: *Lower, value: node.ExpressionId) Lower.Error!node.ExpressionId {
+    return choose(self, try headered(self, value), .shared, .plain);
+}
+
+fn choose(self: *Lower, condition: node.ExpressionId, yes: Storage, no: Storage) Lower.Error!node.ExpressionId {
+    const value = self.builder.nodes.get(condition);
+
+    if (value == .boolean) return tag(self, if (value.boolean) yes else no);
+
+    return self.builder.expression(.{ .conditional = .{ .condition = condition, .yes = try tag(self, yes), .no = try tag(self, no) } });
+}
+
+pub fn create(self: *Lower, id: ir.TypeId, slice: node.ExpressionId, has_header: node.ExpressionId) Lower.Error!node.ExpressionId {
+    return construct(self, id, slice, try choose(self, has_header, .shared, .plain));
+}
+
+pub fn proven(self: *Lower, id: ir.TypeId, slice: node.ExpressionId, has_header: node.ExpressionId, is_exclusive: node.ExpressionId) Lower.Error!node.ExpressionId {
+    const header = self.builder.nodes.get(has_header);
+
+    const storage = if (header == .boolean)
+        (if (header.boolean) try choose(self, is_exclusive, .exclusive, .shared) else try tag(self, .plain))
+
+    else if (has_header == is_exclusive)
+        try choose(self, has_header, .exclusive, .plain)
+    else
+        try self.builder.expression(.{ .conditional = .{ .condition = has_header, .yes = try choose(self, is_exclusive, .exclusive, .shared), .no = try tag(self, .plain) } });
+
+    return construct(self, id, slice, storage);
+}
+
+fn construct(self: *Lower, id: ir.TypeId, slice: node.ExpressionId, storage: node.ExpressionId) Lower.Error!node.ExpressionId {
     return self.builder.expression(.{ .object = .{
         .type_expr = try @import("../types.zig").get(self, self.state_types, id),
         .fields = try self.allocator.dupe(node.Field, &.{
             .{ .name = "items", .value = slice },
-            .{ .name = "headered", .value = headered },
+            .{ .name = "storage", .value = storage },
         }),
     } });
 }
@@ -41,7 +84,7 @@ pub fn items(self: *Lower, id: ir.TypeId, value: node.ExpressionId) Lower.Error!
             const first = self.builder.nodes.field_columns.get(fields.start);
             const second = self.builder.nodes.field_columns.get(fields.start + 1);
 
-            if (std.mem.eql(u8, first.name, "items") and std.mem.eql(u8, second.name, "headered")) return first.value;
+            if (std.mem.eql(u8, first.name, "items") and std.mem.eql(u8, second.name, "storage")) return first.value;
         }
     }
 
@@ -60,7 +103,7 @@ pub fn reserve(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.TypeId
         const extended = try @import("../growth.zig").reserve(self, &yes, element, view, count, true);
 
         break :chosen try self.builder.expression(.{ .conditional = .{
-            .condition = try self.field(source, "headered"),
+            .condition = try headered(self, source),
             .yes = try aggregate.finish(self, &yes, extended),
             .no = try aggregate.finish(self, &no, copied),
         } });
@@ -73,8 +116,8 @@ pub fn expression(self: *Lower, id: ir.ExprId) Lower.Error!node.ExpressionId {
     return items(self, self.program.expression(id).type_id, try self.expr(id));
 }
 
-pub fn wrap(self: *Lower, id: ir.TypeId, value: node.ExpressionId, headered: bool) Lower.Error!node.ExpressionId {
+pub fn wrap(self: *Lower, id: ir.TypeId, value: node.ExpressionId, has_header: bool) Lower.Error!node.ExpressionId {
     if (!selected(self, id)) return value;
 
-    return create(self, id, value, try self.builder.expression(.{ .boolean = headered }));
+    return create(self, id, value, try self.builder.expression(.{ .boolean = has_header }));
 }

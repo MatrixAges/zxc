@@ -1,0 +1,66 @@
+import type { AtomicRows } from "std:bytes"
+import type { Context, Knowledge, Read } from "../levels/model"
+import type { Seen } from "./seen/model"
+
+export type Mark = {
+    output: bool,
+    function_index: u32,
+    slot: u32,
+    want: Knowledge
+}
+
+export type Source = {
+    kinds: u8[],
+    native_modules: u32?[],
+    carried: Knowledge[][],
+    inputs: AtomicRows,
+    outputs: AtomicRows,
+    function_index?: u32,
+    deferred: bool,
+    operations: u32[],
+    results: u32[]
+}
+
+export type Working = {
+    context: Context,
+    known: Knowledge[],
+    reads: Read[],
+    seen: Seen,
+    marks: Mark[],
+    changed: u32[],
+    grew: bool
+}
+
+export type Input = {
+    context: Context,
+    known: Knowledge[],
+    source: Source
+}
+
+export type Stage = {
+    source: Source,
+    working: Working
+}
+
+export type Request = {
+    node: u32,
+    slot: u32,
+    outer?: u32,
+    repeated: bool,
+    wanted: Knowledge
+}
+
+export type Trace = {
+    source: Source,
+    working: Working,
+    request: Request
+}
+
+export type Output = {
+    context: Context,
+    known: Knowledge[],
+    reads: Read[],
+    marks: Mark[],
+    changed: u32[],
+    grew: bool
+}

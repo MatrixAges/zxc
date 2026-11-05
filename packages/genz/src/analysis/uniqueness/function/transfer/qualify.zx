@@ -1,0 +1,183 @@
+import integers from "std:integer"
+import { BinaryOperator, ExpressionKind } from "core/expression_table/kinds"
+
+import crosses from "../../order/crosses_concurrent"
+import { Definition } from "../../order/model"
+import aggregate from "../levels/aggregate"
+import projection from "../levels/projection"
+import usage from "../levels/usage"
+
+import type { Context } from "../levels/model"
+
+export type Input = {
+    context: Context,
+    node: u32,
+    slot: u32
+}
+
+export type Output = bool
+
+export default function qualify(in: Input): Output {
+    const context = in.context
+    const metadata = context.metadata
+    const expressions = metadata.expressions
+    const node = integers.widen(in.node)
+    const payload = integers.widen(expressions.payloads[node])
+    const kind = expressions.kinds[node]
+
+    if (kind == ExpressionKind.Field || kind == ExpressionKind.TupleField) {
+        const selected = projection({
+            metadata: context.metadata,
+            slot: in.slot,
+            target: expressions.projection_targets[payload],
+            index: expressions.projection_indices[payload]
+        })
+
+        return qualify({
+            context,
+            node: selected.node,
+            slot: selected.slot
+        })
+    }
+
+    if (kind == ExpressionKind.Reference) {
+        const symbol = expressions.references[payload]
+        const index = integers.widen(symbol)
+        const definition = metadata.definitions.kind[index]
+
+        if (
+            definition == Definition.Condition || definition == Definition.Element ||
+                definition == Definition.Unknown || crosses({
+                    parents: metadata.parents,
+                    concurrent: metadata.concurrent,
+                    inner: metadata.usage.nodes.repeated[node],
+                    outer: metadata.usage.def_loop[index]
+                }) || !usage({
+                    context,
+                    root: symbol,
+                    slot: in.slot,
+                    observe: false
+                })
+        ) {
+            return false
+        }
+
+        const target = metadata.definitions.value[index]
+
+        if (definition == Definition.Part) {
+            const selected = projection({
+                metadata: context.metadata,
+                slot: in.slot,
+                target,
+                index: metadata.definitions.index[index]
+            })
+
+            return qualify({
+                context,
+                node: selected.node,
+                slot: selected.slot
+            })
+        }
+
+        return definition != Definition.Value || qualify({
+            ...in,
+            node: target
+        })
+    }
+
+    if (!usage({
+        context,
+        root: integers.narrow(metadata.usage.symbols + node),
+        slot: in.slot,
+        observe: false
+    })) {
+        return false
+    }
+
+    if (kind == ExpressionKind.Object || kind == ExpressionKind.Tuple) {
+        const selected = aggregate({
+            metadata,
+            node: in.node,
+            slot: in.slot
+        })
+
+        return selected != null && qualify({
+            context,
+            node: selected.node,
+            slot: selected.slot
+        })
+    }
+
+    switch (kind) {
+        case ExpressionKind.Scope:
+            return qualify({
+                ...in,
+                node: expressions.scope_results[payload]
+            })
+        case ExpressionKind.OptionalValue:
+            return qualify({
+                ...in,
+                node: expressions.optional_values[payload]
+            })
+        case ExpressionKind.Some:
+            return qualify({
+                ...in,
+                node: expressions.some[payload]
+            })
+        case ExpressionKind.Conditional:
+            return qualify({
+                ...in,
+                node: expressions.conditional_yes[payload]
+            }) &&
+            qualify({
+                ...in,
+                node: expressions.conditional_no[payload]
+            })
+        case ExpressionKind.Match:
+            const first = integers.widen(expressions.match_first[payload])
+
+            return qualify({
+                ...in,
+                node: expressions.match_fallbacks[payload]
+            }) &&
+                loop({
+                    index: 0,
+                    valid: true
+                }, {
+                    while: (state, context) => state.valid &&
+                        state.index < context.count,
+                    next: (state, context) => {
+                        state.valid = qualify({
+                            ...context.source,
+                            node: context.results[context.first + state.index]
+                        })
+                        state.index += 1
+                    }
+                }, {
+                    source: in,
+                    results: expressions.match_results,
+                    first,
+                    count: integers.widen(expressions.match_count[payload])
+                }).valid
+        case ExpressionKind.Binary:
+            return expressions.binary_operators[payload] == BinaryOperator.Coalesce &&
+            qualify({
+                ...in,
+                node: expressions.binary_left[payload]
+            }) &&
+            qualify({
+                ...in,
+                node: expressions.binary_right[payload]
+            })
+        case ExpressionKind.Capture:
+            return false
+        case ExpressionKind.Task:
+            return false
+        case ExpressionKind.AwaitTask:
+            return false
+        case ExpressionKind.Parallel:
+            return false
+        default:
+            return true
+    }
+}

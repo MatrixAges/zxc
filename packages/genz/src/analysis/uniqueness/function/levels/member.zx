@@ -1,0 +1,28 @@
+import integers from "std:integer"
+
+import type { Metadata } from "./model"
+
+export type Input = {
+    metadata: Metadata,
+    type_id: u32,
+    index: u32
+}
+
+export type Output = {
+    offset: u32,
+    type_id: u32
+}
+
+export default function (in: Input): Output {
+    const owner =
+        integers.widen(in.metadata.layout.unwrapped[integers.widen(
+            in.type_id
+        )])
+
+    const index = integers.widen(in.index)
+
+    return {
+        offset: in.metadata.layout.offsets[owner][index],
+        type_id: in.metadata.layout.members[owner][index]
+    }
+}

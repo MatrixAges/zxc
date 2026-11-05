@@ -1,0 +1,51 @@
+import { CollectionKind, ExpressionKind } from "core/expression_table/kinds"
+
+import {
+    no_flags,
+    frontier_flag,
+    retract_flag,
+    in_place_flag,
+    grow_flag,
+    lazy_flag
+} from "./const"
+
+import type { Level } from "../../level/model"
+
+export type Input = {
+    kind: ExpressionKind,
+    operation: CollectionKind,
+    target: Level,
+    prefix: bool
+}
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    if (in.kind == ExpressionKind.ListUpdate) {
+        return match {
+            in.target.unique => in_place_flag,
+            in.target.headered => grow_flag,
+            _ => no_flags
+        }
+    }
+
+    if (in.operation == CollectionKind.Push || in.operation == CollectionKind.Concat) {
+        return match {
+            in.target.headered => frontier_flag,
+            in.target.deferred => lazy_flag,
+            _ => no_flags
+        }
+    }
+
+    return match in.operation {
+        CollectionKind.Pop => in.target.headered && in.target.unique ?
+            retract_flag : no_flags,
+        CollectionKind.Splice => in.prefix && in.target.headered &&
+            in.target.unique ? retract_flag : no_flags,
+        _ => match {
+            in.target.unique => in_place_flag,
+            in.target.headered => grow_flag,
+            _ => no_flags
+        }
+    }
+}

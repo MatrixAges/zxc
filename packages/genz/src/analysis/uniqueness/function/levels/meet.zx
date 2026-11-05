@@ -1,0 +1,38 @@
+import { Knowledge } from "./model"
+import unique from "./unique"
+
+export type Input = {
+    left: Knowledge,
+    right: Knowledge
+}
+
+export type Output = Knowledge
+
+export default function (in: Input): Output {
+    const left_headered = in.left == Knowledge.Headered || in.left == Knowledge.All ||
+        in.left == Knowledge.HeaderedDeferred || in.left == Knowledge.AllDeferred
+
+    const right_headered = in.right == Knowledge.Headered || in.right == Knowledge.All ||
+        in.right == Knowledge.HeaderedDeferred || in.right == Knowledge.AllDeferred
+
+    const retained = unique(in.left) && unique(in.right)
+
+    if (left_headered && right_headered) {
+        return retained ? Knowledge.All : Knowledge.Headered
+    }
+
+    const deferred = (
+        in.left != Knowledge.None && in.left != Knowledge.Unique &&
+            in.left != Knowledge.Unknown
+    ) || (
+        in.right != Knowledge.None && in.right != Knowledge.Unique &&
+            in.right != Knowledge.Unknown
+    )
+
+    return match {
+        retained && deferred => Knowledge.UniqueDeferred,
+        retained => Knowledge.Unique,
+        deferred => Knowledge.Deferred,
+        _ => Knowledge.None
+    }
+}

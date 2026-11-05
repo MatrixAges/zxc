@@ -128,7 +128,8 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
         .mode = mode,
     };
 
-    const initial_state = if (state_scope != null) try @import("state_value/conversion.zig").convert(self, &body, type_id, initial, if (by_value) .value_layout else .value) else if (selected_state or by_value or direct_initial) initial else if (deep) try @import("iteration_value/conversion.zig").convert(&context, type_id, initial, false) else if (layout) try self.builder.expression(.{ .dereference = initial }) else initial;
+    const converted_initial = if (state_scope != null) try @import("state_value/conversion.zig").convert(self, &body, type_id, initial, if (by_value) .value_layout else .value) else if (selected_state or by_value or direct_initial) initial else if (deep) try @import("iteration_value/conversion.zig").convert(&context, type_id, initial, false) else if (layout) try self.builder.expression(.{ .dereference = initial }) else initial;
+    const initial_state = if (selected_state and state_scope == null) try @import("state_value/ownership.zig").clip(self, &body, iteration.initial, converted_initial) else converted_initial;
 
     if (fields) |*selected| {
         var renewed = false;
@@ -163,8 +164,12 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
             try @import("growth.zig").renew(self, &entered, type_id, seed, renewal.path);
         };
 
+        try selected.maskBorrowed(self, &entered);
         try entered.append(self.allocator, .{ .variable = .{ .name = name, .type_expr = selected.layout, .value = try selected.initial(self) } });
-        try loop.append(self.allocator, .{ .assignment = .{ .target = state, .value = next } });
+
+        const qualified = try selected.qualify(self, &loop, iteration.body, next);
+
+        try loop.append(self.allocator, .{ .assignment = .{ .target = state, .value = qualified } });
         if (local and !by_value and mode != .discard) try loop.append(self.allocator, .{ .assignment = .{ .target = try self.builder.identifier(changed_name), .value = try self.builder.expression(.{ .boolean = true }) } });
 
         try loop.append(self.allocator, .{ .branch = .{
@@ -211,7 +216,11 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
 
     const prepared = entered.items.len != 0;
 
-    try loop.append(self.allocator, .{ .assignment = .{ .target = state, .value = next } });
+    if (selected_state) {
+        const qualified = try @import("state_value/ownership.zig").clip(self, &loop, iteration.body, next);
+
+        try @import("iteration/assignment.zig").append(self, &loop, type_id, state, qualified);
+    } else try loop.append(self.allocator, .{ .assignment = .{ .target = state, .value = next } });
 
     if (local and !by_value and mode != .discard) {
         try body.append(self.allocator, .{ .variable = .{ .name = changed_name, .value = try self.builder.expression(.{ .boolean = false }) } });

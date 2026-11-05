@@ -1,0 +1,48 @@
+import integers from "std:integer"
+
+import { slot_stride, value_renewal } from "./const"
+import { GrowthKind } from "./model"
+
+import type { Growth, Knowledge } from "./model"
+
+export type Input = {
+    values: Growth[],
+    kind: GrowthKind,
+    owner: u32,
+    slot: u32
+}
+
+export type Output = Knowledge?
+
+    export default function (in: Input): Output {
+        const value: Knowledge? = null
+
+        const packed =
+            integers.widen(in.owner) * slot_stride + integers.widen(in.slot)
+
+        const key = match in.kind {
+            GrowthKind.Normalized => integers.widen(in.owner),
+            GrowthKind.Value => integers.orBits(packed, value_renewal),
+            _ => packed
+        }
+
+        return loop({
+            index: 0,
+            value
+        }, {
+            while: (state, context) => state.value == null &&
+                state.index < context.values.length,
+            next: (state, context) => {
+                const entry = context.values[state.index]
+
+                if (entry.key == context.key) {
+                    state.value = entry.value
+                }
+
+                state.index += 1
+            }
+        }, {
+            values: in.values,
+            key
+        }).value
+    }

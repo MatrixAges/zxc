@@ -1,0 +1,16 @@
+import { Knowledge } from "../levels/model"
+
+export type Input = u64
+
+export type Output = Knowledge[]
+
+export default function (in: Input): Output {
+    const levels: Knowledge[] = []
+
+    return loop(levels, {
+        while: (state, count) => state.length < count,
+        next: state => {
+            state = state.push(Knowledge.None)[0]
+        }
+    }, in)
+}

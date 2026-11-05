@@ -1,0 +1,69 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import listType from "../../slots/list_type"
+
+import type { Input as Source } from "./model"
+
+export type Input = {
+    source: Source,
+    node: u32
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const expressions = in.source.context.metadata.expressions
+    const node = integers.widen(in.node)
+    const type_id = expressions.types[node]
+    const target = kind(in.source.types.kinds[integers.widen(type_id)])
+
+    if (
+        expressions.kinds[node] != ExpressionKind.Iteration ||
+            (target != Kind.Object && target != Kind.Tuple)
+    ) {
+        return false
+    }
+
+    const result = loop({
+        slot: 0,
+        valid: true,
+        product: false
+    }, {
+        while: (state, context) => state.valid &&
+            state.slot < integers.widen(
+                context.source.context.metadata
+                    .counts[integers.widen(
+                        context.type_id
+                    )]
+            ),
+        next: (state, context) => {
+            const list = listType({
+                layout: context.source.context.metadata.layout,
+                kinds: context.source.types.kinds,
+                type_id: context.type_id,
+                slot: integers.narrow(state.slot)
+            })
+
+            const child = context.source.types.first[integers.widen(list)]
+            const bare =
+                context.source.context.metadata.layout
+                .unwrapped[integers.widen(
+                    child
+                )]
+            const target = kind(context.source.types.kinds[integers.widen(bare)])
+
+            state.valid =
+                context.source.context.metadata.counts[integers.widen(child)] == 0
+            state.product = state.product || target == Kind.Object || target == Kind.Tuple
+            state.slot += 1
+        }
+    }, {
+        source: in.source,
+        type_id
+    })
+
+    return result.valid && result.product
+}

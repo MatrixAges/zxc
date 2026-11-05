@@ -46,7 +46,7 @@ pub fn renew(self: *Lower, body: *std.ArrayList(node.Statement), type_id: ir.Typ
     const pair = try self.builder.expression(.{ .fixed_array_type = .{ .length = try self.builder.integer(2), .element = text } });
     const names = try self.builder.expression(.{ .address_of = try self.builder.expression(.{ .array = .{ .element_type = pair, .values = steps } }) });
 
-    try body.append(self.allocator, .{ .expression = try self.call(try reference(self, "zxRenew"), &.{ try self.builder.identifier("allocator"), try self.builder.expression(.{ .address_of = state }), names }, true) });
+    try body.append(self.allocator, .{ .expression = try self.call(try reference(self, "zxRenew"), &.{ try self.builder.identifier("allocator"), try self.builder.expression(.{ .address_of = state }), names, try self.builder.expression(.{ .boolean = !self.may_grow }) }, true) });
 }
 
 /// The value of `id` with the lists the plan renews in it moved to growth buffers of their own, where a value read out of
@@ -55,8 +55,9 @@ pub fn renewValue(self: *Lower, id: ir.ExprId, value: node.ExpressionId) Lower.E
     var body: std.ArrayList(node.Statement) = .empty;
     const name = try self.fresh("renewed");
     const renewed = try self.builder.identifier(name);
+    const source = if (self.state_active) try @import("state_value/ownership.zig").clip(self, &body, id, value) else value;
 
-    try body.append(self.allocator, .{ .variable = .{ .name = name, .value = value } });
+    try body.append(self.allocator, .{ .variable = .{ .name = name, .value = source } });
     for (self.plan.renewals) |renewal| if (renewal.owner == id and renewal.value) try renew(self, &body, self.program.expression(id).type_id, renewed, renewal.path);
 
     return aggregate.finish(self, &body, renewed);
@@ -85,7 +86,12 @@ pub fn normalize(self: *Lower, id: ir.ExprId, value: node.ExpressionId) Lower.Er
     const source = try aggregate.bind(self, &body, try @import("state_value/list.zig").items(self, type_id, value));
     const buffer = try reserve(self, &body, element, source, try self.field(source, "len"), false);
 
-    return aggregate.finish(self, &body, try @import("state_value/list.zig").wrap(self, type_id, buffer, true));
+    const result = if (@import("state_value/list.zig").selected(self, type_id))
+        try @import("state_value/list.zig").proven(self, type_id, buffer, try self.builder.expression(.{ .boolean = true }), try self.builder.expression(.{ .boolean = true }))
+    else
+        buffer;
+
+    return aggregate.finish(self, &body, result);
 }
 
 pub fn retract(self: *Lower, body: *std.ArrayList(node.Statement), element: node.ExpressionId, source: node.ExpressionId, length: node.ExpressionId) Lower.Error!void {
@@ -140,7 +146,7 @@ const Emitter = struct {
             .return_type = try lowering.builder.expression(.{ .error_union = .{ .payload = try lowering.builder.expression(.{ .mutable_slice = element }), .errors = &.{"OutOfMemory"} } }),
             .body = try lowering.builder.statements(&.{
                 try lowering.builder.branch(try self.binary(.logical_and, try self.id("frontier"), try self.binary(.not_equal, try lowering.field(items, "len"), try lowering.builder.integer(0))), &.{.{ .scope = in_place }}, &.{}),
-                .{ .result = try lowering.call(try self.id("zxAllocate"), &.{ element, try self.id("allocator"), items, count }, true) },
+                .{ .result = try lowering.call(try self.id("zxAllocate"), &.{ element, try self.id("allocator"), items, count, try lowering.builder.expression(.{ .boolean = false }) }, true) },
             }),
             .exported = exported,
             .inlined = true,
@@ -158,8 +164,8 @@ const Emitter = struct {
         const offset = try lowering.call(try lowering.field(try lowering.call(try self.standard(&.{ "mem", "Alignment", "of" }), &.{element}, false), "forward"), &.{header_size}, false);
 
         const capacity = try lowering.builder.expression(.{ .conditional = .{
-            .condition = try self.binary(.equal, count, try lowering.builder.integer(0)),
-            .yes = try lowering.builder.integer(0),
+            .condition = try self.binary(.logical_or, try self.id("exact"), try self.binary(.equal, count, try lowering.builder.integer(0))),
+            .yes = count,
             .no = try lowering.call(try self.standard(&.{ "math", "ceilPowerOfTwoAssert" }), &.{ try self.primitive(.usize), try lowering.builtin(.max, &.{ count, try lowering.builder.integer(8) }) }, false),
         } });
 
@@ -186,6 +192,7 @@ const Emitter = struct {
                 .{ .name = "allocator", .value = try self.standard(&.{ "mem", "Allocator" }) },
                 .{ .name = "items", .value = try lowering.builder.expression(.{ .const_slice = element }) },
                 .{ .name = "count", .value = try self.primitive(.usize) },
+                .{ .name = "exact", .value = try self.primitive(.bool), .comptime_parameter = true },
             }),
             .return_type = try lowering.builder.expression(.{ .error_union = .{ .payload = try lowering.builder.expression(.{ .mutable_slice = element }), .errors = &.{"OutOfMemory"} } }),
             .body = try lowering.builder.statements(&statements),
@@ -234,7 +241,7 @@ const Emitter = struct {
 
         const recurse = struct {
             fn call(emitter: Emitter, argument: node.ExpressionId, rest: node.ExpressionId) Lower.Error!node.Statement {
-                return .{ .expression = try emitter.lowering.call(try emitter.id("zxRenew"), &.{ try emitter.id("allocator"), argument, rest }, true) };
+                return .{ .expression = try emitter.lowering.call(try emitter.id("zxRenew"), &.{ try emitter.id("allocator"), argument, rest, try emitter.id("exact") }, true) };
             }
         }.call;
 
@@ -266,14 +273,16 @@ const Emitter = struct {
         const wrapped_child = try lowering.field(try lowering.field(try lowering.builtin(.typeInfo, &.{try lowering.builtin(.TypeOf, &.{wrapped_items})}), "pointer"), "child");
 
         const wrapped = [_]node.Statement{
-            .{ .assignment = .{ .target = wrapped_items, .value = try lowering.call(try self.id("zxReserve"), &.{ wrapped_child, allocator, wrapped_items, try lowering.field(wrapped_items, "len"), try lowering.builder.expression(.{ .boolean = false }) }, true) } },
-            .{ .assignment = .{ .target = try lowering.field(value, "headered"), .value = try lowering.builder.expression(.{ .boolean = true }) } },
+            .{ .assignment = .{ .target = wrapped_items, .value = try lowering.call(try self.id("zxAllocate"), &.{ wrapped_child, allocator, wrapped_items, try lowering.field(wrapped_items, "len"), try self.id("exact") }, true) } },
+            .{ .assignment = .{ .target = try lowering.field(value, "storage"), .value = try @import("state_value/list.zig").tag(lowering, .exclusive) } },
         };
 
+        const exclusive = try @import("state_value/list.zig").exclusive(lowering, value);
+        const ensure_exclusive = try lowering.builder.branch(try lowering.builder.expression(.{ .unary = .{ .operator = .not, .operand = exclusive } }), &wrapped, &.{});
         const terminal = try self.binary(.equal, try lowering.field(path, "len"), try lowering.builder.integer(0));
 
         const nonoptional = [_]node.Statement{
-            try lowering.builder.branch(try self.binary(.equal, info, try lowering.builder.expression(.{ .enum_literal = "pointer" })), &pointer, &.{try lowering.builder.branch(terminal, &wrapped, &fields)}),
+            try lowering.builder.branch(try self.binary(.equal, info, try lowering.builder.expression(.{ .enum_literal = "pointer" })), &pointer, &.{try lowering.builder.branch(terminal, &.{ensure_exclusive}, &fields)}),
         };
 
         const statements = [_]node.Statement{
@@ -288,6 +297,7 @@ const Emitter = struct {
                 .{ .name = "allocator", .value = try self.standard(&.{ "mem", "Allocator" }) },
                 .{ .name = "target", .value = try self.primitive(.@"anytype") },
                 .{ .name = "path", .value = try lowering.builder.expression(.{ .const_slice = try lowering.builder.expression(.{ .fixed_array_type = .{ .length = try lowering.builder.integer(2), .element = try lowering.builder.expression(.{ .const_slice = try self.primitive(.u8) }) } }) }), .comptime_parameter = true },
+                .{ .name = "exact", .value = try self.primitive(.bool), .comptime_parameter = true },
             }),
             .return_type = try lowering.builder.expression(.{ .error_union = .{ .payload = try self.primitive(.void), .errors = &.{"OutOfMemory"} } }),
             .body = try lowering.builder.statements(&statements),

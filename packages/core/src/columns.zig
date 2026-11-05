@@ -42,6 +42,50 @@ pub fn pointer(comptime Target: type, source: anytype) Target {
     return @ptrCast(source);
 }
 
+pub fn view(comptime Target: type, value: anytype) Target {
+    return viewMode(Target, value, false);
+}
+
+fn viewMode(comptime Target: type, value: anytype, comptime borrowed: bool) Target {
+    @setEvalBranchQuota(100_000);
+
+    if (Target == @TypeOf(value)) return value;
+
+    const target = @typeInfo(Target);
+
+    if (target == .pointer) return if (target.pointer.size == .slice) slice(Target, value) else pointer(Target, value);
+
+    if (target == .@"struct") {
+        const source = if (@typeInfo(@TypeOf(value)) == .pointer) value.* else value;
+        var result: Target = undefined;
+
+        inline for (target.@"struct".field_names) |name| {
+            @field(result, name) = if (comptime std.mem.eql(u8, name, "zx_origin")) origin: {
+                if (!borrowed or @typeInfo(@TypeOf(value)) != .pointer) break :origin null;
+
+                const Origin = @typeInfo(@FieldType(Target, name)).optional.child;
+
+                break :origin pointer(Origin, value);
+            } else viewMode(@FieldType(Target, name), @field(source, name), borrowed);
+        }
+
+        return result;
+    }
+
+    comptime compatible(Target, @TypeOf(value));
+
+    return @fromBackingInt(@backingInt(value));
+}
+
+/// The source descriptor stays unchanged and outlives every use of the borrowed view.
+pub fn borrow(comptime Target: type, source: anytype) Target {
+    const info = @typeInfo(@TypeOf(source));
+
+    if (info != .pointer or info.pointer.size != .one or !info.pointer.attrs.@"const") @compileError("Borrowed columns require a const descriptor pointer");
+
+    return viewMode(Target, source, true);
+}
+
 fn compatible(comptime Target: type, comptime Source: type) void {
     if (Target == Source) return;
     if (@sizeOf(Target) != @sizeOf(Source) or @alignOf(Target) != @alignOf(Source)) @compileError("Incompatible column representation");

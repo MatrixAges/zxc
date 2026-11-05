@@ -1,0 +1,68 @@
+<Module>
+    <Type from="model" as="Plan" />
+
+    <Args in={Plan.Input} out={Plan.Output} />
+
+    <Call fn="initialize" in={$in} />
+
+    <Task name="normalized" out={$ctx.growth_flags}>
+        <Call
+            fn="growth_flags"
+            in={{
+                source: $in,
+                working: $ctx.initialize,
+                entries: $in.context.normalized,
+                normalized: true
+            }}
+        />
+    </Task>
+
+    <Task name="renewed" out={$ctx.growth_flags}>
+        <Call
+            fn="growth_flags"
+            in={{
+                source: $in,
+                working: $ctx.task.normalized,
+                entries: $in.context.renewed,
+                normalized: false
+            }}
+        />
+    </Task>
+
+    <Call
+        fn="flags"
+        in={{
+            source: $in,
+            working: $ctx.task.renewed
+        }}
+    />
+
+    <Call
+        module="buffers"
+        in={{
+            source: $in,
+            working: $ctx.flags
+        }}
+    />
+
+    <Call
+        fn="renewals"
+        in={{
+            source: $in,
+            working: $ctx.buffers
+        }}
+    />
+
+    <Call
+        fn="../transfer/build"
+        in={{
+            source: $in,
+            flags: $ctx.renewals.flags
+        }}
+    />
+
+    <Return value={{
+        ...$ctx.renewals,
+        transfers: $ctx.build
+    }} />
+</Module>

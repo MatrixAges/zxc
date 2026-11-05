@@ -1,0 +1,54 @@
+<Module>
+    <Type from="model" as="Demand" />
+
+    <Args in={Demand.Input} out={Demand.Output} />
+
+    <Call fn="initialize" in={$in} />
+
+    <Call
+        fn="operations"
+        in={{
+            source: $in.source,
+            working: $ctx.initialize
+        }}
+    />
+
+    <If on={$in.source.function_index == null}>
+        <Return
+            value={$ctx.operations.pick(
+                [
+                    "context",
+                    "known",
+                    "reads",
+                    "marks",
+                    "changed",
+                    "grew"
+                ]
+            )}
+        />
+
+        <Else>
+            <Call
+                fn="returns"
+                in={{
+                    source: $in.source,
+                    working: $ctx.operations,
+                    function_index: $in.source.function_index
+                }}
+            />
+
+            <Return
+                value={$ctx.returns.pick(
+                    [
+                        "context",
+                        "known",
+                        "reads",
+                        "marks",
+                        "changed",
+                        "grew"
+                    ]
+                )}
+            />
+        </Else>
+    </If>
+</Module>

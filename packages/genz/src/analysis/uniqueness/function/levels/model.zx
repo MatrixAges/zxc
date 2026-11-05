@@ -1,0 +1,84 @@
+import type { Expressions } from "core/expression_table/model"
+import type { Definitions } from "../../order/plan"
+import type { Query, Usage } from "../../sites/model"
+import type { Layout } from "../../slots/model"
+
+export enum Knowledge {
+    None,
+    Headered,
+    Unique,
+    All,
+    Deferred,
+    HeaderedDeferred,
+    UniqueDeferred,
+    AllDeferred,
+    Unknown
+}
+
+export enum Table { Input, Output, Inputs, Outputs }
+
+export type Read = {
+    table: Table,
+    function_index: u32,
+    slot: u32,
+    value: Knowledge
+}
+
+export enum GrowthKind { Normalized, Carried, Value }
+
+export type Growth = {
+    key: u64,
+    value: Knowledge
+}
+
+export type Metadata = {
+    expressions: Expressions,
+    definitions: Definitions,
+    layout: Layout,
+    counts: u32[],
+    parents: u32[],
+    concurrent: bool[],
+    usage: Query,
+    states: Usage[],
+    input: u8[],
+    output: u8[][],
+    function_index: u32,
+    record: bool
+}
+
+export type Context = {
+    metadata: Metadata,
+    normalized: Growth[],
+    renewed: Growth[]
+}
+
+export type Request = {
+    node: u32,
+    slot: u32,
+    raw: bool
+}
+
+export enum Operation { Pass, Written, Push, Concat }
+
+export type State = {
+    known: Knowledge[],
+    carried: Knowledge[][],
+    reads: Read[]
+}
+
+export type Environment = {
+    context: Context,
+    carried: Knowledge[][]
+}
+
+export type Input = {
+    context: Context,
+    state: State,
+    request: Request
+}
+
+export type Output = {
+    known: Knowledge[],
+    reads: Read[],
+    value: Knowledge
+}

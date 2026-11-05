@@ -6,6 +6,9 @@ const Sites = @import("sites.zig");
 const Slots = @import("slots.zig");
 const Summaries = @import("summaries.zig");
 const Self = @This();
+const generated_analysis = @import("genz_options").generated_analysis;
+const Evaluator = if (generated_analysis) @import("function/levels.zig") else void;
+const Summary = if (generated_analysis) @import("function/summary.zig") else void;
 
 /// Levels of the list slots of one function body, given what its callers and callees guarantee: loop state reaches its
 /// greatest fixpoint, a reference keeps `unique` only while its value is used linearly, and a read inside a task or
@@ -26,6 +29,8 @@ pub const Unit = struct {
 };
 
 pub fn readRows(allocator: std.mem.Allocator, expressions: ir.ExpressionTable) std.mem.Allocator.Error![]const ir.ExpressionRow {
+    if (generated_analysis) return &.{};
+
     const result = try allocator.alloc(ir.ExpressionRow, expressions.count());
 
     for (result, 0..) |*target, index| target.* = expressions.at(index);
@@ -34,6 +39,8 @@ pub fn readRows(allocator: std.mem.Allocator, expressions: ir.ExpressionTable) s
 }
 
 pub fn collectOperations(allocator: std.mem.Allocator, order: *const Order, expressions: ir.ExpressionTable) std.mem.Allocator.Error![]const ir.ExprId {
+    if (generated_analysis) return @import("function/operations.zig").collect(allocator, order, expressions);
+
     var result: std.ArrayList(ir.ExprId) = .empty;
 
     for (0..expressions.count()) |index| {
@@ -80,16 +87,16 @@ reads: ?*std.ArrayList(Read) = null,
 /// Set when recording a read ran out of memory. Levels recurse deeply and only that record allocates, so they return
 /// plain levels and each public step reports the failure once it returns.
 failed: bool = false,
-pub fn analyze(allocator: std.mem.Allocator, functions: ir.FunctionTable, unit: Unit, order: *const Order, sites: *Sites, slots: Slots, summaries: *Summaries) std.mem.Allocator.Error!Self {
-    const levels = try allocator.alloc(Known, sites.slot_first[sites.slot_first.len - 1] - sites.slot_first[unit.symbols.count()]);
-    var self = Self{ .allocator = allocator, .functions = functions, .expressions = unit.expressions, .order = order, .sites = sites, .slots = slots, .summaries = summaries, .input = unit.input, .function = unit.function, .normalized = unit.normalized, .renewed = unit.renewed, .operations = unit.operations, .rows = unit.rows, .levels = levels };
+evaluation: if (generated_analysis) ?Evaluator.State else void = if (generated_analysis) null else {},
+pub fn initialize(allocator: std.mem.Allocator, functions: ir.FunctionTable, unit: Unit, order: *const Order, sites: *Sites, slots: Slots, summaries: *Summaries, reads: ?*std.ArrayList(Read)) std.mem.Allocator.Error!Self {
+    const levels: []Known = if (generated_analysis) &.{} else try allocator.alloc(Known, sites.slot_first[sites.slot_first.len - 1] - sites.slot_first[unit.symbols.count()]);
 
-    try self.close();
-
-    return self;
+    return .{ .allocator = allocator, .functions = functions, .expressions = unit.expressions, .order = order, .sites = sites, .slots = slots, .summaries = summaries, .input = unit.input, .function = unit.function, .normalized = unit.normalized, .renewed = unit.renewed, .operations = unit.operations, .rows = unit.rows, .levels = levels, .reads = reads };
 }
 
-fn close(self: *Self) std.mem.Allocator.Error!void {
+pub fn close(self: *Self) std.mem.Allocator.Error!void {
+    if (generated_analysis) return Evaluator.close(self);
+
     for (self.order.repeated) |id| {
         const state = self.carriedState(id) orelse continue;
         const values = try self.allocator.alloc(Level, self.slots.count(self.row(id).type_id));
@@ -132,8 +139,15 @@ fn settled(self: Self) std.mem.Allocator.Error!void {
     if (self.failed) return error.OutOfMemory;
 }
 
+pub fn settle(self: *Self, changed: *std.ArrayList(usize), passed: *std.ArrayList(Contribution), values: []Level) std.mem.Allocator.Error!void {
+    if (generated_analysis) return Summary.settle(self, changed, passed, values);
+    try self.close();
+    try self.arguments(changed, passed);
+    try self.output(values);
+}
+
 /// The output slots every return guarantees.
-pub fn output(self: *Self, values: []Level) std.mem.Allocator.Error!void {
+fn output(self: *Self, values: []Level) std.mem.Allocator.Error!void {
     @memset(values, if (self.order.results.len == 0) .none else .all);
 
     for (self.order.results) |result| {
@@ -145,7 +159,7 @@ pub fn output(self: *Self, values: []Level) std.mem.Allocator.Error!void {
 
 /// Meets what each call in this body passes into every callee input summary; lists the callees that weakened.
 /// Lists every contribution in `passed`, in the order it was met, so a later analysis of the same state can replay it.
-pub fn arguments(self: *Self, changed: *std.ArrayList(usize), passed: *std.ArrayList(Contribution)) std.mem.Allocator.Error!void {
+fn arguments(self: *Self, changed: *std.ArrayList(usize), passed: *std.ArrayList(Contribution)) std.mem.Allocator.Error!void {
     for (self.operations) |id| {
         const invocation = switch (self.row(id).value) {
             .call => |invocation| invocation,
@@ -234,7 +248,7 @@ const value_renewal: u64 = 1 << 63;
 pub const Renewal = struct { owner: ir.ExprId, path: []const u32, value: bool = false };
 
 /// The slots that start from a growth copy, by member path from the loop state or the renewed value.
-pub fn renewals(self: *Self, allocator: std.mem.Allocator) std.mem.Allocator.Error![]const Renewal {
+fn renewals(self: *Self, allocator: std.mem.Allocator) std.mem.Allocator.Error![]const Renewal {
     var result: std.ArrayList(Renewal) = .empty;
     var entries = self.renewed.iterator();
 
@@ -268,11 +282,22 @@ pub fn renewals(self: *Self, allocator: std.mem.Allocator) std.mem.Allocator.Err
 }
 
 pub const Flags = packed struct(u8) { frontier: bool = false, retract: bool = false, in_place: bool = false, normalize: bool = false, renew: bool = false, grow: bool = false, lazy: bool = false, buffered: bool = false };
+pub const Plan = struct { flags: []const Flags, renewals: []const Renewal, transfers: []const u64 = &.{}, slot_first: []const u32 = &.{} };
+
+pub fn plan(self: *Self, allocator: std.mem.Allocator) std.mem.Allocator.Error!Plan {
+    if (generated_analysis) return @import("function/plan.zig").build(self, allocator);
+
+    const values = try allocator.alloc(Flags, self.expressions.count());
+
+    try self.flags(values);
+
+    return .{ .flags = values, .renewals = try self.renewals(allocator) };
+}
 
 /// How each list update lowers: appends check the frontier of a headered target, pops of a unique headered target hand
 /// the frontier back, element writes of a unique target happen in place and those of a shared headered target copy into
 /// a growth buffer, and a demanded plain list gets a growth copy.
-pub fn flags(self: *Self, values: []Flags) std.mem.Allocator.Error!void {
+fn flags(self: *Self, values: []Flags) std.mem.Allocator.Error!void {
     @memset(values, .{});
 
     var wanted = self.normalized.iterator();
@@ -329,120 +354,7 @@ pub fn flags(self: *Self, values: []Flags) std.mem.Allocator.Error!void {
         }
     }
 
-    try self.bufferFlags(values);
-
     return self.settled();
-}
-
-fn bufferLoop(self: *const Self, id: ir.ExprId) bool {
-    const value = self.row(id);
-
-    if (value.value != .iteration) return false;
-
-    const target_type = self.slots.types.get(value.type_id);
-
-    if (target_type != .object and target_type != .tuple) return false;
-
-    var product = false;
-
-    for (0..self.slots.count(value.type_id)) |slot| {
-        const list_type = self.slots.listType(value.type_id, @intCast(slot));
-        const child = self.slots.types.get(list_type).list;
-
-        if (self.slots.count(child) != 0) return false;
-
-        const target = self.slots.types.get(self.slots.unwrapped[@backingInt(child)]);
-
-        product = product or target == .object or target == .tuple;
-    }
-
-    return product;
-}
-
-fn bufferFlags(self: *Self, values: []Flags) std.mem.Allocator.Error!void {
-    if (comptime !@import("genz_options").generated_analysis) return;
-
-    const writes = for (self.operations) |id| {
-        const target = switch (self.row(id).value) {
-            .list_update => |update| update.target,
-            .list_operation => |operation| if (operation.kind == .push) operation.target else continue,
-            else => continue,
-        };
-
-        const element = self.slots.types.get(self.row(target).type_id).list;
-        const child = self.slots.types.get(self.slots.unwrapped[@backingInt(element)]);
-
-        if (child == .object or child == .tuple) break true;
-    } else false;
-
-    if (!writes) return;
-
-    const needed = for (self.order.repeated) |id| {
-        if (self.bufferLoop(id)) break true;
-    } else false;
-
-    if (!needed) return;
-
-    var arena = std.heap.ArenaAllocator.init(self.allocator);
-
-    defer arena.deinit();
-
-    const temporary = arena.allocator();
-    const generated = @import("generated_iteration_owners");
-    const Input = std.meta.Child(generated.Input);
-    const types = ir.TypeTable.borrow(std.meta.Child(@FieldType(Input, "types")), self.slots.types);
-
-    const input: Input = .{
-        .types = &types,
-        .expressions = @import("zx").columns.pointer(@FieldType(Input, "expressions"), &@as(*const Self, self).expressions),
-        .loops = @as([*]const u32, @ptrCast(self.order.repeated.ptr))[0..self.order.repeated.len],
-    };
-
-    const owners = generated.executeValue(temporary, &input) catch |err| switch (err) {
-        error.OutOfMemory => return error.OutOfMemory,
-        else => unreachable,
-    };
-
-    if (owners.len == 0) return;
-
-    var normalized = std.AutoHashMap(ir.ExprId, Level).init(temporary);
-    var renewed = std.AutoHashMap(u64, Level).init(temporary);
-
-    for (owners) |index| {
-        const id: ir.ExprId = @fromBackingInt(index);
-
-        values[index].buffered = true;
-
-        for (0..self.slots.count(self.row(id).type_id)) |slot| try renewed.put(renewal(id, @intCast(slot)), .all);
-    }
-
-    var reads: std.ArrayList(Read) = .empty;
-    var owned = self.*;
-    owned.allocator = temporary;
-    owned.normalized = &normalized;
-    owned.renewed = &renewed;
-    owned.carried = .empty;
-    owned.levels = try temporary.alloc(Known, self.levels.len);
-    owned.failed = false;
-    owned.reads = if (self.reads != null) &reads else null;
-
-    try owned.close();
-
-    for (self.operations) |id| {
-        const target = switch (self.row(id).value) {
-            .list_operation => |operation| switch (operation.kind) {
-                .push, .pop => operation.target,
-                else => continue,
-            },
-            .list_update => |update| update.target,
-            else => continue,
-        };
-
-        values[@backingInt(id)].buffered = owned.level(target, 0).unique;
-    }
-
-    try owned.settled();
-    if (self.reads) |recorded| try recorded.appendSlice(self.allocator, reads.items);
 }
 
 const State = struct { parameter: ir.SymbolId, condition: ?ir.SymbolId, initial: ir.ExprId, body: ir.ExprId };
@@ -461,7 +373,7 @@ fn row(self: Self, id: ir.ExprId) *const ir.ExpressionRow {
 
 const Known = enum(u8) { unknown = 0xff, _ };
 
-pub fn level(self: *Self, id: ir.ExprId, slot: u32) Level {
+fn level(self: *Self, id: ir.ExprId, slot: u32) Level {
     const root = self.sites.nodeRoot(id);
     const base = self.sites.slot_first[self.sites.symbols.count()];
     const index = self.sites.slot_first[root] + slot;
@@ -618,6 +530,8 @@ fn prefix(self: Self, operation: anytype) bool {
 /// initial state, a plain input or an opaque producer then gets one growth copy there, so the updates that follow work
 /// in place instead of copying on every step. Lists the functions whose demand grew.
 pub fn demand(self: *Self, changed: *std.ArrayList(usize), marked: *std.ArrayList(Mark)) std.mem.Allocator.Error!void {
+    if (generated_analysis) return @import("function/demand.zig").analyze(self, changed, marked);
+
     self.changed = changed;
     self.marked = marked;
 

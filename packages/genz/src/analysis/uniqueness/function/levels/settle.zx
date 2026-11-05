@@ -1,0 +1,123 @@
+import integers from "std:integer"
+
+import entering from "./entering"
+import invalidate from "./invalidate"
+import meet from "./meet"
+import query from "./query"
+
+import type { Settlement as Input } from "./closure_model"
+import type { State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const result = loop({
+        state: in.state,
+        changed: true
+    }, {
+        while: current => current.changed,
+        next: (current, context) => {
+            const round = loop({
+                state: current.state,
+                index: 0,
+                changed: false
+            }, {
+                while: (scan, source) => scan.index < source.repetitions.length,
+                next: (scan, source) => {
+                    const repetition = source.repetitions[scan.index]
+                    const owner = integers.widen(repetition.owner)
+                    const row = scan.state.carried[owner]
+
+                    const slots = loop({
+                        state: scan.state,
+                        slot: 0,
+                        changed: false
+                    }, {
+                        while: (item, input) => item.slot < input.size,
+                        next: (item, input) => {
+                            const slot = integers.narrow(item.slot)
+                            const before = query({
+                                context: input.context,
+                                state: item.state,
+                                request: {
+                                    node: input.repetition.initial,
+                                    slot,
+                                    raw: false
+                                }
+                            })
+
+                            const before_state = {
+                                known: before.known,
+                                carried: item.state.carried,
+                                reads: before.reads
+                            }
+
+                            const start = entering({
+                                context: input.context,
+                                owner: input.repetition.owner,
+                                slot,
+                                value: before.value
+                            })
+
+                            const body = query({
+                                context: input.context,
+                                state: before_state,
+                                request: {
+                                    node: input.repetition.body,
+                                    slot,
+                                    raw: false
+                                }
+                            })
+
+                            const owner = integers.widen(input.repetition.owner)
+                            const previous = item.state.carried[owner][item.slot]
+                            const next = meet({
+                                left: meet({
+                                    left: previous,
+                                    right: start
+                                }),
+                                right: body.value
+                            })
+
+                            item.state = {
+                                known: body.known,
+                                carried: before_state.carried,
+                                reads: body.reads
+                            }
+
+                            if (next != previous) {
+                                item.state = {
+                                    ...item.state,
+                                    carried: item.state.carried.with(
+                                        owner,
+                                        item.state.carried[owner].with(
+                                            item.slot,
+                                            next
+                                        )
+                                    )
+                                }
+                                item.changed = true
+                            }
+
+                            item.slot += 1
+                        }
+                    }, {
+                        context: source.context,
+                        repetition,
+                        size: row.length
+                    })
+
+                    scan.state = slots.state
+                    scan.changed = scan.changed || slots.changed
+                    scan.index += 1
+                }
+            }, context)
+
+            current.state = round.changed ? {
+                ...round.state,
+                known: invalidate(round.state.known)
+            } : round.state
+            current.changed = round.changed
+        }
+    }, in)
+
+    return result.state
+}

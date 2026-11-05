@@ -1,0 +1,18 @@
+import integers from "std:integer"
+
+export type Input = {
+    first: u32[],
+    symbols: u64,
+    node: u32,
+    slot: u32
+}
+
+export type Output = u64?
+
+    export default function (in: Input): Output {
+        const root = in.symbols + integers.widen(in.node)
+        const index = in.first[root] + in.slot
+
+        return index < in.first[root + 1] ?
+            integers.widen(index - in.first[in.symbols]) : null
+    }

@@ -1,0 +1,52 @@
+<Module>
+    <Type from="model" as="Plan" />
+
+    <Args in={Plan.Stage} out={Plan.Working} />
+
+    <Call fn="buffer_eligible" in={$in.source} />
+
+    <If on={!$ctx.buffer_eligible}>
+        <Return value={$in.working} />
+    </If>
+
+    <Call
+        fn="../../../iteration/buffers/owners"
+        in={{
+            types: $in.source.types,
+            expressions: $in.source.context.metadata.expressions,
+            loops: $in.source.repeated
+        }}
+    />
+
+    <If on={$ctx.owners.length == 0}>
+        <Return value={$in.working} />
+    </If>
+
+    <Call
+        fn="buffer_context"
+        in={{
+            context: $in.source.context,
+            owners: $ctx.owners
+        }}
+    />
+
+    <Call
+        module="../levels/close"
+        in={{
+            context: $ctx.buffer_context,
+            repeated: $in.source.repeated
+        }}
+    />
+
+    <Call
+        fn="buffer_flags"
+        in={{
+            stage: $in,
+            context: $ctx.buffer_context,
+            state: $ctx.close,
+            owners: $ctx.owners
+        }}
+    />
+
+    <Return value={$ctx.buffer_flags} />
+</Module>

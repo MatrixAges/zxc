@@ -1,0 +1,104 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import lacks from "../../level/lacks"
+import { slot_stride, value_renewal } from "../levels/const"
+import query from "../levels/query"
+import value from "../levels/value"
+import { sort_owner_stride } from "./const"
+import renewal from "./renewal"
+
+import type { Stage as Input, Output, Renewal } from "./model"
+
+export default function (in: Input): Output {
+    const keys: u64[] = []
+
+    const selected = loop({
+        index: 0,
+        working: in.working,
+        keys
+    }, {
+        while: (state, context) =>
+            state.index < context.source.context.renewed.length,
+        next: (state, context) => {
+            const source = context.source
+            const entry = source.context.renewed[state.index]
+            const own_value = entry.key >= value_renewal
+            const packed = own_value ? entry.key - value_renewal : entry.key
+            const node = packed / slot_stride
+            const slot = packed % slot_stride
+            const want = value(entry.value)
+
+            if (want.unique && source.time[node] != max_u32) {
+                const expressions = source.context.metadata.expressions
+                const payload = integers.widen(expressions.payloads[node])
+                const initial: u32? = match {
+                    own_value => integers.narrow(node),
+                    expressions.kinds[node] == ExpressionKind.Iteration =>
+                        expressions.iteration_initials[payload],
+                    _ => expressions.transform_initials[payload]
+                }
+
+                if (initial != null) {
+                    const result = query({
+                        context: source.context,
+                        state: {
+                            known: state.working.known,
+                            carried: source.state.carried,
+                            reads: state.working.reads
+                        },
+                        request: {
+                            node: initial,
+                            slot: integers.narrow(slot),
+                            raw: own_value
+                        }
+                    })
+
+                    state.working = {
+                        ...state.working,
+                        known: result.known,
+                        reads: result.reads
+                    }
+
+                    if (lacks({
+                        left: value(result.value),
+                        right: want
+                    })) {
+                        state.keys = state.keys.push(
+                            node * sort_owner_stride +
+                                (own_value ? slot_stride : 0) + slot
+                        )[0]
+                    }
+                }
+            }
+
+            state.index += 1
+        }
+    }, in)
+
+    const renewals: Renewal[] = []
+
+    const ordered = loop({
+        index: 0,
+        renewals
+    }, {
+        while: (state, context) => state.index < context.keys.length,
+        next: (state, context) => {
+            state.renewals = state.renewals.push(renewal({
+                source: context.source,
+                key: context.keys[state.index]
+            }))[0]
+            state.index += 1
+        }
+    }, {
+        source: in.source,
+        keys: selected.keys.sort()[0]
+    }).renewals
+
+    return {
+        ...selected.working,
+        renewals: ordered,
+        transfers: []
+    }
+}

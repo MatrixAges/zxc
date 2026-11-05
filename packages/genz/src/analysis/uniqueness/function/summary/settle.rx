@@ -1,0 +1,97 @@
+<Module>
+    <Type from="model" as="Summary" />
+
+    <Args in={Summary.Settlement} out={Summary.Settled} />
+
+    <Call
+        module="../levels/close"
+        in={$in.pick([
+            "context",
+            "repeated"
+        ])}
+    />
+
+    <Call
+        fn="invocations"
+        in={{
+            expressions: $in.context.metadata.expressions,
+            operations: $in.operations
+        }}
+    />
+
+    <Call
+        fn="contributions"
+        in={{
+            source: {
+                ...$in.pick([
+                    "context",
+                    "inputs",
+                    "deferred"
+                ]),
+                carried: $ctx.close.carried,
+                operations: $ctx.invocations
+            },
+            working: $ctx.close.pick([
+                "known",
+                "reads"
+            ])
+        }}
+    />
+
+    <If on={$in.count == 0 || $in.results.length == 0}>
+        <Call
+            fn="empty_output"
+            in={$in.count}
+        />
+
+        <Return
+            value={{
+                state: {
+                    known: $ctx.contributions.known,
+                    carried: $ctx.close.carried,
+                    reads: $ctx.contributions.reads
+                },
+                ...$ctx.contributions.pick([
+                    "passed",
+                    "changed"
+                ]),
+                levels: $ctx.empty_output
+            }}
+        />
+
+        <Else>
+            <Call
+                fn="outputs"
+                in={{
+                    source: {
+                        ...$in.pick([
+                            "context",
+                            "results",
+                            "count"
+                        ]),
+                        carried: $ctx.close.carried
+                    },
+                    working: $ctx.contributions.pick([
+                        "known",
+                        "reads"
+                    ])
+                }}
+            />
+
+            <Return
+                value={{
+                    state: {
+                        known: $ctx.outputs.known,
+                        carried: $ctx.close.carried,
+                        reads: $ctx.outputs.reads
+                    },
+                    ...$ctx.contributions.pick([
+                        "passed",
+                        "changed"
+                    ]),
+                    levels: $ctx.outputs.levels
+                }}
+            />
+        </Else>
+    </If>
+</Module>

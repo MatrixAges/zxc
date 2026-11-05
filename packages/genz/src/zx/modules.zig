@@ -124,6 +124,7 @@ fn functionPrepared(allocator: std.mem.Allocator, backing: std.mem.Allocator, pr
 
     lower.plan = lower.plans[@backingInt(id)];
     lower.names = try temporary.alloc([]const u8, selected.symbols.count());
+    lower.may_grow = if (@backingInt(id) < lower.growth_functions.len) lower.growth_functions[@backingInt(id)] else true;
     lower.used = try temporary.alloc(bool, selected.symbols.count());
     lower.cache_reads = try temporary.alloc(usize, selected.expressions.count());
 

@@ -1,0 +1,49 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import decode from "../levels/decode"
+import { Table } from "../levels/model"
+
+import type { Knowledge } from "../levels/model"
+import type { Stage, Working } from "./model"
+
+export type Input = {
+    stage: Stage,
+    output: bool,
+    function_index: u32,
+    slot: u32
+}
+
+export type Output = {
+    working: Working,
+    value: Knowledge
+}
+
+export default function (in: Input): Output {
+    const source = in.stage.source
+    const working = in.stage.working
+    const rows = in.output ? source.outputs : source.inputs
+
+    const value = decode(
+        bytes.loadAtomicCell(
+            rows,
+            integers.widen(in.function_index),
+            integers.widen(in.slot)
+        )
+    )
+
+    const table = in.output ? Table.Outputs : Table.Inputs
+
+    return {
+        working: {
+            ...working,
+            reads: working.context.metadata.record ? working.reads.push({
+                table,
+                function_index: in.function_index,
+                slot: in.slot,
+                value
+            })[0] : working.reads
+        },
+        value
+    }
+}

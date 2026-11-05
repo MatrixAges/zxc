@@ -1,0 +1,25 @@
+import { load_numerator, load_denominator } from "./const"
+import grow from "./grow"
+import position from "./position"
+
+import type { Insertion as Input, Inserted as Output } from "./model"
+
+export default function (in: Input): Output {
+    const full = (in.seen.count + 1) * load_denominator >
+        in.seen.keys.length * load_numerator
+
+    const keys = full ? grow(in.seen.keys) : in.seen.keys
+
+    const target = position({
+        keys,
+        key: in.key
+    })
+
+    return {
+        seen: {
+            keys: target.found ? keys : keys.with(target.index, in.key),
+            count: target.found ? in.seen.count : in.seen.count + 1
+        },
+        found: target.found
+    }
+}

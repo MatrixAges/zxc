@@ -1,0 +1,32 @@
+import integers from "std:integer"
+
+import query from "../../sites/query"
+import read from "../../sites/read"
+
+import type { Context } from "./model"
+
+export type Input = {
+    context: Context,
+    root: u32,
+    slot: u32,
+    observe: bool
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const context = in.context
+    const first = context.metadata.usage.plan.slot_first
+    const root = integers.widen(in.root)
+    const index = first[root] + in.slot
+
+    return index < first[root + 1] ? read({
+        state: context.metadata.states[integers.widen(index)],
+        observe: in.observe
+    }) : query({
+        ...context.metadata.usage,
+        root: in.root,
+        slot: in.slot,
+        observe: in.observe
+    })
+}

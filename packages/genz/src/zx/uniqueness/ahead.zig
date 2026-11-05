@@ -30,7 +30,7 @@ planned: []Planned,
 pub const Settled = struct { passed: []const Function.Contribution, output: []const Level, reads: []const Function.Read };
 
 pub const Demanded = struct { marks: []const Function.Mark, grew: bool, normalized: []const Memo.Normalized, renewed: []const Memo.Renewed, reads: []const Function.Read };
-pub const Planned = struct { flags: []const Function.Flags, renewals: []const Function.Renewal };
+pub const Planned = struct { flags: []const Function.Flags, renewals: []const Function.Renewal, transfers: []const u64 = &.{}, slot_first: []const u32 = &.{} };
 const State = enum(u8) { idle, queued, running, ready, failed, held };
 
 /// Queued bodies looked at ahead per thread: enough to keep the threads busy while the worklist waits on a chain of
@@ -172,14 +172,12 @@ fn Task(comptime kind: Memo.Kind) type {
 
             switch (kind) {
                 .settled => {
-                    var analysis = try unit.analyze(scratch, lasting, ahead.functions, ahead.slots, summaries, null);
+                    var analysis = try unit.initialize(scratch, lasting, ahead.functions, ahead.slots, summaries, null, &reads);
                     var passed: std.ArrayList(Function.Contribution) = .empty;
                     const output = try keep.alloc(Level, if (index < summaries.output.len) summaries.output[index].len else 0);
                     analysis.deferred = true;
-                    analysis.reads = &reads;
 
-                    try analysis.arguments(&changed, &passed);
-                    if (index < summaries.output.len) try analysis.output(output);
+                    try analysis.settle(&changed, &passed, output);
 
                     const contributions = try keep.alloc(Function.Contribution, passed.items.len);
 
@@ -191,22 +189,19 @@ fn Task(comptime kind: Memo.Kind) type {
                     // The growth copies a demand pass leaves are its own; the body's stay as they were until its visit.
                     var normalized = try unit.normalized.cloneWithAllocator(scratch);
                     var renewed = try unit.renewed.cloneWithAllocator(scratch);
-                    var analysis = try unit.analyze(scratch, lasting, ahead.functions, ahead.slots, summaries, .{ .normalized = &normalized, .renewed = &renewed });
+                    var analysis = try unit.analyze(scratch, lasting, ahead.functions, ahead.slots, summaries, .{ .normalized = &normalized, .renewed = &renewed }, &reads);
                     var marked: std.ArrayList(Function.Mark) = .empty;
                     analysis.deferred = true;
-                    analysis.reads = &reads;
 
                     try analysis.demand(&changed, &marked);
 
                     return .{ .marks = try keep.dupe(Function.Mark, marked.items), .grew = analysis.grew, .normalized = try entries(Memo.Normalized, keep, &normalized), .renewed = try entries(Memo.Renewed, keep, &renewed), .reads = try keep.dupe(Function.Read, reads.items) };
                 },
                 .planned => {
-                    var analysis = try unit.analyze(scratch, lasting, ahead.functions, ahead.slots, summaries, null);
-                    const flags = try keep.alloc(Function.Flags, unit.unit.expressions.count());
+                    var analysis = try unit.analyze(scratch, lasting, ahead.functions, ahead.slots, summaries, null, null);
+                    const plan = try analysis.plan(keep);
 
-                    try analysis.flags(flags);
-
-                    return .{ .flags = flags, .renewals = try analysis.renewals(keep) };
+                    return .{ .flags = plan.flags, .renewals = plan.renewals, .transfers = plan.transfers, .slot_first = plan.slot_first };
                 },
             }
         }

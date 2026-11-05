@@ -1,0 +1,24 @@
+import integers from "std:integer"
+
+import { empty_key } from "./const"
+
+import type { Query as Input, Position as Output } from "./model"
+
+export default function (in: Input): Output {
+    const index = integers.hash(in.key) % in.keys.length
+
+    const result = loop({
+        index
+    }, {
+        while: (state, source) => source.keys[state.index] != empty_key &&
+            source.keys[state.index] != source.key,
+        next: (state, source) => {
+            state.index = (state.index + 1) % source.keys.length
+        }
+    }, in)
+
+    return {
+        index: result.index,
+        found: in.keys[result.index] == in.key
+    }
+}

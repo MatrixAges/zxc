@@ -1,0 +1,53 @@
+import integers from "std:integer"
+import { ExpressionKind, TransformKind } from "core/expression_table/kinds"
+
+import type { Closure as Input, Repetition } from "./closure_model"
+
+export type Output = Repetition[]
+
+export default function (in: Input): Output {
+    const values: Repetition[] = []
+
+    return loop({
+        index: 0,
+        values
+    }, {
+        while: (state, context) => state.index < context.repeated.length,
+        next: (state, context) => {
+            const expressions = context.context.metadata.expressions
+            const owner = context.repeated[state.index]
+            const node = integers.widen(owner)
+            const payload = integers.widen(expressions.payloads[node])
+
+            if (expressions.kinds[node] == ExpressionKind.Iteration) {
+                state.values = state.values.push({
+                    owner,
+                    initial: expressions.iteration_initials[payload],
+                    body: expressions.iteration_bodies[payload],
+                    parameter: expressions.iteration_parameters[payload],
+                    condition: expressions.iteration_condition_parameters[payload]
+                })[0]
+            } else if (
+                expressions.kinds[node] == ExpressionKind.Transform &&
+                    expressions.transform_kinds[payload] == TransformKind.Reduce
+            ) {
+                const initial = expressions.transform_initials[payload]
+
+                if (initial != null) {
+                    state.values = state.values.push({
+                        owner,
+                        initial,
+                        body: expressions.transform_bodies[payload],
+                        parameter: expressions
+                            .transform_parameters[integers.widen(
+                                expressions.transform_first[payload]
+                            )],
+                        condition: null
+                    })[0]
+                }
+            }
+
+            state.index += 1
+        }
+    }, in).values
+}

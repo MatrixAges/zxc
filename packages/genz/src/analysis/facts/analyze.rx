@@ -20,6 +20,7 @@
                 unknown: bool[]
             },
             fresh_outputs: bool[],
+            grows: bool[],
             identity_free: bool[],
             io: bool[],
             keys: u8[],
@@ -68,6 +69,7 @@
     <Call fn="../capability/io" in={$in.program.functions} />
     <Call fn="../capability/process" in={$in.program.functions} />
     <Call fn="../capability/tasks" in={$in.program} />
+    <Call fn="../capability/growth/evaluate" in={$in.program.functions} />
     <Call fn="../types/fresh_outputs" in={$in.program} />
 
     <Call
@@ -90,6 +92,7 @@
             io: $ctx.io,
             process: $ctx.process,
             tasks: $ctx.tasks,
+            grows: $ctx.evaluate,
             fresh_outputs: $ctx.fresh_outputs,
             identity_free: $ctx.free,
             errors: $ctx.functions

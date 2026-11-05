@@ -1,0 +1,18 @@
+import { Knowledge } from "./model"
+
+export type Input = Knowledge[]
+
+export type Output = Input
+
+export default function (in: Input): Output {
+    return loop({
+        values: in,
+        index: 0
+    }, {
+        while: current => current.index < current.values.length,
+        next: current => {
+            current.values[current.index] = Knowledge.Unknown
+            current.index += 1
+        }
+    }).values
+}

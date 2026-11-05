@@ -1,0 +1,80 @@
+import { max_u32 } from "core/const"
+
+import evaluate from "../../level/evaluate"
+import { Operation as LevelOperation } from "../../level/model"
+import knowledge from "./knowledge"
+import { Knowledge, Operation } from "./model"
+import unique from "./unique"
+import usage from "./usage"
+import value from "./value"
+
+import type { Context } from "./model"
+
+export type Input = {
+    context: Context,
+    operation: Operation,
+    empty: bool,
+    linear_root: u32,
+    slot: u32,
+    value: Knowledge
+}
+
+export type Output = Knowledge
+
+export default function (in: Input): Output {
+    if (in.operation == Operation.Pass) {
+        const retained = !unique(in.value) || in.empty ||
+            in.linear_root == max_u32 || usage({
+                context: in.context,
+                root: in.linear_root,
+                slot: in.slot,
+                observe: false
+            })
+
+        if (retained) {
+            return in.value == Knowledge.Unknown ? Knowledge.None : in.value
+        }
+
+        return match in.value {
+            Knowledge.Unique => Knowledge.None,
+            Knowledge.All => Knowledge.Headered,
+            Knowledge.UniqueDeferred => Knowledge.Deferred,
+            Knowledge.AllDeferred => Knowledge.HeaderedDeferred,
+            _ => in.value
+        }
+    }
+
+    const target = value(in.value)
+
+    const result = match in.operation {
+        Operation.Written => evaluate({
+            operation: LevelOperation.Written,
+            left: target,
+            right: target,
+            linear: false
+        }),
+        Operation.Push => {
+            headered: true,
+            unique: (!target.headered && !target.deferred) || target.unique,
+            deferred: false
+        },
+        Operation.Concat => {
+            ...target,
+            deferred: !target.headered
+        },
+        _ => target
+    }
+
+    const linear = !result.unique || in.empty ||
+        in.linear_root == max_u32 || usage({
+            context: in.context,
+            root: in.linear_root,
+            slot: in.slot,
+            observe: false
+        })
+
+    return knowledge({
+        ...result,
+        unique: result.unique && linear
+    })
+}

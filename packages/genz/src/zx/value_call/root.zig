@@ -89,6 +89,8 @@ fn lowerInvocation(self: *Lower, body: *std.ArrayList(node.Statement), value: @F
         argument = try @import("../state_value/conversion.zig").convert(self, body, function.input_type, argument, if (state_callee) .value else .borrow);
     }
 
+    if (state_callee and self.state_active) argument = try @import("../state_value/ownership.zig").clip(self, body, value.argument, argument);
+
     const callee = try self.requestFunction(value.function, .value);
     var result = try self.call(callee, &.{ try self.builder.identifier("allocator"), argument }, true);
 

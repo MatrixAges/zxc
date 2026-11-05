@@ -1,0 +1,14 @@
+import { no_flags } from "./const"
+
+import type { Knowledge } from "../levels/model"
+import type { Input, Working as Output } from "./model"
+
+export default function (in: Input): Output {
+    const empty: Knowledge[] = []
+
+    return {
+        known: empty.concat(in.state.known)[0],
+        reads: [],
+        flags: in.context.metadata.expressions.kinds.map(kind => no_flags)[0]
+    }
+}

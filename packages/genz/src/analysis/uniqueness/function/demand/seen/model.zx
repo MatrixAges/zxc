@@ -1,0 +1,24 @@
+export type Seen = {
+    keys: u64[],
+    count: u64
+}
+
+export type Query = {
+    keys: u64[],
+    key: u64
+}
+
+export type Position = {
+    index: u64,
+    found: bool
+}
+
+export type Insertion = {
+    seen: Seen,
+    key: u64
+}
+
+export type Inserted = {
+    seen: Seen,
+    found: bool
+}

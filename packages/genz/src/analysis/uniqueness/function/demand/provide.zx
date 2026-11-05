@@ -1,0 +1,59 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import { slot_stride, value_renewal } from "../levels/const"
+import knowledge from "../levels/knowledge"
+import { Knowledge } from "../levels/model"
+import usage from "../levels/usage"
+import value from "../levels/value"
+import growth from "./growth"
+import normalize from "./normalize"
+
+import type { Trace as Input, Working as Output } from "./model"
+
+export default function (in: Input): Output {
+    const request = in.request
+
+    if (request.outer != null) {
+        return normalize({
+            working: in.working,
+            leaf: request.outer,
+            wanted: request.wanted
+        })
+    }
+
+    const context = in.working.context
+    const desired = value(request.wanted)
+    const node = integers.widen(request.node)
+
+    const want = knowledge({
+        ...desired,
+        unique: desired.unique &&
+            context.metadata.expressions.kinds[node] != ExpressionKind.Reference &&
+            usage({
+                context,
+                root: integers.narrow(context.metadata.usage.symbols + node),
+                slot: request.slot,
+                observe: false
+            })
+    })
+
+    if (want == Knowledge.None) {
+        return in.working
+    }
+
+    const result = growth({
+        entries: context.renewed,
+        key: value_renewal + node * slot_stride + integers.widen(request.slot),
+        want
+    })
+
+    return {
+        ...in.working,
+        context: {
+            ...context,
+            renewed: result.entries
+        },
+        grew: in.working.grew || result.grew
+    }
+}

@@ -1,0 +1,15 @@
+import visit from "./visit"
+
+import type { Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    return visit({
+        environment: {
+            context: in.context,
+            carried: in.state.carried
+        },
+        known: in.state.known,
+        reads: in.state.reads,
+        request: in.request
+    })
+}

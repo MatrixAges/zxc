@@ -1,0 +1,98 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import query from "../levels/query"
+import publish from "./publish"
+
+import type { Knowledge } from "../levels/model"
+import type {
+    ArgumentStage as Input,
+    Contributed as Output,
+    Contribution
+} from "./model"
+
+export default function (in: Input): Output {
+    const passed: Contribution[] = []
+    const changed: u32[] = []
+
+    return loop({
+        known: in.working.known,
+        reads: in.working.reads,
+        index: 0,
+        passed,
+        changed
+    }, {
+        while: (state, source) => state.index < source.operations.length,
+        next: (state, source) => {
+            const expressions = source.context.metadata.expressions
+            const node = integers.widen(source.operations[state.index])
+
+            const payload = integers.widen(expressions.payloads[node])
+            const callee = expressions.call_functions[payload]
+            const count =
+                bytes.atomicRowLength(source.inputs, integers.widen(callee))
+            const levels: Knowledge[] = []
+
+            const row = loop({
+                known: state.known,
+                reads: state.reads,
+                changed: state.changed,
+                levels,
+                slot: 0
+            }, {
+                while: (current, input) => current.slot < input.count,
+                next: (current, input) => {
+                    const result = query({
+                        context: input.source.context,
+                        state: {
+                            known: current.known,
+                            carried: input.source.carried,
+                            reads: current.reads
+                        },
+                        request: {
+                            node: input.argument,
+                            slot: integers.narrow(current.slot),
+                            raw: false
+                        }
+                    })
+
+                    current.known = result.known
+                    current.reads = result.reads
+                    current.levels = current.levels.push(result.value)[0]
+
+                    if (!input.source.deferred) {
+                        current.changed = publish({
+                            inputs: input.source.inputs,
+                            callee: input.callee,
+                            slot: current.slot,
+                            value: result.value,
+                            changed: current.changed
+                        })
+                    }
+
+                    current.slot += 1
+                }
+            }, {
+                source,
+                callee,
+                count,
+                argument: expressions.call_arguments[payload]
+            })
+
+            state.known = row.known
+            state.reads = row.reads
+            state.changed = row.changed
+            state.passed = state.passed.push({
+                callee,
+                levels: row.levels
+            })[0]
+
+            state.index += 1
+        }
+    }, in.source).pick([
+        "known",
+        "reads",
+        "passed",
+        "changed"
+    ])
+}

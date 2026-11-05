@@ -465,3 +465,33 @@ forward/out-of-range/Store/Task边界保留，唯一对齐的旧断言是已支�
 独立副本不包含Function/conditional/growth迁移，三个文件与工作区逐字节相同。
 证据function-effects-self-identity-{checks,independent}.log。该修复可独立提交，
 不以它代替完整Function迁移和累计性能验收。已更新现有IDEA交接记录，无新测试。
+
+## Function逻辑迁移提交收口
+
+集中六组最终验收207/207步骤、363/363检查通过：function-analysis、实际静态链接
+runtime、loop-call-origins、cached-ownership、field-ownership、module-generation。
+包含缓存资源/OOM范围。验证启动后116个实现/夹具文件未变；当前完整Source两代
+2046产物相同。此前841项相关行为与486项所有权检查按其范围复用，不重复累加。
+
+完整test句柄63253仍在运行，总结果不算通过；已确认的共同基线问题和旧过程构建
+失败继续保留。已纠正的scanner/barrel/process/cache及purity问题各有独立通过证据。
+loop6项原失败和被否定的隔离原型都没有通过改阈值、跳过或忽略来处理。
+
+本次提交完成“函数体级求值、需求追踪与计划生成逻辑已迁入RX/ZX”：五个正式Source
+入口注册，Level/Read/Request/State/Growth等规则及状态由Source定义，RX表达阶段
+连接。Native保留POD/ABI借用和发布适配及旧seed实现；正式Ahead/Root仍调用
+unchanged/replay/applyMark，属于下一项全局调度与摘要重放迁移，不能称全闭包自举。
+
+本提交包含conditional StateList三态及transfer/slot_first消费联动；它们是保持现有
+不可变与容量行为的必要接线。memo v17保存新列，生成指纹v54显式涵盖新列。
+借用的Native表示边界仍是过渡，不把静态链接、零临时分配或Source后缀当最终完成。
+
+按用户“先实现、再优化”保留并提交已贯通职责，累计性能门禁不随功能提交宣告通过。
+最近有效完整生成对照约5.02s，固定Native锚点约4.11s，差距仍在；新purity修复后
+两代产物已核对，但完整回归编译未结束，不在其干扰下制造新的正式计时。
+后续继续优化及迁移，不撤回Source实现，也不重置累计锚点或把微小容差重复累加。
+
+最终证据：function-closure-final-related-checks.log、function-closure-current-fixedpoint-
+comparison.json、function-closure-cache-comparison.json及function-plan-facts.json，
+均在/tmp/zxc-function-levels。此前实际Source语义编辑的增量/冷生成和恢复证据一并
+保留。完整编译器仍待传递依赖审计和严格seed→1→2→3最终验收。

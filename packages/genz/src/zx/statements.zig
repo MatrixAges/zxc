@@ -77,6 +77,7 @@ pub fn lower(self: *Lower, values: ir.Block) Lower.Error![]const node.Statement 
                     }
 
                     if (returned == null) returned = if (self.value_output) try @import("value_call/root.zig").expression(self, id) else try self.expr(id);
+                    if (self.state_active) returned = try @import("state_value/ownership.zig").clip(self, &output, id, returned.?);
                 }
 
                 if (self.public_value_output and self.state_active) if (returned) |result| {

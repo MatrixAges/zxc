@@ -1,0 +1,33 @@
+import integers from "std:integer"
+
+import {
+    code_none,
+    code_headered,
+    code_unique,
+    code_all,
+    code_deferred,
+    code_headered_deferred,
+    code_unique_deferred,
+    packed_mask
+} from "./const"
+import { Knowledge } from "./model"
+
+export type Input = Knowledge
+
+export type Output = u8
+
+export default function (in: Input): Output {
+    const code = match in {
+        Knowledge.None => code_none,
+        Knowledge.Headered => code_headered,
+        Knowledge.Unique => code_unique,
+        Knowledge.All => code_all,
+        Knowledge.Deferred => code_deferred,
+        Knowledge.HeaderedDeferred => code_headered_deferred,
+        Knowledge.UniqueDeferred => code_unique_deferred,
+        Knowledge.AllDeferred => packed_mask,
+        _ => code_none
+    }
+
+    return integers.narrowByte(code)
+}

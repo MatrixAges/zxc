@@ -1,0 +1,88 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import { slot_stride } from "../levels/const"
+import knowledge from "../levels/knowledge"
+import { Knowledge } from "../levels/model"
+import usage from "../levels/usage"
+import value from "../levels/value"
+import growth from "./growth"
+
+import type { Trace, Working, Request } from "./model"
+
+export type Input = {
+    trace: Trace,
+    owner: u32
+}
+
+export type Output = {
+    working: Working,
+    request?: Request
+}
+
+export default function (in: Input): Output {
+    const working = in.trace.working
+    const context = working.context
+    const expressions = context.metadata.expressions
+    const owner = integers.widen(in.owner)
+    const payload = integers.widen(expressions.payloads[owner])
+    const iteration = expressions.kinds[owner] == ExpressionKind.Iteration
+
+    const parameter = iteration ? expressions.iteration_parameters[payload] :
+        expressions
+        .transform_parameters[integers.widen(
+            expressions.transform_first[payload]
+        )]
+
+    const condition: u32? = iteration ?
+        expressions.iteration_condition_parameters[payload] : null
+
+    const desired = value(in.trace.request.wanted)
+
+    const want = knowledge({
+        ...desired,
+        unique: desired.unique && usage({
+            context,
+            root: parameter,
+            slot: in.trace.request.slot,
+            observe: false
+        }) && (condition == null || usage({
+            context,
+            root: condition,
+            slot: in.trace.request.slot,
+            observe: true
+        }))
+    })
+
+    if (want == Knowledge.None) {
+        return {
+            working,
+            request: null
+        }
+    }
+
+    const result = growth({
+        entries: context.renewed,
+        key: owner * slot_stride + integers.widen(in.trace.request.slot),
+        want
+    })
+
+    return {
+        working: {
+            ...working,
+            context: {
+                ...context,
+                renewed: result.entries
+            },
+            grew: working.grew || result.grew
+        },
+        request: {
+            node: iteration ? expressions.iteration_bodies[payload] :
+                expressions.transform_bodies[payload],
+            slot: in.trace.request.slot,
+            outer: null,
+            repeated: false,
+            wanted: want
+        }
+    }
+}

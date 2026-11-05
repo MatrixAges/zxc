@@ -1,0 +1,51 @@
+import finish from "./finish"
+import materialize from "./materialize"
+import { Operation } from "./model"
+import unique from "./unique"
+
+import type { Context, Output, Request } from "./model"
+
+export type Input = {
+    context: Context,
+    request: Request,
+    destination?: u64,
+    operation: Operation,
+    linear_root: u32,
+    empty: bool,
+    result: Output
+}
+
+export default function (in: Input): Output {
+    const result = in.result
+    const unchanged = in.operation == Operation.Pass && !unique(result.value)
+
+    const raw = unchanged ? result.value : finish({
+        context: in.context,
+        ...in.pick([
+            "operation",
+            "linear_root",
+            "empty"
+        ]),
+        slot: in.request.slot,
+        value: result.value
+    })
+
+    const demanded = !in.request.raw &&
+        (in.context.normalized.length != 0 || in.context.renewed.length != 0)
+
+    const value = demanded ? materialize({
+        context: in.context,
+        ...in.request.pick([
+            "node",
+            "slot"
+        ]),
+        value: raw
+    }) : raw
+
+    return {
+        known: in.destination == null ? result.known :
+            result.known.with(in.destination, value),
+        reads: result.reads,
+        value
+    }
+}

@@ -1,0 +1,23 @@
+import type { Knowledge, Read } from "../levels/model"
+import type { Input, Working as Output, Mark } from "./model"
+
+export default function (in: Input): Output {
+    const known: Knowledge[] = []
+    const reads: Read[] = []
+    const marks: Mark[] = []
+    const changed: u32[] = []
+    const keys: u64[] = []
+
+    return {
+        context: in.context,
+        known: known.concat(in.known)[0],
+        reads,
+        seen: {
+            keys,
+            count: 0
+        },
+        marks,
+        changed,
+        grew: false
+    }
+}

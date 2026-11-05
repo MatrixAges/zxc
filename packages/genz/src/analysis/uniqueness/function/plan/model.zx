@@ -1,0 +1,42 @@
+import type { Table } from "core/type_table/model"
+import type { Context, Knowledge, Read } from "../levels/model"
+
+export type Snapshot = {
+    known: Knowledge[],
+    carried: Knowledge[][]
+}
+
+export type Input = {
+    context: Context,
+    state: Snapshot,
+    types: Table,
+    time: u32[],
+    operations: u32[],
+    repeated: u32[]
+    results: u32[]
+}
+
+export type Working = {
+    known: Knowledge[],
+    reads: Read[],
+    flags: u64[]
+}
+
+export type Stage = {
+    source: Input,
+    working: Working
+}
+
+export type Renewal = {
+    owner: u32,
+    path: u32[],
+    value: bool
+}
+
+export type Output = {
+    known: Knowledge[],
+    reads: Read[],
+    flags: u64[],
+    renewals: Renewal[]
+    transfers: u64[]
+}

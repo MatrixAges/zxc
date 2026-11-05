@@ -1,0 +1,78 @@
+import integers from "std:integer"
+
+import meet from "../levels/meet"
+import { Knowledge } from "../levels/model"
+import query from "../levels/query"
+
+import type { ReturnStage as Input, Returned as Output } from "./model"
+
+export default function (in: Input): Output {
+    const levels: Knowledge[] = []
+    const initial = in.source.results.length == 0 ? Knowledge.None : Knowledge.All
+
+    const values = loop(levels, {
+        while: (state, source) => state.length < source.count,
+        next: (state, source) => {
+            state = state.push(source.value)[0]
+        }
+    }, {
+        count: in.source.count,
+        value: initial
+    })
+
+    return loop({
+        known: in.working.known,
+        reads: in.working.reads,
+        levels: values,
+        index: 0
+    }, {
+        while: (state, source) => state.index < source.results.length,
+        next: (state, source) => {
+            const node = source.results[state.index]
+
+            const row = loop({
+                known: state.known,
+                reads: state.reads,
+                levels: state.levels,
+                slot: 0
+            }, {
+                while: (current, input) => current.slot < input.source.count,
+                next: (current, input) => {
+                    const result = query({
+                        context: input.source.context,
+                        state: {
+                            known: current.known,
+                            carried: input.source.carried,
+                            reads: current.reads
+                        },
+                        request: {
+                            node: input.node,
+                            slot: integers.narrow(current.slot),
+                            raw: false
+                        }
+                    })
+
+                    current.known = result.known
+                    current.reads = result.reads
+                    current.levels = current.levels.with(current.slot, meet({
+                        left: current.levels[current.slot],
+                        right: result.value
+                    }))
+                    current.slot += 1
+                }
+            }, {
+                source,
+                node
+            })
+
+            state.known = row.known
+            state.reads = row.reads
+            state.levels = row.levels
+            state.index += 1
+        }
+    }, in.source).pick([
+        "known",
+        "reads",
+        "levels"
+    ])
+}

@@ -1,0 +1,28 @@
+import integers from "std:integer"
+
+import member from "./member"
+
+import type { Metadata, Request } from "./model"
+
+export type Input = {
+    metadata: Metadata,
+    slot: u32,
+    target: u32,
+    index: u32
+}
+
+export type Output = Request
+
+export default function (in: Input): Output {
+    const selected = member({
+        metadata: in.metadata,
+        type_id: in.metadata.expressions.types[integers.widen(in.target)],
+        index: in.index
+    })
+
+    return {
+        node: in.target,
+        slot: selected.offset + in.slot,
+        raw: false
+    }
+}

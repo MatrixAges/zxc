@@ -1,0 +1,37 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import decode from "../levels/decode"
+import encode from "../levels/encode"
+import meet from "../levels/meet"
+
+import type { AtomicRows } from "std:bytes"
+import type { Knowledge } from "../levels/model"
+
+export type Input = {
+    inputs: AtomicRows,
+    callee: u32,
+    slot: u64,
+    value: Knowledge,
+    changed: u32[]
+}
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    const row = integers.widen(in.callee)
+    const previous = decode(bytes.loadAtomicCell(in.inputs, row, in.slot))
+
+    const next = meet({
+        left: previous,
+        right: in.value
+    })
+
+    if (next == previous) {
+        return in.changed
+    }
+
+    bytes.storeAtomicCell(in.inputs, row, in.slot, encode(next))
+
+    return in.changed.push(in.callee)[0]
+}

@@ -1,0 +1,30 @@
+import integers from "std:integer"
+
+import {
+    packed_mask,
+    code_none,
+    code_headered,
+    code_unique,
+    code_all,
+    code_deferred,
+    code_headered_deferred,
+    code_unique_deferred
+} from "./const"
+import { Knowledge } from "./model"
+
+export type Input = u8
+
+export type Output = Knowledge
+
+export default function (in: Input): Output {
+    return match integers.andBits(integers.widenByte(in), packed_mask) {
+        code_none => Knowledge.None,
+        code_headered => Knowledge.Headered,
+        code_unique => Knowledge.Unique,
+        code_all => Knowledge.All,
+        code_deferred => Knowledge.Deferred,
+        code_headered_deferred => Knowledge.HeaderedDeferred,
+        code_unique_deferred => Knowledge.UniqueDeferred,
+        _ => Knowledge.AllDeferred
+    }
+}

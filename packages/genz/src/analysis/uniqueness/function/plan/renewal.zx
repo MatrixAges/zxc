@@ -1,0 +1,28 @@
+import integers from "std:integer"
+
+import path from "../../slots/path"
+import { slot_stride } from "../levels/const"
+import { sort_owner_stride } from "./const"
+
+import type { Input as Source, Renewal as Output } from "./model"
+
+export type Input = {
+    source: Source,
+    key: u64
+}
+
+export default function (in: Input): Output {
+    const owner = in.key / sort_owner_stride
+    const part = in.key % sort_owner_stride
+
+    return {
+        owner: integers.narrow(owner),
+        path: path({
+            layout: in.source.context.metadata.layout,
+            kinds: in.source.types.kinds,
+            type_id: in.source.context.metadata.expressions.types[owner],
+            slot: integers.narrow(part % slot_stride)
+        }),
+        value: part >= slot_stride
+    }
+}

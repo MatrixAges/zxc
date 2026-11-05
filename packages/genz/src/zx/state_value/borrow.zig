@@ -8,6 +8,7 @@ pub fn lower(self: *Lower, storage: *std.ArrayList(node.Statement), body: *std.A
     if (self.program.typeOf(id) == .list) return @import("elements.zig").convert(self, body, id, value, false);
 
     const layout = try @import("../types.zig").get(self, self.abi_layouts, id);
+    var rebuilt: std.ArrayList(node.Statement) = .empty;
 
     const result = switch (self.program.typeOf(id)) {
         .optional => |child| {
@@ -29,7 +30,7 @@ pub fn lower(self: *Lower, storage: *std.ArrayList(node.Statement), body: *std.A
 
                 item.* = .{
                     .name = field.name,
-                    .value = try lower(self, storage, body, field.type_id, try self.field(value, field.name)),
+                    .value = try lower(self, storage, &rebuilt, field.type_id, try self.field(value, field.name)),
                 };
             }
 
@@ -38,7 +39,7 @@ pub fn lower(self: *Lower, storage: *std.ArrayList(node.Statement), body: *std.A
         .tuple => |children| blk: {
             const items = try self.allocator.alloc(node.ExpressionId, children.len);
 
-            for (items, 0..) |*item, index| item.* = try lower(self, storage, body, children.at(index), try self.field(value, try std.fmt.allocPrint(self.allocator, "{d}", .{index})));
+            for (items, 0..) |*item, index| item.* = try lower(self, storage, &rebuilt, children.at(index), try self.field(value, try std.fmt.allocPrint(self.allocator, "{d}", .{index})));
 
             break :blk try self.cast(layout, try self.builder.expression(.{ .tuple = items }));
         },
@@ -49,9 +50,10 @@ pub fn lower(self: *Lower, storage: *std.ArrayList(node.Statement), body: *std.A
     const slot = try self.builder.identifier(name);
 
     try storage.append(self.allocator, .{ .variable = .{ .name = name, .type_expr = layout, .value = try self.builder.expression(.undefined_value) } });
-    try body.append(self.allocator, .{ .assignment = .{ .target = slot, .value = result } });
+    try rebuilt.append(self.allocator, .{ .assignment = .{ .target = slot, .value = result } });
 
     const origin = try self.field(value, try @import("origin.zig").name(self, id));
+    const fallback = try @import("../aggregate.zig").finish(self, &rebuilt, try self.builder.expression(.{ .address_of = slot }));
 
-    return self.builder.expression(.{ .binary = .{ .operator = .coalesce, .left = origin, .right = try self.builder.expression(.{ .address_of = slot }) } });
+    return self.builder.expression(.{ .binary = .{ .operator = .coalesce, .left = origin, .right = fallback } });
 }

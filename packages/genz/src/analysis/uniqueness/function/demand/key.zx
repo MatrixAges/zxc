@@ -1,0 +1,20 @@
+import integers from "std:integer"
+
+import encode from "../levels/encode"
+import { node_shift, slot_shift, want_shift } from "./const"
+
+import type { Request as Input } from "./model"
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    const node = integers.shiftLeft(integers.widen(in.node), node_shift)
+    const slot = integers.shiftLeft(integers.widen(in.slot), slot_shift)
+
+    const want =
+        integers.shiftLeft(integers.widenByte(encode(in.wanted)), want_shift)
+
+    const flags = integers.orBits(want, in.repeated ? 1 : 0)
+
+    return integers.orBits(integers.orBits(node, slot), flags)
+}

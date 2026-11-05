@@ -1,0 +1,67 @@
+import type { AtomicRows } from "std:bytes"
+import type { Context, Knowledge, Read, State } from "../levels/model"
+
+export type Working = {
+    known: Knowledge[],
+    reads: Read[]
+}
+
+export type ReturnSource = {
+    context: Context,
+    carried: Knowledge[][],
+    results: u32[],
+    count: u64
+}
+
+export type ReturnStage = {
+    source: ReturnSource,
+    working: Working
+}
+
+export type Returned = {
+    known: Knowledge[],
+    reads: Read[],
+    levels: Knowledge[]
+}
+
+export type ArgumentSource = {
+    context: Context,
+    carried: Knowledge[][],
+    operations: u32[],
+    inputs: AtomicRows,
+    deferred: bool
+}
+
+export type ArgumentStage = {
+    source: ArgumentSource,
+    working: Working
+}
+
+export type Contribution = {
+    callee: u32,
+    levels: Knowledge[]
+}
+
+export type Contributed = {
+    known: Knowledge[],
+    reads: Read[],
+    passed: Contribution[],
+    changed: u32[]
+}
+
+export type Settlement = {
+    context: Context,
+    repeated: u32[],
+    operations: u32[],
+    inputs: AtomicRows,
+    deferred: bool,
+    results: u32[],
+    count: u64
+}
+
+export type Settled = {
+    state: State,
+    passed: Contribution[],
+    changed: u32[],
+    levels: Knowledge[]
+}

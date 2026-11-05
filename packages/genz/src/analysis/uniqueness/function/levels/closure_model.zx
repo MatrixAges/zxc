@@ -1,0 +1,20 @@
+import type { Context, State } from "./model"
+
+export type Repetition = {
+    owner: u32,
+    initial: u32,
+    body: u32,
+    parameter: u32,
+    condition?: u32
+}
+
+export type Closure = {
+    context: Context,
+    repeated: u32[]
+}
+
+export type Settlement = {
+    context: Context,
+    state: State,
+    repetitions: Repetition[]
+}

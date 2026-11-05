@@ -1,0 +1,78 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+
+import lacks from "../../level/lacks"
+import { slot_stride, value_renewal } from "../levels/const"
+import query from "../levels/query"
+import value from "../levels/value"
+import { normalize_flag, renew_flag } from "./const"
+
+import type { Growth } from "../levels/model"
+import type { Input as Source, Working } from "./model"
+
+export type Input = {
+    source: Source,
+    working: Working,
+    entries: Growth[],
+    normalized: bool
+}
+
+export type Output = Working
+
+export default function (in: Input): Output {
+    return loop({
+        index: 0,
+        working: in.working
+    }, {
+        while: (state, context) => state.index < context.entries.length,
+        next: (state, context) => {
+            const entry = context.entries[state.index]
+            const own_value = entry.key >= value_renewal
+
+            if (context.normalized || own_value) {
+                const packed = own_value ? entry.key - value_renewal : entry.key
+                const node = context.normalized ? entry.key : packed / slot_stride
+                const slot = context.normalized ? 0 : packed % slot_stride
+
+                if (context.source.time[node] != max_u32) {
+                    const want = value(entry.value)
+
+                    if (context.normalized || want.unique) {
+                        const result = query({
+                            context: context.source.context,
+                            state: {
+                                known: state.working.known,
+                                carried: context.source.state.carried,
+                                reads: state.working.reads
+                            },
+                            request: {
+                                node: integers.narrow(node),
+                                slot: integers.narrow(slot),
+                                raw: true
+                            }
+                        })
+
+                        const active = want.unique && lacks({
+                            left: value(result.value),
+                            right: want
+                        })
+
+                        const flag = context.normalized ? normalize_flag : renew_flag
+                        const previous = state.working.flags[node]
+
+                        state.working = {
+                            known: result.known,
+                            reads: result.reads,
+                            flags: active ? state.working.flags.with(
+                                node,
+                                integers.orBits(previous, flag)
+                            ) : state.working.flags
+                        }
+                    }
+                }
+            }
+
+            state.index += 1
+        }
+    }, in).working
+}

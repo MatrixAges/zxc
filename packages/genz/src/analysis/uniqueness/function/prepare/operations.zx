@@ -1,0 +1,39 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import type { Expressions } from "core/expression_table/model"
+
+export type Input = {
+    expressions: Expressions,
+    time: u32[]
+}
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    const operations: u32[] = []
+
+    return loop({
+        operations,
+        index: 0
+    }, {
+        while: (state, source) => state.index < source.expressions.kinds.length,
+        next: (state, source) => {
+            if (source.time[state.index] != max_u32) {
+                const kind = source.expressions.kinds[state.index]
+
+                if (
+                    kind == ExpressionKind.Call || kind == ExpressionKind.ListOperation ||
+                        kind == ExpressionKind.ListUpdate
+                ) {
+                    state.operations = state.operations.push(
+                        integers.narrow(state.index)
+                    )[0]
+                }
+            }
+
+            state.index += 1
+        }
+    }, in).operations
+}

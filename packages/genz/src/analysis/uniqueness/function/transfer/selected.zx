@@ -1,0 +1,97 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import { renew_flag } from "../plan/const"
+
+import type { Input as Source } from "../plan/model"
+
+export type Input = {
+    source: Source,
+    flags: u64[]
+}
+
+export type Output = bool[]
+
+export default function (in: Input): Output {
+    const expressions = in.source.context.metadata.expressions
+    const selected = expressions.kinds.map(kind => false)[0]
+
+    const operations = loop({
+        selected,
+        index: 0
+    }, {
+        while: (state, input) => state.index < input.source.operations.length,
+        next: (state, input) => {
+            const source = input.source
+            const node = integers.widen(source.operations[state.index])
+            const expressions = source.context.metadata.expressions
+            const payload = integers.widen(expressions.payloads[node])
+
+            const target = match expressions.kinds[node] {
+                ExpressionKind.Call => expressions.call_arguments[payload],
+                ExpressionKind.ListUpdate => expressions.update_targets[payload],
+                _ => expressions.collection_targets[payload]
+            }
+
+            if (expressions.kinds[node] == ExpressionKind.Call) {
+                const owner = source.context.metadata.layout.unwrapped[
+                    integers.widen(expressions.types[node])
+                ]
+                const output = kind(source.types.kinds[integers.widen(owner)])
+                const scalar = output == Kind.Scalar || output == Kind.Enumeration ||
+                    output == Kind.ErrorSet
+                const renewed = integers.andBits(
+                    input.flags[integers.widen(target)],
+                    renew_flag
+                ) != 0
+
+                if (!scalar || renewed) {
+                    state.selected[integers.widen(target)] = true
+                }
+            } else {
+                state.selected[integers.widen(target)] = true
+            }
+
+            state.index += 1
+        }
+    }, in).selected
+
+    const repeated = loop({
+        selected: operations,
+        index: 0
+    }, {
+        while: (state, source) => state.index < source.repeated.length,
+        next: (state, source) => {
+            const expressions = source.context.metadata.expressions
+            const node = integers.widen(source.repeated[state.index])
+
+            if (expressions.kinds[node] == ExpressionKind.Iteration) {
+                const payload = integers.widen(expressions.payloads[node])
+
+                state
+                    .selected[integers.widen(
+                        expressions.iteration_initials[payload]
+                    )] = true
+                state
+                    .selected[integers.widen(
+                        expressions.iteration_bodies[payload]
+                    )] = true
+            }
+
+            state.index += 1
+        }
+    }, in.source).selected
+
+    return loop({
+        selected: repeated,
+        index: 0
+    }, {
+        while: (state, source) => state.index < source.results.length,
+        next: (state, source) => {
+            state.selected[integers.widen(source.results[state.index])] = true
+            state.index += 1
+        }
+    }, in.source).selected
+}

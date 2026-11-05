@@ -1,0 +1,19 @@
+import { Knowledge } from "./model"
+
+export type Input = u64
+
+export type Output = Knowledge[]
+
+export default function (in: Input): Output {
+    const values: Knowledge[] = []
+
+    return loop({
+        values,
+        count: in
+    }, {
+        while: state => state.values.length < state.count,
+        next: state => {
+            state.values = state.values.push(Knowledge.Unknown)[0]
+        }
+    }).values
+}

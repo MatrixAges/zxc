@@ -34,9 +34,11 @@ fn lowerMode(self: *Lower, id: ir.ExprId, layout: ?node.ExpressionId, removed_on
     var body: std.ArrayList(node.Statement) = .empty;
     const source_type = self.program.expression(operation.target).type_id;
     const provenance = @import("state_value/list.zig");
-    const source_value = try aggregate.bind(self, &body, try self.expr(operation.target));
+    const evaluated_source = try self.expr(operation.target);
+    const qualified_source = if (provenance.selected(self, source_type)) try @import("state_value/ownership.zig").clip(self, &body, operation.target, evaluated_source) else evaluated_source;
+    const source_value = try aggregate.bind(self, &body, qualified_source);
     const source = try provenance.items(self, source_type, source_value);
-    const source_headered = if (provenance.selected(self, source_type)) try self.field(source_value, "headered") else try self.builder.expression(.{ .boolean = flags.frontier });
+    const source_headered = if (provenance.selected(self, source_type)) try provenance.headered(self, source_value) else try self.builder.expression(.{ .boolean = flags.frontier });
     const arguments = try self.allocator.alloc(node.ExpressionId, operation.arguments.len);
 
     for (operation.arguments, arguments) |argument, *value| {
@@ -118,7 +120,16 @@ fn lowerMode(self: *Lower, id: ir.ExprId, layout: ?node.ExpressionId, removed_on
                 try append.append(self.allocator, .{ .assignment = .{ .target = try self.builder.expression(.{ .index = .{ .target = buffer, .index = length } }), .value = arguments[0] } });
             } else try copy(self, &append, try slice(self, buffer, length, null), arguments[0]);
 
-            const appended = try aggregate.finish(self, &append, try provenance.wrap(self, source_type, buffer, true));
+            const wrapped = if (provenance.selected(self, source_type)) wrapped: {
+                const exclusive = if (flags.frontier or flags.lazy)
+                    try intrinsic.binary(self, .logical_or, if (flags.frontier) try intrinsic.binary(self, .equal, length, try self.builder.integer(0)) else try self.builder.expression(.{ .unary = .{ .operator = .not, .operand = source_headered } }), try provenance.exclusive(self, source_value))
+                else
+                    try self.builder.expression(.{ .boolean = true });
+
+                break :wrapped try provenance.proven(self, source_type, buffer, try self.builder.expression(.{ .boolean = true }), exclusive);
+            } else buffer;
+
+            const appended = try aggregate.finish(self, &append, wrapped);
 
             const updated = if (operation.kind == .concat) try self.builder.expression(.{ .conditional = .{
                 .condition = try intrinsic.binary(self, .equal, added, try self.builder.integer(0)),

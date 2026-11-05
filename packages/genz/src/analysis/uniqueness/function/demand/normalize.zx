@@ -1,0 +1,58 @@
+import integers from "std:integer"
+
+import knowledge from "../levels/knowledge"
+import { Knowledge } from "../levels/model"
+import usage from "../levels/usage"
+import value from "../levels/value"
+import growth from "./growth"
+
+import type { Working } from "./model"
+
+export type Input = {
+    working: Working,
+    leaf?: u32,
+    wanted: Knowledge
+}
+
+export type Output = Working
+
+export default function (in: Input): Output {
+    if (in.leaf == null) {
+        return in.working
+    }
+
+    const context = in.working.context
+    const desired = value(in.wanted)
+
+    const want = knowledge({
+        ...desired,
+        unique: desired.unique && usage({
+            context,
+            root: integers.narrow(
+                context.metadata.usage.symbols +
+                    integers.widen(in.leaf)
+            ),
+            slot: 0,
+            observe: false
+        })
+    })
+
+    if (want == Knowledge.None) {
+        return in.working
+    }
+
+    const result = growth({
+        entries: context.normalized,
+        key: integers.widen(in.leaf),
+        want
+    })
+
+    return {
+        ...in.working,
+        context: {
+            ...context,
+            normalized: result.entries
+        },
+        grew: in.working.grew || result.grew
+    }
+}

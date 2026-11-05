@@ -18,6 +18,7 @@ layout_types: []const @import("iteration_layout/generated.zig").Type = &.{},
 identity_free: []const bool = &.{},
 /// The functions whose output holds no part of their input.
 fresh_outputs: []const bool = &.{},
+grows: []const bool = &.{},
 uniqueness: Uniqueness.Result,
 basis: *const Uniqueness.Basis,
 /// Shared by every `reentry` into the same functions.
@@ -104,6 +105,7 @@ fn createWithConcurrency(backing: std.mem.Allocator, program: ir.Program, export
         .io = try owned.dupe(bool, facts.io),
         .process = try owned.dupe(bool, facts.process),
         .tasks = try owned.dupe(bool, facts.tasks),
+        .grows = try owned.dupe(bool, facts.grows),
         .errors = try copyErrors(owned, facts.errors),
         .layout_types = try owned.dupe(@import("iteration_layout/generated.zig").Type, facts.layout_types),
         .identity_free = try owned.dupe(bool, facts.identity_free),
@@ -214,6 +216,7 @@ fn remaining(allocator: std.mem.Allocator, workspace: std.mem.Allocator, program
             .io = generated.io,
             .process = generated.process,
             .tasks = generated.tasks,
+            .grows = generated.grows,
             .fresh_outputs = generated.fresh_outputs,
             .identity_free = generated.identity_free,
             .errors = generated.errors,
@@ -284,5 +287,5 @@ fn copyPlan(allocator: std.mem.Allocator, source: Uniqueness.Plan) std.mem.Alloc
 
     for (source.renewals, renewals) |renewal, *target| target.* = .{ .owner = renewal.owner, .path = try allocator.dupe(u32, renewal.path), .value = renewal.value };
 
-    return .{ .flags = try allocator.dupe(Uniqueness.Flags, source.flags), .renewals = renewals };
+    return .{ .flags = try allocator.dupe(Uniqueness.Flags, source.flags), .renewals = renewals, .transfers = try allocator.dupe(u64, source.transfers), .slot_first = try allocator.dupe(u32, source.slot_first) };
 }

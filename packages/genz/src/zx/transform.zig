@@ -28,8 +28,10 @@ pub fn lower(self: *Lower, id: ir.ExprId, value: ir.Transform) Lower.Error!node.
 
     if (value.kind == .reduce) {
         const accumulator = self.names[@backingInt(value.parameters[0])];
+        const evaluated_initial = try self.expr(value.initial.?);
+        const initial = if (self.state_active) try @import("state_value/ownership.zig").erase(self, &body, self.program.expression(id).type_id, evaluated_initial) else evaluated_initial;
 
-        try body.append(self.allocator, .{ .variable = .{ .name = accumulator, .type_expr = result_type, .value = try self.expr(value.initial.?) } });
+        try body.append(self.allocator, .{ .variable = .{ .name = accumulator, .type_expr = result_type, .value = initial } });
 
         var entered: std.ArrayList(node.Statement) = .empty;
 
@@ -43,7 +45,9 @@ pub fn lower(self: *Lower, id: ir.ExprId, value: ir.Transform) Lower.Error!node.
             .no = .{},
         } });
 
-        try loop.append(self.allocator, .{ .assignment = .{ .target = try self.builder.identifier(accumulator), .value = callback } });
+        const qualified = if (self.state_active) try @import("state_value/ownership.zig").erase(self, &loop, self.program.expression(id).type_id, callback) else callback;
+
+        try loop.append(self.allocator, .{ .assignment = .{ .target = try self.builder.identifier(accumulator), .value = qualified } });
 
         result = try self.builder.identifier(accumulator);
     } else if (value.kind == .map) {

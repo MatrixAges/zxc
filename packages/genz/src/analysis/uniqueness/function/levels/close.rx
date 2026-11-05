@@ -1,0 +1,27 @@
+<Module>
+    <Type from="model" as="Levels" />
+    <Type from="closure_model" as="Closure" />
+
+    <Args in={Closure.Closure} out={Levels.State} />
+
+    <Call fn="repetitions" in={$in} />
+
+    <Call
+        fn="initialize"
+        in={{
+            context: $in.context,
+            repetitions: $ctx.repetitions
+        }}
+    />
+
+    <Call
+        fn="settle"
+        in={{
+            context: $in.context,
+            state: $ctx.initialize,
+            repetitions: $ctx.repetitions
+        }}
+    />
+
+    <Return value={$ctx.settle} />
+</Module>

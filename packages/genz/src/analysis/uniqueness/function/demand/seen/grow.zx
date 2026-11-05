@@ -1,0 +1,42 @@
+import { empty_key, initial_capacity } from "./const"
+import position from "./position"
+
+export type Input = u64[]
+
+export type Output = u64[]
+
+export default function (in: Input): Output {
+    const empty: u64[] = []
+
+    const capacity = in.length == 0 ? initial_capacity : in.length * 2
+
+    const keys = loop({
+        keys: empty
+    }, {
+        while: (current, size) => current.keys.length < size,
+        next: current => {
+            current.keys = current.keys.push(empty_key)[0]
+        }
+    }, capacity).keys
+
+    return loop({
+        keys,
+        index: 0
+    }, {
+        while: (state, source) => state.index < source.length,
+        next: (state, source) => {
+            const key = source[state.index]
+
+            if (key != empty_key) {
+                const target = position({
+                    keys: state.keys,
+                    key
+                })
+
+                state.keys = state.keys.with(target.index, key)
+            }
+
+            state.index += 1
+        }
+    }, in).keys
+}

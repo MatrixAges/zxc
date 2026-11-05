@@ -1,0 +1,111 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+import { ExpressionKind, CollectionKind } from "core/expression_table/kinds"
+
+import { Knowledge } from "../levels/model"
+import read from "./read"
+import trace from "./trace"
+
+import type { Stage as Input, Working as Output } from "./model"
+
+export default function (in: Input): Output {
+    return loop({
+        working: in.working,
+        index: 0
+    }, {
+        while: (state, source) => state.index < source.operations.length,
+        next: (state, source) => {
+            const expressions = state.working.context.metadata.expressions
+            const owner = source.operations[state.index]
+            const node = integers.widen(owner)
+            const payload = integers.widen(expressions.payloads[node])
+            const kind = expressions.kinds[node]
+
+            if (kind == ExpressionKind.Call) {
+                const function_index = expressions.call_functions[payload]
+                const count = bytes.atomicRowLength(
+                    source.inputs,
+                    integers.widen(function_index)
+                )
+
+                state.working = loop({
+                    working: state.working,
+                    slot: 0
+                }, {
+                    while: (current, context) => current.slot < context.count,
+                    next: (current, context) => {
+                        const slot = integers.narrow(current.slot)
+                        const wanted = read({
+                            stage: {
+                                source: context.source,
+                                working: current.working
+                            },
+                            output: false,
+                            function_index: context.function_index,
+                            slot
+                        })
+
+                        current.working = wanted.working
+
+                        if (wanted.value != Knowledge.None) {
+                            current.working = trace({
+                                source: context.source,
+                                working: current.working,
+                                request: {
+                                    node: context.argument,
+                                    slot,
+                                    outer: null,
+                                    repeated: true,
+                                    wanted: wanted.value
+                                }
+                            })
+                        }
+
+                        current.slot += 1
+                    }
+                }, {
+                    source,
+                    count,
+                    function_index,
+                    argument: expressions.call_arguments[payload]
+                }).working
+            } else {
+                const operation = kind == ExpressionKind.ListOperation ?
+                    expressions.collection_kinds[payload] : CollectionKind.Pop
+                const append = kind == ExpressionKind.ListOperation &&
+                    (
+                        operation == CollectionKind.Push ||
+                            operation == CollectionKind.Concat
+                    )
+                const write = kind == ExpressionKind.ListUpdate ||
+                    (
+                        kind == ExpressionKind.ListOperation &&
+                            (
+                                operation == CollectionKind.Sort ||
+                                    operation == CollectionKind.Reverse
+                            )
+                    )
+
+                if (append || write) {
+                    const target = kind == ExpressionKind.ListUpdate ?
+                        expressions.update_targets[payload] :
+                        expressions.collection_targets[payload]
+
+                    state.working = trace({
+                        source,
+                        working: state.working,
+                        request: {
+                            node: target,
+                            slot: 0,
+                            outer: null,
+                            repeated: false,
+                            wanted: append ? Knowledge.Headered : Knowledge.Unique
+                        }
+                    })
+                }
+            }
+
+            state.index += 1
+        }
+    }, in.source).working
+}

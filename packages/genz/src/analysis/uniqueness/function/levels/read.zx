@@ -1,0 +1,39 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import decode from "./decode"
+import { Table } from "./model"
+
+import type { Context, Read, Knowledge } from "./model"
+
+export type Input = {
+    context: Context,
+    reads: Read[],
+    table: Table,
+    function_index: u32,
+    slot: u32
+}
+
+export type Output = {
+    reads: Read[],
+    value: Knowledge
+}
+
+export default function (in: Input): Output {
+    const values = in.table == Table.Input ? in.context.metadata.input :
+        in.context.metadata.output[integers.widen(in.function_index)]
+
+    const value = decode(bytes.loadAtomic(values, integers.widen(in.slot)))
+
+    return {
+        reads: in.context.metadata.record ? in.reads.push({
+            ...in.pick([
+                "table",
+                "function_index",
+                "slot"
+            ]),
+            value
+        })[0] : in.reads,
+        value
+    }
+}

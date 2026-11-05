@@ -54,6 +54,9 @@ input_aliases: ?[]const bool = null,
 iteration_value: ?*@import("iteration_value/root.zig") = null,
 loop_fields: ?*const @import("iteration/fields/root.zig") = null,
 layout_types: []const @import("iteration_layout/generated.zig").Type = &.{},
+slot_counts: []const u32 = &.{},
+growth_functions: []const bool = &.{},
+may_grow: bool = true,
 uses_context: bool = false,
 uses_parallel: bool = false,
 shared_types: bool = false,
@@ -368,7 +371,7 @@ fn projectedField(self: *Self, target: ir.ExprId, id: ir.TypeId, name: []const u
 
 fn projection(self: *Self, id: ir.ExprId) Error!node.ExpressionId {
     switch (self.program.expression(id).value) {
-        .iteration, .list_operation => return @import("value_call/root.zig").expression(self, id),
+        .scope, .iteration, .list_operation => return @import("value_call/root.zig").expression(self, id),
         .call => |value| if (self.value_functions[@backingInt(value.function)]) return @import("value_call/root.zig").expression(self, id),
         else => {},
     }

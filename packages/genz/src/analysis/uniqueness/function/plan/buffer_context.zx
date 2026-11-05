@@ -1,0 +1,60 @@
+import integers from "std:integer"
+
+import { slot_stride } from "../levels/const"
+import { Knowledge } from "../levels/model"
+
+import type { Context, Growth } from "../levels/model"
+
+export type Input = {
+    context: Context,
+    owners: u32[]
+}
+
+export type Output = Context
+
+export default function (in: Input): Output {
+    const renewed: Growth[] = []
+
+    const values = loop({
+        index: 0,
+        renewed
+    }, {
+        while: (state, context) => state.index < context.owners.length,
+        next: (state, context) => {
+            const owner = context.owners[state.index]
+            const type_id =
+                context.context.metadata.expressions.types[integers.widen(owner)]
+
+            state.renewed = loop({
+                slot: 0,
+                renewed: state.renewed
+            }, {
+                while: (slot, source) => slot.slot <
+                    integers.widen(
+                        source.context.metadata
+                            .counts[integers.widen(
+                                source.type_id
+                            )]
+                    ),
+                next: (slot, source) => {
+                    slot.renewed = slot.renewed.push({
+                        key: integers.widen(source.owner) * slot_stride + slot.slot,
+                        value: Knowledge.All
+                    })[0]
+                    slot.slot += 1
+                }
+            }, {
+                context: context.context,
+                owner,
+                type_id
+            }).renewed
+            state.index += 1
+        }
+    }, in).renewed
+
+    return {
+        ...in.context,
+        normalized: [],
+        renewed: values
+    }
+}

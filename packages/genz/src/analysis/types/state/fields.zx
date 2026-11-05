@@ -3,7 +3,7 @@ import integers from "std:integer"
 import kind from "core/type_table/kind"
 import { Kind } from "core/type_table/model"
 
-import { items_field, headered_field } from "./const"
+import { items_field, storage_field } from "./const"
 
 import type { Field } from "../definitions/model"
 import type { Plan, Types, Output } from "./model"
@@ -41,10 +41,9 @@ export default function (in: Input): Output {
                 if (list) {
                     current.fields = current.fields.push({
                         name: bytes.fromText(
-                            current.member == 0 ?
-                                items_field : headered_field
+                            current.member == 0 ? items_field : storage_field
                         ),
-                        value: record.start + integers.narrow(current.member),
+                        value: record.start + (current.member == 0 ? 0 : 1),
                         default_value: null,
                         comptime_parameter: false
                     })[0]

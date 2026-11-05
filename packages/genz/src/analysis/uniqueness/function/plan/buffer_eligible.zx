@@ -1,0 +1,44 @@
+import integers from "std:integer"
+
+import mutation from "../../../iteration/buffers/mutation"
+import bufferLoop from "./buffer_loop"
+
+import type { Input } from "./model"
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const writes = loop({
+        index: 0,
+        found: false
+    }, {
+        while: (state, context) => !state.found &&
+            state.index < context.operations.length,
+        next: (state, context) => {
+            state.found = mutation({
+                types: context.types,
+                expressions: context.context.metadata.expressions,
+                index: integers.widen(context.operations[state.index])
+            })
+            state.index += 1
+        }
+    }, in).found
+
+    if (!writes) {
+        return false
+    }
+
+    return loop({
+        index: 0,
+        found: false
+    }, {
+        while: (state, context) => !state.found && state.index < context.repeated.length,
+        next: (state, context) => {
+            state.found = bufferLoop({
+                source: context,
+                node: context.repeated[state.index]
+            })
+            state.index += 1
+        }
+    }, in).found
+}

@@ -1,0 +1,49 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import join from "../../level/join"
+import decode from "../levels/decode"
+import encode from "../levels/encode"
+import knowledge from "../levels/knowledge"
+import value from "../levels/value"
+
+import type { Stage, Mark, Working } from "./model"
+
+export type Input = {
+    stage: Stage,
+    mark: Mark
+}
+
+export type Output = Working
+
+export default function (in: Input): Output {
+    const working = {
+        ...in.stage.working,
+        marks: in.stage.working.marks.push(in.mark)[0]
+    }
+
+    if (in.stage.source.deferred) {
+        return working
+    }
+
+    const rows = in.mark.output ? in.stage.source.outputs : in.stage.source.inputs
+    const row = integers.widen(in.mark.function_index)
+    const slot = integers.widen(in.mark.slot)
+    const before = decode(bytes.loadAtomicCell(rows, row, slot))
+
+    const next = knowledge(join({
+        left: value(before),
+        right: value(in.mark.want)
+    }))
+
+    if (next == before) {
+        return working
+    }
+
+    bytes.storeAtomicCell(rows, row, slot, encode(next))
+
+    return {
+        ...working,
+        changed: working.changed.push(in.mark.function_index)[0]
+    }
+}

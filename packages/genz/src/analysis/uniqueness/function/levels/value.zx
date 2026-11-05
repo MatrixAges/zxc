@@ -1,0 +1,16 @@
+import { Knowledge } from "./model"
+
+import type { Level as Output } from "../../level/model"
+
+export type Input = Knowledge
+
+export default function (in: Input): Output {
+    return {
+        headered: in == Knowledge.Headered || in == Knowledge.All ||
+            in == Knowledge.HeaderedDeferred || in == Knowledge.AllDeferred,
+        unique: in == Knowledge.Unique || in == Knowledge.All ||
+            in == Knowledge.UniqueDeferred || in == Knowledge.AllDeferred,
+        deferred: in == Knowledge.Deferred || in == Knowledge.HeaderedDeferred ||
+            in == Knowledge.UniqueDeferred || in == Knowledge.AllDeferred
+    }
+}

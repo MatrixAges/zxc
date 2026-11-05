@@ -22,6 +22,8 @@ pub const Renewal = Function.Renewal;
 pub const Plan = struct {
     flags: []const Flags,
     renewals: []const Renewal = &.{},
+    transfers: []const u64 = &.{},
+    slot_first: []const u32 = &.{},
     pub fn get(self: Plan, id: ir.ExprId) Flags {
         const index = @backingInt(id);
 
@@ -53,7 +55,14 @@ pub const Unit = struct {
         return .{ .identity = self.identity, .index = index, .input = self.unit.input, .callees = self.callees, .normalized = &self.normalized, .renewed = &self.renewed };
     }
     /// The passes over the body are built on first use in `lasting`, which outlives every later analysis.
-    pub fn analyze(self: *Unit, allocator: std.mem.Allocator, lasting: std.mem.Allocator, functions: ir.FunctionTable, slots: Slots, summaries: *Summaries, growth: ?Growth) std.mem.Allocator.Error!Function {
+    pub fn analyze(self: *Unit, allocator: std.mem.Allocator, lasting: std.mem.Allocator, functions: ir.FunctionTable, slots: Slots, summaries: *Summaries, growth: ?Growth, reads: ?*std.ArrayList(Function.Read)) std.mem.Allocator.Error!Function {
+        var analysis = try self.initialize(allocator, lasting, functions, slots, summaries, growth, reads);
+
+        try analysis.close();
+
+        return analysis;
+    }
+    pub fn initialize(self: *Unit, allocator: std.mem.Allocator, lasting: std.mem.Allocator, functions: ir.FunctionTable, slots: Slots, summaries: *Summaries, growth: ?Growth, reads: ?*std.ArrayList(Function.Read)) std.mem.Allocator.Error!Function {
         if (self.passes == null) {
             const order = try Order.create(lasting, allocator, self.unit.symbols, self.unit.expressions, self.body);
 
@@ -72,7 +81,7 @@ pub const Unit = struct {
             unit.renewed = copies.renewed;
         }
 
-        return Function.analyze(allocator, functions, unit, &passes.order, &passes.sites, slots, summaries);
+        return Function.initialize(allocator, functions, unit, &passes.order, &passes.sites, slots, summaries, reads);
     }
 };
 
@@ -174,18 +183,16 @@ fn analyzeWithConcurrency(allocator: std.mem.Allocator, workspace: std.mem.Alloc
         const recalled = replay.recall(.planned, index) orelse try memo.getPlanned(&summaries, unit.state(index));
         const early = try ahead.take(.planned, index);
 
-        const planned = recalled orelse if (early) |found| try memo.putPlanned(memo.key, found.flags, found.renewals) else planned: {
-            var analysis = try unit.analyze(temporary, temporary, program.functions, slots, &summaries, null);
-            const flags = try temporary.alloc(Flags, unit.unit.expressions.count());
+        const planned = recalled orelse if (early) |found| try memo.putPlanned(memo.key, .{ .flags = found.flags, .renewals = found.renewals, .transfers = found.transfers, .slot_first = found.slot_first }) else planned: {
+            var analysis = try unit.analyze(temporary, temporary, program.functions, slots, &summaries, null, null);
+            const plan = try analysis.plan(temporary);
 
-            try analysis.flags(flags);
-
-            break :planned try memo.putPlanned(memo.key, flags, try analysis.renewals(temporary));
+            break :planned try memo.putPlanned(memo.key, plan);
         };
 
         try replay.met(.planned, index, planned, memo);
 
-        const plan = Plan{ .flags = try allocator.dupe(Flags, planned.flags), .renewals = try copyRenewals(allocator, planned.renewals) };
+        const plan = Plan{ .flags = try allocator.dupe(Flags, planned.flags), .renewals = try copyRenewals(allocator, planned.renewals), .transfers = try allocator.dupe(u64, planned.transfers), .slot_first = try allocator.dupe(u32, planned.slot_first) };
 
         if (index < count) plans[index] = plan else entry_plan = plan;
     }
@@ -234,19 +241,17 @@ pub fn analyzeEntryWith(allocator: std.mem.Allocator, workspace: std.mem.Allocat
 
     while (true) {
         var changed: std.ArrayList(usize) = .empty;
-        var analysis = try unit.analyze(temporary, temporary, program.functions, slots, summaries, null);
+        var analysis = try unit.analyze(temporary, temporary, program.functions, slots, summaries, null, null);
         var marked: std.ArrayList(Function.Mark) = .empty;
 
         try analysis.demand(&changed, &marked);
         if (!analysis.grew) break;
     }
 
-    var analysis = try unit.analyze(temporary, temporary, program.functions, slots, summaries, null);
-    const flags = try allocator.alloc(Flags, program.expressions.count());
+    var analysis = try unit.analyze(temporary, temporary, program.functions, slots, summaries, null, null);
+    const plan = try analysis.plan(allocator);
 
-    try analysis.flags(flags);
-
-    return .{ .flags = flags, .renewals = try analysis.renewals(allocator) };
+    return .{ .flags = plan.flags, .renewals = plan.renewals, .transfers = plan.transfers, .slot_first = plan.slot_first };
 }
 
 /// Bodies whose facts may have changed, each queued at most once; the entry body is the last index.
@@ -345,11 +350,9 @@ fn settle(workspace: std.mem.Allocator, work: *Work, program: ir.Program, slots:
             break :replayed settled;
         } else analyzed: {
             var passed: std.ArrayList(Function.Contribution) = .empty;
-            var analysis = try unit.analyze(round.allocator(), ahead.kept(), program.functions, slots, summaries, null);
+            var analysis = try unit.initialize(round.allocator(), ahead.kept(), program.functions, slots, summaries, null, null);
 
-            try analysis.arguments(&changed, &passed);
-
-            if (index != count) try analysis.output(output);
+            try analysis.settle(&changed, &passed, output);
 
             break :analyzed try memo.putSettled(memo.key, passed.items, output);
         };
@@ -415,7 +418,7 @@ fn demand(workspace: std.mem.Allocator, work: *Work, program: ir.Program, slots:
             break :ahead try memo.putDemanded(memo.key, found.marks, state, found.grew);
         } else analyzed: {
             var marked: std.ArrayList(Function.Mark) = .empty;
-            var analysis = try unit.analyze(round.allocator(), ahead.kept(), program.functions, slots, summaries, null);
+            var analysis = try unit.analyze(round.allocator(), ahead.kept(), program.functions, slots, summaries, null, null);
 
             try analysis.demand(&changed, &marked);
 
@@ -476,7 +479,7 @@ fn shortcut(allocator: std.mem.Allocator, temporary: std.mem.Allocator, program:
 
             if (renewed) |replacement| value.* = replacement;
 
-            break :plan .{ .flags = try allocator.dupe(Flags, value.flags), .renewals = try copyRenewals(allocator, value.renewals) };
+            break :plan .{ .flags = try allocator.dupe(Flags, value.flags), .renewals = try copyRenewals(allocator, value.renewals), .transfers = try allocator.dupe(u64, value.transfers), .slot_first = try allocator.dupe(u32, value.slot_first) };
         };
 
         if (index < count) plans[index] = plan else entry_plan = plan;
@@ -493,31 +496,31 @@ fn revisit(comptime kind: Memo.Kind, temporary: std.mem.Allocator, program: ir.P
     if (!try Memo.restore(kind, state, summaries, index, unit.callees, &unit.normalized, &unit.renewed)) return null;
 
     var changed: std.ArrayList(usize) = .empty;
-    var analysis = try unit.analyze(temporary, temporary, program.functions, slots, summaries, null);
+    var analysis = try unit.initialize(temporary, temporary, program.functions, slots, summaries, null, null);
 
     switch (kind) {
         .settled => {
             var passed: std.ArrayList(Function.Contribution) = .empty;
             const output = try temporary.alloc(Level, if (index < summaries.output.len) summaries.output[index].len else 0);
 
-            try analysis.arguments(&changed, &passed);
-            if (index < summaries.output.len) try analysis.output(output);
+            try analysis.settle(&changed, &passed, output);
 
             return try memo.putSettled(memo.key, passed.items, output);
         },
         .demanded => {
             var marked: std.ArrayList(Function.Mark) = .empty;
 
+            try analysis.close();
             try analysis.demand(&changed, &marked);
 
             return try memo.putDemanded(memo.key, marked.items, unit.state(index), analysis.grew);
         },
         .planned => {
-            const flags = try temporary.alloc(Flags, unit.unit.expressions.count());
+            try analysis.close();
 
-            try analysis.flags(flags);
+            const plan = try analysis.plan(temporary);
 
-            return try memo.putPlanned(memo.key, flags, try analysis.renewals(temporary));
+            return try memo.putPlanned(memo.key, plan);
         },
     }
 }

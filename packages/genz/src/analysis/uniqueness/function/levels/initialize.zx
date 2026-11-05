@@ -1,0 +1,77 @@
+import integers from "std:integer"
+
+import { Knowledge } from "./model"
+import unknowns from "./unknowns"
+import usage from "./usage"
+
+import type { Repetition } from "./closure_model"
+import type { Context, Read, State as Output } from "./model"
+
+export type Input = {
+    context: Context,
+    repetitions: Repetition[]
+}
+
+export default function (in: Input): Output {
+    const empty: Knowledge[] = []
+    const reads: Read[] = []
+    const first = in.context.metadata.usage.plan.slot_first
+    const total = first[first.length - 1] - first[in.context.metadata.usage.symbols]
+    const known = unknowns(integers.widen(total))
+    const carried = in.context.metadata.expressions.kinds.map(kind => empty)[0]
+
+    return loop({
+        index: 0,
+        known,
+        carried,
+        reads
+    }, {
+        while: (state, context) => state.index < context.repetitions.length,
+        next: (state, context) => {
+            const repetition = context.repetitions[state.index]
+            const owner = integers.widen(repetition.owner)
+            const type_id = context.context.metadata.expressions.types[owner]
+            const size = context.context.metadata.counts[integers.widen(type_id)]
+
+            const values: Knowledge[] = []
+
+            const row = loop({
+                values,
+                slot: 0
+            }, {
+                while: (current, source) => current.slot < integers.widen(source.size),
+                next: (current, source) => {
+                    const slot = integers.narrow(current.slot)
+                    const condition = source.repetition.condition
+                    const linear = usage({
+                        context: source.context,
+                        root: source.repetition.parameter,
+                        slot,
+                        observe: false
+                    }) && (condition == null || usage({
+                        context: source.context,
+                        root: condition,
+                        slot,
+                        observe: true
+                    }))
+
+                    current.values = current.values.push(
+                        linear ? Knowledge.All : Knowledge.Headered
+                    )[0]
+                    current.slot += 1
+                }
+            }, {
+                context: context.context,
+                repetition,
+                size
+            }).values
+
+            state.carried = state.carried.with(owner, row)
+            state.index += 1
+        }
+    }, in).pick([
+        "known",
+        "carried",
+        "reads"
+    ])
+}

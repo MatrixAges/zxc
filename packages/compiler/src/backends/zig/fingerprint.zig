@@ -53,7 +53,7 @@ fn finish(self: *Self, unit: Unit) [32]u8 {
     const value_functions = self.value_functions;
     const state_plan = self.state_plan;
 
-    self.bytes("zxc.zig.input.v53");
+    self.bytes("zxc.zig.input.v54");
     self.bytes(@tagName(unit));
     self.write(program.version);
 
@@ -125,6 +125,8 @@ fn finish(self: *Self, unit: Unit) [32]u8 {
 
 fn plan(self: *Self, value: @import("genz").zx.function_analysis.Uniqueness.Plan) void {
     self.update(std.mem.sliceAsBytes(value.flags));
+    self.bytes(std.mem.sliceAsBytes(value.transfers));
+    self.bytes(std.mem.sliceAsBytes(value.slot_first));
     self.write(value.renewals.len);
 
     for (value.renewals) |renewal| {

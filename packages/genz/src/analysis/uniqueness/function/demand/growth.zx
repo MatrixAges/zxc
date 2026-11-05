@@ -1,0 +1,53 @@
+import join from "../../level/join"
+import knowledge from "../levels/knowledge"
+import value from "../levels/value"
+
+import type { Growth, Knowledge } from "../levels/model"
+
+export type Input = {
+    entries: Growth[],
+    key: u64,
+    want: Knowledge
+}
+
+export type Output = {
+    entries: Growth[],
+    grew: bool
+}
+
+export default function (in: Input): Output {
+    const index = loop({
+        index: 0
+    }, {
+        while: (state, source) => state.index < source.entries.length &&
+            source.entries[state.index].key != source.key,
+        next: state => {
+            state.index += 1
+        }
+    }, in).index
+
+    if (index == in.entries.length) {
+        return {
+            entries: in.entries.push({
+                key: in.key,
+                value: in.want
+            })[0],
+            grew: true
+        }
+    }
+
+    const before = in.entries[index].value
+
+    const next = knowledge(join({
+        left: value(before),
+        right: value(in.want)
+    }))
+
+    return {
+        entries: next == before ? in.entries : in.entries.with(index, {
+            key: in.key,
+            value: next
+        }),
+        grew: next != before
+    }
+}
