@@ -427,3 +427,41 @@ Function/conditional/State/growth迁移仍在工作区，不随这次小范围�
 验证日志contract-lifetime-independent-checks.log、function-closure-import-owned-final.log、
 function-closure-scanner-fixed.log、function-closure-persistent-fixed-final.log、
 function-closure-process-fixed.log，均位于/tmp/zxc-function-levels。
+
+2026-11-05循环缓冲收口：完整回归与独立HEAD的test-iterate-buffer均60/66通过、
+同6项失败，另有旧日志完全同值。branch仅index<count决定入轮，enabled且index>=3
+才写入；现有iteration提前renew导致1/2轮及disabled仍复制。不能将其归为本轮
+Source迁移新增退化。短长分配不等尚需验证，不能凭字节差直接宣称每轮复制。
+
+复用已完成的HEAD验证副本，覆盖当前116个WIP文件后用作隔离原型，原安装HEAD
+binary保持不变；完整回归63253继续在主工作区执行。原型只改三个Native lowering
+文件：选中StateList的循环携带标记guarded，跳过对应入轮renew；list_update对这种
+原本in_place的操作检查实际storage，非exclusive时首次写入才分配header，之后
+复用。非StateList及深层buffer原路径保留，已有transfer/clip继续处理别名与快照。
+未加入新测试/阈值，先使用现有66项迭代检查验证，再决定是否应用到主工作区。
+
+原型被否定并从隔离副本恢复，主工作区从未应用。只读审查发现三处完整性缺口：
+selected_state不安装deep的iteration_value context，guard未被读取；只保护ListUpdate
+却跳过所有StateList叶子的renew，reverse/sort/pop/push仍可误信in_place/header；
+独立callee也可因旧All摘要直接写输入，调用点未必有第二次renew。原型实际构建虽
+完成，但现有11个fixture均在CLI校验IR阶段失败，说明影响了编译器自身的数据。
+不能靠接一根context指针或只通过branch用例将它宣称为修复。
+
+能力缺口是物理storage许可必须在每个消费边界与抽象摘要匹配，包括集合变更和
+跨ABI调用；在贯通该能力前保留当前安全的提前准备，不牺牲不可变性换惰性复制。
+本次证据已改变下一步：停止局部skip-renew原型，不为它继续生成/调试更多小变体；
+先集中收口已完成的Function逻辑迁移与缓存依赖，再处理该通用许可能力及剩余成本。
+既有6项loop失败仍明确保留，不改阈值，也不将其冒充Source迁移新增退化。
+
+完整回归另暴露program_pure把limit当self的旧漏洞：functions/calls允许target==limit，
+函数内恰是self ID，但顶层程序的limit是表长，导致空表call0及call==count误被当纯。
+已复用genz同类成熟做法：可选self_function与limit分离，仅functions/analyze显式
+传当前函数index；顶层调用省略self，保持无身份上下文，不放行越界。原两项越界
+断言保留；旧“拒绝纯自递归”的既有断言改为当前已支持的纯自递归结果。
+不新增用例，集中补run test-function-effects及相关有效IR范围。
+
+递归身份修复两套环境均36/36步骤、40/40检查通过；原两项无效IR调用断言未改，
+forward/out-of-range/Store/Task边界保留，唯一对齐的旧断言是已支持的纯自递归。
+独立副本不包含Function/conditional/growth迁移，三个文件与工作区逐字节相同。
+证据function-effects-self-identity-{checks,independent}.log。该修复可独立提交，
+不以它代替完整Function迁移和累计性能验收。已更新现有IDEA交接记录，无新测试。

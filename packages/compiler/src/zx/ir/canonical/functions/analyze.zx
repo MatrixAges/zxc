@@ -28,6 +28,7 @@ export default function (in: Input): Output {
                     calls({
                         expressions: current.functions.expressions[current.index],
                         allowed: current.values,
+                        self_function: current.index,
                         limit: current.index,
                         concurrent: current.concurrent
                     }))

@@ -6,6 +6,7 @@ import type { Expressions } from "core/expression_table/model"
 export type Input = {
     expressions: Expressions,
     allowed: bool[],
+    self_function?: u64,
     limit: u64,
     concurrent: bool
 }
@@ -16,6 +17,7 @@ export default function (in: Input): Output {
     return loop({
         expressions: in.expressions,
         allowed: in.allowed,
+        self_function: in.self_function,
         limit: in.limit,
         concurrent: in.concurrent,
         index: 0,
@@ -50,7 +52,10 @@ export default function (in: Input): Output {
                 current.valid =
                     current.expressions.call_store_count[payload] == 0 &&
                     (
-                        target == current.limit ||
+                        (
+                            current.self_function != null &&
+                                target == current.self_function
+                        ) ||
                             (target < current.limit && current.allowed[target])
                     )
             }

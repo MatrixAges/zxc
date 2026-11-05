@@ -29,8 +29,8 @@ test "generated effects reject bound Store calls to a pure function" {
     try f.summary(&.{ .{}, .{ .effect = .{ .call = .{ .target = 0, .bound = true } } } }, &.{ true, false }, &.{ true, false });
 }
 
-test "generated effects reject self calls" {
-    try f.summary(&.{.{ .effect = .{ .call = .{ .target = 0 } } }}, &.{false}, &.{false});
+test "generated effects accept pure self calls" {
+    try f.summary(&.{.{ .effect = .{ .call = .{ .target = 0 } } }}, &.{true}, &.{true});
 }
 
 test "generated effects reject forward calls despite a pure later target" {
