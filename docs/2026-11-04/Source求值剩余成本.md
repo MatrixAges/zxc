@@ -658,3 +658,52 @@ prefix-paired-results.json、prefix-paired-output-summary.json，均在/tmp/zxc-
 忽略；明确区分了公开受检契约和内部已分析来源。Debug旧base_types许可由静态
 调用链复核，本轮实际运行模式为Small，未声称额外执行Debug专项。
 完整回归旧构建图影响的32个编译范围仍待冻结输入补验，后续不重跑全量。
+
+## 冻结补验与发布冲突定位
+
+10组旧构建图补验使用句柄28247、post-reads-frozen-scopes.log，生产源码保持
+f374b7d1+c98ac423不变。frontend已实际执行6693例，6667通过，26个list_range
+夹具全部因仍从std:utils导入已移除map而提前得到module诊断；不是放宽错误预期
+可以解决的问题。26例统一移除旧导入，改成数组map并显式解构[owned, _]，id、
+phase、diagnostic均保持原值。没有对应生成脚本，案例在该JSONL直接维护。
+定向原26例33/33步骤、26/26检查通过，证据list-range-array-method-checks-scoped.log。
+初次定向命令误在根目录执行、frontend-filter选项不存在，已改到packages/test；
+该命令未执行用例，不作为通过证据。原10组整体结果仍待原句柄结束后核对。
+
+Intent：解决RX compiled Store发布ConflictingFunction，保留源代码一致性校验，
+按真实ABI需求补全同名函数，不忽略冲突，也不改变Store实例共享身份。
+
+Data：当前CLI复现既有rx_compiled_test；regular_calls的modules表按名字只保留
+最后一个FunctionId，扫描到普通call后只标记该ID。同一snapshot.rx导出四次会
+链接多份同名snapshot.zx，最终去重要求它们生成的文件相同。
+
+Edges：主源码冻结；在/tmp复制compiler/src，仅为现有冲突点添加输出并构建
+独立CLI。实际打印同一模块current=regular:16，call/value均有；earlier三份
+function:10/12/14只有value。由此确认ABI补全不一致，而非猜测Store身份损坏。
+不删除ConflictingFunction检查，不复用任意一份源码来掩盖不同函数体。
+
+Answer：隔离副本将同一模块名的普通ABI需求同步给所有value候选，分别重新生成
+并仍由原检查比较源码。改动只使用既有名字表的代表索引，不新增表或逐记录复制。
+临时修复构建句柄42440；尚未取得修复后发布通过证据，不能视为已完成。
+
+```mermaid
+flowchart LR
+    E[多个公开导出] --> F[同名函数候选]
+    C[已生成文件中的 call 需求] --> N[按模块名的代表标记]
+    N --> R[所有同名 value 候选补普通 ABI]
+    F --> R
+    R --> G[分别生成]
+    G --> V[保留源码一致性检查]
+```
+
+```mermaid
+flowchart LR
+    A[ snapshot 的四个别名 ] --> B[函数 10 12 14 16]
+    B --> M[同一模块名]
+    M --> W[共享普通 call 需求]
+    W --> O[四份相同 ABI 形式]
+```
+
+诊断命令与输出为rx-publish-diagnostic-invocation.log、publish-conflict-probe-run.log，
+临时CLI及源码均在/tmp/zxc-function-levels，不提交探针。一次工具命令提取初带
+verbose前缀导致FileNotFound，已剥除前缀后成功构建；未重启仍在运行的正式补验。
