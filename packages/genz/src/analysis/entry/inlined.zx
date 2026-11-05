@@ -6,9 +6,11 @@ import { Kind } from "core/type_table/model"
 import body from "../calls/body"
 import {
     minimum_record_fields,
+    maximum_routing_fields,
     maximum_body_expressions,
     maximum_result_fields
 } from "./const"
+import recordResult from "./record_result"
 
 import type { Input } from "./model"
 
@@ -22,10 +24,25 @@ export default function (in: Input): Output {
     if (
         owner == null || in.contracts.kinds.length != 0 ||
             in.expressions.kinds.length > maximum_body_expressions ||
-            kind(in.types.kinds[input]) != Kind.Object ||
-            in.types.second[input] < minimum_record_fields ||
+            kind(in.types.kinds[input]) != Kind.Object
+    ) {
+        return false
+    }
+
+    const wide = in.types.second[input] >= minimum_record_fields
+
+    if (wide) {
+        if (
             kind(in.types.kinds[output]) != Kind.Object ||
-            in.types.second[output] > maximum_result_fields
+                in.types.second[output] > maximum_result_fields
+        ) {
+            return false
+        }
+    } else if (
+        in.types.second[input] > maximum_routing_fields || !recordResult({
+            types: in.types,
+            type_id: in.output_type
+        })
     ) {
         return false
     }

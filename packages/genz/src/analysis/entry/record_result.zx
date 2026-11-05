@@ -1,0 +1,55 @@
+import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+import scalar from "core/type_table/scalar"
+
+import { maximum_result_fields } from "./const"
+
+import type { Table } from "core/type_table/model"
+
+export type Input = {
+    types: Table,
+    type_id: u32
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const type_id = loop({
+        type_id: in.type_id
+    }, {
+        while: (current, types) =>
+            kind(types.kinds[integers.widen(current.type_id)]) == Kind.Optional,
+        next: (current, types) => {
+            current.type_id = types.first[integers.widen(current.type_id)]
+        }
+    }, in.types).type_id
+
+    const row = integers.widen(type_id)
+    const count = in.types.second[row]
+
+    if (
+        kind(in.types.kinds[row]) != Kind.Object || count > maximum_result_fields
+    ) {
+        return false
+    }
+
+    return loop({
+        index: 0,
+        valid: true
+    }, {
+        while: (current, source) => current.valid && current.index < source.count,
+        next: (current, source) => {
+            current.valid = scalar({
+                kinds: source.types.kinds,
+                first: source.types.first,
+                type_id: source.types.field_types[source.first + current.index]
+            })
+            current.index += 1
+        }
+    }, {
+        types: in.types,
+        first: integers.widen(in.types.first[row]),
+        count: integers.widen(count)
+    }).valid
+}

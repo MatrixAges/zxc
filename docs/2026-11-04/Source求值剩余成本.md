@@ -188,7 +188,7 @@ flowchart LR
 ```mermaid
 flowchart LR
     I[同一Program] --> C[纯度与能力及依赖方向]
-    C --> E[有界helper资格]
+    C --> E[宽输入helper或小记录路由资格]
     E --> G[普通Zig静态内联]
     C --> K[v53缓存依赖键]
     K --> O[缓存或冷生成同一产物]
@@ -302,3 +302,49 @@ wall1186.25→1181.33ms，RSS661651456→664109056B。六次各2045个产物均�
 fact-depth-stage-code-comparison.json、fact-depth-paired-results.json、
 fact-depth-paired-comparison.json；初版日志同样保留。自查：静态减少循环不能替代
 整轮成本证据；不保留无收益的重构，也不将局部完成宣称完整自举通过。
+
+通用小记录路由资格实施：保留宽输入原策略，新增输入对象最多4字段、结果为最多
+4个标量字段的对象（允许外层Optional），复用core标量分类；字段为聚合时拒绝。
+两条路径共用192表达式预算、无自有循环/任务/并发、无契约和副作用、callee严格
+小于owner的约束。资格规则在ZX中实现，RX仍负责入口能力与副作用编排。
+该范围包含所有匹配结构的函数，不引用Function求值器文件名或路径。
+
+缓存只读核对确认：已有TypeId递归摘要覆盖Optional/对象字段/标量分类，表达式和
+契约、callee方向已有键；生成器摘要负责实现变化失效，不增加无关数值owner键。
+先构建真实Source生成器、检查选择规模及两代产物，再集中运行既有受影响回归和
+同输入性能对照。若扩大资格导致后端体积或运行成本退化，撤回本优化尝试。
+
+新增规则从43个扩大到69个候选，增加26个；S1→2的26处差异均仅为callValue的
+inline标记。三个先前诊断热点均在新增集合内。S2→3的2046个产物全部一致，
+正式生成器二进制5084496→5066896字节；体积数字不代表运行性能结论。
+
+复制当前四个Source根到临时目录，对projection加入不执行的普通loop，使其失去
+有界资格；热缓存2生成1964复用，与冷生成2046产物完全相同，且恰有该函数失去
+inline。恢复后0生成1966复用，全部产物回到修改前。原仓库源码未作该探针修改。
+
+独立快照六组初验833/841通过，8项function-updates容量失败；不能归因于新规则。
+正在使用独立快照HEAD原资格仅补跑该组，确认是否为缺少尚未提交Function迁移的
+共同基线问题。工作区同六组仍在原进程执行；保留全部原失败记录，不降低容量预算。
+
+独立原资格补跑function-updates为344/352通过，仍是flat/branch/chain/mixed的
+source/library共8项容量失败；与新资格失败集合逐项相同。独立快照其余489项通过，
+新资格整套833/841通过，未引入新增失败。工作区包含尚未提交的Function/条件迁移，
+本轮343/343步骤、841/841项全部通过。独立基线的容量问题仍属完整迁移收口范围，
+不能把它隐藏为“独立快照全绿”，也不通过改容量上限规避。
+
+正式隔离三对CPU before5.16/5.14/5.17，after5.04/5.02/5.01s，中位5.16→5.02s；
+wall1180.81→1180.19ms，基本持平，首轮before1291.48ms保留。RSS中位662437888
+→663224320B，范围before657227776–662634496、after660717568–664633344B
+重叠，不宣称内存改善。六次2046个产物均与对应参考完全一致，资格变化仅26个
+inline标记；保留本次通用优化。最终Source只有三个文件，不新增原生规则或测试。
+
+最终证据：routing-policy-selection.json、routing-policy-stage-comparison.json、
+routing-policy-cache-edit-comparison.json、routing-policy-common-failures.json、
+routing-policy-{working,independent}-checks.log、
+routing-policy-independent-before-updates.log、routing-policy-paired-results.json及
+routing-policy-paired-comparison.json，均在/tmp/zxc-function-levels。
+
+自查：诊断三函数不是生产名单；生产资格由类型形状、能力和有界调用图统一决定。
+本阶段减少CPU而未证明墙钟或RSS改善，不能把三项指标混用。完整自举仍需继续迁移
+及最终传递依赖和seed→1→2→3核对；固定累计锚点ca03eb0011e3efd13221e1baefca7fcc10a1da77
+不变，本次5.02s仍未消除相对约4.11s Native记录的差距，不宣称整体性能门禁通过。
