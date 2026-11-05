@@ -49,7 +49,8 @@ fn lowerMode(self: *Lower, id: ir.ExprId, layout: ?node.ExpressionId, removed_on
 
         else if (operation.kind == .concat or (operation.kind == .splice and argument == operation.arguments[2]))
             try provenance.items(self, self.program.expression(argument).type_id, evaluated)
-        else evaluated;
+        else
+            evaluated;
     }
 
     const child = self.program.typeOf(source_type).list;
@@ -61,18 +62,23 @@ fn lowerMode(self: *Lower, id: ir.ExprId, layout: ?node.ExpressionId, removed_on
     switch (operation.kind) {
         .pop => {
             const last = try intrinsic.binary(self, .subtract, length, try self.builder.integer(1));
-            const remaining = try listResult(self, source_type, try slice(self, source, null, last), source_headered);
+            const dynamic = provenance.selected(self, source_type);
+            const exclusive = if (dynamic) try provenance.exclusive(self, source_value) else try self.builder.expression(.{ .boolean = false });
+            const shortened = try slice(self, source, null, last);
+            const remaining = if (dynamic) try provenance.proven(self, source_type, shortened, source_headered, exclusive) else shortened;
             const selected = try self.builder.expression(.{ .index = .{ .target = source, .index = last } });
             var nonempty_body: std.ArrayList(node.Statement) = .empty;
             const element = try @import("state_value/elements.zig").read(self, &nonempty_body, source_type, selected);
             const values = try @import("state_value/origin.zig").tuple(self, type_id, try pair(self, remaining, element));
             const nonempty = if (nonempty_body.items.len == 0) values else try aggregate.finish(self, &nonempty_body, values);
 
-            if (flags.retract) {
+            if (flags.retract or dynamic) {
                 var retract: std.ArrayList(node.Statement) = .empty;
+                const nonempty_source = try intrinsic.binary(self, .not_equal, length, try self.builder.integer(0));
+                const permitted = if (flags.retract) nonempty_source else try intrinsic.binary(self, .logical_and, nonempty_source, exclusive);
 
                 try growth.retract(self, &retract, child_type, source, last);
-                try body.append(self.allocator, try self.builder.branch(try intrinsic.binary(self, .not_equal, length, try self.builder.integer(0)), retract.items, &.{}));
+                try body.append(self.allocator, try self.builder.branch(permitted, retract.items, &.{}));
             }
 
             result = try self.builder.expression(.{ .conditional = .{ .condition = try intrinsic.binary(self, .equal, length, try self.builder.integer(0)), .yes = try pair(self, source_value, try self.builder.expression(.null_value)), .no = nonempty } });
