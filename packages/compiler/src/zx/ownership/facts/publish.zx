@@ -1,4 +1,5 @@
 import join from "../places/join"
+import { first_product_fact } from "./const"
 import summary from "./summary"
 
 import type { State } from "../places/model"
@@ -37,7 +38,7 @@ export default function (in: Input): Output {
         }
     })
 
-    const fact = result.forest.types.length + 5
+    const fact = result.forest.types.length + first_product_fact
 
     return {
         forest: {

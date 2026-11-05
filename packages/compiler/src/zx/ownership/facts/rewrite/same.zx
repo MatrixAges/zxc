@@ -1,5 +1,6 @@
 import integers from "std:integer"
 
+import { first_product_fact } from "../const"
 import fieldType from "../field_type"
 import project from "../project"
 import summary from "../summary"
@@ -23,10 +24,10 @@ export type Input = {
 export type Output = bool
 
 export default function (in: Input): Output {
-    const shell = in.fact < 5 ? summary({
+    const shell = in.fact < first_product_fact ? summary({
         forest: in.forest,
         fact: in.fact
-    }) : in.forest.shells[in.fact - 5]
+    }) : in.forest.shells[in.fact - first_product_fact]
 
     return loop({
         types: in.types,

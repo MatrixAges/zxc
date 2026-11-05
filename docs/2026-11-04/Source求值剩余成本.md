@@ -249,3 +249,56 @@ flowchart LR
 薄适配和一个调用点；其余Function/条件能力和七文件Metadata调整继续留在工作区。
 该职责是分类规则已迁移及Nullable scalar借用接线完成，不代表完整类型系统状态或
 整个编译器已经自举。未新增测试用例，未重置性能基线。
+
+18141cc8已推送，通用标量分类提交后六文件与独立验证树非空行一致（仅formatter
+空行变化），工作区保留原Function和条件迁移。新的current-hot2采样1546个运行
+PC：visit176、aggregate24、memcpy129，member已不在主要热点；样本只作定位，
+不是CPU占比。全部2045输出仍与Metadata固定点一致。
+
+下一项临时诊断：仅对生成副本的aggregate/projection/member强制inline，检查
+中间Request/成员结果记录的ABI成本。三者没有自递归；不按名字在生产选择。若
+收益成立，再用Source的通用结构/预算规则决定是否支持小记录及可空记录路由。
+
+路由临时inline三对CPU5.23/5.14/5.13→5.08/5.05/5.00s，中位5.14→5.05；全部
+2045产物一致。该证据尚不作为生产规则交付：现有通用策略没有小记录/可空记录
+选择，扩大策略需另看编译体积和分配，避免按三个名字硬编码。
+
+只读审查从memcpy调用者找到确定重复：ownership/facts/rewrite完成复合节点后
+cache，然后再进一轮find读取刚写入值，才完成帧。本次用resolved与complete区分
+下钻/完成，公共末尾执行pop/rewind/父追加，缓存仍先完成；真正重复子树命中不变。
+Forest是只追加的DAG，缓存值就是当前完成结果，没有重编号或新状态语义。
+
+同职责Fact编码集中到const.zx，保留Copy0/Owned1/Loaned2/Borrowed3/Moved4及
+product起点5（与State枚举声明顺序不同，不能直接按枚举序号替换）。uniform/summary
+按同一主体match，其余编码消费处显式导入，结构性索引/步长仍为原值。
+
+生成两代2045产物一致。六组首次运行遇5个旧裸map/reduce测试片段，尚未进入
+所有权断言，改为数组方法与显式元组投影；原5项预期不变。独立快照首轮481/486，
+补跑失败的field-facts后27/27通过；工作区补跑同样通过，首版六组共486项通过。
+
+首版完成标志重构的正式CPU中位均5.15s（before5.17/5.15/5.14，after5.15/5.16/
+5.11），没有可辨收益，不能把静态少一轮直接说成提速。已改更小的同一职责实现：
+保留原分支，只记进入本轮的stack depth；唯一下钻分支会增加depth，其余路径当前
+frame已完成，统一末尾在depth未增加时pop。无需额外resolved/count/index预读取，
+避免为已知完成路径新增森林查表。该后续变更必须补验，不能复用首版计时结论。
+
+第二版栈深判据经只读审查，唯一改变深度的成功路径为child push；缓存及分配错误
+仍在弹帧前传播。工作区与独立快照均235/235步骤、486/486检查通过；S1→2全部
+2045个Zig产物相同，只有记录生成器身份的.zxc-inputs不同并单独排除。
+
+第二版三对CPU before5.20/5.14/5.14，after5.14/5.16/5.10s，中位仍5.14→5.14；
+wall1186.25→1181.33ms，RSS661651456→664109056B。六次各2045个产物均与
+各自参考一致。没有可辨CPU收益，且RSS中位增加，因此停止该方向，不继续微调。
+两版循环优化都已撤回；恢复控制流程经反向替换常量并去空白后与原文件完全一致。
+这不是撤回Source迁移；Function、条件能力及已验证的Metadata优化仍留在工作区。
+
+本次最终仅交付Fact语义常量与九处消费对齐、uniform/summary同主体match，以及
+两份现有fixture的五处旧map/reduce调用修正。所有编码值及match映射已由两套
+486项检查覆盖；恢复的循环控制是既有原实现，不把试验计时冒充最终常量改写收益。
+纯常量命名与等价match不再重复性能对照，复用已有语义及原控制流程证据。
+没有新增测试、改变断言、创建分支或提交未完成的Function迁移。
+
+证据位于/tmp/zxc-function-levels：fact-depth-{working,independent}-checks.log、
+fact-depth-stage-code-comparison.json、fact-depth-paired-results.json、
+fact-depth-paired-comparison.json；初版日志同样保留。自查：静态减少循环不能替代
+整轮成本证据；不保留无收益的重构，也不将局部完成宣称完整自举通过。

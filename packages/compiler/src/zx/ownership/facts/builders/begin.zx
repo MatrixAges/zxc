@@ -1,3 +1,5 @@
+import { fact_copy } from "../const"
+
 import type { Forest } from "../model"
 import type { Builders } from "./model"
 
@@ -22,7 +24,7 @@ export default function (in: Input): Output {
     }, {
         while: current => current.index < current.count,
         next: current => {
-            current.children = current.children.push(0)[0]
+            current.children = current.children.push(fact_copy)[0]
             current.index += 1
         }
     })

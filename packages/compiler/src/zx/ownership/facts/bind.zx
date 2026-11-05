@@ -1,3 +1,4 @@
+import { fact_copy, fact_moved } from "./const"
 import project from "./project"
 import replace from "./replace"
 import summary from "./summary"
@@ -18,7 +19,8 @@ export type Input = {
 export type Output = Storage
 
 export default function (in: Input): Output {
-    const fact = in.layout.references[in.id] || in.fact == 4 ? in.fact : 0
+    const fact = in.layout.references[in.id] || in.fact == fact_moved ? in.fact :
+        fact_copy
 
     if (in.storage.facts[in.id] == fact) {
         return in.storage

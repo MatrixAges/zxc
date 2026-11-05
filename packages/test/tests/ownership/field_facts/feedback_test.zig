@@ -41,7 +41,7 @@ test "reduce callback copies cannot erase the borrowed zero callback initial pat
     try h.run(.{ .ownership = "borrowed", .body =
         \\    const initial = {fresh: in, view: in}
         \\
-        \\    const result = reduce(in, (state, item) => {fresh: map(state.fresh, value => value), view: state.view}, initial)
+        \\    const result = in.reduce((state, item) => {fresh: state.fresh.map(value => value)[0], view: state.view}, initial)[1]
         \\
         \\    return result.fresh
     });
@@ -52,7 +52,7 @@ test "precondition loop retains borrowed zero step projection" {
         \\    const result = loop({fresh: in, view: in, index: 0}, {
         \\        while: state => state.index < state.view.length,
         \\        next: state => {
-        \\            state.fresh = map(state.fresh, value => value)
+        \\            state.fresh = state.fresh.map(value => value)[0]
         \\            state.index += 1
         \\        }
         \\    })
@@ -66,7 +66,7 @@ test "postcondition loop replaces borrowed projection before every exit" {
         \\    const result = loop({fresh: in, view: in, index: 0}, {
         \\        while: state => state.index < state.view.length,
         \\        do: state => {
-        \\            state.fresh = map(state.fresh, value => value)
+        \\            state.fresh = state.fresh.map(value => value)[0]
         \\            state.index += 1
         \\        }
         \\    })

@@ -1,5 +1,6 @@
 import integers from "std:integer"
 
+import { fact_copy, fact_loaned, first_product_fact } from "./const"
 import fieldType from "./field_type"
 import product from "./product"
 import project from "./project"
@@ -32,7 +33,7 @@ export default function (in: Input): Output {
     const paired =
         in.action == RewriteAction.Join || in.action == RewriteAction.ReleaseNewLoans
 
-    const right = paired ? in.right : 0
+    const right = paired ? in.right : fact_copy
 
     if (
         (paired && in.left == right) ||
@@ -40,8 +41,8 @@ export default function (in: Input): Output {
                 in.action == RewriteAction.ReleaseNewLoans &&
                     (
                         (
-                            in.left < 5 && in.left != 2
-                        ) || right == 2
+                            in.left < first_product_fact && in.left != fact_loaned
+                        ) || right == fact_loaned
                     )
             )
     ) {
@@ -51,7 +52,7 @@ export default function (in: Input): Output {
         }
     }
 
-    if (in.left < 5 && right < 5) {
+    if (in.left < first_product_fact && right < first_product_fact) {
         const fact = uniform(state({
             left: summary({
                 forest: in.forest,
@@ -87,7 +88,7 @@ export default function (in: Input): Output {
             values: empty,
             slots: empty
         },
-        value: 0
+        value: fact_copy
     }, {
         while: current => current.left.length != 0,
         next: current => {
@@ -105,10 +106,10 @@ export default function (in: Input): Output {
                 current.action == RewriteAction.ReleaseNewLoans &&
                 (
                     (
-                        left < 5 && left != 2
-                    ) || right == 2
+                        left < first_product_fact && left != fact_loaned
+                    ) || right == fact_loaned
                 )
-            const uniform_pair = left < 5 && right < 5
+            const uniform_pair = left < first_product_fact && right < first_product_fact
 
             if (saved.found || identical || unchanged || uniform_pair) {
                 current.value = saved.found ? saved.value : left
@@ -140,7 +141,8 @@ export default function (in: Input): Output {
                     current.children = current.children.push(current.value)[0]
                 }
             } else {
-                const node = (left >= 5 ? left : right) - 5
+                const node =
+                    (left >= first_product_fact ? left : right) - first_product_fact
                 const type_id = current.forest.types[node]
                 const count = current.forest.count[node]
                 const index = current.indices[top]
@@ -166,7 +168,7 @@ export default function (in: Input): Output {
                         fact: right,
                         index,
                         reference
-                    }) : 0
+                    }) : fact_copy
 
                     current.indices[top] = index + 1
                     current.left = current.left.push(child_left)[0]
@@ -174,14 +176,14 @@ export default function (in: Input): Output {
                     current.indices = current.indices.push(0)[0]
                     current.first = current.first.push(current.children.length)[0]
                 } else {
-                    const left_shell = left < 5 ? summary({
+                    const left_shell = left < first_product_fact ? summary({
                         forest: current.forest,
                         fact: left
-                    }) : current.forest.shells[left - 5]
-                    const right_shell = right < 5 ? summary({
+                    }) : current.forest.shells[left - first_product_fact]
+                    const right_shell = right < first_product_fact ? summary({
                         forest: current.forest,
                         fact: right
-                    }) : current.forest.shells[right - 5]
+                    }) : current.forest.shells[right - first_product_fact]
                     const shell = state({
                         left: left_shell,
                         right: right_shell,

@@ -1,21 +1,16 @@
 import { State } from "../places/model"
+import { fact_copy, fact_owned, fact_loaned, fact_borrowed, fact_moved } from "./const"
 
 export type Input = State
 
 export type Output = u64
 
 export default function (in: Input): Output {
-    if (in == State.Copy) {
-        return 0
+    return match in {
+        State.Copy => fact_copy,
+        State.Owned => fact_owned,
+        State.Loaned => fact_loaned,
+        State.Borrowed => fact_borrowed,
+        _ => fact_moved
     }
-
-    if (in == State.Owned) {
-        return 1
-    }
-
-    if (in == State.Loaned) {
-        return 2
-    }
-
-    return in == State.Borrowed ? 3 : 4
 }

@@ -1,3 +1,5 @@
+import { fact_copy, fact_moved, first_product_fact } from "./const"
+
 import type { Forest } from "./model"
 
 export type Input = {
@@ -10,9 +12,10 @@ export type Input = {
 export type Output = u64
 
 export default function (in: Input): Output {
-    if (in.fact >= 5) {
-        return in.forest.children[in.forest.first[in.fact - 5] + in.index]
+    if (in.fact >= first_product_fact) {
+        return in.forest
+            .children[in.forest.first[in.fact - first_product_fact] + in.index]
     }
 
-    return in.reference || in.fact == 4 ? in.fact : 0
+    return in.reference || in.fact == fact_moved ? in.fact : fact_copy
 }

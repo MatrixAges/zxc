@@ -1,6 +1,7 @@
 import integers from "std:integer"
 import row from "core/type_table/row"
 
+import { first_product_fact } from "./const"
 import fieldType from "./field_type"
 import product from "./product"
 import project from "./project"
@@ -80,10 +81,10 @@ export default function (in: Input): Output {
         }
     })
 
-    const shell = in.fact < 5 ? summary({
+    const shell = in.fact < first_product_fact ? summary({
         forest: result.forest,
         fact: in.fact
-    }) : result.forest.shells[in.fact - 5]
+    }) : result.forest.shells[in.fact - first_product_fact]
 
     return product({
         forest: result.forest,
