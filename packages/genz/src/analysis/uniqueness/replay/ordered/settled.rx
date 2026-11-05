@@ -1,0 +1,27 @@
+<Module>
+    <Type from="model" as="Comparison" />
+
+    <Args in={Comparison.Settlement} out={bool} />
+
+    <Call
+        fn="contributions"
+        in={{
+            left: $in.left.passed,
+            right: $in.right.passed
+        }}
+    />
+
+    <If on={!$ctx.contributions}>
+        <Return value={false} />
+    </If>
+
+    <Call
+        fn="levels"
+        in={{
+            left: $in.left.output,
+            right: $in.right.output
+        }}
+    />
+
+    <Return value={$ctx.levels} />
+</Module>

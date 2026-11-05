@@ -1,0 +1,32 @@
+export type Contribution = {
+    callee: u32,
+    levels: u8[]
+}
+
+export type Settled = {
+    passed: Contribution[],
+    output: u8[]
+}
+
+export type Renewal = {
+    owner: u32,
+    path: u32[],
+    value: bool
+}
+
+export type Planned = {
+    flags: u8[],
+    renewals: Renewal[],
+    transfers: u64[],
+    slot_first: u32[]
+}
+
+export type Settlement = {
+    left: Settled,
+    right: Settled
+}
+
+export type Plan = {
+    left: Planned,
+    right: Planned
+}

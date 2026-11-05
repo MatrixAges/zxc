@@ -180,7 +180,7 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
 
         try entered.append(self.allocator, .{ .while_loop = .{ .condition = try self.builder.expression(.{ .boolean = true }), .body = try self.builder.statements(loop.items) } });
 
-        const restored = try aggregate.bind(self, &entered, try selected.restore(self, state));
+        const restored = if (mode == .discard) state else try aggregate.bind(self, &entered, try selected.restore(self, state));
         const result = try finish.lower(self, &entered, restored);
 
         if (first_condition) |first| {

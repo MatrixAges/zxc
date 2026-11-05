@@ -1,8 +1,17 @@
 import type { Table } from "core/type_table/model"
 
-export enum Query { Plain, Represented, Nested, RepresentedNested }
+export enum Query {
+    Plain,
+    Represented,
+    Nested,
+    RepresentedNested,
+    InlineRows,
+    RepresentedRows,
+    NestedRows,
+    RepresentedNestedRows
+}
 
-export enum Property { Represented, Nested }
+export enum Property { Represented, Nested, InlineRows }
 
 export type Input = {
     types: Table,

@@ -13,8 +13,13 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocat
     defer allocator.free(boxed);
     @memset(boxed, false);
 
+    const read_only = @import("read_only.zig");
+    const inline_rows = read_only.scope(program);
+
     for (0..program.types.count()) |position| switch (program.types.at(position)) {
-        .list => |child| mark(program, boxed, child),
+        .list => |child| if (!inline_rows or !read_only.record(program, child)) {
+            mark(program, boxed, child);
+        },
         .task => |task| mark(program, boxed, task.result),
         else => {},
     };
@@ -58,7 +63,7 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocat
         if (seen[@backingInt(output)] == 0) duplicates(program, boxed, seen, @intCast(index + 2), output);
     }
 
-    try @import("frozen.zig").mark(allocator, program, boxed);
+    try @import("frozen.zig").mark(allocator, program, boxed, inline_rows);
 
     const selected = try allocator.alloc(bool, program.types.count());
 
@@ -80,7 +85,7 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocat
 
         var hash = @import("zx").Sha256.init(.{});
 
-        hash.update("state.value.origin.v10");
+        hash.update("state.value.origin.v11");
         hash.update(&.{@intFromBool(selected[index])});
 
         switch (value) {
@@ -134,6 +139,29 @@ pub fn represented(self: Self, program: ir.Program, id: ir.TypeId) bool {
     return switch (program.typeOf(id)) {
         .optional => |child| self.represented(program, child),
         else => self.selected[@backingInt(id)],
+    };
+}
+
+pub fn inlineRows(self: Self, program: ir.Program, id: ir.TypeId) bool {
+    if (comptime @import("genz_options").generated_analysis) return @import("queries.zig").read(self.queries[@backingInt(id)], .InlineRows);
+
+    return switch (program.typeOf(id)) {
+        .list => |child| program.typeOf(child) == .object and self.selected[@backingInt(child)],
+        .optional => |child| self.inlineRows(program, child),
+        .object => |fields| found: {
+            if (!self.selected[@backingInt(id)]) break :found false;
+
+            for (0..fields.len) |index| if (self.inlineRows(program, fields.at(index).type_id)) break :found true;
+
+            break :found false;
+        },
+        .tuple => |items| found: {
+            if (!self.selected[@backingInt(id)]) break :found false;
+            for (0..items.len) |index| if (self.inlineRows(program, items.at(index))) break :found true;
+
+            break :found false;
+        },
+        else => false,
     };
 }
 

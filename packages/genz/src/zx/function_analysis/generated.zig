@@ -63,17 +63,19 @@ pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, progr
     };
 
     const error_sources = Errors{ .names = names, .unknown = unknown, .callees = callees };
-    const boundaries = try temporary.alloc(u32, 1 + exported.len);
-
-    boundaries[0] = @backingInt(program.input_type);
+    const inputs = try temporary.alloc(u32, 1 + exported.len);
+    const outputs = try temporary.alloc(u32, 1 + exported.len);
+    inputs[0] = @backingInt(program.input_type);
+    outputs[0] = @backingInt(program.output_type);
 
     for (exported, 0..) |id, index| {
         const function = program.functions.at(@backingInt(id));
-
-        boundaries[index + 1] = @backingInt(function.input_type);
+        inputs[index + 1] = @backingInt(function.input_type);
+        outputs[index + 1] = @backingInt(function.output_type);
     }
 
-    const input = Input{ .program = &view, .errors = &error_sources, .boundaries = boundaries };
+    const boundaries: std.meta.Child(@FieldType(Input, "boundaries")) = .{ .inputs = inputs, .outputs = outputs };
+    const input = Input{ .program = &view, .errors = &error_sources, .boundaries = &boundaries };
 
     const output = generated.execute(&scratch, &input) catch |err| switch (err) {
         error.OutOfMemory => return error.OutOfMemory,

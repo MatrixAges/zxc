@@ -26,7 +26,7 @@ pub fn collect(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloca
         .type_only = program.type_only,
     };
 
-    const output = generated.executeValue(allocator, &input) catch |err| switch (err) {
+    const output = @import("zx").columns.invoke(generated.executeValue, allocator, &input) catch |err| switch (err) {
         error.OutOfMemory => return error.OutOfMemory,
         else => std.debug.panic("call topology failed: {s}", .{@errorName(err)}),
     };
@@ -44,7 +44,7 @@ pub fn build(allocator: std.mem.Allocator, called: []const []const u32, exported
     const Input = std.meta.Child(generated.Input);
     const input: Input = .{ .callees = called, .exported = @ptrCast(exported) };
 
-    const output = generated.executeValue(allocator, &input) catch |err| switch (err) {
+    const output = @import("zx").columns.invoke(generated.executeValue, allocator, &input) catch |err| switch (err) {
         error.OutOfMemory => return error.OutOfMemory,
         else => std.debug.panic("reverse topology failed: {s}", .{@errorName(err)}),
     };

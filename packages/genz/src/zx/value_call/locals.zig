@@ -37,6 +37,11 @@ pub fn borrowed(self: *Lower, symbol: ir.SymbolId, value: ir.ExprId) Lower.Error
 
     switch (self.program.expression(value).value) {
         .reference, .field, .tuple_field, .index, .optional_value => {},
+        .call => |invocation| {
+            const function = self.program.functions.at(@backingInt(invocation.function));
+
+            return function.external != null or !@import("fresh.zig").check(function.expressions, function.body.block());
+        },
         else => return false,
     }
 

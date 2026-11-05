@@ -1,0 +1,78 @@
+import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import type { Table } from "core/type_table/model"
+
+export type Input = {
+    types: Table,
+    built: bool[],
+    boxed: bool[]
+}
+
+export type Output = bool[]
+
+export default function (in: Input): Output {
+    const carriers: bool[] = []
+
+    return loop({
+        built: in.built,
+        carriers,
+        index: 0
+    }, {
+        while: (state, source) => state.index < source.types.kinds.length,
+        next: (state, source) => {
+            const target = kind(source.types.kinds[state.index])
+            const first = integers.widen(source.types.first[state.index])
+            const row = (
+                - target == Kind.List
+                - and kind(source.types.kinds[first]) == Kind.Object
+                - and !source.boxed[first]
+            )
+
+            if (row) {
+                state.built = state.built.with(first, true)
+            }
+
+            const nested = loop({
+                index: first,
+                found: false
+            }, {
+                while: (fields, input) => input.product && !fields.found &&
+                    fields.index < input.end,
+                next: (fields, input) => {
+                    const id = input.object ? input.types.field_types[fields.index] :
+                        input.types.children[fields.index]
+                    const child = integers.widen(id)
+
+                    fields.found = input.carriers[child]
+                    fields.index += 1
+                },
+                return: fields => fields.found
+            }, {
+                types: source.types,
+                carriers: state.carriers,
+                object: target == Kind.Object,
+                product: target == Kind.Object || target == Kind.Tuple,
+                end: first + integers.widen(source.types.second[state.index])
+            })
+
+            const carrier = match target {
+                Kind.List => row || state.carriers[first],
+                Kind.Optional => state.carriers[first],
+                Kind.Object => nested,
+                Kind.Tuple => nested,
+                _ => false
+            }
+
+            state.carriers = state.carriers.push(carrier)[0]
+
+            if (target == Kind.Object && carrier) {
+                state.built = state.built.with(state.index, true)
+            }
+
+            state.index += 1
+        },
+        return: state => state.built
+    }, in)
+}

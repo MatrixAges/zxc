@@ -15,7 +15,7 @@ pub fn build(allocator: std.mem.Allocator, functions: ir.FunctionTable) std.mem.
         .expressions = zx.columns.slice(@FieldType(Input, "expressions"), functions.expressions),
     };
 
-    const output = (generated.executeValue(allocator, &input) catch |err| switch (err) {
+    const output = (zx.columns.invoke(generated.executeValue, allocator, &input) catch |err| switch (err) {
         error.OutOfMemory => return error.OutOfMemory,
         else => unreachable,
     }) orelse return null;

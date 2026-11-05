@@ -35,14 +35,13 @@ export default function (in: Input): Output {
             const scalar = output == Kind.Scalar || output == Kind.Enumeration ||
                 output == Kind.ErrorSet
 
-            if (scalar) {
+            if (scalar && !current.local[index]) {
                 current.roots =
                     current.roots.concat(functions.expressions[index].types)[0]
             }
 
             const condition = (
-                - scalar
-                - or !current.local[index]
+                - !current.local[index]
                 - or functions.native_modules[index] != null
             )
 

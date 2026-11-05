@@ -49,6 +49,7 @@ export default function (in: Input): Output {
                     kind(current.types.kinds[first]) != Kind.Object,
                 Kind.Enumeration => true,
                 Kind.ErrorSet => true,
+                Kind.List => true,
                 Kind.Object => fields,
                 _ => scalar
             }

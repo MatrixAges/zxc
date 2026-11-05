@@ -3,7 +3,7 @@ const ir = @import("zx").ir;
 
 /// Records neither constructed nor forwarding aggregate state keep their ABI pointer. Child values retain their layouts and
 /// convert at projection boundaries; shared identity, native and task boundaries are boxed before this pass.
-pub fn mark(allocator: std.mem.Allocator, program: ir.Program, boxed: []bool) std.mem.Allocator.Error!void {
+pub fn mark(allocator: std.mem.Allocator, program: ir.Program, boxed: []bool, inline_rows: bool) std.mem.Allocator.Error!void {
     const count = program.types.count();
     const built = try allocator.alloc(bool, count);
 
@@ -26,7 +26,7 @@ pub fn mark(allocator: std.mem.Allocator, program: ir.Program, boxed: []bool) st
     }
 
     for (0..count) |index| {
-        if (program.types.at(index) == .object and !built[index]) boxed[index] = true;
+        if (program.types.at(index) == .object and !built[index] and !inline_rows) boxed[index] = true;
     }
 }
 

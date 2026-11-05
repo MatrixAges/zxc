@@ -40,7 +40,7 @@ pub fn analyze(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloca
         const function = program.functions.at(index);
         pure[index] = isPure(program, function, pure[0..index]);
         local[index] = if (function.external != null) @import("../native_value.zig").isolated(program, function) else function.stores.count() == 0 and !parallel(function.body.block()) and calls(function.expressions, function.contracts, local[0..index], index);
-        eligible[index] = local[index] and (program.typeOf(function.output_type) == .object or (function.external == null and state.represented(program, function.output_type)));
+        eligible[index] = local[index] and (program.typeOf(function.output_type) == .object or (function.external == null and (state.represented(program, function.output_type) or state.inlineRows(program, function.input_type))));
     }
 
     return .{ .pure = pure, .local = local, .values = eligible, .state = state };

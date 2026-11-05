@@ -1,4 +1,5 @@
 const std = @import("std");
+pub const storage = @import("columns/storage.zig");
 
 pub fn columns(comptime Target: type, value: anytype) Target {
     @setEvalBranchQuota(100_000);

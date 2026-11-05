@@ -1,0 +1,40 @@
+import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import type { Table } from "core/type_table/model"
+import type { Boundaries } from "../model"
+
+export type Input = {
+    types: Table,
+    source: Boundaries
+}
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    const roots: u32[] = []
+
+    return loop({
+        roots,
+        index: 0
+    }, {
+        while: (state, source) => state.index < source.source.inputs.length,
+        next: (state, source) => {
+            const output = source.source.outputs[state.index]
+            const target = kind(source.types.kinds[integers.widen(output)])
+            const scalar = (
+                - target == Kind.Scalar
+                - or target == Kind.Enumeration
+                - or target == Kind.ErrorSet
+            )
+
+            if (!scalar) {
+                state.roots = state.roots.push(source.source.inputs[state.index])[0]
+            }
+
+            state.index += 1
+        },
+        return: state => state.roots
+    }, in)
+}

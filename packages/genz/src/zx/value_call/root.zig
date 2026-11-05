@@ -37,7 +37,9 @@ pub fn expression(self: *Lower, id: ir.ExprId) Lower.Error!node.ExpressionId {
 }
 
 fn dereference(self: *Lower, id: ir.ExprId) Lower.Error!node.ExpressionId {
-    if (self.program.typeOf(self.program.expression(id).type_id) == .list) return self.expr(id);
+    const target = self.program.typeOf(self.program.expression(id).type_id);
+
+    if (target != .object and target != .tuple) return self.expr(id);
 
     return self.builder.expression(.{ .dereference = try self.expr(id) });
 }
@@ -73,8 +75,11 @@ fn lowerInvocation(self: *Lower, body: *std.ArrayList(node.Statement), value: @F
         break :temporary try self.builder.expression(.{ .address_of = layout });
     } else try self.expr(value.argument);
 
-    const state_callee = self.state_plan.represented(self.program, function.output_type);
-    const legacy = !borrowed and state_callee and !self.state_active and !self.allows_allocation and self.state_plan.nested(self.program, function.output_type);
+    const state_callee = self.state_plan.represented(self.program, function.output_type) or self.state_plan.inlineRows(self.program, function.input_type);
+    const state_result = self.state_plan.represented(self.program, function.output_type);
+    const output_kind = self.program.typeOf(function.output_type);
+    const pointer_result = state_callee and !state_result and (output_kind == .object or output_kind == .tuple);
+    const legacy = !borrowed and state_result and !self.state_active and !self.allows_allocation and self.state_plan.nested(self.program, function.output_type);
 
     if (legacy) {
         const result = try self.call(try self.functionReference(value.function), &.{ try self.builder.identifier("allocator"), argument }, true);
@@ -94,18 +99,20 @@ fn lowerInvocation(self: *Lower, body: *std.ArrayList(node.Statement), value: @F
     const callee = try self.requestFunction(value.function, .value);
     var result = try self.call(callee, &.{ try self.builder.identifier("allocator"), argument }, true);
 
+    if (pointer_result) return if (result_mode == .pointer or borrowed) result else self.builder.expression(.{ .dereference = result });
+
     if (borrowed) {
         result = try aggregate.bind(self, body, result);
 
-        if (state_callee) return @import("../state_value/conversion.zig").convert(self, body, function.output_type, result, .borrow);
+        if (state_result) return @import("../state_value/conversion.zig").convert(self, body, function.output_type, result, .borrow);
 
         return self.builder.expression(.{ .address_of = result });
     }
 
-    if (state_callee and !self.state_active) {
+    if (state_result and !self.state_active) {
         result = try aggregate.bind(self, body, result);
         result = try @import("../state_value/conversion.zig").convert(self, body, function.output_type, result, result_mode);
-    } else if (!state_callee and result_mode == .pointer) {
+    } else if (!state_result and result_mode == .pointer and (self.program.typeOf(function.output_type) == .object or self.program.typeOf(function.output_type) == .tuple)) {
         result = try aggregate.bind(self, body, result);
         result = try self.construct(function.output_type, result);
     }

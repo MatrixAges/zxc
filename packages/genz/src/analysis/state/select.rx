@@ -1,11 +1,12 @@
 <Module>
     <Type from="built" as="Built" />
     <Type from="keys" as="Keys" />
+    <Type from="../model" as="Model" />
 
     <Args
         in={{
             program: Built.Input,
-            boundaries: u32[],
+            boundaries: Model.Boundaries,
             local: bool[]
         }}
         out={Keys.Output}
@@ -53,11 +54,20 @@
     <Call fn="built" in={$in.program} />
 
     <Call
+        fn="row_storage"
+        in={{
+            types: $in.program.types,
+            built: $ctx.built,
+            boxed: $ctx.duplicates
+        }}
+    />
+
+    <Call
         fn="frozen"
         in={{
             types: $in.program.types,
             boxed: $ctx.duplicates,
-            built: $ctx.built
+            built: $ctx.row_storage
         }}
     />
 

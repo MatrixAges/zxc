@@ -1,0 +1,51 @@
+<Module>
+    <Type from="model" as="Comparison" />
+
+    <Args in={Comparison.Plan} out={bool} />
+
+    <Call
+        fn="flags"
+        in={{
+            left: $in.left.flags,
+            right: $in.right.flags
+        }}
+    />
+
+    <If on={!$ctx.flags}>
+        <Return value={false} />
+    </If>
+
+    <Call
+        fn="renewals"
+        in={{
+            left: $in.left.renewals,
+            right: $in.right.renewals
+        }}
+    />
+
+    <If on={!$ctx.renewals}>
+        <Return value={false} />
+    </If>
+
+    <Call
+        fn="keys"
+        in={{
+            left: $in.left.transfers,
+            right: $in.right.transfers
+        }}
+    />
+
+    <If on={!$ctx.keys}>
+        <Return value={false} />
+    </If>
+
+    <Call
+        fn="integers"
+        in={{
+            left: $in.left.slot_first,
+            right: $in.right.slot_first
+        }}
+    />
+
+    <Return value={$ctx.integers} />
+</Module>

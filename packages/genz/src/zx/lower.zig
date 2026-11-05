@@ -46,6 +46,7 @@ pure_functions: []const bool = &.{},
 /// The pure functions that compare no represented aggregates by identity, themselves or through their callees.
 identity_free_functions: []const bool = &.{},
 local_functions: []const bool = &.{},
+fresh_outputs: []const bool = &.{},
 value_output: bool = false,
 public_value_output: bool = false,
 stack_symbols: std.AutoHashMapUnmanaged(ir.SymbolId, void) = .empty,
@@ -119,15 +120,16 @@ pub fn declarations(self: *Self) Error![]const node.Declaration {
 }
 
 pub fn functionValue(self: *Self, name: []const u8) Error!node.Declaration {
-    const state = if (self.state_plan.represented(self.program, self.program.output_type)) try @import("state_value/root.zig").enter(self) else null;
+    const state = if (self.state_plan.represented(self.program, self.program.output_type) or self.state_plan.inlineRows(self.program, self.program.input_type)) try @import("state_value/root.zig").enter(self) else null;
 
     defer if (state) |saved| saved.restore();
 
     if (self.state_active and !self.public_value_output) try self.state_symbols.put(self.allocator, @fromBackingInt(0), {});
 
     defer _ = self.state_symbols.remove(@fromBackingInt(0));
+    const output = self.program.typeOf(self.program.output_type);
 
-    self.value_output = true;
+    self.value_output = state == null or self.state_plan.represented(self.program, self.program.output_type) or (output != .object and output != .tuple);
     defer self.value_output = false;
 
     return self.function(name, false);
@@ -302,8 +304,14 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!node.ExpressionId {
         .call => |invocation| blk: {
             var body: std.ArrayList(node.Statement) = .empty;
             const callee_function = self.program.functions.at(@backingInt(invocation.function));
+            const state_callee = self.state_plan.represented(self.program, callee_function.output_type) or self.state_plan.inlineRows(self.program, callee_function.input_type);
 
-            if (self.state_active and self.value_functions[@backingInt(invocation.function)] and self.state_plan.represented(self.program, callee_function.output_type)) break :blk @import("value_call/root.zig").invocation(self, invocation);
+            if (self.state_active and self.value_functions[@backingInt(invocation.function)] and state_callee) {
+                if (self.state_plan.represented(self.program, callee_function.output_type)) break :blk @import("value_call/root.zig").invocation(self, invocation);
+
+                break :blk @import("value_call/root.zig").pointerInvocation(self, invocation);
+            }
+
             if (!self.state_active and self.allows_allocation and self.value_functions[@backingInt(invocation.function)] and self.state_plan.represented(self.program, callee_function.output_type)) break :blk @import("value_call/root.zig").pointerInvocation(self, invocation);
             if (self.allows_allocation and self.value_functions[@backingInt(invocation.function)] and @import("value_call/fresh.zig").check(callee_function.expressions, callee_function.body.block())) break :blk @import("value_call/root.zig").pointerInvocation(self, invocation);
 
@@ -324,7 +332,16 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!node.ExpressionId {
                 break :temporary try @import("value_call/argument.zig").borrow(self, &body, invocation.argument);
             } else if (self.state_active) converted: {
                 const argument = try @import("aggregate.zig").bind(self, &body, try self.expr(invocation.argument));
-                const borrow = self.pure_functions[@backingInt(invocation.function)] and !self.state_plan.represented(self.program, callee_function.output_type);
+                const output = self.program.typeOf(callee_function.output_type);
+
+                const independent = (output == .object or output == .tuple) and
+                    callee_function.input_type != callee_function.output_type and
+
+                    self.value_functions[@backingInt(invocation.function)] and
+                    self.fresh_outputs[@backingInt(invocation.function)];
+
+                const borrow = !self.state_plan.represented(self.program, callee_function.output_type) and
+                    (self.pure_functions[@backingInt(invocation.function)] or independent);
 
                 break :converted try @import("state_value/conversion.zig").convert(self, &body, callee_function.input_type, argument, if (borrow) .borrow else .pointer);
             } else try self.expr(invocation.argument);

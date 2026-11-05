@@ -1,0 +1,27 @@
+import { level_modulus } from "./const"
+
+export type Input = {
+    left: u8[],
+    right: u8[]
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    if (in.left.length != in.right.length) {
+        return false
+    }
+
+    return loop({
+        index: 0,
+        equal: true
+    }, {
+        while: (state, source) => state.equal && state.index < source.left.length,
+        next: (state, source) => {
+            state.equal = (source.left[state.index] % level_modulus) ==
+                (source.right[state.index] % level_modulus)
+            state.index += 1
+        },
+        return: state => state.equal
+    }, in)
+}

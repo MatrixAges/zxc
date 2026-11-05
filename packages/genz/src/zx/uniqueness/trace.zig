@@ -155,7 +155,12 @@ fn group(comptime Value: type, allocator: std.mem.Allocator, bodies: usize, visi
 
 /// Whether two results of `kind` have the same effect: growth copies are sets, whatever order they were listed in.
 pub fn agree(comptime kind: Kind, allocator: std.mem.Allocator, left: Memo.Result(kind), right: Memo.Result(kind)) std.mem.Allocator.Error!bool {
-    if (kind != .demanded) return same(left, right);
+    if (kind != .demanded) {
+        if (@import("genz_options").generated_analysis) return @import("replay/ordered.zig").agree(kind, allocator, left, right);
+
+        return same(left, right);
+    }
+
     if (left.grew != right.grew or !same(left.marks, right.marks)) return false;
 
     return try sameSet(Memo.Normalized, "id", allocator, left.normalized, right.normalized) and try sameSet(Memo.Renewed, "key", allocator, left.renewed, right.renewed);

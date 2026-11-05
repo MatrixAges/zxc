@@ -7,9 +7,12 @@ const aggregate = @import("aggregate.zig");
 const conversion = @import("state_value/conversion.zig");
 
 pub fn declarations(self: *Lower, output: *std.ArrayList(node.Declaration)) Lower.Error!bool {
-    if (self.entry_flags.tasks or !self.state_plan.represented(self.program, self.program.output_type)) return false;
+    const represented_output = self.state_plan.represented(self.program, self.program.output_type);
+    const represented_input = self.state_plan.inlineRows(self.program, self.program.input_type);
 
-    if (forwarded(self)) |function| {
+    if (self.entry_flags.tasks or (!represented_output and !represented_input)) return false;
+
+    if (if (represented_output) forwarded(self) else null) |function| {
         try output.append(self.allocator, .{ .constant = .{
             .name = "executeState",
             .value = try self.requestFunction(function, .value),

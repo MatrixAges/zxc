@@ -4,7 +4,7 @@
     <Args
         in={{
             program: Model.Program,
-            roots: u32[],
+            roots: Model.Boundaries,
             local: bool[],
             boxed: bool[]
         }}
@@ -12,10 +12,18 @@
     />
 
     <Call
+        fn="public_inputs"
+        in={{
+            types: $in.program.types,
+            source: $in.roots
+        }}
+    />
+
+    <Call
         fn="boundaries"
         in={{
             program: $in.program,
-            roots: $in.roots,
+            roots: $ctx.public_inputs,
             local: $in.local
         }}
     />

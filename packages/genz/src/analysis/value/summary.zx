@@ -33,15 +33,21 @@ export default function (in: Input): Output {
             const index = current.index
             const functions = current.program.functions
             const output = functions.output_types[index]
+            const input = functions.input_types[index]
 
             const object =
                 kind(current.program.types.kinds[integers.widen(
                     output
                 )]) == Kind.Object
-            const state = functions.native_modules[index] == null && query({
-                value: current.queries[integers.widen(output)],
-                property: Property.Represented
-            })
+            const state = functions.native_modules[index] == null && (
+                query({
+                    value: current.queries[integers.widen(output)],
+                    property: Property.Represented
+                }) || query({
+                    value: current.queries[integers.widen(input)],
+                    property: Property.InlineRows
+                })
+            )
 
             current.values[index] = current.local[index] && (object || state)
             current.index += 1

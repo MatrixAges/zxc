@@ -115,6 +115,7 @@ pub fn initializeAnalyzed(temporary: std.mem.Allocator, workspace: std.mem.Alloc
         .pure_functions = facts.value.pure,
         .identity_free_functions = facts.identity_free,
         .local_functions = facts.value.local,
+        .fresh_outputs = facts.fresh_outputs,
         .plans = facts.uniqueness.functions,
         .plan = facts.uniqueness.entry,
     };

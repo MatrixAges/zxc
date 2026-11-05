@@ -35,7 +35,7 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
     }));
 
     if (parser) |generated| {
-        inline for (entries.main) |entry| {
+        inline for (entries.main ++ entries.ordered) |entry| {
             if (entry.owner == .frontend) frontend.addImport(entry.importName(), @field(generated, entry.name));
         }
     } else {
@@ -96,7 +96,7 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
     });
 
     if (parser) |generated| {
-        inline for (entries.main) |entry| {
+        inline for (entries.main ++ entries.ordered) |entry| {
             if (entry.owner == .compiler) module.addImport(entry.importName(), @field(generated, entry.name));
             if (entry.owner == .genz and !native_genz) genz.addImport(entry.importName(), @field(generated, entry.name));
         }

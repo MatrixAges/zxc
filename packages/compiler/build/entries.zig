@@ -15,7 +15,7 @@ pub const Entry = struct {
     }
 };
 
-pub const Set = enum { main, checks, constant_seed };
+pub const Set = enum { main, checks, constant_seed, ordered };
 const constant_fold = Entry{ .path = "zx/analysis/constants/evaluate.rx", .name = "constant_fold" };
 
 /// Entries linked into zxc.
@@ -155,6 +155,11 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/iteration/fields/plan.rx", .name = "loop_fields", .owner = .genz },
 };
 
+pub const ordered = [_]Entry{
+    .{ .path = "genz/analysis/uniqueness/replay/ordered/settled.rx", .name = "uniqueness_replay_settled", .owner = .genz },
+    .{ .path = "genz/analysis/uniqueness/replay/ordered/planned.rx", .name = "uniqueness_replay_planned", .owner = .genz },
+};
+
 /// Individual checkers that zxc reaches through the unified IR validation instead; only test builds import them.
 pub const checks = [_]Entry{
     .{ .path = "zx/analysis/semantic/lookup.rx", .name = "type_lookup" },
@@ -177,6 +182,7 @@ pub fn of(set: Set) []const Entry {
     return switch (set) {
         .main => &main,
         .checks => &checks,
+        .ordered => &ordered,
         .constant_seed => &.{constant_fold},
     };
 }
@@ -184,7 +190,7 @@ pub fn of(set: Set) []const Entry {
 pub fn ParserModules() type {
     comptime var names: []const []const u8 = &.{ "type_views", "nominal_data" };
 
-    for (main) |entry| {
+    for (main ++ ordered) |entry| {
         if (entry.owner == .frontend or entry.owner == .compiler or entry.owner == .genz) names = names ++ .{entry.name};
     }
 

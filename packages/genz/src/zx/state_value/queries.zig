@@ -46,7 +46,7 @@ fn build() [@typeInfo(Kind).@"enum".field_names.len][@typeInfo(Property).@"enum"
         for (std.enums.values(Property)) |property| {
             const input: std.meta.Child(generated.Input) = .{ .value = value, .property = property };
 
-            table[@backingInt(value)][@backingInt(property)] = generated.executeValue(std.heap.page_allocator, &input) catch unreachable;
+            table[@backingInt(value)][@backingInt(property)] = @import("zx").columns.invoke(generated.executeValue, std.heap.page_allocator, &input) catch unreachable;
         }
     }
 

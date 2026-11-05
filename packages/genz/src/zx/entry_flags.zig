@@ -49,7 +49,7 @@ pub fn analyze(workspace: std.mem.Allocator, program: ir.Program, functions: Fun
 
     inline for (@typeInfo(Input).@"struct".field_names) |name| @field(input, name) = @field(fields, name);
 
-    const output = generated.executeValue(scratch.allocator(), &input) catch |err| switch (err) {
+    const output = zx.columns.invoke(generated.executeValue, scratch.allocator(), @as(*const Input, &input)) catch |err| switch (err) {
         error.OutOfMemory => return error.OutOfMemory,
         else => unreachable,
     };
