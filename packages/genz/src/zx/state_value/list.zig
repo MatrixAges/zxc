@@ -3,7 +3,7 @@ const ir = @import("zx").ir;
 const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
 const aggregate = @import("../aggregate.zig");
-pub const Storage = enum { plain, shared, exclusive };
+pub const Storage = enum { plain, owned, shared, exclusive };
 
 pub fn selected(self: *const Lower, id: ir.TypeId) bool {
     return self.state_active and self.state_plan.selected[@backingInt(id)] and self.program.typeOf(id) == .list;
@@ -14,7 +14,7 @@ pub fn definition(self: *Lower, id: ir.TypeId, child: ir.TypeId) Lower.Error!nod
 
     return self.builder.expression(.{ .struct_type = try self.allocator.dupe(node.Field, &.{
         .{ .name = "items", .value = try self.builder.expression(.{ .const_slice = try @import("../types.zig").get(self, element, child) }) },
-        .{ .name = "storage", .value = try self.builder.expression(.{ .enum_type = &.{ "plain", "shared", "exclusive" } }) },
+        .{ .name = "storage", .value = try self.builder.expression(.{ .enum_type = &.{ "plain", "owned", "shared", "exclusive" } }) },
     }) });
 }
 
@@ -23,11 +23,22 @@ pub fn tag(self: *Lower, storage: Storage) Lower.Error!node.ExpressionId {
 }
 
 pub fn headered(self: *Lower, value: node.ExpressionId) Lower.Error!node.ExpressionId {
-    return @import("../intrinsics.zig").binary(self, .not_equal, try self.field(value, "storage"), try tag(self, .plain));
+    const storage = try self.field(value, "storage");
+
+    return @import("../intrinsics.zig").binary(self, .greater_equal,
+        try self.builtin(.intFromEnum, &.{storage}),
+        try self.builder.integer(@intFromEnum(Storage.shared)));
 }
 
 pub fn exclusive(self: *Lower, value: node.ExpressionId) Lower.Error!node.ExpressionId {
     return @import("../intrinsics.zig").binary(self, .equal, try self.field(value, "storage"), try tag(self, .exclusive));
+}
+
+pub fn writable(self: *Lower, value: node.ExpressionId) Lower.Error!node.ExpressionId {
+    const storage = try self.builtin(.intFromEnum, &.{try self.field(value, "storage")});
+    const permission = try self.builtin(.rem, &.{ storage, try self.builder.integer(@intFromEnum(Storage.shared)) });
+
+    return @import("../intrinsics.zig").binary(self, .not_equal, permission, try self.builder.integer(@intFromEnum(Storage.plain)));
 }
 
 pub fn weakened(self: *Lower, value: node.ExpressionId) Lower.Error!node.ExpressionId {
@@ -46,18 +57,24 @@ pub fn create(self: *Lower, id: ir.TypeId, slice: node.ExpressionId, has_header:
     return construct(self, id, slice, try choose(self, has_header, .shared, .plain));
 }
 
-pub fn proven(self: *Lower, id: ir.TypeId, slice: node.ExpressionId, has_header: node.ExpressionId, is_exclusive: node.ExpressionId) Lower.Error!node.ExpressionId {
+pub fn proven(self: *Lower, id: ir.TypeId, slice: node.ExpressionId, has_header: node.ExpressionId, is_unique: node.ExpressionId) Lower.Error!node.ExpressionId {
     const header = self.builder.nodes.get(has_header);
 
     const storage = if (header == .boolean)
-        (if (header.boolean) try choose(self, is_exclusive, .exclusive, .shared) else try tag(self, .plain))
+        (if (header.boolean) try choose(self, is_unique, .exclusive, .shared) else try choose(self, is_unique, .owned, .plain))
 
-    else if (has_header == is_exclusive)
+    else if (has_header == is_unique)
         try choose(self, has_header, .exclusive, .plain)
     else
-        try self.builder.expression(.{ .conditional = .{ .condition = has_header, .yes = try choose(self, is_exclusive, .exclusive, .shared), .no = try tag(self, .plain) } });
+        try self.builder.expression(.{ .conditional = .{ .condition = has_header, .yes = try choose(self, is_unique, .exclusive, .shared), .no = try choose(self, is_unique, .owned, .plain) } });
 
     return construct(self, id, slice, storage);
+}
+
+pub fn owned(self: *Lower, id: ir.TypeId, slice: node.ExpressionId, has_header: node.ExpressionId) Lower.Error!node.ExpressionId {
+    if (!selected(self, id)) return slice;
+
+    return proven(self, id, slice, has_header, try self.builder.expression(.{ .boolean = true }));
 }
 
 fn construct(self: *Lower, id: ir.TypeId, slice: node.ExpressionId, storage: node.ExpressionId) Lower.Error!node.ExpressionId {

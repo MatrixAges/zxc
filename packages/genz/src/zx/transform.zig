@@ -79,5 +79,5 @@ pub fn lower(self: *Lower, id: ir.ExprId, value: ir.Transform) Lower.Error!node.
 
     try body.append(self.allocator, .{ .for_loop = .{ .iterable = source, .capture = element_capture, .body = try self.builder.statements(loop.items), .index_capture = index_capture } });
 
-    return aggregate.finish(self, &body, if (value.kind == .reduce) result else try @import("state_value/list.zig").wrap(self, self.program.expression(id).type_id, result, false));
+    return aggregate.finish(self, &body, if (value.kind == .reduce) result else try @import("state_value/list.zig").owned(self, self.program.expression(id).type_id, result, try self.builder.expression(.{ .boolean = false })));
 }

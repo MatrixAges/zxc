@@ -31,7 +31,7 @@ pub fn lower(self: *Lower, id: ir.ExprId) Lower.Error!node.ExpressionId {
         const private = try @import("growth.zig").copy(self, &copied, element, source, !self.may_grow);
 
         break :guarded try aggregate.bind(self, &body, try self.builder.expression(.{ .conditional = .{
-            .condition = try @import("state_value/list.zig").exclusive(self, source_value),
+            .condition = try @import("state_value/list.zig").writable(self, source_value),
             .yes = try self.builtin(.constCast, &.{source}),
             .no = try aggregate.finish(self, &copied, private),
         } }));
@@ -44,10 +44,10 @@ pub fn lower(self: *Lower, id: ir.ExprId) Lower.Error!node.ExpressionId {
         const grown = try @import("growth.zig").reserve(self, &copied, element, source, try self.field(source, "len"), false);
         const duplicated = try aggregate.bind(self, &plain, try self.call(try self.field(try self.builder.identifier("allocator"), "dupe"), &.{ element, source }, true));
         const headered = if (flags.grow) try self.builder.expression(.{ .boolean = true }) else try @import("state_value/list.zig").headered(self, source_value);
-        const exclusive = try @import("state_value/list.zig").exclusive(self, source_value);
+        const writable = try @import("state_value/list.zig").writable(self, source_value);
 
         break :chosen try aggregate.bind(self, &body, try self.builder.expression(.{ .conditional = .{
-            .condition = exclusive,
+            .condition = writable,
             .yes = try self.builtin(.constCast, &.{source}),
             .no = try self.builder.expression(.{ .conditional = .{
                 .condition = headered,
@@ -65,9 +65,13 @@ pub fn lower(self: *Lower, id: ir.ExprId) Lower.Error!node.ExpressionId {
     try body.append(self.allocator, .{ .assignment = .{ .target = slot, .value = value } });
 
     const result = if (selected) result: {
-        const headered = if (flags.grow or deferred) try self.builder.expression(.{ .boolean = true }) else try @import("state_value/list.zig").headered(self, source_value);
+        const lists = @import("state_value/list.zig");
 
-        break :result try @import("state_value/list.zig").proven(self, type_id, buffer, headered, headered);
+        const headered = if (flags.grow or deferred)
+            try intrinsics.binary(self, .not_equal, try self.field(source_value, "storage"), try lists.tag(self, .owned))
+        else try lists.headered(self, source_value);
+
+        break :result try lists.owned(self, type_id, buffer, headered);
     } else buffer;
 
     return aggregate.finish(self, &body, result);

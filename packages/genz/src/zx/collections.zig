@@ -64,8 +64,9 @@ fn lowerMode(self: *Lower, id: ir.ExprId, layout: ?node.ExpressionId, removed_on
             const last = try intrinsic.binary(self, .subtract, length, try self.builder.integer(1));
             const dynamic = provenance.selected(self, source_type);
             const exclusive = if (dynamic) try provenance.exclusive(self, source_value) else try self.builder.expression(.{ .boolean = false });
+            const writable = if (dynamic) try provenance.writable(self, source_value) else exclusive;
             const shortened = try slice(self, source, null, last);
-            const remaining = if (dynamic) try provenance.proven(self, source_type, shortened, source_headered, exclusive) else shortened;
+            const remaining = if (dynamic) try provenance.proven(self, source_type, shortened, source_headered, writable) else shortened;
             const selected = try self.builder.expression(.{ .index = .{ .target = source, .index = last } });
             var nonempty_body: std.ArrayList(node.Statement) = .empty;
             const element = try @import("state_value/elements.zig").read(self, &nonempty_body, source_type, selected);
@@ -110,7 +111,7 @@ fn lowerMode(self: *Lower, id: ir.ExprId, layout: ?node.ExpressionId, removed_on
 
             try body.append(self.allocator, .{ .expression = call });
 
-            result = try pair(self, try listResult(self, source_type, mutable, if (flags.in_place) source_headered else try self.builder.expression(.{ .boolean = flags.grow })), unit);
+            result = try pair(self, try provenance.owned(self, source_type, mutable, if (flags.in_place) source_headered else try self.builder.expression(.{ .boolean = flags.grow })), unit);
         },
         .push, .concat => {
             const added = if (operation.kind == .push) try self.builder.integer(1) else try self.field(arguments[0], "len");
@@ -181,7 +182,7 @@ fn lowerMode(self: *Lower, id: ir.ExprId, layout: ?node.ExpressionId, removed_on
             try copy(self, &body, try slice(self, tail, null, inserted), replacement);
             try copy(self, &body, try slice(self, buffer, try intrinsic.binary(self, .add, begin, inserted), null), try slice(self, source, end, null));
 
-            result = try pair(self, try provenance.wrap(self, source_type, buffer, false), try listResult(self, source_type, try slice(self, source, begin, end), try intrinsic.binary(self, .logical_and, source_headered, try intrinsic.binary(self, .equal, begin, try self.builder.integer(0)))));
+            result = try pair(self, try provenance.owned(self, source_type, buffer, try self.builder.expression(.{ .boolean = false })), try listResult(self, source_type, try slice(self, source, begin, end), try intrinsic.binary(self, .logical_and, source_headered, try intrinsic.binary(self, .equal, begin, try self.builder.integer(0)))));
         },
     }
 

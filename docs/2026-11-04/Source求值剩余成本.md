@@ -750,3 +750,96 @@ publish-paired-output-summary.json，均在/tmp/zxc-function-levels。
 实际exclusive才能安全缩回header并继续携带许可；shared/plain保持不可变性。
 必须核对快照、别名、空列表、跨helper与错误路径，不能跳过入轮renew或仅凭
 headered改写旧快照。此前被否定的skip-renew原型仍不恢复。不改任何容量预算。
+
+## 2026-11-05：补全无 header 的独占状态
+
+Intent：保留 Source 自举，以同一所有权代数表达原实现的可写独占数组，避免
+新分配的普通数组跨 helper 后失去许可；不新增语言语法或专用运行库。
+
+Data：Level.fresh 为 header=false、unique=true；StateList.proven 当前在
+header=false 时直接返回 plain，三态不能表达该组合。list_update 的新 dupe
+及 reverse/sort 的新分配结果也丢失 unique。现有 pop 已有动态回缩保护，不能
+根据旧文档再次添加同一修复。临时仅关闭 Function 的 Native 参考生成完成，但
+其 plan 缺少 Source 的 transfers/slot_first，1295 份产物不同，不能作为等价
+性能门禁，也不将参考实现用于正式路径。
+
+Edges：增加 owned 表达无 header、独占可写；plain/owned/shared/exclusive
+分别对应 H/U 的四个组合。写入许可可接受 owned 或 exclusive，增长 header、
+renewal 及 pop 回缩仍须原有 header 证明。静态字面量与借用入口不得直接授予
+owned；别名裁剪、嵌套列表读取与快照必须继续降级。只在真实新分配或已经证明
+原地写入的结果上恢复独占。不把此能力描述为 Work 已完成迁移：公开 View ABI
+仍丢失私有描述符，跨调用拥有状态入口仍是后续缺口。
+
+Answer：同步 Source 与 seed 类型定义、私有类型身份、状态构造与消费、后端缓存
+指纹。使用既有所有权、快照、借用、容量与 OOM 检查，不新增用例或放松预算。
+集中检查完整生成与阶段固定点，实际生成形态改变后再做受影响路径对照。完成
+独立能力后提交推送全部变更，保留固定累计基线及不利证据。
+
+```mermaid
+flowchart LR
+    P[来源与最后使用证明] --> Q[所有权裁剪]
+    Q --> S{私有列表状态}
+    S --> O[owned: 无header可写]
+    S --> E[exclusive: 有header可写]
+    S --> B[plain/shared: 借用或有别名]
+    O --> W[元素原地写入]
+    E --> W
+    E --> R[允许检查增长前沿和回缩]
+    B --> C[先复制再写]
+    C --> O
+```
+
+四态首版完成 Source/seed 定义与读写联动。只读审查发现 deferred/grow 路径若
+直接复用 owned，结果不能因 deferred 强标有 header；已改为按真实分支保留
+source_headered，只有新增长复制才建立 header。pop 剩余可保留 owned，但回缩
+仍只接受 exclusive。七组既有所有权/容量/借用检查全部通过，36 个 Node 检查
+无失败；两代完整生成 2115 文件相同。
+
+隔离三组首版 CPU 中位 5.28→5.36s，未通过；不能因功能正确而忽略这一增量。
+正在将 enum 顺序改为 plain/owned/shared/exclusive，使有 header 的状态连续，
+header 查询用 intFromEnum(storage) 与命名枚举 shared 的值比较一次。Source 与
+seed 枚举顺序同步，身份 v10 与 fingerprint v65 隔离中间实现；动态写许可仍
+按 owned/exclusive 检查，不通过重新授予许可来省指令。首版不作为最终性能结论。
+
+单比较编码版本七组既有检查再次全通过，36 个 Node 无失败，2115 文件固定点
+一致。隔离三组 CPU 中位 5.32→5.34s，wall1214.36→1232.43ms；配对 CPU
+差为 -0.02/+0.02/+0.02s。继续将 grow/deferred 结果的 H||!U 化简为
+storage!=owned：仅 owned 被直接复用且无 header，其余三态复制或复用后都有
+header。该化简逐态等价，不改复制选择、许可或求值顺序。fingerprint 最终为
+v66，私有类型身份保持 v10；旧中间缓存不作为最终证据。
+
+结果推导化简版的固定点仍为2115文件，但三组 CPU 中位5.28→5.32s，配对
++0.02/+0.03/+0.05s，尚未达标，未提交。可写判断也改为枚举编码的低位余数
+非零（模数来自命名枚举 shared），四态真值保持false/true/false/true；header
+仍只用高位判断。此改动减少重复比较和对应AST，fingerprint提升为v67。继续
+保留全部不利样本，不通过增加许可、调整预算或重复计时筛样收口。
+
+### 四态能力最终证据
+
+最终独占位版本两代完整生成2115份产物完全一致。v63→v67缓存迁入、合法语义
+修改与恢复分别核对2115/2114/2115份，全部等同对应冷生成。只排除工具身份清单
+.zxc-inputs，不排除Zig或类型产物。公共ABI仍为原有slice/View，四态仅属于私有
+表示，原有两位枚举存储宽度不增加。
+
+全部构建结束后，以同一125入口、2091模块输入交替三组：before CPU
+5.31/5.32/5.33s，after5.30/5.30/5.31s；中位5.32→5.30s，wall
+1216.87→1211.84ms。RSS中位652083200→652673024B，差约576KiB且区间重叠。
+配对CPU差-0.01/-0.02/-0.02s；六次产物各自与同版本首次输出一致。不同版本
+的私有枚举、布局身份和判断形态有意不同，不宣称跨版本文本相同。此轮未见
+可辨别性能退化，不将微小改善描述为已经解决累计差距。
+
+首版与两个中间形式的不利样本完整保留。固定累计锚点ca03eb0（历史4.11s）
+不重置，整体自举的性能门禁与Native依赖闭包仍未完成。完整Work尚未迁移：
+下一前置条件是保留私有描述符、明确拥有/借用契约的跨宿主状态入口；不能把
+公开executeValue包装当作这一能力，也不能用新的专用队列桥规避。
+
+证据位于/tmp/zxc-function-levels：owned-permission-fixedpoint.json、
+owned-v67-final-cache-comparisons.json、owned-permission-paired-results.json、
+owned-bits-checks.log与最终权限路径补验日志。全部诊断副本留在/tmp，正式路径
+没有Native求值回退开关或计时探针。阶段按IDEA目标、证据、边界与验收交接。
+
+最终权限表达式补验test-field-ownership、test-reverse-ownership均以0退出。
+Zig listen runner把既有std.debug.print显示为w并附failed command文本，但没有
+失败状态；直接运行同一source/library容量可执行文件，两路各1/1明确通过。
+2048/16384项分别累计分配24672/196704B，仍低于原两份payload预算，未改断言。
+提交前仅将Native局部命名对齐writable/unique并格式化，不改变生成器节点或语义。

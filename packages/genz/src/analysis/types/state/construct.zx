@@ -17,7 +17,8 @@ import {
     view_prefix,
     storage_plain,
     storage_shared,
-    storage_exclusive
+    storage_exclusive,
+    storage_owned
 } from "./const"
 import tuple from "./tuple"
 
@@ -226,6 +227,7 @@ export default function (in: Input): Output {
                                     bytes.fromText(
                                         storage_plain
                                     ),
+                                    bytes.fromText(storage_owned),
                                     bytes.fromText(storage_shared),
                                     bytes.fromText(storage_exclusive)
                                 ]
