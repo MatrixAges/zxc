@@ -303,11 +303,7 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!node.ExpressionId {
             if (!self.state_active and self.allows_allocation and self.value_functions[@backingInt(invocation.function)] and self.state_plan.represented(self.program, callee_function.output_type)) break :blk @import("value_call/root.zig").pointerInvocation(self, invocation);
             if (self.allows_allocation and self.value_functions[@backingInt(invocation.function)] and @import("value_call/fresh.zig").check(callee_function.expressions, callee_function.body.block())) break :blk @import("value_call/root.zig").pointerInvocation(self, invocation);
 
-            const scalar = switch (self.program.typeOf(callee_function.output_type)) {
-                .scalar, .enumeration, .error_set => true,
-                else => false,
-            };
-
+            const scalar = @import("types/scalar.zig").check(self.program.types, callee_function.output_type);
             const needs_io = self.io_functions[@backingInt(invocation.function)];
             const needs_process = self.process_functions[@backingInt(invocation.function)];
             const arguments = try self.allocator.alloc(node.ExpressionId, 2 + @as(usize, @intFromBool(invocation.stores.len > 0)) + @as(usize, @intFromBool(needs_io)) + @as(usize, @intFromBool(needs_process)));

@@ -199,3 +199,53 @@ flowchart LR
 没有针对函数名、路径或输入样例的特殊处理。字段位置命中仍随未收口Function迁移
 保留。自我复核：固定点与351项检查证明本能力的相应范围，不能替代最终传递依赖
 审计；Source Function及条件能力仍未提交，固定累计基线不重置。
+
+继续核对实际调用接口：projection只使用Context.metadata，却传整个Context；member
+只使用Layout列，却收到完整私有Layout值。改为共同接收已有的只读Metadata引用，
+避免在高频调用边界打包不需要的描述符。只读数据仍借用原owner，不改字段/类型
+索引算法及边界错误。涉及所有projection/member调用方，完整保留同一Metadata。
+
+同时移动settle的invalidate：初始化已生成全Unknown，首轮直接查询；某轮changed
+为真时才在该轮结束后清表供下一轮使用。唯一调用者close.rx显式先initialize，
+没有跨轮查询或原Known快照观察；最终未变化轮的查询缓存仍随结果返回。
+
+已用当前支持具名递归函数的CLI格式化本次七个Source文件；旧zig-out/bin/zxc的
+fmt不支持该语法，不将旧二进制误认为新源码不合法。第一次接线遗漏demand/trace
+直接member调用，编译前已补齐；先前失败日志保留，不放宽任何检查。
+
+Metadata接口实测projection输入88→32字节，member输入96→24字节；七文件调整
+后S1→2全部2045文件一致，六组既有检查343/343步骤、841/841项通过。CPU三对
+before5.24/5.21/5.20、after5.10/5.12/5.15s，中位5.21→5.12；wall1185.94→
+1160.07ms，RSS664453120→662667264B。六次全部2045产物均与对应固定点一致，
+保留本次Source优化。它属于尚未完整收口的Function迁移，不制造缺依赖提交。
+
+继续收口既有共用标量分类：Entry.scalar原规则已递归处理Optional，Native调用方
+却仅识别直接scalar/enum/error_set，导致Nullable scalar调用不走纯参数借用分支。
+core/type_table/scalar.zx统一此谓词，Entry复用；Native仅通过零容量allocator调用
+Source查询，seed保留保守原生引导。独立HEAD快照只增加这六个文件，不包含Function
+/条件迁移、Metadata收窄或growth能力；其回归与该查询的实际CPU影响另行核验。
+
+共用分类独立快照也完成271/271步骤、351/351项检查。配套Source与Native完整构建，
+原生零容量allocator查询实际执行通过，没有引入同职责的生产Native分类规则。
+代码生成的50文件变化来自Nullable scalar纯调用参数改用现有借用路径，保留所有
+原有可空标量、枚举、对象借用和失败清理检查，不改公共返回值与错误约定。
+
+该调用路径专项三对CPU before5.19/5.07/5.12、after5.13/5.12/5.13s，中位5.12→
+5.13s，样本重叠且差0.01s，属于既定容差内，不宣称提速；wall1166.59→1168.59ms，
+首个before3235.53ms异常保留。RSS中位661258240→664764416B，样本范围明显重叠。
+六次2045产物均与各自版本一致；after复用Metadata阶段固定点。累计锚点仍为
+ca03eb0011e3efd13221e1baefca7fcc10a1da77，不把本次小差异当作新的可累积预算。
+
+```mermaid
+flowchart LR
+    T[类型列与TypeId] --> S[Core ZX标量谓词]
+    S --> E[Source入口分类复用]
+    S --> N[Native零分配查询适配]
+    N --> B[现有纯参数借用]
+    B --> Z[普通Zig调用]
+```
+
+本次可独立提交范围为共用类型谓词、Source消费者复用、包与引导入口，以及Native
+薄适配和一个调用点；其余Function/条件能力和七文件Metadata调整继续留在工作区。
+该职责是分类规则已迁移及Nullable scalar借用接线完成，不代表完整类型系统状态或
+整个编译器已经自举。未新增测试用例，未重置性能基线。

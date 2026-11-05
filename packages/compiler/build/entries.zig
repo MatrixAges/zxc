@@ -121,6 +121,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/state/queries/read.zx", .name = "state_query", .owner = .genz },
     .{ .path = "genz/analysis/state/queries/build.zx", .name = "state_query_plan", .owner = .genz },
     .{ .path = "genz/analysis/entry/analyze.rx", .name = "entry_flags", .owner = .genz },
+    .{ .path = "core/type_table/scalar.zx", .name = "scalar_type", .owner = .genz },
     .{ .path = "genz/analysis/names/analyze.rx", .name = "stable_names", .owner = .genz },
     .{ .path = "genz/analysis/native_namespaces/plan.rx", .name = "native_namespaces", .owner = .genz },
     .{ .path = "genz/analysis/native_namespaces/emit/build.rx", .name = "native_declarations", .owner = .genz },

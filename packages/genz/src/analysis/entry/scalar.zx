@@ -1,27 +1,13 @@
-import integers from "std:integer"
-import kind from "core/type_table/kind"
-import { Kind } from "core/type_table/model"
+import scalar from "core/type_table/scalar"
 
 import type { Input } from "./model"
 
 export type Output = bool
 
 export default function (in: Input): Output {
-    const result = loop({
-        types: in.types,
-        id: in.output_type
-    }, {
-        while: current =>
-            kind(current.types.kinds[integers.widen(current.id)]) == Kind.Optional,
-        next: current => {
-            current.id = current.types.first[integers.widen(current.id)]
-        }
+    return scalar({
+        kinds: in.types.kinds,
+        first: in.types.first,
+        type_id: in.output_type
     })
-
-    return match kind(in.types.kinds[integers.widen(result.id)]) {
-        Kind.Scalar => true,
-        Kind.Enumeration => true,
-        Kind.ErrorSet => true,
-        _ => false
-    }
 }

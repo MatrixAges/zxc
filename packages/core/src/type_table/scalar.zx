@@ -1,0 +1,33 @@
+import integers from "std:integer"
+
+import kind from "./kind"
+import { Kind } from "./model"
+
+export type Input = {
+    kinds: u8[],
+    first: u32[],
+    type_id: u32
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const result = loop({
+        kinds: in.kinds,
+        first: in.first,
+        id: in.type_id
+    }, {
+        while: current =>
+            kind(current.kinds[integers.widen(current.id)]) == Kind.Optional,
+        next: current => {
+            current.id = current.first[integers.widen(current.id)]
+        }
+    })
+
+    return match kind(in.kinds[integers.widen(result.id)]) {
+        Kind.Scalar => true,
+        Kind.Enumeration => true,
+        Kind.ErrorSet => true,
+        _ => false
+    }
+}
