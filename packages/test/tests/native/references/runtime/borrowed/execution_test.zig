@@ -16,7 +16,7 @@ fn run(allocator: std.mem.Allocator, count: usize, length: usize) !usize {
 
     const owner = host.HostNode{ .value = 11, .payload = "owner", .references = values };
     const input: @typeInfo(program.Input).pointer.child = .{ .node = host.fromNode(&owner), .left = host.fromNode(&left), .right = host.fromNode(&right), .count = @intCast(count) };
-    var tracked = std.testing.FailingAllocator.init(allocator, .{});
+    var tracked = std.testing.FailingAllocator.init(allocator, .{ .resize_fail_index = 0 });
     var arena = std.heap.ArenaAllocator.init(tracked.allocator());
 
     defer arena.deinit();
