@@ -1,12 +1,13 @@
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
-import { dirname, join, resolve } from 'node:path'
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, renameSync, writeFileSync } from 'node:fs'
+import { join, resolve } from 'node:path'
 import loadCatalog from './catalog.ts'
 import createCommand from './command.ts'
 import createPackage, { installCompiled } from './package.ts'
 
-const [cli, zig, optimize, catalog, tests, output] = process.argv.slice(2)
+const [compiler_path, zig, optimize, catalog, tests, output] = process.argv.slice(2)
+const cli = realpathSync(compiler_path)
 
 mkdirSync(resolve(output), { recursive: true })
 
@@ -93,8 +94,6 @@ for (const route of ['source', 'compiled']) {
             join(directory, 'local-cache'),
             '--global-cache-dir',
             join(directory, 'global-cache'),
-            '--zig-lib-dir',
-            join(dirname(zig), 'lib'),
             `-femit-bin=${binary}`
         )
 

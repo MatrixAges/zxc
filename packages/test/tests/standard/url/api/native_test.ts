@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
-import { copyFileSync, mkdtempSync, readdirSync, realpathSync, rmSync } from 'node:fs'
+import { copyFileSync, existsSync, mkdtempSync, readdirSync, realpathSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -15,42 +15,44 @@ const emitter = fileURLToPath(new URL('../../../../src/emit_control_tests.ts', i
 let total = 0
 
 function run(command: string, argv: Array<string>): void {
-	const result = spawnSync(command, argv, { cwd: root, encoding: 'utf8', timeout: 180_000 })
+    const result = spawnSync(command, argv, { cwd: root, encoding: 'utf8', timeout: 180_000 })
 
-	assert.ifError(result.error)
-	assert.equal(result.signal, null, result.stderr)
-	assert.equal(result.status, 0, result.stderr)
+    assert.ifError(result.error)
+    assert.equal(result.signal, null, result.stderr)
+    assert.equal(result.status, 0, result.stderr)
 }
 
 try {
-	copyFileSync(join(source, 'native_build.zig'), join(root, 'build.zig'))
-	copyFileSync(join(source, 'native_build.zig.zon'), join(root, 'build.zig.zon'))
-	copyFileSync(new URL('../../../support/collections.zig', import.meta.url), join(root, 'support.zig'))
+    copyFileSync(join(source, 'native_build.zig'), join(root, 'build.zig'))
+    copyFileSync(join(source, 'native_build.zig.zon'), join(root, 'build.zig.zon'))
+    copyFileSync(new URL('../../../support/collections.zig', import.meta.url), join(root, 'support.zig'))
 
-	for (const directory of readdirSync(source, { withFileTypes: true }).filter(entry => entry.isDirectory())) {
-		const path = join(source, directory.name, 'cases')
+    for (const directory of readdirSync(source, { withFileTypes: true }).filter(
+        entry => entry.isDirectory() && existsSync(join(source, entry.name, 'cases.jsonl'))
+    )) {
+        const path = join(source, directory.name, 'cases')
 
-		rmSync(join(root, 'library'), { recursive: true, force: true })
-		run(compiler, ['build', `${path}.zx`, '--mode', 'lib', '--out', join(root, 'library')])
-		run(process.execPath, [emitter, `${path}.jsonl`, join(root, 'cases.zig')])
-		run(zig, [
-			'build',
-			'--build-file',
-			join(root, 'build.zig'),
-			`-Doptimize=${optimize}`,
-			'-j2',
-			'--summary',
-			'all'
-		])
+        rmSync(join(root, 'library'), { recursive: true, force: true })
+        run(compiler, ['build', `${path}.zx`, '--mode', 'lib', '--out', join(root, 'library')])
+        run(process.execPath, [emitter, `${path}.jsonl`, join(root, 'cases.zig')])
+        run(zig, [
+            'build',
+            '--build-file',
+            join(root, 'build.zig'),
+            `-Doptimize=${optimize}`,
+            '-j2',
+            '--summary',
+            'all'
+        ])
 
-		const count = readRows(`${path}.jsonl`).length
+        const count = readRows(`${path}.jsonl`).length
 
-		total += count
-		console.log(`${directory.name}: ${count} native library cases passed`)
-	}
+        total += count
+        console.log(`${directory.name}: ${count} native library cases passed`)
+    }
 
-	assert.equal(total, 6193)
-	console.log(`${total} URL cases passed through standalone Zig library consumers (${optimize})`)
+    assert.equal(total, 6193)
+    console.log(`${total} URL cases passed through standalone Zig library consumers (${optimize})`)
 } finally {
-	rmSync(root, { recursive: true, force: true })
+    rmSync(root, { recursive: true, force: true })
 }
