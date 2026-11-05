@@ -20,10 +20,13 @@ export default function (in: Input): Output {
     const kind = in.table.kinds[in.index]
     const payload = integers.widen(in.table.payloads[in.index])
 
-    if (
-        kind == ExpressionKind.List || kind == ExpressionKind.Tuple ||
-            kind == ExpressionKind.Template
-    ) {
+    const condition = (
+        - kind == ExpressionKind.List
+        - or kind == ExpressionKind.Tuple
+        - or kind == ExpressionKind.Template
+    )
+
+    if (condition) {
         return all({
             safe,
             values: in.table.sequence_items,
@@ -51,9 +54,11 @@ export default function (in: Input): Output {
     if (kind == ExpressionKind.Transform) {
         const initial = in.table.transform_initials[payload]
 
-        return safe[integers.widen(in.table.transform_targets[payload])] &&
-            safe[integers.widen(in.table.transform_bodies[payload])] &&
-            (initial == null || safe[integers.widen(initial)])
+        return (
+            - safe[integers.widen(in.table.transform_targets[payload])]
+            - and safe[integers.widen(in.table.transform_bodies[payload])]
+            - and (initial == null || safe[integers.widen(initial)])
+        )
     }
 
     if (kind == ExpressionKind.Scope) {

@@ -15,25 +15,24 @@ export default function (in: Input): Output {
     const word = in.expression.control.token.word
     const symbol = in.expression.control.token.symbol
 
-    const kind = match word {
+    const state = match word {
         Keyword.Const => StatementKind.Constant,
         Keyword.Return => StatementKind.Result,
         Keyword.If => StatementKind.Branch,
         Keyword.Switch => StatementKind.Switch,
         _ => StatementKind.Evaluate
     }
-
-    const state = {
-        expression: in.expression,
-        tree: in.tree,
-        frames: in.frames,
-        suspended: in.suspended,
-        frame: {
-            ...in.frame,
-            statement: kind
-        },
-        control: in.control
-    }
+        -> {
+            expression: in.expression,
+            tree: in.tree,
+            frames: in.frames,
+            suspended: in.suspended,
+            frame: {
+                ...in.frame,
+                statement: _
+            },
+            control: in.control
+        }
 
     if (word == Keyword.Const) {
         return consume({
@@ -74,11 +73,15 @@ export default function (in: Input): Output {
         })
     }
 
-    if (
-        state.expression.control.token.kind == Kind.Identifier ||
-            symbol == Symbol.OpenParen || symbol == Symbol.OpenBracket ||
-            word == Keyword.Await || word == Keyword.Cancel
-    ) {
+    const condition = (
+        - state.expression.control.token.kind == Kind.Identifier
+        - or symbol == Symbol.OpenParen
+        - or symbol == Symbol.OpenBracket
+        - or word == Keyword.Await
+        - or word == Keyword.Cancel
+    )
+
+    if (condition) {
         const updating = state.control.state_block
 
         return expression({

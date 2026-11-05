@@ -69,28 +69,26 @@ export default function (in: Input): Output {
         count
     ]
 
-    const described = append({
+    return append({
         pool: state.pool,
         items: header
     })
-
-    const pool = copy({
-        pool: described,
-        stack: state.stack,
-        start
-    })
-
-    return {
-        ...state,
-        pool,
-        stack: truncate({
-            items: state.stack,
-            length: start
-        }),
-        frames: state.frames.push({
-            ...in.frame,
-            op: InlineOp.BlockNext,
-            a: in.frame.a + 1
-        })[0]
-    }
+        -> copy({
+            pool: _,
+            stack: state.stack,
+            start
+        })
+        -> {
+            ...state,
+            pool: _,
+            stack: truncate({
+                items: state.stack,
+                length: start
+            }),
+            frames: state.frames.push({
+                ...in.frame,
+                op: InlineOp.BlockNext,
+                a: in.frame.a + 1
+            })[0]
+        }
 }

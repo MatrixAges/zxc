@@ -12,8 +12,8 @@ export type Input = {
 export type Output = bool
 
 export default function (in: Input): Output {
-    const type_id = in.body.expressions.types[integers.widen(in.node)]
-    const owner = integers.widen(in.body.layout.unwrapped[integers.widen(type_id)])
+    const owner = in.body.expressions.types[integers.widen(in.node)]
+        -> integers.widen(in.body.layout.unwrapped[integers.widen(_)])
 
     return kind(in.body.type_kinds[owner]) == Kind.List &&
         in.body.counts[integers.widen(in.body.type_first[owner])] != 0

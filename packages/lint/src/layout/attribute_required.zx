@@ -23,7 +23,11 @@ export default function (in: Input): Output {
 
     return in.source.some(
         byte =>
-            byte == object_byte || byte == ascii_open_bracket ||
-            byte == line_feed || byte == carriage_return
+            (
+                - byte == object_byte
+                - or byte == ascii_open_bracket
+                - or byte == line_feed
+                - or byte == carriage_return
+            )
     )
 }

@@ -31,14 +31,20 @@ export default function (in: Input): Output {
                 _ => false
             }
             const first = integers.widen(current.types.first[index])
-            const leaf = primitive || (
-                (target == Kind.Optional || target == Kind.List) &&
-                    current.values[first] == Layout.Leaf
+            const leaf = (
+                - primitive
+                - or (
+                    (target == Kind.Optional || target == Kind.List) &&
+                        current.values[first] == Layout.Leaf
+                )
             )
-            const represented = target == Kind.Optional && (
-                current.values[first] == Layout.Product ||
-                    current.values[first] == Layout.FlatProduct ||
-                    current.values[first] == Layout.WrappedProduct
+            const represented = (
+                - target == Kind.Optional
+                - and (
+                    current.values[first] == Layout.Product ||
+                        current.values[first] == Layout.FlatProduct ||
+                        current.values[first] == Layout.WrappedProduct
+                )
             )
 
             const members = loop({

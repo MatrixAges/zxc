@@ -47,9 +47,10 @@ export default function (in: Input): Output {
     const operator = expressions.binary_operators[payload]
 
     const short =
-        (operator == BinaryOperator.LogicalAnd && !left.boolean) ||
         (
-            operator == BinaryOperator.LogicalOr && left.boolean
+            - operator == BinaryOperator.LogicalAnd
+            - and !left.boolean
+            - or (operator == BinaryOperator.LogicalOr && left.boolean)
         )
 
     if (short) {

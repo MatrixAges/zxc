@@ -10,22 +10,24 @@ export type Input = {
 export type Output = bool
 
 export default function (in: Input): Output {
-    return in.source.length - in.start > rx_suffix.length &&
-        ends({
+    return (
+        - in.source.length - in.start > rx_suffix.length
+        - and ends({
             source: in.source,
             pattern: rx_suffix
-        }) &&
-        !equal({
+        })
+        - and !equal({
             source: in.source,
             start: in.start,
             pattern: app_file
-        }) &&
-        !ends({
+        })
+        - and !ends({
             source: in.source,
             pattern: gateway_suffix
-        }) &&
-        !ends({
+        })
+        - and !ends({
             source: in.source,
             pattern: store_suffix
         })
+    )
 }

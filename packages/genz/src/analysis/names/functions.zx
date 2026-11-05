@@ -42,13 +42,13 @@ export default function (in: Input): Output {
             const with_process = current.capabilities.process[index] ?
                 with_io.push(bytes.fromText(process_marker))[0] : with_io
             const module = current.source.functions.native_modules[index]
-            const fields = module != null ? nativeFields({
+            const key = (module != null ? nativeFields({
                 source: current.source,
                 index,
                 module,
                 fields: with_process
-            }) : with_process.push(bytes.fromText(source_tag))[0]
-            const key = digest(fields)
+            }) : with_process.push(bytes.fromText(source_tag))[0])
+                -> digest(_)
 
             current.names = current.names.push(
                 strings.join(

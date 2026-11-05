@@ -16,8 +16,10 @@ export default function (in: Input): Output {
     const empty: Knowledge[] = []
     const reads: Read[] = []
     const first = in.context.metadata.usage.plan.slot_first
-    const total = first[first.length - 1] - first[in.context.metadata.usage.symbols]
-    const known = unknowns(integers.widen(total))
+
+    const known = first[first.length - 1] - first[in.context.metadata.usage.symbols]
+        -> unknowns(integers.widen(_))
+
     const carried = in.context.metadata.expressions.kinds.map(kind => empty)[0]
 
     return loop({
@@ -30,8 +32,8 @@ export default function (in: Input): Output {
         next: (state, context) => {
             const repetition = context.repetitions[state.index]
             const owner = integers.widen(repetition.owner)
-            const type_id = context.context.metadata.expressions.types[owner]
-            const size = context.context.metadata.counts[integers.widen(type_id)]
+            const size = context.context.metadata.expressions.types[owner]
+                -> context.context.metadata.counts[integers.widen(_)]
 
             const values: Knowledge[] = []
 

@@ -15,6 +15,8 @@ export type Output = ExprNode
 export default function (in: Input): Output {
     return {
         kind: in.kind,
+        condition_list: false,
+        condition_terms: 1,
         span: {
             start: in.start,
             end: in.end

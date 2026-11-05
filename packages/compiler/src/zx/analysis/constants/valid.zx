@@ -73,23 +73,28 @@ export default function (in: Input): Output {
                 })
                 const literal = match value.kind {
                     ExpressionKind.Integer =>
-                        numeric.integer && (
-                            !value.negative || numeric.signed
-                        ) && value.integer <= maximum({
-                            id: value.type_id,
-                            negative: value.negative
-                        }),
-                    ExpressionKind.Float =>
-                        numeric.floating && floats.isFinite(
-                            value.floating
-                        ) &&
                         (
-                            !numeric.single ||
-                                floats.widen(
-                                    floats.narrow(
-                                        value.floating
-                                    )
-                                ) == value.floating
+                            - numeric.integer
+                            - and (!value.negative || numeric.signed)
+                            - and value.integer <= maximum({
+                                id: value.type_id,
+                                negative: value.negative
+                            })
+                        ),
+                    ExpressionKind.Float =>
+                        (
+                            - numeric.floating
+                            - and floats.isFinite(
+                                value.floating
+                            )
+                            - and (
+                                !numeric.single ||
+                                    floats.widen(
+                                        floats.narrow(
+                                            value.floating
+                                        )
+                                    ) == value.floating
+                            )
                         ),
                     ExpressionKind.String =>
                         type_row.kind == Kind.Scalar &&

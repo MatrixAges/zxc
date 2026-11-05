@@ -39,6 +39,7 @@ pub fn block(self: *Analyzer, value: anytype) zx.Error!ir.BlockId {
 
                 const symbol = try self.bind(binding.name, self.node(initializer).type_id, scope_start);
 
+                if (self.node(initializer).type_id == Types.scalarId(.bool)) try self.refinement.alias(self.allocator, self.nodes.view(), symbol, initializer);
                 try result.append(self.allocator, .{ .constant = .{ .symbol = symbol, .value = initializer } });
             },
             .destructure => |binding| {

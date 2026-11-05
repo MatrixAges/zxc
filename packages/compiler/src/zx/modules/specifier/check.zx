@@ -25,8 +25,14 @@ export default function (in: Input): Output {
             const byte = value.source[value.offset]
 
             value.valid =
-                byte != 0 && byte != 9 && byte != 10 && byte != 13 && byte != 32 &&
-                byte != 92
+                (
+                    - byte != 0
+                    - and byte != 9
+                    - and byte != 10
+                    - and byte != 13
+                    - and byte != 32
+                    - and byte != 92
+                )
 
             if (byte == 58) {
                 value.valid =
@@ -49,15 +55,33 @@ export default function (in: Input): Output {
         }
 
         if (state.separator == 3) {
-            if (in[0] == 122 && in[1] == 105 && in[2] == 103) {
+            const condition = (
+                - in[0] == 122
+                - and in[1] == 105
+                - and in[2] == 103
+            )
+
+            if (condition) {
                 return Kind.Zig
             }
 
-            if (in[0] == 115 && in[1] == 116 && in[2] == 100) {
+            const condition_2 = (
+                - in[0] == 115
+                - and in[1] == 116
+                - and in[2] == 100
+            )
+
+            if (condition_2) {
                 return Kind.Standard
             }
 
-            if (in[0] == 108 && in[1] == 105 && in[2] == 98) {
+            const condition_3 = (
+                - in[0] == 108
+                - and in[1] == 105
+                - and in[2] == 98
+            )
+
+            if (condition_3) {
                 return Kind.LegacyLibrary
             }
         }
@@ -65,11 +89,24 @@ export default function (in: Input): Output {
         return Kind.Invalid
     }
 
-    if (in.length >= 2 && (in[0] == 46 || in[0] == 64) && in[1] == 47) {
+    const condition_4 = (
+        - in.length >= 2
+        - and (in[0] == 46 || in[0] == 64)
+        - and in[1] == 47
+    )
+
+    if (condition_4) {
         return Kind.File
     }
 
-    if (in.length >= 3 && in[0] == 46 && in[1] == 46 && in[2] == 47) {
+    const condition_5 = (
+        - in.length >= 3
+        - and in[0] == 46
+        - and in[1] == 46
+        - and in[2] == 47
+    )
+
+    if (condition_5) {
         return Kind.File
     }
 
@@ -88,13 +125,15 @@ export default function (in: Input): Output {
                 const length = value.offset - value.start
 
                 value.valid =
-                    length != 0 &&
-                    !(
-                        length == 1 && value.source[value.start] == 46
-                    ) &&
-                    !(
-                        length == 2 && value.source[value.start] == 46 &&
-                            value.source[value.start + 1] == 46
+                    (
+                        - length != 0
+                        - and !(
+                            length == 1 && value.source[value.start] == 46
+                        )
+                        - and !(
+                            length == 2 && value.source[value.start] == 46 &&
+                                value.source[value.start + 1] == 46
+                        )
                     )
                 value.start = value.offset + 1
             }

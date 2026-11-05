@@ -77,24 +77,28 @@ export default function (in: Input): Output {
                         current.expressions.references[left_payload] ==
                         current.expressions.references[right_payload]
                     current.active = false
-                } else if (
-                    left_kind == ExpressionKind.Field &&
-                        right_kind == ExpressionKind.Field &&
-                        current.expressions.projection_indices[left_payload] ==
-                        current.expressions.projection_indices[right_payload]
-                ) {
-                    current.left =
-                        integers.widen(
-                            current.expressions.projection_targets[left_payload]
-                        )
-                    current.right =
-                        integers.widen(
-                            current.expressions.projection_targets[right_payload]
-                        )
-                    current.left_remaining -= 1
-                    current.right_remaining -= 1
                 } else {
-                    current.active = false
+                    const condition = (
+                        - left_kind == ExpressionKind.Field
+                        - and right_kind == ExpressionKind.Field
+                        - and current.expressions.projection_indices[left_payload] ==
+                            current.expressions.projection_indices[right_payload]
+                    )
+
+                    if (condition) {
+                        current.left =
+                            integers.widen(
+                                current.expressions.projection_targets[left_payload]
+                            )
+                        current.right =
+                            integers.widen(
+                                current.expressions.projection_targets[right_payload]
+                            )
+                        current.left_remaining -= 1
+                        current.right_remaining -= 1
+                    } else {
+                        current.active = false
+                    }
                 }
             }
         },

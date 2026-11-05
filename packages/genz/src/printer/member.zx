@@ -42,7 +42,7 @@ export default function (in: Input): Output {
             }
         ]
 
-        const captured = arms.capture[row] == null ? opening : opening.concat([
+        return (arms.capture[row] == null ? opening : opening.concat([
             {
                 ...frame,
                 token: Token.CaptureOpen
@@ -56,19 +56,18 @@ export default function (in: Input): Output {
                 ...frame,
                 token: Token.CaptureClose
             }
-        ])[0]
-
-        return captured.concat([
-            {
-                ...frame,
-                action: Action.Expression,
-                id: arms.result[row]
-            },
-            {
-                ...frame,
-                token: Token.CommaSpace
-            }
-        ])[0]
+        ])[0])
+            -> _.concat([
+                {
+                    ...frame,
+                    action: Action.Expression,
+                    id: arms.result[row]
+                },
+                {
+                    ...frame,
+                    token: Token.CommaSpace
+                }
+            ])[0]
     }
 
     const fields = in.source.fields
@@ -130,7 +129,7 @@ export default function (in: Input): Output {
 
     const initial = fields.default_value[row]
 
-    const initialized = initial == null ? typed : typed.concat([
+    return (initial == null ? typed : typed.concat([
         {
             ...frame,
             token: Token.Assignment
@@ -140,10 +139,9 @@ export default function (in: Input): Output {
             action: Action.Expression,
             id: initial
         }
-    ])[0]
-
-    return initialized.push({
-        ...frame,
-        token: Token.FieldEnd
-    })[0]
+    ])[0])
+        -> _.push({
+            ...frame,
+            token: Token.FieldEnd
+        })[0]
 }

@@ -14,7 +14,7 @@ export type Input = {
 export type Output = State
 
 export default function (in: Input): Output {
-    const frame = {
+    return {
         kind: in.kind,
         name: in.name,
         field: {
@@ -25,17 +25,14 @@ export default function (in: Input): Output {
         head: 0,
         count: 0
     }
-
-    const frames = in.state.frames.push(frame)[0]
-
-    const state = {
-        tree: in.state.tree,
-        frames,
-        control: in.state.control
-    }
-
-    return consume({
-        state,
-        phase: in.phase
-    })
+        -> in.state.frames.push(_)[0]
+        -> {
+            tree: in.state.tree,
+            frames: _,
+            control: in.state.control
+        }
+        -> consume({
+            state: _,
+            phase: in.phase
+        })
 }

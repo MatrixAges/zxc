@@ -83,11 +83,15 @@ export default function (in: Input): Output {
         }
     })
 
-    return result.valid && result.evaluations == in.evaluations.length &&
-        result.constants == in.constant_values.length &&
-        result.parallels == in.parallel_first.length &&
-        result.destructures == in.destructure_values.length &&
-        result.branches == in.branch_conditions.length &&
-        result.selections == in.selection_subjects.length &&
-        result.setters == in.setter_values.length && result.results == in.results.length
+    return (
+        - result.valid
+        - and result.evaluations == in.evaluations.length
+        - and result.constants == in.constant_values.length
+        - and result.parallels == in.parallel_first.length
+        - and result.destructures == in.destructure_values.length
+        - and result.branches == in.branch_conditions.length
+        - and result.selections == in.selection_subjects.length
+        - and result.setters == in.setter_values.length
+        - and result.results == in.results.length
+    )
 }

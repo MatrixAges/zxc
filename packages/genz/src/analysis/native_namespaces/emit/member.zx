@@ -20,15 +20,13 @@ export default function (in: Input): Output {
     if (in.index < in.group.types.length) {
         const binding = in.group.types[in.index]
 
-        const id =
-            integers.widen(
-                in.source.modules.type_ids[binding.module][binding.binding]
-            )
-
-        return {
-            name: in.source.modules.type_names[binding.module][binding.binding],
-            value: in.source.types[id]
-        }
+        return integers.widen(
+            in.source.modules.type_ids[binding.module][binding.binding]
+        )
+            -> {
+                name: in.source.modules.type_names[binding.module][binding.binding],
+                value: in.source.types[_]
+            }
     }
 
     const index = in.index - in.group.types.length

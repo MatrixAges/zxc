@@ -25,11 +25,15 @@ export type Output = LexerState
 
 export default function (in: Input): Output {
     if (in.state.mode == Mode.StringEscape) {
-        if (
-            in.byte != ascii_double_quote && in.byte != ascii_backslash &&
-                in.byte != ascii_lower_n && in.byte != ascii_lower_r &&
-                in.byte != ascii_lower_t
-        ) {
+        const condition = (
+            - in.byte != ascii_double_quote
+            - and in.byte != ascii_backslash
+            - and in.byte != ascii_lower_n
+            - and in.byte != ascii_lower_r
+            - and in.byte != ascii_lower_t
+        )
+
+        if (condition) {
             return fail({
                 code: lexical_code,
                 start: in.state.offset - 1,

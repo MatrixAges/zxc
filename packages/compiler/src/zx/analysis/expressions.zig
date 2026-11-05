@@ -149,7 +149,8 @@ pub fn analyze(self: *Analyzer, expression: anytype, expected: ?ir.TypeId) zx.Er
                 else => false,
             };
 
-            const hint = if (logical) Types.scalarId(.bool) else knownType(self, binary.left) orelse knownType(self, binary.right) orelse (if (comparison) null else aggregates.payload(self, expected)) orelse literalHint(binary.left, binary.right);
+            const null_comparison = (binary.operator == .equal or binary.operator == .not_equal) and (syntax.value(binary.left) == .null_value or syntax.value(binary.right) == .null_value);
+            const hint = if (logical) Types.scalarId(.bool) else probeType(self, binary.left, null_comparison) orelse probeType(self, binary.right, null_comparison) orelse (if (comparison) null else aggregates.payload(self, expected)) orelse literalHint(binary.left, binary.right);
             const left = try self.expression(binary.left, hint);
             const operand_type = self.node(left).type_id;
             const facts = self.refinement.mark();
@@ -257,7 +258,7 @@ fn probeType(self: *const Analyzer, value: anytype, declared: bool) ?ir.TypeId {
 
             break :blk if (target == .task) target.task.result else null;
         },
-        .identifier => |name| if (self.lookup(name.text)) |id| (if (declared) self.symbols.at(@backingInt(id)).type_id else @import("refinement.zig").typeOf(self, id)) else if (@import("constants/lookup.zig").find(self, name.text)) |constant| constant.type_id else null,
+        .identifier => |name| if (if (self.pipeline != null) @import("pipeline.zig").probeSymbol(self, value) else self.lookup(name.text)) |id| (if (declared) self.symbols.at(@backingInt(id)).type_id else @import("refinement.zig").typeOf(self, id)) else if (@import("constants/lookup.zig").find(self, name.text)) |constant| constant.type_id else null,
         .field => |field| blk: {
             const target_value = syntax.value(field.target);
 

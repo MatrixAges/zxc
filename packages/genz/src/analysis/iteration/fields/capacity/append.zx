@@ -15,102 +15,106 @@ export type Input = {
 
 export type Output = Capacity?
 
-    export default function (in: Input): Output {
-        const expressions = in.expressions
-        const body = in.bound.body
-        const initial = in.bound.initial
-        const source = in.bound.source
+export default function (in: Input): Output {
+    const expressions = in.expressions
+    const body = in.bound.body
+    const initial = in.bound.initial
+    const source = in.bound.source
 
-        const first =
-            integers.widen(
-                expressions
-                    .object_first[integers.widen(
-                        expressions.payloads[integers.widen(
-                            body
-                        )]
+    const first =
+        integers.widen(
+            expressions
+                .object_first[integers.widen(
+                    expressions.payloads[integers.widen(
+                        body
                     )]
-            )
+                )]
+        )
 
-        const count =
-            integers.widen(
-                expressions
-                    .object_count[integers.widen(
-                        expressions.payloads[integers.widen(
-                            body
-                        )]
+    const count =
+        integers.widen(
+            expressions
+                .object_count[integers.widen(
+                    expressions.payloads[integers.widen(
+                        body
                     )]
-            )
+                )]
+        )
 
-        const found: Capacity? = null
+    const found: Capacity? = null
 
-        return loop({
-            expressions,
-            initial,
-            parameter: in.bound.parameter,
-            source,
-            first,
-            count,
-            position: 0,
-            found
-        }, {
-            while: current => current.found == null && current.position < current.count,
-            next: current => {
-                const slot = current.first + current.position
-                const value =
-                    integers.widen(current.expressions.object_field_values[slot])
+    return loop({
+        expressions,
+        initial,
+        parameter: in.bound.parameter,
+        source,
+        first,
+        count,
+        position: 0,
+        found
+    }, {
+        while: current => current.found == null && current.position < current.count,
+        next: current => {
+            const slot = current.first + current.position
+            const value =
+                integers.widen(current.expressions.object_field_values[slot])
 
-                if (current.expressions.kinds[value] == ExpressionKind.TupleField) {
-                    const projection =
-                        integers.widen(current.expressions.payloads[value])
-                    const operation = current.expressions
-                        .projection_targets[projection]
-                    const operation_index = integers.widen(operation)
+            if (current.expressions.kinds[value] == ExpressionKind.TupleField) {
+                const projection =
+                    integers.widen(current.expressions.payloads[value])
+                const operation = current.expressions
+                    .projection_targets[projection]
+                const operation_index = integers.widen(operation)
 
-                    if (
-                        current.expressions.projection_indices[projection] == 0 &&
-                            current.expressions.kinds[operation_index] ==
-                            ExpressionKind.ListOperation
-                    ) {
-                        const payload =
-                            integers.widen(
-                                current.expressions.payloads[operation_index]
-                            )
-                        const target = field({
-                            expressions: current.expressions,
-                            value: current.expressions.collection_targets[payload],
-                            parameter: current.parameter
-                        })
-                        const initial = member({
-                            expressions: current.expressions,
-                            value: current.initial,
-                            field: current.expressions.object_field_indices[slot]
-                        })
+                if (
+                    current.expressions.projection_indices[projection] == 0 &&
+                        current.expressions.kinds[operation_index] ==
+                        ExpressionKind.ListOperation
+                ) {
+                    const payload =
+                        integers.widen(
+                            current.expressions.payloads[operation_index]
+                        )
+                    const target = field({
+                        expressions: current.expressions,
+                        value: current.expressions.collection_targets[payload],
+                        parameter: current.parameter
+                    })
+                    const initial = member({
+                        expressions: current.expressions,
+                        value: current.initial,
+                        field: current.expressions.object_field_indices[slot]
+                    })
 
-                        if (
-                            target == current.expressions.object_field_indices[slot] &&
-                                current.expressions.collection_kinds[payload] ==
-                                CollectionKind.Push &&
-                                initial != null &&
-                                current.expressions.kinds[integers.widen(initial)] ==
-                                ExpressionKind.List &&
+                    const condition = (
+                        - target == current.expressions.object_field_indices[slot]
+                        - and current.expressions.collection_kinds[payload] ==
+                            CollectionKind.Push
+                        - and initial != null
+                        - and current.expressions.kinds[integers.widen(
+                            initial
+                        )] ==
+                            ExpressionKind.List
+                        - and current.expressions
+                            .sequence_count[integers.widen(
                                 current.expressions
-                                .sequence_count[integers.widen(
-                                    current.expressions
-                                        .payloads[integers.widen(
-                                            initial
-                                        )]
-                                )] == 0
-                        ) {
-                            current.found = {
-                                operation,
-                                source: current.source
-                            }
+                                    .payloads[integers.widen(
+                                        initial
+                                    )]
+                            )] == 0
+                    )
+
+                    if (condition) {
+                        current.found = {
+                            operation,
+                            source: current.source
                         }
                     }
                 }
+            }
 
-                current.position += 1
-            },
-            return: state => state.found
-        })
-    }
+            current.position += 1
+        },
+        return: state => state.found
+    })
+}

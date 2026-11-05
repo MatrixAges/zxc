@@ -40,18 +40,21 @@ export default function (in: Input): Output {
                     const step = integers.widen(current.expressions.payloads[index])
 
                     current.valid =
-                        current.expressions.kinds[index] == ExpressionKind.Binary &&
-                        current.expressions.binary_operators[step] ==
-                        BinaryOperator.Add &&
-                        integer({
-                            expressions: current.expressions,
-                            subject: current.expressions.binary_right[step],
-                            expected: 1
-                        }) && field({
-                            expressions: current.expressions,
-                            subject: current.expressions.binary_left[step],
-                            symbol: current.iteration.parameter
-                        }) == member
+                        (
+                            - current.expressions.kinds[index] == ExpressionKind.Binary
+                            - and current.expressions.binary_operators[step] ==
+                                BinaryOperator.Add
+                            - and integer({
+                                expressions: current.expressions,
+                                subject: current.expressions.binary_right[step],
+                                expected: 1
+                            })
+                            - and field({
+                                expressions: current.expressions,
+                                subject: current.expressions.binary_left[step],
+                                symbol: current.iteration.parameter
+                            }) == member
+                        )
                 } else {
                     current.valid = field({
                         expressions: current.expressions,

@@ -57,7 +57,13 @@ export default function (in: Input): Output {
         expressions: element.table,
         main: tail.statements,
         serial: element_name.serial,
-        valid: in.valid && offset.valid && tail.valid && index.valid && element.valid,
+        valid: (
+            - in.valid
+            - and offset.valid
+            - and tail.valid
+            - and index.valid
+            - and element.valid
+        ),
         values: {
             ...in.values,
             tail: tail.id,

@@ -67,19 +67,18 @@ export default function (in: Input): Output {
         return callback(work)
     }
 
-    const expected = kind == TransformKind.Reduce ? payload({
+    return (kind == TransformKind.Reduce ? payload({
         types: work.state.types,
         expected: in.expected
-    }) : null
-
-    return {
-        ...work,
-        node: arguments[1],
-        expected,
-        phase: Phase.Evaluate,
-        frames: {
-            ...work.frames,
-            actions: work.frames.actions.push(Action.TransformSecond)[0]
+    }) : null)
+        -> {
+            ...work,
+            node: arguments[1],
+            expected: _,
+            phase: Phase.Evaluate,
+            frames: {
+                ...work.frames,
+                actions: work.frames.actions.push(Action.TransformSecond)[0]
+            }
         }
-    }
 }

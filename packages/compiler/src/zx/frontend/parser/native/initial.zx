@@ -13,48 +13,48 @@ export default function (in: Input): Output {
     const functions: Function[] = []
     const parameters: Parameter[] = []
     const errors: Span[] = []
-    const failed = in.diagnostic.message != ""
 
-    return {
-        lexed: in,
-        declarations: initial({
-            start: 0,
-            depth: 0
-        }),
-        functions,
-        parameters,
-        errors,
-        control: {
-            phase: failed ? Phase.Done : Phase.Declarations,
-            index: 0,
-            injected: 0,
-            parameter: {
+    return in.diagnostic.message != ""
+        -> {
+            lexed: in,
+            declarations: initial({
                 start: 0,
-                end: 0
-            },
-            diagnostic: {
-                code: "",
-                start: 0,
-                end: 0,
-                message: ""
-            },
-            current: {
-                name: {
+                depth: 0
+            }),
+            functions,
+            parameters,
+            errors,
+            control: {
+                phase: _ ? Phase.Done : Phase.Declarations,
+                index: 0,
+                injected: 0,
+                parameter: {
                     start: 0,
                     end: 0
                 },
-                first_parameter: 0,
-                count: 0,
-                output: 0,
-                allocator_argument: false,
-                io_argument: false,
-                process_argument: false,
-                fallible: false,
-                errors_present: false,
-                first_error: 0,
-                error_count: 0,
-                concurrent: false
+                diagnostic: {
+                    code: "",
+                    start: 0,
+                    end: 0,
+                    message: ""
+                },
+                current: {
+                    name: {
+                        start: 0,
+                        end: 0
+                    },
+                    first_parameter: 0,
+                    count: 0,
+                    output: 0,
+                    allocator_argument: false,
+                    io_argument: false,
+                    process_argument: false,
+                    fallible: false,
+                    errors_present: false,
+                    first_error: 0,
+                    error_count: 0,
+                    concurrent: false
+                }
             }
         }
-    }
 }

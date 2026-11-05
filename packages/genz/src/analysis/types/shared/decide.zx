@@ -39,7 +39,13 @@ export default function (in: Input): Output {
     }
 
     if (request.mode == Mode.Abi) {
-        if (target != Kind.Optional && target != Kind.List && target != Kind.Task) {
+        const condition = (
+            - target != Kind.Optional
+            - and target != Kind.List
+            - and target != Kind.Task
+        )
+
+        if (condition) {
             return {
                 ...decision,
                 action: Action.Abi
@@ -52,98 +58,106 @@ export default function (in: Input): Output {
                 action: Action.StateName
             }
         }
-    } else if (
-        target == Kind.Optional || (
-            selected && (target == Kind.Object || target == Kind.Tuple)
+    } else {
+        const condition_2 = (
+            - target == Kind.Optional
+            - or (selected && (target == Kind.Object || target == Kind.Tuple))
         )
-    ) {
-        if (in.source.borrowed[index]) {
-            return {
-                ...decision,
-                action: Action.ViewName
-            }
-        }
 
-        const optional = target == Kind.Optional
-        const finished = !optional && in.frame.next == count
-
-        const child = match {
-            optional => first,
-            finished => request.id,
-            target == Kind.Object =>
-                types.field_types[integers.widen(first) + in.frame.next],
-            _ => types.children[integers.widen(first) + in.frame.next]
-        }
-
-        if (!finished) {
-            const view_request: Request = {
-                id: child,
-                mode: Mode.View
-            }
-
-            const view = lookup({
-                source: in.source,
-                entries: in.entries,
-                buckets: in.buckets,
-                request: view_request
-            })
-
-            if (!view.found) {
+        if (condition_2) {
+            if (in.source.borrowed[index]) {
                 return {
                     ...decision,
-                    dependency: view_request
+                    action: Action.ViewName
                 }
             }
 
-            const state_request: Request = {
-                id: child,
-                mode: Mode.State
+            const optional = target == Kind.Optional
+            const finished = !optional && in.frame.next == count
+
+            const child = match {
+                optional => first,
+                finished => request.id,
+                target == Kind.Object =>
+                    types.field_types[integers.widen(first) + in.frame.next],
+                _ => types.children[integers.widen(first) + in.frame.next]
             }
 
-            const state = lookup({
-                source: in.source,
-                entries: in.entries,
-                buckets: in.buckets,
-                request: state_request
-            })
-
-            if (!state.found) {
-                return {
-                    ...decision,
-                    dependency: state_request
+            if (!finished) {
+                const view_request: Request = {
+                    id: child,
+                    mode: Mode.View
                 }
-            }
 
-            if (view.value != state.value) {
-                return {
-                    ...decision,
-                    action: optional ? Action.Optional : Action.ViewName,
-                    child: view.value
+                const view = lookup({
+                    source: in.source,
+                    entries: in.entries,
+                    buckets: in.buckets,
+                    request: view_request
+                })
+
+                if (!view.found) {
+                    return {
+                        ...decision,
+                        dependency: view_request
+                    }
                 }
-            }
 
-            if (!optional) {
-                return {
-                    ...decision,
-                    advance: true
+                const state_request: Request = {
+                    id: child,
+                    mode: Mode.State
+                }
+
+                const state = lookup({
+                    source: in.source,
+                    entries: in.entries,
+                    buckets: in.buckets,
+                    request: state_request
+                })
+
+                if (!state.found) {
+                    return {
+                        ...decision,
+                        dependency: state_request
+                    }
+                }
+
+                if (view.value != state.value) {
+                    return {
+                        ...decision,
+                        action: optional ? Action.Optional : Action.ViewName,
+                        child: view.value
+                    }
+                }
+
+                if (!optional) {
+                    return {
+                        ...decision,
+                        advance: true
+                    }
                 }
             }
         }
     }
 
     const dependency: Request = {
-        id: request.mode == Mode.Abi || (
-            request.mode == Mode.State && target == Kind.Optional
-        ) || (request.mode == Mode.View && inline_list) ? first : request.id,
+        id: (
+            - request.mode == Mode.Abi
+            - or (request.mode == Mode.State && target == Kind.Optional)
+            - or (request.mode == Mode.View && inline_list)
+        ) ? first : request.id,
         mode: match {
             request.mode == Mode.Abi => Mode.Abi,
             request.mode == Mode.State && target == Kind.Optional => Mode.State,
-            request.mode == Mode.View && (
-                target == Kind.Optional ||
-                    (
+            (
+                - request.mode == Mode.View
+                - and (
+                    - target == Kind.Optional
+                    - or (
                         selected &&
                             (target == Kind.Object || target == Kind.Tuple)
                     )
+                )
             ) => Mode.State,
             _ => Mode.Abi
         }

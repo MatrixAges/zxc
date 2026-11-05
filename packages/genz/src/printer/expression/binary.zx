@@ -117,16 +117,15 @@ export default function (in: Input): Output {
             }
         ]
 
-        const bounded = end == null ? prefix : prefix.push({
+        return (end == null ? prefix : prefix.push({
             ...frame,
             action: Action.Expression,
             id: end
-        })[0]
-
-        return bounded.push({
-            ...frame,
-            token: Token.ArrayClose
-        })[0]
+        })[0])
+            -> _.push({
+                ...frame,
+                token: Token.ArrayClose
+            })[0]
     }
 
     const left = match kind {
@@ -141,12 +140,12 @@ export default function (in: Input): Output {
         _ => tree.range_end[row],
     }
 
-    const opening = kind == ExpressionsKind.FixedArrayType ? Token.ArrayOpen : Token.Open
-
-    const prefix: Frame[] = kind == ExpressionsKind.Range ? [] : [{
-        ...frame,
-        token: opening
-    }]
+    const prefix: Frame[] =
+        (kind == ExpressionsKind.FixedArrayType ? Token.ArrayOpen : Token.Open)
+        -> (kind == ExpressionsKind.Range ? [] : [{
+            ...frame,
+            token: _
+        }])
 
     const operands = prefix.concat([
         {

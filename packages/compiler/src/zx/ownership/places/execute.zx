@@ -31,15 +31,20 @@ export default function (in: Input): Output {
                     current.states[current.index] =
                         current.layout.references[current.index] ||
                         current.value == State.Moved ? current.value : State.Copy
-                } else if (
-                    state == State.Owned ||
-                        (
-                            current.operation == Operation.Freeze && state == State.Loaned
+                } else {
+                    const condition = (
+                        - state == State.Owned
+                        - or (
+                            current.operation == Operation.Freeze &&
+                                state == State.Loaned
                         )
-                ) {
-                    current.states[current.index] =
-                        current.operation == Operation.Freeze ? State.Borrowed :
-                        State.Loaned
+                    )
+
+                    if (condition) {
+                        current.states[current.index] =
+                            current.operation == Operation.Freeze ? State.Borrowed :
+                            State.Loaned
+                    }
                 }
 
                 const child = current.layout.children[current.index]

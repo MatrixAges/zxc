@@ -35,13 +35,16 @@ export default function (in: Input): Output {
             const reference = table.kinds[index] == ExpressionKind.Reference
             const symbol = reference ? table.references[payload] :
                 current.source.parameter
-            const local = !reference || !contains({
-                types: current.source.source.types,
-                id: table.types[index],
-                products: false
-            }) || symbol == current.source.parameter ||
-                symbol == current.source.condition_parameter ||
-                (
+            const local = (
+                - !reference
+                - or !contains({
+                    types: current.source.source.types,
+                    id: table.types[index],
+                    products: false
+                })
+                - or symbol == current.source.parameter
+                - or symbol == current.source.condition_parameter
+                - or (
                     current.definitions.kinds[integers.widen(symbol)] ==
                         Definition.Value &&
                         current
@@ -51,6 +54,7 @@ export default function (in: Input): Output {
                             )]
                         )]
                 )
+            )
 
             current.safe[index] = allowed && local && value({
                 table,

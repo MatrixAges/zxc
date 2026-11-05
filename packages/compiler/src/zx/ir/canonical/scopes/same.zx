@@ -20,15 +20,17 @@ export default function (in: Input): Output {
 
     if (left != right) {
         return (
-            left == ExpressionKind.Integer && expressions.integers[a] == 0 &&
-                right == ExpressionKind.NegativeInteger &&
-                expressions.negative_integers[b] == 0
-        ) ||
-            (
-                right == ExpressionKind.Integer && expressions.integers[b] == 0 &&
-                    left == ExpressionKind.NegativeInteger &&
-                    expressions.negative_integers[a] == 0
+            - left == ExpressionKind.Integer
+            - and expressions.integers[a] == 0
+            - and right == ExpressionKind.NegativeInteger
+            - and expressions.negative_integers[b] == 0
+            - or (
+                - right == ExpressionKind.Integer
+                - and expressions.integers[b] == 0
+                - and left == ExpressionKind.NegativeInteger
+                - and expressions.negative_integers[a] == 0
             )
+        )
     }
 
     return match left {

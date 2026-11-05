@@ -29,8 +29,12 @@ export default function (in: Input): Output {
     const entry = candidate(in.candidate)
 
     const direct =
-        entry.kind == Kind.Scalar || entry.kind == Kind.Optional ||
-        entry.kind == Kind.List || entry.kind == Kind.Task
+        (
+            - entry.kind == Kind.Scalar
+            - or entry.kind == Kind.Optional
+            - or entry.kind == Kind.List
+            - or entry.kind == Kind.Task
+        )
 
     const initial_id: u32 = 0
     const count = in.tables.base.kinds.length + in.tables.delta.kinds.length

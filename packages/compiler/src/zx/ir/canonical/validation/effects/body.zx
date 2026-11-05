@@ -70,19 +70,21 @@ export default function (in: Input): Output {
                     integers.widen(
                         expressions.payloads[current.index]
                     )
-                const value =
-                    kind == ExpressionKind.Task ? expressions.task_bodies[payload] :
-                    expressions.captures[payload]
-                const members = analyze({
-                    context: current.context,
-                    expressions,
-                    control: current.unit.body.control,
-                    root: current.unit.body.root,
-                    contracts: current.unit.contracts,
-                    stores: false,
-                    expression: value,
-                    program: false
-                })
+                const members =
+                    (
+                        kind == ExpressionKind.Task ? expressions.task_bodies[payload] :
+                            expressions.captures[payload]
+                    )
+                    -> analyze({
+                        context: current.context,
+                        expressions,
+                        control: current.unit.body.control,
+                        root: current.unit.body.root,
+                        contracts: current.unit.contracts,
+                        stores: false,
+                        expression: _,
+                        program: false
+                    })
                 const table = current.context.types.base
                 const type_id = integers.widen(expressions.types[current.index])
                 const error_id =

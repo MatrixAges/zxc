@@ -1,4 +1,4 @@
-import { Operator, Family } from "../prepare/model"
+import { Operator, Family, Connector } from "../prepare/model"
 import { FrameKind } from "./model"
 
 import type { ExprFrame } from "./model"
@@ -14,6 +14,7 @@ export type Output = ExprFrame
 export default function (in: Input): Output {
     return {
         kind: in.kind,
+        connector: Connector.None,
         start: in.start,
         end: 0,
         depth: in.depth,

@@ -54,10 +54,14 @@ export default function (in: Input): Output {
                         current.expressions.payloads[index]
                     )
                 const atom =
-                    kind == ExpressionKind.Integer ||
-                    kind == ExpressionKind.NegativeInteger ||
-                    kind == ExpressionKind.Float || kind == ExpressionKind.String ||
-                    kind == ExpressionKind.Boolean || kind == ExpressionKind.EnumValue
+                    (
+                        - kind == ExpressionKind.Integer
+                        - or kind == ExpressionKind.NegativeInteger
+                        - or kind == ExpressionKind.Float
+                        - or kind == ExpressionKind.String
+                        - or kind == ExpressionKind.Boolean
+                        - or kind == ExpressionKind.EnumValue
+                    )
                 const operation =
                     kind == ExpressionKind.Unary || kind == ExpressionKind.Binary
                 const branch =
@@ -67,7 +71,14 @@ export default function (in: Input): Output {
                     current.expressions.binary_operators[payload] ==
                     BinaryOperator.Coalesce
 
-                if ((!atom && !operation && !branch) || coalesce) {
+                const condition = (
+                    - !atom
+                    - and !operation
+                    - and !branch
+                    - or coalesce
+                )
+
+                if (condition) {
                     current.diagnostic = {
                         code: code_unsupported,
                         start: current.expressions.span_start[index],

@@ -68,22 +68,21 @@ export default function (in: Input): Output {
         }
     }
 
-    const refinement = classify(in.operator).logical ? assume({
+    return (classify(in.operator).logical ? assume({
         state: in.state.local.refinement,
         expressions: in.state.local.expressions,
         condition: integers.widen(in.left),
         truth: in.operator == BinaryOperator.LogicalAnd
-    }) : in.state.local.refinement
-
-    return {
-        state: {
-            ...in.state,
-            local: {
-                ...in.state.local,
-                refinement
-            }
-        },
-        expected: type_id,
-        left
-    }
+    }) : in.state.local.refinement)
+        -> {
+            state: {
+                ...in.state,
+                local: {
+                    ...in.state.local,
+                    refinement: _
+                }
+            },
+            expected: type_id,
+            left
+        }
 }

@@ -13,6 +13,7 @@ pub const configuration = @import("configuration/root.zig");
 pub const NameKind = @import("naming").NameKind;
 const ExpressionContext = enum { zx, rx, zx_style, rx_style };
 const loop_postfix = @import("loop_postfix");
+const condition_policy = @import("condition_policy");
 pub const checkName = @import("naming").checkName;
 
 pub fn checkNames(program: zx.ast.Program) ?zx.Diagnostic {
@@ -91,6 +92,7 @@ fn checkBlock(block: anytype, comptime context: ExpressionContext) ?zx.Diagnosti
                 if (checkNestedExpression(binding.value, false, context)) |issue| return issue;
             },
             .branch => |branch| {
+                if ((context == .zx_style or context == .rx_style) and condition_policy.check(branch.condition.condition_terms, branch.condition.condition_list, true)) return .{ .code = .style, .span = branch.condition.span, .message = "if conditions with more than two terms must use a separate condition binding" };
                 if (checkNestedExpression(branch.condition, false, context)) |issue| return issue;
                 if (checkBlock(branch.yes, context)) |issue| return issue;
 
@@ -147,6 +149,8 @@ pub fn checkRxExpression(expression: anytype) ?zx.Diagnostic {
 
 fn checkNestedExpression(expression: anytype, nested: bool, comptime context: ExpressionContext) ?zx.Diagnostic {
     if (context == .zx_style or context == .rx_style) {
+        if (condition_policy.check(expression.condition_terms, expression.condition_list, false)) return .{ .code = .style, .span = expression.span, .message = "boolean expressions with more than three terms must use a condition list" };
+
         const value = syntax.value(expression);
 
         const receiver: ?@TypeOf(expression) = switch (value) {

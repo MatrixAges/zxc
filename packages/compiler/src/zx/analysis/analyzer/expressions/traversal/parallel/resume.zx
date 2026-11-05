@@ -13,17 +13,17 @@ export type Output = Work
 export default function (in: Input): Output {
     const position = in.frames.parallels.length - 1
     const frame = in.frames.parallels[position]
-    const field = in.source.tree.fields[frame.fields[frame.index]]
-    const span = in.source.tree.nodes[field.value].span
 
-    const result = finish({
-        state: in.state,
-        functions: in.functions,
-        first: frame.first,
-        symbol_count: frame.symbol_count,
-        body: in.value,
-        span
-    })
+    const result = in.source.tree.fields[frame.fields[frame.index]]
+        -> in.source.tree.nodes[_.value].span
+        -> finish({
+            state: in.state,
+            functions: in.functions,
+            first: frame.first,
+            symbol_count: frame.symbol_count,
+            body: in.value,
+            span: _
+        })
 
     if (result.state.diagnostic.message != "") {
         return {
@@ -42,7 +42,7 @@ export default function (in: Input): Output {
         )]
     }).first
 
-    const updated = {
+    return {
         ...frame,
         index: frame.index + 1,
         tasks: frame.tasks.push(result.value)[0],
@@ -52,13 +52,12 @@ export default function (in: Input): Output {
             )[0],
         types: type_id == 0 ? frame.types : frame.types.push(type_id)[0]
     }
-
-    return next({
-        ...in,
-        state: result.state,
-        frames: {
-            ...in.frames,
-            parallels: in.frames.parallels.splice(position, 1, [updated])[0]
-        }
-    })
+        -> next({
+            ...in,
+            state: result.state,
+            frames: {
+                ...in.frames,
+                parallels: in.frames.parallels.splice(position, 1, [_])[0]
+            }
+        })
 }

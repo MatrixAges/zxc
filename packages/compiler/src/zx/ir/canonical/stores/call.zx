@@ -16,13 +16,16 @@ export type Input = {
 export type Output = bool
 
 export default function (in: Input): Output {
-    if (
-        !validate(in.available) || !validate(in.required) || in.first > in.slots.length ||
-            in.count > in.slots.length - in.first ||
-            in.count != in.required.paths.length || (
-                in.count != 0 && !in.orchestration
-            )
-    ) {
+    const condition = (
+        - !validate(in.available)
+        - or !validate(in.required)
+        - or in.first > in.slots.length
+        - or in.count > in.slots.length - in.first
+        - or in.count != in.required.paths.length
+        - or (in.count != 0 && !in.orchestration)
+    )
+
+    if (condition) {
         return false
     }
 
@@ -61,19 +64,21 @@ export default function (in: Input): Output {
                     }
                 })
 
-                current.valid = !duplicate.found &&
-                    current.available.types[index] ==
-                    current.required.types[current.index] &&
-                    current.available.paths[index] ==
-                    current.required.paths[current.index] &&
-                    (
+                current.valid = (
+                    - !duplicate.found
+                    - and current.available.types[index] ==
+                        current.required.types[current.index]
+                    - and current.available.paths[index] ==
+                        current.required.paths[current.index]
+                    - and (
                         !current.required.readable[current.index] ||
                             current.available.readable[index]
-                    ) &&
-                    (
+                    )
+                    - and (
                         !current.required.writable[current.index] ||
                             current.available.writable[index]
                     )
+                )
             }
 
             current.index += 1

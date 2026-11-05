@@ -17,14 +17,26 @@ export default function (in: Input): Output {
         actions: in.actions.pop()[0]
     }
 
-    if (action == Action.Condition || action == Action.Yes || action == Action.No) {
+    const condition = (
+        - action == Action.Condition
+        - or action == Action.Yes
+        - or action == Action.No
+    )
+
+    if (condition) {
         return branch({
             body,
             action
         })
     }
 
-    if (action == Action.Subject || action == Action.Label || action == Action.Case) {
+    const condition_2 = (
+        - action == Action.Subject
+        - or action == Action.Label
+        - or action == Action.Case
+    )
+
+    if (condition_2) {
         return selection({
             body,
             action

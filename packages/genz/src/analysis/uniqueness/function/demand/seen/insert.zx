@@ -5,10 +5,9 @@ import position from "./position"
 import type { Insertion as Input, Inserted as Output } from "./model"
 
 export default function (in: Input): Output {
-    const full = (in.seen.count + 1) * load_denominator >
+    const keys = (in.seen.count + 1) * load_denominator >
         in.seen.keys.length * load_numerator
-
-    const keys = full ? grow(in.seen.keys) : in.seen.keys
+        -> (_ ? grow(in.seen.keys) : in.seen.keys)
 
     const target = position({
         keys,

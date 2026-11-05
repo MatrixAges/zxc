@@ -38,10 +38,13 @@ export default function (in: Input): Output {
 
     if (addition) {
         if (left.negative == right.negative) {
-            if (
-                invalid_sign || right.magnitude > limit ||
-                    left.magnitude > limit - right.magnitude
-            ) {
+            const condition = (
+                - invalid_sign
+                - or right.magnitude > limit
+                - or left.magnitude > limit - right.magnitude
+            )
+
+            if (condition) {
                 return {
                     value: empty,
                     message: message_arithmetic_overflow
@@ -78,12 +81,14 @@ export default function (in: Input): Output {
     }
 
     if (in.operator == BinaryOperator.Multiply) {
-        if (
-            (invalid_sign && left.magnitude != 0 && right.magnitude != 0) ||
-                (
-                    right.magnitude != 0 && left.magnitude > limit / right.magnitude
-                )
-        ) {
+        const condition_2 = (
+            - invalid_sign
+            - and left.magnitude != 0
+            - and right.magnitude != 0
+            - or (right.magnitude != 0 && left.magnitude > limit / right.magnitude)
+        )
+
+        if (condition_2) {
             return {
                 value: empty,
                 message: message_arithmetic_overflow

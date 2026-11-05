@@ -1,0 +1,67 @@
+import integers from "std:integer"
+
+import lookup from "./lookup"
+
+import type { Captures } from "../captures"
+
+export type Input = {
+    captures: Captures,
+    owner?: u32,
+    symbol: u32
+}
+
+export type Output = u32?
+
+export default function (in: Input): Output {
+    if (in.captures.current == in.owner) {
+        return in.symbol
+    }
+
+    const path: u32[] = []
+
+    const route = loop({
+        frame: in.captures.current,
+        path
+    }, {
+        while: (state, source) => state.frame != null &&
+            (source.owner == null || state.frame != source.owner),
+        next: (state, source) => {
+            const frame = state.frame
+
+            if (frame != null) {
+                state.path = state.path.push(frame)[0]
+                state.frame =
+                    source.captures.frames.parents[integers.widen(frame)]
+            }
+        }
+    }, in)
+
+    if (route.frame != in.owner) {
+        return null
+    }
+
+    const symbol: u32? = in.symbol
+
+    return loop({
+        symbol,
+        remaining: route.path.length
+    }, {
+        while: state => state.symbol != null && state.remaining > 0,
+        next: (state, source) => {
+            const symbol = state.symbol
+
+            if (symbol != null) {
+                state.remaining -= 1
+                state.symbol = lookup({
+                    captures: source.captures,
+                    frame: source.path[state.remaining],
+                    source: symbol
+                })
+            }
+        },
+        return: state => state.symbol
+    }, {
+        captures: in.captures,
+        path: route.path
+    })
+}

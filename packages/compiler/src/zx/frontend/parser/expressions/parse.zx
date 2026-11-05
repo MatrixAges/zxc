@@ -22,18 +22,17 @@ export default function (in: Input): Output {
         tree: emptyTree()
     })
 
-    const control = parsed.control.diagnostic.message != "" ? {
+    return (parsed.control.diagnostic.message != "" ? {
         ...parsed.expression.control,
         phase: Phase.Done,
         diagnostic: parsed.control.diagnostic
-    } : parsed.expression.control
-
-    return {
-        prepared: parsed.expression.prepared,
-        tree: parsed.expression.tree,
-        types: parsed.expression.types,
-        frames: parsed.expression.frames,
-        control,
-        body: parsed.tree
-    }
+    } : parsed.expression.control)
+        -> {
+            prepared: parsed.expression.prepared,
+            tree: parsed.expression.tree,
+            types: parsed.expression.types,
+            frames: parsed.expression.frames,
+            control: _,
+            body: parsed.tree
+        }
 }

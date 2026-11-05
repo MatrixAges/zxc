@@ -40,24 +40,23 @@ export default function (in: Input): Output {
     }
 
     if (result.route == Route.Method) {
-        const callee = work.source.tree
+        return work.source.tree
             .nodes[work.source.tree.nodes[work.node].first]
-
-        return {
-            ...work,
-            node: callee.first,
-            expected: null,
-            phase: Phase.Evaluate,
-            frames: {
-                ...work.frames,
-                actions: work.frames.actions.push(Action.MethodTarget)[0],
-                methods: work.frames.methods.push({
-                    node: work.node,
-                    expected: work.expected,
-                    target: 0
-                })[0]
+            -> {
+                ...work,
+                node: _.first,
+                expected: null,
+                phase: Phase.Evaluate,
+                frames: {
+                    ...work.frames,
+                    actions: work.frames.actions.push(Action.MethodTarget)[0],
+                    methods: work.frames.methods.push({
+                        node: work.node,
+                        expected: work.expected,
+                        target: 0
+                    })[0]
+                }
             }
-        }
     }
 
     return parallel(work)

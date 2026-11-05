@@ -24,110 +24,112 @@ export type Bound = {
 
 export type Output = Bound?
 
-    export default function (in: Input): Output {
-        const expressions = in.input.expressions
-        const condition = integers.widen(in.input.condition)
+export default function (in: Input): Output {
+    const expressions = in.input.expressions
+    const condition = integers.widen(in.input.condition)
 
-        if (expressions.kinds[condition] != ExpressionKind.Binary) {
-            return null
-        }
-
-        const predicate = integers.widen(expressions.payloads[condition])
-
-        if (expressions.binary_operators[predicate] != BinaryOperator.Less) {
-            return null
-        }
-
-        const index = field({
-            expressions,
-            value: expressions.binary_left[predicate],
-            parameter: in.input.condition_parameter
-        })
-
-        const length = integers.widen(expressions.binary_right[predicate])
-
-        if (index == null || expressions.kinds[length] != ExpressionKind.Length) {
-            return null
-        }
-
-        const source = field({
-            expressions,
-            value:
-                expressions.lengths[integers.widen(expressions.payloads[length])],
-            parameter: in.input.condition_parameter
-        })
-
-        if (source == null || in.mutable[integers.widen(source)]) {
-            return null
-        }
-
-        const initial = unwrap({
-            expressions,
-            value: in.input.initial
-        })
-
-        const start = member({
-            expressions,
-            value: initial,
-            field: index
-        })
-
-        if (
-            start == null ||
-                expressions.kinds[integers.widen(start)] != ExpressionKind.Integer
-        ) {
-            return null
-        }
-
-        if (
-            expressions
-                .integers[integers.widen(
-                    expressions.payloads[integers.widen(
-                        start
-                    )]
-                )] != 0
-        ) {
-            return null
-        }
-
-        const body = unwrap({
-            expressions,
-            value: in.input.body
-        })
-
-        const next = member({
-            expressions,
-            value: body,
-            field: index
-        })
-
-        if (
-            next == null ||
-                expressions.kinds[integers.widen(next)] != ExpressionKind.Binary
-        ) {
-            return null
-        }
-
-        const increment = integers.widen(expressions.payloads[integers.widen(next)])
-        const step = integers.widen(expressions.binary_right[increment])
-
-        if (
-            expressions.binary_operators[increment] != BinaryOperator.Add ||
-                expressions.kinds[step] != ExpressionKind.Integer ||
-                expressions.integers[integers.widen(expressions.payloads[step])] != 1 ||
-                field({
-                    expressions,
-                    value: expressions.binary_left[increment],
-                    parameter: in.input.parameter
-                }) != index
-        ) {
-            return null
-        }
-
-        return {
-            source,
-            initial,
-            body,
-            parameter: in.input.parameter
-        }
+    if (expressions.kinds[condition] != ExpressionKind.Binary) {
+        return null
     }
+
+    const predicate = integers.widen(expressions.payloads[condition])
+
+    if (expressions.binary_operators[predicate] != BinaryOperator.Less) {
+        return null
+    }
+
+    const index = field({
+        expressions,
+        value: expressions.binary_left[predicate],
+        parameter: in.input.condition_parameter
+    })
+
+    const length = integers.widen(expressions.binary_right[predicate])
+
+    if (index == null || expressions.kinds[length] != ExpressionKind.Length) {
+        return null
+    }
+
+    const source = field({
+        expressions,
+        value:
+            expressions.lengths[integers.widen(expressions.payloads[length])],
+        parameter: in.input.condition_parameter
+    })
+
+    if (source == null || in.mutable[integers.widen(source)]) {
+        return null
+    }
+
+    const initial = unwrap({
+        expressions,
+        value: in.input.initial
+    })
+
+    const start = member({
+        expressions,
+        value: initial,
+        field: index
+    })
+
+    if (
+        start == null ||
+            expressions.kinds[integers.widen(start)] != ExpressionKind.Integer
+    ) {
+        return null
+    }
+
+    if (
+        expressions
+            .integers[integers.widen(
+                expressions.payloads[integers.widen(
+                    start
+                )]
+            )] != 0
+    ) {
+        return null
+    }
+
+    const body = unwrap({
+        expressions,
+        value: in.input.body
+    })
+
+    const next = member({
+        expressions,
+        value: body,
+        field: index
+    })
+
+    if (
+        next == null ||
+            expressions.kinds[integers.widen(next)] != ExpressionKind.Binary
+    ) {
+        return null
+    }
+
+    const increment = integers.widen(expressions.payloads[integers.widen(next)])
+    const step = integers.widen(expressions.binary_right[increment])
+
+    const condition_2 = (
+        - expressions.binary_operators[increment] != BinaryOperator.Add
+        - or expressions.kinds[step] != ExpressionKind.Integer
+        - or expressions.integers[integers.widen(expressions.payloads[step])] != 1
+        - or field({
+            expressions,
+            value: expressions.binary_left[increment],
+            parameter: in.input.parameter
+        }) != index
+    )
+
+    if (condition_2) {
+        return null
+    }
+
+    return {
+        source,
+        initial,
+        body,
+        parameter: in.input.parameter
+    }
+}

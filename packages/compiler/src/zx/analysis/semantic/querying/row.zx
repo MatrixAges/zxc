@@ -27,14 +27,16 @@ export default function (in: Input): Output {
         return true
     }
 
-    if (
-        type_kind == Kind.Optional ||
-            (
-                in.native_references && (
-                    type_kind == Kind.List || type_kind == Kind.Task
-                )
+    const condition = (
+        - type_kind == Kind.Optional
+        - or (
+            in.native_references && (
+                type_kind == Kind.List || type_kind == Kind.Task
             )
-    ) {
+        )
+    )
+
+    if (condition) {
         return in.flags[integers.widen(selected.first)]
     }
 

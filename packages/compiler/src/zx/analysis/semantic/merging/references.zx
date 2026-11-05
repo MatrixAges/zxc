@@ -18,11 +18,15 @@ export default function (in: Input): Output {
     const type_kind = kind(in.source.kinds[in.index])
     const empty = in.references.splice(0, 0, [])[1]
 
-    if (
-        type_kind == Kind.Optional || type_kind == Kind.List || type_kind == Kind.Task
-    ) {
-        const first = in.mapping[integers.widen(in.source.first[in.index])]
-        const single = empty.push(first)[0]
+    const condition = (
+        - type_kind == Kind.Optional
+        - or type_kind == Kind.List
+        - or type_kind == Kind.Task
+    )
+
+    if (condition) {
+        const single = in.mapping[integers.widen(in.source.first[in.index])]
+            -> empty.push(_)[0]
 
         return type_kind ==
             Kind.Task ? single.push(

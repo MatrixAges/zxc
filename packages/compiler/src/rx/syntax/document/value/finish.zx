@@ -22,18 +22,17 @@ export default function (in: Input): Output {
         count: state.control.value_count
     }
 
-    const count = match state.control.value_kind {
+    return match state.control.value_kind {
         ValueKind.Attribute => 1,
         ValueKind.Cdata => xml_cdata_end.length,
         _ => 0
     }
-
-    return publish({
-        state: advance({
-            state,
-            count
-        }),
-        value,
-        expression: false
-    })
+        -> publish({
+            state: advance({
+                state,
+                count: _
+            }),
+            value,
+            expression: false
+        })
 }

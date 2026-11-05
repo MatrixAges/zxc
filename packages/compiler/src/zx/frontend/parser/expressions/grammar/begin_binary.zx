@@ -35,17 +35,17 @@ export default function (in: Input): Output {
 
     const depth = in.control.depth + 1
     const family = in.control.fresh_family ? Family.None : in.control.family
-    const frames = in.frames.push(continuation)[0]
 
-    return primary({
-        prepared: in.prepared,
-        tree: in.tree,
-        types: in.types,
-        frames,
-        control: {
-            ...in.control,
-            depth,
-            family
-        }
-    })
+    return in.frames.push(continuation)[0]
+        -> primary({
+            prepared: in.prepared,
+            tree: in.tree,
+            types: in.types,
+            frames: _,
+            control: {
+                ...in.control,
+                depth,
+                family
+            }
+        })
 }

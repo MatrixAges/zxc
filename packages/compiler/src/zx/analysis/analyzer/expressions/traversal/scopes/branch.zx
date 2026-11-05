@@ -27,17 +27,16 @@ export default function (in: Input): Output {
     if (in.action == Action.StateCondition) {
         const before = mark(work.state.local.refinement.facts)
 
-        const refinement = assume({
+        const local = assume({
             state: work.state.local.refinement,
             expressions: work.state.local.expressions,
             condition: integers.widen(work.value),
             truth: true
         })
-
-        const local = {
-            ...work.state.local,
-            refinement
-        }
+            -> {
+                ...work.state.local,
+                refinement: _
+            }
 
         const scopes = enter({
             scopes: work.scopes,
@@ -47,64 +46,60 @@ export default function (in: Input): Output {
             state_symbol: frame.state_symbol
         })
 
-        const branches = work.frames.branches.splice(position, 1, [{
+        return work.frames.branches.splice(position, 1, [{
             ...frame,
             condition: work.value,
             mark: before
         }])[0]
-
-        return {
-            ...work,
-            state: {
-                ...work.state,
-                local
-            },
-            scopes,
-            phase: Phase.ScopeNext,
-            frames: {
-                ...work.frames,
-                branches,
-                actions: work.frames.actions.push(Action.StateYes)[0]
+            -> {
+                ...work,
+                state: {
+                    ...work.state,
+                    local
+                },
+                scopes,
+                phase: Phase.ScopeNext,
+                frames: {
+                    ...work.frames,
+                    branches: _,
+                    actions: work.frames.actions.push(Action.StateYes)[0]
+                }
             }
-        }
     }
 
-    const facts = restore({
+    const restored = restore({
         facts: work.state.local.refinement.facts,
         mark: frame.mark
     })
-
-    const restored = {
-        ...work.state.local.refinement,
-        facts
-    }
+        -> {
+            ...work.state.local.refinement,
+            facts: _
+        }
 
     if (in.action == Action.StateYes) {
-        const refinement = assume({
+        const state = assume({
             state: restored,
             expressions: work.state.local.expressions,
             condition: integers.widen(frame.condition),
             truth: false
         })
-
-        const state = {
-            ...work.state,
-            local: {
-                ...work.state.local,
-                refinement
+            -> {
+                ...work.state,
+                local: {
+                    ...work.state.local,
+                    refinement: _
+                }
             }
-        }
 
-        const branches = work.frames.branches.splice(position, 1, [{
+        const frames = work.frames.branches.splice(position, 1, [{
             ...frame,
             yes: work.value
         }])[0]
-
-        const frames = {
-            ...work.frames,
-            branches,
-            actions: work.frames.actions.push(Action.StateNo)[0]
-        }
+            -> {
+                ...work.frames,
+                branches: _,
+                actions: work.frames.actions.push(Action.StateNo)[0]
+            }
 
         if (statement.third == 0) {
             const result = reference({
@@ -122,21 +117,20 @@ export default function (in: Input): Output {
             }
         }
 
-        const scopes = enter({
+        return enter({
             scopes: work.scopes,
             local: state.local,
             tree: work.source.blocks,
             block: statement.third - 1,
             state_symbol: frame.state_symbol
         })
-
-        return {
-            ...work,
-            state,
-            scopes,
-            phase: Phase.ScopeNext,
-            frames
-        }
+            -> {
+                ...work,
+                state,
+                scopes: _,
+                phase: Phase.ScopeNext,
+                frames
+            }
     }
 
     const value = append({

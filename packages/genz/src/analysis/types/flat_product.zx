@@ -51,8 +51,17 @@ export default function (in: Input): Output {
                     },
                     return: state => state.stack
                 })
-            } else if (kind != 0 && kind != 5 && kind != 7 && kind != 8) {
-                current.valid = false
+            } else {
+                const condition = (
+                    - kind != 0
+                    - and kind != 5
+                    - and kind != 7
+                    - and kind != 8
+                )
+
+                if (condition) {
+                    current.valid = false
+                }
             }
         },
         return: state => state.valid

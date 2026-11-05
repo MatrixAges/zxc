@@ -24,7 +24,7 @@ export default function (in: Input): Output {
     if (in.action == Action.Branch) {
         const payload = index
 
-        const pending = push({
+        return push({
             stack: in.stack,
             event: {
                 action: Action.BlockArm,
@@ -34,23 +34,22 @@ export default function (in: Input): Output {
                 fourth: control.branch_no[payload]
             }
         })
-
-        return push({
-            stack: pending,
-            event: {
-                action: Action.BlockArm,
-                first: max_u32,
-                second: in.fork,
-                third: integers.narrow(0),
-                fourth: control.branch_yes[payload]
-            }
-        })
+            -> push({
+                stack: _,
+                event: {
+                    action: Action.BlockArm,
+                    first: max_u32,
+                    second: in.fork,
+                    third: integers.narrow(0),
+                    fourth: control.branch_yes[payload]
+                }
+            })
     }
 
     if (in.action == Action.Conditional) {
         const payload = integers.widen(table.payloads[index])
 
-        const pending = push({
+        return push({
             stack: in.stack,
             event: {
                 action: Action.ValueArm,
@@ -60,17 +59,16 @@ export default function (in: Input): Output {
                 fourth: table.conditional_no[payload]
             }
         })
-
-        return push({
-            stack: pending,
-            event: {
-                action: Action.ValueArm,
-                first: in.index,
-                second: in.fork,
-                third: integers.narrow(0),
-                fourth: table.conditional_yes[payload]
-            }
-        })
+            -> push({
+                stack: _,
+                event: {
+                    action: Action.ValueArm,
+                    first: in.index,
+                    second: in.fork,
+                    third: integers.narrow(0),
+                    fourth: table.conditional_yes[payload]
+                }
+            })
     }
 
     const selection = in.action == Action.Switch

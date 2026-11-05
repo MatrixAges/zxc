@@ -25,23 +25,25 @@ export default function (in: Input): Output {
                 kind == ExpressionKind.ListOperation ||
                     kind == ExpressionKind.ListUpdate
             ) {
-                const target = kind == ExpressionKind.ListUpdate ?
-                    expressions.update_targets[payload] :
-                    expressions.collection_targets[payload]
 
-                const result = query({
-                    context: source.context,
-                    state: {
-                        known: state.working.known,
-                        carried: source.state.carried,
-                        reads: state.working.reads
-                    },
-                    request: {
-                        node: target,
-                        slot: 0,
-                        raw: false
-                    }
-                })
+                const result = (
+                    kind == ExpressionKind.ListUpdate ?
+                        expressions.update_targets[payload] :
+                        expressions.collection_targets[payload]
+                )
+                    -> query({
+                        context: source.context,
+                        state: {
+                            known: state.working.known,
+                            carried: source.state.carried,
+                            reads: state.working.reads
+                        },
+                        request: {
+                            node: _,
+                            slot: 0,
+                            raw: false
+                        }
+                    })
 
                 const flag = updateFlags({
                     kind,

@@ -21,31 +21,31 @@ export default function (in: Input): Output {
     }
 
     const loop_options =
-        taken.frame.flag && taken.frame.count == 1 &&
-        taken.state.tree.nodes[taken.frame.first].kind == ExprKind.Identifier &&
-        taken.state.tree.nodes[taken.frame.first].flag &&
-        taken.state.control.token.symbol == Symbol.OpenBrace
+        (
+            - taken.frame.flag
+            - and taken.frame.count == 1
+            - and taken.state.tree.nodes[taken.frame.first].kind == ExprKind.Identifier
+            - and taken.state.tree.nodes[taken.frame.first].flag
+            - and taken.state.control.token.symbol == Symbol.OpenBrace
+        )
 
     if (loop_options) {
-        const continuation = frame({
+        return frame({
             kind: FrameKind.OptionsValue,
             start: taken.state.control.token.span.start,
             depth: taken.state.control.depth
         })
-
-        const frames =
-            taken.state.frames.push(taken.frame)[0].push(continuation)[0]
-
-        return consume({
-            state: {
-                prepared: taken.state.prepared,
-                tree: taken.state.tree,
-                types: taken.state.types,
-                frames,
-                control: taken.state.control
-            },
-            phase: Phase.ObjectName
-        })
+            -> taken.state.frames.push(taken.frame)[0].push(_)[0]
+            -> consume({
+                state: {
+                    prepared: taken.state.prepared,
+                    tree: taken.state.tree,
+                    types: taken.state.types,
+                    frames: _,
+                    control: taken.state.control
+                },
+                phase: Phase.ObjectName
+            })
     }
 
     const frames = taken.state.frames.push(taken.frame)[0]

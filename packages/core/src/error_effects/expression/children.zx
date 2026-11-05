@@ -16,10 +16,13 @@ export default function (in: Input): Output {
     const kind = table.kinds[in.index]
     const payload = table.payloads[in.index]
 
-    if (
-        kind == ExpressionKind.List || kind == ExpressionKind.Tuple ||
-            kind == ExpressionKind.Template
-    ) {
+    const condition = (
+        - kind == ExpressionKind.List
+        - or kind == ExpressionKind.Tuple
+        - or kind == ExpressionKind.Template
+    )
+
+    if (condition) {
         return table.sequence_items.splice(
             integers.widen(
                 table.sequence_first[integers.widen(
@@ -47,18 +50,16 @@ export default function (in: Input): Output {
                 []
             )[1]
 
-        const fields =
-            table.object_field_values.splice(
-                integers.widen(
-                    table.object_first[integers.widen(
-                        payload
-                    )]
-                ),
-                integers.widen(table.object_count[integers.widen(payload)]),
-                []
-            )[1]
-
-        return evaluated.concat(fields)[0]
+        return table.object_field_values.splice(
+            integers.widen(
+                table.object_first[integers.widen(
+                    payload
+                )]
+            ),
+            integers.widen(table.object_count[integers.widen(payload)]),
+            []
+        )[1]
+            -> evaluated.concat(_)[0]
     }
 
     if (kind == ExpressionKind.ListOperation) {

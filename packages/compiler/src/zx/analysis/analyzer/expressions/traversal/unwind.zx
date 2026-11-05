@@ -9,37 +9,36 @@ export type Output = Work
 export default function (in: Input): Output {
     const local = in.state.local
 
-    const facts = restore({
+    return restore({
         facts: local.refinement.facts,
         mark: in.context.facts
     })
-
-    return {
-        ...in,
-        scopes: {
-            bindings: {
-                symbols: [],
-                values: [],
-                borrows: []
-            },
-            frames: []
-        },
-        state: {
-            ...in.state,
-            local: {
-                ...local,
-                active: local.active.splice(0, in.context.active, [])[1],
-                scope_floor: in.context.floor,
-                lambda_depth: in.context.depth,
-                captures: {
-                    ...local.captures,
-                    current: in.context.captures
+        -> {
+            ...in,
+            scopes: {
+                bindings: {
+                    symbols: [],
+                    values: [],
+                    borrows: []
                 },
-                refinement: {
-                    ...local.refinement,
-                    facts
+                frames: []
+            },
+            state: {
+                ...in.state,
+                local: {
+                    ...local,
+                    active: local.active.splice(0, in.context.active, [])[1],
+                    scope_floor: in.context.floor,
+                    lambda_depth: in.context.depth,
+                    captures: {
+                        ...local.captures,
+                        current: in.context.captures
+                    },
+                    refinement: {
+                        ...local.refinement,
+                        facts: _
+                    }
                 }
             }
         }
-    }
 }

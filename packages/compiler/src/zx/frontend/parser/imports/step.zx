@@ -22,15 +22,14 @@ export default function (in: Input): Output {
     }
 
     if (in.state.control.index < in.state.control.start) {
-        const index = in.state.control.index + 1
-
-        return {
-            ...in.state,
-            control: {
-                ...in.state.control,
-                index
+        return in.state.control.index + 1
+            -> {
+                ...in.state,
+                control: {
+                    ...in.state.control,
+                    index: _
+                }
             }
-        }
     }
 
     const state = {
@@ -61,7 +60,13 @@ export default function (in: Input): Output {
         return finish(state)
     }
 
-    if (phase == Phase.Binding && !state.control.type_only && word == Keyword.Type) {
+    const condition = (
+        - phase == Phase.Binding
+        - and !state.control.type_only
+        - and word == Keyword.Type
+    )
+
+    if (condition) {
         return {
             ...state,
             control: {
@@ -72,7 +77,13 @@ export default function (in: Input): Output {
         }
     }
 
-    if (phase == Phase.Binding && state.control.exported && symbol == Symbol.Star) {
+    const condition_2 = (
+        - phase == Phase.Binding
+        - and state.control.exported
+        - and symbol == Symbol.Star
+    )
+
+    if (condition_2) {
         return {
             ...state,
             control: {
@@ -85,7 +96,13 @@ export default function (in: Input): Output {
         }
     }
 
-    if (phase == Phase.Separator && word == Keyword.As && !state.control.aliased) {
+    const condition_3 = (
+        - phase == Phase.Separator
+        - and word == Keyword.As
+        - and !state.control.aliased
+    )
+
+    if (condition_3) {
         return {
             ...state,
             control: {
@@ -98,10 +115,12 @@ export default function (in: Input): Output {
     }
 
     if (phase == Phase.Alias) {
-        if (
-            kind != Kind.Identifier &&
-                !(state.control.exported && word == Keyword.Default)
-        ) {
+        const condition_4 = (
+            - kind != Kind.Identifier
+            - and !(state.control.exported && word == Keyword.Default)
+        )
+
+        if (condition_4) {
             return fail({
                 state,
                 span,
@@ -121,10 +140,14 @@ export default function (in: Input): Output {
         }
     }
 
-    if (
-        phase == Phase.Separator && state.control.default_binding &&
-            !state.control.aliased && !state.control.exported
-    ) {
+    const condition_5 = (
+        - phase == Phase.Separator
+        - and state.control.default_binding
+        - and !state.control.aliased
+        - and !state.control.exported
+    )
+
+    if (condition_5) {
         return fail({
             state,
             span,
@@ -144,9 +167,13 @@ export default function (in: Input): Output {
         }
     }
 
-    if (
-        (phase == Phase.Name || phase == Phase.Separator) && symbol == Symbol.CloseBrace
-    ) {
+    const condition_6 = (
+        - phase == Phase.Name
+        - or phase == Phase.Separator
+        - and symbol == Symbol.CloseBrace
+    )
+
+    if (condition_6) {
         return {
             ...state,
             control: {
@@ -158,10 +185,12 @@ export default function (in: Input): Output {
     }
 
     if (phase == Phase.Binding || phase == Phase.Name) {
-        if (
-            kind != Kind.Identifier &&
-                !(phase == Phase.Name && word == Keyword.Default)
-        ) {
+        const condition_7 = (
+            - kind != Kind.Identifier
+            - and !(phase == Phase.Name && word == Keyword.Default)
+        )
+
+        if (condition_7) {
             return fail({
                 state,
                 span,
@@ -170,21 +199,21 @@ export default function (in: Input): Output {
         }
 
         const count = state.control.count + 1
-        const names = state.names.push(span)[0]
 
-        return {
-            ...state,
-            names,
-            sources: state.sources.push(span)[0],
-            control: {
-                ...state.control,
-                phase: phase == Phase.Binding ? Phase.From : Phase.Separator,
-                count,
-                aliased: false,
-                default_binding: word == Keyword.Default,
-                index
+        return state.names.push(span)[0]
+            -> {
+                ...state,
+                names: _,
+                sources: state.sources.push(span)[0],
+                control: {
+                    ...state.control,
+                    phase: phase == Phase.Binding ? Phase.From : Phase.Separator,
+                    count,
+                    aliased: false,
+                    default_binding: word == Keyword.Default,
+                    index
+                }
             }
-        }
     }
 
     if (phase == Phase.Separator) {

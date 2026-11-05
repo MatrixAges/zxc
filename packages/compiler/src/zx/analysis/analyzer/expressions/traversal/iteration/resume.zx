@@ -50,7 +50,7 @@ export default function (in: Input): Output {
             readonly_value: frame.readonly != null ? frame.readonly.reference : null
         })
 
-        const iterations = work.frames.iterations.splice(position, 1, [{
+        return work.frames.iterations.splice(position, 1, [{
             ...frame,
             condition: body.value,
             parameter: entered.parameter,
@@ -60,19 +60,18 @@ export default function (in: Input): Output {
             } : null,
             context: entered.context
         }])[0]
-
-        return {
-            ...work,
-            state: entered.state,
-            node: entered.body,
-            expected: null,
-            phase: Phase.StateBlock,
-            frames: {
-                ...work.frames,
-                iterations,
-                actions: work.frames.actions.push(Action.IterationStep)[0]
+            -> {
+                ...work,
+                state: entered.state,
+                node: entered.body,
+                expected: null,
+                phase: Phase.StateBlock,
+                frames: {
+                    ...work.frames,
+                    iterations: _,
+                    actions: work.frames.actions.push(Action.IterationStep)[0]
+                }
             }
-        }
     }
 
     if (in.action == Action.IterationStep && frame.result_node != null) {

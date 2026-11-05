@@ -9,11 +9,19 @@ export type Input = {
 export type Output = Knowledge
 
 export default function (in: Input): Output {
-    const left_headered = in.left == Knowledge.Headered || in.left == Knowledge.All ||
-        in.left == Knowledge.HeaderedDeferred || in.left == Knowledge.AllDeferred
+    const left_headered = (
+        - in.left == Knowledge.Headered
+        - or in.left == Knowledge.All
+        - or in.left == Knowledge.HeaderedDeferred
+        - or in.left == Knowledge.AllDeferred
+    )
 
-    const right_headered = in.right == Knowledge.Headered || in.right == Knowledge.All ||
-        in.right == Knowledge.HeaderedDeferred || in.right == Knowledge.AllDeferred
+    const right_headered = (
+        - in.right == Knowledge.Headered
+        - or in.right == Knowledge.All
+        - or in.right == Knowledge.HeaderedDeferred
+        - or in.right == Knowledge.AllDeferred
+    )
 
     const retained = unique(in.left) && unique(in.right)
 
@@ -22,11 +30,13 @@ export default function (in: Input): Output {
     }
 
     const deferred = (
-        in.left != Knowledge.None && in.left != Knowledge.Unique &&
-            in.left != Knowledge.Unknown
-    ) || (
-        in.right != Knowledge.None && in.right != Knowledge.Unique &&
-            in.right != Knowledge.Unknown
+        - in.left != Knowledge.None
+        - and in.left != Knowledge.Unique
+        - and in.left != Knowledge.Unknown
+        - or (
+            in.right != Knowledge.None && in.right != Knowledge.Unique &&
+                in.right != Knowledge.Unknown
+        )
     )
 
     return match {

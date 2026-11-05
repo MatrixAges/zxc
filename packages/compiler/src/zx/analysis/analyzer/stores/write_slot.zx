@@ -72,25 +72,31 @@ export default function (in: Input): Output {
     const root =
         in.source.tree.nodes[owner.kind == ExprKind.Field ? owner.first : in.node]
 
-    if (node.kind != ExprKind.Field || owner.kind != ExprKind.Field ||
-        root.kind != ExprKind.Identifier || readName({
+    const condition = (
+        - node.kind != ExprKind.Field
+        - or owner.kind != ExprKind.Field
+        - or root.kind != ExprKind.Identifier
+        - or readName({
             source: in.source,
             kind: NameKind.Expression,
             index: owner.first
-        }).text != "store") {
-            return {
-                state: {
-                    ...in.state,
-                    diagnostic: {
-                        code: "capability",
-                        message: "a Store setter must replace a complete Object",
-                        start: node.span.start,
-                        end: node.span.end
-                    }
-                },
-                slot: 0
-            }
+        }).text != "store"
+    )
+
+    if (condition) {
+        return {
+            state: {
+                ...in.state,
+                diagnostic: {
+                    code: "capability",
+                    message: "a Store setter must replace a complete Object",
+                    start: node.span.start,
+                    end: node.span.end
+                }
+            },
+            slot: 0
         }
+    }
 
     const found = loop({
         paths: in.state.local.stores.paths,

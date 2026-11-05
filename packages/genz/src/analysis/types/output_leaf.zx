@@ -27,5 +27,10 @@ export default function (in: Input): Output {
 
     const kind = in.types.kinds[integers.widen(base.id)]
 
-    return kind == 0 || kind == 5 || kind == 7 || kind == 8
+    return (
+        - kind == 0
+        - or kind == 5
+        - or kind == 7
+        - or kind == 8
+    )
 }

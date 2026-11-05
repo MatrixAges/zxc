@@ -11,12 +11,12 @@ export type Output = Inline
 export default function (in: Input): Output {
     const state = in.state
     const value = state.stack[state.stack.length - 1]
-    const control = state.units[state.mappings.units[in.frame.mapping]].control
 
     const symbol: u32? =
-        integers.narrow(
+        state.units[state.mappings.units[in.frame.mapping]].control
+        -> integers.narrow(
             integers.widen(
-                control.constant_symbols[in.frame.f]
+                _.constant_symbols[in.frame.f]
             ) + state.mappings.offsets[in.frame.mapping]
         )
 

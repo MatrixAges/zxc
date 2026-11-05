@@ -17,10 +17,9 @@ export default function (in: Input): Output {
         segments
     }
 
-    const state = finish(in.reduce((state, byte) => tick({
+    return finish(in.reduce((state, byte) => tick({
         state,
         byte
     }), initial)[1])
-
-    return state.segments
+        -> _.segments
 }

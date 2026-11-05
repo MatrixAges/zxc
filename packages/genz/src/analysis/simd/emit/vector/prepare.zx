@@ -69,8 +69,14 @@ export default function (in: Input): Output {
         expressions: element.table,
         vector: offset.statements,
         serial: offset.serial,
-        valid: in.valid && index.valid && position.valid && offset.valid &&
-            loaded.valid && element.valid,
+        valid: (
+            - in.valid
+            - and index.valid
+            - and position.valid
+            - and offset.valid
+            - and loaded.valid
+            - and element.valid
+        ),
         values: {
             ...in.values,
             chunk_name: name.name,

@@ -12,7 +12,7 @@ export type Input = {
 export type Output = ExprState
 
 export default function (in: Input): Output {
-    const continuation = {
+    return {
         ...frame({
             kind: FrameKind.Arguments,
             start: in.state.control.primary_start,
@@ -23,17 +23,15 @@ export default function (in: Input): Output {
         cursor: in.type_argument,
         flag: true
     }
-
-    const frames = in.state.frames.push(continuation)[0]
-
-    return consume({
-        state: {
-            prepared: in.state.prepared,
-            tree: in.state.tree,
-            types: in.state.types,
-            frames,
-            control: in.state.control
-        },
-        phase: Phase.Arguments
-    })
+        -> in.state.frames.push(_)[0]
+        -> consume({
+            state: {
+                prepared: in.state.prepared,
+                tree: in.state.tree,
+                types: in.state.types,
+                frames: _,
+                control: in.state.control
+            },
+            phase: Phase.Arguments
+        })
 }

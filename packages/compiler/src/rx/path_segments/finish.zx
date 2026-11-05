@@ -7,20 +7,24 @@ export type Output = State
 export default function (in: Input): Output {
     const length = in.offset - in.start
 
-    if (length == 0 || in.dots && length == 1) {
+    const condition = (
+        - length == 0
+        - or (in.dots && length == 1)
+    )
+
+    if (condition) {
         return in
     }
 
-    const segments = in.segments.push({
+    return in.segments.push({
         start: in.start,
         end: in.offset,
         parent: in.dots && length == 2
     })[0]
-
-    return {
-        offset: in.offset,
-        start: in.start,
-        dots: in.dots,
-        segments
-    }
+        -> {
+            offset: in.offset,
+            start: in.start,
+            dots: in.dots,
+            segments: _
+        }
 }

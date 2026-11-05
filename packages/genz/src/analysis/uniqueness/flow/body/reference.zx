@@ -12,9 +12,11 @@ import type { State as Output, Step as Input } from "./model"
 export default function (in: Input): Output {
     const body = in.context.body
     const expressions = body.expressions
-    const node = integers.widen(in.point.node)
-    const payload = integers.widen(expressions.payloads[node])
-    const symbol = integers.widen(expressions.references[payload])
+
+    const symbol = integers.widen(in.point.node)
+        -> integers.widen(expressions.payloads[_])
+        -> integers.widen(expressions.references[_])
+
     const kind = body.definitions.kind[symbol]
     const state = in.state
     const slot = in.point.slot
@@ -37,23 +39,22 @@ export default function (in: Input): Output {
     if (kind == Definition.Value || kind == Definition.Part) {
         const target = body.definitions.value[symbol]
 
-        const shift = kind == Definition.Part ? offset({
+        return (kind == Definition.Part ? offset({
             body,
             node: target,
             index: body.definitions.index[symbol]
-        }) : 0
-
-        return {
-            ...state,
-            queue: push({
-                queue: state.queue,
-                first: body.prepared.first,
-                point: {
-                    node: target,
-                    slot: shift + slot
-                }
-            })
-        }
+        }) : 0)
+            -> {
+                ...state,
+                queue: push({
+                    queue: state.queue,
+                    first: body.prepared.first,
+                    point: {
+                        node: target,
+                        slot: _ + slot
+                    }
+                })
+            }
     }
 
     if (kind == Definition.Carried || kind == Definition.Condition) {
@@ -61,7 +62,7 @@ export default function (in: Input): Output {
         const payload = integers.widen(expressions.payloads[owner])
 
         if (expressions.kinds[owner] == ExpressionKind.Iteration) {
-            const initial = push({
+            return push({
                 queue: state.queue,
                 first: body.prepared.first,
                 point: {
@@ -69,25 +70,24 @@ export default function (in: Input): Output {
                     slot
                 }
             })
-
-            return {
-                ...state,
-                queue: push({
-                    queue: initial,
-                    first: body.prepared.first,
-                    point: {
-                        node: expressions.iteration_bodies[payload],
-                        slot
-                    }
-                })
-            }
+                -> {
+                    ...state,
+                    queue: push({
+                        queue: _,
+                        first: body.prepared.first,
+                        point: {
+                            node: expressions.iteration_bodies[payload],
+                            slot
+                        }
+                    })
+                }
         }
 
         if (expressions.kinds[owner] == ExpressionKind.Transform) {
             const origin = expressions.transform_initials[payload]
 
             if (origin != null) {
-                const initial = push({
+                return push({
                     queue: state.queue,
                     first: body.prepared.first,
                     point: {
@@ -95,18 +95,17 @@ export default function (in: Input): Output {
                         slot
                     }
                 })
-
-                return {
-                    ...state,
-                    queue: push({
-                        queue: initial,
-                        first: body.prepared.first,
-                        point: {
-                            node: expressions.transform_bodies[payload],
-                            slot
-                        }
-                    })
-                }
+                    -> {
+                        ...state,
+                        queue: push({
+                            queue: _,
+                            first: body.prepared.first,
+                            point: {
+                                node: expressions.transform_bodies[payload],
+                                slot
+                            }
+                        })
+                    }
             }
         }
     }

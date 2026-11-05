@@ -42,7 +42,7 @@ export default function (in: Input): Output {
 
     const selection = operation == Operation.Pick || operation == Operation.Omit
 
-    const target = row({
+    const result: Result = row({
         tables: {
             base: in.state.types.context.base,
             delta: in.state.types.delta
@@ -51,35 +51,34 @@ export default function (in: Input): Output {
             frame.values[0]
         )]
     })
-
-    const result: Result = match {
-        selection && target.kind != Kind.Object => {
-            state: {
-                ...in.state,
-                diagnostic: {
-                    code: type_code,
-                    message: object_message,
-                    start: span.start,
-                    end: span.end
-                }
+        -> match {
+            selection && _.kind != Kind.Object => {
+                state: {
+                    ...in.state,
+                    diagnostic: {
+                        code: type_code,
+                        message: object_message,
+                        start: span.start,
+                        end: span.end
+                    }
+                },
+                value: 0
             },
-            value: 0
-        },
-        selection => select({
-            state: in.state,
-            source: in.source,
-            node: frame.node,
-            target: frame.values[0],
-            offset: 1,
-            omit: operation == Operation.Omit
-        }),
-        _ => lower({
-            state: in.state,
-            operation,
-            values: frame.values,
-            span
-        })
-    }
+            selection => select({
+                state: in.state,
+                source: in.source,
+                node: frame.node,
+                target: frame.values[0],
+                offset: 1,
+                omit: operation == Operation.Omit
+            }),
+            _ => lower({
+                state: in.state,
+                operation,
+                values: frame.values,
+                span
+            })
+        }
 
     return {
         ...in,

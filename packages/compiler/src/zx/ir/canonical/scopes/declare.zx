@@ -26,20 +26,28 @@ export default function (in: Input): Output {
     const activity = in.state.activity
 
     if (in.mode == Declaration.Ordinary) {
-        if (activity.declared[in.symbol] || type_id != in.type_id || type_id == 0) {
+        const condition = (
+            - activity.declared[in.symbol]
+            - or type_id != in.type_id
+            - or type_id == 0
+        )
+
+        if (condition) {
             return {
                 state: in.state,
                 valid: false
             }
         }
     } else {
-        if (
-            activity.active[in.symbol] ||
-                (
-                    activity.declared[in.symbol] &&
-                        activity.owners[in.symbol] != in.owner + 1
-                )
-        ) {
+        const condition_2 = (
+            - activity.active[in.symbol]
+            - or (
+                activity.declared[in.symbol] &&
+                    activity.owners[in.symbol] != in.owner + 1
+            )
+        )
+
+        if (condition_2) {
             return {
                 state: in.state,
                 valid: false

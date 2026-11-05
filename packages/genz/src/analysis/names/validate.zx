@@ -17,10 +17,14 @@ export default function (in: Input): Output {
     const empty: u64?[] = []
     const count = origins.ids.length
 
-    if (
-        origins.kinds.length != count || origins.owners.length != count ||
-            origins.members.length != count || origins.names.length != count
-    ) {
+    const condition = (
+        - origins.kinds.length != count
+        - or origins.owners.length != count
+        - or origins.members.length != count
+        - or origins.names.length != count
+    )
+
+    if (condition) {
         return {
             valid: false,
             positions: empty

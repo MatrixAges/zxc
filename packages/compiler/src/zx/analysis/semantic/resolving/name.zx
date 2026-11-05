@@ -146,10 +146,13 @@ export default function (in: Input): Output {
         reference: declared.value
     })
 
-    if (
-        in.context.native_interface && value.kind == NodeKind.Named &&
-            value.name.text == "opaque"
-    ) {
+    const condition = (
+        - in.context.native_interface
+        - and value.kind == NodeKind.Named
+        - and value.name.text == "opaque"
+    )
+
+    if (condition) {
         return construct({
             state: entered,
             candidate: {
@@ -171,7 +174,7 @@ export default function (in: Input): Output {
         return enumeration(entered)
     }
 
-    const child = frame({
+    return frame({
         operation: Operation.Node,
         name: {
             text: "",
@@ -180,9 +183,8 @@ export default function (in: Input): Output {
         },
         reference: declared.value
     })
-
-    return {
-        ...entered,
-        frames: entered.frames.push(child)[0]
-    }
+        -> {
+            ...entered,
+            frames: entered.frames.push(_)[0]
+        }
 }

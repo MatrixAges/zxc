@@ -80,6 +80,7 @@ fn block(self: *Self, statements: ir.Block, depth: usize) std.mem.Allocator.Erro
             .evaluate => |id| if (!try self.expression(id, 0)) return false,
             .constant => |binding| {
                 if (!try self.expression(binding.value, 0) or !self.declare(binding.symbol, self.program.expression(binding.value).type_id)) return false;
+                if (self.program.expression(binding.value).type_id == Types.scalarId(.bool)) try self.refinement.alias(self.allocator, binding.symbol, binding.value);
             },
             .parallel => |invocations| {
                 if (invocations.len == 0) return false;
@@ -238,6 +239,8 @@ fn expression(self: *Self, id: ir.ExprId, depth: usize) std.mem.Allocator.Error!
                     self.declared[index] = true;
                     self.active[index] = true;
                     self.declaration_owner[index] = id;
+
+                    if (self.program.expression(binding.value).type_id == Types.scalarId(.bool)) try self.refinement.alias(self.allocator, symbol, binding.value);
                 }
             }
 

@@ -64,8 +64,12 @@ export default function (in: Input): Output {
                 } else {
                     const index = integers.widen(frame.request.id)
                     const target = kind(current.source.abi.types.kinds[index])
-                    const named = target == Kind.Object || target == Kind.Tuple ||
-                        target == Kind.Enumeration || target == Kind.NativeReference
+                    const named = (
+                        - target == Kind.Object
+                        - or target == Kind.Tuple
+                        - or target == Kind.Enumeration
+                        - or target == Kind.NativeReference
+                    )
                     const string = target == Kind.Scalar &&
                         current.source.abi.types.first[index] == scalar_string
                     const borrowed = decision.action == Action.StateName &&

@@ -11,10 +11,12 @@ export type Output = Session
 export default function (in: Input): Output {
     return loop(in, {
         while: current =>
-            current.active &&
             (
-                current.phase == Phase.Grow || current.phase == Phase.Clear ||
-                    current.phase == Phase.Rehash
+                - current.active
+                - and (
+                    current.phase == Phase.Grow || current.phase == Phase.Clear ||
+                        current.phase == Phase.Rehash
+                )
             ),
         next: current => {
             if (current.phase == Phase.Grow) {
@@ -33,15 +35,15 @@ export default function (in: Input): Output {
                     current.phase = Phase.Rehash
                 }
             } else if (current.cursor < current.values.length) {
-                const first = hash({
+                const slot = hash({
                     parent: current.key_parents[current.cursor],
                     field: current.key_fields[current.cursor],
                     capacity: current.slots.length
                 })
-                const slot = emptySlot({
-                    slots: current.slots,
-                    first
-                })
+                    -> emptySlot({
+                        slots: current.slots,
+                        first: _
+                    })
 
                 current.slots[slot] = current.cursor + 1
                 current.cursor += 1

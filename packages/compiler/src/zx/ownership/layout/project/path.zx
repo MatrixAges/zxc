@@ -12,10 +12,14 @@ export type Output = Session
 export default function (in: Input): Output {
     return loop(in, {
         while: current =>
-            current.active &&
             (
-                current.phase == Phase.AncestorStart || current.phase == Phase.Ancestor ||
-                    current.phase == Phase.Root || current.phase == Phase.Path
+                - current.active
+                - and (
+                    - current.phase == Phase.AncestorStart
+                    - or current.phase == Phase.Ancestor
+                    - or current.phase == Phase.Root
+                    - or current.phase == Phase.Path
+                )
             ),
         next: current => {
             if (current.phase == Phase.AncestorStart) {

@@ -23,31 +23,39 @@ export default function (in: Input): Output {
     const boundary = in.boundary
     const target = kind(in.types.kinds[integers.widen(boundary.type_id)])
 
-    if ((target != Kind.Object && target != Kind.Tuple) || !fresh({
-        table: in.expressions,
-        id: boundary.result
-    })) {
+    const condition = (
+        - target != Kind.Object
+        - and target != Kind.Tuple
+        - or !fresh({
+            table: in.expressions,
+            id: boundary.result
+        })
+    )
+
+    if (condition) {
         return {
             valid: false,
             allowed: []
         }
     }
 
-    const allowed = in.function_inputs.map((input, index) =>
-        input != boundary.type_id &&
-        in.function_outputs[index] != boundary.type_id &&
-        !descendant({
-            types: in.types,
-            parent: input,
-            root: boundary.type_id
-        }) && !descendant({
-            types: in.types,
-            parent: in.function_outputs[index],
-            root: boundary.type_id
-        }))[0]
-
-    return {
-        valid: true,
-        allowed
-    }
+    return in.function_inputs.map((input, index) =>
+        (
+            - input != boundary.type_id
+            - and in.function_outputs[index] != boundary.type_id
+            - and !descendant({
+                types: in.types,
+                parent: input,
+                root: boundary.type_id
+            })
+            - and !descendant({
+                types: in.types,
+                parent: in.function_outputs[index],
+                root: boundary.type_id
+            })
+        ))[0]
+        -> {
+            valid: true,
+            allowed: _
+        }
 }

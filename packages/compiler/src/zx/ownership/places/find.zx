@@ -74,19 +74,19 @@ export default function (in: Input): Output {
             } else if (current.trail.length == 0) {
                 current.active = false
             } else {
-                const field = current.trail[current.trail.length - 1]
-                const child = lookup({
-                    index: {
-                        slots: current.layout.slots,
-                        parents: current.layout.parents,
-                        fields: current.layout.fields,
-                        values: current.layout.values
-                    },
-                    key: {
-                        parent: current.position,
-                        field
-                    }
-                })
+                const child = current.trail[current.trail.length - 1]
+                    -> lookup({
+                        index: {
+                            slots: current.layout.slots,
+                            parents: current.layout.parents,
+                            fields: current.layout.fields,
+                            values: current.layout.values
+                        },
+                        key: {
+                            parent: current.position,
+                            field: _
+                        }
+                    })
 
                 current.trail = current.trail.pop()[0]
 

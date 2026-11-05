@@ -79,19 +79,21 @@ export default function (in: Input): Output {
                             next: (slot, context) => {
                                 const position = context.base + slot.slot
 
-                                if (
-                                    slot.states[position] != Usage.Shared &&
-                                        (context.query.plan.sites.role[context.site] !=
-                                            Role.argument || role({
-                                                query: {
-                                                    ...context.query,
-                                                    slot: integers.narrow(
-                                                        slot.slot
-                                                    )
-                                                },
-                                                site: context.site
-                                            }) != Role.observe)
-                                ) {
+                                const condition = (
+                                    - slot.states[position] != Usage.Shared
+                                    - and (context.query.plan.sites.role[context.site] !=
+                                        Role.argument || role({
+                                            query: {
+                                                ...context.query,
+                                                slot: integers.narrow(
+                                                    slot.slot
+                                                )
+                                            },
+                                            site: context.site
+                                        }) != Role.observe)
+                                )
+
+                                if (condition) {
                                     if (context.repeated) {
                                         slot.states[position] = Usage.Shared
                                     } else {
@@ -135,14 +137,18 @@ export default function (in: Input): Output {
                                 const same = sites.edge[left] == sites.edge[right] &&
                                     sites.delta[left] == sites.delta[right]
 
-                                if (
-                                    left != right && first < end && !same &&
-                                        !exclusive({
-                                            query: context.query,
-                                            left,
-                                            right
-                                        })
-                                ) {
+                                const condition_2 = (
+                                    - left != right
+                                    - and first < end
+                                    - and !same
+                                    - and !exclusive({
+                                        query: context.query,
+                                        left,
+                                        right
+                                    })
+                                )
+
+                                if (condition_2) {
                                     const ordered = before({
                                         query: context.query,
                                         observation: right,
@@ -165,9 +171,10 @@ export default function (in: Input): Output {
                                                 context.query.plan.sites
                                                 .role[context.right]
 
-                                            if (
-                                                slot.states[position] != Usage.Shared &&
-                                                    (left_role != Role.argument || role({
+                                            const condition_3 = (
+                                                - slot.states[position] != Usage.Shared
+                                                - and (left_role != Role.argument ||
+                                                    role({
                                                         query: {
                                                             ...context.query,
                                                             slot:
@@ -176,23 +183,27 @@ export default function (in: Input): Output {
                                                                 )
                                                         },
                                                         site: context.left
-                                                    }) != Role.observe) &&
-                                                    (!context.ordered ||
-                                                        (right_role != Role.observe &&
-                                                            (right_role !=
-                                                                Role.argument || role({
-                                                                    query: {
-                                                                        ...context.query,
-                                                                        slot:
-                                                                            integers
-                                                                            .narrow(
-                                                                                slot.slot
-                                                                            )
-                                                                    },
-                                                                    site: context.right
-                                                                }) !=
-                                                                Role.observe)))
-                                            ) {
+                                                    }) != Role.observe)
+                                                - and (
+                                                    - !context.ordered
+                                                    - or (right_role != Role.observe &&
+                                                        (right_role !=
+                                                            Role.argument || role({
+                                                                query: {
+                                                                    ...context.query,
+                                                                    slot:
+                                                                        integers
+                                                                        .narrow(
+                                                                            slot.slot
+                                                                        )
+                                                                },
+                                                                site: context.right
+                                                            }) !=
+                                                            Role.observe))
+                                                )
+                                            )
+
+                                            if (condition_3) {
                                                 slot.states[position] = Usage.Shared
                                                 slot.active -= 1
                                             }

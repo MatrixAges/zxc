@@ -23,8 +23,12 @@ export default function (in: Input): Output {
             const index = current.index
             const target = kind(current.source.kinds[index])
             const aggregate = target == Kind.Object || target == Kind.Tuple
-            const eligible = aggregate || target == Kind.List ||
-                target == Kind.Enumeration || target == Kind.NativeReference
+            const eligible = (
+                - aggregate
+                - or target == Kind.List
+                - or target == Kind.Enumeration
+                - or target == Kind.NativeReference
+            )
 
             if (eligible) {
                 if (target != Kind.List) {

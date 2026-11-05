@@ -20,19 +20,18 @@ export default function (in: Input): Output {
         text: utf8_bom
     }) ? utf8_bom.length : 0
 
-    const declared = starts({
+    const parsed = starts({
         source: in.source,
         offset,
         text: xml_declaration_start
     })
-
-    const parsed = declared ? declaration({
-        source: in.source,
-        offset
-    }) : {
-        end: offset,
-        message: no_diagnostic
-    }
+        -> (_ ? declaration({
+            source: in.source,
+            offset
+        }) : {
+            end: offset,
+            message: no_diagnostic
+        })
 
     const state = advance({
         state: in,

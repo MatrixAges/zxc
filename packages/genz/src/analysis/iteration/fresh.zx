@@ -17,10 +17,13 @@ export default function (in: Input): Output {
         return true
     }
 
-    if (
-        kind != ExpressionKind.Scope && kind != ExpressionKind.Conditional &&
-            kind != ExpressionKind.Match
-    ) {
+    const condition = (
+        - kind != ExpressionKind.Scope
+        - and kind != ExpressionKind.Conditional
+        - and kind != ExpressionKind.Match
+    )
+
+    if (condition) {
         return false
     }
 

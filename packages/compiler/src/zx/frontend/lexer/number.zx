@@ -12,11 +12,12 @@ export type Output = LexerState
 
 export default function (in: Input): Output {
     const decimal_boundary =
-        in.state.number.phase == Phase.Integer && in.byte == 46 &&
         (
-            !in.has_next || !isDigit(
+            - in.state.number.phase == Phase.Integer
+            - and in.byte == 46
+            - and (!in.has_next || !isDigit(
                 in.next
-            )
+            ))
         )
 
     const number = step({

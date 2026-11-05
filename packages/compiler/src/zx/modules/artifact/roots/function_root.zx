@@ -40,22 +40,21 @@ export default function (in: Input): Output {
     }
 
     if (cursor.section < 4) {
-        const id = match cursor.section {
+        return match cursor.section {
             0 => record.function_inputs[cursor.index],
             1 => record.function_outputs[cursor.index],
             2 => functions.input_types[index],
             _ => functions.output_types[index]
         }
-
-        return {
-            cursor: {
-                ...cursor,
-                section: cursor.section + 1
-            },
-            valid: true,
-            found: true,
-            id
-        }
+            -> {
+                cursor: {
+                    ...cursor,
+                    section: cursor.section + 1
+                },
+                valid: true,
+                found: true,
+                id: _
+            }
     }
 
     const module = functions.native_modules[index]

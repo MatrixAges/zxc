@@ -9,6 +9,7 @@ import readName from "../../source/name"
 import injected from "../injected/lookup"
 import enumOwner from "../projections/enum_owner"
 import call from "./call"
+import pipelineSymbol from "./symbol"
 
 import type { Context } from "./model"
 
@@ -41,20 +42,24 @@ export default function (in: Input): Output {
         }
     }
 
-    const symbol = match {
-        binding.symbol != null => binding.symbol,
-        node.kind == ExprKind.Identifier => lookup({
-            active: state.local.active,
-            names: state.local.symbols.names,
-            scope_floor: state.local.scope_floor,
-            name: readName({
-                source,
-                kind: NameKind.Expression,
-                index: in.node
-            }).text
-        }),
-        _ => null,
-    }
+    const symbol = in.context.pipeline != null && node.kind == ExprKind.Identifier ?
+        pipelineSymbol({
+            context: in.context,
+            node: in.node
+        }) : match {
+            binding.symbol != null => binding.symbol,
+            node.kind == ExprKind.Identifier => lookup({
+                active: state.local.active,
+                names: state.local.symbols.names,
+                scope_floor: state.local.scope_floor,
+                name: readName({
+                    source,
+                    kind: NameKind.Expression,
+                    index: in.node
+                }).text
+            }),
+            _ => null,
+        }
 
     if (symbol != null) {
         return {
@@ -108,18 +113,20 @@ export default function (in: Input): Output {
         }
     }
 
-    if (
-        node.kind == ExprKind.Field &&
-            (
-                source.tree.nodes[node.first].kind == ExprKind.Identifier ||
-                    (
-                        source.tree.nodes[node.first].kind == ExprKind.Field &&
-                            state.types.context.aliases.names.length != 0 &&
-                            source.tree.nodes[source.tree.nodes[node.first].first].kind ==
-                            ExprKind.Identifier
-                    )
+    const condition = (
+        - node.kind == ExprKind.Field
+        - and (
+            - source.tree.nodes[node.first].kind == ExprKind.Identifier
+            - or (
+                source.tree.nodes[node.first].kind == ExprKind.Field &&
+                    state.types.context.aliases.names.length != 0 &&
+                    source.tree.nodes[source.tree.nodes[node.first].first].kind ==
+                    ExprKind.Identifier
             )
-    ) {
+        )
+    )
+
+    if (condition) {
         const type_id = enumOwner({
             state,
             source,

@@ -16,15 +16,16 @@ export type Input = {
 export type Output = Result
 
 export default function (in: Input): Output {
-    const count = in.negative ? in.table.negative_integers.length :
-        in.table.integers.length
-
-    const result = header({
-        table: in.table,
-        metadata: in.metadata,
-        kind: in.negative ? ExpressionKind.NegativeInteger : ExpressionKind.Integer,
-        payload: integers.narrow(count)
-    })
+    const result = (
+        in.negative ? in.table.negative_integers.length :
+            in.table.integers.length
+    )
+        -> header({
+            table: in.table,
+            metadata: in.metadata,
+            kind: in.negative ? ExpressionKind.NegativeInteger : ExpressionKind.Integer,
+            payload: integers.narrow(_)
+        })
 
     return {
         table: {

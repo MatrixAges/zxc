@@ -12,25 +12,24 @@ export type Output = {
 export default function (in: Input): Output {
     const frame = integers.narrow(in.captures.frames.starts.length)
 
-    const frames = {
+    return {
         starts: in.captures.frames.starts.push(in.active.length)[0],
         floors: in.captures.frames.floors.push(in.scope_floor)[0],
         parents: in.captures.frames.parents.push(in.captures.current)[0],
         first: in.captures.frames.first.push(null)[0],
         last: in.captures.frames.last.push(null)[0]
     }
-
-    return {
-        local: {
-            ...in,
-            scope_floor: in.active.length,
-            lambda_depth: in.lambda_depth + 1,
-            captures: {
-                ...in.captures,
-                frames,
-                current: frame
-            }
-        },
-        frame
-    }
+        -> {
+            local: {
+                ...in,
+                scope_floor: in.active.length,
+                lambda_depth: in.lambda_depth + 1,
+                captures: {
+                    ...in.captures,
+                    frames: _,
+                    current: frame
+                }
+            },
+            frame
+        }
 }

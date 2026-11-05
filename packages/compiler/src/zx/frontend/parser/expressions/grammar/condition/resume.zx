@@ -1,0 +1,103 @@
+import { Symbol } from "../../../../lexer/token_model"
+import { Connector } from "../../prepare/model"
+import fail from "../../state/fail"
+import { Phase } from "../../state/model"
+import boundary from "./boundary"
+import connector from "./connector"
+import { connector_message, closing_message } from "./const"
+import fold from "./fold"
+
+import type { ExprState, ExprFrame } from "../../state/model"
+
+export type Input = {
+    state: ExprState,
+    frame: ExprFrame
+}
+
+export type Output = ExprState
+
+export default function (in: Input): Output {
+    const state = fold(in)
+
+    if (state.control.phase == Phase.Done) {
+        return state
+    }
+
+    if (state.control.token.symbol == Symbol.CloseParen) {
+        const root = state.tree.nodes[state.control.result]
+
+        return {
+            ...state,
+            tree: {
+                ...state.tree,
+                nodes: state.tree.nodes.splice(state.control.result, 1, [{
+                    ...root,
+                    span: {
+                        start: in.frame.start,
+                        end: root.span.end
+                    }
+                }])[0]
+            },
+            control: {
+                ...state.control,
+                boundary: in.frame.maximum,
+                boundary_stream: in.frame.cursor,
+                depth: in.frame.depth,
+                phase: Phase.Returning
+            }
+        }
+    }
+
+    if (
+        state.control.token.symbol != Symbol.Minus || !state.control.token.line_break
+    ) {
+        return fail({
+            state,
+            code: "syntax",
+            message: closing_message
+        })
+    }
+
+    const tokens = state.control.stream == 0 ? state.prepared.lexical.lexed.tokens :
+        state.prepared.lexical.interpolations[state.control.stream - 1].lexed.tokens
+
+    const relation = tokens[state.control.index + 1]
+
+    const joining = connector({
+        source: state.prepared.source,
+        token: relation
+    })
+
+    if (relation.line_break || joining == Connector.None) {
+        return fail({
+            state,
+            code: "syntax",
+            message: connector_message
+        })
+    }
+
+    const index = state.control.index + 2
+
+    return {
+        ...state,
+        frames: state.frames.push({
+            ...in.frame,
+            first: state.control.result,
+            count: in.frame.count + 1,
+            connector: joining
+        })[0],
+        control: {
+            ...state.control,
+            index,
+            root_index: state.control.stream == 0 ? index : state.control.root_index,
+            last_end: relation.span.end,
+            boundary: boundary({
+                tokens,
+                start: index
+            }),
+            minimum: 0,
+            fresh_family: true,
+            phase: Phase.BeginBinary
+        }
+    }
+}

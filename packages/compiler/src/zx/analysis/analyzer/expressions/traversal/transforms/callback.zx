@@ -34,23 +34,22 @@ export default function (in: Input): Output {
         }
     }
 
-    const transforms = in.frames.transforms.splice(position, 1, [{
+    return in.frames.transforms.splice(position, 1, [{
         ...frame,
         capture_frame: entered.frame,
         parameters: entered.parameters,
         result_type: selected.result
     }])[0]
-
-    return {
-        ...in,
-        state: entered.state,
-        node: entered.body,
-        expected: selected.body,
-        phase: Phase.Evaluate,
-        frames: {
-            ...in.frames,
-            transforms,
-            actions: in.frames.actions.push(Action.TransformBody)[0]
+        -> {
+            ...in,
+            state: entered.state,
+            node: entered.body,
+            expected: selected.body,
+            phase: Phase.Evaluate,
+            frames: {
+                ...in.frames,
+                transforms: _,
+                actions: in.frames.actions.push(Action.TransformBody)[0]
+            }
         }
-    }
 }

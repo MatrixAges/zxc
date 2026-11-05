@@ -27,23 +27,22 @@ export default function (in: Input): Output {
             })
         }
 
-        const frames = in.state.frames.push({
+        return in.state.frames.push({
             ...in.frame,
             kind: FrameKind.MatchCondition,
             first: result + 1,
             maximum
         })[0]
-
-        return consume({
-            state: {
-                prepared: in.state.prepared,
-                tree: in.state.tree,
-                types: in.state.types,
-                frames,
-                control: in.state.control
-            },
-            phase: Phase.MatchCondition
-        })
+            -> consume({
+                state: {
+                    prepared: in.state.prepared,
+                    tree: in.state.tree,
+                    types: in.state.types,
+                    frames: _,
+                    control: in.state.control
+                },
+                phase: Phase.MatchCondition
+            })
     }
 
     if (in.frame.kind == FrameKind.MatchCondition) {
@@ -107,7 +106,7 @@ export default function (in: Input): Output {
             maximum
         })[0]
 
-        const tree = {
+        return {
             nodes: in.state.tree.nodes,
             items: in.state.tree.items,
             fields: in.state.tree.fields,
@@ -115,32 +114,30 @@ export default function (in: Input): Output {
             parts: in.state.tree.parts,
             arms
         }
-
-        return consume({
-            state: {
-                prepared: in.state.prepared,
-                tree,
-                types: in.state.types,
-                frames,
-                control: in.state.control
-            },
-            phase: Phase.MatchCondition
-        })
+            -> consume({
+                state: {
+                    prepared: in.state.prepared,
+                    tree: _,
+                    types: in.state.types,
+                    frames,
+                    control: in.state.control
+                },
+                phase: Phase.MatchCondition
+            })
     }
 
     if (in.state.control.token.symbol == Symbol.Comma) {
-        const frames = in.state.frames.push(in.frame)[0]
-
-        return consume({
-            state: {
-                prepared: in.state.prepared,
-                tree: in.state.tree,
-                types: in.state.types,
-                frames,
-                control: in.state.control
-            },
-            phase: Phase.MatchEnd
-        })
+        return in.state.frames.push(in.frame)[0]
+            -> consume({
+                state: {
+                    prepared: in.state.prepared,
+                    tree: in.state.tree,
+                    types: in.state.types,
+                    frames: _,
+                    control: in.state.control
+                },
+                phase: Phase.MatchEnd
+            })
     }
 
     if (in.state.control.token.symbol != Symbol.CloseBrace) {

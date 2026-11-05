@@ -49,21 +49,20 @@ export default function (in: Input): Output {
         }
     }
 
-    const scopes = enter({
+    return enter({
         scopes: in.scopes,
         local: in.state.local,
         tree: in.source.blocks,
         block: source.body,
         state_symbol: frame.state_symbol
     })
-
-    return {
-        ...in,
-        scopes,
-        phase: Phase.ScopeNext,
-        frames: {
-            ...in.frames,
-            actions: in.frames.actions.push(Action.StateCase)[0]
+        -> {
+            ...in,
+            scopes: _,
+            phase: Phase.ScopeNext,
+            frames: {
+                ...in.frames,
+                actions: in.frames.actions.push(Action.StateCase)[0]
+            }
         }
-    }
 }

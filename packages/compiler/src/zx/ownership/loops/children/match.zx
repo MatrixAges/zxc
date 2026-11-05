@@ -22,13 +22,14 @@ export default function (in: Input): Output {
     if (index < count * 2) {
         const position = first + index / 2
 
-        const value = index % 2 == 0 ? in.expressions.match_conditions[position] :
-            in.expressions.match_results[position]
-
-        return {
-            found: true,
-            expression: integers.widen(value)
-        }
+        return (
+            index % 2 == 0 ? in.expressions.match_conditions[position] :
+                in.expressions.match_results[position]
+        )
+            -> {
+                found: true,
+                expression: integers.widen(_)
+            }
     }
 
     return {

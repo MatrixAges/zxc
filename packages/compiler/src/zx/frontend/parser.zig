@@ -10,6 +10,7 @@ reporter: *zx.Reporter,
 index: usize = 0,
 depth: usize = 0,
 state_block_depth: usize = 0,
+condition_end: ?usize = null,
 pub fn current(self: *const Self) zx.syntax.Token {
     return self.tokens[self.index];
 }
@@ -137,7 +138,20 @@ pub fn make(self: *Self, start: usize, value: @FieldType(ast.Expression, "value"
 
     const result = try self.allocator.create(ast.Expression);
 
-    result.* = .{ .span = self.range(start), .depth = child_depth + 1, .value = value };
+    const terms: u16 = switch (value) {
+        .pipeline => |item| item.stage.condition_terms,
+        .unary => |item| if (item.operator == .not) item.operand.condition_terms else 1,
+        .binary => |item| if (item.operator == .logical_and or item.operator == .logical_or) @min(@import("parser_condition.zig").term_limit, item.left.condition_terms + item.right.condition_terms) else 1,
+        else => 1,
+    };
+
+    const condition_list = switch (value) {
+        .pipeline => |item| item.stage.condition_list,
+        .unary => |item| item.operator == .not and item.operand.condition_list,
+        else => false,
+    };
+
+    result.* = .{ .span = self.range(start), .depth = child_depth + 1, .condition_list = condition_list, .condition_terms = terms, .value = value };
 
     return result;
 }

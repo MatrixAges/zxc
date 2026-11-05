@@ -256,20 +256,19 @@ export default function (in: Input): Output {
         span: in.span
     })
 
-    const bindings = {
+    return {
         symbols: parameters.bindings.symbols.push(computed.symbol)[0],
         values: parameters.bindings.values.push(in.callback.body)[0],
         borrows: parameters.bindings.borrows.push(false)[0]
     }
-
-    return {
-        state: value.state,
-        current: current.value,
-        source: source.value,
-        index: index.value,
-        previous: previous.value,
-        item: item.value,
-        value: value.value,
-        bindings
-    }
+        -> {
+            state: value.state,
+            current: current.value,
+            source: source.value,
+            index: index.value,
+            previous: previous.value,
+            item: item.value,
+            value: value.value,
+            bindings: _
+        }
 }

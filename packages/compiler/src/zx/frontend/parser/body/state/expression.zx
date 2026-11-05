@@ -22,24 +22,23 @@ export default function (in: Input): Output {
         })
     }
 
-    const depth = in.state.frame.depth
-
-    const expression = restart({
-        state: in.state.expression,
-        depth,
-        minimum: in.minimum
-    })
-
-    return {
-        expression,
-        tree: in.state.tree,
-        frames: in.state.frames,
-        suspended: in.state.suspended,
-        frame: in.state.frame,
-        control: {
-            ...in.state.control,
-            phase: Phase.Expression,
-            resume: in.resume
+    return in.state.frame.depth
+        -> restart({
+            state: in.state.expression,
+            depth: _,
+            minimum: in.minimum,
+            condition: in.resume == Phase.IfClose
+        })
+        -> {
+            expression: _,
+            tree: in.state.tree,
+            frames: in.state.frames,
+            suspended: in.state.suspended,
+            frame: in.state.frame,
+            control: {
+                ...in.state.control,
+                phase: Phase.Expression,
+                resume: in.resume
+            }
         }
-    }
 }

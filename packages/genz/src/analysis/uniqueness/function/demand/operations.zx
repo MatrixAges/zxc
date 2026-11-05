@@ -16,8 +16,8 @@ export default function (in: Input): Output {
         while: (state, source) => state.index < source.operations.length,
         next: (state, source) => {
             const expressions = state.working.context.metadata.expressions
-            const owner = source.operations[state.index]
-            const node = integers.widen(owner)
+            const node = source.operations[state.index]
+                -> integers.widen(_)
             const payload = integers.widen(expressions.payloads[node])
             const kind = expressions.kinds[node]
 
@@ -78,14 +78,16 @@ export default function (in: Input): Output {
                         operation == CollectionKind.Push ||
                             operation == CollectionKind.Concat
                     )
-                const write = kind == ExpressionKind.ListUpdate ||
-                    (
+                const write = (
+                    - kind == ExpressionKind.ListUpdate
+                    - or (
                         kind == ExpressionKind.ListOperation &&
                             (
                                 operation == CollectionKind.Sort ||
                                     operation == CollectionKind.Reverse
                             )
                     )
+                )
 
                 if (append || write) {
                     const target = kind == ExpressionKind.ListUpdate ?

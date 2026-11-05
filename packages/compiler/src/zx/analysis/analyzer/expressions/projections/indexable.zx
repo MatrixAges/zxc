@@ -25,7 +25,13 @@ export default function (in: Input): Output {
         id: type_id
     })
 
-    if (target.kind == Kind.List || target.kind == Kind.Tuple || type_id == 10) {
+    const condition = (
+        - target.kind == Kind.List
+        - or target.kind == Kind.Tuple
+        - or type_id == 10
+    )
+
+    if (condition) {
         return in.state
     }
 

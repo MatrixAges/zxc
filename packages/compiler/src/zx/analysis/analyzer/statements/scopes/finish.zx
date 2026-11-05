@@ -49,29 +49,28 @@ export default function (in: Input): Output {
         borrows: in.scopes.bindings.borrows.splice(first, count, [])[1]
     })
 
-    const facts = restore({
+    return restore({
         facts: in.local.refinement.facts,
         mark: frame.facts_mark
     })
-
-    return {
-        scopes: {
-            bindings: {
-                symbols: in.scopes.bindings.symbols.splice(0, first, [])[1],
-                values: in.scopes.bindings.values.splice(0, first, [])[1],
-                borrows: in.scopes.bindings.borrows.splice(0, first, [])[1]
+        -> {
+            scopes: {
+                bindings: {
+                    symbols: in.scopes.bindings.symbols.splice(0, first, [])[1],
+                    values: in.scopes.bindings.values.splice(0, first, [])[1],
+                    borrows: in.scopes.bindings.borrows.splice(0, first, [])[1]
+                },
+                frames: in.scopes.frames.pop()[0]
             },
-            frames: in.scopes.frames.pop()[0]
-        },
-        local: {
-            ...in.local,
-            expressions: result.table,
-            active: in.local.active.splice(0, frame.active_mark, [])[1],
-            refinement: {
-                ...in.local.refinement,
-                facts
-            }
-        },
-        value: result.id
-    }
+            local: {
+                ...in.local,
+                expressions: result.table,
+                active: in.local.active.splice(0, frame.active_mark, [])[1],
+                refinement: {
+                    ...in.local.refinement,
+                    facts: _
+                }
+            },
+            value: result.id
+        }
 }

@@ -18,11 +18,14 @@ export default function (in: Input): Output {
     const count = in.signatures.inputs.length
     const imported = in.imports.ids.length
 
-    if (
-        in.signatures.outputs.length != count ||
-            in.signatures.native_modules.length != count ||
-            in.imports.inputs.length != imported || in.imports.outputs.length != imported
-    ) {
+    const condition = (
+        - in.signatures.outputs.length != count
+        - or in.signatures.native_modules.length != count
+        - or in.imports.inputs.length != imported
+        - or in.imports.outputs.length != imported
+    )
+
+    if (condition) {
         return {
             ...in.plan,
             state: {

@@ -1,0 +1,57 @@
+import { Kind, Symbol } from "../../../../lexer/token_model"
+
+import type { Token } from "../../../../lexer/token_model"
+
+export type Input = {
+    tokens: Token[],
+    start: u64
+}
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    return loop({
+        tokens: in.tokens,
+        index: in.start,
+        depth: 0,
+        done: false
+    }, {
+        while: state => !state.done && state.index < state.tokens.length,
+        next: state => {
+            const token = state.tokens[state.index]
+            const closing = token.symbol == Symbol.CloseParen ||
+                token.symbol == Symbol.CloseBracket || token.symbol == Symbol.CloseBrace
+
+            const condition = (
+                - token.kind == Kind.Eof
+                - or (
+                    - state.depth == 0
+                    - and (
+                        closing || token.symbol == Symbol.Minus && token.line_break
+                    )
+                )
+            )
+
+            if (condition) {
+                state.done = true
+            } else {
+                if (closing) {
+                    state.depth -= 1
+                }
+
+                const condition_2 = (
+                    - token.symbol == Symbol.OpenParen
+                    - or token.symbol == Symbol.OpenBracket
+                    - or token.symbol == Symbol.OpenBrace
+                )
+
+                if (condition_2) {
+                    state.depth += 1
+                }
+
+                state.index += 1
+            }
+        },
+        return: state => state.index
+    })
+}

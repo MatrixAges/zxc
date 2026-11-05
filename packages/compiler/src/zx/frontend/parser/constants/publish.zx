@@ -39,13 +39,15 @@ export default function (in: Input): Output {
         }
     }
 
-    if (
-        token.symbol == Symbol.Semicolon ||
-            (
-                token.kind != Kind.Eof && token.symbol != Symbol.CloseBrace &&
-                    !token.line_break
-            )
-    ) {
+    const condition = (
+        - token.symbol == Symbol.Semicolon
+        - or (
+            token.kind != Kind.Eof && token.symbol != Symbol.CloseBrace &&
+                !token.line_break
+        )
+    )
+
+    if (condition) {
         return {
             constant: null,
             index: control.index,

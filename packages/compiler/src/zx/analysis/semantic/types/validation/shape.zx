@@ -16,14 +16,18 @@ export type Output = bool
 export default function (in: Input): Output {
     const count = in.table.kinds.length
 
-    if (
-        count > in.maximum_count || in.table.first.length != count ||
-            in.table.second.length != count || in.table.labels.length != count ||
-            in.table.field_names.length != in.table.field_types.length ||
-            in.table.children.length > in.maximum_count ||
-            in.table.field_types.length > in.maximum_count ||
-            in.table.names.length > in.maximum_count
-    ) {
+    const condition = (
+        - count > in.maximum_count
+        - or in.table.first.length != count
+        - or in.table.second.length != count
+        - or in.table.labels.length != count
+        - or in.table.field_names.length != in.table.field_types.length
+        - or in.table.children.length > in.maximum_count
+        - or in.table.field_types.length > in.maximum_count
+        - or in.table.names.length > in.maximum_count
+    )
+
+    if (condition) {
         return false
     }
 
@@ -43,14 +47,16 @@ export default function (in: Input): Output {
             const count = integers.widen(current.table.second[current.index])
             const type_kind = kind(code)
 
-            if (
-                code > 8 ||
-                    (
-                        type_kind != Kind.Enumeration &&
-                            type_kind != Kind.NativeReference &&
-                            current.table.labels[current.index] != ""
-                    )
-            ) {
+            const condition_2 = (
+                - code > 8
+                - or (
+                    type_kind != Kind.Enumeration &&
+                        type_kind != Kind.NativeReference &&
+                        current.table.labels[current.index] != ""
+                )
+            )
+
+            if (condition_2) {
                 current.valid = false
             } else if (type_kind == Kind.Object) {
                 current.valid =
@@ -91,7 +97,10 @@ export default function (in: Input): Output {
         }
     })
 
-    return state.valid && state.child_end == in.table.children.length &&
-        state.field_end == in.table.field_types.length &&
-        state.name_end == in.table.names.length
+    return (
+        - state.valid
+        - and state.child_end == in.table.children.length
+        - and state.field_end == in.table.field_types.length
+        - and state.name_end == in.table.names.length
+    )
 }

@@ -47,8 +47,9 @@ export default function (in: Input): Output {
             const payload = integers.widen(expressions.payloads[node])
             const collection = kind == ExpressionKind.ListOperation
 
-            if (
-                kind == ExpressionKind.ListUpdate || (
+            const condition = (
+                - kind == ExpressionKind.ListUpdate
+                - or (
                     collection &&
                         (
                             expressions.collection_kinds[payload] ==
@@ -57,23 +58,27 @@ export default function (in: Input): Output {
                                 CollectionKind.Pop
                         )
                 )
-            ) {
-                const target = collection ? expressions.collection_targets[payload] :
-                    expressions.update_targets[payload]
+            )
 
-                const result = query({
-                    context: context.context,
-                    state: {
-                        known: state.known,
-                        carried: context.state.carried,
-                        reads: state.reads
-                    },
-                    request: {
-                        node: target,
-                        slot: 0,
-                        raw: false
-                    }
-                })
+            if (condition) {
+
+                const result = (
+                    collection ? expressions.collection_targets[payload] :
+                        expressions.update_targets[payload]
+                )
+                    -> query({
+                        context: context.context,
+                        state: {
+                            known: state.known,
+                            carried: context.state.carried,
+                            reads: state.reads
+                        },
+                        request: {
+                            node: _,
+                            slot: 0,
+                            raw: false
+                        }
+                    })
 
                 state.known = result.known
                 state.reads = result.reads

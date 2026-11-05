@@ -72,10 +72,12 @@ export default function (in: Input): Output {
     })
 
     if (target.kind != Kind.List) {
-        if (
-            target.kind == Kind.Object &&
-                (name.text == method_pick || name.text == method_omit)
-        ) {
+        const condition = (
+            - target.kind == Kind.Object
+            - and (name.text == method_pick || name.text == method_omit)
+        )
+
+        if (condition) {
             const result = select({
                 state: in.state,
                 source: in.source,
@@ -111,10 +113,15 @@ export default function (in: Input): Output {
         }
     }
 
-    if (
-        name.text == method_map || name.text == method_reduce ||
-            name.text == "filter" || name.text == "every" || name.text == "some"
-    ) {
+    const condition_2 = (
+        - name.text == method_map
+        - or name.text == method_reduce
+        - or name.text == "filter"
+        - or name.text == "every"
+        - or name.text == "some"
+    )
+
+    if (condition_2) {
         const kind = match name.text {
             method_map => TransformKind.Map,
             method_reduce => TransformKind.Reduce,

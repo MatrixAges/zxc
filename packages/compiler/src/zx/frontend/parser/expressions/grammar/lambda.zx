@@ -12,22 +12,21 @@ export type Output = ExprState
 
 export default function (in: Input): Output {
     if (in.control.phase == Phase.LambdaBody) {
-        const updating = in.frames[in.frames.length - 1].flag
-
-        const phase =
-            updating && in.control.token.symbol == Symbol.OpenBrace ? Phase.StateBlock :
-            Phase.BeginBinary
-
-        return {
-            prepared: in.prepared,
-            tree: in.tree,
-            types: in.types,
-            frames: in.frames,
-            control: {
-                ...in.control,
-                phase
+        return in.frames[in.frames.length - 1].flag
+            -> (
+                _ && in.control.token.symbol == Symbol.OpenBrace ? Phase.StateBlock :
+                    Phase.BeginBinary
+            )
+            -> {
+                prepared: in.prepared,
+                tree: in.tree,
+                types: in.types,
+                frames: in.frames,
+                control: {
+                    ...in.control,
+                    phase: _
+                }
             }
-        }
     }
 
     if (in.control.phase == Phase.LambdaArrow) {
@@ -106,7 +105,7 @@ export default function (in: Input): Output {
         count
     })[0]
 
-    const tree = {
+    return {
         nodes: taken.state.tree.nodes,
         items: taken.state.tree.items,
         fields: taken.state.tree.fields,
@@ -114,15 +113,14 @@ export default function (in: Input): Output {
         parts: taken.state.tree.parts,
         arms: taken.state.tree.arms
     }
-
-    return consume({
-        state: {
-            prepared: taken.state.prepared,
-            tree,
-            types: taken.state.types,
-            frames,
-            control: taken.state.control
-        },
-        phase: Phase.LambdaSeparator
-    })
+        -> consume({
+            state: {
+                prepared: taken.state.prepared,
+                tree: _,
+                types: taken.state.types,
+                frames,
+                control: taken.state.control
+            },
+            phase: Phase.LambdaSeparator
+        })
 }

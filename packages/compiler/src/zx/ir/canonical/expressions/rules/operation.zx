@@ -21,10 +21,13 @@ export default function (in: Input): Output {
     const source_index = integers.widen(expressions.collection_targets[in.payload])
     const type_index = integers.widen(in.type_id)
 
-    if (
-        source_index >= context.index || in.target != Kind.Tuple ||
-            table.second[type_index] != 2
-    ) {
+    const condition = (
+        - source_index >= context.index
+        - or in.target != Kind.Tuple
+        - or table.second[type_index] != 2
+    )
+
+    if (condition) {
         return false
     }
 
@@ -74,23 +77,26 @@ export default function (in: Input): Output {
             }
             const context = current.context
 
-            current.valid = typed({
-                expressions: context.expressions,
-                index: context.index,
-                id:
-                    context.expressions
-                    .collection_arguments[current.first +
-                        current.index],
-                type_id: hint
-            }) || current.operation == CollectionKind.Concat &&
-                current.element == type_id_u8 && typed({
+            current.valid = (
+                - typed({
                     expressions: context.expressions,
                     index: context.index,
                     id:
                         context.expressions
-                        .collection_arguments[current.first + current.index],
-                    type_id: type_id_string
+                        .collection_arguments[current.first +
+                            current.index],
+                    type_id: hint
                 })
+                - or (current.operation == CollectionKind.Concat &&
+                    current.element == type_id_u8 && typed({
+                        expressions: context.expressions,
+                        index: context.index,
+                        id:
+                            context.expressions
+                            .collection_arguments[current.first + current.index],
+                        type_id: type_id_string
+                    }))
+            )
             current.index += 1
         }
     })

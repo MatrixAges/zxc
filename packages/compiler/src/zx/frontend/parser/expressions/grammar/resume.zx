@@ -2,6 +2,7 @@ import { Phase, FrameKind } from "../state/model"
 import takeFrame from "../state/take_frame"
 import arguments from "./arguments_return"
 import binary from "./binary"
+import condition from "./condition/resume"
 import interpolation from "./interpolation_return"
 import selection from "./match_return"
 import object from "./object_return"
@@ -30,6 +31,7 @@ export default function (in: Input): Output {
     const taken = takeFrame(in)
 
     switch (taken.frame.kind) {
+        case FrameKind.Condition: return condition(taken)
         case FrameKind.BinaryLeft: return binary(taken)
         case FrameKind.BinaryRight: return binary(taken)
         case FrameKind.Arguments: return arguments(taken)

@@ -71,19 +71,18 @@ export default function (in: Input): Output {
         }
     }
 
-    const frame = work.scopes.frames[work.scopes.frames.length - 1]
-
-    const result = bind({
-        scopes: work.scopes,
-        local: work.state.local,
-        name: readName({
-            source: work.source,
-            kind: NameKind.Statement,
-            index: id
-        }),
-        value: work.value,
-        scope_start: frame.active_mark
-    })
+    const result = work.scopes.frames[work.scopes.frames.length - 1]
+        -> bind({
+            scopes: work.scopes,
+            local: work.state.local,
+            name: readName({
+                source: work.source,
+                kind: NameKind.Statement,
+                index: id
+            }),
+            value: work.value,
+            scope_start: _.active_mark
+        })
 
     return {
         ...work,

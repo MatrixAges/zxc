@@ -96,15 +96,14 @@ export default function (in: Input): Output {
         }
     }
 
-    const output_state = visit({
+    return visit({
         request: in.request,
         state: input_state,
         index: output_id
     })
-
-    return {
-        state: output_state,
-        natives: native.natives,
-        functions: in.plan.functions
-    }
+        -> {
+            state: _,
+            natives: native.natives,
+            functions: in.plan.functions
+        }
 }

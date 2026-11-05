@@ -14,17 +14,18 @@ export type Input = DeclarationStage
 export type Output = DeclarationStage
 
 export default function (in: Input): Output {
-    if (
-        (
-            in.declarations.control.phase == Phase.Start ||
-                in.declarations.control.phase == Phase.Done
-        ) &&
-            in.declarations.control.diagnostic.message == "" &&
-            !in.declarations.control.type_diagnostic && reference({
-                tokens: in.prefix.prepared.lexical.lexed.tokens,
-                index: in.declarations.control.index
-            })
-    ) {
+    const condition = (
+        - in.declarations.control.phase == Phase.Start
+        - or in.declarations.control.phase == Phase.Done
+        - and in.declarations.control.diagnostic.message == ""
+        - and !in.declarations.control.type_diagnostic
+        - and reference({
+            tokens: in.prefix.prepared.lexical.lexed.tokens,
+            index: in.declarations.control.index
+        })
+    )
+
+    if (condition) {
         return imports(in)
     }
 
@@ -52,35 +53,39 @@ export default function (in: Input): Output {
         }
     }
 
-    const token = current({
+    const declarations = current({
         prepared: in.prefix.prepared,
         index: in.declarations.control.index
     })
-
-    const declarations = step({
-        state: in.declarations,
-        token
-    })
+        -> step({
+            state: in.declarations,
+            token: _
+        })
 
     const tokens = in.prefix.prepared.lexical.lexed.tokens
     const index = declarations.control.index
     const done = declarations.control.phase == Phase.Done
 
-    const constant =
-        done && index + 1 < tokens.length && tokens[index].word == Keyword.Export &&
-        tokens[index + 1].word == Keyword.Const
-
-    return {
-        ...in,
-        declarations,
-        finished:
-            done &&
-            (
-                !(constant || reference({
-                    tokens,
-                    index
-                })) || declarations.control.diagnostic.message != "" ||
-                    declarations.control.type_diagnostic
-            )
-    }
+    return (
+        - done
+        - and index + 1 < tokens.length
+        - and tokens[index].word == Keyword.Export
+        - and tokens[index + 1].word == Keyword.Const
+    )
+        -> {
+            ...in,
+            declarations,
+            finished:
+                (
+                    - done
+                    - and (
+                        - !(_ || reference({
+                            tokens,
+                            index
+                        }))
+                        - or declarations.control.diagnostic.message != ""
+                        - or declarations.control.type_diagnostic
+                    )
+                )
+        }
 }

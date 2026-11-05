@@ -115,25 +115,28 @@ export default function (in: Input): Output {
         })
     }
 
-    if (
-        byte == ascii_carriage_return ||
+    const condition = (
+        - byte == ascii_carriage_return
+        - or (
             kind == ValueKind.Attribute &&
-            (byte == ascii_line_feed || byte == ascii_tab)
-    ) {
-        const has_crlf = starts({
+                (byte == ascii_line_feed || byte == ascii_tab)
+        )
+    )
+
+    if (condition) {
+        return starts({
             source: in.source,
             offset,
             text: crlf
         })
-
-        return character({
-            state: in,
-            codepoint:
-                integer.widenByte(
-                    kind == ValueKind.Attribute ? ascii_space : ascii_line_feed
-                ),
-            count: has_crlf ? crlf.length : 1
-        })
+            -> character({
+                state: in,
+                codepoint:
+                    integer.widenByte(
+                        kind == ValueKind.Attribute ? ascii_space : ascii_line_feed
+                    ),
+                count: _ ? crlf.length : 1
+            })
     }
 
     return advance({

@@ -20,30 +20,31 @@ export default function (in: Input): Output {
     const hint = stream == 0 ? in.prepared.hints[index] :
         in.prepared.interpolation_hints[stream - 1][index]
 
-    const template = stream == 0 ? in.prepared.lexical.token_templates[index] :
-        in.prepared.lexical.interpolations[stream - 1].token_templates[index]
-
-    return {
-        token: {
-            kind: token.kind,
-            word: token.word,
-            symbol: token.symbol,
-            span: {
-                start: token.span.start,
-                end: token.span.end
+    return (
+        stream == 0 ? in.prepared.lexical.token_templates[index] :
+            in.prepared.lexical.interpolations[stream - 1].token_templates[index]
+    )
+        -> {
+            token: {
+                kind: token.kind,
+                word: token.word,
+                symbol: token.symbol,
+                span: {
+                    start: token.span.start,
+                    end: token.span.end
+                },
+                line_break: token.line_break,
+                dollar: token.dollar
             },
-            line_break: token.line_break,
-            dollar: token.dollar
-        },
-        hint: {
-            lambda: hint.lambda,
-            generic: hint.generic,
-            binary: {
-                operator: hint.binary.operator,
-                precedence: hint.binary.precedence,
-                family: hint.binary.family
-            }
-        },
-        template
-    }
+            hint: {
+                lambda: hint.lambda,
+                generic: hint.generic,
+                binary: {
+                    operator: hint.binary.operator,
+                    precedence: hint.binary.precedence,
+                    family: hint.binary.family
+                }
+            },
+            template: _
+        }
 }

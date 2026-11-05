@@ -36,15 +36,20 @@ export default function (in: Input): Output {
                     types: current.types,
                     id: current.types.first[integers.widen(id)]
                 })
-            } else if (
-                target == Kind.Optional || target == Kind.Object ||
-                    target == Kind.Tuple
-            ) {
-                current.pending = current.pending.concat(children({
-                    types: current.types,
-                    id,
-                    deep: false
-                }))[0]
+            } else {
+                const condition = (
+                    - target == Kind.Optional
+                    - or target == Kind.Object
+                    - or target == Kind.Tuple
+                )
+
+                if (condition) {
+                    current.pending = current.pending.concat(children({
+                        types: current.types,
+                        id,
+                        deep: false
+                    }))[0]
+                }
             }
         },
         return: state => state.found

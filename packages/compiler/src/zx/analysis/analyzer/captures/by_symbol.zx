@@ -18,6 +18,13 @@ export type Output = {
 }
 
 export default function (in: Input): Output {
+    if (in.state.local.captures.current == in.owner) {
+        return {
+            state: in.state,
+            symbol: in.symbol
+        }
+    }
+
     const path: u32[] = []
 
     const route = loop({

@@ -122,25 +122,22 @@ export default function (in: Input): Output {
         }
     })
 
-    const extra =
-        result.state.diagnostic.message == "" &&
+    return result.state.diagnostic.message == "" &&
         result.entries.names.length != integers.widen(
             target.second
         )
-
-    const diagnostic = extra ? {
-        code: "type_mismatch",
-        message: "spread introduces fields outside the required object type",
-        start: in.span.start,
-        end: in.span.end
-    } : result.state.diagnostic
-
-    return {
-        state: {
-            ...result.state,
-            diagnostic
-        },
-        entries: result.entries,
-        evaluation: result.evaluation
-    }
+        -> (_ ? {
+            code: "type_mismatch",
+            message: "spread introduces fields outside the required object type",
+            start: in.span.start,
+            end: in.span.end
+        } : result.state.diagnostic)
+        -> {
+            state: {
+                ...result.state,
+                diagnostic: _
+            },
+            entries: result.entries,
+            evaluation: result.evaluation
+        }
 }

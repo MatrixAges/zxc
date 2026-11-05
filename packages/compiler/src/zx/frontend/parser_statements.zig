@@ -14,7 +14,8 @@ const Pattern = grammar.sequence(.{ grammar.token("["), grammar.separated(Name, 
 const Declaration = grammar.choice(.{ grammar.map(Pattern, Value, destructure), grammar.map(Binding, Value, constant) });
 const Constant = grammar.sequence(.{ grammar.token("const"), Declaration, grammar.reference(void, Parser.endStatement) });
 const Return = grammar.sequence(.{ grammar.token("return"), grammar.reference(Value, result), grammar.reference(void, Parser.endStatement) });
-const Condition = grammar.sequence(.{ grammar.required(grammar.token("("), "expected ("), Expression, grammar.required(grammar.token(")"), "expected )"), Block });
+const ConditionExpression = grammar.reference(*const ast.Expression, condition);
+const Condition = grammar.sequence(.{ grammar.required(grammar.token("("), "expected ("), ConditionExpression, grammar.required(grammar.token(")"), "expected )"), Block });
 const Else = grammar.sequence(.{ grammar.token("else"), grammar.reference(ast.Block, alternative) });
 const Branch = grammar.sequence(.{ grammar.token("if"), Condition, grammar.optional(Else) });
 const Switch = grammar.sequence(.{ grammar.token("switch"), grammar.reference(Value, switchStatement) });
@@ -38,6 +39,10 @@ pub fn parse(parser: *Parser) zx.Error!ast.Statement {
     const value = try grammar.run(Statement, parser, "expected const, if, switch, return or a Store setter; ordinary mutation is forbidden");
 
     return .{ .span = parser.range(start), .value = value };
+}
+
+fn condition(parser: *Parser) zx.Error!*const ast.Expression {
+    return if (parser.at("-") and parser.lineBreak()) @import("parser_condition.zig").parse(parser) else expression(parser);
 }
 
 fn expression(parser: *Parser) zx.Error!*const ast.Expression {

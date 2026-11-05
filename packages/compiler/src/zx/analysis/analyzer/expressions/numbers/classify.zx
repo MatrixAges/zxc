@@ -17,7 +17,12 @@ export default function (in: Input): Output {
             const byte = current.source[current.index]
 
             current.floating =
-                current.floating || byte == 46 || byte == 101 || byte == 69
+                (
+                    - current.floating
+                    - or byte == 46
+                    - or byte == 101
+                    - or byte == 69
+                )
             current.separators = current.separators || byte == 95
             current.index += 1
         }

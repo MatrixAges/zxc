@@ -95,6 +95,40 @@ pub const Projection = struct {
         while (index < self.tokens.len and (self.tokens[index].comment or std.mem.eql(u8, self.tokens[index].text, "("))) : (index += 1) {}
         if (index < self.tokens.len and std.mem.eql(u8, self.tokens[index].text, "[")) self.tokens[index].multiline = true;
     }
+    pub fn condition(self: *Projection, span: zx.Span) void {
+        const first = self.find(span.start) orelse return;
+
+        if (first == 0 or !std.mem.eql(u8, self.tokens[first].text, "-")) return;
+
+        var opening = first;
+
+        while (opening > 0) {
+            opening -= 1;
+
+            if (!self.tokens[opening].comment) break;
+        }
+
+        if (!std.mem.eql(u8, self.tokens[opening].text, "(") or self.tokens[opening].multiline) return;
+
+        self.tokens[opening].multiline = true;
+        var depth: usize = 0;
+        var index = first;
+
+        while (index < self.tokens.len and self.tokens[index].end <= span.end) : (index += 1) {
+            const token = &self.tokens[index];
+
+            if (token.comment) continue;
+            if (depth == 0 and std.mem.eql(u8, token.text, "-") and token.newline) token.boundary = true;
+            if (std.mem.eql(u8, token.text, "(") or std.mem.eql(u8, token.text, "[") or std.mem.eql(u8, token.text, "{")) depth += 1;
+
+            if (std.mem.eql(u8, token.text, ")") or std.mem.eql(u8, token.text, "]") or std.mem.eql(u8, token.text, "}")) {
+                if (depth == 0) break;
+
+                depth -= 1;
+            }
+        }
+    }
+
     pub fn excludeRange(self: *Projection, span: zx.Span) void {
         self.boundary(span.start);
 

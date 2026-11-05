@@ -10,25 +10,24 @@ export type Output = Inline
 
 export default function (in: Input): Output {
     const state = in.state
-    const control = state.units[state.mappings.units[in.frame.mapping]].control
-    const no = control.branch_no[in.frame.f]
 
-    const start = {
-        ...in.frame,
-        op: InlineOp.LowerStart,
-        id: integers.widen(no) + 1,
-        b: in.frame.i,
-        c: in.frame.h
-    }
-
-    return {
-        ...state,
-        frames: state.frames.concat([
-            {
-                ...in.frame,
-                op: InlineOp.LowerNo
-            },
-            start
-        ])[0]
-    }
+    return state.units[state.mappings.units[in.frame.mapping]].control
+        -> _.branch_no[in.frame.f]
+        -> {
+            ...in.frame,
+            op: InlineOp.LowerStart,
+            id: integers.widen(_) + 1,
+            b: in.frame.i,
+            c: in.frame.h
+        }
+        -> {
+            ...state,
+            frames: state.frames.concat([
+                {
+                    ...in.frame,
+                    op: InlineOp.LowerNo
+                },
+                _
+            ])[0]
+        }
 }

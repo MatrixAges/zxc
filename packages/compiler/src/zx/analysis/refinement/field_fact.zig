@@ -25,10 +25,7 @@ fn matches(self: *const Analyzer, expression: anytype, projection: ir.ExprId) bo
         switch (node) {
             .optional_value => |child| value = child,
             .reference => |symbol| {
-                const binding = @import("../expression_binding.zig").lookup(self, source) orelse switch (syntax.value(source)) {
-                    .identifier => |name| self.lookup(name.text) orelse return false,
-                    else => return false,
-                };
+                const binding = @import("../pipeline.zig").probeSymbol(self, source) orelse return false;
 
                 return binding == symbol;
             },

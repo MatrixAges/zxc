@@ -14,7 +14,7 @@ export default function (in: Input): Output {
     const head = in.tree.parts.length + 1
     const count = in.control.value_count + 1
 
-    const parts = in.tree.parts.push({
+    return in.tree.parts.push({
         span: {
             start: in.control.text_start,
             end
@@ -23,23 +23,22 @@ export default function (in: Input): Output {
         codepoint: 0,
         previous: in.control.value_head
     })[0]
-
-    return {
-        source: in.source,
-        tree: {
-            nodes: in.tree.nodes,
-            attributes: in.tree.attributes,
-            text: in.tree.text,
-            children: in.tree.children,
-            parts
-        },
-        frames: in.frames,
-        frame: in.frame,
-        control: {
-            ...in.control,
-            value_head: head,
-            value_count: count,
-            text_start: end
+        -> {
+            source: in.source,
+            tree: {
+                nodes: in.tree.nodes,
+                attributes: in.tree.attributes,
+                text: in.tree.text,
+                children: in.tree.children,
+                parts: _
+            },
+            frames: in.frames,
+            frame: in.frame,
+            control: {
+                ...in.control,
+                value_head: head,
+                value_count: count,
+                text_start: end
+            }
         }
-    }
 }

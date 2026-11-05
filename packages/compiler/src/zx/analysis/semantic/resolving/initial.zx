@@ -68,13 +68,12 @@ export default function (in: Input): Output {
         names: []
     }
 
-    const operation = in.named ? Operation.Name : Operation.Node
-
-    const frames: Frame[] = in.initialize ? [] : [frame({
-        operation,
-        name: in.name,
-        reference: in.reference
-    })]
+    const frames: Frame[] = (in.named ? Operation.Name : Operation.Node)
+        -> (in.initialize ? [] : [frame({
+            operation: _,
+            name: in.name,
+            reference: in.reference
+        })])
 
     return {
         context: in.context,

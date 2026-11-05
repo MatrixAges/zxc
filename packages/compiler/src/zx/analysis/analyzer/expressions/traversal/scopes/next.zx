@@ -40,21 +40,20 @@ export default function (in: Input): Output {
     const id = frame.statements[frame.next]
     const statement = in.source.blocks.statements[id]
 
-    const scopes = {
+    const work: Work = {
         ...in.scopes,
         frames: in.scopes.frames.splice(position, 1, [{
             ...frame,
             next: frame.next + 1
         }])[0]
     }
-
-    const work: Work = {
-        ...in,
-        scopes,
-        node: statement.first,
-        expected: null,
-        phase: Phase.Evaluate
-    }
+        -> {
+            ...in,
+            scopes: _,
+            node: statement.first,
+            expected: null,
+            phase: Phase.Evaluate
+        }
 
     if (
         statement.kind == StatementKind.Result || statement.kind == StatementKind.StoreSet
@@ -79,17 +78,16 @@ export default function (in: Input): Output {
     }
 
     if (statement.kind == StatementKind.Constant) {
-        const name = readName({
+        const diagnostic = readName({
             source: work.source,
             kind: NameKind.Statement,
             index: id
         })
-
-        const diagnostic = bindingName({
-            scopes: work.scopes,
-            local: work.state.local,
-            name
-        })
+            -> bindingName({
+                scopes: work.scopes,
+                local: work.state.local,
+                name: _
+            })
 
         if (diagnostic.message != "") {
             return {

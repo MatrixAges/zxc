@@ -1,0 +1,28 @@
+import emit from "../../state/emit"
+import { ExprKind } from "../../state/model"
+import node from "../../state/node"
+
+import type { ExprState } from "../../state/model"
+
+export type Input = ExprState
+
+export type Output = ExprState
+
+export default function (in: Input): Output {
+    const value = in.tree.nodes[in.control.result]
+
+    return emit({
+        state: in,
+        node: {
+            ...node({
+                kind: ExprKind.Unary,
+                start: value.span.start,
+                end: value.span.end,
+                depth: value.depth + 1
+            }),
+            first: in.control.result,
+            condition_list: true,
+            condition_terms: value.condition_terms
+        }
+    })
+}

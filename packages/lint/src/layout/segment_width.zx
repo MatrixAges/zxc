@@ -26,10 +26,12 @@ export default function (in: Input): Output {
             const owner = current.input.graph.owners[current.input.index]
             const partner = current.input.graph.partners[current.index]
             const end =
-                parent == owner &&
                 (
-                    token.text == comma || (
-                        partner != null && partner < current.index
+                    - parent == owner
+                    - and (
+                        token.text == comma || (
+                            partner != null && partner < current.index
+                        )
                     )
                 )
             const newline = current.index > current.input.index && token.newline
@@ -52,9 +54,14 @@ export default function (in: Input): Output {
                 const priority = operatorPriority(token.text)
 
                 current.done =
-                    token.object || token.multiline ||
-                    parent == owner && priority != no_operator &&
-                    priority <= current.input.priority
+                    (
+                        - token.object
+                        - or token.multiline
+                        - or (
+                            parent == owner && priority != no_operator &&
+                                priority <= current.input.priority
+                        )
+                    )
                 current.index += 1
             }
         },

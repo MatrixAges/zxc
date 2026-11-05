@@ -34,26 +34,25 @@ export default function (in: Input): Output {
         token: Token.ExportPrefix
     })[0] : visible
 
-    const inlined = tree.function_inlined[row] ? exported.push({
+    const opening = (tree.function_inlined[row] ? exported.push({
         ...frame,
         token: Token.InlinePrefix
-    })[0] : exported
-
-    const opening = inlined.concat([
-        {
-            ...frame,
-            token: Token.FnPrefix
-        },
-        {
-            ...frame,
-            action: Action.Identifier,
-            bytes: ByteSource.FunctionName
-        },
-        {
-            ...frame,
-            token: Token.Open
-        }
-    ])[0]
+    })[0] : exported)
+        -> _.concat([
+            {
+                ...frame,
+                token: Token.FnPrefix
+            },
+            {
+                ...frame,
+                action: Action.Identifier,
+                bytes: ByteSource.FunctionName
+            },
+            {
+                ...frame,
+                token: Token.Open
+            }
+        ])[0]
 
     const zero: u32 = 0
 
@@ -89,7 +88,7 @@ export default function (in: Input): Output {
 
     const convention = tree.function_calling_convention[row]
 
-    const calling = convention == null ? signature : signature.concat([
+    return (convention == null ? signature : signature.concat([
         {
             ...frame,
             token: Token.CallConvention
@@ -103,27 +102,26 @@ export default function (in: Input): Output {
             ...frame,
             token: Token.CloseSpace
         }
-    ])[0]
-
-    return calling.concat([
-        {
-            ...frame,
-            action: Action.Expression,
-            id: tree.function_return_type[row]
-        },
-        {
-            ...frame,
-            token: Token.Space
-        },
-        {
-            ...frame,
-            action: Action.Block,
-            id: tree.function_body_start[row],
-            count: tree.function_body_len[row]
-        },
-        {
-            ...frame,
-            token: Token.Newline
-        }
-    ])[0]
+    ])[0])
+        -> _.concat([
+            {
+                ...frame,
+                action: Action.Expression,
+                id: tree.function_return_type[row]
+            },
+            {
+                ...frame,
+                token: Token.Space
+            },
+            {
+                ...frame,
+                action: Action.Block,
+                id: tree.function_body_start[row],
+                count: tree.function_body_len[row]
+            },
+            {
+                ...frame,
+                token: Token.Newline
+            }
+        ])[0]
 }

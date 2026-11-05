@@ -1,3 +1,13 @@
+import {
+    kind_scalar,
+    kind_object,
+    kind_optional,
+    kind_list,
+    kind_tuple,
+    kind_error_set,
+    kind_task,
+    kind_enumeration
+} from "./const"
 import { Kind } from "./model"
 
 export type Input = u8
@@ -6,14 +16,14 @@ export type Output = Kind
 
 export default function (in: Input): Output {
     return match in {
-        0 => Kind.Scalar,
-        1 => Kind.Object,
-        2 => Kind.Optional,
-        3 => Kind.List,
-        4 => Kind.Tuple,
-        5 => Kind.ErrorSet,
-        6 => Kind.Task,
-        7 => Kind.Enumeration,
+        kind_scalar => Kind.Scalar,
+        kind_object => Kind.Object,
+        kind_optional => Kind.Optional,
+        kind_list => Kind.List,
+        kind_tuple => Kind.Tuple,
+        kind_error_set => Kind.ErrorSet,
+        kind_task => Kind.Task,
+        kind_enumeration => Kind.Enumeration,
         _ => Kind.NativeReference
     }
 }

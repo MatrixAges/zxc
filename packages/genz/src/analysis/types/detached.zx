@@ -49,8 +49,16 @@ export default function (in: Input): Output {
                     },
                     return: state => state.stack
                 })
-            } else if (kind != 0 && kind != 5 && kind != 7) {
-                current.detached = false
+            } else {
+                const condition = (
+                    - kind != 0
+                    - and kind != 5
+                    - and kind != 7
+                )
+
+                if (condition) {
+                    current.detached = false
+                }
             }
         },
         return: state => state.detached

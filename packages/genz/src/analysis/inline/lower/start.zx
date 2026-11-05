@@ -22,12 +22,11 @@ export default function (in: Input): Output {
         depth: state.depth + 1
     }
 
-    const control = deeper.units[deeper.mappings.units[in.frame.mapping]].control
-
-    const count = in.frame.id == 0 ? 0 :
-        integers.widen(
-            control.block_count[in.frame.id - 1]
-        )
+    const count = deeper.units[deeper.mappings.units[in.frame.mapping]].control
+        -> (in.frame.id == 0 ? 0 :
+            integers.widen(
+                _.block_count[in.frame.id - 1]
+            ))
 
     const type_index = in.frame.c
 

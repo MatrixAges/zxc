@@ -1,6 +1,7 @@
 import type { FunctionImports } from "../../context"
 import type { Prepared } from "../../model"
 import type { Source } from "../request"
+import type { Frame as Pipeline } from "../traversal/pipeline/model"
 
 export enum Operation {
     Probe,
@@ -22,7 +23,8 @@ export type Frame = {
 export type Context = {
     state: Prepared,
     source: Source,
-    imports: FunctionImports
+    imports: FunctionImports,
+    pipeline?: Pipeline
 }
 
 export type Work = {

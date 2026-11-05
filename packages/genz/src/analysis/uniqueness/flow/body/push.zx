@@ -28,16 +28,15 @@ export default function (in: Input): Output {
         return in.queue
     }
 
-    const pending = in.queue.count < in.queue.pending.length ?
+    return (in.queue.count < in.queue.pending.length ?
         in.queue.pending.with(in.queue.count, {
             ...in.point
         }) : in.queue.pending.push({
             ...in.point
-        })[0]
-
-    return {
-        count: in.queue.count + 1,
-        pending,
-        visited: in.queue.visited.with(word, integers.orBits(previous, mask))
-    }
+        })[0])
+        -> {
+            count: in.queue.count + 1,
+            pending: _,
+            visited: in.queue.visited.with(word, integers.orBits(previous, mask))
+        }
 }

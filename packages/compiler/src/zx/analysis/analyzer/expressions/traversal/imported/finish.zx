@@ -25,7 +25,13 @@ export default function (in: Input): Output {
     const output = in.imports.output_types[frame.import_index]
     const function_id = in.imports.ids[frame.import_index]
 
-    if (input == null || output == null || function_id == null) {
+    const condition = (
+        - input == null
+        - or output == null
+        - or function_id == null
+    )
+
+    if (condition) {
         return invalid({
             work: in,
             node: frame.node

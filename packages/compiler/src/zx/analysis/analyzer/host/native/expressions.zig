@@ -9,6 +9,8 @@ pub fn fill(context: *Context, pending: Context.Expression) std.mem.Allocator.Er
 
     var node: model.Node = .{
         .kind = .Null,
+        .condition_list = source.condition_list,
+        .condition_terms = source.condition_terms,
         .span = try context.span(source.span),
         .depth = source.depth,
         .name = &model.empty_span,

@@ -61,10 +61,13 @@ export default function (in: Input): Output {
 
     const tag = expressions.kinds[subject]
 
-    if (
-        tag == ExpressionKind.Integer || tag == ExpressionKind.NegativeInteger ||
-            tag == ExpressionKind.Float
-    ) {
+    const condition = (
+        - tag == ExpressionKind.Integer
+        - or tag == ExpressionKind.NegativeInteger
+        - or tag == ExpressionKind.Float
+    )
+
+    if (condition) {
         return {
             ...initial,
             operation: Operation.Literal
@@ -86,18 +89,17 @@ export default function (in: Input): Output {
         return initial
     }
 
-    const operation = match expressions.binary_operators[payload] {
+    return match expressions.binary_operators[payload] {
         BinaryOperator.Add => Operation.Add,
         BinaryOperator.Subtract => Operation.Subtract,
         BinaryOperator.Multiply => Operation.Multiply,
         BinaryOperator.Divide => Operation.Divide,
         _ => Operation.Invalid
     }
-
-    return {
-        ...initial,
-        operation,
-        left: expressions.binary_left[payload],
-        right: expressions.binary_right[payload]
-    }
+        -> {
+            ...initial,
+            operation: _,
+            left: expressions.binary_left[payload],
+            right: expressions.binary_right[payload]
+        }
 }

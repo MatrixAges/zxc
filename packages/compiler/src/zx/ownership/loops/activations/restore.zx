@@ -25,7 +25,7 @@ export type Input = {
 export type Output = Memory
 
 export default function (in: Input): Output {
-    const states = apply({
+    const memo = apply({
         types: in.types,
         references: in.references,
         layout: in.layout,
@@ -34,16 +34,15 @@ export default function (in: Input): Output {
         frame: in.loops.entries[in.index],
         action: Action.RestoreStates
     })
-
-    const memo = apply({
-        types: in.types,
-        references: in.references,
-        layout: in.layout,
-        memory: states,
-        stack: in.snapshots,
-        frame: in.loops.entries[in.index],
-        action: Action.RestoreMemo
-    })
+        -> apply({
+            types: in.types,
+            references: in.references,
+            layout: in.layout,
+            memory: _,
+            stack: in.snapshots,
+            frame: in.loops.entries[in.index],
+            action: Action.RestoreMemo
+        })
 
     const locals = in.domains.count[in.expression]
 
@@ -67,19 +66,19 @@ export default function (in: Input): Output {
             const position = local ? current.local_first + current.index :
                 current.first + current.index - current.locals
             const id = local ? current.symbols[position] : current.roots[position]
-            const fact = local ? 0 : current.facts[position]
-            const bound = bind({
-                types: current.types,
-                references: current.references,
-                layout: current.layout,
-                storage: {
-                    forest: current.memory.forest,
-                    facts: current.memory.facts,
-                    states: current.memory.states
-                },
-                id,
-                fact
-            })
+            const bound = (local ? 0 : current.facts[position])
+                -> bind({
+                    types: current.types,
+                    references: current.references,
+                    layout: current.layout,
+                    storage: {
+                        forest: current.memory.forest,
+                        facts: current.memory.facts,
+                        states: current.memory.states
+                    },
+                    id,
+                    fact: _
+                })
 
             current.memory = {
                 ...current.memory,

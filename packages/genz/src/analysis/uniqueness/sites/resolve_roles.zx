@@ -28,12 +28,11 @@ export default function (in: Input): Output {
             current.role = current.sites.role[index]
 
             if (current.role == Role.argument) {
-                const parent = integers.widen(current.sites.parent[index])
-                const payload =
-                    integers.widen(current.source.expressions.payloads[parent])
                 const callee =
-                    integers.widen(
-                        current.source.expressions.call_functions[payload]
+                    integers.widen(current.sites.parent[index])
+                    -> integers.widen(current.source.expressions.payloads[_])
+                    -> integers.widen(
+                        current.source.expressions.call_functions[_]
                     )
                 const kind = current.source.effects.kind[callee]
 

@@ -41,9 +41,12 @@ export default function (in: Input): Output {
         next: current => {
             const target = kind(current.types.kinds[current.index])
             const chosen =
-                target == Kind.List || (
-                    !current.boxed[current.index] && (
-                        target == Kind.Object || target == Kind.Tuple
+                (
+                    - target == Kind.List
+                    - or (
+                        !current.boxed[current.index] && (
+                            target == Kind.Object || target == Kind.Tuple
+                        )
                     )
                 )
             const flag: u8 = match {

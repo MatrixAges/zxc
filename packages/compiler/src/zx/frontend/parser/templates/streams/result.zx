@@ -32,7 +32,7 @@ export default function (in: Input): Output {
         }
     }
 
-    const tokens = in.session.lexer.tokens.length != 0 && in.session.lexer.line_break
+    return in.session.lexer.tokens.length != 0 && in.session.lexer.line_break
         -> in.session.lexer.tokens.push({
             kind: Kind.Eof,
             word: Keyword.Root,
@@ -44,17 +44,16 @@ export default function (in: Input): Output {
             line_break: _,
             dollar: false
         })[0]
-
-    return {
-        span: {
-            start: in.session.start,
-            end: in.end
-        },
-        lexed: {
-            tokens,
-            comments: in.session.lexer.comments,
-            diagnostic: in.session.lexer.diagnostic
-        },
-        token_templates: in.session.token_templates.push(0)[0]
-    }
+        -> {
+            span: {
+                start: in.session.start,
+                end: in.end
+            },
+            lexed: {
+                tokens: _,
+                comments: in.session.lexer.comments,
+                diagnostic: in.session.lexer.diagnostic
+            },
+            token_templates: in.session.token_templates.push(0)[0]
+        }
 }

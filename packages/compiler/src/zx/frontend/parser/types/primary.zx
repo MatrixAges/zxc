@@ -61,22 +61,20 @@ export default function (in: Input): Output {
         })
     }
 
-    const name = {
+    return {
         start: in.control.token.span.start,
         end: in.control.token.span.end
     }
-
-    const state = {
-        tree: in.tree,
-        frames: in.frames,
-        control: {
-            ...in.control,
-            name
+        -> {
+            tree: in.tree,
+            frames: in.frames,
+            control: {
+                ...in.control,
+                name: _
+            }
         }
-    }
-
-    return consume({
-        state,
-        phase: Phase.Name
-    })
+        -> consume({
+            state: _,
+            phase: Phase.Name
+        })
 }

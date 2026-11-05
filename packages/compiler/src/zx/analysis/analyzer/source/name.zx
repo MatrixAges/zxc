@@ -30,17 +30,16 @@ export default function (in: Input): Output {
         })
     }
 
-    const value = match (in.kind) {
+    return match (in.kind) {
         NameKind.Expression => native.text.expression_names[in.index],
         NameKind.Field => native.text.field_names[in.index],
         NameKind.Parameter => native.text.parameter_names[in.index],
         NameKind.Statement => native.text.statement_names[in.index],
         _ => native.text.destructure_names[in.index],
     }
-
-    return {
-        text: value,
-        start: span.start,
-        end: span.end
-    }
+        -> {
+            text: _,
+            start: span.start,
+            end: span.end
+        }
 }

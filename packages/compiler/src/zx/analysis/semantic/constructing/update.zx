@@ -44,14 +44,13 @@ export default function (in: Input): Output {
         }
     }
 
-    const id = limit(in)
-
-    return {
-        delta: delta({
-            delta: in.tables.delta,
-            candidate: normalized
-        }),
-        id,
-        diagnostic: issue
-    }
+    return limit(in)
+        -> {
+            delta: delta({
+                delta: in.tables.delta,
+                candidate: normalized
+            }),
+            id: _,
+            diagnostic: issue
+        }
 }

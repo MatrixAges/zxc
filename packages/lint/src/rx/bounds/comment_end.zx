@@ -8,7 +8,6 @@ export type Input = {
 export type Output = u64
 
 export default function (in: Input): Output {
-    const found = bytes.indexOfText(in.source, in.start + 4, "-->") ?? in.source.length
-
-    return found + 3
+    return bytes.indexOfText(in.source, in.start + 4, "-->") ?? in.source.length
+        -> _ + 3
 }

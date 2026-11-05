@@ -8,10 +8,14 @@ export default function (in: Input): Output {
         offset: 0
     }, {
         while: value =>
-            value.offset < value.source.length &&
             (
-                value.source[value.offset] == 32 || value.source[value.offset] == 9 ||
-                    value.source[value.offset] == 13 || value.source[value.offset] == 10
+                - value.offset < value.source.length
+                - and (
+                    - value.source[value.offset] == 32
+                    - or value.source[value.offset] == 9
+                    - or value.source[value.offset] == 13
+                    - or value.source[value.offset] == 10
+                )
             ),
         next: value => {
             value.offset += 1

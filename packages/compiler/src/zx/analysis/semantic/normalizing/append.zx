@@ -56,8 +56,12 @@ export default function (in: Input): Output {
     }) : source.second
 
     const members =
-        source.kind == Kind.Object || source.kind == Kind.Tuple ||
-        source.kind == Kind.ErrorSet || source.kind == Kind.Enumeration
+        (
+            - source.kind == Kind.Object
+            - or source.kind == Kind.Tuple
+            - or source.kind == Kind.ErrorSet
+            - or source.kind == Kind.Enumeration
+        )
 
     const state = loop({
         source,

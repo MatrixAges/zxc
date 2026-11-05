@@ -78,9 +78,14 @@ export default function (in: Input): Output {
             }
 
             const borrowed =
-                target == Kind.Object && !source.boxed[index] &&
-                !source.escaped[index] && source.counts[index] == 1 &&
-                nested && width >= minimum_words
+                (
+                    - target == Kind.Object
+                    - and !source.boxed[index]
+                    - and !source.escaped[index]
+                    - and source.counts[index] == 1
+                    - and nested
+                    - and width >= minimum_words
+                )
 
             state.chosen = state.chosen.push(borrowed)[0]
             state.words = state.words.push(borrowed ? 1 : width)[0]

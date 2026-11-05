@@ -27,8 +27,8 @@ export default function (in: Input): Output {
     }, {
         while: current => current.stack.top != max_u32,
         next: current => {
-            const last = integers.widen(current.stack.top)
-            const event = current.stack.nodes[last]
+            const event = integers.widen(current.stack.top)
+                -> current.stack.nodes[_]
             const action = event.action
             const first = event.first
             const second = event.second
@@ -214,7 +214,7 @@ export default function (in: Input): Output {
 
                 case Action.BlockArm:
                     const region =
-                    integers.narrow(current.regions.length)
+                        integers.narrow(current.regions.length)
                     const parent = current.active_region
                     const repeated = push({
                         stack: current.stack,

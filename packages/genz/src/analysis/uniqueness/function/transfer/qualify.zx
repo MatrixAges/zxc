@@ -45,20 +45,25 @@ export default function qualify(in: Input): Output {
         const index = integers.widen(symbol)
         const definition = metadata.definitions.kind[index]
 
-        if (
-            definition == Definition.Condition || definition == Definition.Element ||
-                definition == Definition.Unknown || crosses({
-                    parents: metadata.parents,
-                    concurrent: metadata.concurrent,
-                    inner: metadata.usage.nodes.repeated[node],
-                    outer: metadata.usage.def_loop[index]
-                }) || !usage({
-                    context,
-                    root: symbol,
-                    slot: in.slot,
-                    observe: false
-                })
-        ) {
+        const condition = (
+            - definition == Definition.Condition
+            - or definition == Definition.Element
+            - or definition == Definition.Unknown
+            - or crosses({
+                parents: metadata.parents,
+                concurrent: metadata.concurrent,
+                inner: metadata.usage.nodes.repeated[node],
+                outer: metadata.usage.def_loop[index]
+            })
+            - or !usage({
+                context,
+                root: symbol,
+                slot: in.slot,
+                observe: false
+            })
+        )
+
+        if (condition) {
             return false
         }
 
@@ -129,10 +134,10 @@ export default function qualify(in: Input): Output {
                 ...in,
                 node: expressions.conditional_yes[payload]
             }) &&
-            qualify({
-                ...in,
-                node: expressions.conditional_no[payload]
-            })
+                qualify({
+                    ...in,
+                    node: expressions.conditional_no[payload]
+                })
         case ExpressionKind.Match:
             const first = integers.widen(expressions.match_first[payload])
 
@@ -162,14 +167,14 @@ export default function qualify(in: Input): Output {
                 })
         case ExpressionKind.Binary:
             return expressions.binary_operators[payload] == BinaryOperator.Coalesce &&
-            qualify({
-                ...in,
-                node: expressions.binary_left[payload]
-            }) &&
-            qualify({
-                ...in,
-                node: expressions.binary_right[payload]
-            })
+                qualify({
+                    ...in,
+                    node: expressions.binary_left[payload]
+                }) &&
+                qualify({
+                    ...in,
+                    node: expressions.binary_right[payload]
+                })
         case ExpressionKind.Capture:
             return false
         case ExpressionKind.Task:

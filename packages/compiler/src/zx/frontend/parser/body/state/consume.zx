@@ -10,22 +10,20 @@ export type Input = {
 export type Output = State
 
 export default function (in: Input): Output {
-    const phase = in.state.expression.control.phase
-
-    const expression = consume({
-        state: in.state.expression,
-        phase
-    })
-
-    return {
-        expression,
-        tree: in.state.tree,
-        frames: in.state.frames,
-        suspended: in.state.suspended,
-        frame: in.state.frame,
-        control: {
-            ...in.state.control,
-            phase: in.phase
+    return in.state.expression.control.phase
+        -> consume({
+            state: in.state.expression,
+            phase: _
+        })
+        -> {
+            expression: _,
+            tree: in.state.tree,
+            frames: in.state.frames,
+            suspended: in.state.suspended,
+            frame: in.state.frame,
+            control: {
+                ...in.state.control,
+                phase: in.phase
+            }
         }
-    }
 }

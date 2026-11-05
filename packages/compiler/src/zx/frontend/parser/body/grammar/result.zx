@@ -13,16 +13,24 @@ export default function (in: Input): Output {
     const word = in.expression.control.token.word
 
     const next =
-        in.expression.control.token.line_break &&
         (
-            word == Keyword.Const || word == Keyword.Return || word == Keyword.If ||
-                word == Keyword.Switch || word == Keyword.Store
+            - in.expression.control.token.line_break
+            - and (
+                - word == Keyword.Const
+                - or word == Keyword.Return
+                - or word == Keyword.If
+                - or word == Keyword.Switch
+                - or word == Keyword.Store
+            )
         )
 
-    if (
-        next || in.expression.control.token.symbol == Symbol.CloseBrace ||
-            in.expression.control.token.kind == Kind.Eof
-    ) {
+    const condition = (
+        - next
+        - or in.expression.control.token.symbol == Symbol.CloseBrace
+        - or in.expression.control.token.kind == Kind.Eof
+    )
+
+    if (condition) {
         return {
             expression: in.expression,
             tree: in.tree,

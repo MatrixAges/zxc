@@ -26,8 +26,11 @@ export default function (in: Input): Output {
     const byte = in.offset < in.source.length ? in.source[in.offset] : ascii_null
 
     const alphabetic =
-        byte >= ascii_upper_first && byte <= ascii_upper_last ||
-        byte >= ascii_lower_first && byte <= ascii_lower_last
+        (
+            - byte >= ascii_upper_first
+            - and byte <= ascii_upper_last
+            - or (byte >= ascii_lower_first && byte <= ascii_lower_last)
+        )
 
     if (!alphabetic && byte != ascii_underscore) {
         return {
@@ -46,11 +49,15 @@ export default function (in: Input): Output {
         next: value => {
             const current = value.source[value.offset]
             const accepted =
-                current >= ascii_upper_first && current <= ascii_upper_last ||
-                current >= ascii_lower_first && current <= ascii_lower_last ||
-                current >= ascii_digit_first && current <= ascii_digit_last ||
-                current == ascii_underscore || current == ascii_minus ||
-                current == ascii_dot
+                (
+                    - current >= ascii_upper_first
+                    - and current <= ascii_upper_last
+                    - or (current >= ascii_lower_first && current <= ascii_lower_last)
+                    - or (current >= ascii_digit_first && current <= ascii_digit_last)
+                    - or current == ascii_underscore
+                    - or current == ascii_minus
+                    - or current == ascii_dot
+                )
             const offset = value.offset + (accepted ? 1 : 0)
 
             value = {

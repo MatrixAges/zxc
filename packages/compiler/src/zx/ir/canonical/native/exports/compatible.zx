@@ -27,13 +27,19 @@ export default function (in: Input): Output {
             const functions = current.context.functions
             const module = functions.native_modules[current.index]
 
-            if (module != null && key({
-                modules: current.context.modules,
-                index: integers.widen(module)
-            }) == current.owner && exportName({
-                functions,
-                index: current.index
-            }) == current.name) {
+            const condition = (
+                - module != null
+                - and key({
+                    modules: current.context.modules,
+                    index: integers.widen(module)
+                }) == current.owner
+                - and exportName({
+                    functions,
+                    index: current.index
+                }) == current.name
+            )
+
+            if (condition) {
                 current.valid = compatible({
                     functions,
                     left: current.context.index,

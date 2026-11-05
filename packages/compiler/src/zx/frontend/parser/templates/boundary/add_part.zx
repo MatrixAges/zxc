@@ -25,19 +25,18 @@ export default function (in: Input): Output {
         previous: frame.head
     })[0]
 
-    const frames = in.graph.frames.pop()[0].push({
+    return in.graph.frames.pop()[0].push({
         start: frame.start,
         text_start: in.text_start,
         head,
         count: frame.count + 1
     })[0]
-
-    return {
-        templates: in.graph.templates,
-        parts,
-        events: in.graph.events,
-        frames,
-        interpolations: in.graph.interpolations,
-        token_templates: in.graph.token_templates
-    }
+        -> {
+            templates: in.graph.templates,
+            parts,
+            events: in.graph.events,
+            frames: _,
+            interpolations: in.graph.interpolations,
+            token_templates: in.graph.token_templates
+        }
 }

@@ -36,30 +36,29 @@ export default function (in: Input): Output {
             })
         }
 
-        const name = {
+        return {
             start: token.span.start,
             end: token.span.end
         }
-
-        return advance({
-            state: {
-                lexed: in.lexed,
-                declarations: in.declarations,
-                functions: in.functions,
-                parameters: in.parameters,
-                errors: in.errors,
-                control: {
-                    phase: in.control.phase,
-                    index: in.control.index,
-                    injected: in.control.injected,
-                    current: in.control.current,
-                    diagnostic: in.control.diagnostic,
-                    parameter: name
-                }
-            },
-            phase: Phase.Colon,
-            count: 1
-        })
+            -> advance({
+                state: {
+                    lexed: in.lexed,
+                    declarations: in.declarations,
+                    functions: in.functions,
+                    parameters: in.parameters,
+                    errors: in.errors,
+                    control: {
+                        phase: in.control.phase,
+                        index: in.control.index,
+                        injected: in.control.injected,
+                        current: in.control.current,
+                        diagnostic: in.control.diagnostic,
+                        parameter: _
+                    }
+                },
+                phase: Phase.Colon,
+                count: 1
+            })
     }
 
     if (in.control.phase == Phase.Separator) {
@@ -110,23 +109,24 @@ export default function (in: Input): Output {
         }
     }
 
-    const phase = in.control.phase == Phase.Colon ? Phase.ParameterType : Phase.OutputType
-
-    return advance({
-        state: {
-            lexed: in.lexed,
-            functions: in.functions,
-            parameters: in.parameters,
-            errors: in.errors,
-            control: in.control,
-            declarations: {
-                declarations: in.declarations.declarations,
-                members: in.declarations.members,
-                control: in.declarations.control,
-                types
-            }
-        },
-        phase,
-        count: 1
-    })
+    return (
+        in.control.phase == Phase.Colon ? Phase.ParameterType : Phase.OutputType
+    )
+        -> advance({
+            state: {
+                lexed: in.lexed,
+                functions: in.functions,
+                parameters: in.parameters,
+                errors: in.errors,
+                control: in.control,
+                declarations: {
+                    declarations: in.declarations.declarations,
+                    members: in.declarations.members,
+                    control: in.declarations.control,
+                    types
+                }
+            },
+            phase: _,
+            count: 1
+        })
 }

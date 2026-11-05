@@ -82,30 +82,37 @@ export type Input = u8[]
 export type Output = bool
 
 export default function (in: Input): Output {
-    if (in.length == 0 || (in.length == 1 && in[0] == ascii_underscore)) {
+    const condition = (
+        - in.length == 0
+        - or (in.length == 1 && in[0] == ascii_underscore)
+    )
+
+    if (condition) {
         return false
     }
 
     const first = in[0]
 
-    if (
-        first != ascii_underscore &&
-            !(first >= ascii_upper_first && first <= ascii_upper_last) && !(
-                first >= ascii_lower_first && first <= ascii_lower_last
-            )
-    ) {
+    const condition_2 = (
+        - first != ascii_underscore
+        - and !(first >= ascii_upper_first && first <= ascii_upper_last)
+        - and !(
+            first >= ascii_lower_first && first <= ascii_lower_last
+        )
+    )
+
+    if (condition_2) {
         return false
     }
 
     if (
         !in.every(
             byte =>
-                byte == ascii_underscore ||
-                (byte >= ascii_upper_first && byte <= ascii_upper_last) ||
                 (
-                    byte >= ascii_lower_first && byte <= ascii_lower_last
-                ) || (
-                    byte >= ascii_digit_first && byte <= ascii_digit_last
+                    - byte == ascii_underscore
+                    - or (byte >= ascii_upper_first && byte <= ascii_upper_last)
+                    - or (byte >= ascii_lower_first && byte <= ascii_lower_last)
+                    - or (byte >= ascii_digit_first && byte <= ascii_digit_last)
                 )
         )
     ) {

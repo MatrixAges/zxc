@@ -65,11 +65,18 @@ export default function (in: Input): Output {
                                 const same = sites.edge[index] == sites.edge[site] &&
                                     sites.delta[index] == sites.delta[site]
 
-                                if (index != site && overlaps && !same && !exclusive({
-                                    query: pair.query,
-                                    left: site,
-                                    right: index
-                                })) {
+                                const condition = (
+                                    - index != site
+                                    - and overlaps
+                                    - and !same
+                                    - and !exclusive({
+                                        query: pair.query,
+                                        left: site,
+                                        right: index
+                                    })
+                                )
+
+                                if (condition) {
                                     pair.valid = role({
                                         query: pair.query,
                                         site: index

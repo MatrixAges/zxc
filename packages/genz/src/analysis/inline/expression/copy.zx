@@ -103,12 +103,17 @@ export default function (in: Input): Output {
         })
     }
 
-    if (
-        kind == ExpressionKind.Some || kind == ExpressionKind.Capture ||
-            kind == ExpressionKind.AwaitTask || kind == ExpressionKind.CancelTask ||
-            kind == ExpressionKind.OptionalValue || kind == ExpressionKind.Length
-    ) {
-        const selected = match kind {
+    const condition_2 = (
+        - kind == ExpressionKind.Some
+        - or kind == ExpressionKind.Capture
+        - or kind == ExpressionKind.AwaitTask
+        - or kind == ExpressionKind.CancelTask
+        - or kind == ExpressionKind.OptionalValue
+        - or kind == ExpressionKind.Length
+    )
+
+    if (condition_2) {
+        return match kind {
             ExpressionKind.Some => ValueKind.Some,
             ExpressionKind.Capture => ValueKind.Capture,
             ExpressionKind.AwaitTask => ValueKind.AwaitTask,
@@ -116,13 +121,12 @@ export default function (in: Input): Output {
             ExpressionKind.OptionalValue => ValueKind.OptionalValue,
             _ => ValueKind.Length,
         }
-
-        return value({
-            table: target,
-            metadata,
-            kind: selected,
-            value: mapped[0]
-        })
+            -> value({
+                table: target,
+                metadata,
+                kind: _,
+                value: mapped[0]
+            })
     }
 
     if (kind == ExpressionKind.EnumValue) {
@@ -236,22 +240,24 @@ export default function (in: Input): Output {
         })
     }
 
-    if (
-        kind == ExpressionKind.List || kind == ExpressionKind.Tuple ||
-            kind == ExpressionKind.Template
-    ) {
-        const selected = match kind {
+    const condition_3 = (
+        - kind == ExpressionKind.List
+        - or kind == ExpressionKind.Tuple
+        - or kind == ExpressionKind.Template
+    )
+
+    if (condition_3) {
+        return match kind {
             ExpressionKind.List => SequenceKind.List,
             ExpressionKind.Tuple => SequenceKind.Tuple,
             _ => SequenceKind.Template,
         }
-
-        return sequence({
-            table: target,
-            metadata,
-            kind: selected,
-            values: mapped
-        })
+            -> sequence({
+                table: target,
+                metadata,
+                kind: _,
+                values: mapped
+            })
     }
 
     if (kind == ExpressionKind.ListOperation) {
@@ -456,24 +462,23 @@ export default function (in: Input): Output {
 
     const fields = integers.widen(source.object_count[payload])
 
-    const indices = range({
+    return range({
         items: source.object_field_indices,
         first: integers.widen(source.object_first[payload]),
         count: fields,
         prefix: none
     })
-
-    return object({
-        table: target,
-        metadata,
-        indices,
-        values: split({
-            items: mapped,
-            from: 0
-        }).splice(fields, mapped.length - fields, [])[0],
-        evaluation: split({
-            items: mapped,
-            from: fields
+        -> object({
+            table: target,
+            metadata,
+            indices: _,
+            values: split({
+                items: mapped,
+                from: 0
+            }).splice(fields, mapped.length - fields, [])[0],
+            evaluation: split({
+                items: mapped,
+                from: fields
+            })
         })
-    })
 }

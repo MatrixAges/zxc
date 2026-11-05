@@ -25,10 +25,13 @@ export default function (in: Input): Output {
         return source.first == target.first
     }
 
-    if (
-        source.kind == Kind.Optional || source.kind == Kind.List ||
-            source.kind == Kind.Task
-    ) {
+    const condition = (
+        - source.kind == Kind.Optional
+        - or source.kind == Kind.List
+        - or source.kind == Kind.Task
+    )
+
+    if (condition) {
         const first = reference({
             mapping: in.mapping,
             id: source.first

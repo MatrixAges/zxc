@@ -18,8 +18,8 @@ export default function (in: Input): Output {
         return false
     }
 
-    const first = integers.widen(expressions.collection_first[operation])
-    const start = integers.widen(expressions.collection_arguments[first])
+    const start = integers.widen(expressions.collection_first[operation])
+        -> integers.widen(expressions.collection_arguments[_])
 
     return expressions.kinds[start] == ExpressionKind.Integer &&
         expressions.integers[integers.widen(expressions.payloads[start])] == 0

@@ -18,11 +18,16 @@ export default function (in: Input): Output {
     const contracts = in.contracts
     const count = contracts.kinds.length
 
-    if (
-        count > integers.widen(max_u32) || contracts.predicates.length != count ||
-            contracts.symbols.length != count || contracts.expressions.length != count ||
-            contracts.span_start.length != count || contracts.span_end.length != count
-    ) {
+    const condition = (
+        - count > integers.widen(max_u32)
+        - or contracts.predicates.length != count
+        - or contracts.symbols.length != count
+        - or contracts.expressions.length != count
+        - or contracts.span_start.length != count
+        - or contracts.span_end.length != count
+    )
+
+    if (condition) {
         return false
     }
 

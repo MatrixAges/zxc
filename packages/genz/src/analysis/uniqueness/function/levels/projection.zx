@@ -14,15 +14,14 @@ export type Input = {
 export type Output = Request
 
 export default function (in: Input): Output {
-    const selected = member({
+    return member({
         metadata: in.metadata,
         type_id: in.metadata.expressions.types[integers.widen(in.target)],
         index: in.index
     })
-
-    return {
-        node: in.target,
-        slot: selected.offset + in.slot,
-        raw: false
-    }
+        -> {
+            node: in.target,
+            slot: _.offset + in.slot,
+            raw: false
+        }
 }

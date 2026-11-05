@@ -24,7 +24,7 @@ export default function (in: Input): Output {
     }
 
     if (in.control.token.line_break) {
-        const state = {
+        return {
             tree: in.tree,
             frames: in.frames,
             control: {
@@ -32,8 +32,7 @@ export default function (in: Input): Output {
                 phase: Phase.Field
             }
         }
-
-        return field(state)
+            -> field(_)
     }
 
     return fail({

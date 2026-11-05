@@ -33,8 +33,12 @@ export default function (in: Input): Output {
     const id: u32 = 0
 
     const direct =
-        in.source.kind == Kind.Scalar || in.source.kind == Kind.Optional ||
-        in.source.kind == Kind.List || in.source.kind == Kind.Task
+        (
+            - in.source.kind == Kind.Scalar
+            - or in.source.kind == Kind.Optional
+            - or in.source.kind == Kind.List
+            - or in.source.kind == Kind.Task
+        )
 
     const known =
         integers.widen(in.source.first) < in.mapping.first + in.mapping.ids.length
@@ -87,16 +91,18 @@ export default function (in: Input): Output {
                     ) == current.input.source.kind && shape
                 )
             const identity =
-                candidate &&
                 (
-                    !current.nominal ||
-                        (
-                            bindings.kinds[position] == current.input.origin.kind &&
-                                bindings.owners[position] == current.input.origin.owner &&
-                                bindings.members[position] ==
-                                current.input.origin.member &&
-                                table.labels[local] == current.input.source.label
+                    - candidate
+                    - and (
+                        - !current.nominal
+                        - or (
+                            - bindings.kinds[position] == current.input.origin.kind
+                            - and bindings.owners[position] == current.input.origin.owner
+                            - and bindings.members[position] ==
+                                current.input.origin.member
+                            - and table.labels[local] == current.input.source.label
                         )
+                    )
                 )
 
             if (identity) {

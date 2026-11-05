@@ -41,28 +41,26 @@ export default function (in: Input): Output {
             }
         ]
 
-        const range = indexed ? opening.push({
+        const capture = (indexed ? opening.push({
             ...frame,
             token: Token.IndexRange
-        })[0] : opening
+        })[0] : opening)
+            -> _.push({
+                ...frame,
+                token: Token.ForCapture
+            })[0]
 
-        const capture = range.push({
-            ...frame,
-            token: Token.ForCapture
-        })[0]
-
-        const referenced = tree.for_loop_capture_reference[row] ? capture.push({
+        const named = (tree.for_loop_capture_reference[row] ? capture.push({
             ...frame,
             token: Token.Multiply
-        })[0] : capture
+        })[0] : capture)
+            -> _.push({
+                ...frame,
+                action: Action.BindingIdentifier,
+                bytes: ByteSource.ForCapture
+            })[0]
 
-        const named = referenced.push({
-            ...frame,
-            action: Action.BindingIdentifier,
-            bytes: ByteSource.ForCapture
-        })[0]
-
-        const bound = indexed ? named.concat([
+        return (indexed ? named.concat([
             {
                 ...frame,
                 token: Token.CommaSpace
@@ -72,24 +70,23 @@ export default function (in: Input): Output {
                 action: Action.Identifier,
                 bytes: ByteSource.ForIndexCapture
             }
-        ])[0] : named
-
-        return bound.concat([
-            {
-                ...frame,
-                token: Token.CaptureClose
-            },
-            {
-                ...frame,
-                action: Action.Block,
-                id: tree.for_loop_body_start[row],
-                count: tree.for_loop_body_len[row]
-            },
-            {
-                ...frame,
-                token: Token.Newline
-            }
-        ])[0]
+        ])[0] : named)
+            -> _.concat([
+                {
+                    ...frame,
+                    token: Token.CaptureClose
+                },
+                {
+                    ...frame,
+                    action: Action.Block,
+                    id: tree.for_loop_body_start[row],
+                    count: tree.for_loop_body_len[row]
+                },
+                {
+                    ...frame,
+                    token: Token.Newline
+                }
+            ])[0]
     }
 
     const opening: Frame[] = [
@@ -108,7 +105,7 @@ export default function (in: Input): Output {
         }
     ]
 
-    const captured = tree.while_loop_capture[row] == null ? opening : opening.concat([
+    return (tree.while_loop_capture[row] == null ? opening : opening.concat([
         {
             ...frame,
             token: Token.CaptureOpen
@@ -122,18 +119,17 @@ export default function (in: Input): Output {
             ...frame,
             token: Token.CaptureClose
         }
-    ])[0]
-
-    return captured.concat([
-        {
-            ...frame,
-            action: Action.Block,
-            id: tree.while_loop_body_start[row],
-            count: tree.while_loop_body_len[row]
-        },
-        {
-            ...frame,
-            token: Token.Newline
-        }
-    ])[0]
+    ])[0])
+        -> _.concat([
+            {
+                ...frame,
+                action: Action.Block,
+                id: tree.while_loop_body_start[row],
+                count: tree.while_loop_body_len[row]
+            },
+            {
+                ...frame,
+                token: Token.Newline
+            }
+        ])[0]
 }

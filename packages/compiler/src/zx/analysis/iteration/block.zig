@@ -171,6 +171,7 @@ fn bind(self: *Self, name: zx.ast.Name, value: ir.ExprId, scope_start: usize) zx
         else => false,
     };
 
+    if (type_id == Types.scalarId(.bool)) try analyzer.refinement.alias(analyzer.allocator, analyzer.nodes.view(), symbol, value);
     try self.bindings.append(analyzer.allocator, .{ .symbol = symbol, .value = value, .borrow = borrow });
 
     return symbol;

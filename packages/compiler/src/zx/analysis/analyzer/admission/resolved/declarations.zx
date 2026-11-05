@@ -105,10 +105,13 @@ export default function (in: Input): Output {
                             names.valid = callable
                         }
 
-                        if (
-                            names.valid && !callable &&
-                                names.item.kind != ImportKind.Function
-                        ) {
+                        const condition = (
+                            - names.valid
+                            - and !callable
+                            - and names.item.kind != ImportKind.Function
+                        )
+
+                        if (condition) {
                             const value =
                                 names.item.kind == ImportKind.Enumeration &&
                                 names.input.constants != null ? constant({

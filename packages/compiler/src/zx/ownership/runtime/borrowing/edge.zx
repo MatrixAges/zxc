@@ -41,10 +41,13 @@ export default function (in: Input): Output {
         }
     }
 
-    if (
-        kind == ExpressionKind.List || kind == ExpressionKind.Tuple ||
-            kind == ExpressionKind.Object
-    ) {
+    const condition = (
+        - kind == ExpressionKind.List
+        - or kind == ExpressionKind.Tuple
+        - or kind == ExpressionKind.Object
+    )
+
+    if (condition) {
         const object = kind == ExpressionKind.Object
 
         const first =
@@ -59,15 +62,16 @@ export default function (in: Input): Output {
                     in.expressions.sequence_count[payload]
             )
 
-        const values = object ? in.expressions.object_evaluation_values :
-            in.expressions.sequence_items
-
-        return {
-            found: in.index < count,
-            expression: in.index < count ? integers.widen(
-                values[first + in.index]
-            ) : 0
-        }
+        return (
+            object ? in.expressions.object_evaluation_values :
+                in.expressions.sequence_items
+        )
+            -> {
+                found: in.index < count,
+                expression: in.index < count ? integers.widen(
+                    _[first + in.index]
+                ) : 0
+            }
     }
 
     if (kind == ExpressionKind.ListUpdate) {
@@ -116,16 +120,18 @@ export default function (in: Input): Output {
         const operation = in.expressions.transform_kinds[payload]
         const initial = in.expressions.transform_initials[payload]
 
-        const found =
-            in.index == 1 && initial != null &&
-            (
-                operation == TransformKind.Map || operation == TransformKind.Reduce
+        return (
+            - in.index == 1
+            - and initial != null
+            - and (
+                operation == TransformKind.Map ||
+                    operation == TransformKind.Reduce
             )
-
-        return {
-            found,
-            expression: initial != null ? integers.widen(initial) : 0
-        }
+        )
+            -> {
+                found: _,
+                expression: initial != null ? integers.widen(initial) : 0
+            }
     }
 
     if (in.index != 0) {
@@ -168,20 +174,22 @@ export default function (in: Input): Output {
         }
     }
 
-    if (
-        kind == ExpressionKind.Some || kind == ExpressionKind.Capture ||
-            kind == ExpressionKind.OptionalValue
-    ) {
-        const expression = match kind {
+    const condition_2 = (
+        - kind == ExpressionKind.Some
+        - or kind == ExpressionKind.Capture
+        - or kind == ExpressionKind.OptionalValue
+    )
+
+    if (condition_2) {
+        return match kind {
             ExpressionKind.Some => in.expressions.some[payload],
             ExpressionKind.Capture => in.expressions.captures[payload],
             _ => in.expressions.optional_values[payload]
         }
-
-        return {
-            found: true,
-            expression: integers.widen(expression)
-        }
+            -> {
+                found: true,
+                expression: integers.widen(_)
+            }
     }
 
     if (in.permanent && kind == ExpressionKind.Call) {

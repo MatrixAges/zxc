@@ -19,9 +19,14 @@ export default function (in: Input): Output {
     const kind = in.state.local.expressions.kinds[integers.widen(in.value)]
 
     const constant =
-        kind == ExpressionKind.Integer || kind == ExpressionKind.NegativeInteger ||
-        kind == ExpressionKind.Boolean || kind == ExpressionKind.String ||
-        kind == ExpressionKind.EnumValue || kind == ExpressionKind.ErrorValue
+        (
+            - kind == ExpressionKind.Integer
+            - or kind == ExpressionKind.NegativeInteger
+            - or kind == ExpressionKind.Boolean
+            - or kind == ExpressionKind.String
+            - or kind == ExpressionKind.EnumValue
+            - or kind == ExpressionKind.ErrorValue
+        )
 
     if (!constant) {
         return {

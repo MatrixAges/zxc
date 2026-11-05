@@ -21,7 +21,13 @@ export default function (in: Input): Output {
         })
     }
 
-    if (target != Kind.Optional && target != Kind.Object && target != Kind.Tuple) {
+    const condition = (
+        - target != Kind.Optional
+        - and target != Kind.Object
+        - and target != Kind.Tuple
+    )
+
+    if (condition) {
         return false
     }
 

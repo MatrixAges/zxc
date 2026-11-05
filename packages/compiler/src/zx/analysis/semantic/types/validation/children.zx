@@ -42,11 +42,14 @@ export default function (in: Input): Output {
 
             if (current.valid && current.object) {
                 current.valid =
-                    child != 0 && current.table.field_names[position] != "" &&
-                    (current.index == 0 || ascending({
-                        left: current.table.field_names[position - 1],
-                        right: current.table.field_names[position]
-                    }))
+                    (
+                        - child != 0
+                        - and current.table.field_names[position] != ""
+                        - and (current.index == 0 || ascending({
+                            left: current.table.field_names[position - 1],
+                            right: current.table.field_names[position]
+                        }))
+                    )
             }
 
             current.index += 1

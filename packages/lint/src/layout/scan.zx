@@ -49,11 +49,19 @@ export default function (in: Input): Output {
         next: current => {
             const token = current.input.tokens[current.index]
             const closing =
-                token.closing || token.text == close_object ||
-                token.text == close_call || token.text == close_list
+                (
+                    - token.closing
+                    - or token.text == close_object
+                    - or token.text == close_call
+                    - or token.text == close_list
+                )
             const opening =
-                token.opening || token.text == open_object ||
-                token.text == open_call || token.text == open_list
+                (
+                    - token.opening
+                    - or token.text == open_object
+                    - or token.text == open_call
+                    - or token.text == open_list
+                )
             const parent: u64? = current.stack.length == 0 ? null :
                 current.stack[current.stack.length - 1]
             const previous = current.index == 0 ? "" :
@@ -68,18 +76,21 @@ export default function (in: Input): Output {
                 (
                     token.text == keyword_case || token.text == keyword_default
                 )
-            const prior_selection =
-                selection && parent != null && current.selections[parent]
             const depth =
-                current.stack.length + current.selection_depth -
+                selection && parent != null && current.selections[parent]
+                -> current.stack.length + current.selection_depth -
                 (
-                    prior_selection ? 1 : 0
+                    _ ? 1 : 0
                 )
 
-            if (
-                token.boundary || previous == open_object || previous == comma ||
-                    operatorPriority(previous) != no_operator
-            ) {
+            const condition = (
+                - token.boundary
+                - or previous == open_object
+                - or previous == comma
+                - or operatorPriority(previous) != no_operator
+            )
+
+            if (condition) {
                 current.prefix = 0
             }
 
@@ -97,16 +108,26 @@ export default function (in: Input): Output {
             current.width += token.text.length + gap
             current.prefix += token.text.length + gap
 
-            if (selection && parent != null && !current.selections[parent]) {
+            const condition_2 = (
+                - selection
+                - and parent != null
+                - and !current.selections[parent]
+            )
+
+            if (condition_2) {
                 current.selections[parent] = true
                 current.selection_depth += 1
             }
 
-            if (
-                token.multiline ||
+            const condition_3 = (
+                - token.multiline
+                - or (
                     token.object && current.index + 1 < current.input.tokens.length &&
-                    current.input.tokens[current.index + 1].text != close_object
-            ) {
+                        current.input.tokens[current.index + 1].text != close_object
+                )
+            )
+
+            if (condition_3) {
                 current.vertical_count += 1
             }
 

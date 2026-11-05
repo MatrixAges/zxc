@@ -20,11 +20,15 @@ export default function (in: Input): Output {
     const members = in.members
     const count = members.names.length
 
-    if (
-        members.namespaces.length != count || members.ids.length != count ||
-            members.input_types.length != count ||
-            members.output_types.length != count || members.intrinsics.length != count
-    ) {
+    const condition = (
+        - members.namespaces.length != count
+        - or members.ids.length != count
+        - or members.input_types.length != count
+        - or members.output_types.length != count
+        - or members.intrinsics.length != count
+    )
+
+    if (condition) {
         return false
     }
 
@@ -52,33 +56,44 @@ export default function (in: Input): Output {
 
             current.valid =
                 (
-                    text(values.names[row]) ||
-                        (
-                            values.names[row] == "" &&
-                                values.intrinsics[row] != null
-                        )
-                ) && values.namespaces[row] == null
+                    - text(values.names[row])
+                    - or (
+                        values.names[row] == "" &&
+                            values.intrinsics[row] != null
+                    )
+                    - and values.namespaces[row] == null
+                )
 
             if (current.valid) {
                 if (values.intrinsics[row] != null) {
                     current.valid = id == null && input == null && output == null
-                } else if (id != null && input != null && output != null) {
-                    current.valid =
-                        integers.widen(id) < current.input.functions.files.length
-
-                    if (current.valid) {
-                        current.valid =
-                            input ==
-                            current.input.functions.input_types[integers.widen(
-                                id
-                            )] &&
-                            output ==
-                            current.input.functions.output_types[integers.widen(
-                                id
-                            )]
-                    }
                 } else {
-                    current.valid = false
+                    const condition_2 = (
+                        - id != null
+                        - and input != null
+                        - and output != null
+                    )
+
+                    if (condition_2) {
+                        current.valid =
+                            integers.widen(id) < current.input.functions.files.length
+
+                        if (current.valid) {
+                            current.valid =
+                                input ==
+                                current.input.functions
+                                .input_types[integers.widen(
+                                    id
+                                )] &&
+                                output ==
+                                current.input.functions
+                                .output_types[integers.widen(
+                                    id
+                                )]
+                        }
+                    } else {
+                        current.valid = false
+                    }
                 }
             }
 

@@ -46,23 +46,23 @@ export default function (in: Input): Output {
     })
 
     if (found.index == found.count) {
-        const message =
+        return (
             in.error_member ?
-            "error is not a member of this expression's finite error set" :
-            "unknown enum member"
-
-        return {
-            state: {
-                ...in.state,
-                diagnostic: {
-                    code: "name",
-                    message,
-                    start: in.name.start,
-                    end: in.name.end
-                }
-            },
-            value: 0
-        }
+                "error is not a member of this expression's finite error set" :
+                "unknown enum member"
+        )
+            -> {
+                state: {
+                    ...in.state,
+                    diagnostic: {
+                        code: "name",
+                        message: _,
+                        start: in.name.start,
+                        end: in.name.end
+                    }
+                },
+                value: 0
+            }
     }
 
     const result = append({

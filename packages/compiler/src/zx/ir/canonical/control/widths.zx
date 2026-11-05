@@ -35,11 +35,13 @@ export default function (in: Input): Output {
         return false
     }
 
-    if (
-        in.selection_subjects.length != in.selection_first.length ||
-            in.selection_subjects.length != in.selection_count.length ||
-            in.selection_subjects.length != in.selection_exhaustive.length
-    ) {
+    const condition = (
+        - in.selection_subjects.length != in.selection_first.length
+        - or in.selection_subjects.length != in.selection_count.length
+        - or in.selection_subjects.length != in.selection_exhaustive.length
+    )
+
+    if (condition) {
         return false
     }
 

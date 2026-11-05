@@ -78,6 +78,7 @@ pub const entries: []const Package = &.{
     .{ .specifier = "core/symbol_table/model", .entry = "core/symbol_table/model.zx" },
     .{ .specifier = "core/type_table/const", .entry = "core/type_table/const.zx" },
     .{ .specifier = "core/type_table/model", .entry = "core/type_table/model.zx" },
+    .{ .specifier = "core/type_table/code", .entry = "core/type_table/code.zx" },
     .{ .specifier = "core/type_table/kind", .entry = "core/type_table/kind.zx" },
     .{ .specifier = "core/type_table/scalar", .entry = "core/type_table/scalar.zx" },
     .{ .specifier = "core/type_table/row", .entry = "core/type_table/row.zx" },

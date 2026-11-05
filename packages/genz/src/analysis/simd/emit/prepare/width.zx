@@ -101,9 +101,18 @@ export default function (in: Input): Output {
         expressions: vector.table,
         main: width.statements,
         serial: width.serial,
-        valid: in.valid && standard.valid && namespace.valid && callee.valid &&
-            suggested.valid && minimum.valid && selected.valid && constant_width.valid &&
-            width.valid && vector.valid,
+        valid: (
+            - in.valid
+            - and standard.valid
+            - and namespace.valid
+            - and callee.valid
+            - and suggested.valid
+            - and minimum.valid
+            - and selected.valid
+            - and constant_width.valid
+            - and width.valid
+            - and vector.valid
+        ),
         values: {
             ...in.values,
             width: width.id,

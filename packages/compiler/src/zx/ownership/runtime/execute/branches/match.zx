@@ -24,19 +24,23 @@ export type Output = Machine
 export default function (in: Input): Output {
     return loop(in, {
         while: current =>
-            current.active && current.complete && !current.failed &&
-            current.work.actions.length != 0 &&
             (
-                current.work.actions[current.work.actions.length - 1] ==
-                    WorkAction.MatchSubject ||
-                    current.work.actions[current.work.actions.length - 1] ==
-                    WorkAction.MatchArm ||
-                    current.work.actions[current.work.actions.length - 1] ==
-                    WorkAction.MatchCondition ||
-                    current.work.actions[current.work.actions.length - 1] ==
-                    WorkAction.MatchResult ||
-                    current.work.actions[current.work.actions.length - 1] ==
-                    WorkAction.MatchFinish
+                - current.active
+                - and current.complete
+                - and !current.failed
+                - and current.work.actions.length != 0
+                - and (
+                    - current.work.actions[current.work.actions.length - 1] ==
+                        WorkAction.MatchSubject
+                    - or current.work.actions[current.work.actions.length - 1] ==
+                        WorkAction.MatchArm
+                    - or current.work.actions[current.work.actions.length - 1] ==
+                        WorkAction.MatchCondition
+                    - or current.work.actions[current.work.actions.length - 1] ==
+                        WorkAction.MatchResult
+                    - or current.work.actions[current.work.actions.length - 1] ==
+                        WorkAction.MatchFinish
+                )
             ),
         next: current => {
             const frame = top(current.work)

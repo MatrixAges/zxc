@@ -32,11 +32,13 @@ export default function (in: Input): Output {
             const target = kind(current.types.kinds[current.index])
 
             const child = integers.widen(current.types.first[current.index])
-            const boxed_list = target == Kind.List &&
-                (
+            const boxed_list = (
+                - target == Kind.List
+                - and (
                     current.visible[current.index] || current.visible[child] ||
                         !current.records[child]
                 )
+            )
 
             if (boxed_list || target == Kind.Task) {
                 current.roots =
@@ -50,26 +52,25 @@ export default function (in: Input): Output {
         return: state => state.roots
     })
 
-    const program =
-        containers.concat(in.program.stores.types)[0].concat(
-            comparisons(
-                in.program.expressions
-            )
-        )[0].concat(
-            contractComparisons(
-                in.program.contracts
-            )
-        )[0].concat(captures({
-            tables:
-                [in.program.expressions].concat(in.program.contracts.expressions)[0],
-            symbols: in.program.symbols
-        }))[0]
-
-    const shared = program.concat(sharing({
-        types: in.program.types,
-        records: in.records,
-        tables: [in.program.expressions].concat(in.program.contracts.expressions)[0]
+    const shared = containers.concat(in.program.stores.types)[0].concat(
+        comparisons(
+            in.program.expressions
+        )
+    )[0].concat(
+        contractComparisons(
+            in.program.contracts
+        )
+    )[0].concat(captures({
+        tables:
+            [in.program.expressions].concat(in.program.contracts.expressions)[0],
+        symbols: in.program.symbols
     }))[0]
+        -> _.concat(sharing({
+            types: in.program.types,
+            records: in.records,
+            tables:
+                [in.program.expressions].concat(in.program.contracts.expressions)[0]
+        }))[0]
 
     return loop({
         functions: in.program.functions,

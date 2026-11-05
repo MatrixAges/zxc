@@ -13,7 +13,7 @@ export type Input = State
 export type Output = State
 
 export default function (in: Input): Output {
-    const token = {
+    const types = {
         kind: in.control.token.kind,
         word: in.control.token.word,
         symbol: in.control.token.symbol,
@@ -24,11 +24,10 @@ export default function (in: Input): Output {
         line_break: in.control.token.line_break,
         dollar: in.control.token.dollar
     }
-
-    const types = typeStep({
-        state: in.types,
-        token
-    })
+        -> typeStep({
+            state: in.types,
+            token: _
+        })
 
     const index = types.control.index
 
@@ -73,11 +72,13 @@ export default function (in: Input): Output {
         })
     }
 
-    if (
-        state.control.token.kind != Kind.Eof &&
-            state.control.token.symbol != Symbol.CloseBrace &&
-            !state.control.token.line_break
-    ) {
+    const condition = (
+        - state.control.token.kind != Kind.Eof
+        - and state.control.token.symbol != Symbol.CloseBrace
+        - and !state.control.token.line_break
+    )
+
+    if (condition) {
         return fail({
             state,
             message: "expected a newline, closing block or end of source"

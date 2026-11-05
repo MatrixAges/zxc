@@ -34,12 +34,12 @@ export default function (in: Input): Output {
 
                 current.valid =
                     (
-                        name != "Input" ||
-                            id == current.input.functions.input_types[index]
-                    ) &&
-                    (
-                        name != "Output" ||
-                            id == current.input.functions.output_types[index]
+                        - name != "Input"
+                        - or id == current.input.functions.input_types[index]
+                        - and (
+                            name != "Output" ||
+                                id == current.input.functions.output_types[index]
+                        )
                     )
             }
 

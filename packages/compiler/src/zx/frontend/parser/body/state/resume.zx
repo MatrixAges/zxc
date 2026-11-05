@@ -12,17 +12,17 @@ export type Output = State
 export default function (in: Input): Output {
     const result = in.control.result
     const start = in.tree.blocks[result].span.start
-    const end = in.tree.blocks[result].span.end
 
-    const value = {
-        ...node({
-            kind: ExprKind.StateBlock,
-            start,
-            end,
-            depth: 1
-        }),
-        first: result
-    }
+    const value = in.tree.blocks[result].span.end
+        -> {
+            ...node({
+                kind: ExprKind.StateBlock,
+                start,
+                end: _,
+                depth: 1
+            }),
+            first: result
+        }
 
     const index = in.expression.control.index
     const root_index = in.expression.control.root_index
@@ -39,31 +39,29 @@ export default function (in: Input): Output {
         control: in.control
     }
 
-    const control = {
+    return {
         ...saved.expression,
         index,
         root_index,
         last_end,
         phase: Phase.Returning
     }
-
-    const expression = emit({
-        state: {
-            prepared: in.expression.prepared,
-            tree: in.expression.tree,
-            types: in.expression.types,
-            frames: saved.expression_frames,
-            control
-        },
-        node: value
-    })
-
-    return {
-        expression,
-        tree: in.tree,
-        frames: saved.frames,
-        suspended: popped[0],
-        frame: saved.frame,
-        control: saved.control
-    }
+        -> emit({
+            state: {
+                prepared: in.expression.prepared,
+                tree: in.expression.tree,
+                types: in.expression.types,
+                frames: saved.expression_frames,
+                control: _
+            },
+            node: value
+        })
+        -> {
+            expression: _,
+            tree: in.tree,
+            frames: saved.frames,
+            suspended: popped[0],
+            frame: saved.frame,
+            control: saved.control
+        }
 }

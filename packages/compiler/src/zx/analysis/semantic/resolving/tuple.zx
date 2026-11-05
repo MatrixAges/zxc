@@ -49,7 +49,7 @@ export default function (in: Input): Output {
         }
     })
 
-    const child = frame({
+    return frame({
         operation: Operation.Node,
         name: {
             text: "",
@@ -58,9 +58,8 @@ export default function (in: Input): Output {
         },
         reference: selected.value
     })
-
-    return {
-        ...waiting,
-        frames: waiting.frames.push(child)[0]
-    }
+        -> {
+            ...waiting,
+            frames: waiting.frames.push(_)[0]
+        }
 }

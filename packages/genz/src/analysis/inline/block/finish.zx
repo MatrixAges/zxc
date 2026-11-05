@@ -18,18 +18,17 @@ export default function (in: Input): Output {
     const source = state.units[state.mappings.units[in.frame.mapping]].control
     const first = state.tables.control.statement_kinds.length
 
-    const appended = describe({
+    const made = describe({
         source,
         offset: state.mappings.offsets[in.frame.mapping],
         table: state.tables.control,
         pool: state.pool,
         start: in.frame.start
     })
-
-    const made = block({
-        table: appended,
-        first
-    })
+        -> block({
+            table: _,
+            first
+        })
 
     return {
         ...state,

@@ -35,17 +35,20 @@ export default function (in: Input): Output {
 
     const right = paired ? in.right : fact_copy
 
-    if (
-        (paired && in.left == right) ||
-            (
-                in.action == RewriteAction.ReleaseNewLoans &&
-                    (
-                        (
-                            in.left < first_product_fact && in.left != fact_loaned
-                        ) || right == fact_loaned
-                    )
+    const condition = (
+        - paired
+        - and in.left == right
+        - or (
+            - in.action == RewriteAction.ReleaseNewLoans
+            - and (
+                (
+                    in.left < first_product_fact && in.left != fact_loaned
+                ) || right == fact_loaned
             )
-    ) {
+        )
+    )
+
+    if (condition) {
         return {
             forest: in.forest,
             fact: in.left
@@ -53,7 +56,7 @@ export default function (in: Input): Output {
     }
 
     if (in.left < first_product_fact && right < first_product_fact) {
-        const fact = uniform(state({
+        return uniform(state({
             left: summary({
                 forest: in.forest,
                 fact: in.left
@@ -64,11 +67,10 @@ export default function (in: Input): Output {
             }),
             action: in.action
         }))
-
-        return {
-            forest: in.forest,
-            fact
-        }
+            -> {
+                forest: in.forest,
+                fact: _
+            }
     }
 
     const result = loop({
@@ -103,18 +105,33 @@ export default function (in: Input): Output {
             })
             const identical = current.paired && left == right
             const unchanged =
-                current.action == RewriteAction.ReleaseNewLoans &&
                 (
-                    (
-                        left < first_product_fact && left != fact_loaned
-                    ) || right == fact_loaned
+                    - current.action == RewriteAction.ReleaseNewLoans
+                    - and (
+                        (
+                            left < first_product_fact && left != fact_loaned
+                        ) || right == fact_loaned
+                    )
                 )
             const uniform_pair = left < first_product_fact && right < first_product_fact
 
-            if (saved.found || identical || unchanged || uniform_pair) {
+            const condition_2 = (
+                - saved.found
+                - or identical
+                - or unchanged
+                - or uniform_pair
+            )
+
+            if (condition_2) {
                 current.value = saved.found ? saved.value : left
 
-                if (!saved.found && !identical && !unchanged) {
+                const condition_3 = (
+                    - !saved.found
+                    - and !identical
+                    - and !unchanged
+                )
+
+                if (condition_3) {
                     current.value = uniform(state({
                         left: summary({
                             forest: current.forest,
@@ -148,14 +165,14 @@ export default function (in: Input): Output {
                 const index = current.indices[top]
 
                 if (index < count) {
-                    const child_type = fieldType({
-                        types: current.types,
-                        type_id,
-                        index
-                    })
                     const reference =
-                        current.references[integers.widen(
-                            child_type
+                        fieldType({
+                            types: current.types,
+                            type_id,
+                            index
+                        })
+                        -> current.references[integers.widen(
+                            _
                         )]
                     const child_left = project({
                         forest: current.forest,
@@ -180,15 +197,15 @@ export default function (in: Input): Output {
                         forest: current.forest,
                         fact: left
                     }) : current.forest.shells[left - first_product_fact]
-                    const right_shell = right < first_product_fact ? summary({
+                    const shell = (right < first_product_fact ? summary({
                         forest: current.forest,
                         fact: right
-                    }) : current.forest.shells[right - first_product_fact]
-                    const shell = state({
-                        left: left_shell,
-                        right: right_shell,
-                        action: current.action
-                    })
+                    }) : current.forest.shells[right - first_product_fact])
+                        -> state({
+                            left: left_shell,
+                            right: _,
+                            action: current.action
+                        })
                     const unchanged = same({
                         types: current.types,
                         references: current.references,

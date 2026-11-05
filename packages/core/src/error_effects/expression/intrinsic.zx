@@ -99,11 +99,10 @@ export default function (in: Input): Output {
         const operation = expressions.collection_kinds[integers.widen(payload)]
         const allocated = in.names.push("OutOfMemory")[0]
 
-        const overflow =
+        const names =
             operation == CollectionKind.Push || operation == CollectionKind.Concat ||
             operation == CollectionKind.Splice
-
-        const names = overflow ? allocated.push("Overflow")[0] : allocated
+            -> (_ ? allocated.push("Overflow")[0] : allocated)
 
         return operation ==
             CollectionKind.Splice ? names.push("IndexOutOfBounds")[0] : names
@@ -130,10 +129,12 @@ export default function (in: Input): Output {
             )[0] : in.names
     }
 
-    const allocating =
-        kind == ExpressionKind.Capture || kind == ExpressionKind.List ||
-        kind == ExpressionKind.Tuple || kind == ExpressionKind.Template ||
-        kind == ExpressionKind.Object
-
-    return allocating ? in.names.push("OutOfMemory")[0] : in.names
+    return (
+        - kind == ExpressionKind.Capture
+        - or kind == ExpressionKind.List
+        - or kind == ExpressionKind.Tuple
+        - or kind == ExpressionKind.Template
+        - or kind == ExpressionKind.Object
+    )
+        -> (_ ? in.names.push("OutOfMemory")[0] : in.names)
 }

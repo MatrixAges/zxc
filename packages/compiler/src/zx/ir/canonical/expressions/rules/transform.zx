@@ -33,17 +33,20 @@ export default function (in: Input): Output {
         return false
     }
 
-    if (
-        initial != null && operation != TransformKind.Reduce &&
-            kind(
-                table
-                    .kinds[integers.widen(
-                        expressions.types[integers.widen(
-                            initial
-                        )]
+    const condition = (
+        - initial != null
+        - and operation != TransformKind.Reduce
+        - and kind(
+            table
+                .kinds[integers.widen(
+                    expressions.types[integers.widen(
+                        initial
                     )]
-            ) == Kind.Task
-    ) {
+                )]
+        ) == Kind.Task
+    )
+
+    if (condition) {
         return false
     }
 
@@ -81,9 +84,9 @@ export default function (in: Input): Output {
                         .transform_parameters[current.first +
                             current.index]
                 )
-            const context_index = current.operation == TransformKind.Reduce ? 0 : 1
-            const expected = current.index == context_index ? current.context_type :
-                current.element
+            const expected = (current.operation == TransformKind.Reduce ? 0 : 1)
+                -> (current.index == _ ? current.context_type :
+                    current.element)
 
             current.valid =
                 symbol < current.context.symbols.types.length &&

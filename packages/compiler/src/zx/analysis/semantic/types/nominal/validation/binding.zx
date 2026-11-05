@@ -24,12 +24,13 @@ export default function (in: Input): Output {
 
     const type_kind = kind(in.table.kinds[id])
 
-    if (
-        (type_kind != Kind.Enumeration && type_kind != Kind.NativeReference) ||
-            (
-                type_kind == Kind.NativeReference && in.origins.kinds[in.index] != 1
-            )
-    ) {
+    const condition = (
+        - type_kind != Kind.Enumeration
+        - and type_kind != Kind.NativeReference
+        - or (type_kind == Kind.NativeReference && in.origins.kinds[in.index] != 1)
+    )
+
+    if (condition) {
         return false
     }
 

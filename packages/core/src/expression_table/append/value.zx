@@ -30,7 +30,7 @@ export default function (in: Input): Output {
         _ => ExpressionKind.Length,
     }
 
-    const count = match in.kind {
+    const result = match in.kind {
         ValueKind.Some => in.table.some.length,
         ValueKind.Capture => in.table.captures.length,
         ValueKind.AwaitTask => in.table.awaits.length,
@@ -42,13 +42,12 @@ export default function (in: Input): Output {
         ValueKind.StoreGet => in.table.stores.length,
         _ => in.table.lengths.length,
     }
-
-    const result = header({
-        table: in.table,
-        metadata: in.metadata,
-        kind,
-        payload: integers.narrow(count)
-    })
+        -> header({
+            table: in.table,
+            metadata: in.metadata,
+            kind,
+            payload: integers.narrow(_)
+        })
 
     return {
         table: {

@@ -36,15 +36,17 @@ export default function (in: Input): Output {
             const task = expressions.parallel_tasks[position]
             const task_index = integers.widen(task)
 
-            if (
-                task_index >= context.index ||
-                    expressions.kinds[task_index] != ExpressionKind.Task ||
-                    kind(
-                        table.kinds[integers.widen(
-                            expressions.types[task_index]
-                        )]
-                    ) != Kind.Task
-            ) {
+            const condition = (
+                - task_index >= context.index
+                - or expressions.kinds[task_index] != ExpressionKind.Task
+                - or kind(
+                    table.kinds[integers.widen(
+                        expressions.types[task_index]
+                    )]
+                ) != Kind.Task
+            )
+
+            if (condition) {
                 current.valid = false
             } else {
                 const result =

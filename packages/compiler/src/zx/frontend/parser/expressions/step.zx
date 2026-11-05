@@ -40,10 +40,13 @@ export default function (in: Input): Output {
         }
     }
 
-    if (
-        state.control.phase == Phase.BeginBinary && state.frames.length == 0 &&
-            state.control.token.symbol == Symbol.Semicolon
-    ) {
+    const condition = (
+        - state.control.phase == Phase.BeginBinary
+        - and state.frames.length == 0
+        - and state.control.token.symbol == Symbol.Semicolon
+    )
+
+    if (condition) {
         return fail({
             state,
             code: "syntax",

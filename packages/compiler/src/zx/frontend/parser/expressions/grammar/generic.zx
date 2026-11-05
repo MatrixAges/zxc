@@ -22,15 +22,14 @@ export default function (in: Input): Output {
             })
         }
 
-        const argument = in.control.type_argument
-
-        return startArguments({
-            state: in,
-            type_argument: argument
-        })
+        return in.control.type_argument
+            -> startArguments({
+                state: in,
+                type_argument: _
+            })
     }
 
-    const token = {
+    const types = {
         kind: in.control.token.kind,
         word: in.control.token.word,
         symbol: in.control.token.symbol,
@@ -41,11 +40,10 @@ export default function (in: Input): Output {
         line_break: in.control.token.line_break,
         dollar: in.control.token.dollar
     }
-
-    const types = typeStep({
-        state: in.types,
-        token
-    })
+        -> typeStep({
+            state: in.types,
+            token: _
+        })
 
     const index = types.control.index
     const root_index = in.control.stream == 0 ? index : in.control.root_index
@@ -57,20 +55,19 @@ export default function (in: Input): Output {
     const failed = types.control.diagnostic.message != ""
     const argument = types.control.result + 1
 
-    const control = {
+    const state = {
         ...in.control,
         index,
         root_index,
         last_end
     }
-
-    const state = {
-        prepared: in.prepared,
-        tree: in.tree,
-        types,
-        frames: in.frames,
-        control
-    }
+        -> {
+            prepared: in.prepared,
+            tree: in.tree,
+            types,
+            frames: in.frames,
+            control: _
+        }
 
     if (failed) {
         return {

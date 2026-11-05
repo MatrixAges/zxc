@@ -44,16 +44,14 @@ export default function (in: Input): Output {
     }
 
     if (kind == ExpressionKind.ListOperation) {
-        const type_id =
-            in.input.expressions
+        return in.input.expressions
             .types[integers.widen(
                 in.input.expressions.collection_targets[payload]
             )]
-
-        return !represented({
-            types: in.input.types,
-            id: in.input.types.first[integers.widen(type_id)]
-        })
+            -> !represented({
+                types: in.input.types,
+                id: in.input.types.first[integers.widen(_)]
+            })
     }
 
     if (kind == ExpressionKind.Call) {
@@ -71,22 +69,24 @@ export default function (in: Input): Output {
         const left = integers.widen(in.input.expressions.binary_left[payload])
         const right = integers.widen(in.input.expressions.binary_right[payload])
 
-        return operator == BinaryOperator.Coalesce || (
-            (
-                operator == BinaryOperator.Equal ||
-                    operator == BinaryOperator.NotEqual
-            ) &&
-                (
+        return (
+            - operator == BinaryOperator.Coalesce
+            - or (
+                - operator == BinaryOperator.Equal
+                - or operator == BinaryOperator.NotEqual
+                - and (
                     in.input.expressions.kinds[left] == ExpressionKind.None ||
                         in.input.expressions.kinds[right] == ExpressionKind.None
                 )
-        ) || (!represented({
-            types: in.input.types,
-            id: in.input.expressions.types[left]
-        }) && !represented({
-            types: in.input.types,
-            id: in.input.expressions.types[right]
-        }))
+            )
+            - or (!represented({
+                types: in.input.types,
+                id: in.input.expressions.types[left]
+            }) && !represented({
+                types: in.input.types,
+                id: in.input.expressions.types[right]
+            }))
+        )
     }
 
     if (kind == ExpressionKind.Match) {

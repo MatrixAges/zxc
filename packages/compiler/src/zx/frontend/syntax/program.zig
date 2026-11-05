@@ -36,7 +36,7 @@ pub fn View(comptime Storage: type) type {
         pub fn expression(self: *const Self, index: u64) Model.Expression {
             const id: usize = @intCast(index);
 
-            return .{ .context = self, .index = id, .span = Header.span(self.storage.expressions.nodes[id].span) };
+            return .{ .context = self, .index = id, .span = Header.span(self.storage.expressions.nodes[id].span), .condition_list = self.storage.expressions.nodes[id].condition_list, .condition_terms = @intCast(self.storage.expressions.nodes[id].condition_terms) };
         }
         pub fn block(self: *const Self, index: u64) Model.Block {
             const id: usize = @intCast(index);

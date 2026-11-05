@@ -74,18 +74,17 @@ export default function (in: Input): Output {
         }
     }
 
-    const part = in.source.tree.parts[text.frame.parts[text.frame.index]]
-
-    return {
-        ...in,
-        state: text.state,
-        node: part.value,
-        expected: null,
-        phase: Phase.Evaluate,
-        frames: {
-            ...in.frames,
-            actions: in.frames.actions.push(Action.Template)[0],
-            templates: in.frames.templates.splice(position, 1, [text.frame])[0]
+    return in.source.tree.parts[text.frame.parts[text.frame.index]]
+        -> {
+            ...in,
+            state: text.state,
+            node: _.value,
+            expected: null,
+            phase: Phase.Evaluate,
+            frames: {
+                ...in.frames,
+                actions: in.frames.actions.push(Action.Template)[0],
+                templates: in.frames.templates.splice(position, 1, [text.frame])[0]
+            }
         }
-    }
 }

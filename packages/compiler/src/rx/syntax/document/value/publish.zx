@@ -22,7 +22,7 @@ export default function (in: Input): Output {
         const head = in.state.tree.attributes.length + 1
         const count = in.state.frame.attribute_count + 1
 
-        const attributes = in.state.tree.attributes.push({
+        return in.state.tree.attributes.push({
             expression: in.expression,
             name: {
                 start: in.state.control.attribute.start,
@@ -37,56 +37,54 @@ export default function (in: Input): Output {
             value_location,
             previous: in.state.frame.attributes
         })[0]
+            -> {
+                source: in.state.source,
+                tree: {
+                    nodes: in.state.tree.nodes,
+                    attributes: _,
+                    text: in.state.tree.text,
+                    children: in.state.tree.children,
+                    parts: in.state.tree.parts
+                },
+                frames: in.state.frames,
+                frame: {
+                    ...in.state.frame,
+                    attributes: head,
+                    attribute_count: count
+                },
+                control: {
+                    ...in.state.control,
+                    phase: Phase.Attributes
+                }
+            }
+    }
 
-        return {
+    const head = in.state.tree.text.length + 1
+    const count = in.state.frame.text_count + 1
+
+    return in.state.tree.text.push({
+        value: in.value,
+        location: value_location,
+        previous: in.state.frame.text
+    })[0]
+        -> {
             source: in.state.source,
             tree: {
                 nodes: in.state.tree.nodes,
-                attributes,
-                text: in.state.tree.text,
+                attributes: in.state.tree.attributes,
+                text: _,
                 children: in.state.tree.children,
                 parts: in.state.tree.parts
             },
             frames: in.state.frames,
             frame: {
                 ...in.state.frame,
-                attributes: head,
-                attribute_count: count
+                text: head,
+                text_count: count
             },
             control: {
                 ...in.state.control,
-                phase: Phase.Attributes
+                phase: Phase.Content
             }
         }
-    }
-
-    const head = in.state.tree.text.length + 1
-    const count = in.state.frame.text_count + 1
-
-    const text = in.state.tree.text.push({
-        value: in.value,
-        location: value_location,
-        previous: in.state.frame.text
-    })[0]
-
-    return {
-        source: in.state.source,
-        tree: {
-            nodes: in.state.tree.nodes,
-            attributes: in.state.tree.attributes,
-            text,
-            children: in.state.tree.children,
-            parts: in.state.tree.parts
-        },
-        frames: in.state.frames,
-        frame: {
-            ...in.state.frame,
-            text: head,
-            text_count: count
-        },
-        control: {
-            ...in.state.control,
-            phase: Phase.Content
-        }
-    }
 }

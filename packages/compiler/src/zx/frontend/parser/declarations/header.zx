@@ -16,18 +16,17 @@ export default function (in: Input): Output {
         if (
             in.control.token.word != Keyword.Type && in.control.token.word != Keyword.Enum
         ) {
-            const index = in.control.opening_index
-
-            return {
-                declarations: in.declarations,
-                members: in.members,
-                types: in.types,
-                control: {
-                    ...in.control,
-                    phase: Phase.Done,
-                    index
+            return in.control.opening_index
+                -> {
+                    declarations: in.declarations,
+                    members: in.members,
+                    types: in.types,
+                    control: {
+                        ...in.control,
+                        phase: Phase.Done,
+                        index: _
+                    }
                 }
-            }
         }
 
         return in.control.token.word == Keyword.Enum
@@ -53,23 +52,22 @@ export default function (in: Input): Output {
             })
         }
 
-        const name = {
+        return {
             start: in.control.token.span.start,
             end: in.control.token.span.end
         }
-
-        return consume({
-            state: {
-                declarations: in.declarations,
-                members: in.members,
-                types: in.types,
-                control: {
-                    ...in.control,
-                    name
-                }
-            },
-            phase: Phase.Open
-        })
+            -> consume({
+                state: {
+                    declarations: in.declarations,
+                    members: in.members,
+                    types: in.types,
+                    control: {
+                        ...in.control,
+                        name: _
+                    }
+                },
+                phase: Phase.Open
+            })
     }
 
     if (in.control.enumeration) {
@@ -100,7 +98,7 @@ export default function (in: Input): Output {
         depth: in.control.depth
     })
 
-    const types = {
+    return {
         tree: in.types.tree,
         frames: initial.frames,
         control: {
@@ -108,14 +106,13 @@ export default function (in: Input): Output {
             index
         }
     }
-
-    return consume({
-        state: {
-            declarations: in.declarations,
-            members: in.members,
-            types,
-            control: in.control
-        },
-        phase: Phase.Value
-    })
+        -> consume({
+            state: {
+                declarations: in.declarations,
+                members: in.members,
+                types: _,
+                control: in.control
+            },
+            phase: Phase.Value
+        })
 }

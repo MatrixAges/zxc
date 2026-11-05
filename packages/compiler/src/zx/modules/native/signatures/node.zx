@@ -12,7 +12,7 @@ export type Input = {
 export type Output = State
 
 export default function (in: Input): Output {
-    const next = frame({
+    return frame({
         operation: Operation.Node,
         name: {
             text: "",
@@ -24,9 +24,8 @@ export default function (in: Input): Output {
             index: in.index
         }
     })
-
-    return run({
-        ...in.state,
-        frames: in.state.frames.push(next)[0]
-    })
+        -> run({
+            ...in.state,
+            frames: in.state.frames.push(_)[0]
+        })
 }

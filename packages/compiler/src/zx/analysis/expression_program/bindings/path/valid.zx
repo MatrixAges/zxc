@@ -32,8 +32,10 @@ export default function (in: Input): Output {
                 current.keyword = 0
             } else {
                 const letter =
-                    (byte >= 65 && byte <= 90) || (
-                        byte >= 97 && byte <= 122
+                    (
+                        - byte >= 65
+                        - and byte <= 90
+                        - or (byte >= 97 && byte <= 122)
                     )
 
                 current.valid =

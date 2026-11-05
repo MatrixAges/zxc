@@ -28,25 +28,24 @@ export default function (in: Input): Output {
     }
 
     const start = in.frame.start
-    const depth = in.frame.depth
 
-    const control = {
-        ...in.state.control,
-        depth,
-        primary_start: start
-    }
-
-    return emit({
-        state: consume({
-            state: {
-                prepared: in.state.prepared,
-                tree: in.state.tree,
-                types: in.state.types,
-                frames: in.state.frames,
-                control
-            },
-            phase
-        }),
-        node: value
-    })
+    return in.frame.depth
+        -> {
+            ...in.state.control,
+            depth: _,
+            primary_start: start
+        }
+        -> emit({
+            state: consume({
+                state: {
+                    prepared: in.state.prepared,
+                    tree: in.state.tree,
+                    types: in.state.types,
+                    frames: in.state.frames,
+                    control: _
+                },
+                phase
+            }),
+            node: value
+        })
 }

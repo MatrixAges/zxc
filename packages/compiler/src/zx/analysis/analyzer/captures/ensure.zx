@@ -92,23 +92,22 @@ export default function (in: Input): Output {
         ownership: Ownership.Borrowed
     })
 
-    const captures = link({
+    return link({
         captures: state.local.captures,
         frame: in.frame,
         source: in.source,
         target: bound.id,
         value: value.value
     })
-
-    return {
-        state: {
-            ...state,
-            local: {
-                ...state.local,
-                symbols: bound.table,
-                captures
-            }
-        },
-        symbol: bound.id
-    }
+        -> {
+            state: {
+                ...state,
+                local: {
+                    ...state.local,
+                    symbols: bound.table,
+                    captures: _
+                }
+            },
+            symbol: bound.id
+        }
 }

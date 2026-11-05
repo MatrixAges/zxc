@@ -26,11 +26,15 @@ export default function (in: Input): Output {
         return aggregate(in)
     }
 
-    if (
-        kind == ExpressionKind.List || kind == ExpressionKind.ListOperation ||
-            kind == ExpressionKind.ListUpdate || kind == ExpressionKind.Index ||
-            kind == ExpressionKind.Transform
-    ) {
+    const condition = (
+        - kind == ExpressionKind.List
+        - or kind == ExpressionKind.ListOperation
+        - or kind == ExpressionKind.ListUpdate
+        - or kind == ExpressionKind.Index
+        - or kind == ExpressionKind.Transform
+    )
+
+    if (condition) {
         return collection(in)
     }
 
@@ -54,37 +58,43 @@ export default function (in: Input): Output {
         }
     }
 
-    if (
-        kind == ExpressionKind.OptionalValue || kind == ExpressionKind.Some ||
-            kind == ExpressionKind.Capture || kind == ExpressionKind.Scope
-    ) {
-        const target = match kind {
+    const condition_2 = (
+        - kind == ExpressionKind.OptionalValue
+        - or kind == ExpressionKind.Some
+        - or kind == ExpressionKind.Capture
+        - or kind == ExpressionKind.Scope
+    )
+
+    if (condition_2) {
+        return match kind {
             ExpressionKind.OptionalValue => expressions.optional_values[payload],
             ExpressionKind.Some => expressions.some[payload],
             ExpressionKind.Capture => expressions.captures[payload],
             _ => expressions.scope_results[payload]
         }
-
-        return {
-            ...in.state,
-            queue: push({
-                queue: in.state.queue,
-                first: body.prepared.first,
-                point: {
-                    node: target,
-                    slot
-                }
-            })
-        }
+            -> {
+                ...in.state,
+                queue: push({
+                    queue: in.state.queue,
+                    first: body.prepared.first,
+                    point: {
+                        node: _,
+                        slot
+                    }
+                })
+            }
     }
 
-    if (
-        kind == ExpressionKind.Conditional || kind == ExpressionKind.Iteration ||
-            (
-                kind == ExpressionKind.Binary &&
-                    expressions.binary_operators[payload] == BinaryOperator.Coalesce
-            )
-    ) {
+    const condition_3 = (
+        - kind == ExpressionKind.Conditional
+        - or kind == ExpressionKind.Iteration
+        - or (
+            kind == ExpressionKind.Binary &&
+                expressions.binary_operators[payload] == BinaryOperator.Coalesce
+        )
+    )
+
+    if (condition_3) {
         const left = match kind {
             ExpressionKind.Conditional => expressions.conditional_yes[payload],
             ExpressionKind.Iteration => expressions.iteration_initials[payload],
@@ -97,7 +107,7 @@ export default function (in: Input): Output {
             _ => expressions.binary_right[payload]
         }
 
-        const queue = push({
+        return push({
             queue: in.state.queue,
             first: body.prepared.first,
             point: {
@@ -105,18 +115,17 @@ export default function (in: Input): Output {
                 slot
             }
         })
-
-        return {
-            ...in.state,
-            queue: push({
-                queue,
-                first: body.prepared.first,
-                point: {
-                    node: right,
-                    slot
-                }
-            })
-        }
+            -> {
+                ...in.state,
+                queue: push({
+                    queue: _,
+                    first: body.prepared.first,
+                    point: {
+                        node: right,
+                        slot
+                    }
+                })
+            }
     }
 
     if (kind == ExpressionKind.Match) {
@@ -163,10 +172,14 @@ export default function (in: Input): Output {
         return invocation(in)
     }
 
-    if (
-        kind == ExpressionKind.Task || kind == ExpressionKind.AwaitTask ||
-            kind == ExpressionKind.Parallel || kind == ExpressionKind.StoreGet
-    ) {
+    const condition_4 = (
+        - kind == ExpressionKind.Task
+        - or kind == ExpressionKind.AwaitTask
+        - or kind == ExpressionKind.Parallel
+        - or kind == ExpressionKind.StoreGet
+    )
+
+    if (condition_4) {
         return {
             ...in.state,
             every: true

@@ -23,8 +23,8 @@ export default function (in: Input): Output {
                 while: (scan, source) => scan.index < source.repetitions.length,
                 next: (scan, source) => {
                     const repetition = source.repetitions[scan.index]
-                    const owner = integers.widen(repetition.owner)
-                    const row = scan.state.carried[owner]
+                    const row = integers.widen(repetition.owner)
+                        -> scan.state.carried[_]
 
                     const slots = loop({
                         state: scan.state,

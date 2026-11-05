@@ -41,19 +41,18 @@ export default function (in: Input): Output {
     }
 
     if (node.kind == ExprKind.Field || node.kind == ExprKind.Index) {
-        const operation = match {
+        return match {
             node.kind == ExprKind.Index => Operation.Index,
             in.declared => Operation.DeclaredField,
             _ => Operation.Field,
         }
-
-        return {
-            ...work,
-            frames: work.frames.push({
-                operation,
-                node: in.node
-            })[0].push(child)[0]
-        }
+            -> {
+                ...work,
+                frames: work.frames.push({
+                    operation: _,
+                    node: in.node
+                })[0].push(child)[0]
+            }
     }
 
     if (node.kind == ExprKind.Await) {
@@ -100,22 +99,26 @@ export default function (in: Input): Output {
             }
         }
 
-        const boolean =
-            node.operator == Operator.Equal || node.operator == Operator.NotEqual ||
-            node.operator == Operator.Less || node.operator == Operator.LessEqual ||
-            node.operator == Operator.Greater || node.operator == Operator.GreaterEqual ||
-            node.operator == Operator.And || node.operator == Operator.Or
-
-        return boolean ? {
-            ...work,
-            result: 1
-        } : {
-            ...work,
-            frames: work.frames.push({
-                operation: Operation.Fallback,
-                node: node.second
-            })[0].push(child)[0]
-        }
+        return (
+            - node.operator == Operator.Equal
+            - or node.operator == Operator.NotEqual
+            - or node.operator == Operator.Less
+            - or node.operator == Operator.LessEqual
+            - or node.operator == Operator.Greater
+            - or node.operator == Operator.GreaterEqual
+            - or node.operator == Operator.And
+            - or node.operator == Operator.Or
+        )
+            -> (_ ? {
+                ...work,
+                result: 1
+            } : {
+                ...work,
+                frames: work.frames.push({
+                    operation: Operation.Fallback,
+                    node: node.second
+                })[0].push(child)[0]
+            })
     }
 
     if (node.kind == ExprKind.Conditional) {

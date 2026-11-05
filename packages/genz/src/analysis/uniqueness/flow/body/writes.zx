@@ -49,8 +49,8 @@ export default function (in: Input): Output {
                         })[0]
                     }
                 } else if (kind == ExpressionKind.Call) {
-                    const callee = expressions.call_functions[payload]
-                    const values = source.written[integers.widen(callee)]
+                    const values = expressions.call_functions[payload]
+                        -> source.written[integers.widen(_)]
 
                     state.roots = loop({
                         roots: state.roots,

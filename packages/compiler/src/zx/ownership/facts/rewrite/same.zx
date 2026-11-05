@@ -43,19 +43,19 @@ export default function (in: Input): Output {
     }, {
         while: current => current.same && current.index < current.count,
         next: current => {
-            const type_id = fieldType({
+            const previous = fieldType({
                 types: current.types,
                 type_id: current.type_id,
                 index: current.index
             })
-            const previous = project({
-                forest: current.forest,
-                fact: current.fact,
-                index: current.index,
-                reference: current.references[integers.widen(
-                    type_id
-                )]
-            })
+                -> project({
+                    forest: current.forest,
+                    fact: current.fact,
+                    index: current.index,
+                    reference: current.references[integers.widen(
+                        _
+                    )]
+                })
 
             current.same =
                 previous == current.children[current.first + current.index]

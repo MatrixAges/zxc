@@ -94,10 +94,9 @@ export default function (in: Input): Output {
         }
     }
 
-    const table = target.delta ? tables.delta : tables.base
-
-    return {
-        expected: table.children[integers.widen(target.first) + slot],
-        projection: null
-    }
+    return (target.delta ? tables.delta : tables.base)
+        -> {
+            expected: _.children[integers.widen(target.first) + slot],
+            projection: null
+        }
 }

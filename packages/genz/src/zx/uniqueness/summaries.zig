@@ -66,7 +66,7 @@ pub fn mayMutate(self: Self, function: ir.FunctionId, slot: u32) bool {
 pub fn reset(self: Self, program: ir.Program, known: []const bool) void {
     if (generated_analysis) return @import("summaries/lifecycle.zig").apply(self, .Reset, program.functions.native_modules, known);
 
-    for (self.input, self.output, known, 0..) |input, output, callers, index| {
+    for (self.input, self.output, known[0..self.input.len], 0..) |input, output, callers, index| {
         const internal = program.functions.at(index).external == null;
 
         @memset(input, if (internal and callers) .all else .none);

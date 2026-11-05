@@ -22,28 +22,27 @@ export type Output = {
 export default function (in: Input): Output {
     const source = in.stage.source
     const working = in.stage.working
-    const rows = in.output ? source.outputs : source.inputs
 
-    const value = decode(
-        bytes.loadAtomicCell(
-            rows,
-            integers.widen(in.function_index),
-            integers.widen(in.slot)
+    const value = (in.output ? source.outputs : source.inputs)
+        -> decode(
+            bytes.loadAtomicCell(
+                _,
+                integers.widen(in.function_index),
+                integers.widen(in.slot)
+            )
         )
-    )
 
-    const table = in.output ? Table.Outputs : Table.Inputs
-
-    return {
-        working: {
-            ...working,
-            reads: working.context.metadata.record ? working.reads.push({
-                table,
-                function_index: in.function_index,
-                slot: in.slot,
-                value
-            })[0] : working.reads
-        },
-        value
-    }
+    return (in.output ? Table.Outputs : Table.Inputs)
+        -> {
+            working: {
+                ...working,
+                reads: working.context.metadata.record ? working.reads.push({
+                    table: _,
+                    function_index: in.function_index,
+                    slot: in.slot,
+                    value
+                })[0] : working.reads
+            },
+            value
+        }
 }

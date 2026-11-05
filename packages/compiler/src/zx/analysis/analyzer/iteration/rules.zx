@@ -165,24 +165,22 @@ export default function (in: Input): Output {
         }
     })
 
-    const incomplete =
-        found.diagnostic.message == "" &&
+    return found.diagnostic.message == "" &&
         (
             found.condition == null || found.step == null
         )
-
-    return {
-        initial: arguments[0],
-        readonly_node: node.count == 3 ? arguments[2] : null,
-        condition: found.condition ?? 0,
-        step: found.step ?? 0,
-        result_node: found.result_node,
-        postcondition: found.postcondition,
-        diagnostic: incomplete ? {
-            code: "type_mismatch",
-            message: "loop requires while and exactly one next or do step",
-            start: rules.span.start,
-            end: rules.span.end
-        } : found.diagnostic
-    }
+        -> {
+            initial: arguments[0],
+            readonly_node: node.count == 3 ? arguments[2] : null,
+            condition: found.condition ?? 0,
+            step: found.step ?? 0,
+            result_node: found.result_node,
+            postcondition: found.postcondition,
+            diagnostic: _ ? {
+                code: "type_mismatch",
+                message: "loop requires while and exactly one next or do step",
+                start: rules.span.start,
+                end: rules.span.end
+            } : found.diagnostic
+        }
 }

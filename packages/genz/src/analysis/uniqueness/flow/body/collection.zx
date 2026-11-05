@@ -24,21 +24,22 @@ export default function (in: Input): Output {
         const operation = expressions.collection_kinds[payload]
         const target = expressions.collection_targets[payload]
 
-        const aliased =
-            in.point.slot ==
-            (operation == CollectionKind.Splice ? splice_retained_slot : buffer_slot)
-
-        const queue = aliased || (contents && nested({
-            body,
-            node: target
-        })) ? push({
-            queue: in.state.queue,
-            first: body.prepared.first,
-            point: {
-                node: target,
-                slot: buffer_slot
-            }
-        }) : in.state.queue
+        const queue = in.point.slot ==
+            (
+                operation == CollectionKind.Splice ? splice_retained_slot :
+                    buffer_slot
+            )
+            -> (_ || (contents && nested({
+                body,
+                node: target
+            })) ? push({
+                queue: in.state.queue,
+                first: body.prepared.first,
+                point: {
+                    node: target,
+                    slot: buffer_slot
+                }
+            }) : in.state.queue)
 
         if (!contents) {
             return {
@@ -122,7 +123,7 @@ export default function (in: Input): Output {
         const initial = expressions.transform_initials[payload]
 
         if (operation == TransformKind.Reduce && initial != null) {
-            const queue = push({
+            return push({
                 queue: in.state.queue,
                 first: body.prepared.first,
                 point: {
@@ -130,18 +131,17 @@ export default function (in: Input): Output {
                     slot: in.point.slot
                 }
             })
-
-            return {
-                ...in.state,
-                queue: push({
-                    queue,
-                    first: body.prepared.first,
-                    point: {
-                        node: expressions.transform_bodies[payload],
-                        slot: in.point.slot
-                    }
-                })
-            }
+                -> {
+                    ...in.state,
+                    queue: push({
+                        queue: _,
+                        first: body.prepared.first,
+                        point: {
+                            node: expressions.transform_bodies[payload],
+                            slot: in.point.slot
+                        }
+                    })
+                }
         }
 
         if (contents && operation == TransformKind.Map) {
@@ -155,10 +155,16 @@ export default function (in: Input): Output {
             }
         }
 
-        if (contents && operation == TransformKind.Filter && nested({
-            body,
-            node: target
-        })) {
+        const condition = (
+            - contents
+            - and operation == TransformKind.Filter
+            - and nested({
+                body,
+                node: target
+            })
+        )
+
+        if (condition) {
             return {
                 ...in.state,
                 queue: push({

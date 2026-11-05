@@ -58,27 +58,26 @@ export default function (in: Input): Output {
         id: list
     }).first
 
-    const payload_type = in.kind == CollectionKind.Splice ? list : 0
-
-    const slot = in.kind == CollectionKind.Pop ? construct({
-        state: in.state,
-        candidate: {
-            kind: Kind.Optional,
-            first: element,
-            second: 0,
-            label: "",
-            children: [],
-            fields: {
-                names: [],
-                types: []
+    const slot = (in.kind == CollectionKind.Splice ? list : 0)
+        -> (in.kind == CollectionKind.Pop ? construct({
+            state: in.state,
+            candidate: {
+                kind: Kind.Optional,
+                first: element,
+                second: 0,
+                label: "",
+                children: [],
+                fields: {
+                    names: [],
+                    types: []
+                },
+                names: []
             },
-            names: []
-        },
-        span: in.span
-    }) : {
-        state: in.state,
-        id: payload_type
-    }
+            span: in.span
+        }) : {
+            state: in.state,
+            id: _
+        })
 
     if (slot.state.diagnostic.message != "") {
         return {

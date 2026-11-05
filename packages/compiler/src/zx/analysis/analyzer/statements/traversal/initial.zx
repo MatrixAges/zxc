@@ -31,22 +31,21 @@ export default function (in: Input): Output {
         functions: in.functions
     })
 
-    const blocks = enter({
+    return enter({
         blocks: empty(),
         local: in.state.local,
         tree: in.source.blocks,
         block: in.block
     })
-
-    return {
-        expression,
-        blocks,
-        actions: [],
-        branches: [],
-        selections: [],
-        statement: 0,
-        slot: 0,
-        value: 0,
-        phase: Phase.Next
-    }
+        -> {
+            expression,
+            blocks: _,
+            actions: [],
+            branches: [],
+            selections: [],
+            statement: 0,
+            slot: 0,
+            value: 0,
+            phase: Phase.Next
+        }
 }

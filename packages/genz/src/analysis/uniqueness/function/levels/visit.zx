@@ -71,20 +71,19 @@ export default function visit(in: Input): Output {
     const kind = expressions.kinds[node]
 
     if (kind == ExpressionKind.Field || kind == ExpressionKind.TupleField) {
-        const selected = projection({
+        return projection({
             metadata: context.metadata,
             slot: request.slot,
             target: expressions.projection_targets[payload],
             index: expressions.projection_indices[payload]
         })
-
-        return complete({
-            ...ending,
-            result: visit({
-                ...in,
-                request: selected
+            -> complete({
+                ...ending,
+                result: visit({
+                    ...in,
+                    request: _
+                })
             })
-        })
     }
 
     if (kind == ExpressionKind.OptionalValue) {
@@ -135,7 +134,7 @@ export default function visit(in: Input): Output {
         }
 
         if (definition == Definition.Value || definition == Definition.Part) {
-            const selected = definition == Definition.Part ? projection({
+            return (definition == Definition.Part ? projection({
                 metadata: context.metadata,
                 slot: request.slot,
                 target,
@@ -144,15 +143,14 @@ export default function visit(in: Input): Output {
                 node: target,
                 slot: request.slot,
                 raw: false
-            }
-
-            return complete({
-                ...reference,
-                result: visit({
-                    ...in,
-                    request: selected
-                })
             })
+                -> complete({
+                    ...reference,
+                    result: visit({
+                        ...in,
+                        request: _
+                    })
+                })
         }
 
         switch (definition) {
@@ -164,21 +162,20 @@ export default function visit(in: Input): Output {
                     })
                 }
 
-                const result = read({
+                return read({
                     context,
                     reads: in.reads,
                     table: Table.Input,
                     function_index: context.metadata.function_index,
                     slot: request.slot
                 })
-
-                return complete({
-                    ...reference,
-                    result: {
-                        known: in.known,
-                        ...result
-                    }
-                })
+                    -> complete({
+                        ...reference,
+                        result: {
+                            known: in.known,
+                            ..._
+                        }
+                    })
 
             case Definition.Carried:
                 return complete({
@@ -285,42 +282,40 @@ export default function visit(in: Input): Output {
                 })
             }
 
-            const result = read({
+            return read({
                 context,
                 reads: in.reads,
                 table: Table.Output,
                 function_index: callee,
                 slot: request.slot
             })
-
-            return complete({
-                ...current,
-                result: {
-                    known: in.known,
-                    ...result
-                }
-            })
+                -> complete({
+                    ...current,
+                    result: {
+                        known: in.known,
+                        ..._
+                    }
+                })
 
         case ExpressionKind.ListOperation:
             const target = expressions.collection_targets[payload]
 
             if (request.slot != buffer_slot) {
-                const retained = request.slot == splice_retained_slot && prefix({
+                return request.slot == splice_retained_slot && prefix({
                     expressions,
                     payload: expressions.payloads[node]
                 })
-
-                return complete({
-                    ...current,
-                    result: retained ? visit({
-                        ...in,
-                        request: {
-                            node: target,
-                            slot: buffer_slot,
-                            raw: false
-                        }
-                    }) : empty
-                })
+                    -> complete({
+                        ...current,
+                        result: _ ? visit({
+                            ...in,
+                            request: {
+                                node: target,
+                                slot: buffer_slot,
+                                raw: false
+                            }
+                        }) : empty
+                    })
             }
 
             const operation = expressions.collection_kinds[payload]
@@ -529,7 +524,7 @@ export default function visit(in: Input): Output {
 
         case ExpressionKind.Iteration:
             const carried =
-            in.environment.carried[node][integers.widen(request.slot)]
+                in.environment.carried[node][integers.widen(request.slot)]
 
             if (expressions.iteration_postconditions[payload]) {
                 return complete({

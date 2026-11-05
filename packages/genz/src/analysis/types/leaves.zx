@@ -39,7 +39,12 @@ export default function (in: Input): Output {
 
             current.pending = current.pending.pop()[0]
 
-            if (kind == 3 || (kind == 2 && current.optional)) {
+            const condition = (
+                - kind == 3
+                - or (kind == 2 && current.optional)
+            )
+
+            if (condition) {
                 current.leaves = current.leaves.push(item.path)[0]
             } else if (kind == 1 || kind == 4) {
                 current.pending = loop({

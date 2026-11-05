@@ -40,10 +40,13 @@ export default function (in: Input): Output {
                     current.roots.concat(functions.expressions[index].types)[0]
             }
 
-            if (
-                scalar || !current.local[index] ||
-                    functions.native_modules[index] != null
-            ) {
+            const condition = (
+                - scalar
+                - or !current.local[index]
+                - or functions.native_modules[index] != null
+            )
+
+            if (condition) {
                 current.roots = current.roots.push(functions.input_types[index])[0]
             }
 

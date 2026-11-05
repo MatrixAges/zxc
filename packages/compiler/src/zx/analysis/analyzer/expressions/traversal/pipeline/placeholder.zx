@@ -10,6 +10,7 @@ import { Phase } from "../model"
 import { placeholder_name, boundary_message, name_code } from "./const"
 import fail from "./fail"
 
+import type { Output as Captured } from "../../../captures/by_symbol"
 import type { Work } from "../model"
 
 export type Input = Work
@@ -74,10 +75,13 @@ export default function (in: Input): Output {
 
     const crossed = frame.depth != in.state.local.lambda_depth
 
-    if (
-        !frame.active || frame.asynchronous != in.frames.asynchronous.length ||
-            (crossed && in.state.local.captures.current == frame.owner)
-    ) {
+    const condition = (
+        - !frame.active
+        - or frame.asynchronous != in.frames.asynchronous.length
+        - or (crossed && in.state.local.captures.current == frame.owner)
+    )
+
+    if (condition) {
         return {
             handled: true,
             work: fail({
@@ -88,7 +92,10 @@ export default function (in: Input): Output {
         }
     }
 
-    const captured = capture({
+    const captured: Captured = in.state.local.captures.current == frame.owner ? {
+        state: in.state,
+        symbol: frame.symbol
+    } : capture({
         state: in.state,
         owner: frame.owner,
         symbol: frame.symbol,

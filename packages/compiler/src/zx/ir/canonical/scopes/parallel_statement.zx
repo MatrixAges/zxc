@@ -11,8 +11,9 @@ export type Input = Step
 export type Output = Result
 
 export default function (in: Input): Output {
-    const program = in.context.program
-    const control = program.body.control
+    const control = in.context.program
+        -> _.body.control
+
     const count = integers.widen(control.parallel_count[in.frame.a])
     const first = integers.widen(control.parallel_first[in.frame.a])
 

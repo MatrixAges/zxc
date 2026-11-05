@@ -12,10 +12,14 @@ export default function (in: Input): Output {
         return false
     }
 
-    if (
-        in.kinds.length != in.types.length || in.kinds.length != in.span_start.length ||
-            in.kinds.length != in.span_end.length || in.kinds.length != in.payloads.length
-    ) {
+    const condition = (
+        - in.kinds.length != in.types.length
+        - or in.kinds.length != in.span_start.length
+        - or in.kinds.length != in.span_end.length
+        - or in.kinds.length != in.payloads.length
+    )
+
+    if (condition) {
         return false
     }
 
@@ -46,21 +50,25 @@ export default function (in: Input): Output {
         return false
     }
 
-    if (
-        in.collection_kinds.length != in.collection_targets.length ||
-            in.collection_kinds.length != in.collection_first.length ||
-            in.collection_kinds.length != in.collection_count.length
-    ) {
+    const condition_2 = (
+        - in.collection_kinds.length != in.collection_targets.length
+        - or in.collection_kinds.length != in.collection_first.length
+        - or in.collection_kinds.length != in.collection_count.length
+    )
+
+    if (condition_2) {
         return false
     }
 
-    if (
-        in.transform_kinds.length != in.transform_targets.length ||
-            in.transform_kinds.length != in.transform_bodies.length ||
-            in.transform_kinds.length != in.transform_initials.length ||
-            in.transform_kinds.length != in.transform_first.length ||
-            in.transform_kinds.length != in.transform_count.length
-    ) {
+    const condition_3 = (
+        - in.transform_kinds.length != in.transform_targets.length
+        - or in.transform_kinds.length != in.transform_bodies.length
+        - or in.transform_kinds.length != in.transform_initials.length
+        - or in.transform_kinds.length != in.transform_first.length
+        - or in.transform_kinds.length != in.transform_count.length
+    )
+
+    if (condition_3) {
         return false
     }
 
@@ -78,14 +86,16 @@ export default function (in: Input): Output {
         return false
     }
 
-    if (
-        in.iteration_initials.length != in.iteration_condition_parameters.length ||
-            in.iteration_initials.length != in.iteration_parameters.length ||
-            in.iteration_initials.length != in.iteration_environment_symbols.length ||
-            in.iteration_initials.length != in.iteration_conditions.length ||
-            in.iteration_initials.length != in.iteration_bodies.length ||
-            in.iteration_initials.length != in.iteration_postconditions.length
-    ) {
+    const condition_4 = (
+        - in.iteration_initials.length != in.iteration_condition_parameters.length
+        - or in.iteration_initials.length != in.iteration_parameters.length
+        - or in.iteration_initials.length != in.iteration_environment_symbols.length
+        - or in.iteration_initials.length != in.iteration_conditions.length
+        - or in.iteration_initials.length != in.iteration_bodies.length
+        - or in.iteration_initials.length != in.iteration_postconditions.length
+    )
+
+    if (condition_4) {
         return false
     }
 
@@ -96,11 +106,13 @@ export default function (in: Input): Output {
         return false
     }
 
-    if (
-        in.call_functions.length != in.call_arguments.length ||
-            in.call_functions.length != in.call_store_first.length ||
-            in.call_functions.length != in.call_store_count.length
-    ) {
+    const condition_5 = (
+        - in.call_functions.length != in.call_arguments.length
+        - or in.call_functions.length != in.call_store_first.length
+        - or in.call_functions.length != in.call_store_count.length
+    )
+
+    if (condition_5) {
         return false
     }
 
@@ -122,11 +134,13 @@ export default function (in: Input): Output {
         return false
     }
 
-    if (
-        in.match_subjects.length != in.match_fallbacks.length ||
-            in.match_subjects.length != in.match_first.length ||
-            in.match_subjects.length != in.match_count.length
-    ) {
+    const condition_6 = (
+        - in.match_subjects.length != in.match_fallbacks.length
+        - or in.match_subjects.length != in.match_first.length
+        - or in.match_subjects.length != in.match_count.length
+    )
+
+    if (condition_6) {
         return false
     }
 
@@ -134,11 +148,13 @@ export default function (in: Input): Output {
         return false
     }
 
-    if (
-        in.object_first.length != in.object_count.length ||
-            in.object_first.length != in.object_evaluation_first.length ||
-            in.object_first.length != in.object_evaluation_count.length
-    ) {
+    const condition_7 = (
+        - in.object_first.length != in.object_count.length
+        - or in.object_first.length != in.object_evaluation_first.length
+        - or in.object_first.length != in.object_evaluation_count.length
+    )
+
+    if (condition_7) {
         return false
     }
 

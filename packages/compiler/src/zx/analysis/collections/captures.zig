@@ -35,6 +35,17 @@ pub fn bySymbol(self: *Self, analyzer: *Analyzer, owner: ?*Self, source: ir.Symb
     return if (parent_symbol) |symbol| try self.capture(analyzer, symbol, span) else null;
 }
 
+pub fn cachedSymbol(self: *const Self, owner: ?*Self, source: ir.SymbolId) ?ir.SymbolId {
+    if (self == owner) return source;
+
+    const parent_symbol = if (self.parent) |parent| parent.cachedSymbol(owner, source) else if (owner == null) source else null;
+    const symbol = parent_symbol orelse return null;
+
+    for (self.bindings.items) |binding| if (binding.source == symbol) return binding.target;
+
+    return null;
+}
+
 fn capture(self: *Self, analyzer: *Analyzer, source: ir.SymbolId, span: zx.Span) zx.Error!ir.SymbolId {
     for (self.bindings.items) |binding| if (binding.source == source) return binding.target;
 

@@ -28,23 +28,21 @@ export default function (in: Input): Output {
             }
         }
 
-        const contract_start = in.control.token.span.start
-
-        const state = {
-            expression: in.expression,
-            body: in.body,
-            contracts: in.contracts,
-            control: {
-                ...in.control,
-                ensures: word == Keyword.Ensures,
-                contract_start
+        return in.control.token.span.start
+            -> {
+                expression: in.expression,
+                body: in.body,
+                contracts: in.contracts,
+                control: {
+                    ...in.control,
+                    ensures: word == Keyword.Ensures,
+                    contract_start: _
+                }
             }
-        }
-
-        return consume({
-            state,
-            phase: HeaderPhase.ContractOpen
-        })
+            -> consume({
+                state: _,
+                phase: HeaderPhase.ContractOpen
+            })
     }
 
     if (!in.control.ensures && in.control.has_ensures) {
@@ -77,15 +75,14 @@ export default function (in: Input): Output {
         allow_lambda: true
     })
 
-    const has_ensures = state.control.has_ensures || state.control.ensures
-
-    return {
-        expression,
-        body: state.body,
-        contracts: state.contracts,
-        control: {
-            ...state.control,
-            has_ensures
+    return state.control.has_ensures || state.control.ensures
+        -> {
+            expression,
+            body: state.body,
+            contracts: state.contracts,
+            control: {
+                ...state.control,
+                has_ensures: _
+            }
         }
-    }
 }

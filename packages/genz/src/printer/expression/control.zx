@@ -132,7 +132,7 @@ export default function (in: Input): Output {
         }
     ]
 
-    const captured = tree.conditional_capture[row] == null ? opening : opening.concat([
+    const yes = (tree.conditional_capture[row] == null ? opening : opening.concat([
         {
             ...frame,
             token: Token.CaptureOpen
@@ -146,21 +146,20 @@ export default function (in: Input): Output {
             ...frame,
             token: Token.CaptureClose
         }
-    ])[0]
+    ])[0])
+        -> _.concat([
+            {
+                ...frame,
+                action: Action.Expression,
+                id: tree.conditional_yes[row]
+            },
+            {
+                ...frame,
+                token: Token.ElseSeparator
+            }
+        ])[0]
 
-    const yes = captured.concat([
-        {
-            ...frame,
-            action: Action.Expression,
-            id: tree.conditional_yes[row]
-        },
-        {
-            ...frame,
-            token: Token.ElseSeparator
-        }
-    ])[0]
-
-    const failed = tree.conditional_error_capture[row] == null ? yes : yes.concat([
+    return (tree.conditional_error_capture[row] == null ? yes : yes.concat([
         {
             ...frame,
             token: Token.CaptureOpen
@@ -174,17 +173,16 @@ export default function (in: Input): Output {
             ...frame,
             token: Token.CaptureClose
         }
-    ])[0]
-
-    return failed.concat([
-        {
-            ...frame,
-            action: Action.Expression,
-            id: tree.conditional_no[row]
-        },
-        {
-            ...frame,
-            token: Token.Close
-        }
-    ])[0]
+    ])[0])
+        -> _.concat([
+            {
+                ...frame,
+                action: Action.Expression,
+                id: tree.conditional_no[row]
+            },
+            {
+                ...frame,
+                token: Token.Close
+            }
+        ])[0]
 }

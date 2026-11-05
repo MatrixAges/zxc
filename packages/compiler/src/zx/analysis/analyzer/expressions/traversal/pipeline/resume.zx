@@ -1,7 +1,9 @@
 import integers from "std:integer"
 import append from "core/expression_table/append/scope"
 import { Ownership } from "core/symbol_table/model"
+import { scalar_bool } from "core/type_table/const"
 
+import bindPredicate from "../../../../../ir/canonical/refinement/bind"
 import symbol from "../../../collections/building/symbol"
 import borrow from "../../../statements/scopes/borrow"
 import { Action, Phase } from "../model"
@@ -32,26 +34,46 @@ export default function (in: Input): Output {
             span: node.span
         })
 
-        return {
-            ...work,
-            state: binding.state,
-            node: node.second,
-            expected: frame.expected,
-            phase: Phase.Evaluate,
-            context: {
-                ...work.context,
-                pipelines: work.context.pipelines.splice(index, 1, [{
-                    ...frame,
-                    input: work.value,
-                    symbol: binding.symbol,
-                    active: true
-                }])[0]
-            },
-            frames: {
-                ...work.frames,
-                actions: work.frames.actions.push(Action.PipelineStage)[0]
+        return (work.state.local.expressions.types[integers.widen(
+            work.value
+        )] ==
+            scalar_bool ? {
+                ...binding.state,
+                local: {
+                    ...binding.state.local,
+                    refinement: {
+                        ...binding.state.local.refinement,
+                        facts: bindPredicate({
+                            facts: binding.state.local.refinement.facts,
+                            expressions: binding.state.local.expressions,
+                            value: integers.widen(work.value),
+                            count: 1,
+                            err: binding.symbol,
+                            result: null
+                        })
+                    }
+                }
+            } : binding.state)
+            -> {
+                ...work,
+                state: _,
+                node: node.second,
+                expected: frame.expected,
+                phase: Phase.Evaluate,
+                context: {
+                    ...work.context,
+                    pipelines: work.context.pipelines.splice(index, 1, [{
+                        ...frame,
+                        input: work.value,
+                        symbol: binding.symbol,
+                        active: true
+                    }])[0]
+                },
+                frames: {
+                    ...work.frames,
+                    actions: work.frames.actions.push(Action.PipelineStage)[0]
+                }
             }
-        }
     }
 
     if (frame.uses == 0) {

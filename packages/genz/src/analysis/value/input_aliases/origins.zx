@@ -39,12 +39,15 @@ export default function (in: Input): Output {
                 const symbol = integers.widen(table.references[payload])
                 const binding = source.bindings.values[symbol]
 
-                state.aliases[state.index] = symbol == 0 ||
-                    (
-                        !source.bindings.repeated[symbol] && binding != max_u32 &&
-                            integers.widen(binding) < state.index &&
-                            state.aliases[integers.widen(binding)]
+                state.aliases[state.index] = (
+                    - symbol == 0
+                    - or (
+                        - !source.bindings.repeated[symbol]
+                        - and binding != max_u32
+                        - and integers.widen(binding) < state.index
+                        - and state.aliases[integers.widen(binding)]
                     )
+                )
             }
 
             state.index += 1

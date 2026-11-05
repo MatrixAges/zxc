@@ -20,9 +20,9 @@ export default function (in: Input): Output {
         return role
     }
 
-    const parent = integers.widen(sites.parent[in.site])
-    const payload = integers.widen(query.expressions.payloads[parent])
-    const callee = integers.widen(query.expressions.call_functions[payload])
+    const callee = integers.widen(sites.parent[in.site])
+        -> integers.widen(query.expressions.payloads[_])
+        -> integers.widen(query.expressions.call_functions[_])
 
     const slot = integers.widen(
         integers.narrowSigned(
@@ -33,8 +33,11 @@ export default function (in: Input): Output {
     const held = query.held[callee]
     const written = query.written[callee]
 
-    const consumed = slot >= held.length || held[slot] ||
-        slot >= written.length || written[slot]
-
-    return consumed ? Role.use : Role.observe
+    return (
+        - slot >= held.length
+        - or held[slot]
+        - or slot >= written.length
+        - or written[slot]
+    )
+        -> (_ ? Role.use : Role.observe)
 }

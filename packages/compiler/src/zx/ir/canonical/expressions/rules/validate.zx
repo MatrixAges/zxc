@@ -37,10 +37,13 @@ export default function (in: Input): Output {
     const target = kind(in.table.kinds[integers.widen(type_id)])
     const expression_kind = in.expressions.kinds[in.index]
 
-    if (
-        target == Kind.Task && expression_kind != ExpressionKind.Task &&
-            expression_kind != ExpressionKind.Reference
-    ) {
+    const condition = (
+        - target == Kind.Task
+        - and expression_kind != ExpressionKind.Task
+        - and expression_kind != ExpressionKind.Reference
+    )
+
+    if (condition) {
         return false
     }
 

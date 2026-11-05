@@ -37,10 +37,12 @@ export default function (in: Input): Output {
 
     const offset = in.state.offset
 
-    if (
-        in.byte == ascii_space ||
-            (in.byte >= ascii_tab && in.byte <= ascii_carriage_return)
-    ) {
+    const condition = (
+        - in.byte == ascii_space
+        - or (in.byte >= ascii_tab && in.byte <= ascii_carriage_return)
+    )
+
+    if (condition) {
         return {
             ...in.state,
             line_break
@@ -51,20 +53,23 @@ export default function (in: Input): Output {
         const next = in.next
 
         if (next == ascii_slash || next == ascii_asterisk) {
-            const next_skip_until = offset + 2
-
-            return {
-                ...in.state,
-                skip_until: next_skip_until,
-                mode: next == ascii_slash ? Mode.LineComment : Mode.BlockComment,
-                start: offset
-            }
+            return offset + 2
+                -> {
+                    ...in.state,
+                    skip_until: _,
+                    mode: next == ascii_slash ? Mode.LineComment : Mode.BlockComment,
+                    start: offset
+                }
         }
     }
 
-    if (
-        isLetter(in.byte) || in.byte == ascii_underscore || in.byte == ascii_dollar
-    ) {
+    const condition_2 = (
+        - isLetter(in.byte)
+        - or in.byte == ascii_underscore
+        - or in.byte == ascii_dollar
+    )
+
+    if (condition_2) {
         return {
             ...in.state,
             keyword_state: keywordTransition({

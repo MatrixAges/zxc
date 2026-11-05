@@ -1,4 +1,6 @@
+import integers from "std:integer"
 import { ExpressionKind } from "core/expression_table/kinds"
+import { scalar_bool } from "core/type_table/const"
 
 import capture from "./facts/capture"
 
@@ -17,13 +19,43 @@ export type Input = {
 export type Output = Facts
 
 export default function (in: Input): Output {
+    if (in.count == 1 && in.err != null) {
+        const symbol = in.err
+
+        if (in.expressions.types[in.value] == scalar_bool) {
+            return loop({
+                facts: in.facts,
+                symbol: integers.widen(symbol),
+                value: integers.narrow(in.value),
+                pending: true
+            }, {
+                while: state => state.pending,
+                next: state => {
+                    if (state.facts.predicates.length <= state.symbol) {
+                        state.facts.predicates = state.facts.predicates.push(null)[0]
+                    } else {
+                        state.facts.predicates[state.symbol] = state.value
+                        state.pending = false
+                    }
+                },
+                return: state => state.facts
+            })
+        }
+
+        return in.facts
+    }
+
     const err = in.err
     const result = in.result
 
-    if (
-        in.expressions.kinds[in.value] == ExpressionKind.Capture && in.count == 2 &&
-            err != null && result != null
-    ) {
+    const condition = (
+        - in.expressions.kinds[in.value] == ExpressionKind.Capture
+        - and in.count == 2
+        - and err != null
+        - and result != null
+    )
+
+    if (condition) {
         return capture({
             facts: in.facts,
             err,

@@ -15,21 +15,34 @@ export default function (in: Input): Output {
         in.ownership.length == count
 
     const names_aligned =
-        in.native_inputs.length == count && in.native_modules.length == count &&
-        in.native_members.length == count && in.native_exports.length == count
+        (
+            - in.native_inputs.length == count
+            - and in.native_modules.length == count
+            - and in.native_members.length == count
+            - and in.native_exports.length == count
+        )
 
     const arguments_aligned =
-        in.native_allocators.length == count && in.native_io.length == count &&
-        in.native_process.length == count && in.native_tuples.length == count
+        (
+            - in.native_allocators.length == count
+            - and in.native_io.length == count
+            - and in.native_process.length == count
+            - and in.native_tuples.length == count
+        )
 
     const effects_aligned =
         in.native_fallible.length == count && in.native_errors.length == count &&
         in.native_concurrent.length == count
 
-    if (
-        count > integers.widen(max_u32) || !types_aligned || !names_aligned ||
-            !arguments_aligned || !effects_aligned
-    ) {
+    const condition = (
+        - count > integers.widen(max_u32)
+        - or !types_aligned
+        - or !names_aligned
+        - or !arguments_aligned
+        - or !effects_aligned
+    )
+
+    if (condition) {
         return false
     }
 
@@ -49,8 +62,12 @@ export default function (in: Input): Output {
                     table.native_members[index].length == 0 &&
                     table.native_exports[index] == null
                 const no_arguments =
-                    !table.native_allocators[index] && !table.native_io[index] &&
-                    !table.native_process[index] && !table.native_tuples[index]
+                    (
+                        - !table.native_allocators[index]
+                        - and !table.native_io[index]
+                        - and !table.native_process[index]
+                        - and !table.native_tuples[index]
+                    )
                 const no_effects =
                     !table.native_fallible[index] &&
                     table.native_errors[index] == null &&

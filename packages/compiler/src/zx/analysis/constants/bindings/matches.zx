@@ -14,11 +14,13 @@ export default function (in: Input): Output {
         return previous == null && current == null
     }
 
-    if (
-        previous.names.length != current.names.length ||
-            previous.names.length != previous.values.length ||
-            current.names.length != current.values.length
-    ) {
+    const condition = (
+        - previous.names.length != current.names.length
+        - or previous.names.length != previous.values.length
+        - or current.names.length != current.values.length
+    )
+
+    if (condition) {
         return false
     }
 

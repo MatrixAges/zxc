@@ -38,17 +38,16 @@ export default function (in: Input): Output {
         }
     })
 
-    const fact = result.forest.types.length + first_product_fact
-
-    return {
-        forest: {
-            types: result.forest.types.push(in.type_id)[0],
-            first: result.forest.first.push(in.first)[0],
-            count: result.forest.count.push(in.count)[0],
-            shells: result.forest.shells.push(in.shell)[0],
-            states: result.forest.states.push(result.state)[0],
-            children: result.forest.children
-        },
-        fact
-    }
+    return result.forest.types.length + first_product_fact
+        -> {
+            forest: {
+                types: result.forest.types.push(in.type_id)[0],
+                first: result.forest.first.push(in.first)[0],
+                count: result.forest.count.push(in.count)[0],
+                shells: result.forest.shells.push(in.shell)[0],
+                states: result.forest.states.push(result.state)[0],
+                children: result.forest.children
+            },
+            fact: _
+        }
 }

@@ -22,13 +22,17 @@ export type Output = Machine
 export default function (in: Input): Output {
     return loop(in, {
         while: current =>
-            current.active && current.complete && !current.failed &&
-            current.work.actions.length != 0 &&
             (
-                current.work.actions[current.work.actions.length - 1] ==
-                    WorkAction.BinaryLeft ||
+                - current.active
+                - and current.complete
+                - and !current.failed
+                - and current.work.actions.length != 0
+                - and (
                     current.work.actions[current.work.actions.length - 1] ==
-                    WorkAction.BinaryRight
+                        WorkAction.BinaryLeft ||
+                        current.work.actions[current.work.actions.length - 1] ==
+                        WorkAction.BinaryRight
+                )
             ),
         next: current => {
             const frame = top(current.work)
@@ -75,14 +79,16 @@ export default function (in: Input): Output {
                         current.program.expressions.payloads[frame.subject]
                     )
 
-                if (
-                    current.program.expressions.binary_operators[binary] ==
-                        BinaryOperator.LogicalAnd ||
-                        current.program.expressions.binary_operators[binary] ==
-                        BinaryOperator.LogicalOr ||
-                        current.program.expressions.binary_operators[binary] ==
+                const condition = (
+                    - current.program.expressions.binary_operators[binary] ==
+                        BinaryOperator.LogicalAnd
+                    - or current.program.expressions.binary_operators[binary] ==
+                        BinaryOperator.LogicalOr
+                    - or current.program.expressions.binary_operators[binary] ==
                         BinaryOperator.Coalesce
-                ) {
+                )
+
+                if (condition) {
                     current.memory = apply({
                         types: current.program.types,
                         references: current.references,

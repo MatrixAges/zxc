@@ -59,8 +59,14 @@ export default function (in: Input): Output {
         expressions: result.expressions,
         main: result.statements,
         serial: result.serial,
-        valid: in.valid && allocator.valid && member.valid && allocated.valid &&
-            checked.valid && result.valid,
+        valid: (
+            - in.valid
+            - and allocator.valid
+            - and member.valid
+            - and allocated.valid
+            - and checked.valid
+            - and result.valid
+        ),
         values: {
             ...in.values,
             result: result.id

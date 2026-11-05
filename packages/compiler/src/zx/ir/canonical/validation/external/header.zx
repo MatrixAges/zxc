@@ -15,23 +15,26 @@ export default function (in: Input): Output {
     const index = in.index
     const module_id = table.native_modules[index]
 
-    if (
-        module_id == null ||
-            integers.widen(module_id) >= in.context.modules.specifiers.length ||
-            table.native_members[index].length == 0 ||
-            table.stores[index].paths.length != 0 ||
-            table.store_modes[index] != StoreMode.transaction ||
-            table.contracts[index].kinds.length != 0 ||
-            table.ownership[index] != Ownership.Borrowed ||
-            table.symbols[index].names.length != 0 ||
-            table.expressions[index].kinds.length != 0 || table.roots[index] != null ||
-            integers.widen(
-                table.input_types[index]
-            ) >= in.context.table.kinds.length ||
-            integers.widen(
-                table.output_types[index]
-            ) >= in.context.table.kinds.length
-    ) {
+    const condition = (
+        - module_id == null
+        - or integers.widen(module_id) >= in.context.modules.specifiers.length
+        - or table.native_members[index].length == 0
+        - or table.stores[index].paths.length != 0
+        - or table.store_modes[index] != StoreMode.transaction
+        - or table.contracts[index].kinds.length != 0
+        - or table.ownership[index] != Ownership.Borrowed
+        - or table.symbols[index].names.length != 0
+        - or table.expressions[index].kinds.length != 0
+        - or table.roots[index] != null
+        - or integers.widen(
+            table.input_types[index]
+        ) >= in.context.table.kinds.length
+        - or integers.widen(
+            table.output_types[index]
+        ) >= in.context.table.kinds.length
+    )
+
+    if (condition) {
         return false
     }
 

@@ -36,7 +36,13 @@ export default function (in: Input): Output {
         id: in.symbols.types[in.position]
     }).kind == Kind.Task
 
-    if (in.moving && in.current == State.Owned && linear) {
+    const condition = (
+        - in.moving
+        - and in.current == State.Owned
+        - and linear
+    )
+
+    if (condition) {
         return {
             failed: false,
             value: in.current,
@@ -45,9 +51,12 @@ export default function (in: Input): Output {
         }
     }
 
-    if (in.moving && (
-        in.current == State.Loaned || in.current == State.Borrowed
-    )) {
+    const condition_2 = (
+        - in.moving
+        - and (in.current == State.Loaned || in.current == State.Borrowed)
+    )
+
+    if (condition_2) {
         return {
             failed: false,
             value: State.Borrowed,

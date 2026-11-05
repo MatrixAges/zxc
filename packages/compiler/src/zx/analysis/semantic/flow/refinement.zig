@@ -6,7 +6,7 @@ const abi = @import("refinement/abi.zig");
 const Self = @This();
 const State = abi.Output(assumption);
 
-state: State = .{ .facts = .{ .nonnull = &.{}, .projected = &.{}, .capture_errors = &.{}, .capture_results = &.{} }, .conditions = &.{}, .truths = &.{} },
+state: State = .{ .facts = abi.facts(@FieldType(State, "facts"), .{ .nonnull = &.{}, .projected = &.{}, .predicates = &.{}, .capture_errors = &.{}, .capture_results = &.{} }), .conditions = &.{}, .truths = &.{}, .visits = &.{}, .epoch = 0 },
 /// Holds the generated facts between calls; appends extend them in place while they stay at their frontier.
 arena: ?std.heap.ArenaAllocator = null,
 pub const Mark = abi.Output(marking);
@@ -51,6 +51,20 @@ pub fn add(self: *Self, allocator: std.mem.Allocator, symbol: ir.SymbolId) std.m
     const Input = abi.Input(generated);
 
     try self.updateFacts(allocator, generated, .{ .facts = abi.facts(@FieldType(Input, "facts"), self.state.facts), .symbol = @backingInt(symbol) });
+}
+
+pub fn alias(self: *Self, allocator: std.mem.Allocator, expressions: ir.ExpressionTable, symbol: ir.SymbolId, value: ir.ExprId) std.mem.Allocator.Error!void {
+    const generated = @import("generated_refinement_bind");
+    const Input = abi.Input(generated);
+
+    try self.updateFacts(allocator, generated, .{
+        .facts = abi.facts(@FieldType(Input, "facts"), self.state.facts),
+        .expressions = abi.expressions(generated, &expressions),
+        .value = @backingInt(value),
+        .count = 1,
+        .err = @backingInt(symbol),
+        .result = null,
+    });
 }
 
 pub fn bind(self: *Self, allocator: std.mem.Allocator, expressions: ir.ExpressionTable, value: ir.ExprId, symbols: []const ?ir.SymbolId) std.mem.Allocator.Error!void {

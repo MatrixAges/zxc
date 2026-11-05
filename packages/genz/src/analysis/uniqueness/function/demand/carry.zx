@@ -41,17 +41,21 @@ export default function (in: Input): Output {
 
     const want = knowledge({
         ...desired,
-        unique: desired.unique && usage({
-            context,
-            root: parameter,
-            slot: in.trace.request.slot,
-            observe: false
-        }) && (condition == null || usage({
-            context,
-            root: condition,
-            slot: in.trace.request.slot,
-            observe: true
-        }))
+        unique: (
+            - desired.unique
+            - and usage({
+                context,
+                root: parameter,
+                slot: in.trace.request.slot,
+                observe: false
+            })
+            - and (condition == null || usage({
+                context,
+                root: condition,
+                slot: in.trace.request.slot,
+                observe: true
+            }))
+        )
     })
 
     if (want == Knowledge.None) {

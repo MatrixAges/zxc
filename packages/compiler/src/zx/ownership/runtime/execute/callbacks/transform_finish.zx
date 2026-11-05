@@ -24,13 +24,17 @@ export type Output = Machine
 export default function (in: Input): Output {
     return loop(in, {
         while: current =>
-            current.active && current.complete && !current.failed &&
-            current.work.actions.length != 0 &&
             (
-                current.work.actions[current.work.actions.length - 1] ==
-                    WorkAction.TransformBody ||
+                - current.active
+                - and current.complete
+                - and !current.failed
+                - and current.work.actions.length != 0
+                - and (
                     current.work.actions[current.work.actions.length - 1] ==
-                    WorkAction.TransformFinish
+                        WorkAction.TransformBody ||
+                        current.work.actions[current.work.actions.length - 1] ==
+                        WorkAction.TransformFinish
+                )
             ),
         next: current => {
             const frame = top(current.work)
@@ -58,30 +62,36 @@ export default function (in: Input): Output {
                     }
                 })
 
-                if (current.program.expressions.transform_kinds[transform] ==
-                    TransformKind.Reduce && summary({
+                const condition = (
+                    - current.program.expressions.transform_kinds[transform] ==
+                        TransformKind.Reduce
+                    - and summary({
                         forest: current.memory.forest,
                         fact: current.value
-                    }) == State.Borrowed && initial != State.Borrowed) {
-                        current.memory = apply({
-                            types: current.program.types,
-                            references: current.references,
-                            layout: current.layout.tree,
-                            memory: current.memory,
-                            stack: current.snapshots,
-                            frame: current.snapshots.state_first.length - 1,
-                            action: Action.RestoreStates
-                        })
-                        current.work = push({
-                            work: current.work,
-                            frame: {
-                                action: WorkAction.TransformParameter,
-                                subject: frame.subject,
-                                moving: true,
-                                index: 0
-                            }
-                        })
-                    }
+                    }) == State.Borrowed
+                    - and initial != State.Borrowed
+                )
+
+                if (condition) {
+                    current.memory = apply({
+                        types: current.program.types,
+                        references: current.references,
+                        layout: current.layout.tree,
+                        memory: current.memory,
+                        stack: current.snapshots,
+                        frame: current.snapshots.state_first.length - 1,
+                        action: Action.RestoreStates
+                    })
+                    current.work = push({
+                        work: current.work,
+                        frame: {
+                            action: WorkAction.TransformParameter,
+                            subject: frame.subject,
+                            moving: true,
+                            index: 0
+                        }
+                    })
+                }
             } else if (frame.action == WorkAction.TransformFinish) {
                 const transform =
                     integers.widen(
@@ -112,17 +122,19 @@ export default function (in: Input): Output {
                     current.program.expressions.transform_kinds[transform] ==
                     TransformKind.Some
                 const borrowed =
-                    !predicate &&
                     (
-                        (
-                            current.program.expressions.transform_kinds[transform] ==
-                                TransformKind.Filter && current.references[element]
-                        ) || result == State.Borrowed ||
-                            (
+                        - !predicate
+                        - and (
+                            - current.program.expressions.transform_kinds[transform] ==
+                                TransformKind.Filter
+                            - and current.references[element]
+                            - or result == State.Borrowed
+                            - or (
                                 current.program.expressions.transform_kinds[transform] ==
                                     TransformKind.Reduce &&
                                     initial_state == State.Borrowed
                             )
+                        )
                     )
                 const before = current.snapshots.state_first.length - 2
 

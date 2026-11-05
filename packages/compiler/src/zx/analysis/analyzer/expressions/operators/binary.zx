@@ -44,13 +44,15 @@ export default function (in: Input): Output {
             type_id: operand
         })
 
-    if (
-        optional_aggregate &&
-            expressions.kinds[integers.widen(in.left)] != ExpressionKind.None &&
-            expressions.kinds[integers.widen(
-                in.right
-            )] != ExpressionKind.None
-    ) {
+    const condition = (
+        - optional_aggregate
+        - and expressions.kinds[integers.widen(in.left)] != ExpressionKind.None
+        - and expressions.kinds[integers.widen(
+            in.right
+        )] != ExpressionKind.None
+    )
+
+    if (condition) {
         return {
             state: {
                 ...in.state,
@@ -66,15 +68,25 @@ export default function (in: Input): Output {
     }
 
     const equality =
-        flags.equality &&
         (
-            operand == 1 || operand == 10 || target.kind == Kind.Enumeration ||
-                target.kind == Kind.ErrorSet || target.kind == Kind.Optional
+            - flags.equality
+            - and (
+                - operand == 1
+                - or operand == 10
+                - or target.kind == Kind.Enumeration
+                - or target.kind == Kind.ErrorSet
+                - or target.kind == Kind.Optional
+            )
         )
 
-    if (
-        in.operator != BinaryOperator.Coalesce && !flags.logical && !numeric && !equality
-    ) {
+    const condition_2 = (
+        - in.operator != BinaryOperator.Coalesce
+        - and !flags.logical
+        - and !numeric
+        - and !equality
+    )
+
+    if (condition_2) {
         return {
             state: {
                 ...in.state,
@@ -89,23 +101,22 @@ export default function (in: Input): Output {
         }
     }
 
-    const type_id = match {
+    const result = match {
         in.operator == BinaryOperator.Coalesce => target.first,
         flags.logical || flags.comparison => 1,
         _ => operand,
     }
-
-    const result = append({
-        table: expressions,
-        metadata: {
-            type_id,
-            span_start: in.span.start,
-            span_end: in.span.end
-        },
-        operator: in.operator,
-        left: in.left,
-        right: in.right
-    })
+        -> append({
+            table: expressions,
+            metadata: {
+                type_id: _,
+                span_start: in.span.start,
+                span_end: in.span.end
+            },
+            operator: in.operator,
+            left: in.left,
+            right: in.right
+        })
 
     return {
         state: {

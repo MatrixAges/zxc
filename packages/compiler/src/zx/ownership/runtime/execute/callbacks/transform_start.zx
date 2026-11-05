@@ -21,15 +21,19 @@ export type Output = Machine
 export default function (in: Input): Output {
     return loop(in, {
         while: current =>
-            current.active && current.complete && !current.failed &&
-            current.work.actions.length != 0 &&
             (
-                current.work.actions[current.work.actions.length - 1] ==
-                    WorkAction.TransformTarget ||
+                - current.active
+                - and current.complete
+                - and !current.failed
+                - and current.work.actions.length != 0
+                - and (
                     current.work.actions[current.work.actions.length - 1] ==
-                    WorkAction.TransformInitial ||
-                    current.work.actions[current.work.actions.length - 1] ==
-                    WorkAction.TransformParameter
+                        WorkAction.TransformTarget ||
+                        current.work.actions[current.work.actions.length - 1] ==
+                        WorkAction.TransformInitial ||
+                        current.work.actions[current.work.actions.length - 1] ==
+                        WorkAction.TransformParameter
+                )
             ),
         next: current => {
             const frame = top(current.work)
@@ -123,13 +127,17 @@ export default function (in: Input): Output {
                         .references[integers.widen(
                             current.program.symbols.types[parameter]
                         )]
-                    const initial = frame.moving ? uniform(State.Borrowed) :
-                        current.values[current.values.length - 1]
                     const state =
-                        current.program.expressions.transform_kinds[transform] ==
-                        TransformKind.Reduce && frame.index == 0 ? initial :
-                        uniform(
-                            State.Borrowed
+                        (
+                            frame.moving ? uniform(State.Borrowed) :
+                                current.values[current.values.length - 1]
+                        )
+                        -> (
+                            current.program.expressions.transform_kinds[transform] ==
+                                TransformKind.Reduce && frame.index == 0 ? _ :
+                                uniform(
+                                    State.Borrowed
+                                )
                         )
 
                     current.memory = place({

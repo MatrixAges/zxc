@@ -16,7 +16,7 @@ export default function (in: Input): Output {
         const cursor = in.control.cursor
         const previous = in.prepared.lexical.parts[cursor - 1].previous
 
-        const continuation = {
+        const frames = {
             ...frame({
                 kind: FrameKind.TemplatePart,
                 start: 0,
@@ -24,22 +24,20 @@ export default function (in: Input): Output {
             }),
             cursor
         }
+            -> in.frames.push(_)[0]
 
-        const frames = in.frames.push(continuation)[0]
-
-        const control = {
+        return {
             ...in.control,
             cursor: previous,
             phase: previous == 0 ? Phase.TemplatePart : Phase.TemplateGather
         }
-
-        return {
-            prepared: in.prepared,
-            tree: in.tree,
-            types: in.types,
-            frames,
-            control
-        }
+            -> {
+                prepared: in.prepared,
+                tree: in.tree,
+                types: in.types,
+                frames,
+                control: _
+            }
     }
 
     const taken = takeFrame(in)
@@ -63,31 +61,30 @@ export default function (in: Input): Output {
         const stream = taken.frame.stream
         const head = taken.frame.head
         const count = taken.frame.count
-        const maximum = taken.frame.maximum
 
-        const control = {
-            ...taken.state.control,
-            depth,
-            primary_start: start,
-            last_end: end,
-            index,
-            stream,
-            template_head: head,
-            template_count: count,
-            template_maximum: maximum,
-            phase: Phase.Postfix
-        }
-
-        return emit({
-            state: {
-                prepared: taken.state.prepared,
-                tree: taken.state.tree,
-                types: taken.state.types,
-                frames: taken.state.frames,
-                control
-            },
-            node: value
-        })
+        return taken.frame.maximum
+            -> {
+                ...taken.state.control,
+                depth,
+                primary_start: start,
+                last_end: end,
+                index,
+                stream,
+                template_head: head,
+                template_count: count,
+                template_maximum: _,
+                phase: Phase.Postfix
+            }
+            -> emit({
+                state: {
+                    prepared: taken.state.prepared,
+                    tree: taken.state.tree,
+                    types: taken.state.types,
+                    frames: taken.state.frames,
+                    control: _
+                },
+                node: value
+            })
     }
 
     const cursor = taken.frame.cursor
@@ -112,26 +109,25 @@ export default function (in: Input): Output {
             previous: taken.state.control.template_head
         })[0]
 
-        const control = {
+        return {
             ...taken.state.control,
             template_head: head,
             template_count: count
         }
-
-        return {
-            prepared: taken.state.prepared,
-            tree: {
-                nodes: taken.state.tree.nodes,
-                items: taken.state.tree.items,
-                fields: taken.state.tree.fields,
-                parameters: taken.state.tree.parameters,
-                parts,
-                arms: taken.state.tree.arms
-            },
-            types: taken.state.types,
-            frames: taken.state.frames,
-            control
-        }
+            -> {
+                prepared: taken.state.prepared,
+                tree: {
+                    nodes: taken.state.tree.nodes,
+                    items: taken.state.tree.items,
+                    fields: taken.state.tree.fields,
+                    parameters: taken.state.tree.parameters,
+                    parts,
+                    arms: taken.state.tree.arms
+                },
+                types: taken.state.types,
+                frames: taken.state.frames,
+                control: _
+            }
     }
 
     const stream = taken.state.prepared.lexical.parts[cursor - 1].interpolation
@@ -141,19 +137,18 @@ export default function (in: Input): Output {
             1].lexed.diagnostic.message !=
             ""
     ) {
-        const diagnostic = stream + 1
-
-        return {
-            prepared: taken.state.prepared,
-            tree: taken.state.tree,
-            types: taken.state.types,
-            frames: taken.state.frames,
-            control: {
-                ...taken.state.control,
-                lexical_diagnostic: diagnostic,
-                phase: Phase.Done
+        return stream + 1
+            -> {
+                prepared: taken.state.prepared,
+                tree: taken.state.tree,
+                types: taken.state.types,
+                frames: taken.state.frames,
+                control: {
+                    ...taken.state.control,
+                    lexical_diagnostic: _,
+                    phase: Phase.Done
+                }
             }
-        }
     }
 
     const continuation = {

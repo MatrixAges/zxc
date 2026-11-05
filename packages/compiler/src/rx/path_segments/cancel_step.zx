@@ -11,21 +11,19 @@ export type Output = Resolution
 
 export default function (in: Input): Output {
     if (in.parent) {
-        const parents = in.state.parents + 1
-
-        return {
-            ...in.state,
-            parents
-        }
+        return in.state.parents + 1
+            -> {
+                ...in.state,
+                parents: _
+            }
     }
 
     if (in.state.parents != 0) {
-        const parents = in.state.parents - 1
-
-        return {
-            ...in.state,
-            parents
-        }
+        return in.state.parents - 1
+            -> {
+                ...in.state,
+                parents: _
+            }
     }
 
     return {

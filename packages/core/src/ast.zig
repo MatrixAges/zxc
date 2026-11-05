@@ -21,6 +21,8 @@ pub const MatchArm = struct { condition: *const Expression, result: *const Expre
 pub const Expression = struct {
     span: Span,
     depth: u16,
+    condition_list: bool = false,
+    condition_terms: u16 = 1,
     value: union(enum) {
         number: []const u8,
         string: []const u8,

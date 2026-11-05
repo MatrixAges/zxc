@@ -1,8 +1,10 @@
 import integers from "std:integer"
 import append from "core/control_table/append/constant"
 import { ExpressionKind } from "core/expression_table/kinds"
+import { scalar_bool } from "core/type_table/const"
 import { Kind } from "core/type_table/model"
 
+import bindPredicate from "../../../ir/canonical/refinement/bind"
 import row from "../../semantic/types/row"
 import bind from "../bindings/append"
 
@@ -67,30 +69,42 @@ export default function (in: Input): Output {
         }
     }
 
-    const frame = in.blocks.frames[in.blocks.frames.length - 1]
+    const result = in.blocks.frames[in.blocks.frames.length - 1]
+        -> bind({
+            local: in.state.local,
+            name: in.name,
+            type_id,
+            scope_start: _.active_mark
+        })
 
-    const result = bind({
-        local: in.state.local,
-        name: in.name,
-        type_id,
-        scope_start: frame.active_mark
-    })
-
-    const state = {
-        ...in.state,
-        local: result.local,
-        diagnostic: result.diagnostic
-    }
-
-    return {
-        state,
-        blocks: result.diagnostic.message == "" ? {
-            ...in.blocks,
-            pending: append({
-                table: in.blocks.pending,
-                symbol: result.id,
-                value: in.value
+    return (type_id == scalar_bool && result.diagnostic.message == "" ? {
+        ...result.local,
+        refinement: {
+            ...result.local.refinement,
+            facts: bindPredicate({
+                facts: result.local.refinement.facts,
+                expressions: result.local.expressions,
+                value: integers.widen(in.value),
+                count: 1,
+                err: result.id,
+                result: null
             })
-        } : in.blocks
-    }
+        }
+    } : result.local)
+        -> {
+            ...in.state,
+            local: _,
+            diagnostic: result.diagnostic
+        }
+        -> {
+            state: _,
+            blocks: result.diagnostic.message == "" ? {
+                ...in.blocks,
+                pending: append({
+                    table: in.blocks.pending,
+                    symbol: result.id,
+                    value: in.value
+                })
+            } : in.blocks
+        }
 }

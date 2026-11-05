@@ -38,13 +38,17 @@ export default function (in: Input): Output {
             const local = namespace ?? name
             const constants = current.input.constants
 
-            current.valid = current.valid && position({
-                names: current.input.aliases.names,
-                name: local
-            }) == null && (constants == null || position({
-                names: constants.names,
-                name: local
-            }) == null)
+            current.valid = (
+                - current.valid
+                - and position({
+                    names: current.input.aliases.names,
+                    name: local
+                }) == null
+                - and (constants == null || position({
+                    names: constants.names,
+                    name: local
+                }) == null)
+            )
 
             if (current.valid) {
                 current.valid = loop({
@@ -74,22 +78,33 @@ export default function (in: Input): Output {
                 if (bindings.intrinsics[index] != null) {
                     current.valid =
                         id == null && input_type == null && output_type == null
-                } else if (id != null && input_type != null && output_type != null) {
-                    const position = integers.widen(id)
-                    current.valid = position < current.input.functions.files.length
-
-                    if (current.valid) {
-                        current.valid =
-                            input_type ==
-                            current.input.functions.input_types[position] &&
-                            output_type ==
-                            current.input.functions.output_types[position] &&
-                            integers.widen(input_type) <
-                            current.input.table.kinds.length &&
-                            integers.widen(output_type) < current.input.table.kinds.length
-                    }
                 } else {
-                    current.valid = false
+                    const condition = (
+                        - id != null
+                        - and input_type != null
+                        - and output_type != null
+                    )
+
+                    if (condition) {
+                        const position = integers.widen(id)
+                        current.valid = position < current.input.functions.files.length
+
+                        if (current.valid) {
+                            current.valid =
+                                (
+                                    - input_type ==
+                                        current.input.functions.input_types[position]
+                                    - and output_type ==
+                                        current.input.functions.output_types[position]
+                                    - and integers.widen(input_type) <
+                                        current.input.table.kinds.length
+                                    - and integers.widen(output_type) <
+                                        current.input.table.kinds.length
+                                )
+                        }
+                    } else {
+                        current.valid = false
+                    }
                 }
             }
 

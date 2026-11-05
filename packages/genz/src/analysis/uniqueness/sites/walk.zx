@@ -21,9 +21,11 @@ export default function (in: Input): Output {
             const source = walk.source
             const symbol = current.root < source.symbols.length
             const node = symbol ? 0 : current.root - source.symbols.length
-            const type_id = symbol ? source.symbols[current.root] :
-                source.expressions.types[node]
-            const size = source.counts[integers.widen(type_id)]
+            const size = (
+                symbol ? source.symbols[current.root] :
+                    source.expressions.types[node]
+            )
+                -> source.counts[integers.widen(_)]
             const kind = symbol ? ExpressionKind.Reference :
                 source.expressions.kinds[node]
             const reached = symbol || source.nodes.time[node] != max_u32
@@ -33,7 +35,14 @@ export default function (in: Input): Output {
             current.first =
                 current.first.push(integers.narrow(current.sites.length))[0]
 
-            if ((symbol || size != 0) && reached && !projected) {
+            const condition = (
+                - symbol
+                - or size != 0
+                - and reached
+                - and !projected
+            )
+
+            if (condition) {
                 if (symbol) {
                     current.sites = loop({
                         sites: current.sites,
@@ -47,11 +56,11 @@ export default function (in: Input): Output {
                             const source = walk.source
                             const node =
                                 walk.references.items[references.index]
-                            const type_id =
-                                source.expressions.types[integers.widen(
+                            const size = source.expressions
+                                .types[integers.widen(
                                     node
                                 )]
-                            const size = source.counts[integers.widen(type_id)]
+                                -> source.counts[integers.widen(_)]
 
                             if (size != 0) {
                                 references.sites = trace({

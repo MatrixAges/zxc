@@ -52,19 +52,17 @@ export default function (in: Input): Output {
 
     const node = integers.widen(in.node)
 
-    const linear =
-        in.context.metadata.expressions.kinds[node] != ExpressionKind.Reference &&
+    return in.context.metadata.expressions.kinds[node] != ExpressionKind.Reference &&
         usage({
             context: in.context,
             root: integers.narrow(in.context.metadata.usage.symbols + node),
             slot: in.slot,
             observe: false
         })
-
-    return knowledge(evaluate({
-        operation: Operation.Materialized,
-        left,
-        right,
-        linear
-    }))
+        -> knowledge(evaluate({
+            operation: Operation.Materialized,
+            left,
+            right,
+            linear: _
+        }))
 }

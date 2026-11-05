@@ -2,6 +2,8 @@ import type { Facts } from "./facts/model"
 
 export type Refinement = {
     facts: Facts,
+    visits: u64[],
+    epoch: u64,
     conditions: u64[],
     truths: bool[]
 }

@@ -38,23 +38,25 @@ export default function (in: Input): Output {
             kind == ExpressionKind.Index ? in.expressions.index_targets[payload] :
             in.expressions.binary_left[payload]
 
-        const second =
+        return (
             kind == ExpressionKind.Index ? in.expressions.index_values[payload] :
-            in.expressions.binary_right[payload]
-
-        const value = in.index == 0 ? first : second
-
-        return {
-            found: in.index < 2,
-            expression: integers.widen(value)
-        }
+                in.expressions.binary_right[payload]
+        )
+            -> (in.index == 0 ? first : _)
+            -> {
+                found: in.index < 2,
+                expression: integers.widen(_)
+            }
     }
 
-    if (
-        kind == ExpressionKind.Iteration || kind == ExpressionKind.ListUpdate ||
-            kind == ExpressionKind.Conditional
-    ) {
-        const value = match kind {
+    const condition = (
+        - kind == ExpressionKind.Iteration
+        - or kind == ExpressionKind.ListUpdate
+        - or kind == ExpressionKind.Conditional
+    )
+
+    if (condition) {
+        return match kind {
             ExpressionKind.Iteration =>
                 match in.index {
                     0 => in.expressions.iteration_initials[payload],
@@ -74,11 +76,10 @@ export default function (in: Input): Output {
                     _ => in.expressions.conditional_no[payload]
                 }
         }
-
-        return {
-            found: in.index < 3,
-            expression: integers.widen(value)
-        }
+            -> {
+                found: in.index < 3,
+                expression: integers.widen(_)
+            }
     }
 
     if (kind == ExpressionKind.Transform) {

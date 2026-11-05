@@ -36,18 +36,17 @@ export default function (in: Input): Output {
         ownership: Ownership.Copy
     })
 
-    const metadata = {
+    const reference = {
         type_id: tuple_type,
         span_start: in.frame.d,
         span_end: in.frame.e
     }
-
-    const reference = value({
-        table: state.tables.expressions,
-        metadata,
-        kind: ValueKind.Reference,
-        value: symbol.id
-    })
+        -> value({
+            table: state.tables.expressions,
+            metadata: _,
+            kind: ValueKind.Reference,
+            value: symbol.id
+        })
 
     const prepared = cost({
         state: {
@@ -85,23 +84,22 @@ export default function (in: Input): Output {
 
             if (target != null) {
                 const types = current.state.types
-                const element =
-                    types
+                const field = types
                     .children[integers.widen(
                         types.first[current.tuple]
                     ) + current.position]
-                const field = projection({
-                    table: current.state.tables.expressions,
-                    metadata: {
-                        type_id: element,
-                        span_start: current.frame.d,
-                        span_end: current.frame.e
-                    },
-                    target: current.reference,
-                    index: integers.narrow(current.position),
-                    tuple: true
-                })
-                const counted = cost({
+                    -> projection({
+                        table: current.state.tables.expressions,
+                        metadata: {
+                            type_id: _,
+                            span_start: current.frame.d,
+                            span_end: current.frame.e
+                        },
+                        target: current.reference,
+                        index: integers.narrow(current.position),
+                        tuple: true
+                    })
+                const bound = cost({
                     state: {
                         ...current.state,
                         tables: {
@@ -111,18 +109,18 @@ export default function (in: Input): Output {
                     },
                     id: field.id
                 })
-                const bound = bind({
-                    state: counted,
-                    symbol:
-                        integers.narrow(
-                            integers.widen(target) + current.offset
-                        ),
-                    value: field.id,
-                    result: integers.narrow(current.result),
-                    type_id: integers.narrow(current.frame.c),
-                    span_start: current.frame.d,
-                    span_end: current.frame.e
-                })
+                    -> bind({
+                        state: _,
+                        symbol:
+                            integers.narrow(
+                                integers.widen(target) + current.offset
+                            ),
+                        value: field.id,
+                        result: integers.narrow(current.result),
+                        type_id: integers.narrow(current.frame.c),
+                        span_start: current.frame.d,
+                        span_end: current.frame.e
+                    })
 
                 current.state = bound.state
                 current.result = integers.widen(bound.id)

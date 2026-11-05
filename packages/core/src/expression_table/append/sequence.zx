@@ -17,18 +17,17 @@ export type Input = {
 export type Output = Result
 
 export default function (in: Input): Output {
-    const kind = match in.kind {
+    const result = match in.kind {
         SequenceKind.List => ExpressionKind.List,
         SequenceKind.Tuple => ExpressionKind.Tuple,
         _ => ExpressionKind.Template,
     }
-
-    const result = header({
-        table: in.table,
-        metadata: in.metadata,
-        kind,
-        payload: integers.narrow(in.table.sequence_first.length)
-    })
+        -> header({
+            table: in.table,
+            metadata: in.metadata,
+            kind: _,
+            payload: integers.narrow(in.table.sequence_first.length)
+        })
 
     return {
         table: {

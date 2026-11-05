@@ -104,24 +104,23 @@ export default function trace(in: Input): Output {
     }
 
     if (kind == ExpressionKind.Field || kind == ExpressionKind.TupleField) {
-        const selected = projection({
+        return projection({
             metadata: context.metadata,
             slot: request.slot,
             target: expressions.projection_targets[payload],
             index: expressions.projection_indices[payload]
         })
-
-        return trace({
-            source: in.source,
-            working,
-            request: {
-                ...nested,
-                ...selected.pick([
-                    "node",
-                    "slot"
-                ])
-            }
-        })
+            -> trace({
+                source: in.source,
+                working,
+                request: {
+                    ...nested,
+                    ..._.pick([
+                        "node",
+                        "slot"
+                    ])
+                }
+            })
     }
 
     if (kind == ExpressionKind.OptionalValue || kind == ExpressionKind.Scope) {
@@ -145,7 +144,7 @@ export default function trace(in: Input): Output {
         if (definition == Definition.Input) {
             const function_index = in.source.function_index
 
-            const marked = function_index == null ? working : mark({
+            return (function_index == null ? working : mark({
                 stage: {
                     source: in.source,
                     working
@@ -156,31 +155,29 @@ export default function trace(in: Input): Output {
                     slot: request.slot,
                     want: wanted
                 }
-            })
-
-            return normalize({
-                working: marked,
-                leaf,
-                wanted
-            })
+            }))
+                -> normalize({
+                    working: _,
+                    leaf,
+                    wanted
+                })
         }
 
         if (definition == Definition.Value || definition == Definition.Part) {
-            const slot = definition == Definition.Part ? member({
+            return (definition == Definition.Part ? member({
                 metadata: context.metadata,
                 type_id: expressions.types[integers.widen(target)],
                 index: context.metadata.definitions.index[symbol]
-            }).offset + request.slot : request.slot
-
-            return trace({
-                source: in.source,
-                working,
-                request: {
-                    ...nested,
-                    node: target,
-                    slot
-                }
-            })
+            }).offset + request.slot : request.slot)
+                -> trace({
+                    source: in.source,
+                    working,
+                    request: {
+                        ...nested,
+                        node: target,
+                        slot: _
+                    }
+                })
         }
 
         if (definition == Definition.Carried || definition == Definition.Condition) {
@@ -226,13 +223,16 @@ export default function trace(in: Input): Output {
             next: (state, source) => {
                 const expressions = state.working.context.metadata.expressions
                 const offset = integers.widen(source.first) + state.index
-                const index = source.object ? expressions.object_field_indices[offset] :
-                    integers.narrow(state.index)
-                const selected = member({
-                    metadata: state.working.context.metadata,
-                    type_id: source.type_id,
-                    index
-                })
+                const selected =
+                    (
+                        source.object ? expressions.object_field_indices[offset] :
+                            integers.narrow(state.index)
+                    )
+                    -> member({
+                        metadata: state.working.context.metadata,
+                        type_id: source.type_id,
+                        index: _
+                    })
 
                 if (
                     source.request.slot >= selected.offset &&
@@ -283,16 +283,18 @@ export default function trace(in: Input): Output {
         })
     }
 
-    if (
-        kind == ExpressionKind.Conditional ||
-            (
-                kind == ExpressionKind.Binary &&
-                    expressions.binary_operators[payload] == BinaryOperator.Coalesce
-            )
-    ) {
+    const condition = (
+        - kind == ExpressionKind.Conditional
+        - or (
+            kind == ExpressionKind.Binary &&
+                expressions.binary_operators[payload] == BinaryOperator.Coalesce
+        )
+    )
+
+    if (condition) {
         const conditional = kind == ExpressionKind.Conditional
 
-        const first = trace({
+        return trace({
             source: in.source,
             working,
             request: {
@@ -302,17 +304,16 @@ export default function trace(in: Input): Output {
                 outer: null
             }
         })
-
-        return trace({
-            source: in.source,
-            working: first,
-            request: {
-                ...active,
-                node: conditional ? expressions.conditional_no[payload] :
-                    expressions.binary_right[payload],
-                outer: null
-            }
-        })
+            -> trace({
+                source: in.source,
+                working: _,
+                request: {
+                    ...active,
+                    node: conditional ? expressions.conditional_no[payload] :
+                        expressions.binary_right[payload],
+                    outer: null
+                }
+            })
     }
 
     if (kind == ExpressionKind.Match) {
@@ -360,11 +361,14 @@ export default function trace(in: Input): Output {
     if (kind == ExpressionKind.ListOperation) {
         const pop = expressions.collection_kinds[payload] == CollectionKind.Pop
 
-        const retained = (request.slot == 0 && pop) ||
-            (request.slot == 1 && prefix({
+        const retained = (
+            - request.slot == 0
+            - and pop
+            - or (request.slot == 1 && prefix({
                 expressions,
                 payload: expressions.payloads[node]
             }))
+        )
 
         if (retained) {
             return trace({
@@ -385,13 +389,15 @@ export default function trace(in: Input): Output {
         }) : working
     }
 
-    if (
-        kind == ExpressionKind.Iteration ||
-            (
-                kind == ExpressionKind.Transform &&
-                    expressions.transform_kinds[payload] == TransformKind.Reduce
-            )
-    ) {
+    const condition_2 = (
+        - kind == ExpressionKind.Iteration
+        - or (
+            kind == ExpressionKind.Transform &&
+                expressions.transform_kinds[payload] == TransformKind.Reduce
+        )
+    )
+
+    if (condition_2) {
         return provide({
             source: in.source,
             working,
@@ -410,8 +416,7 @@ export default function trace(in: Input): Output {
     if (kind == ExpressionKind.Call) {
         const function_index = expressions.call_functions[payload]
 
-        const marked =
-            in.source.native_modules[integers.widen(function_index)] != null ?
+        return (in.source.native_modules[integers.widen(function_index)] != null ?
             working : mark({
                 stage: {
                     source: in.source,
@@ -423,13 +428,12 @@ export default function trace(in: Input): Output {
                     slot: request.slot,
                     want: wanted
                 }
+            }))
+            -> normalize({
+                working: _,
+                leaf,
+                wanted
             })
-
-        return normalize({
-            working: marked,
-            leaf,
-            wanted
-        })
     }
 
     return request.repeated ? provide({

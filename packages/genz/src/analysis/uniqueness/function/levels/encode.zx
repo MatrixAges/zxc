@@ -17,7 +17,7 @@ export type Input = Knowledge
 export type Output = u8
 
 export default function (in: Input): Output {
-    const code = match in {
+    return match in {
         Knowledge.None => code_none,
         Knowledge.Headered => code_headered,
         Knowledge.Unique => code_unique,
@@ -28,6 +28,5 @@ export default function (in: Input): Output {
         Knowledge.AllDeferred => packed_mask,
         _ => code_none
     }
-
-    return integers.narrowByte(code)
+        -> integers.narrowByte(_)
 }

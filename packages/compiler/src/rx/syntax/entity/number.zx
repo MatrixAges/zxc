@@ -87,17 +87,21 @@ export default function (in: Input): Output {
 
     const character = state.value
 
-    const valid =
-        character == integer.widenByte(ascii_tab) ||
-        character == integer.widenByte(ascii_line_feed) ||
-        character == integer.widenByte(ascii_carriage_return) ||
-        character >= integer.widenByte(ascii_space) &&
-        character <= xml_before_surrogates_last ||
-        character >= xml_after_surrogates_first && character <= xml_bmp_last ||
-        character >= xml_supplementary_first && character <= unicode_last
-
-    return {
-        codepoint: character,
-        message: valid ? no_diagnostic : forbidden_reference
-    }
+    return (
+        - character == integer.widenByte(ascii_tab)
+        - or character == integer.widenByte(ascii_line_feed)
+        - or character == integer.widenByte(ascii_carriage_return)
+        - or (
+            character >= integer.widenByte(ascii_space) &&
+                character <= xml_before_surrogates_last
+        )
+        - or (
+            character >= xml_after_surrogates_first && character <= xml_bmp_last
+        )
+        - or (character >= xml_supplementary_first && character <= unicode_last)
+    )
+        -> {
+            codepoint: character,
+            message: _ ? no_diagnostic : forbidden_reference
+        }
 }

@@ -26,7 +26,13 @@ export default function (in: Input): Output {
 
             current.index += 1
 
-            if (token.text == template_function && !member && call) {
+            const condition = (
+                - token.text == template_function
+                - and !member
+                - and call
+            )
+
+            if (condition) {
                 const valid =
                     index + 3 < current.tokens.length &&
                     current.tokens[index + 2].quoted &&

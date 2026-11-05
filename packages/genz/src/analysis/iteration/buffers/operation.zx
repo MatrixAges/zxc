@@ -32,13 +32,12 @@ export default function (in: Input): Output {
     }
 
     if (kind == ExpressionKind.ListOperation) {
-        const operation = table.collection_kinds[payload]
-
-        return match operation {
-            CollectionKind.Push => (flags / buffered_flag) % flag_radix != 0,
-            CollectionKind.Pop => (flags / buffered_flag) % flag_radix != 0,
-            _ => false
-        }
+        return table.collection_kinds[payload]
+            -> match _ {
+                CollectionKind.Push => (flags / buffered_flag) % flag_radix != 0,
+                CollectionKind.Pop => (flags / buffered_flag) % flag_radix != 0,
+                _ => false
+            }
     }
 
     if (kind == ExpressionKind.Binary) {
@@ -46,26 +45,26 @@ export default function (in: Input): Output {
         const right = integers.widen(table.binary_right[payload])
         const operator = table.binary_operators[payload]
 
-        if (
-            (
-                operator == BinaryOperator.Equal ||
-                    operator == BinaryOperator.NotEqual
-            ) &&
-                (
+        const condition = (
+            - operator == BinaryOperator.Equal
+            - or operator == BinaryOperator.NotEqual
+            - and (
+                kindOf(
+                    in.source.source.types
+                        .kinds[integers.widen(
+                            table.types[left]
+                        )]
+                ) == Kind.List ||
                     kindOf(
                         in.source.source.types
                             .kinds[integers.widen(
-                                table.types[left]
+                                table.types[right]
                             )]
-                    ) == Kind.List ||
-                        kindOf(
-                            in.source.source.types
-                                .kinds[integers.widen(
-                                    table.types[right]
-                                )]
-                        ) == Kind.List
-                )
-        ) {
+                    ) == Kind.List
+            )
+        )
+
+        if (condition) {
             return false
         }
     }

@@ -21,13 +21,16 @@ export default function (in: Input): Output {
             const identity = current.modules.identities[current.index]
 
             current.valid =
-                kind != Kind.File && kind != Kind.Package && kind != Kind.Invalid &&
-                text(
-                    current.modules.import_names[current.index]
-                ) && (
-                    identity == null || text(
-                        identity
+                (
+                    - kind != Kind.File
+                    - and kind != Kind.Package
+                    - and kind != Kind.Invalid
+                    - and text(
+                        current.modules.import_names[current.index]
                     )
+                    - and (identity == null || text(
+                        identity
+                    ))
                 )
 
             current.index += 1

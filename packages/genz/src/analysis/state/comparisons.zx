@@ -34,13 +34,14 @@ export default function (in: Input): Output {
                         current.expressions.binary_right[payload]
                     )
 
-                if (
-                    (
-                        operator == BinaryOperator.Equal ||
-                            operator == BinaryOperator.NotEqual
-                    ) && current.expressions.kinds[left] != ExpressionKind.None &&
-                        current.expressions.kinds[right] != ExpressionKind.None
-                ) {
+                const condition = (
+                    - operator == BinaryOperator.Equal
+                    - or operator == BinaryOperator.NotEqual
+                    - and current.expressions.kinds[left] != ExpressionKind.None
+                    - and current.expressions.kinds[right] != ExpressionKind.None
+                )
+
+                if (condition) {
                     current.types =
                         current.types.concat(
                             [

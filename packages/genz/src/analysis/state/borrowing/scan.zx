@@ -59,11 +59,14 @@ export default function (in: Input): Output {
                     )[0]
                 }
 
-                if (
-                    kind == ExpressionKind.Iteration ||
-                        kind == ExpressionKind.Transform || kind == ExpressionKind.Task ||
-                        kind == ExpressionKind.Parallel
-                ) {
+                const condition = (
+                    - kind == ExpressionKind.Iteration
+                    - or kind == ExpressionKind.Transform
+                    - or kind == ExpressionKind.Task
+                    - or kind == ExpressionKind.Parallel
+                )
+
+                if (condition) {
                     state.repeated = true
 
                     if (kind == ExpressionKind.Iteration) {

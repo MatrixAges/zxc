@@ -19,6 +19,10 @@ export default function (in: Input): Output {
         _ => false
     }
 
-    return postfix && in.receiver == Kind.Call &&
-        in.callee == Kind.Identifier && in.name == loop_name
+    return (
+        - postfix
+        - and in.receiver == Kind.Call
+        - and in.callee == Kind.Identifier
+        - and in.name == loop_name
+    )
 }

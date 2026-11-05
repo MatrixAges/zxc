@@ -47,7 +47,13 @@ export default function (in: Input): Output {
         message: ""
     }
 
-    if (lexical.message != "" || imports.message != "" || declarations.message != "") {
+    const condition = (
+        - lexical.message != ""
+        - or imports.message != ""
+        - or declarations.message != ""
+    )
+
+    if (condition) {
         return {
             index,
             start: token.span.start,
@@ -74,10 +80,13 @@ export default function (in: Input): Output {
         }
     }
 
-    if (
-        token.word != Keyword.Export || index + 1 >= tokens.length ||
-            tokens[index + 1].word != Keyword.Default
-    ) {
+    const condition_2 = (
+        - token.word != Keyword.Export
+        - or index + 1 >= tokens.length
+        - or tokens[index + 1].word != Keyword.Default
+    )
+
+    if (condition_2) {
         return {
             index,
             start: token.span.start,

@@ -13,23 +13,21 @@ export type Input = {
 export type Output = string[]
 
 export default function (in: Input): Output {
-    const task = row({
+    const errors = row({
         tables: in.tables,
         id: in.type_id
     })
+        -> row({
+            tables: in.tables,
+            id: _.second
+        })
 
-    const errors = row({
-        tables: in.tables,
-        id: task.second
-    })
-
-    const table = errors.delta ? in.tables.delta : in.tables.base
-
-    return in.names.concat(
-        table.names.splice(
-            integers.widen(errors.first),
-            integers.widen(errors.second),
-            []
-        )[1]
-    )[0]
+    return (errors.delta ? in.tables.delta : in.tables.base)
+        -> in.names.concat(
+            _.names.splice(
+                integers.widen(errors.first),
+                integers.widen(errors.second),
+                []
+            )[1]
+        )[0]
 }

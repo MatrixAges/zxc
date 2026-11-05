@@ -29,12 +29,17 @@ export type Output = LexerState
 
 export default function (in: Input): Output {
     if (in.state.mode == Mode.TemplateEscape) {
-        if (
-            in.byte != ascii_double_quote && in.byte != ascii_backslash &&
-                in.byte != ascii_lower_n && in.byte != ascii_lower_r &&
-                in.byte != ascii_lower_t && in.byte != ascii_backtick &&
-                in.byte != ascii_dollar
-        ) {
+        const condition = (
+            - in.byte != ascii_double_quote
+            - and in.byte != ascii_backslash
+            - and in.byte != ascii_lower_n
+            - and in.byte != ascii_lower_r
+            - and in.byte != ascii_lower_t
+            - and in.byte != ascii_backtick
+            - and in.byte != ascii_dollar
+        )
+
+        if (condition) {
             return fail({
                 code: lexical_code,
                 start: in.state.offset - 1,
@@ -62,7 +67,13 @@ export default function (in: Input): Output {
             }
         }
 
-        if (in.byte == ascii_dollar && in.has_next && in.next == ascii_open_brace) {
+        const condition_2 = (
+            - in.byte == ascii_dollar
+            - and in.has_next
+            - and in.next == ascii_open_brace
+        )
+
+        if (condition_2) {
             return openInterpolation(in.state)
         }
 
@@ -97,14 +108,19 @@ export default function (in: Input): Output {
     }
 
     if (in.state.mode == Mode.InterpolationBlockComment) {
-        if (in.byte == ascii_asterisk && in.has_next && in.next == ascii_slash) {
-            const next_skip_until = in.state.offset + 2
+        const condition_3 = (
+            - in.byte == ascii_asterisk
+            - and in.has_next
+            - and in.next == ascii_slash
+        )
 
-            return {
-                ...in.state,
-                skip_until: next_skip_until,
-                mode: Mode.Interpolation
-            }
+        if (condition_3) {
+            return in.state.offset + 2
+                -> {
+                    ...in.state,
+                    skip_until: _,
+                    mode: Mode.Interpolation
+                }
         }
 
         return in.state
@@ -115,13 +131,14 @@ export default function (in: Input): Output {
     }
 
     if (in.byte == ascii_open_brace || in.byte == ascii_close_brace) {
-        const next_braces = in.byte == ascii_open_brace ? in.state.braces + 1 :
-            in.state.braces - 1
-
-        return {
-            ...in.state,
-            braces: next_braces
-        }
+        return (
+            in.byte == ascii_open_brace ? in.state.braces + 1 :
+                in.state.braces - 1
+        )
+            -> {
+                ...in.state,
+                braces: _
+            }
     }
 
     if (in.byte == ascii_backtick) {
@@ -139,14 +156,13 @@ export default function (in: Input): Output {
         const next = in.next
 
         if (next == ascii_slash || next == ascii_asterisk) {
-            const next_skip_until = in.state.offset + 2
-
-            return {
-                ...in.state,
-                skip_until: next_skip_until,
-                mode: next == ascii_slash ? Mode.InterpolationLineComment :
-                    Mode.InterpolationBlockComment
-            }
+            return in.state.offset + 2
+                -> {
+                    ...in.state,
+                    skip_until: _,
+                    mode: next == ascii_slash ? Mode.InterpolationLineComment :
+                        Mode.InterpolationBlockComment
+                }
         }
     }
 

@@ -87,7 +87,7 @@ export default function (in: Input): Output {
         }
     ]
 
-    const captured = tree.catch_scope_capture[row] == null ? opening : opening.concat([
+    return (tree.catch_scope_capture[row] == null ? opening : opening.concat([
         {
             ...frame,
             token: Token.CaptureOpen
@@ -101,18 +101,17 @@ export default function (in: Input): Output {
             ...frame,
             token: Token.CaptureClose
         }
-    ])[0]
-
-    return captured.concat([
-        {
-            ...frame,
-            action: Action.Block,
-            id: tree.catch_scope_body_start[row],
-            count: tree.catch_scope_body_len[row]
-        },
-        {
-            ...frame,
-            token: Token.Close
-        }
-    ])[0]
+    ])[0])
+        -> _.concat([
+            {
+                ...frame,
+                action: Action.Block,
+                id: tree.catch_scope_body_start[row],
+                count: tree.catch_scope_body_len[row]
+            },
+            {
+                ...frame,
+                token: Token.Close
+            }
+        ])[0]
 }

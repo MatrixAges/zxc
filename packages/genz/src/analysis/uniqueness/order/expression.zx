@@ -141,27 +141,29 @@ export default function (in: Input): Output {
         })
     }
 
-    if (
-        kind == ExpressionKind.List || kind == ExpressionKind.Tuple ||
-            kind == ExpressionKind.Template
-    ) {
-        const role = match kind {
+    const condition = (
+        - kind == ExpressionKind.List
+        - or kind == ExpressionKind.Tuple
+        - or kind == ExpressionKind.Template
+    )
+
+    if (condition) {
+        return match kind {
             ExpressionKind.Tuple => Role.member,
             ExpressionKind.Template => Role.observe,
             _ => Role.use
         }
-
-        return sequence({
-            stack: in.stack,
-            parent: in.id,
-            values: table.sequence_items,
-            first: table.sequence_first[payload],
-            count: table.sequence_count[payload],
-            role,
-            positions: kind == ExpressionKind.Tuple,
-            indices: [],
-            repeated: false
-        })
+            -> sequence({
+                stack: in.stack,
+                parent: in.id,
+                values: table.sequence_items,
+                first: table.sequence_first[payload],
+                count: table.sequence_count[payload],
+                role: _,
+                positions: kind == ExpressionKind.Tuple,
+                indices: [],
+                repeated: false
+            })
     }
 
     if (kind == ExpressionKind.Parallel) {
@@ -179,7 +181,7 @@ export default function (in: Input): Output {
     }
 
     if (kind == ExpressionKind.Index) {
-        const pending = push({
+        return push({
             stack: in.stack,
             event: {
                 action: Action.Operand,
@@ -188,20 +190,19 @@ export default function (in: Input): Output {
                 role: Role.observe
             }
         })
-
-        return push({
-            stack: pending,
-            event: {
-                action: Action.Operand,
-                first: in.id,
-                second: table.index_targets[payload],
-                role: Role.observe
-            }
-        })
+            -> push({
+                stack: _,
+                event: {
+                    action: Action.Operand,
+                    first: in.id,
+                    second: table.index_targets[payload],
+                    role: Role.observe
+                }
+            })
     }
 
     if (kind == ExpressionKind.Binary) {
-        const pending = push({
+        return push({
             stack: in.stack,
             event: {
                 action: Action.Operand,
@@ -210,20 +211,19 @@ export default function (in: Input): Output {
                 role: Role.observe
             }
         })
-
-        return push({
-            stack: pending,
-            event: {
-                action: Action.Operand,
-                first: in.id,
-                second: table.binary_left[payload],
-                role: Role.observe
-            }
-        })
+            -> push({
+                stack: _,
+                event: {
+                    action: Action.Operand,
+                    first: in.id,
+                    second: table.binary_left[payload],
+                    role: Role.observe
+                }
+            })
     }
 
     if (kind == ExpressionKind.ListUpdate) {
-        const pending = push({
+        return push({
             stack: in.stack,
             event: {
                 action: Action.Operand,
@@ -232,30 +232,28 @@ export default function (in: Input): Output {
                 role: Role.use
             }
         })
-
-        const scheduled = push({
-            stack: pending,
-            event: {
-                action: Action.Operand,
-                first: in.id,
-                second: table.update_indices[payload],
-                role: Role.observe
-            }
-        })
-
-        return push({
-            stack: scheduled,
-            event: {
-                action: Action.Operand,
-                first: in.id,
-                second: table.update_targets[payload],
-                role: Role.use
-            }
-        })
+            -> push({
+                stack: _,
+                event: {
+                    action: Action.Operand,
+                    first: in.id,
+                    second: table.update_indices[payload],
+                    role: Role.observe
+                }
+            })
+            -> push({
+                stack: _,
+                event: {
+                    action: Action.Operand,
+                    first: in.id,
+                    second: table.update_targets[payload],
+                    role: Role.use
+                }
+            })
     }
 
     if (kind == ExpressionKind.Object) {
-        const fields = sequence({
+        return sequence({
             stack: in.stack,
             parent: in.id,
             values: table.object_field_values,
@@ -266,22 +264,21 @@ export default function (in: Input): Output {
             indices: table.object_field_indices,
             repeated: false
         })
-
-        return sequence({
-            stack: fields,
-            parent: in.id,
-            values: table.object_evaluation_values,
-            first: table.object_evaluation_first[payload],
-            count: table.object_evaluation_count[payload],
-            role: Role.evaluation,
-            positions: false,
-            indices: [],
-            repeated: false
-        })
+            -> sequence({
+                stack: _,
+                parent: in.id,
+                values: table.object_evaluation_values,
+                first: table.object_evaluation_first[payload],
+                count: table.object_evaluation_count[payload],
+                role: Role.evaluation,
+                positions: false,
+                indices: [],
+                repeated: false
+            })
     }
 
     if (kind == ExpressionKind.ListOperation) {
-        const arguments = sequence({
+        return sequence({
             stack: in.stack,
             parent: in.id,
             values: table.collection_arguments,
@@ -293,16 +290,15 @@ export default function (in: Input): Output {
             indices: [],
             repeated: false
         })
-
-        return push({
-            stack: arguments,
-            event: {
-                action: Action.Operand,
-                first: in.id,
-                second: table.collection_targets[payload],
-                role: Role.use
-            }
-        })
+            -> push({
+                stack: _,
+                event: {
+                    action: Action.Operand,
+                    first: in.id,
+                    second: table.collection_targets[payload],
+                    role: Role.use
+                }
+            })
     }
 
     if (kind == ExpressionKind.Scope) {
@@ -316,23 +312,22 @@ export default function (in: Input): Output {
     }
 
     if (kind == ExpressionKind.Iteration) {
-        const pending = push({
+        return push({
             stack: in.stack,
             event: {
                 action: Action.Iteration,
                 first: in.id
             }
         })
-
-        return push({
-            stack: pending,
-            event: {
-                action: Action.Operand,
-                first: in.id,
-                second: table.iteration_initials[payload],
-                role: Role.use
-            }
-        })
+            -> push({
+                stack: _,
+                event: {
+                    action: Action.Operand,
+                    first: in.id,
+                    second: table.iteration_initials[payload],
+                    role: Role.use
+                }
+            })
     }
 
     if (kind == ExpressionKind.Transform) {
@@ -346,7 +341,7 @@ export default function (in: Input): Output {
 
         const initial = table.transform_initials[payload]
 
-        const prepared = initial == null ? pending : push({
+        return (initial == null ? pending : push({
             stack: pending,
             event: {
                 action: Action.Operand,
@@ -354,59 +349,56 @@ export default function (in: Input): Output {
                 second: initial,
                 role: Role.use
             }
-        })
-
-        return push({
-            stack: prepared,
-            event: {
-                action: Action.Operand,
-                first: in.id,
-                second: table.transform_targets[payload],
-                role: Role.observe
-            }
-        })
+        }))
+            -> push({
+                stack: _,
+                event: {
+                    action: Action.Operand,
+                    first: in.id,
+                    second: table.transform_targets[payload],
+                    role: Role.observe
+                }
+            })
     }
 
     if (kind == ExpressionKind.Conditional) {
-        const pending = push({
+        return push({
             stack: in.stack,
             event: {
                 action: Action.Conditional,
                 first: in.id
             }
         })
-
-        return push({
-            stack: pending,
-            event: {
-                action: Action.Operand,
-                first: in.id,
-                second: table.conditional_conditions[payload],
-                role: Role.observe
-            }
-        })
+            -> push({
+                stack: _,
+                event: {
+                    action: Action.Operand,
+                    first: in.id,
+                    second: table.conditional_conditions[payload],
+                    role: Role.observe
+                }
+            })
     }
 
     if (kind == ExpressionKind.Match) {
-        const pending = push({
+        const conditions = push({
             stack: in.stack,
             event: {
                 action: Action.Match,
                 first: in.id
             }
         })
-
-        const conditions = sequence({
-            stack: pending,
-            parent: in.id,
-            values: table.match_conditions,
-            first: table.match_first[payload],
-            count: table.match_count[payload],
-            role: Role.observe,
-            positions: false,
-            indices: [],
-            repeated: false
-        })
+            -> sequence({
+                stack: _,
+                parent: in.id,
+                values: table.match_conditions,
+                first: table.match_first[payload],
+                count: table.match_count[payload],
+                role: Role.observe,
+                positions: false,
+                indices: [],
+                repeated: false
+            })
 
         const subject = table.match_subjects[payload]
 

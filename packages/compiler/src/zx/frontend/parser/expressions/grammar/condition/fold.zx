@@ -1,0 +1,68 @@
+import { Operator, Connector } from "../../prepare/model"
+import emit from "../../state/emit"
+import { ExprKind } from "../../state/model"
+import node from "../../state/node"
+import { term_limit } from "./const"
+import negate from "./negate"
+
+import type { ExprState, ExprFrame } from "../../state/model"
+
+export type Input = {
+    state: ExprState,
+    frame: ExprFrame
+}
+
+export type Output = ExprState
+
+export default function (in: Input): Output {
+    if (in.frame.count == 0) {
+        return negate(negate(in.state))
+    }
+
+    const xor = in.frame.connector == Connector.Xor
+    const right = xor ? negate(in.state) : in.state
+
+    const left = xor ? negate({
+        ...right,
+        control: {
+            ...right.control,
+            result: in.frame.first
+        }
+    }) : right
+
+    const left_id = xor ? left.control.result : in.frame.first
+    const right_id = right.control.result
+    const lhs = left.tree.nodes[left_id]
+    const rhs = left.tree.nodes[right_id]
+
+    const operator = in.frame.connector == Connector.Or ||
+        in.frame.connector == Connector.Nor
+        -> match {
+            xor => Operator.NotEqual,
+            (_) => Operator.Or,
+            _ => Operator.And
+        }
+
+    const total = lhs.condition_terms + rhs.condition_terms
+
+    const combined = (total > term_limit ? term_limit : total)
+        -> emit({
+            state: left,
+            node: {
+                ...node({
+                    kind: ExprKind.Binary,
+                    start: in.frame.start,
+                    end: rhs.span.end,
+                    depth: (lhs.depth > rhs.depth ? lhs.depth : rhs.depth) + 1
+                }),
+                first: left_id,
+                second: right_id,
+                operator,
+                condition_list: true,
+                condition_terms: _
+            }
+        })
+
+    return in.frame.connector == Connector.Nand || in.frame.connector == Connector.Nor ?
+        negate(combined) : combined
+}

@@ -15,8 +15,8 @@ export default function (in: Input): Output {
             state.index < source.body.expressions.call_functions.length,
         next: (state, source) => {
             const expressions = source.body.expressions
-            const callee = expressions.call_functions[state.index]
-            const values = source.text_held[integers.widen(callee)]
+            const values = expressions.call_functions[state.index]
+                -> source.text_held[integers.widen(_)]
 
             state.roots = loop({
                 roots: state.roots,

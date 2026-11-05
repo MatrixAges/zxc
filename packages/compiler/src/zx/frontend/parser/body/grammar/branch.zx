@@ -23,42 +23,44 @@ export default function (in: Input): Output {
     }
 
     if (in.control.phase == Phase.IfClose) {
-        const result = in.expression.control.result
-
-        const state = {
-            expression: in.expression,
-            tree: in.tree,
-            frames: in.frames,
-            suspended: in.suspended,
-            frame: {
-                ...in.frame,
-                first: result
-            },
-            control: in.control
-        }
-
-        return expect({
-            state,
-            symbol: Symbol.CloseParen,
-            phase: Phase.BlockOpen,
-            message: "expected )"
-        })
+        return in.expression.control.result
+            -> {
+                expression: in.expression,
+                tree: in.tree,
+                frames: in.frames,
+                suspended: in.suspended,
+                frame: {
+                    ...in.frame,
+                    first: _
+                },
+                control: in.control
+            }
+            -> expect({
+                state: _,
+                symbol: Symbol.CloseParen,
+                phase: Phase.BlockOpen,
+                message: "expected )"
+            })
     }
 
-    if (
-        in.control.phase == Phase.BlockOpen ||
+    const condition = (
+        - in.control.phase == Phase.BlockOpen
+        - or (
             in.control.phase == Phase.IfAlternative &&
-            in.expression.control.token.word != Keyword.If
-    ) {
-        const resume = in.control.phase == Phase.BlockOpen ? Phase.IfElse : Phase.Publish
+                in.expression.control.token.word != Keyword.If
+        )
+    )
 
-        const state = enter({
-            state: in,
-            kind: FrameKind.Block,
-            phase: Phase.BlockOpen,
-            resume,
-            nested: true
-        })
+    if (condition) {
+        const state =
+            (in.control.phase == Phase.BlockOpen ? Phase.IfElse : Phase.Publish)
+            -> enter({
+                state: in,
+                kind: FrameKind.Block,
+                phase: Phase.BlockOpen,
+                resume: _,
+                nested: true
+            })
 
         if (state.control.phase == Phase.Done) {
             return state

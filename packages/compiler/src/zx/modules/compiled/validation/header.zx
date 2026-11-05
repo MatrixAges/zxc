@@ -11,16 +11,21 @@ export default function (in: Input): Output {
     const count = exports.names.length
     const initializers = in.initializers
 
-    return publication({
-        type_only: in.program.unit.type_only,
-        export_count: in.program.export_names.length,
-        constant_exports: in.program.constant_exports != null,
-        store_count: in.program.unit.body.stores.paths.length,
-        public_count: count
-    }) && exports.paths.length == count &&
-        exports.functions.length == count && exports.type_names.length == count &&
-        exports.type_ids.length == count && exports.constants.length == count &&
-        exports.members.length == count &&
-        initializers.identities.length == initializers.versions.length &&
-        initializers.identities.length == initializers.functions.length
+    return (
+        - publication({
+            type_only: in.program.unit.type_only,
+            export_count: in.program.export_names.length,
+            constant_exports: in.program.constant_exports != null,
+            store_count: in.program.unit.body.stores.paths.length,
+            public_count: count
+        })
+        - and exports.paths.length == count
+        - and exports.functions.length == count
+        - and exports.type_names.length == count
+        - and exports.type_ids.length == count
+        - and exports.constants.length == count
+        - and exports.members.length == count
+        - and initializers.identities.length == initializers.versions.length
+        - and initializers.identities.length == initializers.functions.length
+    )
 }

@@ -11,35 +11,38 @@ export default function (in: Input): Output {
     const kind = in.expressions.kinds[in.expression]
     const payload = integers.widen(in.expressions.payloads[in.expression])
 
-    if (
-        kind == ExpressionKind.List || kind == ExpressionKind.Tuple ||
-            kind == ExpressionKind.Template
-    ) {
-        const count = integers.widen(in.expressions.sequence_count[payload])
-        const first = integers.widen(in.expressions.sequence_first[payload])
+    const condition = (
+        - kind == ExpressionKind.List
+        - or kind == ExpressionKind.Tuple
+        - or kind == ExpressionKind.Template
+    )
 
-        return {
-            found: in.index < count,
-            expression:
-                in.index <
-                count ? integers.widen(
-                    in.expressions.sequence_items[first + in.index]
-                ) : 0
-        }
+    if (condition) {
+        const count = integers.widen(in.expressions.sequence_count[payload])
+
+        return integers.widen(in.expressions.sequence_first[payload])
+            -> {
+                found: in.index < count,
+                expression:
+                    in.index <
+                    count ? integers.widen(
+                        in.expressions.sequence_items[_ + in.index]
+                    ) : 0
+            }
     }
 
     if (kind == ExpressionKind.Parallel) {
         const count = integers.widen(in.expressions.parallel_count[payload])
-        const first = integers.widen(in.expressions.parallel_first[payload])
 
-        return {
-            found: in.index < count,
-            expression:
-                in.index <
-                count ? integers.widen(
-                    in.expressions.parallel_tasks[first + in.index]
-                ) : 0
-        }
+        return integers.widen(in.expressions.parallel_first[payload])
+            -> {
+                found: in.index < count,
+                expression:
+                    in.index <
+                    count ? integers.widen(
+                        in.expressions.parallel_tasks[_ + in.index]
+                    ) : 0
+            }
     }
 
     if (kind == ExpressionKind.Object) {
@@ -80,18 +83,18 @@ export default function (in: Input): Output {
 
     if (kind == ExpressionKind.Scope) {
         const count = integers.widen(in.expressions.scope_count[payload])
-        const first = integers.widen(in.expressions.scope_first[payload])
 
-        return {
-            found: in.index <= count,
-            expression:
-                in.index <
-                count ? integers.widen(
-                    in.expressions.scope_values[first + in.index]
-                ) : integers.widen(
-                    in.expressions.scope_results[payload]
-                )
-        }
+        return integers.widen(in.expressions.scope_first[payload])
+            -> {
+                found: in.index <= count,
+                expression:
+                    in.index <
+                    count ? integers.widen(
+                        in.expressions.scope_values[_ + in.index]
+                    ) : integers.widen(
+                        in.expressions.scope_results[payload]
+                    )
+            }
     }
 
     if (kind == ExpressionKind.ListOperation) {
@@ -106,16 +109,16 @@ export default function (in: Input): Output {
 
         const index = in.index - 1
         const count = integers.widen(in.expressions.collection_count[payload])
-        const first = integers.widen(in.expressions.collection_first[payload])
 
-        return {
-            found: index < count,
-            expression:
-                index <
-                count ? integers.widen(
-                    in.expressions.collection_arguments[first + index]
-                ) : 0
-        }
+        return integers.widen(in.expressions.collection_first[payload])
+            -> {
+                found: index < count,
+                expression:
+                    index <
+                    count ? integers.widen(
+                        in.expressions.collection_arguments[_ + index]
+                    ) : 0
+            }
     }
 
     if (kind == ExpressionKind.Match) {

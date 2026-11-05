@@ -23,12 +23,11 @@ export default function (in: Input): Output {
         delta: in.state.types.delta
     }
 
-    const type_id = in.state.local.expressions.types[integers.widen(in.target)]
-
-    const target = row({
-        tables,
-        id: type_id
-    })
+    const target = in.state.local.expressions.types[integers.widen(in.target)]
+        -> row({
+            tables,
+            id: _
+        })
 
     const table = target.delta ? tables.delta : tables.base
     const values: u32[] = []

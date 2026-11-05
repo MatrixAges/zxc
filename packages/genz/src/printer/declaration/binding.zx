@@ -39,7 +39,7 @@ export default function (in: Input): Output {
 
     const annotation = in.type_expr
 
-    const typed = annotation == null ? binding : binding.concat([
+    return (annotation == null ? binding : binding.concat([
         {
             ...frame,
             token: Token.Colon
@@ -49,21 +49,20 @@ export default function (in: Input): Output {
             action: Action.Expression,
             id: annotation
         }
-    ])[0]
-
-    return typed.concat([
-        {
-            ...frame,
-            token: Token.Assignment
-        },
-        {
-            ...frame,
-            action: Action.Expression,
-            id: in.value
-        },
-        {
-            ...frame,
-            token: Token.StatementEnd
-        }
-    ])[0]
+    ])[0])
+        -> _.concat([
+            {
+                ...frame,
+                token: Token.Assignment
+            },
+            {
+                ...frame,
+                action: Action.Expression,
+                id: in.value
+            },
+            {
+                ...frame,
+                token: Token.StatementEnd
+            }
+        ])[0]
 }

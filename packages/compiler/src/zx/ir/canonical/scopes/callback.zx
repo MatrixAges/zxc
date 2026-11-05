@@ -129,30 +129,28 @@ export default function (in: Input): Output {
         return declared
     }
 
-    const continuation = condition
-    ? schedule({
-        state: declared.state,
-        frame: {
-            phase: Phase.IterationBody,
-            a: in.frame.a,
-            b: in.frame.b,
-            c: in.frame.c
-        }
-    })
-    : declared.state
-
-    const state = schedule({
-        state: continuation,
-        frame: {
-            phase: Phase.Expression,
-            a: integers.widen(value),
-            b: in.frame.b + 1,
-            c: in.frame.c >= 2 ? 3 : 1
-        }
-    })
-
-    return {
-        state,
-        valid: true
-    }
+    return (condition
+        ? schedule({
+            state: declared.state,
+            frame: {
+                phase: Phase.IterationBody,
+                a: in.frame.a,
+                b: in.frame.b,
+                c: in.frame.c
+            }
+        })
+        : declared.state)
+            -> schedule({
+                state: _,
+                frame: {
+                    phase: Phase.Expression,
+                    a: integers.widen(value),
+                    b: in.frame.b + 1,
+                    c: in.frame.c >= 2 ? 3 : 1
+                }
+            })
+            -> {
+                state: _,
+                valid: true
+            }
 }

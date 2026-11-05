@@ -37,8 +37,12 @@ export default function (in: Input): Output {
                 const payload = integers.widen(current.input.expressions.payloads[id])
 
                 current.valid =
-                    kind != ExpressionKind.Task && kind != ExpressionKind.Capture &&
-                    kind != ExpressionKind.Parallel && kind != ExpressionKind.Iteration
+                    (
+                        - kind != ExpressionKind.Task
+                        - and kind != ExpressionKind.Capture
+                        - and kind != ExpressionKind.Parallel
+                        - and kind != ExpressionKind.Iteration
+                    )
 
                 if (current.states[id] && kind == ExpressionKind.Reference) {
                     current

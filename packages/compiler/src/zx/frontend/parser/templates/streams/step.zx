@@ -21,10 +21,9 @@ export default function (in: Input): Output {
         byte: in.byte
     }) : routed
 
-    const offset = next.offset + 1
-
-    return {
-        ...next,
-        offset
-    }
+    return next.offset + 1
+        -> {
+            ...next,
+            offset: _
+        }
 }

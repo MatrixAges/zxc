@@ -57,23 +57,24 @@ export default function (in: Input): Output {
     }, {
         while: current => current.index < current.count,
         next: current => {
-            const type_id =
+            const value = (
                 current.tuple ?
-                current.table.children[current.first + current.index] :
-                current.table.field_types[current.first + current.index]
-            const value = current.index == current.selected ? {
-                table: current.expressions,
-                id: current.value
-            } : project({
-                table: current.expressions,
-                metadata: {
-                    ...current.metadata,
-                    type_id
-                },
-                target: current.parent,
-                index: integers.narrow(current.index),
-                tuple: current.tuple
-            })
+                    current.table.children[current.first + current.index] :
+                    current.table.field_types[current.first + current.index]
+            )
+                -> (current.index == current.selected ? {
+                    table: current.expressions,
+                    id: current.value
+                } : project({
+                    table: current.expressions,
+                    metadata: {
+                        ...current.metadata,
+                        type_id: _
+                    },
+                    target: current.parent,
+                    index: integers.narrow(current.index),
+                    tuple: current.tuple
+                }))
 
             current.expressions = value.table
             current.indices =

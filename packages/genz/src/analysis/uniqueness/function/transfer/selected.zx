@@ -15,8 +15,8 @@ export type Input = {
 export type Output = bool[]
 
 export default function (in: Input): Output {
-    const expressions = in.source.context.metadata.expressions
-    const selected = expressions.kinds.map(kind => false)[0]
+    const selected = in.source.context.metadata.expressions
+        -> _.kinds.map(kind => false)[0]
 
     const operations = loop({
         selected,
@@ -36,13 +36,13 @@ export default function (in: Input): Output {
             }
 
             if (expressions.kinds[node] == ExpressionKind.Call) {
-                const owner = source.context.metadata.layout
+                const output = source.context.metadata.layout
                     .unwrapped[
                         integers.widen(
                             expressions.types[node]
                         )
                     ]
-                const output = kind(source.types.kinds[integers.widen(owner)])
+                    -> kind(source.types.kinds[integers.widen(_)])
                 const scalar = output == Kind.Scalar || output == Kind.Enumeration ||
                     output == Kind.ErrorSet
                 const renewed = integers.andBits(

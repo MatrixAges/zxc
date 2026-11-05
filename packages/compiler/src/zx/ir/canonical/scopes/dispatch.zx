@@ -1,4 +1,8 @@
+import integers from "std:integer"
+import { scalar_bool } from "core/type_table/const"
+
 import assume from "../refinement/assume"
+import bindPredicate from "../refinement/bind"
 import restoreFacts from "../refinement/facts/restore"
 import restoreActivity from "./activity/restore"
 import block from "./block"
@@ -27,85 +31,105 @@ export default function (in: Input): Output {
             mark: frame.a
         })
 
-        const facts = restoreFacts({
+        return restoreFacts({
             facts: state.refinement.facts,
             mark: {
                 nonnull: frame.b,
                 captures: frame.c
             }
         })
-
-        return {
-            state: {
-                ...state,
-                activity,
-                refinement: {
-                    ...state.refinement,
-                    facts
-                }
-            },
-            valid: true
-        }
+            -> {
+                state: {
+                    ...state,
+                    activity,
+                    refinement: {
+                        ...state.refinement,
+                        facts: _
+                    }
+                },
+                valid: true
+            }
     }
 
     if (frame.phase == Phase.RestoreFacts) {
-        const facts = restoreFacts({
+        return restoreFacts({
             facts: state.refinement.facts,
             mark: {
                 nonnull: frame.a,
                 captures: frame.b
             }
         })
-
-        return {
-            state: {
-                ...state,
-                refinement: {
-                    ...state.refinement,
-                    facts
-                }
-            },
-            valid: true
-        }
+            -> {
+                state: {
+                    ...state,
+                    refinement: {
+                        ...state.refinement,
+                        facts: _
+                    }
+                },
+                valid: true
+            }
     }
 
     if (frame.phase == Phase.Assume) {
-        const refinement = assume({
+        return assume({
             state: state.refinement,
             expressions: program.body.expressions,
             condition: frame.a,
             truth: frame.b != 0
         })
+            -> {
+                state: {
+                    ...state,
+                    refinement: _
+                },
+                valid: true
+            }
+    }
 
-        return {
-            state: {
-                ...state,
-                refinement
-            },
-            valid: true
+    if (frame.phase == Phase.Declare || frame.phase == Phase.ScopeDeclare) {
+        const ordinary = frame.phase == Phase.Declare
+        const value = ordinary ? frame.b : frame.c
+
+        const declared = declare({
+            program,
+            state,
+            symbol: frame.a,
+            type_id: program.body.expressions.types[value],
+            owner: ordinary ? 0 : frame.b,
+            mode: ordinary ? Declaration.Ordinary : Declaration.Scope
+        })
+
+        if (
+            !declared.valid || program.body.expressions.types[value] != scalar_bool
+        ) {
+            return declared
         }
+
+        return bindPredicate({
+            facts: declared.state.refinement.facts,
+            expressions: program.body.expressions,
+            value,
+            count: 1,
+            err: integers.narrow(frame.a),
+            result: null
+        })
+            -> {
+                ...declared,
+                state: {
+                    ...declared.state,
+                    refinement: {
+                        ...declared.state.refinement,
+                        facts: _
+                    }
+                }
+            }
     }
 
     return match frame.phase {
         Phase.Block => block(in),
         Phase.BlockNext => block(in),
         Phase.Expression => expression(in),
-        Phase.Declare => declare({
-            program,
-            state,
-            symbol: frame.a,
-            type_id: program.body.expressions.types[frame.b],
-            owner: 0,
-            mode: Declaration.Ordinary
-        }),
-        Phase.ScopeDeclare => declare({
-            program,
-            state,
-            symbol: frame.a,
-            type_id: 0,
-            owner: frame.b,
-            mode: Declaration.Scope
-        }),
         Phase.Destructure => destructure(in),
         Phase.Branch => branch(in),
         Phase.BranchPost => branch(in),

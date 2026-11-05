@@ -12,10 +12,14 @@ export type Input = {
 export type Output = bool
 
 export default function (in: Input): Output {
-    if (
-        !in.outcome.complete || in.outcome.failed || in.outcome.output == State.Loaned ||
-            in.outcome.output == State.Moved
-    ) {
+    const condition = (
+        - !in.outcome.complete
+        - or in.outcome.failed
+        - or in.outcome.output == State.Loaned
+        - or in.outcome.output == State.Moved
+    )
+
+    if (condition) {
         return false
     }
 

@@ -32,18 +32,24 @@ export default function (in: Input): Output {
     }
 
     if (byte == ascii_backslash) {
-        if (
-            has_next && next != ascii_double_quote && next != ascii_backslash &&
-                next != ascii_lower_n && next != ascii_lower_r &&
-                next != ascii_lower_t && next != ascii_backtick && next != ascii_dollar
-        ) {
-            const issue = in.offset
+        const condition = (
+            - has_next
+            - and next != ascii_double_quote
+            - and next != ascii_backslash
+            - and next != ascii_lower_n
+            - and next != ascii_lower_r
+            - and next != ascii_lower_t
+            - and next != ascii_backtick
+            - and next != ascii_dollar
+        )
 
-            return fail({
-                state: in,
-                offset: issue,
-                message: unsupported_template_escape
-            })
+        if (condition) {
+            return in.offset
+                -> fail({
+                    state: in,
+                    offset: _,
+                    message: unsupported_template_escape
+                })
         }
 
         return {

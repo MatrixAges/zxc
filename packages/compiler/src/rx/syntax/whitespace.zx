@@ -22,8 +22,12 @@ export default function (in: Input): Output {
         next: value => {
             const byte = value.source[value.offset]
             const accepted =
-                byte == ascii_space || byte == ascii_tab || byte == ascii_line_feed ||
-                byte == ascii_carriage_return
+                (
+                    - byte == ascii_space
+                    - or byte == ascii_tab
+                    - or byte == ascii_line_feed
+                    - or byte == ascii_carriage_return
+                )
             const offset = value.offset + (accepted ? 1 : 0)
 
             value = {

@@ -6,12 +6,13 @@ pub fn check(expressions: ir.ExpressionTable, statements: ir.Block) bool {
 
         switch (statement) {
             .result => |result| {
-                const id = result orelse return false;
+                var id = result orelse return false;
 
-                switch (expressions.at(@backingInt(id)).value) {
-                    .object, .tuple => {},
+                while (true) switch (expressions.at(@backingInt(id)).value) {
+                    .scope => |scope| id = scope.result,
+                    .object, .tuple => break,
                     else => return false,
-                }
+                };
             },
             .branch => |branch| if (!check(expressions, branch.yes) or !check(expressions, branch.no)) return false,
             .switch_stmt => |selection| for (0..selection.cases.len) |case_index| {

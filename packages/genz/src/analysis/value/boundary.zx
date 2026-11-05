@@ -17,13 +17,15 @@ export default function (in: Input): Output {
     const functions = in.program.functions
     const types = in.program.types
 
-    if (
-        in.borrowed &&
-            (
-                functions.native_io[in.position] ||
-                    functions.native_process[in.position]
-            )
-    ) {
+    const condition = (
+        - in.borrowed
+        - and (
+            functions.native_io[in.position] ||
+                functions.native_process[in.position]
+        )
+    )
+
+    if (condition) {
         return false
     }
 

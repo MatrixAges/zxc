@@ -43,32 +43,31 @@ export default function (in: Input): Output {
     const stream = in.frame.stream
     const index = in.frame.index
     const depth = in.frame.depth
-    const last_end = in.frame.end
 
-    const control = {
-        ...in.state.control,
-        stream,
-        index,
-        depth,
-        last_end,
-        template_head: head,
-        template_count: count,
-        template_maximum: maximum,
-        phase: Phase.TemplatePart
-    }
-
-    return {
-        prepared: in.state.prepared,
-        tree: {
-            nodes: in.state.tree.nodes,
-            items: in.state.tree.items,
-            fields: in.state.tree.fields,
-            parameters: in.state.tree.parameters,
-            parts,
-            arms: in.state.tree.arms
-        },
-        types: in.state.types,
-        frames: in.state.frames,
-        control
-    }
+    return in.frame.end
+        -> {
+            ...in.state.control,
+            stream,
+            index,
+            depth,
+            last_end: _,
+            template_head: head,
+            template_count: count,
+            template_maximum: maximum,
+            phase: Phase.TemplatePart
+        }
+        -> {
+            prepared: in.state.prepared,
+            tree: {
+                nodes: in.state.tree.nodes,
+                items: in.state.tree.items,
+                fields: in.state.tree.fields,
+                parameters: in.state.tree.parameters,
+                parts,
+                arms: in.state.tree.arms
+            },
+            types: in.state.types,
+            frames: in.state.frames,
+            control: _
+        }
 }

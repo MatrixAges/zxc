@@ -12,27 +12,25 @@ export default function (in: Input): Output {
     const head = in.tree.items.length + 1
     const count = frame.count + 1
 
-    const items = in.tree.items.push({
+    return in.tree.items.push({
         value: in.control.result,
         previous: frame.head
     })[0]
-
-    const state = {
-        tree: {
-            nodes: in.tree.nodes,
-            fields: in.tree.fields,
-            items
-        },
-        frames: in.frames,
-        control: in.control
-    }
-
-    return replaceFrame({
-        state,
-        frame: {
-            ...frame,
-            head,
-            count
+        -> {
+            tree: {
+                nodes: in.tree.nodes,
+                fields: in.tree.fields,
+                items: _
+            },
+            frames: in.frames,
+            control: in.control
         }
-    })
+        -> replaceFrame({
+            state: _,
+            frame: {
+                ...frame,
+                head,
+                count
+            }
+        })
 }

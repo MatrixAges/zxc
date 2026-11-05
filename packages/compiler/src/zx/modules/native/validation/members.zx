@@ -28,14 +28,15 @@ export default function (in: Input): Output {
             current.message == "" && current.index < current.input.count,
         next: current => {
             const position = current.input.first + current.index
-            const span =
+            const name = (
                 current.input.parameter ?
-                current.input.native.parameters[position].name :
-                current.input.native.errors[position]
-            const name = text({
-                source: current.input.native.source,
-                span
-            })
+                    current.input.native.parameters[position].name :
+                    current.input.native.errors[position]
+            )
+                -> text({
+                    source: current.input.native.source,
+                    span: _
+                })
             const kind = current.input.parameter ? NameKind.Value : NameKind.TypeDecl
 
             if (!checkName({

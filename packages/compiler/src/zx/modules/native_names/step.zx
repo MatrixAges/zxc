@@ -55,18 +55,21 @@ export default function (in: Input): Output {
         }
     }
 
-    if ((
-        selected.kind == NodeKind.List || selected.kind == NodeKind.Application
-    ) &&
-        !addressable({
+    const condition = (
+        - selected.kind == NodeKind.List
+        - or selected.kind == NodeKind.Application
+        - and !addressable({
             source: in.source,
             reference: selected.child
-        })) {
-            return {
-                ...in,
-                valid: false
-            }
+        })
+    )
+
+    if (condition) {
+        return {
+            ...in,
+            valid: false
         }
+    }
 
     const state = {
         ...in,
@@ -78,10 +81,13 @@ export default function (in: Input): Output {
         }
     }
 
-    if (
-        selected.kind == NodeKind.Optional || selected.kind == NodeKind.List ||
-            selected.kind == NodeKind.Application
-    ) {
+    const condition_2 = (
+        - selected.kind == NodeKind.Optional
+        - or selected.kind == NodeKind.List
+        - or selected.kind == NodeKind.Application
+    )
+
+    if (condition_2) {
         return {
             ...state,
             work: {

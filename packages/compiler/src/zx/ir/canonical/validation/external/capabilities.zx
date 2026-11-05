@@ -38,15 +38,18 @@ export default function (in: Input): Output {
         native_references: true
     })
 
-    if (
-        (output_native && !input_native) ||
-            (
-                in.context.functions.native_concurrent[in.index] &&
-                    (
-                        input_native || output_native
-                    )
-            )
-    ) {
+    const condition = (
+        - output_native
+        - and !input_native
+        - or (
+            in.context.functions.native_concurrent[in.index] &&
+                (
+                    input_native || output_native
+                )
+        )
+    )
+
+    if (condition) {
         return false
     }
 

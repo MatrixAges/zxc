@@ -98,7 +98,7 @@ export default function (in: Input): Output {
         }
     ]
 
-    const initialized = initial == null ? typed : typed.concat([
+    return (initial == null ? typed : typed.concat([
         {
             ...frame,
             token: Token.Assignment
@@ -108,10 +108,9 @@ export default function (in: Input): Output {
             action: Action.Expression,
             id: initial
         }
-    ])[0]
-
-    return initialized.push({
-        ...frame,
-        token: Token.FieldEnd
-    })[0]
+    ])[0])
+        -> _.push({
+            ...frame,
+            token: Token.FieldEnd
+        })[0]
 }

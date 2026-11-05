@@ -6,7 +6,7 @@ pub fn fill(context: anytype) !void {
     const tree = context.tables.expressions;
 
     for (tree.nodes, context.expressions) |node, *value| {
-        value.* = .{ .span = Context.span(node.span), .depth = @intCast(node.depth), .value = switch (node.kind) {
+        value.* = .{ .span = Context.span(node.span), .depth = @intCast(node.depth), .condition_list = node.condition_list, .condition_terms = @intCast(node.condition_terms), .value = switch (node.kind) {
             .Number => .{ .number = context.text(node.name) },
             .String => .{ .string = context.text(node.name) },
             .Boolean => .{ .boolean = node.flag },

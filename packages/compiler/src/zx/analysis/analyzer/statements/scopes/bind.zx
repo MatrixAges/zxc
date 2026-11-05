@@ -1,5 +1,7 @@
 import integers from "std:integer"
+import { scalar_bool } from "core/type_table/const"
 
+import bindPredicate from "../../../../ir/canonical/refinement/bind"
 import append from "../../bindings/append"
 import borrow from "./borrow"
 
@@ -56,7 +58,22 @@ export default function (in: Input): Output {
         }
     }
 
-    const bindings = {
+    const local = type_id == scalar_bool ? {
+        ...result.local,
+        refinement: {
+            ...result.local.refinement,
+            facts: bindPredicate({
+                facts: result.local.refinement.facts,
+                expressions: result.local.expressions,
+                value: integers.widen(in.value),
+                count: 1,
+                err: result.id,
+                result: null
+            })
+        }
+    } : result.local
+
+    return {
         symbols: in.scopes.bindings.symbols.push(result.id)[0],
         values: in.scopes.bindings.values.push(in.value)[0],
         borrows:
@@ -68,14 +85,13 @@ export default function (in: Input): Output {
                 )
             )[0]
     }
-
-    return {
-        scopes: {
-            ...in.scopes,
-            bindings
-        },
-        local: result.local,
-        symbol: result.id,
-        diagnostic: result.diagnostic
-    }
+        -> {
+            scopes: {
+                ...in.scopes,
+                bindings: _
+            },
+            local,
+            symbol: result.id,
+            diagnostic: result.diagnostic
+        }
 }

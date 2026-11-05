@@ -1,0 +1,102 @@
+import integers from "std:integer"
+
+import { ExprKind } from "../../../../frontend/parser/expressions/state/model"
+import lookup from "../../bindings/lookup"
+import cached from "../../captures/cached_symbol"
+import { NameKind } from "../../source/model"
+import readName from "../../source/name"
+import injected from "../injected/lookup"
+import { placeholder_name } from "../traversal/pipeline/const"
+
+import type { Context } from "./model"
+
+export type Input = {
+    context: Context,
+    node: u64
+}
+
+export type Output = u32?
+
+export default function (in: Input): Output {
+    const local = in.context.state.local
+    const source = in.context.source
+
+    const binding = injected({
+        local,
+        source,
+        node: in.node
+    })
+
+    if (binding.unit) {
+        return null
+    }
+
+    if (binding.symbol != null) {
+        return binding.symbol
+    }
+
+    if (source.tree.nodes[in.node].kind != ExprKind.Identifier) {
+        return null
+    }
+
+    const name = readName({
+        source,
+        kind: NameKind.Expression,
+        index: in.node
+    }).text
+
+    const frame = in.context.pipeline
+
+    if (name == placeholder_name && frame != null) {
+        if (frame.active) {
+            const missing: u32? = null
+
+            const shadowed = loop({
+                index: local.active.length,
+                symbol: missing
+            }, {
+                while: (state, context) => state.symbol == null &&
+                    state.index > context.frame.scope_start &&
+                    state.index > context.local.scope_floor,
+                next: (state, context) => {
+                    state.index -= 1
+
+                    const symbol = context.local.active[state.index]
+
+                    if (
+                        context.local.symbols.names[integers.widen(
+                            symbol
+                        )] == placeholder_name
+                    ) {
+                        state.symbol = symbol
+                    }
+                },
+                return: state => state.symbol
+            }, {
+                local,
+                frame
+            })
+
+            if (shadowed != null) {
+                return shadowed
+            }
+
+            if (local.captures.current == frame.owner) {
+                return frame.depth == local.lambda_depth ? frame.symbol : null
+            }
+
+            return cached({
+                captures: local.captures,
+                owner: frame.owner,
+                symbol: frame.symbol
+            }) ?? frame.symbol
+        }
+    }
+
+    return lookup({
+        active: local.active,
+        names: local.symbols.names,
+        scope_floor: local.scope_floor,
+        name
+    })
+}

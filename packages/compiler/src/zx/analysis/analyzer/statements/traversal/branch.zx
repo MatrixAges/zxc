@@ -27,17 +27,16 @@ export default function (in: Input): Output {
     if (in.action == Action.Condition) {
         const before = mark(state.local.refinement.facts)
 
-        const refinement = assume({
+        const local = assume({
             state: state.local.refinement,
             expressions: state.local.expressions,
             condition: integers.widen(body.expression.value),
             truth: true
         })
-
-        const local = {
-            ...state.local,
-            refinement
-        }
+            -> {
+                ...state.local,
+                refinement: _
+            }
 
         const blocks = enter({
             blocks: body.blocks,
@@ -46,50 +45,47 @@ export default function (in: Input): Output {
             block: statement.second
         })
 
-        const branches = body.branches.splice(position, 1, [{
+        return body.branches.splice(position, 1, [{
             ...frame,
             condition: body.expression.value,
             mark: before
         }])[0]
-
-        return {
-            ...body,
-            expression: {
-                ...body.expression,
-                state: {
-                    ...state,
-                    local
-                }
-            },
-            blocks,
-            branches,
-            actions: body.actions.push(Action.Yes)[0],
-            phase: Phase.Next
-        }
+            -> {
+                ...body,
+                expression: {
+                    ...body.expression,
+                    state: {
+                        ...state,
+                        local
+                    }
+                },
+                blocks,
+                branches: _,
+                actions: body.actions.push(Action.Yes)[0],
+                phase: Phase.Next
+            }
     }
 
-    const facts = restore({
+    const restored = restore({
         facts: state.local.refinement.facts,
         mark: frame.mark
     })
-
-    const restored = {
-        ...state.local.refinement,
-        facts
-    }
+        -> {
+            ...state.local.refinement,
+            facts: _
+        }
 
     if (in.action == Action.Yes) {
-        const refinement = assume({
+        const local = assume({
             state: restored,
             expressions: state.local.expressions,
             condition: integers.widen(frame.condition),
             truth: false
         })
-
-        const local = {
-            ...state.local,
-            refinement
-        }
+            -> {
+                ...state.local,
+                refinement: _
+            }
 
         const branches = body.branches.splice(position, 1, [{
             ...frame,
@@ -121,27 +117,26 @@ export default function (in: Input): Output {
             }
         }
 
-        const blocks = enter({
+        return enter({
             blocks: body.blocks,
             local,
             tree: body.expression.source.blocks,
             block: statement.third - 1
         })
-
-        return {
-            ...body,
-            expression: {
-                ...body.expression,
-                state: {
-                    ...state,
-                    local
-                }
-            },
-            blocks,
-            branches,
-            actions,
-            phase: Phase.Next
-        }
+            -> {
+                ...body,
+                expression: {
+                    ...body.expression,
+                    state: {
+                        ...state,
+                        local
+                    }
+                },
+                blocks: _,
+                branches,
+                actions,
+                phase: Phase.Next
+            }
     }
 
     const after_yes = body.blocks.returns[integers.widen(frame.yes)] ? assume({
@@ -158,30 +153,29 @@ export default function (in: Input): Output {
         truth: true
     }) : after_yes
 
-    const pending = append({
+    return append({
         table: body.blocks.pending,
         condition: frame.condition,
         yes: frame.yes,
         no: body.value
     })
-
-    return {
-        ...body,
-        expression: {
-            ...body.expression,
-            state: {
-                ...state,
-                local: {
-                    ...state.local,
-                    refinement
+        -> {
+            ...body,
+            expression: {
+                ...body.expression,
+                state: {
+                    ...state,
+                    local: {
+                        ...state.local,
+                        refinement
+                    }
                 }
-            }
-        },
-        blocks: {
-            ...body.blocks,
-            pending
-        },
-        branches: body.branches.pop()[0],
-        phase: Phase.Next
-    }
+            },
+            blocks: {
+                ...body.blocks,
+                pending: _
+            },
+            branches: body.branches.pop()[0],
+            phase: Phase.Next
+        }
 }

@@ -154,28 +154,27 @@ export default function (in: Input): Output {
     })
 
     const err = result.symbols.length == 2 ? result.symbols[0] : null
-    const value = result.symbols.length == 2 ? result.symbols[1] : null
 
-    const facts = result.state.diagnostic.message == "" ? refine({
-        facts: result.state.local.refinement.facts,
-        expressions: result.state.local.expressions,
-        value: integers.widen(in.value),
-        count: result.symbols.length,
-        err,
-        result: value
-    }) : result.state.local.refinement.facts
-
-    return {
-        state: {
-            ...result.state,
-            local: {
-                ...result.state.local,
-                refinement: {
-                    ...result.state.local.refinement,
-                    facts
+    return (result.symbols.length == 2 ? result.symbols[1] : null)
+        -> (result.state.diagnostic.message == "" ? refine({
+            facts: result.state.local.refinement.facts,
+            expressions: result.state.local.expressions,
+            value: integers.widen(in.value),
+            count: result.symbols.length,
+            err,
+            result: _
+        }) : result.state.local.refinement.facts)
+        -> {
+            state: {
+                ...result.state,
+                local: {
+                    ...result.state.local,
+                    refinement: {
+                        ...result.state.local.refinement,
+                        facts: _
+                    }
                 }
-            }
-        },
-        scopes: result.scopes
-    }
+            },
+            scopes: result.scopes
+        }
 }

@@ -8,10 +8,17 @@ export type Output = bool
 export default function (in: Input): Output {
     const path = in.paths[in.index]
 
-    if (
-        path.length < 6 || path[0] != 115 || path[1] != 116 || path[2] != 111 ||
-            path[3] != 114 || path[4] != 101 || path[5] != 46
-    ) {
+    const condition = (
+        - path.length < 6
+        - or path[0] != 115
+        - or path[1] != 116
+        - or path[2] != 111
+        - or path[3] != 114
+        - or path[4] != 101
+        - or path[5] != 46
+    )
+
+    if (condition) {
         return false
     }
 

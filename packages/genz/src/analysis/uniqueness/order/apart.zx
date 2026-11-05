@@ -51,10 +51,13 @@ export default function (in: Input): Output {
     const right = integers.widen(result.right)
     const different = left != right
 
-    if (
-        different && in.regions.fork[left] == in.regions.fork[right] &&
-            in.regions.arm[left] != in.regions.arm[right]
-    ) {
+    const condition = (
+        - different
+        - and in.regions.fork[left] == in.regions.fork[right]
+        - and in.regions.arm[left] != in.regions.arm[right]
+    )
+
+    if (condition) {
         return true
     }
 

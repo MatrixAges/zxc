@@ -55,19 +55,29 @@ export default function (in: Input): Output {
         next: current => {
             if (current.phase == Phase.Expression) {
                 current = expression(current)
-            } else if (
-                current.phase == Phase.AncestorStart ||
-                    current.phase == Phase.Ancestor || current.phase == Phase.Root ||
-                    current.phase == Phase.Path
-            ) {
-                current = path(current)
-            } else if (current.phase == Phase.Ensure) {
-                current = ensure(current)
-            } else if (
-                current.phase == Phase.Grow || current.phase == Phase.Clear ||
-                    current.phase == Phase.Rehash
-            ) {
-                current = rehash(current)
+            } else {
+                const condition = (
+                    - current.phase == Phase.AncestorStart
+                    - or current.phase == Phase.Ancestor
+                    - or current.phase == Phase.Root
+                    - or current.phase == Phase.Path
+                )
+
+                if (condition) {
+                    current = path(current)
+                } else if (current.phase == Phase.Ensure) {
+                    current = ensure(current)
+                } else {
+                    const condition_2 = (
+                        - current.phase == Phase.Grow
+                        - or current.phase == Phase.Clear
+                        - or current.phase == Phase.Rehash
+                    )
+
+                    if (condition_2) {
+                        current = rehash(current)
+                    }
+                }
             }
         }
     })

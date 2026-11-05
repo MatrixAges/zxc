@@ -16,20 +16,19 @@ export type Input = {
 export type Output = Result
 
 export default function (in: Input): Output {
-    const text = decode({
+    const result = decode({
         source: in.source,
         template: in.template
     })
-
-    const result = append({
-        table: in.state.local.expressions,
-        metadata: {
-            type_id: 10,
-            span_start: in.span.start,
-            span_end: in.span.end
-        },
-        value: text
-    })
+        -> append({
+            table: in.state.local.expressions,
+            metadata: {
+                type_id: 10,
+                span_start: in.span.start,
+                span_end: in.span.end
+            },
+            value: _
+        })
 
     return {
         state: {

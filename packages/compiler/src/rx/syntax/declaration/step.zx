@@ -84,11 +84,15 @@ export default function (in: Input): Output {
         offset: assign + 1
     })
 
-    if (
-        quoted == in.source.length ||
+    const condition = (
+        - quoted == in.source.length
+        - or (
             in.source[quoted] != ascii_double_quote &&
-            in.source[quoted] != ascii_single_quote
-    ) {
+                in.source[quoted] != ascii_single_quote
+        )
+    )
+
+    if (condition) {
         return {
             ...in,
             offset: quoted,
@@ -157,7 +161,7 @@ export default function (in: Input): Output {
         ignore_case: true
     })
 
-    const standalone_value = matches({
+    const issue = matches({
         source: in.source,
         span: value_span,
         text: xml_standalone_yes,
@@ -168,22 +172,21 @@ export default function (in: Input): Output {
         text: xml_standalone_no,
         ignore_case: false
     })
-
-    const issue = match {
-        in.count == 0 => match {
-            version && version_value => Issue.None,
-            _ => Issue.Version
-        },
-        encoding && !in.encoding && !in.standalone => match {
-            encoding_value => Issue.None,
-            _ => Issue.Encoding
-        },
-        standalone && !in.standalone => match {
-            standalone_value => Issue.None,
-            _ => Issue.Standalone
-        },
-        _ => Issue.Field
-    }
+        -> match {
+            in.count == 0 => match {
+                version && version_value => Issue.None,
+                _ => Issue.Version
+            },
+            encoding && !in.encoding && !in.standalone => match {
+                encoding_value => Issue.None,
+                _ => Issue.Encoding
+            },
+            standalone && !in.standalone => match {
+                (_) => Issue.None,
+                _ => Issue.Standalone
+            },
+            _ => Issue.Field
+        }
 
     return {
         ...in,

@@ -7,6 +7,9 @@ export type Output = ExprControl
 export default function (in: Input): Output {
     return {
         phase: in.phase,
+        allow_condition: in.allow_condition,
+        boundary: in.boundary,
+        boundary_stream: in.boundary_stream,
         index: in.index,
         root_index: in.root_index,
         base_depth: in.base_depth,

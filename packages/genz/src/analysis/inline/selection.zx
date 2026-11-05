@@ -49,13 +49,15 @@ export default function (in: Input): Output {
 
             current.blocks = current.blocks.pop()[0]
 
-            if (
-                count >= 2 &&
-                    control.statement_kinds[first + count - 1] ==
-                    StatementKind.Result &&
-                    control.statement_kinds[first + count - 2] ==
+            const condition = (
+                - count >= 2
+                - and control.statement_kinds[first + count - 1] ==
+                    StatementKind.Result
+                - and control.statement_kinds[first + count - 2] ==
                     StatementKind.Constant
-            ) {
+            )
+
+            if (condition) {
                 const returned =
                     control
                     .results[integers.widen(
@@ -303,12 +305,14 @@ export default function (in: Input): Output {
                     })
                 }
 
-                if (
-                    kind != ExpressionKind.Iteration &&
-                        kind != ExpressionKind.Capture &&
-                        kind != ExpressionKind.Task &&
-                        kind != ExpressionKind.Transform
-                ) {
+                const condition_2 = (
+                    - kind != ExpressionKind.Iteration
+                    - and kind != ExpressionKind.Capture
+                    - and kind != ExpressionKind.Task
+                    - and kind != ExpressionKind.Transform
+                )
+
+                if (condition_2) {
                     current.finds = current.finds.concat(children({
                         table,
                         id

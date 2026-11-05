@@ -1,4 +1,5 @@
 import integers from "std:integer"
+import { max_u64 } from "core/const"
 import {
     BinaryOperator,
     ExpressionKind,
@@ -20,11 +21,18 @@ export type Input = {
 export type Output = Refinement
 
 export default function (in: Input): Output {
-    const initial: Refinement = {
-        facts: in.state.facts,
-        conditions: in.state.conditions.push(in.condition)[0],
-        truths: in.state.truths.push(in.truth)[0]
-    }
+    const overflow = in.state.epoch == max_u64
+    const epoch = overflow ? 1 : in.state.epoch + 1
+
+    const initial: Refinement =
+        (overflow ? in.state.visits.map(value => 0)[0] : in.state.visits)
+        -> {
+            ...in.state,
+            visits: _,
+            epoch,
+            conditions: in.state.conditions.push(in.condition)[0],
+            truths: in.state.truths.push(in.truth)[0]
+        }
 
     return loop({
         state: initial,
@@ -43,7 +51,43 @@ export default function (in: Input): Output {
             const kind = expressions.kinds[condition]
             const payload = integers.widen(expressions.payloads[condition])
 
-            if (
+            if (kind == ExpressionKind.Reference) {
+                const symbol = integers.widen(expressions.references[payload])
+
+                if (symbol < current.state.facts.predicates.length) {
+                    const predicate = current.state.facts.predicates[symbol]
+
+                    if (predicate != null) {
+                        const slot = symbol * 2 + (truth ? 1 : 0)
+
+                        if (current.state.visits.length <= slot) {
+                            current.state.visits = current.state.visits.push(0)[0]
+                            current.state.conditions =
+                                current.state.conditions.push(condition)[0]
+                            current.state.truths = current.state.truths.push(truth)[0]
+                        } else if (
+                            current.state.visits[slot] != current.state.epoch
+                        ) {
+                            current.state.visits[slot] = current.state.epoch
+                            current.state.conditions =
+                                current.state.conditions.push(
+                                    integers.widen(
+                                        predicate
+                                    )
+                                )[0]
+                            current.state.truths = current.state.truths.push(truth)[0]
+                        }
+                    }
+                }
+            } else if (kind == ExpressionKind.Scope) {
+                current.state.conditions =
+                    current.state.conditions.push(
+                        integers.widen(
+                            expressions.scope_results[payload]
+                        )
+                    )[0]
+                current.state.truths = current.state.truths.push(truth)[0]
+            } else if (
                 kind == ExpressionKind.Unary &&
                     expressions.unary_operators[payload] == UnaryOperator.Not
             ) {
@@ -57,12 +101,13 @@ export default function (in: Input): Output {
             } else if (kind == ExpressionKind.Binary) {
                 const operator = expressions.binary_operators[payload]
 
-                if (
-                    (operator == BinaryOperator.LogicalAnd && truth) ||
-                        (
-                            operator == BinaryOperator.LogicalOr && !truth
-                        )
-                ) {
+                const condition_2 = (
+                    - operator == BinaryOperator.LogicalAnd
+                    - and truth
+                    - or (operator == BinaryOperator.LogicalOr && !truth)
+                )
+
+                if (condition_2) {
                     current.state.conditions =
                         current.state.conditions.push(
                             integers.widen(

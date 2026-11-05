@@ -71,7 +71,7 @@ export default function (in: Input): Output {
     })
 
     if (result.valid && count == 2) {
-        const facts = bind({
+        return bind({
             facts: result.state.refinement.facts,
             expressions: program.body.expressions,
             value,
@@ -79,17 +79,16 @@ export default function (in: Input): Output {
             err: control.destructure_symbols[first],
             result: control.destructure_symbols[first + 1]
         })
-
-        return {
-            state: {
-                ...result.state,
-                refinement: {
-                    ...result.state.refinement,
-                    facts
-                }
-            },
-            valid: true
-        }
+            -> {
+                state: {
+                    ...result.state,
+                    refinement: {
+                        ...result.state.refinement,
+                        facts: _
+                    }
+                },
+                valid: true
+            }
     }
 
     return result

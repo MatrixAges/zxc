@@ -40,17 +40,20 @@ export default function (in: Input): Output {
             const local = namespace ? request.members[current.index] :
                 request.names.aliases[current.index]
             const original = namespace ? local : request.names.values[current.index]
-            const name =
-                request.kind == ImportKind.Function || original == default_export ? "" :
-                original
-            const callable: u64? = match {
-                namespace => current.index,
-                request.kind == ImportKind.TypeOnly => null,
-                _ => position({
-                    names: request.members,
-                    name
-                })
-            }
+            const callable: u64? =
+                (
+                    request.kind == ImportKind.Function || original == default_export ?
+                        "" :
+                        original
+                )
+                -> match {
+                    namespace => current.index,
+                    request.kind == ImportKind.TypeOnly => null,
+                    _ => position({
+                        names: request.members,
+                        name: _
+                    })
+                }
             const constant: u64? =
                 callable == null && request.kind == ImportKind.Enumeration ?
                 position({

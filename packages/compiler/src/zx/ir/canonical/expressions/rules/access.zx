@@ -25,14 +25,13 @@ export default function (in: Input): Output {
         })
     }
 
-    const child = match in.kind {
+    const child_index = match in.kind {
         ExpressionKind.OptionalValue => expressions.optional_values[in.payload],
         ExpressionKind.Length => expressions.lengths[in.payload],
         ExpressionKind.Index => expressions.index_targets[in.payload],
         _ => expressions.projection_targets[in.payload]
     }
-
-    const child_index = integers.widen(child)
+        -> integers.widen(_)
 
     if (child_index >= context.index) {
         return false

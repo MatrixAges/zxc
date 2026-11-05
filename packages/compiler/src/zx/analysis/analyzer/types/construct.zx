@@ -24,22 +24,21 @@ export default function (in: Input): Output {
         candidate: in.candidate
     })
 
-    const diagnostic = result.diagnostic.message == "" ? in.state.diagnostic : {
+    return (result.diagnostic.message == "" ? in.state.diagnostic : {
         code: result.diagnostic.code,
         message: result.diagnostic.message,
         start: in.span.start,
         end: in.span.end
-    }
-
-    return {
-        state: {
-            ...in.state,
-            types: {
-                ...in.state.types,
-                delta: result.delta
+    })
+        -> {
+            state: {
+                ...in.state,
+                types: {
+                    ...in.state.types,
+                    delta: result.delta
+                },
+                diagnostic: _
             },
-            diagnostic
-        },
-        id: result.id
-    }
+            id: result.id
+        }
 }

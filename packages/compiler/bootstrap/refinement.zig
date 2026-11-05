@@ -22,6 +22,10 @@ pub fn add(self: *Self, allocator: std.mem.Allocator, symbol: ir.SymbolId) std.m
     try self.state.nonnull.append(allocator, symbol);
 }
 
+pub fn alias(self: *Self, allocator: std.mem.Allocator, _: ir.ExpressionTable, symbol: ir.SymbolId, value: ir.ExprId) std.mem.Allocator.Error!void {
+    try self.state.alias(allocator, symbol, value);
+}
+
 pub fn bind(self: *Self, allocator: std.mem.Allocator, expressions: ir.ExpressionTable, value: ir.ExprId, symbols: []const ?ir.SymbolId) std.mem.Allocator.Error!void {
     try self.state.bind(allocator, expressions.get(value), symbols);
 }

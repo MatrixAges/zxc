@@ -10,11 +10,16 @@ export type Output = bool
 export default function (in: Input): Output {
     const count = in.specifiers.length
 
-    if (
-        count > integers.widen(max_u32) || in.identities.length != count ||
-            in.import_names.length != count || in.type_ids.length != count ||
-            in.type_names.length != count || in.type_namespaces.length != count
-    ) {
+    const condition = (
+        - count > integers.widen(max_u32)
+        - or in.identities.length != count
+        - or in.import_names.length != count
+        - or in.type_ids.length != count
+        - or in.type_names.length != count
+        - or in.type_namespaces.length != count
+    )
+
+    if (condition) {
         return false
     }
 

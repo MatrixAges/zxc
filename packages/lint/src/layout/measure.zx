@@ -44,10 +44,14 @@ export default function (in: Input): Output {
             const limit = current.graph.input.width == 0 ? print_width :
                 current.graph.input.width
             const wrap =
-                opening && nonempty && !token.block &&
                 (
-                    token.object || token.multiline || (
-                        !children && prefix + width + tail > limit
+                    - opening
+                    - and nonempty
+                    - and !token.block
+                    - and (
+                        - token.object
+                        - or token.multiline
+                        - or (!children && prefix + width + tail > limit)
                     )
                 )
 

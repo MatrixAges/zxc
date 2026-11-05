@@ -34,13 +34,13 @@ export default function (in: Input): Output {
                                 expressions.collection_targets[payload]
                             )
 
-                        if (
-                            (
-                                operation == CollectionKind.Push ||
-                                    operation == CollectionKind.Concat
-                            ) &&
-                                expressions.kinds[target] == ExpressionKind.Index
-                        ) {
+                        const condition = (
+                            - operation == CollectionKind.Push
+                            - or operation == CollectionKind.Concat
+                            - and expressions.kinds[target] == ExpressionKind.Index
+                        )
+
+                        if (condition) {
                             const indexed = integers.widen(
                                 expressions
                                     .index_targets[

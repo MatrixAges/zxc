@@ -21,36 +21,43 @@ export type Input = {
 export type Output = u64
 
 export default function (in: Input): Output {
-    if (
-        in.byte == ascii_dot && in.has_after && in.next == ascii_dot &&
-            in.after == ascii_dot
-    ) {
+    const condition = (
+        - in.byte == ascii_dot
+        - and in.has_after
+        - and in.next == ascii_dot
+        - and in.after == ascii_dot
+    )
+
+    if (condition) {
         return 3
     }
 
-    if (
-        in.has_next &&
-            (
-                (
-                    (in.byte == ascii_equals || in.byte == ascii_minus) &&
-                        in.next == ascii_greater_than
-                ) ||
-                    (
-                        in.next == ascii_equals &&
-                            (
-                                in.byte == ascii_equals || in.byte == ascii_bang ||
-                                    in.byte == ascii_less_than ||
-                                    in.byte == ascii_greater_than
-                            )
-                    ) ||
-                    (
-                        in.byte == in.next && (
-                            in.byte == ascii_question || in.byte == ascii_ampersand ||
-                                in.byte == ascii_pipe
-                        )
-                    )
+    const condition_2 = (
+        - in.has_next
+        - and (
+            - in.byte == ascii_equals
+            - or in.byte == ascii_minus
+            - and in.next == ascii_greater_than
+            - or (
+                - in.next == ascii_equals
+                - and (
+                    - in.byte == ascii_equals
+                    - or in.byte == ascii_bang
+                    - or in.byte == ascii_less_than
+                    - or in.byte == ascii_greater_than
+                )
             )
-    ) {
+            - or (
+                - in.byte == in.next
+                - and (
+                    in.byte == ascii_question || in.byte == ascii_ampersand ||
+                        in.byte == ascii_pipe
+                )
+            )
+        )
+    )
+
+    if (condition_2) {
         return 2
     }
 

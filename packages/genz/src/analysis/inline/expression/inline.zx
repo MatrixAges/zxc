@@ -58,7 +58,7 @@ export default function (in: Input): Output {
         a: child
     }
 
-    const start = {
+    return {
         ...in.frame,
         op: InlineOp.LowerStart,
         mapping: child,
@@ -68,14 +68,13 @@ export default function (in: Input): Output {
         d: table.span_start[id],
         e: table.span_end[id]
     }
-
-    return {
-        ...extended,
-        ids,
-        mappings,
-        frames: extended.frames.concat([
-            done,
-            start
-        ])[0]
-    }
+        -> {
+            ...extended,
+            ids,
+            mappings,
+            frames: extended.frames.concat([
+                done,
+                _
+            ])[0]
+        }
 }

@@ -18,8 +18,9 @@ export type Input = Step
 export type Output = Result
 
 export default function (in: Input): Output {
-    const program = in.context.program
-    const expressions = program.body.expressions
+    const expressions = in.context.program
+        -> _.body.expressions
+
     const frame = in.frame
 
     if (frame.a >= expressions.kinds.length || frame.b > max_nesting_depth) {
@@ -64,9 +65,13 @@ export default function (in: Input): Output {
             }
         }
     } else if (kind == ExpressionKind.Call) {
-        if (
-            (frame.c == 1 || frame.c == 3) && expressions.call_store_count[payload] != 0
-        ) {
+        const condition_2 = (
+            - frame.c == 1
+            - or frame.c == 3
+            - and expressions.call_store_count[payload] != 0
+        )
+
+        if (condition_2) {
             return {
                 state: in.state,
                 valid: false
@@ -86,7 +91,7 @@ export default function (in: Input): Output {
             }
         }
     } else if (kind == ExpressionKind.Iteration) {
-        const condition = schedule({
+        return schedule({
             state: in.state,
             frame: {
                 phase: Phase.IterationCondition,
@@ -95,21 +100,19 @@ export default function (in: Input): Output {
                 c: frame.c
             }
         })
-
-        const initial = schedule({
-            state: condition,
-            frame: {
-                phase: Phase.Expression,
-                a: integers.widen(expressions.iteration_initials[payload]),
-                b: frame.b + 1,
-                c: frame.c
+            -> schedule({
+                state: _,
+                frame: {
+                    phase: Phase.Expression,
+                    a: integers.widen(expressions.iteration_initials[payload]),
+                    b: frame.b + 1,
+                    c: frame.c
+                }
+            })
+            -> {
+                state: _,
+                valid: true
             }
-        })
-
-        return {
-            state: initial,
-            valid: true
-        }
     } else if (kind == ExpressionKind.Transform) {
         const callback = schedule({
             state: in.state,
@@ -123,32 +126,30 @@ export default function (in: Input): Output {
 
         const initial = expressions.transform_initials[payload]
 
-        const initialized = initial == null
-        ? callback
-        : schedule({
-            state: callback,
-            frame: {
-                phase: Phase.Expression,
-                a: integers.widen(initial),
-                b: frame.b + 1,
-                c: frame.c
-            }
-        })
-
-        const target = schedule({
-            state: initialized,
-            frame: {
-                phase: Phase.Expression,
-                a: integers.widen(expressions.transform_targets[payload]),
-                b: frame.b + 1,
-                c: frame.c
-            }
-        })
-
-        return {
-            state: target,
-            valid: true
-        }
+        return (initial == null
+            ? callback
+            : schedule({
+                state: callback,
+                frame: {
+                    phase: Phase.Expression,
+                    a: integers.widen(initial),
+                    b: frame.b + 1,
+                    c: frame.c
+                }
+            }))
+                -> schedule({
+                    state: _,
+                    frame: {
+                        phase: Phase.Expression,
+                        a: integers.widen(expressions.transform_targets[payload]),
+                        b: frame.b + 1,
+                        c: frame.c
+                    }
+                })
+                -> {
+                    state: _,
+                    valid: true
+                }
     }
 
     return match kind {

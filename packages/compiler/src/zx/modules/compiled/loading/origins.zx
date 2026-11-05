@@ -22,11 +22,11 @@ export default function (in: Input): Output {
     }, {
         while: current => current.index < current.input.origins.ids.length,
         next: current => {
-            const owner = current.input.origins.owners[current.index]
-            const request = {
-                instance: current.input.instance,
-                value: owner
-            }
+            const request = current.input.origins.owners[current.index]
+                -> {
+                    instance: current.input.instance,
+                    value: _
+                }
             const rebound =
                 current.input.origins.kinds[current.index] == 0 ? scope(
                     request

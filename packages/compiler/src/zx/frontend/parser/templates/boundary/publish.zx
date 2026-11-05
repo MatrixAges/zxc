@@ -11,7 +11,7 @@ export type Output = Boundary
 export default function (in: Input): Output {
     const length = in.lexer.source_length
 
-    const tokens = in.lexer.tokens.length != 0 && in.lexer.line_break
+    return in.lexer.tokens.length != 0 && in.lexer.line_break
         -> in.lexer.tokens.push({
             kind: Kind.Eof,
             word: Keyword.Root,
@@ -23,16 +23,15 @@ export default function (in: Input): Output {
             line_break: _,
             dollar: false
         })[0]
-
-    return {
-        lexed: {
-            tokens,
-            comments: in.lexer.comments,
-            diagnostic: in.lexer.diagnostic
-        },
-        token_templates: in.graph.token_templates.push(0)[0],
-        templates: in.graph.templates,
-        parts: in.graph.parts,
-        events: in.graph.events
-    }
+        -> {
+            lexed: {
+                tokens: _,
+                comments: in.lexer.comments,
+                diagnostic: in.lexer.diagnostic
+            },
+            token_templates: in.graph.token_templates.push(0)[0],
+            templates: in.graph.templates,
+            parts: in.graph.parts,
+            events: in.graph.events
+        }
 }

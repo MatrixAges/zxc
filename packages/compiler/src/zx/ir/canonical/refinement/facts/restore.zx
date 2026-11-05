@@ -9,6 +9,7 @@ export type Output = Facts
 
 export default function (in: Input): Output {
     return {
+        ...in.facts,
         nonnull: in.facts.nonnull.splice(0, in.mark.nonnull, [])[1],
         projected: in.facts.projected.splice(0, in.mark.nonnull, [])[1],
         capture_errors: in.facts.capture_errors.splice(0, in.mark.captures, [])[1],

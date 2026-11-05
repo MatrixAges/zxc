@@ -21,9 +21,13 @@ export default function (in: Input): Output {
         })
     }
 
-    if (
-        token.kind != Kind.Eof && token.symbol != Symbol.CloseBrace && !token.line_break
-    ) {
+    const condition = (
+        - token.kind != Kind.Eof
+        - and token.symbol != Symbol.CloseBrace
+        - and !token.line_break
+    )
+
+    if (condition) {
         return fail({
             state: in,
             code: "syntax",
@@ -31,7 +35,7 @@ export default function (in: Input): Output {
         })
     }
 
-    const current = {
+    return {
         name: {
             start: in.control.current.name.start,
             end: in.control.current.name.end
@@ -48,19 +52,17 @@ export default function (in: Input): Output {
         count: in.parameters.length - in.control.current.first_parameter,
         error_count: in.errors.length - in.control.current.first_error
     }
-
-    const functions = in.functions.push(current)[0]
-
-    return advance({
-        state: {
-            lexed: in.lexed,
-            declarations: in.declarations,
-            parameters: in.parameters,
-            errors: in.errors,
-            control: in.control,
-            functions
-        },
-        phase: Phase.Start,
-        count: 0
-    })
+        -> in.functions.push(_)[0]
+        -> advance({
+            state: {
+                lexed: in.lexed,
+                declarations: in.declarations,
+                parameters: in.parameters,
+                errors: in.errors,
+                control: in.control,
+                functions: _
+            },
+            phase: Phase.Start,
+            count: 0
+        })
 }

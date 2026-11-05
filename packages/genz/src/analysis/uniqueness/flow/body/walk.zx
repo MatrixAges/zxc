@@ -51,17 +51,16 @@ export default function (in: Input): Output {
         first
     })
 
-    const expanded =
+    const initial: State =
         in.context.body.expressions.call_functions.map(callee => false)[0]
-
-    const initial: State = {
-        remaining: count,
-        queue,
-        expanded,
-        reached: in.reached,
-        changed: false,
-        every: false
-    }
+        -> {
+            remaining: count,
+            queue,
+            expanded: _,
+            reached: in.reached,
+            changed: false,
+            every: false
+        }
 
     const result = loop(initial, {
         while: state => state.queue.count != 0 && state.remaining != 0 && !state.every,

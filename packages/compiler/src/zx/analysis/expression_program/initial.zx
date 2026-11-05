@@ -69,7 +69,7 @@ export default function (in: Input): Output {
         }
     }
 
-    const scope = local({
+    return local({
         signature: {
             types,
             span,
@@ -86,21 +86,20 @@ export default function (in: Input): Output {
         },
         allow_store: false
     })
-
-    return {
-        program: in.mode != Mode.Expression,
-        linking: in.mode == Mode.Linking,
-        state: {
-            types,
-            local: scope,
-            input_type: 0,
-            diagnostic
-        },
-        span,
-        input_value: 0,
-        binding_values: [],
-        value: 0,
-        root: null,
-        ownership: Ownership.Borrowed
-    }
+        -> {
+            program: in.mode != Mode.Expression,
+            linking: in.mode == Mode.Linking,
+            state: {
+                types,
+                local: _,
+                input_type: 0,
+                diagnostic
+            },
+            span,
+            input_value: 0,
+            binding_values: [],
+            value: 0,
+            root: null,
+            ownership: Ownership.Borrowed
+        }
 }

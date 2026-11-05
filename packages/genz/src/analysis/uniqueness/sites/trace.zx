@@ -94,17 +94,19 @@ export default function (in: Input): Output {
                     }
 
                     if (role == Role.flow || role == Role.member) {
-                        const type_id = integers.widen(
+                        const offset = integers.widen(
                             source.expressions.types[integers.widen(
                                 parent
                             )]
                         )
-                        const owner = integers.widen(source.layout.unwrapped[type_id])
-                        const offset = role == Role.member ?
-                            source.layout.offsets[owner][integers.widen(
-                                edges.index[edge]
-                            )] :
-                            0
+                            -> integers.widen(source.layout.unwrapped[_])
+                            -> (
+                                role == Role.member ?
+                                    source.layout.offsets[_][integers.widen(
+                                        edges.index[edge]
+                                    )] :
+                                    0
+                            )
 
                         current.stack = push({
                             stack: current.stack,
@@ -158,13 +160,14 @@ export default function (in: Input): Output {
                             source.expressions.projection_targets[payload] : max_u32
 
                         if (projected && projection_target == frame.node) {
-                            const type_id = integers.widen(
-                                source.expressions.types[integers.widen(
-                                    frame.node
-                                )]
-                            )
                             const owner =
-                                integers.widen(source.layout.unwrapped[type_id])
+                                integers.widen(
+                                    source.expressions
+                                        .types[integers.widen(
+                                            frame.node
+                                        )]
+                                )
+                                -> integers.widen(source.layout.unwrapped[_])
                             const member = integers.widen(
                                 source.expressions.projection_indices[payload]
                             )

@@ -10,22 +10,21 @@ export type Input = {
 export type Output = State
 
 export default function (in: Input): Output {
-    const issue = {
+    return {
         offset: in.state.control.location.offset,
         line: in.state.control.location.line,
         column: in.state.control.location.column
     }
-
-    return {
-        source: in.state.source,
-        tree: in.state.tree,
-        frames: in.state.frames,
-        frame: in.state.frame,
-        control: {
-            ...in.state.control,
-            phase: Phase.Done,
-            issue,
-            message: in.message
+        -> {
+            source: in.state.source,
+            tree: in.state.tree,
+            frames: in.state.frames,
+            frame: in.state.frame,
+            control: {
+                ...in.state.control,
+                phase: Phase.Done,
+                issue: _,
+                message: in.message
+            }
         }
-    }
 }

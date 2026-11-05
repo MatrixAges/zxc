@@ -25,21 +25,22 @@ export default function (in: Input): Output {
     const result = in.expression.control.result
     const operator = in.expression.control.hint.binary.operator
 
-    const kind = in.control.phase == Phase.StoreAssign ? StatementKind.StoreSet :
-        StatementKind.StateUpdate
-
-    const state = {
-        expression: in.expression,
-        tree: in.tree,
-        frames: in.frames,
-        suspended: in.suspended,
-        frame: {
-            ...in.frame,
-            statement: kind,
-            first: result
-        },
-        control: in.control
-    }
+    const state = (
+        in.control.phase == Phase.StoreAssign ? StatementKind.StoreSet :
+            StatementKind.StateUpdate
+    )
+        -> {
+            expression: in.expression,
+            tree: in.tree,
+            frames: in.frames,
+            suspended: in.suspended,
+            frame: {
+                ...in.frame,
+                statement: _,
+                first: result
+            },
+            control: in.control
+        }
 
     if (
         state.control.phase == Phase.StoreAssign ||
@@ -56,11 +57,14 @@ export default function (in: Input): Output {
     if (operator == Operator.None) {
         const expression_kind = state.expression.tree.nodes[result].kind
 
-        if (
-            expression_kind == ExprKind.Call || expression_kind == ExprKind.Pipeline ||
-                expression_kind == ExprKind.Await ||
-                expression_kind == ExprKind.Cancel
-        ) {
+        const condition = (
+            - expression_kind == ExprKind.Call
+            - or expression_kind == ExprKind.Pipeline
+            - or expression_kind == ExprKind.Await
+            - or expression_kind == ExprKind.Cancel
+        )
+
+        if (condition) {
             return {
                 expression: state.expression,
                 tree: state.tree,
@@ -78,34 +82,37 @@ export default function (in: Input): Output {
         }
 
         const start = state.expression.tree.nodes[result].span.start
-        const end = state.expression.tree.nodes[result].span.end
 
-        const diagnostic = {
-            code: "syntax",
-            start,
-            end,
-            message: "expected a state update, call, await or cancel"
-        }
-
-        return {
-            expression: state.expression,
-            tree: state.tree,
-            frames: state.frames,
-            suspended: state.suspended,
-            frame: state.frame,
-            control: {
-                ...state.control,
-                phase: Phase.Done,
-                diagnostic
+        return state.expression.tree.nodes[result].span.end
+            -> {
+                code: "syntax",
+                start,
+                end: _,
+                message: "expected a state update, call, await or cancel"
             }
-        }
+            -> {
+                expression: state.expression,
+                tree: state.tree,
+                frames: state.frames,
+                suspended: state.suspended,
+                frame: state.frame,
+                control: {
+                    ...state.control,
+                    phase: Phase.Done,
+                    diagnostic: _
+                }
+            }
     }
 
-    if (
-        operator != Operator.Add && operator != Operator.Subtract &&
-            operator != Operator.Multiply && operator != Operator.Divide &&
-            operator != Operator.Remainder
-    ) {
+    const condition_2 = (
+        - operator != Operator.Add
+        - and operator != Operator.Subtract
+        - and operator != Operator.Multiply
+        - and operator != Operator.Divide
+        - and operator != Operator.Remainder
+    )
+
+    if (condition_2) {
         return fail({
             state,
             code: "syntax",

@@ -39,10 +39,12 @@ export default function (in: Input): Output {
         captures: in.state.local.captures.current
     }
 
-    if (
-        node.kind != ExprKind.Lambda ||
-            (node.count != 1 && !(in.readonly_value != null && node.count == 2))
-    ) {
+    const condition = (
+        - node.kind != ExprKind.Lambda
+        - or (node.count != 1 && !(in.readonly_value != null && node.count == 2))
+    )
+
+    if (condition) {
         return {
             state: {
                 ...in.state,
@@ -89,19 +91,18 @@ export default function (in: Input): Output {
         }
     }
 
-    const name = readName({
+    const binding = readName({
         source: in.source,
         kind: NameKind.Parameter,
         index: node.count == 2 ?
             in.source.tree.parameters[node.head - 1].previous - 1 : node.head - 1
     })
-
-    const binding = bind({
-        local,
-        name,
-        type_id: in.type_id,
-        scope_start: context.active
-    })
+        -> bind({
+            local,
+            name: _,
+            type_id: in.type_id,
+            scope_start: context.active
+        })
 
     if (binding.diagnostic.message != "") {
         return {
@@ -143,26 +144,27 @@ export default function (in: Input): Output {
         Ownership.Borrowed
     )
 
-    const borrowed = node.count == 2 ? ownership.with(
-        integers.widen(secondary.id),
-        Ownership.Borrowed
-    ) : ownership
-
-    return {
-        state: {
-            ...in.state,
-            diagnostic: secondary.diagnostic,
-            local: {
-                ...secondary.local,
-                symbols: {
-                    ...secondary.local.symbols,
-                    ownership: borrowed
+    return (
+        node.count == 2 ? ownership.with(
+            integers.widen(secondary.id),
+            Ownership.Borrowed
+        ) : ownership
+    )
+        -> {
+            state: {
+                ...in.state,
+                diagnostic: secondary.diagnostic,
+                local: {
+                    ...secondary.local,
+                    symbols: {
+                        ...secondary.local.symbols,
+                        ownership: _
+                    }
                 }
-            }
-        },
-        context,
-        parameter: binding.id,
-        readonly_parameter: node.count == 2 ? secondary.id : null,
-        body: node.first
-    }
+            },
+            context,
+            parameter: binding.id,
+            readonly_parameter: node.count == 2 ? secondary.id : null,
+            body: node.first
+        }
 }

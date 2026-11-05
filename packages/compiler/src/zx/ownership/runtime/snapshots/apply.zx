@@ -30,16 +30,15 @@ export default function (in: Input): Output {
             return in.memory
         }
 
-        const memo = restoreMemo({
+        return restoreMemo({
             memo: in.memory.memo,
             saved: in.stack.memo,
             first
         })
-
-        return {
-            ...in.memory,
-            memo
-        }
+            -> {
+                ...in.memory,
+                memo: _
+            }
     }
 
     const state_first = in.action == Action.ReleaseAllLoans ? 0 :

@@ -43,13 +43,13 @@ export default function (in: Input): Output {
     }, {
         while: current => current.index < current.queue.length,
         next: current => {
-            const id = current.queue[current.index]
 
-            const reached = children({
-                types: current.types,
-                id,
-                deep: true
-            })
+            const reached = current.queue[current.index]
+                -> children({
+                    types: current.types,
+                    id: _,
+                    deep: true
+                })
 
             const discovered = loop({
                 boxed: current.boxed,

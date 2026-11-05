@@ -15,7 +15,7 @@ export type Output = {
 }
 
 export default function (in: Input): Output {
-    const prepared = initial({
+    const result = initial({
         context: in.state.types.context,
         delta: in.state.types.delta,
         cache: in.state.types.cache,
@@ -28,8 +28,7 @@ export default function (in: Input): Output {
         },
         reference: in.reference
     })
-
-    const result = run(prepared)
+        -> run(_)
 
     return {
         state: {

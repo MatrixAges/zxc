@@ -11,21 +11,32 @@ export default function (in: Input): Output {
     const table = in.functions
     const count = table.files.length
 
-    if (
-        count > in.maximum_count || table.input_types.length != count ||
-            table.output_types.length != count || table.ownership.length != count ||
-            table.store_modes.length != count || table.contracts.length != count ||
-            table.native_inputs.length != count || table.native_modules.length != count ||
-            table.native_members.length != count ||
-            table.native_exports.length != count ||
-            table.native_allocators.length != count || table.native_io.length != count ||
-            table.native_process.length != count || table.native_tuples.length != count ||
-            table.native_fallible.length != count ||
-            table.native_errors.length != count ||
-            table.native_concurrent.length != count || table.symbols.length != count ||
-            table.expressions.length != count || table.control.length != count ||
-            table.roots.length != count || table.stores.length != count
-    ) {
+    const condition = (
+        - count > in.maximum_count
+        - or table.input_types.length != count
+        - or table.output_types.length != count
+        - or table.ownership.length != count
+        - or table.store_modes.length != count
+        - or table.contracts.length != count
+        - or table.native_inputs.length != count
+        - or table.native_modules.length != count
+        - or table.native_members.length != count
+        - or table.native_exports.length != count
+        - or table.native_allocators.length != count
+        - or table.native_io.length != count
+        - or table.native_process.length != count
+        - or table.native_tuples.length != count
+        - or table.native_fallible.length != count
+        - or table.native_errors.length != count
+        - or table.native_concurrent.length != count
+        - or table.symbols.length != count
+        - or table.expressions.length != count
+        - or table.control.length != count
+        - or table.roots.length != count
+        - or table.stores.length != count
+    )
+
+    if (condition) {
         return false
     }
 
@@ -40,16 +51,18 @@ export default function (in: Input): Output {
 
             if (current.table.native_modules[index] == null) {
                 current.valid =
-                    current.table.native_inputs[index] == null &&
-                    current.table.native_members[index].length == 0 &&
-                    current.table.native_exports[index] == null &&
-                    !current.table.native_allocators[index] &&
-                    !current.table.native_io[index] &&
-                    !current.table.native_process[index] &&
-                    !current.table.native_tuples[index] &&
-                    !current.table.native_fallible[index] &&
-                    current.table.native_errors[index] == null &&
-                    !current.table.native_concurrent[index]
+                    (
+                        - current.table.native_inputs[index] == null
+                        - and current.table.native_members[index].length == 0
+                        - and current.table.native_exports[index] == null
+                        - and !current.table.native_allocators[index]
+                        - and !current.table.native_io[index]
+                        - and !current.table.native_process[index]
+                        - and !current.table.native_tuples[index]
+                        - and !current.table.native_fallible[index]
+                        - and current.table.native_errors[index] == null
+                        - and !current.table.native_concurrent[index]
+                    )
             }
 
             current.index += 1

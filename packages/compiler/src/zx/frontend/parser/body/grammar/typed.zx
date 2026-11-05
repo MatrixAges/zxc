@@ -9,7 +9,7 @@ export type Input = State
 export type Output = State
 
 export default function (in: Input): Output {
-    const token = {
+    const types = {
         kind: in.expression.control.token.kind,
         word: in.expression.control.token.word,
         symbol: in.expression.control.token.symbol,
@@ -20,11 +20,10 @@ export default function (in: Input): Output {
         line_break: in.expression.control.token.line_break,
         dollar: in.expression.control.token.dollar
     }
-
-    const types = typeStep({
-        state: in.expression.types,
-        token
-    })
+        -> typeStep({
+            state: in.expression.types,
+            token: _
+        })
 
     const index = types.control.index
 
@@ -53,25 +52,24 @@ export default function (in: Input): Output {
         }
     }
 
-    const phase = match {
+    return match {
         failed => Phase.Done,
         done => Phase.ConstAssign,
         _ => Phase.Type
     }
-
-    return {
-        expression,
-        tree: in.tree,
-        frames: in.frames,
-        suspended: in.suspended,
-        frame: {
-            ...in.frame,
-            annotation
-        },
-        control: {
-            ...in.control,
-            phase,
-            expression_diagnostic: failed
+        -> {
+            expression,
+            tree: in.tree,
+            frames: in.frames,
+            suspended: in.suspended,
+            frame: {
+                ...in.frame,
+                annotation
+            },
+            control: {
+                ...in.control,
+                phase: _,
+                expression_diagnostic: failed
+            }
         }
-    }
 }

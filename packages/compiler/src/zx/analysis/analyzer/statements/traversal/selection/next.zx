@@ -59,17 +59,16 @@ export default function (in: Input): Output {
         block: source.body
     })
 
-    const selections = in.selections.splice(position, 1, [{
+    return in.selections.splice(position, 1, [{
         ...frame,
         fallback: true,
         values: frame.values.push(null)[0]
     }])[0]
-
-    return {
-        ...in,
-        blocks,
-        selections,
-        actions: in.actions.push(Action.Case)[0],
-        phase: Phase.Next
-    }
+        -> {
+            ...in,
+            blocks,
+            selections: _,
+            actions: in.actions.push(Action.Case)[0],
+            phase: Phase.Next
+        }
 }

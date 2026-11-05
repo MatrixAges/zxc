@@ -12,20 +12,20 @@ export default function (in: Input): Output {
     const index = in.control.index + (exporting ? 1 : 0)
     const opening_index = in.control.index
     const opening = in.control.token.span.start
-    const first = in.members.length
 
-    return {
-        declarations: in.declarations,
-        members: in.members,
-        types: in.types,
-        control: {
-            ...in.control,
-            phase: exporting ? Phase.Kind : Phase.Done,
-            index,
-            opening,
-            opening_index,
-            first,
-            count: 0
+    return in.members.length
+        -> {
+            declarations: in.declarations,
+            members: in.members,
+            types: in.types,
+            control: {
+                ...in.control,
+                phase: exporting ? Phase.Kind : Phase.Done,
+                index,
+                opening,
+                opening_index,
+                first: _,
+                count: 0
+            }
         }
-    }
 }

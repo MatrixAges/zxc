@@ -32,6 +32,10 @@ export default function (in: Input): Output {
 
     const target = kind(in.table.kinds[integers.widen(result.type_id)])
 
-    return (target == Kind.Scalar && result.type_id != 0) || target == Kind.Enumeration ||
-        target == Kind.ErrorSet
+    return (
+        - target == Kind.Scalar
+        - and result.type_id != 0
+        - or target == Kind.Enumeration
+        - or target == Kind.ErrorSet
+    )
 }

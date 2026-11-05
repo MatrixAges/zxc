@@ -5,32 +5,38 @@ export type Input = State
 export type Output = bool
 
 export default function (in: Input): Output {
-    return in.valid && in.integers == in.table.integers.length &&
-        in.negative_integers == in.table.negative_integers.length &&
-        in.floats == in.table.floats.length && in.strings == in.table.strings.length &&
-        in.booleans == in.table.booleans.length && in.some == in.table.some.length &&
-        in.captures == in.table.captures.length &&
-        in.tasks == in.table.task_bodies.length && in.awaits == in.table.awaits.length &&
-        in.cancellations == in.table.cancellations.length &&
-        in.parallels == in.table.parallel_first.length &&
-        in.optional_values == in.table.optional_values.length &&
-        in.enumerations == in.table.enumerations.length &&
-        in.errors == in.table.errors.length &&
-        in.references == in.table.references.length &&
-        in.stores == in.table.stores.length &&
-        in.projections == in.table.projection_targets.length &&
-        in.indices == in.table.index_targets.length &&
-        in.lengths == in.table.lengths.length &&
-        in.sequences == in.table.sequence_first.length &&
-        in.collections == in.table.collection_kinds.length &&
-        in.transforms == in.table.transform_kinds.length &&
-        in.scopes == in.table.scope_results.length &&
-        in.iterations == in.table.iteration_initials.length &&
-        in.updates == in.table.update_targets.length &&
-        in.calls == in.table.call_functions.length &&
-        in.unary == in.table.unary_operands.length &&
-        in.binary == in.table.binary_operators.length &&
-        in.conditionals == in.table.conditional_conditions.length &&
-        in.matches == in.table.match_subjects.length &&
-        in.objects == in.table.object_first.length
+    return (
+        - in.valid
+        - and in.integers == in.table.integers.length
+        - and in.negative_integers == in.table.negative_integers.length
+        - and in.floats == in.table.floats.length
+        - and in.strings == in.table.strings.length
+        - and in.booleans == in.table.booleans.length
+        - and in.some == in.table.some.length
+        - and in.captures == in.table.captures.length
+        - and in.tasks == in.table.task_bodies.length
+        - and in.awaits == in.table.awaits.length
+        - and in.cancellations == in.table.cancellations.length
+        - and in.parallels == in.table.parallel_first.length
+        - and in.optional_values == in.table.optional_values.length
+        - and in.enumerations == in.table.enumerations.length
+        - and in.errors == in.table.errors.length
+        - and in.references == in.table.references.length
+        - and in.stores == in.table.stores.length
+        - and in.projections == in.table.projection_targets.length
+        - and in.indices == in.table.index_targets.length
+        - and in.lengths == in.table.lengths.length
+        - and in.sequences == in.table.sequence_first.length
+        - and in.collections == in.table.collection_kinds.length
+        - and in.transforms == in.table.transform_kinds.length
+        - and in.scopes == in.table.scope_results.length
+        - and in.iterations == in.table.iteration_initials.length
+        - and in.updates == in.table.update_targets.length
+        - and in.calls == in.table.call_functions.length
+        - and in.unary == in.table.unary_operands.length
+        - and in.binary == in.table.binary_operators.length
+        - and in.conditionals == in.table.conditional_conditions.length
+        - and in.matches == in.table.match_subjects.length
+        - and in.objects == in.table.object_first.length
+    )
 }

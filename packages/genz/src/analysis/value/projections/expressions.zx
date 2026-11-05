@@ -83,54 +83,66 @@ export default function (in: Input): Output {
                     },
                     return: state => state.state
                 }, table)
-            } else if (
-                kind != ExpressionKind.Field && kind != ExpressionKind.TupleField &&
-                    kind != ExpressionKind.Reference
-            ) {
-                current.state = loop({
-                    state: current.state,
-                    index: 0,
-                    id: current.index,
-                    done: false
-                }, {
-                    while: row => !row.done,
-                    next: (row, expressions) => {
-                        const value = child({
-                            table: expressions,
-                            id: row.id,
-                            index: row.index
-                        })
+            } else {
+                const condition = (
+                    - kind != ExpressionKind.Field
+                    - and kind != ExpressionKind.TupleField
+                    - and kind != ExpressionKind.Reference
+                )
 
-                        if (value == null) {
-                            row.done = true
-                        } else {
-                            row.state = observe({
-                                state: row.state,
-                                id: value
-                            })
-                            row.index += 1
-                        }
-                    },
-                    return: state => state.state
-                }, table)
-
-                if (kind == ExpressionKind.Task) {
-                    current.state.projected = loop({
-                        values: current.state.projected,
-                        position: integers.widen(table.task_capture_first[payload]),
-                        end: integers.widen(table.task_capture_first[payload]) +
-                            integers.widen(table.task_capture_count[payload])
+                if (condition) {
+                    current.state = loop({
+                        state: current.state,
+                        index: 0,
+                        id: current.index,
+                        done: false
                     }, {
-                        while: row => row.position < row.end,
+                        while: row => !row.done,
                         next: (row, expressions) => {
-                            row
-                                .values[integers.widen(
-                                    expressions.task_captures[row.position]
-                                )] = false
-                            row.position += 1
+                            const value = child({
+                                table: expressions,
+                                id: row.id,
+                                index: row.index
+                            })
+
+                            if (value == null) {
+                                row.done = true
+                            } else {
+                                row.state = observe({
+                                    state: row.state,
+                                    id: value
+                                })
+                                row.index += 1
+                            }
                         },
-                        return: state => state.values
+                        return: state => state.state
                     }, table)
+
+                    if (kind == ExpressionKind.Task) {
+                        current.state.projected = loop({
+                            values: current.state.projected,
+                            position:
+                                integers.widen(
+                                    table.task_capture_first[payload]
+                                ),
+                            end: integers.widen(
+                                table.task_capture_first[payload]
+                            ) +
+                                integers.widen(
+                                    table.task_capture_count[payload]
+                                )
+                        }, {
+                            while: row => row.position < row.end,
+                            next: (row, expressions) => {
+                                row
+                                    .values[integers.widen(
+                                        expressions.task_captures[row.position]
+                                    )] = false
+                                row.position += 1
+                            },
+                            return: state => state.values
+                        }, table)
+                    }
                 }
             }
 

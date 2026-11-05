@@ -12,9 +12,12 @@ export type Output = BodyStage
 export default function (in: Input): Output {
     return loop(initial(in), {
         while: value =>
-            value.prefix.present && value.header.diagnostic.message == "" &&
-            !value.header.expression_diagnostic &&
-            value.body.control.phase != Phase.Done,
+            (
+                - value.prefix.present
+                - and value.header.diagnostic.message == ""
+                - and !value.header.expression_diagnostic
+                - and value.body.control.phase != Phase.Done
+            ),
         next: value => {
             value = advance(value)
         }

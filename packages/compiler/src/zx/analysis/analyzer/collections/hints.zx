@@ -52,16 +52,15 @@ export default function (in: Input): Output {
         id: hint ?? 0
     })
 
-    const predicate =
+    const body: u32? =
         in.kind == TransformKind.Filter || in.kind == TransformKind.Every ||
         in.kind == TransformKind.Some
-
-    const body: u32? = match {
-        predicate => 1,
-        in.kind == TransformKind.Reduce => accumulator,
-        hint != null && target.kind == Kind.List => target.first,
-        _ => null,
-    }
+        -> match {
+            (_) => 1,
+            in.kind == TransformKind.Reduce => accumulator,
+            hint != null && target.kind == Kind.List => target.first,
+            _ => null,
+        }
 
     const parameters: u32[] =
         in.kind == TransformKind.Reduce ? [

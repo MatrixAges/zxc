@@ -50,9 +50,16 @@ export default function (in: Input): Output {
     }
 
     const known =
-        text || replacement || in.name == method_push || in.name == method_pop ||
-        in.name == method_sort ||
-        in.name == method_reverse || in.name == method_splice || in.name == method_concat
+        (
+            - text
+            - or replacement
+            - or in.name == method_push
+            - or in.name == method_pop
+            - or in.name == method_sort
+            - or in.name == method_reverse
+            - or in.name == method_splice
+            - or in.name == method_concat
+        )
 
     const hints: u32[] = match {
         replacement => [
@@ -69,7 +76,7 @@ export default function (in: Input): Output {
         _ => [],
     }
 
-    const message = match {
+    return match {
         !known => unknown_method,
         text && in.element != type_id_u8 => text_element,
         in.count != hints.length =>
@@ -80,12 +87,11 @@ export default function (in: Input): Output {
             sort_element,
         _ => no_diagnostic,
     }
-
-    return {
-        kind,
-        replacement,
-        hints,
-        code: !known ? name_code : type_code,
-        message
-    }
+        -> {
+            kind,
+            replacement,
+            hints,
+            code: !known ? name_code : type_code,
+            message: _
+        }
 }

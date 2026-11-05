@@ -3,5 +3,11 @@ export type Input = string
 export type Output = bool
 
 export default function (in: Input): Output {
-    return in.length >= 4 && in[0] == 115 && in[1] == 116 && in[2] == 100 && in[3] == 58
+    return (
+        - in.length >= 4
+        - and in[0] == 115
+        - and in[1] == 116
+        - and in[2] == 100
+        - and in[3] == 58
+    )
 }

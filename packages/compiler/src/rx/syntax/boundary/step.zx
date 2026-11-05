@@ -29,17 +29,16 @@ export default function (in: Input): Output {
         const mode = in.frame.mode
         const issue = mode == Mode.BlockComment ? in.comment_start : in.frame.start
 
-        const message = match mode {
+        return match mode {
             Mode.Template => unterminated_template,
             Mode.BlockComment => unterminated_template_comment,
             _ => unterminated_interpolation
         }
-
-        return fail({
-            state: in,
-            offset: issue,
-            message
-        })
+            -> fail({
+                state: in,
+                offset: issue,
+                message: _
+            })
     }
 
     if (in.frame.mode == Mode.Template) {
@@ -62,26 +61,26 @@ export default function (in: Input): Output {
         _ => byte == ascii_asterisk && next == ascii_slash
     }
 
-    const skip =
-        has_next &&
-        (
-            mode == Mode.String && byte == ascii_backslash ||
-                mode == Mode.BlockComment && finished
+    return (
+        - has_next
+        - and (
+            - mode == Mode.String
+            - and byte == ascii_backslash
+            - or (mode == Mode.BlockComment && finished)
         )
-
-    const offset = in.offset + (skip ? 2 : 1)
-
-    return {
-        source: in.source,
-        frames: in.frames,
-        frame: {
-            ...in.frame,
-            mode: finished ? Mode.Interpolation : mode
-        },
-        offset,
-        comment_start: in.comment_start,
-        done: false,
-        message: no_diagnostic,
-        issue: 0
-    }
+    )
+        -> in.offset + (_ ? 2 : 1)
+        -> {
+            source: in.source,
+            frames: in.frames,
+            frame: {
+                ...in.frame,
+                mode: finished ? Mode.Interpolation : mode
+            },
+            offset: _,
+            comment_start: in.comment_start,
+            done: false,
+            message: no_diagnostic,
+            issue: 0
+        }
 }

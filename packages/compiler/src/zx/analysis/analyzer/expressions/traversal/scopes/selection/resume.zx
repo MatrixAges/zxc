@@ -35,14 +35,19 @@ export default function (in: Input): Output {
             id: type_id
         })
 
-        if (
-            target.kind != Kind.Enumeration && target.kind != Kind.ErrorSet &&
-                !(
-                    type_id >= 2 && type_id <= 7
-                ) && type_id != 1 && type_id != 10
-        ) {
-            const statement = work.source.blocks.statements[frame.statement]
-            const span = work.source.tree.nodes[statement.first].span
+        const condition = (
+            - target.kind != Kind.Enumeration
+            - and target.kind != Kind.ErrorSet
+            - and !(
+                type_id >= 2 && type_id <= 7
+            )
+            - and type_id != 1
+            - and type_id != 10
+        )
+
+        if (condition) {
+            const span = work.source.blocks.statements[frame.statement]
+                -> work.source.tree.nodes[_.first].span
 
             return {
                 ...work,
@@ -96,38 +101,36 @@ export default function (in: Input): Output {
             state_symbol: frame.state_symbol
         })
 
-        const switches = work.frames.switches.splice(position, 1, [{
+        return work.frames.switches.splice(position, 1, [{
             ...frame,
             conditions: frame.conditions.push(work.value)[0]
         }])[0]
-
-        return {
-            ...work,
-            state,
-            scopes,
-            phase: Phase.ScopeNext,
-            frames: {
-                ...work.frames,
-                switches,
-                actions: work.frames.actions.push(Action.StateCase)[0]
+            -> {
+                ...work,
+                state,
+                scopes,
+                phase: Phase.ScopeNext,
+                frames: {
+                    ...work.frames,
+                    switches: _,
+                    actions: work.frames.actions.push(Action.StateCase)[0]
+                }
             }
-        }
     }
 
     const fallback: u32? = source.value == 0 ? work.value : frame.fallback
 
-    const updated = {
+    return {
         ...frame,
         index: frame.index + 1,
         fallback,
         results: source.value == 0 ? frame.results : frame.results.push(work.value)[0]
     }
-
-    return next({
-        ...work,
-        frames: {
-            ...work.frames,
-            switches: work.frames.switches.splice(position, 1, [updated])[0]
-        }
-    })
+        -> next({
+            ...work,
+            frames: {
+                ...work.frames,
+                switches: work.frames.switches.splice(position, 1, [_])[0]
+            }
+        })
 }

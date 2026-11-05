@@ -64,21 +64,33 @@ export default function (in: Input): Output {
     const equality =
         operator == BinaryOperator.Equal || operator == BinaryOperator.NotEqual
 
-    if (equality && target == Kind.Optional && !comparable({
-        table: context.table,
-        type_id: left
-    }) && expressions.kinds[left_index] != ExpressionKind.None &&
-        expressions.kinds[right_index] != ExpressionKind.None) {
-            return false
-        }
+    const condition = (
+        - equality
+        - and target == Kind.Optional
+        - and !comparable({
+            table: context.table,
+            type_id: left
+        })
+        - and expressions.kinds[left_index] != ExpressionKind.None
+        - and expressions.kinds[right_index] != ExpressionKind.None
+    )
+
+    if (condition) {
+        return false
+    }
 
     const number = numeric(left) != Numeric.Other
 
     if (equality) {
         return (
-            number || left == 1 || left == 10 || target == Kind.Enumeration ||
-                target == Kind.ErrorSet || target == Kind.Optional
-        ) && in.type_id == 1
+            - number
+            - or left == 1
+            - or left == 10
+            - or target == Kind.Enumeration
+            - or target == Kind.ErrorSet
+            - or target == Kind.Optional
+            - and in.type_id == 1
+        )
     }
 
     return match operator {

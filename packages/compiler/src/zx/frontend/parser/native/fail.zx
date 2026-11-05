@@ -14,26 +14,25 @@ export type Output = NativeState
 export default function (in: Input): Output {
     const token = current(in.state)
 
-    const diagnostic = {
+    return {
         code: in.code,
         start: token.span.start,
         end: token.span.end,
         message: in.message
     }
-
-    return {
-        lexed: in.state.lexed,
-        declarations: in.state.declarations,
-        functions: in.state.functions,
-        parameters: in.state.parameters,
-        errors: in.state.errors,
-        control: {
-            index: in.state.control.index,
-            injected: in.state.control.injected,
-            parameter: in.state.control.parameter,
-            current: in.state.control.current,
-            phase: Phase.Done,
-            diagnostic
+        -> {
+            lexed: in.state.lexed,
+            declarations: in.state.declarations,
+            functions: in.state.functions,
+            parameters: in.state.parameters,
+            errors: in.state.errors,
+            control: {
+                index: in.state.control.index,
+                injected: in.state.control.injected,
+                parameter: in.state.control.parameter,
+                current: in.state.control.current,
+                phase: Phase.Done,
+                diagnostic: _
+            }
         }
-    }
 }

@@ -28,26 +28,28 @@ export type Input = u8
 export type Output = bool
 
 export default function (in: Input): Output {
-    return in == ascii_open_brace ||
-        in == ascii_close_brace ||
-        in == ascii_open_paren ||
-        in == ascii_close_paren ||
-        in == ascii_colon ||
-        in == ascii_semicolon ||
-        in == ascii_comma ||
-        in == ascii_dot ||
-        in == ascii_question ||
-        in == ascii_open_bracket ||
-        in == ascii_close_bracket ||
-        in == ascii_plus ||
-        in == ascii_minus ||
-        in == ascii_asterisk ||
-        in == ascii_slash ||
-        in == ascii_percent ||
-        in == ascii_less_than ||
-        in == ascii_greater_than ||
-        in == ascii_equals ||
-        in == ascii_bang ||
-        in == ascii_ampersand ||
-        in == ascii_pipe
+    return (
+        - in == ascii_open_brace
+        - or in == ascii_close_brace
+        - or in == ascii_open_paren
+        - or in == ascii_close_paren
+        - or in == ascii_colon
+        - or in == ascii_semicolon
+        - or in == ascii_comma
+        - or in == ascii_dot
+        - or in == ascii_question
+        - or in == ascii_open_bracket
+        - or in == ascii_close_bracket
+        - or in == ascii_plus
+        - or in == ascii_minus
+        - or in == ascii_asterisk
+        - or in == ascii_slash
+        - or in == ascii_percent
+        - or in == ascii_less_than
+        - or in == ascii_greater_than
+        - or in == ascii_equals
+        - or in == ascii_bang
+        - or in == ascii_ampersand
+        - or in == ascii_pipe
+    )
 }

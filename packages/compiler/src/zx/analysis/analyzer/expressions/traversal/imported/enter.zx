@@ -78,24 +78,23 @@ export default function (in: Input): Output {
         )
 
     if (!valid) {
-        const message = match {
+        return match {
             native_tuple => native_arity_message,
             tuple => tuple_arity_message,
             _ => input_arity_message
         }
-
-        return {
-            ...work,
-            state: {
-                ...work.state,
-                diagnostic: {
-                    code: "type_mismatch",
-                    message,
-                    start: node.span.start,
-                    end: node.span.end
+            -> {
+                ...work,
+                state: {
+                    ...work.state,
+                    diagnostic: {
+                        code: "type_mismatch",
+                        message: _,
+                        start: node.span.start,
+                        end: node.span.end
+                    }
                 }
             }
-        }
     }
 
     const frame: Imported = {

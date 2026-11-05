@@ -30,15 +30,20 @@ export default function (in: Input): Output {
         const right = in.table
             .types[integers.widen(in.table.binary_right[payload])]
 
-        return left == in.root || right == in.root || descendant({
-            types: in.types,
-            parent: left,
-            root: in.root
-        }) || descendant({
-            types: in.types,
-            parent: right,
-            root: in.root
-        })
+        return (
+            - left == in.root
+            - or right == in.root
+            - or descendant({
+                types: in.types,
+                parent: left,
+                root: in.root
+            })
+            - or descendant({
+                types: in.types,
+                parent: right,
+                root: in.root
+            })
+        )
     }
 
     if (in.table.kinds[in.index] == ExpressionKind.Match) {

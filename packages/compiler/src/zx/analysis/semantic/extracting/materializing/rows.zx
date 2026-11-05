@@ -40,8 +40,12 @@ export default function (in: Input): Output {
             const first = current.source.first[id]
             const second = current.source.second[id]
             const dynamic =
-                type_kind == Kind.Tuple || type_kind == Kind.Object ||
-                type_kind == Kind.ErrorSet || type_kind == Kind.Enumeration
+                (
+                    - type_kind == Kind.Tuple
+                    - or type_kind == Kind.Object
+                    - or type_kind == Kind.ErrorSet
+                    - or type_kind == Kind.Enumeration
+                )
             const fixed =
                 type_kind == Kind.Optional || type_kind == Kind.List ||
                 type_kind == Kind.Task
@@ -50,13 +54,14 @@ export default function (in: Input): Output {
                 Kind.Object => current.table.field_types.length,
                 _ => current.table.names.length
             }
-            const fixed_first =
+            const mapped_first = (
                 fixed ? integers.narrow(
                     current.plan.mapping[integers.widen(
                         first
                     )] - 1
                 ) : first
-            const mapped_first = dynamic ? integers.narrow(offset) : fixed_first
+            )
+                -> (dynamic ? integers.narrow(offset) : _)
             const mapped_second =
                 type_kind ==
                 Kind.Task ? integers.narrow(

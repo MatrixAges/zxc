@@ -49,29 +49,27 @@ export default function (in: Input): Output {
         }
     }
 
-    const facts = restore({
+    const result = restore({
         facts: work.state.local.refinement.facts,
         mark: frame.mark
     })
-
-    const state = {
-        ...work.state,
-        local: {
-            ...work.state.local,
-            refinement: {
-                ...work.state.local.refinement,
-                facts
+        -> {
+            ...work.state,
+            local: {
+                ...work.state.local,
+                refinement: {
+                    ...work.state.local.refinement,
+                    facts: _
+                }
             }
         }
-    }
-
-    const result = finish({
-        state,
-        operator,
-        left: frame.left,
-        right: work.value,
-        span: node.span
-    })
+        -> finish({
+            state: _,
+            operator,
+            left: frame.left,
+            right: work.value,
+            span: node.span
+        })
 
     return {
         ...work,

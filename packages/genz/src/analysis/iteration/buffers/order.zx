@@ -58,15 +58,22 @@ export default function (in: Input): Output {
                 const reference = table.kinds[index] == ExpressionKind.Reference
                 const symbol = reference ? table.references[payload] :
                     current.source.parameter
-                const defined = reference && symbol != current.source.parameter &&
-                    symbol != current.source.condition_parameter && contains({
+                const dependency: u32? = (
+                    - reference
+                    - and symbol != current.source.parameter
+                    - and symbol != current.source.condition_parameter
+                    - and contains({
                         types: current.source.source.types,
                         id: table.types[index],
                         products: false
-                    }) &&
-                    current.definitions.kinds[integers.widen(symbol)] == Definition.Value
-                const dependency: u32? = aliased && defined ?
-                    current.definitions.values[integers.widen(symbol)] : next
+                    })
+                    - and current.definitions.kinds[integers.widen(symbol)] ==
+                        Definition.Value
+                )
+                    -> (
+                        aliased && _ ?
+                            current.definitions.values[integers.widen(symbol)] : next
+                    )
 
                 if (aliased) {
                     current.aliases[last] = true

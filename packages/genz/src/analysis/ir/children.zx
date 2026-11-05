@@ -105,10 +105,13 @@ export default function (in: Input): Output {
         })
     }
 
-    if (
-        kind == ExpressionKind.List || kind == ExpressionKind.Tuple ||
-            kind == ExpressionKind.Template
-    ) {
+    const condition = (
+        - kind == ExpressionKind.List
+        - or kind == ExpressionKind.Tuple
+        - or kind == ExpressionKind.Template
+    )
+
+    if (condition) {
         return range({
             items: table.sequence_items,
             first: integers.widen(table.sequence_first[payload]),
@@ -178,19 +181,18 @@ export default function (in: Input): Output {
     }
 
     if (kind == ExpressionKind.Object) {
-        const fields = range({
+        return range({
             items: table.object_field_values,
             first: integers.widen(table.object_first[payload]),
             count: integers.widen(table.object_count[payload]),
             prefix: empty
         })
-
-        return range({
-            items: table.object_evaluation_values,
-            first: integers.widen(table.object_evaluation_first[payload]),
-            count: integers.widen(table.object_evaluation_count[payload]),
-            prefix: fields
-        })
+            -> range({
+                items: table.object_evaluation_values,
+                first: integers.widen(table.object_evaluation_first[payload]),
+                count: integers.widen(table.object_evaluation_count[payload]),
+                prefix: _
+            })
     }
 
     return empty

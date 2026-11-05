@@ -29,26 +29,31 @@ export default function (in: Input): Output {
                 state.valid = kind == Kind.List && source.source
                     .selected[state.type_id]
                 state.active = false
-            } else if (
-                (kind == Kind.Object || kind == Kind.Tuple) &&
-                    source.source.selected[state.type_id] &&
-                    !source.source.referenced[state.type_id]
-            ) {
-                const step = integers.widen(source.path[state.index])
-                const first = integers.widen(types.first[state.type_id])
-
-                state.valid = step < integers.widen(types.second[state.type_id])
-
-                if (state.valid) {
-                    state.type_id = integers.widen(
-                        kind == Kind.Object ?
-                            types.field_types[first + step] :
-                            types.children[first + step]
-                    )
-                    state.index += 1
-                }
             } else {
-                state.valid = false
+                const condition = (
+                    - kind == Kind.Object
+                    - or kind == Kind.Tuple
+                    - and source.source.selected[state.type_id]
+                    - and !source.source.referenced[state.type_id]
+                )
+
+                if (condition) {
+                    const step = integers.widen(source.path[state.index])
+                    const first = integers.widen(types.first[state.type_id])
+
+                    state.valid = step < integers.widen(types.second[state.type_id])
+
+                    if (state.valid) {
+                        state.type_id = integers.widen(
+                            kind == Kind.Object ?
+                                types.field_types[first + step] :
+                                types.children[first + step]
+                        )
+                        state.index += 1
+                    }
+                } else {
+                    state.valid = false
+                }
             }
         },
         return: state => state.valid

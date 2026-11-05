@@ -10,8 +10,9 @@ export type Input = Step
 export type Output = Result
 
 export default function (in: Input): Output {
-    const program = in.context.program
-    const expressions = program.body.expressions
+    const expressions = in.context.program
+        -> _.body.expressions
+
     const payload = integers.widen(expressions.payloads[in.frame.a])
     const depth = in.frame.b + 1
 

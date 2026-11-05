@@ -15,10 +15,13 @@ export default function (in: Input): Output {
         return edge(in)
     }
 
-    if (
-        in.operation == Operation.Sum || in.operation == Operation.Min ||
-            in.operation == Operation.Max
-    ) {
+    const condition = (
+        - in.operation == Operation.Sum
+        - or in.operation == Operation.Min
+        - or in.operation == Operation.Max
+    )
+
+    if (condition) {
         return aggregate(in)
     }
 

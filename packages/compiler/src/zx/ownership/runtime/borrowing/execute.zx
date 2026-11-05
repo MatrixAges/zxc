@@ -45,11 +45,15 @@ export default function (in: Input): Output {
     const result = loop(initial, {
         while: current => current.active,
         next: current => {
-            if (
-                current.phase == Phase.Next || current.phase == Phase.Query ||
-                    current.phase == Phase.Descend || current.phase == Phase.Expand ||
-                    current.phase == Phase.Done
-            ) {
+            const condition = (
+                - current.phase == Phase.Next
+                - or current.phase == Phase.Query
+                - or current.phase == Phase.Descend
+                - or current.phase == Phase.Expand
+                - or current.phase == Phase.Done
+            )
+
+            if (condition) {
                 current = query(current)
             } else if (current.phase == Phase.Enter) {
                 current = propagate(current)

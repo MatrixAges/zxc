@@ -11,10 +11,9 @@ export type Input = {
 export type Output = Interpolation[]
 
 export default function (in: Input): Output {
-    const completed = in.source.reduce((state, byte) => step({
+    return in.source.reduce((state, byte) => step({
         state,
         byte
     }), in.state)[1]
-
-    return completed.interpolations
+        -> _.interpolations
 }

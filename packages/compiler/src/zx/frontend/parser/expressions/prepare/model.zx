@@ -21,6 +21,8 @@ export enum Operator {
 
 export enum Family { None, Coalesce, Logical }
 
+export enum Connector { None, And, Or, Xor, Nand, Nor }
+
 export type Binary = {
     operator: Operator,
     precedence: u8,
@@ -41,6 +43,7 @@ export type State = {
 }
 
 export type PreparedInput = {
+    source: u8[],
     lexical: Prepared,
     hints: Hint[],
     interpolation_hints: Hint[][]

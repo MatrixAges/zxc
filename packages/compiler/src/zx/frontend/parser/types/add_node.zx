@@ -17,24 +17,23 @@ export type Output = State
 export default function (in: Input): Output {
     const result = in.state.tree.nodes.length
 
-    const nodes = in.state.tree.nodes.push({
+    return in.state.tree.nodes.push({
         kind: in.kind,
         name: in.name,
         child: in.child,
         head: in.head,
         count: in.count
     })[0]
-
-    return {
-        tree: {
-            nodes,
-            fields: in.state.tree.fields,
-            items: in.state.tree.items
-        },
-        frames: in.state.frames,
-        control: {
-            ...in.state.control,
-            result
+        -> {
+            tree: {
+                nodes: _,
+                fields: in.state.tree.fields,
+                items: in.state.tree.items
+            },
+            frames: in.state.frames,
+            control: {
+                ...in.state.control,
+                result
+            }
         }
-    }
 }

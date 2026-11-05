@@ -64,7 +64,7 @@ export default function (in: Input): Output {
         capture: Capture.States
     })
 
-    const work = push({
+    return push({
         work: machine.work,
         frame: {
             action: in.condition ? WorkAction.IterationCondition :
@@ -74,19 +74,18 @@ export default function (in: Input): Output {
             index: in.index
         }
     })
-
-    return {
-        memory,
-        snapshots: captured.stack,
-        boundary: captured.frame,
-        work: push({
-            work,
-            frame: {
-                action: WorkAction.Value,
-                subject: expression,
-                moving: !in.condition,
-                index: 0
-            }
-        })
-    }
+        -> {
+            memory,
+            snapshots: captured.stack,
+            boundary: captured.frame,
+            work: push({
+                work: _,
+                frame: {
+                    action: WorkAction.Value,
+                    subject: expression,
+                    moving: !in.condition,
+                    index: 0
+                }
+            })
+        }
 }

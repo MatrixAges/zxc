@@ -20,7 +20,7 @@ export default function (in: Input): Output {
         types: in.types
     })
 
-    const local = initialLocal({
+    return initialLocal({
         signature,
         stores: {
             paths: [],
@@ -31,11 +31,10 @@ export default function (in: Input): Output {
         },
         allow_store: false
     })
-
-    return {
-        types: in.types,
-        local,
-        input_type: signature.input_type,
-        diagnostic: in.diagnostic
-    }
+        -> {
+            types: in.types,
+            local: _,
+            input_type: signature.input_type,
+            diagnostic: in.diagnostic
+        }
 }

@@ -19,14 +19,21 @@ export default function (in: Input): Output {
         next: current => {
             const kind = current.expressions.kinds[current.index]
             const forbidden =
-                kind == ExpressionKind.Call || kind == ExpressionKind.StoreGet ||
-                kind == ExpressionKind.ListOperation ||
-                kind == ExpressionKind.Transform || kind == ExpressionKind.Scope ||
-                kind == ExpressionKind.Iteration ||
-                kind == ExpressionKind.ListUpdate || kind == ExpressionKind.Capture ||
-                kind == ExpressionKind.OptionalValue || kind == ExpressionKind.Task ||
-                kind == ExpressionKind.AwaitTask ||
-                kind == ExpressionKind.CancelTask || kind == ExpressionKind.Parallel
+                (
+                    - kind == ExpressionKind.Call
+                    - or kind == ExpressionKind.StoreGet
+                    - or kind == ExpressionKind.ListOperation
+                    - or kind == ExpressionKind.Transform
+                    - or kind == ExpressionKind.Scope
+                    - or kind == ExpressionKind.Iteration
+                    - or kind == ExpressionKind.ListUpdate
+                    - or kind == ExpressionKind.Capture
+                    - or kind == ExpressionKind.OptionalValue
+                    - or kind == ExpressionKind.Task
+                    - or kind == ExpressionKind.AwaitTask
+                    - or kind == ExpressionKind.CancelTask
+                    - or kind == ExpressionKind.Parallel
+                )
 
             if (forbidden) {
                 current.diagnostic = {

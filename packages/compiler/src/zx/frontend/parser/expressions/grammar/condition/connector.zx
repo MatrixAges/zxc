@@ -1,0 +1,57 @@
+import { Symbol } from "../../../../lexer/token_model"
+import { Connector } from "../../prepare/model"
+import { and_text, or_text, xor_text, nand_text, nor_text } from "./const"
+
+import type { Token } from "../../../../lexer/token_model"
+
+export type Input = {
+    source: u8[],
+    token: Token
+}
+
+export type Output = Connector
+
+export default function (in: Input): Output {
+    if (in.token.symbol == Symbol.And) {
+        return Connector.And
+    }
+
+    if (in.token.symbol == Symbol.Or) {
+        return Connector.Or
+    }
+
+    const size = in.token.span.end - in.token.span.start
+
+    const matches = loop({
+        source: in.source,
+        start: in.token.span.start,
+        size,
+        index: 0,
+        and_value: size == and_text.length,
+        or_value: size == or_text.length,
+        xor_value: size == xor_text.length,
+        nand_value: size == nand_text.length,
+        nor_value: size == nor_text.length
+    }, {
+        while: state => state.index < state.size,
+        next: state => {
+            const byte = state.source[state.start + state.index]
+
+            state.and_value = state.and_value && byte == and_text[state.index]
+            state.or_value = state.or_value && byte == or_text[state.index]
+            state.xor_value = state.xor_value && byte == xor_text[state.index]
+            state.nand_value = state.nand_value && byte == nand_text[state.index]
+            state.nor_value = state.nor_value && byte == nor_text[state.index]
+            state.index += 1
+        }
+    })
+
+    return match {
+        matches.and_value => Connector.And,
+        matches.or_value => Connector.Or,
+        matches.xor_value => Connector.Xor,
+        matches.nand_value => Connector.Nand,
+        matches.nor_value => Connector.Nor,
+        _ => Connector.None
+    }
+}

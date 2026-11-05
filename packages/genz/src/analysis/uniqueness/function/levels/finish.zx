@@ -23,13 +23,17 @@ export type Output = Knowledge
 
 export default function (in: Input): Output {
     if (in.operation == Operation.Pass) {
-        const retained = !unique(in.value) || in.empty ||
-            in.linear_root == max_u32 || usage({
+        const retained = (
+            - !unique(in.value)
+            - or in.empty
+            - or in.linear_root == max_u32
+            - or usage({
                 context: in.context,
                 root: in.linear_root,
                 slot: in.slot,
                 observe: false
             })
+        )
 
         if (retained) {
             return in.value == Knowledge.Unknown ? Knowledge.None : in.value
@@ -65,16 +69,19 @@ export default function (in: Input): Output {
         _ => target
     }
 
-    const linear = !result.unique || in.empty ||
-        in.linear_root == max_u32 || usage({
+    return (
+        - !result.unique
+        - or in.empty
+        - or in.linear_root == max_u32
+        - or usage({
             context: in.context,
             root: in.linear_root,
             slot: in.slot,
             observe: false
         })
-
-    return knowledge({
-        ...result,
-        unique: result.unique && linear
-    })
+    )
+        -> knowledge({
+            ...result,
+            unique: result.unique && _
+        })
 }

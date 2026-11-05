@@ -21,12 +21,15 @@ export default function (in: Input): Output {
         }
     }
 
-    if (
-        value != null && value.kind == ExpressionKind.Float &&
-            !floats.isFinite(
-                value.floating
-            )
-    ) {
+    const condition = (
+        - value != null
+        - and value.kind == ExpressionKind.Float
+        - and !floats.isFinite(
+            value.floating
+        )
+    )
+
+    if (condition) {
         return {
             value: null,
             diagnostic: {

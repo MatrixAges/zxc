@@ -23,27 +23,26 @@ export default function (in: Input): Output {
             (native ? in.members.length == 0 : member == null)
     )
 
-    const failure = native ? namespace_required : executable_required
-
-    return {
-        aliases: {
-            names: [],
-            indices: []
-        },
-        constants: {
-            names: [],
-            indices: []
-        },
-        functions: {
-            names: [],
-            indices: []
-        },
-        namespace: callable && native && !invalid ? in.names.aliases[0] : null,
-        diagnostic: {
-            code: invalid ? module_code : "",
-            message: invalid ? failure : "",
-            start: invalid ? in.start : 0,
-            end: invalid ? in.end : 0
+    return (native ? namespace_required : executable_required)
+        -> {
+            aliases: {
+                names: [],
+                indices: []
+            },
+            constants: {
+                names: [],
+                indices: []
+            },
+            functions: {
+                names: [],
+                indices: []
+            },
+            namespace: callable && native && !invalid ? in.names.aliases[0] : null,
+            diagnostic: {
+                code: invalid ? module_code : "",
+                message: invalid ? _ : "",
+                start: invalid ? in.start : 0,
+                end: invalid ? in.end : 0
+            }
         }
-    }
 }

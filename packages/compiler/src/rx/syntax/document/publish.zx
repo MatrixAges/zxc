@@ -36,29 +36,28 @@ export default function (in: Input): Output {
     const head = in.tree.children.length + 1
     const count = parent.child_count + 1
 
-    const children = in.tree.children.push({
+    return in.tree.children.push({
         value: result,
         previous: parent.children
     })[0]
-
-    return {
-        source: in.source,
-        tree: {
-            nodes,
-            attributes: in.tree.attributes,
-            text: in.tree.text,
-            children,
-            parts: in.tree.parts
-        },
-        frames: popped[0],
-        frame: {
-            ...parent,
-            children: head,
-            child_count: count
-        },
-        control: {
-            ...in.control,
-            phase: Phase.Content
+        -> {
+            source: in.source,
+            tree: {
+                nodes,
+                attributes: in.tree.attributes,
+                text: in.tree.text,
+                children: _,
+                parts: in.tree.parts
+            },
+            frames: popped[0],
+            frame: {
+                ...parent,
+                children: head,
+                child_count: count
+            },
+            control: {
+                ...in.control,
+                phase: Phase.Content
+            }
         }
-    }
 }

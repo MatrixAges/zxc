@@ -77,8 +77,8 @@ export default function (in: Input): Output {
     }, {
         while: current => current.index < current.input.count,
         next: current => {
-            const name = current.input.names[current.input.first + current.index]
-            const requested = current.input.keys.some(key => key == name)
+            const requested = current.input.names[current.input.first + current.index]
+                -> current.input.keys.some(key => key == _)
 
             if (requested != current.input.omit) {
                 current.indices =

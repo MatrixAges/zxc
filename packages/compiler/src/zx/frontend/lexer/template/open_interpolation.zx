@@ -7,34 +7,32 @@ export type Input = LexerState
 export type Output = LexerState
 
 export default function (in: Input): Output {
-    const frame = {
+    return {
         mode: in.mode,
         start: in.start,
         braces: in.braces,
         depth: in.depth
     }
-
-    const frames = in.frames.push(frame)[0]
-
-    return {
-        source_length: in.source_length,
-        warmed: in.warmed,
-        ahead_one: in.ahead_one,
-        ahead_two: in.ahead_two,
-        keyword_state: in.keyword_state,
-        symbol: in.symbol,
-        line_break: in.line_break,
-        dollar: in.dollar,
-        offset: in.offset,
-        skip_until: in.offset + 2,
-        mode: Mode.Interpolation,
-        start: in.offset + 2,
-        braces: 0,
-        depth: in.depth + 1,
-        frames,
-        number: in.number,
-        tokens: in.tokens,
-        comments: in.comments,
-        diagnostic: in.diagnostic
-    }
+        -> in.frames.push(_)[0]
+        -> {
+            source_length: in.source_length,
+            warmed: in.warmed,
+            ahead_one: in.ahead_one,
+            ahead_two: in.ahead_two,
+            keyword_state: in.keyword_state,
+            symbol: in.symbol,
+            line_break: in.line_break,
+            dollar: in.dollar,
+            offset: in.offset,
+            skip_until: in.offset + 2,
+            mode: Mode.Interpolation,
+            start: in.offset + 2,
+            braces: 0,
+            depth: in.depth + 1,
+            frames: _,
+            number: in.number,
+            tokens: in.tokens,
+            comments: in.comments,
+            diagnostic: in.diagnostic
+        }
 }

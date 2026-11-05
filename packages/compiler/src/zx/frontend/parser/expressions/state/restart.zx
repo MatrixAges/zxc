@@ -6,7 +6,8 @@ import type { ExprState, ExprFrame, ExprControl } from "./model"
 export type Input = {
     state: ExprState,
     depth: u64,
-    minimum: u8
+    minimum: u8,
+    condition?: bool
 }
 
 export type Output = ExprState
@@ -17,6 +18,9 @@ export default function (in: Input): Output {
     const control: ExprControl = {
         ...in.state.control,
         phase: Phase.BeginBinary,
+        allow_condition: in.condition == true,
+        boundary: 0,
+        boundary_stream: 0,
         base_depth: in.depth,
         depth: in.depth,
         minimum: in.minimum,

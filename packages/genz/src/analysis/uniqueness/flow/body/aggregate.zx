@@ -21,8 +21,14 @@ export default function (in: Input): Output {
 
     const candidate = integers.widen(in.point.slot)
 
-    const direct = candidate < offsets.length && offsets[candidate] <= in.point.slot &&
-        (candidate + 1 == offsets.length || offsets[candidate + 1] > in.point.slot)
+    const direct = (
+        - candidate < offsets.length
+        - and offsets[candidate] <= in.point.slot
+        - and (
+            candidate + 1 == offsets.length ||
+                offsets[candidate + 1] > in.point.slot
+        )
+    )
 
     const position = direct ? candidate + 1 : loop({
         first: 0,

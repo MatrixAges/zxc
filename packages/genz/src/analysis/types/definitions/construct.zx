@@ -92,19 +92,23 @@ export default function (in: Input): Output {
         next: current => {
             const index = current.index
             const target = kind(current.source.types.kinds[index])
-            const named = target == Kind.Object || target == Kind.Tuple ||
-                target == Kind.Enumeration || target == Kind.NativeReference
+            const named = (
+                - target == Kind.Object
+                - or target == Kind.Tuple
+                - or target == Kind.Enumeration
+                - or target == Kind.NativeReference
+            )
             const first = current.source.types.first[index]
             const second = current.source.types.second[index]
             const string = target == Kind.Scalar && first == scalar_string
-            const count = match {
-                named && target != Kind.Enumeration => pointer_nodes,
-                named || string => wrapped_nodes,
-                target == Kind.Task => task_nodes,
-                _ => leaf_nodes
-            }
             const end =
-                integers.widen(current.source.base) + current.tags.length + count
+                match {
+                    named && target != Kind.Enumeration => pointer_nodes,
+                    named || string => wrapped_nodes,
+                    target == Kind.Task => task_nodes,
+                    _ => leaf_nodes
+                }
+                -> integers.widen(current.source.base) + current.tags.length + _
 
             if (end > integers.widen(max_u32)) {
                 current.valid = false

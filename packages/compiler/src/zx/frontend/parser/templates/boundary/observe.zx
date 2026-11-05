@@ -27,7 +27,13 @@ export default function (in: Input): Output {
             })
         }
 
-        if (in.byte == 36 && in.has_next && in.next == 123) {
+        const condition = (
+            - in.byte == 36
+            - and in.has_next
+            - and in.next == 123
+        )
+
+        if (condition) {
             return openInterpolation({
                 graph: in.graph,
                 offset: in.offset
@@ -35,20 +41,30 @@ export default function (in: Input): Output {
         }
     }
 
-    if (in.mode == Mode.Interpolation && in.byte == 125 && in.braces == 0) {
+    const condition_2 = (
+        - in.mode == Mode.Interpolation
+        - and in.byte == 125
+        - and in.braces == 0
+    )
+
+    if (condition_2) {
         return closeInterpolation({
             graph: in.graph,
             offset: in.offset
         })
     }
 
-    if (
-        in.byte == 96 &&
-            (
-                in.mode == Mode.Idle || in.mode == Mode.Identifier ||
-                    in.mode == Mode.Number || in.mode == Mode.Interpolation
-            )
-    ) {
+    const condition_3 = (
+        - in.byte == 96
+        - and (
+            - in.mode == Mode.Idle
+            - or in.mode == Mode.Identifier
+            - or in.mode == Mode.Number
+            - or in.mode == Mode.Interpolation
+        )
+    )
+
+    if (condition_3) {
         return openTemplate({
             graph: in.graph,
             offset: in.offset

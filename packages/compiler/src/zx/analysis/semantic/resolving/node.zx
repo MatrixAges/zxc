@@ -31,10 +31,13 @@ export default function (in: Input): Output {
         })
     }
 
-    if (
-        value.kind == NodeKind.Optional || value.kind == NodeKind.List ||
-            value.kind == NodeKind.Application
-    ) {
+    const condition = (
+        - value.kind == NodeKind.Optional
+        - or value.kind == NodeKind.List
+        - or value.kind == NodeKind.Application
+    )
+
+    if (condition) {
         if (value.kind == NodeKind.Application && value.name.text != "Array") {
             return fail({
                 state: in,
@@ -53,7 +56,7 @@ export default function (in: Input): Output {
             }
         })
 
-        const child = frame({
+        return frame({
             operation: Operation.Node,
             name: {
                 text: "",
@@ -62,11 +65,10 @@ export default function (in: Input): Output {
             },
             reference: value.child
         })
-
-        return {
-            ...state,
-            frames: state.frames.push(child)[0]
-        }
+            -> {
+                ...state,
+                frames: state.frames.push(_)[0]
+            }
     }
 
     if (value.kind == NodeKind.Tuple || value.kind == NodeKind.Object) {

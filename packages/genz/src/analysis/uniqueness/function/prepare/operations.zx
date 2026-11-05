@@ -23,10 +23,13 @@ export default function (in: Input): Output {
             if (source.time[state.index] != max_u32) {
                 const kind = source.expressions.kinds[state.index]
 
-                if (
-                    kind == ExpressionKind.Call || kind == ExpressionKind.ListOperation ||
-                        kind == ExpressionKind.ListUpdate
-                ) {
+                const condition = (
+                    - kind == ExpressionKind.Call
+                    - or kind == ExpressionKind.ListOperation
+                    - or kind == ExpressionKind.ListUpdate
+                )
+
+                if (condition) {
                     state.operations = state.operations.push(
                         integers.narrow(state.index)
                     )[0]

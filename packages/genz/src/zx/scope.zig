@@ -19,6 +19,7 @@ fn lowerMode(self: *Lower, scope: ir.ScopeRow, layout: bool) Lower.Error!node.Ex
     };
 
     const analysis = @import("iteration_layout.zig");
+    const value_analysis = @import("value_call/analysis.zig");
     const values = @import("value_call/root.zig");
     var stacked: std.ArrayList(ir.SymbolId) = .empty;
 
@@ -33,7 +34,7 @@ fn lowerMode(self: *Lower, scope: ir.ScopeRow, layout: bool) Lower.Error!node.Ex
 
     if ((local_root or projected) and self.projected_symbols == null) self.projected_symbols = try @import("value_call/projections.zig").symbols(self.allocator, self.program);
 
-    if (local_root or projected or scalar_entry) {
+    if (local_root or projected or scalar_entry or self.value_output) {
         for (0..scope.bindings.len) |record_index| {
             const binding = scope.bindings.at(record_index);
 
@@ -41,8 +42,16 @@ fn lowerMode(self: *Lower, scope: ir.ScopeRow, layout: bool) Lower.Error!node.Ex
                 const type_id = self.program.symbols.at(@backingInt(symbol)).type_id;
                 const snapshot = local_root and type_id == result_type;
 
+                const local_object = self.value_output and self.program.typeOf(type_id) == .object and
+                    type_id != result_type and
+                    !value_analysis.containsDescendant(self.program, result_type, type_id) and
+                    !value_analysis.containsDescendant(self.program, self.program.output_type, type_id);
+
                 if (scalar_entry and self.program.typeOf(type_id) != .object) continue;
-                if (!snapshot and !scalar_entry and !self.projected_symbols.?[@backingInt(symbol)]) continue;
+
+                if (!snapshot and !scalar_entry and !local_object and
+                    !((projected or local_root) and self.projected_symbols.?[@backingInt(symbol)])) continue;
+
                 if (@import("state_value/root.zig").selected(self, type_id)) continue;
                 if (!analysis.aggregate(self, type_id) or self.stack_symbols.contains(symbol)) continue;
                 if (try @import("value_call/locals.zig").borrowed(self, symbol, binding.value)) continue;

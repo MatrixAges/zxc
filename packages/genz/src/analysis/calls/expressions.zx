@@ -31,14 +31,17 @@ export default function (in: Input): Output {
         next: current => {
             const kind = current.kinds[current.index]
 
-            if (
-                current.tasks &&
-                    (
-                        kind == ExpressionKind.Task || kind == ExpressionKind.AwaitTask ||
-                            kind == ExpressionKind.CancelTask ||
-                            kind == ExpressionKind.Parallel
-                    )
-            ) {
+            const condition = (
+                - current.tasks
+                - and (
+                    - kind == ExpressionKind.Task
+                    - or kind == ExpressionKind.AwaitTask
+                    - or kind == ExpressionKind.CancelTask
+                    - or kind == ExpressionKind.Parallel
+                )
+            )
+
+            if (condition) {
                 current.valid = false
             } else if (kind == ExpressionKind.Call) {
                 const target =
@@ -51,12 +54,12 @@ export default function (in: Input): Output {
 
                 current.valid =
                     (
-                        current.self_function != null &&
-                            target == current.self_function
-                    ) ||
-                    (
-                        target < current.limit &&
-                            current.allowed[target] == current.expected
+                        - current.self_function != null
+                        - and target == current.self_function
+                        - or (
+                            target < current.limit &&
+                                current.allowed[target] == current.expected
+                        )
                     )
             }
 

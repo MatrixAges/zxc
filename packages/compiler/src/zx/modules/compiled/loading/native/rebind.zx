@@ -28,17 +28,16 @@ export default function (in: Input): Output {
 
     const name = in.source.import_names[in.index]
 
-    const import_name = shared ? name : nativeName({
+    return (shared ? name : nativeName({
         instance: in.instance,
         value: name
-    })
-
-    return {
-        identity,
-        specifier: in.source.specifiers[in.index],
-        import_name,
-        namespace: in.source.type_namespaces[in.index],
-        names: in.source.type_names[in.index],
-        ids: in.source.type_ids[in.index]
-    }
+    }))
+        -> {
+            identity,
+            specifier: in.source.specifiers[in.index],
+            import_name: _,
+            namespace: in.source.type_namespaces[in.index],
+            names: in.source.type_names[in.index],
+            ids: in.source.type_ids[in.index]
+        }
 }

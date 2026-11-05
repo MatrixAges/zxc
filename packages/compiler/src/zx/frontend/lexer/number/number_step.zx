@@ -77,12 +77,13 @@ export default function (in: Input): Output {
         }
     }
 
-    if (
-        (in.state.phase == Phase.Integer || in.state.phase == Phase.Fraction) &&
-            (
-                in.byte == ascii_lower_e || in.byte == ascii_upper_e
-            )
-    ) {
+    const condition = (
+        - in.state.phase == Phase.Integer
+        - or in.state.phase == Phase.Fraction
+        - and (in.byte == ascii_lower_e || in.byte == ascii_upper_e)
+    )
+
+    if (condition) {
         return {
             ...in.state,
             end: in.state.end + 1,
@@ -93,11 +94,12 @@ export default function (in: Input): Output {
         }
     }
 
-    if (
-        in.state.phase == Phase.ExponentStart && (
-            in.byte == ascii_plus || in.byte == ascii_minus
-        )
-    ) {
+    const condition_2 = (
+        - in.state.phase == Phase.ExponentStart
+        - and (in.byte == ascii_plus || in.byte == ascii_minus)
+    )
+
+    if (condition_2) {
         return {
             ...in.state,
             end: in.state.end + 1,

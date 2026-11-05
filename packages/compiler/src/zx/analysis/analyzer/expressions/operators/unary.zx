@@ -18,7 +18,12 @@ export type Output = Result
 export default function (in: Input): Output {
     const type_id = in.state.local.expressions.types[integers.widen(in.operand)]
 
-    if (in.negative && (type_id < 6 || type_id > 9)) {
+    const condition = (
+        - in.negative
+        - and (type_id < 6 || type_id > 9)
+    )
+
+    if (condition) {
         return {
             state: {
                 ...in.state,

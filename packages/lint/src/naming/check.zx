@@ -24,11 +24,12 @@ export default function (in: Input): Output {
 
     const first = in.name[0]
 
-    const imported_kind =
-        first >= ascii_upper_first && first <= ascii_upper_last ? NameKind.TypeDecl :
-        NameKind.ImportedValue
-
-    const kind = in.kind == NameKind.ImportedValue ? imported_kind : in.kind
+    const kind =
+        (
+            first >= ascii_upper_first && first <= ascii_upper_last ? NameKind.TypeDecl :
+                NameKind.ImportedValue
+        )
+        -> (in.kind == NameKind.ImportedValue ? _ : in.kind)
 
     const valid_first =
         kind == NameKind.TypeDecl ? first >= ascii_upper_first &&
@@ -53,20 +54,22 @@ export default function (in: Input): Output {
             const lower = byte >= ascii_lower_first && byte <= ascii_lower_last
             const digit = byte >= ascii_digit_first && byte <= ascii_digit_last
 
-            if (
-                (
-                    current.kind == NameKind.Value ||
-                        current.kind == NameKind.ImportedValue
-                ) &&
-                    byte == ascii_underscore
-            ) {
+            const condition = (
+                - current.kind == NameKind.Value
+                - or current.kind == NameKind.ImportedValue
+                - and byte == ascii_underscore
+            )
+
+            if (condition) {
                 current.valid = !current.after_underscore
                 current.after_underscore = true
             } else {
                 current.valid =
-                    (upper || lower || digit) &&
                     (
-                        current.kind != NameKind.Value || !upper
+                        - upper
+                        - or lower
+                        - or digit
+                        - and (current.kind != NameKind.Value || !upper)
                     )
                 current.after_underscore = false
             }

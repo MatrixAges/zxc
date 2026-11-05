@@ -6,9 +6,14 @@ export default function (in: Input): Output {
     return {
         headered,
         unique: in.left.unique && in.right.unique,
-        deferred: !headered && (
-            in.left.deferred || in.right.deferred ||
-                in.left.headered || in.right.headered
+        deferred: (
+            - !headered
+            - and (
+                - in.left.deferred
+                - or in.right.deferred
+                - or in.left.headered
+                - or in.right.headered
+            )
         )
     }
 }

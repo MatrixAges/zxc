@@ -38,15 +38,15 @@ export default function (in: Input): Output {
                 declaration,
                 parameters: current.parameters
             }))
-            const output = inputs.diagnostic.message == "" ? node({
+            const checked = (inputs.diagnostic.message == "" ? node({
                 state: inputs,
                 index: declaration.output
-            }) : inputs
-            const checked = check({
-                state: output,
-                declaration,
-                input: inputs.result
-            })
+            }) : inputs)
+                -> check({
+                    state: _,
+                    declaration,
+                    input: inputs.result
+                })
 
             current.resolution = checked
 

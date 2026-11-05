@@ -22,21 +22,20 @@ export default function (in: Input): Output {
         start: 0
     }
 
-    const active = resume({
+    return resume({
         session: parent.session,
         start: parent.start,
         end: in.state.offset + 1,
         template: in.template
     })
-
-    return {
-        active,
-        parents: popped[0],
-        interpolations: in.state.interpolations,
-        events: in.state.events,
-        event_index: in.state.event_index,
-        offset: in.state.offset,
-        length: in.state.length,
-        skip: true
-    }
+        -> {
+            active: _,
+            parents: popped[0],
+            interpolations: in.state.interpolations,
+            events: in.state.events,
+            event_index: in.state.event_index,
+            offset: in.state.offset,
+            length: in.state.length,
+            skip: true
+        }
 }

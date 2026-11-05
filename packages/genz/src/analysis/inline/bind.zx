@@ -53,19 +53,18 @@ export default function (in: Input): Output {
         borrows: previous.borrows
     })
 
-    const state = {
+    return {
         ...in.state,
         tables: {
             ...in.state.tables,
             expressions: made.table
         }
     }
-
-    return {
-        state: append({
-            state,
+        -> {
+            state: append({
+                state: _,
+                id: made.id
+            }),
             id: made.id
-        }),
-        id: made.id
-    }
+        }
 }

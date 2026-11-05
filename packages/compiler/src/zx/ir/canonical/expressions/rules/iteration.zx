@@ -15,24 +15,27 @@ export default function (in: Input): Output {
     const expressions = context.expressions
 
     if (in.kind == ExpressionKind.ListUpdate) {
-        return in.target == Kind.List && typed({
-            expressions,
-            index: context.index,
-            id: expressions.update_targets[in.payload],
-            type_id: in.type_id
-        }) &&
-            typed({
+        return (
+            - in.target == Kind.List
+            - and typed({
+                expressions,
+                index: context.index,
+                id: expressions.update_targets[in.payload],
+                type_id: in.type_id
+            })
+            - and typed({
                 expressions,
                 index: context.index,
                 id: expressions.update_indices[in.payload],
                 type_id: 5
-            }) &&
-            typed({
+            })
+            - and typed({
                 expressions,
                 index: context.index,
                 id: expressions.update_values[in.payload],
                 type_id: context.table.first[integers.widen(in.type_id)]
             })
+        )
     }
 
     const parameter = integers.widen(expressions.iteration_parameters[in.payload])
@@ -42,26 +45,30 @@ export default function (in: Input): Output {
             expressions.iteration_condition_parameters[in.payload]
         )
 
-    return in.type_id != 0 && typed({
-        expressions,
-        index: context.index,
-        id: expressions.iteration_initials[in.payload],
-        type_id: in.type_id
-    }) &&
-        typed({
+    return (
+        - in.type_id != 0
+        - and typed({
+            expressions,
+            index: context.index,
+            id: expressions.iteration_initials[in.payload],
+            type_id: in.type_id
+        })
+        - and typed({
             expressions,
             index: context.index,
             id: expressions.iteration_bodies[in.payload],
             type_id: in.type_id
-        }) &&
-        typed({
+        })
+        - and typed({
             expressions,
             index: context.index,
             id: expressions.iteration_conditions[in.payload],
             type_id: 1
-        }) &&
-        parameter != condition_parameter && parameter < context.symbols.types.length &&
-        condition_parameter < context.symbols.types.length &&
-        context.symbols.types[parameter] == in.type_id &&
-        context.symbols.types[condition_parameter] == in.type_id
+        })
+        - and parameter != condition_parameter
+        - and parameter < context.symbols.types.length
+        - and condition_parameter < context.symbols.types.length
+        - and context.symbols.types[parameter] == in.type_id
+        - and context.symbols.types[condition_parameter] == in.type_id
+    )
 }

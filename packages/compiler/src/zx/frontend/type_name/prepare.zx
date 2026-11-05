@@ -10,13 +10,17 @@ export type Output = {
 export default function (in: Input): Output {
     const bytes = encoding.encodeUtf8(in)
 
-    const has_trivia =
-        bytes.some(
-            byte => byte == 32 || byte == 9 || byte == 10 || byte == 13 || byte == 47
+    return bytes.some(
+        byte => (
+            - byte == 32
+            - or byte == 9
+            - or byte == 10
+            - or byte == 13
+            - or byte == 47
         )
-
-    return {
-        bytes,
-        has_trivia
-    }
+    )
+        -> {
+            bytes,
+            has_trivia: _
+        }
 }

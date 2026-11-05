@@ -35,13 +35,15 @@ export default function (in: Input): Output {
             id: type_id
         })
 
-        if (
-            type_id == 0 ||
-                (
-                    target.kind != Kind.Scalar && target.kind != Kind.Enumeration &&
-                        target.kind != Kind.ErrorSet
-                )
-        ) {
+        const condition = (
+            - type_id == 0
+            - or (
+                target.kind != Kind.Scalar && target.kind != Kind.Enumeration &&
+                    target.kind != Kind.ErrorSet
+            )
+        )
+
+        if (condition) {
             return {
                 ...work,
                 state: {
@@ -69,39 +71,37 @@ export default function (in: Input): Output {
     }
 
     if (in.action == Action.MatchCondition) {
-        const arm = work.source.tree.arms[frame.arms[frame.index]]
-
-        return {
-            ...work,
-            node: arm.result,
-            expected: frame.expected,
-            phase: Phase.Evaluate,
-            frames: {
-                ...work.frames,
-                actions: work.frames.actions.push(Action.MatchResult)[0],
-                selections: work.frames.selections.splice(position, 1, [{
-                    ...frame,
-                    conditions: frame.conditions.push(work.value)[0]
-                }])[0]
+        return work.source.tree.arms[frame.arms[frame.index]]
+            -> {
+                ...work,
+                node: _.result,
+                expected: frame.expected,
+                phase: Phase.Evaluate,
+                frames: {
+                    ...work.frames,
+                    actions: work.frames.actions.push(Action.MatchResult)[0],
+                    selections: work.frames.selections.splice(position, 1, [{
+                        ...frame,
+                        conditions: frame.conditions.push(work.value)[0]
+                    }])[0]
+                }
             }
-        }
     }
 
     if (in.action == Action.MatchResult) {
-        const selections = work.frames.selections.splice(position, 1, [{
+        return work.frames.selections.splice(position, 1, [{
             ...frame,
             expected: type_id,
             index: frame.index + 1,
             results: frame.results.push(work.value)[0]
         }])[0]
-
-        return next({
-            ...work,
-            frames: {
-                ...work.frames,
-                selections
-            }
-        })
+            -> next({
+                ...work,
+                frames: {
+                    ...work.frames,
+                    selections: _
+                }
+            })
     }
 
     const result = append({

@@ -29,16 +29,19 @@ export default function (in: Input): Output {
         next: current => {
             const expressions = current.expressions
             const operation = expressions.collection_kinds[current.index]
-            const target =
+            const child =
                 integers.widen(expressions.collection_targets[current.index])
-            const list = integers.widen(expressions.types[target])
-            const child = current.types.first[list]
+                -> integers.widen(expressions.types[_])
+                -> current.types.first[_]
             const index = integers.widen(child)
 
-            if (
-                operation != CollectionKind.Pop && current.records[index] &&
-                    kind(current.types.kinds[index]) == Kind.Object
-            ) {
+            const condition = (
+                - operation != CollectionKind.Pop
+                - and current.records[index]
+                - and kind(current.types.kinds[index]) == Kind.Object
+            )
+
+            if (condition) {
                 const first =
                     integers.widen(expressions.collection_first[current.index])
                 const reused = operation != CollectionKind.Push || !fresh({
@@ -65,19 +68,22 @@ export default function (in: Input): Output {
     }, {
         while: current => current.index < current.expressions.update_targets.length,
         next: current => {
-            const target =
+            const child =
                 integers.widen(current.expressions.update_targets[current.index])
-            const list = integers.widen(current.expressions.types[target])
-            const child = current.types.first[list]
+                -> integers.widen(current.expressions.types[_])
+                -> current.types.first[_]
             const index = integers.widen(child)
 
-            if (
-                current.records[index] &&
-                    kind(current.types.kinds[index]) == Kind.Object && !fresh({
-                        expressions: current.expressions,
-                        id: current.expressions.update_values[current.index]
-                    })
-            ) {
+            const condition_2 = (
+                - current.records[index]
+                - and kind(current.types.kinds[index]) == Kind.Object
+                - and !fresh({
+                    expressions: current.expressions,
+                    id: current.expressions.update_values[current.index]
+                })
+            )
+
+            if (condition_2) {
                 current.roots = current.roots.push(child)[0]
             }
 
@@ -97,9 +103,10 @@ export default function (in: Input): Output {
         next: current => {
             const expressions = current.expressions
             const operation = expressions.transform_kinds[current.index]
-            const target =
-                integers.widen(expressions.transform_targets[current.index])
-            const list = integers.widen(expressions.types[target])
+            const list = integers.widen(
+                expressions.transform_targets[current.index]
+            )
+                -> integers.widen(expressions.types[_])
             const body = expressions.transform_bodies[current.index]
             const child = operation == TransformKind.Map ?
                 expressions.types[integers.widen(body)] : current.types.first[list]

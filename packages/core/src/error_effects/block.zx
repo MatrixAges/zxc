@@ -31,9 +31,9 @@ export default function (in: Input): Output {
         }
     }
 
-    const terminal =
-        kind == StatementKind.Result ||
-        (
+    const frames = (
+        - kind == StatementKind.Result
+        - or (
             kind == StatementKind.Branch &&
                 source
                 .returns[integers.widen(
@@ -47,24 +47,25 @@ export default function (in: Input): Output {
                         payload
                     )]
                 )]
-        ) || (kind == StatementKind.Switch && selectionReturns({
+        )
+        - or (kind == StatementKind.Switch && selectionReturns({
             control,
             selection: integers.widen(payload),
             returns: source.returns
         }))
-
-    const frames = terminal || in.frame.count == 1 ? in.state.frames :
-        in.state.frames.push({
-            ...in.frame,
-            index: in.frame.index + 1,
-            count: in.frame.count - 1
-        })[0]
+    )
+        -> (_ || in.frame.count == 1 ? in.state.frames :
+            in.state.frames.push({
+                ...in.frame,
+                index: in.frame.index + 1,
+                count: in.frame.count - 1
+            })[0])
 
     if (kind == StatementKind.Branch) {
         const yes = control.branch_yes[integers.widen(payload)]
         const no = control.branch_no[integers.widen(payload)]
 
-        const pending = frames.push({
+        return frames.push({
             operation: Operation.Block,
             source: in.frame.source,
             index: integers.widen(control.block_first[integers.widen(
@@ -99,11 +100,10 @@ export default function (in: Input): Output {
                     ),
                 count: 0
             })[0]
-
-        return {
-            ...in.state,
-            frames: pending
-        }
+            -> {
+                ...in.state,
+                frames: _
+            }
     }
 
     if (kind == StatementKind.Switch) {
@@ -189,15 +189,17 @@ export default function (in: Input): Output {
         _ => control.results[integers.widen(payload)],
     }
 
-    if (
-        value == null ||
-            (
-                kind == StatementKind.Destructure &&
-                    source.expressions.kinds[integers.widen(
-                        value
-                    )] == ExpressionKind.Capture
-            )
-    ) {
+    const condition = (
+        - value == null
+        - or (
+            kind == StatementKind.Destructure &&
+                source.expressions.kinds[integers.widen(
+                    value
+                )] == ExpressionKind.Capture
+        )
+    )
+
+    if (condition) {
         return {
             ...in.state,
             frames

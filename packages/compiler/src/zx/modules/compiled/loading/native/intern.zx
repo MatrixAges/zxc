@@ -52,17 +52,16 @@ export default function (in: Input): Output {
     if (index < count) {
         const base = index < in.base.specifiers.length
 
-        const valid = compatible({
+        return compatible({
             table: base ? in.base : in.state.delta,
             index: base ? index : index - in.base.specifiers.length,
             value: in.value
         })
-
-        return {
-            ...in.state,
-            mapping: in.state.mapping.push(integers.narrow(index))[0],
-            status: valid ? 0 : 5
-        }
+            -> {
+                ...in.state,
+                mapping: in.state.mapping.push(integers.narrow(index))[0],
+                status: _ ? 0 : 5
+            }
     }
 
     if (count >= in.maximum) {

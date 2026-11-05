@@ -24,16 +24,15 @@ export default function (in: Input): Output {
     const statement = work.source.blocks.statements[frame.statement]
 
     if (in.action == Action.StateTarget) {
-        const state_symbol =
-            work.scopes.frames[work.scopes.frames.length - 1].state_symbol
-
-        const prepared = prepare({
-            state: work.state,
-            scopes: work.scopes,
-            target: work.value,
-            state_symbol,
-            read_value: statement.operator != Operator.None
-        })
+        const prepared = work.scopes.frames[work.scopes.frames.length -
+            1].state_symbol
+            -> prepare({
+                state: work.state,
+                scopes: work.scopes,
+                target: work.value,
+                state_symbol: _,
+                read_value: statement.operator != Operator.None
+            })
 
         if (prepared.state.diagnostic.message != "") {
             return {
@@ -45,27 +44,27 @@ export default function (in: Input): Output {
 
         const target = prepared.places[prepared.places.length - 1].value
 
-        const updates = work.frames.updates.splice(position, 1, [{
+        return work.frames.updates.splice(position, 1, [{
             ...frame,
             places: prepared.places,
             target
         }])[0]
-
-        return {
-            ...work,
-            state: prepared.state,
-            scopes: prepared.scopes,
-            node: statement.second,
-            expected: prepared.state.local.expressions.types[integers.widen(
-                target
-            )],
-            phase: Phase.Evaluate,
-            frames: {
-                ...work.frames,
-                updates,
-                actions: work.frames.actions.push(Action.StateValue)[0]
+            -> {
+                ...work,
+                state: prepared.state,
+                scopes: prepared.scopes,
+                node: statement.second,
+                expected: prepared.state.local.expressions
+                    .types[integers.widen(
+                        target
+                    )],
+                phase: Phase.Evaluate,
+                frames: {
+                    ...work.frames,
+                    updates: _,
+                    actions: work.frames.actions.push(Action.StateValue)[0]
+                }
             }
-        }
     }
 
     const compound = statement.operator != Operator.None
@@ -74,7 +73,12 @@ export default function (in: Input): Output {
         frame.target
     )]
 
-    if (compound && (type_id < 2 || type_id > 9)) {
+    const condition = (
+        - compound
+        - and (type_id < 2 || type_id > 9)
+    )
+
+    if (condition) {
         return {
             ...work,
             state: {

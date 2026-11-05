@@ -29,11 +29,13 @@ export default function (in: Input): Output {
             const type_kind = kind(current.input.table.kinds[type_index])
 
             if (next_child == null) {
-                if (
-                    current.type_ids.length > max_nesting_depth - current.input.depth ||
-                        current.position == current.input.names.length ||
-                        type_kind == Kind.Task
-                ) {
+                const condition = (
+                    - current.type_ids.length > max_nesting_depth - current.input.depth
+                    - or current.position == current.input.names.length
+                    - or type_kind == Kind.Task
+                )
+
+                if (condition) {
                     current.valid = false
                 } else {
                     current.valid = typeName({

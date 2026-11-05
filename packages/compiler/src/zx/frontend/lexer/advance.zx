@@ -27,28 +27,32 @@ export default function (in: Input): Output {
     }
 
     if (in.state.mode == Mode.Identifier) {
-        if (isLetter(in.byte) || isDigit(in.byte) || in.byte == ascii_underscore) {
-            const next_keyword = keywordTransition({
+        const condition = (
+            - isLetter(in.byte)
+            - or isDigit(in.byte)
+            - or in.byte == ascii_underscore
+        )
+
+        if (condition) {
+            return keywordTransition({
                 state: in.state.keyword_state,
                 byte: in.byte
             })
-
-            return {
-                ...in.state,
-                keyword_state: next_keyword
-            }
+                -> {
+                    ...in.state,
+                    keyword_state: _
+                }
         }
 
-        const ended = endIdentifier(in.state)
-
-        return begin({
-            byte: in.byte,
-            next: in.next,
-            after: in.after,
-            has_next: in.has_next,
-            has_after: in.has_after,
-            state: ended
-        })
+        return endIdentifier(in.state)
+            -> begin({
+                byte: in.byte,
+                next: in.next,
+                after: in.after,
+                has_next: in.has_next,
+                has_after: in.has_after,
+                state: _
+            })
     }
 
     if (in.state.mode == Mode.Number) {

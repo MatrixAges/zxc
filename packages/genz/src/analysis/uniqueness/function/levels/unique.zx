@@ -5,6 +5,10 @@ export type Input = Knowledge
 export type Output = bool
 
 export default function (in: Input): Output {
-    return in == Knowledge.Unique || in == Knowledge.All ||
-        in == Knowledge.UniqueDeferred || in == Knowledge.AllDeferred
+    return (
+        - in == Knowledge.Unique
+        - or in == Knowledge.All
+        - or in == Knowledge.UniqueDeferred
+        - or in == Knowledge.AllDeferred
+    )
 }

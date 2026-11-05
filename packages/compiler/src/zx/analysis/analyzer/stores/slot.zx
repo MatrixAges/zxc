@@ -29,7 +29,13 @@ export default function (in: Input): Output {
         index: in.node
     }).text
 
-    if (!field || owner.kind != ExprKind.Identifier || name != "value") {
+    const condition = (
+        - !field
+        - or owner.kind != ExprKind.Identifier
+        - or name != "value"
+    )
+
+    if (condition) {
         return {
             state: {
                 ...in.state,

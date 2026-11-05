@@ -27,10 +27,13 @@ export default function (in: Input): Output {
         number: 0
     }
 
-    if (
-        kind == StatementsKind.BreakLoop || kind == StatementsKind.ContinueLoop ||
-            kind == StatementsKind.UnreachableStmt
-    ) {
+    const condition = (
+        - kind == StatementsKind.BreakLoop
+        - or kind == StatementsKind.ContinueLoop
+        - or kind == StatementsKind.UnreachableStmt
+    )
+
+    if (condition) {
         return [{
             ...frame,
             token:
@@ -127,7 +130,7 @@ export default function (in: Input): Output {
         token: Token.Return
     }]
 
-    const returned = value == null ? prefix : prefix.concat([
+    return (value == null ? prefix : prefix.concat([
         {
             ...frame,
             token: Token.Space
@@ -137,10 +140,9 @@ export default function (in: Input): Output {
             action: Action.Expression,
             id: value
         }
-    ])[0]
-
-    return returned.push({
-        ...frame,
-        token: Token.StatementEnd
-    })[0]
+    ])[0])
+        -> _.push({
+            ...frame,
+            token: Token.StatementEnd
+        })[0]
 }

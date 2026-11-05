@@ -20,17 +20,19 @@ export default function (in: Input): Output {
         return false
     }
 
-    if (
-        in.kind == ExpressionKind.Tuple &&
-            (
-                in.target != Kind.Tuple ||
-                    integers.widen(
-                        table.second[integers.widen(
-                            in.type_id
-                        )]
-                    ) != count
-            )
-    ) {
+    const condition = (
+        - in.kind == ExpressionKind.Tuple
+        - and (
+            in.target != Kind.Tuple ||
+                integers.widen(
+                    table.second[integers.widen(
+                        in.type_id
+                    )]
+                ) != count
+        )
+    )
+
+    if (condition) {
         return false
     }
 

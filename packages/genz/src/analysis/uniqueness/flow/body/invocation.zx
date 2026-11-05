@@ -19,8 +19,9 @@ export default function (in: Input): Output {
     }
 
     const expanded = self ? in.state.expanded : in.state.expanded.with(payload, true)
-    const own = in.context.tracking ? in.state.reached : in.context.own
-    const values = self ? own : in.context.held[integers.widen(callee)]
+
+    const values = (in.context.tracking ? in.state.reached : in.context.own)
+        -> (self ? _ : in.context.held[integers.widen(callee)])
 
     return {
         ...in.state,

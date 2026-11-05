@@ -25,26 +25,25 @@ export default function (in: Input): Output {
         returns: in.blocks.returns
     })
 
-    const facts = restore({
+    return restore({
         facts: in.local.refinement.facts,
         mark: frame.facts_mark
     })
-
-    return {
-        blocks: {
-            pending: result.pending,
-            returns: result.returns,
-            frames: in.blocks.frames.pop()[0]
-        },
-        local: {
-            ...in.local,
-            control: result.control,
-            active: in.local.active.splice(0, frame.active_mark, [])[1],
-            refinement: {
-                ...in.local.refinement,
-                facts
-            }
-        },
-        id: result.id
-    }
+        -> {
+            blocks: {
+                pending: result.pending,
+                returns: result.returns,
+                frames: in.blocks.frames.pop()[0]
+            },
+            local: {
+                ...in.local,
+                control: result.control,
+                active: in.local.active.splice(0, frame.active_mark, [])[1],
+                refinement: {
+                    ...in.local.refinement,
+                    facts: _
+                }
+            },
+            id: result.id
+        }
 }

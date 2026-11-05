@@ -12,32 +12,32 @@ export type Output = HeaderStage
 
 export default function (in: Input): Output {
     const info = functionInfo(in)
-    const type_diagnostic = in.declarations.control.type_diagnostic
 
-    return {
-        prefix: {
-            imports: in.prefix.imports.imports,
-            names: in.prefix.imports.names,
-            sources: in.prefix.imports.sources,
-            constants: in.constants,
-            declarations: in.declarations.declarations,
-            members: in.declarations.members,
-            function_start: info.start,
-            function_name: info.name,
-            present: info.present,
-            type_diagnostic,
-            import_diagnostic: in.prefix.imports.control.diagnostic,
-            declaration_diagnostic: in.declarations.control.diagnostic,
-            diagnostic: info.diagnostic
-        },
-        header: initial(expression({
-            prepared: in.prefix.prepared,
-            tree: emptyTree(),
-            types: in.declarations.types,
-            start: info.index,
-            depth: 0,
-            minimum: 0,
-            allow_lambda: true
-        }))
-    }
+    return in.declarations.control.type_diagnostic
+        -> {
+            prefix: {
+                imports: in.prefix.imports.imports,
+                names: in.prefix.imports.names,
+                sources: in.prefix.imports.sources,
+                constants: in.constants,
+                declarations: in.declarations.declarations,
+                members: in.declarations.members,
+                function_start: info.start,
+                function_name: info.name,
+                present: info.present,
+                type_diagnostic: _,
+                import_diagnostic: in.prefix.imports.control.diagnostic,
+                declaration_diagnostic: in.declarations.control.diagnostic,
+                diagnostic: info.diagnostic
+            },
+            header: initial(expression({
+                prepared: in.prefix.prepared,
+                tree: emptyTree(),
+                types: in.declarations.types,
+                start: info.index,
+                depth: 0,
+                minimum: 0,
+                allow_lambda: true
+            }))
+        }
 }

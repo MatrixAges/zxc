@@ -19,21 +19,26 @@ export type Output = bool
 export default function (in: Input): Output {
     const program = in.program
     const control = program.body.control
-    const expressions = program.body.expressions
 
     const type_id =
-        expressions.types[integers.widen(
+        program.body.expressions
+        -> _.types[integers.widen(
             control.selection_subjects[in.payload]
         )]
 
     const target = kind(program.table.kinds[integers.widen(type_id)])
     const number = numeric(type_id)
 
-    if (
-        target != Kind.Enumeration && target != Kind.ErrorSet &&
-            number != Numeric.Integer && number != Numeric.Signed && type_id != 1 &&
-            type_id != 10
-    ) {
+    const condition = (
+        - target != Kind.Enumeration
+        - and target != Kind.ErrorSet
+        - and number != Numeric.Integer
+        - and number != Numeric.Signed
+        - and type_id != 1
+        - and type_id != 10
+    )
+
+    if (condition) {
         return false
     }
 
@@ -117,17 +122,18 @@ export default function (in: Input): Output {
     })
 
     const exhaustive =
-        result.has_default ||
         (
-            (
-                target == Kind.Enumeration || target == Kind.ErrorSet
-            ) && count == integers.widen(
-                program.table.second[integers.widen(
-                    type_id
-                )]
+            - result.has_default
+            - or (
+                (
+                    target == Kind.Enumeration || target == Kind.ErrorSet
+                ) && count == integers.widen(
+                    program.table.second[integers.widen(
+                        type_id
+                    )]
+                )
             )
-        ) || (
-            type_id == 1 && count == 2
+            - or (type_id == 1 && count == 2)
         )
 
     return result.valid && control.selection_exhaustive[in.payload] == exhaustive

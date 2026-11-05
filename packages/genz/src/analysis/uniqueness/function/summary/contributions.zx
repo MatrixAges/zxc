@@ -25,9 +25,9 @@ export default function (in: Input): Output {
         while: (state, source) => state.index < source.operations.length,
         next: (state, source) => {
             const expressions = source.context.metadata.expressions
-            const node = integers.widen(source.operations[state.index])
 
-            const payload = integers.widen(expressions.payloads[node])
+            const payload = integers.widen(source.operations[state.index])
+                -> integers.widen(expressions.payloads[_])
             const callee = expressions.call_functions[payload]
             const count =
                 bytes.atomicRowLength(source.inputs, integers.widen(callee))

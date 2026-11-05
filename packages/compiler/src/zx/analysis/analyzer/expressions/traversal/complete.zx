@@ -87,17 +87,27 @@ export default function (in: Input): Output {
         })
     }
 
-    if (action == Action.Condition || action == Action.Yes || action == Action.No) {
+    const condition = (
+        - action == Action.Condition
+        - or action == Action.Yes
+        - or action == Action.No
+    )
+
+    if (condition) {
         return conditional({
             work,
             action
         })
     }
 
-    if (
-        action == Action.MatchSubject || action == Action.MatchCondition ||
-            action == Action.MatchResult || action == Action.MatchFallback
-    ) {
+    const condition_2 = (
+        - action == Action.MatchSubject
+        - or action == Action.MatchCondition
+        - or action == Action.MatchResult
+        - or action == Action.MatchFallback
+    )
+
+    if (condition_2) {
         return matching({
             work,
             action
@@ -131,22 +141,28 @@ export default function (in: Input): Output {
         })
     }
 
-    if (
-        action == Action.IterationInitial || action == Action.IterationContext ||
-            action == Action.IterationCondition ||
-            action == Action.IterationStep ||
-            action == Action.IterationReturn
-    ) {
+    const condition_3 = (
+        - action == Action.IterationInitial
+        - or action == Action.IterationContext
+        - or action == Action.IterationCondition
+        - or action == Action.IterationStep
+        - or action == Action.IterationReturn
+    )
+
+    if (condition_3) {
         return iteration({
             work,
             action
         })
     }
 
-    if (
-        action == Action.StateEvaluate || action == Action.StateConstant ||
-            action == Action.StateDestructure
-    ) {
+    const condition_4 = (
+        - action == Action.StateEvaluate
+        - or action == Action.StateConstant
+        - or action == Action.StateDestructure
+    )
+
+    if (condition_4) {
         return binding({
             work,
             action
@@ -160,20 +176,26 @@ export default function (in: Input): Output {
         })
     }
 
-    if (
-        action == Action.StateCondition || action == Action.StateYes ||
-            action == Action.StateNo
-    ) {
+    const condition_5 = (
+        - action == Action.StateCondition
+        - or action == Action.StateYes
+        - or action == Action.StateNo
+    )
+
+    if (condition_5) {
         return branch({
             work,
             action
         })
     }
 
-    if (
-        action == Action.StateSubject || action == Action.StateLabel ||
-            action == Action.StateCase
-    ) {
+    const condition_6 = (
+        - action == Action.StateSubject
+        - or action == Action.StateLabel
+        - or action == Action.StateCase
+    )
+
+    if (condition_6) {
         return selection({
             work,
             action

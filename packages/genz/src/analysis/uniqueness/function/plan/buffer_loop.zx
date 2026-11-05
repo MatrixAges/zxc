@@ -20,10 +20,12 @@ export default function (in: Input): Output {
     const type_id = expressions.types[node]
     const target = kind(in.source.types.kinds[integers.widen(type_id)])
 
-    if (
-        expressions.kinds[node] != ExpressionKind.Iteration ||
-            (target != Kind.Object && target != Kind.Tuple)
-    ) {
+    const condition = (
+        - expressions.kinds[node] != ExpressionKind.Iteration
+        - or (target != Kind.Object && target != Kind.Tuple)
+    )
+
+    if (condition) {
         return false
     }
 
@@ -40,20 +42,19 @@ export default function (in: Input): Output {
                     )]
             ),
         next: (state, context) => {
-            const list = listType({
+
+            const child = listType({
                 layout: context.source.context.metadata.layout,
                 kinds: context.source.types.kinds,
                 type_id: context.type_id,
                 slot: integers.narrow(state.slot)
             })
-
-            const child = context.source.types.first[integers.widen(list)]
-            const bare =
-                context.source.context.metadata.layout
+                -> context.source.types.first[integers.widen(_)]
+            const target = context.source.context.metadata.layout
                 .unwrapped[integers.widen(
                     child
                 )]
-            const target = kind(context.source.types.kinds[integers.widen(bare)])
+                -> kind(context.source.types.kinds[integers.widen(_)])
 
             state.valid =
                 context.source.context.metadata.counts[integers.widen(child)] == 0

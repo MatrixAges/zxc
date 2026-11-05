@@ -23,8 +23,10 @@ export type Output = State
 
 export default function (in: Input): Output {
     const byte = in.source[in.offset]
-    const has_next = in.offset + 1 < in.source.length
-    const next = has_next ? in.source[in.offset + 1] : 0
+
+    const next = in.offset + 1 < in.source.length
+        -> (_ ? in.source[in.offset + 1] : 0)
+
     const offset = in.offset + 1
     const braces = in.frame.braces
 
@@ -62,25 +64,25 @@ export default function (in: Input): Output {
 
     const comment_start = mode == Mode.BlockComment ? in.offset : in.comment_start
 
-    const next_offset =
+    return (
         mode == Mode.BlockComment || mode == Mode.LineComment ? offset + 1 : offset
-
-    return {
-        source: in.source,
-        frames: in.frames,
-        frame: {
-            ...in.frame,
-            mode,
-            braces: match byte {
-                ascii_open_brace => braces + 1,
-                ascii_close_brace => braces - 1,
-                _ => braces
-            }
-        },
-        offset: next_offset,
-        comment_start,
-        done: false,
-        message: no_diagnostic,
-        issue: 0
-    }
+    )
+        -> {
+            source: in.source,
+            frames: in.frames,
+            frame: {
+                ...in.frame,
+                mode,
+                braces: match byte {
+                    ascii_open_brace => braces + 1,
+                    ascii_close_brace => braces - 1,
+                    _ => braces
+                }
+            },
+            offset: _,
+            comment_start,
+            done: false,
+            message: no_diagnostic,
+            issue: 0
+        }
 }

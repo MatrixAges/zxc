@@ -54,10 +54,13 @@ export default function (in: Input): Output {
         head: node.head
     })
 
-    if (
-        (operation == Operation.IsNil || operation == Operation.IsNotNil) &&
-            work.source.tree.nodes[arguments[0]].kind == ExprKind.Null
-    ) {
+    const condition = (
+        - operation == Operation.IsNil
+        - or operation == Operation.IsNotNil
+        - and work.source.tree.nodes[arguments[0]].kind == ExprKind.Null
+    )
+
+    if (condition) {
         const result = boolean({
             state: work.state,
             span: node.span,

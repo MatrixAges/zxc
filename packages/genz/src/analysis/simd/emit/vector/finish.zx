@@ -56,7 +56,13 @@ export default function (in: Input): Output {
         expressions: chunks.table,
         main: main.table,
         vector: written.table,
-        valid: in.valid && target.valid && written.valid && zero.valid &&
-            chunks.valid && main.valid
+        valid: (
+            - in.valid
+            - and target.valid
+            - and written.valid
+            - and zero.valid
+            - and chunks.valid
+            - and main.valid
+        )
     }
 }

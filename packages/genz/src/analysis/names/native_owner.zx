@@ -16,11 +16,16 @@ export default function (in: Input): Output {
     const modules = in.modules
     const count = modules.specifiers.length
 
-    if (
-        count > integers.widen(max_u32) || modules.identities.length != count ||
-            modules.import_names.length != count || modules.type_ids.length != count ||
-            modules.type_names.length != count || modules.type_namespaces.length != count
-    ) {
+    const condition = (
+        - count > integers.widen(max_u32)
+        - or modules.identities.length != count
+        - or modules.import_names.length != count
+        - or modules.type_ids.length != count
+        - or modules.type_names.length != count
+        - or modules.type_namespaces.length != count
+    )
+
+    if (condition) {
         return false
     }
 
@@ -57,8 +62,8 @@ export default function (in: Input): Output {
         while: current =>
             current.valid && current.index < current.source.modules.specifiers.length,
         next: current => {
-            const saved = current.source.modules.identities[current.index]
-            const key = saved ?? current.source.modules.specifiers[current.index]
+            const key = current.source.modules.identities[current.index]
+                -> _ ?? current.source.modules.specifiers[current.index]
 
             const bindings = loop({
                 ids: current.source.modules.type_ids[current.index],

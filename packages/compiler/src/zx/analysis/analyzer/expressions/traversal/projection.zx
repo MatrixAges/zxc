@@ -128,27 +128,26 @@ export default function (in: Input): Output {
             }
         }
 
-        const state = indexable({
+        return indexable({
             state: work.state,
             target: work.value,
             span: node.span
         })
-
-        return {
-            ...work,
-            state,
-            node: node.second,
-            expected: 5,
-            phase: Phase.Evaluate,
-            frames: {
-                ...work.frames,
-                actions: work.frames.actions.push(Action.IndexValue)[0],
-                indices: work.frames.indices.splice(position, 1, [{
-                    ...frame,
-                    target: work.value
-                }])[0]
+            -> {
+                ...work,
+                state: _,
+                node: node.second,
+                expected: 5,
+                phase: Phase.Evaluate,
+                frames: {
+                    ...work.frames,
+                    actions: work.frames.actions.push(Action.IndexValue)[0],
+                    indices: work.frames.indices.splice(position, 1, [{
+                        ...frame,
+                        target: work.value
+                    }])[0]
+                }
             }
-        }
     }
 
     const result = index({

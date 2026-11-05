@@ -70,7 +70,7 @@ export default function (in: Input): Output {
         control
     })
 
-    const frames = root == null ? registered.state.frames :
+    return (root == null ? registered.state.frames :
         registered.state.frames.push({
             operation: Operation.Block,
             source: registered.source,
@@ -80,13 +80,12 @@ export default function (in: Input): Output {
             count: integers.widen(control.block_count[integers.widen(
                 root
             )])
-        })[0]
-
-    return contracts({
-        state: {
-            ...registered.state,
-            frames
-        },
-        contracts: functions.contracts[in.index]
-    })
+        })[0])
+        -> contracts({
+            state: {
+                ...registered.state,
+                frames: _
+            },
+            contracts: functions.contracts[in.index]
+        })
 }

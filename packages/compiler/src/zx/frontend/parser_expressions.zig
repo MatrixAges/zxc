@@ -26,6 +26,8 @@ fn parseBinary(parser: *Parser, minimum: u8, allow_lambda: bool, family: *?Binar
     var left = try primary(parser, allow_lambda);
 
     while (true) {
+        if (parser.condition_end == parser.index) break;
+
         if (minimum == 0 and parser.take("->")) {
             var stage_family: ?BinaryFamily = null;
             const stage = try parseBinary(parser, 1, allow_lambda, &stage_family);
@@ -97,7 +99,7 @@ fn primary(parser: *Parser, allow_lambda: bool) zx.Error!*const ast.Expression {
     } else if (allow_lambda and isLambda(parser)) {
         return lambda(parser, false);
     } else if (parser.take("(")) {
-        result = try parse(parser, 0);
+        result = if (parser.at("-") and parser.lineBreak()) try @import("parser_condition.zig").parse(parser) else try parse(parser, 0);
 
         try parser.expect(")");
     } else if (parser.take("{")) {

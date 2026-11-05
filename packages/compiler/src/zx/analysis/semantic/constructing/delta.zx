@@ -1,4 +1,5 @@
 import integers from "std:integer"
+import code from "core/type_table/code"
 import { Kind } from "core/type_table/model"
 
 import type { Table } from "core/type_table/model"
@@ -12,18 +13,6 @@ export type Input = {
 export type Output = Table
 
 export default function (in: Input): Output {
-    const code: u8 = match in.candidate.kind {
-        Kind.Scalar => 0,
-        Kind.Object => 1,
-        Kind.Optional => 2,
-        Kind.List => 3,
-        Kind.Tuple => 4,
-        Kind.ErrorSet => 5,
-        Kind.Task => 6,
-        Kind.Enumeration => 7,
-        _ => 8
-    }
-
     const named =
         in.candidate.kind == Kind.ErrorSet || in.candidate.kind == Kind.Enumeration
 
@@ -44,7 +33,7 @@ export default function (in: Input): Output {
     }
 
     return {
-        kinds: in.delta.kinds.push(code)[0],
+        kinds: in.delta.kinds.push(code(in.candidate.kind))[0],
         first: in.delta.first.push(first)[0],
         second: in.delta.second.push(second)[0],
         labels: in.delta.labels.push(in.candidate.label)[0],

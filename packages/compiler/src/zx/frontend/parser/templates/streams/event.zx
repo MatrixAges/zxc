@@ -20,12 +20,12 @@ export default function (in: Input): Output {
 
     const kind = in.events[in.event_index].kind
     const reference = in.events[in.event_index].reference
-    const index = in.event_index + 1
 
-    const state = {
-        ...in,
-        event_index: index
-    }
+    const state = in.event_index + 1
+        -> {
+            ...in,
+            event_index: _
+        }
 
     switch (kind) {
         case EventKind.TemplateOpen: return openTemplate(state)

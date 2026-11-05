@@ -20,13 +20,13 @@ export default function (in: Input): Output {
     const base_count = in.tables.base.kinds.length
     const delta = id >= base_count
     const table = delta ? in.tables.delta : in.tables.base
-    const index = delta ? id - base_count : id
 
-    return equal({
-        left: row({
-            table,
-            index
-        }),
-        right: candidate(in.candidate)
-    })
+    return (delta ? id - base_count : id)
+        -> equal({
+            left: row({
+                table,
+                index: _
+            }),
+            right: candidate(in.candidate)
+        })
 }

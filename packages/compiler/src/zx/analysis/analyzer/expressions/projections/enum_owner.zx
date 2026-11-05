@@ -30,13 +30,15 @@ export default function (in: Input): Output {
         return missing
     }
 
-    if (
-        qualified &&
-            (
-                in.state.types.context.aliases.names.length == 0 ||
-                    in.source.tree.nodes[owner.first].kind != ExprKind.Identifier
-            )
-    ) {
+    const condition = (
+        - qualified
+        - and (
+            in.state.types.context.aliases.names.length == 0 ||
+                in.source.tree.nodes[owner.first].kind != ExprKind.Identifier
+        )
+    )
+
+    if (condition) {
         return missing
     }
 
@@ -82,10 +84,14 @@ export default function (in: Input): Output {
             node: in.node
         }) : root_binding
 
-        if (
-            root_binding.unit || root_binding.symbol != null || owner_binding.unit ||
-                owner_binding.symbol != null
-        ) {
+        const condition_2 = (
+            - root_binding.unit
+            - or root_binding.symbol != null
+            - or owner_binding.unit
+            - or owner_binding.symbol != null
+        )
+
+        if (condition_2) {
             return missing
         }
     }

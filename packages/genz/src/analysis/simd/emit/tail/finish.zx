@@ -65,7 +65,13 @@ export default function (in: Input): Output {
         expressions: remaining.table,
         main: main.table,
         tail: written.table,
-        valid: in.valid && position.valid && target.valid && written.valid &&
-            remaining.valid && main.valid
+        valid: (
+            - in.valid
+            - and position.valid
+            - and target.valid
+            - and written.valid
+            - and remaining.valid
+            - and main.valid
+        )
     }
 }

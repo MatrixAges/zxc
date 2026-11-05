@@ -8,6 +8,7 @@ import lookup from "../../bindings/lookup"
 import { NameKind } from "../../source/model"
 import readName from "../../source/name"
 import injected from "../injected/lookup"
+import pipelineSymbol from "./symbol"
 
 import type { Context } from "./model"
 
@@ -73,15 +74,18 @@ export default function (in: Input): Output {
                     index: current.node
                 }).text
 
-                if (
-                    type_row.kind != Kind.Object || index >= type_row.second ||
-                        table
+                const condition = (
+                    - type_row.kind != Kind.Object
+                    - or index >= type_row.second
+                    - or table
                         .field_names[integers.widen(
                             type_row.first
                         ) + integers.widen(
                             index
                         )] != name
-                ) {
+                )
+
+                if (condition) {
                     current.active = false
                 } else {
                     current.node = node.first
@@ -108,7 +112,10 @@ export default function (in: Input): Output {
         node: path.node
     })
 
-    const symbol = match {
+    const symbol = in.context.pipeline != null ? pipelineSymbol({
+        context: in.context,
+        node: path.node
+    }) : match {
         binding.symbol != null => binding.symbol,
         source.tree.nodes[path.node].kind == ExprKind.Identifier => lookup({
             active: local.active,

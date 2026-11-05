@@ -24,11 +24,13 @@ export default function (in: Input): Output {
                 reference: current.reference
             })
 
-            if (
-                selected.kind == NodeKind.Optional ||
-                    selected.kind == NodeKind.List ||
-                    selected.kind == NodeKind.Application
-            ) {
+            const condition = (
+                - selected.kind == NodeKind.Optional
+                - or selected.kind == NodeKind.List
+                - or selected.kind == NodeKind.Application
+            )
+
+            if (condition) {
                 current.reference = selected.child
             } else {
                 current.valid = selected.kind == NodeKind.Named

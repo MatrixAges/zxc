@@ -56,23 +56,22 @@ export default function (in: Input): Output {
         }
     }
 
-    const frames = in.blocks.frames.splice(index, 1, [{
+    return in.blocks.frames.splice(index, 1, [{
         ...frame,
         next: frame.next + 1
     }])[0]
-
-    return {
-        blocks: {
-            ...in.blocks,
-            frames
-        },
-        done: false,
-        source,
-        diagnostic: {
-            code: "",
-            message: "",
-            start: 0,
-            end: 0
+        -> {
+            blocks: {
+                ...in.blocks,
+                frames: _
+            },
+            done: false,
+            source,
+            diagnostic: {
+                code: "",
+                message: "",
+                start: 0,
+                end: 0
+            }
         }
-    }
 }

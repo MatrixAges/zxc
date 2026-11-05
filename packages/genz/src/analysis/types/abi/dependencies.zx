@@ -29,10 +29,13 @@ export default function (in: Input): Output {
                 current.order = current.order.push(current.index)[0]
                 const target = kind(current.source.types.kinds[index])
 
-                if (
-                    target == Kind.Optional || target == Kind.List ||
-                        target == Kind.Task
-                ) {
+                const condition = (
+                    - target == Kind.Optional
+                    - or target == Kind.List
+                    - or target == Kind.Task
+                )
+
+                if (condition) {
                     current.index = current.source.types.first[index]
                 } else {
                     current.active = false

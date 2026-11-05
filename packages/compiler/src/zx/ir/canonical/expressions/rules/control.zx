@@ -51,15 +51,17 @@ export default function (in: Input): Output {
         condition_type
     )])
 
-    if (
-        subject != null &&
-            (
-                (
-                    target != Kind.Scalar && target != Kind.Enumeration &&
-                        target != Kind.ErrorSet
-                ) || condition_type == 0
-            )
-    ) {
+    const condition = (
+        - subject != null
+        - and (
+            - target != Kind.Scalar
+            - and target != Kind.Enumeration
+            - and target != Kind.ErrorSet
+            - or condition_type == 0
+        )
+    )
+
+    if (condition) {
         return false
     }
 

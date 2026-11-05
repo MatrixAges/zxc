@@ -40,7 +40,12 @@ export default function (in: Input): Output {
         end: in.declaration.name.end
     }
 
-    if (in.declaration.concurrent && (input_reference || output_reference)) {
+    const condition = (
+        - in.declaration.concurrent
+        - and (input_reference || output_reference)
+    )
+
+    if (condition) {
         return fail({
             state: in.state,
             code: "capability",

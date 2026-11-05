@@ -8,11 +8,10 @@ export type Input = {
 export type Output = State
 
 export default function (in: Input): Output {
-    const frames = in.state.frames.pop()[0].push(in.frame)[0]
-
-    return {
-        tree: in.state.tree,
-        frames,
-        control: in.state.control
-    }
+    return in.state.frames.pop()[0].push(in.frame)[0]
+        -> {
+            tree: in.state.tree,
+            frames: _,
+            control: in.state.control
+        }
 }

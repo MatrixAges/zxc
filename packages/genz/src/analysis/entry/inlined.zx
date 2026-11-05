@@ -21,11 +21,14 @@ export default function (in: Input): Output {
     const input = integers.widen(in.input_type)
     const output = integers.widen(in.output_type)
 
-    if (
-        owner == null || in.contracts.kinds.length != 0 ||
-            in.expressions.kinds.length > maximum_body_expressions ||
-            kind(in.types.kinds[input]) != Kind.Object
-    ) {
+    const condition = (
+        - owner == null
+        - or in.contracts.kinds.length != 0
+        - or in.expressions.kinds.length > maximum_body_expressions
+        - or kind(in.types.kinds[input]) != Kind.Object
+    )
+
+    if (condition) {
         return false
     }
 
@@ -56,10 +59,12 @@ export default function (in: Input): Output {
         next: (state, source) => {
             const expression = source.expressions.kinds[state.index]
 
-            state.bounded = expression != ExpressionKind.Iteration &&
-                expression != ExpressionKind.Transform &&
-                expression != ExpressionKind.Task &&
-                expression != ExpressionKind.Parallel
+            state.bounded = (
+                - expression != ExpressionKind.Iteration
+                - and expression != ExpressionKind.Transform
+                - and expression != ExpressionKind.Task
+                - and expression != ExpressionKind.Parallel
+            )
             state.index += 1
         },
         return: state => state.bounded

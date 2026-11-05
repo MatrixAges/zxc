@@ -8,12 +8,12 @@ export type Input = {
 
 export default function (in: Input): Output {
     const count = in.level * 4
-    const needs_edit = in.offset - in.scanned.start != count || in.scanned.has_tab
 
-    return {
-        needs_edit,
-        start: in.scanned.start,
-        end: in.offset,
-        count
-    }
+    return in.offset - in.scanned.start != count || in.scanned.has_tab
+        -> {
+            needs_edit: _,
+            start: in.scanned.start,
+            end: in.offset,
+            count
+        }
 }

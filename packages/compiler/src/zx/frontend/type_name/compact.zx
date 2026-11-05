@@ -50,10 +50,13 @@ export default function (in: Input): Output {
         }
     })
 
-    if (
-        !result.valid || result.index % 2 == 0 ||
-            lexed.tokens[lexed.tokens.length - 1].kind != Kind.Eof
-    ) {
+    const condition = (
+        - !result.valid
+        - or result.index % 2 == 0
+        - or lexed.tokens[lexed.tokens.length - 1].kind != Kind.Eof
+    )
+
+    if (condition) {
         return in.source
     }
 

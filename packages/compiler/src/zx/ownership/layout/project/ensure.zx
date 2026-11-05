@@ -15,11 +15,11 @@ export default function (in: Input): Output {
         while: current => current.active && (current.phase == Phase.Ensure),
         next: current => {
             if (current.phase == Phase.Ensure) {
-                const field = projection({
+                const field_index = projection({
                     expressions: current.program.expressions,
                     id: current.child_expression
                 })
-                const field_index = integers.widen(field.index)
+                    -> integers.widen(_.index)
                 const location = lookup({
                     index: {
                         slots: current.slots,
@@ -33,13 +33,15 @@ export default function (in: Input): Output {
                     }
                 })
 
-                if (
-                    !location.found &&
-                        (
-                            current.slots.length == 0 ||
-                                current.values.length >= current.slots.length / 2
-                        )
-                ) {
+                const condition = (
+                    - !location.found
+                    - and (
+                        current.slots.length == 0 ||
+                            current.values.length >= current.slots.length / 2
+                    )
+                )
+
+                if (condition) {
                     current.capacity = current.slots.length == 0 ? 16 :
                         current.slots.length * 2
                     current.phase = Phase.Grow

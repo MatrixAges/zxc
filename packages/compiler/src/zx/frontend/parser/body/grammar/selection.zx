@@ -23,26 +23,24 @@ export default function (in: Input): Output {
     }
 
     if (in.control.phase == Phase.SwitchClose) {
-        const result = in.expression.control.result
-
-        const state = {
-            expression: in.expression,
-            tree: in.tree,
-            frames: in.frames,
-            suspended: in.suspended,
-            frame: {
-                ...in.frame,
-                first: result
-            },
-            control: in.control
-        }
-
-        return expect({
-            state,
-            symbol: Symbol.CloseParen,
-            phase: Phase.SwitchBrace,
-            message: ")"
-        })
+        return in.expression.control.result
+            -> {
+                expression: in.expression,
+                tree: in.tree,
+                frames: in.frames,
+                suspended: in.suspended,
+                frame: {
+                    ...in.frame,
+                    first: _
+                },
+                control: in.control
+            }
+            -> expect({
+                state: _,
+                symbol: Symbol.CloseParen,
+                phase: Phase.SwitchBrace,
+                message: ")"
+            })
     }
 
     if (in.control.phase == Phase.SwitchBrace) {

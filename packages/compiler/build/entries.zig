@@ -21,6 +21,7 @@ const constant_fold = Entry{ .path = "zx/analysis/constants/evaluate.rx", .name 
 /// Entries linked into zxc.
 pub const main = [_]Entry{
     .{ .path = "lint/loop/postfix.rx", .name = "loop_postfix", .owner = .lint },
+    .{ .path = "lint/condition/policy.rx", .name = "condition_policy", .owner = .lint },
     .{ .path = "lint/layout/attribute_required.rx", .name = "attribute_required", .owner = .lint },
     .{ .path = "zx/frontend/resources/scan.rx", .name = "resource_scan" },
     .{ .path = "lint/layout/layout.rx", .name = "layout_rule", .owner = .lint },

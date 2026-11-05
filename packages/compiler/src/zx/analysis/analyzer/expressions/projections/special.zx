@@ -35,11 +35,13 @@ export default function (in: Input): Output {
     }
 
     if (owner.kind != ExprKind.Identifier) {
-        if (
-            owner.kind != ExprKind.Field ||
-                in.source.tree.nodes[owner.first].kind != ExprKind.Identifier ||
-                in.state.types.context.aliases.names.length == 0
-        ) {
+        const condition = (
+            - owner.kind != ExprKind.Field
+            - or in.source.tree.nodes[owner.first].kind != ExprKind.Identifier
+            - or in.state.types.context.aliases.names.length == 0
+        )
+
+        if (condition) {
             return unhandled
         }
 
@@ -86,10 +88,14 @@ export default function (in: Input): Output {
         node: node.first
     })
 
-    if (
-        root.text.length != 0 && root.text[0] == 36 && binding.symbol == null &&
-            !binding.unit
-    ) {
+    const condition_2 = (
+        - root.text.length != 0
+        - and root.text[0] == 36
+        - and binding.symbol == null
+        - and !binding.unit
+    )
+
+    if (condition_2) {
         return {
             handled: true,
             result: readStore({
@@ -105,17 +111,23 @@ export default function (in: Input): Output {
         delta: in.state.types.delta
     }
 
-    if (root.text == "error" && lookup({
-        active: in.state.local.active,
-        names: in.state.local.symbols.names,
-        scope_floor: in.state.local.scope_floor,
-        name: root.text
-    }) == null && (in.source.constant_values == null || constant({
-        active: in.state.local.active,
-        names: in.state.local.symbols.names,
-        constants: in.source.constant_values,
-        name: root.text
-    }) == null)) {
+    const condition_3 = (
+        - root.text == "error"
+        - and lookup({
+            active: in.state.local.active,
+            names: in.state.local.symbols.names,
+            scope_floor: in.state.local.scope_floor,
+            name: root.text
+        }) == null
+        - and (in.source.constant_values == null || constant({
+            active: in.state.local.active,
+            names: in.state.local.symbols.names,
+            constants: in.source.constant_values,
+            name: root.text
+        }) == null)
+    )
+
+    if (condition_3) {
         const expected = payload({
             types: in.state.types,
             expected: in.expected

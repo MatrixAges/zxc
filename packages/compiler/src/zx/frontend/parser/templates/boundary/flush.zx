@@ -23,15 +23,14 @@ export default function (in: Input): Output {
         state: in
     })
 
-    const offset = next.lexer.offset + 1
-
-    const advanced = {
-        lexer: {
-            ...next.lexer,
-            offset
-        },
-        graph: next.graph
-    }
+    const advanced = next.lexer.offset + 1
+        -> {
+            lexer: {
+                ...next.lexer,
+                offset: _
+            },
+            graph: next.graph
+        }
 
     if (warmed == 1 || advanced.lexer.diagnostic.message != "") {
         return advanced
@@ -46,13 +45,12 @@ export default function (in: Input): Output {
         state: advanced
     })
 
-    const final_offset = final.lexer.offset + 1
-
-    return {
-        lexer: {
-            ...final.lexer,
-            offset: final_offset
-        },
-        graph: final.graph
-    }
+    return final.lexer.offset + 1
+        -> {
+            lexer: {
+                ...final.lexer,
+                offset: _
+            },
+            graph: final.graph
+        }
 }

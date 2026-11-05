@@ -24,19 +24,18 @@ export default function (in: Input): Output {
     const index = in.scopes.frames.length - 1
     const frame = in.scopes.frames[index]
 
-    const name = {
+    const result = {
         text: in.local.symbols.names[integers.widen(frame.state_symbol)],
         start: in.span.start,
         end: in.span.end
     }
-
-    const result = bind({
-        scopes: in.scopes,
-        local: in.local,
-        name,
-        value: in.value,
-        scope_start: in.local.active.length
-    })
+        -> bind({
+            scopes: in.scopes,
+            local: in.local,
+            name: _,
+            value: in.value,
+            scope_start: in.local.active.length
+        })
 
     if (result.diagnostic.message != "") {
         return {
@@ -46,17 +45,16 @@ export default function (in: Input): Output {
         }
     }
 
-    const frames = result.scopes.frames.splice(index, 1, [{
+    return result.scopes.frames.splice(index, 1, [{
         ...frame,
         state_symbol: result.symbol
     }])[0]
-
-    return {
-        scopes: {
-            ...result.scopes,
-            frames
-        },
-        local: result.local,
-        diagnostic: result.diagnostic
-    }
+        -> {
+            scopes: {
+                ...result.scopes,
+                frames: _
+            },
+            local: result.local,
+            diagnostic: result.diagnostic
+        }
 }

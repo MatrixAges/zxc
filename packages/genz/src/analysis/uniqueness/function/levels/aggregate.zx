@@ -15,67 +15,68 @@ export type Input = {
 
 export type Output = Request?
 
-    export default function (in: Input): Output {
-        const expressions = in.metadata.expressions
-        const node = integers.widen(in.node)
-        const payload = integers.widen(expressions.payloads[node])
-        const object = expressions.kinds[node] == ExpressionKind.Object
+export default function (in: Input): Output {
+    const expressions = in.metadata.expressions
+    const node = integers.widen(in.node)
+    const payload = integers.widen(expressions.payloads[node])
+    const object = expressions.kinds[node] == ExpressionKind.Object
 
-        const count = object ? expressions.object_count[payload] :
-            expressions.sequence_count[payload]
+    const count = object ? expressions.object_count[payload] :
+        expressions.sequence_count[payload]
 
-        if (count == 0) {
-            return null
-        }
-
-        const type_id = expressions.types[node]
-        const owner = in.metadata.layout.unwrapped[integers.widen(type_id)]
-        const offsets = in.metadata.layout.offsets[integers.widen(owner)]
-
-        if (
-            offsets.length == 0 ||
-                in.slot >= in.metadata.counts[integers.widen(type_id)]
-        ) {
-            return null
-        }
-
-        const index = locate({
-            offsets,
-            slot: in.slot
-        })
-
-        const selected = member({
-            metadata: in.metadata,
-            type_id,
-            index
-        })
-
-        if (
-            in.slot < selected.offset || in.slot >= selected.offset +
-                in.metadata.counts[integers.widen(selected.type_id)]
-        ) {
-            return null
-        }
-
-        const target: u32? = match {
-            object => objectMember({
-                expressions,
-                first: expressions.object_first[payload],
-                count,
-                index
-            }),
-            index < count => expressions
-                .sequence_items[
-                    integers.widen(
-                        expressions.sequence_first[payload]
-                    ) + integers.widen(index)
-                ],
-            _ => null
-        }
-
-        return target == null ? null : {
-            node: target,
-            slot: in.slot - selected.offset,
-            raw: false
-        }
+    if (count == 0) {
+        return null
     }
+
+    const type_id = expressions.types[node]
+
+    const offsets = in.metadata.layout.unwrapped[integers.widen(type_id)]
+        -> in.metadata.layout.offsets[integers.widen(_)]
+
+    if (
+        offsets.length == 0 ||
+            in.slot >= in.metadata.counts[integers.widen(type_id)]
+    ) {
+        return null
+    }
+
+    const index = locate({
+        offsets,
+        slot: in.slot
+    })
+
+    const selected = member({
+        metadata: in.metadata,
+        type_id,
+        index
+    })
+
+    if (
+        in.slot < selected.offset || in.slot >= selected.offset +
+            in.metadata.counts[integers.widen(selected.type_id)]
+    ) {
+        return null
+    }
+
+    const target: u32? = match {
+        object => objectMember({
+            expressions,
+            first: expressions.object_first[payload],
+            count,
+            index
+        }),
+        index < count => expressions
+            .sequence_items[
+                integers.widen(
+                    expressions.sequence_first[payload]
+                ) + integers.widen(index)
+            ],
+        _ => null
+    }
+
+    return target == null ? null : {
+        node: target,
+        slot: in.slot - selected.offset,
+        raw: false
+    }
+}

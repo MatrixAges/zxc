@@ -9,7 +9,7 @@ import {
     keyword_case,
     keyword_default
 } from "./const"
-import { pipeline } from "./const"
+import { pipeline, condition_bullet } from "./const"
 import operatorPriority from "./operator"
 import segmentWidth from "./segment_width"
 
@@ -41,14 +41,19 @@ export default function (in: Input): Output {
         next: current => {
             const graph = current.plan.graph
             const token = graph.input.tokens[current.index]
+            const bullet = token.boundary && token.text == condition_bullet
             const parent = graph.owners[current.index]
             const partner = graph.partners[current.index]
             const closing = partner != null && partner < current.index
             const opening = partner != null && partner > current.index
             const layout = !graph.input.indent_only
             const after_open =
-                layout && parent != null && parent + 1 == current.index &&
-                current.plan.wraps[parent]
+                (
+                    - layout
+                    - and parent != null
+                    - and parent + 1 == current.index
+                    - and current.plan.wraps[parent]
+                )
             const previous_separator =
                 current.index != 0 &&
                 (
@@ -56,21 +61,35 @@ export default function (in: Input): Output {
                         graph.input.tokens[current.index - 1].separator
                 )
             const after_comma =
-                layout && previous_separator && parent != null &&
-                current.plan.wraps[parent]
+                (
+                    - layout
+                    - and previous_separator
+                    - and parent != null
+                    - and current.plan.wraps[parent]
+                )
             const before_close =
-                layout && closing && partner != null && current.plan.wraps[partner]
+                (
+                    - layout
+                    - and closing
+                    - and partner != null
+                    - and current.plan.wraps[partner]
+                )
             const width = graph.input.width == 0 ? print_width : graph.input.width
             const limit = width > graph.input.suffix ? width - graph.input.suffix : 0
-            const previous_operator = current.previous_priority != no_operator
+            const previous_operator =
+                current.previous_priority != no_operator && !token.boundary
             const segment = layout && previous_operator ? segmentWidth({
                 graph,
                 index: current.index,
                 priority: current.previous_priority
             }) : 0
             const overflow =
-                layout && previous_operator && !token.newline &&
-                current.column + segment > limit
+                (
+                    - layout
+                    - and previous_operator
+                    - and !token.newline
+                    - and current.column + segment > limit
+                )
             const chain = token.text == access_dot
             const pipe = layout && token.text == pipeline
             const next = current.index + 1
@@ -84,17 +103,32 @@ export default function (in: Input): Output {
                         graph.input.tokens[following].text == open_list
                 )
             const index_end = bracket ? graph.partners[following] : null
-            const indexed =
+            const head =
                 layout && index_end != null && graph.input.tokens[following].block
-            const index_width = indexed && index_end != null ?
-                graph.widths[index_end] - graph.widths[following] +
-                graph.input.tokens[index_end].text.length : 0
-            const head = token.text.length + member + (bracket ? 1 : 0) + index_width
+                -> (
+                    _ && index_end != null ?
+                        graph.widths[index_end] - graph.widths[following] +
+                        graph.input.tokens[index_end].text.length : 0
+                )
+                -> token.text.length + member + (bracket ? 1 : 0) + _
             const chain_overflow =
-                layout && chain && !token.newline && current.column + head > limit
+                (
+                    - layout
+                    - and chain
+                    - and !token.newline
+                    - and current.column + head > limit
+                )
             const needed =
-                current.pending || after_open || after_comma || before_close ||
-                overflow || chain_overflow || pipe
+                (
+                    - current.pending
+                    - or after_open
+                    - or after_comma
+                    - or before_close
+                    - or overflow
+                    - or chain_overflow
+                    - or pipe
+                    - or bullet
+                )
             const inline_comment = token.comment && !token.newline
             const line = token.newline || (needed && !inline_comment)
             const selection =
@@ -104,15 +138,21 @@ export default function (in: Input): Output {
             if (current.index == 0 || line) {
                 const parent_level = parent != null ? current.levels[parent] + 1 :
                     graph.input.level
-                const selected =
-                    parent != null && graph.selections[parent] && !selection
-                const selected_base = parent_level + (selected ? 1 : 0)
-                const base = closing && partner != null ? current.levels[partner] :
-                    selected_base
+                const base = parent != null && graph.selections[parent] && !selection
+                    -> parent_level + (_ ? 1 : 0)
+                    -> (closing && partner != null ? current.levels[partner] :
+                        _)
 
-                if (
-                    (previous_operator || chain || pipe) && !closing && !selection
-                ) {
+                const condition = (
+                    - previous_operator
+                    - or chain
+                    - or pipe
+                    - and !closing
+                    - and !selection
+                    - and !bullet
+                )
+
+                if (condition) {
                     const resumed = current.continuation ?? current.level + 1
 
                     current.continuation = resumed
@@ -132,10 +172,15 @@ export default function (in: Input): Output {
             current.continuations =
                 current.continuations.push(current.continuation)[0]
 
-            if (
-                layout && opening && partner != null && partner > current.index + 1 &&
-                    !token.block
-            ) {
+            const condition_2 = (
+                - layout
+                - and opening
+                - and partner != null
+                - and partner > current.index + 1
+                - and !token.block
+            )
+
+            if (condition_2) {
                 const children =
                     graph.vertical_counts[partner] >
                     graph.vertical_counts[current.index]
@@ -145,15 +190,25 @@ export default function (in: Input): Output {
                     graph.widths[partner] - graph.widths[current.index] +
                     graph.input.tokens[partner].text.length
 
-                if (
-                    token.object || token.multiline ||
+                const condition_3 = (
+                    - token.object
+                    - or token.multiline
+                    - or (
                         !children && current.column + token.gap + size + tail > limit
-                ) {
+                    )
+                )
+
+                if (condition_3) {
                     current.plan.wraps[current.index] = true
                 }
             }
 
-            if (line || current.index == 0 && graph.input.prefix == 0) {
+            const condition_4 = (
+                - line
+                - or (current.index == 0 && graph.input.prefix == 0)
+            )
+
+            if (condition_4) {
                 current.breaks = current.breaks.push({
                     index: current.index,
                     level: current.level,
@@ -165,7 +220,8 @@ export default function (in: Input): Output {
             current.pending = needed && inline_comment
 
             if (!token.comment) {
-                current.previous_priority = operatorPriority(token.text)
+                current.previous_priority = bullet ? no_operator :
+                    operatorPriority(token.text)
             }
 
             current.index += 1

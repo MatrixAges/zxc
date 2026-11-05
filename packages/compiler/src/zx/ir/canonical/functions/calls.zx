@@ -30,34 +30,42 @@ export default function (in: Input): Output {
 
             if (kind == ExpressionKind.StoreGet) {
                 current.valid = false
-            } else if (
-                !current.concurrent &&
-                    (
-                        kind == ExpressionKind.Task || kind == ExpressionKind.AwaitTask ||
-                            kind == ExpressionKind.CancelTask ||
-                            kind == ExpressionKind.Parallel
+            } else {
+                const condition = (
+                    - !current.concurrent
+                    - and (
+                        - kind == ExpressionKind.Task
+                        - or kind == ExpressionKind.AwaitTask
+                        - or kind == ExpressionKind.CancelTask
+                        - or kind == ExpressionKind.Parallel
                     )
-            ) {
-                current.valid = false
-            } else if (kind == ExpressionKind.Call) {
-                const payload =
-                    integers.widen(
-                        current.expressions.payloads[current.index]
-                    )
-                const target =
-                    integers.widen(
-                        current.expressions.call_functions[payload]
-                    )
+                )
 
-                current.valid =
-                    current.expressions.call_store_count[payload] == 0 &&
-                    (
+                if (condition) {
+                    current.valid = false
+                } else if (kind == ExpressionKind.Call) {
+                    const payload =
+                        integers.widen(
+                            current.expressions.payloads[current.index]
+                        )
+                    const target =
+                        integers.widen(
+                            current.expressions.call_functions[payload]
+                        )
+
+                    current.valid =
                         (
-                            current.self_function != null &&
-                                target == current.self_function
-                        ) ||
-                            (target < current.limit && current.allowed[target])
-                    )
+                            - current.expressions.call_store_count[payload] == 0
+                            - and (
+                                - current.self_function != null
+                                - and target == current.self_function
+                                - or (
+                                    target < current.limit &&
+                                        current.allowed[target]
+                                )
+                            )
+                        )
+                }
             }
 
             current.index += 1

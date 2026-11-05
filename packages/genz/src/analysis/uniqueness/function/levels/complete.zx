@@ -17,30 +17,29 @@ export type Input = {
 
 export default function (in: Input): Output {
     const result = in.result
-    const unchanged = in.operation == Operation.Pass && !unique(result.value)
 
-    const raw = unchanged ? result.value : finish({
-        context: in.context,
-        ...in.pick([
-            "operation",
-            "linear_root",
-            "empty"
-        ]),
-        slot: in.request.slot,
-        value: result.value
-    })
+    const raw = in.operation == Operation.Pass && !unique(result.value)
+        -> (_ ? result.value : finish({
+            context: in.context,
+            ...in.pick([
+                "operation",
+                "linear_root",
+                "empty"
+            ]),
+            slot: in.request.slot,
+            value: result.value
+        }))
 
-    const demanded = !in.request.raw &&
+    const value = !in.request.raw &&
         (in.context.normalized.length != 0 || in.context.renewed.length != 0)
-
-    const value = demanded ? materialize({
-        context: in.context,
-        ...in.request.pick([
-            "node",
-            "slot"
-        ]),
-        value: raw
-    }) : raw
+        -> (_ ? materialize({
+            context: in.context,
+            ...in.request.pick([
+                "node",
+                "slot"
+            ]),
+            value: raw
+        }) : raw)
 
     return {
         known: in.destination == null ? result.known :

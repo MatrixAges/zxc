@@ -11,6 +11,8 @@ pub fn Model(comptime Context: type) type {
             context: *const Context,
             index: usize,
             span: zx.Span,
+            condition_list: bool,
+            condition_terms: u16,
             pub const Value = union(enum) {
                 number: []const u8,
                 string: []const u8,

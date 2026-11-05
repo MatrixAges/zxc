@@ -30,8 +30,11 @@ export default function (in: Input): Output {
             } else {
                 current.comparable =
                     (
-                        value.kind == Kind.Scalar && value.first != 0
-                    ) || value.kind == Kind.Enumeration || value.kind == Kind.ErrorSet
+                        - value.kind == Kind.Scalar
+                        - and value.first != 0
+                        - or value.kind == Kind.Enumeration
+                        - or value.kind == Kind.ErrorSet
+                    )
                 current.done = true
             }
         },

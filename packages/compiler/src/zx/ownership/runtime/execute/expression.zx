@@ -29,11 +29,15 @@ export type Output = Machine
 export default function (in: Input): Output {
     return loop(in, {
         while: current =>
-            current.active && current.complete && !current.failed &&
-            current.work.actions.length != 0 &&
-            family(
-                current.work.actions[current.work.actions.length - 1]
-            ) == Family.Expression,
+            (
+                - current.active
+                - and current.complete
+                - and !current.failed
+                - and current.work.actions.length != 0
+                - and family(
+                    current.work.actions[current.work.actions.length - 1]
+                ) == Family.Expression
+            ),
         next: current => {
             const frame = top(current.work)
 
@@ -65,17 +69,18 @@ export default function (in: Input): Output {
                 }
 
                 if (located.found) {
-                    const moving =
+                    const decision = (
                         current.memory.memo[frame.subject] != 0 ||
-                        kind == ExpressionKind.Reference ? frame.moving :
-                        container && frame.moving
-                    const decision = access({
-                        types: current.program.types,
-                        symbols: current.program.symbols,
-                        position: located.position,
-                        current: current.memory.states[located.position],
-                        moving
-                    })
+                            kind == ExpressionKind.Reference ? frame.moving :
+                            container && frame.moving
+                    )
+                        -> access({
+                            types: current.program.types,
+                            symbols: current.program.symbols,
+                            position: located.position,
+                            current: current.memory.states[located.position],
+                            moving: _
+                        })
 
                     const observed = rewrite({
                         types: current.program.types,

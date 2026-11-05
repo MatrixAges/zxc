@@ -39,36 +39,42 @@ export default function (in: Input): Output {
                     ascii_backslash,
                     byte
                 ])[0]
-            } else if (
-                byte == ascii_line_feed || byte == ascii_carriage_return ||
-                    byte == ascii_tab
-            ) {
-                current.output =
-                    current.output.concat(
-                        [
-                            ascii_backslash,
-                            match byte {
-                                ascii_line_feed => ascii_lower_n,
-                                ascii_carriage_return => ascii_lower_r,
-                                _ => ascii_lower_t,
-                            }
-                        ]
-                    )[0]
-            } else if (byte >= ascii_space && byte <= ascii_printable_last) {
-                current.output = current.output.push(byte)[0]
             } else {
-                current.output =
-                    current.output.concat(
-                        [
-                            ascii_backslash,
-                            ascii_lower_x,
-                            current
-                                .digits[integers.widenByte(byte) / hexadecimal_radix],
-                            current
-                                .digits[integers.widenByte(byte) %
-                                    hexadecimal_radix]
-                        ]
-                    )[0]
+                const condition = (
+                    - byte == ascii_line_feed
+                    - or byte == ascii_carriage_return
+                    - or byte == ascii_tab
+                )
+
+                if (condition) {
+                    current.output =
+                        current.output.concat(
+                            [
+                                ascii_backslash,
+                                match byte {
+                                    ascii_line_feed => ascii_lower_n,
+                                    ascii_carriage_return => ascii_lower_r,
+                                    _ => ascii_lower_t,
+                                }
+                            ]
+                        )[0]
+                } else if (byte >= ascii_space && byte <= ascii_printable_last) {
+                    current.output = current.output.push(byte)[0]
+                } else {
+                    current.output =
+                        current.output.concat(
+                            [
+                                ascii_backslash,
+                                ascii_lower_x,
+                                current
+                                    .digits[integers.widenByte(byte) /
+                                        hexadecimal_radix],
+                                current
+                                    .digits[integers.widenByte(byte) %
+                                        hexadecimal_radix]
+                            ]
+                        )[0]
+                }
             }
 
             current.index += 1

@@ -16,10 +16,20 @@ export type Output = bool
 export default function (in: Input): Output {
     const target = kind(in.types.kinds[integers.widen(in.id)])
 
-    if (target != Kind.Optional && target != Kind.Object && target != Kind.Tuple) {
-        return target == Kind.List || target == Kind.Scalar ||
-            target == Kind.Enumeration || target == Kind.ErrorSet ||
-            target == Kind.NativeReference
+    const condition = (
+        - target != Kind.Optional
+        - and target != Kind.Object
+        - and target != Kind.Tuple
+    )
+
+    if (condition) {
+        return (
+            - target == Kind.List
+            - or target == Kind.Scalar
+            - or target == Kind.Enumeration
+            - or target == Kind.ErrorSet
+            - or target == Kind.NativeReference
+        )
     }
 
     const pending: u32[] = [in.id]
@@ -36,19 +46,26 @@ export default function (in: Input): Output {
 
             current.pending = current.pending.pop()[0]
 
-            if (
-                target == Kind.Optional || target == Kind.Object ||
-                    target == Kind.Tuple
-            ) {
+            const condition_2 = (
+                - target == Kind.Optional
+                - or target == Kind.Object
+                - or target == Kind.Tuple
+            )
+
+            if (condition_2) {
                 current.pending = current.pending.concat(children({
                     types: current.types,
                     id,
                     deep: false
                 }))[0]
             } else {
-                current.valid = target == Kind.List || target == Kind.Scalar ||
-                    target == Kind.Enumeration || target == Kind.ErrorSet ||
-                    target == Kind.NativeReference
+                current.valid = (
+                    - target == Kind.List
+                    - or target == Kind.Scalar
+                    - or target == Kind.Enumeration
+                    - or target == Kind.ErrorSet
+                    - or target == Kind.NativeReference
+                )
             }
         },
         return: state => state.valid

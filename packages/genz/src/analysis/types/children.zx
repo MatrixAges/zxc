@@ -15,7 +15,12 @@ export default function (in: Input): Output {
     const kind = in.types.kinds[index]
     const empty: u32[] = []
 
-    if (kind == 2 || (in.deep && (kind == 3 || kind == 6))) {
+    const condition = (
+        - kind == 2
+        - or (in.deep && (kind == 3 || kind == 6))
+    )
+
+    if (condition) {
         return empty.push(in.types.first[index])[0]
     }
 

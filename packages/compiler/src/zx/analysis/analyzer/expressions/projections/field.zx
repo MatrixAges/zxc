@@ -39,7 +39,13 @@ export default function (in: Input): Output {
         id: type_id
     })
 
-    if ((target.kind == Kind.List || type_id == 10) && in.name.text == "length") {
+    const condition = (
+        - target.kind == Kind.List
+        - or type_id == 10
+        - and in.name.text == "length"
+    )
+
+    if (condition) {
         const result = append({
             table: in.expressions,
             metadata: {

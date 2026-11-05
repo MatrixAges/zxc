@@ -39,7 +39,7 @@ export default function (in: Input): Output {
                 source: current.state.types.context.source,
                 index: current.index
             }).name
-            const prepared = initial({
+            const resolved = initial({
                 context: current.state.types.context,
                 delta: current.state.types.delta,
                 cache: current.state.types.cache,
@@ -51,7 +51,7 @@ export default function (in: Input): Output {
                     index: 0
                 }
             })
-            const resolved = run(prepared)
+                -> run(_)
 
             current.state.types.delta = resolved.delta
             current.state.types.cache = resolved.cache

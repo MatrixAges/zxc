@@ -10,15 +10,14 @@ export type Input = {
 export type Output = State
 
 export default function (in: Input): Output {
-    const index = in.state.control.index + 1
-
-    return {
-        tree: in.state.tree,
-        frames: in.state.frames,
-        control: {
-            ...in.state.control,
-            index,
-            phase: in.phase
+    return in.state.control.index + 1
+        -> {
+            tree: in.state.tree,
+            frames: in.state.frames,
+            control: {
+                ...in.state.control,
+                index: _,
+                phase: in.phase
+            }
         }
-    }
 }

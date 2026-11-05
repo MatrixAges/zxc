@@ -38,20 +38,26 @@ export default function (in: Input): Output {
     }
 
     if (type_kind == Kind.Task) {
-        return first < in.index && second < in.index &&
-            kind(
+        return (
+            - first < in.index
+            - and second < in.index
+            - and kind(
                 in.table.kinds[first]
-            ) != Kind.Task &&
-            kind(
+            ) != Kind.Task
+            - and kind(
                 in.table.kinds[second]
             ) == Kind.ErrorSet
+        )
     }
 
     if (type_kind == Kind.Optional || type_kind == Kind.List) {
-        return first < in.index && (type_kind != Kind.List || first != 0) &&
-            kind(
+        return (
+            - first < in.index
+            - and (type_kind != Kind.List || first != 0)
+            - and kind(
                 in.table.kinds[first]
             ) != Kind.Task
+        )
     }
 
     if (type_kind == Kind.Tuple || type_kind == Kind.Object) {
@@ -64,12 +70,12 @@ export default function (in: Input): Output {
         })
     }
 
-    if (
-        type_kind == Kind.Enumeration &&
-            (
-                in.table.labels[in.index] == "" || second == 0
-            )
-    ) {
+    const condition = (
+        - type_kind == Kind.Enumeration
+        - and (in.table.labels[in.index] == "" || second == 0)
+    )
+
+    if (condition) {
         return false
     }
 

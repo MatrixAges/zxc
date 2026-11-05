@@ -16,42 +16,63 @@ export type Output = Machine
 export default function (in: Input): Output {
     return loop(in, {
         while: current =>
-            current.active && current.complete && !current.failed &&
-            current.work.actions.length != 0 &&
-            family(
-                current.work.actions[current.work.actions.length - 1]
-            ) == Family.Branches,
+            (
+                - current.active
+                - and current.complete
+                - and !current.failed
+                - and current.work.actions.length != 0
+                - and family(
+                    current.work.actions[current.work.actions.length - 1]
+                ) == Family.Branches
+            ),
         next: current => {
             const action = current.work.actions[current.work.actions.length - 1]
 
-            if (
-                action == WorkAction.BranchCondition ||
-                    action == WorkAction.BranchYes || action == WorkAction.BranchNo
-            ) {
+            const condition = (
+                - action == WorkAction.BranchCondition
+                - or action == WorkAction.BranchYes
+                - or action == WorkAction.BranchNo
+            )
+
+            if (condition) {
                 current = statement(current)
-            } else if (
-                action == WorkAction.SwitchSubject ||
-                    action == WorkAction.SwitchCase ||
-                    action == WorkAction.SwitchResult
-            ) {
-                current = selection(current)
-            } else if (
-                action == WorkAction.MatchSubject || action == WorkAction.MatchArm ||
-                    action == WorkAction.MatchCondition ||
-                    action == WorkAction.MatchResult ||
-                    action == WorkAction.MatchFinish
-            ) {
-                current = matchFlow(current)
-            } else if (
-                action == WorkAction.BinaryLeft || action == WorkAction.BinaryRight
-            ) {
-                current = binary(current)
-            } else if (
-                action == WorkAction.ConditionalCondition ||
-                    action == WorkAction.ConditionalYes ||
-                    action == WorkAction.ConditionalNo
-            ) {
-                current = conditional(current)
+            } else {
+                const condition_2 = (
+                    - action == WorkAction.SwitchSubject
+                    - or action == WorkAction.SwitchCase
+                    - or action == WorkAction.SwitchResult
+                )
+
+                if (condition_2) {
+                    current = selection(current)
+                } else {
+                    const condition_3 = (
+                        - action == WorkAction.MatchSubject
+                        - or action == WorkAction.MatchArm
+                        - or action == WorkAction.MatchCondition
+                        - or action == WorkAction.MatchResult
+                        - or action == WorkAction.MatchFinish
+                    )
+
+                    if (condition_3) {
+                        current = matchFlow(current)
+                    } else if (
+                        action == WorkAction.BinaryLeft ||
+                            action == WorkAction.BinaryRight
+                    ) {
+                        current = binary(current)
+                    } else {
+                        const condition_4 = (
+                            - action == WorkAction.ConditionalCondition
+                            - or action == WorkAction.ConditionalYes
+                            - or action == WorkAction.ConditionalNo
+                        )
+
+                        if (condition_4) {
+                            current = conditional(current)
+                        }
+                    }
+                }
             }
         }
     })

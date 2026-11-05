@@ -14,15 +14,16 @@ export default function (in: Input): Output {
     const expressions = context.expressions
     const function_index = integers.widen(expressions.call_functions[in.payload])
 
-    return function_index < context.functions.input_types.length &&
-        in.type_id == context.functions.output_types[function_index] &&
-        typed({
+    return (
+        - function_index < context.functions.input_types.length
+        - and in.type_id == context.functions.output_types[function_index]
+        - and typed({
             expressions,
             index: context.index,
             id: expressions.call_arguments[in.payload],
             type_id: context.functions.input_types[function_index]
-        }) &&
-        call({
+        })
+        - and call({
             available: context.stores,
             required: context.functions.stores[function_index],
             slots: expressions.call_stores,
@@ -30,4 +31,5 @@ export default function (in: Input): Output {
             count: integers.widen(expressions.call_store_count[in.payload]),
             orchestration: context.orchestration
         })
+    )
 }

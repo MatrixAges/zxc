@@ -24,16 +24,17 @@ export default function (in: Input): Output {
         id: type_id
     })
 
-    const pending = frame.fallback ||
-        (
+    return (
+        - frame.fallback
+        - or (
             (
                 target.kind == Kind.Enumeration || target.kind == Kind.ErrorSet
             ) && frame.bodies.length == integers.widen(
                 target.second
             )
-        ) || (
-            type_id == 1 && frame.bodies.length == 2
         )
+        - or (type_id == 1 && frame.bodies.length == 2)
+    )
         -> append({
             table: in.blocks.pending,
             subject: frame.subject,
@@ -41,14 +42,13 @@ export default function (in: Input): Output {
             values: frame.values,
             bodies: frame.bodies
         })
-
-    return {
-        ...in,
-        blocks: {
-            ...in.blocks,
-            pending
-        },
-        selections: in.selections.pop()[0],
-        phase: Phase.Next
-    }
+        -> {
+            ...in,
+            blocks: {
+                ...in.blocks,
+                pending: _
+            },
+            selections: in.selections.pop()[0],
+            phase: Phase.Next
+        }
 }

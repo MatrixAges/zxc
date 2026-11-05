@@ -1,4 +1,5 @@
 import { Operator } from "../../../../frontend/parser/expressions/prepare/model"
+import { ExprKind } from "../../../../frontend/parser/expressions/state/model"
 import payload from "../../types/payload"
 import classify from "../operators/classify"
 import decode from "../operators/decode"
@@ -15,45 +16,55 @@ export type Input = {
 
 export type Output = u32?
 
-    export default function (in: Input): Output {
-        const node = in.context.source.tree.nodes[in.node]
+export default function (in: Input): Output {
+    const node = in.context.source.tree.nodes[in.node]
 
-        if (node.operator == Operator.Coalesce) {
-            return null
-        }
-
-        const flags = classify(decode(node.operator))
-
-        if (flags.logical) {
-            return 1
-        }
-
-        const left = known({
-            context: in.context,
-            node: node.first
-        })
-
-        if (left != null) {
-            return left
-        }
-
-        const right = known({
-            context: in.context,
-            node: node.second
-        })
-
-        if (right != null) {
-            return right
-        }
-
-        const expected: u32? = flags.comparison ? null : payload({
-            types: in.context.state.types,
-            expected: in.expected
-        })
-
-        return expected != null ? expected : literal({
-            source: in.context.source,
-            left: node.first,
-            right: node.second
-        })
+    if (node.operator == Operator.Coalesce) {
+        return null
     }
+
+    const flags = classify(decode(node.operator))
+
+    if (flags.logical) {
+        return 1
+    }
+
+    const tree = in.context.source.tree
+
+    const declared =
+        flags.equality && (
+            tree.nodes[node.first].kind == ExprKind.Null ||
+                tree.nodes[node.second].kind == ExprKind.Null
+        )
+
+    const left = known({
+        context: in.context,
+        node: node.first,
+        declared
+    })
+
+    if (left != null) {
+        return left
+    }
+
+    const right = known({
+        context: in.context,
+        node: node.second,
+        declared
+    })
+
+    if (right != null) {
+        return right
+    }
+
+    const expected: u32? = flags.comparison ? null : payload({
+        types: in.context.state.types,
+        expected: in.expected
+    })
+
+    return expected != null ? expected : literal({
+        source: in.context.source,
+        left: node.first,
+        right: node.second
+    })
+}

@@ -68,9 +68,9 @@ export default function (in: Input): Output {
     switch (state.control.phase) {
         case Phase.BlockOpen:
             return state.frame.kind == FrameKind.Statement ? branch(state) :
-            block(
-                state
-            )
+                block(
+                    state
+                )
         case Phase.BlockNext: return block(state)
         case Phase.Statement: return statement(state)
         case Phase.ConstName: return constant(state)
@@ -109,20 +109,20 @@ export default function (in: Input): Output {
         case Phase.SwitchBrace: return selection(state)
         case Phase.SwitchCase: return selection(state)
         case Phase.CaseColon:
-            const named = state.frame.third != 0
-            const first = named ? state.expression.control.result + 1 : 0
 
-            return selection({
-                expression: state.expression,
-                tree: state.tree,
-                frames: state.frames,
-                suspended: state.suspended,
-                frame: {
-                    ...state.frame,
-                    first
-                },
-                control: state.control
-            })
+            return state.frame.third != 0
+                -> (_ ? state.expression.control.result + 1 : 0)
+                -> selection({
+                    expression: state.expression,
+                    tree: state.tree,
+                    frames: state.frames,
+                    suspended: state.suspended,
+                    frame: {
+                        ...state.frame,
+                        first: _
+                    },
+                    control: state.control
+                })
         case Phase.CaseBody:
             const start = state.expression.control.token.span.start
 
@@ -146,11 +146,9 @@ export default function (in: Input): Output {
         case Phase.CaseNext:
             const word = state.expression.control.token.word
 
-            const closing =
-                word == Keyword.Case || word == Keyword.Default ||
+            return word == Keyword.Case || word == Keyword.Default ||
                 state.expression.control.token.symbol == Symbol.CloseBrace
-
-            return closing ? caseEnd(state) : selection(state)
+                -> (_ ? caseEnd(state) : selection(state))
         case Phase.StoreAssign: return update(state)
         case Phase.UpdateOperator: return update(state)
         case Phase.UpdateAssign: return update(state)

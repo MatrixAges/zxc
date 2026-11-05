@@ -27,27 +27,27 @@ export default function (in: Input): Output {
     const start = in.frames[last].start
     const braces = in.frames[last].braces
     const depth = in.frames[last].depth
-    const frames = in.frames.pop()[0]
 
-    return {
-        source_length: in.source_length,
-        warmed: in.warmed,
-        ahead_one: in.ahead_one,
-        ahead_two: in.ahead_two,
-        keyword_state: in.keyword_state,
-        symbol: in.symbol,
-        line_break: in.line_break,
-        dollar: in.dollar,
-        offset: in.offset,
-        skip_until: in.skip_until,
-        mode,
-        start,
-        braces,
-        depth,
-        frames,
-        number: in.number,
-        tokens: in.tokens,
-        comments: in.comments,
-        diagnostic: in.diagnostic
-    }
+    return in.frames.pop()[0]
+        -> {
+            source_length: in.source_length,
+            warmed: in.warmed,
+            ahead_one: in.ahead_one,
+            ahead_two: in.ahead_two,
+            keyword_state: in.keyword_state,
+            symbol: in.symbol,
+            line_break: in.line_break,
+            dollar: in.dollar,
+            offset: in.offset,
+            skip_until: in.skip_until,
+            mode,
+            start,
+            braces,
+            depth,
+            frames: _,
+            number: in.number,
+            tokens: in.tokens,
+            comments: in.comments,
+            diagnostic: in.diagnostic
+        }
 }

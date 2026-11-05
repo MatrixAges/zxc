@@ -54,10 +54,12 @@ export default function (in: Input): Output {
     const scalar_position = integers.widen(scalar)
     const scalar_code = in.types.first[scalar_position]
 
-    if (
-        kind(in.types.kinds[scalar_position]) != Kind.Scalar ||
-            (scalar_code != type_id_f32 && scalar_code != type_id_f64)
-    ) {
+    const condition_2 = (
+        - kind(in.types.kinds[scalar_position]) != Kind.Scalar
+        - or (scalar_code != type_id_f32 && scalar_code != type_id_f64)
+    )
+
+    if (condition_2) {
         return rejected
     }
 
@@ -72,11 +74,13 @@ export default function (in: Input): Output {
     const condition =
         integers.widen(expressions.payloads[integers.widen(condition_id)])
 
-    if (
-        result_index == null ||
-            expressions.kinds[integers.widen(condition_id)] != ExpressionKind.Binary ||
-            expressions.binary_operators[condition] != BinaryOperator.Less
-    ) {
+    const condition_3 = (
+        - result_index == null
+        - or expressions.kinds[integers.widen(condition_id)] != ExpressionKind.Binary
+        - or expressions.binary_operators[condition] != BinaryOperator.Less
+    )
+
+    if (condition_3) {
         return rejected
     }
 
@@ -104,10 +108,14 @@ export default function (in: Input): Output {
         symbol
     })
 
-    if (
-        source_index == null || index_index == source_index ||
-            index_index == result_index || source_index == result_index
-    ) {
+    const condition_4 = (
+        - source_index == null
+        - or index_index == source_index
+        - or index_index == result_index
+        - or source_index == result_index
+    )
+
+    if (condition_4) {
         return rejected
     }
 
@@ -154,7 +162,13 @@ export default function (in: Input): Output {
         field: result_index
     })
 
-    if (source == null || start == null || empty == null) {
+    const condition_5 = (
+        - source == null
+        - or start == null
+        - or empty == null
+    )
+
+    if (condition_5) {
         return rejected
     }
 
@@ -173,12 +187,14 @@ export default function (in: Input): Output {
     const empty_id = integers.widen(empty)
     const empty_payload = integers.widen(expressions.payloads[empty_id])
 
-    if (
-        kind(in.types.kinds[index_type]) != Kind.Scalar ||
-            in.types.first[index_type] != type_id_u64 ||
-            expressions.kinds[empty_id] != ExpressionKind.List ||
-            expressions.sequence_count[empty_payload] != 0
-    ) {
+    const condition_6 = (
+        - kind(in.types.kinds[index_type]) != Kind.Scalar
+        - or in.types.first[index_type] != type_id_u64
+        - or expressions.kinds[empty_id] != ExpressionKind.List
+        - or expressions.sequence_count[empty_payload] != 0
+    )
+
+    if (condition_6) {
         return rejected
     }
 
@@ -206,16 +222,18 @@ export default function (in: Input): Output {
     const push = integers.widen(expressions.payloads[push_id])
     const parameter = expressions.iteration_parameters[iteration]
 
-    if (
-        expressions.kinds[push_id] != ExpressionKind.ListOperation ||
-            expressions.collection_kinds[push] != CollectionKind.Push ||
-            expressions.collection_count[push] != 1 ||
-            field({
-                expressions,
-                subject: expressions.collection_targets[push],
-                symbol: parameter
-            }) != result_index
-    ) {
+    const condition_7 = (
+        - expressions.kinds[push_id] != ExpressionKind.ListOperation
+        - or expressions.collection_kinds[push] != CollectionKind.Push
+        - or expressions.collection_count[push] != 1
+        - or field({
+            expressions,
+            subject: expressions.collection_targets[push],
+            symbol: parameter
+        }) != result_index
+    )
+
+    if (condition_7) {
         return rejected
     }
 

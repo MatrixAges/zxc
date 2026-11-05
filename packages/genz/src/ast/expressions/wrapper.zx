@@ -13,21 +13,20 @@ export type Input = {
 export type Output = Result
 
 export default function (in: Input): Output {
-    const offset = match in.kind {
+    const result = match in.kind {
         ExpressionsKind.TryValue => in.table.try_value.length,
         ExpressionsKind.ComptimeValue => in.table.comptime_value.length,
         _ => in.table.dereference.length
     }
-
-    const result = header({
-        ...in.table.pick([
-            "tags",
-            "offsets"
-        ]),
-        base: in.base,
-        kind: in.kind,
-        offset
-    })
+        -> header({
+            ...in.table.pick([
+                "tags",
+                "offsets"
+            ]),
+            base: in.base,
+            kind: in.kind,
+            offset: _
+        })
 
     if (!result.valid) {
         return {

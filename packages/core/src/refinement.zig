@@ -4,6 +4,9 @@ const Self = @This();
 const Pair = struct { err: ir.SymbolId, result: ir.SymbolId };
 
 nonnull: std.ArrayList(ir.SymbolId) = .empty,
+predicates: std.ArrayList(?ir.ExprId) = .empty,
+visits: std.ArrayList(u64) = .empty,
+epoch: u64 = 0,
 projections: std.ArrayList(ir.ExprId) = .empty,
 captures: std.ArrayList(Pair) = .empty,
 pub const Mark = struct { nonnull: usize, projections: usize, captures: usize };
@@ -20,6 +23,8 @@ pub fn restore(self: *Self, saved: Mark) void {
 
 pub fn deinit(self: *Self, allocator: std.mem.Allocator) void {
     self.nonnull.deinit(allocator);
+    self.predicates.deinit(allocator);
+    self.visits.deinit(allocator);
     self.projections.deinit(allocator);
     self.captures.deinit(allocator);
 }
@@ -46,6 +51,20 @@ pub fn addValue(self: *Self, allocator: std.mem.Allocator, values: ir.Expression
     if (value == .reference) return self.add(allocator, value.reference);
     if (!@import("refinement/path.zig").same(values, id, id) or self.containsValue(values, id)) return;
     try self.projections.append(allocator, id);
+}
+
+pub fn alias(self: *Self, allocator: std.mem.Allocator, symbol: ir.SymbolId, value: ir.ExprId) std.mem.Allocator.Error!void {
+    const index = @backingInt(symbol);
+
+    if (index >= self.predicates.items.len) {
+        const previous = self.predicates.items.len;
+
+        try self.predicates.resize(allocator, index + 1);
+
+        @memset(self.predicates.items[previous..], null);
+    }
+
+    self.predicates.items[index] = value;
 }
 
 pub fn bind(self: *Self, allocator: std.mem.Allocator, value: ir.ExpressionRow, symbols: []const ?ir.SymbolId) std.mem.Allocator.Error!void {
@@ -83,16 +102,53 @@ pub fn scope(self: *Self, allocator: std.mem.Allocator, values: ir.ExpressionTab
 }
 
 pub fn assume(self: *Self, allocator: std.mem.Allocator, values: ir.ExpressionTable, condition: ir.ExprId, truth: bool) std.mem.Allocator.Error!void {
-    const value = values.at(@backingInt(condition)).value;
+    self.epoch +%= 1;
 
-    if (value == .unary and value.unary.operator == .not) return self.assume(allocator, values, value.unary.operand, !truth);
+    if (self.epoch == 0) {
+        @memset(self.visits.items, 0);
+
+        self.epoch = 1;
+    }
+
+    return self.assumeInner(allocator, values, condition, truth);
+}
+
+fn assumeInner(self: *Self, allocator: std.mem.Allocator, values: ir.ExpressionTable, condition: ir.ExprId, truth: bool) std.mem.Allocator.Error!void {
+    var selected_condition = condition;
+
+    while (true) {
+        const node = values.at(@backingInt(selected_condition)).value;
+
+        if (node != .reference or @backingInt(node.reference) >= self.predicates.items.len) break;
+
+        const predicate = self.predicates.items[@backingInt(node.reference)] orelse break;
+        const slot = @as(usize, @backingInt(node.reference)) * 2 + @intFromBool(truth);
+
+        if (slot >= self.visits.items.len) {
+            const previous = self.visits.items.len;
+
+            try self.visits.resize(allocator, slot + 1);
+
+            @memset(self.visits.items[previous..], 0);
+        }
+
+        if (self.visits.items[slot] == self.epoch) return;
+
+        self.visits.items[slot] = self.epoch;
+        selected_condition = predicate;
+    }
+
+    const value = values.at(@backingInt(selected_condition)).value;
+
+    if (value == .scope) return self.assumeInner(allocator, values, value.scope.result, truth);
+    if (value == .unary and value.unary.operator == .not) return self.assumeInner(allocator, values, value.unary.operand, !truth);
     if (value != .binary) return;
 
     const binary = value.binary;
 
     if ((binary.operator == .logical_and and truth) or (binary.operator == .logical_or and !truth)) {
-        try self.assume(allocator, values, binary.left, truth);
-        try self.assume(allocator, values, binary.right, truth);
+        try self.assumeInner(allocator, values, binary.left, truth);
+        try self.assumeInner(allocator, values, binary.right, truth);
 
         return;
     }

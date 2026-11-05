@@ -31,7 +31,6 @@ export default function (in: Input): Output {
             in.left
     }
 
-    const release = in.action == RewriteAction.ReleaseAllLoans || in.right != State.Loaned
-
-    return in.left == State.Loaned && release ? State.Owned : in.left
+    return in.action == RewriteAction.ReleaseAllLoans || in.right != State.Loaned
+        -> (in.left == State.Loaned && _ ? State.Owned : in.left)
 }

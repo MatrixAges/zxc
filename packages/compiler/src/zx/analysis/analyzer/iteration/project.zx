@@ -39,22 +39,21 @@ export default function (in: Input): Output {
                 in.table.references[integers.widen(in.table.payloads[target])] ==
                 in.parameter
         ) {
-            const result = projection({
+            return projection({
                 table: in.table,
                 metadata,
                 target: in.iteration,
                 index: in.table.projection_indices[payload],
                 tuple: kind == ExpressionKind.TupleField
             })
-
-            return {
-                ...result,
-                direct: true
-            }
+                -> {
+                    ..._,
+                    direct: true
+                }
         }
     }
 
-    const result = scope({
+    return scope({
         table: in.table,
         metadata,
         result: in.body,
@@ -62,9 +61,8 @@ export default function (in: Input): Output {
         values: [in.iteration],
         borrows: [false]
     })
-
-    return {
-        ...result,
-        direct: false
-    }
+        -> {
+            ..._,
+            direct: false
+        }
 }

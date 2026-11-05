@@ -21,7 +21,11 @@ pub fn native(allocator: std.mem.Allocator, parsed: @import("parse.zig").Parsed)
     }
 
     for (parsed.ast.contracts) |item| expression(&result, item.predicate);
-    if (parsed.ast.body) |value| block(&result, value);
+
+    if (parsed.ast.body) |value| {
+        result.boundary(parsed.ast.function_start);
+        block(&result, value);
+    }
 
     return result;
 }
@@ -38,6 +42,7 @@ pub fn indexed(allocator: std.mem.Allocator, source: []const u8, output: anytype
     }
 
     for (output.constants) |item| result.boundary(@intCast(item.span.start));
+    if (output.body != null) result.boundary(@intCast(output.function_start));
     for (output.blocks.blocks) |item| result.excludeStart(@intCast(item.span.start), true);
 
     for (output.blocks.statements) |item| {
@@ -46,7 +51,13 @@ pub fn indexed(allocator: std.mem.Allocator, source: []const u8, output: anytype
         if (item.kind == .Switch) result.excludeEnding(@intCast(item.span.end), true);
     }
 
-    for (output.expressions.nodes) |item| {
+    var expression_index = output.expressions.nodes.len;
+
+    while (expression_index > 0) {
+        expression_index -= 1;
+        const item = output.expressions.nodes[expression_index];
+
+        if (item.condition_list) result.condition(zx.syntax.header.span(item.span));
         if (item.kind == .List) result.list(@intCast(item.span.start), @intCast(item.count));
         if (item.kind == .Match or item.kind == .Index) result.excludeEnding(@intCast(item.span.end), item.kind == .Index);
     }
@@ -97,6 +108,8 @@ fn block(result: *Projection, value: anytype) void {
 }
 
 pub fn expression(result: *Projection, value: anytype) void {
+    if (value.condition_list) result.condition(value.span);
+
     switch (syntax.value(value)) {
         .field => |item| expression(result, item.target),
         .index => |item| {
