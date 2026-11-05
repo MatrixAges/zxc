@@ -24,8 +24,18 @@ pub fn lower(self: *Lower, id: ir.ExprId) Lower.Error!node.ExpressionId {
     const value = try @import("state_value/elements.zig").write(self, &body, type_id, evaluated);
     const element = try @import("state_value/elements.zig").typeExpr(self, type_id);
     const flags = self.plan.get(id);
+    const deferred = selected and self.deferred_lists;
 
-    const buffer = if (flags.in_place)
+    const buffer = if (deferred) guarded: {
+        var copied: std.ArrayList(node.Statement) = .empty;
+        const private = try @import("growth.zig").reserve(self, &copied, element, source, try self.field(source, "len"), false);
+
+        break :guarded try aggregate.bind(self, &body, try self.builder.expression(.{ .conditional = .{
+            .condition = try @import("state_value/list.zig").exclusive(self, source_value),
+            .yes = try self.builtin(.constCast, &.{source}),
+            .no = try aggregate.finish(self, &copied, private),
+        } }));
+    } else if (flags.in_place)
         try aggregate.bind(self, &body, try self.builtin(.constCast, &.{source}))
 
     else if (selected) chosen: {
@@ -45,9 +55,7 @@ pub fn lower(self: *Lower, id: ir.ExprId) Lower.Error!node.ExpressionId {
                 .no = try aggregate.finish(self, &plain, duplicated),
             } }),
         } }));
-    }
-
-    else if (flags.grow)
+    } else if (flags.grow)
         try @import("growth.zig").reserve(self, &body, element, source, try self.field(source, "len"), false)
     else
         try aggregate.bind(self, &body, try self.call(try self.field(try self.builder.identifier("allocator"), "dupe"), &.{ element, source }, true));
@@ -57,7 +65,7 @@ pub fn lower(self: *Lower, id: ir.ExprId) Lower.Error!node.ExpressionId {
     try body.append(self.allocator, .{ .assignment = .{ .target = slot, .value = value } });
 
     const result = if (selected) result: {
-        const headered = if (flags.grow) try self.builder.expression(.{ .boolean = true }) else try @import("state_value/list.zig").headered(self, source_value);
+        const headered = if (flags.grow or deferred) try self.builder.expression(.{ .boolean = true }) else try @import("state_value/list.zig").headered(self, source_value);
 
         break :result try @import("state_value/list.zig").proven(self, type_id, buffer, headered, headered);
     } else buffer;

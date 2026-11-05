@@ -196,10 +196,17 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
         return try aggregate.finish(self, &body, result);
     }
 
+    const deferred = if (!deep and selected_state and selected_call == null) try @import("iteration/deferred.zig").paths(self, id, iteration) else &.{};
+    const previous_deferred = self.deferred_lists;
+
+    defer self.deferred_lists = previous_deferred;
+    self.deferred_lists = std.mem.indexOfScalar(bool, deferred, true) != null;
+
     const condition = try self.expr(iteration.condition);
     const next = if (selected_call) |call| try @import("value_call/root.zig").expression(self, call) else if (layout) try @import("value_call/root.zig").expression(self, iteration.body) else try self.expr(iteration.body);
 
     self.iteration_value = previous_context;
+    self.deferred_lists = previous_deferred;
 
     try body.append(self.allocator, .{ .variable = .{
         .name = name,
@@ -208,8 +215,14 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
     } });
 
     var entered: std.ArrayList(node.Statement) = .empty;
+    var renewal_index: usize = 0;
 
     for (self.plan.renewals) |renewal| if (renewal.owner == id and !renewal.value) {
+        const delayed = renewal_index < deferred.len and deferred[renewal_index];
+
+        renewal_index += 1;
+
+        if (delayed) continue;
         if (context.bufferedPath(type_id, renewal.path)) continue;
         try @import("growth.zig").renew(self, &entered, type_id, state, renewal.path);
     };

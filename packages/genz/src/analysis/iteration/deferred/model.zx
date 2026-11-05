@@ -1,0 +1,17 @@
+import type { Expressions } from "core/expression_table/model"
+import type { Table } from "core/type_table/model"
+
+export type Input = {
+    expressions: Expressions,
+    types: Table,
+    selected: bool[],
+    referenced: bool[],
+    roots: u32[],
+    state_type: u32,
+    paths: u32[][]
+}
+
+export type Output = {
+    valid: bool,
+    paths: bool[]
+}

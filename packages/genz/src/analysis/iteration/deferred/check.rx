@@ -1,0 +1,25 @@
+<Module>
+    <Type from="model" as="Deferred" />
+
+    <Args in={Deferred.Input} out={Deferred.Output} />
+
+    <Call fn="eligible" in={$in} />
+
+    <If on={!$ctx.eligible}>
+        <Return
+            value={{
+                valid: false,
+                paths: []
+            }}
+        />
+    </If>
+
+    <Call fn="paths" in={$in} />
+
+    <Return
+        value={{
+            valid: true,
+            paths: $ctx.paths
+        }}
+    />
+</Module>

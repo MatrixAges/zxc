@@ -1,0 +1,58 @@
+import integers from "std:integer"
+import child from "core/expression_table/child"
+
+import allowed from "./allowed"
+
+import type { Input } from "./model"
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    return loop({
+        pending: in.roots,
+        seen: in.expressions.kinds.map(kind => false)[0],
+        valid: true
+    }, {
+        while: (state, source) => state.valid && state.pending.length != 0,
+        next: (state, source) => {
+            const id = integers.widen(state.pending[state.pending.length - 1])
+
+            state.pending = state.pending.pop()[0]
+
+            if (!state.seen[id]) {
+                state.seen[id] = true
+                state.valid = allowed({
+                    source,
+                    id
+                })
+
+                const nested = loop({
+                    pending: state.pending,
+                    index: 0,
+                    active: state.valid
+                }, {
+                    while: current => current.active,
+                    next: (current, input) => {
+                        const next = child({
+                            table: input.source.expressions,
+                            id: input.id,
+                            index: current.index
+                        })
+
+                        if (next == null) {
+                            current.active = false
+                        } else {
+                            current.pending = current.pending.push(next)[0]
+                            current.index += 1
+                        }
+                    }
+                }, {
+                    source,
+                    id
+                })
+
+                state.pending = nested.pending
+            }
+        }
+    }, in).valid
+}

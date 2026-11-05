@@ -17,7 +17,7 @@ fn run(allocator: std.mem.Allocator, count: usize, length: usize, enabled: bool)
     const initial: i64 = if (isMode("direct")) @as(i64, @intCast(64 - count)) else -5;
 
     values[0] = initial;
-    var tracked = std.testing.FailingAllocator.init(allocator, .{});
+    var tracked = std.testing.FailingAllocator.init(allocator, .{ .resize_fail_index = 0 });
     var arena = std.heap.ArenaAllocator.init(tracked.allocator());
 
     defer arena.deinit();
