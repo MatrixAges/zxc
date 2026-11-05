@@ -1,0 +1,20 @@
+import { Kind } from "./model"
+
+import type { Confirmation as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return match in.kind {
+        Kind.Settled => ({
+            ...in.state,
+            settled: in.state.settled.with(in.index, in.state.settled[in.index] + 1)
+        }),
+        Kind.Demanded => ({
+            ...in.state,
+            demanded: in.state.demanded.with(in.index, in.state.demanded[in.index] + 1)
+        }),
+        _ => ({
+            ...in.state,
+            planned: in.state.planned.with(in.index, in.state.planned[in.index] + 1)
+        })
+    }
+}

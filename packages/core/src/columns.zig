@@ -53,6 +53,10 @@ fn viewMode(comptime Target: type, value: anytype, comptime borrowed: bool) Targ
 
     const target = @typeInfo(Target);
 
+    if (target == .optional and @typeInfo(@TypeOf(value)) == .optional) {
+        return if (value) |payload| viewMode(target.optional.child, payload, borrowed) else null;
+    }
+
     if (target == .pointer) return if (target.pointer.size == .slice) slice(Target, value) else pointer(Target, value);
 
     if (target == .@"struct") {
@@ -84,6 +88,16 @@ pub fn borrow(comptime Target: type, source: anytype) Target {
     if (info != .pointer or info.pointer.size != .one or !info.pointer.attrs.@"const") @compileError("Borrowed columns require a const descriptor pointer");
 
     return viewMode(Target, source, true);
+}
+
+/// Borrows an ABI descriptor for the synchronous value entry; the source outlives result references.
+pub inline fn invoke(comptime function: anytype, allocator: std.mem.Allocator, source: anytype) @typeInfo(@TypeOf(function)).@"fn".return_type.? {
+    const Parameter = @typeInfo(@TypeOf(function)).@"fn".param_types[1].?;
+    const indirect = @typeInfo(Parameter) == .pointer;
+    const Value = if (indirect) std.meta.Child(Parameter) else Parameter;
+    const value = borrow(Value, source);
+
+    return function(allocator, if (indirect) &value else value);
 }
 
 fn compatible(comptime Target: type, comptime Source: type) void {

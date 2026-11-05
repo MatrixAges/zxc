@@ -20,7 +20,7 @@ pub fn build(self: *Lower, declarations: *std.ArrayList(node.Declaration), expor
         .exported = exported,
     };
 
-    const result = generated.executeValue(scratch.allocator(), &input) catch |err| switch (err) {
+    const result = @import("zx").columns.invoke(generated.executeValue, scratch.allocator(), &input) catch |err| switch (err) {
         error.OutOfMemory, error.IntegerOverflow, error.Overflow => return error.OutOfMemory,
         else => unreachable,
     };

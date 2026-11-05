@@ -1,7 +1,7 @@
 const std = @import("std");
 const Memo = @import("memo.zig");
 const Self = @This();
-
+const Control = if (@import("genz_options").generated_analysis) @import("replay/root.zig") else @import("replay/seed.zig");
 /// The results every body met in one analysis of a program, visit by visit, with the states it met them in. An
 /// analysis is deterministic, so a later analysis of the same program shape takes the same path as long as its changed
 /// bodies meet the results recorded for them: the unchanged bodies are then handed their recorded results without
@@ -17,7 +17,6 @@ callees: []const []const u32,
 settled: Visits(Memo.Settled),
 demanded: Visits(Memo.Demanded),
 planned: Visits(Memo.Planned),
-
 pub fn deinit(self: *Self) void {
     self.arena.deinit();
 
@@ -31,7 +30,6 @@ fn Visits(comptime Result: type) type {
         starts: []const u32,
         values: []Result,
         states: []const []const u8,
-
         const Value = Result;
     };
 }
@@ -55,7 +53,7 @@ pub const Replay = struct {
     /// No longer followed once a changed body met a different result than recorded.
     trace: ?*const Self,
     changed: []const bool,
-    cursors: [3][]u32,
+    control: Control,
     settled: std.ArrayList(Visit(Memo.Settled)) = .empty,
     demanded: std.ArrayList(Visit(Memo.Demanded)) = .empty,
     planned: std.ArrayList(Visit(Memo.Planned)) = .empty,
@@ -64,52 +62,27 @@ pub const Replay = struct {
     key: Digest,
     identities: []const Digest,
     callees: []const []const u32,
-
     /// Follows `previous` when it ran for the same program shape with every body calling the same functions, so the
     /// worklist meets the bodies in the same order as long as their results agree.
     pub fn init(allocator: std.mem.Allocator, previous: ?*const Self, key: Digest, identities: []const Digest, callees: []const []const u32) std.mem.Allocator.Error!Replay {
-        const changed = try allocator.alloc(bool, identities.len);
-        const trace = if (previous) |value| if (std.mem.eql(u8, &value.key, &key) and value.identities.len == identities.len) value else null else null;
+        const control = try Control.init(allocator, previous, key, identities, callees);
 
-        for (changed, 0..) |*target, index| target.* = if (trace) |value| !std.mem.eql(u8, &value.identities[index], &identities[index]) else true;
-
-        var result = Replay{ .allocator = allocator, .trace = trace, .changed = changed, .cursors = undefined, .key = key, .identities = identities, .callees = callees };
-
-        for (&result.cursors) |*cursor| cursor.* = try allocator.alloc(u32, identities.len);
-
-        if (trace) |value| {
-            for (changed, 0..) |differs, index| if (differs and !std.mem.eql(u32, value.callees[index], callees[index])) {
-                result.trace = null;
-            };
-
-            inline for (.{ "settled", "demanded", "planned" }, 0..) |kind, position| @memcpy(result.cursors[position], @field(value, kind).starts[0..identities.len]);
-        }
-
-        return result;
+        return .{ .allocator = allocator, .trace = if (control.following()) previous else null, .changed = control.changed(), .control = control, .key = key, .identities = identities, .callees = callees };
     }
-
     /// The result body `index` met at this visit last time, while it is unchanged and the trace is followed.
-    pub fn recall(self: *Replay, comptime kind: Kind, index: usize) ?Memo.Result(kind) {
-        const trace = self.trace orelse return null;
+    pub fn recall(self: *Replay, comptime kind: Kind, index: usize) std.mem.Allocator.Error!?Memo.Result(kind) {
+        const end = if (self.trace) |trace| @field(trace, @tagName(kind)).starts[index + 1] else 0;
+        const selected = try self.control.recall(kind, index, end);
 
-        if (self.changed[index]) return null;
+        if (!self.control.following()) self.trace = null;
 
-        const visits = @field(trace, @tagName(kind));
-        const cursor = &self.cursors[@backingInt(kind)][index];
+        const cursor = selected orelse return null;
+        const visits = @field(self.trace.?, @tagName(kind));
 
-        if (cursor.* == visits.starts[index + 1]) {
-            self.trace = null;
+        self.recalled = visits.states[cursor];
 
-            return null;
-        }
-
-        defer cursor.* += 1;
-
-        self.recalled = visits.states[cursor.*];
-
-        return visits.values[cursor.*];
+        return visits.values[cursor];
     }
-
     /// Records the result body `index` met, in the state `recall` or the last lookup in `memo` encoded; a changed
     /// body that met another result than recorded ends the replay.
     pub fn met(self: *Replay, comptime kind: Kind, index: usize, value: Memo.Result(kind), memo: *const Memo) std.mem.Allocator.Error!void {
@@ -119,22 +92,19 @@ pub const Replay = struct {
 
         try @field(self, @tagName(kind)).append(self.allocator, .{ .body = @intCast(index), .value = value, .state = state });
 
-        const trace = self.trace orelse return;
+        const end = if (self.trace) |trace| @field(trace, @tagName(kind)).starts[index + 1] else 0;
+        const selected = try self.control.expect(kind, index, end);
 
-        if (!self.changed[index]) return;
+        if (!self.control.following()) self.trace = null;
 
-        const visits = @field(trace, @tagName(kind));
-        const cursor = &self.cursors[@backingInt(kind)][index];
+        const cursor = selected orelse return;
+        const visits = @field(self.trace.?, @tagName(kind));
+        const matched = try agree(kind, self.allocator, visits.values[cursor], value);
 
-        if (cursor.* == visits.starts[index + 1] or !try agree(kind, self.allocator, visits.values[cursor.*], value)) {
-            self.trace = null;
+        try self.control.confirm(kind, index, matched);
 
-            return;
-        }
-
-        cursor.* += 1;
+        if (!self.control.following()) self.trace = null;
     }
-
     /// The trace of this analysis, for the next one.
     pub fn finish(self: *const Replay, backing: std.mem.Allocator) std.mem.Allocator.Error!Self {
         var arena = std.heap.ArenaAllocator.init(backing);
@@ -229,7 +199,6 @@ fn same(left: anytype, right: @TypeOf(left)) bool {
         },
         .pointer => {
             if (left.len != right.len) return false;
-
             for (left, right) |item, other| if (!same(item, other)) return false;
 
             return true;

@@ -1,0 +1,14 @@
+import advance from "./advance"
+
+import type { Confirmation as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    if (!in.state.following || !in.state.changed[in.index]) {
+        return in.state
+    }
+
+    return in.matched ? advance(in) : {
+        ...in.state,
+        following: false
+    }
+}

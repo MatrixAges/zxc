@@ -1,0 +1,39 @@
+import type { Compatibility as Input } from "./model"
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    if (in.source.previous == null) {
+        return false
+    }
+
+    return loop({
+        index: 0,
+        child: 0,
+        valid: true
+    }, {
+        while: (state, context) => state.valid &&
+            state.index < context.source.callees.length,
+        next: (state, context) => {
+            const previous = context.source.previous
+
+            if (previous != null && context.state.changed[state.index]) {
+                const left = previous.callees[state.index]
+                const right = context.source.callees[state.index]
+
+                if (left.length != right.length) {
+                    state.valid = false
+                } else if (state.child < left.length) {
+                    state.valid = left[state.child] == right[state.child]
+                    state.child += 1
+                } else {
+                    state.index += 1
+                    state.child = 0
+                }
+            } else {
+                state.index += 1
+            }
+        },
+        return: state => state.valid
+    }, in)
+}

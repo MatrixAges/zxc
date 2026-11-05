@@ -1,0 +1,33 @@
+import advance from "./advance"
+import cursor from "./cursor"
+
+import type { Step as Input, Selection as Output } from "./model"
+
+export default function (in: Input): Output {
+    if (!in.state.following || in.state.changed[in.index]) {
+        return {
+            state: in.state,
+            cursor: null
+        }
+    }
+
+    const position = cursor(in)
+
+    if (position == in.end) {
+        return {
+            state: {
+                ...in.state,
+                following: false
+            },
+            cursor: null
+        }
+    }
+
+    return {
+        state: advance({
+            ...in.omit(["end"]),
+            matched: true
+        }),
+        cursor: position
+    }
+}

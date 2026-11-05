@@ -5,7 +5,10 @@ pub const Plan = struct { type_ids: []const u32, numbers: []const u32 };
 
 pub fn create(allocator: std.mem.Allocator, types: ir.TypeTable, input: ir.TypeId, output: ir.TypeId) std.mem.Allocator.Error!Plan {
     if (@import("genz_options").generated_analysis) {
-        const result = @import("generated_shape_plan").executeValue(allocator, &.{
+        const generated = @import("generated_shape_plan");
+        const Input = std.meta.Child(generated.Input);
+
+        const args: Input = .{
             .kinds = types.kinds,
             .first = types.first,
             .second = types.second,
@@ -13,7 +16,9 @@ pub fn create(allocator: std.mem.Allocator, types: ir.TypeTable, input: ir.TypeI
             .field_types = types.field_types,
             .input = @backingInt(input),
             .output = @backingInt(output),
-        }) catch |err| switch (err) {
+        };
+
+        const result = @import("zx").columns.invoke(generated.executeValue, allocator, &args) catch |err| switch (err) {
             error.OutOfMemory => return error.OutOfMemory,
             else => unreachable,
         };

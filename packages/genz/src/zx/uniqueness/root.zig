@@ -171,7 +171,7 @@ fn analyzeWithConcurrency(allocator: std.mem.Allocator, workspace: std.mem.Alloc
 
         _ = try work.pop();
 
-        const recalled = replay.recall(.planned, index) orelse try memo.getPlanned(&summaries, unit.state(index));
+        const recalled = (try replay.recall(.planned, index)) orelse try memo.getPlanned(&summaries, unit.state(index));
         const early = try ahead.take(.planned, index);
 
         const planned = recalled orelse if (early) |found| try memo.putPlanned(memo.key, .{ .flags = found.flags, .renewals = found.renewals, .transfers = found.transfers, .slot_first = found.slot_first }) else planned: {
@@ -300,7 +300,7 @@ fn settle(workspace: std.mem.Allocator, work: *Work, program: ir.Program, slots:
         const unit = units[index].?;
         var changed: std.ArrayList(usize) = .empty;
         const output = try round.allocator().alloc(Level, if (index == count) 0 else summaries.output[index].len);
-        const recalled = replay.recall(.settled, index) orelse try memo.getSettled(summaries, unit.state(index));
+        const recalled = (try replay.recall(.settled, index)) orelse try memo.getSettled(summaries, unit.state(index));
         const early = try ahead.take(.settled, index);
         const known = recalled orelse if (early) |found| try memo.putSettled(memo.key, found.passed, found.output) else null;
 
@@ -370,7 +370,7 @@ fn demand(workspace: std.mem.Allocator, work: *Work, program: ir.Program, slots:
         const unit = units[index].?;
         const state = unit.state(index);
         var changed: std.ArrayList(usize) = .empty;
-        const recalled = replay.recall(.demanded, index) orelse try memo.getDemanded(summaries, state);
+        const recalled = (try replay.recall(.demanded, index)) orelse try memo.getDemanded(summaries, state);
         const early = try ahead.take(.demanded, index);
 
         const demanded = if (recalled) |demanded| replayed: {

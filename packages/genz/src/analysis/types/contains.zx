@@ -1,0 +1,59 @@
+import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import type { Table } from "core/type_table/model"
+
+export type Input = {
+    types: Table,
+    parent: u32,
+    root: u32
+}
+
+export type Output = bool
+
+export default function contains(in: Input): Output {
+    if (in.parent == in.root) {
+        return true
+    }
+
+    const index = integers.widen(in.parent)
+    const target = kind(in.types.kinds[index])
+
+    if (target == Kind.Optional || target == Kind.List) {
+        return contains({
+            ...in,
+            parent: in.types.first[index]
+        })
+    }
+
+    if (target != Kind.Object && target != Kind.Tuple) {
+        return false
+    }
+
+    return loop({
+        index: 0,
+        found: false
+    }, {
+        while: (state, source) => !state.found &&
+            state.index < integers.widen(source.types.second[source.index]),
+        next: (state, source) => {
+            const position = integers.widen(source.types.first[source.index]) + state.index
+            const parent = source.target == Kind.Object
+                ? source.types.field_types[position]
+                : source.types.children[position]
+
+            state.found = contains({
+                types: source.types,
+                parent,
+                root: source.root
+            })
+            state.index += 1
+        },
+        return: state => state.found
+    }, {
+        ...in,
+        index,
+        target
+    })
+}

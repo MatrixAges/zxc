@@ -4,11 +4,13 @@ import kind from "core/type_table/kind"
 import { Kind } from "core/type_table/model"
 
 import body from "../calls/body"
+import primitive from "../types/primitive"
 import {
     minimum_record_fields,
     maximum_routing_fields,
     maximum_body_expressions,
-    maximum_result_fields
+    maximum_result_fields,
+    maximum_scalar_expressions
 } from "./const"
 import recordResult from "./record_result"
 
@@ -34,7 +36,19 @@ export default function (in: Input): Output {
 
     const wide = in.types.second[input] >= minimum_record_fields
 
-    if (wide) {
+    const scalar = primitive({
+        types: in.types,
+        id: in.output_type
+    })
+
+    if (scalar) {
+        if (
+            in.types.second[input] > maximum_routing_fields ||
+                in.expressions.kinds.length > maximum_scalar_expressions
+        ) {
+            return false
+        }
+    } else if (wide) {
         if (
             kind(in.types.kinds[output]) != Kind.Object ||
                 in.types.second[output] > maximum_result_fields

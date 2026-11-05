@@ -38,7 +38,7 @@ pub fn emit(self: *Lower, plan: Plan) Lower.Error!node.ExpressionId {
         .serial = self.serial,
     };
 
-    const output = generated.executeValue(scratch.allocator(), &input) catch |err| switch (err) {
+    const output = @import("zx").columns.invoke(generated.executeValue, scratch.allocator(), &input) catch |err| switch (err) {
         error.OutOfMemory, error.IntegerOverflow => return error.OutOfMemory,
         else => unreachable,
     };

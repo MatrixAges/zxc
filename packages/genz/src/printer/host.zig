@@ -26,7 +26,9 @@ pub fn renderStored(allocator: std.mem.Allocator, nodes: *Storage, selected: @im
 
     defer arena.deinit();
 
-    const output = generated.executeValue(arena.allocator(), &.{ .source = &source, .output = &.{} }) catch |err| switch (err) {
+    const input: Input = .{ .source = &source, .output = &.{} };
+
+    const output = @import("zx").columns.invoke(generated.executeValue, arena.allocator(), &input) catch |err| switch (err) {
         error.OutOfMemory, error.Overflow => return error.OutOfMemory,
         else => unreachable,
     };

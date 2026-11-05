@@ -1,0 +1,22 @@
+import cursor from "./cursor"
+
+import type { Step as Input, Selection as Output } from "./model"
+
+export default function (in: Input): Output {
+    if (!in.state.following || !in.state.changed[in.index]) {
+        return {
+            state: in.state,
+            cursor: null
+        }
+    }
+
+    const position = cursor(in)
+
+    return {
+        state: {
+            ...in.state,
+            following: position != in.end
+        },
+        cursor: position == in.end ? null : position
+    }
+}

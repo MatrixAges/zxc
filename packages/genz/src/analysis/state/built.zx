@@ -1,3 +1,8 @@
+import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import shared from "../value/shares_aggregate"
 import constructed from "./constructed"
 
 import type { Program } from "../model"
@@ -12,7 +17,7 @@ export default function (in: Input): Output {
         tables: [in.expressions].concat(in.contracts.expressions)[0]
     })
 
-    return loop({
+    const built = loop({
         functions: in.functions,
         built: own,
         index: 0
@@ -28,8 +33,38 @@ export default function (in: Input): Output {
                 built: current.built,
                 tables
             })
+
             current.index += 1
         },
         return: state => state.built
     })
+
+    return loop({
+        built,
+        index: 0
+    }, {
+        while: (state, source) => state.index < source.functions.input_types.length,
+        next: (state, source) => {
+            const input = source.functions.input_types[state.index]
+            const row = integers.widen(input)
+            const needed = (
+                - source.functions.native_modules[state.index] == null
+                - and !state.built[row]
+                - and kind(source.types.kinds[row]) == Kind.Object
+            )
+
+            if (needed) {
+                if (shared({
+                    types: source.types,
+                    input,
+                    output: source.functions.output_types[state.index]
+                })) {
+                    state.built = state.built.with(row, true)
+                }
+            }
+
+            state.index += 1
+        },
+        return: state => state.built
+    }, in)
 }

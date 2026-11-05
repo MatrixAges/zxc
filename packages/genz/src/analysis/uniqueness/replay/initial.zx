@@ -1,0 +1,51 @@
+import equal from "./digest"
+
+import type { Build as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const changed: bool[] = []
+    const settled: u32[] = []
+    const demanded: u32[] = []
+    const planned: u32[] = []
+
+    return loop({
+        changed,
+        settled,
+        demanded,
+        planned,
+        index: 0
+    }, {
+        while: (state, context) => state.index < context.source.callees.length,
+        next: (state, context) => {
+            const previous = context.source.previous
+            const available = context.matched && previous != null
+            const unchanged = available && equal({
+                previous: previous.identities,
+                current: context.source.identities,
+                start: state.index * context.source.key.length,
+                width: context.source.key.length
+            })
+
+            state.changed = state.changed.push(!unchanged)[0]
+            state.settled = state.settled.push(
+                available ? previous.settled[state.index] : 0
+            )[0]
+            state.demanded = state.demanded.push(
+                available ? previous.demanded[state.index] : 0
+            )[0]
+            state.planned = state.planned.push(
+                available ? previous.planned[state.index] : 0
+            )[0]
+            state.index += 1
+        },
+        return: state => ({
+            following: false,
+            ...state.pick([
+                "changed",
+                "settled",
+                "demanded",
+                "planned"
+            ])
+        })
+    }, in)
+}

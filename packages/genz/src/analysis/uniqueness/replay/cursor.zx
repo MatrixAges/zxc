@@ -1,0 +1,13 @@
+import { Kind } from "./model"
+
+import type { Step as Input } from "./model"
+
+export type Output = u32
+
+export default function (in: Input): Output {
+    return match in.kind {
+        Kind.Settled => in.state.settled[in.index],
+        Kind.Demanded => in.state.demanded[in.index],
+        _ => in.state.planned[in.index]
+    }
+}

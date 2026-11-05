@@ -200,7 +200,7 @@ pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declar
     if (needs_io) parameters[2 + @as(usize, @intFromBool(injected))] = .{ .name = "io", .value = try @import("intrinsics.zig").standardField(self, &.{"Io"}) };
     if (needs_process) parameters[parameters.len - 1] = .{ .name = "process", .value = try @import("intrinsics.zig").standardField(self, &.{ "process", "Init", "Minimal" }) };
 
-    return .{ .function = .{ .name = name, .parameters = parameters, .return_type = try self.builder.expression(.{ .error_union = .{ .payload = if (self.public_value_output) try @import("types.zig").get(self, self.view_types, self.program.output_type) else if (self.value_output) try self.layoutExpr(self.program.output_type) else try self.typeExpr(self.program.output_type), .errors = errors } }), .body = try self.builder.statements(body.items), .exported = exported, .inlined = self.value_output and (if (@hasField(@TypeOf(self.entry_flags), "inlined")) self.entry_flags.inlined else false) } };
+    return .{ .function = .{ .name = name, .parameters = parameters, .return_type = try self.builder.expression(.{ .error_union = .{ .payload = if (self.public_value_output) try @import("types.zig").get(self, self.view_types, self.program.output_type) else if (self.value_output) try self.layoutExpr(self.program.output_type) else try self.typeExpr(self.program.output_type), .errors = errors } }), .body = try self.builder.statements(body.items), .exported = exported, .inlined = if (@hasField(@TypeOf(self.entry_flags), "inlined")) self.entry_flags.inlined else false } };
 }
 
 pub fn expr(self: *Self, id: ir.ExprId) Error!node.ExpressionId {

@@ -1,0 +1,54 @@
+export enum Kind { Settled, Demanded, Planned }
+
+export type Previous = {
+    key: u8[],
+    identities: u8[],
+    callees: u32[][],
+    settled: u32[],
+    demanded: u32[],
+    planned: u32[]
+}
+
+export type Input = {
+    previous?: Previous,
+    key: u8[],
+    identities: u8[],
+    callees: u32[][]
+}
+
+export type State = {
+    following: bool,
+    changed: bool[],
+    settled: u32[],
+    demanded: u32[],
+    planned: u32[]
+}
+
+export type Build = {
+    source: Input,
+    matched: bool
+}
+
+export type Compatibility = {
+    source: Input,
+    state: State
+}
+
+export type Step = {
+    state: State,
+    kind: Kind,
+    index: u64,
+    end: u32
+}
+
+export type Selection = {
+    state: State,
+    cursor?: u32
+}
+
+export type Confirmation = {
+    state: State,
+    kind: Kind,
+    index: u64,
+    matched: bool
+}

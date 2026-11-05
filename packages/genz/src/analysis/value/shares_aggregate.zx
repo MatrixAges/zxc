@@ -1,0 +1,68 @@
+import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import contains from "../types/contains"
+
+import type { Table } from "core/type_table/model"
+
+export type Input = {
+    types: Table,
+    input: u32,
+    output: u32
+}
+
+export type Output = bool
+
+export default function shared(in: Input): Output {
+    const index = integers.widen(in.input)
+    const target = kind(in.types.kinds[index])
+    const product = target == Kind.Object || target == Kind.Tuple
+
+    if (product) {
+        if (contains({
+            types: in.types,
+            parent: in.output,
+            root: in.input
+        })) {
+            return true
+        }
+    }
+
+    if (target == Kind.Optional || target == Kind.List) {
+        return shared({
+            ...in,
+            input: in.types.first[index]
+        })
+    }
+
+    if (!product) {
+        return false
+    }
+
+    return loop({
+        index: 0,
+        found: false
+    }, {
+        while: (state, source) => !state.found &&
+            state.index < integers.widen(source.types.second[source.index]),
+        next: (state, source) => {
+            const position = integers.widen(source.types.first[source.index]) + state.index
+            const input = source.target == Kind.Object
+                ? source.types.field_types[position]
+                : source.types.children[position]
+
+            state.found = shared({
+                types: source.types,
+                input,
+                output: source.output
+            })
+            state.index += 1
+        },
+        return: state => state.found
+    }, {
+        ...in,
+        index,
+        target
+    })
+}

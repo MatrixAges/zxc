@@ -1,0 +1,33 @@
+<Module>
+    <Type from="model" as="Replay" />
+
+    <Args in={Replay.Input} out={Replay.State} />
+
+    <Call fn="matched" in={$in} />
+    <Call
+        fn="initial"
+        in={{
+            source: $in,
+            matched: $ctx.matched
+        }}
+    />
+
+    <If on={$ctx.matched}>
+        <Call
+            fn="compatible"
+            in={{
+                source: $in,
+                state: $ctx.initial
+            }}
+        />
+
+        <Return
+            value={{
+                ...$ctx.initial,
+                following: $ctx.compatible
+            }}
+        />
+    </If>
+
+    <Return value={$ctx.initial} />
+</Module>
