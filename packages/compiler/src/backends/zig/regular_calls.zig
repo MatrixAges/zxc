@@ -38,8 +38,12 @@ pub fn complete(owned: std.mem.Allocator, batch: *const Batch, roots: []const []
         var added: std.ArrayList(generating.Unit) = .empty;
         var positions: std.ArrayList(usize) = .empty;
 
-        for (units, 0..) |*unit, position| if (unit.* == .function and wanted[@backingInt(unit.function)]) {
+        for (units, 0..) |*unit, position| if (unit.* == .function and values[@backingInt(unit.function)]) {
             const id = unit.function;
+            const representative = modules.get(batch.names.functions[@backingInt(id)]).?;
+
+            if (!wanted[representative]) continue;
+
             unit.* = .{ .regular = id };
 
             try added.append(temporary, unit.*);

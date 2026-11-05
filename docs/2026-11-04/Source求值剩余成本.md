@@ -707,3 +707,46 @@ flowchart LR
 诊断命令与输出为rx-publish-diagnostic-invocation.log、publish-conflict-probe-run.log，
 临时CLI及源码均在/tmp/zxc-function-levels，不提交探针。一次工具命令提取初带
 verbose前缀导致FileNotFound，已剥除前缀后成功构建；未重启仍在运行的正式补验。
+
+## 同名函数ABI补全收口
+
+冻结补验28247已结束：328/339步骤成功（7个直接失败），7413/7439 Zig检查
+通过（26个frontend旧map夹具失败）。所有旧missing generated import编译失败均
+消除；26例随后已单独对齐并全部通过，提交7d4aa101。其余6个直接失败来自
+NativeRef runtime的嵌套Node执行，不重复累加进Zig统计，保留实际容量失败。
+
+隔离regular_calls修复17项既有rx_compiled检查及5项entry检查通过。随后删除
+临时冲突输出，核对隔离compiler/src仅regular_calls一个文件不同；清洁副本
+17项再次通过。正式应用同一四行修改后，compiler/src与该清洁副本逐文件相同。
+正式test-library-rx-compiled与test-library-entry合计43/43步骤成功，Node分别
+17/17和5/5通过。最终原源码冲突检查仍在，不曾选择任意一份代码掩盖差异。
+
+修复按模块名代表行读取wanted，并同步补全所有同名value候选；每份仍单独生成
+并比较完整源码。沿用既有映射，无新增集合或复制表。spread返回后才修改units，
+并发扫描继续只读映射、原子写wanted；补全新源码中的普通call依赖仍继续迭代。
+本项修复现有Native过渡实现，不计为新的完整自举闭包。
+
+所有构建结束后，用原先已成功的Store发布夹具做三组交错冷发布（固定源码目录、
+关闭语义缓存、独立输出及缓存目录）；不能拿原失败的snapshot夹具比较性能。
+CPU before4.20/4.26/4.26s，after4.23/4.23/4.22s，中位4.26→4.23s；
+wall4339.93→4318.76ms，MaxRSS1349976064→1350041600B。样本重叠，不宣称
+稳定提速；RSS差64KiB不据此推导分配量。六次发布各14文件全部逐字节相同，
+未排除任何文件。本路径未见可辨别CPU退化；它不是约5.06s的完整Source生成
+场景，不混算，也不改变累计Native锚点及尚未通过的最终性能门禁。
+
+最终证据publish-fixed-clean-run.log、publish-fix-production-checks.log、
+publish-clean-source-differences.json、publish-paired-results.json及
+publish-paired-output-summary.json，均在/tmp/zxc-function-levels。
+正式构建前一次格式检查命令误用了test目录相对路径；随后根目录fmt --check
+通过且实现字节与已测副本相同。没有在活跃的冻结补验期间修改生产实现。
+
+下一项容量问题已有具体断点：helper_pop两路在pop后没有zxRetract，且返回列表
+的storage降为shared；committed仍257而新len为256，下一次reserve因长度不符
+每轮重新分配512槽。8192轮约36.5MB，超过原约1MB预算。loop_write/borrowed
+短长分配8456→6564、two_buffers两路6336→11094也未通过。值、身份和OOM项
+通过不能替代容量门禁，尚未证明这些是历史基线，不按历史问题排除。
+
+后续应完善通用动态容量许可：在现有ownership裁剪后的selected列表上，只有
+实际exclusive才能安全缩回header并继续携带许可；shared/plain保持不可变性。
+必须核对快照、别名、空列表、跨helper与错误路径，不能跳过入轮renew或仅凭
+headered改写旧快照。此前被否定的skip-renew原型仍不恢复。不改任何容量预算。
