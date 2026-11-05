@@ -26,23 +26,16 @@ pub fn write(io: std.Io, allocator: std.mem.Allocator, output: []const u8, bundl
         try top.append(allocator, .{ .path = name, .source = module.file.source });
         try root.writer.print("pub const {f} = @import(\"{f}\");\n", .{ std.zig.fmtId(module.name), std.zig.fmtString(name) });
 
-        var adapter: std.Io.Writer.Allocating = .init(allocator);
+        var declarations: std.ArrayList([]const u8) = .empty;
 
-        try adapter.writer.print("const entry = @import(\"generated\").{f};\n\n", .{std.zig.fmtId(module.name)});
+        try declarations.appendSlice(allocator, &.{ "Input", "Output", "execute", "requires_io", "requires_process", "input_shape", "output_shape" });
+        if (module.value_entry) try declarations.append(allocator, "executeValue");
+        if (module.state_entry) try declarations.append(allocator, "executeState");
+        if (module.allocator_entry) try declarations.append(allocator, "executeIn");
 
-        for ([_][]const u8{ "Input", "Output", "execute", "requires_io", "requires_process", "input_shape", "output_shape" }) |declaration| {
-            try adapter.writer.print("pub const {s} = entry.{s};\n", .{ declaration, declaration });
-        }
+        const adapter = try compiler.zig.host.reexports(allocator, "generated", module.name, declarations.items);
 
-        if (module.value_entry) {
-            try adapter.writer.writeAll("pub const executeValue = entry.executeValue;\n");
-        }
-
-        if (module.allocator_entry) {
-            try adapter.writer.writeAll("pub const executeIn = entry.executeIn;\n");
-        }
-
-        try files.append(allocator, .{ .path = try std.fmt.allocPrint(allocator, "{s}.zig", .{module.name}), .source = adapter.written() });
+        try files.append(allocator, .{ .path = try std.fmt.allocPrint(allocator, "{s}.zig", .{module.name}), .source = adapter });
     }
 
     try files.appendSlice(allocator, top.items);

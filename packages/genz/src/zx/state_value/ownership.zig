@@ -27,6 +27,10 @@ pub fn clip(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId, v
     return projected(self, body, id, type_id, value, 0);
 }
 
+pub fn needsClip(self: *const Lower, id: ir.ExprId) bool {
+    return needed(self, id, self.program.expression(id).type_id, 0);
+}
+
 pub fn carries(self: *const Lower, type_id: ir.TypeId) bool {
     return needed(self, @fromBackingInt(std.math.maxInt(u32)), type_id, 0);
 }

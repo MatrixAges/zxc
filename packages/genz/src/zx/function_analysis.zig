@@ -41,6 +41,11 @@ pub fn hasValueEntry(self: Self) bool {
     return self.entry_flags.value;
 }
 
+pub fn hasStateEntry(self: Self, program: ir.Program) bool {
+    return !program.type_only and self.entry_flags.value and !self.entry_flags.tasks and
+        self.value.state.represented(program, program.output_type);
+}
+
 /// Whether the entry of `program` has `executeIn`: a body that starts tasks shares its allocator between threads, so
 /// it runs in the arena `execute` lends alone.
 pub fn hasAllocatorEntry(self: Self) bool {
