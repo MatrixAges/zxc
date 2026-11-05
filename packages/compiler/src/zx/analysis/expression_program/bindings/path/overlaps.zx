@@ -24,8 +24,9 @@ export default function (in: Input): Output {
             current.equal =
                 current.left[current.index] == current.right[current.index]
             current.index += 1
-        }
-    }).equal
+        },
+        return: state => state.equal
+    })
 
     return equal &&
         (

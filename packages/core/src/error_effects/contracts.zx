@@ -49,6 +49,7 @@ export default function (in: Input): Output {
                     count: 0
                 })[0]
             }
-        }
-    }).state
+        },
+        return: state => state.state
+    })
 }

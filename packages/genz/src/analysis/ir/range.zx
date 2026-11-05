@@ -21,7 +21,7 @@ export default function (in: Input): Output {
                     current.items[current.position]
                 )[0]
             current.position += 1
-        }
+        },
+        return: state => state.output
     })
-        -> _.output
 }

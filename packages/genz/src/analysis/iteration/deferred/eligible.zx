@@ -53,6 +53,7 @@ export default function (in: Input): Output {
 
                 state.pending = nested.pending
             }
-        }
-    }, in).valid
+        },
+        return: state => state.valid
+    }, in)
 }

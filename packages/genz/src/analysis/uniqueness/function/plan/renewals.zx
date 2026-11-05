@@ -90,11 +90,12 @@ export default function (in: Input): Output {
                 key: context.keys[state.index]
             }))[0]
             state.index += 1
-        }
+        },
+        return: state => state.renewals
     }, {
         source: in.source,
         keys: selected.keys.sort()[0]
-    }).renewals
+    })
 
     return {
         ...selected.working,

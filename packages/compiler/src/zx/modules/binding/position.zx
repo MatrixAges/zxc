@@ -22,6 +22,7 @@ export type Output = u64?
                 }
 
                 current.index += 1
-            }
-        }).found
+            },
+            return: state => state.found
+        })
     }

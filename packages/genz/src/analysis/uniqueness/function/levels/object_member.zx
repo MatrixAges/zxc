@@ -39,6 +39,7 @@ export type Output = u32?
                 }
 
                 state.position += 1
-            }
-        }, in).value
+            },
+            return: state => state.value
+        }, in)
     }

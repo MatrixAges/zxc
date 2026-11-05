@@ -11,7 +11,7 @@ export default function (in: Input): Output {
         length: in.length
     }, {
         while: current => current.items.length > current.length,
-        next: current => { current.items = current.items.pop()[0] }
+        next: current => { current.items = current.items.pop()[0] },
+        return: state => state.items
     })
-        -> _.items
 }

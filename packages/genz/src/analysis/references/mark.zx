@@ -43,10 +43,11 @@ export default function (in: Input): Output {
                     }
 
                     items.index += 1
-                }
-            }).needed
+                },
+                return: state => state.needed
+            })
             current.table += 1
-        }
+        },
+        return: state => state.needed
     })
-        -> _.needed
 }

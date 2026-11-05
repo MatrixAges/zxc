@@ -34,8 +34,9 @@ export default function (in: Input): Output {
                 repeated: max_u32
             } : current.unknown[0])[0]
             current.index += 1
-        }
-    }).definitions
+        },
+        return: state => state.definitions
+    })
 
     return {
         graph: {

@@ -74,7 +74,7 @@ export default function (in: Input): Output {
             current.boxed = discovered.boxed
             current.queue = discovered.queue
             current.index += 1
-        }
+        },
+        return: state => state.boxed
     })
-        -> _.boxed
 }

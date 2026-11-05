@@ -63,8 +63,9 @@ export default function (in: Input): Output {
                             position.member[position.index] ==
                             position.namespace[position.index]
                         position.index += 1
-                    }
-                }).valid
+                    },
+                    return: state => state.valid
+                })
 
                 current.valid =
                     same_namespace && member[namespace.length] == name &&
@@ -72,6 +73,7 @@ export default function (in: Input): Output {
             }
 
             current.index += 1
-        }
-    }).valid
+        },
+        return: state => state.valid
+    })
 }

@@ -28,7 +28,7 @@ export default function (in: Input): Output {
                     needed: current.needed
                 })
             }
-        }
+        },
+        return: state => state.needed
     })
-        -> _.needed
 }

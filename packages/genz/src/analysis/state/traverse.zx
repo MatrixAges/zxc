@@ -85,8 +85,9 @@ export default function (in: Input): Output {
                                 pending.stack.push(
                                     pending.next[pending.remaining]
                                 )[0]
-                        }
-                    }).stack
+                        },
+                        return: state => state.stack
+                    })
                 }
             }
         }

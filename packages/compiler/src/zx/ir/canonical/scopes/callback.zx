@@ -86,8 +86,9 @@ export default function (in: Input): Output {
                     mode: Declaration.Callback
                 })
                 current.index += 1
-            }
-        }).result
+            },
+            return: state => state.result
+        })
 
         if (!parameters.valid) {
             return parameters

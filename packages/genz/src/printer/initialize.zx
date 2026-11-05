@@ -45,7 +45,7 @@ export default function (in: Input): Output {
                 ...current.frame,
                 id: current.state.source.first + current.remaining
             })[0]
-        }
+        },
+        return: state => state.state
     })
-        -> _.state
 }

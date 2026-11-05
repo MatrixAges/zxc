@@ -1,0 +1,70 @@
+import integers from "std:integer"
+import projection from "core/expression_table/append/projection"
+import scope from "core/expression_table/append/scope"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import type { Expressions } from "core/expression_table/model"
+
+export type Input = {
+    table: Expressions,
+    iteration: u32,
+    parameter: u32,
+    body: u32,
+    start: u64,
+    end: u64
+}
+
+export type Output = {
+    table: Expressions,
+    id: u32,
+    direct: bool
+}
+
+export default function (in: Input): Output {
+    const node = integers.widen(in.body)
+    const kind = in.table.kinds[node]
+    const payload = integers.widen(in.table.payloads[node])
+
+    const metadata = {
+        type_id: in.table.types[node],
+        span_start: in.start,
+        span_end: in.end
+    }
+
+    if (kind == ExpressionKind.Field || kind == ExpressionKind.TupleField) {
+        const target = integers.widen(in.table.projection_targets[payload])
+
+        if (
+            in.table.kinds[target] == ExpressionKind.Reference &&
+                in.table.references[integers.widen(in.table.payloads[target])] ==
+                in.parameter
+        ) {
+            const result = projection({
+                table: in.table,
+                metadata,
+                target: in.iteration,
+                index: in.table.projection_indices[payload],
+                tuple: kind == ExpressionKind.TupleField
+            })
+
+            return {
+                ...result,
+                direct: true
+            }
+        }
+    }
+
+    const result = scope({
+        table: in.table,
+        metadata,
+        result: in.body,
+        symbols: [in.parameter],
+        values: [in.iteration],
+        borrows: [false]
+    })
+
+    return {
+        ...result,
+        direct: false
+    }
+}

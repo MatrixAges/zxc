@@ -26,8 +26,9 @@ export default function (in: Input): Output {
                 value: control.constant_values[current.index]
             })
             current.index += 1
-        }
-    }, in.control).state
+        },
+        return: state => state.state
+    }, in.control)
 
     const roots = [
         in.control.evaluations,
@@ -57,8 +58,9 @@ export default function (in: Input): Output {
                 current.index += 1
                 current.position = 0
             }
-        }
-    }, roots).state
+        },
+        return: state => state.state
+    }, roots)
 
     const optional = [
         in.control.case_values,
@@ -89,8 +91,9 @@ export default function (in: Input): Output {
                 current.index += 1
                 current.position = 0
             }
-        }
-    }, optional).state
+        },
+        return: state => state.state
+    }, optional)
 
     return loop({
         state: results,
@@ -108,6 +111,7 @@ export default function (in: Input): Output {
             }
 
             current.index += 1
-        }
-    }).state
+        },
+        return: state => state.state
+    })
 }

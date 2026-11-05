@@ -73,8 +73,9 @@ export default function (in: Input): Output {
                     id: current.remaining
                 })
             ])[0]
-        }
-    }).frames
+        },
+        return: state => state.frames
+    })
 
     const state: Inline = {
         types: in.types,

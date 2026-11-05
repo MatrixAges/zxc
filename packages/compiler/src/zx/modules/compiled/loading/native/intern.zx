@@ -45,8 +45,9 @@ export default function (in: Input): Output {
             if (!current.found) {
                 current.index += 1
             }
-        }
-    }).index
+        },
+        return: state => state.index
+    })
 
     if (index < count) {
         const base = index < in.base.specifiers.length

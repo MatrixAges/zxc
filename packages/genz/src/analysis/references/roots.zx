@@ -33,7 +33,7 @@ export default function (in: Input): Output {
                 needed: current.needed
             })
             current.index += 1
-        }
+        },
+        return: state => state.needed
     })
-        -> _.needed
 }

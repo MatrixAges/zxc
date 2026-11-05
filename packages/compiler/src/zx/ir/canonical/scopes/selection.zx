@@ -94,8 +94,9 @@ export default function (in: Input): Output {
                     }
                 })
             }
-        }
-    }).state
+        },
+        return: state => state.state
+    })
 
     return {
         state,

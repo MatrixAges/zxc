@@ -34,6 +34,7 @@ export default function (in: Input): Output {
             }
 
             state.index += 1
-        }
-    }, in).operations
+        },
+        return: state => state.operations
+    }, in)
 }

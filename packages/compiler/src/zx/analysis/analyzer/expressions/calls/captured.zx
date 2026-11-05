@@ -31,8 +31,9 @@ export default function (in: Input): Output {
                     current.active[current.index]
                 )] == current.name
             current.index += 1
-        }
-    }).found
+        },
+        return: state => state.found
+    })
 
     if (!found) {
         return {

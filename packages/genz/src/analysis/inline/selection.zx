@@ -197,8 +197,9 @@ export default function (in: Input): Output {
                                         items.control.parallel_values[items.item]
                                     )[0]
                                 items.item += 1
-                            }
-                        }).finds
+                            },
+                            return: state => state.finds
+                        })
                     } else if (kind == StatementKind.Destructure) {
                         statements.finds =
                             statements.finds.push(
@@ -297,8 +298,9 @@ export default function (in: Input): Output {
                             }
 
                             bindings.position += 1
-                        }
-                    }).marks
+                        },
+                        return: state => state.marks
+                    })
                 }
 
                 if (
@@ -334,8 +336,9 @@ export default function (in: Input): Output {
                     id
                 }))[0]
             }
-        }
-    }).marked
+        },
+        return: state => state.marked
+    })
 
     const cost = loop({
         table,
@@ -364,8 +367,9 @@ export default function (in: Input): Output {
             }
 
             current.position += 1
-        }
-    }).cost
+        },
+        return: state => state.cost
+    })
 
     return {
         selected: cost != 0 && cost <= in.limit,

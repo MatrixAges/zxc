@@ -122,6 +122,7 @@ export default function (in: Input): Output {
                     fourth: child
                 }
             })
-        }
-    }).stack
+        },
+        return: state => state.stack
+    })
 }

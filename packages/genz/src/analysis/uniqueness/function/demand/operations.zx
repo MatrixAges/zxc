@@ -62,13 +62,14 @@ export default function (in: Input): Output {
                         }
 
                         current.slot += 1
-                    }
+                    },
+                    return: state => state.working
                 }, {
                     source,
                     count,
                     function_index,
                     argument: expressions.call_arguments[payload]
-                }).working
+                })
             } else {
                 const operation = kind == ExpressionKind.ListOperation ?
                     expressions.collection_kinds[payload] : CollectionKind.Pop
@@ -106,6 +107,7 @@ export default function (in: Input): Output {
             }
 
             state.index += 1
-        }
-    }, in.source).working
+        },
+        return: state => state.working
+    }, in.source)
 }

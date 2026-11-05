@@ -29,7 +29,7 @@ export default function (in: Input): Output {
                 current.types[current.index] == current.type_id &&
                 current.names[current.index] == current.name
             current.index += 1
-        }
+        },
+        return: state => state.found
     })
-        -> _.found
 }

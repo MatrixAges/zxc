@@ -28,6 +28,7 @@ export default function (in: Input): Output {
                     current.symbols.types[current.index]
                 ) < current.count
             current.index += 1
-        }
-    }).valid
+        },
+        return: state => state.valid
+    })
 }

@@ -87,7 +87,7 @@ export default function (in: Input): Output {
                     current.positions = current.positions.push(null)[0]
                 }
             }
-        }
+        },
+        return: state => state.valid
     })
-        -> _.valid
 }

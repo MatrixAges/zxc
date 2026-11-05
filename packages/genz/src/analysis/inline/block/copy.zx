@@ -16,7 +16,7 @@ export default function (in: Input): Output {
         next: current => {
             current.pool = current.pool.push(current.stack[current.position])[0]
             current.position += 1
-        }
+        },
+        return: state => state.pool
     })
-        -> _.pool
 }

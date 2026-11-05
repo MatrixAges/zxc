@@ -34,7 +34,7 @@ export default function (in: Input): Output {
                 current.valid = selected.kind == NodeKind.Named
                 current.active = false
             }
-        }
+        },
+        return: state => state.valid
     })
-        -> _.valid
 }

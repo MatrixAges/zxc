@@ -48,6 +48,7 @@ export default function (in: Input): Output {
                     role: source.role
                 }
             })
-        }
-    }).stack
+        },
+        return: state => state.stack
+    })
 }

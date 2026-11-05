@@ -45,6 +45,7 @@ export default function (in: Input): Output {
                 right: current.values[current.index]
             })
             current.index += 1
-        }
-    }).found
+        },
+        return: state => state.found
+    })
 }

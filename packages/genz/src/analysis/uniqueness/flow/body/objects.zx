@@ -33,12 +33,13 @@ export default function (in: Input): Output {
                         context.source.object_field_values[field.position]
                     )[0]
                     field.position += 1
-                }
+                },
+                return: state => state.values
             }, {
                 source,
                 first,
                 count
-            }).values
+            })
 
             state.values = loop({
                 values,
@@ -52,13 +53,14 @@ export default function (in: Input): Output {
                     field.values[context.target + index] =
                         context.source.object_field_values[field.position]
                     field.position += 1
-                }
+                },
+                return: state => state.values
             }, {
                 source,
                 first,
                 count,
                 target
-            }).values
+            })
             state.index += 1
         }
     }, in).pick([

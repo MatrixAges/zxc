@@ -65,6 +65,7 @@ export default function (in: Input): Output {
             }
 
             state.index += 1
-        }
-    }, in).working
+        },
+        return: state => state.working
+    }, in)
 }

@@ -114,7 +114,7 @@ export default function (in: Input): Output {
                 first: current.index + 1,
                 end: current.count
             })
-        }
+        },
+        return: state => state.memory
     })
-        -> _.memory
 }

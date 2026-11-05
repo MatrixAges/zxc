@@ -18,6 +18,7 @@ export default function (in: Input): Output {
         next: (state, source) => {
             state.values[integers.widen(source.exported[state.index])] = false
             state.index += 1
-        }
-    }, in).values
+        },
+        return: state => state.values
+    }, in)
 }

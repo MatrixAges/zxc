@@ -36,8 +36,9 @@ export default function (in: Input): Output {
                 slot: integers.narrow(state.index)
             }))[0]
             state.index += 1
-        }
-    }, in).outputs
+        },
+        return: state => state.outputs
+    }, in)
 
     const held: bool[] = []
     const text_held: bool[] = []
@@ -68,11 +69,12 @@ export default function (in: Input): Output {
                 next: (scan, values) => {
                     scan.found = values.lists[scan.index] == values.target
                     scan.index += 1
-                }
+                },
+                return: state => state.found
             }, {
                 lists: context.lists,
                 target
-            }).found)
+            }))
 
             state.held = state.held.push(holds)[0]
             state.written = state.written.push(false)[0]

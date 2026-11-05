@@ -60,8 +60,9 @@ export default function (in: Input): Output {
                     c: current.flags
                 }
             })
-        }
-    }).state
+        },
+        return: state => state.state
+    })
 
     const subject = expressions.match_subjects[payload]
 

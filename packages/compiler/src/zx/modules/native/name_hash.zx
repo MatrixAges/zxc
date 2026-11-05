@@ -23,7 +23,7 @@ export default function (in: Input): Output {
                         )
                 ) % 4294967291
             current.index += 1
-        }
+        },
+        return: state => state.value
     })
-        -> _.value
 }

@@ -30,8 +30,9 @@ export type Output = Literal?
                 }
 
                 current.index += 1
-            }
-        }).value
+            },
+            return: state => state.value
+        })
 
         return found != null ? constants.values[found] : null
     }

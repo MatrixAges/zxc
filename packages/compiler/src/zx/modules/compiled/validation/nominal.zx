@@ -62,6 +62,7 @@ export default function (in: Input): Output {
                     type_kind != Kind.Enumeration && type_kind != Kind.NativeReference
                 ) || current.declared[current.index]
             current.index += 1
-        }
-    }).valid
+        },
+        return: state => state.valid
+    })
 }

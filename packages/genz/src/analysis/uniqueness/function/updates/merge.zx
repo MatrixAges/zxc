@@ -46,6 +46,7 @@ export default function (in: Input): Output {
             }
 
             state.index += 1
-        }
-    }, in).changed
+        },
+        return: state => state.changed
+    }, in)
 }

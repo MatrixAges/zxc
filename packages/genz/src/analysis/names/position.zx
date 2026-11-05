@@ -26,7 +26,7 @@ export default function (in: Input): Output {
             } else {
                 current.end = middle
             }
-        }
+        },
+        return: state => state.first
     })
-        -> _.first
 }

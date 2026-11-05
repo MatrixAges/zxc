@@ -46,11 +46,13 @@ export default function (in: Input): Output {
                         previous.valid =
                             previous.names[previous.index] != previous.name
                         previous.index += 1
-                    }
-                }).valid
+                    },
+                    return: state => state.valid
+                })
             }
 
             current.index += 1
-        }
-    }).valid
+        },
+        return: state => state.valid
+    })
 }

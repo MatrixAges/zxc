@@ -25,8 +25,9 @@ export default function (in: Input): Output {
                 tables: current.types,
                 id: current.target.first
             })
-        }
-    }).target
+        },
+        return: state => state.target
+    })
 
     return result.kind == Kind.List || result.kind == Kind.Object ||
         result.kind == Kind.Tuple || result.kind == Kind.Task ||

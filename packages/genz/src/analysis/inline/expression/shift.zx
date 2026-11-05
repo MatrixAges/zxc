@@ -22,7 +22,7 @@ export default function (in: Input): Output {
                     ) + current.offset
                 )
             current.position += 1
-        }
+        },
+        return: state => state.ids
     })
-        -> _.ids
 }

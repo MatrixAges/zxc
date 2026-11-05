@@ -59,7 +59,7 @@ export default function (in: Input): Output {
                 block: current.block
             })
             current.block += 1
-        }
+        },
+        return: state => state.valid
     })
-        -> _.valid
 }

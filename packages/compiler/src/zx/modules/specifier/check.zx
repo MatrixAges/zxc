@@ -100,7 +100,7 @@ export default function (in: Input): Output {
             }
 
             value.offset += 1
-        }
-    })
-        -> _.valid ? Kind.Package : Kind.Invalid
+        },
+        return: state => state.valid
+    }) ? Kind.Package : Kind.Invalid
 }

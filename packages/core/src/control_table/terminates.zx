@@ -64,7 +64,7 @@ export default function (in: Input): Output {
             }
 
             current.block += 1
-        }
+        },
+        return: state => state.returns
     })
-        -> _.returns
 }

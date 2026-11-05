@@ -52,7 +52,7 @@ export default function (in: Input): Output {
                     max_offset: current.max_offset
                 })
             current.index += 1
-        }
+        },
+        return: state => state.valid
     })
-        -> _.valid
 }

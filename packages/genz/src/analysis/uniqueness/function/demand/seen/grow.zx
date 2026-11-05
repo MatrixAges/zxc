@@ -16,8 +16,9 @@ export default function (in: Input): Output {
         while: (current, size) => current.keys.length < size,
         next: current => {
             current.keys = current.keys.push(empty_key)[0]
-        }
-    }, capacity).keys
+        },
+        return: state => state.keys
+    }, capacity)
 
     return loop({
         keys,
@@ -37,6 +38,7 @@ export default function (in: Input): Output {
             }
 
             state.index += 1
-        }
-    }, in).keys
+        },
+        return: state => state.keys
+    }, in)
 }

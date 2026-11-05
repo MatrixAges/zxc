@@ -27,6 +27,7 @@ export default function (in: Input): Output {
                 max_offset: current.context.max_offset
             })
             current.index += 1
-        }
-    }).valid
+        },
+        return: state => state.valid
+    })
 }

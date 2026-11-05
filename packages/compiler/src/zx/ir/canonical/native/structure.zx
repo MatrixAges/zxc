@@ -35,7 +35,7 @@ export default function (in: Input): Output {
                     max_u32
                 )
             current.index += 1
-        }
+        },
+        return: state => state.valid
     })
-        -> _.valid
 }

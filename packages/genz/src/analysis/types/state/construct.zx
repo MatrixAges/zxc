@@ -56,16 +56,18 @@ export default function (in: Input): Output {
         }, {
             while: current => current.values.length < current.count,
             next: current => { current.values =
-                current.values.push(false)[0] }
-        }).values,
+                current.values.push(false)[0] },
+            return: state => state.values
+        }),
         view_claimed: loop({
             count: in.ordered.length,
             values: view_claimed
         }, {
             while: current => current.values.length < current.count,
             next: current => { current.values =
-                current.values.push(false)[0] }
-        }).values,
+                current.values.push(false)[0] },
+            return: state => state.values
+        }),
         index: 0,
         field_count: 0,
         null_count: 0,

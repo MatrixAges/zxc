@@ -33,7 +33,7 @@ export type Output = u32?
                 }
 
                 current.head = arm.previous
-            }
+            },
+            return: state => state.type_id
         })
-            -> _.type_id
     }

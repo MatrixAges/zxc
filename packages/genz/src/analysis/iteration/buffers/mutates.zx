@@ -61,6 +61,7 @@ export default function (in: Input): Output {
 
                 current.pending = nested.pending
             }
-        }
-    }).found
+        },
+        return: state => state.found
+    })
 }

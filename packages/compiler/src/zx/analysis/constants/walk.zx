@@ -46,6 +46,7 @@ export default function (in: Input): Output {
             } else {
                 current.cursor.frames[last] = action.frame
             }
-        }
-    }).cursor
+        },
+        return: state => state.cursor
+    })
 }

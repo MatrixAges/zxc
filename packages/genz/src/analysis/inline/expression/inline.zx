@@ -41,8 +41,9 @@ export default function (in: Input): Output {
         next: current => {
             current.ids = current.ids.push(0)[0]
             current.remaining -= 1
-        }
-    }).ids
+        },
+        return: state => state.ids
+    })
 
     const mappings = {
         units: extended.mappings.units.push(callee)[0],

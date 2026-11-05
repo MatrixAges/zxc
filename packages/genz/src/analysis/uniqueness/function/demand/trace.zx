@@ -259,7 +259,8 @@ export default function trace(in: Input): Output {
                 }
 
                 state.index += 1
-            }
+            },
+            return: state => state.working
         }, {
             source: in.source,
             request: active,
@@ -267,7 +268,7 @@ export default function trace(in: Input): Output {
             first,
             count: integers.widen(count),
             type_id: expressions.types[node]
-        }).working
+        })
     }
 
     if (kind == ExpressionKind.Some) {
@@ -336,13 +337,14 @@ export default function trace(in: Input): Output {
                 })
 
                 state.index += 1
-            }
+            },
+            return: state => state.working
         }, {
             source: in.source,
             request: active,
             first: expressions.match_first[payload],
             count: integers.widen(expressions.match_count[payload])
-        }).working
+        })
 
         return trace({
             source: in.source,

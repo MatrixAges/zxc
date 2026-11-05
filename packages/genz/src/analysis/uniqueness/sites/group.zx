@@ -18,8 +18,9 @@ export default function (in: Input): Output {
         while: current => current.values.length < current.count,
         next: current => {
             current.values = current.values.push(0)[0]
-        }
-    }).values
+        },
+        return: state => state.values
+    })
 
     const counts = loop({
         owners: in.owners,
@@ -32,8 +33,9 @@ export default function (in: Input): Output {
 
             current.first[owner] += 1
             current.index += 1
-        }
-    }).first
+        },
+        return: state => state.first
+    })
 
     const starts = loop({
         first: counts,
@@ -43,8 +45,9 @@ export default function (in: Input): Output {
         next: current => {
             current.first[current.index] += current.first[current.index - 1]
             current.index += 1
-        }
-    }).first
+        },
+        return: state => state.first
+    })
 
     const values: u32[] = in.items.map(item => 0)[0]
     const cursors = starts.map(item => item)[0]
@@ -64,8 +67,9 @@ export default function (in: Input): Output {
             current.values[cursor] = current.items[current.index]
             current.cursors[owner] += 1
             current.index += 1
-        }
-    }).values
+        },
+        return: state => state.values
+    })
 
     return {
         first: starts,

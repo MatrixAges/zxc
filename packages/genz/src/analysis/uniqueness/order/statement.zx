@@ -158,8 +158,9 @@ export default function (in: Input): Output {
                         }
                     })
                 }
-            }
-        }).stack
+            },
+            return: state => state.stack
+        })
 
         return push({
             stack: conditions,

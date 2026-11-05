@@ -36,7 +36,7 @@ export default function (in: Input): Output {
                 scalar: current.candidate.scalar
             }) || passive(request)
             current.index += 1
-        }
+        },
+        return: state => state.valid
     })
-        -> _.valid
 }

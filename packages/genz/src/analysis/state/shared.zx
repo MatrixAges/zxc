@@ -52,8 +52,9 @@ export default function (in: Input): Output {
             }
 
             current.index += 1
-        }
-    }).roots
+        },
+        return: state => state.roots
+    })
 
     const updates = loop({
         types: in.types,
@@ -81,8 +82,9 @@ export default function (in: Input): Output {
             }
 
             current.index += 1
-        }
-    }).roots
+        },
+        return: state => state.roots
+    })
 
     const transforms = loop({
         types: in.types,
@@ -119,8 +121,9 @@ export default function (in: Input): Output {
             }
 
             current.index += 1
-        }
-    }).roots
+        },
+        return: state => state.roots
+    })
 
     return loop({
         types: in.types,
@@ -149,6 +152,7 @@ export default function (in: Input): Output {
             }
 
             current.index += 1
-        }
-    }).roots
+        },
+        return: state => state.roots
+    })
 }

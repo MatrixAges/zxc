@@ -31,6 +31,7 @@ export default function (in: Input): Output {
             }
 
             current.index += 1
-        }
-    }).selected
+        },
+        return: state => state.selected
+    })
 }

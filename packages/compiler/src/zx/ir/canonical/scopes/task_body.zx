@@ -64,8 +64,9 @@ export default function (in: Input): Output {
                 value: true
             })
             current.index += 1
-        }
-    }).activity
+        },
+        return: state => state.activity
+    })
 
     const captured: State = {
         ...restoration,

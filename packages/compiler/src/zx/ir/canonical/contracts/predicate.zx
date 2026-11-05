@@ -81,7 +81,7 @@ export default function (in: Input): Output {
                     orchestration: false
                 })
             current.index += 1
-        }
+        },
+        return: state => state.valid
     })
-        -> _.valid
 }

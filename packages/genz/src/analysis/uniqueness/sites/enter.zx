@@ -38,8 +38,9 @@ export default function (in: Input): Output {
             current.last = current.regions.parent[integers.widen(
                 current.last
             )]
-        }
-    }).last
+        },
+        return: state => state.last
+    })
 
     if (in.arms.count != 0 && ancestor == in.region) {
         return in.arms

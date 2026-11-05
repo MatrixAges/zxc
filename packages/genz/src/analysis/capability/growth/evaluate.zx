@@ -18,11 +18,12 @@ export default function (in: Input): Output {
             state.grows = state.grows.push(
                 source.native_modules[state.index] != null ||
                     source.roots[state.index] == null || body({
-                    expressions: source.expressions[state.index],
-                    grows: state.grows
-                })
+                        expressions: source.expressions[state.index],
+                        grows: state.grows
+                    })
             )[0]
             state.index += 1
-        }
-    }, in).grows
+        },
+        return: state => state.grows
+    }, in)
 }

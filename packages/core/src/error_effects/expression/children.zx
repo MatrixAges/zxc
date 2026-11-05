@@ -130,8 +130,9 @@ export default function (in: Input): Output {
                         current.table.match_results[current.index]
                     )[0]
                 current.index += 1
-            }
-        }).values
+            },
+            return: state => state.values
+        })
 
         return values.push(table.match_fallbacks[integers.widen(payload)])[0]
     }

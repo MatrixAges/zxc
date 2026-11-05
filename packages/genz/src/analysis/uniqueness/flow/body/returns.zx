@@ -19,6 +19,7 @@ export default function (in: Input): Output {
                 node: source.results[state.index]
             })
             state.index += 1
-        }
-    }, in).roots
+        },
+        return: state => state.roots
+    }, in)
 }

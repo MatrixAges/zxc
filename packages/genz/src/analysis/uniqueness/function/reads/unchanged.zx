@@ -52,6 +52,7 @@ export default function (in: Input): Output {
 
             state.same = decode(current) == decode(previous)
             state.offset += layout.stride
-        }
-    }, in).same
+        },
+        return: state => state.same
+    }, in)
 }

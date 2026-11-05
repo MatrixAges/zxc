@@ -41,7 +41,7 @@ export default function (in: Input): Output {
                 current.offset = tag
                 current.done = true
             }
-        }
+        },
+        return: state => state.offset
     })
-        -> _.offset
 }

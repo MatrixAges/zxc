@@ -50,6 +50,7 @@ export default function (in: Input): Output {
             } else {
                 state.valid = false
             }
-        }
-    }, in).valid
+        },
+        return: state => state.valid
+    }, in)
 }

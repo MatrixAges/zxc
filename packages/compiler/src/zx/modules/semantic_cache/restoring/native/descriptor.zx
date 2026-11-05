@@ -56,8 +56,9 @@ export default function (in: Input): Output {
             current.valid =
                 current.previous[current.index] == current.current[current.index]
             current.index += 1
-        }
-    }).valid
+        },
+        return: state => state.valid
+    })
 
     return loop({
         names,
@@ -74,6 +75,7 @@ export default function (in: Input): Output {
                 current.export_names[current.index] &&
                 current.types[current.index] == current.export_types[current.index]
             current.index += 1
-        }
-    }).valid
+        },
+        return: state => state.valid
+    })
 }

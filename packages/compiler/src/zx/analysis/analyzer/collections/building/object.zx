@@ -36,8 +36,9 @@ export default function (in: Input): Output {
                     )]
                 )[0]
             current.index += 1
-        }
-    }).fields
+        },
+        return: state => state.fields
+    })
 
     const constructed = construct({
         state: in.state,

@@ -32,6 +32,7 @@ export default function (in: Input): Output {
                 right,
                 matches
             }
-        }
-    }).matches
+        },
+        return: state => state.matches
+    })
 }

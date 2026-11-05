@@ -32,7 +32,7 @@ export default function (in: Input): Output {
                 index: integers.widen(current.ids[current.index])
             })
             current.index += 1
-        }
+        },
+        return: state => state.plan
     })
-        -> _.plan
 }

@@ -49,6 +49,7 @@ export default function (in: Input): Output {
                 current.fields.names[index - 1] != current.fields.names[index] ||
                 current.fields.types[index - 1] == current.fields.types[index]
             current.index += 1
-        }
-    }).valid
+        },
+        return: state => state.valid
+    })
 }

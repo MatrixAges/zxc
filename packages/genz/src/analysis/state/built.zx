@@ -29,7 +29,7 @@ export default function (in: Input): Output {
                 tables
             })
             current.index += 1
-        }
+        },
+        return: state => state.built
     })
-        -> _.built
 }

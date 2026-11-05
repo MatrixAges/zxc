@@ -44,11 +44,12 @@ export default function (in: Input): Output {
                 point: context.roots[state.index]
             })
             state.index += 1
-        }
+        },
+        return: state => state.queue
     }, {
         roots: in.roots,
         first
-    }).queue
+    })
 
     const expanded =
         in.context.body.expressions.call_functions.map(callee => false)[0]

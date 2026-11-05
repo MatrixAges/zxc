@@ -205,8 +205,9 @@ export default function (in: Input): Output {
                         current.fields[current.position]
                     )[0]
                 current.position += 1
-            }
-        }).items
+            },
+            return: state => state.items
+        })
 
         return parallel({
             table: target,

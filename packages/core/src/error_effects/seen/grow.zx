@@ -11,8 +11,9 @@ export default function (in: Input): Output {
         capacity
     }, {
         while: current => current.slots.length < current.capacity,
-        next: current => { current.slots = current.slots.push(0)[0] }
-    }).slots
+        next: current => { current.slots = current.slots.push(0)[0] },
+        return: state => state.slots
+    })
 
     return loop({
         previous: in,
@@ -31,14 +32,15 @@ export default function (in: Input): Output {
                     while: item => item.slots[item.position] != 0,
                     next: item =>
                         { item.position =
-                            (item.position + 1) % item.slots.length }
-                }).position
+                            (item.position + 1) % item.slots.length },
+                    return: state => state.position
+                })
 
                 current.slots = current.slots.splice(position, 1, [key])[0]
             }
 
             current.index += 1
-        }
+        },
+        return: state => state.slots
     })
-        -> _.slots
 }

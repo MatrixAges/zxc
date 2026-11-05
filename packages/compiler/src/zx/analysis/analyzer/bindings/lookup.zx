@@ -30,7 +30,7 @@ export type Output = u32?
                 if (current.names[integers.widen(id)] == current.name) {
                     current.found = id
                 }
-            }
+            },
+            return: state => state.found
         })
-            -> _.found
     }

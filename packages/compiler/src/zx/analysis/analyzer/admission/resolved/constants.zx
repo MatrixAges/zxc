@@ -62,11 +62,13 @@ export default function (in: Input): Output {
                 next: alias => {
                     alias.found = alias.names[alias.index] == alias.name
                     alias.index += 1
-                }
-            }).found
+                },
+                return: state => state.found
+            })
 
             current.valid = current.valid && !matching
             current.index += 1
-        }
-    }).valid
+        },
+        return: state => state.valid
+    })
 }

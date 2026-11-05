@@ -39,6 +39,7 @@ export default function (in: Input): Output {
                     value.id
                 )[0]
             current.index += 1
-        }
-    }).analysis
+        },
+        return: state => state.analysis
+    })
 }

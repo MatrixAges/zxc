@@ -30,8 +30,9 @@ export default function (in: Input): Output {
             current.slots[current.position] != current.key,
         next: current =>
             { current.position =
-                (current.position + 1) % current.slots.length }
-    }).position
+                (current.position + 1) % current.slots.length },
+        return: state => state.position
+    })
 
     const fresh = slots[position] == 0
 

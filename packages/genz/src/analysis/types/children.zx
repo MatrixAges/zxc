@@ -41,7 +41,7 @@ export default function (in: Input): Output {
 
             current.items = current.items.push(child)[0]
             current.position += 1
-        }
+        },
+        return: state => state.items
     })
-        -> _.items
 }

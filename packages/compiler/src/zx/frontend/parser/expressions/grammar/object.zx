@@ -102,7 +102,11 @@ export default function (in: Input): Output {
     }
 
     const options = taken.frame.kind == FrameKind.OptionsValue
-    const condition = options && taken.state.control.token.word == Keyword.While
+
+    const condition = options && (
+        taken.state.control.token.word == Keyword.While ||
+            taken.state.control.token.word == Keyword.Return
+    )
 
     const callback =
         options &&

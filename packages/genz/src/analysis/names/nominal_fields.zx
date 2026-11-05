@@ -67,7 +67,7 @@ export default function (in: Input): Output {
                 )
             )[0]
             current.index += 1
-        }
+        },
+        return: state => state.fields
     })
-        -> _.fields
 }

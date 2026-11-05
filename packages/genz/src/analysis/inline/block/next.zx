@@ -117,8 +117,9 @@ export default function (in: Input): Output {
                                     current.remaining]
                         )
                 }))[0]
-            }
-        }).frames
+            },
+            return: state => state.frames
+        })
 
         return {
             ...state,
@@ -163,8 +164,9 @@ export default function (in: Input): Output {
                         id: integers.widen(value)
                     }))[0]
                 }
-            }
-        }).frames
+            },
+            return: state => state.frames
+        })
 
         return {
             ...state,

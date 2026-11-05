@@ -2,6 +2,8 @@ import integers from "std:integer"
 import appendIteration from "core/expression_table/append/iteration"
 import appendScope from "core/expression_table/append/scope"
 
+import project from "./project"
+
 import type { Local } from "../local"
 import type { IterationFrame } from "./model"
 
@@ -9,6 +11,10 @@ export type Input = {
     local: Local,
     frame: IterationFrame,
     body: u32,
+    projection?: {
+        parameter: u32,
+        body: u32
+    },
     start: u64,
     end: u64
 }
@@ -37,11 +43,27 @@ export default function (in: Input): Output {
         postcondition: in.frame.postcondition
     })
 
+    const projected = in.projection == null ? {
+        ...iteration,
+        direct: false
+    } : project({
+        table: iteration.table,
+        iteration: iteration.id,
+        parameter: in.projection.parameter,
+        body: in.projection.body,
+        start: in.start,
+        end: in.end
+    })
+
     if (in.frame.readonly != null) {
         const result = appendScope({
-            table: iteration.table,
-            metadata,
-            result: iteration.id,
+            table: projected.table,
+            metadata: {
+                ...metadata,
+                type_id: projected.direct ? metadata.type_id :
+                    projected.table.types[integers.widen(projected.id)]
+            },
+            result: projected.direct ? iteration.id : projected.id,
             symbols: [
                 in.frame.readonly.initial_symbol,
                 in.frame.readonly.symbol
@@ -56,20 +78,32 @@ export default function (in: Input): Output {
             ]
         })
 
+        const final = projected.direct && in.projection != null ? project({
+            table: result.table,
+            iteration: result.id,
+            parameter: in.projection.parameter,
+            body: in.projection.body,
+            start: in.start,
+            end: in.end
+        }) : {
+            ...result,
+            direct: false
+        }
+
         return {
             local: {
                 ...in.local,
-                expressions: result.table
+                expressions: final.table
             },
-            value: result.id
+            value: final.id
         }
     }
 
     return {
         local: {
             ...in.local,
-            expressions: iteration.table
+            expressions: projected.table
         },
-        value: iteration.id
+        value: projected.id
     }
 }

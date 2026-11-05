@@ -85,8 +85,9 @@ export default function (in: Input): Output {
                                 item.found =
                                     item.values[item.index] == item.symbol
                                 item.index += 1
-                            }
-                        }).found
+                            },
+                            return: state => state.found
+                        })
 
                         if (!found) {
                             current.captures = current.captures.push(symbol)[0]

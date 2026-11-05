@@ -83,8 +83,9 @@ export default function (in: Input): Output {
                                 )
                             )[0]
                         items.position += 1
-                    }
-                }).items
+                    },
+                    return: state => state.items
+                })
 
                 current.table = parallel({
                     table: current.table,
@@ -186,8 +187,9 @@ export default function (in: Input): Output {
             }
 
             current.position = values + count
-        }
-    }).table
+        },
+        return: state => state.table
+    })
 
     return appended
 }

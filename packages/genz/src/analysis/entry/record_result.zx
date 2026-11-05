@@ -22,8 +22,9 @@ export default function (in: Input): Output {
             kind(types.kinds[integers.widen(current.type_id)]) == Kind.Optional,
         next: (current, types) => {
             current.type_id = types.first[integers.widen(current.type_id)]
-        }
-    }, in.types).type_id
+        },
+        return: state => state.type_id
+    }, in.types)
 
     const row = integers.widen(type_id)
     const count = in.types.second[row]
@@ -46,10 +47,11 @@ export default function (in: Input): Output {
                 type_id: source.types.field_types[source.first + current.index]
             })
             current.index += 1
-        }
+        },
+        return: state => state.valid
     }, {
         types: in.types,
         first: integers.widen(in.types.first[row]),
         count: integers.widen(count)
-    }).valid
+    })
 }

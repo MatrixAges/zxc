@@ -32,8 +32,9 @@ export default function (in: Input): Output {
             current.valid =
                 current.left[current.index] == current.right[current.index]
             current.index += 1
-        }
-    }).valid
+        },
+        return: state => state.valid
+    })
 
     return loop({
         names,
@@ -49,6 +50,7 @@ export default function (in: Input): Output {
                 current.value.names[current.index] &&
                 current.ids[current.index] == current.value.ids[current.index]
             current.index += 1
-        }
-    }).valid
+        },
+        return: state => state.valid
+    })
 }

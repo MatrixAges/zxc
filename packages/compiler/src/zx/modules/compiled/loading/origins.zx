@@ -37,8 +37,9 @@ export default function (in: Input): Output {
 
             current.owners = current.owners.push(rebound)[0]
             current.index += 1
-        }
-    }).owners
+        },
+        return: state => state.owners
+    })
 
     return {
         ...in.origins,

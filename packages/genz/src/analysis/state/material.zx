@@ -55,7 +55,7 @@ export default function (in: Input): Output {
                 id: integers.widen(child)
             })
             current.position += 1
-        }
+        },
+        return: state => state.bytes
     })
-        -> _.bytes
 }

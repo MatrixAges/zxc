@@ -29,7 +29,7 @@ export type Output = u64?
                 }
 
                 current.index += 1
-            }
+            },
+            return: state => state.selected
         })
-            -> _.selected
     }

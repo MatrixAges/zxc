@@ -76,6 +76,7 @@ export default function (in: Input): Output {
             }
 
             current.index += 1
-        }
-    }).analysis
+        },
+        return: state => state.analysis
+    })
 }

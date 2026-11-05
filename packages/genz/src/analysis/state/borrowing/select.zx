@@ -86,6 +86,7 @@ export default function (in: Input): Output {
             state.words = state.words.push(borrowed ? 1 : width)[0]
             state.managed = state.managed.push(nested)[0]
             state.index += 1
-        }
-    }, in).chosen
+        },
+        return: state => state.chosen
+    }, in)
 }

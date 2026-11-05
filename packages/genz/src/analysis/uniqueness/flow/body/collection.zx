@@ -81,13 +81,14 @@ export default function (in: Input): Output {
                 }
 
                 state.index += 1
-            }
+            },
+            return: state => state.queue
         }, {
             body,
             operation,
             first,
             count
-        }).queue
+        })
 
         return {
             ...in.state,
@@ -209,10 +210,11 @@ export default function (in: Input): Output {
                     node: context.body.expressions.sequence_items[state.index]
                 })
                 state.index += 1
-            }
+            },
+            return: state => state.queue
         }, {
             body,
             end: first + count
-        }).queue
+        })
     }
 }

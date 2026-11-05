@@ -110,6 +110,7 @@ export type Output = Capacity?
                 }
 
                 current.position += 1
-            }
-        }).found
+            },
+            return: state => state.found
+        })
     }

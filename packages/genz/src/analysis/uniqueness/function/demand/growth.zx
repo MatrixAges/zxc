@@ -23,8 +23,9 @@ export default function (in: Input): Output {
             source.entries[state.index].key != source.key,
         next: state => {
             state.index += 1
-        }
-    }, in).index
+        },
+        return: state => state.index
+    }, in)
 
     if (index == in.entries.length) {
         return {

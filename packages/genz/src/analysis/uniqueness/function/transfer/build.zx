@@ -50,11 +50,12 @@ export default function (in: Input): Output {
 
                 state.slot += 1
             }
-        }
+        },
+        return: state => state.transfers
     }, {
         input: in.source,
         needed,
         first,
         symbols
-    }).transfers
+    })
 }

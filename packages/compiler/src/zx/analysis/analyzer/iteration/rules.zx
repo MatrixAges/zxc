@@ -2,6 +2,7 @@ import { ExprKind } from "../../../frontend/parser/expressions/state/model"
 import items from "../expressions/items"
 import { NameKind } from "../source/model"
 import readName from "../source/name"
+import { duplicate_return, return_order, rule_names } from "./const"
 
 import type { Diagnostic } from "../../semantic/resolving/model"
 import type { Source } from "../expressions/request"
@@ -16,6 +17,7 @@ export type Output = {
     readonly_node?: u64,
     condition: u64,
     step: u64,
+    result_node?: u64,
     postcondition: bool,
     diagnostic: Diagnostic
 }
@@ -72,8 +74,9 @@ export default function (in: Input): Output {
             current.ids = current.ids.push(current.head - 1)[0]
             current.head = current.tree.fields[current.head -
                 1].previous
-        }
-    }).ids.reverse()[0]
+        },
+        return: state => state.ids
+    }).reverse()[0]
 
     const missing: u64? = null
 
@@ -90,6 +93,7 @@ export default function (in: Input): Output {
         index: 0,
         condition: missing,
         step: missing,
+        result_node: missing,
         postcondition: false,
         diagnostic
     }, {
@@ -136,10 +140,22 @@ export default function (in: Input): Output {
                     current.step = field.value
                     current.postcondition = name.text == "do"
                 }
+            } else if (name.text == "return") {
+                if (current.result_node != null || current.step == null) {
+                    current.diagnostic = {
+                        code: "name",
+                        message: current.result_node != null ? duplicate_return :
+                            return_order,
+                        start: name.start,
+                        end: name.end
+                    }
+                } else {
+                    current.result_node = field.value
+                }
             } else {
                 current.diagnostic = {
                     code: "name",
-                    message: "unknown loop rule; expected while and next or do",
+                    message: rule_names,
                     start: name.start,
                     end: name.end
                 }
@@ -160,6 +176,7 @@ export default function (in: Input): Output {
         readonly_node: node.count == 3 ? arguments[2] : null,
         condition: found.condition ?? 0,
         step: found.step ?? 0,
+        result_node: found.result_node,
         postcondition: found.postcondition,
         diagnostic: incomplete ? {
             code: "type_mismatch",

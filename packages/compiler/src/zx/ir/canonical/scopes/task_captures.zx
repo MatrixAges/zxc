@@ -26,6 +26,7 @@ export default function (in: Input): Output {
                     current.symbols[current.first + current.index]
                 )]
             current.index += 1
-        }
-    }).valid
+        },
+        return: state => state.valid
+    })
 }

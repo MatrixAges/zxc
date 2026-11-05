@@ -30,6 +30,7 @@ export default function (in: Input): Output {
                 roots: current.roots
             })
             current.index += 1
-        }
-    }).roots
+        },
+        return: state => state.roots
+    })
 }

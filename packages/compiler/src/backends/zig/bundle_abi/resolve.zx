@@ -26,8 +26,9 @@ export default function (in: Input): Output {
             }
 
             current.index += 1
-        }
-    }).aliases
+        },
+        return: state => state.aliases
+    })
 
     const result = loop({
         modules: in.source.modules,

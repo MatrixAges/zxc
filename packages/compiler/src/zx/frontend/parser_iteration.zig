@@ -17,7 +17,7 @@ pub fn options(parser: *Parser) zx.Error!*const ast.Expression {
             try fields.append(parser.allocator, .{ .name = .{ .text = "", .span = value.span }, .value = value, .spread = true });
         } else {
             const token = parser.current();
-            const condition = parser.take("while");
+            const condition = parser.take("while") or parser.take("return");
             const name = if (condition) ast.Name{ .text = token.text(parser.source), .span = token.span } else try parser.name();
             const updating = std.mem.eql(u8, name.text, "next") or std.mem.eql(u8, name.text, "do");
 

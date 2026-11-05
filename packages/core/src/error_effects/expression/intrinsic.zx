@@ -82,8 +82,9 @@ export default function (in: Input): Output {
                     names: current.names
                 })
                 current.index += 1
-            }
-        }).names
+            },
+            return: state => state.names
+        })
     }
 
     if (kind == ExpressionKind.Index) {

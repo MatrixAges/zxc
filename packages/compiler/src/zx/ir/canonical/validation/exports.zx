@@ -43,11 +43,13 @@ export default function (in: Input): Output {
                 next: prior => {
                     prior.found = prior.names[prior.index] == prior.name
                     prior.index += 1
-                }
-            }).found
+                },
+                return: state => state.found
+            })
 
             current.valid = current.valid && !duplicate
             current.index += 1
-        }
-    }).valid
+        },
+        return: state => state.valid
+    })
 }

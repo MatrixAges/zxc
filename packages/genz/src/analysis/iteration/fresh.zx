@@ -65,12 +65,14 @@ export default function (in: Input): Output {
                                 arms.table.match_results[arms.position]
                             )[0]
                         arms.position += 1
-                    }
-                }).pending
+                    },
+                    return: state => state.pending
+                })
             } else {
                 current.valid =
                     kind == ExpressionKind.Object || kind == ExpressionKind.Tuple
             }
-        }
-    }).valid
+        },
+        return: state => state.valid
+    })
 }

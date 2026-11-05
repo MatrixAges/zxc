@@ -23,8 +23,9 @@ export default function (in: Input): Output {
                 )[0]
             current.value = current.value / decimal_radix
         },
-        while: current => current.value != 0
-    }).output
+        while: current => current.value != 0,
+        return: state => state.output
+    })
 
     return loop({
         output: written,
@@ -39,7 +40,7 @@ export default function (in: Input): Output {
             current.output[current.right] = left
             current.left += 1
             current.right -= 1
-        }
+        },
+        return: state => state.output
     })
-        -> _.output
 }

@@ -69,7 +69,7 @@ export default function (in: Input): Output {
 
             current.values = current.values.push(value)[0]
             current.index += 1
-        }
+        },
+        return: state => state.values
     })
-        -> _.values
 }

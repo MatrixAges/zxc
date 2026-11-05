@@ -21,8 +21,9 @@ export default function (in: Input): Output {
                 index: integers.widen(context.operations[state.index])
             })
             state.index += 1
-        }
-    }, in).found
+        },
+        return: state => state.found
+    }, in)
 
     if (!writes) {
         return false
@@ -39,6 +40,7 @@ export default function (in: Input): Output {
                 node: context.repeated[state.index]
             })
             state.index += 1
-        }
-    }, in).found
+        },
+        return: state => state.found
+    }, in)
 }

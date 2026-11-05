@@ -48,6 +48,7 @@ export default function (in: Input): Output {
                 labels: current.table.labels.push("")[0]
             }
             current.index += 1
-        }
-    }).table
+        },
+        return: state => state.table
+    })
 }

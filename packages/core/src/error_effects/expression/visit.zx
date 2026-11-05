@@ -81,8 +81,9 @@ export default function (in: Input): Output {
                 index: integers.widen(current.values[current.index]),
                 count: 0
             })[0]
-        }
-    }).frames
+        },
+        return: state => state.frames
+    })
 
     return {
         ...in.state,

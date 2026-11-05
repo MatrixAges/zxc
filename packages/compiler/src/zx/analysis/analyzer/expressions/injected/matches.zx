@@ -70,7 +70,7 @@ export default function (in: Input): Output {
                     current.node = node.first
                 }
             }
-        }
+        },
+        return: state => state.matches
     })
-        -> _.matches
 }

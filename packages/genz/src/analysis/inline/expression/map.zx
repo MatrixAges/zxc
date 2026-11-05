@@ -83,8 +83,9 @@ export default function (in: Input): Output {
                     current.nested[current.remaining]
                 )
             }))[0]
-        }
-    }).frames
+        },
+        return: state => state.frames
+    })
 
     return {
         ...state,

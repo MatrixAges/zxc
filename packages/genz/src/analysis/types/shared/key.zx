@@ -20,6 +20,7 @@ export default function (in: Input): Output {
             current.bytes = current.bytes.push(
                 current.source[current.start + current.bytes.length]
             )[0]
-        }
-    }).bytes
+        },
+        return: state => state.bytes
+    })
 }

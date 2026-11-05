@@ -33,6 +33,7 @@ export default function (in: Input): Output {
                 orchestration: !current.request.unit.transaction
             })
             current.index += 1
-        }
-    }).valid
+        },
+        return: state => state.valid
+    })
 }

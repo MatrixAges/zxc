@@ -138,13 +138,14 @@ export default function (in: Input): Output {
                                     node: context.references[bind.end],
                                     frame: context.path
                                 })
-                            }
+                            },
+                            return: state => state.stack
                         }, {
                             first,
                             references,
                             path,
                             consumers: walk.consumers
-                        }).stack
+                        })
                     } else {
                         const parent_index = integers.widen(parent)
                         const target = parent == max_u32 ? ExpressionKind.Unit :
@@ -222,6 +223,7 @@ export default function (in: Input): Output {
                     }
                 }
             }
-        }
-    }, in.walk).sites
+        },
+        return: state => state.sites
+    }, in.walk)
 }

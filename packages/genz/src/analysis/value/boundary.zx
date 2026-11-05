@@ -69,7 +69,7 @@ export default function (in: Input): Output {
                 borrowed: current.borrowed
             })
             current.position += 1
-        }
+        },
+        return: state => state.valid
     })
-        -> _.valid
 }

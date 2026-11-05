@@ -22,6 +22,7 @@ export default function (in: Input): Output {
             }
 
             current.index += 1
-        }
-    }).bindings
+        },
+        return: state => state.bindings
+    })
 }

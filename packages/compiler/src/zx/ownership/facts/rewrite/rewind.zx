@@ -10,7 +10,7 @@ export default function (in: Input): Output {
         while: current => current.values.length > current.count,
         next: current => {
             current.values = current.values.pop()[0]
-        }
+        },
+        return: state => state.values
     })
-        -> _.values
 }

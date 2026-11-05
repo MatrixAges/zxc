@@ -28,7 +28,7 @@ export default function (in: Input): Output {
                 frame: taken.frame,
                 state: taken.state
             })
-        }
+        },
+        return: state => state.result
     })
-        -> _.result
 }

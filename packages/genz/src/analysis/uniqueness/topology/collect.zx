@@ -19,11 +19,12 @@ export default function (in: Input): Output {
 
             state.rows = state.rows.push(row)[0]
             state.index += 1
-        }
+        },
+        return: state => state.rows
     }, {
         input: in,
         empty
-    }).rows
+    })
 
     return functions.push(in.type_only ? empty : callees(in.entry))[0]
 }

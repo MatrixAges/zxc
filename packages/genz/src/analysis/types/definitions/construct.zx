@@ -56,8 +56,9 @@ export default function (in: Input): Output {
             count: in.names.length
         }, {
             while: slots => slots.values.length < slots.count,
-            next: slots => { slots.values = slots.values.push(false)[0] }
-        }).values,
+            next: slots => { slots.values = slots.values.push(false)[0] },
+            return: state => state.values
+        }),
         index: 0,
         field_count: 0,
         opaque_count: 0,
@@ -170,8 +171,9 @@ export default function (in: Input): Output {
                                         )]
                                 )[0]
                                 children.index += 1
-                            }
-                        }).items
+                            },
+                            return: state => state.items
+                        })
 
                         current = {
                             ...current,

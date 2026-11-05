@@ -35,7 +35,7 @@ export default function (in: Input): Output {
             } else {
                 current.done = true
             }
-        }
+        },
+        return: state => state.reusable
     })
-        -> _.reusable
 }

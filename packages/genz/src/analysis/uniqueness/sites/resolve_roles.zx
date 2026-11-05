@@ -55,6 +55,7 @@ export default function (in: Input): Output {
 
             current.roles = current.roles.push(current.role)[0]
             current.index += 1
-        }
-    }).roles
+        },
+        return: state => state.roles
+    })
 }

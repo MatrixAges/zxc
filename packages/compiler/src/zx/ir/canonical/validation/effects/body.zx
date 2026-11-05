@@ -128,13 +128,15 @@ export default function (in: Input): Output {
                                         compared.index] ==
                                     compared.members[compared.index]
                                 compared.index += 1
-                            }
-                        }).valid
+                            },
+                            return: state => state.valid
+                        })
                     }
                 }
             }
 
             current.index += 1
-        }
-    }).valid
+        },
+        return: state => state.valid
+    })
 }

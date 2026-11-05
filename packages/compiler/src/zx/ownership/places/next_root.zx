@@ -16,6 +16,7 @@ export default function (in: Input): Output {
     }, {
         while: current => current.index < current.end &&
             current.parents[current.index] != root_parent,
-        next: current => { current.index += 1 }
-    }).index
+        next: current => { current.index += 1 },
+        return: state => state.index
+    })
 }

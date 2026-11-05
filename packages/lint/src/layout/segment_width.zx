@@ -57,6 +57,7 @@ export default function (in: Input): Output {
                     priority <= current.input.priority
                 current.index += 1
             }
-        }
-    }).width
+        },
+        return: state => state.width
+    })
 }

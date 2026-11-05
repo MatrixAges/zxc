@@ -19,8 +19,9 @@ export default function (in: Input): Output {
         count: in.names.length * 2 + 1
     }, {
         while: current => current.values.length < current.count,
-        next: current => { current.values = current.values.push(null)[0] }
-    }).values
+        next: current => { current.values = current.values.push(null)[0] },
+        return: state => state.values
+    })
 
     const names: string[] = []
     const origins: u32?[] = []

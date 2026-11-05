@@ -75,8 +75,9 @@ export default function (in: Input): Output {
                                 )]
                         })[0]
                         row.index += 1
-                    }
-                }).values
+                    },
+                    return: state => state.values
+                })
             }
 
             current.members = current.members.push(members({

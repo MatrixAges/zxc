@@ -24,7 +24,7 @@ export default function (in: Input): Output {
             current.statements = current.statements.push(item.value)[0]
             current.head = item.previous
             current.remaining -= 1
-        }
-    })
-        -> _.statements.reverse()[0]
+        },
+        return: state => state.statements
+    }).reverse()[0]
 }

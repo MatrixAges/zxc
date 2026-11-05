@@ -32,7 +32,7 @@ export default function (in: Input): Output {
 
             current.names = current.names.push(name)[0]
             current.index += 1
-        }
+        },
+        return: state => state.names
     })
-        -> _.names
 }

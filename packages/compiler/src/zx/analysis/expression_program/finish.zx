@@ -26,8 +26,9 @@ export default function (in: Input): Output {
                 value: current.values[current.index]
             })
             current.index += 1
-        }
-    }).table
+        },
+        return: state => state.table
+    })
 
     const returned = result({
         table: constants,

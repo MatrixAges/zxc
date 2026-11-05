@@ -23,8 +23,9 @@ export default function (in: Input): Output {
             } else {
                 current.high = middle
             }
-        }
-    }).low
+        },
+        return: state => state.low
+    })
 
     if (found == 0) {
         return false

@@ -61,8 +61,9 @@ export default function (in: Input): Output {
                 expression != ExpressionKind.Task &&
                 expression != ExpressionKind.Parallel
             state.index += 1
-        }
-    }, in).bounded
+        },
+        return: state => state.bounded
+    }, in)
 
     return bounded && body({
         expressions: in.expressions,

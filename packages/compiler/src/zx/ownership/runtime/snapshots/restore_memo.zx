@@ -17,6 +17,7 @@ export default function (in: Input): Output {
         next: current => {
             current.memo[current.index] = current.saved[current.first + current.index]
             current.index += 1
-        }
-    }).memo
+        },
+        return: state => state.memo
+    })
 }

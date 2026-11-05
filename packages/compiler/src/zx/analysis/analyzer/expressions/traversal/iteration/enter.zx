@@ -39,6 +39,10 @@ export default function (in: Input): Output {
         } : null,
         condition_node: prepared.condition,
         step_node: prepared.step,
+        result_node: prepared.result_node,
+        expected: in.expected,
+        result_parameter: null,
+        step_body: 0,
         postcondition: prepared.postcondition,
         initial: 0,
         condition_parameter: 0,
@@ -55,7 +59,7 @@ export default function (in: Input): Output {
     return {
         ...in,
         node: prepared.initial,
-        expected: payload({
+        expected: prepared.result_node != null ? null : payload({
             types: in.state.types,
             expected: in.expected
         }),

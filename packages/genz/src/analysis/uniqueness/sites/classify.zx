@@ -25,8 +25,9 @@ export default function (in: Input): Output {
         while: current => current.states.length < current.count,
         next: current => {
             current.states = current.states.push(Usage.Observed)[0]
-        }
-    }).states
+        },
+        return: state => state.states
+    })
 
     const query: Query = {
         plan: in.plan,
@@ -212,18 +213,20 @@ export default function (in: Input): Output {
                                 }
 
                                 pair.index += 1
-                            }
+                            },
+                            return: state => state.states
                         }, {
                             query: context.query,
                             base: context.base,
                             count: context.count,
                             site: index,
                             end: context.end
-                        }).states
+                        })
                     }
 
                     site.index += 1
-                }
+                },
+                return: state => state.states
             }, {
                 query,
                 base,
@@ -232,8 +235,9 @@ export default function (in: Input): Output {
                 end,
                 count: query.plan.slot_first[current.root + 1] -
                     query.plan.slot_first[current.root]
-            }).states
+            })
             current.root += 1
-        }
-    }, query).states
+        },
+        return: state => state.states
+    }, query)
 }

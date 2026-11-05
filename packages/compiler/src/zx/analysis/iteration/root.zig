@@ -18,6 +18,7 @@ pub fn analyze(self: *Analyzer, expression: anytype, expected: ?ir.TypeId) zx.Er
     const fields = rule_value.object;
     var condition: ?@TypeOf(expression) = null;
     var step: ?@TypeOf(expression) = null;
+    var output: ?@TypeOf(expression) = null;
     var postcondition = false;
 
     for (0..fields.len) |index| {
@@ -34,12 +35,17 @@ pub fn analyze(self: *Analyzer, expression: anytype, expected: ?ir.TypeId) zx.Er
 
             step = field.value;
             postcondition = std.mem.eql(u8, field.name.text, "do");
-        } else return self.reporter.fail(.name, field.name.span, "unknown loop rule; expected while and next or do");
+        } else if (std.mem.eql(u8, field.name.text, "return")) {
+            if (output != null) return self.reporter.fail(.name, field.name.span, "duplicate loop return");
+            if (step == null) return self.reporter.fail(.name, field.name.span, "loop return must follow next or do");
+
+            output = field.value;
+        } else return self.reporter.fail(.name, field.name.span, "unknown loop rule; expected while, next or do, and optional return");
     }
 
     if (condition == null or step == null) return self.reporter.fail(.type_mismatch, rules.span, "loop requires while and exactly one next or do step");
 
-    const initial_value = try self.expression(syntax.item(arguments, 0), @import("../aggregates.zig").payload(self, expected));
+    const initial_value = try self.expression(syntax.item(arguments, 0), if (output != null) null else @import("../aggregates.zig").payload(self, expected));
     const type_id = self.node(initial_value).type_id;
 
     if (type_id == Types.scalarId(.void)) return self.reporter.fail(.type_mismatch, syntax.item(arguments, 0).span, "loop state cannot be void");
@@ -51,8 +57,8 @@ pub fn analyze(self: *Analyzer, expression: anytype, expected: ?ir.TypeId) zx.Er
     const saved_initial = if (readonly_value != null) try save(self, initial_value, "loop_initial") else null;
     const saved_context = if (readonly_value) |value| try save(self, value, "loop_context") else null;
     const context = if (saved_context) |saved| saved.reference else null;
-    const predicate = try callback(self, condition.?, type_id, false, context);
-    const next = try callback(self, step.?, type_id, true, context);
+    const predicate = try callback(self, condition.?, type_id, false, context, Types.scalarId(.bool));
+    const next = try callback(self, step.?, type_id, true, context, null);
 
     const result = try self.append(.{ .span = expression.span, .type_id = type_id, .value = .{ .iteration = .{
         .initial = if (saved_initial) |saved| saved.reference else initial_value,
@@ -64,12 +70,41 @@ pub fn analyze(self: *Analyzer, expression: anytype, expected: ?ir.TypeId) zx.Er
         .postcondition = postcondition,
     } } });
 
-    if (saved_context) |saved| return self.append(.{ .span = expression.span, .type_id = type_id, .value = .{ .scope = .{
+    const projected = if (output) |source| projected: {
+        const selected = try callback(self, source, type_id, false, context, expected);
+        const body = self.node(selected.body);
+
+        switch (body.value) {
+            .field, .tuple_field => |field| {
+                const target = self.node(field.target).value;
+
+                if (target == .reference and target.reference == selected.parameter) {
+                    const scoped = if (saved_context) |saved| try self.append(.{ .span = expression.span, .type_id = type_id, .value = .{ .scope = .{
+                        .bindings = try self.allocator.dupe(ir.ScopeBinding, &.{ .{ .symbol = saved_initial.?.symbol, .value = initial_value }, .{ .symbol = saved.symbol, .value = readonly_value.? } }),
+                        .result = result,
+                    } } }) else result;
+
+                    const projection: ir.Projection = .{ .target = scoped, .index = field.index };
+                    const value: @FieldType(ir.Expression, "value") = if (body.value == .field) .{ .field = projection } else .{ .tuple_field = projection };
+
+                    return self.append(.{ .span = expression.span, .type_id = body.type_id, .value = value });
+                }
+            },
+            else => {},
+        }
+
+        break :projected try self.append(.{ .span = expression.span, .type_id = self.node(selected.body).type_id, .value = .{ .scope = .{
+            .bindings = try self.allocator.dupe(ir.ScopeBinding, &.{.{ .symbol = selected.parameter, .value = result }}),
+            .result = selected.body,
+        } } });
+    } else result;
+
+    if (saved_context) |saved| return self.append(.{ .span = expression.span, .type_id = self.node(projected).type_id, .value = .{ .scope = .{
         .bindings = try self.allocator.dupe(ir.ScopeBinding, &.{ .{ .symbol = saved_initial.?.symbol, .value = initial_value }, .{ .symbol = saved.symbol, .value = readonly_value.? } }),
-        .result = result,
+        .result = projected,
     } } });
 
-    return result;
+    return projected;
 }
 
 const Callback = struct { parameter: ir.SymbolId, body: ir.ExprId };
@@ -84,7 +119,7 @@ fn save(self: *Analyzer, value: ir.ExprId, name: []const u8) zx.Error!Saved {
     return .{ .symbol = symbol, .reference = try self.append(.{ .span = node.span, .type_id = node.type_id, .value = .{ .reference = symbol } }) };
 }
 
-fn callback(self: *Analyzer, source: anytype, type_id: ir.TypeId, updating: bool, context: ?ir.ExprId) zx.Error!Callback {
+fn callback(self: *Analyzer, source: anytype, type_id: ir.TypeId, updating: bool, context: ?ir.ExprId, expected: ?ir.TypeId) zx.Error!Callback {
     const message = if (context != null) "loop callbacks require a state parameter and at most one context parameter" else "loop callbacks require one inline state parameter";
 
     if (syntax.value(source) != .lambda) return self.reporter.fail(.type_mismatch, source.span, message);
@@ -121,7 +156,7 @@ fn callback(self: *Analyzer, source: anytype, type_id: ir.TypeId, updating: bool
     const body = if (updating)
         try @import("block.zig").analyze(self, syntax.value(lambda.body).state_block, parameter)
     else
-        try self.expression(lambda.body, Types.scalarId(.bool));
+        try self.expression(lambda.body, expected);
 
     return .{ .parameter = parameter, .body = if (readonly_parameter) |id| try self.append(.{ .span = self.node(body).span, .type_id = self.node(body).type_id, .value = .{ .scope = .{
         .bindings = try self.allocator.dupe(ir.ScopeBinding, &.{.{ .symbol = id, .value = context.? }}),

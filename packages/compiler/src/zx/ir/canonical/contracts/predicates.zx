@@ -30,7 +30,7 @@ export default function (in: Input): Output {
                 })
             current.has_ensures = current.has_ensures || kind == ContractKind.Ensures
             current.index += 1
-        }
+        },
+        return: state => state.valid
     })
-        -> _.valid
 }

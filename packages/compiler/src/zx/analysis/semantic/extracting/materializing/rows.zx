@@ -120,7 +120,7 @@ export default function (in: Input): Output {
                 current.index += 1
                 current.member = 0
             }
-        }
+        },
+        return: state => state.table
     })
-        -> _.table
 }

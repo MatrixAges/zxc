@@ -46,6 +46,7 @@ export default function (in: Input): Output {
                     deep: false
                 }))[0]
             }
-        }
-    }).found
+        },
+        return: state => state.found
+    })
 }

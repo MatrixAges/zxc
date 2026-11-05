@@ -59,8 +59,9 @@ export default function (in: Input): Output {
                         previous.valid =
                             previous.names[previous.index] != previous.name
                         previous.index += 1
-                    }
-                }).valid
+                    },
+                    return: state => state.valid
+                })
                 const numeric = target({
                     expected: value.type_id,
                     floating: false,
@@ -105,6 +106,7 @@ export default function (in: Input): Output {
             }
 
             current.index += 1
-        }
-    }).valid
+        },
+        return: state => state.valid
+    })
 }

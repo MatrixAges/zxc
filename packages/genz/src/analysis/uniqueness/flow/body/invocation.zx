@@ -43,11 +43,12 @@ export default function (in: Input): Output {
                 }
 
                 state.slot += 1
-            }
+            },
+            return: state => state.queue
         }, {
             first: body.prepared.first,
             values,
             argument: expressions.call_arguments[payload]
-        }).queue
+        })
     }
 }

@@ -53,8 +53,9 @@ export default function (in: Input): Output {
         next: current => {
             current.valid = current.kinds[current.index] != ExpressionKind.Call
             current.index += 1
-        }
-    }).valid
+        },
+        return: state => state.valid
+    })
 
     return pure && slots({
         stores: functions.stores,

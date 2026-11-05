@@ -124,6 +124,7 @@ export default function (in: Input): Output {
             }
 
             current.index += 1
-        }
-    }).result
+        },
+        return: state => state.result
+    })
 }

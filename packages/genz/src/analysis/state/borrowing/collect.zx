@@ -28,8 +28,9 @@ export default function (in: Input): Output {
             }
 
             state.index += 1
-        }
-    }, in.program).roots
+        },
+        return: state => state.roots
+    }, in.program)
 
     const own = scan({
         tables:

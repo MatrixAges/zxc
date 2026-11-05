@@ -92,8 +92,9 @@ export default function (in: Input): Output {
             state.counts[integers.widen(source.constructed[state.index])] =
                 many_constructions
             state.index += 1
-        }
-    }, result).counts
+        },
+        return: state => state.counts
+    }, result)
 
     return {
         counts,

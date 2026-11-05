@@ -52,8 +52,9 @@ export default function (in: Input): Output {
                         property: Property.Represented
                     })
                     fields.index += 1
-                }
-            }).found
+                },
+                return: state => state.found
+            })
             const nested = optional ? child : members
 
             const value = match {
@@ -65,6 +66,7 @@ export default function (in: Input): Output {
 
             current.values = current.values.push(value)[0]
             current.index += 1
-        }
-    }).values
+        },
+        return: state => state.values
+    })
 }

@@ -53,7 +53,7 @@ export default function (in: Input): Output {
 
             current.remaining = found.position
             current.subject = found.subject
-        }
+        },
+        return: state => state.subject
     })
-        -> _.subject
 }

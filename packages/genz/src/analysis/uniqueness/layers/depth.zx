@@ -9,7 +9,7 @@ export type Input = {
 export type Output = u32?
 
     export default function (in: Input): Output {
-        const result = loop({
+        return loop({
             source: in,
             index: 0,
             depth: integers.narrow(0),
@@ -31,8 +31,7 @@ export type Output = u32?
                 }
 
                 current.index += 1
-            }
+            },
+            return: state => state.ordered ? state.depth : null
         })
-
-        return result.ordered ? result.depth : null
     }

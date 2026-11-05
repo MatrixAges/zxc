@@ -23,6 +23,7 @@ export default function (in: Input): Output {
 
             current.found = current.source.concurrent[index]
             current.repeated = current.source.parents[index]
-        }
-    }).found
+        },
+        return: state => state.found
+    })
 }

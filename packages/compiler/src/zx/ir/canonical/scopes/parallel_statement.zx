@@ -50,8 +50,9 @@ export default function (in: Input): Output {
                     }
                 })
             }
-        }
-    }).state
+        },
+        return: state => state.state
+    })
 
     return loop({
         result: {
@@ -98,6 +99,7 @@ export default function (in: Input): Output {
                     })
                 }
             }
-        }
-    }).result
+        },
+        return: state => state.result
+    })
 }

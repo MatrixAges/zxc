@@ -34,7 +34,7 @@ export default function (in: Input): Output {
                 frames: current.state.frames.push(entry)[0]
             })
             current.index += 1
-        }
+        },
+        return: state => state.state
     })
-        -> _.state
 }

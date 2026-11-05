@@ -65,8 +65,9 @@ export default function (in: Input): Output {
                                 previous.bindings.namespaces[previous.index] ?? ""
                             ) != previous.namespace
                         previous.index += 1
-                    }
-                }).valid
+                    },
+                    return: state => state.valid
+                })
             }
 
             if (current.valid) {
@@ -93,6 +94,7 @@ export default function (in: Input): Output {
             }
 
             current.index += 1
-        }
-    }).valid
+        },
+        return: state => state.valid
+    })
 }

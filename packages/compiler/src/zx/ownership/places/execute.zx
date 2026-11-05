@@ -87,7 +87,7 @@ export default function (in: Input): Output {
                     current.phase = Phase.Enter
                 }
             }
-        }
+        },
+        return: state => state.states
     })
-        -> _.states
 }

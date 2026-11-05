@@ -39,8 +39,9 @@ export default function (in: Input): Output {
         next: current => {
             current.found = current.names[current.index] == current.name
             current.index += 1
-        }
-    }).found
+        },
+        return: state => state.found
+    })
 
     const signature: Signature = {
         types: {

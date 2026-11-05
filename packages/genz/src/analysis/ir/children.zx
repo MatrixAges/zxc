@@ -171,8 +171,9 @@ export default function (in: Input): Output {
                         ]
                     )[0]
                 current.position += 1
-            }
-        }).items
+            },
+            return: state => state.items
+        })
             -> _.push(table.match_fallbacks[payload])[0]
     }
 

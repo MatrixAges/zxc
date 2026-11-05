@@ -22,6 +22,7 @@ export default function (in: Input): Output {
                 ...value,
                 offset
             }
-        }
-    }).offset
+        },
+        return: state => state.offset
+    })
 }

@@ -27,7 +27,7 @@ export default function (in: Input): Output {
                 )]
             )[0]
             current.index += 1
-        }
-    })
-        -> _.items.push(in.origin)[0]
+        },
+        return: state => state.items
+    }).push(in.origin)[0]
 }

@@ -83,8 +83,9 @@ export default function (in: Input): Output {
                                         cases.control.case_bodies[cases.item]
                                     )[0]
                                 cases.item += 1
-                            }
-                        }).blocks
+                            },
+                            return: state => state.blocks
+                        })
                     }
 
                     statements.position += 1
@@ -93,7 +94,7 @@ export default function (in: Input): Output {
 
             current.blocks = scanned.blocks
             current.found = scanned.found
-        }
+        },
+        return: state => state.found
     })
-        -> _.found
 }

@@ -53,15 +53,16 @@ export default function (in: Input): Output {
                                     members.types.children[members.position]
                             )[0]
                         members.position += 1
-                    }
-                }).stack
+                    },
+                    return: state => state.stack
+                })
             } else {
                 current.valid = detached({
                     types: current.types,
                     id
                 })
             }
-        }
+        },
+        return: state => state.valid
     })
-        -> _.valid
 }

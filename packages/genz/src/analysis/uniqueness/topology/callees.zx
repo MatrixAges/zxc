@@ -26,6 +26,7 @@ export default function (in: Input): Output {
             }
 
             state.index += 1
-        }
-    }, in).values
+        },
+        return: state => state.values
+    }, in)
 }

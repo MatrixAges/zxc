@@ -37,11 +37,12 @@ export default function (in: Input): Output {
             } else {
                 state.last = middle
             }
-        }
+        },
+        return: state => state.first
     }, {
         offsets,
         slot: in.point.slot
-    }).first
+    })
 
     if (position == 0) {
         return in.state

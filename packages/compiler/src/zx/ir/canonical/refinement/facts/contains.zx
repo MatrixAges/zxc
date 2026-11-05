@@ -21,6 +21,7 @@ export default function (in: Input): Output {
                 !current.projected[current.index] &&
                 current.values[current.index] == current.symbol
             current.index += 1
-        }
-    }).found
+        },
+        return: state => state.found
+    })
 }

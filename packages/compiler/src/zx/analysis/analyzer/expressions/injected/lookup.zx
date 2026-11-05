@@ -27,8 +27,9 @@ export default function (in: Input): Output {
     }, {
         while: current => current.tree.nodes[current.node].kind == ExprKind.Field,
         next: current => { current.node =
-            current.tree.nodes[current.node].first }
-    }).node
+            current.tree.nodes[current.node].first },
+        return: state => state.node
+    })
 
     const node = in.source.tree.nodes[root]
 

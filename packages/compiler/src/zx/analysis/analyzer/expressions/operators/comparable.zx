@@ -34,7 +34,7 @@ export default function (in: Input): Output {
                     ) || value.kind == Kind.Enumeration || value.kind == Kind.ErrorSet
                 current.done = true
             }
-        }
+        },
+        return: state => state.comparable
     })
-        -> _.comparable
 }

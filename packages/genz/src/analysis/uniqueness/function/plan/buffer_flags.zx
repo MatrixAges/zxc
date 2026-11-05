@@ -29,8 +29,9 @@ export default function (in: Input): Output {
                 integers.orBits(state.flags[owner], buffered_flag)
             )
             state.index += 1
-        }
-    }, in).flags
+        },
+        return: state => state.flags
+    }, in)
 
     const result = loop({
         index: 0,
@@ -99,8 +100,9 @@ export default function (in: Input): Output {
                 ...entries[state.index]
             })[0]
             state.index += 1
-        }
-    }, result.reads).reads
+        },
+        return: state => state.reads
+    }, result.reads)
 
     return {
         known: in.stage.working.known,

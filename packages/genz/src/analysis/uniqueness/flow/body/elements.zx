@@ -20,8 +20,9 @@ export default function (in: Input): Output {
         while: state => state.values.length < state.count,
         next: state => {
             state.values = state.values.push(max_u32)[0]
-        }
-    }).values
+        },
+        return: state => state.values
+    })
 
     return loop({
         values,
@@ -43,13 +44,15 @@ export default function (in: Input): Output {
                     const symbol = context.parameters[parameter.position]
                     parameter.values[integers.widen(symbol)] = context.target
                     parameter.position += 1
-                }
+                },
+                return: state => state.values
             }, {
                 parameters: source.transform_parameters,
                 target: source.transform_targets[index],
                 end: first + integers.widen(source.transform_count[index])
-            }).values
+            })
             state.index += 1
-        }
-    }, in.expressions).values
+        },
+        return: state => state.values
+    }, in.expressions)
 }

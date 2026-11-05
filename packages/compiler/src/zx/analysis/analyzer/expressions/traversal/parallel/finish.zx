@@ -90,8 +90,9 @@ export default function (in: Input): Output {
                     )
                 )[0]
             current.index += 1
-        }
-    }).indices
+        },
+        return: state => state.indices
+    })
 
     const result = append({
         table: type_id.state.local.expressions,

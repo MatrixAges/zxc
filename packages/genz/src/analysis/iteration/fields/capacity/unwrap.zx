@@ -25,6 +25,7 @@ export default function (in: Input): Output {
                 .scope_results[integers.widen(
                     payload
                 )]
-        }
-    }).value
+        },
+        return: state => state.value
+    })
 }

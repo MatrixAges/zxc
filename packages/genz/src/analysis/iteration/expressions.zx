@@ -45,6 +45,7 @@ export default function (in: Input): Output {
                 index
             }))[0]
             current.index += 1
-        }
-    }).safe
+        },
+        return: state => state.safe
+    })
 }

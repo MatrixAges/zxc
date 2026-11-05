@@ -77,8 +77,9 @@ export default function (in: Input): Output {
                         }
 
                         items.position += 1
-                    }
-                }).cost
+                    },
+                    return: state => state.cost
+                })
 
                 if (counted <= current.limit) {
                     current.costs[current.index] = counted
@@ -86,7 +87,7 @@ export default function (in: Input): Output {
             }
 
             current.index += 1
-        }
+        },
+        return: state => state.costs
     })
-        -> _.costs
 }

@@ -49,8 +49,9 @@ export default function (in: Input): Output {
 
                     children.different = children.changed[integers.widen(child)]
                     children.index += 1
-                }
-            }).different : child || (selected && target == Kind.List)
+                },
+                return: state => state.different
+            }) : child || (selected && target == Kind.List)
 
             current = {
                 ...current,

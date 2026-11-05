@@ -30,8 +30,9 @@ export default function (in: Input): Output {
         next: current => {
             current.widths = current.widths.push(0)[0]
             current.index += 1
-        }
-    }).widths
+        },
+        return: state => state.widths
+    })
 
     const result = loop({
         graph: in,

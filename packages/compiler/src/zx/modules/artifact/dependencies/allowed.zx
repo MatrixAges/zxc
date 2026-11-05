@@ -14,7 +14,7 @@ export default function (in: Input): Output {
         next: current => {
             current.valid = current.kinds[current.index] != TargetKind.Compiled
             current.index += 1
-        }
+        },
+        return: state => state.valid
     })
-        -> _.valid
 }

@@ -20,7 +20,7 @@ export default function (in: Input): Output {
                 integers.widen(current.input.values[current.index]) <
                 current.input.count
             current.index += 1
-        }
+        },
+        return: state => state.valid
     })
-        -> _.valid
 }

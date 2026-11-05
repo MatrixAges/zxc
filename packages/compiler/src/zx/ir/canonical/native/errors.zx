@@ -33,7 +33,7 @@ export default function (in: Input): Output {
                 kind: NameKind.TypeDecl
             }) && !previous.found
             current.index += 1
-        }
+        },
+        return: state => state.valid
     })
-        -> _.valid
 }

@@ -75,12 +75,50 @@ export default function (in: Input): Output {
         }
     }
 
+    if (in.action == Action.IterationStep && frame.result_node != null) {
+        const entered = callback({
+            state,
+            source: work.source,
+            node: frame.result_node,
+            type_id: state.local.expressions.types[integers.widen(frame.initial)],
+            updating: false,
+            readonly_value: frame.readonly != null ? frame.readonly.reference : null
+        })
+
+        return {
+            ...work,
+            state: entered.state,
+            node: entered.body,
+            expected: frame.expected,
+            phase: Phase.Evaluate,
+            frames: {
+                ...work.frames,
+                iterations: work.frames.iterations.splice(position, 1, [{
+                    ...frame,
+                    step_body: body.value,
+                    result_parameter: entered.parameter,
+                    readonly: frame.readonly != null ? {
+                        ...frame.readonly,
+                        parameter: entered.readonly_parameter
+                    } : null,
+                    context: entered.context
+                }])[0],
+                actions: work.frames.actions.push(Action.IterationReturn)[0]
+            }
+        }
+    }
+
     const span = work.source.tree.nodes[frame.node].span
 
     const result = finish({
         local: state.local,
         frame,
-        body: body.value,
+        body: in.action == Action.IterationReturn ? frame.step_body : body.value,
+        projection:
+            in.action == Action.IterationReturn && frame.result_parameter != null ? {
+                parameter: frame.result_parameter,
+                body: body.value
+            } : null,
         start: span.start,
         end: span.end
     })

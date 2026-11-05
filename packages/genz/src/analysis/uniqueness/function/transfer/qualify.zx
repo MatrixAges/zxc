@@ -152,13 +152,14 @@ export default function qualify(in: Input): Output {
                             node: context.results[context.first + state.index]
                         })
                         state.index += 1
-                    }
+                    },
+                    return: state => state.valid
                 }, {
                     source: in,
                     results: expressions.match_results,
                     first,
                     count: integers.widen(expressions.match_count[payload])
-                }).valid
+                })
         case ExpressionKind.Binary:
             return expressions.binary_operators[payload] == BinaryOperator.Coalesce &&
             qualify({

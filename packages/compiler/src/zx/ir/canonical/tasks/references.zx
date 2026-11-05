@@ -70,7 +70,7 @@ export default function (in: Input): Output {
                     current.capture = 0
                 }
             }
-        }
+        },
+        return: state => state.valid
     })
-        -> _.valid
 }

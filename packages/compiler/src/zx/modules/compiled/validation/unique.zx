@@ -15,6 +15,7 @@ export default function (in: Input): Output {
             current.valid =
                 current.names[current.index - 1] != current.names[current.index]
             current.index += 1
-        }
-    }).valid
+        },
+        return: state => state.valid
+    })
 }

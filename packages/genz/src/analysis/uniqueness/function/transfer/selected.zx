@@ -36,9 +36,12 @@ export default function (in: Input): Output {
             }
 
             if (expressions.kinds[node] == ExpressionKind.Call) {
-                const owner = source.context.metadata.layout.unwrapped[
-                    integers.widen(expressions.types[node])
-                ]
+                const owner = source.context.metadata.layout
+                    .unwrapped[
+                        integers.widen(
+                            expressions.types[node]
+                        )
+                    ]
                 const output = kind(source.types.kinds[integers.widen(owner)])
                 const scalar = output == Kind.Scalar || output == Kind.Enumeration ||
                     output == Kind.ErrorSet
@@ -55,8 +58,9 @@ export default function (in: Input): Output {
             }
 
             state.index += 1
-        }
-    }, in).selected
+        },
+        return: state => state.selected
+    }, in)
 
     const repeated = loop({
         selected: operations,
@@ -81,8 +85,9 @@ export default function (in: Input): Output {
             }
 
             state.index += 1
-        }
-    }, in.source).selected
+        },
+        return: state => state.selected
+    }, in.source)
 
     return loop({
         selected: repeated,
@@ -92,6 +97,7 @@ export default function (in: Input): Output {
         next: (state, source) => {
             state.selected[integers.widen(source.results[state.index])] = true
             state.index += 1
-        }
-    }, in.source).selected
+        },
+        return: state => state.selected
+    }, in.source)
 }

@@ -14,7 +14,7 @@ export default function (in: Input): Output {
         next: current => {
             current.position = current.position + 1 == current.slots.length ? 0 :
                 current.position + 1
-        }
+        },
+        return: state => state.position
     })
-        -> _.position
 }

@@ -112,7 +112,7 @@ export default function (in: Input): Output {
                 current.root = 0
                 current.sifting = true
             }
-        }
+        },
+        return: state => state.positions
     })
-        -> _.positions
 }

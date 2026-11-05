@@ -30,7 +30,7 @@ export default function (in: Input): Output {
             current.valid = parts.valid
 
             current.index += 1
-        }
+        },
+        return: state => state.valid
     })
-        -> _.valid
 }

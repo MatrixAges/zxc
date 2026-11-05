@@ -93,7 +93,7 @@ export default function (in: Input): Output {
                     current.index = 0
                 }
             }
-        }
+        },
+        return: state => state.locals
     })
-        -> _.locals
 }

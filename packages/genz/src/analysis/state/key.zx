@@ -20,7 +20,7 @@ export default function (in: Input): Output {
             current.bytes =
                 current.bytes.push(current.keys[current.position])[0]
             current.position += 1
-        }
+        },
+        return: state => state.bytes
     })
-        -> _.bytes
 }

@@ -73,8 +73,9 @@ export default function (in: Input): Output {
                                         index: previous.index
                                     }))
                                 previous.index += 1
-                            }
-                        }).valid
+                            },
+                            return: state => state.valid
+                        })
 
                         const callable =
                             names.valid && names.item.kind != ImportKind.TypeOnly &&
@@ -94,8 +95,9 @@ export default function (in: Input): Output {
                                                 binding.bindings.names[binding.index]
                                         ) == binding.name
                                     binding.index += 1
-                                }
-                            }).found
+                                },
+                                return: state => state.found
+                            })
 
                         if (
                             names.valid && names.item.kind == ImportKind.Function
@@ -158,11 +160,13 @@ export default function (in: Input): Output {
                         }
 
                         names.index += 1
-                    }
-                }).valid
+                    },
+                    return: state => state.valid
+                })
             }
 
             current.index += 1
-        }
-    }).valid
+        },
+        return: state => state.valid
+    })
 }

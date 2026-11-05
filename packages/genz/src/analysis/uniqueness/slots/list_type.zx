@@ -25,7 +25,7 @@ export default function (in: Input): Output {
             state.remaining -= context.layout.offsets[owner][step]
             const selected = context.layout.members[owner][step]
             state.current = context.layout.unwrapped[integers.widen(selected)]
-        }
+        },
+        return: state => state.current
     }, in)
-        -> _.current
 }

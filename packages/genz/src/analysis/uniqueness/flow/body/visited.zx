@@ -16,6 +16,7 @@ export default function (in: Input): Output {
         while: state => state.values.length < state.count,
         next: state => {
             state.values = state.values.concat(state.values)[0]
-        }
-    }).values
+        },
+        return: state => state.values
+    })
 }

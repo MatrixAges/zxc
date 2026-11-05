@@ -28,8 +28,9 @@ export default function (in: Input): Output {
     }, {
         while: current => current.values.length < current.capacity,
         next: current => { current.values =
-            current.values.push(max_u32)[0] }
-    }).values : in.buckets
+            current.values.push(max_u32)[0] },
+        return: state => state.values
+    }) : in.buckets
 
     return loop({
         entries: in.entries,
@@ -46,6 +47,7 @@ export default function (in: Input): Output {
 
             current.buckets[slot] = integers.narrow(current.index)
             current.index += 1
-        }
-    }).buckets
+        },
+        return: state => state.buckets
+    })
 }

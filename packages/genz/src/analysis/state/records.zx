@@ -40,8 +40,9 @@ export default function (in: Input): Output {
                     fields.valid = fields.values[child] &&
                         kind(fields.types.kinds[child]) != Kind.Object
                     fields.index += 1
-                }
-            }).valid
+                },
+                return: state => state.valid
+            })
 
             const leaf = match target {
                 Kind.Optional => current.values[first] &&
@@ -54,6 +55,7 @@ export default function (in: Input): Output {
 
             current.values = current.values.push(leaf)[0]
             current.index += 1
-        }
-    }).values
+        },
+        return: state => state.values
+    })
 }

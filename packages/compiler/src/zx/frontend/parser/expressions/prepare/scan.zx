@@ -32,7 +32,7 @@ export default function (in: Input): Output {
                 word: token.word
             })
             current.remaining = index
-        }
-    })
-        -> _.state.hints.reverse()[0]
+        },
+        return: state => state.state
+    }).hints.reverse()[0]
 }

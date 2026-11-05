@@ -35,8 +35,9 @@ export default function (in: Input): Output {
                 block: current.control.case_bodies[current.position]
             })
             current.position += 1
-        }
-    }).found
+        },
+        return: state => state.found
+    })
 
     const continuing = !returning
     const selected_type = continuing ? integers.widen(state.void_type) : in.frame.c

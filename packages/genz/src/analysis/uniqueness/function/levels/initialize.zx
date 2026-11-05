@@ -59,12 +59,13 @@ export default function (in: Input): Output {
                         linear ? Knowledge.All : Knowledge.Headered
                     )[0]
                     current.slot += 1
-                }
+                },
+                return: state => state.values
             }, {
                 context: context.context,
                 repetition,
                 size
-            }).values
+            })
 
             state.carried = state.carried.with(owner, row)
             state.index += 1

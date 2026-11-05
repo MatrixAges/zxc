@@ -67,7 +67,7 @@ export default function (in: Input): Output {
 
             current.flags = current.flags.push(found)[0]
             current.index += 1
-        }
-    })
-        -> _.flags[index]
+        },
+        return: state => state.flags
+    })[index]
 }

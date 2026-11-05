@@ -35,8 +35,9 @@ export default function (in: Input): Output {
                         fields.candidate
                     )
                     fields.index += 1
-                }
-            }).found
+                },
+                return: state => state.found
+            })
 
             current.found = !present
 
@@ -48,7 +49,7 @@ export default function (in: Input): Output {
                 })
             }
         },
-        while: current => !current.found
+        while: current => !current.found,
+        return: state => state.candidate
     })
-        -> _.candidate
 }

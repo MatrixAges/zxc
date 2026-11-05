@@ -50,8 +50,9 @@ export default function (in: Input): Output {
                 right: integers.widen(current.previous[current.index])
             })
             current.index += 1
-        }
-    }).found
+        },
+        return: state => state.found
+    })
 
     return duplicate ? {
         ...in.state,

@@ -21,8 +21,9 @@ export default function (in: Input): Output {
             current.ids = current.ids.push(current.head - 1)[0]
             current.head = current.cases[current.head -
                 1].previous
-        }
-    }).ids.reverse()[0]
+        },
+        return: state => state.ids
+    }).reverse()[0]
 
     const state_symbol = in.scopes.frames[in.scopes.frames.length - 1].state_symbol
 

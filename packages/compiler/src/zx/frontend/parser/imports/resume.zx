@@ -25,6 +25,7 @@ export default function (in: Input): Output {
             current.state.control.index < current.tokens.length,
         next: current => {
             current.state = advance(current)
-        }
-    }).state
+        },
+        return: state => state.state
+    })
 }

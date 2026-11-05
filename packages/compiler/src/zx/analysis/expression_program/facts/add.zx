@@ -47,8 +47,9 @@ export default function (in: Input): Output {
                 span: current.span
             })
             current.index += 1
-        }
-    }).state
+        },
+        return: state => state.state
+    })
 
     return {
         ...in.analysis,

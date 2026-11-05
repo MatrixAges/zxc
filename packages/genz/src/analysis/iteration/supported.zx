@@ -50,6 +50,7 @@ export default function (in: Input): Output {
                     target == Kind.Enumeration || target == Kind.ErrorSet ||
                     target == Kind.NativeReference
             }
-        }
-    }).valid
+        },
+        return: state => state.valid
+    })
 }

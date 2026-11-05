@@ -79,7 +79,7 @@ export type Output = u32?
                 }
 
                 current.index += 1
-            }
+            },
+            return: state => state.result
         })
-            -> _.result
     }

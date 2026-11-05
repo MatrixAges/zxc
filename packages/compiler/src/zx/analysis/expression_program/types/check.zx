@@ -36,8 +36,9 @@ export default function (in: Input): Output {
             current.valid =
                 integers.widen(current.types[current.index]) < current.count
             current.index += 1
-        }
-    }).valid
+        },
+        return: state => state.valid
+    })
 
     if (!aliases_valid) {
         return {
@@ -93,8 +94,9 @@ export default function (in: Input): Output {
             current.valid =
                 integers.widen(current.types[current.index]) < current.count
             current.index += 1
-        }
-    }).valid
+        },
+        return: state => state.valid
+    })
 
     const span = in.analysis.span
 

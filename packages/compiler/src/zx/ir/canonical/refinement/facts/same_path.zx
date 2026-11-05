@@ -97,6 +97,7 @@ export default function (in: Input): Output {
                     current.active = false
                 }
             }
-        }
-    }).equal
+        },
+        return: state => state.equal
+    })
 }

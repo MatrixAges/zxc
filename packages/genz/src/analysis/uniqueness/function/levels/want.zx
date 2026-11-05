@@ -40,9 +40,10 @@ export type Output = Knowledge?
                 }
 
                 state.index += 1
-            }
+            },
+            return: state => state.value
         }, {
             values: in.values,
             key
-        }).value
+        })
     }

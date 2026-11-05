@@ -21,6 +21,7 @@ export default function (in: Input): Output {
                     integers.narrow(current.index)
                 )
             current.index += 1
-        }
-    }).mapping
+        },
+        return: state => state.mapping
+    })
 }

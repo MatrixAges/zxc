@@ -34,7 +34,7 @@ export default function (in: Input): Output {
             current.groups.unknown =
                 current.groups.unknown.push(joined.unknown)[0]
             current.index += 1
-        }
+        },
+        return: state => state.groups
     })
-        -> _.groups
 }

@@ -47,6 +47,7 @@ export default function (in: Input): Output {
                     current.slot = (current.slot + 1) % current.buckets.length
                 }
             }
-        }
-    }).slot
+        },
+        return: state => state.slot
+    })
 }

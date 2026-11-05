@@ -28,7 +28,7 @@ export default function (in: Input): Output {
                 scalar_count: current.scalar_count
             })
             current.index += 1
-        }
+        },
+        return: state => state.valid
     })
-        -> _.valid
 }

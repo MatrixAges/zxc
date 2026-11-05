@@ -31,6 +31,7 @@ export default function (in: Input): Output {
                 offset,
                 done: !accepted
             }
-        }
-    }).offset
+        },
+        return: state => state.offset
+    })
 }

@@ -57,11 +57,13 @@ export default function (in: Input): Output {
                     }
 
                     row.node += 1
-                }
-            }, expressions).values
+                },
+                return: state => state.values
+            }, expressions)
             state.index += 1
-        }
-    }, tables).values
+        },
+        return: state => state.values
+    }, tables)
 
     return loop({
         values: marked,
@@ -80,6 +82,7 @@ export default function (in: Input): Output {
             }
 
             state.index += 1
-        }
-    }, in.types).values
+        },
+        return: state => state.values
+    }, in.types)
 }

@@ -34,7 +34,7 @@ export default function (in: Input): Output {
                 current.roots =
                     current.roots.push(item.right)[0].push(item.left)[0]
             }
-        }
+        },
+        return: state => state.valid
     })
-        -> _.valid
 }

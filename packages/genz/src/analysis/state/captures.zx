@@ -36,9 +36,11 @@ export default function (in: Input): Output {
 
                     tasks.roots = tasks.roots.push(tasks.symbols.types[symbol])[0]
                     tasks.index += 1
-                }
-            }).roots
+                },
+                return: state => state.roots
+            })
             current.index += 1
-        }
-    }).roots
+        },
+        return: state => state.roots
+    })
 }

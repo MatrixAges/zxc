@@ -33,8 +33,9 @@ export default function (in: Input): Output {
                     current.nested[current.position]
                 )]
             current.position += 1
-        }
-    }).total
+        },
+        return: state => state.total
+    })
 
     return 1 + (total > in.limit + 1 ? in.limit + 1 : total)
 }

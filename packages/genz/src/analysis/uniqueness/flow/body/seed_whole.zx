@@ -24,9 +24,10 @@ export default function (in: Input): Output {
                 slot: state.slot
             })[0]
             state.slot += 1
-        }
+        },
+        return: state => state.roots
     }, {
         node: in.node,
         count: in.first[node + 1] - in.first[node]
-    }).roots
+    })
 }

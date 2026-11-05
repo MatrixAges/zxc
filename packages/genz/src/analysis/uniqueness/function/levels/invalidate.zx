@@ -13,6 +13,7 @@ export default function (in: Input): Output {
         next: current => {
             current.values[current.index] = Knowledge.Unknown
             current.index += 1
-        }
-    }).values
+        },
+        return: state => state.values
+    })
 }

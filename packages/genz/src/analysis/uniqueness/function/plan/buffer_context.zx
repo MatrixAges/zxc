@@ -42,15 +42,17 @@ export default function (in: Input): Output {
                         value: Knowledge.All
                     })[0]
                     slot.slot += 1
-                }
+                },
+                return: state => state.renewed
             }, {
                 context: context.context,
                 owner,
                 type_id
-            }).renewed
+            })
             state.index += 1
-        }
-    }, in).renewed
+        },
+        return: state => state.renewed
+    }, in)
 
     return {
         ...in.context,

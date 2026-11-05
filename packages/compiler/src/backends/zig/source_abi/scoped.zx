@@ -12,6 +12,7 @@ export default function (in: Input): Output {
         next: current => {
             current.scoped = current.values[current.index] != null
             current.index += 1
-        }
-    }).scoped
+        },
+        return: state => state.scoped
+    })
 }

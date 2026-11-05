@@ -36,6 +36,7 @@ export default function (in: Input): Output {
                 current.origins.members[index] == "" &&
                 current.origins.owners[index] == current.key
             current.index += 1
-        }
-    }).valid
+        },
+        return: state => state.valid
+    })
 }

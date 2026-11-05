@@ -23,6 +23,7 @@ export default function (in: Input): Output {
                 current.activity.changed_symbols.pop()[0]
             current.activity.changed_values =
                 current.activity.changed_values.pop()[0]
-        }
-    }).activity
+        },
+        return: state => state.activity
+    })
 }

@@ -54,6 +54,7 @@ export default function (in: Input): Output {
 
             current.references = current.references.push(current.mapping[id])[0]
             current.index += 1
-        }
-    }).references
+        },
+        return: state => state.references
+    })
 }

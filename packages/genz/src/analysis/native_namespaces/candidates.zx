@@ -32,8 +32,9 @@ export default function (in: Input): Output {
             }
 
             current.index += 1
-        }
-    }).names
+        },
+        return: state => state.names
+    })
 
     return loop({
         ...in,
@@ -55,7 +56,7 @@ export default function (in: Input): Output {
             }
 
             current.index += 1
-        }
-    })
-        -> _.names.sort()[0]
+        },
+        return: state => state.names
+    }).sort()[0]
 }

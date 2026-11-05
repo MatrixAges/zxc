@@ -32,12 +32,14 @@ export default function (in: Input): Output {
                     }
 
                     slot.slot += 1
-                }
+                },
+                return: state => state.roots
             }, {
                 values,
                 argument: expressions.call_arguments[state.index]
-            }).roots
+            })
             state.index += 1
-        }
-    }, in).roots
+        },
+        return: state => state.roots
+    }, in)
 }

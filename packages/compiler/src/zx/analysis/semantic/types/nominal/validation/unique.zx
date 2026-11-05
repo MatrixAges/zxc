@@ -33,7 +33,7 @@ export default function (in: Input): Output {
                     same_origin && current.names[previous] == current.names[index]
                 )
             current.previous += 1
-        }
+        },
+        return: state => state.unique
     })
-        -> _.unique
 }

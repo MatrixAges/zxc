@@ -9,7 +9,7 @@ test "loop rules callbacks captures and state update targets are checked" {
         .{ .expression = "loop(in, { next: s => { s += 1 } })", .code = .type_mismatch, .message = "loop requires while and exactly one next or do step" },
         .{ .expression = "loop(in, { while: s => false })", .code = .type_mismatch, .message = "loop requires while and exactly one next or do step" },
         .{ .expression = "loop(in, { while: s => false, next: s => { s += 1 }, do: s => { s += 1 } })", .code = .name, .message = "loop requires exactly one next or do step" },
-        .{ .expression = "loop(in, { while: s => false, next: s => { s += 1 }, other: 1 })", .code = .name, .message = "unknown loop rule; expected while and next or do" },
+        .{ .expression = "loop(in, { while: s => false, next: s => { s += 1 }, other: 1 })", .code = .name, .message = "unknown loop rule; expected while, next or do, and optional return" },
         .{ .expression = "loop(in, { while: s => 1, next: s => { s += 1 } })", .code = .type_mismatch, .message = "a numeric literal requires a numeric type" },
         .{ .expression = "loop(in, { while: () => false, next: s => { s += 1 } })", .code = .type_mismatch, .message = "loop callbacks require one inline state parameter" },
         .{ .expression = "loop(in, { while: s => false, next: s => s + 1 })", .code = .type_mismatch, .message = "loop next and do require a state update block" },

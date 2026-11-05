@@ -53,9 +53,9 @@ export default function (in: Input): Output {
                         )
                     )[0]
                 current.pending.ready = current.pending.ready.push(false)[0]
-            }
+            },
+            return: state => state.pending
         })
-            -> _.pending
     }
 
     return pending

@@ -13,7 +13,7 @@ export default function (in: Input): Output {
         next: current => {
             current.slots = current.slots.push(null)[0]
             current.remaining -= 1
-        }
+        },
+        return: state => state.slots
     })
-        -> _.slots
 }

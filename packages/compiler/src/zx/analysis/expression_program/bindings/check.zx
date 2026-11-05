@@ -36,8 +36,9 @@ export default function (in: Input): Output {
                 right: current.name
             })
             current.index += 1
-        }
-    }).overlap
+        },
+        return: state => state.overlap
+    })
 
     const units = loop({
         names: in.local.expression_units,
@@ -52,8 +53,9 @@ export default function (in: Input): Output {
                 right: current.name
             })
             current.index += 1
-        }
-    }).overlap
+        },
+        return: state => state.overlap
+    })
 
     return units ? {
         code: "name",

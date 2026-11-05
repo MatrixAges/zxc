@@ -63,8 +63,9 @@ export default function (in: Input): Output {
                             }
 
                             references.index += 1
-                        }
-                    }, walk).sites
+                        },
+                        return: state => state.sites
+                    }, walk)
                 } else if (kind != ExpressionKind.Reference) {
                     current.sites = trace({
                         walk,

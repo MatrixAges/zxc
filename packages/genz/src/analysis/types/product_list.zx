@@ -52,10 +52,11 @@ export default function (in: Input): Output {
                                     members.types.children[members.position]
                             )[0]
                         members.position += 1
-                    }
-                }).stack
+                    },
+                    return: state => state.stack
+                })
             }
-        }
+        },
+        return: state => state.found
     })
-        -> _.found
 }

@@ -134,7 +134,8 @@ export default function (in: Input): Output {
     if (
         action == Action.IterationInitial || action == Action.IterationContext ||
             action == Action.IterationCondition ||
-            action == Action.IterationStep
+            action == Action.IterationStep ||
+            action == Action.IterationReturn
     ) {
         return iteration({
             work,

@@ -35,8 +35,9 @@ export default function (in: Input): Output {
                 state: current.state,
                 token: current.tokens[current.state.control.index]
             })
-        }
-    }).state
+        },
+        return: state => state.state
+    })
 
     const index = parsed.control.index
     const at = tokens[index < tokens.length ? index : tokens.length - 1]

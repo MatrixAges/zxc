@@ -25,6 +25,7 @@ export default function (in: Input): Output {
                     current.source[current.index]
                 ))[0]
             current.index += 1
-        }
-    }).names
+        },
+        return: state => state.names
+    })
 }

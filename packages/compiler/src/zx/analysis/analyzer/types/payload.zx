@@ -40,7 +40,7 @@ export type Output = u32?
                 } else {
                     current.done = true
                 }
-            }
+            },
+            return: state => state.id
         })
-            -> _.id
     }
