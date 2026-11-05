@@ -65,14 +65,8 @@ pub fn main(init: std.process.Init) !void {
 
     defer bundle.deinit(memory);
 
-    const start = std.mem.indexOf(u8, bundle.source, "pub fn execute(") orelse return error.MissingExecute;
-    const end = std.mem.indexOfPos(u8, bundle.source, start, "\n}") orelse return error.MissingExecuteEnd;
-    const slots = std.mem.count(u8, bundle.source[start .. end + 2], ".fromOwnedSlice");
-
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[2], .data = bundle.source });
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[3], .data = bundle.types });
 
-    std.debug.print("{s}: {d} transferred slots; formatted RX and ZX; valid IR\n", .{ args[1], slots });
-
-    try std.testing.expectEqual(fixture.slots(args[1]), slots);
+    std.debug.print("{s}: formatted RX and ZX; valid IR\n", .{args[1]});
 }

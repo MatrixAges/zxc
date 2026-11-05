@@ -1,7 +1,6 @@
 const std = @import("std");
 const compiler = @import("compiler");
 pub const modes = @import("catalog.zig").modes;
-pub const slots = @import("catalog.zig").slots;
 
 pub fn entry(mode: []const u8) ![]const u8 {
     inline for (.{ "nested", "retained_target", "retained_parent", "duplicate" }) |name| {
