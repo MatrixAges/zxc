@@ -1,0 +1,27 @@
+import push from "./push"
+
+import type { Fill as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return loop({
+        state: in.state,
+        index: 0
+    }, {
+        while: (current, source) => current.index < source.native_modules.length + 1,
+        next: (current, source) => {
+            const active = current.index < source.native_modules.length
+                ? source.native_modules[current.index] == null
+                : !source.type_only
+
+            if (active) {
+                current.state = push({
+                    state: current.state,
+                    index: current.index
+                })
+            }
+
+            current.index += 1
+        },
+        return: current => current.state
+    }, in)
+}

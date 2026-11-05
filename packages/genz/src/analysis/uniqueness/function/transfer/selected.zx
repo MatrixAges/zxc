@@ -3,7 +3,7 @@ import { ExpressionKind } from "core/expression_table/kinds"
 import kind from "core/type_table/kind"
 import { Kind } from "core/type_table/model"
 
-import { renew_flag } from "../plan/const"
+import { normalize_flag, renew_flag } from "../plan/const"
 
 import type { Input as Source } from "../plan/model"
 
@@ -15,8 +15,8 @@ export type Input = {
 export type Output = bool[]
 
 export default function (in: Input): Output {
-    const selected = in.source.context.metadata.expressions
-        -> _.kinds.map(kind => false)[0]
+    const selected = in.flags.map(flag =>
+        integers.andBits(flag, normalize_flag + renew_flag) != 0)[0]
 
     const operations = loop({
         selected,

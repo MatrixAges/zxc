@@ -1,0 +1,22 @@
+export type State = {
+    buffer: u64[],
+    queued: bool[],
+    head: u64,
+    tail: u64
+}
+
+export type Fill = {
+    state: State,
+    native_modules: u32?[],
+    type_only: bool
+}
+
+export type Push = {
+    state: State,
+    index: u64
+}
+
+export type Popped = {
+    state: State,
+    index?: u64
+}

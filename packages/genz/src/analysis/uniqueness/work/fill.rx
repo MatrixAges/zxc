@@ -1,0 +1,16 @@
+<Module>
+    <Type from="model" as="Work" />
+
+    <Args in={Work.Fill} out={Work.State} />
+
+    <Call fn="reset" in={$in.state} />
+    <Call
+        fn="seed"
+        in={{
+            ...$in,
+            state: $ctx.reset
+        }}
+    />
+
+    <Return value={$ctx.seed} />
+</Module>

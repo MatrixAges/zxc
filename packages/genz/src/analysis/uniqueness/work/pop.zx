@@ -1,0 +1,21 @@
+import type { State as Input, Popped as Output } from "./model"
+
+export default function (in: Input): Output {
+    if (in.head == in.tail) {
+        return {
+            state: in,
+            index: null
+        }
+    }
+
+    const index = in.buffer[in.head]
+
+    return {
+        state: {
+            ...in,
+            head: in.head + 1,
+            queued: in.queued.with(index, false)
+        },
+        index
+    }
+}

@@ -84,8 +84,9 @@ pub fn width(self: *const Self) usize {
 
 /// Queues the bodies of `indices` that have no analysis ahead or one that a summary change made stale, skipping those
 /// whose result the memo already holds.
-pub fn request(self: *Self, comptime kind: Memo.Kind, memo: *Memo, indices: []const usize) std.mem.Allocator.Error!void {
-    for (indices) |index| {
+pub fn request(self: *Self, comptime kind: Memo.Kind, memo: *Memo, indices: []const u64) std.mem.Allocator.Error!void {
+    for (indices) |value| {
+        const index: usize = @intCast(value);
         const state = &self.states[index];
 
         switch (state.load(.monotonic)) {

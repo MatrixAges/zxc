@@ -1,0 +1,24 @@
+import type { State as Output } from "./model"
+
+export type Input = u64
+
+export default function (in: Input): Output {
+    const queued: bool[] = []
+
+    return loop({
+        queued,
+        index: 0
+    }, {
+        while: (state, size) => state.index < size,
+        next: state => {
+            state.queued = state.queued.push(false)[0]
+            state.index += 1
+        },
+        return: state => ({
+            buffer: [],
+            queued: state.queued,
+            head: 0,
+            tail: 0
+        })
+    }, in)
+}

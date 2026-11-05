@@ -1,0 +1,19 @@
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return loop({
+        state: in,
+        index: 0
+    }, {
+        while: current => current.index < current.state.queued.length,
+        next: current => {
+            current.state.queued[current.index] = false
+            current.index += 1
+        },
+        return: current => ({
+            ...current.state,
+            head: 0,
+            tail: 0
+        })
+    })
+}

@@ -141,9 +141,9 @@ fn analyzeWithConcurrency(allocator: std.mem.Allocator, workspace: std.mem.Alloc
     const reverse = try Topology.build(temporary, topology.callees, exported);
     const callers = reverse.callers;
     const known = reverse.known;
-    var work = Work{ .queued = try temporary.alloc(bool, count + 1) };
+    var work = try Work.init(workspace, count + 1);
 
-    defer work.queue.deinit(workspace);
+    defer work.deinit();
 
     while (true) {
         summaries.reset(program, known);
@@ -152,7 +152,7 @@ fn analyzeWithConcurrency(allocator: std.mem.Allocator, workspace: std.mem.Alloc
         if (!try demand(workspace, &work, program, slots, &summaries, units, callers, memo, &replay, &ahead)) break;
     }
 
-    try work.fill(workspace, units);
+    try work.fill(program);
 
     ahead.begin(.planned);
     defer ahead.finish();
@@ -169,7 +169,7 @@ fn analyzeWithConcurrency(allocator: std.mem.Allocator, workspace: std.mem.Alloc
 
         try lookAhead(.planned, &work, memo, &replay, &ahead);
 
-        _ = work.pop();
+        _ = try work.pop();
 
         const recalled = replay.recall(.planned, index) orelse try memo.getPlanned(&summaries, unit.state(index));
         const early = try ahead.take(.planned, index);
@@ -245,51 +245,20 @@ pub fn analyzeEntryWith(allocator: std.mem.Allocator, workspace: std.mem.Allocat
     return .{ .flags = plan.flags, .renewals = plan.renewals, .transfers = plan.transfers, .slot_first = plan.slot_first };
 }
 
-/// Bodies whose facts may have changed, each queued at most once; the entry body is the last index.
-const Work = struct {
-    queue: std.ArrayList(usize) = .empty,
-    head: usize = 0,
-    queued: []bool,
-    fn fill(self: *Work, allocator: std.mem.Allocator, units: []const ?*Unit) std.mem.Allocator.Error!void {
-        self.queue.clearRetainingCapacity();
-
-        self.head = 0;
-
-        @memset(self.queued, false);
-
-        for (units, 0..) |entry, index| if (entry != null) try self.push(allocator, index);
-    }
-    fn push(self: *Work, allocator: std.mem.Allocator, index: usize) std.mem.Allocator.Error!void {
-        if (self.queued[index]) return;
-
-        self.queued[index] = true;
-
-        try self.queue.append(allocator, index);
-    }
-    fn pop(self: *Work) ?usize {
-        if (self.head == self.queue.items.len) return null;
-
-        const index = self.queue.items[self.head];
-
-        self.head += 1;
-        self.queued[index] = false;
-
-        return index;
-    }
-};
+const Work = if (@import("genz_options").generated_analysis) @import("work.zig") else @import("work/seed.zig");
 
 /// Queues body `index` again after a summary it reads changed.
-fn requeue(workspace: std.mem.Allocator, work: *Work, ahead: *Ahead, index: usize) std.mem.Allocator.Error!void {
+fn requeue(work: *Work, ahead: *Ahead, index: usize) std.mem.Allocator.Error!void {
     ahead.invalidate(index);
 
-    try work.push(workspace, index);
+    try work.push(index);
 }
 
 /// Queues for analysis ahead the bodies at the front of the queue, unless the worklist follows a trace, whose visits
 /// are recalled instead of analyzed.
 fn lookAhead(comptime kind: Memo.Kind, work: *const Work, memo: *Memo, replay: *const Trace.Replay, ahead: *Ahead) std.mem.Allocator.Error!void {
     if (replay.trace != null) return;
-    try ahead.request(kind, memo, work.queue.items[work.head..@min(work.queue.items.len, work.head + ahead.width())]);
+    try ahead.request(kind, memo, work.window(ahead.width()));
 }
 
 fn restoreGrowth(unit: *Unit, normalized: []const Memo.Normalized, renewed: []const Memo.Renewed) std.mem.Allocator.Error!void {
@@ -308,7 +277,7 @@ fn settle(workspace: std.mem.Allocator, work: *Work, program: ir.Program, slots:
 
     defer round.deinit();
 
-    try work.fill(workspace, units);
+    try work.fill(program);
 
     var remaining = budget * units.len;
 
@@ -318,7 +287,7 @@ fn settle(workspace: std.mem.Allocator, work: *Work, program: ir.Program, slots:
     while (true) {
         try lookAhead(.settled, work, memo, replay, ahead);
 
-        const index = work.pop() orelse break;
+        const index = try work.pop() orelse break;
 
         if (remaining == 0) {
             ahead.finish();
@@ -352,7 +321,7 @@ fn settle(workspace: std.mem.Allocator, work: *Work, program: ir.Program, slots:
 
         @memcpy(output, settled.output);
 
-        for (changed.items) |callee| if (units[callee] != null) try requeue(workspace, work, ahead, callee);
+        for (changed.items) |callee| if (units[callee] != null) try requeue(work, ahead, callee);
         if (index == count) continue;
 
         const weakened = if (@import("genz_options").generated_analysis)
@@ -376,7 +345,7 @@ fn settle(workspace: std.mem.Allocator, work: *Work, program: ir.Program, slots:
 
         if (!weakened) continue;
 
-        for (callers[index]) |caller| try requeue(workspace, work, ahead, @intCast(caller));
+        for (callers[index]) |caller| try requeue(work, ahead, @intCast(caller));
     }
 }
 
@@ -386,7 +355,7 @@ fn demand(workspace: std.mem.Allocator, work: *Work, program: ir.Program, slots:
 
     defer round.deinit();
 
-    try work.fill(workspace, units);
+    try work.fill(program);
 
     var added = false;
 
@@ -396,7 +365,7 @@ fn demand(workspace: std.mem.Allocator, work: *Work, program: ir.Program, slots:
     while (true) {
         try lookAhead(.demanded, work, memo, replay, ahead);
 
-        const index = work.pop() orelse break;
+        const index = try work.pop() orelse break;
         _ = round.reset(.retain_capacity);
         const unit = units[index].?;
         const state = unit.state(index);
@@ -429,8 +398,8 @@ fn demand(workspace: std.mem.Allocator, work: *Work, program: ir.Program, slots:
 
         for (changed.items) |function| {
             if (function == index) {
-                for (callers[function]) |caller| try requeue(workspace, work, ahead, @intCast(caller));
-            } else if (units[function] != null) try requeue(workspace, work, ahead, function);
+                for (callers[function]) |caller| try requeue(work, ahead, @intCast(caller));
+            } else if (units[function] != null) try requeue(work, ahead, function);
         }
     }
 

@@ -92,11 +92,23 @@ pub fn normalize(self: *Lower, id: ir.ExprId, value: node.ExpressionId) Lower.Er
     else
         try @import("iteration_value/types.zig").element(self, child);
 
-    const source = try aggregate.bind(self, &body, try @import("state_value/list.zig").items(self, type_id, value));
-    const buffer = try reserve(self, &body, element, source, try self.field(source, "len"), false);
+    const lists = @import("state_value/list.zig");
+    const selected = lists.selected(self, type_id);
+    const qualified = if (selected) try @import("state_value/ownership.zig").clip(self, &body, id, value) else value;
+    const evaluated = try aggregate.bind(self, &body, qualified);
+    const source = try aggregate.bind(self, &body, try lists.items(self, type_id, evaluated));
+    var copied: std.ArrayList(node.Statement) = .empty;
+    const duplicate = try reserve(self, &copied, element, source, try self.field(source, "len"), false);
 
-    const result = if (@import("state_value/list.zig").selected(self, type_id))
-        try @import("state_value/list.zig").proven(self, type_id, buffer, try self.builder.expression(.{ .boolean = true }), try self.builder.expression(.{ .boolean = true }))
+    const buffer = if (selected) try aggregate.bind(self, &body, try self.builder.expression(.{ .conditional = .{
+        .condition = try lists.exclusive(self, evaluated),
+        .yes = source,
+        .no = try aggregate.finish(self, &copied, duplicate),
+    } })) else try aggregate.finish(self, &copied, duplicate);
+
+    const result = if (selected)
+        try lists.proven(self, type_id, buffer, try self.builder.expression(.{ .boolean = true }), try self.builder.expression(.{ .boolean = true }))
+
     else
         buffer;
 
