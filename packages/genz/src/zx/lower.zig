@@ -10,6 +10,7 @@ allocator: std.mem.Allocator,
 workspace: std.mem.Allocator,
 program: ir.Program,
 entry_flags: @import("entry_flags.zig").Flags,
+self_function: ?ir.FunctionId = null,
 builder: Builder,
 types: []node.ExpressionId,
 layouts: []node.ExpressionId,
@@ -63,7 +64,7 @@ function_requests: *@import("functions/requests.zig") = undefined,
 comparisons: *std.ArrayList(ir.TypeId) = undefined,
 task_declarations: *std.ArrayList(node.Declaration) = undefined,
 pub fn refreshEntry(self: *Self) Error!void {
-    self.entry_flags = try @import("entry_flags.zig").analyze(self.workspace, self.program, .{ .local = self.local_functions, .pure = self.pure_functions, .io = self.io_functions, .process = self.process_functions, .tasks = self.task_functions });
+    self.entry_flags = try @import("entry_flags.zig").analyze(self.workspace, self.program, .{ .local = self.local_functions, .pure = self.pure_functions, .io = self.io_functions, .process = self.process_functions, .tasks = self.task_functions, .self_function = self.self_function });
 }
 
 pub fn declarations(self: *Self) Error![]const node.Declaration {
@@ -195,7 +196,7 @@ pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declar
     if (needs_io) parameters[2 + @as(usize, @intFromBool(injected))] = .{ .name = "io", .value = try @import("intrinsics.zig").standardField(self, &.{"Io"}) };
     if (needs_process) parameters[parameters.len - 1] = .{ .name = "process", .value = try @import("intrinsics.zig").standardField(self, &.{ "process", "Init", "Minimal" }) };
 
-    return .{ .function = .{ .name = name, .parameters = parameters, .return_type = try self.builder.expression(.{ .error_union = .{ .payload = if (self.public_value_output) try @import("types.zig").get(self, self.view_types, self.program.output_type) else if (self.value_output) try self.layoutExpr(self.program.output_type) else try self.typeExpr(self.program.output_type), .errors = errors } }), .body = try self.builder.statements(body.items), .exported = exported } };
+    return .{ .function = .{ .name = name, .parameters = parameters, .return_type = try self.builder.expression(.{ .error_union = .{ .payload = if (self.public_value_output) try @import("types.zig").get(self, self.view_types, self.program.output_type) else if (self.value_output) try self.layoutExpr(self.program.output_type) else try self.typeExpr(self.program.output_type), .errors = errors } }), .body = try self.builder.statements(body.items), .exported = exported, .inlined = self.value_output and (if (@hasField(@TypeOf(self.entry_flags), "inlined")) self.entry_flags.inlined else false) } };
 }
 
 pub fn expr(self: *Self, id: ir.ExprId) Error!node.ExpressionId {

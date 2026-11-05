@@ -9,6 +9,7 @@
         <Return
             value={{
                 ...$ctx.effects,
+                inlined: false,
                 value: false,
                 scalar: false
             }}
@@ -27,6 +28,7 @@
         <Return
             value={{
                 ...$ctx.effects,
+                inlined: false,
                 value: false,
                 scalar: false
             }}
@@ -35,10 +37,13 @@
 
     <Call fn="eligibility" in={$in} />
     <Call fn="scalar" in={$in} />
+    <Call fn="inlined" in={$in} />
 
     <Return
         value={{
             ...$ctx.effects,
+            inlined: $ctx.eligibility.pure && !$ctx.effects.io &&
+                !$ctx.effects.process && !$ctx.effects.tasks && $ctx.inlined,
             value: $ctx.eligibility.local,
             scalar: $ctx.eligibility.pure && $ctx.scalar
         }}

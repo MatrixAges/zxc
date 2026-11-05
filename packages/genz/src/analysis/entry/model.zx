@@ -11,7 +11,9 @@ export type Input = {
     contracts: Contracts,
     control: Control,
     root?: u32,
+    input_type: u32,
     output_type: u32,
+    self_function?: u64,
     local: bool[],
     pure: bool[],
     io: bool[],
@@ -27,6 +29,7 @@ export type Effects = {
 }
 
 export type Flags = {
+    inlined: bool,
     value: bool,
     scalar: bool,
     io: bool,

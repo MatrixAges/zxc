@@ -25,6 +25,7 @@ pub fn append(self: *Lower, output: *std.ArrayList(node.Declaration), request: R
     helper.program.stores = function.stores;
     helper.program.store_mode = function.store_mode;
     helper.program.contracts = function.contracts;
+    helper.self_function = request.id;
 
     try helper.refreshEntry();
 

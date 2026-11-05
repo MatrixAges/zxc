@@ -9,6 +9,7 @@ else
     @import("entry_flags/seed.zig").Flags;
 
 pub const Functions = struct {
+    self_function: ?ir.FunctionId = null,
     local: []const bool,
     pure: []const bool,
     io: []const bool,
@@ -27,14 +28,16 @@ pub fn analyze(workspace: std.mem.Allocator, program: ir.Program, functions: Fun
 
     const types = ir.TypeTable.borrow(std.meta.Child(@FieldType(Input, "types")), program.types);
 
-    const input = Input{
+    const fields = .{
         .types = &types,
         .stores = zx.columns.pointer(@FieldType(Input, "stores"), &program.stores),
         .expressions = zx.columns.pointer(@FieldType(Input, "expressions"), &program.expressions),
         .contracts = zx.columns.pointer(@FieldType(Input, "contracts"), &program.contracts),
         .control = zx.columns.pointer(@FieldType(Input, "control"), program.body.control),
         .root = if (program.body.root) |root| @backingInt(root) else null,
+        .input_type = @backingInt(program.input_type),
         .output_type = @backingInt(program.output_type),
+        .self_function = if (functions.self_function) |id| @as(?u64, @backingInt(id)) else null,
         .local = functions.local,
         .pure = functions.pure,
         .io = functions.io,
@@ -42,17 +45,18 @@ pub fn analyze(workspace: std.mem.Allocator, program: ir.Program, functions: Fun
         .tasks = functions.tasks,
     };
 
+    var input: Input = undefined;
+
+    inline for (@typeInfo(Input).@"struct".field_names) |name| @field(input, name) = @field(fields, name);
+
     const output = generated.executeValue(scratch.allocator(), &input) catch |err| switch (err) {
         error.OutOfMemory => return error.OutOfMemory,
         else => unreachable,
     };
 
-    return .{
-        .body_process = output.body_process,
-        .io = output.io,
-        .process = output.process,
-        .scalar = output.scalar,
-        .tasks = output.tasks,
-        .value = output.value,
-    };
+    var flags: Flags = undefined;
+
+    inline for (@typeInfo(Flags).@"struct".field_names) |name| @field(flags, name) = @field(output, name);
+
+    return flags;
 }

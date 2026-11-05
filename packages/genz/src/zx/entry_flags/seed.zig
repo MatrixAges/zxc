@@ -1,7 +1,7 @@
 const std = @import("std");
 const ir = @import("zx").ir;
 
-pub const Flags = struct { body_process: bool, io: bool, process: bool, scalar: bool, tasks: bool, value: bool };
+pub const Flags = struct { inlined: bool = false, body_process: bool, io: bool, process: bool, scalar: bool, tasks: bool, value: bool };
 
 pub fn analyze(program: ir.Program, functions: anytype) Flags {
     return .{

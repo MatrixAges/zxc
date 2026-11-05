@@ -10,10 +10,14 @@ hash: Hash = .init(.{}),
 pending: [4096]u8 = undefined,
 used: usize = 0,
 program: ir.Program,
+current_function: ?ir.FunctionId = null,
 names: Names,
 value_functions: []const bool,
 pure_functions: []const bool,
 local_functions: []const bool,
+io_functions: []const bool,
+process_functions: []const bool,
+task_functions: []const bool,
 uniqueness: @import("genz").zx.function_analysis.Uniqueness.Result,
 entry_flags: @import("genz").zx.function_analysis.Entry.Flags,
 /// A caller's signature lists the errors of the functions it calls, so a call covers the callee's set.
@@ -29,6 +33,9 @@ pub fn createAnalyzed(program: ir.Program, names: Names, unit: Unit, facts: @imp
         .value_functions = facts.value.values,
         .pure_functions = facts.value.pure,
         .local_functions = facts.value.local,
+        .io_functions = facts.io,
+        .process_functions = facts.process,
+        .task_functions = facts.tasks,
         .uniqueness = facts.uniqueness,
         .entry_flags = facts.entry_flags,
         .errors = facts.errors,
@@ -46,7 +53,7 @@ fn finish(self: *Self, unit: Unit) [32]u8 {
     const value_functions = self.value_functions;
     const state_plan = self.state_plan;
 
-    self.bytes("zxc.zig.input.v52");
+    self.bytes("zxc.zig.input.v53");
     self.bytes(@tagName(unit));
     self.write(program.version);
 
@@ -54,6 +61,8 @@ fn finish(self: *Self, unit: Unit) [32]u8 {
 
     switch (unit) {
         .function, .regular => |id| {
+            self.current_function = id;
+
             self.write(value_functions[@backingInt(id)]);
             self.plan(self.uniqueness.functions[@backingInt(id)]);
             self.write(program.functions.at(@backingInt(id)));
@@ -155,11 +164,16 @@ fn write(self: *Self, value: anytype) void {
     }
 
     if (T == ir.FunctionId) {
+        if (self.current_function) |owner| self.write(@backingInt(value) < @backingInt(owner));
+
         self.bytes(self.names.functions[@backingInt(value)]);
         self.write(self.program.functions.at(@backingInt(value)).stores);
         self.write(self.value_functions[@backingInt(value)]);
         self.write(self.pure_functions[@backingInt(value)]);
         self.write(self.local_functions[@backingInt(value)]);
+        self.write(self.io_functions[@backingInt(value)]);
+        self.write(self.process_functions[@backingInt(value)]);
+        self.write(self.task_functions[@backingInt(value)]);
         self.write(self.errors[@backingInt(value)]);
         self.write(self.identity_free[@backingInt(value)]);
 

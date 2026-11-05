@@ -1,0 +1,56 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import body from "../calls/body"
+import {
+    minimum_record_fields,
+    maximum_body_expressions,
+    maximum_result_fields
+} from "./const"
+
+import type { Input } from "./model"
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const owner = in.self_function
+    const input = integers.widen(in.input_type)
+    const output = integers.widen(in.output_type)
+
+    if (
+        owner == null || in.contracts.kinds.length != 0 ||
+            in.expressions.kinds.length > maximum_body_expressions ||
+            kind(in.types.kinds[input]) != Kind.Object ||
+            in.types.second[input] < minimum_record_fields ||
+            kind(in.types.kinds[output]) != Kind.Object ||
+            in.types.second[output] > maximum_result_fields
+    ) {
+        return false
+    }
+
+    const bounded = loop({
+        index: 0,
+        bounded: true
+    }, {
+        while: (state, source) => state.bounded &&
+            state.index < source.expressions.kinds.length,
+        next: (state, source) => {
+            const expression = source.expressions.kinds[state.index]
+
+            state.bounded = expression != ExpressionKind.Iteration &&
+                expression != ExpressionKind.Transform &&
+                expression != ExpressionKind.Task &&
+                expression != ExpressionKind.Parallel
+            state.index += 1
+        }
+    }, in).bounded
+
+    return bounded && body({
+        expressions: in.expressions,
+        contracts: in.contracts,
+        allowed: in.pure,
+        limit: owner
+    })
+}

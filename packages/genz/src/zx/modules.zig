@@ -118,6 +118,7 @@ fn functionPrepared(allocator: std.mem.Allocator, backing: std.mem.Allocator, pr
     lower.program.stores = selected.stores;
     lower.program.store_mode = selected.store_mode;
     lower.program.contracts = selected.contracts;
+    lower.self_function = id;
 
     try lower.refreshEntry();
 
