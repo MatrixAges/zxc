@@ -53,6 +53,22 @@ pub fn tuple(self: *Lower, id: ir.TypeId, value: node.ExpressionId) Lower.Error!
 pub fn clear(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.TypeId, value: node.ExpressionId) Lower.Error!void {
     if (!@import("root.zig").selected(self, id)) return;
 
+    if (self.state_plan.referenced(id)) {
+        const copied = try @import("reference.zig").copy(self, body, id, value);
+
+        try body.append(self.allocator, .{ .assignment = .{
+            .target = try self.field(copied, try name(self, id)),
+            .value = try self.builder.expression(.null_value),
+        } });
+
+        try body.append(self.allocator, .{ .assignment = .{
+            .target = value,
+            .value = try self.builder.expression(.{ .address_of = copied }),
+        } });
+
+        return;
+    }
+
     try body.append(self.allocator, .{ .assignment = .{
         .target = try self.field(value, try name(self, id)),
         .value = try self.builder.expression(.null_value),

@@ -46,21 +46,26 @@ export default function (in: Input): Output {
     const errors: u8[][]?[] = []
     const flags: bool[] = []
     const arguments: u32[][] = []
+    const borrowed = in.step.request.mode == Mode.State && in.source.borrowed[index]
+
+    const tags = [
+        ExpressionsKind.Identifier,
+        ExpressionsKind.Field
+    ]
+
+    const offsets: u32[] = [
+        0,
+        0
+    ]
 
     return {
-        tags: [
-            ExpressionsKind.Identifier,
-            ExpressionsKind.Field
-        ],
-        offsets: [
-            0,
-            0
-        ],
+        tags: borrowed ? tags.push(ExpressionsKind.ConstPointer)[0] : tags,
+        offsets: borrowed ? offsets.push(0)[0] : offsets,
         identifier: [bytes.fromText(abi_binding)],
         primitive,
         field_target: [in.step.base],
         field_name: [bytes.fromText(name)],
-        const_pointer: empty,
+        const_pointer: borrowed ? [in.step.base + 1] : empty,
         optional_type: empty,
         const_slice: empty,
         error_set: texts,

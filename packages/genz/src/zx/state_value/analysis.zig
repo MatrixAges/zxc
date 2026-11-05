@@ -3,6 +3,7 @@ const ir = @import("zx").ir;
 const Self = @This();
 
 selected: []bool,
+borrowed: []const bool,
 keys: [][32]u8,
 queries: []const @import("queries.zig").Kind = &.{},
 pub fn create(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!Self {
@@ -62,6 +63,11 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocat
 
     errdefer allocator.free(selected);
 
+    const borrowed = try allocator.alloc(bool, program.types.count());
+
+    errdefer allocator.free(borrowed);
+    @memset(borrowed, false);
+
     const keys = try allocator.alloc([32]u8, program.types.count());
 
     errdefer allocator.free(keys);
@@ -73,7 +79,7 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocat
 
         var hash = @import("zx").Sha256.init(.{});
 
-        hash.update("state.value.origin.v4");
+        hash.update("state.value.origin.v7");
         hash.update(&.{@intFromBool(selected[index])});
 
         switch (value) {
@@ -92,7 +98,7 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocat
 
     const queries = try @import("queries.zig").create(allocator, program, selected);
 
-    return .{ .selected = selected, .keys = keys, .queries = queries };
+    return .{ .selected = selected, .borrowed = borrowed, .keys = keys, .queries = queries };
 }
 
 fn duplicates(program: ir.Program, boxed: []bool, seen: []u32, round: u32, id: ir.TypeId) void {
@@ -128,6 +134,12 @@ pub fn represented(self: Self, program: ir.Program, id: ir.TypeId) bool {
         .optional => |child| self.represented(program, child),
         else => self.selected[@backingInt(id)],
     };
+}
+
+pub fn referenced(self: Self, id: ir.TypeId) bool {
+    const index = @backingInt(id);
+
+    return index < self.borrowed.len and self.borrowed[index];
 }
 
 pub fn name(self: Self, allocator: std.mem.Allocator, id: ir.TypeId, base: []const u8) std.mem.Allocator.Error![]const u8 {

@@ -57,6 +57,13 @@ export default function (in: Input): Output {
             selected && (target == Kind.Object || target == Kind.Tuple)
         )
     ) {
+        if (in.source.borrowed[index]) {
+            return {
+                ...decision,
+                action: Action.ViewName
+            }
+        }
+
         const optional = target == Kind.Optional
         const finished = !optional && in.frame.next == count
 

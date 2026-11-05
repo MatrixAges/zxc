@@ -144,7 +144,9 @@ pub fn typeNames(owned: std.mem.Allocator, program: @import("zx").ir.Program, id
     const state_plan = try @import("genz").zx.state_value.Analysis.create(owned, program);
 
     defer owned.free(state_plan.selected);
+    defer owned.free(state_plan.borrowed);
     defer owned.free(state_plan.keys);
+    defer owned.free(state_plan.queries);
 
     return typeNamesAnalyzed(owned, owned, program, identities, state_plan);
 }

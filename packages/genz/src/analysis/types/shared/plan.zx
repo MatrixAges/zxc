@@ -68,11 +68,13 @@ export default function (in: Input): Output {
                         target == Kind.Enumeration || target == Kind.NativeReference
                     const string = target == Kind.Scalar &&
                         current.source.abi.types.first[index] == scalar_string
+                    const borrowed = decision.action == Action.StateName &&
+                        current.source.borrowed[index]
                     const count = match decision.action {
                         Action.Alias => 0,
                         Action.Optional => leaf_nodes,
                         Action.Slice => leaf_nodes,
-                        Action.StateName => wrapped_nodes,
+                        Action.StateName => borrowed ? pointer_nodes : wrapped_nodes,
                         Action.ViewName => wrapped_nodes,
                         _ => match {
                             named && target != Kind.Enumeration => pointer_nodes,
@@ -90,7 +92,7 @@ export default function (in: Input): Output {
                             Action.Alias => decision.value,
                             Action.Optional => base,
                             Action.Slice => base,
-                            Action.StateName => base + 1,
+                            Action.StateName => base + (borrowed ? 2 : 1),
                             Action.ViewName => base + 1,
                             _ => match {
                                 named && target != Kind.Enumeration => base + 2,
@@ -102,6 +104,7 @@ export default function (in: Input): Output {
                         const layout = match {
                             decision.action == Action.Alias => decision.layout,
                             decision.action == Action.Abi && named => base + 1,
+                            borrowed => base + 1,
                             _ => value
                         }
 

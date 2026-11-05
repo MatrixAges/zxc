@@ -12,6 +12,7 @@ pub fn check(allocator: std.mem.Allocator, program: compiler.ir.Program, case: C
     defer allocator.free(summary.local);
     defer allocator.free(summary.values);
     defer allocator.free(summary.state.selected);
+    defer allocator.free(summary.state.borrowed);
     defer allocator.free(summary.state.keys);
     defer allocator.free(summary.state.queries);
 

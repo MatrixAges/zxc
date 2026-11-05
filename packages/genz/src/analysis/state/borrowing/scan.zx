@@ -1,0 +1,102 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import { many_constructions } from "./const"
+
+import type { Expressions } from "core/expression_table/model"
+
+export type Input = {
+    tables: Expressions[],
+    boxed: bool[],
+    counts: u32[],
+    roots: u32[]
+}
+
+export type Output = {
+    counts: u32[],
+    roots: u32[]
+}
+
+export default function (in: Input): Output {
+    const constructed: u32[] = []
+
+    const result = loop({
+        counts: in.counts,
+        roots: in.roots,
+        constructed,
+        repeated: false,
+        table: 0,
+        index: 0
+    }, {
+        while: (state, source) => state.table < source.tables.length,
+        next: (state, source) => {
+            const expressions = source.tables[state.table]
+
+            if (state.index == expressions.kinds.length) {
+                state.table += 1
+                state.index = 0
+            } else {
+                const kind = expressions.kinds[state.index]
+                const type_id = integers.widen(expressions.types[state.index])
+                const payload = integers.widen(expressions.payloads[state.index])
+
+                if (kind == ExpressionKind.Object && !source.boxed[type_id]) {
+                    const previous = state.counts[type_id]
+
+                    state.counts[type_id] = previous == 0 ? 1 : many_constructions
+                    state.constructed = state.constructed.push(
+                        expressions.types[state.index]
+                    )[0]
+                }
+
+                if (kind == ExpressionKind.Scope) {
+                    const result = expressions.scope_results[payload]
+
+                    state.roots = state.roots.push(
+                        expressions.types[integers.widen(
+                            result
+                        )]
+                    )[0]
+                }
+
+                if (
+                    kind == ExpressionKind.Iteration ||
+                        kind == ExpressionKind.Transform || kind == ExpressionKind.Task ||
+                        kind == ExpressionKind.Parallel
+                ) {
+                    state.repeated = true
+
+                    if (kind == ExpressionKind.Iteration) {
+                        const initial = expressions.iteration_initials[payload]
+
+                        state.roots = state.roots.push(
+                            expressions.types[integers.widen(
+                                initial
+                            )]
+                        )[0]
+                    }
+                }
+
+                state.index += 1
+            }
+        }
+    }, in)
+
+    const counts = loop({
+        counts: result.counts,
+        index: 0
+    }, {
+        while: (state, source) => source.repeated &&
+            state.index < source.constructed.length,
+        next: (state, source) => {
+            state.counts[integers.widen(source.constructed[state.index])] =
+                many_constructions
+            state.index += 1
+        }
+    }, result).counts
+
+    return {
+        counts,
+        roots: result.roots
+    }
+}

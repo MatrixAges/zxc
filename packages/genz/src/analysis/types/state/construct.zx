@@ -26,6 +26,7 @@ export default function (in: Input): Output {
     const identifier: u8[][] = []
     const primitive: ExpressionsPrimitive[] = []
     const optional_type: u32[] = []
+    const const_pointer: u32[] = []
     const const_slice: u32[] = []
     const tuple_type: u32[][] = []
     const enum_type: u8[][][] = []
@@ -66,6 +67,7 @@ export default function (in: Input): Output {
         identifier,
         primitive,
         optional_type,
+        const_pointer,
         const_slice,
         tuple_type,
         struct_type_start,
@@ -85,6 +87,7 @@ export default function (in: Input): Output {
             const first = source.types.first[index]
             const second = source.types.second[index]
             const selected = source.selected[index]
+            const borrowed = source.borrowed[index]
             const changed = current.source.changed[index]
             const aggregate = target == Kind.Object || target == Kind.Tuple
             const count = match {
@@ -104,7 +107,7 @@ export default function (in: Input): Output {
             const field_start = integers.widen(source.field_base)
 
             if (
-                start_wide + count > integers.widen(max_u32) ||
+                start_wide + count + (borrowed ? 1 : 0) > integers.widen(max_u32) ||
                     field_start + current.field_count + field_count >
                     integers.widen(max_u32)
             ) {
@@ -452,9 +455,26 @@ export default function (in: Input): Output {
                     }
                 }
 
+                const reference = borrowed ? integers.narrow(
+                    integers.widen(source.base) + current.tags.length
+                ) : value
+
+                if (borrowed) {
+                    current = {
+                        ...current,
+                        tags: current.tags.push(ExpressionsKind.ConstPointer)[0],
+                        offsets: current.offsets.push(
+                            integers.narrow(
+                                current.const_pointer.length
+                            )
+                        )[0],
+                        const_pointer: current.const_pointer.push(value)[0]
+                    }
+                }
+
                 current = {
                     ...current,
-                    values: current.values.push(value)[0],
+                    values: current.values.push(borrowed ? reference : value)[0],
                     layouts: current.layouts.push(layout)[0],
                     views: current.views.push(view)[0],
                     index: current.index + 1
@@ -478,7 +498,7 @@ export default function (in: Input): Output {
             primitive: result.primitive,
             field_target: empty_ids,
             field_name: empty_text,
-            const_pointer: empty_ids,
+            const_pointer: result.const_pointer,
             optional_type: result.optional_type,
             const_slice: result.const_slice,
             error_set: empty_errors,

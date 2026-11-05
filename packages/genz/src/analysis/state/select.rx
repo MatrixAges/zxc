@@ -62,10 +62,19 @@
     />
 
     <Call
+        module="borrowing/plan"
+        in={{
+            program: $in.program,
+            boxed: $ctx.frozen
+        }}
+    />
+
+    <Call
         fn="keys"
         in={{
             types: $in.program.types,
-            boxed: $ctx.frozen
+            boxed: $ctx.frozen,
+            borrowed: $ctx.plan
         }}
     />
 

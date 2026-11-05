@@ -9,6 +9,7 @@ pub fn functions(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allo
     allocator.free(summary.pure);
     allocator.free(summary.local);
     allocator.free(summary.state.selected);
+    allocator.free(summary.state.borrowed);
     allocator.free(summary.state.keys);
     allocator.free(summary.state.queries);
 
@@ -21,6 +22,7 @@ pub fn analyze(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloca
     const state = try @import("../state_value/analysis.zig").create(allocator, program);
 
     errdefer allocator.free(state.selected);
+    errdefer allocator.free(state.borrowed);
     errdefer allocator.free(state.keys);
     errdefer allocator.free(state.queries);
 

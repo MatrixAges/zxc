@@ -5,11 +5,14 @@ const view = @import("../../node/view.zig");
 const rows = @import("../../node/import_rows.zig");
 const Lower = @import("../lower.zig");
 const generated = @import("generated_shared_state");
-const Input = @typeInfo(@TypeOf(generated.executeValue)).@"fn".param_types[1].?;
+const Parameter = @typeInfo(@TypeOf(generated.executeValue)).@"fn".param_types[1].?;
+const indirect = @typeInfo(Parameter) == .pointer;
+const Input = if (indirect) std.meta.Child(Parameter) else Parameter;
 const Mode = @FieldType(std.meta.Child(@FieldType(Input, "request")), "mode");
 
 pub fn build(self: *Lower, index: usize, mode: Mode) Lower.Error!void {
-    const Abi = @FieldType(Input, "abi");
+    const AbiField = @FieldType(Input, "abi");
+    const Abi = if (@typeInfo(AbiField) == .pointer) std.meta.Child(AbiField) else AbiField;
     const types = ir.TypeTable.borrow(std.meta.Child(@FieldType(Abi, "types")), self.program.types);
     var scratch = std.heap.ArenaAllocator.init(self.workspace);
     var buffer: [std.heap.page_size_min]u8 = undefined;
@@ -26,8 +29,9 @@ pub fn build(self: *Lower, index: usize, mode: Mode) Lower.Error!void {
     };
 
     const input: Input = .{
-        .abi = abi,
+        .abi = if (@typeInfo(AbiField) == .pointer) &abi else abi,
         .selected = self.state_plan.selected,
+        .borrowed = self.state_plan.borrowed,
         .keys = std.mem.sliceAsBytes(self.state_plan.keys),
         .states = view.slice(@FieldType(Input, "states"), @as([]const node.ExpressionId, self.state_types)),
         .state_layouts = view.slice(@FieldType(Input, "state_layouts"), @as([]const node.ExpressionId, self.state_layouts)),
@@ -36,7 +40,7 @@ pub fn build(self: *Lower, index: usize, mode: Mode) Lower.Error!void {
         .request = &.{ .id = @intCast(index), .mode = mode },
     };
 
-    const output = generated.executeValue(buffered.allocator(), input) catch |err| switch (err) {
+    const output = generated.executeValue(buffered.allocator(), if (indirect) &input else input) catch |err| switch (err) {
         error.OutOfMemory, error.IntegerOverflow, error.Overflow => return error.OutOfMemory,
         else => unreachable,
     };

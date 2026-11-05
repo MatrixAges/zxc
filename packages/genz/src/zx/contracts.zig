@@ -36,6 +36,7 @@ pub fn preconditions(self: *Lower) Lower.Error![]const node.Statement {
         self.uses_allocator = self.uses_allocator or predicate.uses_allocator;
         self.uses_io = self.uses_io or predicate.uses_io;
         self.serial = predicate.serial;
+        self.reference_storage = predicate.reference_storage;
     }
 
     return statements.toOwnedSlice(self.allocator);

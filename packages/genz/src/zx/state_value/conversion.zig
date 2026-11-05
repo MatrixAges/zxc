@@ -69,6 +69,7 @@ pub fn convert(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.TypeId
 
     if (input) {
         try body.appendSlice(self.allocator, fallback.items);
+        if (self.state_plan.referenced(id)) return @import("reference.zig").store(self, body, id, result);
 
         return result;
     }

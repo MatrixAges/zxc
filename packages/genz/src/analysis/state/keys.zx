@@ -3,7 +3,11 @@ import encoding from "std:encoding"
 import kind from "core/type_table/kind"
 import { Kind } from "core/type_table/model"
 
-import { value_layout_identity } from "./const"
+import {
+    value_layout_identity,
+    inline_layout_flag,
+    reference_layout_flag
+} from "./const"
 import material from "./material"
 
 import type { Table } from "core/type_table/model"
@@ -12,6 +16,7 @@ import type { State } from "../model"
 export type Input = {
     types: Table,
     boxed: bool[]
+    borrowed: bool[]
 }
 
 export type Output = State
@@ -23,6 +28,7 @@ export default function (in: Input): Output {
     const result = loop({
         types: in.types,
         boxed: in.boxed,
+        borrowed: in.borrowed,
         prefix: encoding.encodeUtf8(value_layout_identity),
         index: 0,
         selected,
@@ -37,7 +43,11 @@ export default function (in: Input): Output {
                         target == Kind.Object || target == Kind.Tuple
                     )
                 )
-            const flag: u8 = chosen ? 1 : 0
+            const flag: u8 = match {
+                current.borrowed[current.index] => reference_layout_flag,
+                chosen => inline_layout_flag,
+                _ => 0
+            }
             const bytes = material({
                 types: current.types,
                 keys: current.keys,
@@ -54,6 +64,7 @@ export default function (in: Input): Output {
 
     return {
         selected: result.selected,
+        borrowed: in.borrowed,
         keys: result.keys
     }
 }

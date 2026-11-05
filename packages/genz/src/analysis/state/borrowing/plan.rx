@@ -1,0 +1,29 @@
+<Module>
+    <Type from="collect" as="Collect" />
+
+    <Args in={Collect.Input} out={bool[]} />
+
+    <Call fn="collect" in={$in} />
+    <Call fn="../../types/unmarked" in={$in.program.types} />
+
+    <Call
+        fn="../../types/closure"
+        in={{
+            types: $in.program.types,
+            boxed: $ctx.unmarked,
+            roots: $ctx.collect.roots
+        }}
+    />
+
+    <Call
+        fn="select"
+        in={{
+            types: $in.program.types,
+            boxed: $in.boxed,
+            counts: $ctx.collect.counts,
+            escaped: $ctx.closure
+        }}
+    />
+
+    <Return value={$ctx.select} />
+</Module>

@@ -59,7 +59,9 @@ export default function (in: Input): Output {
                     key: current.source.keys[index],
                     index
                 }) : "")[0],
-                changed: current.changed.push(different)[0],
+                changed: current.changed.push(
+                    different || current.source.borrowed[index]
+                )[0],
                 origins: current.origins.push(selected && target == Kind.Object ?
                     origin({
                         names: current.source.types.field_names,

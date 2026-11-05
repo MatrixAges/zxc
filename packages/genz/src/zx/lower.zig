@@ -47,6 +47,7 @@ local_functions: []const bool = &.{},
 value_output: bool = false,
 public_value_output: bool = false,
 stack_symbols: std.AutoHashMapUnmanaged(ir.SymbolId, void) = .empty,
+reference_storage: std.ArrayList(node.Statement) = .empty,
 projected_symbols: ?[]const bool = null,
 input_aliases: ?[]const bool = null,
 iteration_value: ?*@import("iteration_value/root.zig") = null,
@@ -128,6 +129,7 @@ pub fn functionValue(self: *Self, name: []const u8) Error!node.Declaration {
 }
 
 pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declaration {
+    self.reference_storage = .empty;
     self.projected_symbols = null;
     self.input_aliases = null;
     self.uses_allocator = false;
@@ -178,6 +180,7 @@ pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declar
         try body.append(self.allocator, if (@import("statements.zig").writes(self.program.body.block())) .{ .variable = pending } else .{ .constant = pending });
     }
 
+    try body.appendSlice(self.allocator, self.reference_storage.items);
     try body.appendSlice(self.allocator, preconditions);
     try body.appendSlice(self.allocator, body_statements);
     if (self.transaction() and !ir.terminates(self.program.body.block())) try body.append(self.allocator, .{ .expression = try self.commit() });
@@ -463,7 +466,16 @@ pub fn cast(self: *Self, type_expr: node.ExpressionId, value: node.ExpressionId)
 }
 
 pub fn construct(self: *Self, type_id: ir.TypeId, value: node.ExpressionId) Error!node.ExpressionId {
-    if (@import("state_value/root.zig").selected(self, type_id)) return self.cast(try self.typeExpr(type_id), try @import("state_value/origin.zig").tuple(self, type_id, value));
+    if (@import("state_value/root.zig").selected(self, type_id)) {
+        const result = try self.cast(try self.layoutExpr(type_id), try @import("state_value/origin.zig").tuple(self, type_id, value));
+
+        if (!self.state_plan.referenced(type_id)) return result;
+
+        var prefix: std.ArrayList(node.Statement) = .empty;
+        const pointer = try @import("state_value/reference.zig").store(self, &prefix, type_id, result);
+
+        return @import("aggregate.zig").finish(self, &prefix, pointer);
+    }
 
     var body: std.ArrayList(node.Statement) = .empty;
     const layout = try self.layoutExpr(type_id);

@@ -19,9 +19,10 @@ pub fn convert(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.TypeId
 
     if (private == public) return value;
 
-    const target = if (input) private else public;
+    const referenced = input and self.state_plan.referenced(id);
+    const target = if (referenced) try types.get(self, self.state_layouts, id) else if (input) private else public;
 
-    return switch (self.program.typeOf(id)) {
+    const result = try switch (self.program.typeOf(id)) {
         .optional => |child| optional: {
             var present: std.ArrayList(node.Statement) = .empty;
             const payload = try self.builder.expression(.{ .optional_unwrap = value });
@@ -60,4 +61,6 @@ pub fn convert(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.TypeId
         },
         else => unreachable,
     };
+
+    return if (referenced) @import("reference.zig").store(self, body, id, result) else result;
 }

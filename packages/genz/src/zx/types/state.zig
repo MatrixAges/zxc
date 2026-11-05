@@ -17,6 +17,7 @@ pub fn build(self: *Lower, declarations: *std.ArrayList(node.Declaration), expor
     const input: Input = .{
         .types = &types,
         .selected = self.state_plan.selected,
+        .borrowed = self.state_plan.borrowed,
         .keys = keys,
         .names = self.type_names,
         .abi_types = view.slice(@FieldType(Input, "abi_types"), @as([]const node.ExpressionId, self.abi_types)),

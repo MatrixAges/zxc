@@ -19,6 +19,7 @@ pub fn lower(self: *Lower, id: ir.ExprId, process: bool) Lower.Error!node.Expres
     worker.cache_reads = try self.allocator.alloc(usize, self.cache_reads.len);
     worker.cache = .empty;
     worker.stack_symbols = .empty;
+    worker.reference_storage = .empty;
     worker.iteration_value = null;
     worker.capture = null;
     worker.uses_allocator = false;
@@ -53,6 +54,7 @@ pub fn lower(self: *Lower, id: ir.ExprId, process: bool) Lower.Error!node.Expres
         if (!worker.used[@backingInt(symbol)]) try body.append(self.allocator, .{ .discard = try self.builder.identifier(worker.names[@backingInt(symbol)]) });
     }
 
+    try body.appendSlice(self.allocator, worker.reference_storage.items);
     try body.append(self.allocator, .{ .result = result });
 
     const function: node.Declaration = .{ .function = .{ .name = "run", .parameters = try parameters.toOwnedSlice(self.allocator), .return_type = try self.builder.expression(.{ .error_union = .{ .payload = try self.typeExpr(task_type.result), .errors = self.program.typeOf(task_type.errors).error_set } }), .body = try self.builder.statements(body.items) } };
