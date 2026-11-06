@@ -43,8 +43,6 @@ pub fn view(self: *const Self) model.Table {
 }
 
 pub fn finish(self: *Self, allocator: std.mem.Allocator, root: ?ir.BlockId) std.mem.Allocator.Error!@import("root.zig") {
-    errdefer self.deinit(allocator);
-
     if (root == null) {
         std.debug.assert(self.block_first.items.len == 0);
         self.deinit(allocator);
@@ -52,17 +50,28 @@ pub fn finish(self: *Self, allocator: std.mem.Allocator, root: ?ir.BlockId) std.
         return .{};
     }
 
-    const table = try allocator.create(model.Table);
+    const table = allocator.create(model.Table) catch |err| {
+        self.deinit(allocator);
+
+        return err;
+    };
 
     table.* = .{};
 
-    errdefer {
+    const complete = collect: {
+        inline for (@typeInfo(model.Table).@"struct".field_names) |name| {
+            @field(table, name) = @field(self, name).toOwnedSlice(allocator) catch break :collect false;
+        }
+
+        break :collect true;
+    };
+
+    if (!complete) {
         inline for (@typeInfo(model.Table).@"struct".field_names) |name| allocator.free(@field(table, name));
         allocator.destroy(table);
-    }
+        self.deinit(allocator);
 
-    inline for (@typeInfo(model.Table).@"struct".field_names) |name| {
-        @field(table, name) = try @field(self, name).toOwnedSlice(allocator);
+        return error.OutOfMemory;
     }
 
     return .{ .control = table, .root = root };

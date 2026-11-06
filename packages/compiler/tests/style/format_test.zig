@@ -65,7 +65,7 @@ test "style: naming checks reach callback and destructuring bindings" {
 }
 
 fn compileAllocationFailures(allocator: std.mem.Allocator) !void {
-    const result = try compiler.compile(allocator, "export type Input = u64[]\n\nexport type Output = u64[]\n\nexport default function (in: Input): Output {\n    const values: u64[] = []\n\n    return loop({\n        source: in,\n        index: 0,\n        values\n    }, {\n        while: current => current.index < current.source.length,\n        next: current => {\n            current.values = current.values.push(current.source[current.index] + 1)[0]\n            current.index += 1\n        }\n    }).values\n}\n", "memory.zx");
+    const result = try compiler.compile(allocator, "export type Input = u64[]\n\nexport type Output = u64[]\n\nexport default function (in: Input): Output {\n    const values: u64[] = []\n\n    return loop({\n        source: in,\n        index: 0,\n        values\n    }, {\n        while: current => current.index < current.source.length,\n        next: current => {\n            current.values = current.values.push(current.source[current.index] + 1)[0]\n            current.index += 1\n        },\n        return: current => current.values\n    })\n}\n", "memory.zx");
 
     defer result.deinit(allocator);
 

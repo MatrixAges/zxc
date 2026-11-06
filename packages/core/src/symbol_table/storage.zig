@@ -46,12 +46,20 @@ pub fn view(self: *const Self) Table {
 pub fn finish(self: *Self, allocator: std.mem.Allocator) std.mem.Allocator.Error!Table {
     var result: Table = .{};
 
-    errdefer {
+    const complete = collect: {
+        inline for (@typeInfo(Self).@"struct".field_names) |name| {
+            @field(result, name) = @field(self, name).toOwnedSlice(allocator) catch break :collect false;
+        }
+
+        break :collect true;
+    };
+
+    if (!complete) {
         inline for (@typeInfo(Table).@"struct".field_names) |name| allocator.free(@field(result, name));
         self.deinit(allocator);
-    }
 
-    inline for (@typeInfo(Self).@"struct".field_names) |name| @field(result, name) = try @field(self, name).toOwnedSlice(allocator);
+        return error.OutOfMemory;
+    }
 
     return result;
 }

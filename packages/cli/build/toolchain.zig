@@ -1,6 +1,5 @@
 const std = @import("std");
 const model = @import("toolchain/manifest.zig");
-
 /// The generated bundle module, and the official Zig archive it embeds.
 pub const Bundle = struct { module: *std.Build.Module, zig_archive: std.Build.LazyPath };
 
@@ -22,7 +21,7 @@ fn generate(b: *std.Build, target: std.Build.ResolvedTarget, index: std.Build.La
     const tool = b.addExecutable(.{ .name = "bundle-zig", .root_module = b.createModule(.{
         .root_source_file = b.path("build/toolchain/pack.zig"),
         .target = b.graph.host,
-        .optimize = .fast,
+        .optimize = .small,
         .imports = &.{.{ .name = "genz", .module = b.dependency("genz", .{ .target = b.graph.host, .optimize = .fast }).module("genz") }},
     }) });
 

@@ -1,5 +1,7 @@
 const std = @import("std");
 const Sha256 = std.crypto.hash.sha2.Sha256;
+const maximum_attempts = 3;
+const retry_delay_ms = 250;
 pub const Release = struct { host: []const u8, archive: []const u8, archive_sha256: []const u8 };
 const Releases = struct { version: []const u8, releases: []const Release };
 
@@ -15,7 +17,27 @@ pub fn find(allocator: std.mem.Allocator, host: []const u8) !struct { version: [
 }
 
 pub fn prepare(io: std.Io, allocator: std.mem.Allocator, release: Release, local: []const u8, destination: []const u8) !void {
+    var attempt: u32 = 1;
+
+    while (true) : (attempt += 1) {
+        transfer(io, allocator, release, local, destination) catch |err| {
+            if (local.len != 0 or attempt == maximum_attempts or !retryable(err)) return err;
+
+            std.log.warn("Zig download attempt {d}/{d} failed: {t}; retrying", .{ attempt, maximum_attempts, err });
+
+            try io.sleep(.fromMilliseconds(retry_delay_ms * attempt), .awake);
+
+            continue;
+        };
+
+        return;
+    }
+}
+
+fn transfer(io: std.Io, allocator: std.mem.Allocator, release: Release, local: []const u8, destination: []const u8) !void {
     const file = try std.Io.Dir.cwd().createFile(io, destination, .{});
+
+    errdefer std.Io.Dir.cwd().deleteFile(io, destination) catch {};
 
     defer file.close(io);
 
@@ -34,7 +56,11 @@ pub fn prepare(io: std.Io, allocator: std.mem.Allocator, release: Release, local
 
         _ = try reader.interface.streamRemaining(&hashed.writer);
     } else {
-        var client: std.http.Client = .{ .allocator = allocator, .io = io };
+        var scratch = std.heap.ArenaAllocator.init(allocator);
+
+        defer scratch.deinit();
+
+        var client: std.http.Client = .{ .allocator = scratch.allocator(), .io = io };
 
         defer client.deinit();
 
@@ -49,4 +75,18 @@ pub fn prepare(io: std.Io, allocator: std.mem.Allocator, release: Release, local
     const digest = std.fmt.bytesToHex(hashed.hasher.finalResult(), .lower);
 
     if (!std.mem.eql(u8, &digest, release.archive_sha256)) return error.ZigArchiveChecksumMismatch;
+}
+
+fn retryable(err: anyerror) bool {
+    return switch (err) {
+        error.TlsInitializationFailed,
+        error.ConnectionResetByPeer,
+        error.ConnectionRefused,
+        error.NetworkUnreachable,
+        error.Timeout,
+        error.ReadFailed,
+        error.EndOfStream,
+        => true,
+        else => false,
+    };
 }
