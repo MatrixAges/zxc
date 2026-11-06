@@ -155,11 +155,23 @@ export default function (in: Input): Output {
             }
         }
 
+        if (operation == TransformKind.Sort) {
+            return {
+                ...in.state,
+                queue: push({
+                    queue: in.state.queue,
+                    first: body.prepared.first,
+                    point: {
+                        node: target,
+                        slot: buffer_slot
+                    }
+                })
+            }
+        }
+
         const condition = (
             - contents
-            - and (
-                operation == TransformKind.Filter || operation == TransformKind.Sort
-            )
+            - and operation == TransformKind.Filter
             - and nested({
                 body,
                 node: target

@@ -58,7 +58,7 @@ const Remembered = struct {
         var hash = @import("zx").Sha256.init(.{});
         var result: Memo.Digest = undefined;
 
-        hash.update("zxc.uniqueness.flow.v4");
+        hash.update("zxc.uniqueness.flow.v5");
         hash.update(&self.types);
         hash.update(&self.contents[index]);
 

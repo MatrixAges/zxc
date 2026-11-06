@@ -50,6 +50,9 @@ pub fn collectOperations(allocator: std.mem.Allocator, order: *const Order, expr
 
         switch (expressions.get(id).value) {
             .call, .list_operation, .list_update => try result.append(allocator, id),
+            .transform => |value| if (value.kind == .sort) {
+                try result.append(allocator, id);
+            },
             else => {},
         }
     }
@@ -351,6 +354,9 @@ fn flags(self: *Self, values: []Flags) std.mem.Allocator.Error!void {
                     },
                     .splice => value.retract = self.prefix(operation) and target.headered and target.unique,
                 }
+            },
+            .transform => |transform| if (transform.kind == .sort) {
+                value.in_place = self.level(transform.target, 0).unique;
             },
             .list_update => |update| {
                 const target = self.level(update.target, 0);

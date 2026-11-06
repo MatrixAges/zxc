@@ -1,6 +1,10 @@
 import integers from "std:integer"
 import { max_u32 } from "core/const"
-import { CollectionKind, ExpressionKind } from "core/expression_table/kinds"
+import {
+    CollectionKind,
+    ExpressionKind,
+    TransformKind
+} from "core/expression_table/kinds"
 
 import { buffer_slot } from "./const"
 import prefix from "./prefix"
@@ -45,6 +49,15 @@ export default function (in: Input): Output {
                     if (writes) {
                         state.roots = state.roots.push({
                             node: expressions.collection_targets[payload],
+                            slot: buffer_slot
+                        })[0]
+                    }
+                } else if (kind == ExpressionKind.Transform) {
+                    if (
+                        expressions.transform_kinds[payload] == TransformKind.Sort
+                    ) {
+                        state.roots = state.roots.push({
+                            node: expressions.transform_targets[payload],
                             slot: buffer_slot
                         })[0]
                     }

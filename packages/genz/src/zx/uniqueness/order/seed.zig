@@ -227,7 +227,7 @@ fn visit(self: *Self, id: ir.ExprId) std.mem.Allocator.Error!void {
             for (operation.arguments) |argument| try self.operand(parent, argument, if (operation.kind == .push) .use else .observe);
         },
         .transform => |transform| {
-            try self.operand(parent, transform.target, .observe);
+            try self.operand(parent, transform.target, if (transform.kind == .sort) .use else .observe);
             if (transform.initial) |initial| try self.operand(parent, initial, .use);
 
             const saved = try self.open(id, false);

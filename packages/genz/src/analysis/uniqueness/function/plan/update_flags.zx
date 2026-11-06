@@ -21,6 +21,10 @@ export type Input = {
 export type Output = u64
 
 export default function (in: Input): Output {
+    if (in.kind == ExpressionKind.Transform) {
+        return in.target.unique ? in_place_flag : no_flags
+    }
+
     if (in.kind == ExpressionKind.ListUpdate) {
         return match {
             in.target.unique => in_place_flag,

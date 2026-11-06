@@ -15,8 +15,10 @@ export type Input = {
 export type Output = bool[]
 
 export default function (in: Input): Output {
-    const selected = in.flags.map(flag =>
-        integers.andBits(flag, normalize_flag + renew_flag) != 0)[0]
+    const selected = in.flags.map(
+        flag =>
+            integers.andBits(flag, normalize_flag + renew_flag) != 0
+    )[0]
 
     const operations = loop({
         selected,
@@ -32,6 +34,7 @@ export default function (in: Input): Output {
             const target = match expressions.kinds[node] {
                 ExpressionKind.Call => expressions.call_arguments[payload],
                 ExpressionKind.ListUpdate => expressions.update_targets[payload],
+                ExpressionKind.Transform => expressions.transform_targets[payload],
                 _ => expressions.collection_targets[payload]
             }
 

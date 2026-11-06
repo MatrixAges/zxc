@@ -21,15 +21,22 @@ export default function (in: Input): Output {
             const kind = expressions.kinds[node]
             const payload = integers.widen(expressions.payloads[node])
 
-            if (
-                kind == ExpressionKind.ListOperation ||
-                    kind == ExpressionKind.ListUpdate
-            ) {
+            const writable = (
+                - kind == ExpressionKind.ListOperation
+                - or kind == ExpressionKind.ListUpdate
+                - or kind == ExpressionKind.Transform
+            )
+
+            if (writable) {
 
                 const result = (
-                    kind == ExpressionKind.ListUpdate ?
-                        expressions.update_targets[payload] :
-                        expressions.collection_targets[payload]
+                    match kind {
+                        ExpressionKind.ListUpdate =>
+                            expressions.update_targets[payload],
+                        ExpressionKind.Transform =>
+                            expressions.transform_targets[payload],
+                        _ => expressions.collection_targets[payload]
+                    }
                 )
                     -> query({
                         context: source.context,
@@ -47,8 +54,11 @@ export default function (in: Input): Output {
 
                 const flag = updateFlags({
                     kind,
-                    operation: kind == ExpressionKind.ListUpdate ? CollectionKind.Push :
-                        expressions.collection_kinds[payload],
+                    operation: match kind {
+                        ExpressionKind.ListUpdate => CollectionKind.Push,
+                        ExpressionKind.Transform => CollectionKind.Sort,
+                        _ => expressions.collection_kinds[payload]
+                    },
                     target: value(result.value),
                     prefix: kind == ExpressionKind.ListOperation && prefix({
                         expressions,

@@ -1,6 +1,6 @@
 import integers from "std:integer"
 import { max_u32 } from "core/const"
-import { ExpressionKind } from "core/expression_table/kinds"
+import { ExpressionKind, TransformKind } from "core/expression_table/kinds"
 
 import type { Expressions } from "core/expression_table/model"
 
@@ -27,6 +27,13 @@ export default function (in: Input): Output {
                     - kind == ExpressionKind.Call
                     - or kind == ExpressionKind.ListOperation
                     - or kind == ExpressionKind.ListUpdate
+                    - or (
+                        kind == ExpressionKind.Transform &&
+                            source.expressions
+                            .transform_kinds[integers.widen(
+                                source.expressions.payloads[state.index]
+                            )] == TransformKind.Sort
+                    )
                 )
 
                 if (condition) {

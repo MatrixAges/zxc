@@ -1,6 +1,10 @@
 import integers from "std:integer"
 import { max_u32 } from "core/const"
-import { CollectionKind, ExpressionKind } from "core/expression_table/kinds"
+import {
+    CollectionKind,
+    ExpressionKind,
+    TransformKind
+} from "core/expression_table/kinds"
 
 import { Action, Role } from "./model"
 import push from "./push"
@@ -356,7 +360,8 @@ export default function (in: Input): Output {
                     action: Action.Operand,
                     first: in.id,
                     second: table.transform_targets[payload],
-                    role: Role.observe
+                    role: table.transform_kinds[payload] == TransformKind.Sort ?
+                        Role.use : Role.observe
                 }
             })
     }

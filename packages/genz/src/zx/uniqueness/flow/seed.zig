@@ -107,6 +107,7 @@ pub const Walk = struct {
 
             switch (expressions.get(id).value) {
                 .list_update => |update| try self.push(update.target, 0),
+                .transform => |transform| if (transform.kind == .sort) try self.push(transform.target, 0),
                 .list_operation => |operation| switch (operation.kind) {
                     .sort, .reverse, .pop => try self.push(operation.target, 0),
                     .splice => if (@import("../basis.zig").prefix(expressions, operation)) try self.push(operation.target, 0),
@@ -222,7 +223,8 @@ pub const Walk = struct {
             .index => |item| if (self.contents) try self.push(item.target, 0),
             .transform => |transform| switch (transform.kind) {
                 .map => if (self.contents) try self.whole(transform.body),
-                .filter, .sort => if (self.contents and self.nested(transform.target)) try self.push(transform.target, 0),
+                .filter => if (self.contents and self.nested(transform.target)) try self.push(transform.target, 0),
+                .sort => try self.push(transform.target, 0),
                 .reduce => {
                     try self.push(transform.initial.?, slot);
                     try self.push(transform.body, slot);

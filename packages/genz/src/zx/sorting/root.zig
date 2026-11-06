@@ -6,6 +6,7 @@ const Lower = @import("../lower.zig");
 const aggregate = @import("../aggregate.zig");
 const lists = @import("../state_value/list.zig");
 const functions = @import("functions.zig");
+const intrinsic = @import("../intrinsics.zig");
 
 pub fn lower(self: *Lower, id: ir.ExprId, value: ir.Transform) Lower.Error!node.ExpressionId {
     const slot = self.task_declarations.items.len;
@@ -24,7 +25,17 @@ pub fn lower(self: *Lower, id: ir.ExprId, value: ir.Transform) Lower.Error!node.
     self.uses_process = self.uses_process or worker.process;
 
     var body: std.ArrayList(node.Statement) = .empty;
-    const source = try aggregate.bind(self, &body, try lists.expression(self, value.target));
+    const evaluated = try self.expr(value.target);
+    const qualified = if (lists.selected(self, list_type)) try @import("../state_value/ownership.zig").clip(self, &body, value.target, evaluated) else evaluated;
+    const source_value = try aggregate.bind(self, &body, qualified);
+    const source = try lists.items(self, list_type, source_value);
+
+    const reuse = try aggregate.bind(self, &body, if (self.plan.get(id).in_place)
+        try self.builder.expression(.{ .boolean = true })
+    else if (lists.selected(self, list_type))
+        try lists.exclusive(self, source_value)
+    else
+        try self.builder.expression(.{ .boolean = false }));
     const environment = try aggregate.bind(self, &body, try self.expr(value.initial.?));
     var fields: std.ArrayList(node.Field) = .empty;
 
@@ -46,7 +57,8 @@ pub fn lower(self: *Lower, id: ir.ExprId, value: ir.Transform) Lower.Error!node.
 
     try body.append(self.allocator, .{ .variable = .{ .name = context_name, .type_expr = context_type, .value = try self.builder.expression(.{ .object = .{ .fields = try fields.toOwnedSlice(self.allocator) } }) } });
 
-    const result = try self.call(try self.field(try self.builder.identifier(name), "sort"), &.{ try self.builder.expression(.{ .address_of = try self.builder.identifier(context_name) }), source }, true);
+    const result = try self.call(try self.field(try self.builder.identifier(name), "sort"), &.{ try self.builder.expression(.{ .address_of = try self.builder.identifier(context_name) }), source, reuse }, true);
+    const headered = if (lists.selected(self, list_type)) try intrinsic.binary(self, .logical_and, reuse, try lists.headered(self, source_value)) else try self.builder.expression(.{ .boolean = false });
 
-    return aggregate.finish(self, &body, try lists.owned(self, list_type, result, try self.builder.expression(.{ .boolean = false })));
+    return aggregate.finish(self, &body, try lists.owned(self, list_type, result, headered));
 }

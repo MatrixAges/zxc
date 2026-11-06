@@ -36,9 +36,22 @@ pub fn sort(self: *Lower, child: node.ExpressionId, errors: ?[]const []const u8)
     const allocator = try self.field(context, "allocator");
     const items = try self.builder.identifier("items");
     var body: std.ArrayList(node.Statement) = .empty;
+    const reuse = try self.builder.identifier("reuse");
+    const source = try self.builder.identifier("source");
+    const copied = try self.builder.expression(.{ .try_value = try self.call(try self.field(allocator, "dupe"), &.{ child, source }, false) });
+    const mutable = try self.builder.expression(.{ .conditional = .{ .condition = reuse, .yes = try self.builtin(.constCast, &.{source}), .no = copied } });
 
-    try body.append(self.allocator, .{ .constant = .{ .name = "items", .value = try self.builder.expression(.{ .try_value = try self.call(try self.field(allocator, "dupe"), &.{ child, try self.builder.identifier("source") }, false) }) } });
-    try body.append(self.allocator, .{ .errdefer_expression = try self.call(try self.field(allocator, "free"), &.{items}, false) });
+    try body.append(self.allocator, .{ .constant = .{ .name = "items", .value = mutable } });
+
+    const release = try self.call(try self.field(allocator, "free"), &.{items}, false);
+
+    const cleanup = try self.builder.expression(.{ .conditional = .{
+        .condition = reuse,
+        .yes = try self.builder.expression(.unit),
+        .no = release,
+    } });
+
+    try body.append(self.allocator, .{ .errdefer_expression = cleanup });
 
     const ordering = try self.call(try self.builder.identifier("Ordering"), &.{try self.builtin(.TypeOf, &.{context})}, false);
 
@@ -55,7 +68,7 @@ pub fn sort(self: *Lower, child: node.ExpressionId, errors: ?[]const []const u8)
 
     return .{ .function = .{
         .name = "sort",
-        .parameters = try self.allocator.dupe(node.Field, &.{ .{ .name = "context", .value = try self.builder.expression(.{ .primitive = .@"anytype" }) }, .{ .name = "source", .value = try self.builder.expression(.{ .const_slice = child }) } }),
+        .parameters = try self.allocator.dupe(node.Field, &.{ .{ .name = "context", .value = try self.builder.expression(.{ .primitive = .@"anytype" }) }, .{ .name = "source", .value = try self.builder.expression(.{ .const_slice = child }) }, .{ .name = "reuse", .value = try self.builder.expression(.{ .primitive = .bool }) } }),
         .return_type = try self.builder.expression(.{ .error_union = .{ .payload = try self.builder.expression(.{ .mutable_slice = child }), .errors = errors } }),
         .body = try self.builder.statements(body.items),
     } };
