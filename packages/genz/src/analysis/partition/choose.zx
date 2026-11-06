@@ -1,0 +1,64 @@
+import integers from "std:integer"
+
+export type Input = {
+    nodes: u32[],
+    used: bool[][],
+    bytes: u64[],
+    weights: u64[],
+    capacity: u64
+}
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    return loop({
+        index: 0,
+        owner: 0,
+        cost: 0,
+        bytes: 0
+    }, {
+        while: state => state.index < in.used.length,
+        next: state => {
+            const used = in.used[state.index]
+
+            const added = loop({
+                index: 0,
+                bytes: 0
+            }, {
+                while: current => current.index < in.nodes.length,
+                next: current => {
+                    const node = integers.widen(in.nodes[current.index])
+
+                    if (!used[node]) {
+                        current.bytes += in.weights[node]
+                    }
+
+                    current.index += 1
+                },
+                return: current => current.bytes
+            })
+
+            const bytes = in.bytes[state.index] + added
+            const excess = bytes > in.capacity ? bytes - in.capacity : 0
+            const cost = added + excess
+            const first = state.index == 0
+            const cheaper = cost < state.cost
+            const tied = cost == state.cost && bytes < state.bytes
+
+            const better = (
+                - first
+                - or cheaper
+                - or tied
+            )
+
+            if (better) {
+                state.owner = state.index
+                state.cost = cost
+                state.bytes = bytes
+            }
+
+            state.index += 1
+        },
+        return: state => state.owner
+    })
+}

@@ -1,0 +1,30 @@
+<Module>
+    <Type from="model" as="Partition" />
+
+    <Args in={Partition.Graph} out={Partition.Plan} />
+
+    <Call fn="closures" in={$in} />
+    <Call fn="order" in={$ctx.closures} />
+
+    <Call
+        fn="capacity"
+        in={{
+            graph: $in,
+            closures: $ctx.order
+        }}
+    />
+
+    <Call fn="initial" in={$in} />
+
+    <Call
+        fn="assign"
+        in={{
+            closures: $ctx.order,
+            groups: $ctx.initial,
+            weights: $in.sizes,
+            capacity: $ctx.capacity
+        }}
+    />
+
+    <Return value={$ctx.assign} />
+</Module>

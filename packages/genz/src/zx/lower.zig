@@ -120,6 +120,14 @@ pub fn declarations(self: *Self) Error![]const node.Declaration {
 }
 
 pub fn functionValue(self: *Self, name: []const u8) Error!node.Declaration {
+    return self.valueMode(name, false);
+}
+
+pub fn valuePrototype(self: *Self, name: []const u8) Error!node.Function {
+    return (try self.valueMode(name, true)).function;
+}
+
+fn valueMode(self: *Self, name: []const u8, prototype_only: bool) Error!node.Declaration {
     const state = if (self.state_plan.represented(self.program, self.program.output_type) or self.state_plan.inlineRows(self.program, self.program.input_type)) try @import("state_value/root.zig").enter(self) else null;
 
     defer if (state) |saved| saved.restore();
@@ -132,7 +140,7 @@ pub fn functionValue(self: *Self, name: []const u8) Error!node.Declaration {
     self.value_output = state == null or self.state_plan.represented(self.program, self.program.output_type) or (output != .object and output != .tuple);
     defer self.value_output = false;
 
-    return self.function(name, false);
+    return if (prototype_only) .{ .function = try self.prototype(name, false) } else self.function(name, false);
 }
 
 pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declaration {
@@ -192,6 +200,22 @@ pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declar
     try body.appendSlice(self.allocator, body_statements);
     if (self.transaction() and !ir.terminates(self.program.body.block())) try body.append(self.allocator, .{ .expression = try self.commit() });
 
+    var declaration = try self.prototypeWithErrors(name, exported, errors);
+
+    declaration.body = try self.builder.statements(body.items);
+
+    return .{ .function = declaration };
+}
+
+pub fn prototype(self: *Self, name: []const u8, exported: bool) Error!node.Function {
+    const errors = try @import("zx").error_effects.programWith(self.allocator, self.program, self.function_errors);
+
+    return self.prototypeWithErrors(name, exported, errors);
+}
+
+fn prototypeWithErrors(self: *Self, name: []const u8, exported: bool, errors: ?[]const []const u8) Error!node.Function {
+    const needs_io = self.entry_flags.io;
+    const needs_process = self.entry_flags.process;
     const injected = self.program.stores.count() > 0;
     const parameters = try self.allocator.alloc(node.Field, 2 + @as(usize, @intFromBool(injected)) + @as(usize, @intFromBool(needs_io)) + @as(usize, @intFromBool(needs_process)));
 
@@ -202,7 +226,7 @@ pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declar
     if (needs_io) parameters[2 + @as(usize, @intFromBool(injected))] = .{ .name = "io", .value = try @import("intrinsics.zig").standardField(self, &.{"Io"}) };
     if (needs_process) parameters[parameters.len - 1] = .{ .name = "process", .value = try @import("intrinsics.zig").standardField(self, &.{ "process", "Init", "Minimal" }) };
 
-    return .{ .function = .{ .name = name, .parameters = parameters, .return_type = try self.builder.expression(.{ .error_union = .{ .payload = if (self.public_value_output) try @import("types.zig").get(self, self.view_types, self.program.output_type) else if (self.value_output) try self.layoutExpr(self.program.output_type) else try self.typeExpr(self.program.output_type), .errors = errors } }), .body = try self.builder.statements(body.items), .exported = exported, .inlined = if (@hasField(@TypeOf(self.entry_flags), "inlined")) self.entry_flags.inlined else false } };
+    return .{ .name = name, .parameters = parameters, .return_type = try self.builder.expression(.{ .error_union = .{ .payload = if (self.public_value_output) try @import("types.zig").get(self, self.view_types, self.program.output_type) else if (self.value_output) try self.layoutExpr(self.program.output_type) else try self.typeExpr(self.program.output_type), .errors = errors } }), .body = .{}, .exported = exported, .inlined = if (@hasField(@TypeOf(self.entry_flags), "inlined")) self.entry_flags.inlined else false };
 }
 
 pub fn expr(self: *Self, id: ir.ExprId) Error!node.ExpressionId {

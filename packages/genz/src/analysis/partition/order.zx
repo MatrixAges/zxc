@@ -1,0 +1,19 @@
+import { sort_less, sort_equal, sort_greater } from "../uniqueness/replay/ordered/const"
+
+import type { Closure } from "./model"
+
+export type Input = Closure[]
+
+export type Output = Closure[]
+
+export default function (in: Input): Output {
+    return in.sort(
+        (left, right) => match {
+            left.bytes > right.bytes => sort_less,
+            left.bytes < right.bytes => sort_greater,
+            left.index < right.index => sort_less,
+            left.index == right.index => sort_equal,
+            _ => sort_greater
+        }
+    )[0]
+}

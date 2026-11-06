@@ -1,0 +1,24 @@
+export type Graph = {
+    callees: u32[][],
+    sizes: u64[],
+    roots: u32[],
+    partitions: u32
+}
+
+export type Closure = {
+    index: u64,
+    nodes: u32[],
+    bytes: u64
+}
+
+export type Groups = {
+    used: bool[][],
+    members: u32[][],
+    bytes: u64[],
+    owners: u64[]
+}
+
+export type Plan = {
+    members: u32[][],
+    owners: u64[]
+}

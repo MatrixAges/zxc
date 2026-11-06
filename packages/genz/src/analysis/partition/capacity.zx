@@ -1,0 +1,60 @@
+import integers from "std:integer"
+
+import type { Graph, Closure } from "./model"
+
+export type Input = {
+    graph: Graph,
+    closures: Closure[]
+}
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    if (in.closures.length == 0) {
+        return 0
+    }
+
+    const total = loop({
+        seen: in.graph.sizes.map(size => false)[0],
+        bytes: 0,
+        index: 0
+    }, {
+        while: state => state.index < in.closures.length,
+        next: state => {
+            const nodes = in.closures[state.index].nodes
+
+            const merged = loop({
+                seen: state.seen,
+                bytes: state.bytes,
+                index: 0
+            }, {
+                while: current => current.index < nodes.length,
+                next: current => {
+                    const node = integers.widen(nodes[current.index])
+
+                    if (!current.seen[node]) {
+                        current.seen[node] = true
+                        current.bytes += in.graph.sizes[node]
+                    }
+
+                    current.index += 1
+                },
+                return: current => current.pick([
+                    "seen",
+                    "bytes"
+                ])
+            })
+
+            state.seen = merged.seen
+            state.bytes = merged.bytes
+            state.index += 1
+        },
+        return: state => state.bytes
+    })
+
+    const count = integers.widen(in.graph.partitions)
+    const average = (total + count - 1) / count
+    const largest = in.closures[0].bytes
+
+    return largest > average ? largest : average
+}

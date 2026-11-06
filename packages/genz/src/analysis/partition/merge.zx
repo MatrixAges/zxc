@@ -1,0 +1,43 @@
+import integers from "std:integer"
+
+export type Input = {
+    used: bool[],
+    members: u32[],
+    bytes: u64,
+    nodes: u32[],
+    weights: u64[]
+}
+
+export type Output = {
+    used: bool[],
+    members: u32[],
+    bytes: u64
+}
+
+export default function (in: Input): Output {
+    return loop({
+        used: in.used,
+        members: in.members,
+        bytes: in.bytes,
+        index: 0
+    }, {
+        while: state => state.index < in.nodes.length,
+        next: state => {
+            const value = in.nodes[state.index]
+            const node = integers.widen(value)
+
+            if (!state.used[node]) {
+                state.used[node] = true
+                state.members = state.members.push(value)[0]
+                state.bytes += in.weights[node]
+            }
+
+            state.index += 1
+        },
+        return: state => state.pick([
+            "used",
+            "members",
+            "bytes"
+        ])
+    })
+}

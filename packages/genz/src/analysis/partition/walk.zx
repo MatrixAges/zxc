@@ -1,0 +1,54 @@
+import integers from "std:integer"
+
+import type { Graph, Closure as Output } from "./model"
+
+export type Input = {
+    graph: Graph,
+    index: u64
+}
+
+export default function (in: Input): Output {
+    const nodes: u32[] = []
+
+    return loop({
+        pending: [in.graph.roots[in.index]],
+        seen: in.graph.sizes.map(size => false)[0],
+        nodes,
+        bytes: 0,
+        head: 0
+    }, {
+        while: state => state.head < state.pending.length,
+        next: state => {
+            const node = state.pending[state.head]
+            const index = integers.widen(node)
+
+            state.head += 1
+
+            if (!state.seen[index]) {
+                state.seen[index] = true
+                state.nodes = state.nodes.push(node)[0]
+                state.bytes += in.graph.sizes[index]
+
+                const callees = in.graph.callees[index]
+
+                state.pending = loop({
+                    values: state.pending,
+                    index: 0
+                }, {
+                    while: current => current.index < callees.length,
+                    next: current => {
+                        current.values =
+                            current.values.push(callees[current.index])[0]
+                        current.index += 1
+                    },
+                    return: current => current.values
+                })
+            }
+        },
+        return: state => ({
+            index: in.index,
+            nodes: state.nodes,
+            bytes: state.bytes
+        })
+    })
+}

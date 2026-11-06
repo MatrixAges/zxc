@@ -1,0 +1,35 @@
+import integers from "std:integer"
+
+import type { Graph as Input, Groups as Output } from "./model"
+
+export default function (in: Input): Output {
+    const used: bool[][] = []
+    const members: u32[][] = []
+    const bytes: u64[] = []
+    const empty: u32[] = []
+    const count = integers.widen(in.partitions)
+
+    return loop({
+        used,
+        members,
+        bytes,
+        owners: in.roots.map(root => 0)[0],
+        index: 0
+    }, {
+        while: state => state.index < count,
+        next: state => {
+            const seen = in.sizes.map(size => false)[0]
+
+            state.used = state.used.push(seen)[0]
+            state.members = state.members.push(empty)[0]
+            state.bytes = state.bytes.push(0)[0]
+            state.index += 1
+        },
+        return: state => state.pick([
+            "used",
+            "members",
+            "bytes",
+            "owners"
+        ])
+    })
+}

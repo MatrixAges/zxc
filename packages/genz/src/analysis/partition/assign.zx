@@ -1,0 +1,48 @@
+import choose from "./choose"
+import merge from "./merge"
+
+import type { Closure, Groups, Plan as Output } from "./model"
+
+export type Input = {
+    closures: Closure[],
+    groups: Groups,
+    weights: u64[],
+    capacity: u64
+}
+
+export default function (in: Input): Output {
+    return loop({
+        groups: in.groups,
+        index: 0
+    }, {
+        while: state => state.index < in.closures.length,
+        next: state => {
+            const row = in.closures[state.index]
+            const owner = choose({
+                nodes: row.nodes,
+                used: state.groups.used,
+                bytes: state.groups.bytes,
+                weights: in.weights,
+                capacity: in.capacity
+            })
+
+            const updated = merge({
+                used: state.groups.used[owner],
+                members: state.groups.members[owner],
+                bytes: state.groups.bytes[owner],
+                nodes: row.nodes,
+                weights: in.weights
+            })
+
+            state.groups.owners[row.index] = owner
+            state.groups.used[owner] = updated.used
+            state.groups.members[owner] = updated.members
+            state.groups.bytes[owner] = updated.bytes
+            state.index += 1
+        },
+        return: state => state.groups.pick([
+            "owners",
+            "members"
+        ])
+    })
+}

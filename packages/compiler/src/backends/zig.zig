@@ -3,6 +3,7 @@ const zx = @import("zx");
 const modules = @import("zig/modules.zig");
 const library = @import("zig/library.zig");
 pub const LibraryBundle = library.Bundle;
+pub const LibraryOptions = library.Options;
 pub const ModuleBundle = modules.Bundle;
 pub const ModuleFile = modules.File;
 pub const GenerationCache = @import("zig/cache.zig");
@@ -12,6 +13,7 @@ pub const abi_view = @import("genz").zx.modules.abi_view;
 pub const store_initializers = @import("zig/store_initializers.zig");
 pub const gateway = @import("zig/gateway/root.zig");
 pub const state = @import("zig/state.zig");
+pub const partition = @import("zig/partition.zig");
 /// The vectorized substring search generated-code scans share.
 pub const search = @import("zig/search.zig");
 
@@ -33,9 +35,13 @@ pub fn emitLibraryFilesCached(allocator: std.mem.Allocator, output: std.mem.Allo
 
 /// Analysis and memo allocators must be threadsafe, and no other call may use the memo until this returns.
 pub fn emitLibraryFilesCachedConcurrent(allocator: std.mem.Allocator, output: std.mem.Allocator, result: *const @import("../library/root.zig").Result, cache: ?*GenerationCache) (library.Error || error{ InvalidIr, UnverifiedContracts })!LibraryBundle {
+    return emitLibraryFilesCachedConcurrentWith(allocator, output, result, cache, .{});
+}
+
+pub fn emitLibraryFilesCachedConcurrentWith(allocator: std.mem.Allocator, output: std.mem.Allocator, result: *const @import("../library/root.zig").Result, cache: ?*GenerationCache, options: LibraryOptions) (library.Error || error{ InvalidIr, UnverifiedContracts })!LibraryBundle {
     try trusted(allocator, result.program);
 
-    return library.createFilesCachedConcurrent(allocator, output, result, cache);
+    return library.createFilesCachedConcurrentWith(allocator, output, result, cache, options);
 }
 
 pub fn emitModules(allocator: std.mem.Allocator, analysis: *const @import("frontend").AnalysisResult) (modules.Error || error{ InvalidIr, UnverifiedContracts })!ModuleBundle {

@@ -84,7 +84,7 @@ pub fn run(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, entrie
     const cache = try resident.generationCache(io, cache_path);
     const generated = cache.generated;
     const reused = cache.reused;
-    const bundle = try compiler.zig.emitLibraryFilesCachedConcurrent(resident.gpa, resident.emissionAllocator(), &library, cache);
+    const bundle = try compiler.zig.emitLibraryFilesCachedConcurrentWith(resident.gpa, resident.emissionAllocator(), &library, cache, .{ .signatures = partitions != 0 and !compiler.zig.partition.groups.available });
 
     defer resident.discard(bundle.arena);
 

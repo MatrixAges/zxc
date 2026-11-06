@@ -13,6 +13,91 @@ pub const typeNames = @import("types/export_names.zig").build;
 pub const Error = std.mem.Allocator.Error || error{ InvalidNames, InvalidFunction };
 pub const PublicMember = struct { name: []const u8, function: ir.FunctionId };
 
+/// Function types for separately compiled files. Bodies are deliberately absent: importing a type
+/// must not pull the owning function and its dependency graph into another compilation unit.
+pub fn signatures(allocator: std.mem.Allocator, backing: std.mem.Allocator, program: ir.Program, names: Names, facts: Analysis, units: []const Unit) Error![]u8 {
+    var arena = std.heap.ArenaAllocator.init(backing);
+
+    defer arena.deinit();
+
+    const temporary = arena.allocator();
+    var lower = try initialize(temporary, backing, program, names, facts);
+    var output: std.ArrayList(node.Declaration) = .empty;
+    var emitted: std.StringHashMapUnmanaged(void) = .empty;
+
+    try output.append(temporary, .{ .constant = .{ .name = "std", .value = try lower.builtin(.import, &.{try lower.builder.string("std")}) } });
+    try @import("types.zig").lower(&lower, &output, false);
+
+    for (units) |unit| {
+        const id = switch (unit) {
+            .function, .regular => |id| id,
+            else => continue,
+        };
+
+        const path = names.functions[@backingInt(id)];
+        const name = std.fs.path.stem(path);
+
+        if ((try emitted.getOrPut(temporary, name)).found_existing) continue;
+
+        var selected = lower;
+        const function_value = try selectFunction(&selected, id);
+        const value = function_value.external == null and selected.value_functions[@backingInt(id)];
+        var variants: std.ArrayList(node.Declaration) = .empty;
+
+        if (!value or unit == .regular) {
+            const prototype = if (function_value.external != null)
+                try @import("external.zig").prototype(&selected, function_value, @backingInt(id))
+            else
+                try selected.prototype("signature", false);
+            try variants.append(temporary, try signatureType(&selected, "call", prototype));
+        }
+
+        if (value) try variants.append(temporary, try signatureType(&selected, "callValue", try selected.valuePrototype("signature")));
+        try output.append(temporary, .{ .constant = .{ .name = name, .exported = true, .value = try lower.builder.expression(.{ .namespace_type = variants.items }) } });
+    }
+
+    return render(allocator, lower.builder.nodes, output.items);
+}
+
+fn signatureType(lower: *Lower, name: []const u8, prototype: node.Function) Error!node.Declaration {
+    var function_type = prototype;
+    function_type.name = "signature";
+    function_type.exported = false;
+    function_type.inlined = false;
+    function_type.body = try lower.builder.statements(&.{.unreachable_stmt});
+
+    const parameters = try lower.allocator.dupe(node.Field, prototype.parameters);
+
+    for (parameters) |*parameter| parameter.name = "_";
+
+    function_type.parameters = parameters;
+
+    const declarations = try lower.allocator.dupe(node.Declaration, &.{.{ .function = function_type }});
+    const container = try lower.builder.expression(.{ .namespace_type = declarations });
+
+    return .{ .constant = .{ .name = name, .exported = true, .value = try lower.builtin(.TypeOf, &.{try lower.builder.field(container, "signature")}) } };
+}
+
+fn selectFunction(lower: *Lower, id: ir.FunctionId) Error!ir.Function {
+    if (@backingInt(id) >= lower.program.functions.count()) return error.InvalidFunction;
+
+    const selected = lower.program.functions.at(@backingInt(id));
+
+    lower.program.symbols = selected.symbols;
+    lower.program.expressions = selected.expressions;
+    lower.program.body = selected.body;
+    lower.program.input_type = selected.input_type;
+    lower.program.output_type = selected.output_type;
+    lower.program.stores = selected.stores;
+    lower.program.store_mode = selected.store_mode;
+    lower.program.contracts = selected.contracts;
+    lower.self_function = id;
+
+    try lower.refreshEntry();
+
+    return selected;
+}
+
 pub fn publicEntry(allocator: std.mem.Allocator, backing: std.mem.Allocator, program: ir.Program, names: Names, facts: Analysis, members: []const PublicMember) Error![]u8 {
     var arena = std.heap.ArenaAllocator.init(backing);
 
@@ -108,19 +193,7 @@ fn functionPrepared(allocator: std.mem.Allocator, backing: std.mem.Allocator, pr
 
     const temporary = arena.allocator();
     var lower = try initialize(temporary, backing, program, names, facts);
-    const selected = lower.program.functions.at(@backingInt(id));
-
-    lower.program.symbols = selected.symbols;
-    lower.program.expressions = selected.expressions;
-    lower.program.body = selected.body;
-    lower.program.input_type = selected.input_type;
-    lower.program.output_type = selected.output_type;
-    lower.program.stores = selected.stores;
-    lower.program.store_mode = selected.store_mode;
-    lower.program.contracts = selected.contracts;
-    lower.self_function = id;
-
-    try lower.refreshEntry();
+    const selected = try selectFunction(&lower, id);
 
     lower.plan = lower.plans[@backingInt(id)];
     lower.names = try temporary.alloc([]const u8, selected.symbols.count());

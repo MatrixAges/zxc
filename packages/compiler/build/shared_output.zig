@@ -10,7 +10,7 @@ pub fn write(io: std.Io, allocator: std.mem.Allocator, output: []const u8, bundl
     var files: std.ArrayList(layout.File) = .empty;
     var functions: std.ArrayList(layout.File) = .empty;
     var top: std.ArrayList(layout.File) = .empty;
-    var root: std.Io.Writer.Allocating = .init(allocator);
+    var modules: std.ArrayList(compiler.zig.partition.Module) = .empty;
 
     try files.append(allocator, .{ .path = "types.zig", .source = bundle.types });
 
@@ -24,7 +24,7 @@ pub fn write(io: std.Io, allocator: std.mem.Allocator, output: []const u8, bundl
         const name = try std.fmt.allocPrint(allocator, "{s}.zig", .{module.file.name});
 
         try top.append(allocator, .{ .path = name, .source = module.file.source });
-        try root.writer.print("pub const {f} = @import(\"{f}\");\n", .{ std.zig.fmtId(module.name), std.zig.fmtString(name) });
+        try modules.append(allocator, .{ .name = module.name, .file = name });
 
         var declarations: std.ArrayList([]const u8) = .empty;
 
@@ -40,9 +40,21 @@ pub fn write(io: std.Io, allocator: std.mem.Allocator, output: []const u8, bundl
 
     try files.appendSlice(allocator, top.items);
 
-    // Partitions forward their panics to a handler the shared top level defines.
-    if (partitions != 0) try root.writer.writeAll("\ncomptime {\n    @import(\"zxc_bridge\").exportPanic();\n}\n");
-    try files.append(allocator, .{ .path = "root.zig", .source = root.written() });
+    if (partitions != 0) {
+        try files.append(allocator, .{ .path = "signatures.zig", .source = bundle.signatures orelse "" });
+
+        const originals = try allocator.alloc(compiler.zig.partition.Module, functions.items.len);
+
+        for (functions.items, originals) |function, *original| {
+            original.* = .{ .name = std.fs.path.stem(function.path), .file = function.path };
+
+            try files.append(allocator, .{ .path = try std.fs.path.join(allocator, &.{ "original", function.path }), .source = function.source });
+        }
+
+        try files.append(allocator, .{ .path = "original/root.zig", .source = try compiler.zig.partition.root(allocator, originals, false) });
+    }
+
+    try files.append(allocator, .{ .path = "root.zig", .source = try compiler.zig.partition.root(allocator, modules.items, partitions != 0) });
     if (partitions == 0) try files.appendSlice(allocator, functions.items) else try files.appendSlice(allocator, try layout.plan(io, allocator, functions.items, top.items, partitions));
     try mirror(io, allocator, output, files.items);
 }

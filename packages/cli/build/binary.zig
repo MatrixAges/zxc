@@ -15,7 +15,6 @@ pub const Inputs = struct {
 pub const Binary = union(enum) {
     artifact: *std.Build.Step.Compile,
     file: std.Build.LazyPath,
-
     pub fn path(self: Binary) std.Build.LazyPath {
         return switch (self) {
             .artifact => |artifact| artifact.getEmittedBin(),
@@ -72,19 +71,28 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
 
     const entry = b.addLibrary(.{ .name = "zxc_start", .linkage = .static, .root_module = start });
     var linked: std.ArrayList(*std.Build.Step.Compile) = .empty;
-
     // The platform link gets the runtimes Zig adds to its own executables from the entry library: compiler_rt,
     // and the sanitizer runtime the bundled C sources call in Debug.
     entry.bundle_compiler_rt = true;
     entry.bundle_ubsan_rt = true;
+
     var files: std.ArrayList(std.Build.LazyPath) = .empty;
 
     linked.append(b.allocator, host) catch @panic("OOM");
 
     if (self_hosted) {
+        inputs.self_hosted_partitions.?.addStepDependencies(&host.step);
+
         for (0..inputs.partition_count) |index| files.append(b.allocator, inputs.self_hosted_partitions.?.path(b, b.fmt("zxc_partition_{d}.o", .{index}))) catch @panic("OOM");
     } else for (llvm_objects.link_objects.items) |item| switch (item) {
-        .other_step => |partition| linked.append(b.allocator, partition) catch @panic("OOM"),
+        .other_step => |partition| {
+            host.step.dependOn(&partition.step);
+            linked.append(b.allocator, partition) catch @panic("OOM");
+        },
+        .static_path => |path| {
+            path.addStepDependencies(&host.step);
+            files.append(b.allocator, path) catch @panic("OOM");
+        },
         else => {},
     };
 

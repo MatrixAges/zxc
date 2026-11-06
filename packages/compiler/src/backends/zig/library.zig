@@ -7,11 +7,13 @@ const references = @import("genz").zx.references;
 const Cache = @import("cache.zig");
 pub const Error = modules.Error || validation.Error || error{InvalidModule};
 pub const PublicModule = struct { name: []const u8, file: modules.File, value_entry: bool = false, state_entry: bool = false, allocator_entry: bool = false, requirements: ?@import("genz").zx.state.Requirements = null };
+pub const Options = struct { signatures: bool = false };
 
 pub const Bundle = struct {
     arena: std.heap.ArenaAllocator,
     public_modules: []const PublicModule,
     types: []const u8,
+    signatures: ?[]const u8 = null,
     modules: []const modules.File,
     type_names: []const []const u8,
     native_modules: @import("zx").ir.NativeModuleTable,
@@ -24,20 +26,24 @@ pub const Bundle = struct {
 };
 
 pub fn createCached(allocator: std.mem.Allocator, library: *const model.Result, cache: ?*Cache) Error!Bundle {
-    return create(allocator, allocator, library, cache, false, false);
+    return create(allocator, allocator, library, cache, false, false, .{});
 }
 
 /// A bundle of files that import each other, held in memory from `output`; what building it needs only meanwhile
 /// comes from `allocator`.
 pub fn createFilesCached(allocator: std.mem.Allocator, output: std.mem.Allocator, library: *const model.Result, cache: ?*Cache) Error!Bundle {
-    return create(allocator, output, library, cache, true, false);
+    return create(allocator, output, library, cache, true, false, .{});
 }
 
 pub fn createFilesCachedConcurrent(allocator: std.mem.Allocator, output: std.mem.Allocator, library: *const model.Result, cache: ?*Cache) Error!Bundle {
-    return create(allocator, output, library, cache, true, true);
+    return createFilesCachedConcurrentWith(allocator, output, library, cache, .{});
 }
 
-fn create(allocator: std.mem.Allocator, output: std.mem.Allocator, library: *const model.Result, cache: ?*Cache, file_imports: bool, comptime concurrent_analysis: bool) Error!Bundle {
+pub fn createFilesCachedConcurrentWith(allocator: std.mem.Allocator, output: std.mem.Allocator, library: *const model.Result, cache: ?*Cache, options: Options) Error!Bundle {
+    return create(allocator, output, library, cache, true, true, options);
+}
+
+fn create(allocator: std.mem.Allocator, output: std.mem.Allocator, library: *const model.Result, cache: ?*Cache, file_imports: bool, comptime concurrent_analysis: bool, options: Options) Error!Bundle {
     if (@import("frontend").checks_internal_ir) {
         try validation.validate(allocator, library);
     } else {
@@ -216,6 +222,7 @@ fn create(allocator: std.mem.Allocator, output: std.mem.Allocator, library: *con
         .arena = arena,
         .public_modules = public_modules,
         .types = type_source,
+        .signatures = if (options.signatures) try @import("genz").zx.modules.signatures(owned, batch.backing, program, identities, batch.analysis.value, units) else null,
         .modules = files,
         .type_names = type_names,
         .native_modules = native_modules,

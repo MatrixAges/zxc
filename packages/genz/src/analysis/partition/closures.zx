@@ -1,0 +1,26 @@
+import walk from "./walk"
+
+import type { Graph as Input, Closure } from "./model"
+
+export type Output = Closure[]
+
+export default function (in: Input): Output {
+    const values: Closure[] = []
+
+    return loop({
+        values,
+        index: 0
+    }, {
+        while: state => state.index < in.roots.length,
+        next: state => {
+            const closure = walk({
+                graph: in,
+                index: state.index
+            })
+
+            state.values = state.values.push(closure)[0]
+            state.index += 1
+        },
+        return: state => state.values
+    })
+}

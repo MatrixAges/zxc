@@ -46,6 +46,15 @@ pub fn lower(self: *Lower, function: ir.Function, index: usize) Lower.Error!node
     if (!self.uses_allocator) try body.append(self.allocator, .{ .discard = allocator });
     try body.append(self.allocator, .{ .result = result });
 
+    var declaration = try prototype(self, function, index);
+
+    declaration.body = try self.builder.statements(body.items);
+
+    return .{ .function = declaration };
+}
+
+pub fn prototype(self: *Lower, function: ir.Function, index: usize) Lower.Error!node.Function {
+    const implementation = function.external.?;
     const parameters = try self.allocator.alloc(node.Field, 2 + @as(usize, @intFromBool(implementation.io_argument)) + @as(usize, @intFromBool(implementation.process_argument)));
 
     parameters[0] = .{ .name = "allocator", .value = try @import("intrinsics.zig").standardField(self, &.{ "mem", "Allocator" }) };
@@ -54,5 +63,5 @@ pub fn lower(self: *Lower, function: ir.Function, index: usize) Lower.Error!node
     if (implementation.io_argument) parameters[2] = .{ .name = "io", .value = try @import("intrinsics.zig").standardField(self, &.{"Io"}) };
     if (implementation.process_argument) parameters[parameters.len - 1] = .{ .name = "process", .value = try @import("intrinsics.zig").standardField(self, &.{ "process", "Init", "Minimal" }) };
 
-    return .{ .function = .{ .name = try std.fmt.allocPrint(self.allocator, "function_{d}", .{index}), .parameters = parameters, .return_type = try self.builder.expression(.{ .error_union = .{ .payload = try self.typeExpr(function.output_type), .errors = if (implementation.fallible) implementation.errors else &.{} } }), .body = try self.builder.statements(body.items) } };
+    return .{ .name = try std.fmt.allocPrint(self.allocator, "function_{d}", .{index}), .parameters = parameters, .body = .{}, .return_type = try self.builder.expression(.{ .error_union = .{ .payload = try self.typeExpr(function.output_type), .errors = if (implementation.fallible) implementation.errors else &.{} } }) };
 }

@@ -195,20 +195,42 @@ pub fn shared(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
     var self_hosted_objects: ?std.Build.LazyPath = null;
 
     if (partitions != 0) {
-        const bridge = b.createModule(.{ .root_source_file = source.main.path(b, "bridge.zig"), .target = target, .optimize = optimize, .strip = strip });
+        const bridge = b.createModule(.{ .root_source_file = b.path("build/partition/bridge.zig"), .target = target, .optimize = optimize, .strip = strip });
+
+        const signatures = b.createModule(.{
+            .root_source_file = source.main.path(b, "signatures.zig"),
+            .target = target,
+            .optimize = optimize,
+            .strip = strip,
+            .imports = &.{.{ .name = "zxc_abi", .module = abi }},
+        });
 
         const imports: []const std.Build.Module.Import = &.{
             .{ .name = "zxc_abi", .module = abi },
             .{ .name = "zxc_standard", .module = standard },
             .{ .name = "zxc_string", .module = string },
             .{ .name = "zxc_bridge", .module = bridge },
+            .{ .name = "zxc_signatures", .module = signatures },
         };
 
         generated.addImport("zxc_bridge", bridge);
+        generated.addImport("zxc_signatures", signatures);
 
-        objects = partitionObjects(b, target, optimize, source, partitions, imports, null);
+        generated.addImport("zxc_comptime", b.createModule(.{
+            .root_source_file = source.main.path(b, "original/root.zig"),
+            .target = target,
+            .optimize = optimize,
+            .strip = strip,
+            .imports = &.{
+                .{ .name = "zxc_abi", .module = abi },
+                .{ .name = "zxc_standard", .module = standard },
+                .{ .name = "zxc_string", .module = string },
+            },
+        }));
 
-        if (optimize == .debug and target.result.cpu.arch == .x86_64 and target.query.isNative()) self_hosted_objects = selfHostedObjects(b, optimize, source, partitions, strip);
+        objects = if (target.query.isNative()) cachedPartitionObjects(b, target, optimize, source, partitions, strip) else partitionObjects(b, target, optimize, source, partitions, imports, strip);
+
+        if (optimize == .debug and target.result.cpu.arch == .x86_64 and target.query.isNative()) self_hosted_objects = cachedObjects(b, optimize, source, partitions, strip, false);
     }
 
     const check_modules = b.createModule(.{
@@ -236,29 +258,45 @@ pub fn shared(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
 }
 
 /// Each partition is its own compilation unit; final artifacts link them by importing the returned module.
-/// Partition objects keep their debug information: stripped ones crashed zxc at runtime once linked
-/// (Zig 0.17, macOS), while the same objects with debug information run identically to one unit.
-fn partitionObjects(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, source: Sources, partitions: u32, imports: []const std.Build.Module.Import, use_llvm: ?bool) *std.Build.Module {
+/// Generated bodies and their entry module use the same debug policy.
+fn partitionObjects(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, source: Sources, partitions: u32, imports: []const std.Build.Module.Import, strip: ?bool) *std.Build.Module {
     const objects = b.createModule(.{ .root_source_file = b.path("build/partition/objects.zig"), .target = target, .optimize = optimize });
-    const suffix = if (use_llvm == false) "_self_hosted" else "";
 
     for (0..partitions) |index| {
-        objects.addObject(b.addObject(.{ .name = b.fmt("zxc_partition_{d}{s}", .{ index, suffix }), .use_llvm = use_llvm, .root_module = b.createModule(.{
+        const functions = b.createModule(.{
+            .root_source_file = source.main.path(b, b.fmt("part_{d}/functions.zig", .{index})),
+            .target = target,
+            .optimize = optimize,
+            .strip = strip,
+            .imports = imports,
+        });
+
+        const module = b.createModule(.{
             .root_source_file = source.main.path(b, b.fmt("part_{d}/root.zig", .{index})),
             .target = target,
             .optimize = optimize,
-            .strip = false,
+            .strip = strip,
             .imports = imports,
-        }) }));
+        });
+
+        module.addImport("zxc_functions", functions);
+        objects.addObject(b.addObject(.{ .name = b.fmt("zxc_partition_{d}", .{index}), .root_module = module }));
     }
 
     return objects;
 }
 
-/// Compiles the partitions with Zig's own backend through one step that runs `zig build-obj` only for partitions whose
-/// generated files changed (see `partition/compile.zig`), instead of one compile step per partition that each start a
-/// Zig process to check its cache. The arguments mirror the modules `shared` gives `partitionObjects`.
-fn selfHostedObjects(b: *std.Build, optimize: std.builtin.OptimizeMode, source: Sources, partitions: u32, strip: ?bool) std.Build.LazyPath {
+fn cachedPartitionObjects(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, source: Sources, partitions: u32, strip: ?bool) *std.Build.Module {
+    const files = cachedObjects(b, optimize, source, partitions, strip, true);
+    const objects = b.createModule(.{ .root_source_file = b.path("build/partition/objects.zig"), .target = target, .optimize = optimize });
+
+    for (0..partitions) |index| objects.addObjectFile(files.path(b, b.fmt("zxc_partition_{d}.o", .{index})));
+
+    return objects;
+}
+
+/// One manifest check replaces a Zig cache process per unchanged partition, on either native backend.
+fn cachedObjects(b: *std.Build, optimize: std.builtin.OptimizeMode, source: Sources, partitions: u32, strip: ?bool, llvm: bool) std.Build.LazyPath {
     const tool = b.addExecutable(.{ .name = "partition-objects", .root_module = b.createModule(.{
         .root_source_file = b.path("build/partition/compile.zig"),
         .target = b.graph.host,
@@ -276,14 +314,18 @@ fn selfHostedObjects(b: *std.Build, optimize: std.builtin.OptimizeMode, source: 
 
     run.addArg(b.fmt("{d}", .{partitions}));
     run.addDirectoryArg(b.dependency("zxc_std", .{}).path("src"));
-    run.addArgs(&.{ "--", "build-obj", "-fno-llvm", "-fno-strip", level, "--dep", "zxc_abi", "--dep", "zxc_standard", "--dep", "zxc_string", "--dep", "zxc_bridge", "-Mroot=%generated%/part_%index%/root.zig" });
+    run.addFileArg(b.path("build/partition/bridge.zig"));
+    run.addArgs(&.{ "--", "build-obj", if (llvm) "-fllvm" else "-fno-llvm", if (strip orelse false) "-fstrip" else "-fno-strip", level, "--dep", "zxc_bridge", "--dep", "zxc_functions", "-Mroot=%generated%/part_%index%/root.zig" });
     run.addArgs(stripped);
     run.addArgs(&.{ level, "-Mzxc_abi=%generated%/types.zig", level, "--dep", "zxc_abi", b.fmt("-Mzxc_standard={s}", .{b.dependency("zxc_std", .{}).builder.root.joinString(b.allocator, "src/root.zig") catch @panic("out of memory")}) });
     run.addArgs(stripped);
     run.addArgs(&.{ level, b.fmt("-Mzxc_string={s}", .{b.dependency("zxc_std", .{}).builder.root.joinString(b.allocator, "src/string.zig") catch @panic("out of memory")}) });
     run.addArgs(stripped);
-    run.addArgs(&.{ level, "-Mzxc_bridge=%generated%/bridge.zig" });
-    run.addArgs(&.{ "--name", "zxc_partition_%index%_self_hosted", "-femit-bin=%objects%/zxc_partition_%index%.o" });
+    run.addArgs(&.{ level, "--dep", "zxc_abi", "-Mzxc_signatures=%generated%/signatures.zig", level });
+    run.addPrefixedFileArg("-Mzxc_bridge=", b.path("build/partition/bridge.zig"));
+    run.addArgs(stripped);
+    run.addArgs(&.{ level, "--dep", "zxc_abi", "--dep", "zxc_standard", "--dep", "zxc_string", "--dep", "zxc_bridge", "--dep", "zxc_signatures", "-Mzxc_functions=%generated%/part_%index%/functions.zig" });
+    run.addArgs(&.{ "--name", if (llvm) "zxc_partition_%index%" else "zxc_partition_%index%_self_hosted", "-femit-bin=%objects%/zxc_partition_%index%.o" });
 
     // The object directory persists across runs, so unchanged partitions keep their objects.
     run.has_side_effects = true;

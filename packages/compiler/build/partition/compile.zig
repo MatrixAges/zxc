@@ -6,12 +6,13 @@ const file_manifest = @import("file_manifest.zig");
 ///     partition-objects <zig> <generated> <objects> <count> [<input directory>...] -- <build-obj arguments>
 ///
 /// A partition is recompiled only when its digest changes: the content hashes the generator's file manifest lists for
-/// its directory, `types.zig` and `bridge.zig`, the build-obj arguments, the Zig executable and the contents of every
-/// input directory. One Zig process per changed partition replaces a cache check per partition. In the arguments,
+/// its directory, `types.zig` and `signatures.zig`, the build-obj arguments, the Zig executable and every
+/// input file or directory. One Zig process per changed partition replaces a cache check per partition. In the arguments,
 /// `%generated%`, `%objects%` and `%index%` stand for the tree, the object directory and the partition number.
 pub fn main(init: std.process.Init) !void {
     const allocator = init.arena.allocator();
     const args = try init.minimal.args.toSlice(allocator);
+
     const separator = for (args, 0..) |arg, index| {
         if (std.mem.eql(u8, arg, "--")) break index;
     } else return error.MissingArguments;
@@ -30,20 +31,26 @@ pub fn main(init: std.process.Init) !void {
     const manifest = try file_manifest.parse(allocator, try cwd.readFileAlloc(init.io, try std.fs.path.join(allocator, &.{ plan.generated, file_manifest.name }), allocator, .unlimited));
     var shared = std.crypto.hash.Blake3.init(.{});
 
-    field(&shared, "zxc.partition.objects.v1");
+    field(&shared, "zxc.partition.objects.v3");
     field(&shared, plan.zig);
 
     const zig_stat = try cwd.statFile(init.io, plan.zig, .{});
 
     integer(&shared, @intCast(zig_stat.size));
     integer(&shared, @bitCast(@as(i64, @truncate(zig_stat.mtime.nanoseconds))));
-
     for (plan.template) |arg| field(&shared, arg);
-    for ([_][]const u8{ "types.zig", "bridge.zig" }) |path| integer(&shared, manifest.get(path) orelse return error.MissingGeneratedFile);
-    for (args[5..separator]) |directory| try contents(init.io, allocator, &shared, directory);
+    for ([_][]const u8{ "types.zig", "signatures.zig" }) |path| integer(&shared, manifest.get(path) orelse return error.MissingGeneratedFile);
+
+    for (args[5..separator]) |path| {
+        if ((try cwd.statFile(init.io, path, .{})).kind == .file) {
+            field(&shared, path);
+            field(&shared, try cwd.readFileAlloc(init.io, path, allocator, .unlimited));
+        } else try contents(init.io, allocator, &shared, path);
+    }
 
     const digests = try partitionDigests(allocator, plan.count, shared, &manifest);
     const state_path = try std.fs.path.join(allocator, &.{ plan.objects, "state" });
+
     const previous = cwd.readFileAlloc(init.io, state_path, allocator, .unlimited) catch |err| switch (err) {
         error.FileNotFound => "",
         else => return err,
@@ -89,7 +96,6 @@ pub fn main(init: std.process.Init) !void {
 
         if (position) |at| if (results[at] != null) continue;
         if (position == null and !recorded(previous, @intCast(index), digest)) continue;
-
         try state.writer.print("{d} {s}\n", .{ index, std.fmt.bytesToHex(digest, .lower) });
     }
 
@@ -113,7 +119,6 @@ const Work = struct {
     pending: []const u32,
     results: []?[]const u8,
     next: std.atomic.Value(usize) = .init(0),
-
     fn run(self: *Work) void {
         while (true) {
             const position = self.next.fetchAdd(1, .monotonic);
@@ -123,9 +128,12 @@ const Work = struct {
             self.results[position] = self.compile(self.pending[position]) catch |err| @errorName(err);
         }
     }
-
     fn compile(self: *Work, index: u32) !?[]const u8 {
-        const allocator = std.heap.smp_allocator;
+        var arena = std.heap.ArenaAllocator.init(std.heap.smp_allocator);
+
+        defer arena.deinit();
+
+        const allocator = arena.allocator();
         const argv = try allocator.alloc([]const u8, self.plan.template.len + 1);
 
         argv[0] = self.plan.zig;
@@ -134,10 +142,9 @@ const Work = struct {
 
         const result = try std.process.run(allocator, self.io, .{ .argv = argv });
 
-        return switch (result.term) {
-            .exited => |code| if (code == 0) null else result.stderr,
-            else => result.stderr,
-        };
+        if (result.term == .exited and result.term.exited == 0) return null;
+
+        return try std.fmt.allocPrint(std.heap.smp_allocator, "partition {d}: Zig terminated with {any}\n{s}", .{ index, result.term, result.stderr });
     }
 };
 
