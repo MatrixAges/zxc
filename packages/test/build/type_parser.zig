@@ -4,11 +4,46 @@ pub fn add(b: *std.Build, cli: *std.Build.Dependency, compiler: *std.Build.Depen
     const step = b.step("test-type-parser", "Validate generated ZX type parser semantics and resources");
     const resources_step = b.step("test-type-parser-resources", "Validate generated ZX type parser allocation failure cleanup and result lifetime");
     const parity_step = b.step("test-type-parser-parity", "Compare generated ZX type grammar with the native parser");
+    const files = b.addWriteFiles();
+
+    _ = files.add("pkg.yaml",
+        \\name: type_parser
+        \\version: 0.0.0
+        \\entry: packages/compiler/src/zx/frontend/parser/type.rx
+        \\workspace:
+        \\    packages: [packages/core]
+        \\dependencies:
+        \\    core: workspace:*
+        \\
+    );
+
+    _ = files.add("packages/core/pkg.yaml",
+        \\name: core
+        \\version: 0.0.0
+        \\exports:
+        \\    ./const: src/const.zx
+        \\    ./ascii/const: src/ascii/const.zx
+        \\
+    );
+
+    _ = files.addCopyFile(b.path("../core/src/const.zx"), "packages/core/src/const.zx");
+    _ = files.addCopyFile(b.path("../core/src/ascii/const.zx"), "packages/core/src/ascii/const.zx");
+
+    for ([_][]const u8{ "src/zx/frontend/lexer", "src/zx/frontend/parser/types", "src/zx/frontend/parser/templates" }) |path| {
+        _ = files.addCopyDirectory(compiler.path(path), b.fmt("packages/compiler/{s}", .{path}), .{});
+    }
+
+    _ = files.addCopyFile(compiler.path("src/zx/frontend/lexical.rx"), "packages/compiler/src/zx/frontend/lexical.rx");
+    const module = files.addCopyFile(compiler.path("src/zx/frontend/parser/type.rx"), "packages/compiler/src/zx/frontend/parser/type.rx");
+    const direct = files.addCopyFile(b.path("tests/bootstrap/type_parser/source.rx"), "packages/test/tests/bootstrap/type_parser/source.rx");
 
     for ([_][]const u8{ "plain", "template" }) |route| {
         const generate = b.addRunArtifact(cli.artifact("zxc"));
 
-        generate.addFileArg(if (std.mem.eql(u8, route, "template")) compiler.path("src/zx/frontend/parser/type.rx") else b.path("tests/bootstrap/type_parser/source.rx"));
+        generate.addFileArg(if (std.mem.eql(u8, route, "template")) module else direct);
+        generate.setCwd(files.getDirectory());
+        generate.addArg("--project");
+        generate.addFileArg(files.getDirectory().path(b, "pkg.yaml"));
         generate.addArg("--out");
 
         const source = generate.addOutputFileArg(b.fmt("type_parser_{s}.zig", .{route}));
@@ -20,11 +55,8 @@ pub fn add(b: *std.Build, cli: *std.Build.Dependency, compiler: *std.Build.Depen
         }
 
         if (std.mem.eql(u8, route, "template")) {
-            generate.setCwd(compiler.path("."));
             generate.addFileInput(compiler.path("src/zx/frontend/lexical.rx"));
             @import("source_inputs.zig").add(b, generate, compiler, "src/zx/frontend/parser/templates") catch @panic("unable to track template sources");
-        } else {
-            generate.setCwd(b.path("../.."));
         }
 
         const program = b.createModule(.{ .root_source_file = source, .target = target, .optimize = optimize });

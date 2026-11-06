@@ -59,7 +59,7 @@ pub fn name(self: *Self) zx.Error!ast.Name {
 pub fn property(self: *Self) zx.Error!ast.Name {
     const token = self.current();
 
-    if (token.kind != .identifier and token.kind != .keyword) return self.reporter.fail(.syntax, token.span, "expected a property name");
+    if (token.kind != .identifier and token.kind != .keyword) return self.reporter.fail(.syntax, token.span, "expected an identifier");
 
     self.index += 1;
 
