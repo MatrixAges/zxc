@@ -372,19 +372,37 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!node.ExpressionId {
 }
 
 fn projectedField(self: *Self, target: ir.ExprId, id: ir.TypeId, name: []const u8) Error!node.ExpressionId {
-    var value = try self.field(try self.projection(target), name);
+    const target_type = self.program.expression(target).type_id;
+    const represented_target = self.state_active and self.state_plan.represented(self.program, target_type);
+    const raw = if (represented_target and self.iteration_value == null and self.loop_fields == null and self.program.typeOf(target_type) == .object) try self.abiProjection(target) else null;
+    var value = try self.field(raw orelse try self.projection(target), name);
 
     if (self.loop_fields) |context| {
         if (context.field(self, target, name)) value = try self.builder.expression(.{ .dereference = value });
     }
 
-    if (!self.state_active or !self.state_plan.represented(self.program, id) or self.state_plan.represented(self.program, self.program.expression(target).type_id)) return value;
+    if (!self.state_active or !self.state_plan.represented(self.program, id) or (raw == null and represented_target)) return value;
     if (self.program.typeOf(id) == .list and !@import("state_value/elements.zig").inlineStored(self, id)) return @import("state_value/list.zig").borrowed(self, id, value);
 
     var body: std.ArrayList(node.Statement) = .empty;
     const bound = try @import("aggregate.zig").bind(self, &body, value);
 
     return @import("aggregate.zig").finish(self, &body, try @import("state_value/conversion.zig").convert(self, &body, id, bound, .value));
+}
+
+fn abiProjection(self: *Self, id: ir.ExprId) Error!?node.ExpressionId {
+    const value = self.program.expression(id);
+    const flags = self.plan.get(id);
+
+    if (flags.normalize or flags.renew) return null;
+    if (!self.state_plan.represented(self.program, value.type_id)) return try self.projection(id);
+    if (self.cache.contains(id) or value.value != .field) return null;
+
+    const selected = value.value.field;
+    const parent = try self.abiProjection(selected.target) orelse return null;
+    const fields = self.program.typeOf(self.program.expression(selected.target).type_id).object;
+
+    return try self.field(parent, fields.at(selected.index).name);
 }
 
 fn projection(self: *Self, id: ir.ExprId) Error!node.ExpressionId {
