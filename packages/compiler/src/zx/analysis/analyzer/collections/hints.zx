@@ -38,10 +38,14 @@ export default function (in: Input): Output {
     const second = in.second
 
     const accumulator =
-        in.kind == TransformKind.Reduce &&
-        second != null ? in.state.local.expressions.types[integers.widen(
-            second
-        )] : element
+        match {
+            in.kind == TransformKind.Reduce &&
+                second != null => in.state.local.expressions
+                .types[integers.widen(
+                    second
+                )],
+            _ => element
+        }
 
     const hint = payload({
         types: in.state.types,

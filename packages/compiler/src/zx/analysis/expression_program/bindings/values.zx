@@ -28,28 +28,29 @@ export default function (in: Input): Output {
             const name = current.names[current.index]
             const type_id = current.types[current.index]
             const span = current.analysis.span
-            const diagnostic = current.analysis.state.types.context.base.kinds.length +
+            const count = current.analysis.state.types.context.base.kinds.length +
                 current.analysis.state.types.delta.kinds.length
-                -> match {
-                    !current.analysis.program && integers.widen(type_id) >= _ => {
-                        code: "contract",
-                        message:
-                            "expression binding type is missing from the shared type table",
-                        start: span.start,
-                        end: span.end
-                    },
-                    type_id == 0 => {
-                        code: "type_mismatch",
-                        message: "expression bindings cannot have type void",
-                        start: span.start,
-                        end: span.end
-                    },
-                    _ => check({
-                        local: current.analysis.state.local,
-                        name,
-                        span
-                    }),
-                }
+
+            const diagnostic = match {
+                !current.analysis.program && integers.widen(type_id) >= count => {
+                    code: "contract",
+                    message:
+                        "expression binding type is missing from the shared type table",
+                    start: span.start,
+                    end: span.end
+                },
+                type_id == 0 => {
+                    code: "type_mismatch",
+                    message: "expression bindings cannot have type void",
+                    start: span.start,
+                    end: span.end
+                },
+                _ => check({
+                    local: current.analysis.state.local,
+                    name,
+                    span
+                }),
+            }
 
             current.analysis.state.diagnostic = diagnostic
 

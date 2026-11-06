@@ -30,13 +30,17 @@ export default function (in: Input): Output {
             const byte = value.source[value.offset + value.index]
             const pattern = value.text[value.index]
             const left =
-                value.ignore_case && byte >= ascii_upper_first &&
-                byte <= ascii_upper_last ? byte + ascii_case_delta :
-                byte
+                match {
+                    value.ignore_case && byte >= ascii_upper_first &&
+                        byte <= ascii_upper_last => byte + ascii_case_delta,
+                    _ => byte
+                }
             const right =
-                value.ignore_case && pattern >= ascii_upper_first &&
-                pattern <= ascii_upper_last ? pattern + ascii_case_delta :
-                pattern
+                match {
+                    value.ignore_case && pattern >= ascii_upper_first &&
+                        pattern <= ascii_upper_last => pattern + ascii_case_delta,
+                    _ => pattern
+                }
             const index = value.index + 1
 
             value = {

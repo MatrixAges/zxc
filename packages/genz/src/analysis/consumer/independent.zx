@@ -36,35 +36,41 @@ export default function (in: Input): Output {
                     integers.widen(table.references[payload]) != current.symbol
             } else {
                 const condition = (
-                    - kind == ExpressionKind.Integer
-                    - or kind == ExpressionKind.NegativeInteger
-                    - or kind == ExpressionKind.Float
-                    - or kind == ExpressionKind.String
-                    - or kind == ExpressionKind.Boolean
-                    - or kind == ExpressionKind.None
-                    - or kind == ExpressionKind.Unit
-                    - or kind == ExpressionKind.EnumValue
-                    - or kind == ExpressionKind.ErrorValue
+                    match kind {
+                        ExpressionKind.Integer => true,
+                        ExpressionKind.NegativeInteger => true,
+                        ExpressionKind.Float => true,
+                        ExpressionKind.String => true,
+                        ExpressionKind.Boolean => true,
+                        ExpressionKind.None => true,
+                        ExpressionKind.Unit => true,
+                        ExpressionKind.EnumValue => true,
+                        ExpressionKind.ErrorValue => true,
+                        _ => false
+                    }
                 )
 
                 if (condition) {
                     current.valid = true
                 } else {
                     const condition_2 = (
-                        - kind == ExpressionKind.Some
-                        - or kind == ExpressionKind.OptionalValue
-                        - or kind == ExpressionKind.Length
-                        - or kind == ExpressionKind.Field
-                        - or kind == ExpressionKind.TupleField
-                        - or kind == ExpressionKind.Index
-                        - or kind == ExpressionKind.Unary
-                        - or kind == ExpressionKind.Binary
-                        - or kind == ExpressionKind.Conditional
-                        - or kind == ExpressionKind.Call
-                        - or kind == ExpressionKind.Object
-                        - or kind == ExpressionKind.List
-                        - or kind == ExpressionKind.Tuple
-                        - or kind == ExpressionKind.Template
+                        match kind {
+                            ExpressionKind.Some => true,
+                            ExpressionKind.OptionalValue => true,
+                            ExpressionKind.Length => true,
+                            ExpressionKind.Field => true,
+                            ExpressionKind.TupleField => true,
+                            ExpressionKind.Index => true,
+                            ExpressionKind.Unary => true,
+                            ExpressionKind.Binary => true,
+                            ExpressionKind.Conditional => true,
+                            ExpressionKind.Call => true,
+                            ExpressionKind.Object => true,
+                            ExpressionKind.List => true,
+                            ExpressionKind.Tuple => true,
+                            ExpressionKind.Template => true,
+                            _ => false
+                        }
                     )
 
                     if (condition_2) {

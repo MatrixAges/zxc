@@ -13,20 +13,20 @@ export default function (in: Input): Output {
     const keys = loop({
         keys: empty
     }, {
-        while: (current, size) => current.keys.length < size,
+        while: current => current.keys.length < capacity,
         next: current => {
             current.keys = current.keys.push(empty_key)[0]
         },
         return: state => state.keys
-    }, capacity)
+    })
 
     return loop({
         keys,
         index: 0
     }, {
-        while: (state, source) => state.index < source.length,
-        next: (state, source) => {
-            const key = source[state.index]
+        while: state => state.index < in.length,
+        next: state => {
+            const key = in[state.index]
 
             if (key != empty_key) {
                 const target = position({
@@ -40,5 +40,5 @@ export default function (in: Input): Output {
             state.index += 1
         },
         return: state => state.keys
-    }, in)
+    })
 }

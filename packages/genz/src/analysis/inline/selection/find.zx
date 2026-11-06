@@ -1,0 +1,115 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import children from "../../ir/children"
+import consume from "../consume"
+import iteration from "../iteration"
+
+import type { Expressions } from "core/expression_table/model"
+import type { Table } from "core/type_table/model"
+
+export type Input = {
+    types: Table,
+    table: Expressions,
+    finds: u32[],
+    marks: u32[]
+}
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    const table = in.table
+    const types = in.types
+
+    return loop({
+        finds: in.finds,
+        marks: in.marks,
+        seen: table.kinds.map(kind => false)[0]
+    }, {
+        while: current => current.finds.length != 0,
+        next: current => {
+            const id = integers.widen(current.finds[current.finds.length - 1])
+            const kind = table.kinds[id]
+
+            current.finds = current.finds.pop()[0]
+
+            if (!current.seen[id]) {
+                current.seen[id] = true
+
+                if (kind == ExpressionKind.Scope) {
+                    const payload = integers.widen(table.payloads[id])
+                    const first = integers.widen(table.scope_first[payload])
+                    const count = integers.widen(table.scope_count[payload])
+
+                    if (count != 0) {
+                        const symbol = table.scope_symbols[first + count - 1]
+
+                        if (symbol != null) {
+                            current.marks = current.marks.concat(consume({
+                                types,
+                                table,
+                                symbol: integers.widen(symbol),
+                                value:
+                                    integers.widen(
+                                        table.scope_values[first + count - 1]
+                                    ),
+                                result:
+                                    integers.widen(
+                                        table.scope_results[payload]
+                                    )
+                            }))[0]
+                        }
+                    }
+
+                    const end = first + count
+
+                    current.marks = loop({
+                        marks: current.marks,
+                        position: first,
+                    }, {
+                        while: bindings => bindings.position < end,
+                        next: bindings => {
+                            if (
+                                table.scope_symbols[bindings.position] ==
+                                    null
+                            ) {
+                                bindings.marks =
+                                    bindings.marks.concat(iteration({
+                                        types,
+                                        table,
+                                        id:
+                                            integers.widen(
+                                                table
+                                                    .scope_values[bindings
+                                                        .position]
+                                            )
+                                    }))[0]
+                            }
+
+                            bindings.position += 1
+                        },
+                        return: state => state.marks
+                    })
+                }
+
+                const condition_2 = (
+                    match kind {
+                        ExpressionKind.Iteration => false,
+                        ExpressionKind.Capture => false,
+                        ExpressionKind.Task => false,
+                        ExpressionKind.Transform => false,
+                        _ => true
+                    }
+                )
+
+                if (condition_2) {
+                    current.finds = current.finds.concat(children({
+                        table,
+                        id
+                    }))[0]
+                }
+            }
+        },
+        return: state => state.marks
+    })
+}

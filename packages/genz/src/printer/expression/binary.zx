@@ -103,13 +103,16 @@ export default function (in: Input): Output {
                 ...frame,
                 token: Token.Index
             },
-            first == null ? {
-                ...frame,
-                token: Token.Zero
-            } : {
-                ...frame,
-                action: Action.Expression,
-                id: first
+            match {
+                first == null => {
+                    ...frame,
+                    token: Token.Zero
+                },
+                _ => {
+                    ...frame,
+                    action: Action.Expression,
+                    id: first
+                }
             },
             {
                 ...frame,
@@ -117,15 +120,19 @@ export default function (in: Input): Output {
             }
         ]
 
-        return (end == null ? prefix : prefix.push({
-            ...frame,
-            action: Action.Expression,
-            id: end
-        })[0])
-            -> _.push({
+        const bounded = match {
+            end == null => prefix,
+            _ => prefix.push({
                 ...frame,
-                token: Token.ArrayClose
+                action: Action.Expression,
+                id: end
             })[0]
+        }
+
+        return bounded.push({
+            ...frame,
+            token: Token.ArrayClose
+        })[0]
     }
 
     const left = match kind {
@@ -140,12 +147,16 @@ export default function (in: Input): Output {
         _ => tree.range_end[row],
     }
 
+    const opening = kind == ExpressionsKind.FixedArrayType ? Token.ArrayOpen : Token.Open
+
     const prefix: Frame[] =
-        (kind == ExpressionsKind.FixedArrayType ? Token.ArrayOpen : Token.Open)
-        -> (kind == ExpressionsKind.Range ? [] : [{
-            ...frame,
-            token: _
-        }])
+        match {
+            kind == ExpressionsKind.Range => [],
+            _ => [{
+                ...frame,
+                token: opening
+            }]
+        }
 
     const operands = prefix.concat([
         {
@@ -169,8 +180,11 @@ export default function (in: Input): Output {
         }
     ])[0]
 
-    return kind == ExpressionsKind.Index ? operands.push({
-        ...frame,
-        token: Token.ArrayClose
-    })[0] : operands
+    return match {
+        kind == ExpressionsKind.Index => operands.push({
+            ...frame,
+            token: Token.ArrayClose
+        })[0],
+        _ => operands
+    }
 }

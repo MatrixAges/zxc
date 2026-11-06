@@ -13,19 +13,19 @@ export default function (in: Input): Output {
         current: in.layout.unwrapped[integers.widen(in.type_id)],
         remaining: in.slot
     }, {
-        while: (state, context) =>
-            kind(context.kinds[integers.widen(state.current)]) != Kind.List,
-        next: (state, context) => {
+        while: state =>
+            kind(in.kinds[integers.widen(state.current)]) != Kind.List,
+        next: state => {
             const owner = integers.widen(state.current)
             const step = integers.widen(locate({
-                offsets: context.layout.offsets[owner],
+                offsets: in.layout.offsets[owner],
                 slot: state.remaining
             }))
 
-            state.remaining -= context.layout.offsets[owner][step]
-            const selected = context.layout.members[owner][step]
-            state.current = context.layout.unwrapped[integers.widen(selected)]
+            state.remaining -= in.layout.offsets[owner][step]
+            const selected = in.layout.members[owner][step]
+            state.current = in.layout.unwrapped[integers.widen(selected)]
         },
         return: state => state.current
-    }, in)
+    })
 }

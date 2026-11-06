@@ -19,21 +19,28 @@ export default function (in: Input): Output {
     const empty = in.references.splice(0, 0, [])[1]
 
     const condition = (
-        - type_kind == Kind.Optional
-        - or type_kind == Kind.List
-        - or type_kind == Kind.Task
+        match type_kind {
+            Kind.Optional => true,
+            Kind.List => true,
+            Kind.Task => true,
+            _ => false
+        }
     )
 
     if (condition) {
-        const single = in.mapping[integers.widen(in.source.first[in.index])]
-            -> empty.push(_)[0]
+        const first = in.mapping[integers.widen(in.source.first[in.index])]
 
-        return type_kind ==
-            Kind.Task ? single.push(
-                in.mapping[integers.widen(
-                    in.source.second[in.index]
-                )]
-            )[0] : single
+        const single = empty.push(first)[0]
+
+        return match {
+            type_kind ==
+                Kind.Task => single.push(
+                    in.mapping[integers.widen(
+                        in.source.second[in.index]
+                    )]
+                )[0],
+            _ => single
+        }
     }
 
     const dynamic = type_kind == Kind.Tuple || type_kind == Kind.Object

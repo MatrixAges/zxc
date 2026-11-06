@@ -1,0 +1,17 @@
+<Module>
+    <Type from="model" as="Encoding" />
+
+    <Args in={Encoding.Header} out={Encoding.State} />
+
+    <Call fn="reset" in={$in.state} />
+
+    <Call
+        fn="append"
+        in={{
+            state: $ctx.reset,
+            bytes: $in.identity
+        }}
+    />
+
+    <Return value={$ctx.append} />
+</Module>

@@ -14,10 +14,14 @@ export default function (in: Input): Output {
         return previous == null && current == null
     }
 
+    const not_length = previous.names.length != current.names.length
+    const not_length_2 = previous.names.length != previous.values.length
+    const not_length_3 = current.names.length != current.values.length
+
     const condition = (
-        - previous.names.length != current.names.length
-        - or previous.names.length != previous.values.length
-        - or current.names.length != current.values.length
+        - not_length
+        - or not_length_2
+        - or not_length_3
     )
 
     if (condition) {

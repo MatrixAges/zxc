@@ -55,24 +55,28 @@ export default function (in: Input): Output {
         trail: numbers
     }
 
-    return (allocated.states.length == 0 ? memory : place({
-        types: in.program.types,
-        references: in.references,
-        layout: in.layout.tree,
-        memory,
-        id: 0,
-        operation: Operation.Assign,
-        fact: 3
-    }))
-        -> {
-            memory: _,
-            snapshots: {
-                facts: numbers,
-                memo: numbers,
-                state_first: numbers,
-                state_count: numbers,
-                memo_first: numbers,
-                memo_count: numbers
-            }
+    const initialized = match {
+        allocated.states.length == 0 => memory,
+        _ => place({
+            types: in.program.types,
+            references: in.references,
+            layout: in.layout.tree,
+            memory,
+            id: 0,
+            operation: Operation.Assign,
+            fact: 3
+        })
+    }
+
+    return {
+        memory: initialized,
+        snapshots: {
+            facts: numbers,
+            memo: numbers,
+            state_first: numbers,
+            state_count: numbers,
+            memo_first: numbers,
+            memo_count: numbers
         }
+    }
 }

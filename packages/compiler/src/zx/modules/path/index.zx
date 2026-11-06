@@ -8,9 +8,10 @@ export type Input = string
 export type Output = string
 
 export default function (in: Input): Output {
-    return encoding.sliceBytes(in, 0, in.length - module_extension.length)
-        -> path.join([
-            _,
-            index_file
-        ])
+    const directory = encoding.sliceBytes(in, 0, in.length - module_extension.length)
+
+    return path.join([
+        directory,
+        index_file
+    ])
 }

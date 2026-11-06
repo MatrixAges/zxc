@@ -18,9 +18,12 @@ export default function (in: Input): Output {
     }
 
     const condition = (
-        - left.kind == Kind.Scalar
-        - or left.kind == Kind.Optional
-        - or left.kind == Kind.List
+        match left.kind {
+            Kind.Scalar => true,
+            Kind.Optional => true,
+            Kind.List => true,
+            _ => false
+        }
     )
 
     if (condition) {

@@ -11,16 +11,17 @@ export type Input = {
 export type Output = Name
 
 export default function (in: Input): Output {
-    return encoding.decodeUtf8(
+    const text = encoding.decodeUtf8(
         in.source.splice(
             in.span.start,
             in.span.end - in.span.start,
             []
         )[1]
     )
-        -> {
-            text: _,
-            start: in.span.start,
-            end: in.span.end
-        }
+
+    return {
+        text: text,
+        start: in.span.start,
+        end: in.span.end
+    }
 }

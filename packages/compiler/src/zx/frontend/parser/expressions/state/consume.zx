@@ -13,18 +13,19 @@ export default function (in: Input): Output {
     const index = in.state.control.index + 1
     const root_index = in.state.control.stream == 0 ? index : in.state.control.root_index
 
-    return in.state.control.token.span.end
-        -> {
-            prepared: in.state.prepared,
-            tree: in.state.tree,
-            types: in.state.types,
-            frames: in.state.frames,
-            control: {
-                ...in.state.control,
-                index,
-                root_index,
-                last_end: _,
-                phase: in.phase
-            }
+    const end = in.state.control.token.span.end
+
+    return {
+        prepared: in.state.prepared,
+        tree: in.state.tree,
+        types: in.state.types,
+        frames: in.state.frames,
+        control: {
+            ...in.state.control,
+            index,
+            root_index,
+            last_end: end,
+            phase: in.phase
         }
+    }
 }

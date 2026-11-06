@@ -30,10 +30,13 @@ export default function (in: Input): Output {
         name
     })
 
-    return current != null && literalMatches({
-        left: previous,
-        right: current,
-        mapping: in.mapping,
-        current_mapping: in.current_mapping
-    }) ? Comparison.Equal : Comparison.Different
+    return match {
+        current != null && literalMatches({
+            left: previous,
+            right: current,
+            mapping: in.mapping,
+            current_mapping: in.current_mapping
+        }) => Comparison.Equal,
+        _ => Comparison.Different
+    }
 }

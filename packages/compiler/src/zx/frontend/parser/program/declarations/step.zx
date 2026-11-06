@@ -14,16 +14,27 @@ export type Input = DeclarationStage
 export type Output = DeclarationStage
 
 export default function (in: Input): Output {
-    const condition = (
-        - in.declarations.control.phase == Phase.Start
-        - or in.declarations.control.phase == Phase.Done
-        - and in.declarations.control.diagnostic.message == ""
-        - and !in.declarations.control.type_diagnostic
-        - and reference({
+    const is_start = in.declarations.control.phase == Phase.Start
+    const is_done = in.declarations.control.phase == Phase.Done
+
+    const same_message = in.declarations.control.diagnostic.message == ""
+
+    const type_diagnostic = !in.declarations.control.type_diagnostic
+
+    const can_import = (
+        - is_start
+        - or is_done
+        - and same_message
+        - and type_diagnostic
+    )
+
+    const condition = match {
+        can_import => reference({
             tokens: in.prefix.prepared.lexical.lexed.tokens,
             index: in.declarations.control.index
-        })
-    )
+        }),
+        _ => false
+    }
 
     if (condition) {
         return imports(in)
@@ -53,39 +64,44 @@ export default function (in: Input): Output {
         }
     }
 
-    const declarations = current({
+    const token = current({
         prepared: in.prefix.prepared,
         index: in.declarations.control.index
     })
-        -> step({
-            state: in.declarations,
-            token: _
-        })
+
+    const declarations = step({
+        state: in.declarations,
+        token: token
+    })
 
     const tokens = in.prefix.prepared.lexical.lexed.tokens
     const index = declarations.control.index
     const done = declarations.control.phase == Phase.Done
 
-    return (
-        - done
-        - and index + 1 < tokens.length
-        - and tokens[index].word == Keyword.Export
-        - and tokens[index + 1].word == Keyword.Const
-    )
-        -> {
-            ...in,
-            declarations,
-            finished:
-                (
-                    - done
-                    - and (
-                        - !(_ || reference({
-                            tokens,
-                            index
-                        }))
-                        - or declarations.control.diagnostic.message != ""
-                        - or declarations.control.type_diagnostic
-                    )
-                )
-        }
+    const constant = match {
+        !done => false,
+        index + 1 >= tokens.length => false,
+        tokens[index].word != Keyword.Export => false,
+        _ => tokens[index + 1].word == Keyword.Const
+    }
+
+    const imported = match {
+        !done => false,
+        constant => true,
+        _ => reference({
+            tokens,
+            index
+        })
+    }
+
+    const diagnostic = declarations.control.diagnostic.message != ""
+    const invalid_type = declarations.control.type_diagnostic
+    const invalid = diagnostic || invalid_type
+    const finished = done && (!imported || invalid)
+
+    return {
+        ...in,
+        declarations,
+        finished
+    }
 }

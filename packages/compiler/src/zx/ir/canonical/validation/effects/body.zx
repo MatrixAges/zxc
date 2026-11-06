@@ -70,31 +70,35 @@ export default function (in: Input): Output {
                     integers.widen(
                         expressions.payloads[current.index]
                     )
+                const value = match {
+                    kind == ExpressionKind.Task => expressions.task_bodies[payload],
+                    _ => expressions.captures[payload]
+                }
+
                 const members =
-                    (
-                        kind == ExpressionKind.Task ? expressions.task_bodies[payload] :
-                            expressions.captures[payload]
-                    )
-                    -> analyze({
+                    analyze({
                         context: current.context,
                         expressions,
                         control: current.unit.body.control,
                         root: current.unit.body.root,
                         contracts: current.unit.contracts,
                         stores: false,
-                        expression: _,
+                        expression: value,
                         program: false
                     })
                 const table = current.context.types.base
                 const type_id = integers.widen(expressions.types[current.index])
                 const error_id =
-                    kind == ExpressionKind.Task ? table.second[type_id] :
-                    table
-                    .first[integers.widen(
-                        table.children[integers.widen(
-                            table.first[type_id]
-                        )]
-                    )]
+                    match {
+                        kind == ExpressionKind.Task => table.second[type_id],
+                        _ => table
+                            .first[integers.widen(
+                                table
+                                    .children[integers.widen(
+                                        table.first[type_id]
+                                    )]
+                            )]
+                    }
                 const first =
                     integers.widen(
                         table.first[integers.widen(

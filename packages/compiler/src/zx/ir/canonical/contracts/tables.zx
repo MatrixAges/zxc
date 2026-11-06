@@ -15,16 +15,24 @@ export type Input = {
 export type Output = bool
 
 export default function (in: Input): Output {
+    const index_limit = integers.widen(max_u32)
+
     const contracts = in.contracts
     const count = contracts.kinds.length
 
+    const different_predicates = contracts.predicates.length != count
+    const different_symbols = contracts.symbols.length != count
+    const different_expressions = contracts.expressions.length != count
+    const different_span_start = contracts.span_start.length != count
+    const different_span_end = contracts.span_end.length != count
+
     const condition = (
-        - count > integers.widen(max_u32)
-        - or contracts.predicates.length != count
-        - or contracts.symbols.length != count
-        - or contracts.expressions.length != count
-        - or contracts.span_start.length != count
-        - or contracts.span_end.length != count
+        - count > index_limit
+        - or different_predicates
+        - or different_symbols
+        - or different_expressions
+        - or different_span_start
+        - or different_span_end
     )
 
     if (condition) {

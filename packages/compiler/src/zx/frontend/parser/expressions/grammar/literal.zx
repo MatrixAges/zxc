@@ -1,0 +1,76 @@
+import { Keyword } from "../../../lexer/keyword_model"
+import { Kind } from "../../../lexer/token_model"
+import consume from "../state/consume"
+import emit from "../state/emit"
+import fail from "../state/fail"
+import { Phase, ExprKind } from "../state/model"
+import node from "../state/node"
+
+import type { ExprState } from "../state/model"
+
+export type Input = ExprState
+
+export type Output = ExprState
+
+export default function (in: Input): Output {
+    const start = in.control.token.span.start
+    const end = in.control.token.span.end
+
+    const null_value = in.control.token.word == Keyword.Null
+
+    const boolean =
+        in.control.token.word == Keyword.True ||
+        in.control.token.word == Keyword.False
+
+    const number = in.control.token.kind == Kind.Number
+    const string = in.control.token.kind == Kind.String
+    const not_identifier = in.control.token.kind != Kind.Identifier
+
+    const invalid_token = (
+        - !null_value
+        - and !boolean
+        - and !number
+        - and !string
+        - and not_identifier
+    )
+
+    if (invalid_token) {
+        return fail({
+            state: in,
+            code: "syntax",
+            message: "expected an identifier"
+        })
+    }
+
+    const kind = match {
+        null_value => ExprKind.Null,
+        boolean => ExprKind.Boolean,
+        number => ExprKind.Number,
+        string => ExprKind.String,
+        _ => ExprKind.Identifier
+    }
+
+    const value = {
+        ...node({
+            kind: kind,
+            start,
+            end,
+            depth: 1
+        }),
+        name: {
+            start,
+            end
+        },
+        flag:
+            in.control.token.word == Keyword.True ||
+            in.control.token.word == Keyword.Loop
+    }
+
+    return emit({
+        state: consume({
+            state: in,
+            phase: Phase.Postfix
+        }),
+        node: value
+    })
+}

@@ -49,16 +49,13 @@ export default function (in: Input): Output {
             const closing =
                 token.text == close_object || token.text == close_call ||
                 token.text == close_list
-            const ending =
-                (
-                    - token.text == open_object
-                    - or token.text == open_call
-                    - or token.text == open_list
-                    - or token.text == comma
-                    - or operatorPriority(
-                        token.text
-                    ) != no_operator
-                )
+            const ending = match token.text {
+                open_object => true,
+                open_call => true,
+                open_list => true,
+                comma => true,
+                _ => operatorPriority(token.text) != no_operator
+            }
             const tail = next < count ? current.widths[next] : 0
             const width = current.graph.gaps[index] + token.text.length
 

@@ -18,8 +18,10 @@ export type Input = {
 export type Output = ExprState
 
 export default function (in: Input): Output {
-    const left = in.frame.kind == FrameKind.BinaryRight ? in.frame.first :
-        in.state.control.result
+    const left = match {
+        in.frame.kind == FrameKind.BinaryRight => in.frame.first,
+        _ => in.state.control.result
+    }
 
     const right = in.state.control.result
     const left_depth = in.state.tree.nodes[left].depth
@@ -33,24 +35,27 @@ export default function (in: Input): Output {
 
     const terms = total > term_limit ? term_limit : total
 
+    const logical = in.frame.operator == Operator.And || in.frame.operator == Operator.Or
+
     const condition_terms =
-        in.frame.operator == Operator.And || in.frame.operator == Operator.Or
-        -> match {
+        match {
             in.frame.operator == Operator.Pipeline =>
                 in.state.tree.nodes[right].condition_terms,
-            (_) => terms,
+            (logical) => terms,
             _ => 1
         }
 
-    const state = (
-        in.frame.operator == Operator.Pipeline ? ExprKind.Pipeline :
-            ExprKind.Binary
-    )
-        -> (in.frame.kind == FrameKind.BinaryRight ? emit({
+    const kind = match {
+        in.frame.operator == Operator.Pipeline => ExprKind.Pipeline,
+        _ => ExprKind.Binary
+    }
+
+    const state = match {
+        in.frame.kind == FrameKind.BinaryRight => emit({
             state: in.state,
             node: {
                 ...node({
-                    kind: _,
+                    kind: kind,
                     start,
                     end,
                     depth
@@ -62,28 +67,37 @@ export default function (in: Input): Output {
                 condition_list: in.frame.operator == Operator.Pipeline &&
                     in.state.tree.nodes[right].condition_list
             }
-        }) : in.state)
+        }),
+        _ => in.state
+    }
 
     if (state.control.phase == Phase.Done) {
         return state
     }
 
+    const control = state.control
+    const binary = control.hint.binary
+    const boundary = control.index == control.boundary
+    const same_stream = control.stream == control.boundary_stream
+    const at_boundary = boundary && same_stream
+    const available = binary.operator != Operator.None
+    const precedence = binary.precedence
+    const minimum = in.frame.minimum
+
     const condition = (
-        - !(
-            state.control.index == state.control.boundary &&
-                state.control.stream == state.control.boundary_stream
-        )
-        - and state.control.hint.binary.operator != Operator.None
-        - and state.control.hint.binary.precedence >= in.frame.minimum
+        - !at_boundary
+        - and available
+        - and precedence >= minimum
     )
 
     if (condition) {
         const next_family = state.control.hint.binary.family
+        const current_family = state.control.family
 
         const condition_2 = (
             - next_family != Family.None
-            - and state.control.family != Family.None
-            - and next_family != state.control.family
+            - and current_family != Family.None
+            - and next_family != current_family
         )
 
         if (condition_2) {
@@ -103,42 +117,45 @@ export default function (in: Input): Output {
         const minimum: u8 = state.control.hint.binary.precedence + 1
         const allow_lambda = in.frame.allow_lambda
 
-        const frames = {
+        const continuation = {
             ...in.frame,
             kind: FrameKind.BinaryRight,
             first: state.control.result,
             operator: state.control.hint.binary.operator
         }
-            -> state.frames.push(_)[0]
 
-        return {
+        const frames = state.frames.push(continuation)[0]
+
+        const control = {
             ...state.control,
             minimum,
             allow_lambda,
             fresh_family: false,
             family
         }
-            -> consume({
-                state: {
-                    prepared: state.prepared,
-                    tree: state.tree,
-                    types: state.types,
-                    frames,
-                    control: _
-                },
-                phase: Phase.BeginBinary
-            })
+
+        return consume({
+            state: {
+                prepared: state.prepared,
+                tree: state.tree,
+                types: state.types,
+                frames,
+                control: control
+            },
+            phase: Phase.BeginBinary
+        })
     }
 
     if (in.frame.minimum == 0 && state.control.token.symbol == Symbol.Question) {
         const allow_lambda = in.frame.allow_lambda
 
-        const frames = {
+        const continuation = {
             ...in.frame,
             kind: FrameKind.ConditionalYes,
             first: state.control.result
         }
-            -> state.frames.push(_)[0]
+
+        const frames = state.frames.push(continuation)[0]
 
         const control: ExprControl = {
             ...state.control,

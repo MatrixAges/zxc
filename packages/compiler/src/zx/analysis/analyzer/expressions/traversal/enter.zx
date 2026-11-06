@@ -10,6 +10,7 @@ import { Phase, Action } from "./model"
 import object from "./objects/enter"
 import pipeline from "./pipeline/enter"
 import placeholder from "./pipeline/placeholder"
+import enterValue from "./scopes/enter_value"
 import sequence from "./sequence/enter"
 import template from "./templates/enter"
 
@@ -24,6 +25,10 @@ export default function (in: Input): Output {
     const node = in.source.tree.nodes[in.node]
     const expected = in.expected
 
+    if (node.kind == ExprKind.StateBlock && in.state.local.lambda_depth != 0) {
+        return enterValue(in)
+    }
+
     if (node.kind == ExprKind.Pipeline) {
         return pipeline(in)
     }
@@ -36,13 +41,16 @@ export default function (in: Input): Output {
         }
     }
 
-    const frames = expected == null ? in.frames : {
-        ...in.frames,
-        actions: in.frames.actions.push(Action.Coerce)[0],
-        coercions: in.frames.coercions.push({
-            expected,
-            span: node.span
-        })[0]
+    const frames = match {
+        expected == null => in.frames,
+        _ => {
+            ...in.frames,
+            actions: in.frames.actions.push(Action.Coerce)[0],
+            coercions: in.frames.coercions.push({
+                expected,
+                span: node.span
+            })[0]
+        }
     }
 
     const result = leaf({
@@ -84,9 +92,12 @@ export default function (in: Input): Output {
     }
 
     const condition_2 = (
-        - node.kind == ExprKind.Await
-        - or node.kind == ExprKind.Cancel
-        - or node.kind == ExprKind.Capture
+        match node.kind {
+            ExprKind.Await => true,
+            ExprKind.Cancel => true,
+            ExprKind.Capture => true,
+            _ => false
+        }
     )
 
     if (condition_2) {
@@ -98,8 +109,10 @@ export default function (in: Input): Output {
                 ...frames,
                 actions:
                     frames.actions.push(
-                        node.kind == ExprKind.Capture ? Action.CaptureValue :
-                            Action.TaskValue
+                        match {
+                            node.kind == ExprKind.Capture => Action.CaptureValue,
+                            _ => Action.TaskValue
+                        }
                     )[0],
                 singles: frames.singles.push(in.node)[0]
             }
@@ -148,10 +161,12 @@ export default function (in: Input): Output {
     }
 
     if (node.kind == ExprKind.Binary) {
-        const pipeline: Pipeline? = work.context.pipelines.length == 0 ? null :
-            work.context.pipelines[work.context.pipelines.length - 1]
+        const pipeline: Pipeline? = match {
+            work.context.pipelines.length == 0 => null,
+            _ => work.context.pipelines[work.context.pipelines.length - 1]
+        }
 
-        return binaryHint({
+        const hint = binaryHint({
             context: {
                 state: work.state,
                 source: work.source,
@@ -161,23 +176,24 @@ export default function (in: Input): Output {
             node: in.node,
             expected
         })
-            -> {
-                ...work,
-                node: node.first,
-                expected: _,
-                frames: {
-                    ...frames,
-                    actions: frames.actions.push(Action.BinaryLeft)[0],
-                    binaries: frames.binaries.push({
-                        node: in.node,
-                        left: 0,
-                        mark: {
-                            nonnull: 0,
-                            captures: 0
-                        }
-                    })[0]
-                }
+
+        return {
+            ...work,
+            node: node.first,
+            expected: hint,
+            frames: {
+                ...frames,
+                actions: frames.actions.push(Action.BinaryLeft)[0],
+                binaries: frames.binaries.push({
+                    node: in.node,
+                    left: 0,
+                    mark: {
+                        nonnull: 0,
+                        captures: 0
+                    }
+                })[0]
             }
+        }
     }
 
     if (node.kind == ExprKind.Conditional) {

@@ -12,18 +12,18 @@ export default function (in: Input): Output {
         index: 0,
         found: false
     }, {
-        while: (state, context) => !state.found &&
-            state.index < context.operations.length,
-        next: (state, context) => {
+        while: state => !state.found &&
+            state.index < in.operations.length,
+        next: state => {
             state.found = mutation({
-                types: context.types,
-                expressions: context.context.metadata.expressions,
-                index: integers.widen(context.operations[state.index])
+                types: in.types,
+                expressions: in.context.metadata.expressions,
+                index: integers.widen(in.operations[state.index])
             })
             state.index += 1
         },
         return: state => state.found
-    }, in)
+    })
 
     if (!writes) {
         return false
@@ -33,14 +33,14 @@ export default function (in: Input): Output {
         index: 0,
         found: false
     }, {
-        while: (state, context) => !state.found && state.index < context.repeated.length,
-        next: (state, context) => {
+        while: state => !state.found && state.index < in.repeated.length,
+        next: state => {
             state.found = bufferLoop({
-                source: context,
-                node: context.repeated[state.index]
+                source: in,
+                node: in.repeated[state.index]
             })
             state.index += 1
         },
         return: state => state.found
-    }, in)
+    })
 }

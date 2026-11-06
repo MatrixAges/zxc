@@ -19,8 +19,10 @@ export type Input = {
 export type Output = Storage
 
 export default function (in: Input): Output {
-    const fact = in.layout.references[in.id] || in.fact == fact_moved ? in.fact :
-        fact_copy
+    const fact = match {
+        in.layout.references[in.id] || in.fact == fact_moved => in.fact,
+        _ => fact_copy
+    }
 
     if (in.storage.facts[in.id] == fact) {
         return in.storage
@@ -71,13 +73,14 @@ export default function (in: Input): Output {
                 }
             } else if (!current.leaving) {
                 if (current.id != current.root) {
-                    const child_fact = current.layout.parents[current.id] - 1
-                        -> project({
-                            forest: current.forest,
-                            fact: current.facts[_],
-                            index: current.layout.field_indices[current.id],
-                            reference: current.layout.references[current.id]
-                        })
+                    const child_fact_input = current.layout.parents[current.id] - 1
+
+                    const child_fact = project({
+                        forest: current.forest,
+                        fact: current.facts[child_fact_input],
+                        index: current.layout.field_indices[current.id],
+                        reference: current.layout.references[current.id]
+                    })
 
                     current.facts[current.id] = child_fact
                     current.states[current.id] = summary({

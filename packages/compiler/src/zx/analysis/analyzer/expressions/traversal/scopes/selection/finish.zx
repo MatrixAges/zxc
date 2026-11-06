@@ -16,13 +16,16 @@ export default function (in: Input): Output {
     const span = in.source.blocks.statements[frame.statement].span
     const fallback = frame.fallback
 
-    const value = fallback == null ? reference({
-        state: in.state,
-        symbol: frame.state_symbol,
-        span
-    }) : {
-        state: in.state,
-        value: fallback
+    const value = match {
+        fallback == null => reference({
+            state: in.state,
+            symbol: frame.state_symbol,
+            span
+        }),
+        _ => {
+            state: in.state,
+            value: fallback
+        }
     }
 
     const result = append({

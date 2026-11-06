@@ -25,22 +25,25 @@ export default function (in: Input): Output {
         index: 0,
         changed: 0
     }, {
-        while: (state, source) => state.index < source.levels.length,
-        next: (state, source) => {
-            const row = integers.widen(source.row)
-            const slot = integers.widen(source.first) + state.index
-            const before = decode(bytes.loadAtomicCell(source.rows, row, slot))
-            const incoming = decode(source.levels[state.index])
-            const next = source.joining ? knowledge(join({
-                left: value(before),
-                right: value(incoming)
-            })) : meet({
-                left: before,
-                right: incoming
-            })
+        while: state => state.index < in.levels.length,
+        next: state => {
+            const row = integers.widen(in.row)
+            const slot = integers.widen(in.first) + state.index
+            const before = decode(bytes.loadAtomicCell(in.rows, row, slot))
+            const incoming = decode(in.levels[state.index])
+            const next = match {
+                in.joining => knowledge(join({
+                    left: value(before),
+                    right: value(incoming)
+                })),
+                _ => meet({
+                    left: before,
+                    right: incoming
+                })
+            }
 
             if (next != before) {
-                bytes.storeAtomicCell(source.rows, row, slot, encode(next))
+                bytes.storeAtomicCell(in.rows, row, slot, encode(next))
 
                 state.changed += 1
             }
@@ -48,5 +51,5 @@ export default function (in: Input): Output {
             state.index += 1
         },
         return: state => state.changed
-    }, in)
+    })
 }

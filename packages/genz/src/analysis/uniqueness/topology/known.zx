@@ -14,11 +14,11 @@ export default function (in: Input): Output {
         values,
         index: 0
     }, {
-        while: (state, source) => state.index < source.exported.length,
-        next: (state, source) => {
-            state.values[integers.widen(source.exported[state.index])] = false
+        while: state => state.index < in.exported.length,
+        next: state => {
+            state.values[integers.widen(in.exported[state.index])] = false
             state.index += 1
         },
         return: state => state.values
-    }, in)
+    })
 }

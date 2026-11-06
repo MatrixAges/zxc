@@ -1,0 +1,175 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+import { TransformKind } from "core/expression_table/kinds"
+
+import { Action, Definition, Role } from "../model"
+import push from "../push"
+
+import type { Expressions } from "core/expression_table/model"
+import type { Stack, Defined, Repetition, Frame } from "../model"
+
+export type Input = {
+    table: Expressions,
+    stack: Stack,
+    definitions: Defined[],
+    repetitions: Repetition[],
+    parent: u32,
+    event: Frame
+}
+
+export type Output = {
+    stack: Stack,
+    definitions: Defined[],
+    repetitions: Repetition[],
+    active: u32
+}
+
+export default function (in: Input): Output {
+    const table = in.table
+    const event = in.event
+    const first = event.first
+    const second = event.second
+    const active = integers.narrow(in.repetitions.length)
+
+    const pending = push({
+        stack: in.stack,
+        event: {
+            action: Action.RestoreLoop,
+            first: in.parent
+        }
+    })
+
+    const repetitions = in.repetitions.push({
+        owner: first == max_u32 ? second : first,
+        parent: in.parent,
+        concurrent: event.action == Action.Repeat
+    })[0]
+
+    if (event.action == Action.Repeat) {
+        return {
+            stack: push({
+                stack: pending,
+                event: {
+                    action: Action.Operand,
+                    first,
+                    second,
+                    role: Role.use
+                }
+            }),
+            definitions: in.definitions,
+            repetitions,
+            active
+        }
+    }
+
+    const payload = integers.widen(table.payloads[integers.widen(first)])
+
+    if (event.action == Action.Iteration) {
+        const condition =
+            integers.widen(table.iteration_condition_parameters[payload])
+
+        const parameter = integers.widen(table.iteration_parameters[payload])
+        const post = table.iteration_postconditions[payload]
+
+        const tail = push({
+            stack: pending,
+            event: {
+                action: Action.Operand,
+                first,
+                second: match {
+                    post => table.iteration_conditions[payload],
+                    _ => table.iteration_bodies[payload]
+                },
+                role: post ? Role.observe : Role.use
+            }
+        })
+
+        const conditions = in.definitions.with(condition, {
+            ...in.definitions[condition],
+            kind: Definition.Condition,
+            value: first,
+            repeated: active
+        })
+
+        const definitions = conditions.with(parameter, {
+            ...conditions[parameter],
+            kind: Definition.Carried,
+            value: first,
+            repeated: active
+        })
+
+        return {
+            stack: push({
+                stack: tail,
+                event: {
+                    action: Action.Operand,
+                    first,
+                    second: match {
+                        post => table.iteration_bodies[payload],
+                        _ => table.iteration_conditions[payload]
+                    },
+                    role: post ? Role.use : Role.observe
+                }
+            }),
+            definitions,
+            repetitions,
+            active
+        }
+    }
+
+    const parameter_first = integers.widen(table.transform_first[payload])
+    const parameter_count = integers.widen(table.transform_count[payload])
+
+    const context = match {
+        table.transform_kinds[payload] == TransformKind.Sort =>
+            table.transform_initials[payload],
+        _ => null
+    }
+
+    const reduce = table.transform_kinds[payload] == TransformKind.Reduce
+
+    const definitions = loop({
+        definitions: in.definitions,
+        index: 0
+    }, {
+        while: state => state.index < parameter_count,
+        next: state => {
+            const position =
+                parameter_first + state.index
+            const target = integers.widen(table.transform_parameters[position])
+            const carried = reduce && state.index == 0
+            const captured = context != null && state.index == 2
+
+            state.definitions[target] = {
+                ...state.definitions[target],
+                kind: match {
+                    captured => Definition.Value,
+                    carried => Definition.Carried,
+                    _ => Definition.Element
+                },
+                value: match {
+                    captured => context,
+                    _ => first
+                },
+                repeated: active
+            }
+            state.index += 1
+        },
+        return: state => state.definitions
+    })
+
+    return {
+        stack: push({
+            stack: pending,
+            event: {
+                action: Action.Operand,
+                first,
+                second: table.transform_bodies[payload],
+                role: Role.use
+            }
+        }),
+        definitions,
+        repetitions,
+        active
+    }
+}

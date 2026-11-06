@@ -35,11 +35,13 @@ export default function (in: Input): Output {
     }
 
     if (owner.kind != ExprKind.Identifier) {
-        const condition = (
-            - owner.kind != ExprKind.Field
-            - or in.source.tree.nodes[owner.first].kind != ExprKind.Identifier
-            - or in.state.types.context.aliases.names.length == 0
-        )
+        const same_names = in.state.types.context.aliases.names.length == 0
+
+        const condition = match {
+            owner.kind != ExprKind.Field => true,
+            in.source.tree.nodes[owner.first].kind != ExprKind.Identifier => true,
+            _ => same_names
+        }
 
         if (condition) {
             return unhandled
@@ -111,21 +113,26 @@ export default function (in: Input): Output {
         delta: in.state.types.delta
     }
 
-    const condition_3 = (
-        - root.text == "error"
-        - and lookup({
+    const builtin_error = match {
+        root.text != "error" => false,
+        _ => lookup({
             active: in.state.local.active,
             names: in.state.local.symbols.names,
             scope_floor: in.state.local.scope_floor,
             name: root.text
         }) == null
-        - and (in.source.constant_values == null || constant({
+    }
+
+    const condition_3 = match {
+        !builtin_error => false,
+        in.source.constant_values == null => true,
+        _ => constant({
             active: in.state.local.active,
             names: in.state.local.symbols.names,
             constants: in.source.constant_values,
             name: root.text
-        }) == null)
-    )
+        }) == null
+    }
 
     if (condition_3) {
         const expected = payload({

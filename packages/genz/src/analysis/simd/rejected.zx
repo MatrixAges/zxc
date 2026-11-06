@@ -1,0 +1,21 @@
+import type { Candidate } from "./model"
+
+export type Input = u32
+
+export type Output = Candidate
+
+export default function (in: Input): Output {
+    return {
+        valid: false,
+        source: in,
+        callback: in,
+        scalar: 0,
+        context: {
+            first: 0,
+            count: 0,
+            element: null,
+            iteration: null
+        },
+        iteration: null
+    }
+}

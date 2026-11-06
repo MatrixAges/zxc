@@ -28,15 +28,16 @@ export default function (in: Input): Output {
             current.message == "" && current.index < current.input.count,
         next: current => {
             const position = current.input.first + current.index
-            const name = (
-                current.input.parameter ?
-                    current.input.native.parameters[position].name :
-                    current.input.native.errors[position]
-            )
-                -> text({
-                    source: current.input.native.source,
-                    span: _
-                })
+            const span = match {
+                current.input.parameter =>
+                    current.input.native.parameters[position].name,
+                _ => current.input.native.errors[position]
+            }
+
+            const name = text({
+                source: current.input.native.source,
+                span: span
+            })
             const kind = current.input.parameter ? NameKind.Value : NameKind.TypeDecl
 
             if (!checkName({
@@ -45,8 +46,10 @@ export default function (in: Input): Output {
             })) {
                 current.code = "naming"
                 current.message =
-                    current.input.parameter ? "parameter names must use snake_case" :
-                    "error names must use PascalCase"
+                    match {
+                        current.input.parameter => "parameter names must use snake_case",
+                        _ => "error names must use PascalCase"
+                    }
                 current.start = name.start
                 current.end = name.end
             } else {
@@ -58,8 +61,10 @@ export default function (in: Input): Output {
                 if (selected.found) {
                     current.code = "name"
                     current.message =
-                        current.input.parameter ? "duplicate native parameter name" :
-                        "duplicate native error name"
+                        match {
+                            current.input.parameter => "duplicate native parameter name",
+                            _ => "duplicate native error name"
+                        }
                     current.start = name.start
                     current.end = name.end
                 } else {

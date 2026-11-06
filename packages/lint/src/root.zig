@@ -11,7 +11,14 @@ pub const length = @import("length");
 pub const rx = @import("rx/root.zig");
 pub const configuration = @import("configuration/root.zig");
 pub const NameKind = @import("naming").NameKind;
-const ExpressionContext = enum { zx, rx, zx_style, rx_style };
+
+const ExpressionContext = struct {
+    kind: enum { zx, rx, zx_style, rx_style },
+    source: ?[]const u8 = null,
+    condition_item: bool = false,
+};
+
+const readability = @import("readability.zig");
 const loop_postfix = @import("loop_postfix");
 const condition_policy = @import("condition_policy");
 pub const checkName = @import("naming").checkName;
@@ -27,7 +34,7 @@ pub fn checkViewNames(view: anytype, contracts: anytype, body: anytype) ?zx.Diag
         if (checkExpression(syntax.item(contracts, index).predicate)) |issue| return issue;
     }
 
-    return if (body) |value| checkBlock(value, .zx) else null;
+    return if (body) |value| checkBlock(value, .{ .kind = .zx }) else null;
 }
 
 pub fn checkHeaderNames(view: anytype) ?zx.Diagnostic {
@@ -69,7 +76,7 @@ fn checkBinding(name: zx.ast.Name, kind: NameKind) ?zx.Diagnostic {
     } };
 }
 
-fn checkBlock(block: anytype, comptime context: ExpressionContext) ?zx.Diagnostic {
+fn checkBlock(block: anytype, context: ExpressionContext) ?zx.Diagnostic {
     for (0..block.statements.len) |statement_index| {
         const statement = syntax.item(block.statements, statement_index);
 
@@ -92,7 +99,7 @@ fn checkBlock(block: anytype, comptime context: ExpressionContext) ?zx.Diagnosti
                 if (checkNestedExpression(binding.value, false, context)) |issue| return issue;
             },
             .branch => |branch| {
-                if ((context == .zx_style or context == .rx_style) and condition_policy.check(branch.condition.condition_terms, branch.condition.condition_list, true)) return .{ .code = .style, .span = branch.condition.span, .message = "if conditions with more than two terms must use a separate condition binding" };
+                if ((context.kind == .zx_style or context.kind == .rx_style) and condition_policy.check(branch.condition.condition_terms, branch.condition.condition_list, true)) return .{ .code = .style, .span = branch.condition.span, .message = "if conditions with more than two terms must use a separate condition binding" };
                 if (checkNestedExpression(branch.condition, false, context)) |issue| return issue;
                 if (checkBlock(branch.yes, context)) |issue| return issue;
 
@@ -126,29 +133,43 @@ fn checkBlock(block: anytype, comptime context: ExpressionContext) ?zx.Diagnosti
 }
 
 pub fn checkViewStyle(view: anytype, contracts: anytype, body: anytype) ?zx.Diagnostic {
+    return checkSourceStyle(null, view, contracts, body);
+}
+
+pub fn checkSourceStyle(text: ?[]const u8, view: anytype, contracts: anytype, body: anytype) ?zx.Diagnostic {
     if (checkHeaderNames(view)) |issue| return issue;
 
     for (0..contracts.len) |index| {
-        if (checkStyleExpression(syntax.item(contracts, index).predicate)) |issue| return issue;
+        if (checkReadableExpression(text, syntax.item(contracts, index).predicate)) |issue| return issue;
     }
 
-    return if (body) |value| checkBlock(value, .zx_style) else null;
+    return if (body) |value| checkBlock(value, .{ .kind = .zx_style, .source = text }) else null;
+}
+
+pub fn checkReadableExpression(text: ?[]const u8, expression: anytype) ?zx.Diagnostic {
+    return checkNestedExpression(expression, false, .{ .kind = .zx_style, .source = text });
 }
 
 pub fn checkStyleExpression(expression: anytype) ?zx.Diagnostic {
-    return checkNestedExpression(expression, false, .zx_style);
+    return checkNestedExpression(expression, false, .{ .kind = .zx_style });
 }
 
 pub fn checkExpression(expression: anytype) ?zx.Diagnostic {
-    return checkNestedExpression(expression, false, .zx);
+    return checkNestedExpression(expression, false, .{ .kind = .zx });
 }
 
 pub fn checkRxExpression(expression: anytype) ?zx.Diagnostic {
-    return checkNestedExpression(expression, false, .rx);
+    return checkNestedExpression(expression, false, .{ .kind = .rx });
 }
 
-fn checkNestedExpression(expression: anytype, nested: bool, comptime context: ExpressionContext) ?zx.Diagnostic {
-    if (context == .zx_style or context == .rx_style) {
+fn checkNestedExpression(expression: anytype, nested: bool, context: ExpressionContext) ?zx.Diagnostic {
+    if (context.kind == .zx_style or context.kind == .rx_style) {
+        if (readability.condition(context.source, expression)) {
+            if (context.condition_item) return readability.item(context.source.?, expression, true);
+
+            return checkConditionList(expression, expression.span.start, nested, context);
+        }
+
         if (condition_policy.check(expression.condition_terms, expression.condition_list, false)) return .{ .code = .style, .span = expression.span, .message = "boolean expressions with more than three terms must use a condition list" };
 
         const value = syntax.value(expression);
@@ -163,7 +184,13 @@ fn checkNestedExpression(expression: anytype, nested: bool, comptime context: Ex
         if (receiver) |target| {
             const target_value = syntax.value(target);
             const callee = if (target_value == .call) syntax.value(target_value.call.callee) else target_value;
-            const kind: loop_postfix.Kind = switch (value) { .field => .Field, .index => .Index, .call => .Call, else => .Other };
+
+            const kind: loop_postfix.Kind = switch (value) {
+                .field => .Field,
+                .index => .Index,
+                .call => .Call,
+                else => .Other,
+            };
 
             if (loop_postfix.check(kind, if (target_value == .call) .Call else .Other, if (callee == .identifier) .Identifier else .Other, if (callee == .identifier) callee.identifier.text else "")) {
                 return .{ .code = .style, .span = .{ .start = target.span.end, .end = expression.span.end }, .message = "move loop result processing into its return callback" };
@@ -187,9 +214,29 @@ fn checkNestedExpression(expression: anytype, nested: bool, comptime context: Ex
         .capture, .task, .await_task, .cancel_task => |child| return checkNestedExpression(child, nested, context),
         .unary => |unary| return checkNestedExpression(unary.operand, nested, context),
         .binary => |binary| return checkNestedExpression(binary.left, nested, context) orelse checkNestedExpression(binary.right, nested, context),
-        .pipeline => |pipe| return checkNestedExpression(pipe.input, nested, context) orelse checkNestedExpression(pipe.stage, nested, context),
+        .pipeline => {
+            if (context.kind == .zx_style or context.kind == .rx_style) {
+                if (readability.pipeline(context.source, expression)) |issue| return issue;
+            }
+
+            var cursor = expression;
+
+            while (syntax.value(cursor) == .pipeline) {
+                const pipe = syntax.value(cursor).pipeline;
+
+                if (checkNestedExpression(pipe.stage, nested, context)) |issue| return issue;
+
+                cursor = pipe.input;
+            }
+
+            return checkNestedExpression(cursor, nested, context);
+        },
         .conditional => |value| {
-            if (nested) return .{ .code = .style, .span = expression.span, .message = if (context == .rx or context == .rx_style) "nested conditional values are not allowed in RX; use If or Switch, or move the decision to ZX and use Call.fn" else "nested conditional expressions are not allowed; use match" };
+            if (context.kind == .zx_style or context.kind == .rx_style) {
+                if (readability.ternary(context.source, expression)) |issue| return issue;
+            }
+
+            if (nested) return .{ .code = .style, .span = expression.span, .message = if (context.kind == .rx or context.kind == .rx_style) "nested conditional values are not allowed in RX; use If or Switch, or move the decision to ZX and use Call.fn" else "nested conditional expressions are not allowed; use match" };
 
             return checkNestedExpression(value.condition, true, context) orelse checkNestedExpression(value.yes, true, context) orelse checkNestedExpression(value.no, true, context);
         },
@@ -236,4 +283,30 @@ fn checkNestedExpression(expression: anytype, nested: bool, comptime context: Ex
     }
 
     return null;
+}
+
+fn checkConditionList(expression: anytype, start: usize, nested: bool, context: ExpressionContext) ?zx.Diagnostic {
+    if (expression.condition_list and expression.span.start == start) {
+        switch (syntax.value(expression)) {
+            .unary => |value| return checkConditionList(value.operand, start, nested, context),
+            .binary => |value| {
+                if (checkConditionList(value.left, start, nested, context)) |issue| return issue;
+
+                return checkConditionItem(value.right, nested, context);
+            },
+            else => {},
+        }
+    }
+
+    return checkConditionItem(expression, nested, context);
+}
+
+fn checkConditionItem(expression: anytype, nested: bool, context: ExpressionContext) ?zx.Diagnostic {
+    if (readability.item(context.source.?, expression, false)) |issue| return issue;
+
+    var child = context;
+
+    child.condition_item = true;
+
+    return checkNestedExpression(expression, nested, child);
 }

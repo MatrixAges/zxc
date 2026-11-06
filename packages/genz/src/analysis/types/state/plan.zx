@@ -33,42 +33,53 @@ export default function (in: Input): Output {
             const aggregate = target == Kind.Object || target == Kind.Tuple
             const child = target == Kind.Optional ? current.changed[first] : false
 
-            const different = selected && aggregate ? loop({
-                source: current.source.types,
-                changed: current.changed,
-                object: target == Kind.Object,
-                index: first,
-                end: first + count,
-                different: false
-            }, {
-                while: children => !children.different && children.index < children.end,
-                next: children => {
-                    const child = children.object ?
-                        children.source.field_types[children.index] :
-                        children.source.children[children.index]
+            const different = match {
+                selected && aggregate => loop({
+                    source: current.source.types,
+                    changed: current.changed,
+                    object: target == Kind.Object,
+                    index: first,
+                    end: first + count,
+                    different: false
+                }, {
+                    while: children =>
+                        !children.different && children.index < children.end,
+                    next: children => {
+                        const child = match {
+                            children.object =>
+                                children.source.field_types[children.index],
+                            _ => children.source.children[children.index]
+                        }
 
-                    children.different = children.changed[integers.widen(child)]
-                    children.index += 1
-                },
-                return: state => state.different
-            }) : child || (selected && target == Kind.List)
+                        children.different = children.changed[integers.widen(child)]
+                        children.index += 1
+                    },
+                    return: state => state.different
+                }),
+                _ => child || (selected && target == Kind.List)
+            }
 
             current = {
                 ...current,
-                names: current.names.push(selected ? stateName({
-                    names: current.source.names,
-                    key: current.source.keys[index],
-                    index
-                }) : "")[0],
+                names: current.names.push(match {
+                    selected => stateName({
+                        names: current.source.names,
+                        key: current.source.keys[index],
+                        index
+                    }),
+                    _ => ""
+                })[0],
                 changed: current.changed.push(
                     different || current.source.borrowed[index]
                 )[0],
-                origins: current.origins.push(selected && target == Kind.Object ?
-                    origin({
+                origins: current.origins.push(match {
+                    selected && target == Kind.Object => origin({
                         names: current.source.types.field_names,
                         start: first,
                         count
-                    }) : current.empty)[0],
+                    }),
+                    _ => current.empty
+                })[0],
                 index: current.index + 1
             }
         }

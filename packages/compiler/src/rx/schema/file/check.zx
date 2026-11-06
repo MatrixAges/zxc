@@ -30,8 +30,11 @@ export default function (in: Input): Output {
         return Kind.Store
     }
 
-    return ends({
-        source: in,
-        pattern: rx_suffix
-    }) ? Kind.Module : Kind.Invalid
+    return match {
+        ends({
+            source: in,
+            pattern: rx_suffix
+        }) => Kind.Module,
+        _ => Kind.Invalid
+    }
 }

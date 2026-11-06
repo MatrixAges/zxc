@@ -11,8 +11,11 @@ export default function (in: Input): Output {
     const lexical_index = in.control.lexical_diagnostic
 
     if (lexical_index != 0) {
-        return lexical_index == 1 ? in.prepared.lexical.lexed.diagnostic :
-            in.prepared.lexical.interpolations[lexical_index - 2].lexed.diagnostic
+        return match {
+            lexical_index == 1 => in.prepared.lexical.lexed.diagnostic,
+            _ => in.prepared.lexical.interpolations[lexical_index -
+                2].lexed.diagnostic
+        }
     }
 
     if (in.control.type_diagnostic) {

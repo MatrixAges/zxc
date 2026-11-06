@@ -8,15 +8,20 @@ export type Input = Modules
 export type Output = bool
 
 export default function (in: Input): Output {
+    const index_limit = integers.widen(max_u32)
+
     const count = in.specifiers.length
 
+    const different_import_names = in.import_names.length != count
+    const different_type_namespaces = in.type_namespaces.length != count
+
     const condition = (
-        - count > integers.widen(max_u32)
+        - count > index_limit
         - or in.identities.length != count
-        - or in.import_names.length != count
+        - or different_import_names
         - or in.type_ids.length != count
         - or in.type_names.length != count
-        - or in.type_namespaces.length != count
+        - or different_type_namespaces
     )
 
     if (condition) {
@@ -36,9 +41,7 @@ export default function (in: Input): Output {
 
             current.valid =
                 names.length == ids.length &&
-                names.length <= integers.widen(
-                    max_u32
-                )
+                names.length <= index_limit
             current.index += 1
         },
         return: state => state.valid

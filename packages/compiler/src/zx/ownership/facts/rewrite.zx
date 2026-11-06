@@ -1,17 +1,18 @@
 import integers from "std:integer"
 
-import { fact_copy, fact_loaned, first_product_fact } from "./const"
+import { fact_copy, first_product_fact } from "./const"
 import fieldType from "./field_type"
 import product from "./product"
 import project from "./project"
 import cache from "./rewrite/cache"
 import find from "./rewrite/find"
 import { RewriteAction } from "./rewrite/model"
+import preserved from "./rewrite/preserved"
 import rewind from "./rewrite/rewind"
 import same from "./rewrite/same"
 import state from "./rewrite/state"
+import uniformPair from "./rewrite/uniform_pair"
 import summary from "./summary"
-import uniform from "./uniform"
 
 import type { Tables } from "core/type_table/model"
 import type { Forest, Result } from "./model"
@@ -35,18 +36,11 @@ export default function (in: Input): Output {
 
     const right = paired ? in.right : fact_copy
 
-    const condition = (
-        - paired
-        - and in.left == right
-        - or (
-            - in.action == RewriteAction.ReleaseNewLoans
-            - and (
-                (
-                    in.left < first_product_fact && in.left != fact_loaned
-                ) || right == fact_loaned
-            )
-        )
-    )
+    const condition = preserved({
+        left: in.left,
+        right,
+        action: in.action
+    })
 
     if (condition) {
         return {
@@ -56,24 +50,20 @@ export default function (in: Input): Output {
     }
 
     if (in.left < first_product_fact && right < first_product_fact) {
-        return uniform(state({
-            left: summary({
-                forest: in.forest,
-                fact: in.left
-            }),
-            right: summary({
-                forest: in.forest,
-                fact: right
-            }),
+        const fact = uniformPair({
+            forest: in.forest,
+            left: in.left,
+            right,
             action: in.action
-        }))
-            -> {
-                forest: in.forest,
-                fact: _
-            }
+        })
+
+        return {
+            forest: in.forest,
+            fact
+        }
     }
 
-    const result = loop({
+    return loop({
         types: in.types,
         references: in.references,
         forest: in.forest,
@@ -103,21 +93,16 @@ export default function (in: Input): Output {
                 left,
                 right
             })
-            const identical = current.paired && left == right
-            const unchanged =
-                (
-                    - current.action == RewriteAction.ReleaseNewLoans
-                    - and (
-                        (
-                            left < first_product_fact && left != fact_loaned
-                        ) || right == fact_loaned
-                    )
-                )
+            const unchanged = preserved({
+                left,
+                right,
+                action: current.action
+            })
+
             const uniform_pair = left < first_product_fact && right < first_product_fact
 
             const condition_2 = (
                 - saved.found
-                - or identical
                 - or unchanged
                 - or uniform_pair
             )
@@ -125,24 +110,13 @@ export default function (in: Input): Output {
             if (condition_2) {
                 current.value = saved.found ? saved.value : left
 
-                const condition_3 = (
-                    - !saved.found
-                    - and !identical
-                    - and !unchanged
-                )
-
-                if (condition_3) {
-                    current.value = uniform(state({
-                        left: summary({
-                            forest: current.forest,
-                            fact: left
-                        }),
-                        right: summary({
-                            forest: current.forest,
-                            fact: right
-                        }),
+                if (!saved.found && !unchanged) {
+                    current.value = uniformPair({
+                        forest: current.forest,
+                        left,
+                        right,
                         action: current.action
-                    }))
+                    })
                 }
 
                 current.left = current.left.pop()[0]
@@ -165,14 +139,15 @@ export default function (in: Input): Output {
                 const index = current.indices[top]
 
                 if (index < count) {
+                    const child_type = fieldType({
+                        types: current.types,
+                        type_id,
+                        index
+                    })
+
                     const reference =
-                        fieldType({
-                            types: current.types,
-                            type_id,
-                            index
-                        })
-                        -> current.references[integers.widen(
-                            _
+                        current.references[integers.widen(
+                            child_type
                         )]
                     const child_left = project({
                         forest: current.forest,
@@ -180,12 +155,15 @@ export default function (in: Input): Output {
                         index,
                         reference
                     })
-                    const child_right = current.paired ? project({
-                        forest: current.forest,
-                        fact: right,
-                        index,
-                        reference
-                    }) : fact_copy
+                    const child_right = match {
+                        current.paired => project({
+                            forest: current.forest,
+                            fact: right,
+                            index,
+                            reference
+                        }),
+                        _ => fact_copy
+                    }
 
                     current.indices[top] = index + 1
                     current.left = current.left.push(child_left)[0]
@@ -193,19 +171,26 @@ export default function (in: Input): Output {
                     current.indices = current.indices.push(0)[0]
                     current.first = current.first.push(current.children.length)[0]
                 } else {
-                    const left_shell = left < first_product_fact ? summary({
-                        forest: current.forest,
-                        fact: left
-                    }) : current.forest.shells[left - first_product_fact]
-                    const shell = (right < first_product_fact ? summary({
-                        forest: current.forest,
-                        fact: right
-                    }) : current.forest.shells[right - first_product_fact])
-                        -> state({
-                            left: left_shell,
-                            right: _,
-                            action: current.action
-                        })
+                    const left_shell = match {
+                        left < first_product_fact => summary({
+                            forest: current.forest,
+                            fact: left
+                        }),
+                        _ => current.forest.shells[left - first_product_fact]
+                    }
+                    const right_shell = match {
+                        right < first_product_fact => summary({
+                            forest: current.forest,
+                            fact: right
+                        }),
+                        _ => current.forest.shells[right - first_product_fact]
+                    }
+
+                    const shell = state({
+                        left: left_shell,
+                        right: right_shell,
+                        action: current.action
+                    })
                     const unchanged = same({
                         types: current.types,
                         references: current.references,
@@ -242,11 +227,10 @@ export default function (in: Input): Output {
                     })
                 }
             }
-        }
+        },
+        return: state => ({
+            forest: state.forest,
+            fact: state.value
+        })
     })
-
-    return {
-        forest: result.forest,
-        fact: result.value
-    }
 }

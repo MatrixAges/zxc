@@ -67,3 +67,19 @@ pub fn supported(program: ir.Program, id: ir.TypeId) bool {
         else => leaf(program, id),
     };
 }
+
+pub fn scalarProduct(program: ir.Program, id: ir.TypeId) bool {
+    return switch (program.typeOf(id)) {
+        .object => |fields| result: {
+            for (0..fields.len) |index| if (!@import("../types/scalar.zig").check(program.types, fields.at(index).type_id)) break :result false;
+
+            break :result true;
+        },
+        .tuple => |items| result: {
+            for (0..items.len) |index| if (!@import("../types/scalar.zig").check(program.types, items.at(index))) break :result false;
+
+            break :result true;
+        },
+        else => false,
+    };
+}

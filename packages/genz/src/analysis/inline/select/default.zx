@@ -32,26 +32,28 @@ export default function (in: Input): Output {
         }
     }
 
-    return control
+    const body = control
         .case_bodies[integers.widen(
             control.selection_first[payload]
         ) + index]
-        -> {
-            ...in.frame,
-            op: InlineOp.LowerStart,
-            id: integers.widen(_) + 1,
-            b: in.frame.j,
-            c: in.frame.l
-        }
-        -> {
-            ...state,
-            frames: state.frames.concat([
-                {
-                    ...in.frame,
-                    op: InlineOp.SwitchDefaultDone,
-                    n: index
-                },
-                _
-            ])[0]
-        }
+
+    const start = {
+        ...in.frame,
+        op: InlineOp.LowerStart,
+        id: integers.widen(body) + 1,
+        b: in.frame.j,
+        c: in.frame.l
+    }
+
+    return {
+        ...state,
+        frames: state.frames.concat([
+            {
+                ...in.frame,
+                op: InlineOp.SwitchDefaultDone,
+                n: index
+            },
+            start
+        ])[0]
+    }
 }

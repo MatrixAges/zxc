@@ -21,15 +21,16 @@ export default function (in: Input): Output {
             }
 
 
-            const request = current.expressions
+            const subject = current.expressions
                 .scope_values[
                     context.first + current.index
                 ]
-                -> {
-                    expressions: current.expressions,
-                    context,
-                    subject: _
-                }
+
+            const request = {
+                expressions: current.expressions,
+                context,
+                subject: subject
+            }
 
             current.valid = supported({
                 ...request,

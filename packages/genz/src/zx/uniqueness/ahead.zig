@@ -31,7 +31,21 @@ pub const Settled = struct { passed: []const Function.Contribution, output: []co
 
 pub const Demanded = struct { marks: []const Function.Mark, grew: bool, normalized: []const Memo.Normalized, renewed: []const Memo.Renewed, reads: []const Function.Read };
 pub const Planned = struct { flags: []const Function.Flags, renewals: []const Function.Renewal, transfers: []const u64 = &.{}, slot_first: []const u32 = &.{} };
-const State = enum(u8) { idle, queued, running, ready, failed, held };
+
+const State = enum(u32) {
+    idle,
+    queued,
+    running,
+    waiting,
+    ready,
+    failed,
+    held,
+    fn publish(state: *std.atomic.Value(State), next: State) void {
+        if (state.swap(next, .release) == .waiting) {
+            std.Io.Threaded.global_single_threaded.io().futexWake(State, &state.raw, 1);
+        }
+    }
+};
 
 /// Queued bodies looked at ahead per thread: enough to keep the threads busy while the worklist waits on a chain of
 /// changes, few enough that a weakened summary wastes little.
@@ -97,7 +111,7 @@ pub fn request(self: *Self, comptime kind: Memo.Kind, memo: *Memo, indices: []co
 
                 continue;
             },
-            .running, .failed => continue,
+            .running, .waiting, .failed => continue,
         }
 
         if (self.units[index].?.recursive) continue;
@@ -128,7 +142,10 @@ pub fn take(self: *Self, comptime kind: Memo.Kind, index: usize) std.mem.Allocat
         switch (state.load(.acquire)) {
             .idle, .held => return null,
             .queued => if (state.cmpxchgWeak(.queued, .idle, .monotonic, .monotonic) == null) return null,
-            .running => std.atomic.spinLoopHint(),
+            .running => {
+                _ = state.cmpxchgStrong(.running, .waiting, .monotonic, .monotonic);
+            },
+            .waiting => std.Io.Threaded.global_single_threaded.io().futexWaitUncancelable(State, &state.raw, .waiting),
             .ready => break,
             .failed => return error.OutOfMemory,
         }
@@ -159,8 +176,8 @@ fn Task(comptime kind: Memo.Kind) type {
 
             if (state.cmpxchgStrong(.queued, .running, .acquire, .monotonic) != null) return;
 
-            @field(self, @tagName(kind))[index] = analyze(self, worker, index) catch return state.store(.failed, .release);
-            state.store(.ready, .release);
+            @field(self, @tagName(kind))[index] = analyze(self, worker, index) catch return State.publish(state, .failed);
+            State.publish(state, .ready);
         }
         fn analyze(ahead: *Self, worker: *Pool.Worker, index: usize) std.mem.Allocator.Error!Found(kind) {
             const unit = ahead.units[index].?;

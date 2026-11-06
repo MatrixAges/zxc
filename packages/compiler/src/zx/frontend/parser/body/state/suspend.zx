@@ -25,35 +25,36 @@ export default function (in: Input): Output {
     const expression_frames: ExprFrame[] = []
     const frames: Frame[] = []
 
-    return frame({
+    const root = frame({
         kind: FrameKind.Root,
         start,
         depth
     })
-        -> {
-            expression: {
-                prepared: in.expression.prepared,
-                tree: in.expression.tree,
-                types: in.expression.types,
-                frames: expression_frames,
-                control: saved
-            },
-            tree: in.tree,
-            frames,
-            suspended,
-            frame: _,
-            control: {
-                phase: Phase.BlockOpen,
-                resume: Phase.Done,
-                state_block: true,
-                result: 0,
-                expression_diagnostic: false,
-                diagnostic: {
-                    code: "",
-                    start: 0,
-                    end: 0,
-                    message: ""
-                }
+
+    return {
+        expression: {
+            prepared: in.expression.prepared,
+            tree: in.expression.tree,
+            types: in.expression.types,
+            frames: expression_frames,
+            control: saved
+        },
+        tree: in.tree,
+        frames,
+        suspended,
+        frame: root,
+        control: {
+            phase: Phase.BlockOpen,
+            resume: Phase.Done,
+            state_block: in.expression.frames[in.expression.frames.length - 1].flag,
+            result: 0,
+            expression_diagnostic: false,
+            diagnostic: {
+                code: "",
+                start: 0,
+                end: 0,
+                message: ""
             }
         }
+    }
 }

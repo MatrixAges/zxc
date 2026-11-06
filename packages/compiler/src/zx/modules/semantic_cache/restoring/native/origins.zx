@@ -11,10 +11,14 @@ export type Output = bool
 export default function (in: Input): Output {
     const origins = in.origins
 
+    const not_length = origins.ids.length != origins.kinds.length
+    const not_length_2 = origins.ids.length != origins.owners.length
+    const not_length_3 = origins.ids.length != origins.members.length
+
     const condition = (
-        - origins.ids.length != origins.kinds.length
-        - or origins.ids.length != origins.owners.length
-        - or origins.ids.length != origins.members.length
+        - not_length
+        - or not_length_2
+        - or not_length_3
     )
 
     if (condition) {

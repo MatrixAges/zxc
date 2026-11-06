@@ -9,28 +9,28 @@ export type Input = {
 
 export type Output = u32?
 
-    export default function (in: Input): Output {
-        const missing: u32? = null
+export default function (in: Input): Output {
+    const missing: u32? = null
 
-        return loop({
-            active: in.active,
-            names: in.names,
-            scope_floor: in.scope_floor,
-            name: in.name,
-            index: in.active.length,
-            found: missing
-        }, {
-            while: current =>
-                current.found == null && current.index > current.scope_floor,
-            next: current => {
-                current.index -= 1
+    return loop({
+        active: in.active,
+        names: in.names,
+        scope_floor: in.scope_floor,
+        name: in.name,
+        index: in.active.length,
+        found: missing
+    }, {
+        while: current =>
+            current.found == null && current.index > current.scope_floor,
+        next: current => {
+            current.index -= 1
 
-                const id = current.active[current.index]
+            const id = current.active[current.index]
 
-                if (current.names[integers.widen(id)] == current.name) {
-                    current.found = id
-                }
-            },
-            return: state => state.found
-        })
-    }
+            if (current.names[integers.widen(id)] == current.name) {
+                current.found = id
+            }
+        },
+        return: state => state.found
+    })
+}

@@ -50,15 +50,16 @@ export default function (in: Input): Output {
         id: in.state.local.expressions.types[integers.widen(in.target)]
     })
 
-    const selected = (target.delta ? tables.delta : tables.base)
-        -> indices({
-            names: _.field_names,
-            first: integers.widen(target.first),
-            count: integers.widen(target.second),
-            keys: fields.names,
-            omit: in.omit,
-            span: node.span
-        })
+    const table = target.delta ? tables.delta : tables.base
+
+    const selected = indices({
+        names: table.field_names,
+        first: integers.widen(target.first),
+        count: integers.widen(target.second),
+        keys: fields.names,
+        omit: in.omit,
+        span: node.span
+    })
 
     if (selected.diagnostic.message != "") {
         return {

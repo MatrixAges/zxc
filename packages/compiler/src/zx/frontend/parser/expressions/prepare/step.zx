@@ -26,30 +26,37 @@ export default function (in: Input): Output {
             in.symbol == Symbol.Comma && in.state.parameter_start
         )
 
+    const not_parameter_start = in.symbol == Symbol.OpenParen && in.state.parameter_start
+
     const lambda =
         (
             - in.kind == Kind.Identifier
             - and in.state.arrow
-            - or (in.symbol == Symbol.OpenParen && in.state.parameter_start)
+            - or (not_parameter_start)
         )
 
-    return (
-        - in.word == Keyword.QueryOne
-        - or in.word == Keyword.QueryMany
-        - or in.word == Keyword.Insert
-        - or in.word == Keyword.Update
-        - or in.word == Keyword.Delete
-        - or in.word == Keyword.Transaction
+    const generic = (
+        match in.word {
+            Keyword.QueryOne => true,
+            Keyword.QueryMany => true,
+            Keyword.Insert => true,
+            Keyword.Update => true,
+            Keyword.Delete => true,
+            Keyword.Transaction => true,
+            _ => false
+        }
     )
-        -> {
-            lambda,
-            generic: _,
-            binary: operator(in.symbol)
-        }
-        -> {
-            arrow: in.symbol == Symbol.Arrow,
-            parameter_start,
-            after_identifier,
-            hints: in.state.hints.push(_)[0]
-        }
+
+    const hint = {
+        lambda,
+        generic: generic,
+        binary: operator(in.symbol)
+    }
+
+    return {
+        arrow: in.symbol == Symbol.Arrow,
+        parameter_start,
+        after_identifier,
+        hints: in.state.hints.push(hint)[0]
+    }
 }

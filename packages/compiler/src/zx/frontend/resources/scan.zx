@@ -26,8 +26,10 @@ export default function (in: Input): Output {
 
             current.index += 1
 
+            const same_text = token.text == template_function
+
             const condition = (
-                - token.text == template_function
+                - same_text
                 - and !member
                 - and call
             )

@@ -12,14 +12,14 @@ export default function (in: Input): Output {
         child: 0,
         valid: true
     }, {
-        while: (state, context) => state.valid &&
-            state.index < context.source.callees.length,
-        next: (state, context) => {
-            const previous = context.source.previous
+        while: state => state.valid &&
+            state.index < in.source.callees.length,
+        next: state => {
+            const previous = in.source.previous
 
-            if (previous != null && context.state.changed[state.index]) {
+            if (previous != null && in.state.changed[state.index]) {
                 const left = previous.callees[state.index]
-                const right = context.source.callees[state.index]
+                const right = in.source.callees[state.index]
 
                 if (left.length != right.length) {
                     state.valid = false
@@ -35,5 +35,5 @@ export default function (in: Input): Output {
             }
         },
         return: state => state.valid
-    }, in)
+    })
 }

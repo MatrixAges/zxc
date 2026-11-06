@@ -14,11 +14,12 @@ export default function (in: Input): Output {
     const kind = in.source.expressions.kinds[in.id]
 
     if (kind == ExpressionKind.ListUpdate) {
-        const target = integers.widen(in.source.expressions.payloads[in.id])
-            -> integers.widen(in.source.expressions.update_targets[_])
+        const payload = integers.widen(in.source.expressions.payloads[in.id])
 
-        return integers.widen(in.source.expressions.types[target])
-            -> in.source.selected[_]
+        const target = integers.widen(in.source.expressions.update_targets[payload])
+        const return_input = integers.widen(in.source.expressions.types[target])
+
+        return in.source.selected[return_input]
     }
 
     return match kind {

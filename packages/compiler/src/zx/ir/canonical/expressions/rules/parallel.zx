@@ -36,15 +36,17 @@ export default function (in: Input): Output {
             const task = expressions.parallel_tasks[position]
             const task_index = integers.widen(task)
 
-            const condition = (
-                - task_index >= context.index
-                - or expressions.kinds[task_index] != ExpressionKind.Task
-                - or kind(
-                    table.kinds[integers.widen(
-                        expressions.types[task_index]
-                    )]
-                ) != Kind.Task
-            )
+            const condition = match {
+                task_index >= context.index => true,
+                expressions.kinds[task_index] != ExpressionKind.Task => true,
+                _ =>
+                    kind(
+                        table.kinds[integers.widen(
+                            expressions.types[task_index]
+                        )]
+                    ) !=
+                    Kind.Task
+            }
 
             if (condition) {
                 current.valid = false
@@ -106,12 +108,15 @@ export default function (in: Input): Output {
     })
 
     const expected =
-        in.target ==
-        Kind.Object ? integers.widen(
-            context.table.second[integers.widen(
-                in.type_id
-            )]
-        ) : 0
+        match {
+            in.target ==
+                Kind.Object => integers.widen(
+                    context.table.second[integers.widen(
+                        in.type_id
+                    )]
+                ),
+            _ => 0
+        }
 
     return result.valid && result.fields == expected
 }

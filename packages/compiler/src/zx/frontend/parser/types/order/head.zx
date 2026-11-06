@@ -25,10 +25,12 @@ export default function (in: Input): Output {
         next: current => {
             current.first = current.current
             current.current =
-                current.kind ==
-                TypeKind.Object ?
-                current.tree.fields[current.current - 1].previous :
-                current.tree.items[current.current - 1].previous
+                match {
+                    current.kind ==
+                        TypeKind.Object =>
+                        current.tree.fields[current.current - 1].previous,
+                    _ => current.tree.items[current.current - 1].previous
+                }
             current.remaining -= 1
         },
         return: state => state.first

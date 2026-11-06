@@ -74,8 +74,10 @@ export default function (in: Input): Output {
                     frame.expression
                 )]
             }
-            const parent = current.places.length == 0 ? frame.expression :
-                current.places[current.places.length - 1].value
+            const parent = match {
+                current.places.length == 0 => frame.expression,
+                _ => current.places[current.places.length - 1].value
+            }
             const initial: Place = {
                 value: frame.expression,
                 kind,

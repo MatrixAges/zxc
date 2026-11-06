@@ -5,24 +5,24 @@ export type Input = {
 
 export type Output = u64?
 
-    export default function (in: Input): Output {
-        const found: u64? = null
+export default function (in: Input): Output {
+    const found: u64? = null
 
-        return loop({
-            names: in.names,
-            name: in.name,
-            index: 0,
-            found
-        }, {
-            while: current =>
-                current.found == null && current.index < current.names.length,
-            next: current => {
-                if (current.names[current.index] == current.name) {
-                    current.found = current.index
-                }
+    return loop({
+        names: in.names,
+        name: in.name,
+        index: 0,
+        found
+    }, {
+        while: current =>
+            current.found == null && current.index < current.names.length,
+        next: current => {
+            if (current.names[current.index] == current.name) {
+                current.found = current.index
+            }
 
-                current.index += 1
-            },
-            return: state => state.found
-        })
-    }
+            current.index += 1
+        },
+        return: state => state.found
+    })
+}

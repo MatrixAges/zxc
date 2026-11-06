@@ -27,12 +27,15 @@ export default function (in: Input): Output {
         name: in.name.text
     })
 
-    const literal = local == null && in.constant_values != null ? constant({
-        active: in.state.local.active,
-        names: in.state.local.symbols.names,
-        constants: in.constant_values,
-        name: in.name.text
-    }) : null
+    const literal = match {
+        local == null && in.constant_values != null => constant({
+            active: in.state.local.active,
+            names: in.state.local.symbols.names,
+            constants: in.constant_values,
+            name: in.name.text
+        }),
+        _ => null
+    }
 
     if (literal != null) {
         return materialize({
@@ -45,13 +48,16 @@ export default function (in: Input): Output {
         })
     }
 
-    const resolved = local != null ? {
-        state: in.state,
-        symbol: local
-    } : value({
-        state: in.state,
-        name: in.name
-    })
+    const resolved = match {
+        local != null => {
+            state: in.state,
+            symbol: local
+        },
+        _ => value({
+            state: in.state,
+            name: in.name
+        })
+    }
 
     if (resolved.state.diagnostic.message != "") {
         return {

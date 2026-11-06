@@ -11,35 +11,35 @@ export type Input = {
 
 export type Output = u32?
 
-    export default function (in: Input): Output {
-        if (in.index < in.count) {
-            const position = integers.widen(in.first) + integers.widen(in.index)
+export default function (in: Input): Output {
+    if (in.index < in.count) {
+        const position = integers.widen(in.first) + integers.widen(in.index)
 
-            if (in.expressions.object_field_indices[position] == in.index) {
-                return in.expressions.object_field_values[position]
-            }
+        if (in.expressions.object_field_indices[position] == in.index) {
+            return in.expressions.object_field_values[position]
         }
-
-        const value: u32? = null
-
-        return loop({
-            position: 0,
-            value
-        }, {
-            while: (state, context) => state.value == null &&
-                state.position < integers.widen(context.count),
-            next: (state, context) => {
-                const position = integers.widen(context.first) + state.position
-
-                if (
-                    context.expressions.object_field_indices[position] ==
-                        context.index
-                ) {
-                    state.value = context.expressions.object_field_values[position]
-                }
-
-                state.position += 1
-            },
-            return: state => state.value
-        }, in)
     }
+
+    const value: u32? = null
+
+    return loop({
+        position: 0,
+        value
+    }, {
+        while: state => state.value == null &&
+            state.position < integers.widen(in.count),
+        next: state => {
+            const position = integers.widen(in.first) + state.position
+
+            if (
+                in.expressions.object_field_indices[position] ==
+                    in.index
+            ) {
+                state.value = in.expressions.object_field_values[position]
+            }
+
+            state.position += 1
+        },
+        return: state => state.value
+    })
+}

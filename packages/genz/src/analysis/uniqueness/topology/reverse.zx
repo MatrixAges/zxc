@@ -12,30 +12,34 @@ export default function (in: Input): Output {
         callers,
         index: 0
     }, {
-        while: (state, source) => state.index < source.length,
-        next: (state, source) => {
-            const row = source[state.index]
-            const changed = loop({
+        while: state => state.index < in.length,
+        next: state => {
+            const row = in[state.index]
+            const changed_initial = {
                 callers: state.callers,
                 child: 0
-            }, {
-                while: (current, calls) => current.child < calls.row.length,
-                next: (current, calls) => {
-                    const target = integers.widen(calls.row[current.child])
+            }
 
-                    current.callers[target] =
-                        current.callers[target].push(calls.index)[0]
-                    current.child += 1
-                }
-            }, {
+            const changed_scope = {
                 row,
                 index: state.index
+            }
+
+            const changed = loop(changed_initial, {
+                while: current => current.child < changed_scope.row.length,
+                next: current => {
+                    const target = integers.widen(changed_scope.row[current.child])
+
+                    current.callers[target] =
+                        current.callers[target].push(changed_scope.index)[0]
+                    current.child += 1
+                }
             })
 
             state.callers = changed.callers
             state.index += 1
         }
-    }, in)
+    })
 
     return result.callers
 }

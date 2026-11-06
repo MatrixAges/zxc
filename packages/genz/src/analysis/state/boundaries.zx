@@ -40,12 +40,13 @@ export default function (in: Input): Output {
                     current.roots.concat(functions.expressions[index].types)[0]
             }
 
-            const condition = (
+            const native_modules = functions.native_modules
+            const boundary = (
                 - !current.local[index]
-                - or functions.native_modules[index] != null
+                - or native_modules[index] != null
             )
 
-            if (condition) {
+            if (boundary) {
                 current.roots = current.roots.push(functions.input_types[index])[0]
             }
 

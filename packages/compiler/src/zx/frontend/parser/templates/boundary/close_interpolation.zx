@@ -25,17 +25,18 @@ export default function (in: Input): Output {
         text_start: in.offset + 1
     })
 
-    return graph.events.push({
+    const events = graph.events.push({
         kind: EventKind.InterpolationClose,
         offset: in.offset,
         reference
     })[0]
-        -> {
-            templates: graph.templates,
-            parts: graph.parts,
-            events: _,
-            frames: graph.frames,
-            interpolations: reference,
-            token_templates: graph.token_templates
-        }
+
+    return {
+        templates: graph.templates,
+        parts: graph.parts,
+        events: events,
+        frames: graph.frames,
+        interpolations: reference,
+        token_templates: graph.token_templates
+    }
 }

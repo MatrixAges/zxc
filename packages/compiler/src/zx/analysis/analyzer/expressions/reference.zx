@@ -43,16 +43,19 @@ export default function (in: Input): Output {
         symbol: in.symbol
     })
 
-    const result = refined == original ? value : append({
-        table: value.table,
-        metadata: {
-            type_id: refined,
-            span_start: in.span.start,
-            span_end: in.span.end
-        },
-        kind: ValueKind.OptionalValue,
-        value: value.id
-    })
+    const result = match {
+        refined == original => value,
+        _ => append({
+            table: value.table,
+            metadata: {
+                type_id: refined,
+                span_start: in.span.start,
+                span_end: in.span.end
+            },
+            kind: ValueKind.OptionalValue,
+            value: value.id
+        })
+    }
 
     return {
         expressions: result.table,

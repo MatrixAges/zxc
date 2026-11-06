@@ -28,19 +28,20 @@ export default function (in: Input): Output {
         const expressions = body.contracts.expressions[cursor.section].types
 
         if (cursor.offset < symbols.length + expressions.length) {
-            return (
-                cursor.offset < symbols.length ? symbols[cursor.offset] :
-                    expressions[cursor.offset - symbols.length]
-            )
-                -> {
-                    cursor: {
-                        ...cursor,
-                        offset: cursor.offset + 1
-                    },
-                    valid: true,
-                    found: true,
-                    id: _
-                }
+            const id = match {
+                cursor.offset < symbols.length => symbols[cursor.offset],
+                _ => expressions[cursor.offset - symbols.length]
+            }
+
+            return {
+                cursor: {
+                    ...cursor,
+                    offset: cursor.offset + 1
+                },
+                valid: true,
+                found: true,
+                id: id
+            }
         }
 
         return {

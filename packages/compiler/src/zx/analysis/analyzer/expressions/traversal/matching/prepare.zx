@@ -12,27 +12,34 @@ export default function (in: Input): Output {
     const index = in.frames.selections.length - 1
     const frame = in.frames.selections[index]
 
-    const pipeline: Pipeline? = in.context.pipelines.length == 0 ? null :
-        in.context.pipelines[in.context.pipelines.length - 1]
+    const pipeline: Pipeline? = match {
+        in.context.pipelines.length == 0 => null,
+        _ => in.context.pipelines[in.context.pipelines.length - 1]
+    }
 
-    return (frame.expected != null ? frame.expected : known({
-        context: {
-            state: in.state,
-            source: in.source,
-            imports: in.imports,
-            pipeline
-        },
-        node: frame.node
-    }))
-        -> in.frames.selections.splice(index, 1, [{
-            ...frame,
-            expected: _
-        }])[0]
-        -> next({
-            ...in,
-            frames: {
-                ...in.frames,
-                selections: _
-            }
+    const expected = match {
+        frame.expected != null => frame.expected,
+        _ => known({
+            context: {
+                state: in.state,
+                source: in.source,
+                imports: in.imports,
+                pipeline
+            },
+            node: frame.node
         })
+    }
+
+    const selections = in.frames.selections.splice(index, 1, [{
+        ...frame,
+        expected: expected
+    }])[0]
+
+    return next({
+        ...in,
+        frames: {
+            ...in.frames,
+            selections: selections
+        }
+    })
 }

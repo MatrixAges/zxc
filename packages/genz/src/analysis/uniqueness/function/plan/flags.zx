@@ -13,44 +13,46 @@ export default function (in: Input): Output {
         index: 0,
         working: in.working
     }, {
-        while: (state, context) => state.index < context.source.operations.length,
-        next: (state, context) => {
-            const source = context.source
+        while: state => state.index < in.source.operations.length,
+        next: state => {
+            const source = in.source
             const expressions = source.context.metadata.expressions
             const node = integers.widen(source.operations[state.index])
             const kind = expressions.kinds[node]
             const payload = integers.widen(expressions.payloads[node])
 
             const writable = (
-                - kind == ExpressionKind.ListOperation
-                - or kind == ExpressionKind.ListUpdate
-                - or kind == ExpressionKind.Transform
+                match kind {
+                    ExpressionKind.ListOperation => true,
+                    ExpressionKind.ListUpdate => true,
+                    ExpressionKind.Transform => true,
+                    _ => false
+                }
             )
 
             if (writable) {
 
-                const result = (
-                    match kind {
-                        ExpressionKind.ListUpdate =>
-                            expressions.update_targets[payload],
-                        ExpressionKind.Transform =>
-                            expressions.transform_targets[payload],
-                        _ => expressions.collection_targets[payload]
+                const target = match kind {
+                    ExpressionKind.ListUpdate =>
+                        expressions.update_targets[payload],
+                    ExpressionKind.Transform =>
+                        expressions.transform_targets[payload],
+                    _ => expressions.collection_targets[payload]
+                }
+
+                const result = query({
+                    context: source.context,
+                    state: {
+                        known: state.working.known,
+                        carried: source.state.carried,
+                        reads: state.working.reads
+                    },
+                    request: {
+                        node: target,
+                        slot: 0,
+                        raw: false
                     }
-                )
-                    -> query({
-                        context: source.context,
-                        state: {
-                            known: state.working.known,
-                            carried: source.state.carried,
-                            reads: state.working.reads
-                        },
-                        request: {
-                            node: _,
-                            slot: 0,
-                            raw: false
-                        }
-                    })
+                })
 
                 const flag = updateFlags({
                     kind,
@@ -79,5 +81,5 @@ export default function (in: Input): Output {
             state.index += 1
         },
         return: state => state.working
-    }, in)
+    })
 }

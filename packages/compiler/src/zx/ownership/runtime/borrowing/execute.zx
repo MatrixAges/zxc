@@ -46,11 +46,14 @@ export default function (in: Input): Output {
         while: current => current.active,
         next: current => {
             const condition = (
-                - current.phase == Phase.Next
-                - or current.phase == Phase.Query
-                - or current.phase == Phase.Descend
-                - or current.phase == Phase.Expand
-                - or current.phase == Phase.Done
+                match current.phase {
+                    Phase.Next => true,
+                    Phase.Query => true,
+                    Phase.Descend => true,
+                    Phase.Expand => true,
+                    Phase.Done => true,
+                    _ => false
+                }
             )
 
             if (condition) {

@@ -22,19 +22,25 @@ export type Input = {
 export type Output = Knowledge
 
 export default function (in: Input): Output {
-    const normalized = in.slot == 0 ? want({
-        values: in.context.normalized,
-        kind: GrowthKind.Normalized,
-        owner: in.node,
-        slot: 0
-    }) : null
+    const normalized = match {
+        in.slot == 0 => want({
+            values: in.context.normalized,
+            kind: GrowthKind.Normalized,
+            owner: in.node,
+            slot: 0
+        }),
+        _ => null
+    }
 
-    const wanted = normalized != null ? normalized : want({
-        values: in.context.renewed,
-        kind: GrowthKind.Value,
-        owner: in.node,
-        slot: in.slot
-    })
+    const wanted = match {
+        normalized != null => normalized,
+        _ => want({
+            values: in.context.renewed,
+            kind: GrowthKind.Value,
+            owner: in.node,
+            slot: in.slot
+        })
+    }
 
     if (wanted == null) {
         return in.value
@@ -52,17 +58,19 @@ export default function (in: Input): Output {
 
     const node = integers.widen(in.node)
 
-    return in.context.metadata.expressions.kinds[node] != ExpressionKind.Reference &&
+    const linear =
+        in.context.metadata.expressions.kinds[node] != ExpressionKind.Reference &&
         usage({
             context: in.context,
             root: integers.narrow(in.context.metadata.usage.symbols + node),
             slot: in.slot,
             observe: false
         })
-        -> knowledge(evaluate({
-            operation: Operation.Materialized,
-            left,
-            right,
-            linear: _
-        }))
+
+    return knowledge(evaluate({
+        operation: Operation.Materialized,
+        left,
+        right,
+        linear: linear
+    }))
 }

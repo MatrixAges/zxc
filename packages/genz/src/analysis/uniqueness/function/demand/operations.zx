@@ -9,39 +9,53 @@ import trace from "./trace"
 import type { Stage as Input, Working as Output } from "./model"
 
 export default function (in: Input): Output {
-    return loop({
+    const readonly_loop_initial = {
         working: in.working,
         index: 0
-    }, {
-        while: (state, source) => state.index < source.operations.length,
-        next: (state, source) => {
+    }
+
+    const readonly_source = in.source
+
+    return loop(readonly_loop_initial, {
+        while: state => state.index < readonly_source.operations.length,
+        next: state => {
             const expressions = state.working.context.metadata.expressions
-            const node = source.operations[state.index]
-                -> integers.widen(_)
+            const owner = readonly_source.operations[state.index]
+
+            const node = integers.widen(owner)
             const payload = integers.widen(expressions.payloads[node])
             const kind = expressions.kinds[node]
 
             if (kind == ExpressionKind.Call) {
                 const function_index = expressions.call_functions[payload]
                 const count = bytes.atomicRowLength(
-                    source.inputs,
+                    readonly_source.inputs,
                     integers.widen(function_index)
                 )
 
-                state.working = loop({
+                const loop_initial = {
                     working: state.working,
                     slot: 0
-                }, {
-                    while: (current, context) => current.slot < context.count,
-                    next: (current, context) => {
+                }
+
+                const loop_scope = {
+                    source: readonly_source,
+                    count,
+                    function_index,
+                    argument: expressions.call_arguments[payload]
+                }
+
+                state.working = loop(loop_initial, {
+                    while: current => current.slot < loop_scope.count,
+                    next: current => {
                         const slot = integers.narrow(current.slot)
                         const wanted = read({
                             stage: {
-                                source: context.source,
+                                source: loop_scope.source,
                                 working: current.working
                             },
                             output: false,
-                            function_index: context.function_index,
+                            function_index: loop_scope.function_index,
                             slot
                         })
 
@@ -49,10 +63,10 @@ export default function (in: Input): Output {
 
                         if (wanted.value != Knowledge.None) {
                             current.working = trace({
-                                source: context.source,
+                                source: loop_scope.source,
                                 working: current.working,
                                 request: {
-                                    node: context.argument,
+                                    node: loop_scope.argument,
                                     slot,
                                     outer: null,
                                     repeated: true,
@@ -64,38 +78,42 @@ export default function (in: Input): Output {
                         current.slot += 1
                     },
                     return: state => state.working
-                }, {
-                    source,
-                    count,
-                    function_index,
-                    argument: expressions.call_arguments[payload]
                 })
             } else {
-                const operation = kind == ExpressionKind.ListOperation ?
-                    expressions.collection_kinds[payload] : CollectionKind.Pop
+                const operation = match {
+                    kind == ExpressionKind.ListOperation =>
+                        expressions.collection_kinds[payload],
+                    _ => CollectionKind.Pop
+                }
                 const append = kind == ExpressionKind.ListOperation &&
                     (
                         operation == CollectionKind.Push ||
                             operation == CollectionKind.Concat
                     )
+                const is_list_update = kind == ExpressionKind.ListUpdate
+
+                const valid_kind = kind == ExpressionKind.ListOperation &&
+                    (
+                        operation == CollectionKind.Sort ||
+                            operation == CollectionKind.Reverse
+                    )
+
                 const write = (
-                    - kind == ExpressionKind.ListUpdate
+                    - is_list_update
                     - or (
-                        kind == ExpressionKind.ListOperation &&
-                            (
-                                operation == CollectionKind.Sort ||
-                                    operation == CollectionKind.Reverse
-                            )
+                        valid_kind
                     )
                 )
 
                 if (append || write) {
-                    const target = kind == ExpressionKind.ListUpdate ?
-                        expressions.update_targets[payload] :
-                        expressions.collection_targets[payload]
+                    const target = match {
+                        kind == ExpressionKind.ListUpdate =>
+                            expressions.update_targets[payload],
+                        _ => expressions.collection_targets[payload]
+                    }
 
                     state.working = trace({
-                        source,
+                        source: readonly_source,
                         working: state.working,
                         request: {
                             node: target,
@@ -111,5 +129,5 @@ export default function (in: Input): Output {
             state.index += 1
         },
         return: state => state.working
-    }, in.source)
+    })
 }

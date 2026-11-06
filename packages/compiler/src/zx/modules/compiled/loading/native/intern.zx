@@ -33,8 +33,10 @@ export default function (in: Input): Output {
         next: current => {
             const base = current.index < current.base.specifiers.length
             const table = base ? current.base : current.delta
-            const index = base ? current.index :
-                current.index - current.base.specifiers.length
+            const index = match {
+                base => current.index,
+                _ => current.index - current.base.specifiers.length
+            }
 
             current.found = key({
                 modules: table,
@@ -52,16 +54,17 @@ export default function (in: Input): Output {
     if (index < count) {
         const base = index < in.base.specifiers.length
 
-        return compatible({
+        const valid = compatible({
             table: base ? in.base : in.state.delta,
             index: base ? index : index - in.base.specifiers.length,
             value: in.value
         })
-            -> {
-                ...in.state,
-                mapping: in.state.mapping.push(integers.narrow(index))[0],
-                status: _ ? 0 : 5
-            }
+
+        return {
+            ...in.state,
+            mapping: in.state.mapping.push(integers.narrow(index))[0],
+            status: valid ? 0 : 5
+        }
     }
 
     if (count >= in.maximum) {

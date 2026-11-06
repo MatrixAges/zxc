@@ -11,16 +11,17 @@ export type Output = Session
 
 export default function (in: Input): Output {
     return loop(in, {
-        while: current =>
-            (
-                - current.active
-                - and (
-                    - current.phase == Phase.AncestorStart
-                    - or current.phase == Phase.Ancestor
-                    - or current.phase == Phase.Root
-                    - or current.phase == Phase.Path
-                )
-            ),
+        while: current => {
+            const selected = match current.phase {
+                Phase.AncestorStart => true,
+                Phase.Ancestor => true,
+                Phase.Root => true,
+                Phase.Path => true,
+                _ => false
+            }
+
+            return current.active && selected
+        },
         next: current => {
             if (current.phase == Phase.AncestorStart) {
                 current.ancestor = current.expression

@@ -1,8 +1,11 @@
+import type { Captures } from "../collections/model"
+
 export type Context = {
     active: u64,
     floor: u64,
     depth: u64,
-    captures?: u32
+    captures?: u32,
+    capture_frame?: u32
 }
 
 export type Readonly = {
@@ -30,5 +33,7 @@ export type IterationFrame = {
     condition_parameter: u32,
     condition: u32,
     parameter: u32,
-    context: Context
+    context: Context,
+    condition_captures: Captures,
+    step_captures: Captures
 }

@@ -1,4 +1,3 @@
-import bytes from "std:bytes"
 import integers from "std:integer"
 import { max_u32 } from "core/const"
 import { scalar_string } from "core/type_table/const"
@@ -6,17 +5,18 @@ import kind from "core/type_table/kind"
 import { Kind } from "core/type_table/model"
 
 import {
-    ExpressionsKind,
-    ExpressionsPrimitive
+    ExpressionsKind
 } from "../../../printer/model/expressions"
 import position from "../../names/position"
-import { standard_binding, io_member, future_member } from "../abi/const"
 import { leaf_nodes, wrapped_nodes, pointer_nodes, task_nodes } from "../abi/const"
 import members from "../abi/members"
 import typeName from "../abi/name"
 import scalar from "../abi/scalar"
+import definition from "./construct/definition"
+import finish from "./construct/finish"
+import initial from "./construct/initial"
+import task from "./construct/task"
 
-import type { Constant } from "../../../ast/declarations/model"
 import type { Plan, Types } from "./model"
 
 export type Input = Plan
@@ -24,91 +24,33 @@ export type Input = Plan
 export type Output = Types
 
 export default function (in: Input): Output {
-    const tags: ExpressionsKind[] = []
-    const offsets: u32[] = []
-    const identifier: u8[][] = []
-    const primitive: ExpressionsPrimitive[] = []
-    const field_target: u32[] = []
-    const field_name: u8[][] = []
-    const const_pointer: u32[] = []
-    const optional_type: u32[] = []
-    const const_slice: u32[] = []
-    const error_set: u8[][][] = []
-    const error_union_payload: u32[] = []
-    const error_union_errors: u8[][]?[] = []
-    const error_union_inferred: bool[] = []
-    const call_callee: u32[] = []
-    const call_arguments: u32[][] = []
-    const tuple_type: u32[][] = []
-    const enum_type: u8[][][] = []
-    const struct_type_start: u32[] = []
-    const struct_type_len: u32[] = []
-    const declarations: Constant[] = []
-    const claimed: bool[] = []
-    const values: u32[] = []
-    const layouts: u32[] = []
-
-    const result = loop({
-        source: in.source,
-        names: in.names,
-        claimed: loop({
-            values: claimed,
-            count: in.names.length
-        }, {
-            while: slots => slots.values.length < slots.count,
-            next: slots => { slots.values = slots.values.push(false)[0] },
-            return: state => state.values
-        }),
-        index: 0,
-        field_count: 0,
-        opaque_count: 0,
-        has_lists: false,
-        valid: true,
-        tags,
-        offsets,
-        identifier,
-        primitive,
-        field_target,
-        field_name,
-        const_pointer,
-        optional_type,
-        const_slice,
-        error_set,
-        error_union_payload,
-        error_union_errors,
-        error_union_inferred,
-        call_callee,
-        call_arguments,
-        tuple_type,
-        enum_type,
-        struct_type_start,
-        struct_type_len,
-        declarations,
-        values,
-        layouts,
-    }, {
+    return loop(initial(in), {
         while: current => current.valid &&
             current.index < current.source.types.kinds.length,
         next: current => {
             const index = current.index
             const target = kind(current.source.types.kinds[index])
             const named = (
-                - target == Kind.Object
-                - or target == Kind.Tuple
-                - or target == Kind.Enumeration
-                - or target == Kind.NativeReference
+                match target {
+                    Kind.Object => true,
+                    Kind.Tuple => true,
+                    Kind.Enumeration => true,
+                    Kind.NativeReference => true,
+                    _ => false
+                }
             )
             const first = current.source.types.first[index]
             const second = current.source.types.second[index]
             const string = target == Kind.Scalar && first == scalar_string
+            const count = match {
+                named && target != Kind.Enumeration => pointer_nodes,
+                named || string => wrapped_nodes,
+                target == Kind.Task => task_nodes,
+                _ => leaf_nodes
+            }
+
             const end =
-                match {
-                    named && target != Kind.Enumeration => pointer_nodes,
-                    named || string => wrapped_nodes,
-                    target == Kind.Task => task_nodes,
-                    _ => leaf_nodes
-                }
-                -> integers.widen(current.source.base) + current.tags.length + _
+                integers.widen(current.source.base) + current.tags.length + count
 
             if (end > integers.widen(max_u32)) {
                 current.valid = false
@@ -131,99 +73,20 @@ export default function (in: Input): Output {
                         index
                     })
 
-                    if (target == Kind.NativeReference) {
-                        current = {
-                            ...current,
-                            tags: current.tags.push(ExpressionsKind.OpaqueType)[0],
-                            offsets: current.offsets.push(
-                                integers.narrow(
-                                    current.opaque_count
-                                )
-                            )[0],
-                            opaque_count: current.opaque_count + 1
-                        }
-                    } else if (target == Kind.Enumeration) {
-                        current = {
-                            ...current,
-                            tags: current.tags.push(ExpressionsKind.EnumType)[0],
-                            offsets: current.offsets.push(
-                                integers.narrow(
-                                    current.enum_type.length
-                                )
-                            )[0],
-                            enum_type: current.enum_type.push(members({
-                                names: current.source.types.names,
-                                start: first,
-                                count: second
-                            }))[0]
-                        }
-                    } else if (target == Kind.Tuple) {
-                        const items: u32[] = []
-                        const children = loop({
-                            source: current.source.types.children,
-                            values: current.values,
-                            index: integers.widen(first),
-                            end: integers.widen(first) + integers.widen(second),
-                            items
-                        }, {
-                            while: children => children.index < children.end,
-                            next: children => {
-                                children.items = children.items.push(
-                                    children
-                                        .values[integers.widen(
-                                            children.source[children.index]
-                                        )]
-                                )[0]
-                                children.index += 1
-                            },
-                            return: state => state.items
-                        })
-
-                        current = {
-                            ...current,
-                            tags: current.tags.push(ExpressionsKind.TupleType)[0],
-                            offsets: current.offsets.push(
-                                integers.narrow(
-                                    current.tuple_type.length
-                                )
-                            )[0],
-                            tuple_type: current.tuple_type.push(children)[0]
-                        }
-                    } else {
-                        const field_start =
-                            integers.widen(current.source.field_base) +
-                            current.field_count
-                        const field_end = field_start + integers.widen(second)
-
-                        if (field_end > integers.widen(max_u32)) {
-                            current.valid = false
-                        }
-
-                        current = {
-                            ...current,
-                            tags: current.tags.push(ExpressionsKind.StructType)[0],
-                            offsets: current.offsets.push(
-                                integers.narrow(
-                                    current.struct_type_start.length
-                                )
-                            )[0],
-                            struct_type_start: current.struct_type_start.push(
-                                integers.narrow(
-                                    field_start <= integers.widen(max_u32) ? field_start :
-                                        0
-                                )
-                            )[0],
-                            struct_type_len: current.struct_type_len.push(second)[0],
-                            field_count: current.field_count + integers.widen(
-                                second
-                            )
-                        }
-                    }
-
-                    const slot = current.source.names == null ? 0 : position({
-                        names: current.names,
-                        name: current.source.names[index]
+                    current = definition({
+                        state: current,
+                        target,
+                        first,
+                        count: second
                     })
+
+                    const slot = match {
+                        current.source.names == null => 0,
+                        _ => position({
+                            names: current.names,
+                            name: current.source.names[index]
+                        })
+                    }
 
                     if (
                         current.source.names == null || !current.claimed[slot]
@@ -333,83 +196,12 @@ export default function (in: Input): Output {
                         }))[0]
                     }
                 } else {
-                    const errors = integers.widen(second)
-
-                    current = {
-                        ...current,
-                        tags: current.tags.push(ExpressionsKind.Identifier)[0],
-                        offsets: current.offsets.push(
-                            integers.narrow(
-                                current.identifier.length
-                            )
-                        )[0],
-                        identifier: current.identifier.push(
-                            bytes.fromText(
-                                standard_binding
-                            )
-                        )[0]
-                    }
-                    current = {
-                        ...current,
-                        tags: current.tags.push(ExpressionsKind.Field)[0],
-                        offsets: current.offsets.push(
-                            integers.narrow(
-                                current.field_target.length
-                            )
-                        )[0],
-                        field_target: current.field_target.push(start)[0],
-                        field_name:
-                            current.field_name.push(bytes.fromText(io_member))[0]
-                    }
-                    current = {
-                        ...current,
-                        tags: current.tags.push(ExpressionsKind.Field)[0],
-                        offsets: current.offsets.push(
-                            integers.narrow(
-                                current.field_target.length
-                            )
-                        )[0],
-                        field_target: current.field_target.push(start + 1)[0],
-                        field_name: current.field_name.push(
-                            bytes.fromText(
-                                future_member
-                            )
-                        )[0]
-                    }
-                    current = {
-                        ...current,
-                        tags: current.tags.push(ExpressionsKind.ErrorUnion)[0],
-                        offsets: current.offsets.push(
-                            integers.narrow(
-                                current.error_union_payload.length
-                            )
-                        )[0],
-                        error_union_payload: current.error_union_payload.push(
-                            current.values[integers.widen(
-                                first
-                            )]
-                        )[0],
-                        error_union_errors: current.error_union_errors.push(members({
-                            names: current.source.types.names,
-                            start: current.source.types.first[errors],
-                            count: current.source.types.second[errors]
-                        }))[0],
-                        error_union_inferred:
-                            current.error_union_inferred.push(false)[0]
-                    }
-                    current = {
-                        ...current,
-                        tags: current.tags.push(ExpressionsKind.Call)[0],
-                        offsets: current.offsets.push(
-                            integers.narrow(
-                                current.call_callee.length
-                            )
-                        )[0],
-                        call_callee: current.call_callee.push(start + 2)[0]
-                    }
-                    const arguments: u32[] = [start + 3]
-                    current.call_arguments =
-                        current.call_arguments.push(arguments)[0]
+                    current = task({
+                        state: current,
+                        start,
+                        child: first,
+                        errors: second
+                    })
                 }
 
                 current = {
@@ -420,37 +212,7 @@ export default function (in: Input): Output {
                     index: current.index + 1
                 }
             }
-        }
+        },
+        return: state => finish(state)
     })
-
-    return {
-        expressions: {
-            tags: result.tags,
-            offsets: result.offsets,
-            identifier: result.identifier,
-            primitive: result.primitive,
-            field_target: result.field_target,
-            field_name: result.field_name,
-            const_pointer: result.const_pointer,
-            optional_type: result.optional_type,
-            const_slice: result.const_slice,
-            error_set: result.error_set,
-            error_union_payload: result.error_union_payload,
-            error_union_errors: result.error_union_errors,
-            error_union_inferred: result.error_union_inferred,
-            call_callee: result.call_callee,
-            call_arguments: result.call_arguments
-        },
-        definitions: {
-            tuple_type: result.tuple_type,
-            enum_type: result.enum_type,
-            struct_type_start: result.struct_type_start,
-            struct_type_len: result.struct_type_len
-        },
-        declarations: result.declarations,
-        has_lists: result.has_lists,
-        values: result.values,
-        layouts: result.layouts,
-        valid: result.valid
-    }
 }

@@ -21,13 +21,14 @@ export default function (in: Input): Output {
     const last = bytes.lastIndexOfScalar(in.gap, 10) ?? first
     const crlf = first > 0 && in.gap[first - 1] == 13
 
-    return first - (crlf ? 1 : 0)
-        -> {
-            has_newline: true,
-            start: in.start,
-            newline_start: _,
-            last_end: last + 1,
-            crlf,
-            separate: in.separate
-        }
+    const newline_start = first - (crlf ? 1 : 0)
+
+    return {
+        has_newline: true,
+        start: in.start,
+        newline_start: newline_start,
+        last_end: last + 1,
+        crlf,
+        separate: in.separate
+    }
 }

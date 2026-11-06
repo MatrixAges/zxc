@@ -34,11 +34,13 @@ export default function (in: Input): Output {
         index
     })
 
-    const name = in.step.request.mode == Mode.View ?
-        strings.join("", [
+    const name = match {
+        in.step.request.mode == Mode.View => strings.join("", [
             view_prefix,
             state
-        ]) : state
+        ]),
+        _ => state
+    }
 
     const primitive: ExpressionsPrimitive[] = []
     const empty: u32[] = []
@@ -65,7 +67,10 @@ export default function (in: Input): Output {
         primitive,
         field_target: [in.step.base],
         field_name: [bytes.fromText(name)],
-        const_pointer: borrowed ? [in.step.base + 1] : empty,
+        const_pointer: match {
+            borrowed => [in.step.base + 1],
+            _ => empty
+        },
         optional_type: empty,
         const_slice: empty,
         error_set: texts,

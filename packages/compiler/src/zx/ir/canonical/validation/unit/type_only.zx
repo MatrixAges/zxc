@@ -5,11 +5,14 @@ export type Input = Unit
 export type Output = bool
 
 export default function (in: Input): Output {
+    const same_names = in.body.symbols.names.length == 0
+    const same_kinds = in.body.expressions.kinds.length == 0
+
     return (
         - in.input_type == 0
         - and in.output_type == 0
-        - and in.body.symbols.names.length == 0
-        - and in.body.expressions.kinds.length == 0
+        - and same_names
+        - and same_kinds
         - and in.body.root == null
         - and in.contracts.kinds.length == 0
     )

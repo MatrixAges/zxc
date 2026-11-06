@@ -21,60 +21,68 @@ export default function (in: Input): Output {
         integers.widen(in.function_index)
     )
 
-    return loop({
+    const loop_initial = {
         working: in.working,
         slot: 0
-    }, {
-        while: (state, source) => state.slot < source.count,
-        next: (state, source) => {
+    }
+
+    const loop_scope = {
+        input: in,
+        count
+    }
+
+    return loop(loop_initial, {
+        while: state => state.slot < loop_scope.count,
+        next: state => {
             const slot = integers.narrow(state.slot)
             const wanted = read({
                 stage: {
-                    source: source.input.source,
+                    source: loop_scope.input.source,
                     working: state.working
                 },
                 output: true,
-                function_index: source.input.function_index,
+                function_index: loop_scope.input.function_index,
                 slot
             })
 
             state.working = wanted.working
 
             if (wanted.value != Knowledge.None) {
-                state.working = loop({
+                const loop_initial_1 = {
                     working: state.working,
                     index: 0
-                }, {
-                    while: (current, context) =>
-                        current.index < context.source.results.length,
-                    next: (current, context) => {
+                }
+
+                const loop_scope_1 = {
+                    source: loop_scope.input.source,
+                    slot,
+                    wanted: wanted.value
+                }
+
+                state.working = loop(loop_initial_1, {
+                    while: current =>
+                        current.index < loop_scope_1.source.results.length,
+                    next: current => {
                         current.working = trace({
-                            source: context.source,
+                            source: loop_scope_1.source,
                             working: current.working,
                             request: {
-                                node: context.source.results[current.index],
-                                slot: context.slot,
+                                node: loop_scope_1.source.results[current.index],
+                                slot: loop_scope_1.slot,
                                 outer: null,
                                 repeated: true,
-                                wanted: context.wanted
+                                wanted: loop_scope_1.wanted
                             }
                         })
 
                         current.index += 1
                     },
                     return: state => state.working
-                }, {
-                    source: source.input.source,
-                    slot,
-                    wanted: wanted.value
                 })
             }
 
             state.slot += 1
         },
         return: state => state.working
-    }, {
-        input: in,
-        count
     })
 }

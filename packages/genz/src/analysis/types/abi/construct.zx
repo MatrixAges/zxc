@@ -5,12 +5,11 @@ import { scalar_string } from "core/type_table/const"
 import kind from "core/type_table/kind"
 import { Kind } from "core/type_table/model"
 
-import {
-    ExpressionsKind,
-    ExpressionsPrimitive
-} from "../../../printer/model/expressions"
+import { ExpressionsKind } from "../../../printer/model/expressions"
 import { abi_binding, standard_binding, io_member, future_member } from "./const"
 import { leaf_nodes, wrapped_nodes, pointer_nodes, task_nodes } from "./const"
+import finish from "./construct/finish"
+import initial from "./construct/initial"
 import members from "./members"
 import typeName from "./name"
 import scalar from "./scalar"
@@ -20,50 +19,7 @@ import type { Plan, Output } from "./model"
 export type Input = Plan
 
 export default function (in: Input): Output {
-    const tags: ExpressionsKind[] = []
-    const offsets: u32[] = []
-    const identifier: u8[][] = []
-    const primitive: ExpressionsPrimitive[] = []
-    const field_target: u32[] = []
-    const field_name: u8[][] = []
-    const const_pointer: u32[] = []
-    const optional_type: u32[] = []
-    const const_slice: u32[] = []
-    const error_set: u8[][][] = []
-    const error_union_payload: u32[] = []
-    const error_union_errors: u8[][]?[] = []
-    const error_union_inferred: bool[] = []
-    const call_callee: u32[] = []
-    const call_arguments: u32[][] = []
-    const ids: u32[] = []
-    const values: u32[] = []
-    const layouts: u32[] = []
-
-    const result = loop({
-        source: in.source,
-        order: in.order,
-        child: in.child,
-        remaining: in.order.length,
-        valid: true,
-        tags,
-        offsets,
-        identifier,
-        primitive,
-        field_target,
-        field_name,
-        const_pointer,
-        optional_type,
-        const_slice,
-        error_set,
-        error_union_payload,
-        error_union_errors,
-        error_union_inferred,
-        call_callee,
-        call_arguments,
-        ids,
-        values,
-        layouts,
-    }, {
+    return loop(initial(in), {
         while: current => current.valid && current.remaining != 0,
         next: current => {
             current.remaining -= 1
@@ -71,22 +27,26 @@ export default function (in: Input): Output {
             const index = integers.widen(id)
             const target = kind(current.source.types.kinds[index])
             const named = (
-                - target == Kind.Object
-                - or target == Kind.Tuple
-                - or target == Kind.Enumeration
-                - or target == Kind.NativeReference
+                match target {
+                    Kind.Object => true,
+                    Kind.Tuple => true,
+                    Kind.Enumeration => true,
+                    Kind.NativeReference => true,
+                    _ => false
+                }
             )
             const first = current.source.types.first[index]
             const second = current.source.types.second[index]
             const string = target == Kind.Scalar && first == scalar_string
+            const count = match {
+                named && target != Kind.Enumeration => pointer_nodes,
+                named || string => wrapped_nodes,
+                target == Kind.Task => task_nodes,
+                _ => leaf_nodes
+            }
+
             const end =
-                match {
-                    named && target != Kind.Enumeration => pointer_nodes,
-                    named || string => wrapped_nodes,
-                    target == Kind.Task => task_nodes,
-                    _ => leaf_nodes
-                }
-                -> integers.widen(current.source.base) + current.tags.length + _
+                integers.widen(current.source.base) + current.tags.length + count
 
             if (end > integers.widen(max_u32)) {
                 current.valid = false
@@ -261,30 +221,7 @@ export default function (in: Input): Output {
                 current.layouts = current.layouts.push(layout)[0]
                 current.child = value
             }
-        }
-    })
-
-    return {
-        expressions: {
-            tags: result.tags,
-            offsets: result.offsets,
-            identifier: result.identifier,
-            primitive: result.primitive,
-            field_target: result.field_target,
-            field_name: result.field_name,
-            const_pointer: result.const_pointer,
-            optional_type: result.optional_type,
-            const_slice: result.const_slice,
-            error_set: result.error_set,
-            error_union_payload: result.error_union_payload,
-            error_union_errors: result.error_union_errors,
-            error_union_inferred: result.error_union_inferred,
-            call_callee: result.call_callee,
-            call_arguments: result.call_arguments
         },
-        ids: result.ids,
-        values: result.values,
-        layouts: result.layouts,
-        valid: result.valid
-    }
+        return: state => finish(state)
+    })
 }

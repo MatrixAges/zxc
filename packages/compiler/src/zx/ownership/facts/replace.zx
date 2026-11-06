@@ -23,17 +23,18 @@ export type Input = {
 export type Output = Result
 
 export default function (in: Input): Output {
-    const previous = fieldType({
+    const child_type = fieldType({
         types: in.types,
         type_id: in.type_id,
         index: in.index
     })
-        -> project({
-            forest: in.forest,
-            fact: in.fact,
-            index: in.index,
-            reference: in.references[integers.widen(_)]
-        })
+
+    const previous = project({
+        forest: in.forest,
+        fact: in.fact,
+        index: in.index,
+        reference: in.references[integers.widen(child_type)]
+    })
 
     if (previous == in.value) {
         return {
@@ -61,35 +62,43 @@ export default function (in: Input): Output {
     }, {
         while: current => current.index < current.count,
         next: current => {
-            const child = fieldType({
+            const child_type = fieldType({
                 types: current.types,
                 type_id: current.type_id,
                 index: current.index
             })
-                -> (current.index == current.target ? current.value : project({
+
+            const child = match {
+                current.index == current.target => current.value,
+                _ => project({
                     forest: current.forest,
                     fact: current.fact,
                     index: current.index,
                     reference: current.references[integers.widen(
-                        _
+                        child_type
                     )]
-                }))
+                })
+            }
 
             current.children = current.children.push(child)[0]
             current.index += 1
         }
     })
 
-    return (in.fact < first_product_fact ? summary({
-        forest: result.forest,
-        fact: in.fact
-    }) : result.forest.shells[in.fact - first_product_fact])
-        -> product({
+    const shell = match {
+        in.fact < first_product_fact => summary({
             forest: result.forest,
-            type_id: in.type_id,
-            shell: _,
-            children: result.children,
-            first: 0,
-            count: result.children.length
-        })
+            fact: in.fact
+        }),
+        _ => result.forest.shells[in.fact - first_product_fact]
+    }
+
+    return product({
+        forest: result.forest,
+        type_id: in.type_id,
+        shell: shell,
+        children: result.children,
+        first: 0,
+        count: result.children.length
+    })
 }

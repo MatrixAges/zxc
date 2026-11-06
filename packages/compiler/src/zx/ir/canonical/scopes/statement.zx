@@ -67,13 +67,16 @@ export default function (in: Input): Output {
         const slot = integers.widen(control.setter_slots[payload])
         const value = integers.widen(control.setter_values[payload])
 
-        const condition = (
-            - !program.transaction
-            - or slot >= program.body.stores.paths.length
-            - or !program.body.stores.writable[slot]
-            - or program.body.expressions.types[value] != program.body.stores
+        const not_length = slot >= program.body.stores.paths.length
+
+        const condition = match {
+            !program.transaction => true,
+            not_length => true,
+            !program.body.stores.writable[slot] => true,
+            _ =>
+                program.body.expressions.types[value] != program.body.stores
                 .types[slot]
-        )
+        }
 
         if (condition) {
             return {
@@ -149,23 +152,24 @@ export default function (in: Input): Output {
         _ => in.state
     }
 
-    return match kind {
+    const computed_value = match kind {
         StatementKind.Constant => control.constant_values[payload],
         StatementKind.Destructure => control.destructure_values[payload],
         StatementKind.Branch => control.branch_conditions[payload],
         StatementKind.Switch => control.selection_subjects[payload],
         _ => control.evaluations[payload]
     }
-        -> {
-            state: schedule({
-                state: continuation,
-                frame: {
-                    phase: Phase.Expression,
-                    a: integers.widen(_),
-                    b: 0,
-                    c: 0
-                }
-            }),
-            valid: true
-        }
+
+    return {
+        state: schedule({
+            state: continuation,
+            frame: {
+                phase: Phase.Expression,
+                a: integers.widen(computed_value),
+                b: 0,
+                c: 0
+            }
+        }),
+        valid: true
+    }
 }

@@ -81,7 +81,7 @@ export default function (in: Input): Output {
         id: reference.id
     })
 
-    return {
+    const header = {
         ...in.frame,
         op: InlineOp.SwitchDefault,
         g: subject,
@@ -94,8 +94,9 @@ export default function (in: Input): Output {
         n: 0,
         start: counted.pool.length
     }
-        -> {
-            ...counted,
-            frames: counted.frames.push(_)[0]
-        }
+
+    return {
+        ...counted,
+        frames: counted.frames.push(header)[0]
+    }
 }

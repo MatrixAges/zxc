@@ -34,17 +34,20 @@ export default function (in: Input): Output {
             token: Token.Return
         }]
 
-        return value == null ? prefix : prefix.concat([
-            {
-                ...frame,
-                token: Token.Space
-            },
-            {
-                ...frame,
-                action: Action.Expression,
-                id: value
-            }
-        ])[0]
+        return match {
+            value == null => prefix,
+            _ => prefix.concat([
+                {
+                    ...frame,
+                    token: Token.Space
+                },
+                {
+                    ...frame,
+                    action: Action.Expression,
+                    id: value
+                }
+            ])[0]
+        }
     }
 
     if (kind == ExpressionsKind.Block) {
@@ -132,57 +135,65 @@ export default function (in: Input): Output {
         }
     ]
 
-    const yes = (tree.conditional_capture[row] == null ? opening : opening.concat([
-        {
-            ...frame,
-            token: Token.CaptureOpen
-        },
-        {
-            ...frame,
-            action: Action.Identifier,
-            bytes: ByteSource.ConditionalCapture
-        },
-        {
-            ...frame,
-            token: Token.CaptureClose
-        }
-    ])[0])
-        -> _.concat([
+    const captured = match {
+        tree.conditional_capture[row] == null => opening,
+        _ => opening.concat([
             {
                 ...frame,
-                action: Action.Expression,
-                id: tree.conditional_yes[row]
+                token: Token.CaptureOpen
             },
             {
                 ...frame,
-                token: Token.ElseSeparator
+                action: Action.Identifier,
+                bytes: ByteSource.ConditionalCapture
+            },
+            {
+                ...frame,
+                token: Token.CaptureClose
             }
         ])[0]
+    }
 
-    return (tree.conditional_error_capture[row] == null ? yes : yes.concat([
+    const yes = captured.concat([
         {
             ...frame,
-            token: Token.CaptureOpen
+            action: Action.Expression,
+            id: tree.conditional_yes[row]
         },
         {
             ...frame,
-            action: Action.Identifier,
-            bytes: ByteSource.ConditionalErrorCapture
-        },
-        {
-            ...frame,
-            token: Token.CaptureClose
+            token: Token.ElseSeparator
         }
-    ])[0])
-        -> _.concat([
+    ])[0]
+
+    const failed = match {
+        tree.conditional_error_capture[row] == null => yes,
+        _ => yes.concat([
             {
                 ...frame,
-                action: Action.Expression,
-                id: tree.conditional_no[row]
+                token: Token.CaptureOpen
             },
             {
                 ...frame,
-                token: Token.Close
+                action: Action.Identifier,
+                bytes: ByteSource.ConditionalErrorCapture
+            },
+            {
+                ...frame,
+                token: Token.CaptureClose
             }
         ])[0]
+    }
+
+    return failed.concat([
+        {
+            ...frame,
+            action: Action.Expression,
+            id: tree.conditional_no[row]
+        },
+        {
+            ...frame,
+            token: Token.Close
+        }
+    ])[0]
 }

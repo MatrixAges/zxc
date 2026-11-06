@@ -7,32 +7,32 @@ export type Input = {
 
 export type Output = Literal?
 
-    export default function (in: Input): Output {
-        const constants = in.constants
+export default function (in: Input): Output {
+    const constants = in.constants
 
-        if (constants == null) {
-            return null
-        }
-
-        const missing: u64? = null
-
-        const found = loop({
-            names: constants.names,
-            name: in.name,
-            index: 0,
-            value: missing
-        }, {
-            while: current =>
-                current.value == null && current.index < current.names.length,
-            next: current => {
-                if (current.names[current.index] == current.name) {
-                    current.value = current.index
-                }
-
-                current.index += 1
-            },
-            return: state => state.value
-        })
-
-        return found != null ? constants.values[found] : null
+    if (constants == null) {
+        return null
     }
+
+    const missing: u64? = null
+
+    const found = loop({
+        names: constants.names,
+        name: in.name,
+        index: 0,
+        value: missing
+    }, {
+        while: current =>
+            current.value == null && current.index < current.names.length,
+        next: current => {
+            if (current.names[current.index] == current.name) {
+                current.value = current.index
+            }
+
+            current.index += 1
+        },
+        return: state => state.value
+    })
+
+    return found != null ? constants.values[found] : null
+}

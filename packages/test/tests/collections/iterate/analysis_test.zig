@@ -16,7 +16,7 @@ test "loop rules callbacks captures and state update targets are checked" {
         .{ .expression = "loop(in, { while: s => false, next: s => { return s } })", .code = .return_path, .message = "loop steps yield state at the block end; return is not allowed" },
         .{ .expression = "loop(in, { while: s => false, next: s => { const old = s\n\n old += 1 } })", .code = .ownership, .message = "only the loop state parameter can be updated" },
         .{ .expression = "loop(in, { while: s => false, next: s => { const s = 1 } })", .code = .name, .message = "the loop state parameter cannot be redeclared" },
-        .{ .expression = "loop(in, { while: s => in < 3, next: s => { s += 1 } })", .code = .ownership, .message = "ZX callbacks cannot capture outer bindings; use explicit callback parameters" },
+        .{ .expression = "loop(in, { while: s => false, next: s => { s += 1 } }, in)", .code = .type_mismatch, .message = "loop requires an initial state and a rule literal" },
     };
 
     for (cases) |case| {

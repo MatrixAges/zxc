@@ -35,16 +35,19 @@ export default function (in: Input): Output {
         next: current => {
             if (current.parents[current.index] == 0) {
                 const position = current.first + current.index
-                const changed = current.merge ? rewrite({
-                    types: current.types,
-                    references: current.references,
-                    forest: current.forest,
-                    left: current.saved[position],
-                    right: current.source[current.index],
-                    action: RewriteAction.Join
-                }) : {
-                    forest: current.forest,
-                    fact: current.source[current.index]
+                const changed = match {
+                    current.merge => rewrite({
+                        types: current.types,
+                        references: current.references,
+                        forest: current.forest,
+                        left: current.saved[position],
+                        right: current.source[current.index],
+                        action: RewriteAction.Join
+                    }),
+                    _ => {
+                        forest: current.forest,
+                        fact: current.source[current.index]
+                    }
                 }
 
                 current.forest = changed.forest

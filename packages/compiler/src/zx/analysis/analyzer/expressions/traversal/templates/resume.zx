@@ -38,16 +38,17 @@ export default function (in: Input): Output {
         }
     }
 
-    return in.frames.templates.splice(position, 1, [{
+    const templates = in.frames.templates.splice(position, 1, [{
         ...frame,
         index: frame.index + 1,
         values: frame.values.push(in.value)[0]
     }])[0]
-        -> next({
-            ...in,
-            frames: {
-                ...in.frames,
-                templates: _
-            }
-        })
+
+    return next({
+        ...in,
+        frames: {
+            ...in.frames,
+            templates: templates
+        }
+    })
 }

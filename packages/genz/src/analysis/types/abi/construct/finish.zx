@@ -1,0 +1,29 @@
+import type { Build, Output } from "../model"
+
+export type Input = Build
+
+export default function (in: Input): Output {
+    return {
+        expressions: {
+            tags: in.tags,
+            offsets: in.offsets,
+            identifier: in.identifier,
+            primitive: in.primitive,
+            field_target: in.field_target,
+            field_name: in.field_name,
+            const_pointer: in.const_pointer,
+            optional_type: in.optional_type,
+            const_slice: in.const_slice,
+            error_set: in.error_set,
+            error_union_payload: in.error_union_payload,
+            error_union_errors: in.error_union_errors,
+            error_union_inferred: in.error_union_inferred,
+            call_callee: in.call_callee,
+            call_arguments: in.call_arguments
+        },
+        ids: in.ids,
+        values: in.values,
+        layouts: in.layouts,
+        valid: in.valid
+    }
+}

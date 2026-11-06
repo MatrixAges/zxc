@@ -24,10 +24,14 @@ export default function (in: Input): Output {
         control: in.state.local.control,
         body: in.root,
         functions: {
-            ownership: in.state.local.self_function == null ? in.functions.ownership :
-                in.functions.ownership.push(Ownership.Borrowed)[0],
-            stores: in.state.local.self_function == null ? in.functions.stores :
-                in.functions.stores.push(in.state.local.stores)[0]
+            ownership: match {
+                in.state.local.self_function == null => in.functions.ownership,
+                _ => in.functions.ownership.push(Ownership.Borrowed)[0]
+            },
+            stores: match {
+                in.state.local.self_function == null => in.functions.stores,
+                _ => in.functions.stores.push(in.state.local.stores)[0]
+            }
         },
         type_only: in.type_only
     }

@@ -151,11 +151,12 @@ export default function (in: Input): Output {
         }
     }
 
-    const condition = (
-        - node.kind == ExprKind.Unary
-        - and node.flag
-        - and in.source.tree.nodes[node.first].kind == ExprKind.Number
-    )
+    const negative = node.kind == ExprKind.Unary && node.flag
+
+    const condition = match {
+        negative => in.source.tree.nodes[node.first].kind == ExprKind.Number,
+        _ => false
+    }
 
     if (condition) {
         return {
@@ -175,27 +176,28 @@ export default function (in: Input): Output {
     }
 
     if (node.kind == ExprKind.Lambda || node.kind == ExprKind.StateBlock) {
-        return (
+        const message = match {
             node.kind ==
-                ExprKind.Lambda ?
-                "callbacks are only allowed directly in map, filter, reduce or loop rules" :
-                "state update blocks are only allowed in loop"
-        )
-            -> {
-                handled: true,
-                result: {
-                    state: {
-                        ...in.state,
-                        diagnostic: {
-                            code: "unsupported",
-                            message: _,
-                            start: node.span.start,
-                            end: node.span.end
-                        }
-                    },
-                    value: 0
-                }
+                ExprKind.Lambda =>
+                "callbacks are only allowed directly in map, filter, reduce or loop rules",
+            _ => "state update blocks are only allowed in loop"
+        }
+
+        return {
+            handled: true,
+            result: {
+                state: {
+                    ...in.state,
+                    diagnostic: {
+                        code: "unsupported",
+                        message: message,
+                        start: node.span.start,
+                        end: node.span.end
+                    }
+                },
+                value: 0
             }
+        }
     }
 
     return {

@@ -17,10 +17,12 @@ export default function (in: Input): Output {
     const empty: u64?[] = []
     const count = origins.ids.length
 
+    const different_members = origins.members.length != count
+
     const condition = (
         - origins.kinds.length != count
         - or origins.owners.length != count
-        - or origins.members.length != count
+        - or different_members
         - or origins.names.length != count
     )
 

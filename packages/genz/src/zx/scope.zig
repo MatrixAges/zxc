@@ -30,7 +30,9 @@ fn lowerMode(self: *Lower, scope: ir.ScopeRow, layout: bool) Lower.Error!node.Ex
     const result_type = self.program.expression(scope.result).type_id;
     const local_root = layout and analysis.aggregate(self, result_type);
     const projected = self.state_active and self.value_output;
-    const scalar_entry = !layout and self.entry_flags.scalar;
+
+    const scalar_entry = !layout and self.entry_flags.scalar and
+        @import("types/scalar.zig").check(self.program.types, result_type);
 
     if ((local_root or projected) and self.projected_symbols == null) self.projected_symbols = try @import("value_call/projections.zig").symbols(self.allocator, self.program);
 
@@ -41,20 +43,28 @@ fn lowerMode(self: *Lower, scope: ir.ScopeRow, layout: bool) Lower.Error!node.Ex
             if (binding.symbol) |symbol| {
                 const type_id = self.program.symbols.at(@backingInt(symbol)).type_id;
                 const snapshot = local_root and type_id == result_type;
+                const kind = self.program.typeOf(type_id);
+                const borrowed_tuple = binding.borrow and kind == .tuple;
 
-                const local_object = self.value_output and self.program.typeOf(type_id) == .object and
+                const local_aggregate = self.value_output and (kind == .object or borrowed_tuple) and
                     type_id != result_type and
                     !value_analysis.containsDescendant(self.program, result_type, type_id) and
                     !value_analysis.containsDescendant(self.program, self.program.output_type, type_id);
 
-                if (scalar_entry and self.program.typeOf(type_id) != .object) continue;
+                if (scalar_entry and kind != .object and !borrowed_tuple) continue;
 
-                if (!snapshot and !scalar_entry and !local_object and
+                if (!snapshot and !scalar_entry and !local_aggregate and
                     !((projected or local_root) and self.projected_symbols.?[@backingInt(symbol)])) continue;
 
                 if (@import("state_value/root.zig").selected(self, type_id)) continue;
                 if (!analysis.aggregate(self, type_id) or self.stack_symbols.contains(symbol)) continue;
-                if (try @import("value_call/locals.zig").borrowed(self, symbol, binding.value)) continue;
+
+                const borrowed_alias = binding.borrow and kind == .object and switch (self.program.expression(binding.value).value) {
+                    .reference, .field, .tuple_field, .index, .optional_value => true,
+                    else => false,
+                };
+
+                if (borrowed_alias or try @import("value_call/locals.zig").borrowed(self, symbol, binding.value)) continue;
                 try stacked.append(self.allocator, symbol);
                 try self.stack_symbols.put(self.allocator, symbol, {});
             }

@@ -28,8 +28,10 @@ export default function (in: Input): Output {
                 current.found = true
                 current.active = false
             } else {
-                current.index = current.index + 1 == current.slots.length ? 0 :
-                    current.index + 1
+                current.index = match {
+                    current.index + 1 == current.slots.length => 0,
+                    _ => current.index + 1
+                }
             }
         }
     })

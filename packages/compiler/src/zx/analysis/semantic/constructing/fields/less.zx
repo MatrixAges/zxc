@@ -26,6 +26,8 @@ export default function (in: Input): Output {
         }
     })
 
-    return state.index == state.limit ? state.left.length < state.right.length :
-        state.left[state.index] < state.right[state.index]
+    return match {
+        state.index == state.limit => state.left.length < state.right.length,
+        _ => state.left[state.index] < state.right[state.index]
+    }
 }

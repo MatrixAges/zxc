@@ -79,7 +79,7 @@ export default function (in: Input): Output {
         })
         case HeaderPhase.StoreClose:
 
-            return {
+            const state = {
                 expression: in.expression,
                 body: in.body,
                 contracts: in.contracts,
@@ -88,13 +88,14 @@ export default function (in: Input): Output {
                     has_store: true
                 }
             }
-                -> expect({
-                    state: _,
-                    word: Keyword.Root,
-                    symbol: Symbol.CloseBrace,
-                    phase: HeaderPhase.StoreEnd,
-                    message: "}"
-                })
+
+            return expect({
+                state: state,
+                word: Keyword.Root,
+                symbol: Symbol.CloseBrace,
+                phase: HeaderPhase.StoreEnd,
+                message: "}"
+            })
         case HeaderPhase.StoreEnd:
             if (in.control.token.symbol == Symbol.Comma) {
                 return consume({

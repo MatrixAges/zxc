@@ -1,4 +1,7 @@
 const std = @import("std");
+const beginning = @import("generated_uniqueness_memo_begin");
+const replaying = @import("generated_uniqueness_memo_replay");
+const finishing = @import("generated_uniqueness_memo_finish");
 const creating = @import("generated_uniqueness_memo_create");
 const resetting = @import("generated_uniqueness_memo_reset");
 const appending = @import("generated_uniqueness_memo_append");
@@ -13,6 +16,22 @@ pub fn init() Self {
     const state = creating.executeState(empty.allocator(), {}) catch unreachable;
 
     return .{ .state = state };
+}
+
+pub fn begin(self: *Self, allocator: std.mem.Allocator, identity: []const u8, index: usize) std.mem.Allocator.Error!void {
+    try self.call(allocator, beginning.executeState, .{ .state = self.state, .identity = .{ .items = identity, .storage = .plain }, .index = @intCast(index) });
+}
+
+pub fn replay(self: *Self, allocator: std.mem.Allocator, identity: []const u8, values: []const u8) std.mem.Allocator.Error!void {
+    try self.call(allocator, replaying.executeState, .{ .state = self.state, .identity = .{ .items = identity, .storage = .plain }, .bytes = .{ .items = values, .storage = .plain } });
+}
+
+pub fn finish(self: *Self, allocator: std.mem.Allocator, kind: @FieldType(Input(finishing.executeState), "kind")) std.mem.Allocator.Error!void {
+    try self.call(allocator, finishing.executeState, .{ .state = self.state, .kind = kind });
+}
+
+pub fn stateEnd(self: *const Self) usize {
+    return @intCast(self.state.state_end);
 }
 
 pub fn reset(self: *Self) void {

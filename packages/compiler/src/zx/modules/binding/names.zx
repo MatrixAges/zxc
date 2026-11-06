@@ -32,8 +32,14 @@ export default function (in: Input): Output {
         next: current => {
             const values = match current.stage {
                 Section.Types => current.input.exports.names,
-                Section.Constants => current.type_only ? [] : current.input.constants,
-                _ => current.type_only ? [] : current.input.members
+                Section.Constants => match {
+                    current.type_only => [],
+                    _ => current.input.constants
+                },
+                _ => match {
+                    current.type_only => [],
+                    _ => current.input.members
+                }
             }
 
             if (current.index >= values.length) {

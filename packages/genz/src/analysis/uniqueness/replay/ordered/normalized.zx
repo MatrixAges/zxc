@@ -12,7 +12,7 @@ export default function (in: Input): Output {
         return true
     }
 
-    return {
+    const return_input = {
         left: in.left.sort(
             (left, right) =>
                 match {
@@ -30,5 +30,6 @@ export default function (in: Input): Output {
                 }
         )[0]
     }
-        -> equal(_)
+
+    return equal(return_input)
 }

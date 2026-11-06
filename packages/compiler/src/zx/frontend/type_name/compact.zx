@@ -33,8 +33,10 @@ export default function (in: Input): Output {
             const token = current.tokens[current.index]
             const identifier = current.index % 2 == 0
 
-            current.valid = identifier ? token.kind == Kind.Identifier :
-                token.symbol == Symbol.Dot
+            current.valid = match {
+                identifier => token.kind == Kind.Identifier,
+                _ => token.symbol == Symbol.Dot
+            }
 
             if (current.valid) {
                 const text =
@@ -50,11 +52,11 @@ export default function (in: Input): Output {
         }
     })
 
-    const condition = (
-        - !result.valid
-        - or result.index % 2 == 0
-        - or lexed.tokens[lexed.tokens.length - 1].kind != Kind.Eof
-    )
+    const condition = match {
+        !result.valid => true,
+        result.index % 2 == 0 => true,
+        _ => lexed.tokens[lexed.tokens.length - 1].kind != Kind.Eof
+    }
 
     if (condition) {
         return in.source

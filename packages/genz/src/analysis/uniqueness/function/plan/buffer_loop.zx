@@ -20,51 +20,58 @@ export default function (in: Input): Output {
     const type_id = expressions.types[node]
     const target = kind(in.source.types.kinds[integers.widen(type_id)])
 
-    const condition = (
-        - expressions.kinds[node] != ExpressionKind.Iteration
-        - or (target != Kind.Object && target != Kind.Tuple)
-    )
+    const valid_target = target != Kind.Object && target != Kind.Tuple
 
-    if (condition) {
+    const iteration = expressions.kinds[node] == ExpressionKind.Iteration
+
+    if (!iteration || valid_target) {
         return false
     }
 
-    const result = loop({
+    const result_initial = {
         slot: 0,
         valid: true,
         product: false
-    }, {
-        while: (state, context) => state.valid &&
+    }
+
+    const result_scope = {
+        source: in.source,
+        type_id
+    }
+
+    return loop(result_initial, {
+        while: state => state.valid &&
             state.slot < integers.widen(
-                context.source.context.metadata
+                result_scope.source.context.metadata
                     .counts[integers.widen(
-                        context.type_id
+                        result_scope.type_id
                     )]
             ),
-        next: (state, context) => {
+        next: state => {
 
-            const child = listType({
-                layout: context.source.context.metadata.layout,
-                kinds: context.source.types.kinds,
-                type_id: context.type_id,
+            const list = listType({
+                layout: result_scope.source.context.metadata.layout,
+                kinds: result_scope.source.types.kinds,
+                type_id: result_scope.type_id,
                 slot: integers.narrow(state.slot)
             })
-                -> context.source.types.first[integers.widen(_)]
-            const target = context.source.context.metadata.layout
+
+            const child = result_scope.source.types.first[integers.widen(list)]
+            const bare = result_scope.source.context.metadata.layout
                 .unwrapped[integers.widen(
                     child
                 )]
-                -> kind(context.source.types.kinds[integers.widen(_)])
+
+            const target =
+                kind(result_scope.source.types.kinds[integers.widen(bare)])
 
             state.valid =
-                context.source.context.metadata.counts[integers.widen(child)] == 0
+                result_scope.source.context.metadata.counts[integers.widen(
+                    child
+                )] == 0
             state.product = state.product || target == Kind.Object || target == Kind.Tuple
             state.slot += 1
-        }
-    }, {
-        source: in.source,
-        type_id
+        },
+        return: state => state.valid && state.product
     })
-
-    return result.valid && result.product
 }

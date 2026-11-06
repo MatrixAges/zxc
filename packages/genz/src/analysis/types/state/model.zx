@@ -1,5 +1,9 @@
 import type { Table } from "core/type_table/model"
 import type { Constant } from "../../../ast/declarations/model"
+import type {
+    ExpressionsKind,
+    ExpressionsPrimitive
+} from "../../../printer/model/expressions"
 import type { Expressions } from "../abi/model"
 import type { Definitions, Field } from "../definitions/model"
 
@@ -45,4 +49,44 @@ export type Types = {
 export type Output = {
     types: Types,
     fields: Field[]
+}
+
+export type Build = {
+    source: Plan,
+    state_claimed: bool[],
+    view_claimed: bool[],
+    index: u64,
+    field_count: u64,
+    null_count: u64,
+    valid: bool,
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    identifier: u8[][],
+    primitive: ExpressionsPrimitive[],
+    optional_type: u32[],
+    const_pointer: u32[],
+    const_slice: u32[],
+    tuple_type: u32[][],
+    enum_type: u8[][][],
+    struct_type_start: u32[],
+    struct_type_len: u32[],
+    declarations: Constant[],
+    records: Record[],
+    values: u32[],
+    layouts: u32[],
+    views: u32[]
+}
+
+export type Selection = {
+    state: Build,
+    start: u32,
+    value: u32,
+    view: u32,
+    slot: u64
+}
+
+export type Aggregate = {
+    state: Build,
+    start: u32,
+    view: bool
 }

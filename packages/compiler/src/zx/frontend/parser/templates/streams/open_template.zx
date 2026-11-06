@@ -8,26 +8,31 @@ export type Input = State
 export type Output = State
 
 export default function (in: Input): Output {
-    return (in.active.present ? finishPrefix({
-        session: in.active,
-        end: in.offset
-    }) : in.active)
-        -> in.parents.push({
-            session: _,
-            start: in.offset
-        })[0]
-        -> {
-            active: session({
-                start: 0,
-                end: in.length,
-                present: false
-            }),
-            parents: _,
-            interpolations: in.interpolations,
-            events: in.events,
-            event_index: in.event_index,
-            offset: in.offset,
-            length: in.length,
-            skip: true
-        }
+    const active = match {
+        in.active.present => finishPrefix({
+            session: in.active,
+            end: in.offset
+        }),
+        _ => in.active
+    }
+
+    const parents = in.parents.push({
+        session: active,
+        start: in.offset
+    })[0]
+
+    return {
+        active: session({
+            start: 0,
+            end: in.length,
+            present: false
+        }),
+        parents: parents,
+        interpolations: in.interpolations,
+        events: in.events,
+        event_index: in.event_index,
+        offset: in.offset,
+        length: in.length,
+        skip: true
+    }
 }

@@ -17,9 +17,12 @@ export default function (in: Input): Output {
     const payload = table.payloads[in.index]
 
     const condition = (
-        - kind == ExpressionKind.List
-        - or kind == ExpressionKind.Tuple
-        - or kind == ExpressionKind.Template
+        match kind {
+            ExpressionKind.List => true,
+            ExpressionKind.Tuple => true,
+            ExpressionKind.Template => true,
+            _ => false
+        }
     )
 
     if (condition) {
@@ -50,7 +53,7 @@ export default function (in: Input): Output {
                 []
             )[1]
 
-        return table.object_field_values.splice(
+        const fields = table.object_field_values.splice(
             integers.widen(
                 table.object_first[integers.widen(
                     payload
@@ -59,7 +62,8 @@ export default function (in: Input): Output {
             integers.widen(table.object_count[integers.widen(payload)]),
             []
         )[1]
-            -> evaluated.concat(_)[0]
+
+        return evaluated.concat(fields)[0]
     }
 
     if (kind == ExpressionKind.ListOperation) {
@@ -104,7 +108,11 @@ export default function (in: Input): Output {
 
     if (kind == ExpressionKind.Match) {
         const subject = table.match_subjects[integers.widen(payload)]
-        const initial: u32[] = subject == null ? [] : [subject]
+
+        const initial: u32[] = match {
+            subject == null => [],
+            _ => [subject]
+        }
 
         const values = loop({
             table,

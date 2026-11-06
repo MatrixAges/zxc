@@ -50,17 +50,23 @@ export default function (in: Input): Output {
         _ => 8
     }
 
-    const second = source.kind == Kind.Task ? reference({
-        mapping: in.mapping,
-        id: source.second
-    }) : source.second
+    const second = match {
+        source.kind == Kind.Task => reference({
+            mapping: in.mapping,
+            id: source.second
+        }),
+        _ => source.second
+    }
 
     const members =
         (
-            - source.kind == Kind.Object
-            - or source.kind == Kind.Tuple
-            - or source.kind == Kind.ErrorSet
-            - or source.kind == Kind.Enumeration
+            match source.kind {
+                Kind.Object => true,
+                Kind.Tuple => true,
+                Kind.ErrorSet => true,
+                Kind.Enumeration => true,
+                _ => false
+            }
         )
 
     const state = loop({

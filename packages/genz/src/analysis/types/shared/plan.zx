@@ -65,10 +65,13 @@ export default function (in: Input): Output {
                     const index = integers.widen(frame.request.id)
                     const target = kind(current.source.abi.types.kinds[index])
                     const named = (
-                        - target == Kind.Object
-                        - or target == Kind.Tuple
-                        - or target == Kind.Enumeration
-                        - or target == Kind.NativeReference
+                        match target {
+                            Kind.Object => true,
+                            Kind.Tuple => true,
+                            Kind.Enumeration => true,
+                            Kind.NativeReference => true,
+                            _ => false
+                        }
                     )
                     const string = target == Kind.Scalar &&
                         current.source.abi.types.first[index] == scalar_string

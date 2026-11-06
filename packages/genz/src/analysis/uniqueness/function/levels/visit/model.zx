@@ -1,0 +1,25 @@
+import type { Knowledge, Operation, Table, Metadata, Request } from "../model"
+
+export type Resolution = {
+    operation: Operation,
+    linear_root: u32,
+    empty: bool,
+    value: Knowledge,
+    child_node?: u32,
+    child_slot: u32,
+    paired: bool,
+    arms_first: u64,
+    arms_count: u64,
+    carried_node?: u32,
+    iteration_owner?: u32,
+    read_table?: Table,
+    read_function: u32
+}
+
+export type Input = {
+    metadata: Metadata,
+    request: Request,
+    base: Resolution
+}
+
+export type Output = Resolution

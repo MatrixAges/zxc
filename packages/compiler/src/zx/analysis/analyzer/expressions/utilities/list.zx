@@ -16,9 +16,12 @@ export default function (in: Input): Output {
     }
 
     const condition = (
-        - in.operation == Operation.Sum
-        - or in.operation == Operation.Min
-        - or in.operation == Operation.Max
+        match in.operation {
+            Operation.Sum => true,
+            Operation.Min => true,
+            Operation.Max => true,
+            _ => false
+        }
     )
 
     if (condition) {

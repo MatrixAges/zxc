@@ -1,7 +1,7 @@
-import coerce from "../coerce"
 import asynchronous from "./asynchronous"
 import binary from "./binary"
 import target from "./calls/target"
+import coercion from "./coercion"
 import conditional from "./conditional"
 import imported from "./imported/resume"
 import iteration from "./iteration/resume"
@@ -44,6 +44,23 @@ export default function (in: Input): Output {
         }
     }
 
+    if (action == Action.ValueReturn) {
+        const position = work.scopes.frames.length - 1
+        const frame = work.scopes.frames[position]
+
+        return {
+            ...work,
+            scopes: {
+                ...work.scopes,
+                frames: work.scopes.frames.splice(position, 1, [{
+                    ...frame,
+                    result: work.value
+                }])[0]
+            },
+            phase: Phase.ScopeNext
+        }
+    }
+
     if (action == Action.PipelineInput || action == Action.PipelineStage) {
         return pipeline({
             work,
@@ -60,24 +77,7 @@ export default function (in: Input): Output {
     }
 
     if (action == Action.Coerce) {
-        const frame = work.frames.coercions[work.frames.coercions.length - 1]
-
-        const result = coerce({
-            state: work.state,
-            value: work.value,
-            expected: frame.expected,
-            span: frame.span
-        })
-
-        return {
-            ...work,
-            state: result.state,
-            value: result.value,
-            frames: {
-                ...work.frames,
-                coercions: work.frames.coercions.pop()[0]
-            }
-        }
+        return coercion(work)
     }
 
     if (action == Action.BinaryLeft || action == Action.BinaryRight) {
@@ -88,9 +88,12 @@ export default function (in: Input): Output {
     }
 
     const condition = (
-        - action == Action.Condition
-        - or action == Action.Yes
-        - or action == Action.No
+        match action {
+            Action.Condition => true,
+            Action.Yes => true,
+            Action.No => true,
+            _ => false
+        }
     )
 
     if (condition) {
@@ -101,10 +104,13 @@ export default function (in: Input): Output {
     }
 
     const condition_2 = (
-        - action == Action.MatchSubject
-        - or action == Action.MatchCondition
-        - or action == Action.MatchResult
-        - or action == Action.MatchFallback
+        match action {
+            Action.MatchSubject => true,
+            Action.MatchCondition => true,
+            Action.MatchResult => true,
+            Action.MatchFallback => true,
+            _ => false
+        }
     )
 
     if (condition_2) {
@@ -142,11 +148,13 @@ export default function (in: Input): Output {
     }
 
     const condition_3 = (
-        - action == Action.IterationInitial
-        - or action == Action.IterationContext
-        - or action == Action.IterationCondition
-        - or action == Action.IterationStep
-        - or action == Action.IterationReturn
+        match action {
+            Action.IterationInitial => true,
+            Action.IterationCondition => true,
+            Action.IterationStep => true,
+            Action.IterationReturn => true,
+            _ => false
+        }
     )
 
     if (condition_3) {
@@ -157,9 +165,12 @@ export default function (in: Input): Output {
     }
 
     const condition_4 = (
-        - action == Action.StateEvaluate
-        - or action == Action.StateConstant
-        - or action == Action.StateDestructure
+        match action {
+            Action.StateEvaluate => true,
+            Action.StateConstant => true,
+            Action.StateDestructure => true,
+            _ => false
+        }
     )
 
     if (condition_4) {
@@ -177,9 +188,12 @@ export default function (in: Input): Output {
     }
 
     const condition_5 = (
-        - action == Action.StateCondition
-        - or action == Action.StateYes
-        - or action == Action.StateNo
+        match action {
+            Action.StateCondition => true,
+            Action.StateYes => true,
+            Action.StateNo => true,
+            _ => false
+        }
     )
 
     if (condition_5) {
@@ -190,9 +204,12 @@ export default function (in: Input): Output {
     }
 
     const condition_6 = (
-        - action == Action.StateSubject
-        - or action == Action.StateLabel
-        - or action == Action.StateCase
+        match action {
+            Action.StateSubject => true,
+            Action.StateLabel => true,
+            Action.StateCase => true,
+            _ => false
+        }
     )
 
     if (condition_6) {
@@ -202,8 +219,11 @@ export default function (in: Input): Output {
         })
     }
 
-    return action == Action.Sequence ? sequence(work) : projection({
-        work,
-        action
-    })
+    return match {
+        action == Action.Sequence => sequence(work),
+        _ => projection({
+            work,
+            action
+        })
+    }
 }

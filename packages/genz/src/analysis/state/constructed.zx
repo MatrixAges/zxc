@@ -25,9 +25,12 @@ export default function (in: Input): Output {
                 const kind = expressions.kinds[current.index]
 
                 const condition = (
-                    - kind == ExpressionKind.Object
-                    - or kind == ExpressionKind.Tuple
-                    - or kind == ExpressionKind.Parallel
+                    match kind {
+                        ExpressionKind.Object => true,
+                        ExpressionKind.Tuple => true,
+                        ExpressionKind.Parallel => true,
+                        _ => false
+                    }
                 )
 
                 if (condition) {

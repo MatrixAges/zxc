@@ -42,10 +42,15 @@ export default function (in: Input): Output {
     }
 
     return match in.operation {
-        CollectionKind.Pop => in.target.headered && in.target.unique ?
-            retract_flag : no_flags,
-        CollectionKind.Splice => in.prefix && in.target.headered &&
-            in.target.unique ? retract_flag : no_flags,
+        CollectionKind.Pop => match {
+            in.target.headered && in.target.unique => retract_flag,
+            _ => no_flags
+        },
+        CollectionKind.Splice => match {
+            in.prefix && in.target.headered &&
+                in.target.unique => retract_flag,
+            _ => no_flags
+        },
         _ => match {
             in.target.unique => in_place_flag,
             in.target.headered => grow_flag,

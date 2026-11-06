@@ -26,8 +26,14 @@ export default function (in: Input): Output {
         field_target: empty,
         field_name: names,
         const_pointer: empty,
-        optional_type: in.slice ? empty : [in.child],
-        const_slice: in.slice ? [in.child] : empty,
+        optional_type: match {
+            in.slice => empty,
+            _ => [in.child]
+        },
+        const_slice: match {
+            in.slice => [in.child],
+            _ => empty
+        },
         error_set: texts,
         error_union_payload: empty,
         error_union_errors: errors,

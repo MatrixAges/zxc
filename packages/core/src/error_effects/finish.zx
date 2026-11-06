@@ -4,35 +4,35 @@ export type Input = State
 
 export type Output = string[]?
 
-    export default function (in: Input): Output {
-        if (in.unknown) {
-            return null
-        }
-
-        const names = in.names.sort()[0]
-        const values: string[] = []
-
-        return loop({
-            names,
-            values,
-            index: 0
-        }, {
-            while: current => current.index < current.names.length,
-            next: current => {
-                if (
-                    current.index == 0 ||
-                        current.names[current.index] != current
-                        .names[current.index -
-                            1]
-                ) {
-                    current.values =
-                        current.values.push(
-                            current.names[current.index]
-                        )[0]
-                }
-
-                current.index += 1
-            },
-            return: state => state.values
-        })
+export default function (in: Input): Output {
+    if (in.unknown) {
+        return null
     }
+
+    const names = in.names.sort()[0]
+    const values: string[] = []
+
+    return loop({
+        names,
+        values,
+        index: 0
+    }, {
+        while: current => current.index < current.names.length,
+        next: current => {
+            if (
+                current.index == 0 ||
+                    current.names[current.index] != current
+                    .names[current.index -
+                        1]
+            ) {
+                current.values =
+                    current.values.push(
+                        current.names[current.index]
+                    )[0]
+            }
+
+            current.index += 1
+        },
+        return: state => state.values
+    })
+}

@@ -38,20 +38,29 @@ export default function (in: Input): Output {
         second: in.delta.second.push(second)[0],
         labels: in.delta.labels.push(in.candidate.label)[0],
         children:
-            in.candidate.kind ==
-            Kind.Tuple ? in.delta.children.concat(
-                in.candidate.children
-            )[0] : in.delta.children,
+            match {
+                in.candidate.kind ==
+                    Kind.Tuple => in.delta.children.concat(
+                        in.candidate.children
+                    )[0],
+                _ => in.delta.children
+            },
         field_types:
-            in.candidate.kind ==
-            Kind.Object ? in.delta.field_types.concat(
-                in.candidate.fields.types
-            )[0] : in.delta.field_types,
+            match {
+                in.candidate.kind ==
+                    Kind.Object => in.delta.field_types.concat(
+                        in.candidate.fields.types
+                    )[0],
+                _ => in.delta.field_types
+            },
         field_names:
-            in.candidate.kind ==
-            Kind.Object ? in.delta.field_names.concat(
-                in.candidate.fields.names
-            )[0] : in.delta.field_names,
+            match {
+                in.candidate.kind ==
+                    Kind.Object => in.delta.field_names.concat(
+                        in.candidate.fields.names
+                    )[0],
+                _ => in.delta.field_names
+            },
         names: named ? in.delta.names.concat(in.candidate.names)[0] : in.delta.names
     }
 }

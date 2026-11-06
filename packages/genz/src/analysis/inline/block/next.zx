@@ -15,10 +15,12 @@ export default function (in: Input): Output {
     const state = in.state
     const control = state.units[state.mappings.units[in.frame.mapping]].control
 
-    const count = in.frame.id == 0 ? 0 :
-        integers.widen(
+    const count = match {
+        in.frame.id == 0 => 0,
+        _ => integers.widen(
             control.block_count[in.frame.id - 1]
         )
+    }
 
     if (in.frame.a == count) {
         return finish({
@@ -88,11 +90,14 @@ export default function (in: Input): Output {
 
         return {
             ...state,
-            frames: state.frames.concat(value == null ? pending : pending.push(frame({
-                op: map,
-                mapping: in.frame.mapping,
-                id: integers.widen(value)
-            }))[0])[0]
+            frames: state.frames.concat(match {
+                value == null => pending,
+                _ => pending.push(frame({
+                    op: map,
+                    mapping: in.frame.mapping,
+                    id: integers.widen(value)
+                }))[0]
+            })[0]
         }
     }
 

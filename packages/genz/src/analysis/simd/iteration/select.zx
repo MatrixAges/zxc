@@ -2,34 +2,23 @@ import integers from "std:integer"
 import { type_id_f32, type_id_f64, type_id_u64 } from "core/const"
 import {
     ExpressionKind,
-    BinaryOperator,
-    CollectionKind
+    BinaryOperator
 } from "core/expression_table/kinds"
 import kind from "core/type_table/kind"
 import { Kind } from "core/type_table/model"
 
 import field from "../expression/field"
+import reject from "../rejected"
 import integer from "./integer"
 import member from "./member"
+import append from "./select/append"
 
 import type { Input, Candidate } from "../model"
 
 export type Output = Candidate
 
 export default function (in: Input): Output {
-    const rejected: Candidate = {
-        valid: false,
-        source: in.subject,
-        callback: in.subject,
-        scalar: 0,
-        context: {
-            first: 0,
-            count: 0,
-            element: null,
-            iteration: null
-        },
-        iteration: null
-    }
+    const rejected = reject(in.subject)
 
     const consumer = in.consumer
     const expressions = in.expressions
@@ -54,9 +43,13 @@ export default function (in: Input): Output {
     const scalar_position = integers.widen(scalar)
     const scalar_code = in.types.first[scalar_position]
 
+    const valid_scalar_code = scalar_code != type_id_f32 && scalar_code != type_id_f64
+
+    const scalar_kind = kind(in.types.kinds[scalar_position])
+
     const condition_2 = (
-        - kind(in.types.kinds[scalar_position]) != Kind.Scalar
-        - or (scalar_code != type_id_f32 && scalar_code != type_id_f64)
+        - scalar_kind != Kind.Scalar
+        - or (valid_scalar_code)
     )
 
     if (condition_2) {
@@ -74,13 +67,14 @@ export default function (in: Input): Output {
     const condition =
         integers.widen(expressions.payloads[integers.widen(condition_id)])
 
-    const condition_3 = (
-        - result_index == null
-        - or expressions.kinds[integers.widen(condition_id)] != ExpressionKind.Binary
-        - or expressions.binary_operators[condition] != BinaryOperator.Less
-    )
+    if (result_index == null) {
+        return rejected
+    }
 
-    if (condition_3) {
+    if (
+        expressions.kinds[integers.widen(condition_id)] != ExpressionKind.Binary ||
+            expressions.binary_operators[condition] != BinaryOperator.Less
+    ) {
         return rejected
     }
 
@@ -187,63 +181,37 @@ export default function (in: Input): Output {
     const empty_id = integers.widen(empty)
     const empty_payload = integers.widen(expressions.payloads[empty_id])
 
-    const condition_6 = (
-        - kind(in.types.kinds[index_type]) != Kind.Scalar
-        - or in.types.first[index_type] != type_id_u64
-        - or expressions.kinds[empty_id] != ExpressionKind.List
-        - or expressions.sequence_count[empty_payload] != 0
-    )
-
-    if (condition_6) {
+    if (
+        kind(in.types.kinds[index_type]) != Kind.Scalar ||
+            in.types.first[index_type] != type_id_u64
+    ) {
         return rejected
     }
 
-    const appended = member({
+    if (
+        expressions.kinds[empty_id] != ExpressionKind.List ||
+            expressions.sequence_count[empty_payload] != 0
+    ) {
+        return rejected
+    }
+
+    const appended = append({
         expressions,
-        subject: next,
-        field: result_index
+        next,
+        result_index,
+        iteration
     })
 
     if (appended == null) {
         return rejected
     }
 
-    const appended_id = integers.widen(appended)
-    const projection = integers.widen(expressions.payloads[appended_id])
-
-    if (
-        expressions.kinds[appended_id] != ExpressionKind.TupleField ||
-            expressions.projection_indices[projection] != 0
-    ) {
-        return rejected
-    }
-
-    const push_id = integers.widen(expressions.projection_targets[projection])
-    const push = integers.widen(expressions.payloads[push_id])
-    const parameter = expressions.iteration_parameters[iteration]
-
-    const condition_7 = (
-        - expressions.kinds[push_id] != ExpressionKind.ListOperation
-        - or expressions.collection_kinds[push] != CollectionKind.Push
-        - or expressions.collection_count[push] != 1
-        - or field({
-            expressions,
-            subject: expressions.collection_targets[push],
-            symbol: parameter
-        }) != result_index
-    )
-
-    if (condition_7) {
-        return rejected
-    }
+    const parameter = appended.parameter
 
     return {
         valid: true,
         source,
-        callback: expressions
-            .collection_arguments[integers.widen(
-                expressions.collection_first[push]
-            )],
+        callback: appended.callback,
         scalar,
         context: {
             first: integers.widen(expressions.scope_first[body_payload]),

@@ -24,10 +24,11 @@ export default function (in: Input): Output {
 
     const offset = in.state.offset + 1
 
-    return in.state.dots && in.byte == 46
-        -> {
-            ...in.state,
-            offset,
-            dots: _
-        }
+    const dots = in.state.dots && in.byte == 46
+
+    return {
+        ...in.state,
+        offset,
+        dots: dots
+    }
 }

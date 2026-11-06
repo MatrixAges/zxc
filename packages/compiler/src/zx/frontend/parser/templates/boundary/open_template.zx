@@ -17,17 +17,18 @@ export default function (in: Input): Output {
         count: 0
     })[0]
 
-    return in.graph.events.push({
+    const events = in.graph.events.push({
         kind: EventKind.TemplateOpen,
         offset: in.offset,
         reference: 0
     })[0]
-        -> {
-            templates: in.graph.templates,
-            parts: in.graph.parts,
-            events: _,
-            frames,
-            interpolations: in.graph.interpolations,
-            token_templates: in.graph.token_templates
-        }
+
+    return {
+        templates: in.graph.templates,
+        parts: in.graph.parts,
+        events: events,
+        frames,
+        interpolations: in.graph.interpolations,
+        token_templates: in.graph.token_templates
+    }
 }

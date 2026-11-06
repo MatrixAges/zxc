@@ -17,8 +17,9 @@ export default function (in: Input): Output {
     const reads: Read[] = []
     const first = in.context.metadata.usage.plan.slot_first
 
-    const known = first[first.length - 1] - first[in.context.metadata.usage.symbols]
-        -> unknowns(integers.widen(_))
+    const total = first[first.length - 1] - first[in.context.metadata.usage.symbols]
+
+    const known = unknowns(integers.widen(total))
 
     const carried = in.context.metadata.expressions.kinds.map(kind => empty)[0]
 
@@ -28,30 +29,39 @@ export default function (in: Input): Output {
         carried,
         reads
     }, {
-        while: (state, context) => state.index < context.repetitions.length,
-        next: (state, context) => {
-            const repetition = context.repetitions[state.index]
+        while: state => state.index < in.repetitions.length,
+        next: state => {
+            const repetition = in.repetitions[state.index]
             const owner = integers.widen(repetition.owner)
-            const size = context.context.metadata.expressions.types[owner]
-                -> context.context.metadata.counts[integers.widen(_)]
+            const type_id = in.context.metadata.expressions.types[owner]
+
+            const size = in.context.metadata.counts[integers.widen(type_id)]
 
             const values: Knowledge[] = []
 
-            const row = loop({
+            const row_initial = {
                 values,
                 slot: 0
-            }, {
-                while: (current, source) => current.slot < integers.widen(source.size),
-                next: (current, source) => {
+            }
+
+            const row_scope = {
+                context: in.context,
+                repetition,
+                size
+            }
+
+            const row = loop(row_initial, {
+                while: current => current.slot < integers.widen(row_scope.size),
+                next: current => {
                     const slot = integers.narrow(current.slot)
-                    const condition = source.repetition.condition
+                    const condition = row_scope.repetition.condition
                     const linear = usage({
-                        context: source.context,
-                        root: source.repetition.parameter,
+                        context: row_scope.context,
+                        root: row_scope.repetition.parameter,
                         slot,
                         observe: false
                     }) && (condition == null || usage({
-                        context: source.context,
+                        context: row_scope.context,
                         root: condition,
                         slot,
                         observe: true
@@ -63,10 +73,6 @@ export default function (in: Input): Output {
                     current.slot += 1
                 },
                 return: state => state.values
-            }, {
-                context: context.context,
-                repetition,
-                size
             })
 
             state.carried = state.carried.with(owner, row)
@@ -77,5 +83,5 @@ export default function (in: Input): Output {
             "carried",
             "reads"
         ])
-    }, in)
+    })
 }

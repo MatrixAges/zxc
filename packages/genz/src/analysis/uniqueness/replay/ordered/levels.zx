@@ -16,12 +16,12 @@ export default function (in: Input): Output {
         index: 0,
         equal: true
     }, {
-        while: (state, source) => state.equal && state.index < source.left.length,
-        next: (state, source) => {
-            state.equal = (source.left[state.index] % level_modulus) ==
-                (source.right[state.index] % level_modulus)
+        while: state => state.equal && state.index < in.left.length,
+        next: state => {
+            state.equal = (in.left[state.index] % level_modulus) ==
+                (in.right[state.index] % level_modulus)
             state.index += 1
         },
         return: state => state.equal
-    }, in)
+    })
 }

@@ -39,22 +39,27 @@ export default function (in: Input): Output {
                     const index = integers.widen(subject)
                     const step = integers.widen(current.expressions.payloads[index])
 
-                    current.valid =
-                        (
-                            - current.expressions.kinds[index] == ExpressionKind.Binary
-                            - and current.expressions.binary_operators[step] ==
-                                BinaryOperator.Add
-                            - and integer({
-                                expressions: current.expressions,
-                                subject: current.expressions.binary_right[step],
-                                expected: 1
-                            })
-                            - and field({
-                                expressions: current.expressions,
-                                subject: current.expressions.binary_left[step],
-                                symbol: current.iteration.parameter
-                            }) == member
-                        )
+                    const expressions = current.expressions
+                    const binary = expressions.kinds[index] == ExpressionKind.Binary
+                    const added = match {
+                        binary =>
+                            expressions.binary_operators[step] == BinaryOperator.Add,
+                        _ => false
+                    }
+                    const increment = match {
+                        added => integer({
+                            expressions,
+                            subject: expressions.binary_right[step],
+                            expected: 1
+                        }),
+                        _ => false
+                    }
+
+                    current.valid = increment && field({
+                        expressions,
+                        subject: expressions.binary_left[step],
+                        symbol: current.iteration.parameter
+                    }) == member
                 } else {
                     current.valid = field({
                         expressions: current.expressions,

@@ -24,38 +24,55 @@ export default function (in: Input): Output {
         return: state => state.values
     })
 
-    return loop({
+    const readonly_loop_initial = {
         values,
         index: 0
-    }, {
-        while: (state, source) => state.index < source.transform_kinds.length,
-        next: (state, source) => {
-            const index = state.index
-            const first = integers.widen(source.transform_first[index])
-            const begin = source.transform_kinds[index] == TransformKind.Reduce ?
-                first + 1 : first
+    }
 
-            state.values = loop({
+    const readonly_expressions = in.expressions
+
+    return loop(readonly_loop_initial, {
+        while: state => state.index < readonly_expressions.transform_kinds.length,
+        next: state => {
+            const index = state.index
+            const first = integers.widen(readonly_expressions.transform_first[index])
+            const begin =
+                match {
+                    readonly_expressions.transform_kinds[index] == TransformKind.Reduce =>
+                        first + 1,
+                    _ => first
+                }
+
+            const loop_initial = {
                 values: state.values,
                 position: begin
-            }, {
-                while: (parameter, context) => parameter.position < context.end,
-                next: (parameter, context) => {
-                    const symbol = context.parameters[parameter.position]
-                    parameter.values[integers.widen(symbol)] = context.target
+            }
+
+            const loop_scope = {
+                parameters: readonly_expressions.transform_parameters,
+                target: readonly_expressions.transform_targets[index],
+                end: first + (
+                    match {
+                        readonly_expressions.transform_kinds[index] ==
+                            TransformKind.Sort => 2,
+                        _ => integers.widen(
+                            readonly_expressions.transform_count[index]
+                        )
+                    }
+                )
+            }
+
+            state.values = loop(loop_initial, {
+                while: parameter => parameter.position < loop_scope.end,
+                next: parameter => {
+                    const symbol = loop_scope.parameters[parameter.position]
+                    parameter.values[integers.widen(symbol)] = loop_scope.target
                     parameter.position += 1
                 },
                 return: state => state.values
-            }, {
-                parameters: source.transform_parameters,
-                target: source.transform_targets[index],
-                end: first + (
-                    source.transform_kinds[index] == TransformKind.Sort ? 2 :
-                        integers.widen(source.transform_count[index])
-                )
             })
             state.index += 1
         },
         return: state => state.values
-    }, in.expressions)
+    })
 }

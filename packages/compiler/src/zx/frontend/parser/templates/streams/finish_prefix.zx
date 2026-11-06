@@ -19,15 +19,16 @@ export default function (in: Input): Output {
         source_length: in.end
     }))
 
-    return appendTokenIds({
+    const token_templates = appendTokenIds({
         ids: in.session.token_templates,
         count: lexer.tokens.length - previous,
         template: 0
     }).ids
-        -> {
-            present: in.session.present,
-            start: in.session.start,
-            lexer,
-            token_templates: _
-        }
+
+    return {
+        present: in.session.present,
+        start: in.session.start,
+        lexer,
+        token_templates: token_templates
+    }
 }

@@ -25,10 +25,12 @@ export default function (in: Input): Output {
     const arguments = in.arguments
     const kind = in.kind
 
+    const valid_kind = kind == TransformKind.Sort && arguments.length != 1
+
     const invalid = (
         - arguments.length < 1
         - or arguments.length > 2
-        - or (kind == TransformKind.Sort && arguments.length != 1)
+        - or (valid_kind)
     )
 
     if (invalid) {
@@ -73,18 +75,22 @@ export default function (in: Input): Output {
         return callback(work)
     }
 
-    return (kind == TransformKind.Reduce ? payload({
-        types: work.state.types,
-        expected: in.expected
-    }) : null)
-        -> {
-            ...work,
-            node: arguments[1],
-            expected: _,
-            phase: Phase.Evaluate,
-            frames: {
-                ...work.frames,
-                actions: work.frames.actions.push(Action.TransformSecond)[0]
-            }
+    const expected = match {
+        kind == TransformKind.Reduce => payload({
+            types: work.state.types,
+            expected: in.expected
+        }),
+        _ => null
+    }
+
+    return {
+        ...work,
+        node: arguments[1],
+        expected: expected,
+        phase: Phase.Evaluate,
+        frames: {
+            ...work.frames,
+            actions: work.frames.actions.push(Action.TransformSecond)[0]
         }
+    }
 }

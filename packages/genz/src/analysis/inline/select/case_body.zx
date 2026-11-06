@@ -16,24 +16,27 @@ export default function (in: Input): Output {
     const index = in.frame.n
     const last = index + 1 == integers.widen(control.selection_count[payload])
 
+    const exhaustive = control.selection_exhaustive
+
     const condition = (
         - in.frame.k == 0
-        - and control.selection_exhaustive[payload]
+        - and exhaustive[payload]
         - and last
     )
 
     if (condition) {
-        return state.stack[state.stack.length - 1]
-            -> {
-                ...state,
-                stack: state.stack.pop()[0],
-                frames: state.frames.push({
-                    ...in.frame,
-                    op: InlineOp.SwitchCase,
-                    k: _ + 1,
-                    n: index + 1
-                })[0]
-            }
+        const body = state.stack[state.stack.length - 1]
+
+        return {
+            ...state,
+            stack: state.stack.pop()[0],
+            frames: state.frames.push({
+                ...in.frame,
+                op: InlineOp.SwitchCase,
+                k: body + 1,
+                n: index + 1
+            })[0]
+        }
     }
 
     const value =
@@ -42,19 +45,20 @@ export default function (in: Input): Output {
             control.selection_first[payload]
         ) + index]
 
-    return (value == null ? 0 : integers.widen(value))
-        -> {
-            ...state,
-            frames: state.frames.concat([
-                {
-                    ...in.frame,
-                    op: InlineOp.SwitchCaseCondition
-                },
-                frame({
-                    op: InlineOp.Map,
-                    mapping: in.frame.mapping,
-                    id: _
-                })
-            ])[0]
-        }
+    const target = value == null ? 0 : integers.widen(value)
+
+    return {
+        ...state,
+        frames: state.frames.concat([
+            {
+                ...in.frame,
+                op: InlineOp.SwitchCaseCondition
+            },
+            frame({
+                op: InlineOp.Map,
+                mapping: in.frame.mapping,
+                id: target
+            })
+        ])[0]
+    }
 }

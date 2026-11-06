@@ -19,9 +19,13 @@ export default function (in: Input): Output {
         in.state.line_break || in.byte == ascii_line_feed ||
         in.byte == ascii_carriage_return
 
+    const is_line_comment = in.state.mode == Mode.LineComment
+
+    const valid_byte = in.byte == ascii_line_feed || in.byte == ascii_carriage_return
+
     const condition = (
-        - in.state.mode == Mode.LineComment
-        - and (in.byte == ascii_line_feed || in.byte == ascii_carriage_return)
+        - is_line_comment
+        - and (valid_byte)
     )
 
     if (condition) {
@@ -38,26 +42,29 @@ export default function (in: Input): Output {
         })
     }
 
+    const is_block_comment = in.state.mode == Mode.BlockComment
+
     const condition_2 = (
-        - in.state.mode == Mode.BlockComment
+        - is_block_comment
         - and in.byte == ascii_asterisk
         - and in.has_next
         - and in.next == ascii_slash
     )
 
     if (condition_2) {
-        return in.state.offset + 2
-            -> emit({
-                kind: "",
-                start: in.state.start,
-                end: in.state.offset + 2,
-                comment: true,
-                state: {
-                    ...in.state,
-                    skip_until: _,
-                    mode: Mode.Idle
-                }
-            })
+        const return_input = in.state.offset + 2
+
+        return emit({
+            kind: "",
+            start: in.state.start,
+            end: in.state.offset + 2,
+            comment: true,
+            state: {
+                ...in.state,
+                skip_until: return_input,
+                mode: Mode.Idle
+            }
+        })
     }
 
     return {

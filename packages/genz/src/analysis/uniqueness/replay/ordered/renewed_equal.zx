@@ -18,15 +18,15 @@ export default function (in: Input): Output {
         index: 0,
         equal: true
     }, {
-        while: (state, source) => state.equal && state.index < source.left.length,
-        next: (state, source) => {
-            const left = source.left[state.index]
-            const right = source.right[state.index]
+        while: state => state.equal && state.index < in.left.length,
+        next: state => {
+            const left = in.left[state.index]
+            const right = in.right[state.index]
 
             state.equal = left.key == right.key &&
                 left.want % level_modulus == right.want % level_modulus
             state.index += 1
         },
         return: state => state.equal
-    }, in)
+    })
 }

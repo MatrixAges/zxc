@@ -29,9 +29,11 @@ export default function (in: Input): Output {
         index: in.node
     }).text
 
+    const not_identifier = owner.kind != ExprKind.Identifier
+
     const condition = (
         - !field
-        - or owner.kind != ExprKind.Identifier
+        - or not_identifier
         - or name != "value"
     )
 

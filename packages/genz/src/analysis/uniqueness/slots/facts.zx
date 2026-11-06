@@ -40,8 +40,10 @@ export default function (in: Input): Output {
                 const total = sum({
                     counts: current.counts,
                     texts: current.texts,
-                    members: target == Kind.Object ? current.types.field_types :
-                        current.types.children,
+                    members: match {
+                        target == Kind.Object => current.types.field_types,
+                        _ => current.types.children
+                    },
                     first,
                     count: integers.widen(
                         current.types.second[current.index]

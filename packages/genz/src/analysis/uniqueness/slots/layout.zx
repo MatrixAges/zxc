@@ -38,9 +38,12 @@ export default function (in: Input): Output {
                 object: target == Kind.Object,
                 first,
                 count:
-                    product ? integers.widen(
-                        current.types.second[current.index]
-                    ) : 0,
+                    match {
+                        product => integers.widen(
+                            current.types.second[current.index]
+                        ),
+                        _ => 0
+                    },
                 index: 0,
                 total: integers.narrow(0),
                 offsets: current.empty,
@@ -50,8 +53,10 @@ export default function (in: Input): Output {
                 next: member => {
                     const position = member.first + member.index
                     const child =
-                        member.object ? member.types.field_types[position] :
-                        member.types.children[position]
+                        match {
+                            member.object => member.types.field_types[position],
+                            _ => member.types.children[position]
+                        }
 
                     member.offsets = member.offsets.push(member.total)[0]
                     member.members = member.members.push(child)[0]
@@ -63,10 +68,12 @@ export default function (in: Input): Output {
             current.offsets = current.offsets.push(values.offsets)[0]
             current.members = current.members.push(values.members)[0]
             current.unwrapped[current.index] =
-                target == Kind.Optional ? current.unwrapped[first] :
-                integers.narrow(
-                    current.index
-                )
+                match {
+                    target == Kind.Optional => current.unwrapped[first],
+                    _ => integers.narrow(
+                        current.index
+                    )
+                }
             current.index += 1
         }
     })

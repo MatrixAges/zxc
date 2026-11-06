@@ -37,15 +37,16 @@ export default function (in: Input): Output {
 
     const negative = value.integer != 0 && !value.negative
 
-    return maximum({
+    const limit = maximum({
         id: value.type_id,
         negative
     })
-        -> {
-            value: {
-                ...value,
-                negative
-            },
-            message: value.integer > _ ? message_negation_overflow : ""
-        }
+
+    return {
+        value: {
+            ...value,
+            negative
+        },
+        message: value.integer > limit ? message_negation_overflow : ""
+    }
 }

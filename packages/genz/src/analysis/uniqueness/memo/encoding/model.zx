@@ -1,6 +1,7 @@
 export type State = {
     buffer: u8[],
-    end: u64
+    end: u64,
+    state_end: u64
 }
 
 export type Append = {
@@ -17,4 +18,33 @@ export type Integer = {
 export type Levels = {
     state: State,
     values: u8[]
+}
+
+export enum Kind { Settled, Demanded, Planned }
+
+export type Header = {
+    state: State,
+    identity: u8[]
+}
+
+export type Begin = {
+    state: State,
+    identity: u8[],
+    index: u64
+}
+
+export type Replay = {
+    state: State,
+    identity: u8[],
+    bytes: u8[]
+}
+
+export type Finish = {
+    state: State,
+    kind: Kind
+}
+
+export type Word = {
+    state: State,
+    value: u64
 }

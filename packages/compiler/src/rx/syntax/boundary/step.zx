@@ -29,16 +29,17 @@ export default function (in: Input): Output {
         const mode = in.frame.mode
         const issue = mode == Mode.BlockComment ? in.comment_start : in.frame.start
 
-        return match mode {
+        const message = match mode {
             Mode.Template => unterminated_template,
             Mode.BlockComment => unterminated_template_comment,
             _ => unterminated_interpolation
         }
-            -> fail({
-                state: in,
-                offset: issue,
-                message: _
-            })
+
+        return fail({
+            state: in,
+            offset: issue,
+            message: message
+        })
     }
 
     if (in.frame.mode == Mode.Template) {
@@ -61,26 +62,27 @@ export default function (in: Input): Output {
         _ => byte == ascii_asterisk && next == ascii_slash
     }
 
-    return (
+    const escaped = mode == Mode.String && byte == ascii_backslash
+    const comment_end = mode == Mode.BlockComment && finished
+
+    const skip = (
         - has_next
-        - and (
-            - mode == Mode.String
-            - and byte == ascii_backslash
-            - or (mode == Mode.BlockComment && finished)
-        )
+        - and (escaped || comment_end)
     )
-        -> in.offset + (_ ? 2 : 1)
-        -> {
-            source: in.source,
-            frames: in.frames,
-            frame: {
-                ...in.frame,
-                mode: finished ? Mode.Interpolation : mode
-            },
-            offset: _,
-            comment_start: in.comment_start,
-            done: false,
-            message: no_diagnostic,
-            issue: 0
-        }
+
+    const offset = in.offset + (skip ? 2 : 1)
+
+    return {
+        source: in.source,
+        frames: in.frames,
+        frame: {
+            ...in.frame,
+            mode: finished ? Mode.Interpolation : mode
+        },
+        offset: offset,
+        comment_start: in.comment_start,
+        done: false,
+        message: no_diagnostic,
+        issue: 0
+    }
 }

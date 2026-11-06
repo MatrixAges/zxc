@@ -5,25 +5,30 @@ import { ExpressionKind } from "core/expression_table/kinds"
 import type { Input, Bindings as Output } from "./model"
 
 export default function (in: Input): Output {
-    const constants = loop({
+    const constants_initial = {
         values: in.names.map(name => max_u32)[0],
         repeated: in.names.map(name => false)[0],
         index: 0
-    }, {
-        while: (state, control) => state.index < control.constant_symbols.length,
-        next: (state, control) => {
-            const symbol = integers.widen(control.constant_symbols[state.index])
+    }
+
+    const readonly_control = in.control
+
+    const constants = loop(constants_initial, {
+        while: state => state.index < readonly_control.constant_symbols.length,
+        next: state => {
+            const symbol =
+                integers.widen(readonly_control.constant_symbols[state.index])
 
             if (state.values[symbol] != max_u32) {
                 state.repeated[symbol] = true
             }
 
-            state.values[symbol] = control.constant_values[state.index]
+            state.values[symbol] = readonly_control.constant_values[state.index]
             state.index += 1
         }
-    }, in.control)
+    })
 
-    const scopes = loop({
+    const scopes_initial = {
         ...constants.pick([
             "values",
             "repeated"
@@ -31,12 +36,16 @@ export default function (in: Input): Output {
         index: 0,
         position: 0,
         end: 0
-    }, {
-        while: (state, table) =>
-            state.index < table.kinds.length || state.position < state.end,
-        next: (state, table) => {
+    }
+
+    const readonly_expressions = in.expressions
+
+    const scopes = loop(scopes_initial, {
+        while: state =>
+            state.index < readonly_expressions.kinds.length || state.position < state.end,
+        next: state => {
             if (state.position < state.end) {
-                const symbol = table.scope_symbols[state.position]
+                const symbol = readonly_expressions.scope_symbols[state.position]
 
                 if (symbol != null) {
                     const index = integers.widen(symbol)
@@ -45,23 +54,28 @@ export default function (in: Input): Output {
                         state.repeated[index] = true
                     }
 
-                    state.values[index] = table.scope_values[state.position]
+                    state.values[index] =
+                        readonly_expressions.scope_values[state.position]
                 }
 
                 state.position += 1
             } else {
-                if (table.kinds[state.index] == ExpressionKind.Scope) {
-                    const payload = integers.widen(table.payloads[state.index])
+                if (
+                    readonly_expressions.kinds[state.index] == ExpressionKind.Scope
+                ) {
+                    const payload =
+                        integers.widen(readonly_expressions.payloads[state.index])
 
-                    state.position = integers.widen(table.scope_first[payload])
+                    state.position =
+                        integers.widen(readonly_expressions.scope_first[payload])
                     state.end = state.position +
-                        integers.widen(table.scope_count[payload])
+                        integers.widen(readonly_expressions.scope_count[payload])
                 }
 
                 state.index += 1
             }
         }
-    }, in.expressions)
+    })
 
     return scopes.pick([
         "values",

@@ -9,26 +9,28 @@ export type Input = State
 export type Output = State
 
 export default function (in: Input): Output {
-    return result({
+    const completed = result({
         session: finishPrefix({
             session: in.active,
             end: in.offset
         }),
         end: in.offset
     })
-        -> in.interpolations.push(_)[0]
-        -> {
-            active: session({
-                start: 0,
-                end: in.length,
-                present: false
-            }),
-            parents: in.parents,
-            interpolations: _,
-            events: in.events,
-            event_index: in.event_index,
-            offset: in.offset,
-            length: in.length,
-            skip: true
-        }
+
+    const interpolations = in.interpolations.push(completed)[0]
+
+    return {
+        active: session({
+            start: 0,
+            end: in.length,
+            present: false
+        }),
+        parents: in.parents,
+        interpolations: interpolations,
+        events: in.events,
+        event_index: in.event_index,
+        offset: in.offset,
+        length: in.length,
+        skip: true
+    }
 }

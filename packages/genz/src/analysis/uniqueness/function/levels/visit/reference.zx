@@ -1,0 +1,94 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import crosses from "../../../order/crosses_concurrent"
+import { Definition } from "../../../order/model"
+import { Table } from "../model"
+import projection from "../projection"
+
+import type { Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const metadata = in.metadata
+    const request = in.request
+    const expressions = metadata.expressions
+    const node = integers.widen(request.node)
+    const payload = integers.widen(expressions.payloads[node])
+    const symbol = expressions.references[payload]
+    const symbol_index = integers.widen(symbol)
+
+    if (crosses({
+        parents: metadata.parents,
+        concurrent: metadata.concurrent,
+        inner: metadata.usage.nodes.repeated[node],
+        outer: metadata.usage.def_loop[symbol_index]
+    })) {
+        return in.base
+    }
+
+    const definition = metadata.definitions.kind[symbol_index]
+    const target = metadata.definitions.value[symbol_index]
+    const target_index = integers.widen(target)
+
+    const reference = {
+        ...in.base,
+        linear_root: symbol,
+        empty: definition == Definition.Value &&
+            expressions.kinds[target_index] == ExpressionKind.List &&
+            expressions
+            .sequence_count[integers.widen(
+                expressions.payloads[target_index]
+            )] == 0
+    }
+
+    if (definition == Definition.Value || definition == Definition.Part) {
+        const selected = match {
+            definition == Definition.Part => projection({
+                metadata,
+                slot: request.slot,
+                target,
+                index: metadata.definitions.index[symbol_index]
+            }),
+            _ => {
+                node: target,
+                slot: request.slot,
+                raw: false
+            }
+        }
+
+        return {
+            ...reference,
+            child_node: selected.node,
+            child_slot: selected.slot
+        }
+    }
+
+    switch (definition) {
+        case Definition.Input:
+            if (integers.widen(request.slot) >= metadata.input.length) {
+                return reference
+            }
+
+            return {
+                ...reference,
+                read_table: Table.Input,
+                read_function: metadata.function_index
+            }
+
+        case Definition.Carried:
+            return {
+                ...reference,
+                carried_node: target
+            }
+
+        case Definition.Condition:
+            return {
+                ...reference,
+                carried_node: target,
+                iteration_owner: expressions.payloads[target_index]
+            }
+
+        default:
+            return reference
+    }
+}

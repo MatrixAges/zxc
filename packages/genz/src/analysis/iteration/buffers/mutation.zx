@@ -26,13 +26,15 @@ export default function (in: Input): Output {
         return false
     }
 
-    return (
-        update ? in.expressions.update_targets[payload] :
-            in.expressions.collection_targets[payload]
-    )
-        -> in.expressions.types[integers.widen(_)]
-        -> represented({
-            types: in.types,
-            id: in.types.first[integers.widen(_)]
-        })
+    const target = match {
+        update => in.expressions.update_targets[payload],
+        _ => in.expressions.collection_targets[payload]
+    }
+
+    const list_type = in.expressions.types[integers.widen(target)]
+
+    return represented({
+        types: in.types,
+        id: in.types.first[integers.widen(list_type)]
+    })
 }

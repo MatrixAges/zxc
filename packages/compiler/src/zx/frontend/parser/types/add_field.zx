@@ -12,23 +12,27 @@ export type Output = State
 export default function (in: Input): Output {
     const frame = copyFrame(in.frames[in.frames.length - 1])
 
-    const state = in.control.result
-        -> (frame.optional ? addNode({
+    const child = in.control.result
+
+    const state = match {
+        frame.optional => addNode({
             state: in,
             kind: TypeKind.Optional,
             name: {
                 start: 0,
                 end: 0
             },
-            child: _,
+            child: child,
             head: 0,
             count: 0
-        }) : in)
+        }),
+        _ => in
+    }
 
     const head = state.tree.fields.length + 1
     const count = frame.count + 1
 
-    return state.tree.fields.push({
+    const fields = state.tree.fields.push({
         name: {
             start: frame.field.start,
             end: frame.field.end
@@ -36,21 +40,23 @@ export default function (in: Input): Output {
         value: state.control.result,
         previous: frame.head
     })[0]
-        -> {
-            tree: {
-                nodes: state.tree.nodes,
-                fields: _,
-                items: state.tree.items
-            },
-            frames: state.frames,
-            control: state.control
+
+    const updated = {
+        tree: {
+            nodes: state.tree.nodes,
+            fields: fields,
+            items: state.tree.items
+        },
+        frames: state.frames,
+        control: state.control
+    }
+
+    return replaceFrame({
+        state: updated,
+        frame: {
+            ...frame,
+            head,
+            count
         }
-        -> replaceFrame({
-            state: _,
-            frame: {
-                ...frame,
-                head,
-                count
-            }
-        })
+    })
 }

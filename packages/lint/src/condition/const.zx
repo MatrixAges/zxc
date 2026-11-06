@@ -1,3 +1,36 @@
 export const if_terms: u64 = 2
 
 export const shortcut_terms: u64 = 3
+
+export const pipeline_steps: u64 = 3
+
+export const expression_width: u64 = 30
+
+export const short_pipeline: string = "pipeline requires at least three processing steps"
+
+export const wide_pipeline: string =
+    "pipeline expressions must fit in 30 columns; extract a function or use named bindings"
+
+export const multiline_pipeline: string =
+    "pipeline expressions must stay on one line; extract a function or use named bindings"
+
+export const wide_condition: string =
+    "condition items must fit in 30 columns; extract a named condition"
+
+export const multiline_condition: string =
+    "condition items must stay on one line; extract a named condition"
+
+export const nested_condition: string =
+    "condition lists cannot be nested; reference a named condition"
+
+export const complex_condition: string =
+    "condition items may contain at most three logical terms"
+
+export const complex_if: string =
+    "if conditions with more than two terms must use a separate condition binding"
+
+export const complex_shortcut: string =
+    "boolean expressions with more than three terms must use a condition list"
+
+export const complex_ternary: string =
+    "ternary expressions must be simple and single-line; use match or named steps"

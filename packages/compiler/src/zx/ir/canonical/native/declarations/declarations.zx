@@ -20,18 +20,23 @@ export default function (in: Input): Output {
             const kind = classify(current.modules.specifiers[current.index])
             const identity = current.modules.identities[current.index]
 
-            current.valid =
-                (
-                    - kind != Kind.File
-                    - and kind != Kind.Package
-                    - and kind != Kind.Invalid
-                    - and text(
-                        current.modules.import_names[current.index]
-                    )
-                    - and (identity == null || text(
-                        identity
-                    ))
-                )
+            const valid_kind = match kind {
+                Kind.File => false,
+                Kind.Package => false,
+                Kind.Invalid => false,
+                _ => true
+            }
+
+            const valid_name = match {
+                valid_kind => text(current.modules.import_names[current.index]),
+                _ => false
+            }
+
+            current.valid = match {
+                !valid_name => false,
+                identity == null => true,
+                _ => text(identity)
+            }
 
             current.index += 1
         },

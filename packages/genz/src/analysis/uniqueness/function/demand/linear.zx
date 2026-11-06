@@ -19,24 +19,28 @@ export default function (in: Input): Output {
     const kind = expressions.kinds[node]
 
     const condition = (
-        - kind == ExpressionKind.Field
-        - or kind == ExpressionKind.TupleField
-        - or kind == ExpressionKind.OptionalValue
+        match kind {
+            ExpressionKind.Field => true,
+            ExpressionKind.TupleField => true,
+            ExpressionKind.OptionalValue => true,
+            _ => false
+        }
     )
 
     if (condition) {
         return true
     }
 
-    return (
-        kind == ExpressionKind.Reference ?
-            expressions.references[integers.widen(expressions.payloads[node])] :
-            integers.narrow(in.context.metadata.usage.symbols + node)
-    )
-        -> usage({
-            context: in.context,
-            root: _,
-            slot: in.slot,
-            observe: false
-        })
+    const root = match {
+        kind == ExpressionKind.Reference =>
+            expressions.references[integers.widen(expressions.payloads[node])],
+        _ => integers.narrow(in.context.metadata.usage.symbols + node)
+    }
+
+    return usage({
+        context: in.context,
+        root: root,
+        slot: in.slot,
+        observe: false
+    })
 }

@@ -11,13 +11,15 @@ export type Input = ExprState
 export type Output = ExprState
 
 export default function (in: Input): Output {
-    const tokens = in.control.stream == 0 ? in.prepared.lexical.lexed.tokens :
-        in.prepared.lexical.interpolations[in.control.stream -
+    const tokens = match {
+        in.control.stream == 0 => in.prepared.lexical.lexed.tokens,
+        _ => in.prepared.lexical.interpolations[in.control.stream -
             1].lexed.tokens
+    }
 
     const start = in.control.index + 1
 
-    return {
+    const pending = {
         ...frame({
             kind: FrameKind.Condition,
             start: in.control.token.span.start,
@@ -30,21 +32,22 @@ export default function (in: Input): Output {
         connector: Connector.None,
         condition: false
     }
-        -> consume({
-            state: {
-                ...in,
-                frames: in.frames.push(_)[0],
-                control: {
-                    ...in.control,
-                    boundary: boundary({
-                        tokens,
-                        start
-                    }),
-                    boundary_stream: in.control.stream,
-                    minimum: 0,
-                    fresh_family: true
-                }
-            },
-            phase: Phase.BeginBinary
-        })
+
+    return consume({
+        state: {
+            ...in,
+            frames: in.frames.push(pending)[0],
+            control: {
+                ...in.control,
+                boundary: boundary({
+                    tokens,
+                    start
+                }),
+                boundary_stream: in.control.stream,
+                minimum: 0,
+                fresh_family: true
+            }
+        },
+        phase: Phase.BeginBinary
+    })
 }

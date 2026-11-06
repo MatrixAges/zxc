@@ -5,6 +5,7 @@ import {
     TransformKind
 } from "core/expression_table/kinds"
 
+import transform from "./collection/transform"
 import { buffer_slot, splice_retained_slot, splice_replacement_argument } from "./const"
 import nested from "./nested"
 import push from "./push"
@@ -24,22 +25,28 @@ export default function (in: Input): Output {
         const operation = expressions.collection_kinds[payload]
         const target = expressions.collection_targets[payload]
 
-        const queue = in.point.slot ==
+        const aliased = in.point.slot ==
             (
-                operation == CollectionKind.Splice ? splice_retained_slot :
-                    buffer_slot
+                match {
+                    operation == CollectionKind.Splice => splice_retained_slot,
+                    _ => buffer_slot
+                }
             )
-            -> (_ || (contents && nested({
+
+        const queue = match {
+            aliased || (contents && nested({
                 body,
                 node: target
-            })) ? push({
+            })) => push({
                 queue: in.state.queue,
                 first: body.prepared.first,
                 point: {
                     node: target,
                     slot: buffer_slot
                 }
-            }) : in.state.queue)
+            }),
+            _ => in.state.queue
+        }
 
         if (!contents) {
             return {
@@ -51,23 +58,33 @@ export default function (in: Input): Output {
         const first = integers.widen(expressions.collection_first[payload])
         const count = integers.widen(expressions.collection_count[payload])
 
-        const result = loop({
+        const result_initial = {
             queue,
             index: first
-        }, {
-            while: (state, context) => state.index < context.first + context.count,
-            next: (state, context) => {
-                const node = context.body.expressions.collection_arguments[state.index]
-                const used = match context.operation {
+        }
+
+        const result_scope = {
+            body,
+            operation,
+            first,
+            count
+        }
+
+        const result = loop(result_initial, {
+            while: state => state.index < result_scope.first + result_scope.count,
+            next: state => {
+                const node =
+                    result_scope.body.expressions.collection_arguments[state.index]
+                const used = match result_scope.operation {
                     CollectionKind.Push => true,
                     CollectionKind.Concat => nested({
-                        body: context.body,
+                        body: result_scope.body,
                         node
                     }),
                     CollectionKind.Splice =>
-                        state.index == context.first + splice_replacement_argument &&
+                        state.index == result_scope.first + splice_replacement_argument &&
                         nested({
-                            body: context.body,
+                            body: result_scope.body,
                             node
                         }),
                     _ => false
@@ -76,7 +93,7 @@ export default function (in: Input): Output {
                 if (used) {
                     state.queue = whole({
                         queue: state.queue,
-                        first: context.body.prepared.first,
+                        first: result_scope.body.prepared.first,
                         node
                     })
                 }
@@ -84,11 +101,6 @@ export default function (in: Input): Output {
                 state.index += 1
             },
             return: state => state.queue
-        }, {
-            body,
-            operation,
-            first,
-            count
         })
 
         return {
@@ -109,90 +121,19 @@ export default function (in: Input): Output {
 
         return {
             ...in.state,
-            queue: contents ? whole({
-                queue,
-                first: body.prepared.first,
-                node: expressions.update_values[payload]
-            }) : queue
+            queue: match {
+                contents => whole({
+                    queue,
+                    first: body.prepared.first,
+                    node: expressions.update_values[payload]
+                }),
+                _ => queue
+            }
         }
     }
 
     if (kind == ExpressionKind.Transform) {
-        const operation = expressions.transform_kinds[payload]
-        const target = expressions.transform_targets[payload]
-        const initial = expressions.transform_initials[payload]
-
-        if (operation == TransformKind.Reduce && initial != null) {
-            return push({
-                queue: in.state.queue,
-                first: body.prepared.first,
-                point: {
-                    node: initial,
-                    slot: in.point.slot
-                }
-            })
-                -> {
-                    ...in.state,
-                    queue: push({
-                        queue: _,
-                        first: body.prepared.first,
-                        point: {
-                            node: expressions.transform_bodies[payload],
-                            slot: in.point.slot
-                        }
-                    })
-                }
-        }
-
-        if (contents && operation == TransformKind.Map) {
-            return {
-                ...in.state,
-                queue: whole({
-                    queue: in.state.queue,
-                    first: body.prepared.first,
-                    node: expressions.transform_bodies[payload]
-                })
-            }
-        }
-
-        if (operation == TransformKind.Sort) {
-            return {
-                ...in.state,
-                queue: push({
-                    queue: in.state.queue,
-                    first: body.prepared.first,
-                    point: {
-                        node: target,
-                        slot: buffer_slot
-                    }
-                })
-            }
-        }
-
-        const condition = (
-            - contents
-            - and operation == TransformKind.Filter
-            - and nested({
-                body,
-                node: target
-            })
-        )
-
-        if (condition) {
-            return {
-                ...in.state,
-                queue: push({
-                    queue: in.state.queue,
-                    first: body.prepared.first,
-                    point: {
-                        node: target,
-                        slot: buffer_slot
-                    }
-                })
-            }
-        }
-
-        return in.state
+        return transform(in)
     }
 
     if (!contents) {
@@ -215,6 +156,7 @@ export default function (in: Input): Output {
 
     const first = integers.widen(expressions.sequence_first[payload])
     const count = integers.widen(expressions.sequence_count[payload])
+    const end = first + count
 
     return {
         ...in.state,
@@ -222,19 +164,16 @@ export default function (in: Input): Output {
             queue: in.state.queue,
             index: first
         }, {
-            while: (state, context) => state.index < context.end,
-            next: (state, context) => {
+            while: state => state.index < end,
+            next: state => {
                 state.queue = whole({
                     queue: state.queue,
-                    first: context.body.prepared.first,
-                    node: context.body.expressions.sequence_items[state.index]
+                    first: body.prepared.first,
+                    node: body.expressions.sequence_items[state.index]
                 })
                 state.index += 1
             },
             return: state => state.queue
-        }, {
-            body,
-            end: first + count
         })
     }
 }

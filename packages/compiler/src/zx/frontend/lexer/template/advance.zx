@@ -101,9 +101,11 @@ export default function (in: Input): Output {
     if (in.state.mode == Mode.InterpolationLineComment) {
         return {
             ...in.state,
-            mode: in.byte == ascii_line_feed || in.byte == ascii_carriage_return ?
-                Mode.Interpolation :
-                Mode.InterpolationLineComment
+            mode: match {
+                in.byte == ascii_line_feed || in.byte == ascii_carriage_return =>
+                    Mode.Interpolation,
+                _ => Mode.InterpolationLineComment
+            }
         }
     }
 
@@ -115,12 +117,13 @@ export default function (in: Input): Output {
         )
 
         if (condition_3) {
-            return in.state.offset + 2
-                -> {
-                    ...in.state,
-                    skip_until: _,
-                    mode: Mode.Interpolation
-                }
+            const next_skip_until = in.state.offset + 2
+
+            return {
+                ...in.state,
+                skip_until: next_skip_until,
+                mode: Mode.Interpolation
+            }
         }
 
         return in.state
@@ -131,14 +134,15 @@ export default function (in: Input): Output {
     }
 
     if (in.byte == ascii_open_brace || in.byte == ascii_close_brace) {
-        return (
-            in.byte == ascii_open_brace ? in.state.braces + 1 :
-                in.state.braces - 1
-        )
-            -> {
-                ...in.state,
-                braces: _
-            }
+        const next_braces = match {
+            in.byte == ascii_open_brace => in.state.braces + 1,
+            _ => in.state.braces - 1
+        }
+
+        return {
+            ...in.state,
+            braces: next_braces
+        }
     }
 
     if (in.byte == ascii_backtick) {
@@ -156,13 +160,16 @@ export default function (in: Input): Output {
         const next = in.next
 
         if (next == ascii_slash || next == ascii_asterisk) {
-            return in.state.offset + 2
-                -> {
-                    ...in.state,
-                    skip_until: _,
-                    mode: next == ascii_slash ? Mode.InterpolationLineComment :
-                        Mode.InterpolationBlockComment
+            const next_skip_until = in.state.offset + 2
+
+            return {
+                ...in.state,
+                skip_until: next_skip_until,
+                mode: match {
+                    next == ascii_slash => Mode.InterpolationLineComment,
+                    _ => Mode.InterpolationBlockComment
                 }
+            }
         }
     }
 

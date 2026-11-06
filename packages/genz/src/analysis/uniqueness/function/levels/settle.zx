@@ -14,31 +14,40 @@ export default function (in: Input): Output {
         changed: true
     }, {
         while: current => current.changed,
-        next: (current, context) => {
+        next: current => {
             const round = loop({
                 state: current.state,
                 index: 0,
                 changed: false
             }, {
-                while: (scan, source) => scan.index < source.repetitions.length,
-                next: (scan, source) => {
-                    const repetition = source.repetitions[scan.index]
-                    const row = integers.widen(repetition.owner)
-                        -> scan.state.carried[_]
+                while: scan => scan.index < in.repetitions.length,
+                next: scan => {
+                    const repetition = in.repetitions[scan.index]
+                    const computed_owner = integers.widen(repetition.owner)
 
-                    const slots = loop({
+                    const row = scan.state.carried[computed_owner]
+
+                    const slots_initial = {
                         state: scan.state,
                         slot: 0,
                         changed: false
-                    }, {
-                        while: (item, input) => item.slot < input.size,
-                        next: (item, input) => {
+                    }
+
+                    const slots_scope = {
+                        context: in.context,
+                        repetition,
+                        size: row.length
+                    }
+
+                    const slots = loop(slots_initial, {
+                        while: item => item.slot < slots_scope.size,
+                        next: item => {
                             const slot = integers.narrow(item.slot)
                             const before = query({
-                                context: input.context,
+                                context: slots_scope.context,
                                 state: item.state,
                                 request: {
-                                    node: input.repetition.initial,
+                                    node: slots_scope.repetition.initial,
                                     slot,
                                     raw: false
                                 }
@@ -51,23 +60,23 @@ export default function (in: Input): Output {
                             }
 
                             const start = entering({
-                                context: input.context,
-                                owner: input.repetition.owner,
+                                context: slots_scope.context,
+                                owner: slots_scope.repetition.owner,
                                 slot,
                                 value: before.value
                             })
 
                             const body = query({
-                                context: input.context,
+                                context: slots_scope.context,
                                 state: before_state,
                                 request: {
-                                    node: input.repetition.body,
+                                    node: slots_scope.repetition.body,
                                     slot,
                                     raw: false
                                 }
                             })
 
-                            const owner = integers.widen(input.repetition.owner)
+                            const owner = integers.widen(slots_scope.repetition.owner)
                             const previous = item.state.carried[owner][item.slot]
                             const next = meet({
                                 left: meet({
@@ -99,25 +108,24 @@ export default function (in: Input): Output {
 
                             item.slot += 1
                         }
-                    }, {
-                        context: source.context,
-                        repetition,
-                        size: row.length
                     })
 
                     scan.state = slots.state
                     scan.changed = scan.changed || slots.changed
                     scan.index += 1
                 }
-            }, context)
+            })
 
-            current.state = round.changed ? {
-                ...round.state,
-                known: invalidate(round.state.known)
-            } : round.state
+            current.state = match {
+                round.changed => {
+                    ...round.state,
+                    known: invalidate(round.state.known)
+                },
+                _ => round.state
+            }
             current.changed = round.changed
         }
-    }, in)
+    })
 
     return result.state
 }

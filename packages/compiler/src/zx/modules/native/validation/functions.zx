@@ -55,12 +55,15 @@ export default function (in: Input): Output {
                         count: declaration.count,
                         parameter: true
                     })
-                    const diagnostic = parameters.message == "" ? members({
-                        native: current.input,
-                        first: declaration.first_error,
-                        count: declaration.error_count,
-                        parameter: false
-                    }) : parameters
+                    const diagnostic = match {
+                        parameters.message == "" => members({
+                            native: current.input,
+                            first: declaration.first_error,
+                            count: declaration.error_count,
+                            parameter: false
+                        }),
+                        _ => parameters
+                    }
 
                     current.code = diagnostic.code
                     current.message = diagnostic.message

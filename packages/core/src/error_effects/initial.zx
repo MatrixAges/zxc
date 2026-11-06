@@ -43,18 +43,21 @@ export default function (in: Input): Output {
 
     const block = in.root
 
-    const frames: Frame[] = block == null ? [] : [{
-        operation: Operation.Block,
-        source: root.source,
-        index: integers.widen(in.control.block_first[integers.widen(
-            block
-        )]),
-        count: integers.widen(
-            in.control.block_count[integers.widen(
+    const frames: Frame[] = match {
+        block == null => [],
+        _ => [{
+            operation: Operation.Block,
+            source: root.source,
+            index: integers.widen(in.control.block_first[integers.widen(
                 block
-            )]
-        )
-    }]
+            )]),
+            count: integers.widen(
+                in.control.block_count[integers.widen(
+                    block
+                )]
+            )
+        }]
+    }
 
     return contracts({
         state: {

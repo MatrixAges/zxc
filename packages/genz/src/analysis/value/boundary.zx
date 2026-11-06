@@ -17,11 +17,14 @@ export default function (in: Input): Output {
     const functions = in.program.functions
     const types = in.program.types
 
+    const io = functions.native_io
+    const process = functions.native_process
+    const index = in.position
+
     const condition = (
         - in.borrowed
         - and (
-            functions.native_io[in.position] ||
-                functions.native_process[in.position]
+            io[index] || process[index]
         )
     )
 
@@ -46,20 +49,20 @@ export default function (in: Input): Output {
         })
     }
 
-    const index = integers.widen(input)
+    const type_index = integers.widen(input)
 
-    if (types.kinds[index] != 4) {
+    if (types.kinds[type_index] != 4) {
         return false
     }
 
     return loop({
         types,
         borrowed: in.borrowed,
-        position: integers.widen(types.first[index]),
+        position: integers.widen(types.first[type_index]),
         end:
-            integers.widen(types.first[index]) +
+            integers.widen(types.first[type_index]) +
             integers.widen(
-                types.second[index]
+                types.second[type_index]
             ),
         valid: true
     }, {

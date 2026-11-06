@@ -1,0 +1,53 @@
+import consumes from "./consumes"
+import { Usage } from "./model"
+
+import type { Query } from "./model"
+
+export type Input = {
+    query: Query,
+    states: Usage[],
+    base: u64,
+    site: u64,
+    repeated: bool,
+    first: u64,
+    end: u64
+}
+
+export type Output = {
+    states: Usage[],
+    active: u64
+}
+
+export default function (in: Input): Output {
+    return loop({
+        states: in.states,
+        active: 0,
+        slot: in.first
+    }, {
+        while: slot => slot.slot < in.end,
+        next: slot => {
+            const position = in.base + slot.slot
+            const used = slot.states[position] != Usage.Shared && consumes({
+                query: in.query,
+                site: in.site,
+                slot: slot.slot,
+                kind: in.query.plan.sites.role[in.site]
+            })
+
+            if (used) {
+                if (in.repeated) {
+                    slot.states[position] = Usage.Shared
+                } else {
+                    slot.states[position] = Usage.Linear
+                    slot.active += 1
+                }
+            }
+
+            slot.slot += 1
+        },
+        return: state => state.pick([
+            "states",
+            "active"
+        ])
+    })
+}

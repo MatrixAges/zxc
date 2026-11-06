@@ -44,9 +44,11 @@ export default function (in: Input): Output {
 
     const body_type = state.local.expressions.types[integers.widen(in.body)]
 
+    const valid_body_type = body_type < type_id_u8 || body_type > type_id_f64
+
     const invalid = (
         - in.kind == TransformKind.Sort
-        - and (body_type < type_id_u8 || body_type > type_id_f64)
+        - and (valid_body_type)
     )
 
     if (invalid) {
@@ -69,24 +71,27 @@ export default function (in: Input): Output {
         }
     }
 
-    const result = in.kind == TransformKind.Map ? construct({
-        state,
-        candidate: {
-            kind: Kind.List,
-            first: state.local.expressions.types[integers.widen(in.body)],
-            second: 0,
-            label: "",
-            children: [],
-            fields: {
-                names: [],
-                types: []
+    const result = match {
+        in.kind == TransformKind.Map => construct({
+            state,
+            candidate: {
+                kind: Kind.List,
+                first: state.local.expressions.types[integers.widen(in.body)],
+                second: 0,
+                label: "",
+                children: [],
+                fields: {
+                    names: [],
+                    types: []
+                },
+                names: []
             },
-            names: []
-        },
-        span: in.span
-    }) : {
-        state,
-        id: in.result_type
+            span: in.span
+        }),
+        _ => {
+            state,
+            id: in.result_type
+        }
     }
 
     return {

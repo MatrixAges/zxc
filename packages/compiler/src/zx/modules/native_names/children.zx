@@ -32,13 +32,16 @@ export default function (in: Input): Output {
             current.remaining -= 1
 
             const position = current.positions[current.remaining]
-            const selected = current.object ? field({
-                source: current.state.source,
-                position
-            }).value : item({
-                source: current.state.source,
-                position
-            }).value
+            const selected = match {
+                current.object => field({
+                    source: current.state.source,
+                    position
+                }).value,
+                _ => item({
+                    source: current.state.source,
+                    position
+                }).value
+            }
 
             current.state.work.nodes =
                 current.state.work.nodes.push(

@@ -1,8 +1,7 @@
 import integers from "std:integer"
-import projection from "core/expression_table/append/projection"
 import scope from "core/expression_table/append/scope"
-import { ExpressionKind } from "core/expression_table/kinds"
 
+import type { Result } from "core/expression_table/append/model"
 import type { Expressions } from "core/expression_table/model"
 
 export type Input = {
@@ -14,55 +13,19 @@ export type Input = {
     end: u64
 }
 
-export type Output = {
-    table: Expressions,
-    id: u32,
-    direct: bool
-}
+export type Output = Result
 
 export default function (in: Input): Output {
-    const node = integers.widen(in.body)
-    const kind = in.table.kinds[node]
-    const payload = integers.widen(in.table.payloads[node])
-
-    const metadata = {
-        type_id: in.table.types[node],
-        span_start: in.start,
-        span_end: in.end
-    }
-
-    if (kind == ExpressionKind.Field || kind == ExpressionKind.TupleField) {
-        const target = integers.widen(in.table.projection_targets[payload])
-
-        if (
-            in.table.kinds[target] == ExpressionKind.Reference &&
-                in.table.references[integers.widen(in.table.payloads[target])] ==
-                in.parameter
-        ) {
-            return projection({
-                table: in.table,
-                metadata,
-                target: in.iteration,
-                index: in.table.projection_indices[payload],
-                tuple: kind == ExpressionKind.TupleField
-            })
-                -> {
-                    ..._,
-                    direct: true
-                }
-        }
-    }
-
     return scope({
         table: in.table,
-        metadata,
+        metadata: {
+            type_id: in.table.types[integers.widen(in.body)],
+            span_start: in.start,
+            span_end: in.end
+        },
         result: in.body,
         symbols: [in.parameter],
         values: [in.iteration],
         borrows: [false]
     })
-        -> {
-            ..._,
-            direct: false
-        }
 }

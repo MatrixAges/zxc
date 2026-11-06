@@ -65,17 +65,18 @@ export default function (in: Input): Output {
         _ => bounded.value
     }
 
-    return match in.operation {
+    const end = match in.operation {
         Operation.Take => bounded.value,
         Operation.DropRight => remaining.value,
         _ => length.value
     }
-        -> {
-            state: zero.state,
-            source,
-            result_type: in.state.local.expressions.types[integers.widen(source)],
-            start,
-            end: _,
-            span: in.span
-        }
+
+    return {
+        state: zero.state,
+        source,
+        result_type: in.state.local.expressions.types[integers.widen(source)],
+        start,
+        end: end,
+        span: in.span
+    }
 }

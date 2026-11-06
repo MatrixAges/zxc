@@ -17,36 +17,39 @@ export type Output = NativeState
 
 export default function (in: Input): Output {
     if (in.control.phase == Phase.Declarations) {
-        const declarations = current(in)
-            -> declarationStep({
-                state: in.declarations,
-                token: _
-            })
+        const token = current(in)
 
-        const phase = declarations.control.diagnostic.message != "" ||
+        const declarations = declarationStep({
+            state: in.declarations,
+            token: token
+        })
+
+        const failed = declarations.control.diagnostic.message != "" ||
             declarations.types.control.diagnostic.message != ""
-            -> match {
-                (_) => Phase.Done,
-                declarationDone(declarations.control.phase) => Phase.Start,
-                _ => Phase.Declarations
-            }
 
-        return declarations.control.index
-            -> {
-                lexed: in.lexed,
-                functions: in.functions,
-                parameters: in.parameters,
-                errors: in.errors,
-                declarations,
-                control: {
-                    injected: in.control.injected,
-                    parameter: in.control.parameter,
-                    current: in.control.current,
-                    phase,
-                    index: _,
-                    diagnostic: in.control.diagnostic
-                }
+        const phase = match {
+            (failed) => Phase.Done,
+            declarationDone(declarations.control.phase) => Phase.Start,
+            _ => Phase.Declarations
+        }
+
+        const index = declarations.control.index
+
+        return {
+            lexed: in.lexed,
+            functions: in.functions,
+            parameters: in.parameters,
+            errors: in.errors,
+            declarations,
+            control: {
+                injected: in.control.injected,
+                parameter: in.control.parameter,
+                current: in.control.current,
+                phase,
+                index: index,
+                diagnostic: in.control.diagnostic
             }
+        }
     }
 
     switch (in.control.phase) {

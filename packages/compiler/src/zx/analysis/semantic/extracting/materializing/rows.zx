@@ -41,10 +41,13 @@ export default function (in: Input): Output {
             const second = current.source.second[id]
             const dynamic =
                 (
-                    - type_kind == Kind.Tuple
-                    - or type_kind == Kind.Object
-                    - or type_kind == Kind.ErrorSet
-                    - or type_kind == Kind.Enumeration
+                    match type_kind {
+                        Kind.Tuple => true,
+                        Kind.Object => true,
+                        Kind.ErrorSet => true,
+                        Kind.Enumeration => true,
+                        _ => false
+                    }
                 )
             const fixed =
                 type_kind == Kind.Optional || type_kind == Kind.List ||
@@ -54,21 +57,26 @@ export default function (in: Input): Output {
                 Kind.Object => current.table.field_types.length,
                 _ => current.table.names.length
             }
-            const mapped_first = (
-                fixed ? integers.narrow(
+            const fixed_first = match {
+                fixed => integers.narrow(
                     current.plan.mapping[integers.widen(
                         first
                     )] - 1
-                ) : first
-            )
-                -> (dynamic ? integers.narrow(offset) : _)
+                ),
+                _ => first
+            }
+
+            const mapped_first = dynamic ? integers.narrow(offset) : fixed_first
             const mapped_second =
-                type_kind ==
-                Kind.Task ? integers.narrow(
-                    current.plan.mapping[integers.widen(
-                        second
-                    )] - 1
-                ) : second
+                match {
+                    type_kind ==
+                        Kind.Task => integers.narrow(
+                            current.plan.mapping[integers.widen(
+                                second
+                            )] - 1
+                        ),
+                    _ => second
+                }
 
             if (current.member == 0) {
                 current.table.kinds = current.table.kinds.push(code)[0]

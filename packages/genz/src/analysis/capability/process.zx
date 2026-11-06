@@ -19,15 +19,18 @@ export default function (in: Input): Output {
             const index = current.index
 
             current.required[index] =
-                current.functions.native_modules[index] !=
-                null ? current.functions.native_process[index] : uses({
-                    expressions: current.functions.expressions[index],
-                    contracts: current.functions.contracts[index],
-                    required: current.required,
-                    self_function: index,
-                    limit: index,
-                    tasks: false
-                })
+                match {
+                    current.functions.native_modules[index] !=
+                        null => current.functions.native_process[index],
+                    _ => uses({
+                        expressions: current.functions.expressions[index],
+                        contracts: current.functions.contracts[index],
+                        required: current.required,
+                        self_function: index,
+                        limit: index,
+                        tasks: false
+                    })
+                }
             current.index += 1
         },
         return: state => state.required

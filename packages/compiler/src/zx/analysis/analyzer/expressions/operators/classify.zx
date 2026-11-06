@@ -11,15 +11,19 @@ export type Output = {
 export default function (in: Input): Output {
     const equality = in == BinaryOperator.Equal || in == BinaryOperator.NotEqual
 
-    return (
-        - in == BinaryOperator.Less
-        - or in == BinaryOperator.LessEqual
-        - or in == BinaryOperator.Greater
-        - or in == BinaryOperator.GreaterEqual
-    )
-        -> {
-            logical: in == BinaryOperator.LogicalAnd || in == BinaryOperator.LogicalOr,
-            comparison: equality || _,
-            equality
+    const ordered = (
+        match in {
+            BinaryOperator.Less => true,
+            BinaryOperator.LessEqual => true,
+            BinaryOperator.Greater => true,
+            BinaryOperator.GreaterEqual => true,
+            _ => false
         }
+    )
+
+    return {
+        logical: in == BinaryOperator.LogicalAnd || in == BinaryOperator.LogicalOr,
+        comparison: equality || ordered,
+        equality
+    }
 }

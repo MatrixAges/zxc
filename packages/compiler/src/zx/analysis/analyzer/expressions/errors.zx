@@ -12,28 +12,28 @@ export type Input = {
 
 export type Output = string[]?
 
-    export default function (in: Input): Output {
-        return analyze({
-            context: {
-                types: {
-                    base: in.state.types.context.base,
-                    delta: in.state.types.delta
-                },
-                functions: in.functions
+export default function (in: Input): Output {
+    return analyze({
+        context: {
+            types: {
+                base: in.state.types.context.base,
+                delta: in.state.types.delta
             },
-            expressions: in.state.local.expressions,
-            control: empty(),
-            root: null,
-            contracts: {
-                kinds: [],
-                predicates: [],
-                symbols: [],
-                expressions: [],
-                span_start: [],
-                span_end: []
-            },
-            stores: false,
-            expression: in.value,
-            program: false
-        })
-    }
+            functions: in.functions
+        },
+        expressions: in.state.local.expressions,
+        control: empty(),
+        root: null,
+        contracts: {
+            kinds: [],
+            predicates: [],
+            symbols: [],
+            expressions: [],
+            span_start: [],
+            span_end: []
+        },
+        stores: false,
+        expression: in.value,
+        program: false
+    })
+}

@@ -19,7 +19,7 @@ pub fn checkHeader(allocator: std.mem.Allocator, source: []const u8, comments: a
 }
 
 pub fn checkView(allocator: std.mem.Allocator, source: []const u8, comments: anytype, view: anytype, contracts: anytype, body: anytype) std.mem.Allocator.Error!?zx.Diagnostic {
-    if (@import("root.zig").checkViewStyle(view, contracts, body)) |issue| return issue;
+    if (@import("root.zig").checkSourceStyle(source, view, contracts, body)) |issue| return issue;
 
     var arena = std.heap.ArenaAllocator.init(allocator);
 

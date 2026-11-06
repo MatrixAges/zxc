@@ -24,7 +24,7 @@ export type Input = {
 export type Output = Result
 
 export default function (in: Input): Output {
-    const captured = concurrency({
+    const concurrent = concurrency({
         functions: {
             native_modules: in.functions.native_modules,
             native_concurrent: in.functions.native_concurrent,
@@ -33,13 +33,14 @@ export default function (in: Input): Output {
         },
         concurrent: true
     })
-        -> captures({
-            state: in.state,
-            first: in.first,
-            symbol_count: in.symbol_count,
-            concurrent: _,
-            span: in.span
-        })
+
+    const captured = captures({
+        state: in.state,
+        first: in.first,
+        symbol_count: in.symbol_count,
+        concurrent: concurrent,
+        span: in.span
+    })
 
     if (captured.state.diagnostic.message != "") {
         return {

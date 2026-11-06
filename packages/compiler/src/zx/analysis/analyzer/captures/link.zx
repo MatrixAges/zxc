@@ -24,12 +24,15 @@ export default function (in: Input): Output {
         frames: {
             ...in.captures.frames,
             first:
-                previous ==
-                null ? in.captures.frames.first.splice(
-                    frame,
-                    1,
-                    [link]
-                )[0] : in.captures.frames.first,
+                match {
+                    previous ==
+                        null => in.captures.frames.first.splice(
+                            frame,
+                            1,
+                            [link]
+                        )[0],
+                    _ => in.captures.frames.first
+                },
             last: in.captures.frames.last.splice(frame, 1, [link])[0]
         },
         bindings: {
@@ -37,12 +40,15 @@ export default function (in: Input): Output {
             targets: in.captures.bindings.targets.push(in.target)[0],
             values: in.captures.bindings.values.push(in.value)[0],
             next:
-                previous !=
-                null ? next.splice(
-                    integers.widen(previous),
-                    1,
-                    [link]
-                )[0] : next
+                match {
+                    previous !=
+                        null => next.splice(
+                            integers.widen(previous),
+                            1,
+                            [link]
+                        )[0],
+                    _ => next
+                }
         }
     }
 }

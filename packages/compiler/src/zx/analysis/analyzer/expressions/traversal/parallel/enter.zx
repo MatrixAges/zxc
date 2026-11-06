@@ -10,9 +10,10 @@ export type Output = Work
 export default function (in: Input): Output {
     const node = in.source.tree.nodes[in.node]
 
+    const argument = node.count == 1 ? in.source.tree.items[node.head - 1].value : in.node
+
     const object =
-        (node.count == 1 ? in.source.tree.items[node.head - 1].value : in.node)
-        -> in.source.tree.nodes[_]
+        in.source.tree.nodes[argument]
 
     if (node.count != 1 || object.kind != ExprKind.Object) {
         return {

@@ -1,7 +1,8 @@
 import integers from "std:integer"
 
+import gather from "../../../captures/gather"
 import callback from "../../../iteration/callback"
-import scope from "../../../iteration/context_scope"
+import environment from "../../../iteration/environment"
 import finish from "../../../iteration/finish"
 import leave from "../../../iteration/leave"
 import { Phase, Action } from "../model"
@@ -17,20 +18,32 @@ export type Input = {
 export type Output = Work
 
 export default function (in: Input): Output {
-    if (in.action == Action.IterationInitial || in.action == Action.IterationContext) {
-        return start(in)
+    if (in.action == Action.IterationInitial) {
+        return start({
+            work: in.work
+        })
     }
 
     const work = in.work
     const position = work.frames.iterations.length - 1
     const frame = work.frames.iterations[position]
 
-    const body = scope({
+    const captures = match {
+        frame.context.capture_frame == null => {
+            sources: [],
+            targets: [],
+            values: []
+        },
+        _ => gather({
+            captures: work.state.local.captures,
+            frame: frame.context.capture_frame
+        })
+    }
+
+    const body = {
         local: work.state.local,
-        value: work.value,
-        parameter: frame.readonly != null ? frame.readonly.parameter : null,
-        reference: frame.readonly != null ? frame.readonly.reference : null
-    })
+        value: work.value
+    }
 
     const state = {
         ...work.state,
@@ -46,32 +59,29 @@ export default function (in: Input): Output {
             source: work.source,
             node: frame.step_node,
             type_id: state.local.expressions.types[integers.widen(frame.initial)],
-            updating: true,
-            readonly_value: frame.readonly != null ? frame.readonly.reference : null
+            updating: true
         })
 
-        return work.frames.iterations.splice(position, 1, [{
+        const iterations = work.frames.iterations.splice(position, 1, [{
             ...frame,
             condition: body.value,
+            condition_captures: captures,
             parameter: entered.parameter,
-            readonly: frame.readonly != null ? {
-                ...frame.readonly,
-                parameter: entered.readonly_parameter
-            } : null,
             context: entered.context
         }])[0]
-            -> {
-                ...work,
-                state: entered.state,
-                node: entered.body,
-                expected: null,
-                phase: Phase.StateBlock,
-                frames: {
-                    ...work.frames,
-                    iterations: _,
-                    actions: work.frames.actions.push(Action.IterationStep)[0]
-                }
+
+        return {
+            ...work,
+            state: entered.state,
+            node: entered.body,
+            expected: null,
+            phase: Phase.StateBlock,
+            frames: {
+                ...work.frames,
+                iterations: iterations,
+                actions: work.frames.actions.push(Action.IterationStep)[0]
             }
+        }
     }
 
     if (in.action == Action.IterationStep && frame.result_node != null) {
@@ -80,8 +90,7 @@ export default function (in: Input): Output {
             source: work.source,
             node: frame.result_node,
             type_id: state.local.expressions.types[integers.widen(frame.initial)],
-            updating: false,
-            readonly_value: frame.readonly != null ? frame.readonly.reference : null
+            updating: false
         })
 
         return {
@@ -95,11 +104,8 @@ export default function (in: Input): Output {
                 iterations: work.frames.iterations.splice(position, 1, [{
                     ...frame,
                     step_body: body.value,
+                    step_captures: captures,
                     result_parameter: entered.parameter,
-                    readonly: frame.readonly != null ? {
-                        ...frame.readonly,
-                        parameter: entered.readonly_parameter
-                    } : null,
                     context: entered.context
                 }])[0],
                 actions: work.frames.actions.push(Action.IterationReturn)[0]
@@ -109,15 +115,33 @@ export default function (in: Input): Output {
 
     const span = work.source.tree.nodes[frame.node].span
 
-    const result = finish({
-        local: state.local,
-        frame,
+    const prepared = environment({
+        state,
+        frame: {
+            ...frame,
+            step_captures: match {
+                in.action == Action.IterationStep => captures,
+                _ => frame.step_captures
+            }
+        },
         body: in.action == Action.IterationReturn ? frame.step_body : body.value,
         projection:
-            in.action == Action.IterationReturn && frame.result_parameter != null ? {
-                parameter: frame.result_parameter,
-                body: body.value
-            } : null,
+            match {
+                in.action == Action.IterationReturn && frame.result_parameter != null => {
+                    parameter: frame.result_parameter,
+                    body: body.value
+                },
+                _ => null
+            },
+        captures,
+        span
+    })
+
+    const result = finish({
+        local: prepared.state.local,
+        frame: prepared.frame,
+        body: prepared.body,
+        projection: prepared.projection,
         start: span.start,
         end: span.end
     })
@@ -125,7 +149,7 @@ export default function (in: Input): Output {
     return {
         ...work,
         state: {
-            ...state,
+            ...prepared.state,
             local: result.local
         },
         value: result.value,

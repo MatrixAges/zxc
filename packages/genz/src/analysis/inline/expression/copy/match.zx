@@ -1,0 +1,42 @@
+export type Input = {
+    mapped: u32[],
+    has_subject: bool
+}
+
+export type Output = {
+    subject?: u32,
+    fallback: u32,
+    conditions: u32[],
+    results: u32[]
+}
+
+export default function (in: Input): Output {
+    const subject: u32? = in.has_subject ? in.mapped[0] : null
+    const start = subject == null ? 0 : 1
+    const none: u32[] = []
+
+    const arms = loop({
+        position: start,
+        end: in.mapped.length - 1,
+        conditions: none,
+        results: none
+    }, {
+        while: state => state.position < state.end,
+        next: state => {
+            state.conditions = state.conditions.push(in.mapped[state.position])[0]
+            state.results = state.results.push(in.mapped[state.position + 1])[0]
+            state.position += 2
+        },
+        return: state => state.pick([
+            "conditions",
+            "results"
+        ])
+    })
+
+    return {
+        subject,
+        fallback: in.mapped[in.mapped.length - 1],
+        conditions: arms.conditions,
+        results: arms.results
+    }
+}

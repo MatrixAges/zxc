@@ -42,24 +42,26 @@ export default function (in: Input): Output {
         return false
     }
 
-    const condition_type = subject == null ? 1 :
-        expressions.types[integers.widen(
+    const condition_type = match {
+        subject == null => 1,
+        _ => expressions.types[integers.widen(
             subject
         )]
+    }
 
     const target = kind(context.table.kinds[integers.widen(
         condition_type
     )])
 
-    const condition = (
-        - subject != null
-        - and (
-            - target != Kind.Scalar
-            - and target != Kind.Enumeration
-            - and target != Kind.ErrorSet
-            - or condition_type == 0
-        )
-    )
+    const valid_target = match target {
+        Kind.Scalar => true,
+        Kind.Enumeration => true,
+        Kind.ErrorSet => true,
+        _ => false
+    }
+
+    const invalid_type = !valid_target || condition_type == 0
+    const condition = subject != null && invalid_type
 
     if (condition) {
         return false

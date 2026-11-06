@@ -70,12 +70,13 @@ export default function (in: Input): Output {
         }
     }
 
-    const entry = probe({
+    const slot = probe({
         entries: in.entries,
         buckets: in.buckets,
         request: in.request
     })
-        -> in.buckets[_]
+
+    const entry = in.buckets[slot]
 
     if (entry == max_u32) {
         return {

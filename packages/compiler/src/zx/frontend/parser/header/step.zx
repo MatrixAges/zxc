@@ -19,16 +19,17 @@ export default function (in: Input): Output {
         return predicate(in)
     }
 
-    const state = current(in.expression)
-        -> {
-            expression: in.expression,
-            body: in.body,
-            contracts: in.contracts,
-            control: {
-                ...in.control,
-                token: _.token
-            }
+    const at = current(in.expression)
+
+    const state = {
+        expression: in.expression,
+        body: in.body,
+        contracts: in.contracts,
+        control: {
+            ...in.control,
+            token: at.token
         }
+    }
 
     switch (state.control.phase) {
         case HeaderPhase.Contract: return contracts(state)

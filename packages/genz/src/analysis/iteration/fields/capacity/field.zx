@@ -25,9 +25,11 @@ export default function (in: Input): Output {
         return null
     }
 
-    return integers.widen(in.expressions.payloads[target])
-        -> (
-            in.expressions.references[_] == in.parameter ?
-                in.expressions.projection_indices[payload] : null
-        )
+    const reference = integers.widen(in.expressions.payloads[target])
+
+    return match {
+        in.expressions.references[reference] == in.parameter =>
+            in.expressions.projection_indices[payload],
+        _ => null
+    }
 }

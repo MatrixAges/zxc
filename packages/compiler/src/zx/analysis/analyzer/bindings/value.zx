@@ -71,9 +71,11 @@ export default function (in: Input): Output {
             diagnostic: {
                 code: hidden.found ? "ownership" : "name",
                 message:
-                    hidden.found ?
-                    "ZX callbacks cannot capture outer bindings; use explicit callback parameters" :
-                    "unknown value or use before declaration",
+                    match {
+                        hidden.found =>
+                            "ZX callbacks cannot capture outer bindings; use explicit callback parameters",
+                        _ => "unknown value or use before declaration"
+                    },
                 start: in.name.start,
                 end: in.name.end
             }

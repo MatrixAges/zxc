@@ -35,19 +35,24 @@ export default function (in: Input): Output {
             id: type_id
         })
 
+        const not_enumeration = target.kind != Kind.Enumeration
+
+        const type_id_2 = !(
+            type_id >= 2 && type_id <= 7
+        )
+
         const condition = (
-            - target.kind != Kind.Enumeration
+            - not_enumeration
             - and target.kind != Kind.ErrorSet
-            - and !(
-                type_id >= 2 && type_id <= 7
-            )
+            - and type_id_2
             - and type_id != 1
             - and type_id != 10
         )
 
         if (condition) {
-            const span = work.source.blocks.statements[frame.statement]
-                -> work.source.tree.nodes[_.first].span
+            const statement = work.source.blocks.statements[frame.statement]
+
+            const span = work.source.tree.nodes[statement.first].span
 
             return {
                 ...work,
@@ -98,39 +103,43 @@ export default function (in: Input): Output {
             local: state.local,
             tree: work.source.blocks,
             block: source.body,
-            state_symbol: frame.state_symbol
+            state_symbol: frame.state_symbol,
+            value_block: false,
+            expected: null
         })
 
-        return work.frames.switches.splice(position, 1, [{
+        const switches = work.frames.switches.splice(position, 1, [{
             ...frame,
             conditions: frame.conditions.push(work.value)[0]
         }])[0]
-            -> {
-                ...work,
-                state,
-                scopes,
-                phase: Phase.ScopeNext,
-                frames: {
-                    ...work.frames,
-                    switches: _,
-                    actions: work.frames.actions.push(Action.StateCase)[0]
-                }
+
+        return {
+            ...work,
+            state,
+            scopes,
+            phase: Phase.ScopeNext,
+            frames: {
+                ...work.frames,
+                switches: switches,
+                actions: work.frames.actions.push(Action.StateCase)[0]
             }
+        }
     }
 
     const fallback: u32? = source.value == 0 ? work.value : frame.fallback
 
-    return {
+    const updated = {
         ...frame,
         index: frame.index + 1,
         fallback,
         results: source.value == 0 ? frame.results : frame.results.push(work.value)[0]
     }
-        -> next({
-            ...work,
-            frames: {
-                ...work.frames,
-                switches: work.frames.switches.splice(position, 1, [_])[0]
-            }
-        })
+
+    return next({
+        ...work,
+        frames: {
+            ...work.frames,
+            switches: work.frames.switches.splice(position, 1, [updated])[0]
+        }
+    })
 }

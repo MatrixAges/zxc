@@ -27,12 +27,15 @@ export default function (in: Input): Output {
     }, {
         while: current => current.index < current.count,
         next: current => {
-            current.definitions = current.definitions.push(current.index == 0 ? {
-                kind: Definition.Input,
-                value: max_u32,
-                index: max_u32,
-                repeated: max_u32
-            } : current.unknown[0])[0]
+            current.definitions = current.definitions.push(match {
+                current.index == 0 => {
+                    kind: Definition.Input,
+                    value: max_u32,
+                    index: max_u32,
+                    repeated: max_u32
+                },
+                _ => current.unknown[0]
+            })[0]
             current.index += 1
         },
         return: state => state.definitions

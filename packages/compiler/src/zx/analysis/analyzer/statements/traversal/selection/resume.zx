@@ -33,19 +33,24 @@ export default function (in: Input): Output {
             id: type_id
         })
 
+        const not_enumeration = target.kind != Kind.Enumeration
+
+        const type_id_2 = !(
+            type_id >= 2 && type_id <= 7
+        )
+
         const condition = (
-            - target.kind != Kind.Enumeration
+            - not_enumeration
             - and target.kind != Kind.ErrorSet
-            - and !(
-                type_id >= 2 && type_id <= 7
-            )
+            - and type_id_2
             - and type_id != 1
             - and type_id != 10
         )
 
         if (condition) {
-            const span = body.expression.source.blocks.statements[frame.statement]
-                -> body.expression.source.tree.nodes[_.first].span
+            const statement = body.expression.source.blocks.statements[frame.statement]
+
+            const span = body.expression.source.tree.nodes[statement.first].span
 
             return {
                 ...body,
@@ -102,22 +107,23 @@ export default function (in: Input): Output {
             block: source.body
         })
 
-        return body.selections.splice(position, 1, [{
+        const selections = body.selections.splice(position, 1, [{
             ...frame,
             labels: frame.labels.push(value)[0],
             values: frame.values.push(value)[0]
         }])[0]
-            -> {
-                ...body,
-                expression: {
-                    ...body.expression,
-                    state: checked
-                },
-                blocks,
-                selections: _,
-                actions: body.actions.push(Action.Case)[0],
-                phase: Phase.Next
-            }
+
+        return {
+            ...body,
+            expression: {
+                ...body.expression,
+                state: checked
+            },
+            blocks,
+            selections: selections,
+            actions: body.actions.push(Action.Case)[0],
+            phase: Phase.Next
+        }
     }
 
     return {

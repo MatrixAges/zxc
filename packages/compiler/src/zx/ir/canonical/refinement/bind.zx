@@ -48,8 +48,10 @@ export default function (in: Input): Output {
     const err = in.err
     const result = in.result
 
+    const kind = in.expressions.kinds[in.value]
+
     const condition = (
-        - in.expressions.kinds[in.value] == ExpressionKind.Capture
+        - kind == ExpressionKind.Capture
         - and in.count == 2
         - and err != null
         - and result != null

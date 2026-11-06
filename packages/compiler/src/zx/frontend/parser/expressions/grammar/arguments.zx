@@ -20,32 +20,37 @@ export default function (in: Input): Output {
         return finish(taken)
     }
 
-    const loop_options =
-        (
-            - taken.frame.flag
-            - and taken.frame.count == 1
-            - and taken.state.tree.nodes[taken.frame.first].kind == ExprKind.Identifier
-            - and taken.state.tree.nodes[taken.frame.first].flag
-            - and taken.state.control.token.symbol == Symbol.OpenBrace
-        )
+    const is_open_brace = taken.state.control.token.symbol == Symbol.OpenBrace
+
+    const options_position = taken.frame.flag && taken.frame.count == 1
+
+    const loop_options = match {
+        !options_position => false,
+        taken.state.tree.nodes[taken.frame.first].kind != ExprKind.Identifier => false,
+        !taken.state.tree.nodes[taken.frame.first].flag => false,
+        _ => is_open_brace
+    }
 
     if (loop_options) {
-        return frame({
+        const continuation = frame({
             kind: FrameKind.OptionsValue,
             start: taken.state.control.token.span.start,
             depth: taken.state.control.depth
         })
-            -> taken.state.frames.push(taken.frame)[0].push(_)[0]
-            -> consume({
-                state: {
-                    prepared: taken.state.prepared,
-                    tree: taken.state.tree,
-                    types: taken.state.types,
-                    frames: _,
-                    control: taken.state.control
-                },
-                phase: Phase.ObjectName
-            })
+
+        const frames =
+            taken.state.frames.push(taken.frame)[0].push(continuation)[0]
+
+        return consume({
+            state: {
+                prepared: taken.state.prepared,
+                tree: taken.state.tree,
+                types: taken.state.types,
+                frames: frames,
+                control: taken.state.control
+            },
+            phase: Phase.ObjectName
+        })
     }
 
     const frames = taken.state.frames.push(taken.frame)[0]

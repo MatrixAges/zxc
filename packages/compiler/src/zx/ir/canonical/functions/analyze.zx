@@ -22,16 +22,18 @@ export default function (in: Input): Output {
         next: current => {
             const allowed =
                 current.functions.stores[current.index].paths.length == 0 &&
-                (current.functions.native_modules[current.index] != null ?
-                    current.concurrent &&
-                    current.functions.native_concurrent[current.index] :
-                    calls({
+                (match {
+                    current.functions.native_modules[current.index] != null =>
+                        current.concurrent &&
+                        current.functions.native_concurrent[current.index],
+                    _ => calls({
                         expressions: current.functions.expressions[current.index],
                         allowed: current.values,
                         self_function: current.index,
                         limit: current.index,
                         concurrent: current.concurrent
-                    }))
+                    })
+                })
 
             current.values[current.index] = allowed
             current.index += 1

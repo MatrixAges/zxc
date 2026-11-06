@@ -55,33 +55,43 @@ export default function (in: Input): Output {
             return result
         }
 
-        return in.state.local.stores.writable[integers.widen(result.slot)] ? result : {
-            state: {
-                ...in.state,
-                diagnostic: {
-                    code: "capability",
-                    message: "the Call did not grant write access to this Store handle",
-                    start: node.span.start,
-                    end: node.span.end
-                }
-            },
-            slot: result.slot
+        return match {
+            in.state.local.stores.writable[integers.widen(result.slot)] => result,
+            _ => {
+                state: {
+                    ...in.state,
+                    diagnostic: {
+                        code: "capability",
+                        message:
+                            "the Call did not grant write access to this Store handle",
+                        start: node.span.start,
+                        end: node.span.end
+                    }
+                },
+                slot: result.slot
+            }
         }
     }
 
     const root =
         in.source.tree.nodes[owner.kind == ExprKind.Field ? owner.first : in.node]
 
-    const condition = (
+    const not_identifier = root.kind != ExprKind.Identifier
+
+    const invalid_path = (
         - node.kind != ExprKind.Field
         - or owner.kind != ExprKind.Field
-        - or root.kind != ExprKind.Identifier
-        - or readName({
+        - or not_identifier
+    )
+
+    const condition = match {
+        invalid_path => true,
+        _ => readName({
             source: in.source,
             kind: NameKind.Expression,
             index: owner.first
         }).text != "store"
-    )
+    }
 
     if (condition) {
         return {

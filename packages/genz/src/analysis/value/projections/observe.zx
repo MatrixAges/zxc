@@ -12,9 +12,12 @@ export type Output = State
 export default function (in: Input): Output {
     const index = integers.widen(in.id)
 
-    return in.state.observed[index] ? in.state : {
-        ...in.state,
-        observed: in.state.observed.with(index, true),
-        pending: in.state.pending.push(in.id)[0]
+    return match {
+        in.state.observed[index] => in.state,
+        _ => {
+            ...in.state,
+            observed: in.state.observed.with(index, true),
+            pending: in.state.pending.push(in.id)[0]
+        }
     }
 }

@@ -48,17 +48,20 @@ export default function (in: Input): Output {
         value: 0
     })
 
-    const initial = sum ? zero({
-        state: position.state,
-        span: in.span,
-        type_id: in.element_type
-    }) : index({
-        state: position.state,
-        span: in.span,
-        index_span: in.span,
-        target: in.values[0],
-        index: position.value
-    })
+    const initial = match {
+        sum => zero({
+            state: position.state,
+            span: in.span,
+            type_id: in.element_type
+        }),
+        _ => index({
+            state: position.state,
+            span: in.span,
+            index_span: in.span,
+            target: in.values[0],
+            index: position.value
+        })
+    }
 
     const accumulator = symbol({
         state: initial.state,
@@ -100,13 +103,16 @@ export default function (in: Input): Output {
         right: right.value
     })
 
-    const body = sum ? check : choice({
-        state: check.state,
-        span: in.span,
-        condition: check.value,
-        yes: left.value,
-        no: right.value
-    })
+    const body = match {
+        sum => check,
+        _ => choice({
+            state: check.state,
+            span: in.span,
+            condition: check.value,
+            yes: left.value,
+            no: right.value
+        })
+    }
 
     const result = lower({
         tuple_result: false,

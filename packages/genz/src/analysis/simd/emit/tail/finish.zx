@@ -50,8 +50,10 @@ export default function (in: Input): Output {
         table: in.main,
         base: in.source.statement_base,
         iterable: remaining.id,
-        capture: in.source.uses_element ? in.values.element_name :
-            bytes.fromText(discard_capture),
+        capture: match {
+            in.source.uses_element => in.values.element_name,
+            _ => bytes.fromText(discard_capture)
+        },
         start: integers.narrow(
             integers.widen(in.source.statement_base) +
                 in.vector.tags.length

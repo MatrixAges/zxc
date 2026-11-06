@@ -21,9 +21,11 @@ export default function (in: Input): Output {
     const field = in.source.tree.fields[frame.fields[frame.index]]
     const callback = in.source.tree.nodes[field.value]
 
+    const not_lambda = callback.kind != ExprKind.Lambda
+
     const condition = (
         - field.spread
-        - or callback.kind != ExprKind.Lambda
+        - or not_lambda
         - or callback.count != 0
     )
 
@@ -77,21 +79,22 @@ export default function (in: Input): Output {
         }
     }
 
-    return {
+    const updated = {
         ...frame,
         names: frame.names.push(name.text)[0],
         first: in.state.local.expressions.kinds.length,
         symbol_count: in.state.local.symbols.names.length
     }
-        -> {
-            ...in,
-            node: callback.first,
-            expected: null,
-            phase: Phase.Evaluate,
-            frames: {
-                ...in.frames,
-                parallels: in.frames.parallels.splice(position, 1, [_])[0],
-                actions: in.frames.actions.push(Action.ParallelBody)[0]
-            }
+
+    return {
+        ...in,
+        node: callback.first,
+        expected: null,
+        phase: Phase.Evaluate,
+        frames: {
+            ...in.frames,
+            parallels: in.frames.parallels.splice(position, 1, [updated])[0],
+            actions: in.frames.actions.push(Action.ParallelBody)[0]
         }
+    }
 }

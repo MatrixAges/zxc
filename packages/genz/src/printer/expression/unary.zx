@@ -13,9 +13,9 @@ export type Output = Frame[]
 export default function (in: Input): Output {
     const tree = in.source.expressions
     const kind = tree.tags[integers.widen(in.frame.id)]
+    const id = tree.offsets[integers.widen(in.frame.id)]
 
-    const row = tree.offsets[integers.widen(in.frame.id)]
-        -> integers.widen(_)
+    const row = integers.widen(id)
 
     const frame: Frame = {
         action: Action.Text,
@@ -55,8 +55,11 @@ export default function (in: Input): Output {
         ExpressionsKind.MutableSlice => Token.Slice,
         ExpressionsKind.ManyPointer => Token.ManyPointer,
         _ =>
-            tree.unary_operator[row] ==
-            ExpressionsUnaryOperator.Negate ? Token.NegateOpen : Token.NotOpen,
+            match {
+                tree.unary_operator[row] ==
+                    ExpressionsUnaryOperator.Negate => Token.NegateOpen,
+                _ => Token.NotOpen
+            },
     }
 
     const suffix = match kind {
@@ -69,10 +72,13 @@ export default function (in: Input): Output {
         _ => Token.Empty,
     }
 
-    const opening: Frame[] = prefix == Token.Empty ? [] : [{
-        ...frame,
-        token: prefix
-    }]
+    const opening: Frame[] = match {
+        prefix == Token.Empty => [],
+        _ => [{
+            ...frame,
+            token: prefix
+        }]
+    }
 
     const operand = opening.push({
         ...frame,
@@ -80,8 +86,11 @@ export default function (in: Input): Output {
         id: child
     })[0]
 
-    return suffix == Token.Empty ? operand : operand.push({
-        ...frame,
-        token: suffix
-    })[0]
+    return match {
+        suffix == Token.Empty => operand,
+        _ => operand.push({
+            ...frame,
+            token: suffix
+        })[0]
+    }
 }

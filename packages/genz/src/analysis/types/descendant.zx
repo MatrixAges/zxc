@@ -20,12 +20,15 @@ export default function (in: Input): Output {
     })
 
     const stack =
-        in.types.kinds[integers.widen(in.parent)] ==
-        3 ? direct.push(
-            in.types.first[integers.widen(
-                in.parent
-            )]
-        )[0] : direct
+        match {
+            in.types.kinds[integers.widen(in.parent)] ==
+                3 => direct.push(
+                    in.types.first[integers.widen(
+                        in.parent
+                    )]
+                )[0],
+            _ => direct
+        }
 
     return loop({
         types: in.types,

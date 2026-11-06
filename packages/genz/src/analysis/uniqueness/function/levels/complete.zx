@@ -18,8 +18,11 @@ export type Input = {
 export default function (in: Input): Output {
     const result = in.result
 
-    const raw = in.operation == Operation.Pass && !unique(result.value)
-        -> (_ ? result.value : finish({
+    const unchanged = in.operation == Operation.Pass && !unique(result.value)
+
+    const raw = match {
+        unchanged => result.value,
+        _ => finish({
             context: in.context,
             ...in.pick([
                 "operation",
@@ -28,22 +31,29 @@ export default function (in: Input): Output {
             ]),
             slot: in.request.slot,
             value: result.value
-        }))
+        })
+    }
 
-    const value = !in.request.raw &&
+    const demanded = !in.request.raw &&
         (in.context.normalized.length != 0 || in.context.renewed.length != 0)
-        -> (_ ? materialize({
+
+    const value = match {
+        demanded => materialize({
             context: in.context,
             ...in.request.pick([
                 "node",
                 "slot"
             ]),
             value: raw
-        }) : raw)
+        }),
+        _ => raw
+    }
 
     return {
-        known: in.destination == null ? result.known :
-            result.known.with(in.destination, value),
+        known: match {
+            in.destination == null => result.known,
+            _ => result.known.with(in.destination, value)
+        },
         reads: result.reads,
         value
     }

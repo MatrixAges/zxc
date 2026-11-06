@@ -18,9 +18,12 @@ export default function (in: Input): Output {
     }
 
     const condition = (
-        - kind != ExpressionKind.Scope
-        - and kind != ExpressionKind.Conditional
-        - and kind != ExpressionKind.Match
+        match kind {
+            ExpressionKind.Scope => false,
+            ExpressionKind.Conditional => false,
+            ExpressionKind.Match => false,
+            _ => true
+        }
     )
 
     if (condition) {

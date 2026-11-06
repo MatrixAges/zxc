@@ -18,19 +18,24 @@ export type Output = Machine
 
 export default function (in: Input): Output {
     return loop(in, {
-        while: current =>
-            (
+        while: current => {
+            const actions = current.work.actions
+            const ready = (
                 - current.active
                 - and current.complete
                 - and !current.failed
-                - and current.work.actions.length != 0
-                - and (
-                    current.work.actions[current.work.actions.length - 1] ==
-                        WorkAction.IterationCondition ||
-                        current.work.actions[current.work.actions.length - 1] ==
-                        WorkAction.IterationBody
-                )
-            ),
+                - and actions.length != 0
+            )
+
+            return match {
+                ready => match actions[actions.length - 1] {
+                    WorkAction.IterationCondition => true,
+                    WorkAction.IterationBody => true,
+                    _ => false
+                },
+                _ => false
+            }
+        },
         next: current => {
             const frame = top(current.work)
 

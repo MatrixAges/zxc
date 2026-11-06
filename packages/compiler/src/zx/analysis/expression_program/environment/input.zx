@@ -19,19 +19,20 @@ export default function (in: Input): Output {
         ownership: Ownership.Copy
     })
 
-    const value = {
+    const local = {
         ...in.state.local,
         symbols: binding.table,
         active: in.state.local.active.push(binding.id)[0]
     }
-        -> reference({
-            state: {
-                ...in.state,
-                local: _
-            },
-            symbol: binding.id,
-            span: in.span
-        })
+
+    const value = reference({
+        state: {
+            ...in.state,
+            local: local
+        },
+        symbol: binding.id,
+        span: in.span
+    })
 
     return {
         ...in,

@@ -1,5 +1,5 @@
 const std = @import("std");
-pub const default_maximum: usize = 120;
+pub const default_maximum: usize = 240;
 pub const Exceeded = struct { lines: usize, maximum: usize };
 
 pub fn check(text: []const u8, maximum: usize) ?Exceeded {

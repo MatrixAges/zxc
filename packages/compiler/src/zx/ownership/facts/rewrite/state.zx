@@ -27,10 +27,13 @@ export default function (in: Input): Output {
     }
 
     if (in.action == RewriteAction.Freeze) {
-        return in.left == State.Owned || in.left == State.Loaned ? State.Borrowed :
-            in.left
+        return match {
+            in.left == State.Owned || in.left == State.Loaned => State.Borrowed,
+            _ => in.left
+        }
     }
 
-    return in.action == RewriteAction.ReleaseAllLoans || in.right != State.Loaned
-        -> (in.left == State.Loaned && _ ? State.Owned : in.left)
+    const release = in.action == RewriteAction.ReleaseAllLoans || in.right != State.Loaned
+
+    return in.left == State.Loaned && release ? State.Owned : in.left
 }

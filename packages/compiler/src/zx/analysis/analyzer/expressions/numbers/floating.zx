@@ -28,7 +28,9 @@ export default function (in: Input): Output {
 
     return {
         value: signed,
-        message: floats.isFinite(signed) ? "" :
-            "floating-point literal is outside the target range"
+        message: match {
+            floats.isFinite(signed) => "",
+            _ => "floating-point literal is outside the target range"
+        }
     }
 }

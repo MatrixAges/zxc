@@ -40,7 +40,7 @@ export default function (in: Input): Output {
         })
     }
 
-    return {
+    const computed_current = {
         name: {
             start: 0,
             end: 0
@@ -57,23 +57,24 @@ export default function (in: Input): Output {
         error_count: 0,
         concurrent: false
     }
-        -> advance({
-            state: {
-                lexed: in.lexed,
-                declarations: in.declarations,
-                functions: in.functions,
-                parameters: in.parameters,
-                errors: in.errors,
-                control: {
-                    phase: in.control.phase,
-                    index: in.control.index,
-                    parameter: in.control.parameter,
-                    diagnostic: in.control.diagnostic,
-                    current: _,
-                    injected: 0
-                }
-            },
-            phase: Phase.Declare,
-            count: 1
-        })
+
+    return advance({
+        state: {
+            lexed: in.lexed,
+            declarations: in.declarations,
+            functions: in.functions,
+            parameters: in.parameters,
+            errors: in.errors,
+            control: {
+                phase: in.control.phase,
+                index: in.control.index,
+                parameter: in.control.parameter,
+                diagnostic: in.control.diagnostic,
+                current: computed_current,
+                injected: 0
+            }
+        },
+        phase: Phase.Declare,
+        count: 1
+    })
 }

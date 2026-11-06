@@ -38,16 +38,19 @@ export default function (in: Input): Output {
             })
             const invalid = resolved.diagnostic.message == "" && resolved.result == 0
 
-            current.resolution = invalid ? fail({
-                state: resolved,
-                code: "type_mismatch",
-                message: "native void inputs use an empty parameter list",
-                name: {
-                    text: "",
-                    start: current.declaration.name.start,
-                    end: current.declaration.name.end
-                }
-            }) : resolved
+            current.resolution = match {
+                invalid => fail({
+                    state: resolved,
+                    code: "type_mismatch",
+                    message: "native void inputs use an empty parameter list",
+                    name: {
+                        text: "",
+                        start: current.declaration.name.start,
+                        end: current.declaration.name.end
+                    }
+                }),
+                _ => resolved
+            }
             current.types = current.types.push(resolved.result)[0]
             current.index += 1
         }

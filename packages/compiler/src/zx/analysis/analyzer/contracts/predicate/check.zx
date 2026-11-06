@@ -20,19 +20,22 @@ export default function (in: Input): Output {
             const kind = current.expressions.kinds[current.index]
             const forbidden =
                 (
-                    - kind == ExpressionKind.Call
-                    - or kind == ExpressionKind.StoreGet
-                    - or kind == ExpressionKind.ListOperation
-                    - or kind == ExpressionKind.Transform
-                    - or kind == ExpressionKind.Scope
-                    - or kind == ExpressionKind.Iteration
-                    - or kind == ExpressionKind.ListUpdate
-                    - or kind == ExpressionKind.Capture
-                    - or kind == ExpressionKind.OptionalValue
-                    - or kind == ExpressionKind.Task
-                    - or kind == ExpressionKind.AwaitTask
-                    - or kind == ExpressionKind.CancelTask
-                    - or kind == ExpressionKind.Parallel
+                    match kind {
+                        ExpressionKind.Call => true,
+                        ExpressionKind.StoreGet => true,
+                        ExpressionKind.ListOperation => true,
+                        ExpressionKind.Transform => true,
+                        ExpressionKind.Scope => true,
+                        ExpressionKind.Iteration => true,
+                        ExpressionKind.ListUpdate => true,
+                        ExpressionKind.Capture => true,
+                        ExpressionKind.OptionalValue => true,
+                        ExpressionKind.Task => true,
+                        ExpressionKind.AwaitTask => true,
+                        ExpressionKind.CancelTask => true,
+                        ExpressionKind.Parallel => true,
+                        _ => false
+                    }
                 )
 
             if (forbidden) {

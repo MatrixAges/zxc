@@ -14,24 +14,31 @@ export type Input = State
 export type Output = State
 
 export default function (in: Input): Output {
-    const offset = starts({
-        source: in.source,
-        offset: 0,
-        text: utf8_bom
-    }) ? utf8_bom.length : 0
+    const offset = match {
+        starts({
+            source: in.source,
+            offset: 0,
+            text: utf8_bom
+        }) => utf8_bom.length,
+        _ => 0
+    }
 
-    const parsed = starts({
+    const declared = starts({
         source: in.source,
         offset,
         text: xml_declaration_start
     })
-        -> (_ ? declaration({
+
+    const parsed = match {
+        declared => declaration({
             source: in.source,
             offset
-        }) : {
+        }),
+        _ => {
             end: offset,
             message: no_diagnostic
-        })
+        }
+    }
 
     const state = advance({
         state: in,

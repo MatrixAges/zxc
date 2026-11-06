@@ -17,18 +17,24 @@ export default function (in: Input): Output {
     const target = kind(in.types.kinds[integers.widen(in.id)])
 
     const condition = (
-        - target != Kind.Optional
-        - and target != Kind.Object
-        - and target != Kind.Tuple
+        match target {
+            Kind.Optional => false,
+            Kind.Object => false,
+            Kind.Tuple => false,
+            _ => true
+        }
     )
 
     if (condition) {
         return (
-            - target == Kind.List
-            - or target == Kind.Scalar
-            - or target == Kind.Enumeration
-            - or target == Kind.ErrorSet
-            - or target == Kind.NativeReference
+            match target {
+                Kind.List => true,
+                Kind.Scalar => true,
+                Kind.Enumeration => true,
+                Kind.ErrorSet => true,
+                Kind.NativeReference => true,
+                _ => false
+            }
         )
     }
 
@@ -47,9 +53,12 @@ export default function (in: Input): Output {
             current.pending = current.pending.pop()[0]
 
             const condition_2 = (
-                - target == Kind.Optional
-                - or target == Kind.Object
-                - or target == Kind.Tuple
+                match target {
+                    Kind.Optional => true,
+                    Kind.Object => true,
+                    Kind.Tuple => true,
+                    _ => false
+                }
             )
 
             if (condition_2) {
@@ -60,11 +69,14 @@ export default function (in: Input): Output {
                 }))[0]
             } else {
                 current.valid = (
-                    - target == Kind.List
-                    - or target == Kind.Scalar
-                    - or target == Kind.Enumeration
-                    - or target == Kind.ErrorSet
-                    - or target == Kind.NativeReference
+                    match target {
+                        Kind.List => true,
+                        Kind.Scalar => true,
+                        Kind.Enumeration => true,
+                        Kind.ErrorSet => true,
+                        Kind.NativeReference => true,
+                        _ => false
+                    }
                 )
             }
         },

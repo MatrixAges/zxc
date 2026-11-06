@@ -15,22 +15,25 @@ export default function (in: Input): Output {
     const frame = in.frames.objects[position]
     const field = in.source.tree.fields[frame.fields[frame.index]]
 
-    const result = field.spread ? spread({
-        state: in.state,
-        entries: frame.entries,
-        value: in.value,
-        span: in.source.tree.nodes[field.value].span
-    }) : {
-        state: in.state,
-        entries: replace({
+    const result = match {
+        field.spread => spread({
+            state: in.state,
             entries: frame.entries,
-            name: readName({
-                source: in.source,
-                kind: NameKind.Field,
-                index: frame.fields[frame.index]
-            }).text,
-            value: in.value
-        })
+            value: in.value,
+            span: in.source.tree.nodes[field.value].span
+        }),
+        _ => {
+            state: in.state,
+            entries: replace({
+                entries: frame.entries,
+                name: readName({
+                    source: in.source,
+                    kind: NameKind.Field,
+                    index: frame.fields[frame.index]
+                }).text,
+                value: in.value
+            })
+        }
     }
 
     if (result.state.diagnostic.message != "") {
@@ -40,18 +43,19 @@ export default function (in: Input): Output {
         }
     }
 
-    return in.frames.objects.splice(position, 1, [{
+    const objects = in.frames.objects.splice(position, 1, [{
         ...frame,
         index: frame.index + 1,
         entries: result.entries,
         evaluation: frame.evaluation.push(in.value)[0]
     }])[0]
-        -> next({
-            ...in,
-            state: result.state,
-            frames: {
-                ...in.frames,
-                objects: _
-            }
-        })
+
+    return next({
+        ...in,
+        state: result.state,
+        frames: {
+            ...in.frames,
+            objects: objects
+        }
+    })
 }

@@ -1,5 +1,9 @@
 import type { Table } from "core/type_table/model"
 import type { Constant } from "../../../ast/declarations/model"
+import type {
+    ExpressionsKind,
+    ExpressionsPrimitive
+} from "../../../printer/model/expressions"
 import type { Expressions } from "../abi/model"
 
 export type Input = {
@@ -42,4 +46,37 @@ export type Field = {
 export type Output = {
     types: Types,
     fields: Field[]
+}
+
+export type Build = {
+    source: Input,
+    names: string[],
+    claimed: bool[],
+    index: u64,
+    field_count: u64,
+    opaque_count: u64,
+    has_lists: bool,
+    valid: bool,
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    identifier: u8[][],
+    primitive: ExpressionsPrimitive[],
+    field_target: u32[],
+    field_name: u8[][],
+    const_pointer: u32[],
+    optional_type: u32[],
+    const_slice: u32[],
+    error_set: u8[][][],
+    error_union_payload: u32[],
+    error_union_errors: u8[][]?[],
+    error_union_inferred: bool[],
+    call_callee: u32[],
+    call_arguments: u32[][],
+    tuple_type: u32[][],
+    enum_type: u8[][][],
+    struct_type_start: u32[],
+    struct_type_len: u32[],
+    declarations: Constant[],
+    values: u32[],
+    layouts: u32[]
 }

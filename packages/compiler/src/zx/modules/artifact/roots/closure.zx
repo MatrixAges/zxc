@@ -25,11 +25,14 @@ export default function (in: Input): Output {
         while: current => current.valid && current.remaining > 0,
         next: current => {
             const index = current.remaining - 1
-            const child = current.needed[index] ? dependency({
-                table: current.table,
-                index,
-                edge: current.edge
-            }) : null
+            const child = match {
+                current.needed[index] => dependency({
+                    table: current.table,
+                    index,
+                    edge: current.edge
+                }),
+                _ => null
+            }
 
             if (child == null) {
                 current.remaining -= 1

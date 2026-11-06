@@ -235,7 +235,15 @@ fn lambda(parser: *Parser, updating: bool) zx.Error!*const ast.Expression {
 
     try parser.expect("=>");
 
-    const body = if (updating and parser.at("{")) try @import("parser_iteration.zig").body(parser) else try parse(parser, 0);
+    const value_block = parser.at("{") and parser.index + 1 < parser.tokens.len and (std.mem.eql(u8, parser.tokens[parser.index + 1].text(parser.source), "const") or std.mem.eql(u8, parser.tokens[parser.index + 1].text(parser.source), "return"));
+
+    const body = if (updating and parser.at("{"))
+        try @import("parser_iteration.zig").body(parser)
+
+    else if (value_block)
+        try @import("parser_iteration.zig").valueBody(parser)
+    else
+        try parse(parser, 0);
 
     return parser.make(start, .{ .lambda = .{ .parameters = try parameters.toOwnedSlice(parser.allocator), .body = body } });
 }

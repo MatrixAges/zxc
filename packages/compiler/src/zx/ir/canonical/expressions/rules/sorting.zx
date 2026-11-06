@@ -19,10 +19,13 @@ export default function (in: Input): Output {
     const source = expressions.types[integers.widen(target)]
     const first = integers.widen(expressions.transform_first[payload])
 
+    const source_kind = kind(context.table.kinds[integers.widen(source)])
+    const counts = expressions.transform_count
+
     const valid = (
-        - kind(context.table.kinds[integers.widen(source)]) == Kind.List
+        - source_kind == Kind.List
         - and initial != null
-        - and expressions.transform_count[payload] == 3
+        - and counts[payload] == 3
         - and in.type_id == source
     )
 
@@ -30,33 +33,46 @@ export default function (in: Input): Output {
         return false
     }
 
-    const parameters = loop({
+    const parameters_initial = {
         index: 0,
         valid: true
-    }, {
-        while: current => current.valid && current.index < 3,
-        next: (current, input) => {
-            const symbol = integers.widen(
-                input.expressions.transform_parameters[
-                    input.first + current.index
-                ]
-            )
-            const expected = current.index == 2 ? input.expressions
-                .types[
-                    integers.widen(input.initial)
-                ] : input.context.table.first[integers.widen(input.source)]
+    }
 
-            current.valid = symbol < input.context.symbols.types.length &&
-                input.context.symbols.types[symbol] == expected
-            current.index += 1
-        },
-        return: current => current.valid
-    }, {
+    const parameters_scope = {
         expressions,
         first,
         initial,
         context,
         source
+    }
+
+    const parameters = loop(parameters_initial, {
+        while: current => current.valid && current.index < 3,
+        next: current => {
+            const symbol = integers.widen(
+                parameters_scope.expressions
+                    .transform_parameters[
+                        parameters_scope.first + current.index
+                    ]
+            )
+            const expected = match {
+                current.index == 2 => parameters_scope.expressions
+                    .types[
+                        integers.widen(
+                            parameters_scope.initial
+                        )
+                    ],
+                _ => parameters_scope.context.table
+                    .first[integers.widen(
+                        parameters_scope.source
+                    )]
+            }
+
+            current.valid = symbol < parameters_scope.context.symbols.types.length &&
+                parameters_scope.context.symbols.types[symbol] == expected
+            current.index += 1
+        },
+        return: current => current.valid
     })
 
     const body_type = expressions

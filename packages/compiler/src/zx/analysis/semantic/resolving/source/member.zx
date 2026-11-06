@@ -17,9 +17,10 @@ export default function (in: Input): Output {
         return native.members[native.enumerations[in.enumeration].first + in.index]
     }
 
-    return in.source.indexed.declarations[in.enumeration]
-        -> text({
-            source: in.source.indexed.bytes,
-            span: in.source.indexed.members[_.first + in.index]
-        })
+    const declaration = in.source.indexed.declarations[in.enumeration]
+
+    return text({
+        source: in.source.indexed.bytes,
+        span: in.source.indexed.members[declaration.first + in.index]
+    })
 }

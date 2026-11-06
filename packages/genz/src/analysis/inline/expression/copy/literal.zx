@@ -1,0 +1,59 @@
+import boolean from "core/expression_table/append/boolean"
+import empty from "core/expression_table/append/empty"
+import float from "core/expression_table/append/float"
+import integer from "core/expression_table/append/integer"
+import string from "core/expression_table/append/string"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import type { Metadata, Result } from "core/expression_table/append/model"
+import type { Expressions } from "core/expression_table/model"
+
+export type Input = {
+    table: Expressions,
+    metadata: Metadata,
+    kind: ExpressionKind,
+    payload: u64,
+    integers: u64[],
+    negative_integers: u64[],
+    floats: f64[],
+    strings: string[],
+    booleans: bool[]
+}
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const base = {
+        table: in.table,
+        metadata: in.metadata
+    }
+
+    return match in.kind {
+        ExpressionKind.Integer => integer({
+            ...base,
+            value: in.integers[in.payload],
+            negative: false
+        }),
+        ExpressionKind.NegativeInteger => integer({
+            ...base,
+            value: in.negative_integers[in.payload],
+            negative: true
+        }),
+        ExpressionKind.Float => float({
+            ...base,
+            value: in.floats[in.payload]
+        }),
+        ExpressionKind.String => string({
+            ...base,
+            value: in.strings[in.payload]
+        }),
+        ExpressionKind.Boolean => boolean({
+            ...base,
+            value: in.booleans[in.payload]
+        }),
+        _ => empty({
+            ...base,
+            optional: in.kind == ExpressionKind.None
+        })
+    }
+}

@@ -25,10 +25,14 @@ export default function (in: Input): Output {
 
     const normalized = {
         ...in.candidate,
-        fields: in.candidate.kind == Kind.Object ? fields(in.candidate.fields) :
-            in.candidate.fields,
-        names: in.candidate.kind == Kind.ErrorSet ? in.candidate.names.sort()[0] :
-            in.candidate.names
+        fields: match {
+            in.candidate.kind == Kind.Object => fields(in.candidate.fields),
+            _ => in.candidate.fields
+        },
+        names: match {
+            in.candidate.kind == Kind.ErrorSet => in.candidate.names.sort()[0],
+            _ => in.candidate.names
+        }
     }
 
     const found = find({
@@ -44,13 +48,14 @@ export default function (in: Input): Output {
         }
     }
 
-    return limit(in)
-        -> {
-            delta: delta({
-                delta: in.tables.delta,
-                candidate: normalized
-            }),
-            id: _,
-            diagnostic: issue
-        }
+    const id = limit(in)
+
+    return {
+        delta: delta({
+            delta: in.tables.delta,
+            candidate: normalized
+        }),
+        id: id,
+        diagnostic: issue
+    }
 }

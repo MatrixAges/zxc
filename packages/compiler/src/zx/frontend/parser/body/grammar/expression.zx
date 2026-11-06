@@ -19,20 +19,21 @@ export default function (in: Input): Output {
         expression.control.diagnostic.message != "" ||
         expression.control.lexical_diagnostic != 0 || expression.control.type_diagnostic
 
-    return (
-        expression.control.phase == Phase.Done ? in.control.resume :
-            in.control.phase
-    )
-        -> {
-            expression,
-            tree: in.tree,
-            frames: in.frames,
-            suspended: in.suspended,
-            frame: in.frame,
-            control: {
-                ...in.control,
-                phase: _,
-                expression_diagnostic: failed
-            }
+    const phase = match {
+        expression.control.phase == Phase.Done => in.control.resume,
+        _ => in.control.phase
+    }
+
+    return {
+        expression,
+        tree: in.tree,
+        frames: in.frames,
+        suspended: in.suspended,
+        frame: in.frame,
+        control: {
+            ...in.control,
+            phase: phase,
+            expression_diagnostic: failed
         }
+    }
 }

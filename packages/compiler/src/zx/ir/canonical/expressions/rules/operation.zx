@@ -77,26 +77,29 @@ export default function (in: Input): Output {
             }
             const context = current.context
 
-            current.valid = (
-                - typed({
+            const id =
+                context.expressions.collection_arguments[current.first + current.index]
+            const valid_argument = typed({
+                expressions: context.expressions,
+                index: context.index,
+                id,
+                type_id: hint
+            })
+
+            const string_concat = current.operation == CollectionKind.Concat &&
+                current.element == type_id_u8
+
+            current.valid = match {
+                valid_argument => true,
+                !string_concat => false,
+                _ => typed({
                     expressions: context.expressions,
                     index: context.index,
-                    id:
-                        context.expressions
-                        .collection_arguments[current.first +
-                            current.index],
-                    type_id: hint
+                    id,
+                    type_id: type_id_string
                 })
-                - or (current.operation == CollectionKind.Concat &&
-                    current.element == type_id_u8 && typed({
-                        expressions: context.expressions,
-                        index: context.index,
-                        id:
-                            context.expressions
-                            .collection_arguments[current.first + current.index],
-                        type_id: type_id_string
-                    }))
-            )
+            }
+
             current.index += 1
         }
     })

@@ -75,18 +75,19 @@ export default function (in: Input): Output {
             }
         }
 
-        const result = (target.delta ? tables.delta : tables.base)
-            -> project({
-                table: expressions,
-                metadata: {
-                    type_id: _.children[integers.widen(target.first) + index],
-                    span_start: in.span.start,
-                    span_end: in.span.end
-                },
-                target: in.target,
-                index: integers.narrow(index),
-                tuple: true
-            })
+        const table = target.delta ? tables.delta : tables.base
+
+        const result = project({
+            table: expressions,
+            metadata: {
+                type_id: table.children[integers.widen(target.first) + index],
+                span_start: in.span.start,
+                span_end: in.span.end
+            },
+            target: in.target,
+            index: integers.narrow(index),
+            tuple: true
+        })
 
         return {
             state: {

@@ -45,10 +45,12 @@ export default function (in: Input): Output {
 
     const width = bits(result.limbs)
 
-    return width.significant > in.precision &&
-        width.trailing <
-        width.significant -
-        in.precision ?
-        "integer literal cannot be represented exactly by its floating-point type" :
-        ""
+    return match {
+        width.significant > in.precision &&
+            width.trailing <
+            width.significant -
+            in.precision =>
+            "integer literal cannot be represented exactly by its floating-point type",
+        _ => ""
+    }
 }

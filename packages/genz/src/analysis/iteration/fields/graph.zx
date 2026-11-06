@@ -38,10 +38,13 @@ export default function (in: Input): Output {
 
                 current.valid =
                     (
-                        - kind != ExpressionKind.Task
-                        - and kind != ExpressionKind.Capture
-                        - and kind != ExpressionKind.Parallel
-                        - and kind != ExpressionKind.Iteration
+                        match kind {
+                            ExpressionKind.Task => false,
+                            ExpressionKind.Capture => false,
+                            ExpressionKind.Parallel => false,
+                            ExpressionKind.Iteration => false,
+                            _ => true
+                        }
                     )
 
                 if (current.states[id] && kind == ExpressionKind.Reference) {

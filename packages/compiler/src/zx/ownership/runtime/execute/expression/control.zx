@@ -6,71 +6,13 @@ import { Capture } from "../../snapshots/model"
 import save from "../../snapshots/save"
 import { WorkAction } from "../../work/model"
 import push from "../../work/push"
+import iteration from "./iteration"
 
 import type { Input, Output } from "./model"
 
 export default function (in: Input): Output {
-    if (in.kind == ExpressionKind.Iteration) {
-        return push({
-            work: in.machine.work,
-            frame: {
-                action: WorkAction.IterationInitial,
-                subject: in.frame.subject,
-                moving: false,
-                index: 0
-            }
-        })
-            -> {
-                ...in.machine,
-                work: push({
-                    work: _,
-                    frame: {
-                        action: WorkAction.Value,
-                        subject:
-                            integers.widen(
-                                in.machine.program.expressions
-                                    .iteration_initials[in.payload]
-                            ),
-                        moving: true,
-                        index: 0
-                    }
-                })
-            }
-    }
-
-    if (in.kind == ExpressionKind.Transform) {
-        const captured = save({
-            memory: in.machine.memory,
-            stack: in.machine.snapshots,
-            capture: Capture.States
-        })
-
-        return push({
-            work: in.machine.work,
-            frame: {
-                action: WorkAction.TransformTarget,
-                subject: in.frame.subject,
-                moving: false,
-                index: 0
-            }
-        })
-            -> {
-                ...in.machine,
-                snapshots: captured.stack,
-                work: push({
-                    work: _,
-                    frame: {
-                        action: WorkAction.Aggregate,
-                        subject:
-                            integers.widen(
-                                in.machine.program.expressions
-                                    .transform_targets[in.payload]
-                            ),
-                        moving: false,
-                        index: 0
-                    }
-                })
-            }
+    if (in.kind == ExpressionKind.Iteration || in.kind == ExpressionKind.Transform) {
+        return iteration(in)
     }
 
     if (in.kind == ExpressionKind.Match) {
@@ -91,15 +33,18 @@ export default function (in: Input): Output {
 
         return {
             ...in.machine,
-            work: subject != null ? push({
-                work,
-                frame: {
-                    action: WorkAction.Value,
-                    subject,
-                    moving: false,
-                    index: 0
-                }
-            }) : work
+            work: match {
+                subject != null => push({
+                    work,
+                    frame: {
+                        action: WorkAction.Value,
+                        subject,
+                        moving: false,
+                        index: 0
+                    }
+                }),
+                _ => work
+            }
         }
     }
 
@@ -110,7 +55,7 @@ export default function (in: Input): Output {
             capture: Capture.States
         })
 
-        return push({
+        const work = push({
             work: in.machine.work,
             frame: {
                 action: WorkAction.ScopeFinish,
@@ -119,19 +64,20 @@ export default function (in: Input): Output {
                 index: captured.frame
             }
         })
-            -> {
-                ...in.machine,
-                snapshots: captured.stack,
-                work: push({
-                    work: _,
-                    frame: {
-                        action: WorkAction.ScopeBinding,
-                        subject: in.frame.subject,
-                        moving: in.frame.moving,
-                        index: 0
-                    }
-                })
-            }
+
+        return {
+            ...in.machine,
+            snapshots: captured.stack,
+            work: push({
+                work: work,
+                frame: {
+                    action: WorkAction.ScopeBinding,
+                    subject: in.frame.subject,
+                    moving: in.frame.moving,
+                    index: 0
+                }
+            })
+        }
     }
 
     if (in.kind == ExpressionKind.Call) {
@@ -141,7 +87,7 @@ export default function (in: Input): Output {
             capture: Capture.States
         })
 
-        return push({
+        const work = push({
             work: in.machine.work,
             frame: {
                 action: WorkAction.CallResult,
@@ -150,27 +96,28 @@ export default function (in: Input): Output {
                 index: captured.frame
             }
         })
-            -> {
-                ...in.machine,
-                snapshots: captured.stack,
-                work: push({
-                    work: _,
-                    frame: {
-                        action: WorkAction.Value,
-                        subject:
-                            integers.widen(
-                                in.machine.program.expressions
-                                    .call_arguments[in.payload]
-                            ),
-                        moving: false,
-                        index: 0
-                    }
-                })
-            }
+
+        return {
+            ...in.machine,
+            snapshots: captured.stack,
+            work: push({
+                work: work,
+                frame: {
+                    action: WorkAction.Value,
+                    subject:
+                        integers.widen(
+                            in.machine.program.expressions
+                                .call_arguments[in.payload]
+                        ),
+                    moving: false,
+                    index: 0
+                }
+            })
+        }
     }
 
     if (in.kind == ExpressionKind.Binary) {
-        return push({
+        const work = push({
             work: in.machine.work,
             frame: {
                 action: WorkAction.BinaryLeft,
@@ -179,25 +126,26 @@ export default function (in: Input): Output {
                 index: 0
             }
         })
-            -> {
-                ...in.machine,
-                work: push({
-                    work: _,
-                    frame: {
-                        action: WorkAction.Value,
-                        subject:
-                            integers.widen(
-                                in.machine.program.expressions.binary_left[in.payload]
-                            ),
-                        moving: in.container && in.frame.moving,
-                        index: 0
-                    }
-                })
-            }
+
+        return {
+            ...in.machine,
+            work: push({
+                work: work,
+                frame: {
+                    action: WorkAction.Value,
+                    subject:
+                        integers.widen(
+                            in.machine.program.expressions.binary_left[in.payload]
+                        ),
+                    moving: in.container && in.frame.moving,
+                    index: 0
+                }
+            })
+        }
     }
 
     if (in.kind == ExpressionKind.Conditional) {
-        return push({
+        const work = push({
             work: in.machine.work,
             frame: {
                 action: WorkAction.ConditionalCondition,
@@ -206,23 +154,24 @@ export default function (in: Input): Output {
                 index: 0
             }
         })
-            -> {
-                ...in.machine,
-                work: push({
-                    work: _,
-                    frame: {
-                        action: WorkAction.Value,
-                        subject:
-                            integers.widen(
-                                in.machine.program.expressions
-                                    .conditional_conditions[in
-                                        .payload]
-                            ),
-                        moving: false,
-                        index: 0
-                    }
-                })
-            }
+
+        return {
+            ...in.machine,
+            work: push({
+                work: work,
+                frame: {
+                    action: WorkAction.Value,
+                    subject:
+                        integers.widen(
+                            in.machine.program.expressions
+                                .conditional_conditions[in
+                                    .payload]
+                        ),
+                    moving: false,
+                    index: 0
+                }
+            })
+        }
     }
 
     return {

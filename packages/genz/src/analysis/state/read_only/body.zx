@@ -22,16 +22,20 @@ export default function (in: Input): Output {
         return false
     }
 
-    return loop({
+    const loop_initial = {
         index: 0,
         valid: true
-    }, {
-        while: (current, source) => current.valid &&
-            current.index < source.expressions.length,
-        next: (current, source) => {
-            current.valid = expressions(source.expressions[current.index])
+    }
+
+    const readonly_contracts = in.contracts
+
+    return loop(loop_initial, {
+        while: current => current.valid &&
+            current.index < readonly_contracts.expressions.length,
+        next: current => {
+            current.valid = expressions(readonly_contracts.expressions[current.index])
             current.index += 1
         },
         return: current => current.valid
-    }, in.contracts)
+    })
 }

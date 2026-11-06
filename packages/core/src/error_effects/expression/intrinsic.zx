@@ -43,10 +43,12 @@ export default function (in: Input): Output {
     if (kind == ExpressionKind.Parallel) {
         const names = in.names.push("ConcurrencyUnavailable")[0]
 
-        const initial = expressions.types[in.index] == 0 ? names :
-            names.push(
+        const initial = match {
+            expressions.types[in.index] == 0 => names,
+            _ => names.push(
                 "OutOfMemory"
             )[0]
+        }
 
         return loop({
             tables: in.tables,
@@ -99,13 +101,18 @@ export default function (in: Input): Output {
         const operation = expressions.collection_kinds[integers.widen(payload)]
         const allocated = in.names.push("OutOfMemory")[0]
 
-        const names =
+        const overflow =
             operation == CollectionKind.Push || operation == CollectionKind.Concat ||
             operation == CollectionKind.Splice
-            -> (_ ? allocated.push("Overflow")[0] : allocated)
 
-        return operation ==
-            CollectionKind.Splice ? names.push("IndexOutOfBounds")[0] : names
+        const names =
+            overflow ? allocated.push("Overflow")[0] : allocated
+
+        return match {
+            operation ==
+                CollectionKind.Splice => names.push("IndexOutOfBounds")[0],
+            _ => names
+        }
     }
 
     if (kind == ExpressionKind.Iteration) {
@@ -114,28 +121,38 @@ export default function (in: Input): Output {
             id: expressions.types[in.index]
         })
 
-        return target.kind == Kind.Object ||
-            target.kind == Kind.Tuple ? in.names.push(
-                "OutOfMemory"
-            )[0] : in.names
+        return match {
+            target.kind == Kind.Object ||
+                target.kind == Kind.Tuple => in.names.push(
+                    "OutOfMemory"
+                )[0],
+            _ => in.names
+        }
     }
 
     if (kind == ExpressionKind.Transform) {
         const operation = expressions.transform_kinds[integers.widen(payload)]
 
-        return operation == TransformKind.Map ||
-            operation == TransformKind.Filter || operation == TransformKind.Sort ?
-            in.names.push(
-                "OutOfMemory"
-            )[0] : in.names
+        return match {
+            operation == TransformKind.Map ||
+                operation == TransformKind.Filter || operation == TransformKind.Sort =>
+                in.names.push(
+                    "OutOfMemory"
+                )[0],
+            _ => in.names
+        }
     }
 
-    return (
-        - kind == ExpressionKind.Capture
-        - or kind == ExpressionKind.List
-        - or kind == ExpressionKind.Tuple
-        - or kind == ExpressionKind.Template
-        - or kind == ExpressionKind.Object
+    const allocating = (
+        match kind {
+            ExpressionKind.Capture => true,
+            ExpressionKind.List => true,
+            ExpressionKind.Tuple => true,
+            ExpressionKind.Template => true,
+            ExpressionKind.Object => true,
+            _ => false
+        }
     )
-        -> (_ ? in.names.push("OutOfMemory")[0] : in.names)
+
+    return allocating ? in.names.push("OutOfMemory")[0] : in.names
 }

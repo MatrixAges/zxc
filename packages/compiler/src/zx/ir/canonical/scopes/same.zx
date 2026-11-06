@@ -19,18 +19,15 @@ export default function (in: Input): Output {
     const b = integers.widen(expressions.payloads[in.right])
 
     if (left != right) {
-        return (
-            - left == ExpressionKind.Integer
-            - and expressions.integers[a] == 0
-            - and right == ExpressionKind.NegativeInteger
-            - and expressions.negative_integers[b] == 0
-            - or (
-                - right == ExpressionKind.Integer
-                - and expressions.integers[b] == 0
-                - and left == ExpressionKind.NegativeInteger
-                - and expressions.negative_integers[a] == 0
-            )
-        )
+        return match {
+            left == ExpressionKind.Integer =>
+                expressions.integers[a] == 0 && right == ExpressionKind.NegativeInteger &&
+                expressions.negative_integers[b] == 0,
+            right == ExpressionKind.Integer =>
+                expressions.integers[b] == 0 && left == ExpressionKind.NegativeInteger &&
+                expressions.negative_integers[a] == 0,
+            _ => false
+        }
     }
 
     return match left {

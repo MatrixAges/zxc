@@ -7,22 +7,31 @@ export type Input = Knowledge
 export default function (in: Input): Output {
     return {
         headered: (
-            - in == Knowledge.Headered
-            - or in == Knowledge.All
-            - or in == Knowledge.HeaderedDeferred
-            - or in == Knowledge.AllDeferred
+            match in {
+                Knowledge.Headered => true,
+                Knowledge.All => true,
+                Knowledge.HeaderedDeferred => true,
+                Knowledge.AllDeferred => true,
+                _ => false
+            }
         ),
         unique: (
-            - in == Knowledge.Unique
-            - or in == Knowledge.All
-            - or in == Knowledge.UniqueDeferred
-            - or in == Knowledge.AllDeferred
+            match in {
+                Knowledge.Unique => true,
+                Knowledge.All => true,
+                Knowledge.UniqueDeferred => true,
+                Knowledge.AllDeferred => true,
+                _ => false
+            }
         ),
         deferred: (
-            - in == Knowledge.Deferred
-            - or in == Knowledge.HeaderedDeferred
-            - or in == Knowledge.UniqueDeferred
-            - or in == Knowledge.AllDeferred
+            match in {
+                Knowledge.Deferred => true,
+                Knowledge.HeaderedDeferred => true,
+                Knowledge.UniqueDeferred => true,
+                Knowledge.AllDeferred => true,
+                _ => false
+            }
         )
     }
 }

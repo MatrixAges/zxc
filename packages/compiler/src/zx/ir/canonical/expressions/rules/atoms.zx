@@ -23,10 +23,12 @@ export default function (in: Input): Output {
         const number = numeric(in.type_id)
         const negative = in.kind == ExpressionKind.NegativeInteger
 
+        const valid_negative = negative && number != Numeric.Signed
+
         const condition = (
             - number != Numeric.Integer
             - and number != Numeric.Signed
-            - or (negative && number != Numeric.Signed)
+            - or (valid_negative)
         )
 
         if (condition) {
@@ -38,27 +40,30 @@ export default function (in: Input): Output {
             negative
         })
 
-        return (
-            negative ? expressions.negative_integers[in.payload] :
-                expressions.integers[in.payload]
-        )
-            -> _ <= maximum
+        const magnitude = match {
+            negative => expressions.negative_integers[in.payload],
+            _ => expressions.integers[in.payload]
+        }
+
+        return magnitude <= maximum
     }
 
     if (in.kind == ExpressionKind.Float) {
         const value = expressions.floats[in.payload]
 
-        return (
-            - numeric(in.type_id) == Numeric.Float
-            - and floats.isFinite(value)
-            - and (
-                in.type_id != type_id_f32 || floats.widen(
-                    floats.narrow(
-                        value
-                    )
-                ) == value
-            )
-        )
+        if (numeric(in.type_id) != Numeric.Float) {
+            return false
+        }
+
+        if (!floats.isFinite(value)) {
+            return false
+        }
+
+        if (in.type_id != type_id_f32) {
+            return true
+        }
+
+        return floats.widen(floats.narrow(value)) == value
     }
 
     if (in.kind == ExpressionKind.StoreGet) {

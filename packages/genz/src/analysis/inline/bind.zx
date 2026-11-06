@@ -28,9 +28,12 @@ export default function (in: Input): Output {
     const nested = table.kinds[index] == ExpressionKind.Scope
 
     const result =
-        nested ? table.scope_results[integers.widen(
-            table.payloads[index]
-        )] : in.result
+        match {
+            nested => table.scope_results[integers.widen(
+                table.payloads[index]
+            )],
+            _ => in.result
+        }
 
     const previous = bindings({
         table,
@@ -53,18 +56,19 @@ export default function (in: Input): Output {
         borrows: previous.borrows
     })
 
-    return {
+    const state = {
         ...in.state,
         tables: {
             ...in.state.tables,
             expressions: made.table
         }
     }
-        -> {
-            state: append({
-                state: _,
-                id: made.id
-            }),
+
+    return {
+        state: append({
+            state: state,
             id: made.id
-        }
+        }),
+        id: made.id
+    }
 }

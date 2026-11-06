@@ -33,8 +33,10 @@ export default function (in: Input): Output {
                 ...in.state,
                 diagnostic: {
                     code: "type_mismatch",
-                    message: in.cancellation ? "cancel requires a task" :
-                        "await requires a task",
+                    message: match {
+                        in.cancellation => "cancel requires a task",
+                        _ => "await requires a task"
+                    },
                     start: in.span.start,
                     end: in.span.end
                 }

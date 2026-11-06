@@ -49,31 +49,37 @@ export default function (in: Input): Output {
             } else {
                 const origin_index =
                     is_nominal ? request.origin_indices[index] - 1 : 0
-                const identity = is_nominal ? {
-                    kind: request.origins.kinds[origin_index],
-                    owner: request.origins.owners[origin_index],
-                    member: request.origins.members[origin_index]
-                } : {
-                    kind: 0,
-                    owner: "",
-                    member: ""
+                const identity = match {
+                    is_nominal => {
+                        kind: request.origins.kinds[origin_index],
+                        owner: request.origins.owners[origin_index],
+                        member: request.origins.members[origin_index]
+                    },
+                    _ => {
+                        kind: 0,
+                        owner: "",
+                        member: ""
+                    }
                 }
                 const tables = {
                     base: request.base,
                     delta: current.state.delta
                 }
-                const result = is_nominal ? nominal({
-                    tables,
-                    origins: {
-                        base: request.base_origins,
-                        delta: current.state.origins
-                    },
-                    origin: identity,
-                    candidate: value
-                }) : structural({
-                    tables,
-                    candidate: value
-                })
+                const result = match {
+                    is_nominal => nominal({
+                        tables,
+                        origins: {
+                            base: request.base_origins,
+                            delta: current.state.origins
+                        },
+                        origin: identity,
+                        candidate: value
+                    }),
+                    _ => structural({
+                        tables,
+                        candidate: value
+                    })
+                }
 
                 if (result == 1) {
                     current.state = {
@@ -83,21 +89,31 @@ export default function (in: Input): Output {
                     }
                 } else {
                     const id =
-                        result ==
-                        0 ? integers.narrow(
-                            request.base.kinds.length + current.state.delta.kinds.length
-                        ) : integers.narrow(
-                            result - 2
-                        )
-                    const added = result == 0 ? delta({
-                        delta: current.state.delta,
-                        candidate: value
-                    }) : current.state.delta
-                    const bound = result == 0 && is_nominal ? origin({
-                        bindings: current.state.origins,
-                        origin: identity,
-                        id
-                    }) : current.state.origins
+                        match {
+                            result ==
+                                0 => integers.narrow(
+                                    request.base.kinds.length +
+                                        current.state.delta.kinds.length
+                                ),
+                            _ => integers.narrow(
+                                result - 2
+                            )
+                        }
+                    const added = match {
+                        result == 0 => delta({
+                            delta: current.state.delta,
+                            candidate: value
+                        }),
+                        _ => current.state.delta
+                    }
+                    const bound = match {
+                        result == 0 && is_nominal => origin({
+                            bindings: current.state.origins,
+                            origin: identity,
+                            id
+                        }),
+                        _ => current.state.origins
+                    }
                     const mapping = current.state.mapping.with(index, id)
 
                     current.state = {

@@ -21,19 +21,20 @@ export default function (in: Input): Output {
 
     const table = state.units[state.mappings.units[in.frame.mapping]].expressions
 
-    const bound = {
+    const popped = {
         ...state,
         stack: state.stack.pop()[0].pop()[0]
     }
-        -> bind({
-            state: _,
-            symbol: integers.narrow(state.mappings.offsets[in.frame.a]),
-            value: integers.narrow(argument),
-            result: integers.narrow(returned),
-            type_id: table.types[in.frame.id],
-            span_start: table.span_start[in.frame.id],
-            span_end: table.span_end[in.frame.id]
-        })
+
+    const bound = bind({
+        state: popped,
+        symbol: integers.narrow(state.mappings.offsets[in.frame.a]),
+        value: integers.narrow(argument),
+        result: integers.narrow(returned),
+        type_id: table.types[in.frame.id],
+        span_start: table.span_start[in.frame.id],
+        span_end: table.span_end[in.frame.id]
+    })
 
     return memo({
         state: {

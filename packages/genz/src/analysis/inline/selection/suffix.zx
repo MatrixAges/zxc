@@ -1,0 +1,50 @@
+import integers from "std:integer"
+import { StatementKind } from "core/control_table/model"
+
+import type { Control } from "core/control_table/model"
+
+export type Input = {
+    control: Control,
+    first: u64,
+    count: u64
+}
+
+export type Output = {
+    symbol: u64,
+    value: u64,
+    result: u64
+}?
+
+export default function (in: Input): Output {
+    const control = in.control
+
+    if (in.count < 2) {
+        return null
+    }
+
+    if (control.statement_kinds[in.first + in.count - 1] != StatementKind.Result) {
+        return null
+    }
+
+    if (control.statement_kinds[in.first + in.count - 2] != StatementKind.Constant) {
+        return null
+    }
+
+    const returned = control
+        .results[integers.widen(
+            control.statement_payloads[in.first + in.count - 1]
+        )]
+
+    const binding =
+        integers.widen(control.statement_payloads[in.first + in.count - 2])
+
+    if (returned == null) {
+        return null
+    }
+
+    return {
+        symbol: integers.widen(control.constant_symbols[binding]),
+        value: integers.widen(control.constant_values[binding]),
+        result: integers.widen(returned)
+    }
+}

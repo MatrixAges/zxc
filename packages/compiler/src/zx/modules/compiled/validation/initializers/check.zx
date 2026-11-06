@@ -22,6 +22,8 @@ export default function (in: Input): Output {
     const functions = in.graph.program.context.functions
     const table = in.graph.program.context.table
 
+    const not_length = index >= functions.files.length
+
     const condition = (
         - !text(identity)
         - or identity.length <= 6
@@ -31,7 +33,7 @@ export default function (in: Input): Output {
         - or identity[3] != 114
         - or identity[4] != 101
         - or identity[5] != 46
-        - or index >= functions.files.length
+        - or not_length
     )
 
     if (condition) {
@@ -41,16 +43,14 @@ export default function (in: Input): Output {
     const input_id = integers.widen(functions.input_types[index])
     const output_id = integers.widen(functions.output_types[index])
 
-    const condition_2 = (
-        - kind(table.kinds[input_id]) != Kind.Scalar
-        - or table.first[input_id] != 0
-        - or kind(
-            table.kinds[output_id]
-        ) != Kind.Object
-        - or functions.native_modules[index] != null
-        - or functions.stores[index].paths.length != 0
-        - or functions.contracts[index].kinds.length != 0
-    )
+    const condition_2 = match {
+        kind(table.kinds[input_id]) != Kind.Scalar => true,
+        table.first[input_id] != 0 => true,
+        kind(table.kinds[output_id]) != Kind.Object => true,
+        functions.native_modules[index] != null => true,
+        functions.stores[index].paths.length != 0 => true,
+        _ => functions.contracts[index].kinds.length != 0
+    }
 
     if (condition_2) {
         return false

@@ -33,7 +33,7 @@ pub fn parse(allocator: std.mem.Allocator, attribute: rx.ast.Attribute, owner: [
 
 pub fn checkStyle(allocator: std.mem.Allocator, input: *const frontend.ExpressionInput.Result) std.mem.Allocator.Error!?zx.Diagnostic {
     return switch (input.*) {
-        .native => |result| lint.checkStyleExpression(result.value.parsed.expression),
+        .native => |result| lint.checkReadableExpression(result.value.parsed.source, result.value.parsed.expression),
         .indexed => |result| if (frontend.ExpressionInput.indexed_enabled) block: {
             var scratch = std.heap.ArenaAllocator.init(allocator);
 
@@ -41,7 +41,7 @@ pub fn checkStyle(allocator: std.mem.Allocator, input: *const frontend.Expressio
 
             const view = try result.view(scratch.allocator());
 
-            break :block lint.checkStyleExpression(view.expression(result.output.result));
+            break :block lint.checkReadableExpression(result.source, view.expression(result.output.result));
         } else unreachable,
     };
 }

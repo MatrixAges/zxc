@@ -32,9 +32,12 @@ export default function (in: Input): Output {
                 current.output = current.output.concatText(token(frame.token))[0]
             } else {
                 const condition = (
-                    - frame.action == Action.Identifier
-                    - or frame.action == Action.BindingIdentifier
-                    - or frame.action == Action.Quoted
+                    match frame.action {
+                        Action.Identifier => true,
+                        Action.BindingIdentifier => true,
+                        Action.Quoted => true,
+                        _ => false
+                    }
                 )
 
                 if (condition) {
@@ -54,13 +57,16 @@ export default function (in: Input): Output {
                             bytes.length == 1 && bytes[0] == ascii_underscore
 
                         current.output =
-                            discard ||
-                            identifier(bytes) ? current.output.concat(
-                                bytes
-                            )[0] : quoted({
-                                output: current.output.push(ascii_at)[0],
-                                bytes
-                            })
+                            match {
+                                discard ||
+                                    identifier(bytes) => current.output.concat(
+                                        bytes
+                                    )[0],
+                                _ => quoted({
+                                    output: current.output.push(ascii_at)[0],
+                                    bytes
+                                })
+                            }
                     }
                 } else if (frame.action == Action.Integer) {
                     current.output = integer({

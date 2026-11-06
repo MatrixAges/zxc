@@ -10,12 +10,12 @@ export default function (in: Input): Output {
     const result = loop({
         index
     }, {
-        while: (state, source) => source.keys[state.index] != empty_key &&
-            source.keys[state.index] != source.key,
-        next: (state, source) => {
-            state.index = (state.index + 1) % source.keys.length
+        while: state => in.keys[state.index] != empty_key &&
+            in.keys[state.index] != in.key,
+        next: state => {
+            state.index = (state.index + 1) % in.keys.length
         }
-    }, in)
+    })
 
     return {
         index: result.index,

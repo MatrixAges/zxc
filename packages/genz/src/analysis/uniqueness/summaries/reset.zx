@@ -13,32 +13,36 @@ export default function (in: Input): Output {
     const all = encode(Knowledge.All)
     const none = encode(Knowledge.None)
 
-    const result = loop({
+    const result_initial = {
         index: 0
-    }, {
-        while: (state, source) => state.index < source.count,
-        next: (state, source) => {
-            const internal = source.input.native_modules[state.index] == null
-            const reached = source.input.mode == Mode.Initialize ||
-                source.input.known[state.index]
+    }
 
-            bytes.fillAtomicRow(
-                source.input.input,
-                state.index,
-                internal && reached ? source.all : source.none
-            )
-            bytes.fillAtomicRow(
-                source.input.output,
-                state.index,
-                internal ? source.all : source.none
-            )
-
-            state.index += 1
-        }
-    }, {
+    const result_scope = {
         input: in,
         count,
         all,
         none
+    }
+
+    const result = loop(result_initial, {
+        while: state => state.index < result_scope.count,
+        next: state => {
+            const internal = result_scope.input.native_modules[state.index] == null
+            const reached = result_scope.input.mode == Mode.Initialize ||
+                result_scope.input.known[state.index]
+
+            bytes.fillAtomicRow(
+                result_scope.input.input,
+                state.index,
+                internal && reached ? result_scope.all : result_scope.none
+            )
+            bytes.fillAtomicRow(
+                result_scope.input.output,
+                state.index,
+                internal ? result_scope.all : result_scope.none
+            )
+
+            state.index += 1
+        }
     })
 }

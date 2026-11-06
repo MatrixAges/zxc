@@ -61,8 +61,10 @@ export default function (in: Input): Output {
 
                     current.fields = current.fields.push({
                         name: bytes.fromText(current.source.field_names[field]),
-                        value: record.view ? current.views[child] :
-                            current.values[child],
+                        value: match {
+                            record.view => current.views[child],
+                            _ => current.values[child]
+                        },
                         default_value: null,
                         comptime_parameter: false
                     })[0]

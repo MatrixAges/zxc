@@ -38,9 +38,12 @@ export default function (in: Input): Output {
                 })
             } else {
                 const condition = (
-                    - target == Kind.Optional
-                    - or target == Kind.Object
-                    - or target == Kind.Tuple
+                    match target {
+                        Kind.Optional => true,
+                        Kind.Object => true,
+                        Kind.Tuple => true,
+                        _ => false
+                    }
                 )
 
                 if (condition) {

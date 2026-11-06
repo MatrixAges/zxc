@@ -17,18 +17,20 @@ export default function (in: Input): Output {
         in.control.phase == Phase.FieldOptional &&
             in.control.token.symbol == Symbol.Question
     ) {
-        return copyFrame(in.frames[in.frames.length - 1])
-            -> replaceFrame({
-                state: in,
-                frame: {
-                    ..._,
-                    optional: true
-                }
-            })
-            -> consume({
-                state: _,
-                phase: Phase.FieldColon
-            })
+        const frame = copyFrame(in.frames[in.frames.length - 1])
+
+        const state = replaceFrame({
+            state: in,
+            frame: {
+                ...frame,
+                optional: true
+            }
+        })
+
+        return consume({
+            state: state,
+            phase: Phase.FieldColon
+        })
     }
 
     if (
@@ -65,20 +67,22 @@ export default function (in: Input): Output {
 
     const frame = copyFrame(in.frames[in.frames.length - 1])
 
-    return {
+    const name = {
         start: in.control.token.span.start,
         end: in.control.token.span.end
     }
-        -> replaceFrame({
-            state: in,
-            frame: {
-                ...frame,
-                field: _,
-                optional: false
-            }
-        })
-        -> consume({
-            state: _,
-            phase: Phase.FieldOptional
-        })
+
+    const state = replaceFrame({
+        state: in,
+        frame: {
+            ...frame,
+            field: name,
+            optional: false
+        }
+    })
+
+    return consume({
+        state: state,
+        phase: Phase.FieldOptional
+    })
 }

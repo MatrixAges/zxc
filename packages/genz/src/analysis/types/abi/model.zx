@@ -43,3 +43,29 @@ export type Output = {
     layouts: u32[],
     valid: bool
 }
+
+export type Build = {
+    source: Input,
+    order: u32[],
+    child: u32,
+    remaining: u64,
+    valid: bool,
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    identifier: u8[][],
+    primitive: ExpressionsPrimitive[],
+    field_target: u32[],
+    field_name: u8[][],
+    const_pointer: u32[],
+    optional_type: u32[],
+    const_slice: u32[],
+    error_set: u8[][][],
+    error_union_payload: u32[],
+    error_union_errors: u8[][]?[],
+    error_union_inferred: bool[],
+    call_callee: u32[],
+    call_arguments: u32[][]
+    ids: u32[],
+    values: u32[],
+    layouts: u32[]
+}

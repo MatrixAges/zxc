@@ -34,14 +34,17 @@ export default function (in: Input): Output {
                 current.segments = current.segments.push(output.expressions)[0]
             } else {
                 current.segments = current.segments.push(
-                    step.action == Action.Optional || step.action == Action.Slice ?
-                        wrapped({
-                            child: step.child,
-                            slice: step.action == Action.Slice
-                        }) : named({
+                    match {
+                        step.action == Action.Optional || step.action == Action.Slice =>
+                            wrapped({
+                                child: step.child,
+                                slice: step.action == Action.Slice
+                            }),
+                        _ => named({
                             source: current.source,
                             step
                         })
+                    }
                 )[0]
             }
 

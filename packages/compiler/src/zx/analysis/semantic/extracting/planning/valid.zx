@@ -7,12 +7,18 @@ export type Output = bool
 export default function (in: Input): Output {
     const count = in.origins.ids.length
 
+    const not_length = in.scalar_count <= in.table.kinds.length
+    const is_length = in.roots.length == in.table.kinds.length
+    const same_kinds = in.origins.kinds.length == count
+    const same_owners = in.origins.owners.length == count
+    const same_members = in.origins.members.length == count
+
     return (
-        - in.scalar_count <= in.table.kinds.length
-        - and in.roots.length == in.table.kinds.length
-        - and in.origins.kinds.length == count
-        - and in.origins.owners.length == count
-        - and in.origins.members.length == count
+        - not_length
+        - and is_length
+        - and same_kinds
+        - and same_owners
+        - and same_members
         - and in.names.length == count
     )
 }

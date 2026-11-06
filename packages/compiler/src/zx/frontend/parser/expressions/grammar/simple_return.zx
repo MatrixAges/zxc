@@ -5,13 +5,11 @@ import fail from "../state/fail"
 import { Phase, FrameKind, ExprKind } from "../state/model"
 import node from "../state/node"
 import finishBinary from "./finish_binary"
+import groupReturn from "./group_return"
 
-import type { ExprState, ExprFrame, ExprControl } from "../state/model"
+import type { ExprState, ExprControl, Return } from "../state/model"
 
-export type Input = {
-    state: ExprState,
-    frame: ExprFrame
-}
+export type Input = Return
 
 export type Output = ExprState
 
@@ -22,111 +20,97 @@ export default function (in: Input): Output {
     const end = in.state.control.last_end
 
     if (in.frame.kind == FrameKind.Group) {
-        if (in.state.control.token.symbol != Symbol.CloseParen) {
-            return fail({
-                state: in.state,
-                code: "syntax",
-                message: ")"
-            })
-        }
-
-        return in.frame.depth
-            -> consume({
-                state: {
-                    prepared: in.state.prepared,
-                    tree: in.state.tree,
-                    types: in.state.types,
-                    frames: in.state.frames,
-                    control: {
-                        ...in.state.control,
-                        depth: _,
-                        primary_start: start
-                    }
-                },
-                phase: Phase.Postfix
-            })
+        return groupReturn(in)
     }
 
     const condition = (
-        - in.frame.kind == FrameKind.Capture
-        - or in.frame.kind == FrameKind.Async
-        - or in.frame.kind == FrameKind.Await
-        - or in.frame.kind == FrameKind.Cancel
+        match in.frame.kind {
+            FrameKind.Capture => true,
+            FrameKind.Async => true,
+            FrameKind.Await => true,
+            FrameKind.Cancel => true,
+            _ => false
+        }
     )
 
     if (condition) {
-        const value = match in.frame.kind {
+        const kind = match in.frame.kind {
             FrameKind.Capture => ExprKind.Capture,
             FrameKind.Async => ExprKind.Async,
             FrameKind.Await => ExprKind.Await,
             _ => ExprKind.Cancel
         }
-            -> {
-                ...node({
-                    kind: _,
-                    start,
-                    end,
-                    depth: child_depth + 1
-                }),
-                first: result
-            }
 
-        return {
+        const value = {
+            ...node({
+                kind: kind,
+                start,
+                end,
+                depth: child_depth + 1
+            }),
+            first: result
+        }
+
+        const control = {
             ...in.state.control,
             depth: in.frame.depth - 1,
             phase: Phase.Returning
         }
-            -> emit({
-                state: {
-                    prepared: in.state.prepared,
-                    tree: in.state.tree,
-                    types: in.state.types,
-                    frames: in.state.frames,
-                    control: _
-                },
-                node: value
-            })
+
+        return emit({
+            state: {
+                prepared: in.state.prepared,
+                tree: in.state.tree,
+                types: in.state.types,
+                frames: in.state.frames,
+                control: control
+            },
+            node: value
+        })
     }
 
     if (in.frame.kind == FrameKind.Unary || in.frame.kind == FrameKind.Lambda) {
         const lambda = in.frame.kind == FrameKind.Lambda
         const depth = in.frame.depth - 1
 
-        const value = (
-            in.frame.kind == FrameKind.Unary && !in.frame.flag ?
-                in.state.tree.nodes[result].condition_terms : 1
-        )
-            -> {
-                ...node({
-                    kind: lambda ? ExprKind.Lambda : ExprKind.Unary,
-                    start,
-                    end,
-                    depth: child_depth + 1
-                }),
-                first: result,
-                flag: in.frame.flag,
-                head: in.frame.head,
-                count: in.frame.count,
-                condition_terms: _,
-                condition_list: !lambda && !in.frame.flag &&
-                    in.state.tree.nodes[result].condition_list
-            }
+        const condition_terms = match {
+            in.frame.kind == FrameKind.Unary && !in.frame.flag =>
+                in.state.tree.nodes[result].condition_terms,
+            _ => 1
+        }
 
-        return {
+        const value = {
+            ...node({
+                kind: lambda ? ExprKind.Lambda : ExprKind.Unary,
+                start,
+                end,
+                depth: child_depth + 1
+            }),
+            first: result,
+            flag: in.frame.flag,
+            head: in.frame.head,
+            count: in.frame.count,
+            condition_terms: condition_terms,
+            condition_list: !lambda && !in.frame.flag &&
+                in.state.tree.nodes[result].condition_list
+        }
+
+        const control = {
             ...in.state.control,
             depth,
             phase: Phase.Returning
         }
-            -> emit({
-                state: {
-                    prepared: in.state.prepared,
-                    tree: in.state.tree,
-                    types: in.state.types,
-                    frames: in.state.frames,
-                    control: _
-                },
-                node: value
-            })
+
+        return emit({
+            state: {
+                prepared: in.state.prepared,
+                tree: in.state.tree,
+                types: in.state.types,
+                frames: in.state.frames,
+                control: control
+            },
+            node: value
+        })
     }
 
     if (in.frame.kind == FrameKind.Index) {
@@ -152,24 +136,25 @@ export default function (in: Input): Output {
             second: result
         }
 
-        return {
+        const control = {
             ...in.state.control,
             depth,
             primary_start: start
         }
-            -> emit({
-                state: consume({
-                    state: {
-                        prepared: in.state.prepared,
-                        tree: in.state.tree,
-                        types: in.state.types,
-                        frames: in.state.frames,
-                        control: _
-                    },
-                    phase: Phase.Postfix
-                }),
-                node: value
-            })
+
+        return emit({
+            state: consume({
+                state: {
+                    prepared: in.state.prepared,
+                    tree: in.state.tree,
+                    types: in.state.types,
+                    frames: in.state.frames,
+                    control: control
+                },
+                phase: Phase.Postfix
+            }),
+            node: value
+        })
     }
 
     if (in.frame.kind == FrameKind.ConditionalYes) {
@@ -212,7 +197,7 @@ export default function (in: Input): Output {
     const yes_depth = in.state.tree.nodes[in.frame.second].depth
     const branch_depth = yes_depth > child_depth ? yes_depth : child_depth
 
-    return {
+    const computed_value = {
         ...node({
             kind: ExprKind.Conditional,
             start: in.state.tree.nodes[in.frame.first].span.start,
@@ -226,11 +211,12 @@ export default function (in: Input): Output {
         second: in.frame.second,
         third: result
     }
-        -> finishBinary({
-            state: emit({
-                state: in.state,
-                node: _
-            }),
-            frame: in.frame
-        })
+
+    return finishBinary({
+        state: emit({
+            state: in.state,
+            node: computed_value
+        }),
+        frame: in.frame
+    })
 }

@@ -20,12 +20,15 @@ export default function (in: Input): Output {
 
     const constant =
         (
-            - kind == ExpressionKind.Integer
-            - or kind == ExpressionKind.NegativeInteger
-            - or kind == ExpressionKind.Boolean
-            - or kind == ExpressionKind.String
-            - or kind == ExpressionKind.EnumValue
-            - or kind == ExpressionKind.ErrorValue
+            match kind {
+                ExpressionKind.Integer => true,
+                ExpressionKind.NegativeInteger => true,
+                ExpressionKind.Boolean => true,
+                ExpressionKind.String => true,
+                ExpressionKind.EnumValue => true,
+                ExpressionKind.ErrorValue => true,
+                _ => false
+            }
         )
 
     if (!constant) {
@@ -59,13 +62,16 @@ export default function (in: Input): Output {
         return: state => state.found
     })
 
-    return duplicate ? {
-        ...in.state,
-        diagnostic: {
-            code: "name",
-            message: "duplicate switch case",
-            start: in.span.start,
-            end: in.span.end
-        }
-    } : in.state
+    return match {
+        duplicate => {
+            ...in.state,
+            diagnostic: {
+                code: "name",
+                message: "duplicate switch case",
+                start: in.span.start,
+                end: in.span.end
+            }
+        },
+        _ => in.state
+    }
 }

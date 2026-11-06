@@ -56,24 +56,32 @@ export default function (in: Input): Output {
 
                 const payload = integers.widen(table.payloads[index])
                 const reference = table.kinds[index] == ExpressionKind.Reference
-                const symbol = reference ? table.references[payload] :
-                    current.source.parameter
-                const dependency: u32? = (
-                    - reference
-                    - and symbol != current.source.parameter
-                    - and symbol != current.source.condition_parameter
-                    - and contains({
+                const symbol = match {
+                    reference => table.references[payload],
+                    _ => current.source.parameter
+                }
+                const not_parameter = symbol != current.source.parameter
+
+                const not_condition_parameter =
+                    symbol != current.source.condition_parameter
+
+                const defined = match {
+                    !reference => false,
+                    !not_parameter || !not_condition_parameter => false,
+                    !contains({
                         types: current.source.source.types,
                         id: table.types[index],
                         products: false
-                    })
-                    - and current.definitions.kinds[integers.widen(symbol)] ==
+                    }) => false,
+                    _ => current.definitions.kinds[integers.widen(symbol)] ==
                         Definition.Value
-                )
-                    -> (
-                        aliased && _ ?
-                            current.definitions.values[integers.widen(symbol)] : next
-                    )
+                }
+
+                const dependency: u32? = match {
+                    aliased && defined =>
+                        current.definitions.values[integers.widen(symbol)],
+                    _ => next
+                }
 
                 if (aliased) {
                     current.aliases[last] = true

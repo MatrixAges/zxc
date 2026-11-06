@@ -1,7 +1,9 @@
 import { Keyword } from "../../lexer/keyword_model"
 import { Kind, Symbol } from "../../lexer/token_model"
+import alias from "./alias"
 import begin from "./begin"
-import { expected_alias, default_alias } from "./const"
+import binding from "./binding"
+import { default_alias } from "./const"
 import fail from "./fail"
 import finish from "./finish"
 import { Phase } from "./model"
@@ -22,14 +24,15 @@ export default function (in: Input): Output {
     }
 
     if (in.state.control.index < in.state.control.start) {
-        return in.state.control.index + 1
-            -> {
-                ...in.state,
-                control: {
-                    ...in.state.control,
-                    index: _
-                }
+        const index = in.state.control.index + 1
+
+        return {
+            ...in.state,
+            control: {
+                ...in.state.control,
+                index: index
             }
+        }
     }
 
     const state = {
@@ -115,29 +118,7 @@ export default function (in: Input): Output {
     }
 
     if (phase == Phase.Alias) {
-        const condition_4 = (
-            - kind != Kind.Identifier
-            - and !(state.control.exported && word == Keyword.Default)
-        )
-
-        if (condition_4) {
-            return fail({
-                state,
-                span,
-                message: expected_alias
-            })
-        }
-
-        return {
-            ...state,
-            names:
-                state.names.with(state.control.first + state.control.count - 1, span),
-            control: {
-                ...state.control,
-                phase: Phase.Separator,
-                index
-            }
-        }
+        return alias(state)
     }
 
     const condition_5 = (
@@ -185,35 +166,7 @@ export default function (in: Input): Output {
     }
 
     if (phase == Phase.Binding || phase == Phase.Name) {
-        const condition_7 = (
-            - kind != Kind.Identifier
-            - and !(phase == Phase.Name && word == Keyword.Default)
-        )
-
-        if (condition_7) {
-            return fail({
-                state,
-                span,
-                message: "expected an identifier"
-            })
-        }
-
-        const count = state.control.count + 1
-
-        return state.names.push(span)[0]
-            -> {
-                ...state,
-                names: _,
-                sources: state.sources.push(span)[0],
-                control: {
-                    ...state.control,
-                    phase: phase == Phase.Binding ? Phase.From : Phase.Separator,
-                    count,
-                    aliased: false,
-                    default_binding: word == Keyword.Default,
-                    index
-                }
-            }
+        return binding(state)
     }
 
     if (phase == Phase.Separator) {

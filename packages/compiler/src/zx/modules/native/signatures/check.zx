@@ -40,9 +40,11 @@ export default function (in: Input): Output {
         end: in.declaration.name.end
     }
 
+    const valid_input_reference = input_reference || output_reference
+
     const condition = (
         - in.declaration.concurrent
-        - and (input_reference || output_reference)
+        - and (valid_input_reference)
     )
 
     if (condition) {

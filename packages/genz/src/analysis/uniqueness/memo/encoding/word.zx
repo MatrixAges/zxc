@@ -1,0 +1,14 @@
+import integers from "std:integer"
+
+import { word_width } from "./const"
+import integer from "./integer"
+
+import type { Word as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return integer({
+        state: in.state,
+        value: integers.widen(integers.narrow(in.value)),
+        width: word_width
+    })
+}

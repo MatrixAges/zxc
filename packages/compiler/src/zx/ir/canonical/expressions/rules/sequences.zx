@@ -20,17 +20,13 @@ export default function (in: Input): Output {
         return false
     }
 
-    const condition = (
-        - in.kind == ExpressionKind.Tuple
-        - and (
-            in.target != Kind.Tuple ||
-                integers.widen(
-                    table.second[integers.widen(
-                        in.type_id
-                    )]
-                ) != count
-        )
-    )
+    const is_tuple = in.kind == ExpressionKind.Tuple
+
+    const condition = match {
+        !is_tuple => false,
+        in.target != Kind.Tuple => true,
+        _ => integers.widen(table.second[integers.widen(in.type_id)]) != count
+    }
 
     if (condition) {
         return false
@@ -73,10 +69,12 @@ export default function (in: Input): Output {
                         ) == Kind.Scalar
                 }
             } else {
-                const expected = check.kind == ExpressionKind.List ? first :
-                    table.children[integers.widen(
+                const expected = match {
+                    check.kind == ExpressionKind.List => first,
+                    _ => table.children[integers.widen(
                         first
                     ) + current.index]
+                }
 
                 current.valid = typed({
                     expressions: context.expressions,

@@ -6,7 +6,7 @@ import type { Domains } from "../../loops/model"
 import type { State } from "../../places/model"
 import type { Memory } from "../model"
 import type { Stack } from "../snapshots/model"
-import type { Work } from "../work/model"
+import type { Work, Frame } from "../work/model"
 
 export enum Family {
     Statements,
@@ -43,4 +43,9 @@ export type Machine = {
     complete: bool
     expression: u64
     active: bool
+}
+
+export type Transition = {
+    machine: Machine,
+    frame: Frame
 }

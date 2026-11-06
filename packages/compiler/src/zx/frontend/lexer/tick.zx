@@ -42,11 +42,12 @@ export default function (in: Input): Output {
         state: in.state
     })
 
-    return next.offset + 1
-        -> {
-            ...next,
-            ahead_one,
-            ahead_two,
-            offset: _
-        }
+    const next_offset = next.offset + 1
+
+    return {
+        ...next,
+        ahead_one,
+        ahead_two,
+        offset: next_offset
+    }
 }

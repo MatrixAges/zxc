@@ -28,9 +28,9 @@ export default function (in: Input): Output {
         table: 0,
         index: 0
     }, {
-        while: (state, source) => state.table < source.tables.length,
-        next: (state, source) => {
-            const expressions = source.tables[state.table]
+        while: state => state.table < in.tables.length,
+        next: state => {
+            const expressions = in.tables[state.table]
 
             if (state.index == expressions.kinds.length) {
                 state.table += 1
@@ -40,7 +40,7 @@ export default function (in: Input): Output {
                 const type_id = integers.widen(expressions.types[state.index])
                 const payload = integers.widen(expressions.payloads[state.index])
 
-                if (kind == ExpressionKind.Object && !source.boxed[type_id]) {
+                if (kind == ExpressionKind.Object && !in.boxed[type_id]) {
                     const previous = state.counts[type_id]
 
                     state.counts[type_id] = previous == 0 ? 1 : many_constructions
@@ -60,10 +60,13 @@ export default function (in: Input): Output {
                 }
 
                 const condition = (
-                    - kind == ExpressionKind.Iteration
-                    - or kind == ExpressionKind.Transform
-                    - or kind == ExpressionKind.Task
-                    - or kind == ExpressionKind.Parallel
+                    match kind {
+                        ExpressionKind.Iteration => true,
+                        ExpressionKind.Transform => true,
+                        ExpressionKind.Task => true,
+                        ExpressionKind.Parallel => true,
+                        _ => false
+                    }
                 )
 
                 if (condition) {
@@ -83,21 +86,21 @@ export default function (in: Input): Output {
                 state.index += 1
             }
         }
-    }, in)
+    })
 
     const counts = loop({
         counts: result.counts,
         index: 0
     }, {
-        while: (state, source) => source.repeated &&
-            state.index < source.constructed.length,
-        next: (state, source) => {
-            state.counts[integers.widen(source.constructed[state.index])] =
+        while: state => result.repeated &&
+            state.index < result.constructed.length,
+        next: state => {
+            state.counts[integers.widen(result.constructed[state.index])] =
                 many_constructions
             state.index += 1
         },
         return: state => state.counts
-    }, result)
+    })
 
     return {
         counts,

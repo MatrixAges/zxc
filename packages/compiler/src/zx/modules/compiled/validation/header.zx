@@ -11,21 +11,32 @@ export default function (in: Input): Output {
     const count = exports.names.length
     const initializers = in.initializers
 
+    const same_functions = exports.functions.length == count
+    const same_type_names = exports.type_names.length == count
+    const same_type_ids = exports.type_ids.length == count
+    const same_constants = exports.constants.length == count
+    const same_members = exports.members.length == count
+
+    const is_length = initializers.identities.length == initializers.versions.length
+    const is_length_2 = initializers.identities.length == initializers.functions.length
+
+    const public_interface = publication({
+        type_only: in.program.unit.type_only,
+        export_count: in.program.export_names.length,
+        constant_exports: in.program.constant_exports != null,
+        store_count: in.program.unit.body.stores.paths.length,
+        public_count: count
+    })
+
     return (
-        - publication({
-            type_only: in.program.unit.type_only,
-            export_count: in.program.export_names.length,
-            constant_exports: in.program.constant_exports != null,
-            store_count: in.program.unit.body.stores.paths.length,
-            public_count: count
-        })
+        - public_interface
         - and exports.paths.length == count
-        - and exports.functions.length == count
-        - and exports.type_names.length == count
-        - and exports.type_ids.length == count
-        - and exports.constants.length == count
-        - and exports.members.length == count
-        - and initializers.identities.length == initializers.versions.length
-        - and initializers.identities.length == initializers.functions.length
+        - and same_functions
+        - and same_type_names
+        - and same_type_ids
+        - and same_constants
+        - and same_members
+        - and is_length
+        - and is_length_2
     )
 }

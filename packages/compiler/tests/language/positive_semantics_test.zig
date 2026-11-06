@@ -43,3 +43,7 @@ test "positive analyze: empty reduce" {
 test "positive analyze: string length" {
     try h.analyzeCase("export type Input = string\n export type Output = u64\n export default function (in: Input): Output { return in.length }", null);
 }
+
+test "positive analyze: block lambda" {
+    try h.analyzeCase("export type Input = u64[]\n export type Output = u64[]\n export default function (in: Input): Output { return in.map(item => { return item })[0] }", null);
+}

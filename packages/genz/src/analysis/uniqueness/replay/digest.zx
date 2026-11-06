@@ -12,13 +12,13 @@ export default function (in: Input): Output {
         index: 0,
         equal: true
     }, {
-        while: (state, source) => state.equal && state.index < source.width,
-        next: (state, source) => {
-            const offset = source.start + state.index
+        while: state => state.equal && state.index < in.width,
+        next: state => {
+            const offset = in.start + state.index
 
-            state.equal = source.previous[offset] == source.current[offset]
+            state.equal = in.previous[offset] == in.current[offset]
             state.index += 1
         },
         return: state => state.equal
-    }, in)
+    })
 }

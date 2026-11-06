@@ -33,7 +33,7 @@ pub fn register(self: *Lower, statements: ir.Block) Lower.Error![]const ir.Symbo
 pub fn borrowed(self: *Lower, symbol: ir.SymbolId, value: ir.ExprId) Lower.Error!bool {
     const type_id = self.program.symbols.at(@backingInt(symbol)).type_id;
 
-    if (!self.state_active or self.state_plan.represented(self.program, type_id)) return false;
+    if (self.state_active and self.state_plan.represented(self.program, type_id)) return false;
 
     switch (self.program.expression(value).value) {
         .reference, .field, .tuple_field, .index, .optional_value => {},
@@ -45,7 +45,7 @@ pub fn borrowed(self: *Lower, symbol: ir.SymbolId, value: ir.ExprId) Lower.Error
         else => return false,
     }
 
-    if (inputProjection(self.program, value)) return true;
+    if (!self.state_active or inputProjection(self.program, value)) return true;
     if (self.input_aliases == null) self.input_aliases = try @import("input_aliases.zig").expressions(self.allocator, self.program);
     if (self.input_aliases.?[@backingInt(value)]) return true;
     if (self.projected_symbols == null) self.projected_symbols = try @import("projections.zig").symbols(self.allocator, self.program);

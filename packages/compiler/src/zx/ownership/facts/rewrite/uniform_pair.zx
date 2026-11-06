@@ -1,0 +1,29 @@
+import summary from "../summary"
+import uniform from "../uniform"
+import state from "./state"
+
+import type { Forest } from "../model"
+import type { RewriteAction } from "./model"
+
+export type Input = {
+    forest: Forest,
+    left: u64,
+    right: u64,
+    action: RewriteAction
+}
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    return uniform(state({
+        left: summary({
+            forest: in.forest,
+            fact: in.left
+        }),
+        right: summary({
+            forest: in.forest,
+            fact: in.right
+        }),
+        action: in.action
+    }))
+}

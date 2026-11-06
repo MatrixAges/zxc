@@ -19,67 +19,76 @@ export default function (in: Input): Output {
         outputs,
         index: 0
     }, {
-        while: (state, context) => context.external && !context.text &&
+        while: state => in.external && !in.text &&
             state.index < integers.widen(
-                context.program
+                in.program
                     .counts[
                         integers.widen(
-                            context.program.output_types[context.index]
+                            in.program.output_types[in.index]
                         )
                     ]
             ),
-        next: (state, context) => {
+        next: state => {
             state.outputs = state.outputs.push(listType({
-                layout: context.program.layout,
-                kinds: context.program.kinds,
-                type_id: context.program.output_types[context.index],
+                layout: in.program.layout,
+                kinds: in.program.kinds,
+                type_id: in.program.output_types[in.index],
                 slot: integers.narrow(state.index)
             }))[0]
             state.index += 1
         },
         return: state => state.outputs
-    }, in)
+    })
 
     const held: bool[] = []
     const text_held: bool[] = []
     const written: bool[] = []
 
-    return loop({
+    const loop_initial = {
         held,
         text_held,
         written,
         index: 0
-    }, {
-        while: (state, context) => state.index < integers.widen(context.row.size),
-        next: (state, context) => {
-            const text = context.row.external && context.row.text
-            const input_type = context.row.program.input_types[context.row.index]
-            const target = context.row.external && !text ? listType({
-                layout: context.row.program.layout,
-                kinds: context.row.program.kinds,
-                type_id: input_type,
-                slot: integers.narrow(state.index)
-            }) : input_type
+    }
 
-            const holds = text || (context.row.external && loop({
+    const loop_scope = {
+        row: in,
+        lists
+    }
+
+    return loop(loop_initial, {
+        while: state => state.index < integers.widen(loop_scope.row.size),
+        next: state => {
+            const text = loop_scope.row.external && loop_scope.row.text
+            const input_type = loop_scope.row.program.input_types[loop_scope.row.index]
+            const target = match {
+                loop_scope.row.external && !text => listType({
+                    layout: loop_scope.row.program.layout,
+                    kinds: loop_scope.row.program.kinds,
+                    type_id: input_type,
+                    slot: integers.narrow(state.index)
+                }),
+                _ => input_type
+            }
+
+            const inner_lists = loop_scope.lists
+
+            const holds = text || (loop_scope.row.external && loop({
                 index: 0,
                 found: false
             }, {
-                while: (scan, values) => !scan.found && scan.index < values.lists.length,
-                next: (scan, values) => {
-                    scan.found = values.lists[scan.index] == values.target
+                while: scan => !scan.found && scan.index < inner_lists.length,
+                next: scan => {
+                    scan.found = inner_lists[scan.index] == target
                     scan.index += 1
                 },
                 return: state => state.found
-            }, {
-                lists: context.lists,
-                target
             }))
 
             state.held = state.held.push(holds)[0]
             state.written = state.written.push(false)[0]
 
-            if (context.row.text) {
+            if (loop_scope.row.text) {
                 state.text_held = state.text_held.push(text)[0]
             }
 
@@ -90,8 +99,5 @@ export default function (in: Input): Output {
             "text_held",
             "written"
         ])
-    }, {
-        row: in,
-        lists
     })
 }

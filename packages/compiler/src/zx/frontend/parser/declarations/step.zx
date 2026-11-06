@@ -20,16 +20,17 @@ export default function (in: Input): Output {
     }
 
     if (in.state.control.index < in.state.control.start) {
-        return in.state.control.index + 1
-            -> {
-                declarations: in.state.declarations,
-                members: in.state.members,
-                types: in.state.types,
-                control: {
-                    ...in.state.control,
-                    index: _
-                }
+        const index = in.state.control.index + 1
+
+        return {
+            declarations: in.state.declarations,
+            members: in.state.members,
+            types: in.state.types,
+            control: {
+                ...in.state.control,
+                index: index
             }
+        }
     }
 
     const state = {

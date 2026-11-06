@@ -1,13 +1,70 @@
-import { if_terms, shortcut_terms } from "./const"
+import {
+    if_terms,
+    shortcut_terms,
+    pipeline_steps,
+    expression_width,
+    short_pipeline,
+    wide_pipeline,
+    multiline_pipeline,
+    wide_condition,
+    multiline_condition,
+    nested_condition,
+    complex_condition,
+    complex_if,
+    complex_shortcut,
+    complex_ternary
+} from "./const"
+
+export enum Mode { Shortcut, Branch, Pipeline, Item, Ternary }
 
 export type Input = {
+    mode: Mode,
     terms: u64,
     list: bool,
-    branch: bool
+    steps: u64,
+    width: u64,
+    multiline: bool,
+    nested: bool
 }
 
-export type Output = bool
+export type Output = string?
 
 export default function (in: Input): Output {
-    return in.branch ? in.terms > if_terms : !in.list && in.terms > shortcut_terms
+    if (in.mode == Mode.Ternary) {
+        return in.multiline || in.nested ? complex_ternary : null
+    }
+
+    if (in.mode == Mode.Pipeline) {
+        if (in.steps < pipeline_steps) {
+            return short_pipeline
+        }
+
+        if (in.multiline) {
+            return multiline_pipeline
+        }
+
+        return in.width > expression_width ? wide_pipeline : null
+    }
+
+    if (in.mode == Mode.Item) {
+        if (in.nested) {
+            return nested_condition
+        }
+
+        if (in.multiline) {
+            return multiline_condition
+        }
+
+        if (in.width > expression_width) {
+            return wide_condition
+        }
+
+        return in.terms > shortcut_terms ? complex_condition : null
+    }
+
+    if (in.mode == Mode.Branch) {
+        return in.terms > if_terms ? complex_if : null
+    }
+
+    return !in.list && in.terms > shortcut_terms ? complex_shortcut : null
 }

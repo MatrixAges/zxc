@@ -35,8 +35,11 @@ export default function (in: Input): Output {
         return: state => state.found
     })
 
-    return shared ? in.value : scope({
-        instance: in.instance,
-        value: in.value
-    })
+    return match {
+        shared => in.value,
+        _ => scope({
+            instance: in.instance,
+            value: in.value
+        })
+    }
 }

@@ -83,15 +83,24 @@ export default function (in: Input): Output {
         }
     })
 
+    const is_length = result.evaluations == in.evaluations.length
+    const is_length_2 = result.constants == in.constant_values.length
+    const is_length_3 = result.parallels == in.parallel_first.length
+    const is_length_4 = result.destructures == in.destructure_values.length
+    const is_length_5 = result.branches == in.branch_conditions.length
+    const is_length_6 = result.selections == in.selection_subjects.length
+    const is_length_7 = result.setters == in.setter_values.length
+    const is_length_8 = result.results == in.results.length
+
     return (
         - result.valid
-        - and result.evaluations == in.evaluations.length
-        - and result.constants == in.constant_values.length
-        - and result.parallels == in.parallel_first.length
-        - and result.destructures == in.destructure_values.length
-        - and result.branches == in.branch_conditions.length
-        - and result.selections == in.selection_subjects.length
-        - and result.setters == in.setter_values.length
-        - and result.results == in.results.length
+        - and is_length
+        - and is_length_2
+        - and is_length_3
+        - and is_length_4
+        - and is_length_5
+        - and is_length_6
+        - and is_length_7
+        - and is_length_8
     )
 }

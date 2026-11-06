@@ -62,10 +62,14 @@ export default function (in: Input): Output {
                     - or token.text == open_call
                     - or token.text == open_list
                 )
-            const parent: u64? = current.stack.length == 0 ? null :
-                current.stack[current.stack.length - 1]
-            const previous = current.index == 0 ? "" :
-                current.input.tokens[current.index - 1].text
+            const parent: u64? = match {
+                current.stack.length == 0 => null,
+                _ => current.stack[current.stack.length - 1]
+            }
+            const previous = match {
+                current.index == 0 => "",
+                _ => current.input.tokens[current.index - 1].text
+            }
             const gap = gapWidth({
                 previous,
                 current: token.text,
@@ -76,18 +80,22 @@ export default function (in: Input): Output {
                 (
                     token.text == keyword_case || token.text == keyword_default
                 )
-            const depth =
+            const prior_selection =
                 selection && parent != null && current.selections[parent]
-                -> current.stack.length + current.selection_depth -
+
+            const depth =
+                current.stack.length + current.selection_depth -
                 (
-                    _ ? 1 : 0
+                    prior_selection ? 1 : 0
                 )
+
+            const previous_operator = operatorPriority(previous) != no_operator
 
             const condition = (
                 - token.boundary
                 - or previous == open_object
                 - or previous == comma
-                - or operatorPriority(previous) != no_operator
+                - or previous_operator
             )
 
             if (condition) {
@@ -119,13 +127,15 @@ export default function (in: Input): Output {
                 current.selection_depth += 1
             }
 
-            const condition_3 = (
-                - token.multiline
-                - or (
-                    token.object && current.index + 1 < current.input.tokens.length &&
-                        current.input.tokens[current.index + 1].text != close_object
-                )
-            )
+            const next = current.index + 1
+            const count = current.input.tokens.length
+            const nonempty_object = match {
+                token.object && next < count =>
+                    current.input.tokens[next].text != close_object,
+                _ => false
+            }
+
+            const condition_3 = token.multiline || nonempty_object
 
             if (condition_3) {
                 current.vertical_count += 1

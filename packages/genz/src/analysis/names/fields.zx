@@ -46,7 +46,7 @@ export default function (in: Input): Output {
     const tag = kind(types.kinds[in.index])
     const first = integers.widen(types.first[in.index])
 
-    const fields: u8[][] = match tag {
+    const type_tag = match tag {
         Kind.Scalar => scalar_kind_tag,
         Kind.Object => object_kind_tag,
         Kind.Optional => optional_kind_tag,
@@ -57,10 +57,11 @@ export default function (in: Input): Output {
         Kind.Enumeration => enumeration_kind_tag,
         _ => native_reference_kind_tag
     }
-        -> [
-            bytes.fromText(type_domain),
-            bytes.fromText(_)
-        ]
+
+    const fields: u8[][] = [
+        bytes.fromText(type_domain),
+        bytes.fromText(type_tag)
+    ]
 
     if (tag == Kind.Scalar) {
         const tags: string[] = [
@@ -120,8 +121,10 @@ export default function (in: Input): Output {
                 )[0]
             } else {
                 const object = current.tag == Kind.Object
-                const child = object ? current.types.field_types[current.index] :
-                    current.types.children[current.index]
+                const child = match {
+                    object => current.types.field_types[current.index],
+                    _ => current.types.children[current.index]
+                }
 
                 if (object) {
                     current.fields = current.fields.push(

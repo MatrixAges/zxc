@@ -23,9 +23,12 @@ export default function (in: Input): Output {
         })
     }
 
+    const not_eof = in.control.token.kind != Kind.Eof
+    const not_close_brace = in.control.token.symbol != Symbol.CloseBrace
+
     const condition = (
-        - in.control.token.kind != Kind.Eof
-        - and in.control.token.symbol != Symbol.CloseBrace
+        - not_eof
+        - and not_close_brace
         - and !in.control.token.line_break
     )
 
@@ -58,29 +61,32 @@ export default function (in: Input): Output {
         })
     }
 
-    return match {
+    const kind = match {
         in.control.type_only => ImportKind.TypeOnly,
         in.control.named => ImportKind.Enumeration,
         _ => ImportKind.Function
     }
-        -> {
-            kind: _,
-            exported: in.control.exported,
-            wildcard: in.control.wildcard,
-            span: {
-                start: in.control.opening.start,
-                end: in.control.path.end
-            },
-            path: {
-                start: in.control.path.start,
-                end: in.control.path.end
-            },
-            first: in.control.first,
-            count: in.control.count
-        }
-        -> in.imports.push(_)[0]
-        -> begin({
-            ...in,
-            imports: _
-        })
+
+    const item = {
+        kind: kind,
+        exported: in.control.exported,
+        wildcard: in.control.wildcard,
+        span: {
+            start: in.control.opening.start,
+            end: in.control.path.end
+        },
+        path: {
+            start: in.control.path.start,
+            end: in.control.path.end
+        },
+        first: in.control.first,
+        count: in.control.count
+    }
+
+    const imports = in.imports.push(item)[0]
+
+    return begin({
+        ...in,
+        imports: imports
+    })
 }

@@ -98,19 +98,23 @@ export default function (in: Input): Output {
         }
     ]
 
-    return (initial == null ? typed : typed.concat([
-        {
-            ...frame,
-            token: Token.Assignment
-        },
-        {
-            ...frame,
-            action: Action.Expression,
-            id: initial
-        }
-    ])[0])
-        -> _.push({
-            ...frame,
-            token: Token.FieldEnd
-        })[0]
+    const initialized = match {
+        initial == null => typed,
+        _ => typed.concat([
+            {
+                ...frame,
+                token: Token.Assignment
+            },
+            {
+                ...frame,
+                action: Action.Expression,
+                id: initial
+            }
+        ])[0]
+    }
+
+    return initialized.push({
+        ...frame,
+        token: Token.FieldEnd
+    })[0]
 }

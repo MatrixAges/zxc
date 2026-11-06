@@ -1,0 +1,155 @@
+import integers from "std:integer"
+import {
+    ExpressionKind,
+    TransformKind
+} from "core/expression_table/kinds"
+
+import { Action, Role } from "../model"
+import push from "../push"
+import sequence from "../sequence"
+
+import type { Resolved as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const table = in.table
+    const kind = in.kind
+    const payload = in.payload
+
+    if (kind == ExpressionKind.Task) {
+        return push({
+            stack: in.stack,
+            event: {
+                action: Action.Repeat,
+                first: in.id,
+                second: table.task_bodies[payload]
+            }
+        })
+    }
+
+    if (kind == ExpressionKind.Scope) {
+        return push({
+            stack: in.stack,
+            event: {
+                action: Action.Scope,
+                first: in.id
+            }
+        })
+    }
+
+    if (kind == ExpressionKind.Iteration) {
+        const pending = push({
+            stack: in.stack,
+            event: {
+                action: Action.Iteration,
+                first: in.id
+            }
+        })
+
+        return push({
+            stack: pending,
+            event: {
+                action: Action.Operand,
+                first: in.id,
+                second: table.iteration_initials[payload],
+                role: Role.use
+            }
+        })
+    }
+
+    if (kind == ExpressionKind.Transform) {
+        const pending = push({
+            stack: in.stack,
+            event: {
+                action: Action.Transform,
+                first: in.id
+            }
+        })
+
+        const initial = table.transform_initials[payload]
+
+        const prepared = match {
+            initial == null => pending,
+            _ => push({
+                stack: pending,
+                event: {
+                    action: Action.Operand,
+                    first: in.id,
+                    second: initial,
+                    role: Role.use
+                }
+            })
+        }
+
+        return push({
+            stack: prepared,
+            event: {
+                action: Action.Operand,
+                first: in.id,
+                second: table.transform_targets[payload],
+                role: match {
+                    table.transform_kinds[payload] == TransformKind.Sort => Role.use,
+                    _ => Role.observe
+                }
+            }
+        })
+    }
+
+    if (kind == ExpressionKind.Conditional) {
+        const pending = push({
+            stack: in.stack,
+            event: {
+                action: Action.Conditional,
+                first: in.id
+            }
+        })
+
+        return push({
+            stack: pending,
+            event: {
+                action: Action.Operand,
+                first: in.id,
+                second: table.conditional_conditions[payload],
+                role: Role.observe
+            }
+        })
+    }
+
+    if (kind == ExpressionKind.Match) {
+        const pending = push({
+            stack: in.stack,
+            event: {
+                action: Action.Match,
+                first: in.id
+            }
+        })
+
+        const conditions = sequence({
+            stack: pending,
+            parent: in.id,
+            values: table.match_conditions,
+            first: table.match_first[payload],
+            count: table.match_count[payload],
+            role: Role.observe,
+            positions: false,
+            indices: [],
+            repeated: false
+        })
+
+        const subject = table.match_subjects[payload]
+
+        return match {
+            subject == null => conditions,
+            _ => push({
+                stack: conditions,
+                event: {
+                    action: Action.Operand,
+                    first: in.id,
+                    second: subject,
+                    role: Role.observe
+                }
+            })
+        }
+    }
+
+    return in.stack
+}

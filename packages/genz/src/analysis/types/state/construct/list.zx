@@ -1,0 +1,76 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import { ExpressionsKind } from "../../../../printer/model/expressions"
+import {
+    list_field_count,
+    storage_plain,
+    storage_owned,
+    storage_shared,
+    storage_exclusive
+} from "../const"
+
+import type { Selection, Build } from "../model"
+
+export type Input = Selection
+
+export type Output = Build
+
+export default function (in: Input): Output {
+    const state = in.state
+    const source = state.source.source
+    const index = state.index
+    const child = integers.widen(source.types.first[index])
+    const child_kind = kind(source.types.kinds[child])
+
+    const element = match {
+        source.element_storage[index] && source.selected[child] &&
+            child_kind == Kind.List =>
+            state.values[child],
+        source.selected[child] && child_kind == Kind.Object =>
+            source.abi_layouts[child],
+        _ => source.abi_types[child]
+    }
+
+    const slice = {
+        ...state,
+        tags: state.tags.push(ExpressionsKind.ConstSlice)[0],
+        offsets: state.offsets.push(integers.narrow(state.const_slice.length))[0],
+        const_slice: state.const_slice.push(element)[0]
+    }
+
+    const storage = {
+        ...slice,
+        tags: slice.tags.push(ExpressionsKind.EnumType)[0],
+        offsets: slice.offsets.push(integers.narrow(slice.enum_type.length))[0],
+        enum_type: slice.enum_type.push([
+            bytes.fromText(storage_plain),
+            bytes.fromText(storage_owned),
+            bytes.fromText(storage_shared),
+            bytes.fromText(storage_exclusive)
+        ])[0]
+    }
+
+    return {
+        ...storage,
+        tags: storage.tags.push(ExpressionsKind.StructType)[0],
+        offsets:
+            storage.offsets.push(integers.narrow(storage.struct_type_start.length))[0],
+        struct_type_start: storage.struct_type_start.push(
+            integers.narrow(
+                integers.widen(
+                    source.field_base
+                ) + storage.field_count
+            )
+        )[0],
+        struct_type_len: storage.struct_type_len.push(list_field_count)[0],
+        records: storage.records.push({
+            owner: index,
+            view: false,
+            start: in.start
+        })[0],
+        field_count: storage.field_count + integers.widen(list_field_count)
+    }
+}

@@ -35,18 +35,19 @@ export default function (in: Input): Output {
 
     const native_id = in.signatures.native_modules[in.index]
 
-    const native = native_id == null
-    ? {
-        state: in.plan.state,
-        natives: in.plan.natives
+    const native = match {
+        native_id == null => {
+            state: in.plan.state,
+            natives: in.plan.natives
+        },
+        _ => nativeInclude({
+            request: in.request,
+            state: in.plan.state,
+            modules: in.modules,
+            natives: in.plan.natives,
+            index: integers.widen(native_id)
+        })
     }
-    : nativeInclude({
-        request: in.request,
-        state: in.plan.state,
-        modules: in.modules,
-        natives: in.plan.natives,
-        index: integers.widen(native_id)
-    })
 
     if (native.state.status != Status.Ready) {
         return {
@@ -96,14 +97,15 @@ export default function (in: Input): Output {
         }
     }
 
-    return visit({
+    const output_state = visit({
         request: in.request,
         state: input_state,
         index: output_id
     })
-        -> {
-            state: _,
-            natives: native.natives,
-            functions: in.plan.functions
-        }
+
+    return {
+        state: output_state,
+        natives: native.natives,
+        functions: in.plan.functions
+    }
 }

@@ -17,19 +17,24 @@ export type Output = Machine
 
 export default function (in: Input): Output {
     return loop(in, {
-        while: current =>
-            (
+        while: current => {
+            const actions = current.work.actions
+            const ready = (
                 - current.active
                 - and current.complete
                 - and !current.failed
-                - and current.work.actions.length != 0
-                - and (
-                    current.work.actions[current.work.actions.length - 1] ==
-                        WorkAction.IterationAdvance ||
-                        current.work.actions[current.work.actions.length - 1] ==
-                        WorkAction.IterationFinish
-                )
-            ),
+                - and actions.length != 0
+            )
+
+            return match {
+                ready => match actions[actions.length - 1] {
+                    WorkAction.IterationAdvance => true,
+                    WorkAction.IterationFinish => true,
+                    _ => false
+                },
+                _ => false
+            }
+        },
         next: current => {
             const frame = top(current.work)
 
@@ -53,8 +58,10 @@ export default function (in: Input): Output {
                 current.work = push({
                     work: current.work,
                     frame: {
-                        action: joined.changed ? WorkAction.IterationRound :
-                            WorkAction.IterationFinish,
+                        action: match {
+                            joined.changed => WorkAction.IterationRound,
+                            _ => WorkAction.IterationFinish
+                        },
                         subject: frame.subject,
                         moving: false,
                         index: frame.index

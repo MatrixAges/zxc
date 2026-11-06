@@ -12,6 +12,9 @@ export type Input = {
 export type Output = bool
 
 export default function (in: Input): Output {
+    const selected = in.source.selected
+    const referenced = in.source.referenced
+
     return loop({
         type_id: integers.widen(in.source.state_type),
         index: 0,
@@ -19,35 +22,36 @@ export default function (in: Input): Output {
         active: true
     }, {
         while: state => state.valid && state.active,
-        next: (state, source) => {
-            const types = source.source.types
+        next: state => {
+            const types = in.source.types
             const kind = decode(types.kinds[state.type_id])
 
             if (kind == Kind.Optional) {
                 state.type_id = integers.widen(types.first[state.type_id])
-            } else if (state.index == source.path.length) {
-                state.valid = kind == Kind.List && source.source
+            } else if (state.index == in.path.length) {
+                state.valid = kind == Kind.List && in.source
                     .selected[state.type_id]
                 state.active = false
             } else {
                 const condition = (
                     - kind == Kind.Object
                     - or kind == Kind.Tuple
-                    - and source.source.selected[state.type_id]
-                    - and !source.source.referenced[state.type_id]
+                    - and selected[state.type_id]
+                    - and !referenced[state.type_id]
                 )
 
                 if (condition) {
-                    const step = integers.widen(source.path[state.index])
+                    const step = integers.widen(in.path[state.index])
                     const first = integers.widen(types.first[state.type_id])
 
                     state.valid = step < integers.widen(types.second[state.type_id])
 
                     if (state.valid) {
                         state.type_id = integers.widen(
-                            kind == Kind.Object ?
-                                types.field_types[first + step] :
-                                types.children[first + step]
+                            match {
+                                kind == Kind.Object => types.field_types[first + step],
+                                _ => types.children[first + step]
+                            }
                         )
                         state.index += 1
                     }
@@ -57,5 +61,5 @@ export default function (in: Input): Output {
             }
         },
         return: state => state.valid
-    }, in)
+    })
 }

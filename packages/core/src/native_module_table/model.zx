@@ -9,13 +9,13 @@ export type Modules = {
 
 export type Errors = string[]?
 
-    export type Functions = {
-        input_types: u32[],
-        output_types: u32[],
-        native_modules: u32?[],
-        native_members: string[][],
-        native_exports: string?[],
-        native_fallible: bool[],
-        native_errors: Errors[],
-        native_concurrent: bool[]
-    }
+export type Functions = {
+    input_types: u32[],
+    output_types: u32[],
+    native_modules: u32?[],
+    native_members: string[][],
+    native_exports: string?[],
+    native_fallible: bool[],
+    native_errors: Errors[],
+    native_concurrent: bool[]
+}

@@ -27,8 +27,10 @@ export default function (in: Input): Output {
     const count = in.state.control.template_count + 1
     const child_depth = in.state.tree.nodes[in.state.control.result].depth
 
-    const maximum = child_depth > in.state.control.template_maximum ? child_depth :
-        in.state.control.template_maximum
+    const maximum = match {
+        child_depth > in.state.control.template_maximum => child_depth,
+        _ => in.state.control.template_maximum
+    }
 
     const parts = in.state.tree.parts.push({
         span: {
@@ -43,31 +45,32 @@ export default function (in: Input): Output {
     const stream = in.frame.stream
     const index = in.frame.index
     const depth = in.frame.depth
+    const last_end = in.frame.end
 
-    return in.frame.end
-        -> {
-            ...in.state.control,
-            stream,
-            index,
-            depth,
-            last_end: _,
-            template_head: head,
-            template_count: count,
-            template_maximum: maximum,
-            phase: Phase.TemplatePart
-        }
-        -> {
-            prepared: in.state.prepared,
-            tree: {
-                nodes: in.state.tree.nodes,
-                items: in.state.tree.items,
-                fields: in.state.tree.fields,
-                parameters: in.state.tree.parameters,
-                parts,
-                arms: in.state.tree.arms
-            },
-            types: in.state.types,
-            frames: in.state.frames,
-            control: _
-        }
+    const control = {
+        ...in.state.control,
+        stream,
+        index,
+        depth,
+        last_end: last_end,
+        template_head: head,
+        template_count: count,
+        template_maximum: maximum,
+        phase: Phase.TemplatePart
+    }
+
+    return {
+        prepared: in.state.prepared,
+        tree: {
+            nodes: in.state.tree.nodes,
+            items: in.state.tree.items,
+            fields: in.state.tree.fields,
+            parameters: in.state.tree.parameters,
+            parts,
+            arms: in.state.tree.arms
+        },
+        types: in.state.types,
+        frames: in.state.frames,
+        control: control
+    }
 }

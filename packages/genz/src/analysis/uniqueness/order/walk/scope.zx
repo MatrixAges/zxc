@@ -1,0 +1,73 @@
+import integers from "std:integer"
+
+import { Action, Role } from "../model"
+import push from "../push"
+
+import type { Expressions } from "core/expression_table/model"
+import type { Stack, Frame } from "../model"
+
+export type Input = {
+    table: Expressions,
+    stack: Stack,
+    event: Frame
+}
+
+export type Output = Stack
+
+export default function (in: Input): Output {
+    const table = in.table
+    const first = in.event.first
+    const second = in.event.second
+    const index = integers.widen(first)
+    const payload = integers.widen(table.payloads[index])
+
+    if (second == table.scope_count[payload]) {
+        return push({
+            stack: in.stack,
+            event: {
+                action: Action.Operand,
+                first,
+                second: table.scope_results[payload],
+                role: Role.flow
+            }
+        })
+    } else {
+        const position = integers.widen(table.scope_first[payload]) +
+            integers.widen(second)
+
+        const symbol = table.scope_symbols[position]
+        const value = table.scope_values[position]
+
+        const pending = push({
+            stack: in.stack,
+            event: {
+                action: Action.Scope,
+                first,
+                second: second + 1
+            }
+        })
+
+        const defined = match {
+            symbol == null => pending,
+            _ => push({
+                stack: pending,
+                event: {
+                    action: Action.Define,
+                    first: symbol,
+                    second: value
+                }
+            })
+        }
+
+        return push({
+            stack: defined,
+            event: {
+                action: Action.Operand,
+                first,
+                second: value,
+                third: symbol ?? 0,
+                role: symbol == null ? Role.use : Role.bind
+            }
+        })
+    }
+}

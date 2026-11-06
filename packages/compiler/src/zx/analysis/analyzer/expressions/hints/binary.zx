@@ -57,14 +57,20 @@ export default function (in: Input): Output {
         return right
     }
 
-    const expected: u32? = flags.comparison ? null : payload({
-        types: in.context.state.types,
-        expected: in.expected
-    })
+    const expected: u32? = match {
+        flags.comparison => null,
+        _ => payload({
+            types: in.context.state.types,
+            expected: in.expected
+        })
+    }
 
-    return expected != null ? expected : literal({
-        source: in.context.source,
-        left: node.first,
-        right: node.second
-    })
+    return match {
+        expected != null => expected,
+        _ => literal({
+            source: in.context.source,
+            left: node.first,
+            right: node.second
+        })
+    }
 }

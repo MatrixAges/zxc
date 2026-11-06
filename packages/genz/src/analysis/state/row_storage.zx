@@ -20,41 +20,48 @@ export default function (in: Input): Output {
         carriers,
         index: 0
     }, {
-        while: (state, source) => state.index < source.types.kinds.length,
-        next: (state, source) => {
-            const target = kind(source.types.kinds[state.index])
-            const first = integers.widen(source.types.first[state.index])
-            const row = (
-                - target == Kind.List
-                - and kind(source.types.kinds[first]) == Kind.Object
-                - and !source.boxed[first]
-            )
+        while: state => state.index < in.types.kinds.length,
+        next: state => {
+            const target = kind(in.types.kinds[state.index])
+            const first = integers.widen(in.types.first[state.index])
+            const row = match target {
+                Kind.List =>
+                    kind(in.types.kinds[first]) == Kind.Object && !in.boxed[first],
+                _ => false
+            }
 
             if (row) {
                 state.built = state.built.with(first, true)
             }
 
-            const nested = loop({
+            const nested_initial = {
                 index: first,
                 found: false
-            }, {
-                while: (fields, input) => input.product && !fields.found &&
-                    fields.index < input.end,
-                next: (fields, input) => {
-                    const id = input.object ? input.types.field_types[fields.index] :
-                        input.types.children[fields.index]
-                    const child = integers.widen(id)
+            }
 
-                    fields.found = input.carriers[child]
-                    fields.index += 1
-                },
-                return: fields => fields.found
-            }, {
-                types: source.types,
+            const nested_scope = {
+                types: in.types,
                 carriers: state.carriers,
                 object: target == Kind.Object,
                 product: target == Kind.Object || target == Kind.Tuple,
-                end: first + integers.widen(source.types.second[state.index])
+                end: first + integers.widen(in.types.second[state.index])
+            }
+
+            const nested = loop(nested_initial, {
+                while: fields => nested_scope.product && !fields.found &&
+                    fields.index < nested_scope.end,
+                next: fields => {
+                    const id = match {
+                        nested_scope.object =>
+                            nested_scope.types.field_types[fields.index],
+                        _ => nested_scope.types.children[fields.index]
+                    }
+                    const child = integers.widen(id)
+
+                    fields.found = nested_scope.carriers[child]
+                    fields.index += 1
+                },
+                return: fields => fields.found
             })
 
             const carrier = match target {
@@ -74,5 +81,5 @@ export default function (in: Input): Output {
             state.index += 1
         },
         return: state => state.built
-    }, in)
+    })
 }

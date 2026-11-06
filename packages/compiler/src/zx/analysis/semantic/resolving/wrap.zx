@@ -11,21 +11,23 @@ export type Input = State
 export type Output = State
 
 export default function (in: Input): Output {
-    return current(in.frames)
-        -> construct({
-            state: in,
-            candidate: {
-                kind: _.list ? Kind.List : Kind.Optional,
-                first: in.result,
-                second: 0,
-                label: "",
-                children: [],
-                fields: {
-                    names: [],
-                    types: []
-                },
-                names: []
-            }
-        })
-        -> pop(_)
+    const head = current(in.frames)
+
+    const result = construct({
+        state: in,
+        candidate: {
+            kind: head.list ? Kind.List : Kind.Optional,
+            first: in.result,
+            second: 0,
+            label: "",
+            children: [],
+            fields: {
+                names: [],
+                types: []
+            },
+            names: []
+        }
+    })
+
+    return pop(result)
 }

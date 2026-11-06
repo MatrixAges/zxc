@@ -15,16 +15,20 @@ export type Input = {
 export type Output = bool
 
 export default function (in: Input): Output {
-    const type_id = loop({
+    const type_id_initial = {
         type_id: in.type_id
-    }, {
-        while: (current, types) =>
-            kind(types.kinds[integers.widen(current.type_id)]) == Kind.Optional,
-        next: (current, types) => {
-            current.type_id = types.first[integers.widen(current.type_id)]
+    }
+
+    const readonly_types = in.types
+
+    const type_id = loop(type_id_initial, {
+        while: current =>
+            kind(readonly_types.kinds[integers.widen(current.type_id)]) == Kind.Optional,
+        next: current => {
+            current.type_id = readonly_types.first[integers.widen(current.type_id)]
         },
         return: state => state.type_id
-    }, in.types)
+    })
 
     const row = integers.widen(type_id)
     const count = in.types.second[row]
@@ -35,23 +39,28 @@ export default function (in: Input): Output {
         return false
     }
 
-    return loop({
+    const loop_initial = {
         index: 0,
         valid: true
-    }, {
-        while: (current, source) => current.valid && current.index < source.count,
-        next: (current, source) => {
+    }
+
+    const loop_scope = {
+        types: in.types,
+        first: integers.widen(in.types.first[row]),
+        count: integers.widen(count)
+    }
+
+    return loop(loop_initial, {
+        while: current => current.valid && current.index < loop_scope.count,
+        next: current => {
             current.valid = scalar({
-                kinds: source.types.kinds,
-                first: source.types.first,
-                type_id: source.types.field_types[source.first + current.index]
+                kinds: loop_scope.types.kinds,
+                first: loop_scope.types.first,
+                type_id: loop_scope.types.field_types[loop_scope.first +
+                    current.index]
             })
             current.index += 1
         },
         return: state => state.valid
-    }, {
-        types: in.types,
-        first: integers.widen(in.types.first[row]),
-        count: integers.widen(count)
     })
 }

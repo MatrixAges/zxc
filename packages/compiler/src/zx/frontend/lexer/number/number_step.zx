@@ -51,8 +51,10 @@ export default function (in: Input): Output {
         return {
             ...in.state,
             end: in.state.end + 1,
-            phase: in.state.phase == Phase.ExponentStart ? Phase.ExponentDigits :
-                in.state.phase,
+            phase: match {
+                in.state.phase == Phase.ExponentStart => Phase.ExponentDigits,
+                _ => in.state.phase
+            },
             last_byte: in.byte
         }
     }
@@ -61,8 +63,10 @@ export default function (in: Input): Output {
         return {
             ...in.state,
             end: in.state.end + 1,
-            phase: in.state.phase == Phase.ExponentStart ? Phase.ExponentDigits :
-                in.state.phase,
+            phase: match {
+                in.state.phase == Phase.ExponentStart => Phase.ExponentDigits,
+                _ => in.state.phase
+            },
             last_byte: in.byte,
             separators_valid: in.state.separators_valid && isDigit(
                 in.state.last_byte
@@ -77,10 +81,15 @@ export default function (in: Input): Output {
         }
     }
 
+    const is_integer = in.state.phase == Phase.Integer
+    const is_fraction = in.state.phase == Phase.Fraction
+
+    const valid_byte = in.byte == ascii_lower_e || in.byte == ascii_upper_e
+
     const condition = (
-        - in.state.phase == Phase.Integer
-        - or in.state.phase == Phase.Fraction
-        - and (in.byte == ascii_lower_e || in.byte == ascii_upper_e)
+        - is_integer
+        - or is_fraction
+        - and (valid_byte)
     )
 
     if (condition) {
@@ -94,9 +103,13 @@ export default function (in: Input): Output {
         }
     }
 
+    const is_exponent_start = in.state.phase == Phase.ExponentStart
+
+    const valid_byte_2 = in.byte == ascii_plus || in.byte == ascii_minus
+
     const condition_2 = (
-        - in.state.phase == Phase.ExponentStart
-        - and (in.byte == ascii_plus || in.byte == ascii_minus)
+        - is_exponent_start
+        - and (valid_byte_2)
     )
 
     if (condition_2) {

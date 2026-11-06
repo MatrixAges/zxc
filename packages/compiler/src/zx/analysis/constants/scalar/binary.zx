@@ -16,19 +16,21 @@ export default function (in: Input): Output {
     const flags = classify(in.operator)
 
     if (flags.comparison || flags.logical) {
-        return (
-            in.operator == BinaryOperator.LogicalAnd ? in.left.boolean &&
-                in.right.boolean : in.left.boolean || in.right.boolean
-        )
-            -> {
-                value: {
-                    ...in.left,
-                    type_id: in.type_id,
-                    kind: ExpressionKind.Boolean,
-                    boolean: flags.comparison ? compare(in) : _
-                },
-                message: ""
-            }
+        const logical = match {
+            in.operator == BinaryOperator.LogicalAnd => in.left.boolean &&
+                in.right.boolean,
+            _ => in.left.boolean || in.right.boolean
+        }
+
+        return {
+            value: {
+                ...in.left,
+                type_id: in.type_id,
+                kind: ExpressionKind.Boolean,
+                boolean: flags.comparison ? compare(in) : logical
+            },
+            message: ""
+        }
     }
 
     const selected = target({

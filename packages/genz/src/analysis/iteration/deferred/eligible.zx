@@ -13,8 +13,8 @@ export default function (in: Input): Output {
         seen: in.expressions.kinds.map(kind => false)[0],
         valid: true
     }, {
-        while: (state, source) => state.valid && state.pending.length != 0,
-        next: (state, source) => {
+        while: state => state.valid && state.pending.length != 0,
+        next: state => {
             const id = integers.widen(state.pending[state.pending.length - 1])
 
             state.pending = state.pending.pop()[0]
@@ -22,20 +22,27 @@ export default function (in: Input): Output {
             if (!state.seen[id]) {
                 state.seen[id] = true
                 state.valid = allowed({
-                    source,
+                    source: in,
                     id
                 })
 
-                const nested = loop({
+                const nested_initial = {
                     pending: state.pending,
                     index: 0,
                     active: state.valid
-                }, {
+                }
+
+                const nested_scope = {
+                    source: in,
+                    id
+                }
+
+                const nested = loop(nested_initial, {
                     while: current => current.active,
-                    next: (current, input) => {
+                    next: current => {
                         const next = child({
-                            table: input.source.expressions,
-                            id: input.id,
+                            table: nested_scope.source.expressions,
+                            id: nested_scope.id,
                             index: current.index
                         })
 
@@ -46,14 +53,11 @@ export default function (in: Input): Output {
                             current.index += 1
                         }
                     }
-                }, {
-                    source,
-                    id
                 })
 
                 state.pending = nested.pending
             }
         },
         return: state => state.valid
-    }, in)
+    })
 }

@@ -45,12 +45,15 @@ export default function (in: Input): Output {
 
         const names = functions.native_errors[in.index]
 
-        return names == null ? {
-            ...state,
-            unknown: true
-        } : {
-            ...state,
-            names: state.names.concat(names)[0]
+        return match {
+            names == null => {
+                ...state,
+                unknown: true
+            },
+            _ => {
+                ...state,
+                names: state.names.concat(names)[0]
+            }
         }
     }
 
@@ -70,8 +73,9 @@ export default function (in: Input): Output {
         control
     })
 
-    return (root == null ? registered.state.frames :
-        registered.state.frames.push({
+    const frames = match {
+        root == null => registered.state.frames,
+        _ => registered.state.frames.push({
             operation: Operation.Block,
             source: registered.source,
             index: integers.widen(control.block_first[integers.widen(
@@ -80,12 +84,14 @@ export default function (in: Input): Output {
             count: integers.widen(control.block_count[integers.widen(
                 root
             )])
-        })[0])
-        -> contracts({
-            state: {
-                ...registered.state,
-                frames: _
-            },
-            contracts: functions.contracts[in.index]
-        })
+        })[0]
+    }
+
+    return contracts({
+        state: {
+            ...registered.state,
+            frames: frames
+        },
+        contracts: functions.contracts[in.index]
+    })
 }

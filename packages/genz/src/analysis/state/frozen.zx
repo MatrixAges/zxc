@@ -20,8 +20,10 @@ export default function (in: Input): Output {
     }, {
         while: current => current.index < current.types.kinds.length,
         next: current => {
+            const target = kind(current.types.kinds[current.index])
+
             const condition = (
-                - kind(current.types.kinds[current.index]) == Kind.Object
+                - target == Kind.Object
                 - and !current.boxed[current.index]
                 - and !current.built[current.index]
             )

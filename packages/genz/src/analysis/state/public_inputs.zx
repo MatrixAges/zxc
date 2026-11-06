@@ -19,22 +19,25 @@ export default function (in: Input): Output {
         roots,
         index: 0
     }, {
-        while: (state, source) => state.index < source.source.inputs.length,
-        next: (state, source) => {
-            const output = source.source.outputs[state.index]
-            const target = kind(source.types.kinds[integers.widen(output)])
+        while: state => state.index < in.source.inputs.length,
+        next: state => {
+            const output = in.source.outputs[state.index]
+            const target = kind(in.types.kinds[integers.widen(output)])
             const scalar = (
-                - target == Kind.Scalar
-                - or target == Kind.Enumeration
-                - or target == Kind.ErrorSet
+                match target {
+                    Kind.Scalar => true,
+                    Kind.Enumeration => true,
+                    Kind.ErrorSet => true,
+                    _ => false
+                }
             )
 
             if (!scalar) {
-                state.roots = state.roots.push(source.source.inputs[state.index])[0]
+                state.roots = state.roots.push(in.source.inputs[state.index])[0]
             }
 
             state.index += 1
         },
         return: state => state.roots
-    }, in)
+    })
 }

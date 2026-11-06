@@ -1,0 +1,80 @@
+import knowledge from "../../levels/knowledge"
+import { Knowledge } from "../../levels/model"
+import query from "../../levels/query"
+import value from "../../levels/value"
+import key from "../key"
+import linear from "../linear"
+import insert from "../seen/insert"
+
+import type { Trace as Input, Continuation as Output } from "../model"
+
+export default function (in: Input): Output {
+    const request = in.request
+
+    const result = query({
+        context: in.working.context,
+        state: {
+            known: in.working.known,
+            carried: in.source.carried,
+            reads: in.working.reads
+        },
+        request: {
+            node: request.node,
+            slot: request.slot,
+            raw: false
+        }
+    })
+
+    const evaluated = {
+        ...in.working,
+        known: result.known,
+        reads: result.reads
+    }
+
+    const current = value(result.value)
+    const desired = value(request.wanted)
+
+    const wanted = knowledge({
+        ...desired,
+        headered: desired.headered && !current.headered && !current.deferred,
+        unique: desired.unique && !current.unique && linear({
+            context: evaluated.context,
+            ...request.pick([
+                "node",
+                "slot"
+            ])
+        })
+    })
+
+    if (wanted == Knowledge.None) {
+        return {
+            working: evaluated,
+            request: null
+        }
+    }
+
+    const active = {
+        ...request,
+        wanted
+    }
+
+    const visited = insert({
+        seen: evaluated.seen,
+        key: key(active)
+    })
+
+    if (visited.found) {
+        return {
+            working: evaluated,
+            request: null
+        }
+    }
+
+    return {
+        working: {
+            ...evaluated,
+            seen: visited.seen
+        },
+        request: active
+    }
+}

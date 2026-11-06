@@ -19,40 +19,44 @@ export default function (in: Input): Output {
         index: 0,
         renewed
     }, {
-        while: (state, context) => state.index < context.owners.length,
-        next: (state, context) => {
-            const owner = context.owners[state.index]
+        while: state => state.index < in.owners.length,
+        next: state => {
+            const owner = in.owners[state.index]
             const type_id =
-                context.context.metadata.expressions.types[integers.widen(owner)]
+                in.context.metadata.expressions.types[integers.widen(owner)]
 
-            state.renewed = loop({
+            const loop_initial = {
                 slot: 0,
                 renewed: state.renewed
-            }, {
-                while: (slot, source) => slot.slot <
+            }
+
+            const loop_scope = {
+                context: in.context,
+                owner,
+                type_id
+            }
+
+            state.renewed = loop(loop_initial, {
+                while: slot => slot.slot <
                     integers.widen(
-                        source.context.metadata
+                        loop_scope.context.metadata
                             .counts[integers.widen(
-                                source.type_id
+                                loop_scope.type_id
                             )]
                     ),
-                next: (slot, source) => {
+                next: slot => {
                     slot.renewed = slot.renewed.push({
-                        key: integers.widen(source.owner) * slot_stride + slot.slot,
+                        key: integers.widen(loop_scope.owner) * slot_stride + slot.slot,
                         value: Knowledge.All
                     })[0]
                     slot.slot += 1
                 },
                 return: state => state.renewed
-            }, {
-                context: context.context,
-                owner,
-                type_id
             })
             state.index += 1
         },
         return: state => state.renewed
-    }, in)
+    })
 
     return {
         ...in.context,

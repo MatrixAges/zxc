@@ -6,32 +6,35 @@ export type Output = bool
 
 export default function (in: Input): Output {
     return (
-        - in == Keyword.Export
-        - or in == Keyword.Type
-        - or in == Keyword.Default
-        - or in == Keyword.Function
-        - or in == Keyword.Const
-        - or in == Keyword.If
-        - or in == Keyword.Else
-        - or in == Keyword.Return
-        - or in == Keyword.True
-        - or in == Keyword.False
-        - or in == Keyword.Import
-        - or in == Keyword.Enum
-        - or in == Keyword.Switch
-        - or in == Keyword.Null
-        - or in == Keyword.Let
-        - or in == Keyword.Var
-        - or in == Keyword.For
-        - or in == Keyword.While
-        - or in == Keyword.New
-        - or in == Keyword.Throw
-        - or in == Keyword.Async
-        - or in == Keyword.Await
-        - or in == Keyword.Case
-        - or in == Keyword.Break
-        - or in == Keyword.Match
-        - or in == Keyword.Try
-        - or in == Keyword.Cancel
+        match in {
+            Keyword.Export => true,
+            Keyword.Type => true,
+            Keyword.Default => true,
+            Keyword.Function => true,
+            Keyword.Const => true,
+            Keyword.If => true,
+            Keyword.Else => true,
+            Keyword.Return => true,
+            Keyword.True => true,
+            Keyword.False => true,
+            Keyword.Import => true,
+            Keyword.Enum => true,
+            Keyword.Switch => true,
+            Keyword.Null => true,
+            Keyword.Let => true,
+            Keyword.Var => true,
+            Keyword.For => true,
+            Keyword.While => true,
+            Keyword.New => true,
+            Keyword.Throw => true,
+            Keyword.Async => true,
+            Keyword.Await => true,
+            Keyword.Case => true,
+            Keyword.Break => true,
+            Keyword.Match => true,
+            Keyword.Try => true,
+            Keyword.Cancel => true,
+            _ => false
+        }
     )
 }

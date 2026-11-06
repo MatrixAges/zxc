@@ -11,15 +11,15 @@ export default function (in: Input): Output {
         roots,
         index: 0
     }, {
-        while: (state, source) => state.index < source.results.length,
-        next: (state, source) => {
+        while: state => state.index < in.results.length,
+        next: state => {
             state.roots = whole({
                 roots: state.roots,
-                first: source.prepared.first,
-                node: source.results[state.index]
+                first: in.prepared.first,
+                node: in.results[state.index]
             })
             state.index += 1
         },
         return: state => state.roots
-    }, in)
+    })
 }

@@ -8,21 +8,22 @@ export type Input = Candidate
 export type Output = Entry
 
 export default function (in: Input): Output {
-    return match in.kind {
+    const count = match in.kind {
         Kind.Object => in.fields.names.length,
         Kind.Tuple => in.children.length,
         _ => in.names.length
     }
-        -> {
-            kind: in.kind,
-            first: in.first,
-            second: in.second,
-            label: in.label,
-            offset: 0,
-            count: _,
-            children: in.children,
-            field_names: in.fields.names,
-            field_types: in.fields.types,
-            names: in.names
-        }
+
+    return {
+        kind: in.kind,
+        first: in.first,
+        second: in.second,
+        label: in.label,
+        offset: 0,
+        count: count,
+        children: in.children,
+        field_names: in.fields.names,
+        field_types: in.fields.types,
+        names: in.names
+    }
 }

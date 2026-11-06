@@ -13,24 +13,24 @@ export default function (in: Input): Output {
         input_first,
         output_first
     }, {
-        while: (state, source) => state.index < source.input_types.length,
-        next: (state, source) => {
+        while: state => state.index < in.input_types.length,
+        next: state => {
             state.input_first[state.index] = state.input_count
             state.output_first[state.index] = state.output_count
             state.input_count += integers.widen(
-                source.counts[integers.widen(
-                    source.input_types[state.index]
+                in.counts[integers.widen(
+                    in.input_types[state.index]
                 )]
             )
             state.output_count += integers.widen(
-                source.counts[integers.widen(
-                    source.output_types[state.index]
+                in.counts[integers.widen(
+                    in.output_types[state.index]
                 )]
             )
 
             state.index += 1
         }
-    }, in)
+    })
 
     return {
         input_first: result.input_first,

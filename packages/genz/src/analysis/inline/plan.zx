@@ -29,12 +29,14 @@ export default function (in: Input): Output {
         next: current => {
             const unit = current.units[current.index]
             const input = integers.widen(unit.input_type)
+            const same_kinds = unit.contracts.kinds.length == 0
+
             const eligible =
                 (
                     - current.pure[current.index]
                     - and !unit.external
                     - and unit.stores.paths.length == 0
-                    - and unit.contracts.kinds.length == 0
+                    - and same_kinds
                 )
             const primitives = primitive({
                 types: current.types,
@@ -46,17 +48,16 @@ export default function (in: Input): Output {
             const empty =
                 current.types.kinds[input] == 0 && current.types.first[input] == 0
 
-            const condition = (
+            const candidate = (
                 - eligible
                 - and !primitives
                 - and !empty
-                - and simple({
-                    control: unit.control,
-                    root: unit.root
-                })
             )
 
-            if (condition) {
+            if (candidate && simple({
+                control: unit.control,
+                root: unit.root
+            })) {
                 const table = unit.expressions
 
                 const counted = loop({
@@ -83,8 +84,10 @@ export default function (in: Input): Output {
                                         )]
                                 )
 
-                            items.cost = child >= items.index ? items.limit + 1 :
-                                items.cost + items.costs[child]
+                            items.cost = match {
+                                child >= items.index => items.limit + 1,
+                                _ => items.cost + items.costs[child]
+                            }
                         }
 
                         items.position += 1

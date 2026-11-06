@@ -49,16 +49,19 @@ export default function (in: Input): Output {
         span_end: in.span.end
     }
 
-    const result = value.target.floating ? appendFloat({
-        table: in.state.local.expressions,
-        metadata,
-        value: value.floating
-    }) : appendInteger({
-        table: in.state.local.expressions,
-        metadata,
-        value: value.integer,
-        negative: in.negative
-    })
+    const result = match {
+        value.target.floating => appendFloat({
+            table: in.state.local.expressions,
+            metadata,
+            value: value.floating
+        }),
+        _ => appendInteger({
+            table: in.state.local.expressions,
+            metadata,
+            value: value.integer,
+            negative: in.negative
+        })
+    }
 
     return {
         state: {

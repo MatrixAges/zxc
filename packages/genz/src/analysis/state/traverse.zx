@@ -24,13 +24,18 @@ export default function (in: Input): Output {
     const root = integers.widen(in.root)
     const target = kind(in.types.kinds[root])
 
+    const valid_target = match target {
+        Kind.Object => false,
+        Kind.Tuple => false,
+        Kind.Optional => false,
+        Kind.List => false,
+        _ => true
+    }
+
     const condition = (
         - in.boxed[root]
         - or (
-            - target != Kind.Object
-            - and target != Kind.Tuple
-            - and target != Kind.Optional
-            - and target != Kind.List
+            valid_target
         )
     )
 

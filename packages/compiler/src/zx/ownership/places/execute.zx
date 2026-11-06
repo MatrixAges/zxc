@@ -29,21 +29,28 @@ export default function (in: Input): Output {
 
                 if (current.operation == Operation.Assign) {
                     current.states[current.index] =
-                        current.layout.references[current.index] ||
-                        current.value == State.Moved ? current.value : State.Copy
+                        match {
+                            current.layout.references[current.index] ||
+                                current.value == State.Moved => current.value,
+                            _ => State.Copy
+                        }
                 } else {
+                    const valid_operation = current.operation == Operation.Freeze &&
+                        state == State.Loaned
+
                     const condition = (
                         - state == State.Owned
                         - or (
-                            current.operation == Operation.Freeze &&
-                                state == State.Loaned
+                            valid_operation
                         )
                     )
 
                     if (condition) {
                         current.states[current.index] =
-                            current.operation == Operation.Freeze ? State.Borrowed :
-                            State.Loaned
+                            match {
+                                current.operation == Operation.Freeze => State.Borrowed,
+                                _ => State.Loaned
+                            }
                     }
                 }
 
@@ -61,8 +68,10 @@ export default function (in: Input): Output {
                 ) {
                     current.ancestor = current.layout.parents[current.index]
                     current.propagated =
-                        current.operation == Operation.Assign ? current.value :
-                        current.states[current.index]
+                        match {
+                            current.operation == Operation.Assign => current.value,
+                            _ => current.states[current.index]
+                        }
                     current.phase = Phase.Parents
                 } else {
                     current.phase = Phase.Advance

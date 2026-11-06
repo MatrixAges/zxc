@@ -16,22 +16,23 @@ export default function (in: Input): Output {
         end: in.control.token.span.end
     }
 
-    return in.control.index + (importing ? 1 : 0)
-        -> {
-            ...in,
-            control: {
-                ...in.control,
-                phase: importing ? Phase.Binding : Phase.Done,
-                index: _,
-                opening,
-                first,
-                count: 0,
-                named: false,
-                exported: in.control.token.word == Keyword.Export,
-                wildcard: false,
-                aliased: false,
-                default_binding: false,
-                type_only: false
-            }
+    const index = in.control.index + (importing ? 1 : 0)
+
+    return {
+        ...in,
+        control: {
+            ...in.control,
+            phase: importing ? Phase.Binding : Phase.Done,
+            index: index,
+            opening,
+            first,
+            count: 0,
+            named: false,
+            exported: in.control.token.word == Keyword.Export,
+            wildcard: false,
+            aliased: false,
+            default_binding: false,
+            type_only: false
         }
+    }
 }

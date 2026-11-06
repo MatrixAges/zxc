@@ -20,25 +20,30 @@ export default function (in: Input): Output {
     const tokens = in.prefix.prepared.lexical.lexed.tokens
     const index = in.declarations.control.index
 
-    const token = index < tokens.length ? tokens[index] : {
-        kind: Kind.Eof,
-        word: Keyword.Root,
-        symbol: in.declarations.control.token.symbol,
-        span: {
-            start: in.prefix.prepared.lexical.lexed.diagnostic.start,
-            end: in.prefix.prepared.lexical.lexed.diagnostic.end
-        },
-        line_break: false,
-        dollar: false
+    const token = match {
+        index < tokens.length => tokens[index],
+        _ => {
+            kind: Kind.Eof,
+            word: Keyword.Root,
+            symbol: in.declarations.control.token.symbol,
+            span: {
+                start: in.prefix.prepared.lexical.lexed.diagnostic.start,
+                end: in.prefix.prepared.lexical.lexed.diagnostic.end
+            },
+            line_break: false,
+            dollar: false
+        }
     }
 
     const lexical = in.prefix.prepared.lexical.lexed.diagnostic
     const imports = in.prefix.imports.control.diagnostic
 
     const declarations =
-        in.declarations.control.type_diagnostic ?
-        in.declarations.types.control.diagnostic :
-        in.declarations.control.diagnostic
+        match {
+            in.declarations.control.type_diagnostic =>
+                in.declarations.types.control.diagnostic,
+            _ => in.declarations.control.diagnostic
+        }
 
     const diagnostic = {
         code: "",
@@ -70,21 +75,26 @@ export default function (in: Input): Output {
             present: false,
             name: null,
             diagnostic:
-                in.declarations.declarations.length == 0 && in.constants.length == 0 &&
-                !in.prefix.imports.imports.some(item => item.exported) ? {
-                    code: "contract",
-                    start: token.span.start,
-                    end: token.span.end,
-                    message: "a pure type file must export at least one type or enum"
-                } : diagnostic
+                match {
+                    in.declarations.declarations.length == 0 &&
+                        in.constants.length == 0 &&
+                        !in.prefix.imports.imports.some(item => item.exported) => {
+                            code: "contract",
+                            start: token.span.start,
+                            end: token.span.end,
+                            message:
+                                "a pure type file must export at least one type or enum"
+                        },
+                    _ => diagnostic
+                }
         }
     }
 
-    const condition_2 = (
-        - token.word != Keyword.Export
-        - or index + 1 >= tokens.length
-        - or tokens[index + 1].word != Keyword.Default
-    )
+    const condition_2 = match {
+        token.word != Keyword.Export => true,
+        index + 1 >= tokens.length => true,
+        _ => tokens[index + 1].word != Keyword.Default
+    }
 
     if (condition_2) {
         return {

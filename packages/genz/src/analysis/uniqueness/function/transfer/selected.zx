@@ -24,9 +24,9 @@ export default function (in: Input): Output {
         selected,
         index: 0
     }, {
-        while: (state, input) => state.index < input.source.operations.length,
-        next: (state, input) => {
-            const source = input.source
+        while: state => state.index < in.source.operations.length,
+        next: state => {
+            const source = in.source
             const node = integers.widen(source.operations[state.index])
             const expressions = source.context.metadata.expressions
             const payload = integers.widen(expressions.payloads[node])
@@ -39,17 +39,18 @@ export default function (in: Input): Output {
             }
 
             if (expressions.kinds[node] == ExpressionKind.Call) {
-                const output = source.context.metadata.layout
+                const owner = source.context.metadata.layout
                     .unwrapped[
                         integers.widen(
                             expressions.types[node]
                         )
                     ]
-                    -> kind(source.types.kinds[integers.widen(_)])
+
+                const output = kind(source.types.kinds[integers.widen(owner)])
                 const scalar = output == Kind.Scalar || output == Kind.Enumeration ||
                     output == Kind.ErrorSet
                 const renewed = integers.andBits(
-                    input.flags[integers.widen(target)],
+                    in.flags[integers.widen(target)],
                     renew_flag
                 ) != 0
 
@@ -63,16 +64,20 @@ export default function (in: Input): Output {
             state.index += 1
         },
         return: state => state.selected
-    }, in)
+    })
 
-    const repeated = loop({
+    const repeated_initial = {
         selected: operations,
         index: 0
-    }, {
-        while: (state, source) => state.index < source.repeated.length,
-        next: (state, source) => {
-            const expressions = source.context.metadata.expressions
-            const node = integers.widen(source.repeated[state.index])
+    }
+
+    const readonly_source = in.source
+
+    const repeated = loop(repeated_initial, {
+        while: state => state.index < readonly_source.repeated.length,
+        next: state => {
+            const expressions = readonly_source.context.metadata.expressions
+            const node = integers.widen(readonly_source.repeated[state.index])
 
             if (expressions.kinds[node] == ExpressionKind.Iteration) {
                 const payload = integers.widen(expressions.payloads[node])
@@ -90,17 +95,23 @@ export default function (in: Input): Output {
             state.index += 1
         },
         return: state => state.selected
-    }, in.source)
+    })
 
-    return loop({
+    const loop_initial = {
         selected: repeated,
         index: 0
-    }, {
-        while: (state, source) => state.index < source.results.length,
-        next: (state, source) => {
-            state.selected[integers.widen(source.results[state.index])] = true
+    }
+
+    const readonly_source_2 = in.source
+
+    return loop(loop_initial, {
+        while: state => state.index < readonly_source_2.results.length,
+        next: state => {
+            state.selected[integers.widen(
+                readonly_source_2.results[state.index]
+            )] = true
             state.index += 1
         },
         return: state => state.selected
-    }, in.source)
+    })
 }

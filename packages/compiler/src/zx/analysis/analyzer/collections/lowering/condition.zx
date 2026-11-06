@@ -123,18 +123,21 @@ export default function (in: Input): Output {
         span: in.span
     })
 
-    const continuing = in.kind == TransformKind.Every ? {
-        table: previous.expressions,
-        id: previous.value
-    } : appendUnary({
-        table: previous.expressions,
-        metadata: {
-            ...metadata,
-            type_id: 1
+    const continuing = match {
+        in.kind == TransformKind.Every => {
+            table: previous.expressions,
+            id: previous.value
         },
-        operator: UnaryOperator.Not,
-        operand: previous.value
-    })
+        _ => appendUnary({
+            table: previous.expressions,
+            metadata: {
+                ...metadata,
+                type_id: 1
+            },
+            operator: UnaryOperator.Not,
+            operand: previous.value
+        })
+    }
 
     const result = appendBinary({
         table: continuing.table,

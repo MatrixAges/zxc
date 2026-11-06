@@ -28,17 +28,20 @@ export default function (in: Input): Output {
             work.source.tree
             .nodes[work.frames.singles[work.frames.singles.length - 1]]
 
-        const result = in.action == Action.CaptureValue ? capture({
-            state: work.state,
-            functions: work.functions,
-            operand: work.value,
-            span: node.span
-        }) : consume({
-            state: work.state,
-            operand: work.value,
-            cancellation: node.kind == ExprKind.Cancel,
-            span: node.span
-        })
+        const result = match {
+            in.action == Action.CaptureValue => capture({
+                state: work.state,
+                functions: work.functions,
+                operand: work.value,
+                span: node.span
+            }),
+            _ => consume({
+                state: work.state,
+                operand: work.value,
+                cancellation: node.kind == ExprKind.Cancel,
+                span: node.span
+            })
+        }
 
         return {
             ...work,
@@ -128,26 +131,27 @@ export default function (in: Input): Output {
             }
         }
 
-        return indexable({
+        const state = indexable({
             state: work.state,
             target: work.value,
             span: node.span
         })
-            -> {
-                ...work,
-                state: _,
-                node: node.second,
-                expected: 5,
-                phase: Phase.Evaluate,
-                frames: {
-                    ...work.frames,
-                    actions: work.frames.actions.push(Action.IndexValue)[0],
-                    indices: work.frames.indices.splice(position, 1, [{
-                        ...frame,
-                        target: work.value
-                    }])[0]
-                }
+
+        return {
+            ...work,
+            state: state,
+            node: node.second,
+            expected: 5,
+            phase: Phase.Evaluate,
+            frames: {
+                ...work.frames,
+                actions: work.frames.actions.push(Action.IndexValue)[0],
+                indices: work.frames.indices.splice(position, 1, [{
+                    ...frame,
+                    target: work.value
+                }])[0]
             }
+        }
     }
 
     const result = index({

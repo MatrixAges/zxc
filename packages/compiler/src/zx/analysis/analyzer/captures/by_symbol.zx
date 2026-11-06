@@ -31,15 +31,15 @@ export default function (in: Input): Output {
         frame: in.state.local.captures.current,
         path
     }, {
-        while: (state, source) =>
+        while: state =>
             state.frame != null &&
-            (source.owner == null || state.frame != source.owner),
-        next: (state, source) => {
+            (in.owner == null || state.frame != in.owner),
+        next: state => {
             const frame = state.frame
 
             if (frame != null) {
                 state.path = state.path.push(frame)[0]
-                state.frame = source.state.local.captures.frames
+                state.frame = in.state.local.captures.frames
                     .parents[
                         integers.widen(
                             frame
@@ -47,7 +47,7 @@ export default function (in: Input): Output {
                     ]
             }
         }
-    }, in)
+    })
 
     if (route.frame != in.owner) {
         return {
@@ -56,21 +56,28 @@ export default function (in: Input): Output {
         }
     }
 
-    return loop({
+    const loop_initial = {
         state: in.state,
         symbol: in.symbol,
         remaining: route.path.length
-    }, {
+    }
+
+    const loop_scope = {
+        path: route.path,
+        span: in.span
+    }
+
+    return loop(loop_initial, {
         while: current => current.remaining > 0 &&
             current.state.diagnostic.message == "",
-        next: (current, source) => {
+        next: current => {
             current.remaining -= 1
 
             const captured = ensure({
                 state: current.state,
-                frame: source.path[current.remaining],
+                frame: loop_scope.path[current.remaining],
                 source: current.symbol,
-                span: source.span
+                span: loop_scope.span
             })
 
             current.state = captured.state
@@ -80,8 +87,5 @@ export default function (in: Input): Output {
             state: current.state,
             symbol: current.symbol
         })
-    }, {
-        path: route.path,
-        span: in.span
     })
 }

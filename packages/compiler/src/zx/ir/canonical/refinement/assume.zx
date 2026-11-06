@@ -24,11 +24,15 @@ export default function (in: Input): Output {
     const overflow = in.state.epoch == max_u64
     const epoch = overflow ? 1 : in.state.epoch + 1
 
+    const visits = match {
+        overflow => in.state.visits.map(value => 0)[0],
+        _ => in.state.visits
+    }
+
     const initial: Refinement =
-        (overflow ? in.state.visits.map(value => 0)[0] : in.state.visits)
-        -> {
+        {
             ...in.state,
-            visits: _,
+            visits: visits,
             epoch,
             conditions: in.state.conditions.push(in.condition)[0],
             truths: in.state.truths.push(in.truth)[0]
@@ -101,10 +105,14 @@ export default function (in: Input): Output {
             } else if (kind == ExpressionKind.Binary) {
                 const operator = expressions.binary_operators[payload]
 
+                const is_logical_and = operator == BinaryOperator.LogicalAnd
+
+                const valid_operator = operator == BinaryOperator.LogicalOr && !truth
+
                 const condition_2 = (
-                    - operator == BinaryOperator.LogicalAnd
+                    - is_logical_and
                     - and truth
-                    - or (operator == BinaryOperator.LogicalOr && !truth)
+                    - or (valid_operator)
                 )
 
                 if (condition_2) {

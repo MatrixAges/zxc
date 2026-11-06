@@ -11,8 +11,11 @@ export type Output = Reference
 export default function (in: Input): Output {
     const native = in.source.native
 
-    return native == null ? {
-        enumeration: false,
-        index: in.index
-    } : native.text.type_references[in.index]
+    return match {
+        native == null => {
+            enumeration: false,
+            index: in.index
+        },
+        _ => native.text.type_references[in.index]
+    }
 }

@@ -12,7 +12,7 @@ export default function (in: Input): Output {
     const contracts: Contract[] = []
     const failed = in.control.lexical_diagnostic != 0
 
-    return {
+    const token = {
         kind: in.control.token.kind,
         word: in.control.token.word,
         symbol: in.control.token.symbol,
@@ -23,24 +23,25 @@ export default function (in: Input): Output {
         line_break: in.control.token.line_break,
         dollar: in.control.token.dollar
     }
-        -> {
-            expression: in,
-            body: emptyTree(),
-            contracts,
-            control: {
-                phase: failed ? HeaderPhase.Done : HeaderPhase.Open,
-                token: _,
-                has_store: false,
-                has_ensures: false,
-                ensures: false,
-                contract_start: 0,
-                expression_diagnostic: failed,
-                diagnostic: {
-                    code: "",
-                    start: 0,
-                    end: 0,
-                    message: ""
-                }
+
+    return {
+        expression: in,
+        body: emptyTree(),
+        contracts,
+        control: {
+            phase: failed ? HeaderPhase.Done : HeaderPhase.Open,
+            token: token,
+            has_store: false,
+            has_ensures: false,
+            ensures: false,
+            contract_start: 0,
+            expression_diagnostic: failed,
+            diagnostic: {
+                code: "",
+                start: 0,
+                end: 0,
+                message: ""
             }
         }
+    }
 }

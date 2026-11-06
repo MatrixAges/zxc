@@ -21,18 +21,19 @@ export default function (in: Input): Output {
             parsed.control.expression_diagnostic ||
             parsed.control.diagnostic.message != ""
 
-        return (failed ? HeaderPhase.Done : HeaderPhase.ContractClose)
-            -> {
-                expression: parsed.expression,
-                body: parsed.tree,
-                contracts: in.contracts,
-                control: {
-                    ...in.control,
-                    phase: _,
-                    expression_diagnostic: failed,
-                    diagnostic: parsed.control.diagnostic
-                }
+        const phase = failed ? HeaderPhase.Done : HeaderPhase.ContractClose
+
+        return {
+            expression: parsed.expression,
+            body: parsed.tree,
+            contracts: in.contracts,
+            control: {
+                ...in.control,
+                phase: phase,
+                expression_diagnostic: failed,
+                diagnostic: parsed.control.diagnostic
             }
+        }
     }
 
     const contract = {

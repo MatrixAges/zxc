@@ -24,10 +24,13 @@ export default function (in: Input): Output {
         number: 0
     }
 
-    const visibility: Frame[] = in.exported ? [{
-        ...frame,
-        token: Token.PubPrefix
-    }] : []
+    const visibility: Frame[] = match {
+        in.exported => [{
+            ...frame,
+            token: Token.PubPrefix
+        }],
+        _ => []
+    }
 
     const binding = visibility.concat([
         {
@@ -39,30 +42,34 @@ export default function (in: Input): Output {
 
     const annotation = in.type_expr
 
-    return (annotation == null ? binding : binding.concat([
-        {
-            ...frame,
-            token: Token.Colon
-        },
-        {
-            ...frame,
-            action: Action.Expression,
-            id: annotation
-        }
-    ])[0])
-        -> _.concat([
+    const typed = match {
+        annotation == null => binding,
+        _ => binding.concat([
             {
                 ...frame,
-                token: Token.Assignment
+                token: Token.Colon
             },
             {
                 ...frame,
                 action: Action.Expression,
-                id: in.value
-            },
-            {
-                ...frame,
-                token: Token.StatementEnd
+                id: annotation
             }
         ])[0]
+    }
+
+    return typed.concat([
+        {
+            ...frame,
+            token: Token.Assignment
+        },
+        {
+            ...frame,
+            action: Action.Expression,
+            id: in.value
+        },
+        {
+            ...frame,
+            token: Token.StatementEnd
+        }
+    ])[0]
 }

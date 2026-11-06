@@ -111,18 +111,25 @@ export default function (in: Input): Output {
     const increment = integers.widen(expressions.payloads[integers.widen(next)])
     const step = integers.widen(expressions.binary_right[increment])
 
-    const condition_2 = (
-        - expressions.binary_operators[increment] != BinaryOperator.Add
-        - or expressions.kinds[step] != ExpressionKind.Integer
-        - or expressions.integers[integers.widen(expressions.payloads[step])] != 1
-        - or field({
-            expressions,
-            value: expressions.binary_left[increment],
-            parameter: in.input.parameter
-        }) != index
-    )
+    if (expressions.binary_operators[increment] != BinaryOperator.Add) {
+        return null
+    }
 
-    if (condition_2) {
+    if (expressions.kinds[step] != ExpressionKind.Integer) {
+        return null
+    }
+
+    if (expressions.integers[integers.widen(
+        expressions.payloads[step]
+    )] != 1) {
+        return null
+    }
+
+    if (field({
+        expressions,
+        value: expressions.binary_left[increment],
+        parameter: in.input.parameter
+    }) != index) {
         return null
     }
 

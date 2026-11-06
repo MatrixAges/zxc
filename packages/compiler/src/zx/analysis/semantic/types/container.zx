@@ -22,16 +22,21 @@ export default function (in: Input): Output {
             return Violation.TaskContainer
         }
 
-        return in.candidate.kind == Kind.List &&
-            in.candidate.first == 0 ? Violation.VoidList : Violation.None
+        return match {
+            in.candidate.kind == Kind.List &&
+                in.candidate.first == 0 => Violation.VoidList,
+            _ => Violation.None
+        }
     }
 
     if (in.candidate.kind != Kind.Tuple && in.candidate.kind != Kind.Object) {
         return Violation.None
     }
 
-    const children = in.candidate.kind == Kind.Tuple ? in.candidate.children :
-        in.candidate.fields.types
+    const children = match {
+        in.candidate.kind == Kind.Tuple => in.candidate.children,
+        _ => in.candidate.fields.types
+    }
 
     const state = loop({
         tables: in.tables,

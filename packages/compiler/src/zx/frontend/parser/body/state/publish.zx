@@ -25,8 +25,10 @@ export default function (in: Input): Output {
 
     if (in.frame.kind == FrameKind.Block) {
         const complete_phase =
-            parent.kind == FrameKind.Root && in.suspended.length != 0 ? Phase.Resume :
-            phase
+            match {
+                parent.kind == FrameKind.Root && in.suspended.length != 0 => Phase.Resume,
+                _ => phase
+            }
 
         const result = in.tree.blocks.length
 
@@ -48,25 +50,26 @@ export default function (in: Input): Output {
             }
         }
 
-        return {
+        const tree = {
             statements: in.tree.statements,
             blocks,
             items: in.tree.items,
             names: in.tree.names,
             cases: in.tree.cases
         }
-            -> {
-                expression: in.expression,
-                tree: _,
-                frames: popped[0],
-                suspended: in.suspended,
-                frame: next,
-                control: {
-                    ...in.control,
-                    phase: complete_phase,
-                    result
-                }
+
+        return {
+            expression: in.expression,
+            tree: tree,
+            frames: popped[0],
+            suspended: in.suspended,
+            frame: next,
+            control: {
+                ...in.control,
+                phase: complete_phase,
+                result
             }
+        }
     }
 
     const result = in.tree.statements.length
@@ -97,57 +100,61 @@ export default function (in: Input): Output {
     if (parent.kind == FrameKind.Statement) {
         const block = in.tree.blocks.length + 1
 
-        return in.tree.blocks.push({
+        const blocks = in.tree.blocks.push({
             span,
             head,
             count: 1
         })[0]
-            -> {
-                statements,
-                blocks: _,
-                items,
-                names: in.tree.names,
-                cases: in.tree.cases
-            }
-            -> {
-                expression: in.expression,
-                tree: _,
-                frames: popped[0],
-                suspended: in.suspended,
-                frame: {
-                    ...parent,
-                    third: block
-                },
-                control: {
-                    ...in.control,
-                    phase: Phase.Publish
-                }
-            }
-    }
 
-    const next = parent.count + 1
-        -> {
-            ...parent,
-            head,
-            count: _
+        const tree = {
+            statements,
+            blocks: blocks,
+            items,
+            names: in.tree.names,
+            cases: in.tree.cases
         }
 
-    return {
+        return {
+            expression: in.expression,
+            tree: tree,
+            frames: popped[0],
+            suspended: in.suspended,
+            frame: {
+                ...parent,
+                third: block
+            },
+            control: {
+                ...in.control,
+                phase: Phase.Publish
+            }
+        }
+    }
+
+    const count = parent.count + 1
+
+    const next = {
+        ...parent,
+        head,
+        count: count
+    }
+
+    const tree = {
         statements,
         blocks: in.tree.blocks,
         items,
         names: in.tree.names,
         cases: in.tree.cases
     }
-        -> {
-            expression: in.expression,
-            tree: _,
-            frames: popped[0],
-            suspended: in.suspended,
-            frame: next,
-            control: {
-                ...in.control,
-                phase
-            }
+
+    return {
+        expression: in.expression,
+        tree: tree,
+        frames: popped[0],
+        suspended: in.suspended,
+        frame: next,
+        control: {
+            ...in.control,
+            phase
         }
+    }
 }

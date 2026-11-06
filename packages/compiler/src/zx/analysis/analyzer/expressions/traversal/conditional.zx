@@ -24,8 +24,10 @@ export default function (in: Input): Output {
     const node = work.source.tree.nodes[frame.node]
 
     if (in.action == Action.Condition) {
-        const pipeline: Pipeline? = work.context.pipelines.length == 0 ? null :
-            work.context.pipelines[work.context.pipelines.length - 1]
+        const pipeline: Pipeline? = match {
+            work.context.pipelines.length == 0 => null,
+            _ => work.context.pipelines[work.context.pipelines.length - 1]
+        }
 
         const expected = hint({
             context: {
@@ -40,76 +42,79 @@ export default function (in: Input): Output {
 
         const before = mark(work.state.local.refinement.facts)
 
-        return assume({
+        const refinement = assume({
             state: work.state.local.refinement,
             expressions: work.state.local.expressions,
             condition: integers.widen(work.value),
             truth: true
         })
-            -> {
-                ...work,
-                state: {
-                    ...work.state,
-                    local: {
-                        ...work.state.local,
-                        refinement: _
-                    }
-                },
-                node: node.second,
-                expected,
-                phase: Phase.Evaluate,
-                frames: {
-                    ...work.frames,
-                    actions: work.frames.actions.push(Action.Yes)[0],
-                    conditionals: work.frames.conditionals.splice(position, 1, [{
-                        ...frame,
-                        condition: work.value,
-                        mark: before
-                    }])[0]
+
+        return {
+            ...work,
+            state: {
+                ...work.state,
+                local: {
+                    ...work.state.local,
+                    refinement: refinement
                 }
+            },
+            node: node.second,
+            expected,
+            phase: Phase.Evaluate,
+            frames: {
+                ...work.frames,
+                actions: work.frames.actions.push(Action.Yes)[0],
+                conditionals: work.frames.conditionals.splice(position, 1, [{
+                    ...frame,
+                    condition: work.value,
+                    mark: before
+                }])[0]
             }
+        }
     }
 
-    const restored = restore({
+    const facts = restore({
         facts: work.state.local.refinement.facts,
         mark: frame.mark
     })
-        -> {
-            ...work.state.local.refinement,
-            facts: _
-        }
+
+    const restored = {
+        ...work.state.local.refinement,
+        facts: facts
+    }
 
     if (in.action == Action.Yes) {
-        return assume({
+        const refinement = assume({
             state: restored,
             expressions: work.state.local.expressions,
             condition: integers.widen(frame.condition),
             truth: false
         })
-            -> {
-                ...work,
-                state: {
-                    ...work.state,
-                    local: {
-                        ...work.state.local,
-                        refinement: _
-                    }
-                },
-                node: node.third,
-                expected: work.state.local.expressions
-                    .types[integers.widen(
-                        work.value
-                    )],
-                phase: Phase.Evaluate,
-                frames: {
-                    ...work.frames,
-                    actions: work.frames.actions.push(Action.No)[0],
-                    conditionals: work.frames.conditionals.splice(position, 1, [{
-                        ...frame,
-                        yes: work.value
-                    }])[0]
+
+        return {
+            ...work,
+            state: {
+                ...work.state,
+                local: {
+                    ...work.state.local,
+                    refinement: refinement
                 }
+            },
+            node: node.third,
+            expected: work.state.local.expressions
+                .types[integers.widen(
+                    work.value
+                )],
+            phase: Phase.Evaluate,
+            frames: {
+                ...work.frames,
+                actions: work.frames.actions.push(Action.No)[0],
+                conditionals: work.frames.conditionals.splice(position, 1, [{
+                    ...frame,
+                    yes: work.value
+                }])[0]
             }
+        }
     }
 
     const result = append({

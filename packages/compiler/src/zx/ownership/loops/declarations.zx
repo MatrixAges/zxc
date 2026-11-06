@@ -39,10 +39,13 @@ export default function (in: Input): Output {
         next: current => {
             const symbol: u32? = match current.kind {
                 ExpressionKind.Iteration =>
-                    current.index ==
-                    0 ?
-                    current.expressions.iteration_condition_parameters[current.payload] :
-                    current.expressions.iteration_parameters[current.payload],
+                    match {
+                        current.index ==
+                            0 =>
+                            current.expressions
+                            .iteration_condition_parameters[current.payload],
+                        _ => current.expressions.iteration_parameters[current.payload]
+                    },
                 ExpressionKind.Scope =>
                     current.expressions
                     .scope_symbols[integers.widen(

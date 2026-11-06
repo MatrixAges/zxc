@@ -55,11 +55,13 @@ export default function (in: Input): Output {
     return {
         status: files.conflict ? Status.NameConflict : Status.Valid,
         name,
-        path: files.conflict ? "" :
-            strings.join(empty_separator, [
+        path: match {
+            files.conflict => "",
+            _ => strings.join(empty_separator, [
                 view_directory,
                 name,
                 source_suffix
             ])
+        }
     }
 }

@@ -11,23 +11,26 @@ export type Output = State
 
 export default function (in: Input): Output {
     const word = in.expression.control.token.word
+    const line_break = in.expression.control.token.line_break
 
-    const next =
-        (
-            - in.expression.control.token.line_break
-            - and (
-                - word == Keyword.Const
-                - or word == Keyword.Return
-                - or word == Keyword.If
-                - or word == Keyword.Switch
-                - or word == Keyword.Store
-            )
-        )
+    const statement = match word {
+        Keyword.Const => true,
+        Keyword.Return => true,
+        Keyword.If => true,
+        Keyword.Switch => true,
+        Keyword.Store => true,
+        _ => false
+    }
+
+    const next = line_break && statement
+
+    const is_close_brace = in.expression.control.token.symbol == Symbol.CloseBrace
+    const is_eof = in.expression.control.token.kind == Kind.Eof
 
     const condition = (
         - next
-        - or in.expression.control.token.symbol == Symbol.CloseBrace
-        - or in.expression.control.token.kind == Kind.Eof
+        - or is_close_brace
+        - or is_eof
     )
 
     if (condition) {

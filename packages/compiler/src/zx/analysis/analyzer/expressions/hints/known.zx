@@ -32,12 +32,18 @@ export default function (in: Input): Output {
 
             current.frames = current.frames.pop()[0]
 
+            const is_probe = frame.operation == Operation.Probe
+
+            const is_declared = frame.operation == Operation.Declared
+
+            const valid_operation = frame.operation == Operation.Fallback &&
+                current.result == null
+
             const condition = (
-                - frame.operation == Operation.Probe
-                - or frame.operation == Operation.Declared
+                - is_probe
+                - or is_declared
                 - or (
-                    frame.operation == Operation.Fallback &&
-                        current.result == null
+                    valid_operation
                 )
             )
 

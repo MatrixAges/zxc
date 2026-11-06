@@ -26,19 +26,20 @@ export default function (in: Input): Output {
         }
     })
 
-    const refined: State = refine({
+    const facts = refine({
         facts: restoration.refinement.facts,
         expressions,
         first,
         count
     })
-        -> {
-            ...restoration,
-            refinement: {
-                ...restoration.refinement,
-                facts: _
-            }
+
+    const refined: State = {
+        ...restoration,
+        refinement: {
+            ...restoration.refinement,
+            facts: facts
         }
+    }
 
     const result = schedule({
         state: refined,

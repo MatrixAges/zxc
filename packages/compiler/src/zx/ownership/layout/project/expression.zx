@@ -39,11 +39,12 @@ export default function (in: Input): Output {
                         kind == ExpressionKind.Field ||
                             kind == ExpressionKind.TupleField
                     ) {
-                        const parent = projection({
+                        const field = projection({
                             expressions: current.program.expressions,
                             id: current.expression
                         })
-                            -> current.bindings[_.target]
+
+                        const parent = current.bindings[field.target]
 
                         if (parent == 0) {
                             current.bindings = current.bindings.push(0)[0]

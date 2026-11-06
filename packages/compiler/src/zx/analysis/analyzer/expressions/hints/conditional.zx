@@ -11,30 +11,33 @@ export type Input = {
 
 export type Output = u32?
 
-    export default function (in: Input): Output {
-        if (in.expected != null) {
-            return in.expected
-        }
+export default function (in: Input): Output {
+    if (in.expected != null) {
+        return in.expected
+    }
 
-        const node = in.context.source.tree.nodes[in.node]
+    const node = in.context.source.tree.nodes[in.node]
 
-        const yes = known({
-            context: in.context,
-            node: node.second
-        })
+    const yes = known({
+        context: in.context,
+        node: node.second
+    })
 
-        if (yes != null) {
-            return yes
-        }
+    if (yes != null) {
+        return yes
+    }
 
-        const no = known({
-            context: in.context,
-            node: node.third
-        })
+    const no = known({
+        context: in.context,
+        node: node.third
+    })
 
-        return no != null ? no : literal({
+    return match {
+        no != null => no,
+        _ => literal({
             source: in.context.source,
             left: node.second,
             right: node.third
         })
     }
+}

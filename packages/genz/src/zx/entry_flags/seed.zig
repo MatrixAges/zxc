@@ -6,7 +6,7 @@ pub const Flags = struct { inlined: bool = false, body_process: bool, io: bool, 
 pub fn analyze(program: ir.Program, functions: anytype) Flags {
     return .{
         .value = eligibleEntry(program, functions.local),
-        .scalar = scalarLocals(program, functions.pure),
+        .scalar = scalarLocals(program, functions.local),
         .io = @import("../io.zig").uses(program.expressions, program.contracts, functions.io),
         .process = @import("../capabilities.zig").uses(program.expressions, program.contracts, functions.process),
         .body_process = @import("../capabilities.zig").uses(program.expressions, .{}, functions.process),
@@ -14,7 +14,7 @@ pub fn analyze(program: ir.Program, functions: anytype) Flags {
     };
 }
 
-pub fn scalarLocals(program: ir.Program, pure: []const bool) bool {
+pub fn scalarLocals(program: ir.Program, local: []const bool) bool {
     var output = program.typeOf(program.output_type);
 
     while (output == .optional) output = program.typeOf(output.optional);
@@ -24,7 +24,7 @@ pub fn scalarLocals(program: ir.Program, pure: []const bool) bool {
         else => return false,
     }
 
-    return eligibleEntry(program, pure);
+    return eligibleEntry(program, local);
 }
 
 pub fn eligibleEntry(program: ir.Program, callees: []const bool) bool {

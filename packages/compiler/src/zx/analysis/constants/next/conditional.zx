@@ -28,8 +28,10 @@ export default function (in: Input): Output {
         }
     }
 
-    const selected = condition.boolean ? expressions.conditional_yes[payload] :
-        expressions.conditional_no[payload]
+    const selected = match {
+        condition.boolean => expressions.conditional_yes[payload],
+        _ => expressions.conditional_no[payload]
+    }
 
     const value = in.cursor.values[integers.widen(selected)]
 

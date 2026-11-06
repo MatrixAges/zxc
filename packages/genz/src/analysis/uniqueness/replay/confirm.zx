@@ -7,8 +7,11 @@ export default function (in: Input): Output {
         return in.state
     }
 
-    return in.matched ? advance(in) : {
-        ...in.state,
-        following: false
+    return match {
+        in.matched => advance(in),
+        _ => {
+            ...in.state,
+            following: false
+        }
     }
 }

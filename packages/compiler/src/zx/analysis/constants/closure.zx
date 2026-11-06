@@ -55,12 +55,15 @@ export default function (in: Input): Output {
                     )
                 const atom =
                     (
-                        - kind == ExpressionKind.Integer
-                        - or kind == ExpressionKind.NegativeInteger
-                        - or kind == ExpressionKind.Float
-                        - or kind == ExpressionKind.String
-                        - or kind == ExpressionKind.Boolean
-                        - or kind == ExpressionKind.EnumValue
+                        match kind {
+                            ExpressionKind.Integer => true,
+                            ExpressionKind.NegativeInteger => true,
+                            ExpressionKind.Float => true,
+                            ExpressionKind.String => true,
+                            ExpressionKind.Boolean => true,
+                            ExpressionKind.EnumValue => true,
+                            _ => false
+                        }
                     )
                 const operation =
                     kind == ExpressionKind.Unary || kind == ExpressionKind.Binary

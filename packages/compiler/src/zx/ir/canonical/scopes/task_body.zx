@@ -73,7 +73,7 @@ export default function (in: Input): Output {
         activity
     }
 
-    return schedule({
+    const computed_state = schedule({
         state: captured,
         frame: {
             phase: Phase.Expression,
@@ -82,8 +82,9 @@ export default function (in: Input): Output {
             c: in.frame.c == 1 || in.frame.c == 3 ? 3 : 2
         }
     })
-        -> {
-            state: _,
-            valid: true
-        }
+
+    return {
+        state: computed_state,
+        valid: true
+    }
 }

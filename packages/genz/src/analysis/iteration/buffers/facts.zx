@@ -33,28 +33,30 @@ export default function (in: Input): Output {
                 index
             })
             const reference = table.kinds[index] == ExpressionKind.Reference
-            const symbol = reference ? table.references[payload] :
-                current.source.parameter
-            const local = (
-                - !reference
-                - or !contains({
+            const symbol = match {
+                reference => table.references[payload],
+                _ => current.source.parameter
+            }
+            const is_parameter = symbol == current.source.parameter
+
+            const is_condition_parameter = symbol == current.source.condition_parameter
+
+            const symbol_index = integers.widen(symbol)
+            const definitions = current.definitions
+            const local = match {
+                !reference => true,
+                !contains({
                     types: current.source.source.types,
                     id: table.types[index],
                     products: false
-                })
-                - or symbol == current.source.parameter
-                - or symbol == current.source.condition_parameter
-                - or (
-                    current.definitions.kinds[integers.widen(symbol)] ==
-                        Definition.Value &&
-                        current
-                        .safe[integers.widen(
-                            current.definitions.values[integers.widen(
-                                symbol
-                            )]
-                        )]
-                )
-            )
+                }) => true,
+                is_parameter || is_condition_parameter => true,
+                definitions.kinds[symbol_index] == Definition.Value =>
+                    current.safe[integers.widen(
+                        definitions.values[symbol_index]
+                    )],
+                _ => false
+            }
 
             current.safe[index] = allowed && local && value({
                 table,

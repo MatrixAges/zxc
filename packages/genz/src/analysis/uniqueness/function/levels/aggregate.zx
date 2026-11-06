@@ -21,8 +21,10 @@ export default function (in: Input): Output {
     const payload = integers.widen(expressions.payloads[node])
     const object = expressions.kinds[node] == ExpressionKind.Object
 
-    const count = object ? expressions.object_count[payload] :
-        expressions.sequence_count[payload]
+    const count = match {
+        object => expressions.object_count[payload],
+        _ => expressions.sequence_count[payload]
+    }
 
     if (count == 0) {
         return null
@@ -30,8 +32,8 @@ export default function (in: Input): Output {
 
     const type_id = expressions.types[node]
 
-    const offsets = in.metadata.layout.unwrapped[integers.widen(type_id)]
-        -> in.metadata.layout.offsets[integers.widen(_)]
+    const owner = in.metadata.layout.unwrapped[integers.widen(type_id)]
+    const offsets = in.metadata.layout.offsets[integers.widen(owner)]
 
     if (
         offsets.length == 0 ||
@@ -74,9 +76,12 @@ export default function (in: Input): Output {
         _ => null
     }
 
-    return target == null ? null : {
-        node: target,
-        slot: in.slot - selected.offset,
-        raw: false
+    return match {
+        target == null => null,
+        _ => {
+            node: target,
+            slot: in.slot - selected.offset,
+            raw: false
+        }
     }
 }

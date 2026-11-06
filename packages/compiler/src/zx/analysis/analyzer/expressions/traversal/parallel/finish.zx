@@ -20,25 +20,28 @@ export default function (in: Input): Output {
     const type_id: {
         state: Prepared,
         id: u32
-    } = frame.types.length == 0 ? {
-        state: in.state,
-        id: 0
-    } : construct({
-        state: in.state,
-        candidate: {
-            kind: Kind.Object,
-            first: 0,
-            second: 0,
-            label: "",
-            children: [],
-            fields: {
-                names: frame.type_names,
-                types: frame.types
-            },
-            names: []
+    } = match {
+        frame.types.length == 0 => {
+            state: in.state,
+            id: 0
         },
-        span
-    })
+        _ => construct({
+            state: in.state,
+            candidate: {
+                kind: Kind.Object,
+                first: 0,
+                second: 0,
+                label: "",
+                children: [],
+                fields: {
+                    names: frame.type_names,
+                    types: frame.types
+                },
+                names: []
+            },
+            span
+        })
+    }
 
     if (type_id.state.diagnostic.message != "") {
         return {
@@ -85,9 +88,12 @@ export default function (in: Input): Output {
 
             current.indices =
                 current.indices.push(
-                    found.index == current.count ? null : integers.narrow(
-                        found.index
-                    )
+                    match {
+                        found.index == current.count => null,
+                        _ => integers.narrow(
+                            found.index
+                        )
+                    }
                 )[0]
             current.index += 1
         },

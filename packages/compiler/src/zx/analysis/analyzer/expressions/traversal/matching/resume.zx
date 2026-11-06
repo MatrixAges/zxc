@@ -2,8 +2,12 @@ import integers from "std:integer"
 import append from "core/expression_table/append/match"
 import { Kind } from "core/type_table/model"
 
+import assume from "../../../../../ir/canonical/refinement/assume"
+import mark from "../../../../../ir/canonical/refinement/facts/mark"
+import restore from "../../../../../ir/canonical/refinement/facts/restore"
 import row from "../../../../semantic/types/row"
 import { Phase, Action } from "../model"
+import conditional from "./conditional"
 import next from "./next"
 import prepare from "./prepare"
 
@@ -35,11 +39,14 @@ export default function (in: Input): Output {
             id: type_id
         })
 
+        const valid_target =
+            target.kind != Kind.Scalar && target.kind != Kind.Enumeration &&
+            target.kind != Kind.ErrorSet
+
         const condition = (
             - type_id == 0
             - or (
-                target.kind != Kind.Scalar && target.kind != Kind.Enumeration &&
-                    target.kind != Kind.ErrorSet
+                valid_target
             )
         )
 
@@ -71,51 +78,108 @@ export default function (in: Input): Output {
     }
 
     if (in.action == Action.MatchCondition) {
-        return work.source.tree.arms[frame.arms[frame.index]]
-            -> {
-                ...work,
-                node: _.result,
-                expected: frame.expected,
-                phase: Phase.Evaluate,
-                frames: {
-                    ...work.frames,
-                    actions: work.frames.actions.push(Action.MatchResult)[0],
-                    selections: work.frames.selections.splice(position, 1, [{
-                        ...frame,
-                        conditions: frame.conditions.push(work.value)[0]
-                    }])[0]
+        const arm = work.source.tree.arms[frame.arms[frame.index]]
+
+        const before = mark(work.state.local.refinement.facts)
+
+        const refinement = match {
+            frame.subject == null => assume({
+                state: work.state.local.refinement,
+                expressions: work.state.local.expressions,
+                condition: integers.widen(work.value),
+                truth: true
+            }),
+            _ => work.state.local.refinement
+        }
+
+        return {
+            ...work,
+            state: {
+                ...work.state,
+                local: {
+                    ...work.state.local,
+                    refinement
                 }
+            },
+            node: arm.result,
+            expected: frame.expected,
+            phase: Phase.Evaluate,
+            frames: {
+                ...work.frames,
+                actions: work.frames.actions.push(Action.MatchResult)[0],
+                selections: work.frames.selections.splice(position, 1, [{
+                    ...frame,
+                    conditions: frame.conditions.push(work.value)[0],
+                    branch_mark: before
+                }])[0]
             }
+        }
     }
 
     if (in.action == Action.MatchResult) {
-        return work.frames.selections.splice(position, 1, [{
+        const restored = {
+            ...work.state.local.refinement,
+            facts: restore({
+                facts: work.state.local.refinement.facts,
+                mark: frame.branch_mark
+            })
+        }
+
+        const refinement = match {
+            frame.subject == null => assume({
+                state: restored,
+                expressions: work.state.local.expressions,
+                condition: integers.widen(frame.conditions[frame.index]),
+                truth: false
+            }),
+            _ => restored
+        }
+
+        const selections = work.frames.selections.splice(position, 1, [{
             ...frame,
             expected: type_id,
             index: frame.index + 1,
             results: frame.results.push(work.value)[0]
         }])[0]
-            -> next({
-                ...work,
-                frames: {
-                    ...work.frames,
-                    selections: _
+
+        return next({
+            ...work,
+            state: {
+                ...work.state,
+                local: {
+                    ...work.state.local,
+                    refinement
                 }
-            })
+            },
+            frames: {
+                ...work.frames,
+                selections: selections
+            }
+        })
     }
 
-    const result = append({
-        table: work.state.local.expressions,
-        metadata: {
-            type_id,
-            span_start: node.span.start,
-            span_end: node.span.end
-        },
-        subject: frame.subject,
-        fallback: work.value,
-        conditions: frame.conditions,
-        results: frame.results
-    })
+    const result = match {
+        frame.subject == null => conditional({
+            table: work.state.local.expressions,
+            conditions: frame.conditions,
+            results: frame.results,
+            fallback: work.value,
+            start: node.span.start,
+            end: node.span.end
+        }),
+        _ => append({
+            table: work.state.local.expressions,
+            metadata: {
+                type_id,
+                span_start: node.span.start,
+                span_end: node.span.end
+            },
+            subject: frame.subject,
+            fallback: work.value,
+            conditions: frame.conditions,
+            results: frame.results
+        })
+    }
 
     return {
         ...work,
@@ -123,7 +187,14 @@ export default function (in: Input): Output {
             ...work.state,
             local: {
                 ...work.state.local,
-                expressions: result.table
+                expressions: result.table,
+                refinement: {
+                    ...work.state.local.refinement,
+                    facts: restore({
+                        facts: work.state.local.refinement.facts,
+                        mark: frame.mark
+                    })
+                }
             }
         },
         value: result.id,

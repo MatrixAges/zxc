@@ -17,25 +17,32 @@ export default function (in: Input): Output {
     const payload = integers.widen(in.table.payloads[in.id])
 
     const condition = (
-        - kind == ExpressionKind.List
-        - or kind == ExpressionKind.Tuple
-        - or kind == ExpressionKind.Template
+        match kind {
+            ExpressionKind.List => true,
+            ExpressionKind.Tuple => true,
+            ExpressionKind.Template => true,
+            _ => false
+        }
     )
 
     if (condition) {
-        return in.index < integers.widen(in.table.sequence_count[payload]) ?
-            in.table
-            .sequence_items[integers.widen(
-                in.table.sequence_first[payload]
-            ) + in.index] : null
+        return match {
+            in.index < integers.widen(in.table.sequence_count[payload]) => in.table
+                .sequence_items[integers.widen(
+                    in.table.sequence_first[payload]
+                ) + in.index],
+            _ => null
+        }
     }
 
     if (kind == ExpressionKind.Parallel) {
-        return in.index < integers.widen(in.table.parallel_count[payload]) ?
-            in.table
-            .parallel_tasks[integers.widen(
-                in.table.parallel_first[payload]
-            ) + in.index] : null
+        return match {
+            in.index < integers.widen(in.table.parallel_count[payload]) => in.table
+                .parallel_tasks[integers.widen(
+                    in.table.parallel_first[payload]
+                ) + in.index],
+            _ => null
+        }
     }
 
     if (kind == ExpressionKind.ListOperation) {
@@ -43,12 +50,14 @@ export default function (in: Input): Output {
             return in.table.collection_targets[payload]
         }
 
-        return in.index <= integers.widen(in.table.collection_count[payload]) ?
-            in.table
-            .collection_arguments[integers.widen(
-                in.table.collection_first[payload]
-            ) +
-                in.index - 1] : null
+        return match {
+            in.index <= integers.widen(in.table.collection_count[payload]) => in.table
+                .collection_arguments[integers.widen(
+                    in.table.collection_first[payload]
+                ) +
+                    in.index - 1],
+            _ => null
+        }
     }
 
     if (kind == ExpressionKind.Transform) {
@@ -86,13 +95,15 @@ export default function (in: Input): Output {
 
         const index = in.index - fields
 
-        return index < integers.widen(in.table.object_evaluation_count[payload]) ?
-            in.table
-            .object_evaluation_values[
-                integers.widen(
-                    in.table.object_evaluation_first[payload]
-                ) + index
-            ] : null
+        return match {
+            index < integers.widen(in.table.object_evaluation_count[payload]) => in.table
+                .object_evaluation_values[
+                    integers.widen(
+                        in.table.object_evaluation_first[payload]
+                    ) + index
+                ],
+            _ => null
+        }
     }
 
     if (kind == ExpressionKind.Match) {
@@ -108,8 +119,10 @@ export default function (in: Input): Output {
         if (index < count * 2) {
             const arm = integers.widen(in.table.match_first[payload]) + index / 2
 
-            return index % 2 == 0 ? in.table.match_conditions[arm] :
-                in.table.match_results[arm]
+            return match {
+                index % 2 == 0 => in.table.match_conditions[arm],
+                _ => in.table.match_results[arm]
+            }
         }
 
         return index == count * 2 ? in.table.match_fallbacks[payload] : null

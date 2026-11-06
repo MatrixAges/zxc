@@ -13,17 +13,17 @@ export default function (in: Input): Output {
         grows,
         index: 0
     }, {
-        while: (state, source) => state.index < source.output_types.length,
-        next: (state, source) => {
+        while: state => state.index < in.output_types.length,
+        next: state => {
             state.grows = state.grows.push(
-                source.native_modules[state.index] != null ||
-                    source.roots[state.index] == null || body({
-                        expressions: source.expressions[state.index],
+                in.native_modules[state.index] != null ||
+                    in.roots[state.index] == null || body({
+                        expressions: in.expressions[state.index],
                         grows: state.grows
                     })
             )[0]
             state.index += 1
         },
         return: state => state.grows
-    }, in)
+    })
 }

@@ -24,35 +24,45 @@ export default function (in: Input): Output {
         number: 0
     }
 
-    const visible: Frame[] = tree.function_exported[row] ? [{
-        ...frame,
-        token: Token.PubPrefix
-    }] : []
+    const visible: Frame[] = match {
+        tree.function_exported[row] => [{
+            ...frame,
+            token: Token.PubPrefix
+        }],
+        _ => []
+    }
 
-    const exported = tree.function_abi_export[row] ? visible.push({
-        ...frame,
-        token: Token.ExportPrefix
-    })[0] : visible
+    const exported = match {
+        tree.function_abi_export[row] => visible.push({
+            ...frame,
+            token: Token.ExportPrefix
+        })[0],
+        _ => visible
+    }
 
-    const opening = (tree.function_inlined[row] ? exported.push({
-        ...frame,
-        token: Token.InlinePrefix
-    })[0] : exported)
-        -> _.concat([
-            {
-                ...frame,
-                token: Token.FnPrefix
-            },
-            {
-                ...frame,
-                action: Action.Identifier,
-                bytes: ByteSource.FunctionName
-            },
-            {
-                ...frame,
-                token: Token.Open
-            }
-        ])[0]
+    const inlined = match {
+        tree.function_inlined[row] => exported.push({
+            ...frame,
+            token: Token.InlinePrefix
+        })[0],
+        _ => exported
+    }
+
+    const opening = inlined.concat([
+        {
+            ...frame,
+            token: Token.FnPrefix
+        },
+        {
+            ...frame,
+            action: Action.Identifier,
+            bytes: ByteSource.FunctionName
+        },
+        {
+            ...frame,
+            token: Token.Open
+        }
+    ])[0]
 
     const zero: u32 = 0
 
@@ -88,40 +98,44 @@ export default function (in: Input): Output {
 
     const convention = tree.function_calling_convention[row]
 
-    return (convention == null ? signature : signature.concat([
-        {
-            ...frame,
-            token: Token.CallConvention
-        },
-        {
-            ...frame,
-            action: Action.Expression,
-            id: convention
-        },
-        {
-            ...frame,
-            token: Token.CloseSpace
-        }
-    ])[0])
-        -> _.concat([
+    const calling = match {
+        convention == null => signature,
+        _ => signature.concat([
+            {
+                ...frame,
+                token: Token.CallConvention
+            },
             {
                 ...frame,
                 action: Action.Expression,
-                id: tree.function_return_type[row]
+                id: convention
             },
             {
                 ...frame,
-                token: Token.Space
-            },
-            {
-                ...frame,
-                action: Action.Block,
-                id: tree.function_body_start[row],
-                count: tree.function_body_len[row]
-            },
-            {
-                ...frame,
-                token: Token.Newline
+                token: Token.CloseSpace
             }
         ])[0]
+    }
+
+    return calling.concat([
+        {
+            ...frame,
+            action: Action.Expression,
+            id: tree.function_return_type[row]
+        },
+        {
+            ...frame,
+            token: Token.Space
+        },
+        {
+            ...frame,
+            action: Action.Block,
+            id: tree.function_body_start[row],
+            count: tree.function_body_len[row]
+        },
+        {
+            ...frame,
+            token: Token.Newline
+        }
+    ])[0]
 }

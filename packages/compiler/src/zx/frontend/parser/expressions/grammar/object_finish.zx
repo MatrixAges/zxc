@@ -13,8 +13,10 @@ export type Input = {
 export type Output = ExprState
 
 export default function (in: Input): Output {
-    const phase = in.frame.kind == FrameKind.OptionsValue ? Phase.Returning :
-        Phase.Postfix
+    const phase = match {
+        in.frame.kind == FrameKind.OptionsValue => Phase.Returning,
+        _ => Phase.Postfix
+    }
 
     const value = {
         ...node({
@@ -28,24 +30,25 @@ export default function (in: Input): Output {
     }
 
     const start = in.frame.start
+    const depth = in.frame.depth
 
-    return in.frame.depth
-        -> {
-            ...in.state.control,
-            depth: _,
-            primary_start: start
-        }
-        -> emit({
-            state: consume({
-                state: {
-                    prepared: in.state.prepared,
-                    tree: in.state.tree,
-                    types: in.state.types,
-                    frames: in.state.frames,
-                    control: _
-                },
-                phase
-            }),
-            node: value
-        })
+    const control = {
+        ...in.state.control,
+        depth: depth,
+        primary_start: start
+    }
+
+    return emit({
+        state: consume({
+            state: {
+                prepared: in.state.prepared,
+                tree: in.state.tree,
+                types: in.state.types,
+                frames: in.state.frames,
+                control: control
+            },
+            phase
+        }),
+        node: value
+    })
 }

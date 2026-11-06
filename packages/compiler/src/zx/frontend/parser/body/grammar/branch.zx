@@ -23,42 +23,49 @@ export default function (in: Input): Output {
     }
 
     if (in.control.phase == Phase.IfClose) {
-        return in.expression.control.result
-            -> {
-                expression: in.expression,
-                tree: in.tree,
-                frames: in.frames,
-                suspended: in.suspended,
-                frame: {
-                    ...in.frame,
-                    first: _
-                },
-                control: in.control
-            }
-            -> expect({
-                state: _,
-                symbol: Symbol.CloseParen,
-                phase: Phase.BlockOpen,
-                message: "expected )"
-            })
+        const result = in.expression.control.result
+
+        const state = {
+            expression: in.expression,
+            tree: in.tree,
+            frames: in.frames,
+            suspended: in.suspended,
+            frame: {
+                ...in.frame,
+                first: result
+            },
+            control: in.control
+        }
+
+        return expect({
+            state: state,
+            symbol: Symbol.CloseParen,
+            phase: Phase.BlockOpen,
+            message: "expected )"
+        })
     }
 
+    const is_block_open = in.control.phase == Phase.BlockOpen
+
+    const valid_phase = in.control.phase == Phase.IfAlternative &&
+        in.expression.control.token.word != Keyword.If
+
     const condition = (
-        - in.control.phase == Phase.BlockOpen
+        - is_block_open
         - or (
-            in.control.phase == Phase.IfAlternative &&
-                in.expression.control.token.word != Keyword.If
+            valid_phase
         )
     )
 
     if (condition) {
+        const resume = in.control.phase == Phase.BlockOpen ? Phase.IfElse : Phase.Publish
+
         const state =
-            (in.control.phase == Phase.BlockOpen ? Phase.IfElse : Phase.Publish)
-            -> enter({
+            enter({
                 state: in,
                 kind: FrameKind.Block,
                 phase: Phase.BlockOpen,
-                resume: _,
+                resume: resume,
                 nested: true
             })
 

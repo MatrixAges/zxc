@@ -14,13 +14,16 @@ export type Output = bool
 export default function (in: Input): Output {
     const modules = in.modules
 
+    const different_import_names = modules.import_names.length != 1
+    const different_type_namespaces = modules.type_namespaces.length != 1
+
     const condition = (
         - modules.identities.length != 1
-        - or modules.import_names.length != 1
+        - or different_import_names
         - or modules.specifiers.length != 1
         - or modules.type_ids.length != 1
         - or modules.type_names.length != 1
-        - or modules.type_namespaces.length != 1
+        - or different_type_namespaces
     )
 
     if (condition) {
@@ -30,12 +33,12 @@ export default function (in: Input): Output {
     const key = modules.identities[0] ?? modules.specifiers[0]
     const declared_key = in.declaration.identity ?? in.declaration.specifier
 
-    const condition_2 = (
-        - in.path != declared_key
-        - or key != declared_key
-        - or modules.specifiers[0] != in.declaration.specifier
-        - or modules.import_names[0] != in.declaration.import_name
-    )
+    const condition_2 = match {
+        in.path != declared_key => true,
+        key != declared_key => true,
+        modules.specifiers[0] != in.declaration.specifier => true,
+        _ => modules.import_names[0] != in.declaration.import_name
+    }
 
     if (condition_2) {
         return false
@@ -45,11 +48,16 @@ export default function (in: Input): Output {
     const types = modules.type_ids[0]
     const namespace = modules.type_namespaces[0]
 
+    const not_length = names.length != in.export_names.length
+    const not_length_2 = types.length != in.export_types.length
+
+    const not_length_3 = namespace.length != in.declaration.namespace.length
+
     const condition_3 = (
         - names.length != types.length
-        - or names.length != in.export_names.length
-        - or types.length != in.export_types.length
-        - or namespace.length != in.declaration.namespace.length
+        - or not_length
+        - or not_length_2
+        - or not_length_3
     )
 
     if (condition_3) {

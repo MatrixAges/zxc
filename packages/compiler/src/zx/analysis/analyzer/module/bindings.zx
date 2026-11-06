@@ -28,11 +28,13 @@ export default function (in: Input): Output {
 
     const native = in.module.native
 
-    const name = native != null && native.function_name != null ? native.function_name :
-        text({
+    const name = match {
+        native != null && native.function_name != null => native.function_name,
+        _ => text({
             source: in.module.bytes,
             span
         }).text
+    }
 
     const id = integers.narrow(in.module.context.functions.input_types.length)
 

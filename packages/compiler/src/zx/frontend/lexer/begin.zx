@@ -37,9 +37,11 @@ export default function (in: Input): Output {
 
     const offset = in.state.offset
 
+    const valid_byte = in.byte >= ascii_tab && in.byte <= ascii_carriage_return
+
     const condition = (
         - in.byte == ascii_space
-        - or (in.byte >= ascii_tab && in.byte <= ascii_carriage_return)
+        - or (valid_byte)
     )
 
     if (condition) {
@@ -53,13 +55,14 @@ export default function (in: Input): Output {
         const next = in.next
 
         if (next == ascii_slash || next == ascii_asterisk) {
-            return offset + 2
-                -> {
-                    ...in.state,
-                    skip_until: _,
-                    mode: next == ascii_slash ? Mode.LineComment : Mode.BlockComment,
-                    start: offset
-                }
+            const next_skip_until = offset + 2
+
+            return {
+                ...in.state,
+                skip_until: next_skip_until,
+                mode: next == ascii_slash ? Mode.LineComment : Mode.BlockComment,
+                start: offset
+            }
         }
     }
 
@@ -132,16 +135,17 @@ export default function (in: Input): Output {
         length
     })
 
-    return offset + length
-        -> emit({
-            kind: kind_punctuation,
-            start: offset,
-            end: offset + length,
-            comment: false,
-            state: {
-                ...in.state,
-                symbol,
-                skip_until: _
-            }
-        })
+    const return_input = offset + length
+
+    return emit({
+        kind: kind_punctuation,
+        start: offset,
+        end: offset + length,
+        comment: false,
+        state: {
+            ...in.state,
+            symbol,
+            skip_until: return_input
+        }
+    })
 }

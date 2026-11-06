@@ -14,10 +14,14 @@ export default function (in: Input): Output {
     const ids = in.table.type_ids[in.index]
     const namespace = in.table.type_namespaces[in.index]
 
+    const not_length = names.length != in.value.names.length
+    const not_length_2 = ids.length != in.value.ids.length
+    const not_length_3 = namespace.length != in.value.namespace.length
+
     const condition = (
-        - names.length != in.value.names.length
-        - or ids.length != in.value.ids.length
-        - or namespace.length != in.value.namespace.length
+        - not_length
+        - or not_length_2
+        - or not_length_3
     )
 
     if (condition) {

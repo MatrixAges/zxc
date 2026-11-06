@@ -8,9 +8,9 @@ export default function (in: Input): Output {
     const levels: Knowledge[] = []
 
     return loop(levels, {
-        while: (state, count) => state.length < count,
+        while: state => state.length < in,
         next: state => {
             state = state.push(Knowledge.None)[0]
         }
-    }, in)
+    })
 }

@@ -76,22 +76,25 @@ export default function (in: Input): Output {
         _ => [],
     }
 
-    return match {
+    const message = match {
         !known => unknown_method,
         text && in.element != type_id_u8 => text_element,
         in.count != hints.length =>
-            replacement ? with_arity :
-            method_arity,
+            match {
+                replacement => with_arity,
+                _ => method_arity
+            },
         kind == CollectionKind.Sort &&
             (in.element < type_id_u8 || in.element > type_id_string) =>
             sort_element,
         _ => no_diagnostic,
     }
-        -> {
-            kind,
-            replacement,
-            hints,
-            code: !known ? name_code : type_code,
-            message: _
-        }
+
+    return {
+        kind,
+        replacement,
+        hints,
+        code: !known ? name_code : type_code,
+        message: message
+    }
 }

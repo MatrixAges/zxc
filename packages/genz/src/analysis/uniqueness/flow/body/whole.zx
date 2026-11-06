@@ -15,26 +15,30 @@ export type Output = Queue
 export default function (in: Input): Output {
     const node = integers.widen(in.node)
 
-    return loop({
+    const loop_initial = {
         queue: in.queue,
         slot: integers.narrow(0)
-    }, {
-        while: (state, context) => state.slot < context.count,
-        next: (state, context) => {
+    }
+
+    const loop_scope = {
+        first: in.first,
+        node: in.node,
+        count: in.first[node + 1] - in.first[node]
+    }
+
+    return loop(loop_initial, {
+        while: state => state.slot < loop_scope.count,
+        next: state => {
             state.queue = push({
                 queue: state.queue,
-                first: context.first,
+                first: loop_scope.first,
                 point: {
-                    node: context.node,
+                    node: loop_scope.node,
                     slot: state.slot
                 }
             })
             state.slot += 1
         },
         return: state => state.queue
-    }, {
-        first: in.first,
-        node: in.node,
-        count: in.first[node + 1] - in.first[node]
     })
 }

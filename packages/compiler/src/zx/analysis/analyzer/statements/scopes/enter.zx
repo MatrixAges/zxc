@@ -10,7 +10,9 @@ export type Input = {
     local: Local,
     tree: BlockTree,
     block: u64,
-    state_symbol: u32
+    state_symbol: u32,
+    value_block: bool,
+    expected?: u32
 }
 
 export type Output = Scopes
@@ -21,6 +23,9 @@ export default function (in: Input): Output {
     const frame: Frame = {
         source_block: in.block,
         state_symbol: in.state_symbol,
+        value_block: in.value_block,
+        expected: in.expected,
+        result: null,
         statements: order({
             items: in.tree.items,
             head: source.head,

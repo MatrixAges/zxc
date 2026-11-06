@@ -32,7 +32,10 @@
                 path: $ctx.name.path,
                 aliases: $ctx.resolve.aliases
             },
-            roots: $ctx.root ? $ctx.resolve.explicit : []
+            roots: match {
+                $ctx.root => $ctx.resolve.explicit,
+                _ => []
+            }
         }}
     />
 </Module>

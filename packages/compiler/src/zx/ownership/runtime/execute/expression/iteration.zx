@@ -1,0 +1,74 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import { Capture } from "../../snapshots/model"
+import save from "../../snapshots/save"
+import { WorkAction } from "../../work/model"
+import push from "../../work/push"
+
+import type { Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    if (in.kind == ExpressionKind.Iteration) {
+        const work = push({
+            work: in.machine.work,
+            frame: {
+                action: WorkAction.IterationInitial,
+                subject: in.frame.subject,
+                moving: false,
+                index: 0
+            }
+        })
+
+        return {
+            ...in.machine,
+            work: push({
+                work: work,
+                frame: {
+                    action: WorkAction.Value,
+                    subject:
+                        integers.widen(
+                            in.machine.program.expressions
+                                .iteration_initials[in.payload]
+                        ),
+                    moving: true,
+                    index: 0
+                }
+            })
+        }
+    }
+
+    const captured = save({
+        memory: in.machine.memory,
+        stack: in.machine.snapshots,
+        capture: Capture.States
+    })
+
+    const work = push({
+        work: in.machine.work,
+        frame: {
+            action: WorkAction.TransformTarget,
+            subject: in.frame.subject,
+            moving: false,
+            index: 0
+        }
+    })
+
+    return {
+        ...in.machine,
+        snapshots: captured.stack,
+        work: push({
+            work: work,
+            frame: {
+                action: WorkAction.Aggregate,
+                subject:
+                    integers.widen(
+                        in.machine.program.expressions
+                            .transform_targets[in.payload]
+                    ),
+                moving: false,
+                index: 0
+            }
+        })
+    }
+}

@@ -54,11 +54,12 @@ export default function (in: Input): Output {
         head: node.head
     })
 
-    const condition = (
-        - operation == Operation.IsNil
-        - or operation == Operation.IsNotNil
-        - and work.source.tree.nodes[arguments[0]].kind == ExprKind.Null
-    )
+    const nil_check = operation == Operation.IsNil || operation == Operation.IsNotNil
+
+    const condition = match {
+        nil_check => work.source.tree.nodes[arguments[0]].kind == ExprKind.Null,
+        _ => false
+    }
 
     if (condition) {
         const result = boolean({
@@ -79,8 +80,11 @@ export default function (in: Input): Output {
         node: work.node,
         import_index: in.index,
         tuple: false,
-        arguments: operation == Operation.Pick || operation == Operation.Omit ?
-            [arguments[0]] : arguments,
+        arguments: match {
+            operation == Operation.Pick || operation == Operation.Omit =>
+                [arguments[0]],
+            _ => arguments
+        },
         index: 0,
         values: []
     }

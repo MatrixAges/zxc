@@ -43,10 +43,13 @@ export default function (in: Input): Output {
         name
     })
 
-    const resolved = completed.found ? completed : lookup({
-        cache: in.context.resolved,
-        name
-    })
+    const resolved = match {
+        completed.found => completed,
+        _ => lookup({
+            cache: in.context.resolved,
+            name
+        })
+    }
 
     if (resolved.found) {
         return {
@@ -174,7 +177,7 @@ export default function (in: Input): Output {
         return enumeration(entered)
     }
 
-    return frame({
+    const child = frame({
         operation: Operation.Node,
         name: {
             text: "",
@@ -183,8 +186,9 @@ export default function (in: Input): Output {
         },
         reference: declared.value
     })
-        -> {
-            ...entered,
-            frames: entered.frames.push(_)[0]
-        }
+
+    return {
+        ...entered,
+        frames: entered.frames.push(child)[0]
+    }
 }

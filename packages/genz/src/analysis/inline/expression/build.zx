@@ -18,25 +18,27 @@ export default function (in: Input): Output {
     const mapping = in.frame.mapping
     const source = state.units[state.mappings.units[mapping]].expressions
 
-    const start = children({
+    const count = children({
         table: source,
         id: in.frame.id
     }).length
-        -> state.stack.length - _
 
-    const made = mapped({
+    const start = state.stack.length - count
+
+    const values = mapped({
         stack: state.stack,
         start
     })
-        -> copy({
-            target: state.tables.expressions,
-            source,
-            id: in.frame.id,
-            mapped: _,
-            offset: state.mappings.offsets[mapping]
-        })
 
-    return {
+    const made = copy({
+        target: state.tables.expressions,
+        source,
+        id: in.frame.id,
+        mapped: values,
+        offset: state.mappings.offsets[mapping]
+    })
+
+    const updated = {
         ...state,
         tables: {
             ...state.tables,
@@ -48,13 +50,14 @@ export default function (in: Input): Output {
         }),
         depth: state.depth - 1
     }
-        -> memo({
-            state: append({
-                state: _,
-                id: made.id
-            }),
-            mapping,
-            id: in.frame.id,
-            value: integers.widen(made.id)
-        })
+
+    return memo({
+        state: append({
+            state: updated,
+            id: made.id
+        }),
+        mapping,
+        id: in.frame.id,
+        value: integers.widen(made.id)
+    })
 }

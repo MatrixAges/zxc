@@ -25,11 +25,16 @@ export default function (in: Input): Output {
     const before_close =
         in.current == close_object || in.current == close_call || in.current == close_list
 
-    return priority(in.previous) != no_operator || priority(in.current) != no_operator
-        -> ((
+    const operator =
+        priority(in.previous) != no_operator || priority(in.current) != no_operator
+
+    return match {
+        (
             - after_open
             - or before_close
-            - or _
+            - or operator
             - or in.previous == comma
-        ) ? 1 : in.actual)
+        ) => 1,
+        _ => in.actual
+    }
 }

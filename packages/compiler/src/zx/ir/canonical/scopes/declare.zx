@@ -39,13 +39,11 @@ export default function (in: Input): Output {
             }
         }
     } else {
-        const condition_2 = (
-            - activity.active[in.symbol]
-            - or (
-                activity.declared[in.symbol] &&
-                    activity.owners[in.symbol] != in.owner + 1
-            )
-        )
+        const condition_2 = match {
+            activity.active[in.symbol] => true,
+            !activity.declared[in.symbol] => false,
+            _ => activity.owners[in.symbol] != in.owner + 1
+        }
 
         if (condition_2) {
             return {
@@ -73,11 +71,13 @@ export default function (in: Input): Output {
             activity: {
                 active: active.active,
                 declared: active.declared.with(in.symbol, true),
-                owners: in.mode == Declaration.Ordinary ? active.owners :
-                    active.owners.with(
+                owners: match {
+                    in.mode == Declaration.Ordinary => active.owners,
+                    _ => active.owners.with(
                         in.symbol,
                         in.owner + 1
-                    ),
+                    )
+                },
                 changed_symbols: active.changed_symbols,
                 changed_values: active.changed_values
             },

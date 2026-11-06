@@ -54,15 +54,15 @@ export default function (in: Input): Output {
         })
     }
 
-    const condition_3 = (
-        - in.byte == 96
-        - and (
-            - in.mode == Mode.Idle
-            - or in.mode == Mode.Identifier
-            - or in.mode == Mode.Number
-            - or in.mode == Mode.Interpolation
-        )
-    )
+    const can_open = match in.mode {
+        Mode.Idle => true,
+        Mode.Identifier => true,
+        Mode.Number => true,
+        Mode.Interpolation => true,
+        _ => false
+    }
+
+    const condition_3 = in.byte == 96 && can_open
 
     if (condition_3) {
         return openTemplate({

@@ -21,12 +21,13 @@ export default function (in: Input): Output {
         })
     }
 
-    const named = match in.control.injected {
+    const expected = match in.control.injected {
         0 => Keyword.Allocator,
         1 => Keyword.Io,
         _ => Keyword.Process
     }
-        -> token.word == _
+
+    const named = token.word == expected
 
     const next = named ? in.lexed.tokens[in.control.index + 1].symbol : Symbol.None
     const injected = named && (next == Symbol.Comma || next == Symbol.CloseParen)
@@ -59,30 +60,31 @@ export default function (in: Input): Output {
 
     const stage = in.control.injected + 1
 
-    return match {
+    const count = match {
         injected => match next {
             Symbol.Comma => 2,
             _ => 1
         },
         _ => 0
     }
-        -> advance({
-            state: {
-                lexed: in.lexed,
-                declarations: in.declarations,
-                functions: in.functions,
-                parameters: in.parameters,
-                errors: in.errors,
-                control: {
-                    phase: in.control.phase,
-                    index: in.control.index,
-                    parameter: in.control.parameter,
-                    diagnostic: in.control.diagnostic,
-                    current,
-                    injected: stage
-                }
-            },
-            phase: Phase.Inject,
-            count: _
-        })
+
+    return advance({
+        state: {
+            lexed: in.lexed,
+            declarations: in.declarations,
+            functions: in.functions,
+            parameters: in.parameters,
+            errors: in.errors,
+            control: {
+                phase: in.control.phase,
+                index: in.control.index,
+                parameter: in.control.parameter,
+                diagnostic: in.control.diagnostic,
+                current,
+                injected: stage
+            }
+        },
+        phase: Phase.Inject,
+        count: count
+    })
 }

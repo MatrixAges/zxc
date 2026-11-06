@@ -29,21 +29,23 @@ export default function (in: Input): Output {
         id: tuple ?? 0
     })
 
-    return (target.delta ? tables.delta : tables.base)
-        -> (
-            tuple == null ? frame.element :
-                _.children[integers.widen(
-                    target.first
-                ) + frame.index]
-        )
-        -> {
-            ...in,
-            node: frame.items[frame.index],
-            expected: _,
-            phase: Phase.Evaluate,
-            frames: {
-                ...in.frames,
-                actions: in.frames.actions.push(Action.Sequence)[0]
-            }
+    const table = target.delta ? tables.delta : tables.base
+
+    const expected = match {
+        tuple == null => frame.element,
+        _ => table.children[integers.widen(
+            target.first
+        ) + frame.index]
+    }
+
+    return {
+        ...in,
+        node: frame.items[frame.index],
+        expected: expected,
+        phase: Phase.Evaluate,
+        frames: {
+            ...in.frames,
+            actions: in.frames.actions.push(Action.Sequence)[0]
         }
+    }
 }

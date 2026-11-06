@@ -40,18 +40,19 @@ export default function (in: Input): Output {
             const name = current.bindings[current.index]
             const length = name.length
 
-            const condition = (
-                - length >= current.length
-                - and length <= current.bytes.length
-                - and encoding.sliceBytes(
-                    current.name,
-                    0,
-                    length
-                ) == name
-                - and (
-                    length == current.bytes.length || current.bytes[length] == 46
-                )
-            )
+            const valid_length =
+                length >= current.length && length <= current.bytes.length
+
+            const prefix_matches = match {
+                valid_length => encoding.sliceBytes(current.name, 0, length) == name,
+                _ => false
+            }
+
+            const condition = match {
+                !prefix_matches => false,
+                length == current.bytes.length => true,
+                _ => current.bytes[length] == 46
+            }
 
             if (condition) {
                 current.symbol = current.symbols[current.index]
@@ -77,14 +78,15 @@ export default function (in: Input): Output {
     }
 
     if (binding.length == bytes.length) {
-        return add({
+        const facts = add({
             facts: in.state.facts,
             symbol
         })
-            -> {
-                ...in.state,
-                facts: _
-            }
+
+        return {
+            ...in.state,
+            facts: facts
+        }
     }
 
     const root = reference({
@@ -162,13 +164,14 @@ export default function (in: Input): Output {
         }
     }
 
-    return addValue({
+    const facts = addValue({
         facts: state.facts,
         expressions: state.expressions,
         value: resolved.value
     })
-        -> {
-            ...state,
-            facts: _
-        }
+
+    return {
+        ...state,
+        facts: facts
+    }
 }

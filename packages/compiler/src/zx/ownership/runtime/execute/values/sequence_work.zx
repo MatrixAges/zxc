@@ -1,0 +1,45 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import { WorkAction } from "../../work/model"
+import push from "../../work/push"
+
+import type { Expressions } from "core/expression_table/model"
+import type { Frame, Work } from "../../work/model"
+
+export type Input = {
+    work: Work,
+    expressions: Expressions,
+    frame: Frame
+}
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const frame = in.frame
+    const expressions = in.expressions
+    const kind = expressions.kinds[frame.subject]
+    const payload = integers.widen(expressions.payloads[frame.subject])
+    const first = integers.widen(expressions.sequence_first[payload])
+
+    const work = push({
+        work: in.work,
+        frame: {
+            ...frame,
+            action: WorkAction.SequenceResult
+        }
+    })
+
+    return push({
+        work,
+        frame: {
+            action: match kind {
+                ExpressionKind.Template => WorkAction.Value,
+                _ => WorkAction.Aggregate
+            },
+            subject: integers.widen(expressions.sequence_items[first + frame.index]),
+            moving: kind != ExpressionKind.Template && frame.moving,
+            index: 0
+        }
+    })
+}

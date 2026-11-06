@@ -25,21 +25,22 @@ export default function (in: Input): Output {
 
     const subject: u32? = null
 
-    const made = {
+    const metadata = {
         type_id: integers.narrow(in.frame.l),
         span_start: in.frame.d,
         span_end: in.frame.e
     }
-        -> matched({
-            table: state.tables.expressions,
-            metadata: _,
-            subject,
-            fallback: integers.narrow(fallback),
-            conditions: pairs.conditions,
-            results: pairs.results
-        })
 
-    const selected = append({
+    const made = matched({
+        table: state.tables.expressions,
+        metadata: metadata,
+        subject,
+        fallback: integers.narrow(fallback),
+        conditions: pairs.conditions,
+        results: pairs.results
+    })
+
+    const counted = append({
         state: {
             ...state,
             stack: state.stack.pop()[0],
@@ -54,15 +55,16 @@ export default function (in: Input): Output {
         },
         id: made.id
     })
-        -> bind({
-            state: _,
-            symbol: integers.narrow(in.frame.h),
-            value: integers.narrow(in.frame.g),
-            result: made.id,
-            type_id: integers.narrow(in.frame.l),
-            span_start: in.frame.d,
-            span_end: in.frame.e
-        })
+
+    const selected = bind({
+        state: counted,
+        symbol: integers.narrow(in.frame.h),
+        value: integers.narrow(in.frame.g),
+        result: made.id,
+        type_id: integers.narrow(in.frame.l),
+        span_start: in.frame.d,
+        span_end: in.frame.e
+    })
 
     if (in.frame.m == 1) {
         const symbol: u32? = null

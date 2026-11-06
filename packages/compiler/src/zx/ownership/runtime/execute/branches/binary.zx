@@ -21,19 +21,24 @@ export type Output = Machine
 
 export default function (in: Input): Output {
     return loop(in, {
-        while: current =>
-            (
+        while: current => {
+            const actions = current.work.actions
+            const ready = (
                 - current.active
                 - and current.complete
                 - and !current.failed
-                - and current.work.actions.length != 0
-                - and (
-                    current.work.actions[current.work.actions.length - 1] ==
-                        WorkAction.BinaryLeft ||
-                        current.work.actions[current.work.actions.length - 1] ==
-                        WorkAction.BinaryRight
-                )
-            ),
+                - and actions.length != 0
+            )
+
+            return match {
+                ready => match actions[actions.length - 1] {
+                    WorkAction.BinaryLeft => true,
+                    WorkAction.BinaryRight => true,
+                    _ => false
+                },
+                _ => false
+            }
+        },
         next: current => {
             const frame = top(current.work)
 
@@ -79,16 +84,15 @@ export default function (in: Input): Output {
                         current.program.expressions.payloads[frame.subject]
                     )
 
-                const condition = (
-                    - current.program.expressions.binary_operators[binary] ==
-                        BinaryOperator.LogicalAnd
-                    - or current.program.expressions.binary_operators[binary] ==
-                        BinaryOperator.LogicalOr
-                    - or current.program.expressions.binary_operators[binary] ==
-                        BinaryOperator.Coalesce
-                )
+                const operator = current.program.expressions.binary_operators[binary]
+                const short_circuit = match operator {
+                    BinaryOperator.LogicalAnd => true,
+                    BinaryOperator.LogicalOr => true,
+                    BinaryOperator.Coalesce => true,
+                    _ => false
+                }
 
-                if (condition) {
+                if (short_circuit) {
                     current.memory = apply({
                         types: current.program.types,
                         references: current.references,

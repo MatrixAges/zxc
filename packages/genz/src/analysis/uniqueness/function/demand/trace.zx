@@ -1,102 +1,39 @@
 import integers from "std:integer"
-import {
-    ExpressionKind,
-    CollectionKind,
-    TransformKind,
-    BinaryOperator
-}
-from "core/expression_table/kinds"
+import { ExpressionKind, BinaryOperator } from "core/expression_table/kinds"
 import typeKind from "core/type_table/kind"
 import { Kind } from "core/type_table/model"
 
-import { Definition } from "../../order/model"
-import knowledge from "../levels/knowledge"
-import member from "../levels/member"
-import { Knowledge } from "../levels/model"
-import prefix from "../levels/prefix"
 import projection from "../levels/projection"
-import query from "../levels/query"
-import value from "../levels/value"
-import carry from "./carry"
-import key from "./key"
-import linear from "./linear"
-import mark from "./mark"
-import normalize from "./normalize"
-import provide from "./provide"
-import insert from "./seen/insert"
+import aggregateChild from "./trace/aggregate_child"
+import prepare from "./trace/prepare"
+import reference from "./trace/reference"
+import terminal from "./trace/terminal"
 
 import type { Trace as Input, Working as Output } from "./model"
 
 export default function trace(in: Input): Output {
+    const prepared = prepare(in)
+    const active = prepared.request
+
+    if (active == null) {
+        return prepared.working
+    }
+
+    const working = prepared.working
     const request = in.request
-
-    const result = query({
-        context: in.working.context,
-        state: {
-            known: in.working.known,
-            carried: in.source.carried,
-            reads: in.working.reads
-        },
-        request: {
-            node: request.node,
-            slot: request.slot,
-            raw: false
-        }
-    })
-
-    const evaluated = {
-        ...in.working,
-        known: result.known,
-        reads: result.reads
-    }
-
-    const current = value(result.value)
-    const desired = value(request.wanted)
-
-    const wanted = knowledge({
-        ...desired,
-        headered: desired.headered && !current.headered && !current.deferred,
-        unique: desired.unique && !current.unique && linear({
-            context: evaluated.context,
-            ...request.pick([
-                "node",
-                "slot"
-            ])
-        })
-    })
-
-    if (wanted == Knowledge.None) {
-        return evaluated
-    }
-
-    const active = {
-        ...request,
-        wanted
-    }
-
-    const visited = insert({
-        seen: evaluated.seen,
-        key: key(active)
-    })
-
-    if (visited.found) {
-        return evaluated
-    }
-
-    const working = {
-        ...evaluated,
-        seen: visited.seen
-    }
-
     const context = working.context
     const expressions = context.metadata.expressions
     const node = integers.widen(request.node)
     const payload = integers.widen(expressions.payloads[node])
     const kind = expressions.kinds[node]
 
-    const leaf: u32? = request.slot == 0 &&
-        typeKind(in.source.kinds[integers.widen(expressions.types[node])]) ==
-        Kind.List ? request.node : request.outer
+    const leaf: u32? = match {
+        request.slot == 0 &&
+            typeKind(in.source.kinds[integers.widen(
+                expressions.types[node]
+            )]) == Kind.List => request.node,
+        _ => request.outer
+    }
 
     const nested = {
         ...active,
@@ -104,23 +41,24 @@ export default function trace(in: Input): Output {
     }
 
     if (kind == ExpressionKind.Field || kind == ExpressionKind.TupleField) {
-        return projection({
+        const selected = projection({
             metadata: context.metadata,
             slot: request.slot,
             target: expressions.projection_targets[payload],
             index: expressions.projection_indices[payload]
         })
-            -> trace({
-                source: in.source,
-                working,
-                request: {
-                    ...nested,
-                    ..._.pick([
-                        "node",
-                        "slot"
-                    ])
-                }
-            })
+
+        return trace({
+            source: in.source,
+            working,
+            request: {
+                ...nested,
+                ...selected.pick([
+                    "node",
+                    "slot"
+                ])
+            }
+        })
     }
 
     if (kind == ExpressionKind.OptionalValue || kind == ExpressionKind.Scope) {
@@ -129,130 +67,71 @@ export default function trace(in: Input): Output {
             working,
             request: {
                 ...nested,
-                node: kind == ExpressionKind.Scope ?
-                    expressions.scope_results[payload] :
-                    expressions.optional_values[payload]
+                node: match kind {
+                    ExpressionKind.Scope => expressions.scope_results[payload],
+                    _ => expressions.optional_values[payload]
+                }
             }
         })
     }
 
     if (kind == ExpressionKind.Reference) {
-        const symbol = integers.widen(expressions.references[payload])
-        const definition = context.metadata.definitions.kind[symbol]
-        const target = context.metadata.definitions.value[symbol]
+        const carried = reference({
+            source: in.source,
+            working,
+            request: nested
+        })
 
-        if (definition == Definition.Input) {
-            const function_index = in.source.function_index
+        const child = carried.request
 
-            return (function_index == null ? working : mark({
-                stage: {
-                    source: in.source,
-                    working
-                },
-                mark: {
-                    output: false,
-                    function_index,
-                    slot: request.slot,
-                    want: wanted
-                }
-            }))
-                -> normalize({
-                    working: _,
-                    leaf,
-                    wanted
-                })
-        }
-
-        if (definition == Definition.Value || definition == Definition.Part) {
-            return (definition == Definition.Part ? member({
-                metadata: context.metadata,
-                type_id: expressions.types[integers.widen(target)],
-                index: context.metadata.definitions.index[symbol]
-            }).offset + request.slot : request.slot)
-                -> trace({
-                    source: in.source,
-                    working,
-                    request: {
-                        ...nested,
-                        node: target,
-                        slot: _
-                    }
-                })
-        }
-
-        if (definition == Definition.Carried || definition == Definition.Condition) {
-            const carried = carry({
-                trace: {
-                    source: in.source,
-                    working,
-                    request: nested
-                },
-                owner: target
-            })
-
-            const child = carried.request
-
-            return child == null ? carried.working : trace({
+        return match {
+            child == null => carried.working,
+            _ => trace({
                 source: in.source,
                 working: carried.working,
                 request: child
             })
         }
-
-        return request.repeated ? provide({
-            source: in.source,
-            working,
-            request: nested
-        }) : working
     }
 
     if (kind == ExpressionKind.Object || kind == ExpressionKind.Tuple) {
         const object = kind == ExpressionKind.Object
 
-        const first = object ? expressions.object_first[payload] :
-            expressions.sequence_first[payload]
+        const first = match {
+            object => expressions.object_first[payload],
+            _ => expressions.sequence_first[payload]
+        }
 
-        const count = object ? expressions.object_count[payload] :
-            expressions.sequence_count[payload]
+        const count = match {
+            object => expressions.object_count[payload],
+            _ => expressions.sequence_count[payload]
+        }
+
+        const type_id = expressions.types[node]
 
         return loop({
             working,
             index: 0
         }, {
-            while: (state, source) => state.index < source.count,
-            next: (state, source) => {
-                const expressions = state.working.context.metadata.expressions
-                const offset = integers.widen(source.first) + state.index
-                const selected =
-                    (
-                        source.object ? expressions.object_field_indices[offset] :
-                            integers.narrow(state.index)
-                    )
-                    -> member({
-                        metadata: state.working.context.metadata,
-                        type_id: source.type_id,
-                        index: _
-                    })
+            while: state => state.index < integers.widen(count),
+            next: state => {
+                const selected = aggregateChild({
+                    metadata: state.working.context.metadata,
+                    type_id,
+                    object,
+                    first,
+                    index: state.index,
+                    slot: active.slot
+                })
 
-                if (
-                    source.request.slot >= selected.offset &&
-                        source.request.slot < selected.offset +
-                        state.working.context.metadata
-                        .counts[integers.widen(
-                            selected.type_id
-                        )]
-                ) {
-                    const node = source.object ?
-                        expressions.object_field_values[offset] :
-                        expressions.sequence_items[offset]
-
+                if (selected != null) {
                     state.working = trace({
-                        source: source.source,
+                        source: in.source,
                         working: state.working,
                         request: {
-                            ...source.request,
-                            node,
-                            slot: source.request.slot - selected.offset,
+                            ...active,
+                            node: selected.node,
+                            slot: selected.slot,
                             outer: null
                         }
                     })
@@ -261,13 +140,6 @@ export default function trace(in: Input): Output {
                 state.index += 1
             },
             return: state => state.working
-        }, {
-            source: in.source,
-            request: active,
-            object,
-            first,
-            count: integers.widen(count),
-            type_id: expressions.types[node]
         })
     }
 
@@ -283,69 +155,58 @@ export default function trace(in: Input): Output {
         })
     }
 
-    const condition = (
-        - kind == ExpressionKind.Conditional
-        - or (
-            kind == ExpressionKind.Binary &&
-                expressions.binary_operators[payload] == BinaryOperator.Coalesce
-        )
-    )
-
-    if (condition) {
-        const conditional = kind == ExpressionKind.Conditional
-
-        return trace({
-            source: in.source,
-            working,
-            request: {
-                ...active,
-                node: conditional ? expressions.conditional_yes[payload] :
-                    expressions.binary_left[payload],
-                outer: null
-            }
-        })
-            -> trace({
-                source: in.source,
-                working: _,
-                request: {
-                    ...active,
-                    node: conditional ? expressions.conditional_no[payload] :
-                        expressions.binary_right[payload],
-                    outer: null
-                }
-            })
+    const paired = match kind {
+        ExpressionKind.Conditional => true,
+        ExpressionKind.Binary =>
+            expressions.binary_operators[payload] == BinaryOperator.Coalesce,
+        _ => false
     }
 
-    if (kind == ExpressionKind.Match) {
+    if (paired || kind == ExpressionKind.Match) {
+        const conditional = kind == ExpressionKind.Conditional
+        const first = paired ? 0 : expressions.match_first[payload]
+        const count = paired ? 2 : integers.widen(expressions.match_count[payload])
+
         const arms = loop({
             working,
             index: 0
         }, {
-            while: (state, source) => state.index < source.count,
-            next: (state, source) => {
+            while: state => state.index < count,
+            next: state => {
+                const child = match {
+                    paired && state.index == 0 => match {
+                        conditional => expressions.conditional_yes[payload],
+                        _ => expressions.binary_left[payload]
+                    },
+                    paired => match {
+                        conditional => expressions.conditional_no[payload],
+                        _ => expressions.binary_right[payload]
+                    },
+                    _ => state.working.context.metadata.expressions
+                        .match_results[
+                            integers.widen(
+                                first
+                            ) + state.index
+                        ]
+                }
+
                 state.working = trace({
-                    source: source.source,
+                    source: in.source,
                     working: state.working,
                     request: {
-                        ...source.request,
-                        node: state.working.context.metadata.expressions
-                            .match_results[
-                                integers.widen(
-                                    source.first
-                                ) + state.index],
+                        ...active,
+                        node: child,
                         outer: null
                     }
                 })
-
                 state.index += 1
             },
             return: state => state.working
-        }, {
-            source: in.source,
-            request: active,
-            first: expressions.match_first[payload],
-            count: integers.widen(expressions.match_count[payload])
         })
+
+        if (paired) {
+            return arms
+        }
 
         return trace({
             source: in.source,
@@ -358,87 +219,20 @@ export default function trace(in: Input): Output {
         })
     }
 
-    if (kind == ExpressionKind.ListOperation) {
-        const pop = expressions.collection_kinds[payload] == CollectionKind.Pop
-
-        const retained = (
-            - request.slot == 0
-            - and pop
-            - or (request.slot == 1 && prefix({
-                expressions,
-                payload: expressions.payloads[node]
-            }))
-        )
-
-        if (retained) {
-            return trace({
-                source: in.source,
-                working,
-                request: {
-                    ...nested,
-                    node: expressions.collection_targets[payload],
-                    slot: 0
-                }
-            })
-        }
-
-        return request.repeated ? provide({
-            source: in.source,
-            working,
-            request: nested
-        }) : working
-    }
-
-    const condition_2 = (
-        - kind == ExpressionKind.Iteration
-        - or (
-            kind == ExpressionKind.Transform &&
-                expressions.transform_kinds[payload] == TransformKind.Reduce
-        )
-    )
-
-    if (condition_2) {
-        return provide({
-            source: in.source,
-            working,
-            request: nested
-        })
-    }
-
-    if (kind == ExpressionKind.Transform) {
-        return request.repeated ? normalize({
-            working,
-            leaf,
-            wanted
-        }) : working
-    }
-
-    if (kind == ExpressionKind.Call) {
-        const function_index = expressions.call_functions[payload]
-
-        return (in.source.native_modules[integers.widen(function_index)] != null ?
-            working : mark({
-                stage: {
-                    source: in.source,
-                    working
-                },
-                mark: {
-                    output: true,
-                    function_index,
-                    slot: request.slot,
-                    want: wanted
-                }
-            }))
-            -> normalize({
-                working: _,
-                leaf,
-                wanted
-            })
-    }
-
-    return request.repeated ? provide({
+    const final = terminal({
         source: in.source,
         working,
         request: nested
-    }) : working
+    })
+
+    const child = final.request
+
+    return match {
+        child == null => final.working,
+        _ => trace({
+            source: in.source,
+            working: final.working,
+            request: child
+        })
+    }
 }

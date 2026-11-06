@@ -68,18 +68,25 @@ export default function (in: Input): Output {
         names: []
     }
 
-    const frames: Frame[] = (in.named ? Operation.Name : Operation.Node)
-        -> (in.initialize ? [] : [frame({
-            operation: _,
+    const operation = in.named ? Operation.Name : Operation.Node
+
+    const frames: Frame[] = match {
+        in.initialize => [],
+        _ => [frame({
+            operation: operation,
             name: in.name,
             reference: in.reference
-        })])
+        })]
+    }
 
     return {
         context: in.context,
         delta:
-            in.initialize && in.context.base.kinds.length == 0 &&
-            in.delta.kinds.length == 0 ? scalars : in.delta,
+            match {
+                in.initialize && in.context.base.kinds.length == 0 &&
+                    in.delta.kinds.length == 0 => scalars,
+                _ => in.delta
+            },
         cache: in.cache,
         frames,
         scratch: {

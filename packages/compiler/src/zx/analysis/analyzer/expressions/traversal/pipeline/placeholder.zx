@@ -46,24 +46,28 @@ export default function (in: Input): Output {
     const index = in.context.pipelines.length - 1
     const frame = in.context.pipelines[index]
 
-    const shadowed = loop({
+    const shadowed_initial = {
         index: in.state.local.active.length,
         found: false
-    }, {
-        while: (state, source) => !state.found &&
-            state.index > source.frame.scope_start &&
-            state.index > source.local.scope_floor,
-        next: (state, source) => {
+    }
+
+    const shadowed_scope = {
+        local: in.state.local,
+        frame
+    }
+
+    const shadowed = loop(shadowed_initial, {
+        while: state => !state.found &&
+            state.index > shadowed_scope.frame.scope_start &&
+            state.index > shadowed_scope.local.scope_floor,
+        next: state => {
             state.index -= 1
-            state.found = source.local.symbols
+            state.found = shadowed_scope.local.symbols
                 .names[integers.widen(
-                    source.local.active[state.index]
+                    shadowed_scope.local.active[state.index]
                 )] == placeholder_name
         },
         return: state => state.found
-    }, {
-        local: in.state.local,
-        frame
     })
 
     if (shadowed) {
@@ -74,11 +78,14 @@ export default function (in: Input): Output {
     }
 
     const crossed = frame.depth != in.state.local.lambda_depth
+    const not_length = frame.asynchronous != in.frames.asynchronous.length
+
+    const valid_crossed = crossed && in.state.local.captures.current == frame.owner
 
     const condition = (
         - !frame.active
-        - or frame.asynchronous != in.frames.asynchronous.length
-        - or (crossed && in.state.local.captures.current == frame.owner)
+        - or not_length
+        - or (valid_crossed)
     )
 
     if (condition) {
@@ -92,15 +99,18 @@ export default function (in: Input): Output {
         }
     }
 
-    const captured: Captured = in.state.local.captures.current == frame.owner ? {
-        state: in.state,
-        symbol: frame.symbol
-    } : capture({
-        state: in.state,
-        owner: frame.owner,
-        symbol: frame.symbol,
-        span: node.span
-    })
+    const captured: Captured = match {
+        in.state.local.captures.current == frame.owner => {
+            state: in.state,
+            symbol: frame.symbol
+        },
+        _ => capture({
+            state: in.state,
+            owner: frame.owner,
+            symbol: frame.symbol,
+            span: node.span
+        })
+    }
 
     if (captured.symbol == null) {
         return {
@@ -133,15 +143,18 @@ export default function (in: Input): Output {
         }
     }
 
-    const result = in.expected == null ? {
-        state,
-        value: value.value
-    } : coerce({
-        state,
-        value: value.value,
-        expected: in.expected,
-        span: node.span
-    })
+    const result = match {
+        in.expected == null => {
+            state,
+            value: value.value
+        },
+        _ => coerce({
+            state,
+            value: value.value,
+            expected: in.expected,
+            span: node.span
+        })
+    }
 
     return {
         handled: true,

@@ -30,16 +30,20 @@ export default function (in: Input): Output {
                 } else {
                     const decoded = digit(byte)
 
+                    const valid_negative = !value.negative || decoded == 0
+
+                    const valid_value = value.value < 1844674407370955161 ||
+                        (
+                            value.value == 1844674407370955161 &&
+                                decoded <= 5
+                        )
+
                     value.valid =
                         (
                             - decoded < 10
-                            - and (!value.negative || decoded == 0)
+                            - and (valid_negative)
                             - and (
-                                value.value < 1844674407370955161 ||
-                                    (
-                                        value.value == 1844674407370955161 &&
-                                            decoded <= 5
-                                    )
+                                valid_value
                             )
                         )
 

@@ -34,19 +34,22 @@ export default function (in: Input): Output {
             request,
             cursor
         }),
-        _ => body != null ? bodyRoot({
-            body,
-            cursor
-        }) : {
-            cursor: {
-                stage: 5,
-                index: 0,
-                section: 0,
-                offset: 0
-            },
-            valid: true,
-            found: false,
-            id: 0
+        _ => match {
+            body != null => bodyRoot({
+                body,
+                cursor
+            }),
+            _ => {
+                cursor: {
+                    stage: 5,
+                    index: 0,
+                    section: 0,
+                    offset: 0
+                },
+                valid: true,
+                found: false,
+                id: 0
+            }
         }
     }
 }

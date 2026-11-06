@@ -31,6 +31,38 @@ pub fn analyze(analyzer: *Analyzer, source: anytype, parameter: ir.SymbolId) zx.
     } } });
 }
 
+pub fn analyzeValue(analyzer: *Analyzer, source: anytype, expected: ?ir.TypeId) zx.Error!ir.ExprId {
+    const start = analyzer.active.items.len;
+    const facts = analyzer.refinement.mark();
+
+    defer analyzer.active.shrinkRetainingCapacity(start);
+    defer analyzer.refinement.restore(facts);
+
+    var self = Self{ .analyzer = analyzer, .state = @fromBackingInt(0), .scope_start = analyzer.scope_floor };
+
+    for (0..source.statements.len) |index| {
+        const item = syntax.item(source.statements, index);
+
+        if (item.value == .result) {
+            if (index + 1 != source.statements.len or item.value.result == null) return analyzer.reporter.fail(.return_path, item.span, "callback blocks require a final return value");
+
+            const result = try analyzer.expression(item.value.result.?, expected);
+
+            return analyzer.append(.{ .span = source.span, .type_id = analyzer.node(result).type_id, .value = .{ .scope = .{
+                .bindings = try self.bindings.toOwnedSlice(analyzer.allocator),
+                .result = result,
+            } } });
+        }
+
+        switch (item.value) {
+            .constant, .destructure, .evaluate => try self.statement(item),
+            else => return analyzer.reporter.fail(.unsupported, item.span, "value callback blocks support local bindings and a final return"),
+        }
+    }
+
+    return analyzer.reporter.fail(.return_path, source.span, "callback blocks require a final return value");
+}
+
 fn statement(self: *Self, source: anytype) zx.Error!void {
     const analyzer = self.analyzer;
 

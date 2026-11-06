@@ -48,7 +48,6 @@ export enum Action {
     TransformSecond,
     TransformBody,
     IterationInitial,
-    IterationContext,
     IterationCondition,
     IterationStep,
     IterationReturn,
@@ -62,7 +61,8 @@ export enum Action {
     StateNo,
     StateSubject,
     StateLabel,
-    StateCase
+    StateCase,
+    ValueReturn
 }
 
 export type Coercion = {
@@ -97,7 +97,9 @@ export type Selection = {
     arms: u64[],
     index: u64,
     conditions: u32[],
-    results: u32[]
+    results: u32[],
+    mark: Mark,
+    branch_mark: Mark
 }
 
 export type Sequence = {

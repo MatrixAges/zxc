@@ -57,10 +57,13 @@ export default function (in: Input): Output {
                 current = expression(current)
             } else {
                 const condition = (
-                    - current.phase == Phase.AncestorStart
-                    - or current.phase == Phase.Ancestor
-                    - or current.phase == Phase.Root
-                    - or current.phase == Phase.Path
+                    match current.phase {
+                        Phase.AncestorStart => true,
+                        Phase.Ancestor => true,
+                        Phase.Root => true,
+                        Phase.Path => true,
+                        _ => false
+                    }
                 )
 
                 if (condition) {
@@ -69,9 +72,12 @@ export default function (in: Input): Output {
                     current = ensure(current)
                 } else {
                     const condition_2 = (
-                        - current.phase == Phase.Grow
-                        - or current.phase == Phase.Clear
-                        - or current.phase == Phase.Rehash
+                        match current.phase {
+                            Phase.Grow => true,
+                            Phase.Clear => true,
+                            Phase.Rehash => true,
+                            _ => false
+                        }
                     )
 
                     if (condition_2) {

@@ -28,24 +28,36 @@ export default function (in: Input): Output {
         first: single ? in.references[0] : in.source.first[in.index],
         second: type_kind == Kind.Task ? in.references[1] : 0,
         label: in.source.labels[in.index],
-        children: type_kind == Kind.Tuple ? in.references : [],
+        children: match {
+            type_kind == Kind.Tuple => in.references,
+            _ => []
+        },
         fields: {
             names:
-                type_kind ==
-                Kind.Object ? in.source.field_names.splice(
-                    first,
-                    count,
-                    []
-                )[1] : [],
-            types: type_kind == Kind.Object ? in.references : []
+                match {
+                    type_kind ==
+                        Kind.Object => in.source.field_names.splice(
+                            first,
+                            count,
+                            []
+                        )[1],
+                    _ => []
+                },
+            types: match {
+                type_kind == Kind.Object => in.references,
+                _ => []
+            }
         },
         names:
-            type_kind == Kind.Enumeration ||
-            type_kind ==
-            Kind.ErrorSet ? in.source.names.splice(
-                first,
-                count,
-                []
-            )[1] : []
+            match {
+                type_kind == Kind.Enumeration ||
+                    type_kind ==
+                    Kind.ErrorSet => in.source.names.splice(
+                        first,
+                        count,
+                        []
+                    )[1],
+                _ => []
+            }
     }
 }

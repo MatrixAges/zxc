@@ -1,0 +1,161 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import { buffer_slot } from "../../../flow/body/const"
+import aggregate from "../aggregate"
+import { Knowledge, Operation, Table } from "../model"
+import projection from "../projection"
+import collection from "./collection"
+import control from "./control"
+import reference from "./reference"
+
+import type { Metadata, Request } from "../model"
+import type { Resolution as Output } from "./model"
+
+export type Input = {
+    metadata: Metadata,
+    request: Request
+}
+
+export default function (in: Input): Output {
+    const metadata = in.metadata
+    const request = in.request
+    const expressions = metadata.expressions
+    const node = integers.widen(request.node)
+    const payload = integers.widen(expressions.payloads[node])
+    const kind = expressions.kinds[node]
+
+    const base: Output = {
+        operation: Operation.Pass,
+        linear_root: max_u32,
+        empty: false,
+        value: Knowledge.None,
+        child_node: null,
+        child_slot: request.slot,
+        paired: false,
+        arms_first: 0,
+        arms_count: 0,
+        carried_node: null,
+        iteration_owner: null,
+        read_table: null,
+        read_function: 0
+    }
+
+    if (kind == ExpressionKind.Field || kind == ExpressionKind.TupleField) {
+        const selected = projection({
+            metadata,
+            slot: request.slot,
+            target: expressions.projection_targets[payload],
+            index: expressions.projection_indices[payload]
+        })
+
+        return {
+            ...base,
+            child_node: selected.node,
+            child_slot: selected.slot
+        }
+    }
+
+    if (kind == ExpressionKind.OptionalValue) {
+        return {
+            ...base,
+            child_node: expressions.optional_values[payload]
+        }
+    }
+
+    if (kind == ExpressionKind.Reference) {
+        return reference({
+            ...in,
+            base
+        })
+    }
+
+    const current = {
+        ...base,
+        linear_root: integers.narrow(metadata.usage.symbols + node),
+        empty: kind == ExpressionKind.List && expressions.sequence_count[payload] == 0
+    }
+
+    if (kind == ExpressionKind.Object || kind == ExpressionKind.Tuple) {
+        const selected = aggregate({
+            metadata,
+            node: request.node,
+            slot: request.slot
+        })
+
+        return match {
+            selected == null => current,
+            _ => {
+                ...current,
+                child_node: selected.node,
+                child_slot: selected.slot
+            }
+        }
+    }
+
+    switch (kind) {
+        case ExpressionKind.List:
+            return {
+                ...current,
+                value: current.empty ? Knowledge.All : Knowledge.None
+            }
+
+        case ExpressionKind.Call:
+            const callee = expressions.call_functions[payload]
+            const values = metadata.output[integers.widen(callee)]
+
+            return match {
+                integers.widen(request.slot) >= values.length => current,
+                _ => {
+                    ...current,
+                    read_table: Table.Output,
+                    read_function: callee
+                }
+            }
+
+        case ExpressionKind.ListOperation:
+            return collection({
+                ...in,
+                base: current
+            })
+
+        case ExpressionKind.ListUpdate:
+            return {
+                ...current,
+                operation: Operation.Written,
+                child_node: expressions.update_targets[payload],
+                child_slot: buffer_slot
+            }
+
+        case ExpressionKind.Some:
+            return {
+                ...current,
+                child_node: expressions.some[payload]
+            }
+
+        case ExpressionKind.Scope:
+            return {
+                ...current,
+                child_node: expressions.scope_results[payload]
+            }
+
+        default:
+            const branching = match kind {
+                ExpressionKind.Binary => true,
+                ExpressionKind.Conditional => true,
+                ExpressionKind.Match => true,
+                ExpressionKind.Iteration => true,
+                ExpressionKind.Transform => true,
+                _ => false
+            }
+
+            return match {
+                branching => control({
+                    ...in,
+                    base: current
+                }),
+                _ => current
+            }
+    }
+}

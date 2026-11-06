@@ -9,6 +9,9 @@ export type Bindings = {
 export type Frame = {
     source_block: u64,
     state_symbol: u32,
+    value_block: bool,
+    expected?: u32,
+    result?: u32,
     statements: u64[],
     next: u64,
     binding_mark: u64,

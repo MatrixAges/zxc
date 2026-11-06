@@ -30,13 +30,11 @@ export default function (in: Input): Output {
         return missing
     }
 
-    const condition = (
-        - qualified
-        - and (
-            in.state.types.context.aliases.names.length == 0 ||
-                in.source.tree.nodes[owner.first].kind != ExprKind.Identifier
-        )
-    )
+    const condition = match {
+        !qualified => false,
+        in.state.types.context.aliases.names.length == 0 => true,
+        _ => in.source.tree.nodes[owner.first].kind != ExprKind.Identifier
+    }
 
     if (condition) {
         return missing
@@ -78,11 +76,14 @@ export default function (in: Input): Output {
             node: root_index
         })
 
-        const owner_binding = qualified ? injected({
-            local: in.state.local,
-            source: in.source,
-            node: in.node
-        }) : root_binding
+        const owner_binding = match {
+            qualified => injected({
+                local: in.state.local,
+                source: in.source,
+                node: in.node
+            }),
+            _ => root_binding
+        }
 
         const condition_2 = (
             - root_binding.unit
@@ -107,10 +108,13 @@ export default function (in: Input): Output {
             name: root.text
         })
 
-        return type_id.found && row({
-            tables,
-            id: type_id.id
-        }).kind == Kind.Enumeration ? type_id : missing
+        return match {
+            type_id.found && row({
+                tables,
+                id: type_id.id
+            }).kind == Kind.Enumeration => type_id,
+            _ => missing
+        }
     }
 
     const candidate = loop({
@@ -137,11 +141,14 @@ export default function (in: Input): Output {
         }
     })
 
-    return candidate.found && row({
-        tables,
-        id: candidate.id
-    }).kind == Kind.Enumeration ? {
-        found: true,
-        id: candidate.id
-    } : missing
+    return match {
+        candidate.found && row({
+            tables,
+            id: candidate.id
+        }).kind == Kind.Enumeration => {
+            found: true,
+            id: candidate.id
+        },
+        _ => missing
+    }
 }

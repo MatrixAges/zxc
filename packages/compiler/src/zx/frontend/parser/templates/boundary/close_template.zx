@@ -12,17 +12,18 @@ export type Input = {
 export type Output = Graph
 
 export default function (in: Input): Output {
-    const graph = in.graph.frames[in.graph.frames.length - 1].text_start
-        -> addPart({
-            graph: in.graph,
-            kind: PartKind.Text,
-            span: {
-                start: _,
-                end: in.offset
-            },
-            interpolation: 0,
-            text_start: in.offset
-        })
+    const start = in.graph.frames[in.graph.frames.length - 1].text_start
+
+    const graph = addPart({
+        graph: in.graph,
+        kind: PartKind.Text,
+        span: {
+            start: start,
+            end: in.offset
+        },
+        interpolation: 0,
+        text_start: in.offset
+    })
 
     const frame = copyFrame(graph.frames[graph.frames.length - 1])
     const reference = graph.templates.length + 1
@@ -36,17 +37,18 @@ export default function (in: Input): Output {
         count: frame.count
     })[0]
 
-    return graph.events.push({
+    const events = graph.events.push({
         kind: EventKind.TemplateClose,
         offset: in.offset,
         reference
     })[0]
-        -> {
-            templates,
-            parts: graph.parts,
-            events: _,
-            frames: graph.frames.pop()[0],
-            interpolations: graph.interpolations,
-            token_templates: graph.token_templates
-        }
+
+    return {
+        templates,
+        parts: graph.parts,
+        events: events,
+        frames: graph.frames.pop()[0],
+        interpolations: graph.interpolations,
+        token_templates: graph.token_templates
+    }
 }

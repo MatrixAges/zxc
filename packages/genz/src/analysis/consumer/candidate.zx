@@ -170,9 +170,12 @@ export default function (in: Input): Output {
                         })
                     } else {
                         const condition = (
-                            - kind == ExpressionKind.Field
-                            - or kind == ExpressionKind.TupleField
-                            - or kind == ExpressionKind.Reference
+                            match kind {
+                                ExpressionKind.Field => true,
+                                ExpressionKind.TupleField => true,
+                                ExpressionKind.Reference => true,
+                                _ => false
+                            }
                         )
 
                         if (condition) {
@@ -191,15 +194,18 @@ export default function (in: Input): Output {
                         } else {
                             current.valid =
                                 (
-                                    - kind == ExpressionKind.Integer
-                                    - or kind == ExpressionKind.NegativeInteger
-                                    - or kind == ExpressionKind.Float
-                                    - or kind == ExpressionKind.String
-                                    - or kind == ExpressionKind.Boolean
-                                    - or kind == ExpressionKind.None
-                                    - or kind == ExpressionKind.Unit
-                                    - or kind == ExpressionKind.EnumValue
-                                    - or kind == ExpressionKind.ErrorValue
+                                    match kind {
+                                        ExpressionKind.Integer => true,
+                                        ExpressionKind.NegativeInteger => true,
+                                        ExpressionKind.Float => true,
+                                        ExpressionKind.String => true,
+                                        ExpressionKind.Boolean => true,
+                                        ExpressionKind.None => true,
+                                        ExpressionKind.Unit => true,
+                                        ExpressionKind.EnumValue => true,
+                                        ExpressionKind.ErrorValue => true,
+                                        _ => false
+                                    }
                                 )
                         }
                     }

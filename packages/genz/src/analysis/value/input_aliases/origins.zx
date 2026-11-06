@@ -17,9 +17,9 @@ export default function (in: Input): Output {
         aliases: in.expressions.kinds.map(kind => false)[0],
         index: 0
     }, {
-        while: (state, source) => state.index < source.expressions.kinds.length,
-        next: (state, source) => {
-            const table = source.expressions
+        while: state => state.index < in.expressions.kinds.length,
+        next: state => {
+            const table = in.expressions
             const kind = table.kinds[state.index]
             const payload = integers.widen(table.payloads[state.index])
 
@@ -37,21 +37,25 @@ export default function (in: Input): Output {
                     state.aliases[child]
             } else if (kind == ExpressionKind.Reference) {
                 const symbol = integers.widen(table.references[payload])
-                const binding = source.bindings.values[symbol]
+                const binding = in.bindings.values[symbol]
 
-                state.aliases[state.index] = (
-                    - symbol == 0
-                    - or (
-                        - !source.bindings.repeated[symbol]
+                if (symbol == 0) {
+                    state.aliases[state.index] = true
+                } else {
+                    const repeated = in.bindings.repeated
+                    const position = integers.widen(binding)
+                    const earlier = (
+                        - !repeated[symbol]
                         - and binding != max_u32
-                        - and integers.widen(binding) < state.index
-                        - and state.aliases[integers.widen(binding)]
+                        - and position < state.index
                     )
-                )
+
+                    state.aliases[state.index] = earlier && state.aliases[position]
+                }
             }
 
             state.index += 1
         },
         return: state => state.aliases
-    }, in)
+    })
 }

@@ -21,6 +21,8 @@ export default function (in: Input): Output {
     const table = target.delta ? in.types.delta : in.types.base
     const position = integers.widen(target.first) + in.index
 
-    return target.kind == Kind.Object ? table.field_types[position] :
-        table.children[position]
+    return match {
+        target.kind == Kind.Object => table.field_types[position],
+        _ => table.children[position]
+    }
 }

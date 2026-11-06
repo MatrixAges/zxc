@@ -89,9 +89,11 @@ export default function (in: Input): Output {
                     const child = match kind {
                         StatementKind.Branch =>
                             integers.widen(
-                                current.edge ==
-                                    0 ? current.control.branch_yes[payload] :
-                                    current.control.branch_no[payload]
+                                match {
+                                    current.edge ==
+                                        0 => current.control.branch_yes[payload],
+                                    _ => current.control.branch_no[payload]
+                                }
                             ),
                         _ =>
                             integers.widen(

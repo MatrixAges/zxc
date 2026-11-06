@@ -1,0 +1,38 @@
+import range from "../../../ir/range"
+import split from "../split"
+
+export type Input = {
+    indices: u32[],
+    first: u64,
+    count: u64,
+    mapped: u32[]
+}
+
+export type Output = {
+    indices: u32[],
+    values: u32[],
+    evaluation: u32[]
+}
+
+export default function (in: Input): Output {
+    const none: u32[] = []
+
+    const indices = range({
+        items: in.indices,
+        first: in.first,
+        count: in.count,
+        prefix: none
+    })
+
+    return {
+        indices,
+        values: split({
+            items: in.mapped,
+            from: 0
+        }).splice(in.count, in.mapped.length - in.count, [])[0],
+        evaluation: split({
+            items: in.mapped,
+            from: in.count
+        })
+    }
+}

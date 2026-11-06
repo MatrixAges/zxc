@@ -52,10 +52,13 @@ export default function (in: Input): Output {
             count: parsed.end - offset
         })
 
-        return parsed.message == no_diagnostic ? state : fail({
-            state,
-            message: parsed.message
-        })
+        return match {
+            parsed.message == no_diagnostic => state,
+            _ => fail({
+                state,
+                message: parsed.message
+            })
+        }
     }
 
     if (starts({

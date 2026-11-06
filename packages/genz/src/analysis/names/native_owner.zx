@@ -13,16 +13,24 @@ export type Input = {
 export type Output = bool
 
 export default function (in: Input): Output {
+    const index_limit = integers.widen(max_u32)
+
     const modules = in.modules
     const count = modules.specifiers.length
 
+    const different_identities = modules.identities.length != count
+    const different_import_names = modules.import_names.length != count
+    const different_type_ids = modules.type_ids.length != count
+    const different_type_names = modules.type_names.length != count
+    const different_type_namespaces = modules.type_namespaces.length != count
+
     const condition = (
-        - count > integers.widen(max_u32)
-        - or modules.identities.length != count
-        - or modules.import_names.length != count
-        - or modules.type_ids.length != count
-        - or modules.type_names.length != count
-        - or modules.type_namespaces.length != count
+        - count > index_limit
+        - or different_identities
+        - or different_import_names
+        - or different_type_ids
+        - or different_type_names
+        - or different_type_namespaces
     )
 
     if (condition) {
@@ -39,7 +47,7 @@ export default function (in: Input): Output {
         next: current => {
             const size = current.modules.type_names[current.index].length
 
-            current.valid = size <= integers.widen(max_u32) &&
+            current.valid = size <= index_limit &&
                 size == current.modules.type_ids[current.index].length
             current.index += 1
         }
@@ -62,8 +70,9 @@ export default function (in: Input): Output {
         while: current =>
             current.valid && current.index < current.source.modules.specifiers.length,
         next: current => {
-            const key = current.source.modules.identities[current.index]
-                -> _ ?? current.source.modules.specifiers[current.index]
+            const saved = current.source.modules.identities[current.index]
+
+            const key = saved ?? current.source.modules.specifiers[current.index]
 
             const bindings = loop({
                 ids: current.source.modules.type_ids[current.index],

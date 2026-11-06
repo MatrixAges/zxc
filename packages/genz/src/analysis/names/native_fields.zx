@@ -17,17 +17,18 @@ export type Output = u8[][]
 export default function (in: Input): Output {
     const position = integers.widen(in.module)
     const members = in.source.native_members[in.index]
+    const renamed = in.source.native_exports[in.index]
 
-    const initial = in.source.native_exports[in.index]
-        -> _ ?? members[members.length - 1]
-        -> in.fields.concat(
-            [
-                bytes.fromText(native_tag),
-                bytes.fromText(in.source.modules.specifiers[position]),
-                bytes.fromText(in.source.modules.import_names[position]),
-                bytes.fromText(_)
-            ]
-        )[0]
+    const export_name = renamed ?? members[members.length - 1]
+
+    const initial = in.fields.concat(
+        [
+            bytes.fromText(native_tag),
+            bytes.fromText(in.source.modules.specifiers[position]),
+            bytes.fromText(in.source.modules.import_names[position]),
+            bytes.fromText(export_name)
+        ]
+    )[0]
 
     return loop({
         fields: initial,

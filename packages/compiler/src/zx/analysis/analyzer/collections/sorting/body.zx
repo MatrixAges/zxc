@@ -12,37 +12,67 @@ export type Input = {
     context: u32,
     body: u32,
     captures: Captures,
+    indices?: u32[],
+    direct?: bool,
     span: Span
 }
 
 export type Output = Result
 
 export default function (in: Input): Output {
+    if (in.captures.targets.length == 0) {
+        return {
+            state: in.state,
+            value: in.body
+        }
+    }
+
     const values: u32[] = []
     const symbols: u32?[] = []
     const borrows: bool[] = []
 
-    const bound = loop({
+    const bound_initial = {
         expressions: in.state.local.expressions,
         values,
         symbols,
         borrows,
         index: 0
-    }, {
-        while: (current, source) => current.index < source.captures.targets.length,
-        next: (current, source) => {
-            const target = source.captures.targets[current.index]
-            const projected = project({
-                table: current.expressions,
-                metadata: {
-                    type_id: source.types[integers.widen(target)],
-                    span_start: source.span.start,
-                    span_end: source.span.end
+    }
+
+    const bound_scope = {
+        captures: in.captures,
+        indices: in.indices,
+        direct: in.direct,
+        types: in.state.local.symbols.types,
+        context: in.context,
+        span: in.span
+    }
+
+    const bound = loop(bound_initial, {
+        while: current => current.index < bound_scope.captures.targets.length,
+        next: current => {
+            const target = bound_scope.captures.targets[current.index]
+            const projected = match {
+                bound_scope.direct ?? false => {
+                    table: current.expressions,
+                    id: bound_scope.context
                 },
-                target: source.context,
-                index: integers.narrow(current.index),
-                tuple: true
-            })
+                _ => project({
+                    table: current.expressions,
+                    metadata: {
+                        type_id: bound_scope.types[integers.widen(target)],
+                        span_start: bound_scope.span.start,
+                        span_end: bound_scope.span.end
+                    },
+                    target: bound_scope.context,
+                    index: match {
+                        bound_scope.indices == null => integers.narrow(current.index),
+                        _ => bound_scope.indices[current.index]
+                    },
+                    tuple: true
+                })
+            }
+
 
             current.expressions = projected.table
             current.values = current.values.push(projected.id)[0]
@@ -50,11 +80,6 @@ export default function (in: Input): Output {
             current.borrows = current.borrows.push(true)[0]
             current.index += 1
         }
-    }, {
-        captures: in.captures,
-        types: in.state.local.symbols.types,
-        context: in.context,
-        span: in.span
     })
 
     const result = scope({

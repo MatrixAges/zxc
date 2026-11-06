@@ -17,8 +17,10 @@ export default function (in: Input): Output {
     const control = state.units[state.mappings.units[in.frame.mapping]].control
     const payload = in.frame.f
 
-    const kind = integers.widen(control.block_first[in.frame.id - 1]) + in.frame.a
-        -> control.statement_kinds[_]
+    const kind_input =
+        integers.widen(control.block_first[in.frame.id - 1]) + in.frame.a
+
+    const kind = control.statement_kinds[kind_input]
 
     const code: u64 = match kind {
         StatementKind.Evaluate => 0,
@@ -69,26 +71,28 @@ export default function (in: Input): Output {
         count
     ]
 
-    return append({
+    const described = append({
         pool: state.pool,
         items: header
     })
-        -> copy({
-            pool: _,
-            stack: state.stack,
-            start
-        })
-        -> {
-            ...state,
-            pool: _,
-            stack: truncate({
-                items: state.stack,
-                length: start
-            }),
-            frames: state.frames.push({
-                ...in.frame,
-                op: InlineOp.BlockNext,
-                a: in.frame.a + 1
-            })[0]
-        }
+
+    const pool = copy({
+        pool: described,
+        stack: state.stack,
+        start
+    })
+
+    return {
+        ...state,
+        pool: pool,
+        stack: truncate({
+            items: state.stack,
+            length: start
+        }),
+        frames: state.frames.push({
+            ...in.frame,
+            op: InlineOp.BlockNext,
+            a: in.frame.a + 1
+        })[0]
+    }
 }

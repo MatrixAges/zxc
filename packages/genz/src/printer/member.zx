@@ -28,13 +28,16 @@ export default function (in: Input): Output {
         const value = arms.value[row]
 
         const opening: Frame[] = [
-            value == null ? {
-                ...frame,
-                token: Token.Else
-            } : {
-                ...frame,
-                action: Action.Expression,
-                id: value
+            match {
+                value == null => {
+                    ...frame,
+                    token: Token.Else
+                },
+                _ => {
+                    ...frame,
+                    action: Action.Expression,
+                    id: value
+                }
             },
             {
                 ...frame,
@@ -42,32 +45,36 @@ export default function (in: Input): Output {
             }
         ]
 
-        return (arms.capture[row] == null ? opening : opening.concat([
-            {
-                ...frame,
-                token: Token.CaptureOpen
-            },
-            {
-                ...frame,
-                action: Action.Identifier,
-                bytes: ByteSource.ArmCapture
-            },
-            {
-                ...frame,
-                token: Token.CaptureClose
-            }
-        ])[0])
-            -> _.concat([
+        const captured = match {
+            arms.capture[row] == null => opening,
+            _ => opening.concat([
                 {
                     ...frame,
-                    action: Action.Expression,
-                    id: arms.result[row]
+                    token: Token.CaptureOpen
                 },
                 {
                     ...frame,
-                    token: Token.CommaSpace
+                    action: Action.Identifier,
+                    bytes: ByteSource.ArmCapture
+                },
+                {
+                    ...frame,
+                    token: Token.CaptureClose
                 }
             ])[0]
+        }
+
+        return captured.concat([
+            {
+                ...frame,
+                action: Action.Expression,
+                id: arms.result[row]
+            },
+            {
+                ...frame,
+                token: Token.CommaSpace
+            }
+        ])[0]
     }
 
     const fields = in.source.fields
@@ -101,10 +108,13 @@ export default function (in: Input): Output {
 
     const parameter = in.frame.action == Action.Parameter
 
-    const opening: Frame[] = parameter && fields.comptime_parameter[row] ? [{
-        ...frame,
-        token: Token.ComptimePrefix
-    }] : []
+    const opening: Frame[] = match {
+        parameter && fields.comptime_parameter[row] => [{
+            ...frame,
+            token: Token.ComptimePrefix
+        }],
+        _ => []
+    }
 
     const typed = opening.concat([
         {
@@ -129,19 +139,23 @@ export default function (in: Input): Output {
 
     const initial = fields.default_value[row]
 
-    return (initial == null ? typed : typed.concat([
-        {
-            ...frame,
-            token: Token.Assignment
-        },
-        {
-            ...frame,
-            action: Action.Expression,
-            id: initial
-        }
-    ])[0])
-        -> _.push({
-            ...frame,
-            token: Token.FieldEnd
-        })[0]
+    const initialized = match {
+        initial == null => typed,
+        _ => typed.concat([
+            {
+                ...frame,
+                token: Token.Assignment
+            },
+            {
+                ...frame,
+                action: Action.Expression,
+                id: initial
+            }
+        ])[0]
+    }
+
+    return initialized.push({
+        ...frame,
+        token: Token.FieldEnd
+    })[0]
 }

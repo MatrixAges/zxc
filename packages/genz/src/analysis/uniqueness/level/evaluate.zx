@@ -18,18 +18,24 @@ export default function (in: Input): Output {
             "left",
             "right"
         ])),
-        Operation.Materialized => in.right.unique ? {
-            headered: true,
-            unique: in.linear,
-            deferred: false
-        } : {
-            ...in.left,
-            deferred: true
+        Operation.Materialized => match {
+            in.right.unique => {
+                headered: true,
+                unique: in.linear,
+                deferred: false
+            },
+            _ => {
+                ...in.left,
+                deferred: true
+            }
         },
-        _ => in.left.unique ? in.left : {
-            headered: in.left.headered,
-            unique: true,
-            deferred: false
+        _ => match {
+            in.left.unique => in.left,
+            _ => {
+                headered: in.left.headered,
+                unique: true,
+                deferred: false
+            }
         }
     }
 }

@@ -18,11 +18,16 @@ export default function (in: Input): Output {
     const count = in.signatures.inputs.length
     const imported = in.imports.ids.length
 
+    const different_outputs = in.signatures.outputs.length != count
+    const different_native_modules = in.signatures.native_modules.length != count
+    const different_inputs = in.imports.inputs.length != imported
+    const different_outputs_2 = in.imports.outputs.length != imported
+
     const condition = (
-        - in.signatures.outputs.length != count
-        - or in.signatures.native_modules.length != count
-        - or in.imports.inputs.length != imported
-        - or in.imports.outputs.length != imported
+        - different_outputs
+        - or different_native_modules
+        - or different_inputs
+        - or different_outputs_2
     )
 
     if (condition) {

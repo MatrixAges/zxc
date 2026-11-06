@@ -47,13 +47,15 @@ export default function (in: Input): Output {
         })
     }
 
-    return expressions.kinds[reference] == ExpressionKind.Reference
-    ? resolveCapture({
-        facts: in.facts,
-        symbol:
-            expressions.references[integers.widen(
-                expressions.payloads[reference]
-            )]
-    })
-    : in.facts
+    return match {
+        expressions.kinds[reference] == ExpressionKind.Reference => resolveCapture({
+            facts: in.facts,
+            symbol:
+                expressions
+                .references[integers.widen(
+                    expressions.payloads[reference]
+                )]
+        }),
+        _ => in.facts
+    }
 }

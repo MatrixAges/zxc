@@ -46,17 +46,18 @@ export default function (in: Input): Output {
 
     const count = in.control.count + 1
 
-    return in.members.push(name)[0]
-        -> consume({
-            state: {
-                declarations: in.declarations,
-                members: _,
-                types: in.types,
-                control: {
-                    ...in.control,
-                    count
-                }
-            },
-            phase: Phase.Separator
-        })
+    const members = in.members.push(name)[0]
+
+    return consume({
+        state: {
+            declarations: in.declarations,
+            members: members,
+            types: in.types,
+            control: {
+                ...in.control,
+                count
+            }
+        },
+        phase: Phase.Separator
+    })
 }

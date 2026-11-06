@@ -175,10 +175,12 @@ export default function (in: Input): Output {
                     value: integers.narrow(list[values])
                 })
             } else {
-                const value: u32? = count == 0 ? null :
-                    integers.narrow(
+                const value: u32? = match {
+                    count == 0 => null,
+                    _ => integers.narrow(
                         list[values]
                     )
+                }
 
                 current.table = result({
                     table: current.table,

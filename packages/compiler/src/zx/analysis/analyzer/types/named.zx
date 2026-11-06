@@ -28,13 +28,19 @@ export default function (in: Input): Output {
         name: in.name
     })
 
-    const resolved = cached.found ? cached : lookup({
-        cache: in.types.context.resolved,
-        name: in.name
-    })
+    const resolved = match {
+        cached.found => cached,
+        _ => lookup({
+            cache: in.types.context.resolved,
+            name: in.name
+        })
+    }
 
-    return resolved.found ? resolved : lookup({
-        cache: in.types.context.aliases,
-        name: in.name
-    })
+    return match {
+        resolved.found => resolved,
+        _ => lookup({
+            cache: in.types.context.aliases,
+            name: in.name
+        })
+    }
 }

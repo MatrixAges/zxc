@@ -16,19 +16,31 @@ export default function (in: Input): Output {
     const count = bytes.atomicRowsCount(in.left)
     const none = encode(Knowledge.None)
 
-    const result = loop({
+    const result_initial = {
         index: 0
-    }, {
-        while: (state, source) => state.index < source.count,
-        next: (state, source) => {
-            bytes.fillAtomicRow(source.input.left, state.index, source.none)
-            bytes.fillAtomicRow(source.input.right, state.index, source.none)
+    }
 
-            state.index += 1
-        }
-    }, {
+    const result_scope = {
         input: in,
         count,
         none
+    }
+
+    const result = loop(result_initial, {
+        while: state => state.index < result_scope.count,
+        next: state => {
+            bytes.fillAtomicRow(
+                result_scope.input.left,
+                state.index,
+                result_scope.none
+            )
+            bytes.fillAtomicRow(
+                result_scope.input.right,
+                state.index,
+                result_scope.none
+            )
+
+            state.index += 1
+        }
     })
 }

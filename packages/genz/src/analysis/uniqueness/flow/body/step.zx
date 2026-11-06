@@ -27,11 +27,14 @@ export default function (in: Input): Output {
     }
 
     const condition = (
-        - kind == ExpressionKind.List
-        - or kind == ExpressionKind.ListOperation
-        - or kind == ExpressionKind.ListUpdate
-        - or kind == ExpressionKind.Index
-        - or kind == ExpressionKind.Transform
+        match kind {
+            ExpressionKind.List => true,
+            ExpressionKind.ListOperation => true,
+            ExpressionKind.ListUpdate => true,
+            ExpressionKind.Index => true,
+            ExpressionKind.Transform => true,
+            _ => false
+        }
     )
 
     if (condition) {
@@ -59,42 +62,45 @@ export default function (in: Input): Output {
     }
 
     const condition_2 = (
-        - kind == ExpressionKind.OptionalValue
-        - or kind == ExpressionKind.Some
-        - or kind == ExpressionKind.Capture
-        - or kind == ExpressionKind.Scope
+        match kind {
+            ExpressionKind.OptionalValue => true,
+            ExpressionKind.Some => true,
+            ExpressionKind.Capture => true,
+            ExpressionKind.Scope => true,
+            _ => false
+        }
     )
 
     if (condition_2) {
-        return match kind {
+        const target = match kind {
             ExpressionKind.OptionalValue => expressions.optional_values[payload],
             ExpressionKind.Some => expressions.some[payload],
             ExpressionKind.Capture => expressions.captures[payload],
             _ => expressions.scope_results[payload]
         }
-            -> {
-                ...in.state,
-                queue: push({
-                    queue: in.state.queue,
-                    first: body.prepared.first,
-                    point: {
-                        node: _,
-                        slot
-                    }
-                })
-            }
+
+        return {
+            ...in.state,
+            queue: push({
+                queue: in.state.queue,
+                first: body.prepared.first,
+                point: {
+                    node: target,
+                    slot
+                }
+            })
+        }
     }
 
-    const condition_3 = (
-        - kind == ExpressionKind.Conditional
-        - or kind == ExpressionKind.Iteration
-        - or (
-            kind == ExpressionKind.Binary &&
-                expressions.binary_operators[payload] == BinaryOperator.Coalesce
-        )
-    )
+    const paired = match kind {
+        ExpressionKind.Conditional => true,
+        ExpressionKind.Iteration => true,
+        ExpressionKind.Binary =>
+            expressions.binary_operators[payload] == BinaryOperator.Coalesce,
+        _ => false
+    }
 
-    if (condition_3) {
+    if (paired) {
         const left = match kind {
             ExpressionKind.Conditional => expressions.conditional_yes[payload],
             ExpressionKind.Iteration => expressions.iteration_initials[payload],
@@ -107,7 +113,7 @@ export default function (in: Input): Output {
             _ => expressions.binary_right[payload]
         }
 
-        return push({
+        const queue = push({
             queue: in.state.queue,
             first: body.prepared.first,
             point: {
@@ -115,44 +121,49 @@ export default function (in: Input): Output {
                 slot
             }
         })
-            -> {
-                ...in.state,
-                queue: push({
-                    queue: _,
-                    first: body.prepared.first,
-                    point: {
-                        node: right,
-                        slot
-                    }
-                })
-            }
+
+        return {
+            ...in.state,
+            queue: push({
+                queue: queue,
+                first: body.prepared.first,
+                point: {
+                    node: right,
+                    slot
+                }
+            })
+        }
     }
 
     if (kind == ExpressionKind.Match) {
         const first = integers.widen(expressions.match_first[payload])
         const count = integers.widen(expressions.match_count[payload])
 
-        const queue = loop({
+        const queue_initial = {
             queue: in.state.queue,
             index: first
-        }, {
-            while: (state, context) => state.index < context.end,
-            next: (state, context) => {
+        }
+
+        const queue_scope = {
+            body,
+            slot,
+            end: first + count
+        }
+
+        const queue = loop(queue_initial, {
+            while: state => state.index < queue_scope.end,
+            next: state => {
                 state.queue = push({
                     queue: state.queue,
-                    first: context.body.prepared.first,
+                    first: queue_scope.body.prepared.first,
                     point: {
-                        node: context.body.expressions.match_results[state.index],
-                        slot: context.slot
+                        node: queue_scope.body.expressions.match_results[state.index],
+                        slot: queue_scope.slot
                     }
                 })
                 state.index += 1
             },
             return: state => state.queue
-        }, {
-            body,
-            slot,
-            end: first + count
         })
 
         return {
@@ -173,10 +184,13 @@ export default function (in: Input): Output {
     }
 
     const condition_4 = (
-        - kind == ExpressionKind.Task
-        - or kind == ExpressionKind.AwaitTask
-        - or kind == ExpressionKind.Parallel
-        - or kind == ExpressionKind.StoreGet
+        match kind {
+            ExpressionKind.Task => true,
+            ExpressionKind.AwaitTask => true,
+            ExpressionKind.Parallel => true,
+            ExpressionKind.StoreGet => true,
+            _ => false
+        }
     )
 
     if (condition_4) {

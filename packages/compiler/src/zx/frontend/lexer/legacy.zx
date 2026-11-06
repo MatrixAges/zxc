@@ -17,13 +17,14 @@ export type Output = {
 }
 
 export default function (in: Input): Output {
-    return in.tokens.map(token => {
+    const tokens = in.tokens.map(token => {
         kind: legacyKind(token.kind),
         span: token.span
     })[0]
-        -> {
-            tokens: _,
-            comments: in.comments,
-            diagnostic: in.diagnostic
-        }
+
+    return {
+        tokens: tokens,
+        comments: in.comments,
+        diagnostic: in.diagnostic
+    }
 }

@@ -1,0 +1,18 @@
+import bytes from "std:bytes"
+
+import { settled_tag, demanded_tag, planned_tag } from "./const"
+import { Kind } from "./model"
+
+export type Input = Kind
+
+export type Output = u8[]
+
+export default function (in: Input): Output {
+    const return_input = match in {
+        Kind.Settled => settled_tag,
+        Kind.Demanded => demanded_tag,
+        _ => planned_tag
+    }
+
+    return bytes.fromText(return_input)
+}

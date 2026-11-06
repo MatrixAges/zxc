@@ -41,11 +41,14 @@ export default function (in: Input): Output {
                 source: current.input.source,
                 span: declaration.name
             }).text
-            const names: string[]? = declaration.errors_present ? errors({
-                source: current.input.source,
-                declaration,
-                errors: current.input.errors
-            }) : null
+            const names: string[]? = match {
+                declaration.errors_present => errors({
+                    source: current.input.source,
+                    declaration,
+                    errors: current.input.errors
+                }),
+                _ => null
+            }
 
             current.members = current.members.push({
                 name,

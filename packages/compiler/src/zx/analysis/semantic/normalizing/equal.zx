@@ -26,9 +26,12 @@ export default function (in: Input): Output {
     }
 
     const condition = (
-        - source.kind == Kind.Optional
-        - or source.kind == Kind.List
-        - or source.kind == Kind.Task
+        match source.kind {
+            Kind.Optional => true,
+            Kind.List => true,
+            Kind.Task => true,
+            _ => false
+        }
     )
 
     if (condition) {

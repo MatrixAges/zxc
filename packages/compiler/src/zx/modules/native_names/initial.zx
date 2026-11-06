@@ -6,7 +6,11 @@ export default function (in: Input): Output {
     const nodes: u64[] = []
     const enumerations: bool[] = []
     const aliases: string?[] = []
-    const names: string?[] = in.count == 1 ? [] : [null]
+
+    const names: string?[] = match {
+        in.count == 1 => [],
+        _ => [null]
+    }
 
     const result = loop({
         input: in,

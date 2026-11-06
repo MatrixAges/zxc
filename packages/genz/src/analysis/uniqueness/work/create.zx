@@ -9,7 +9,7 @@ export default function (in: Input): Output {
         queued,
         index: 0
     }, {
-        while: (state, size) => state.index < size,
+        while: state => state.index < in,
         next: state => {
             state.queued = state.queued.push(false)[0]
             state.index += 1
@@ -20,5 +20,5 @@ export default function (in: Input): Output {
             head: 0,
             tail: 0
         })
-    }, in)
+    })
 }

@@ -32,19 +32,20 @@ export default function (in: Input): Output {
         depth: depth + (in.nested ? 1 : 0)
     })
 
-    return in.state.frames.push({
+    const frames = in.state.frames.push({
         ...in.state.frame,
         phase: in.resume
     })[0]
-        -> {
-            expression: in.state.expression,
-            tree: in.state.tree,
-            frames: _,
-            suspended: in.state.suspended,
-            frame: next,
-            control: {
-                ...in.state.control,
-                phase: in.phase
-            }
+
+    return {
+        expression: in.state.expression,
+        tree: in.state.tree,
+        frames: frames,
+        suspended: in.state.suspended,
+        frame: next,
+        control: {
+            ...in.state.control,
+            phase: in.phase
         }
+    }
 }

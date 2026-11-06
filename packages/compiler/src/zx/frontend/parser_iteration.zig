@@ -49,6 +49,13 @@ pub fn body(parser: *Parser) zx.Error!*const ast.Expression {
     return parser.make(start, .{ .state_block = block });
 }
 
+pub fn valueBody(parser: *Parser) zx.Error!*const ast.Expression {
+    const start = parser.current().span.start;
+    const block = try parser.block();
+
+    return parser.make(start, .{ .state_block = block });
+}
+
 pub fn statement(parser: *Parser) zx.Error!@FieldType(ast.Statement, "value") {
     const target = try parser.expression(8);
     var operator: ?zx.syntax.Operator = null;

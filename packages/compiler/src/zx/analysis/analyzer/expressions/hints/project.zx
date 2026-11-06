@@ -62,12 +62,15 @@ export default function (in: Input): Output {
             template: false
         }))
 
-        return value != null &&
-            value <
-            integers.widen(target.second) ? table
-            .children[integers.widen(
-                target.first
-            ) + value] : null
+        return match {
+            value != null &&
+                value <
+                integers.widen(target.second) => table
+                .children[integers.widen(
+                    target.first
+                ) + value],
+            _ => null
+        }
     }
 
     const name = readName({
@@ -117,9 +120,12 @@ export default function (in: Input): Output {
         id: type_id
     })
 
-    return in.frame.operation == Operation.Field && field.kind == Kind.Optional &&
-        fieldFact({
-            context: in.context,
-            node: in.frame.node
-        }) ? field.first : type_id
+    return match {
+        in.frame.operation == Operation.Field && field.kind == Kind.Optional &&
+            fieldFact({
+                context: in.context,
+                node: in.frame.node
+            }) => field.first,
+        _ => type_id
+    }
 }

@@ -14,8 +14,10 @@ export default function (in: Input): Output {
         _ => in.declarations.control.diagnostic
     }
 
+    const same_declarations = in.declarations.declarations.length == 0
+
     const condition = (
-        - in.declarations.declarations.length == 0
+        - same_declarations
         - and in.functions.length == 0
         - and issue.message == ""
     )

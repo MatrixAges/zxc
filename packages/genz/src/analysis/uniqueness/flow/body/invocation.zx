@@ -20,8 +20,11 @@ export default function (in: Input): Output {
 
     const expanded = self ? in.state.expanded : in.state.expanded.with(payload, true)
 
-    const values = (in.context.tracking ? in.state.reached : in.context.own)
-        -> (self ? _ : in.context.held[integers.widen(callee)])
+    const own = in.context.tracking ? in.state.reached : in.context.own
+
+    const values = self ? own : in.context.held[integers.widen(callee)]
+    const argument = expressions.call_arguments[payload]
+    const first = body.prepared.first
 
     return {
         ...in.state,
@@ -30,14 +33,14 @@ export default function (in: Input): Output {
             queue: in.state.queue,
             slot: 0
         }, {
-            while: (state, context) => state.slot < context.values.length,
-            next: (state, context) => {
-                if (context.values[state.slot]) {
+            while: state => state.slot < values.length,
+            next: state => {
+                if (values[state.slot]) {
                     state.queue = push({
                         queue: state.queue,
-                        first: context.first,
+                        first,
                         point: {
-                            node: context.argument,
+                            node: argument,
                             slot: integers.narrow(state.slot)
                         }
                     })
@@ -46,10 +49,6 @@ export default function (in: Input): Output {
                 state.slot += 1
             },
             return: state => state.queue
-        }, {
-            first: body.prepared.first,
-            values,
-            argument: expressions.call_arguments[payload]
         })
     }
 }

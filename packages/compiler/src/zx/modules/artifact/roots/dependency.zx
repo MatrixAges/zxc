@@ -28,19 +28,20 @@ export default function (in: Input): Output {
         return in.edge == 0 ? in.table.first[in.index] : in.table.second[in.index]
     }
 
-    const condition = (
-        - type_kind == Kind.Tuple
-        - or type_kind == Kind.Object
-        - and in.edge < integers.widen(
-            in.table.second[in.index]
-        )
-    )
+    const aggregate = type_kind == Kind.Tuple || type_kind == Kind.Object
+
+    const condition = match {
+        aggregate => in.edge < integers.widen(in.table.second[in.index]),
+        _ => false
+    }
 
     if (condition) {
         const index = integers.widen(in.table.first[in.index]) + in.edge
 
-        return type_kind == Kind.Tuple ? in.table.children[index] :
-            in.table.field_types[index]
+        return match {
+            type_kind == Kind.Tuple => in.table.children[index],
+            _ => in.table.field_types[index]
+        }
     }
 
     return null

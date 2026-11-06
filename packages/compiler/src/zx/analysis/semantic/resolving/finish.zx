@@ -36,10 +36,19 @@ export default function (in: Input): Output {
             first: 0,
             second: 0,
             label: "",
-            children: object ? [] : types,
+            children: match {
+                object => [],
+                _ => types
+            },
             fields: {
-                names: object ? names : [],
-                types: object ? types : []
+                names: match {
+                    object => names,
+                    _ => []
+                },
+                types: match {
+                    object => types,
+                    _ => []
+                }
             },
             names: []
         }

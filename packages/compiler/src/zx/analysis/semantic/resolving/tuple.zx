@@ -14,20 +14,23 @@ export type Output = State
 export default function (in: Input): Output {
     const previous = current(in.frames)
 
-    const state = previous.waiting ? replace({
-        state: {
-            ...in,
-            scratch: {
-                ...in.scratch,
-                types: in.scratch.types.push(in.result)[0]
+    const state = match {
+        previous.waiting => replace({
+            state: {
+                ...in,
+                scratch: {
+                    ...in.scratch,
+                    types: in.scratch.types.push(in.result)[0]
+                }
+            },
+            frame: {
+                ...previous,
+                index: previous.index + 1,
+                waiting: false
             }
-        },
-        frame: {
-            ...previous,
-            index: previous.index + 1,
-            waiting: false
-        }
-    }) : in
+        }),
+        _ => in
+    }
 
     const head = current(state.frames)
 
@@ -49,7 +52,7 @@ export default function (in: Input): Output {
         }
     })
 
-    return frame({
+    const child = frame({
         operation: Operation.Node,
         name: {
             text: "",
@@ -58,8 +61,9 @@ export default function (in: Input): Output {
         },
         reference: selected.value
     })
-        -> {
-            ...waiting,
-            frames: waiting.frames.push(_)[0]
-        }
+
+    return {
+        ...waiting,
+        frames: waiting.frames.push(child)[0]
+    }
 }

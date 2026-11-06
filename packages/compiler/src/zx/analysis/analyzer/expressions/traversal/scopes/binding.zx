@@ -33,25 +33,31 @@ export default function (in: Input): Output {
 
     if (in.action == Action.StateEvaluate) {
         const result =
-            work.state.local.expressions.kinds[integers.widen(
-                work.value
-            )] == ExpressionKind.Iteration ? {
-                state: work.state,
-                value: work.value
-            } : coerce({
-                state: work.state,
-                value: work.value,
-                expected: 0,
-                span: work.source.tree.nodes[statement.first].span
-            })
+            match {
+                work.state.local.expressions.kinds[integers.widen(
+                    work.value
+                )] == ExpressionKind.Iteration => {
+                    state: work.state,
+                    value: work.value
+                },
+                _ => coerce({
+                    state: work.state,
+                    value: work.value,
+                    expected: 0,
+                    span: work.source.tree.nodes[statement.first].span
+                })
+            }
 
         return {
             ...work,
             state: result.state,
-            scopes: result.state.diagnostic.message == "" ? evaluate({
-                scopes: work.scopes,
-                value: result.value
-            }) : work.scopes
+            scopes: match {
+                result.state.diagnostic.message == "" => evaluate({
+                    scopes: work.scopes,
+                    value: result.value
+                }),
+                _ => work.scopes
+            }
         }
     }
 
@@ -71,18 +77,19 @@ export default function (in: Input): Output {
         }
     }
 
-    const result = work.scopes.frames[work.scopes.frames.length - 1]
-        -> bind({
-            scopes: work.scopes,
-            local: work.state.local,
-            name: readName({
-                source: work.source,
-                kind: NameKind.Statement,
-                index: id
-            }),
-            value: work.value,
-            scope_start: _.active_mark
-        })
+    const frame = work.scopes.frames[work.scopes.frames.length - 1]
+
+    const result = bind({
+        scopes: work.scopes,
+        local: work.state.local,
+        name: readName({
+            source: work.source,
+            kind: NameKind.Statement,
+            index: id
+        }),
+        value: work.value,
+        scope_start: frame.value_block ? work.state.local.scope_floor : frame.active_mark
+    })
 
     return {
         ...work,

@@ -69,42 +69,51 @@ export default function (in: Input): Output {
         }
     }
 
-    const result = in.blocks.frames[in.blocks.frames.length - 1]
-        -> bind({
-            local: in.state.local,
-            name: in.name,
-            type_id,
-            scope_start: _.active_mark
-        })
+    const frame = in.blocks.frames[in.blocks.frames.length - 1]
 
-    return (type_id == scalar_bool && result.diagnostic.message == "" ? {
-        ...result.local,
-        refinement: {
-            ...result.local.refinement,
-            facts: bindPredicate({
-                facts: result.local.refinement.facts,
-                expressions: result.local.expressions,
-                value: integers.widen(in.value),
-                count: 1,
-                err: result.id,
-                result: null
-            })
-        }
-    } : result.local)
-        -> {
-            ...in.state,
-            local: _,
-            diagnostic: result.diagnostic
-        }
-        -> {
-            state: _,
-            blocks: result.diagnostic.message == "" ? {
+    const result = bind({
+        local: in.state.local,
+        name: in.name,
+        type_id,
+        scope_start: frame.active_mark
+    })
+
+    const local = match {
+        type_id == scalar_bool && result.diagnostic.message == "" => {
+            ...result.local,
+            refinement: {
+                ...result.local.refinement,
+                facts: bindPredicate({
+                    facts: result.local.refinement.facts,
+                    expressions: result.local.expressions,
+                    value: integers.widen(in.value),
+                    count: 1,
+                    err: result.id,
+                    result: null
+                })
+            }
+        },
+        _ => result.local
+    }
+
+    const state = {
+        ...in.state,
+        local: local,
+        diagnostic: result.diagnostic
+    }
+
+    return {
+        state: state,
+        blocks: match {
+            result.diagnostic.message == "" => {
                 ...in.blocks,
                 pending: append({
                     table: in.blocks.pending,
                     symbol: result.id,
                     value: in.value
                 })
-            } : in.blocks
+            },
+            _ => in.blocks
         }
+    }
 }

@@ -19,10 +19,10 @@ export default function (in: Input): Output {
         working: in.working,
         keys
     }, {
-        while: (state, context) =>
-            state.index < context.source.context.renewed.length,
-        next: (state, context) => {
-            const source = context.source
+        while: state =>
+            state.index < in.source.context.renewed.length,
+        next: state => {
+            const source = in.source
             const entry = source.context.renewed[state.index]
             const own_value = entry.key >= value_renewal
             const packed = own_value ? entry.key - value_renewal : entry.key
@@ -75,26 +75,30 @@ export default function (in: Input): Output {
 
             state.index += 1
         }
-    }, in)
+    })
 
     const renewals: Renewal[] = []
 
-    const ordered = loop({
+    const ordered_initial = {
         index: 0,
         renewals
-    }, {
-        while: (state, context) => state.index < context.keys.length,
-        next: (state, context) => {
+    }
+
+    const ordered_scope = {
+        source: in.source,
+        keys: selected.keys.sort()[0]
+    }
+
+    const ordered = loop(ordered_initial, {
+        while: state => state.index < ordered_scope.keys.length,
+        next: state => {
             state.renewals = state.renewals.push(renewal({
-                source: context.source,
-                key: context.keys[state.index]
+                source: ordered_scope.source,
+                key: ordered_scope.keys[state.index]
             }))[0]
             state.index += 1
         },
         return: state => state.renewals
-    }, {
-        source: in.source,
-        keys: selected.keys.sort()[0]
     })
 
     return {

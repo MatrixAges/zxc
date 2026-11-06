@@ -12,25 +12,26 @@ export type Output = State
 export default function (in: Input): Output {
     const index = in.state.expression.control.index + 1
 
-    return in.state.control.token.span.end
-        -> {
-            expression: {
-                prepared: in.state.expression.prepared,
-                tree: in.state.expression.tree,
-                types: in.state.expression.types,
-                frames: in.state.expression.frames,
-                control: {
-                    ...in.state.expression.control,
-                    index,
-                    root_index: index,
-                    last_end: _
-                }
-            },
-            body: in.state.body,
-            contracts: in.state.contracts,
+    const last_end = in.state.control.token.span.end
+
+    return {
+        expression: {
+            prepared: in.state.expression.prepared,
+            tree: in.state.expression.tree,
+            types: in.state.expression.types,
+            frames: in.state.expression.frames,
             control: {
-                ...in.state.control,
-                phase: in.phase
+                ...in.state.expression.control,
+                index,
+                root_index: index,
+                last_end: last_end
             }
+        },
+        body: in.state.body,
+        contracts: in.state.contracts,
+        control: {
+            ...in.state.control,
+            phase: in.phase
         }
+    }
 }

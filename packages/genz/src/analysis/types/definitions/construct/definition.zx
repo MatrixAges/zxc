@@ -1,0 +1,82 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+import { Kind } from "core/type_table/model"
+
+import { ExpressionsKind } from "../../../../printer/model/expressions"
+import members from "../../abi/members"
+import tupleChildren from "./tuple_children"
+
+import type { Build } from "../model"
+
+export type Input = {
+    state: Build,
+    target: Kind,
+    first: u32,
+    count: u32
+}
+
+export type Output = Build
+
+export default function (in: Input): Output {
+    const state = in.state
+
+    if (in.target == Kind.NativeReference) {
+        return {
+            ...state,
+            tags: state.tags.push(ExpressionsKind.OpaqueType)[0],
+            offsets: state.offsets.push(integers.narrow(state.opaque_count))[0],
+            opaque_count: state.opaque_count + 1
+        }
+    }
+
+    if (in.target == Kind.Enumeration) {
+        return {
+            ...state,
+            tags: state.tags.push(ExpressionsKind.EnumType)[0],
+            offsets: state.offsets.push(integers.narrow(state.enum_type.length))[0],
+            enum_type: state.enum_type.push(members({
+                names: state.source.types.names,
+                start: in.first,
+                count: in.count
+            }))[0]
+        }
+    }
+
+    if (in.target == Kind.Tuple) {
+        const children = tupleChildren({
+            source: state.source.types.children,
+            values: state.values,
+            first: in.first,
+            count: in.count
+        })
+
+        return {
+            ...state,
+            tags: state.tags.push(ExpressionsKind.TupleType)[0],
+            offsets:
+                state.offsets.push(integers.narrow(state.tuple_type.length))[0],
+            tuple_type: state.tuple_type.push(children)[0]
+        }
+    }
+
+    const field_start = integers.widen(state.source.field_base) + state.field_count
+    const field_end = field_start + integers.widen(in.count)
+
+    return {
+        ...state,
+        valid: state.valid && field_end <= integers.widen(max_u32),
+        tags: state.tags.push(ExpressionsKind.StructType)[0],
+        offsets:
+            state.offsets.push(integers.narrow(state.struct_type_start.length))[0],
+        struct_type_start: state.struct_type_start.push(
+            integers.narrow(
+                match {
+                    field_start <= integers.widen(max_u32) => field_start,
+                    _ => 0
+                }
+            )
+        )[0],
+        struct_type_len: state.struct_type_len.push(in.count)[0],
+        field_count: state.field_count + integers.widen(in.count)
+    }
+}

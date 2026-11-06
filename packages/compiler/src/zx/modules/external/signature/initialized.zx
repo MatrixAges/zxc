@@ -12,25 +12,34 @@ export default function (in: Input): Output {
     return {
         types: {
             context: in.context,
-            delta: in.result.publish ? in.result.delta : {
-                kinds: [],
-                first: [],
-                second: [],
-                labels: [],
-                children: [],
-                field_types: [],
-                field_names: [],
-                names: []
+            delta: match {
+                in.result.publish => in.result.delta,
+                _ => {
+                    kinds: [],
+                    first: [],
+                    second: [],
+                    labels: [],
+                    children: [],
+                    field_types: [],
+                    field_names: [],
+                    names: []
+                }
             },
-            cache: in.result.publish ? in.result.cache : {
-                names: [],
-                ids: []
+            cache: match {
+                in.result.publish => in.result.cache,
+                _ => {
+                    names: [],
+                    ids: []
+                }
             },
-            nominal_delta: in.result.publish ? in.result.origins : {
-                ids: [],
-                kinds: [],
-                owners: [],
-                members: []
+            nominal_delta: match {
+                in.result.publish => in.result.origins,
+                _ => {
+                    ids: [],
+                    kinds: [],
+                    owners: [],
+                    members: []
+                }
             }
         },
         publish: in.result.publish,

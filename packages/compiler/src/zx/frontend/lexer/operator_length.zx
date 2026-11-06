@@ -32,30 +32,35 @@ export default function (in: Input): Output {
         return 3
     }
 
-    const condition_2 = (
-        - in.has_next
-        - and (
-            - in.byte == ascii_equals
-            - or in.byte == ascii_minus
-            - and in.next == ascii_greater_than
-            - or (
-                - in.next == ascii_equals
-                - and (
-                    - in.byte == ascii_equals
-                    - or in.byte == ascii_bang
-                    - or in.byte == ascii_less_than
-                    - or in.byte == ascii_greater_than
-                )
-            )
-            - or (
-                - in.byte == in.next
-                - and (
-                    in.byte == ascii_question || in.byte == ascii_ampersand ||
-                        in.byte == ascii_pipe
-                )
-            )
-        )
+    const arrow_prefix = in.byte == ascii_equals || in.byte == ascii_minus
+    const arrow = arrow_prefix && in.next == ascii_greater_than
+
+    const comparison_prefix = match in.byte {
+        ascii_equals => true,
+        ascii_bang => true,
+        ascii_less_than => true,
+        ascii_greater_than => true,
+        _ => false
+    }
+
+    const comparison = in.next == ascii_equals && comparison_prefix
+
+    const repeated_prefix = match in.byte {
+        ascii_question => true,
+        ascii_ampersand => true,
+        ascii_pipe => true,
+        _ => false
+    }
+
+    const repeated = in.byte == in.next && repeated_prefix
+
+    const compound = (
+        - arrow
+        - or comparison
+        - or repeated
     )
+
+    const condition_2 = in.has_next && compound
 
     if (condition_2) {
         return 2

@@ -8,22 +8,29 @@ export default function (in: Input): Output {
     const empty: u32[] = []
     const rows: u32[][] = []
 
-    const functions = loop({
+    const functions_initial = {
         rows,
         index: 0
-    }, {
-        while: (state, source) => state.index < source.input.native_modules.length,
-        next: (state, source) => {
-            const row = source.input.native_modules[state.index] == null ?
-                callees(source.input.expressions[state.index]) : source.empty
+    }
+
+    const functions_scope = {
+        input: in,
+        empty
+    }
+
+    const functions = loop(functions_initial, {
+        while: state => state.index < functions_scope.input.native_modules.length,
+        next: state => {
+            const row = match {
+                functions_scope.input.native_modules[state.index] == null =>
+                    callees(functions_scope.input.expressions[state.index]),
+                _ => functions_scope.empty
+            }
 
             state.rows = state.rows.push(row)[0]
             state.index += 1
         },
         return: state => state.rows
-    }, {
-        input: in,
-        empty
     })
 
     return functions.push(in.type_only ? empty : callees(in.entry))[0]

@@ -44,8 +44,10 @@ export default function (in: Input): Output {
 
         return fail({
             state: in,
-            message: kind == ValueKind.Cdata ? unterminated_cdata :
-                unterminated_attribute
+            message: match {
+                kind == ValueKind.Cdata => unterminated_cdata,
+                _ => unterminated_attribute
+            }
         })
     }
 
@@ -115,28 +117,31 @@ export default function (in: Input): Output {
         })
     }
 
+    const valid_kind = kind == ValueKind.Attribute &&
+        (byte == ascii_line_feed || byte == ascii_tab)
+
     const condition = (
         - byte == ascii_carriage_return
         - or (
-            kind == ValueKind.Attribute &&
-                (byte == ascii_line_feed || byte == ascii_tab)
+            valid_kind
         )
     )
 
     if (condition) {
-        return starts({
+        const has_crlf = starts({
             source: in.source,
             offset,
             text: crlf
         })
-            -> character({
-                state: in,
-                codepoint:
-                    integer.widenByte(
-                        kind == ValueKind.Attribute ? ascii_space : ascii_line_feed
-                    ),
-                count: _ ? crlf.length : 1
-            })
+
+        return character({
+            state: in,
+            codepoint:
+                integer.widenByte(
+                    kind == ValueKind.Attribute ? ascii_space : ascii_line_feed
+                ),
+            count: has_crlf ? crlf.length : 1
+        })
     }
 
     return advance({

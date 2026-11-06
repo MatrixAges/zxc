@@ -78,13 +78,16 @@ export default function (in: Input): Output {
         }
     }
 
-    const selected = supplied != null ? {
-        found: true,
-        id: supplied
-    } : named({
-        types: in.types,
-        name: name ?? ""
-    })
+    const selected = match {
+        supplied != null => {
+            found: true,
+            id: supplied
+        },
+        _ => named({
+            types: in.types,
+            name: name ?? ""
+        })
+    }
 
     if (!selected.found) {
         return {

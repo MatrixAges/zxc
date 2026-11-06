@@ -51,20 +51,27 @@ export default function (in: Input): Output {
         if (frame.active) {
             const missing: u32? = null
 
-            const shadowed = loop({
+            const shadowed_initial = {
                 index: local.active.length,
                 symbol: missing
-            }, {
-                while: (state, context) => state.symbol == null &&
-                    state.index > context.frame.scope_start &&
-                    state.index > context.local.scope_floor,
-                next: (state, context) => {
+            }
+
+            const shadowed_scope = {
+                local,
+                frame
+            }
+
+            const shadowed = loop(shadowed_initial, {
+                while: state => state.symbol == null &&
+                    state.index > shadowed_scope.frame.scope_start &&
+                    state.index > shadowed_scope.local.scope_floor,
+                next: state => {
                     state.index -= 1
 
-                    const symbol = context.local.active[state.index]
+                    const symbol = shadowed_scope.local.active[state.index]
 
                     if (
-                        context.local.symbols.names[integers.widen(
+                        shadowed_scope.local.symbols.names[integers.widen(
                             symbol
                         )] == placeholder_name
                     ) {
@@ -72,9 +79,6 @@ export default function (in: Input): Output {
                     }
                 },
                 return: state => state.symbol
-            }, {
-                local,
-                frame
             })
 
             if (shadowed != null) {

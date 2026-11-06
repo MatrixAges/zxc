@@ -1,0 +1,30 @@
+import type { Effects, Flags as Output } from "./model"
+
+export type Input = {
+    effects: Effects,
+    local: bool,
+    pure: bool,
+    scalar: bool,
+    inlined: bool
+}
+
+export default function (in: Input): Output {
+    const effect_free = (
+        - !in.effects.io
+        - and !in.effects.process
+        - and !in.effects.tasks
+    )
+
+    const inlined = (
+        - in.pure
+        - and effect_free
+        - and in.inlined
+    )
+
+    return {
+        ...in.effects,
+        inlined,
+        value: in.local,
+        scalar: in.local && in.scalar
+    }
+}

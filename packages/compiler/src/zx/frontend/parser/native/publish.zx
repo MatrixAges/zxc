@@ -21,9 +21,11 @@ export default function (in: Input): Output {
         })
     }
 
+    const not_close_brace = token.symbol != Symbol.CloseBrace
+
     const condition = (
         - token.kind != Kind.Eof
-        - and token.symbol != Symbol.CloseBrace
+        - and not_close_brace
         - and !token.line_break
     )
 
@@ -35,7 +37,7 @@ export default function (in: Input): Output {
         })
     }
 
-    return {
+    const computed_current = {
         name: {
             start: in.control.current.name.start,
             end: in.control.current.name.end
@@ -52,17 +54,19 @@ export default function (in: Input): Output {
         count: in.parameters.length - in.control.current.first_parameter,
         error_count: in.errors.length - in.control.current.first_error
     }
-        -> in.functions.push(_)[0]
-        -> advance({
-            state: {
-                lexed: in.lexed,
-                declarations: in.declarations,
-                parameters: in.parameters,
-                errors: in.errors,
-                control: in.control,
-                functions: _
-            },
-            phase: Phase.Start,
-            count: 0
-        })
+
+    const functions = in.functions.push(computed_current)[0]
+
+    return advance({
+        state: {
+            lexed: in.lexed,
+            declarations: in.declarations,
+            parameters: in.parameters,
+            errors: in.errors,
+            control: in.control,
+            functions: functions
+        },
+        phase: Phase.Start,
+        count: 0
+    })
 }

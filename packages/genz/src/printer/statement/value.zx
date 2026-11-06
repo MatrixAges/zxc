@@ -28,9 +28,12 @@ export default function (in: Input): Output {
     }
 
     const condition = (
-        - kind == StatementsKind.BreakLoop
-        - or kind == StatementsKind.ContinueLoop
-        - or kind == StatementsKind.UnreachableStmt
+        match kind {
+            StatementsKind.BreakLoop => true,
+            StatementsKind.ContinueLoop => true,
+            StatementsKind.UnreachableStmt => true,
+            _ => false
+        }
     )
 
     if (condition) {
@@ -46,8 +49,10 @@ export default function (in: Input): Output {
     }
 
     if (kind == StatementsKind.Expression || kind == StatementsKind.Discard) {
-        const value = kind == StatementsKind.Expression ? tree.expression[row] :
-            tree.discard[row]
+        const value = match {
+            kind == StatementsKind.Expression => tree.expression[row],
+            _ => tree.discard[row]
+        }
 
         const block =
             kind == StatementsKind.Expression &&
@@ -55,10 +60,13 @@ export default function (in: Input): Output {
                 value
             )] == ExpressionsKind.Block
 
-        const prefix: Frame[] = kind == StatementsKind.Discard ? [{
-            ...frame,
-            token: Token.Discard
-        }] : []
+        const prefix: Frame[] = match {
+            kind == StatementsKind.Discard => [{
+                ...frame,
+                token: Token.Discard
+            }],
+            _ => []
+        }
 
         return prefix.concat([
             {
@@ -130,19 +138,23 @@ export default function (in: Input): Output {
         token: Token.Return
     }]
 
-    return (value == null ? prefix : prefix.concat([
-        {
-            ...frame,
-            token: Token.Space
-        },
-        {
-            ...frame,
-            action: Action.Expression,
-            id: value
-        }
-    ])[0])
-        -> _.push({
-            ...frame,
-            token: Token.StatementEnd
-        })[0]
+    const returned = match {
+        value == null => prefix,
+        _ => prefix.concat([
+            {
+                ...frame,
+                token: Token.Space
+            },
+            {
+                ...frame,
+                action: Action.Expression,
+                id: value
+            }
+        ])[0]
+    }
+
+    return returned.push({
+        ...frame,
+        token: Token.StatementEnd
+    })[0]
 }

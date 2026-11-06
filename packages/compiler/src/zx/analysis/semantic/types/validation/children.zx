@@ -41,15 +41,17 @@ export default function (in: Input): Output {
                 ) != Kind.Task
 
             if (current.valid && current.object) {
-                current.valid =
-                    (
-                        - child != 0
-                        - and current.table.field_names[position] != ""
-                        - and (current.index == 0 || ascending({
-                            left: current.table.field_names[position - 1],
-                            right: current.table.field_names[position]
-                        }))
-                    )
+                const name = current.table.field_names[position]
+                const named_child = child != 0 && name != ""
+
+                current.valid = match {
+                    !named_child => false,
+                    current.index == 0 => true,
+                    _ => ascending({
+                        left: current.table.field_names[position - 1],
+                        right: name
+                    })
+                }
             }
 
             current.index += 1

@@ -7,9 +7,11 @@ export default function (in: Input): Output {
 
     return {
         ...in.state,
-        buffer: in.state.tail < in.state.buffer.length
-            ? in.state.buffer.with(in.state.tail, in.index)
-            : in.state.buffer.push(in.index)[0],
+        buffer: match {
+            in.state.tail < in.state.buffer.length =>
+                in.state.buffer.with(in.state.tail, in.index),
+            _ => in.state.buffer.push(in.index)[0]
+        },
         queued: in.state.queued.with(in.index, true),
         tail: in.state.tail + 1
     }

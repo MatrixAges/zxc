@@ -19,36 +19,46 @@ export default function (in: Input): Output {
 
     const offsets = body.layout.offsets[owner]
 
-    const candidate = integers.widen(in.point.slot)
+    const slot = in.point.slot
+    const candidate = integers.widen(slot)
+    const next = candidate + 1
+    const in_range = candidate < offsets.length
+
+    const at_floor = match {
+        in_range => offsets[candidate] <= slot,
+        _ => false
+    }
+
+    const at_ceiling = match {
+        at_floor => next == offsets.length || offsets[next] > slot,
+        _ => false
+    }
 
     const direct = (
-        - candidate < offsets.length
-        - and offsets[candidate] <= in.point.slot
-        - and (
-            candidate + 1 == offsets.length ||
-                offsets[candidate + 1] > in.point.slot
-        )
+        - in_range
+        - and at_floor
+        - and at_ceiling
     )
 
-    const position = direct ? candidate + 1 : loop({
-        first: 0,
-        last: offsets.length
-    }, {
-        while: state => state.first < state.last,
-        next: (state, context) => {
-            const middle = state.first + (state.last - state.first) / 2
+    const position = match {
+        direct => next,
+        _ => loop({
+            first: 0,
+            last: offsets.length
+        }, {
+            while: state => state.first < state.last,
+            next: state => {
+                const middle = state.first + (state.last - state.first) / 2
 
-            if (context.offsets[middle] <= context.slot) {
-                state.first = middle + 1
-            } else {
-                state.last = middle
-            }
-        },
-        return: state => state.first
-    }, {
-        offsets,
-        slot: in.point.slot
-    })
+                if (offsets[middle] <= slot) {
+                    state.first = middle + 1
+                } else {
+                    state.last = middle
+                }
+            },
+            return: state => state.first
+        })
+    }
 
     if (position == 0) {
         return in.state
@@ -64,8 +74,10 @@ export default function (in: Input): Output {
 
     const object = expressions.kinds[node] == ExpressionKind.Object
 
-    const first = object ? body.prepared.object_first[payload] :
-        integers.widen(expressions.sequence_first[payload])
+    const first = match object {
+        true => body.prepared.object_first[payload],
+        _ => integers.widen(expressions.sequence_first[payload])
+    }
 
     return {
         ...in.state,
@@ -73,8 +85,10 @@ export default function (in: Input): Output {
             queue: in.state.queue,
             first: body.prepared.first,
             point: {
-                node: object ? body.prepared.objects[first + member] :
-                    expressions.sequence_items[first + member],
+                node: match object {
+                    true => body.prepared.objects[first + member],
+                    _ => expressions.sequence_items[first + member]
+                },
                 slot: in.point.slot - offset
             }
         })

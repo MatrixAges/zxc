@@ -38,8 +38,10 @@ export default function (in: Input): Output {
             if (result.diagnostic.message == "") {
                 current.work.contracts = append({
                     table: current.work.contracts,
-                    kind: item.ensures ? ContractKind.Ensures :
-                        ContractKind.Requires,
+                    kind: match {
+                        item.ensures => ContractKind.Ensures,
+                        _ => ContractKind.Requires
+                    },
                     symbols: result.symbols,
                     expressions: result.expressions,
                     predicate: result.predicate,

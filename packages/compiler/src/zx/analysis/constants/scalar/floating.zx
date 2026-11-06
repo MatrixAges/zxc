@@ -15,14 +15,15 @@ export default function (in: Input): Output {
         const left = floats.narrow(in.left)
         const right = floats.narrow(in.right)
 
-        return match in.operator {
+        const value = match in.operator {
             BinaryOperator.Add => left + right,
             BinaryOperator.Subtract => left - right,
             BinaryOperator.Multiply => left * right,
             BinaryOperator.Divide => left / right,
             _ => left % right
         }
-            -> floats.widen(_)
+
+        return floats.widen(value)
     }
 
     return match in.operator {

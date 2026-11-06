@@ -1,0 +1,71 @@
+import integers from "std:integer"
+import { ExpressionKind, CollectionKind } from "core/expression_table/kinds"
+
+import field from "../../expression/field"
+import member from "../member"
+
+import type { Expressions } from "core/expression_table/model"
+
+export type Input = {
+    expressions: Expressions,
+    next: u32,
+    result_index: u32,
+    iteration: u64
+}
+
+export type Output = {
+    callback: u32,
+    parameter: u32
+}?
+
+export default function (in: Input): Output {
+    const expressions = in.expressions
+
+    const appended = member({
+        expressions,
+        subject: in.next,
+        field: in.result_index
+    })
+
+    if (appended == null) {
+        return null
+    }
+
+    const appended_id = integers.widen(appended)
+    const projection = integers.widen(expressions.payloads[appended_id])
+
+    if (
+        expressions.kinds[appended_id] != ExpressionKind.TupleField ||
+            expressions.projection_indices[projection] != 0
+    ) {
+        return null
+    }
+
+    const push_id = integers.widen(expressions.projection_targets[projection])
+    const push = integers.widen(expressions.payloads[push_id])
+    const parameter = expressions.iteration_parameters[in.iteration]
+
+    if (
+        expressions.kinds[push_id] != ExpressionKind.ListOperation ||
+            expressions.collection_kinds[push] != CollectionKind.Push
+    ) {
+        return null
+    }
+
+    if (expressions.collection_count[push] != 1 || field({
+        expressions,
+        subject: expressions.collection_targets[push],
+        symbol: parameter
+    }) != in.result_index) {
+        return null
+    }
+
+    return {
+        callback:
+            expressions
+            .collection_arguments[integers.widen(
+                expressions.collection_first[push]
+            )],
+        parameter
+    }
+}

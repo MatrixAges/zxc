@@ -14,11 +14,11 @@ export default function (in: Input): Output {
         index: 0,
         equal: true
     }, {
-        while: (state, source) => state.equal && state.index < source.left.length,
-        next: (state, source) => {
-            state.equal = source.left[state.index] == source.right[state.index]
+        while: state => state.equal && state.index < in.left.length,
+        next: state => {
+            state.equal = in.left[state.index] == in.right[state.index]
             state.index += 1
         },
         return: state => state.equal
-    }, in)
+    })
 }

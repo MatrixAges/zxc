@@ -13,36 +13,40 @@ export default function (in: Input): Output {
     const native = in.target == Target.Native
     const callable = in.kind == ImportKind.Function
 
-    const member = callable && !native ? position({
-        names: in.members,
-        name: ""
-    }) : null
+    const member = match {
+        callable && !native => position({
+            names: in.members,
+            name: ""
+        }),
+        _ => null
+    }
 
     const invalid = callable && (
         in.names.values.length != 1 ||
             (native ? in.members.length == 0 : member == null)
     )
 
-    return (native ? namespace_required : executable_required)
-        -> {
-            aliases: {
-                names: [],
-                indices: []
-            },
-            constants: {
-                names: [],
-                indices: []
-            },
-            functions: {
-                names: [],
-                indices: []
-            },
-            namespace: callable && native && !invalid ? in.names.aliases[0] : null,
-            diagnostic: {
-                code: invalid ? module_code : "",
-                message: invalid ? _ : "",
-                start: invalid ? in.start : 0,
-                end: invalid ? in.end : 0
-            }
+    const failure = native ? namespace_required : executable_required
+
+    return {
+        aliases: {
+            names: [],
+            indices: []
+        },
+        constants: {
+            names: [],
+            indices: []
+        },
+        functions: {
+            names: [],
+            indices: []
+        },
+        namespace: callable && native && !invalid ? in.names.aliases[0] : null,
+        diagnostic: {
+            code: invalid ? module_code : "",
+            message: invalid ? failure : "",
+            start: invalid ? in.start : 0,
+            end: invalid ? in.end : 0
         }
+    }
 }

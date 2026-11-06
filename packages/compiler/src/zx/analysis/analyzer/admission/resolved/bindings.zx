@@ -38,17 +38,19 @@ export default function (in: Input): Output {
             const local = namespace ?? name
             const constants = current.input.constants
 
-            current.valid = (
-                - current.valid
-                - and position({
+            if (current.valid) {
+                current.valid = position({
                     names: current.input.aliases.names,
                     name: local
                 }) == null
-                - and (constants == null || position({
+            }
+
+            if (current.valid && constants != null) {
+                current.valid = position({
                     names: constants.names,
                     name: local
-                }) == null)
-            )
+                }) == null
+            }
 
             if (current.valid) {
                 current.valid = loop({
@@ -86,21 +88,22 @@ export default function (in: Input): Output {
                     )
 
                     if (condition) {
-                        const position = integers.widen(id)
-                        current.valid = position < current.input.functions.files.length
+                        const slot = integers.widen(id)
+                        current.valid = slot < current.input.functions.files.length
 
                         if (current.valid) {
-                            current.valid =
-                                (
-                                    - input_type ==
-                                        current.input.functions.input_types[position]
-                                    - and output_type ==
-                                        current.input.functions.output_types[position]
-                                    - and integers.widen(input_type) <
-                                        current.input.table.kinds.length
-                                    - and integers.widen(output_type) <
-                                        current.input.table.kinds.length
-                                )
+                            const inputs = current.input.functions.input_types
+                            const outputs = current.input.functions.output_types
+                            const input_index = integers.widen(input_type)
+                            const output_index = integers.widen(output_type)
+                            const kind_count = current.input.table.kinds.length
+
+                            current.valid = (
+                                - input_type == inputs[slot]
+                                - and output_type == outputs[slot]
+                                - and input_index < kind_count
+                                - and output_index < kind_count
+                            )
                         }
                     } else {
                         current.valid = false

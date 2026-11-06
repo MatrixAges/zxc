@@ -13,58 +13,68 @@ export default function (in: Input): Output {
 
     const expression_kind = in.expression.tree.nodes[result].kind
 
+    const not_call = expression_kind != ExprKind.Call
+    const not_pipeline = expression_kind != ExprKind.Pipeline
+    const not_await = expression_kind != ExprKind.Await
+    const not_cancel = expression_kind != ExprKind.Cancel
+
     const condition = (
         - kind == StatementKind.Evaluate
-        - and expression_kind != ExprKind.Call
-        - and expression_kind != ExprKind.Pipeline
-        - and expression_kind != ExprKind.Await
-        - and expression_kind != ExprKind.Cancel
+        - and not_call
+        - and not_pipeline
+        - and not_await
+        - and not_cancel
     )
 
     if (condition) {
         const start = in.expression.tree.nodes[result].span.start
+        const end = in.expression.tree.nodes[result].span.end
 
-        return in.expression.tree.nodes[result].span.end
-            -> {
-                code: "syntax",
-                start,
-                end: _,
-                message:
-                    "only calls, await and cancel can be used as standalone expressions"
-            }
-            -> {
-                expression: in.expression,
-                tree: in.tree,
-                frames: in.frames,
-                suspended: in.suspended,
-                frame: in.frame,
-                control: {
-                    ...in.control,
-                    phase: Phase.Done,
-                    diagnostic: _
-                }
-            }
-    }
-
-    return (kind == StatementKind.StoreSet || kind == StatementKind.StateUpdate ? {
-        ...in.frame,
-        second: result
-    } : {
-        ...in.frame,
-        first: match kind {
-            StatementKind.Result => result + 1,
-            _ => result
+        const diagnostic = {
+            code: "syntax",
+            start,
+            end: end,
+            message:
+                "only calls, await and cancel can be used as standalone expressions"
         }
-    })
-        -> {
+
+        return {
             expression: in.expression,
             tree: in.tree,
             frames: in.frames,
             suspended: in.suspended,
-            frame: _,
+            frame: in.frame,
             control: {
                 ...in.control,
-                phase: Phase.EndStatement
+                phase: Phase.Done,
+                diagnostic: diagnostic
             }
         }
+    }
+
+    const next = match {
+        kind == StatementKind.StoreSet || kind == StatementKind.StateUpdate => {
+            ...in.frame,
+            second: result
+        },
+        _ => {
+            ...in.frame,
+            first: match kind {
+                StatementKind.Result => result + 1,
+                _ => result
+            }
+        }
+    }
+
+    return {
+        expression: in.expression,
+        tree: in.tree,
+        frames: in.frames,
+        suspended: in.suspended,
+        frame: next,
+        control: {
+            ...in.control,
+            phase: Phase.EndStatement
+        }
+    }
 }

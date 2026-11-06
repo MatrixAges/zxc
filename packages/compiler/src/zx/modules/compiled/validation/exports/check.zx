@@ -21,11 +21,11 @@ export default function (in: Input): Output {
     const function_id = exports.functions[in.index]
     const functions = in.graph.program.context.functions
 
-    const condition = (
-        - !text(name)
-        - or !text(path)
-        - or exports.type_names[in.index].length != exports.type_ids[in.index].length
-    )
+    const condition = match {
+        !text(name) => true,
+        !text(path) => true,
+        _ => exports.type_names[in.index].length != exports.type_ids[in.index].length
+    }
 
     if (condition) {
         return false

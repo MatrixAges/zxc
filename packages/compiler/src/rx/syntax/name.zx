@@ -25,11 +25,13 @@ export type Output = {
 export default function (in: Input): Output {
     const byte = in.offset < in.source.length ? in.source[in.offset] : ascii_null
 
+    const valid_byte = byte >= ascii_lower_first && byte <= ascii_lower_last
+
     const alphabetic =
         (
             - byte >= ascii_upper_first
             - and byte <= ascii_upper_last
-            - or (byte >= ascii_lower_first && byte <= ascii_lower_last)
+            - or (valid_byte)
         )
 
     if (!alphabetic && byte != ascii_underscore) {
@@ -48,12 +50,18 @@ export default function (in: Input): Output {
         while: value => !value.done && value.offset < value.source.length,
         next: value => {
             const current = value.source[value.offset]
+            const valid_current =
+                current >= ascii_lower_first && current <= ascii_lower_last
+
+            const valid_current_2 =
+                current >= ascii_digit_first && current <= ascii_digit_last
+
             const accepted =
                 (
                     - current >= ascii_upper_first
                     - and current <= ascii_upper_last
-                    - or (current >= ascii_lower_first && current <= ascii_lower_last)
-                    - or (current >= ascii_digit_first && current <= ascii_digit_last)
+                    - or (valid_current)
+                    - or (valid_current_2)
                     - or current == ascii_underscore
                     - or current == ascii_minus
                     - or current == ascii_dot

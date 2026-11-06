@@ -55,14 +55,16 @@ export default function (in: Input): Output {
         }
     }
 
-    const condition = (
-        - selected.kind == NodeKind.List
-        - or selected.kind == NodeKind.Application
-        - and !addressable({
+    const structural = selected.kind == NodeKind.List ||
+        selected.kind == NodeKind.Application
+
+    const condition = match {
+        structural => !addressable({
             source: in.source,
             reference: selected.child
-        })
-    )
+        }),
+        _ => false
+    }
 
     if (condition) {
         return {
@@ -82,9 +84,12 @@ export default function (in: Input): Output {
     }
 
     const condition_2 = (
-        - selected.kind == NodeKind.Optional
-        - or selected.kind == NodeKind.List
-        - or selected.kind == NodeKind.Application
+        match selected.kind {
+            NodeKind.Optional => true,
+            NodeKind.List => true,
+            NodeKind.Application => true,
+            _ => false
+        }
     )
 
     if (condition_2) {

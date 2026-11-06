@@ -9,10 +9,12 @@ export type Input = {
 
 export type Output = u64?
 
-    export default function (in: Input): Output {
-        const root = in.symbols + integers.widen(in.node)
-        const index = in.first[root] + in.slot
+export default function (in: Input): Output {
+    const root = in.symbols + integers.widen(in.node)
+    const index = in.first[root] + in.slot
 
-        return index < in.first[root + 1] ?
-            integers.widen(index - in.first[in.symbols]) : null
+    return match {
+        index < in.first[root + 1] => integers.widen(index - in.first[in.symbols]),
+        _ => null
     }
+}

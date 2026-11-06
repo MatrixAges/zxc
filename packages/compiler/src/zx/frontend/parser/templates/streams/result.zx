@@ -32,28 +32,31 @@ export default function (in: Input): Output {
         }
     }
 
-    return in.session.lexer.tokens.length != 0 && in.session.lexer.line_break
-        -> in.session.lexer.tokens.push({
-            kind: Kind.Eof,
-            word: Keyword.Root,
-            symbol: Symbol.None,
-            span: {
-                start: in.end,
-                end: in.end
-            },
-            line_break: _,
-            dollar: false
-        })[0]
-        -> {
-            span: {
-                start: in.session.start,
-                end: in.end
-            },
-            lexed: {
-                tokens: _,
-                comments: in.session.lexer.comments,
-                diagnostic: in.session.lexer.diagnostic
-            },
-            token_templates: in.session.token_templates.push(0)[0]
-        }
+    const return_input =
+        in.session.lexer.tokens.length != 0 && in.session.lexer.line_break
+
+    const return_step = in.session.lexer.tokens.push({
+        kind: Kind.Eof,
+        word: Keyword.Root,
+        symbol: Symbol.None,
+        span: {
+            start: in.end,
+            end: in.end
+        },
+        line_break: return_input,
+        dollar: false
+    })[0]
+
+    return {
+        span: {
+            start: in.session.start,
+            end: in.end
+        },
+        lexed: {
+            tokens: return_step,
+            comments: in.session.lexer.comments,
+            diagnostic: in.session.lexer.diagnostic
+        },
+        token_templates: in.session.token_templates.push(0)[0]
+    }
 }

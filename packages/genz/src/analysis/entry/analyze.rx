@@ -39,13 +39,16 @@
     <Call fn="scalar" in={$in} />
     <Call fn="inlined" in={$in} />
 
-    <Return
-        value={{
-            ...$ctx.effects,
-            inlined: $ctx.eligibility.pure && !$ctx.effects.io &&
-                !$ctx.effects.process && !$ctx.effects.tasks && $ctx.inlined,
-            value: $ctx.eligibility.local,
-            scalar: $ctx.eligibility.pure && $ctx.scalar
+    <Call
+        fn="flags"
+        in={{
+            effects: $ctx.effects,
+            local: $ctx.eligibility.local,
+            pure: $ctx.eligibility.pure,
+            scalar: $ctx.scalar,
+            inlined: $ctx.inlined
         }}
     />
+
+    <Return value={$ctx.flags} />
 </Module>

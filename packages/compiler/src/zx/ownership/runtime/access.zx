@@ -51,9 +51,11 @@ export default function (in: Input): Output {
         }
     }
 
+    const valid_current = in.current == State.Loaned || in.current == State.Borrowed
+
     const condition_2 = (
         - in.moving
-        - and (in.current == State.Loaned || in.current == State.Borrowed)
+        - and (valid_current)
     )
 
     if (condition_2) {

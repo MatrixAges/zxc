@@ -57,24 +57,27 @@ export default function (in: Input): Output {
     }, {
         while: current => current.index < current.count,
         next: current => {
-            const value = (
-                current.tuple ?
-                    current.table.children[current.first + current.index] :
-                    current.table.field_types[current.first + current.index]
-            )
-                -> (current.index == current.selected ? {
+            const type_id = match {
+                current.tuple => current.table.children[current.first + current.index],
+                _ => current.table.field_types[current.first + current.index]
+            }
+
+            const value = match {
+                current.index == current.selected => {
                     table: current.expressions,
                     id: current.value
-                } : project({
+                },
+                _ => project({
                     table: current.expressions,
                     metadata: {
                         ...current.metadata,
-                        type_id: _
+                        type_id: type_id
                     },
                     target: current.parent,
                     index: integers.narrow(current.index),
                     tuple: current.tuple
-                }))
+                })
+            }
 
             current.expressions = value.table
             current.indices =
@@ -88,18 +91,21 @@ export default function (in: Input): Output {
         }
     })
 
-    const result = in.tuple ? appendSequence({
-        table: updated.expressions,
-        metadata,
-        kind: SequenceKind.Tuple,
-        values: updated.values
-    }) : appendObject({
-        table: updated.expressions,
-        metadata,
-        indices: updated.indices,
-        values: updated.values,
-        evaluation: []
-    })
+    const result = match {
+        in.tuple => appendSequence({
+            table: updated.expressions,
+            metadata,
+            kind: SequenceKind.Tuple,
+            values: updated.values
+        }),
+        _ => appendObject({
+            table: updated.expressions,
+            metadata,
+            indices: updated.indices,
+            values: updated.values,
+            evaluation: []
+        })
+    }
 
     return {
         state: {

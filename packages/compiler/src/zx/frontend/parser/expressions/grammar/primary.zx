@@ -3,12 +3,11 @@ import { max_nesting_depth } from "core/const"
 import { Keyword } from "../../../lexer/keyword_model"
 import { Kind, Symbol } from "../../../lexer/token_model"
 import consume from "../state/consume"
-import emit from "../state/emit"
 import fail from "../state/fail"
 import frame from "../state/frame"
-import { Phase, FrameKind, ExprKind } from "../state/model"
-import node from "../state/node"
+import { Phase, FrameKind } from "../state/model"
 import startCondition from "./condition/start"
+import literal from "./literal"
 import startLambda from "./start_lambda"
 import startTemplate from "./start_template"
 
@@ -28,20 +27,29 @@ export default function (in: Input): Output {
     }
 
     if (in.control.token.symbol == Symbol.Minus && in.control.token.line_break) {
-        const tokens = in.control.stream == 0 ? in.prepared.lexical.lexed.tokens :
-            in.prepared.lexical.interpolations[in.control.stream - 1].lexed.tokens
+        const tokens = match {
+            in.control.stream == 0 => in.prepared.lexical.lexed.tokens,
+            _ => in.prepared.lexical.interpolations[in.control.stream - 1].lexed.tokens
+        }
 
         const root_condition = in.control.allow_condition && in.frames.length == 1
 
         const grouped = in.frames.length > 1 &&
             in.frames[in.frames.length - 2].kind == FrameKind.Group
 
-        const condition = (
+        const condition_context = root_condition || grouped
+
+        const at_condition_start = (
             - in.control.minimum == 0
-            - and (root_condition || grouped)
+            - and condition_context
             - and in.control.index > 0
-            - and tokens[in.control.index - 1].symbol == Symbol.OpenParen
         )
+
+        const condition = match {
+            at_condition_start =>
+                tokens[in.control.index - 1].symbol == Symbol.OpenParen,
+            _ => false
+        }
 
         if (condition) {
             return startCondition(in)
@@ -49,7 +57,6 @@ export default function (in: Input): Output {
     }
 
     const start = in.control.token.span.start
-    const end = in.control.token.span.end
     const depth = in.control.depth + 1
 
     const state = {
@@ -65,61 +72,69 @@ export default function (in: Input): Output {
     }
 
     if (state.control.token.word == Keyword.Match) {
-        return frame({
+        const continuation = frame({
             kind: FrameKind.MatchSubject,
             start,
             depth
         })
-            -> state.frames.push(_)[0]
-            -> consume({
-                state: {
-                    prepared: state.prepared,
-                    tree: state.tree,
-                    types: state.types,
-                    frames: _,
-                    control: state.control
-                },
-                phase: Phase.MatchStart
-            })
+
+        const frames = state.frames.push(continuation)[0]
+
+        return consume({
+            state: {
+                prepared: state.prepared,
+                tree: state.tree,
+                types: state.types,
+                frames: frames,
+                control: state.control
+            },
+            phase: Phase.MatchStart
+        })
     }
 
     const condition_2 = (
-        - state.control.token.word == Keyword.Try
-        - or state.control.token.word == Keyword.Async
-        - or state.control.token.word == Keyword.Await
-        - or state.control.token.word == Keyword.Cancel
+        match state.control.token.word {
+            Keyword.Try => true,
+            Keyword.Async => true,
+            Keyword.Await => true,
+            Keyword.Cancel => true,
+            _ => false
+        }
     )
 
     if (condition_2) {
-        return match state.control.token.word {
+        const kind = match state.control.token.word {
             Keyword.Try => FrameKind.Capture,
             Keyword.Async => FrameKind.Async,
             Keyword.Await => FrameKind.Await,
             _ => FrameKind.Cancel
         }
-            -> frame({
-                kind: _,
-                start,
-                depth
-            })
-            -> state.frames.push(_)[0]
-            -> consume({
-                state: {
-                    prepared: state.prepared,
-                    tree: state.tree,
-                    types: state.types,
-                    frames: _,
-                    control: state.control
-                },
-                phase: Phase.Primary
-            })
+
+        const continuation = frame({
+            kind: kind,
+            start,
+            depth
+        })
+
+        const frames = state.frames.push(continuation)[0]
+
+        return consume({
+            state: {
+                prepared: state.prepared,
+                tree: state.tree,
+                types: state.types,
+                frames: frames,
+                control: state.control
+            },
+            phase: Phase.Primary
+        })
     }
 
     if (
         state.control.token.symbol == Symbol.Not ||
             state.control.token.symbol == Symbol.Minus
     ) {
-        return {
+        const continuation = {
             ...frame({
                 kind: FrameKind.Unary,
                 start,
@@ -127,17 +142,19 @@ export default function (in: Input): Output {
             }),
             flag: state.control.token.symbol == Symbol.Minus
         }
-            -> state.frames.push(_)[0]
-            -> consume({
-                state: {
-                    prepared: state.prepared,
-                    tree: state.tree,
-                    types: state.types,
-                    frames: _,
-                    control: state.control
-                },
-                phase: Phase.Primary
-            })
+
+        const frames = state.frames.push(continuation)[0]
+
+        return consume({
+            state: {
+                prepared: state.prepared,
+                tree: state.tree,
+                types: state.types,
+                frames: frames,
+                control: state.control
+            },
+            phase: Phase.Primary
+        })
     }
 
     if (state.control.allow_lambda && state.control.hint.lambda) {
@@ -148,12 +165,13 @@ export default function (in: Input): Output {
     }
 
     if (state.control.token.symbol == Symbol.OpenParen) {
-        const frames = frame({
+        const continuation = frame({
             kind: FrameKind.Group,
             start,
             depth
         })
-            -> state.frames.push(_)[0]
+
+        const frames = state.frames.push(continuation)[0]
 
         const control: ExprControl = {
             ...state.control,
@@ -180,7 +198,7 @@ export default function (in: Input): Output {
     ) {
         const object = state.control.token.symbol == Symbol.OpenBrace
 
-        return {
+        const continuation = {
             ...frame({
                 kind: object ? FrameKind.ObjectValue : FrameKind.Arguments,
                 start,
@@ -188,75 +206,24 @@ export default function (in: Input): Output {
             }),
             flag: false
         }
-            -> state.frames.push(_)[0]
-            -> consume({
-                state: {
-                    prepared: state.prepared,
-                    tree: state.tree,
-                    types: state.types,
-                    frames: _,
-                    control: state.control
-                },
-                phase: object ? Phase.ObjectName : Phase.Arguments
-            })
+
+        const frames = state.frames.push(continuation)[0]
+
+        return consume({
+            state: {
+                prepared: state.prepared,
+                tree: state.tree,
+                types: state.types,
+                frames: frames,
+                control: state.control
+            },
+            phase: object ? Phase.ObjectName : Phase.Arguments
+        })
     }
 
     if (state.control.token.kind == Kind.Template) {
         return startTemplate(state)
     }
 
-    const null_value = state.control.token.word == Keyword.Null
-
-    const boolean =
-        state.control.token.word == Keyword.True ||
-        state.control.token.word == Keyword.False
-
-    const number = state.control.token.kind == Kind.Number
-    const string = state.control.token.kind == Kind.String
-
-    const condition_3 = (
-        - !null_value
-        - and !boolean
-        - and !number
-        - and !string
-        - and state.control.token.kind != Kind.Identifier
-    )
-
-    if (condition_3) {
-        return fail({
-            state,
-            code: "syntax",
-            message: "expected an identifier"
-        })
-    }
-
-    return match {
-        null_value => ExprKind.Null,
-        boolean => ExprKind.Boolean,
-        number => ExprKind.Number,
-        string => ExprKind.String,
-        _ => ExprKind.Identifier
-    }
-        -> {
-            ...node({
-                kind: _,
-                start,
-                end,
-                depth: 1
-            }),
-            name: {
-                start,
-                end
-            },
-            flag:
-                state.control.token.word == Keyword.True ||
-                state.control.token.word == Keyword.Loop
-        }
-        -> emit({
-            state: consume({
-                state,
-                phase: Phase.Postfix
-            }),
-            node: _
-        })
+    return literal(state)
 }

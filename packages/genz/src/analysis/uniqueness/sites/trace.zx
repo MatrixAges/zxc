@@ -4,6 +4,7 @@ import { ExpressionKind } from "core/expression_table/kinds"
 
 import { Role } from "../order/model"
 import enter from "./enter"
+import projectedRange from "./projection_range"
 import push from "./push"
 
 import type { Frame, Site, Walk } from "./model"
@@ -45,12 +46,16 @@ export default function (in: Input): Output {
         }
     })
 
-    return loop({
+    const readonly_loop_initial = {
         stack,
         sites: in.sites
-    }, {
+    }
+
+    const readonly_walk = in.walk
+
+    return loop(readonly_loop_initial, {
         while: current => current.stack.top != max_u32,
-        next: (current, walk) => {
+        next: current => {
             const top = integers.widen(current.stack.top)
             const frame = current.stack.frames[top]
             const cursor = current.stack.cursors[top]
@@ -58,15 +63,17 @@ export default function (in: Input): Output {
             if (cursor == frame.end) {
                 current.stack.top = frame.parent
             } else {
-                const source = walk.source
+                const source = readonly_walk.source
                 const edges = source.edges
-                const edge = integers.widen(walk.consumers.items[cursor])
+                const edge = integers.widen(readonly_walk.consumers.items[cursor])
                 const role = edges.role[edge]
                 const region = edges.region[edge]
                 const parent = edges.parent[edge]
-                const anchor = source.regions.depth[integers.widen(region)] >
-                    source.regions.depth[integers.widen(frame.region)] ?
-                    region : frame.region
+                const anchor = match {
+                    source.regions.depth[integers.widen(region)] >
+                        source.regions.depth[integers.widen(frame.region)] => region,
+                    _ => frame.region
+                }
 
                 current.stack.cursors[top] += 1
 
@@ -94,23 +101,25 @@ export default function (in: Input): Output {
                     }
 
                     if (role == Role.flow || role == Role.member) {
-                        const offset = integers.widen(
+                        const type_id = integers.widen(
                             source.expressions.types[integers.widen(
                                 parent
                             )]
                         )
-                            -> integers.widen(source.layout.unwrapped[_])
-                            -> (
-                                role == Role.member ?
-                                    source.layout.offsets[_][integers.widen(
-                                        edges.index[edge]
-                                    )] :
-                                    0
-                            )
+
+                        const owner = integers.widen(source.layout.unwrapped[type_id])
+
+                        const offset = match {
+                            role == Role.member =>
+                                source.layout.offsets[owner][integers.widen(
+                                    edges.index[edge]
+                                )],
+                            _ => 0
+                        }
 
                         current.stack = push({
                             stack: current.stack,
-                            consumers: walk.consumers,
+                            consumers: readonly_walk.consumers,
                             node: parent,
                             frame: {
                                 ...path,
@@ -122,87 +131,85 @@ export default function (in: Input): Output {
                     } else if (role == Role.bind) {
                         const symbol = integers.widen(edges.index[edge])
 
-                        const first = integers.widen(walk.references.first[symbol])
-                        const references = walk.references.items
+                        const first =
+                            integers.widen(readonly_walk.references.first[symbol])
+                        const references = readonly_walk.references.items
 
-                        current.stack = loop({
+                        const loop_initial = {
                             stack: current.stack,
                             end: integers.widen(
-                                walk.references.first[symbol + 1]
+                                readonly_walk.references.first[symbol + 1]
                             )
-                        }, {
-                            while: (bind, context) => bind.end > context.first,
-                            next: (bind, context) => {
-                                bind.end -= 1
-                                bind.stack = push({
-                                    stack: bind.stack,
-                                    consumers: context.consumers,
-                                    node: context.references[bind.end],
-                                    frame: context.path
-                                })
-                            },
-                            return: state => state.stack
-                        }, {
+                        }
+
+                        const loop_scope = {
                             first,
                             references,
                             path,
-                            consumers: walk.consumers
+                            consumers: readonly_walk.consumers
+                        }
+
+                        current.stack = loop(loop_initial, {
+                            while: bind => bind.end > loop_scope.first,
+                            next: bind => {
+                                bind.end -= 1
+                                bind.stack = push({
+                                    stack: bind.stack,
+                                    consumers: loop_scope.consumers,
+                                    node: loop_scope.references[bind.end],
+                                    frame: loop_scope.path
+                                })
+                            },
+                            return: state => state.stack
                         })
                     } else {
                         const parent_index = integers.widen(parent)
-                        const target = parent == max_u32 ? ExpressionKind.Unit :
-                            source.expressions.kinds[parent_index]
+                        const target = match {
+                            parent == max_u32 => ExpressionKind.Unit,
+                            _ => source.expressions.kinds[parent_index]
+                        }
                         const projected = target == ExpressionKind.Field ||
                             target == ExpressionKind.TupleField
-                        const payload = parent == max_u32 ? 0 :
-                            integers.widen(source.expressions.payloads[parent_index])
-                        const projection_target = projected ?
-                            source.expressions.projection_targets[payload] : max_u32
+                        const payload = match {
+                            parent == max_u32 => 0,
+                            _ =>
+                                integers.widen(
+                                    source.expressions.payloads[parent_index]
+                                )
+                        }
+                        const projection_target = match {
+                            projected => source.expressions.projection_targets[payload],
+                            _ => max_u32
+                        }
 
                         if (projected && projection_target == frame.node) {
-                            const owner =
-                                integers.widen(
-                                    source.expressions
-                                        .types[integers.widen(
-                                            frame.node
-                                        )]
-                                )
-                                -> integers.widen(source.layout.unwrapped[_])
-                            const member = integers.widen(
-                                source.expressions.projection_indices[payload]
-                            )
-                            const offset = source.layout.offsets[owner][member]
-                            const member_type = source.layout.members[owner][member]
-                            const start = integers.widenSigned(offset) - frame.delta
-                            const first = start > integers.widenSigned(frame.lo) ?
-                                start : integers.widenSigned(frame.lo)
-                            const limit = start + integers.widenSigned(
-                                source.counts[integers.widen(
-                                    member_type
-                                )]
-                            )
-                            const clipped = limit < integers.widenSigned(frame.hi) ?
-                                limit : integers.widenSigned(frame.hi)
-                            const last = clipped > first ? clipped : first
+                            const window = projectedRange({
+                                source,
+                                frame,
+                                payload
+                            })
 
-                            if (first < last) {
+                            if (window.first < window.last) {
                                 current.stack = push({
                                     stack: current.stack,
-                                    consumers: walk.consumers,
+                                    consumers: readonly_walk.consumers,
                                     node: parent,
                                     frame: {
                                         ...path,
                                         delta:
-                                            frame.delta - integers.widenSigned(offset),
-                                        lo: integers.narrowSigned(first),
-                                        hi: integers.narrowSigned(last)
+                                            frame.delta -
+                                            integers.widenSigned(window.offset),
+                                        lo: integers.narrowSigned(window.first),
+                                        hi: integers.narrowSigned(
+                                            window.last
+                                        )
                                     }
                                 })
                             }
                         } else if (target == ExpressionKind.OptionalValue) {
                             current.stack = push({
                                 stack: current.stack,
-                                consumers: walk.consumers,
+                                consumers: readonly_walk.consumers,
                                 node: parent,
                                 frame: path
                             })
@@ -218,7 +225,7 @@ export default function (in: Input): Output {
                                 c: arms.c,
                                 d: arms.d,
                                 arms: arms.count,
-                                edge: walk.consumers.items[cursor],
+                                edge: readonly_walk.consumers.items[cursor],
                                 parent,
                                 role
                             })[0]
@@ -228,5 +235,5 @@ export default function (in: Input): Output {
             }
         },
         return: state => state.sites
-    }, in.walk)
+    })
 }

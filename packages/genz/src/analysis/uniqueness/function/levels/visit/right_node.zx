@@ -1,0 +1,21 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import type { Expressions } from "core/expression_table/model"
+
+export type Input = {
+    table: Expressions,
+    node: u32
+}
+
+export type Output = u32
+
+export default function (in: Input): Output {
+    const node = integers.widen(in.node)
+    const payload = integers.widen(in.table.payloads[node])
+
+    return match in.table.kinds[node] {
+        ExpressionKind.Conditional => in.table.conditional_no[payload],
+        _ => in.table.binary_right[payload]
+    }
+}

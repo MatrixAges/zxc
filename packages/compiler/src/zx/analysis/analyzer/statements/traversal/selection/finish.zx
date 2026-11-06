@@ -24,31 +24,36 @@ export default function (in: Input): Output {
         id: type_id
     })
 
-    return (
+    const valid_type_id = type_id == 1 && frame.bodies.length == 2
+
+    const finite_type = target.kind == Kind.Enumeration || target.kind == Kind.ErrorSet
+
+    const exhaustive = match {
+        finite_type => frame.bodies.length == integers.widen(target.second),
+        _ => false
+    }
+
+    const return_input = (
         - frame.fallback
-        - or (
-            (
-                target.kind == Kind.Enumeration || target.kind == Kind.ErrorSet
-            ) && frame.bodies.length == integers.widen(
-                target.second
-            )
-        )
-        - or (type_id == 1 && frame.bodies.length == 2)
+        - or exhaustive
+        - or valid_type_id
     )
-        -> append({
-            table: in.blocks.pending,
-            subject: frame.subject,
-            exhaustive: _,
-            values: frame.values,
-            bodies: frame.bodies
-        })
-        -> {
-            ...in,
-            blocks: {
-                ...in.blocks,
-                pending: _
-            },
-            selections: in.selections.pop()[0],
-            phase: Phase.Next
-        }
+
+    const return_step = append({
+        table: in.blocks.pending,
+        subject: frame.subject,
+        exhaustive: return_input,
+        values: frame.values,
+        bodies: frame.bodies
+    })
+
+    return {
+        ...in,
+        blocks: {
+            ...in.blocks,
+            pending: return_step
+        },
+        selections: in.selections.pop()[0],
+        phase: Phase.Next
+    }
 }

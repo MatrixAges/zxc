@@ -24,21 +24,25 @@ export default function (in: Input): Output {
         candidate: in.candidate
     })
 
-    return (result.diagnostic.message == "" ? in.state.diagnostic : {
-        code: result.diagnostic.code,
-        message: result.diagnostic.message,
-        start: in.span.start,
-        end: in.span.end
-    })
-        -> {
-            state: {
-                ...in.state,
-                types: {
-                    ...in.state.types,
-                    delta: result.delta
-                },
-                diagnostic: _
-            },
-            id: result.id
+    const diagnostic = match {
+        result.diagnostic.message == "" => in.state.diagnostic,
+        _ => {
+            code: result.diagnostic.code,
+            message: result.diagnostic.message,
+            start: in.span.start,
+            end: in.span.end
         }
+    }
+
+    return {
+        state: {
+            ...in.state,
+            types: {
+                ...in.state.types,
+                delta: result.delta
+            },
+            diagnostic: diagnostic
+        },
+        id: result.id
+    }
 }

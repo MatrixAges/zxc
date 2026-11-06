@@ -11,15 +11,18 @@ import type { Input, Output } from "./model"
 
 export default function (in: Input): Output {
     const condition = (
-        - in.kind == ExpressionKind.Integer
-        - or in.kind == ExpressionKind.NegativeInteger
-        - or in.kind == ExpressionKind.Float
-        - or in.kind == ExpressionKind.String
-        - or in.kind == ExpressionKind.Boolean
-        - or in.kind == ExpressionKind.None
-        - or in.kind == ExpressionKind.Unit
-        - or in.kind == ExpressionKind.EnumValue
-        - or in.kind == ExpressionKind.ErrorValue
+        match in.kind {
+            ExpressionKind.Integer => true,
+            ExpressionKind.NegativeInteger => true,
+            ExpressionKind.Float => true,
+            ExpressionKind.String => true,
+            ExpressionKind.Boolean => true,
+            ExpressionKind.None => true,
+            ExpressionKind.Unit => true,
+            ExpressionKind.EnumValue => true,
+            ExpressionKind.ErrorValue => true,
+            _ => false
+        }
     )
 
     if (condition) {
@@ -37,7 +40,7 @@ export default function (in: Input): Output {
     }
 
     if (in.kind == ExpressionKind.Some || in.kind == ExpressionKind.OptionalValue) {
-        return match in.kind {
+        const child = match in.kind {
             ExpressionKind.Some =>
                 integers.widen(
                     in.machine.program.expressions.some[in.payload]
@@ -47,22 +50,23 @@ export default function (in: Input): Output {
                     in.machine.program.expressions.optional_values[in.payload]
                 )
         }
-            -> {
-                ...in.machine,
-                work: push({
-                    work: in.machine.work,
-                    frame: {
-                        action: WorkAction.Value,
-                        subject: _,
-                        moving: in.frame.moving,
-                        index: 0
-                    }
-                })
-            }
+
+        return {
+            ...in.machine,
+            work: push({
+                work: in.machine.work,
+                frame: {
+                    action: WorkAction.Value,
+                    subject: child,
+                    moving: in.frame.moving,
+                    index: 0
+                }
+            })
+        }
     }
 
     if (in.kind == ExpressionKind.Capture) {
-        return push({
+        const work = push({
             work: in.machine.work,
             frame: {
                 action: WorkAction.Captured,
@@ -71,21 +75,22 @@ export default function (in: Input): Output {
                 index: 0
             }
         })
-            -> {
-                ...in.machine,
-                work: push({
-                    work: _,
-                    frame: {
-                        action: WorkAction.Value,
-                        subject:
-                            integers.widen(
-                                in.machine.program.expressions.captures[in.payload]
-                            ),
-                        moving: in.frame.moving,
-                        index: 0
-                    }
-                })
-            }
+
+        return {
+            ...in.machine,
+            work: push({
+                work: work,
+                frame: {
+                    action: WorkAction.Value,
+                    subject:
+                        integers.widen(
+                            in.machine.program.expressions.captures[in.payload]
+                        ),
+                    moving: in.frame.moving,
+                    index: 0
+                }
+            })
+        }
     }
 
     if (in.kind == ExpressionKind.Field || in.kind == ExpressionKind.TupleField) {
@@ -94,7 +99,7 @@ export default function (in: Input): Output {
             id: in.frame.subject
         })
 
-        return push({
+        const work = push({
             work: in.machine.work,
             frame: {
                 action: WorkAction.Project,
@@ -103,22 +108,23 @@ export default function (in: Input): Output {
                 index: integers.widen(field.index)
             }
         })
-            -> {
-                ...in.machine,
-                work: push({
-                    work: _,
-                    frame: {
-                        action: WorkAction.Value,
-                        subject: field.target,
-                        moving: in.container && in.frame.moving,
-                        index: 0
-                    }
-                })
-            }
+
+        return {
+            ...in.machine,
+            work: push({
+                work: work,
+                frame: {
+                    action: WorkAction.Value,
+                    subject: field.target,
+                    moving: in.container && in.frame.moving,
+                    index: 0
+                }
+            })
+        }
     }
 
     if (in.kind == ExpressionKind.Index) {
-        return push({
+        const work = push({
             work: in.machine.work,
             frame: {
                 action: WorkAction.IndexTarget,
@@ -127,29 +133,33 @@ export default function (in: Input): Output {
                 index: 0
             }
         })
-            -> {
-                ...in.machine,
-                work: push({
-                    work: _,
-                    frame: {
-                        action: WorkAction.Value,
-                        subject:
-                            integers.widen(
-                                in.machine.program.expressions
-                                    .index_targets[in.payload]
-                            ),
-                        moving: in.container && in.frame.moving,
-                        index: 0
-                    }
-                })
-            }
+
+        return {
+            ...in.machine,
+            work: push({
+                work: work,
+                frame: {
+                    action: WorkAction.Value,
+                    subject:
+                        integers.widen(
+                            in.machine.program.expressions
+                                .index_targets[in.payload]
+                        ),
+                    moving: in.container && in.frame.moving,
+                    index: 0
+                }
+            })
+        }
     }
 
     const condition_2 = (
-        - in.kind == ExpressionKind.Length
-        - or in.kind == ExpressionKind.Unary
-        - or in.kind == ExpressionKind.AwaitTask
-        - or in.kind == ExpressionKind.CancelTask
+        match in.kind {
+            ExpressionKind.Length => true,
+            ExpressionKind.Unary => true,
+            ExpressionKind.AwaitTask => true,
+            ExpressionKind.CancelTask => true,
+            _ => false
+        }
     )
 
     if (condition_2) {
@@ -172,30 +182,33 @@ export default function (in: Input): Output {
                 )
         }
 
-        return push({
+        const work = push({
             work: in.machine.work,
             frame: {
-                action: in.kind == ExpressionKind.AwaitTask ? WorkAction.Borrowed :
-                    WorkAction.Copy,
+                action: match {
+                    in.kind == ExpressionKind.AwaitTask => WorkAction.Borrowed,
+                    _ => WorkAction.Copy
+                },
                 subject: 0,
                 moving: false,
                 index: 0
             }
         })
-            -> {
-                ...in.machine,
-                work: push({
-                    work: _,
-                    frame: {
-                        action: WorkAction.Value,
-                        subject: child,
-                        moving:
-                            in.kind == ExpressionKind.AwaitTask ||
-                            in.kind == ExpressionKind.CancelTask,
-                        index: 0
-                    }
-                })
-            }
+
+        return {
+            ...in.machine,
+            work: push({
+                work: work,
+                frame: {
+                    action: WorkAction.Value,
+                    subject: child,
+                    moving:
+                        in.kind == ExpressionKind.AwaitTask ||
+                        in.kind == ExpressionKind.CancelTask,
+                    index: 0
+                }
+            })
+        }
     }
 
     return {

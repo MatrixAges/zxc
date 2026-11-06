@@ -1,0 +1,61 @@
+import integers from "std:integer"
+
+import shifted from "../shift_symbol"
+import split from "../split"
+
+export type Input = {
+    symbols: u32?[],
+    borrows: bool[],
+    first: u64,
+    count: u64,
+    mapped: u32[],
+    offset: u64
+}
+
+export type Output = {
+    result: u32,
+    symbols: u32?[],
+    values: u32[],
+    borrows: bool[]
+}
+
+export default function (in: Input): Output {
+    const symbols: u32?[] = []
+    const borrows: bool[] = []
+
+    const bindings = loop({
+        position: in.first,
+        symbols,
+        borrows
+    }, {
+        while: state => state.position < in.first + in.count,
+        next: state => {
+            const symbol = in.symbols[state.position]
+            const value: u32? = match {
+                symbol == null => null,
+                _ => shifted({
+                    symbol,
+                    offset: in.offset
+                })
+            }
+
+            state.symbols = state.symbols.push(value)[0]
+            state.borrows = state.borrows.push(in.borrows[state.position])[0]
+            state.position += 1
+        },
+        return: state => state.pick([
+            "symbols",
+            "borrows"
+        ])
+    })
+
+    return {
+        result: in.mapped[in.mapped.length - 1],
+        symbols: bindings.symbols,
+        values: split({
+            items: in.mapped,
+            from: 0
+        }).splice(in.count, 1, [])[0],
+        borrows: bindings.borrows
+    }
+}

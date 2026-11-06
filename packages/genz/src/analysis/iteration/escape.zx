@@ -22,9 +22,12 @@ export default function (in: Input): Output {
     }
 
     const condition = (
-        - target != Kind.Optional
-        - and target != Kind.Object
-        - and target != Kind.Tuple
+        match target {
+            Kind.Optional => false,
+            Kind.Object => false,
+            Kind.Tuple => false,
+            _ => true
+        }
     )
 
     if (condition) {

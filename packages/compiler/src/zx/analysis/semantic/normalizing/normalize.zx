@@ -67,10 +67,12 @@ export default function (in: Input): Output {
             if (found.status == Status.Conflict) {
                 current.conflict = true
             } else {
-                const id = found.status == Status.Found ? found.id :
-                    integers.narrow(
+                const id = match {
+                    found.status == Status.Found => found.id,
+                    _ => integers.narrow(
                         current.input.base.kinds.length + current.delta.kinds.length + 1
                     ) - 1
+                }
 
                 if (found.status == Status.Missing) {
                     current.delta = append({

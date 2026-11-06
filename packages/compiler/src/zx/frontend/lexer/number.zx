@@ -11,14 +11,15 @@ export type Input = AdvanceInput
 export type Output = LexerState
 
 export default function (in: Input): Output {
-    const decimal_boundary =
-        (
-            - in.state.number.phase == Phase.Integer
-            - and in.byte == 46
-            - and (!in.has_next || !isDigit(
-                in.next
-            ))
-        )
+    const is_integer = in.state.number.phase == Phase.Integer
+
+    const integer_dot = is_integer && in.byte == 46
+
+    const decimal_boundary = match {
+        !integer_dot => false,
+        !in.has_next => true,
+        _ => !isDigit(in.next)
+    }
 
     const number = step({
         byte: in.byte,

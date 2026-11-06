@@ -27,23 +27,23 @@ export default function (in: Input): Output {
         offset: 0,
         same: true
     }, {
-        while: (state, source) => state.same && state.offset < source.reads.length,
-        next: (state, source) => {
-            const layout = source.layout
-            const table = source.reads[state.offset + layout.table_offset]
+        while: state => state.same && state.offset < in.reads.length,
+        next: state => {
+            const layout = in.layout
+            const table = in.reads[state.offset + layout.table_offset]
             const function_index = bytes.readU32(
-                source.reads,
+                in.reads,
                 state.offset + layout.function_offset,
                 layout.little_endian
             )
             const slot = bytes.readU32(
-                source.reads,
+                in.reads,
                 state.offset + layout.slot_offset,
                 layout.little_endian
             )
-            const previous = source.reads[state.offset + layout.value_offset]
+            const previous = in.reads[state.offset + layout.value_offset]
             const current = bytes.loadAtomicCell(
-                source.tables[integers.widenByte(
+                in.tables[integers.widenByte(
                     table
                 )],
                 integers.widen(function_index),
@@ -54,5 +54,5 @@ export default function (in: Input): Output {
             state.offset += layout.stride
         },
         return: state => state.same
-    }, in)
+    })
 }

@@ -40,29 +40,36 @@ export default function shared(in: Input): Output {
         return false
     }
 
-    return loop({
+    const loop_initial = {
         index: 0,
         found: false
-    }, {
-        while: (state, source) => !state.found &&
-            state.index < integers.widen(source.types.second[source.index]),
-        next: (state, source) => {
-            const position = integers.widen(source.types.first[source.index]) + state.index
-            const input = source.target == Kind.Object
-                ? source.types.field_types[position]
-                : source.types.children[position]
+    }
+
+    const loop_scope = {
+        ...in,
+        index,
+        target
+    }
+
+    return loop(loop_initial, {
+        while: state => !state.found &&
+            state.index < integers.widen(loop_scope.types.second[loop_scope.index]),
+        next: state => {
+            const position =
+                integers.widen(loop_scope.types.first[loop_scope.index]) + state.index
+            const input = match {
+                loop_scope.target == Kind.Object =>
+                    loop_scope.types.field_types[position],
+                _ => loop_scope.types.children[position]
+            }
 
             state.found = shared({
-                types: source.types,
+                types: loop_scope.types,
                 input,
-                output: source.output
+                output: loop_scope.output
             })
             state.index += 1
         },
         return: state => state.found
-    }, {
-        ...in,
-        index,
-        target
     })
 }

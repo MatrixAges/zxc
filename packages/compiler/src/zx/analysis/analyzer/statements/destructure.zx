@@ -137,7 +137,7 @@ export default function (in: Input): Output {
         }
     }
 
-    return refine({
+    const facts = refine({
         facts: result.state.local.refinement.facts,
         expressions: result.state.local.expressions,
         value: integers.widen(in.value),
@@ -145,24 +145,25 @@ export default function (in: Input): Output {
         err: result.symbols.length == 2 ? result.symbols[0] : null,
         result: result.symbols.length == 2 ? result.symbols[1] : null
     })
-        -> {
-            state: {
-                ...result.state,
-                local: {
-                    ...result.state.local,
-                    refinement: {
-                        ...result.state.local.refinement,
-                        facts: _
-                    }
+
+    return {
+        state: {
+            ...result.state,
+            local: {
+                ...result.state.local,
+                refinement: {
+                    ...result.state.local.refinement,
+                    facts: facts
                 }
-            },
-            blocks: {
-                ...in.blocks,
-                pending: append({
-                    table: in.blocks.pending,
-                    value: in.value,
-                    symbols: result.symbols
-                })
             }
+        },
+        blocks: {
+            ...in.blocks,
+            pending: append({
+                table: in.blocks.pending,
+                value: in.value,
+                symbols: result.symbols
+            })
         }
+    }
 }

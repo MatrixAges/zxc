@@ -18,9 +18,12 @@ export default function (in: Input): Output {
     }
 
     const condition = (
-        - action == Action.Condition
-        - or action == Action.Yes
-        - or action == Action.No
+        match action {
+            Action.Condition => true,
+            Action.Yes => true,
+            Action.No => true,
+            _ => false
+        }
     )
 
     if (condition) {
@@ -31,9 +34,12 @@ export default function (in: Input): Output {
     }
 
     const condition_2 = (
-        - action == Action.Subject
-        - or action == Action.Label
-        - or action == Action.Case
+        match action {
+            Action.Subject => true,
+            Action.Label => true,
+            Action.Case => true,
+            _ => false
+        }
     )
 
     if (condition_2) {

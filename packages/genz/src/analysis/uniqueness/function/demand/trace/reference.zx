@@ -1,0 +1,86 @@
+import integers from "std:integer"
+
+import { Definition } from "../../../order/model"
+import member from "../../levels/member"
+import carry from "../carry"
+import mark from "../mark"
+import normalize from "../normalize"
+import provide from "../provide"
+
+import type { Trace as Input, Continuation as Output } from "../model"
+
+export default function (in: Input): Output {
+    const request = in.request
+    const working = in.working
+    const context = working.context
+    const expressions = context.metadata.expressions
+    const node = integers.widen(request.node)
+    const payload = integers.widen(expressions.payloads[node])
+    const symbol = integers.widen(expressions.references[payload])
+    const definition = context.metadata.definitions.kind[symbol]
+    const target = context.metadata.definitions.value[symbol]
+
+    if (definition == Definition.Input) {
+        const function_index = in.source.function_index
+
+        const marked = match {
+            function_index == null => working,
+            _ => mark({
+                stage: {
+                    source: in.source,
+                    working
+                },
+                mark: {
+                    output: false,
+                    function_index,
+                    slot: request.slot,
+                    want: request.wanted
+                }
+            })
+        }
+
+        return {
+            working: normalize({
+                working: marked,
+                leaf: request.outer,
+                wanted: request.wanted
+            }),
+            request: null
+        }
+    }
+
+    if (definition == Definition.Value || definition == Definition.Part) {
+        const slot = match {
+            definition == Definition.Part => member({
+                metadata: context.metadata,
+                type_id: expressions.types[integers.widen(target)],
+                index: context.metadata.definitions.index[symbol]
+            }).offset + request.slot,
+            _ => request.slot
+        }
+
+        return {
+            working,
+            request: {
+                ...request,
+                node: target,
+                slot
+            }
+        }
+    }
+
+    if (definition == Definition.Carried || definition == Definition.Condition) {
+        return carry({
+            trace: in,
+            owner: target
+        })
+    }
+
+    return {
+        working: match {
+            request.repeated => provide(in),
+            _ => working
+        },
+        request: null
+    }
+}

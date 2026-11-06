@@ -54,16 +54,17 @@ export default function (in: Input): Output {
                 )]
             )
 
-        return integers.widen(
+        const return_input = integers.widen(
             in.source.destructure_count[integers.widen(
                 payload
             )]
         )
-            -> destructure({
-                table: in.target,
-                value: in.source.destructure_values[integers.widen(payload)],
-                symbols: in.source.destructure_symbols.splice(first, _, [])[1]
-            })
+
+        return destructure({
+            table: in.target,
+            value: in.source.destructure_values[integers.widen(payload)],
+            symbols: in.source.destructure_symbols.splice(first, return_input, [])[1]
+        })
     }
 
     if (kind == StatementKind.Switch) {

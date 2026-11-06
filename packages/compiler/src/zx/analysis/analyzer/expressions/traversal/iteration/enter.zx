@@ -28,15 +28,17 @@ export default function (in: Input): Output {
     const frame: IterationFrame = {
         node: in.node,
         initial_node: prepared.initial,
-        readonly: prepared.readonly_node != null ? {
-            node: prepared.readonly_node,
-            initial: 0,
-            initial_symbol: 0,
-            value: 0,
-            reference: 0,
-            symbol: 0,
-            parameter: null
-        } : null,
+        readonly: null,
+        condition_captures: {
+            sources: [],
+            targets: [],
+            values: []
+        },
+        step_captures: {
+            sources: [],
+            targets: [],
+            values: []
+        },
         condition_node: prepared.condition,
         step_node: prepared.step,
         result_node: prepared.result_node,
@@ -52,17 +54,21 @@ export default function (in: Input): Output {
             active: 0,
             floor: 0,
             depth: 0,
-            captures: null
+            captures: null,
+            capture_frame: null
         }
     }
 
     return {
         ...in,
         node: prepared.initial,
-        expected: prepared.result_node != null ? null : payload({
-            types: in.state.types,
-            expected: in.expected
-        }),
+        expected: match {
+            prepared.result_node != null => null,
+            _ => payload({
+                types: in.state.types,
+                expected: in.expected
+            })
+        },
         phase: Phase.Evaluate,
         frames: {
             ...in.frames,

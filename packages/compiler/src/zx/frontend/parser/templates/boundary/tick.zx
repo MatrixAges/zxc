@@ -48,14 +48,15 @@ export default function (in: Input): Output {
         state: in.state
     })
 
-    return next.lexer.offset + 1
-        -> {
-            lexer: {
-                ...next.lexer,
-                ahead_one,
-                ahead_two,
-                offset: _
-            },
-            graph: next.graph
-        }
+    const offset = next.lexer.offset + 1
+
+    return {
+        lexer: {
+            ...next.lexer,
+            ahead_one,
+            ahead_two,
+            offset: offset
+        },
+        graph: next.graph
+    }
 }

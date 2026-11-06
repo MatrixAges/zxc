@@ -1,0 +1,18 @@
+<Module>
+    <Type from="model" as="Encoding" />
+
+    <Args in={Encoding.Finish} out={Encoding.State} />
+
+    <Call fn="mark" in={$in.state} />
+    <Call fn="tag" in={$in.kind} />
+
+    <Call
+        fn="append"
+        in={{
+            state: $ctx.mark,
+            bytes: $ctx.tag
+        }}
+    />
+
+    <Return value={$ctx.append} />
+</Module>

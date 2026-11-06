@@ -32,9 +32,12 @@ export default function (in: Input): Output {
     }
 
     const condition = (
-        - value.kind == NodeKind.Optional
-        - or value.kind == NodeKind.List
-        - or value.kind == NodeKind.Application
+        match value.kind {
+            NodeKind.Optional => true,
+            NodeKind.List => true,
+            NodeKind.Application => true,
+            _ => false
+        }
     )
 
     if (condition) {
@@ -56,7 +59,7 @@ export default function (in: Input): Output {
             }
         })
 
-        return frame({
+        const child = frame({
             operation: Operation.Node,
             name: {
                 text: "",
@@ -65,10 +68,11 @@ export default function (in: Input): Output {
             },
             reference: value.child
         })
-            -> {
-                ...state,
-                frames: state.frames.push(_)[0]
-            }
+
+        return {
+            ...state,
+            frames: state.frames.push(child)[0]
+        }
     }
 
     if (value.kind == NodeKind.Tuple || value.kind == NodeKind.Object) {
@@ -76,8 +80,10 @@ export default function (in: Input): Output {
             state: in,
             frame: {
                 ...head,
-                operation: value.kind == NodeKind.Tuple ? Operation.Tuple :
-                    Operation.Object,
+                operation: match {
+                    value.kind == NodeKind.Tuple => Operation.Tuple,
+                    _ => Operation.Object
+                },
                 count: value.count,
                 position: value.position,
                 children: in.scratch.types.length,

@@ -67,8 +67,10 @@ export default function (
                     next: entry => {
                         const first = entry.scope.interfaces.specifiers.length
                         const external = entry.index >= first
-                        const source = external ? entry.scope.externals :
-                            entry.scope.interfaces
+                        const source = match {
+                            external => entry.scope.externals,
+                            _ => entry.scope.interfaces
+                        }
                         const index = external ? entry.index - first : entry.index
                         const name = source.specifiers[index]
                         const identity = source.identities[index] ?? name

@@ -64,3 +64,8 @@ export type Output = {
     changed: u32[],
     grew: bool
 }
+
+export type Continuation = {
+    working: Working,
+    request?: Request
+}

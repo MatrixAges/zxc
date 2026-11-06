@@ -26,12 +26,15 @@ export default function (in: Input): Output {
 
             value.valid =
                 (
-                    - byte != 0
-                    - and byte != 9
-                    - and byte != 10
-                    - and byte != 13
-                    - and byte != 32
-                    - and byte != 92
+                    match byte {
+                        0 => false,
+                        9 => false,
+                        10 => false,
+                        13 => false,
+                        32 => false,
+                        92 => false,
+                        _ => true
+                    }
                 )
 
             if (byte == 58) {
@@ -110,36 +113,35 @@ export default function (in: Input): Output {
         return Kind.File
     }
 
-    return loop({
-        source: in,
-        offset: 0,
-        start: 0,
-        valid: true
-    }, {
-        while: value => value.valid && value.offset <= value.source.length,
-        next: value => {
-            if (
-                value.offset == value.source.length ||
-                    value.source[value.offset] == 47
-            ) {
-                const length = value.offset - value.start
+    return match {
+        loop({
+            source: in,
+            offset: 0,
+            start: 0,
+            valid: true
+        }, {
+            while: value => value.valid && value.offset <= value.source.length,
+            next: value => {
+                if (
+                    value.offset == value.source.length ||
+                        value.source[value.offset] == 47
+                ) {
+                    const length = value.offset - value.start
 
-                value.valid =
-                    (
-                        - length != 0
-                        - and !(
-                            length == 1 && value.source[value.start] == 46
-                        )
-                        - and !(
-                            length == 2 && value.source[value.start] == 46 &&
-                                value.source[value.start + 1] == 46
-                        )
-                    )
-                value.start = value.offset + 1
-            }
+                    value.valid = match length {
+                        0 => false,
+                        1 => value.source[value.start] != 46,
+                        2 => value.source[value.start] != 46 ||
+                            value.source[value.start + 1] != 46,
+                        _ => true
+                    }
+                    value.start = value.offset + 1
+                }
 
-            value.offset += 1
-        },
-        return: state => state.valid
-    }) ? Kind.Package : Kind.Invalid
+                value.offset += 1
+            },
+            return: state => state.valid
+        }) => Kind.Package,
+        _ => Kind.Invalid
+    }
 }

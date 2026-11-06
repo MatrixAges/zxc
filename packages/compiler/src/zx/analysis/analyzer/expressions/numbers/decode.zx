@@ -43,17 +43,22 @@ export default function (in: Input): Output {
             negative: in.negative
         })
 
-        return (selected.single ? 24 : 53)
-            -> (value.message == "" && !source.floating ? exact({
+        const precision = selected.single ? 24 : 53
+
+        const message = match {
+            value.message == "" && !source.floating => exact({
                 bytes,
-                precision: _
-            }) : value.message)
-            -> {
-                target: selected,
-                integer: 0,
-                floating: value.value,
-                message: _
-            }
+                precision: precision
+            }),
+            _ => value.message
+        }
+
+        return {
+            target: selected,
+            integer: 0,
+            floating: value.value,
+            message: message
+        }
     }
 
     if (source.floating) {
@@ -76,14 +81,15 @@ export default function (in: Input): Output {
         }
     }
 
-    return value > maximum({
+    const invalid = value > maximum({
         id: selected.id,
         negative: in.negative
     }) || (in.negative && !selected.signed)
-        -> {
-            target: selected,
-            integer: value,
-            floating: 0,
-            message: _ ? "integer literal does not fit its type" : ""
-        }
+
+    return {
+        target: selected,
+        integer: value,
+        floating: 0,
+        message: invalid ? "integer literal does not fit its type" : ""
+    }
 }

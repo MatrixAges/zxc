@@ -79,25 +79,28 @@ export default function (in: Input): Output {
 
     const payload = in.state.local.expressions.types[integers.widen(in.operand)]
 
-    const result_type = payload == 0 ? {
-        state: error_type.state,
-        id: payload
-    } : construct({
-        state: error_type.state,
-        candidate: {
-            kind: Kind.Optional,
-            first: payload,
-            second: 0,
-            label: "",
-            children: [],
-            fields: {
-                names: [],
-                types: []
-            },
-            names: []
+    const result_type = match {
+        payload == 0 => {
+            state: error_type.state,
+            id: payload
         },
-        span: in.span
-    })
+        _ => construct({
+            state: error_type.state,
+            candidate: {
+                kind: Kind.Optional,
+                first: payload,
+                second: 0,
+                label: "",
+                children: [],
+                fields: {
+                    names: [],
+                    types: []
+                },
+                names: []
+            },
+            span: in.span
+        })
+    }
 
     if (result_type.state.diagnostic.message != "") {
         return {

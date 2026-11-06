@@ -17,12 +17,12 @@ export default function (in: Input): Output {
         values,
         index: 0
     }, {
-        while: (state, source) => state.index < source.operations.length,
-        next: (state, source) => {
-            const node = source.operations[state.index]
+        while: state => state.index < in.operations.length,
+        next: state => {
+            const node = in.operations[state.index]
 
             if (
-                source.expressions.kinds[integers.widen(node)] == ExpressionKind.Call
+                in.expressions.kinds[integers.widen(node)] == ExpressionKind.Call
             ) {
                 state.values = state.values.push(node)[0]
             }
@@ -30,5 +30,5 @@ export default function (in: Input): Output {
             state.index += 1
         },
         return: state => state.values
-    }, in)
+    })
 }

@@ -13,73 +13,73 @@ export type Input = {
 
 export type Output = u32?
 
-    export default function (in: Input): Output {
-        const source = in.context.source
-        const callee = source.tree.nodes[in.callee]
-        const field = callee.kind == ExprKind.Field
+export default function (in: Input): Output {
+    const source = in.context.source
+    const callee = source.tree.nodes[in.callee]
+    const field = callee.kind == ExprKind.Field
 
-        if (callee.kind != ExprKind.Identifier && !field) {
-            return null
-        }
-
-        const owner = field ? source.tree.nodes[callee.first] : callee
-
-        if (owner.kind != ExprKind.Identifier) {
-            return null
-        }
-
-        const root_name = readName({
-            source,
-            kind: NameKind.Expression,
-            index: field ? callee.first : in.callee
-        }).text
-
-        if (lookup({
-            active: in.context.state.local.active,
-            names: in.context.state.local.symbols.names,
-            scope_floor: in.context.state.local.scope_floor,
-            name: root_name
-        }) != null) {
-            return null
-        }
-
-        if (in.context.source.constant_values != null && constant({
-            active: in.context.state.local.active,
-            names: in.context.state.local.symbols.names,
-            constants: in.context.source.constant_values,
-            name: root_name
-        }) != null) {
-            return null
-        }
-
-        const name = readName({
-            source,
-            kind: NameKind.Expression,
-            index: in.callee
-        }).text
-
-        const namespace: string? = field ? root_name : null
-        const missing: u32? = null
-
-        return loop({
-            imports: in.context.imports,
-            namespace,
-            name,
-            index: 0,
-            result: missing
-        }, {
-            while: current =>
-                current.index < current.imports.names.length && current.result == null,
-            next: current => {
-                if (
-                    current.imports.namespaces[current.index] == current.namespace &&
-                        current.imports.names[current.index] == current.name
-                ) {
-                    current.result = current.imports.output_types[current.index]
-                }
-
-                current.index += 1
-            },
-            return: state => state.result
-        })
+    if (callee.kind != ExprKind.Identifier && !field) {
+        return null
     }
+
+    const owner = field ? source.tree.nodes[callee.first] : callee
+
+    if (owner.kind != ExprKind.Identifier) {
+        return null
+    }
+
+    const root_name = readName({
+        source,
+        kind: NameKind.Expression,
+        index: field ? callee.first : in.callee
+    }).text
+
+    if (lookup({
+        active: in.context.state.local.active,
+        names: in.context.state.local.symbols.names,
+        scope_floor: in.context.state.local.scope_floor,
+        name: root_name
+    }) != null) {
+        return null
+    }
+
+    if (in.context.source.constant_values != null && constant({
+        active: in.context.state.local.active,
+        names: in.context.state.local.symbols.names,
+        constants: in.context.source.constant_values,
+        name: root_name
+    }) != null) {
+        return null
+    }
+
+    const name = readName({
+        source,
+        kind: NameKind.Expression,
+        index: in.callee
+    }).text
+
+    const namespace: string? = field ? root_name : null
+    const missing: u32? = null
+
+    return loop({
+        imports: in.context.imports,
+        namespace,
+        name,
+        index: 0,
+        result: missing
+    }, {
+        while: current =>
+            current.index < current.imports.names.length && current.result == null,
+        next: current => {
+            if (
+                current.imports.namespaces[current.index] == current.namespace &&
+                    current.imports.names[current.index] == current.name
+            ) {
+                current.result = current.imports.output_types[current.index]
+            }
+
+            current.index += 1
+        },
+        return: state => state.result
+    })
+}

@@ -24,8 +24,10 @@ export default function (in: Input): Output {
         next: current => {
             const at =
                 current
-                .tokens[current.index < current.tokens.length ? current.index :
-                    current.tokens.length - 1]
+                .tokens[match {
+                    current.index < current.tokens.length => current.index,
+                    _ => current.tokens.length - 1
+                }]
 
             current.valid = match current.part {
                 Part.Export => at.word == Keyword.Export,
@@ -57,20 +59,23 @@ export default function (in: Input): Output {
         name: checked.name,
         opening: token.span.start,
         index: checked.index,
-        diagnostic: checked.valid ? {
-            code: "",
-            start: 0,
-            end: 0,
-            message: ""
-        } : {
-            code: "syntax",
-            start: at.span.start,
-            end: at.span.end,
-            message: match checked.part {
-                Part.Export => "expected export",
-                Part.Const => "expected const",
-                Part.Name => "expected an identifier",
-                _ => "expected :"
+        diagnostic: match {
+            checked.valid => {
+                code: "",
+                start: 0,
+                end: 0,
+                message: ""
+            },
+            _ => {
+                code: "syntax",
+                start: at.span.start,
+                end: at.span.end,
+                message: match checked.part {
+                    Part.Export => "expected export",
+                    Part.Const => "expected const",
+                    Part.Name => "expected an identifier",
+                    _ => "expected :"
+                }
             }
         }
     }

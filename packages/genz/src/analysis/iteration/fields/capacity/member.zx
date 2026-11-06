@@ -11,37 +11,37 @@ export type Input = {
 
 export type Output = u32?
 
-    export default function (in: Input): Output {
-        const value = integers.widen(in.value)
+export default function (in: Input): Output {
+    const value = integers.widen(in.value)
 
-        if (in.expressions.kinds[value] != ExpressionKind.Object) {
-            return null
-        }
-
-        const payload = integers.widen(in.expressions.payloads[value])
-        const first = integers.widen(in.expressions.object_first[payload])
-        const end = first + integers.widen(in.expressions.object_count[payload])
-        const found: u32? = null
-
-        return loop({
-            expressions: in.expressions,
-            field: in.field,
-            index: first,
-            end,
-            found
-        }, {
-            while: current => current.found == null && current.index < current.end,
-            next: current => {
-                if (
-                    current.expressions.object_field_indices[current.index] ==
-                        current.field
-                ) {
-                    current.found =
-                        current.expressions.object_field_values[current.index]
-                }
-
-                current.index += 1
-            },
-            return: state => state.found
-        })
+    if (in.expressions.kinds[value] != ExpressionKind.Object) {
+        return null
     }
+
+    const payload = integers.widen(in.expressions.payloads[value])
+    const first = integers.widen(in.expressions.object_first[payload])
+    const end = first + integers.widen(in.expressions.object_count[payload])
+    const found: u32? = null
+
+    return loop({
+        expressions: in.expressions,
+        field: in.field,
+        index: first,
+        end,
+        found
+    }, {
+        while: current => current.found == null && current.index < current.end,
+        next: current => {
+            if (
+                current.expressions.object_field_indices[current.index] ==
+                    current.field
+            ) {
+                current.found =
+                    current.expressions.object_field_values[current.index]
+            }
+
+            current.index += 1
+        },
+        return: state => state.found
+    })
+}

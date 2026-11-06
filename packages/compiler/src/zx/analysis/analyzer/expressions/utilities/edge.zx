@@ -47,16 +47,19 @@ export default function (in: Input): Output {
         value: 1
     })
 
-    const position = in.operation == Operation.Head ? {
-        state: one.state,
-        value: zero.value
-    } : binary({
-        state: one.state,
-        span: in.span,
-        operator: BinaryOperator.Subtract,
-        left: length.value,
-        right: one.value
-    })
+    const position = match {
+        in.operation == Operation.Head => {
+            state: one.state,
+            value: zero.value
+        },
+        _ => binary({
+            state: one.state,
+            span: in.span,
+            operator: BinaryOperator.Subtract,
+            left: length.value,
+            right: one.value
+        })
+    }
 
     const element = index({
         state: position.state,

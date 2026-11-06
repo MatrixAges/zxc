@@ -38,15 +38,19 @@ export default function (in: Input): Output {
                 declaration,
                 parameters: current.parameters
             }))
-            const checked = (inputs.diagnostic.message == "" ? node({
-                state: inputs,
-                index: declaration.output
-            }) : inputs)
-                -> check({
-                    state: _,
-                    declaration,
-                    input: inputs.result
-                })
+            const output = match {
+                inputs.diagnostic.message == "" => node({
+                    state: inputs,
+                    index: declaration.output
+                }),
+                _ => inputs
+            }
+
+            const checked = check({
+                state: output,
+                declaration,
+                input: inputs.result
+            })
 
             current.resolution = checked
 
@@ -58,17 +62,20 @@ export default function (in: Input): Output {
                     count: declaration.count
                 }))
 
-                current.resolution = names.valid ? checked : fail({
-                    state: checked,
-                    code: "unsupported",
-                    message:
-                        "native arrays of objects, tuples or enums require a named element type exported by the native module",
-                    name: {
-                        text: "",
-                        start: 0,
-                        end: 0
-                    }
-                })
+                current.resolution = match {
+                    names.valid => checked,
+                    _ => fail({
+                        state: checked,
+                        code: "unsupported",
+                        message:
+                            "native arrays of objects, tuples or enums require a named element type exported by the native module",
+                        name: {
+                            text: "",
+                            start: 0,
+                            end: 0
+                        }
+                    })
+                }
                 current.signatures = current.signatures.push({
                     input: inputs.result,
                     output: checked.result,

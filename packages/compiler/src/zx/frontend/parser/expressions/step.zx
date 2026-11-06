@@ -40,10 +40,14 @@ export default function (in: Input): Output {
         }
     }
 
+    const is_begin_binary = state.control.phase == Phase.BeginBinary
+
+    const is_semicolon = state.control.token.symbol == Symbol.Semicolon
+
     const condition = (
-        - state.control.phase == Phase.BeginBinary
+        - is_begin_binary
         - and state.frames.length == 0
-        - and state.control.token.symbol == Symbol.Semicolon
+        - and is_semicolon
     )
 
     if (condition) {
@@ -67,10 +71,13 @@ export default function (in: Input): Output {
         case Phase.LambdaSeparator: return lambda(state)
         case Phase.LambdaArrow: return lambda(state)
         case Phase.LambdaBody: return lambda(state)
-        case Phase.Callback: return state.control.hint.lambda ? startLambda({
-            state,
-            updating: true
-        }) : beginBinary(state)
+        case Phase.Callback: return match {
+            state.control.hint.lambda => startLambda({
+                state,
+                updating: true
+            }),
+            _ => beginBinary(state)
+        }
         case Phase.StateBlock: return fail({
             state,
             code: "contract",

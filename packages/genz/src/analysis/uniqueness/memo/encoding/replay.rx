@@ -1,0 +1,23 @@
+<Module>
+    <Type from="model" as="Encoding" />
+
+    <Args in={Encoding.Replay} out={Encoding.State} />
+
+    <Call
+        module="identity"
+        in={$in.pick([
+            "state",
+            "identity"
+        ])}
+    />
+
+    <Call
+        fn="append"
+        in={{
+            state: $ctx.identity,
+            bytes: $in.bytes
+        }}
+    />
+
+    <Return value={$ctx.append} />
+</Module>

@@ -11,7 +11,7 @@ export type Output = ExprState
 export default function (in: Input): Output {
     const cursor = in.prepared.lexical.templates[in.control.template - 1].head
 
-    const frames = {
+    const continuation = {
         ...frame({
             kind: FrameKind.Template,
             start: in.control.token.span.start,
@@ -24,7 +24,8 @@ export default function (in: Input): Output {
         count: in.control.template_count,
         maximum: in.control.template_maximum
     }
-        -> in.frames.push(_)[0]
+
+    const frames = in.frames.push(continuation)[0]
 
     const control: ExprControl = {
         ...in.control,

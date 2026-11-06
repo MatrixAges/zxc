@@ -16,19 +16,48 @@ pub fn analyze(self: *Analyzer, expression: anytype, expected: ?ir.TypeId) zx.Er
         if ((target != .scalar and target != .enumeration and target != .error_set) or condition_type == Types.scalarId(.void)) return self.reporter.fail(.type_mismatch, expression.span, "match subject must be a scalar, enum or finite error");
     }
 
+    const facts = self.refinement.mark();
+
+    defer self.refinement.restore(facts);
+
     var result_type = expected orelse hint(self, selection);
     const arms = try self.allocator.alloc(ir.MatchArm, selection.arms.len);
 
     for (0..selection.arms.len) |index| {
         const arm = syntax.item(selection.arms, index);
         const condition = try self.expression(arm.condition, condition_type);
+        const before = self.refinement.mark();
+
+        if (subject == null) try self.refinement.assume(self.allocator, self.nodes.view(), condition, true);
+
         const result = try self.expression(arm.result, result_type);
+
+        self.refinement.restore(before);
+
+        if (subject == null) try self.refinement.assume(self.allocator, self.nodes.view(), condition, false);
 
         result_type = self.node(result).type_id;
         arms[index] = .{ .condition = condition, .result = result };
     }
 
     const fallback = try self.expression(selection.fallback, result_type);
+
+    if (subject == null) {
+        var result = fallback;
+        var index = arms.len;
+
+        while (index != 0) {
+            index -= 1;
+
+            result = try self.append(.{ .span = expression.span, .type_id = self.node(fallback).type_id, .value = .{ .conditional = .{
+                .condition = arms[index].condition,
+                .yes = arms[index].result,
+                .no = result,
+            } } });
+        }
+
+        return result;
+    }
 
     return self.append(.{ .span = expression.span, .type_id = self.node(fallback).type_id, .value = .{ .match_expr = .{ .subject = subject, .arms = arms, .fallback = fallback } } });
 }

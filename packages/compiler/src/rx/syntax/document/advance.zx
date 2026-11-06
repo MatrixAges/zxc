@@ -10,19 +10,20 @@ export type Input = {
 export type Output = State
 
 export default function (in: Input): Output {
-    return position({
+    const location = position({
         source: in.state.source,
         location: in.state.control.location,
         count: in.count
     })
-        -> {
-            source: in.state.source,
-            tree: in.state.tree,
-            frames: in.state.frames,
-            frame: in.state.frame,
-            control: {
-                ...in.state.control,
-                location: _
-            }
+
+    return {
+        source: in.state.source,
+        tree: in.state.tree,
+        frames: in.state.frames,
+        frame: in.state.frame,
+        control: {
+            ...in.state.control,
+            location: location
         }
+    }
 }

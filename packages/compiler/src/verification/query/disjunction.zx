@@ -5,6 +5,7 @@ export type Input = string[]
 export type Output = string
 
 export default function (in: Input): Output {
-    return strings.join(" ", in)
-        -> `(or ${_})`
+    const return_input = strings.join(" ", in)
+
+    return `(or ${return_input})`
 }

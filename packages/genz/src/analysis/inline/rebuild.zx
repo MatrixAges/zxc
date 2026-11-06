@@ -108,9 +108,11 @@ export default function (in: Input): Output {
         symbols: tables.symbols,
         expressions: tables.expressions,
         control: tables.control,
-        root: finished.failed ? 0 :
-            integers.narrow(
+        root: match {
+            finished.failed => 0,
+            _ => integers.narrow(
                 finished.stack[finished.stack.length - 1]
             )
+        }
     }
 }

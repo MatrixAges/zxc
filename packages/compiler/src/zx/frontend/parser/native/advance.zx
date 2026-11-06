@@ -9,20 +9,21 @@ export type Input = {
 export type Output = NativeState
 
 export default function (in: Input): Output {
-    return in.state.control.index + in.count
-        -> {
-            lexed: in.state.lexed,
-            declarations: in.state.declarations,
-            functions: in.state.functions,
-            parameters: in.state.parameters,
-            errors: in.state.errors,
-            control: {
-                injected: in.state.control.injected,
-                parameter: in.state.control.parameter,
-                current: in.state.control.current,
-                diagnostic: in.state.control.diagnostic,
-                phase: in.phase,
-                index: _
-            }
+    const index = in.state.control.index + in.count
+
+    return {
+        lexed: in.state.lexed,
+        declarations: in.state.declarations,
+        functions: in.state.functions,
+        parameters: in.state.parameters,
+        errors: in.state.errors,
+        control: {
+            injected: in.state.control.injected,
+            parameter: in.state.control.parameter,
+            current: in.state.control.current,
+            diagnostic: in.state.control.diagnostic,
+            phase: in.phase,
+            index: index
         }
+    }
 }

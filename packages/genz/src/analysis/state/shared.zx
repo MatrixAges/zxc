@@ -1,5 +1,9 @@
 import integers from "std:integer"
-import { CollectionKind, TransformKind } from "core/expression_table/kinds"
+import {
+    CollectionKind,
+    TransformKind,
+    ExpressionKind
+} from "core/expression_table/kinds"
 import kind from "core/type_table/kind"
 import { Kind } from "core/type_table/model"
 
@@ -30,19 +34,24 @@ export default function (in: Input): Output {
         next: current => {
             const expressions = current.expressions
             const operation = expressions.collection_kinds[current.index]
-            const child =
+            const target =
                 integers.widen(expressions.collection_targets[current.index])
-                -> integers.widen(expressions.types[_])
-                -> current.types.first[_]
+
+            const list = integers.widen(expressions.types[target])
+
+            const child =
+                current.types.first[list]
             const index = integers.widen(child)
 
-            const condition = (
-                - operation != CollectionKind.Pop
-                - and current.records[index]
-                - and kind(current.types.kinds[index]) == Kind.Object
-            )
+            const not_pop = operation != CollectionKind.Pop
 
-            if (condition) {
+            const object_type = match {
+                not_pop && current.records[index] =>
+                    kind(current.types.kinds[index]) == Kind.Object,
+                _ => false
+            }
+
+            if (object_type) {
                 const first =
                     integers.widen(expressions.collection_first[current.index])
                 const reused = operation != CollectionKind.Push || !fresh({
@@ -69,22 +78,25 @@ export default function (in: Input): Output {
     }, {
         while: current => current.index < current.expressions.update_targets.length,
         next: current => {
-            const child =
+            const target =
                 integers.widen(current.expressions.update_targets[current.index])
-                -> integers.widen(current.expressions.types[_])
-                -> current.types.first[_]
+
+            const list = integers.widen(current.expressions.types[target])
+
+            const child =
+                current.types.first[list]
             const index = integers.widen(child)
 
-            const condition_2 = (
-                - current.records[index]
-                - and kind(current.types.kinds[index]) == Kind.Object
-                - and !fresh({
-                    expressions: current.expressions,
-                    id: current.expressions.update_values[current.index]
-                })
-            )
+            const object_type = match {
+                current.records[index] =>
+                    kind(current.types.kinds[index]) == Kind.Object,
+                _ => false
+            }
 
-            if (condition_2) {
+            if (object_type && !fresh({
+                expressions: current.expressions,
+                id: current.expressions.update_values[current.index]
+            })) {
                 current.roots = current.roots.push(child)[0]
             }
 
@@ -105,27 +117,36 @@ export default function (in: Input): Output {
         next: current => {
             const expressions = current.expressions
             const operation = expressions.transform_kinds[current.index]
-            const list = integers.widen(
+            const target = integers.widen(
                 expressions.transform_targets[current.index]
             )
-                -> integers.widen(expressions.types[_])
+
+            const list = integers.widen(expressions.types[target])
             const body = expressions.transform_bodies[current.index]
-            const child = operation == TransformKind.Map ?
-                expressions.types[integers.widen(body)] : current.types.first[list]
+            const child = match {
+                operation == TransformKind.Map =>
+                    expressions.types[integers.widen(body)],
+                _ => current.types.first[list]
+            }
             const index = integers.widen(child)
 
             if (
                 current.records[index] &&
                     kind(current.types.kinds[index]) == Kind.Object
             ) {
-                const reused = (
-                    - operation == TransformKind.Filter
-                    - or (operation == TransformKind.Sort && !current.read_only)
-                    - or (operation == TransformKind.Map && !fresh({
+                const is_filter = operation == TransformKind.Filter
+
+                const valid_operation =
+                    operation == TransformKind.Sort && !current.read_only
+
+                const reused = match {
+                    is_filter || valid_operation => true,
+                    operation == TransformKind.Map => !fresh({
                         expressions,
                         id: body
-                    }))
-                )
+                    }),
+                    _ => false
+                }
 
                 if (reused) {
                     current.roots = current.roots.push(child)[0]
@@ -138,33 +159,49 @@ export default function (in: Input): Output {
     })
 
     return loop({
-        types: in.types,
-        records: in.records,
-        expressions: in.expressions,
         roots: transforms,
         index: 0
     }, {
-        while: current => current.index < current.expressions.sequence_items.length,
+        while: current => current.index < in.expressions.kinds.length,
         next: current => {
-            const expressions = current.expressions
-            const id = expressions.sequence_items[current.index]
-            const type_id = expressions.types[integers.widen(id)]
-            const index = integers.widen(type_id)
+            const expressions = in.expressions
 
-            if (
-                current.records[index] &&
-                    kind(current.types.kinds[index]) == Kind.Object
-            ) {
-                if (!fresh({
-                    expressions,
-                    id
-                })) {
-                    current.roots = current.roots.push(type_id)[0]
+            if (expressions.kinds[current.index] == ExpressionKind.List) {
+                const list = integers.widen(expressions.types[current.index])
+                const child = in.types.first[list]
+                const index = integers.widen(child)
+                const record =
+                    in.records[index] && kind(in.types.kinds[index]) == Kind.Object
+
+                if (record) {
+                    const payload =
+                        integers.widen(expressions.payloads[current.index])
+                    const first = integers.widen(expressions.sequence_first[payload])
+                    const end =
+                        first + integers.widen(expressions.sequence_count[payload])
+                    const reused = loop({
+                        index: first,
+                        found: false
+                    }, {
+                        while: item => !item.found && item.index < end,
+                        next: item => {
+                            item.found = !fresh({
+                                expressions,
+                                id: expressions.sequence_items[item.index]
+                            })
+                            item.index += 1
+                        },
+                        return: item => item.found
+                    })
+
+                    if (reused) {
+                        current.roots = current.roots.push(child)[0]
+                    }
                 }
             }
 
             current.index += 1
         },
-        return: state => state.roots
+        return: current => current.roots
     })
 }

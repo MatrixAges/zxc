@@ -42,20 +42,21 @@ export default function (in: Input): Output {
         id: input
     })
 
-    return (target.delta ? tables.delta : tables.base)
-        ->
-        (
-            frame.tuple ? _.children[integers.widen(target.first) + frame.index] :
-                input
-        )
-        -> {
-            ...in,
-            node: frame.arguments[frame.index],
-            expected: _,
-            phase: Phase.Evaluate,
-            frames: {
-                ...in.frames,
-                actions: in.frames.actions.push(Action.Imported)[0]
-            }
+    const table = target.delta ? tables.delta : tables.base
+
+    const expected = match {
+        frame.tuple => table.children[integers.widen(target.first) + frame.index],
+        _ => input
+    }
+
+    return {
+        ...in,
+        node: frame.arguments[frame.index],
+        expected: expected,
+        phase: Phase.Evaluate,
+        frames: {
+            ...in.frames,
+            actions: in.frames.actions.push(Action.Imported)[0]
         }
+    }
 }

@@ -27,12 +27,14 @@ export default function (in: Input): Output {
         return true
     }
 
+    const valid_native_references = in.native_references && (
+        type_kind == Kind.List || type_kind == Kind.Task
+    )
+
     const condition = (
         - type_kind == Kind.Optional
         - or (
-            in.native_references && (
-                type_kind == Kind.List || type_kind == Kind.Task
-            )
+            valid_native_references
         )
     )
 

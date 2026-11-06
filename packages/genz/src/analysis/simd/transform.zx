@@ -4,6 +4,8 @@ import { ExpressionKind, TransformKind } from "core/expression_table/kinds"
 import kind from "core/type_table/kind"
 import { Kind } from "core/type_table/model"
 
+import reject from "./rejected"
+
 import type { Input, Candidate } from "./model"
 
 export type Output = Candidate
@@ -12,19 +14,7 @@ export default function (in: Input): Output {
     const expressions = in.expressions
     const subject = integers.widen(in.subject)
 
-    const rejected: Candidate = {
-        valid: false,
-        source: in.subject,
-        callback: in.subject,
-        scalar: 0,
-        context: {
-            first: 0,
-            count: 0,
-            element: null,
-            iteration: null
-        },
-        iteration: null
-    }
+    const rejected = reject(in.subject)
 
     if (expressions.kinds[subject] != ExpressionKind.Transform) {
         return rejected
@@ -46,13 +36,13 @@ export default function (in: Input): Output {
     const position = integers.widen(scalar)
     const code = in.types.first[position]
 
-    const condition = (
-        - scalar != in.types.first[output]
-        - or kind(in.types.kinds[position]) != Kind.Scalar
-        - or (code != type_id_f32 && code != type_id_f64)
-    )
+    const valid_code = code != type_id_f32 && code != type_id_f64
 
-    if (condition) {
+    if (scalar != in.types.first[output]) {
+        return rejected
+    }
+
+    if (kind(in.types.kinds[position]) != Kind.Scalar || valid_code) {
         return rejected
     }
 

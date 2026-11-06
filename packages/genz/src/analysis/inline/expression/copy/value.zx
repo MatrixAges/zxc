@@ -1,0 +1,57 @@
+import { ValueKind } from "core/expression_table/append/model"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import shifted from "../shift_symbol"
+
+export type Input = {
+    kind: ExpressionKind,
+    payload: u64,
+    mapped: u32[],
+    offset: u64,
+    enumerations: u32[],
+    errors: u32[],
+    references: u32[],
+    stores: u32[]
+}
+
+export type Output = {
+    kind?: ValueKind,
+    value: u32
+}
+
+export default function (in: Input): Output {
+    const selected: ValueKind? = match in.kind {
+        ExpressionKind.Some => ValueKind.Some,
+        ExpressionKind.Capture => ValueKind.Capture,
+        ExpressionKind.AwaitTask => ValueKind.AwaitTask,
+        ExpressionKind.CancelTask => ValueKind.CancelTask,
+        ExpressionKind.OptionalValue => ValueKind.OptionalValue,
+        ExpressionKind.Length => ValueKind.Length,
+        ExpressionKind.EnumValue => ValueKind.EnumValue,
+        ExpressionKind.ErrorValue => ValueKind.ErrorValue,
+        ExpressionKind.Reference => ValueKind.Reference,
+        ExpressionKind.StoreGet => ValueKind.StoreGet,
+        _ => null
+    }
+
+    if (selected == null) {
+        return {
+            kind: null,
+            value: 0
+        }
+    }
+
+    return {
+        kind: selected,
+        value: match in.kind {
+            ExpressionKind.EnumValue => in.enumerations[in.payload],
+            ExpressionKind.ErrorValue => in.errors[in.payload],
+            ExpressionKind.Reference => shifted({
+                symbol: in.references[in.payload],
+                offset: in.offset
+            }),
+            ExpressionKind.StoreGet => in.stores[in.payload],
+            _ => in.mapped[0]
+        }
+    }
+}

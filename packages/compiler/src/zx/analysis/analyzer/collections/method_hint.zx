@@ -25,10 +25,13 @@ export type Output = {
 
 export default function (in: Input): Output {
     const transformed = (
-        - in.kind == TransformKind.Map
-        - or in.kind == TransformKind.Filter
-        - or in.kind == TransformKind.Reduce
-        - or in.kind == TransformKind.Sort
+        match in.kind {
+            TransformKind.Map => true,
+            TransformKind.Filter => true,
+            TransformKind.Reduce => true,
+            TransformKind.Sort => true,
+            _ => false
+        }
     )
 
     if (!transformed) {
@@ -61,8 +64,11 @@ export default function (in: Input): Output {
 
             if (value.message == "" && value.integer < 2) {
                 return {
-                    expected: value.integer == slot && frame.output_hint != max_u32 ?
-                        frame.output_hint : null,
+                    expected: match {
+                        value.integer == slot && frame.output_hint != max_u32 =>
+                            frame.output_hint,
+                        _ => null
+                    },
                     projection: value.integer
                 }
             }
@@ -98,9 +104,10 @@ export default function (in: Input): Output {
         }
     }
 
-    return (target.delta ? tables.delta : tables.base)
-        -> {
-            expected: _.children[integers.widen(target.first) + slot],
-            projection: null
-        }
+    const table = target.delta ? tables.delta : tables.base
+
+    return {
+        expected: table.children[integers.widen(target.first) + slot],
+        projection: null
+    }
 }

@@ -32,15 +32,13 @@ export default function (in: Input): Output {
             const member = signatures.native_members[index]
             const namespace = current.declaration.namespace
 
-            const condition = (
-                - signatures.files[index] != current.declaration.path
-                - or integers.widen(
-                    binding.id
-                ) != index
-                - or binding.namespace != null
-                - or binding.input_type != signatures.input_types[index]
-                - or binding.output_type != signatures.output_types[index]
-            )
+            const condition = match {
+                signatures.files[index] != current.declaration.path => true,
+                integers.widen(binding.id) != index => true,
+                binding.namespace != null => true,
+                binding.input_type != signatures.input_types[index] => true,
+                _ => binding.output_type != signatures.output_types[index]
+            }
 
             if (condition) {
                 current.valid = false

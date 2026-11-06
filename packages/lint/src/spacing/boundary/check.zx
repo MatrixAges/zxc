@@ -9,7 +9,7 @@ export default function (in: Input): Output {
     const offset = in.scanned.newline_start
     const length = in.scanned.last_end - offset
 
-    return match {
+    const matches = match {
         in.scanned.crlf && in.scanned.separate =>
             (
                 - length == 4
@@ -24,11 +24,12 @@ export default function (in: Input): Output {
             length == 2 && in.gap[offset] == 10 && in.gap[offset + 1] == 10,
         _ => length == 1 && in.gap[offset] == 10
     }
-        -> {
-            needs_edit: !_,
-            start: in.scanned.start + offset,
-            end: in.scanned.start + in.scanned.last_end,
-            crlf: in.scanned.crlf,
-            separate: in.scanned.separate
-        }
+
+    return {
+        needs_edit: !matches,
+        start: in.scanned.start + offset,
+        end: in.scanned.start + in.scanned.last_end,
+        crlf: in.scanned.crlf,
+        separate: in.scanned.separate
+    }
 }

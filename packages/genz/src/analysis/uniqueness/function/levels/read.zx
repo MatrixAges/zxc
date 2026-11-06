@@ -20,21 +20,25 @@ export type Output = {
 }
 
 export default function (in: Input): Output {
-    const value = (
-        in.table == Table.Input ? in.context.metadata.input :
-            in.context.metadata.output[integers.widen(in.function_index)]
-    )
-        -> decode(bytes.loadAtomic(_, integers.widen(in.slot)))
+    const values = match {
+        in.table == Table.Input => in.context.metadata.input,
+        _ => in.context.metadata.output[integers.widen(in.function_index)]
+    }
+
+    const value = decode(bytes.loadAtomic(values, integers.widen(in.slot)))
 
     return {
-        reads: in.context.metadata.record ? in.reads.push({
-            ...in.pick([
-                "table",
-                "function_index",
-                "slot"
-            ]),
-            value
-        })[0] : in.reads,
+        reads: match {
+            in.context.metadata.record => in.reads.push({
+                ...in.pick([
+                    "table",
+                    "function_index",
+                    "slot"
+                ]),
+                value
+            })[0],
+            _ => in.reads
+        },
         value
     }
 }

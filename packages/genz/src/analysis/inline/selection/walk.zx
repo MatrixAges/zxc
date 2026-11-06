@@ -1,0 +1,198 @@
+import integers from "std:integer"
+import { StatementKind } from "core/control_table/model"
+
+import consume from "../consume"
+import iteration from "../iteration"
+import consumedSuffix from "./suffix"
+
+import type { Control } from "core/control_table/model"
+import type { Expressions } from "core/expression_table/model"
+import type { Table } from "core/type_table/model"
+
+export type Input = {
+    types: Table,
+    table: Expressions,
+    control: Control,
+    root?: u32
+}
+
+export type Output = {
+    finds: u32[],
+    marks: u32[]
+}
+
+export default function (in: Input): Output {
+    const table = in.table
+    const types = in.types
+    const control = in.control
+    const root = in.root
+    const blocks: u32[] = []
+    const ids: u32[] = []
+    const start = root == null ? blocks : blocks.push(root)[0]
+
+    return loop({
+        blocks: start,
+        finds: ids,
+        marks: ids
+    }, {
+        while: current => current.blocks.length != 0,
+        next: current => {
+            const block =
+                integers.widen(
+                    current.blocks[current.blocks.length - 1]
+                )
+            const first = integers.widen(control.block_first[block])
+            const count = integers.widen(control.block_count[block])
+
+            current.blocks = current.blocks.pop()[0]
+
+            const suffix = consumedSuffix({
+                control,
+                first,
+                count
+            })
+
+            if (suffix != null) {
+                current.marks = current.marks.concat(consume({
+                    types,
+                    table,
+                    ...suffix
+                }))[0]
+            }
+
+            const end = first + count
+
+            const scanned = loop({
+                blocks: current.blocks,
+                finds: current.finds,
+                marks: current.marks,
+                position: first,
+            }, {
+                while: statements => statements.position < end,
+                next: statements => {
+                    const kind = control.statement_kinds[statements.position]
+                    const payload =
+                        integers.widen(
+                            control.statement_payloads[statements.position]
+                        )
+
+                    if (kind == StatementKind.Evaluate) {
+                        statements.marks = statements.marks.concat(iteration({
+                            types,
+                            table,
+                            id:
+                                integers.widen(
+                                    control.evaluations[payload]
+                                )
+                        }))[0]
+                        statements.finds =
+                            statements.finds.push(
+                                control.evaluations[payload]
+                            )[0]
+                    } else if (kind == StatementKind.Branch) {
+                        statements.finds =
+                            statements.finds.push(
+                                control.branch_conditions[payload]
+                            )[0]
+                        statements.blocks =
+                            statements.blocks.concat(
+                                [
+                                    control.branch_yes[payload],
+                                    control.branch_no[payload]
+                                ]
+                            )[0]
+                    } else if (kind == StatementKind.Switch) {
+                        statements.finds =
+                            statements.finds.push(
+                                control.selection_subjects[payload]
+                            )[0]
+
+                        const case_first =
+                            integers.widen(control.selection_first[payload])
+                        const case_end =
+                            case_first +
+                            integers.widen(control.selection_count[payload])
+
+                        const cases = loop({
+                            finds: statements.finds,
+                            blocks: statements.blocks,
+                            item: case_first
+                        }, {
+                            while: items => items.item < case_end,
+                            next: items => {
+                                const value =
+                                    control.case_values[items.item]
+
+                                if (value != null) {
+                                    items.finds =
+                                        items.finds.push(value)[0]
+                                }
+
+                                items.blocks =
+                                    items.blocks.push(
+                                        control.case_bodies[items.item]
+                                    )[0]
+                                items.item += 1
+                            }
+                        })
+
+                        statements.finds = cases.finds
+                        statements.blocks = cases.blocks
+                    } else if (kind == StatementKind.Constant) {
+                        statements.finds =
+                            statements.finds.push(
+                                control.constant_values[payload]
+                            )[0]
+                    } else if (kind == StatementKind.Parallel) {
+                        const parallel_first =
+                            integers.widen(control.parallel_first[payload])
+                        const parallel_end =
+                            parallel_first +
+                            integers.widen(control.parallel_count[payload])
+
+                        statements.finds = loop({
+                            finds: statements.finds,
+                            item: parallel_first
+                        }, {
+                            while: items => items.item < parallel_end,
+                            next: items => {
+                                items.finds =
+                                    items.finds.push(
+                                        control.parallel_values[items.item]
+                                    )[0]
+                                items.item += 1
+                            },
+                            return: state => state.finds
+                        })
+                    } else if (kind == StatementKind.Destructure) {
+                        statements.finds =
+                            statements.finds.push(
+                                control.destructure_values[payload]
+                            )[0]
+                    } else if (kind == StatementKind.StoreSet) {
+                        statements.finds =
+                            statements.finds.push(
+                                control.setter_values[payload]
+                            )[0]
+                    } else {
+                        const value = control.results[payload]
+
+                        if (value != null) {
+                            statements.finds = statements.finds.push(value)[0]
+                        }
+                    }
+
+                    statements.position += 1
+                }
+            })
+
+            current.blocks = scanned.blocks
+            current.finds = scanned.finds
+            current.marks = scanned.marks
+        },
+        return: state => state.pick([
+            "finds",
+            "marks"
+        ])
+    })
+}

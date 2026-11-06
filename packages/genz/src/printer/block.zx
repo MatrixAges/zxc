@@ -38,7 +38,7 @@ export default function (in: Input): Output {
 
     const zero: u32 = 0
 
-    const expanded = loop({
+    return loop({
         frames: opening,
         index: zero,
         source: in.source,
@@ -49,19 +49,14 @@ export default function (in: Input): Output {
         next: current => {
             const id = current.block.id + current.index
 
-            const condition = (
-                - current.index != 0
-                - and (
-                    current.source.statements.tags[integers.widen(
-                        id - 1
-                    )] != StatementsKind.Constant ||
-                        current.source.statements.tags[integers.widen(
-                            id
-                        )] != StatementsKind.Constant
-                )
-            )
+            const tags = current.source.statements.tags
+            const separated = match {
+                current.index == 0 => false,
+                _ => tags[integers.widen(id - 1)] != StatementsKind.Constant ||
+                    tags[integers.widen(id)] != StatementsKind.Constant
+            }
 
-            if (condition) {
+            if (separated) {
                 current.frames = current.frames.push({
                     ...current.frame,
                     token: Token.Newline
@@ -78,21 +73,20 @@ export default function (in: Input): Output {
                 id
             })[0]
             current.index += 1
-        }
+        },
+        return: state => state.frames.concat([
+            {
+                ...state.frame,
+                action: Action.Leave
+            },
+            {
+                ...state.frame,
+                action: Action.Indent
+            },
+            {
+                ...state.frame,
+                token: Token.BraceClose
+            }
+        ])[0]
     })
-
-    return expanded.frames.concat([
-        {
-            ...frame,
-            action: Action.Leave
-        },
-        {
-            ...frame,
-            action: Action.Indent
-        },
-        {
-            ...frame,
-            token: Token.BraceClose
-        }
-    ])[0]
 }

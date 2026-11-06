@@ -14,7 +14,6 @@ export type Input = {
 
 export type Output = {
     initial: u64,
-    readonly_node?: u64,
     condition: u64,
     step: u64,
     result_node?: u64,
@@ -25,7 +24,7 @@ export type Output = {
 export default function (in: Input): Output {
     const node = in.source.tree.nodes[in.node]
 
-    if (node.count != 2 && node.count != 3) {
+    if (node.count != 2) {
         return {
             initial: 0,
             condition: 0,
@@ -144,8 +143,10 @@ export default function (in: Input): Output {
                 if (current.result_node != null || current.step == null) {
                     current.diagnostic = {
                         code: "name",
-                        message: current.result_node != null ? duplicate_return :
-                            return_order,
+                        message: match {
+                            current.result_node != null => duplicate_return,
+                            _ => return_order
+                        },
                         start: name.start,
                         end: name.end
                     }
@@ -165,22 +166,25 @@ export default function (in: Input): Output {
         }
     })
 
-    return found.diagnostic.message == "" &&
+    const incomplete = found.diagnostic.message == "" &&
         (
             found.condition == null || found.step == null
         )
-        -> {
-            initial: arguments[0],
-            readonly_node: node.count == 3 ? arguments[2] : null,
-            condition: found.condition ?? 0,
-            step: found.step ?? 0,
-            result_node: found.result_node,
-            postcondition: found.postcondition,
-            diagnostic: _ ? {
+
+    return {
+        initial: arguments[0],
+        condition: found.condition ?? 0,
+        step: found.step ?? 0,
+        result_node: found.result_node,
+        postcondition: found.postcondition,
+        diagnostic: match {
+            incomplete => {
                 code: "type_mismatch",
                 message: "loop requires while and exactly one next or do step",
                 start: rules.span.start,
                 end: rules.span.end
-            } : found.diagnostic
+            },
+            _ => found.diagnostic
         }
+    }
 }

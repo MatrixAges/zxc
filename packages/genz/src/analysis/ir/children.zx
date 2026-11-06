@@ -106,9 +106,12 @@ export default function (in: Input): Output {
     }
 
     const condition = (
-        - kind == ExpressionKind.List
-        - or kind == ExpressionKind.Tuple
-        - or kind == ExpressionKind.Template
+        match kind {
+            ExpressionKind.List => true,
+            ExpressionKind.Tuple => true,
+            ExpressionKind.Template => true,
+            _ => false
+        }
     )
 
     if (condition) {
@@ -154,7 +157,7 @@ export default function (in: Input): Output {
         const subject = table.match_subjects[payload]
         const prefix = subject == null ? empty : empty.push(subject)[0]
 
-        return loop({
+        const fields = loop({
             table,
             items: prefix,
             position: integers.widen(table.match_first[payload]),
@@ -177,22 +180,24 @@ export default function (in: Input): Output {
             },
             return: state => state.items
         })
-            -> _.push(table.match_fallbacks[payload])[0]
+
+        return fields.push(table.match_fallbacks[payload])[0]
     }
 
     if (kind == ExpressionKind.Object) {
-        return range({
+        const return_input = range({
             items: table.object_field_values,
             first: integers.widen(table.object_first[payload]),
             count: integers.widen(table.object_count[payload]),
             prefix: empty
         })
-            -> range({
-                items: table.object_evaluation_values,
-                first: integers.widen(table.object_evaluation_first[payload]),
-                count: integers.widen(table.object_evaluation_count[payload]),
-                prefix: _
-            })
+
+        return range({
+            items: table.object_evaluation_values,
+            first: integers.widen(table.object_evaluation_first[payload]),
+            count: integers.widen(table.object_evaluation_count[payload]),
+            prefix: return_input
+        })
     }
 
     return empty

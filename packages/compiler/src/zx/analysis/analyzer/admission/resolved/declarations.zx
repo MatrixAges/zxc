@@ -105,19 +105,24 @@ export default function (in: Input): Output {
                             names.valid = callable
                         }
 
+                        const not_function = names.item.kind != ImportKind.Function
+
                         const condition = (
                             - names.valid
                             - and !callable
-                            - and names.item.kind != ImportKind.Function
+                            - and not_function
                         )
 
                         if (condition) {
                             const value =
-                                names.item.kind == ImportKind.Enumeration &&
-                                names.input.constants != null ? constant({
-                                    constants: names.input.constants,
-                                    name
-                                }) : null
+                                match {
+                                    names.item.kind == ImportKind.Enumeration &&
+                                        names.input.constants != null => constant({
+                                            constants: names.input.constants,
+                                            name
+                                        }),
+                                    _ => null
+                                }
 
                             const matched = loop({
                                 input: names.input,

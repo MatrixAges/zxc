@@ -31,21 +31,21 @@ export default function (in: Input): Output {
                 _ => false
             }
             const first = integers.widen(current.types.first[index])
-            const leaf = (
-                - primitive
-                - or (
-                    (target == Kind.Optional || target == Kind.List) &&
-                        current.values[first] == Layout.Leaf
-                )
-            )
-            const represented = (
-                - target == Kind.Optional
-                - and (
-                    current.values[first] == Layout.Product ||
-                        current.values[first] == Layout.FlatProduct ||
-                        current.values[first] == Layout.WrappedProduct
-                )
-            )
+            const leaf = match {
+                primitive => true,
+                target == Kind.Optional || target == Kind.List =>
+                    current.values[first] == Layout.Leaf,
+                _ => false
+            }
+            const represented = match target {
+                Kind.Optional => match current.values[first] {
+                    Layout.Product => true,
+                    Layout.FlatProduct => true,
+                    Layout.WrappedProduct => true,
+                    _ => false
+                },
+                _ => false
+            }
 
             const members = loop({
                 types: current.types,
@@ -57,8 +57,10 @@ export default function (in: Input): Output {
             }, {
                 while: items => items.valid && items.index < items.end,
                 next: items => {
-                    const child = items.object ? items.types.field_types[items.index] :
-                        items.types.children[items.index]
+                    const child = match {
+                        items.object => items.types.field_types[items.index],
+                        _ => items.types.children[items.index]
+                    }
 
                     items.valid = items.values[integers.widen(child)] == Layout.Leaf
                     items.index += 1

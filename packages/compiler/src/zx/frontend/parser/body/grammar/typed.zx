@@ -9,7 +9,7 @@ export type Input = State
 export type Output = State
 
 export default function (in: Input): Output {
-    const types = {
+    const token = {
         kind: in.expression.control.token.kind,
         word: in.expression.control.token.word,
         symbol: in.expression.control.token.symbol,
@@ -20,19 +20,24 @@ export default function (in: Input): Output {
         line_break: in.expression.control.token.line_break,
         dollar: in.expression.control.token.dollar
     }
-        -> typeStep({
-            state: in.expression.types,
-            token: _
-        })
+
+    const types = typeStep({
+        state: in.expression.types,
+        token: token
+    })
 
     const index = types.control.index
 
-    const root_index = in.expression.control.stream == 0 ? index :
-        in.expression.control.root_index
+    const root_index = match {
+        in.expression.control.stream == 0 => index,
+        _ => in.expression.control.root_index
+    }
 
     const last_end =
-        index == in.expression.control.index ? in.expression.control.last_end :
-        in.expression.control.token.span.end
+        match {
+            index == in.expression.control.index => in.expression.control.last_end,
+            _ => in.expression.control.token.span.end
+        }
 
     const failed = types.control.diagnostic.message != ""
     const done = typeDone(types.control.phase)
@@ -52,24 +57,25 @@ export default function (in: Input): Output {
         }
     }
 
-    return match {
+    const phase = match {
         failed => Phase.Done,
         done => Phase.ConstAssign,
         _ => Phase.Type
     }
-        -> {
-            expression,
-            tree: in.tree,
-            frames: in.frames,
-            suspended: in.suspended,
-            frame: {
-                ...in.frame,
-                annotation
-            },
-            control: {
-                ...in.control,
-                phase: _,
-                expression_diagnostic: failed
-            }
+
+    return {
+        expression,
+        tree: in.tree,
+        frames: in.frames,
+        suspended: in.suspended,
+        frame: {
+            ...in.frame,
+            annotation
+        },
+        control: {
+            ...in.control,
+            phase: phase,
+            expression_diagnostic: failed
         }
+    }
 }

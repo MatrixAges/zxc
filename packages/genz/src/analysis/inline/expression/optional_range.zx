@@ -1,0 +1,23 @@
+export type Input = {
+    items: u32?[],
+    first: u64,
+    count: u64
+}
+
+export type Output = u32?[]
+
+export default function (in: Input): Output {
+    const items: u32?[] = []
+
+    return loop({
+        position: in.first,
+        items
+    }, {
+        while: state => state.position < in.first + in.count,
+        next: state => {
+            state.items = state.items.push(in.items[state.position])[0]
+            state.position += 1
+        },
+        return: state => state.items
+    })
+}

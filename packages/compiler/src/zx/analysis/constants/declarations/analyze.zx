@@ -72,10 +72,13 @@ export default function (in: Input): Output {
                 constant,
                 native: current.input.native,
                 types: current.types,
-                scope: current.names.length != 0 ? {
-                    names: current.names,
-                    values: current.values
-                } : null
+                scope: match {
+                    current.names.length != 0 => {
+                        names: current.names,
+                        values: current.values
+                    },
+                    _ => null
+                }
             })
 
             current.types = evaluated.types
@@ -103,10 +106,13 @@ export default function (in: Input): Output {
 
     return {
         types: result.types,
-        scope: result.names.length != 0 ? {
-            names: result.names,
-            values: result.values
-        } : null,
+        scope: match {
+            result.names.length != 0 => {
+                names: result.names,
+                values: result.values
+            },
+            _ => null
+        },
         first,
         diagnostic: result.diagnostic
     }

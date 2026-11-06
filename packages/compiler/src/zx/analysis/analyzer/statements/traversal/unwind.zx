@@ -10,26 +10,27 @@ export default function (in: Input): Output {
     const frame = in.blocks.frames[0]
     const state = in.expression.state
 
-    return restore({
+    const facts = restore({
         facts: state.local.refinement.facts,
         mark: frame.facts_mark
     })
-        -> {
-            ...in,
-            expression: {
-                ...in.expression,
-                state: {
-                    ...state,
-                    local: {
-                        ...state.local,
-                        active:
-                            state.local.active.splice(0, frame.active_mark, [])[1],
-                        refinement: {
-                            ...state.local.refinement,
-                            facts: _
-                        }
+
+    return {
+        ...in,
+        expression: {
+            ...in.expression,
+            state: {
+                ...state,
+                local: {
+                    ...state.local,
+                    active:
+                        state.local.active.splice(0, frame.active_mark, [])[1],
+                    refinement: {
+                        ...state.local.refinement,
+                        facts: facts
                     }
                 }
             }
         }
+    }
 }

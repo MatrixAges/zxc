@@ -14,19 +14,19 @@ export type Output = ExprState
 export default function (in: Input): Output {
     const minimum = in.minimum
     const allow_lambda = in.allow_lambda
+    const fresh = in.fresh
 
-    return in.fresh
-        -> {
-            prepared: in.state.prepared,
-            tree: in.state.tree,
-            types: in.state.types,
-            frames: in.state.frames,
-            control: {
-                ...in.state.control,
-                phase: Phase.BeginBinary,
-                minimum,
-                allow_lambda,
-                fresh_family: _
-            }
+    return {
+        prepared: in.state.prepared,
+        tree: in.state.tree,
+        types: in.state.types,
+        frames: in.state.frames,
+        control: {
+            ...in.state.control,
+            phase: Phase.BeginBinary,
+            minimum,
+            allow_lambda,
+            fresh_family: fresh
         }
+    }
 }

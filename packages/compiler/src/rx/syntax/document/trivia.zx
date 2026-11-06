@@ -38,10 +38,13 @@ export default function (in: Input): Output {
             count: parsed.end - start
         })
 
-        return parsed.message == no_diagnostic ? state : fail({
-            state,
-            message: parsed.message
-        })
+        return match {
+            parsed.message == no_diagnostic => state,
+            _ => fail({
+                state,
+                message: parsed.message
+            })
+        }
     }
 
     const state = advance({

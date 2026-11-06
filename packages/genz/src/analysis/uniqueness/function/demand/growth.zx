@@ -19,13 +19,13 @@ export default function (in: Input): Output {
     const index = loop({
         index: 0
     }, {
-        while: (state, source) => state.index < source.entries.length &&
-            source.entries[state.index].key != source.key,
+        while: state => state.index < in.entries.length &&
+            in.entries[state.index].key != in.key,
         next: state => {
             state.index += 1
         },
         return: state => state.index
-    }, in)
+    })
 
     if (index == in.entries.length) {
         return {
@@ -45,10 +45,13 @@ export default function (in: Input): Output {
     }))
 
     return {
-        entries: next == before ? in.entries : in.entries.with(index, {
-            key: in.key,
-            value: next
-        }),
+        entries: match {
+            next == before => in.entries,
+            _ => in.entries.with(index, {
+                key: in.key,
+                value: next
+            })
+        },
         grew: next != before
     }
 }

@@ -29,69 +29,78 @@ export default function (in: Input): Output {
             })
         }
 
-        return in.control.result
-            -> addNode({
-                state: in,
-                kind: TypeKind.List,
-                name: {
-                    start: 0,
-                    end: 0
-                },
-                child: _,
-                head: 0,
-                count: 0
-            })
-            -> consume({
-                state: _,
-                phase: Phase.Suffix
-            })
+        const child = in.control.result
+
+        const state = addNode({
+            state: in,
+            kind: TypeKind.List,
+            name: {
+                start: 0,
+                end: 0
+            },
+            child: child,
+            head: 0,
+            count: 0
+        })
+
+        return consume({
+            state: state,
+            phase: Phase.Suffix
+        })
     }
 
     if (in.control.phase == Phase.Name && in.control.token.symbol == Symbol.Less) {
-        return {
+        const name = {
             start: in.control.name.start,
             end: in.control.name.end
         }
-            -> open({
-                state: in,
-                kind: TypeKind.Application,
-                name: _,
-                phase: Phase.Start
-            })
+
+        return open({
+            state: in,
+            kind: TypeKind.Application,
+            name: name,
+            phase: Phase.Start
+        })
     }
 
     const named = in.control.phase == Phase.Name
 
-    const state = {
+    const name = {
         start: in.control.name.start,
         end: in.control.name.end
     }
-        -> (named ? addNode({
+
+    const state = match {
+        named => addNode({
             state: in,
             kind: TypeKind.Named,
-            name: _,
+            name: name,
             child: 0,
             head: 0,
             count: 0
-        }) : in)
+        }),
+        _ => in
+    }
 
     if (state.control.token.symbol == Symbol.Question) {
-        return state.control.result
-            -> addNode({
-                state,
-                kind: TypeKind.Optional,
-                name: {
-                    start: 0,
-                    end: 0
-                },
-                child: _,
-                head: 0,
-                count: 0
-            })
-            -> consume({
-                state: _,
-                phase: Phase.Suffix
-            })
+        const child = state.control.result
+
+        const completed = addNode({
+            state,
+            kind: TypeKind.Optional,
+            name: {
+                start: 0,
+                end: 0
+            },
+            child: child,
+            head: 0,
+            count: 0
+        })
+
+        return consume({
+            state: completed,
+            phase: Phase.Suffix
+        })
     }
 
     if (state.control.token.symbol == Symbol.OpenBracket) {

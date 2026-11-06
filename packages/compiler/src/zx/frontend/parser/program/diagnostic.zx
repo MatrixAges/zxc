@@ -40,13 +40,17 @@ export default function (in: Input): Output {
         const lexical_index = expression.control.lexical_diagnostic
 
         if (lexical_index != 0) {
-            return lexical_index == 1 ? lexical :
-                expression.prepared.lexical.interpolations[lexical_index -
+            return match {
+                lexical_index == 1 => lexical,
+                _ => expression.prepared.lexical.interpolations[lexical_index -
                     2].lexed.diagnostic
+            }
         }
 
-        return expression.control.type_diagnostic ? expression.types.control.diagnostic :
-            expression.control.diagnostic
+        return match {
+            expression.control.type_diagnostic => expression.types.control.diagnostic,
+            _ => expression.control.diagnostic
+        }
     }
 
     if (in.body.control.diagnostic.message != "") {

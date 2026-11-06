@@ -35,23 +35,28 @@ export default function (in: Input): Output {
 
     const expressions = in.state.expressions
 
-    const target = in.state.source.imported ? {
-        ...expressions,
-        tags: expressions.tags.push(ExpressionsKind.Field)[0],
-        offsets: expressions.offsets.push(
-            integers.narrow(
-                expressions.field_target.length
-            )
-        )[0],
-        field_target: expressions.field_target.push(0)[0],
-        field_name: expressions.field_name.push(bytes.fromText(scoped))[0]
-    } : {
-        ...expressions,
-        tags: expressions.tags.push(ExpressionsKind.Identifier)[0],
-        offsets: expressions.offsets.push(
-            integers.narrow(expressions.identifier.length)
-        )[0],
-        identifier: expressions.identifier.push(bytes.fromText(scoped))[0]
+    const target = match {
+        in.state.source.imported => {
+            ...expressions,
+            tags: expressions.tags.push(ExpressionsKind.Field)[0],
+            offsets: expressions.offsets.push(
+                integers.narrow(
+                    expressions.field_target.length
+                )
+            )[0],
+            field_target: expressions.field_target.push(0)[0],
+            field_name: expressions.field_name.push(bytes.fromText(scoped))[0]
+        },
+        _ => {
+            ...expressions,
+            tags: expressions.tags.push(ExpressionsKind.Identifier)[0],
+            offsets: expressions.offsets.push(
+                integers.narrow(
+                    expressions.identifier.length
+                )
+            )[0],
+            identifier: expressions.identifier.push(bytes.fromText(scoped))[0]
+        }
     }
 
     const members = loop({

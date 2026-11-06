@@ -1,0 +1,42 @@
+import type { Graph } from "./model"
+
+export type Input = {
+    graph: Graph,
+    index: u64,
+    column: u64,
+    limit: u64,
+    layout: bool
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const graph = in.graph
+    const token = graph.input.tokens[in.index]
+    const partner = graph.partners[in.index]
+
+    if (!in.layout || partner == null) {
+        return false
+    }
+
+    if (partner <= in.index + 1 || token.block) {
+        return false
+    }
+
+    const children = graph.vertical_counts[partner] > graph.vertical_counts[in.index]
+
+    const tail = match {
+        partner + 1 < graph.trailers.length => graph.trailers[partner + 1],
+        _ => 0
+    }
+
+    const size = graph.widths[partner] - graph.widths[in.index] +
+        graph.input.tokens[partner].text.length
+
+    return match {
+        token.object => true,
+        token.multiline => true,
+        children => false,
+        _ => in.column + token.gap + size + tail > in.limit
+    }
+}

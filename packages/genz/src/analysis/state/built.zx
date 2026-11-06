@@ -43,21 +43,24 @@ export default function (in: Input): Output {
         built,
         index: 0
     }, {
-        while: (state, source) => state.index < source.functions.input_types.length,
-        next: (state, source) => {
-            const input = source.functions.input_types[state.index]
+        while: state => state.index < in.functions.input_types.length,
+        next: state => {
+            const input = in.functions.input_types[state.index]
             const row = integers.widen(input)
-            const needed = (
-                - source.functions.native_modules[state.index] == null
+            const native_modules = in.functions.native_modules
+            const index = state.index
+            const local_input = (
+                - native_modules[index] == null
                 - and !state.built[row]
-                - and kind(source.types.kinds[row]) == Kind.Object
             )
 
-            if (needed) {
-                if (shared({
-                    types: source.types,
+            if (local_input) {
+                const target = kind(in.types.kinds[row])
+
+                if (target == Kind.Object && shared({
+                    types: in.types,
                     input,
-                    output: source.functions.output_types[state.index]
+                    output: in.functions.output_types[state.index]
                 })) {
                     state.built = state.built.with(row, true)
                 }
@@ -66,5 +69,5 @@ export default function (in: Input): Output {
             state.index += 1
         },
         return: state => state.built
-    }, in)
+    })
 }

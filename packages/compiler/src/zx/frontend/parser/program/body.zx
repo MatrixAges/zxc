@@ -11,13 +11,19 @@ export type Output = BodyStage
 
 export default function (in: Input): Output {
     return loop(initial(in), {
-        while: value =>
-            (
+        while: value => {
+            const header = value.header
+            const header_valid = header.diagnostic.message == ""
+            const expression_valid = !header.expression_diagnostic
+            const body_active = value.body.control.phase != Phase.Done
+
+            return (
                 - value.prefix.present
-                - and value.header.diagnostic.message == ""
-                - and !value.header.expression_diagnostic
-                - and value.body.control.phase != Phase.Done
-            ),
+                - and header_valid
+                - and expression_valid
+                - and body_active
+            )
+        },
         next: value => {
             value = advance(value)
         }

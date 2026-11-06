@@ -54,10 +54,12 @@ export default function (in: Input): Output {
                 ) {
                     const child =
                         integers.widen(
-                            expression_kind ==
-                                ExpressionKind.AwaitTask ?
-                                current.expressions.awaits[payload] :
-                                current.expressions.cancellations[payload]
+                            match {
+                                expression_kind ==
+                                    ExpressionKind.AwaitTask =>
+                                    current.expressions.awaits[payload],
+                                _ => current.expressions.cancellations[payload]
+                            }
                         )
                     const child_kind = current.expressions.kinds[child]
 
@@ -73,13 +75,17 @@ export default function (in: Input): Output {
                     const parallel = expression_kind == ExpressionKind.Parallel
                     const count =
                         integers.widen(
-                            parallel ? current.expressions.parallel_count[payload] :
-                                current.expressions.scope_count[payload]
+                            match {
+                                parallel => current.expressions.parallel_count[payload],
+                                _ => current.expressions.scope_count[payload]
+                            }
                         )
                     const first =
                         integers.widen(
-                            parallel ? current.expressions.parallel_first[payload] :
-                                current.expressions.scope_first[payload]
+                            match {
+                                parallel => current.expressions.parallel_first[payload],
+                                _ => current.expressions.scope_first[payload]
+                            }
                         )
 
                     if (current.edge == count) {
@@ -89,8 +95,11 @@ export default function (in: Input): Output {
                         const offset = first + current.edge
                         const child =
                             integers.widen(
-                                parallel ? current.expressions.parallel_tasks[offset] :
-                                    current.expressions.scope_values[offset]
+                                match {
+                                    parallel =>
+                                        current.expressions.parallel_tasks[offset],
+                                    _ => current.expressions.scope_values[offset]
+                                }
                             )
                         const type_id =
                             integers.widen(

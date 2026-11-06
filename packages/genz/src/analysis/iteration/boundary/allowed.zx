@@ -1,0 +1,38 @@
+import descendant from "../../types/descendant"
+
+import type { Input as Layout } from "../model"
+
+export type Input = {
+    source: Layout,
+    boundary: u32,
+    input: u32,
+    index: u64
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    if (in.input == in.boundary) {
+        return false
+    }
+
+    const output = in.source.function_outputs[in.index]
+
+    if (output == in.boundary) {
+        return false
+    }
+
+    if (descendant({
+        types: in.source.types,
+        parent: in.input,
+        root: in.boundary
+    })) {
+        return false
+    }
+
+    return !descendant({
+        types: in.source.types,
+        parent: output,
+        root: in.boundary
+    })
+}

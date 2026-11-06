@@ -12,10 +12,10 @@ export default function (in: Input): Output {
         index: 0,
         values
     }, {
-        while: (state, context) => state.index < context.repeated.length,
-        next: (state, context) => {
-            const expressions = context.context.metadata.expressions
-            const owner = context.repeated[state.index]
+        while: state => state.index < in.repeated.length,
+        next: state => {
+            const expressions = in.context.metadata.expressions
+            const owner = in.repeated[state.index]
             const node = integers.widen(owner)
             const payload = integers.widen(expressions.payloads[node])
 
@@ -50,5 +50,5 @@ export default function (in: Input): Output {
             state.index += 1
         },
         return: state => state.values
-    }, in)
+    })
 }

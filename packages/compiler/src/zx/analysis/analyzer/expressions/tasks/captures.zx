@@ -67,8 +67,10 @@ export default function (in: Input): Output {
                     if (host || task) {
                         current.state.diagnostic = {
                             code: host ? "capability" : "ownership",
-                            message: host ? "tasks cannot capture host references" :
-                                "tasks cannot capture other task handles",
+                            message: match {
+                                host => "tasks cannot capture host references",
+                                _ => "tasks cannot capture other task handles"
+                            },
                             start: current.span.start,
                             end: current.span.end
                         }

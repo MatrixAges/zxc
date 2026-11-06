@@ -1,0 +1,107 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import { ExpressionsKind } from "../../../../printer/model/expressions"
+import { standard_binding, io_member, future_member } from "../../abi/const"
+import members from "../../abi/members"
+
+import type { Build } from "../model"
+
+export type Input = {
+    state: Build,
+    start: u32,
+    child: u32,
+    errors: u32
+}
+
+export type Output = Build
+
+export default function (in: Input): Output {
+    const start = in.start
+    const first = in.child
+    const errors = integers.widen(in.errors)
+
+    const standard = {
+        ...in.state,
+        tags: in.state.tags.push(ExpressionsKind.Identifier)[0],
+        offsets: in.state.offsets.push(
+            integers.narrow(
+                in.state.identifier.length
+            )
+        )[0],
+        identifier: in.state.identifier.push(
+            bytes.fromText(
+                standard_binding
+            )
+        )[0]
+    }
+
+    const io = {
+        ...standard,
+        tags: standard.tags.push(ExpressionsKind.Field)[0],
+        offsets: standard.offsets.push(
+            integers.narrow(
+                standard.field_target.length
+            )
+        )[0],
+        field_target: standard.field_target.push(start)[0],
+        field_name:
+            standard.field_name.push(bytes.fromText(io_member))[0]
+    }
+
+    const future = {
+        ...io,
+        tags: io.tags.push(ExpressionsKind.Field)[0],
+        offsets: io.offsets.push(
+            integers.narrow(
+                io.field_target.length
+            )
+        )[0],
+        field_target: io.field_target.push(start + 1)[0],
+        field_name: io.field_name.push(
+            bytes.fromText(
+                future_member
+            )
+        )[0]
+    }
+
+    const error_union = {
+        ...future,
+        tags: future.tags.push(ExpressionsKind.ErrorUnion)[0],
+        offsets: future.offsets.push(
+            integers.narrow(
+                future.error_union_payload.length
+            )
+        )[0],
+        error_union_payload: future.error_union_payload.push(
+            future.values[integers.widen(
+                first
+            )]
+        )[0],
+        error_union_errors: future.error_union_errors.push(members({
+            names: future.source.types.names,
+            start: future.source.types.first[errors],
+            count: future.source.types.second[errors]
+        }))[0],
+        error_union_inferred:
+            future.error_union_inferred.push(false)[0]
+    }
+
+    const call = {
+        ...error_union,
+        tags: error_union.tags.push(ExpressionsKind.Call)[0],
+        offsets: error_union.offsets.push(
+            integers.narrow(
+                error_union.call_callee.length
+            )
+        )[0],
+        call_callee: error_union.call_callee.push(start + 2)[0]
+    }
+
+    const arguments: u32[] = [start + 3]
+
+    return {
+        ...call,
+        call_arguments: call.call_arguments.push(arguments)[0]
+    }
+}

@@ -11,26 +11,44 @@ export default function (in: Input): Output {
     const table = in.functions
     const count = table.files.length
 
+    const different_input_types = table.input_types.length != count
+    const different_output_types = table.output_types.length != count
+    const different_ownership = table.ownership.length != count
+    const different_store_modes = table.store_modes.length != count
+    const different_contracts = table.contracts.length != count
+    const different_native_inputs = table.native_inputs.length != count
+    const different_native_modules = table.native_modules.length != count
+    const different_native_members = table.native_members.length != count
+    const different_native_exports = table.native_exports.length != count
+    const different_native_allocato = table.native_allocators.length != count
+    const different_native_io = table.native_io.length != count
+    const different_native_process = table.native_process.length != count
+    const different_native_tuples = table.native_tuples.length != count
+    const different_native_fallible = table.native_fallible.length != count
+    const different_native_errors = table.native_errors.length != count
+    const different_native_concurre = table.native_concurrent.length != count
+    const different_expressions = table.expressions.length != count
+
     const condition = (
         - count > in.maximum_count
-        - or table.input_types.length != count
-        - or table.output_types.length != count
-        - or table.ownership.length != count
-        - or table.store_modes.length != count
-        - or table.contracts.length != count
-        - or table.native_inputs.length != count
-        - or table.native_modules.length != count
-        - or table.native_members.length != count
-        - or table.native_exports.length != count
-        - or table.native_allocators.length != count
-        - or table.native_io.length != count
-        - or table.native_process.length != count
-        - or table.native_tuples.length != count
-        - or table.native_fallible.length != count
-        - or table.native_errors.length != count
-        - or table.native_concurrent.length != count
+        - or different_input_types
+        - or different_output_types
+        - or different_ownership
+        - or different_store_modes
+        - or different_contracts
+        - or different_native_inputs
+        - or different_native_modules
+        - or different_native_members
+        - or different_native_exports
+        - or different_native_allocato
+        - or different_native_io
+        - or different_native_process
+        - or different_native_tuples
+        - or different_native_fallible
+        - or different_native_errors
+        - or different_native_concurre
         - or table.symbols.length != count
-        - or table.expressions.length != count
+        - or different_expressions
         - or table.control.length != count
         - or table.roots.length != count
         - or table.stores.length != count
@@ -50,19 +68,19 @@ export default function (in: Input): Output {
             const index = current.index
 
             if (current.table.native_modules[index] == null) {
-                current.valid =
-                    (
-                        - current.table.native_inputs[index] == null
-                        - and current.table.native_members[index].length == 0
-                        - and current.table.native_exports[index] == null
-                        - and !current.table.native_allocators[index]
-                        - and !current.table.native_io[index]
-                        - and !current.table.native_process[index]
-                        - and !current.table.native_tuples[index]
-                        - and !current.table.native_fallible[index]
-                        - and current.table.native_errors[index] == null
-                        - and !current.table.native_concurrent[index]
-                    )
+                const table = current.table
+                current.valid = match {
+                    table.native_inputs[index] != null => false,
+                    table.native_members[index].length != 0 => false,
+                    table.native_exports[index] != null => false,
+                    table.native_allocators[index] => false,
+                    table.native_io[index] => false,
+                    table.native_process[index] => false,
+                    table.native_tuples[index] => false,
+                    table.native_fallible[index] => false,
+                    table.native_errors[index] != null => false,
+                    _ => !table.native_concurrent[index]
+                }
             }
 
             current.index += 1

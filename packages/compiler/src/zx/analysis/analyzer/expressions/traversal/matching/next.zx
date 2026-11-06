@@ -28,10 +28,12 @@ export default function (in: Input): Output {
     const arm = in.source.tree.arms[frame.arms[frame.index]]
     const subject = frame.subject
 
-    const expected: u32 = subject == null ? 1 :
-        in.state.local.expressions.types[integers.widen(
+    const expected: u32 = match {
+        subject == null => 1,
+        _ => in.state.local.expressions.types[integers.widen(
             subject
         )]
+    }
 
     return {
         ...in,

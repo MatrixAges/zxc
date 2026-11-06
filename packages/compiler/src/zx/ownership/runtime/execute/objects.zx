@@ -21,16 +21,20 @@ export type Output = Machine
 
 export default function (in: Input): Output {
     return loop(in, {
-        while: current =>
-            (
+        while: current => {
+            const actions = current.work.actions
+            const ready = (
                 - current.active
                 - and current.complete
                 - and !current.failed
-                - and current.work.actions.length != 0
-                - and family(
-                    current.work.actions[current.work.actions.length - 1]
-                ) == Family.Objects
-            ),
+                - and actions.length != 0
+            )
+
+            return match {
+                ready => family(actions[actions.length - 1]) == Family.Objects,
+                _ => false
+            }
+        },
         next: current => {
             const frame = top(current.work)
 
@@ -163,14 +167,15 @@ export default function (in: Input): Output {
                     })
                 }
             } else if (frame.action == WorkAction.ObjectFieldResult) {
+                const field_input = integers.widen(
+                    current.program.expressions.payloads[frame.subject]
+                )
+
                 const field =
                     integers.widen(
-                        current.program.expressions.payloads[frame.subject]
-                    )
-                    -> integers.widen(
                         current.program.expressions
                             .object_field_indices[integers.widen(
-                                current.program.expressions.object_first[_]
+                                current.program.expressions.object_first[field_input]
                             ) + frame.index]
                     )
                 const first =

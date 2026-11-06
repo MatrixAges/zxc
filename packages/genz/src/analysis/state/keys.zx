@@ -40,15 +40,13 @@ export default function (in: Input): Output {
         while: current => current.index < current.types.kinds.length,
         next: current => {
             const target = kind(current.types.kinds[current.index])
-            const chosen =
-                (
-                    - target == Kind.List
-                    - or (
-                        !current.boxed[current.index] && (
-                            target == Kind.Object || target == Kind.Tuple
-                        )
-                    )
-                )
+            const index = current.index
+            const boxed = current.boxed
+            const aggregate = target == Kind.Object || target == Kind.Tuple
+            const chosen = (
+                - target == Kind.List
+                - or (!boxed[index] && aggregate)
+            )
             const flag: u8 = match {
                 current.borrowed[current.index] => reference_layout_flag,
                 chosen => inline_layout_flag,
@@ -58,8 +56,11 @@ export default function (in: Input): Output {
                 types: current.types,
                 keys: current.keys,
                 bytes: current.prefix.push(
-                    current.element_storage[current.index] ?
-                        flag + element_layout_flag : flag
+                    match {
+                        current.element_storage[current.index] =>
+                            flag + element_layout_flag,
+                        _ => flag
+                    }
                 )[0],
                 index: current.index,
                 chosen

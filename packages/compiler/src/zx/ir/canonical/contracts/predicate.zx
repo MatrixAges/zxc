@@ -31,12 +31,11 @@ export default function (in: Input): Output {
         return false
     }
 
-    const condition = (
-        - parameters == 2
-        - and (
-            symbols.names[1] != "out" || symbols.types[1] != program.output_type
-        )
-    )
+    const condition = match {
+        parameters != 2 => false,
+        symbols.names[1] != "out" => true,
+        _ => symbols.types[1] != program.output_type
+    }
 
     if (condition) {
         return false

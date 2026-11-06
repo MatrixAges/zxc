@@ -74,16 +74,14 @@ export default function (in: Input): Output {
                     index: current.node
                 }).text
 
-                const condition = (
-                    - type_row.kind != Kind.Object
-                    - or index >= type_row.second
-                    - or table
-                        .field_names[integers.widen(
-                            type_row.first
-                        ) + integers.widen(
-                            index
-                        )] != name
-                )
+                const condition = match {
+                    type_row.kind != Kind.Object => true,
+                    index >= type_row.second => true,
+                    _ => table
+                        .field_names[
+                            integers.widen(type_row.first) + integers.widen(index)
+                        ] != name
+                }
 
                 if (condition) {
                     current.active = false
@@ -112,22 +110,25 @@ export default function (in: Input): Output {
         node: path.node
     })
 
-    const symbol = in.context.pipeline != null ? pipelineSymbol({
-        context: in.context,
-        node: path.node
-    }) : match {
-        binding.symbol != null => binding.symbol,
-        source.tree.nodes[path.node].kind == ExprKind.Identifier => lookup({
-            active: local.active,
-            names: local.symbols.names,
-            scope_floor: local.scope_floor,
-            name: readName({
-                source,
-                kind: NameKind.Expression,
-                index: path.node
-            }).text
+    const symbol = match {
+        in.context.pipeline != null => pipelineSymbol({
+            context: in.context,
+            node: path.node
         }),
-        _ => null,
+        _ => match {
+            binding.symbol != null => binding.symbol,
+            source.tree.nodes[path.node].kind == ExprKind.Identifier => lookup({
+                active: local.active,
+                names: local.symbols.names,
+                scope_floor: local.scope_floor,
+                name: readName({
+                    source,
+                    kind: NameKind.Expression,
+                    index: path.node
+                }).text
+            }),
+            _ => null,
+        }
     }
 
     return symbol != null &&

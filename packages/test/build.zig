@@ -3,9 +3,10 @@ const std = @import("std");
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
-    const compiler = b.dependency("compiler", .{ .target = target, .optimize = optimize });
+    const stage0 = b.option([]const u8, "stage0", "Pinned bootstrap generator executable") orelse "";
+    const compiler = b.dependency("compiler", .{ .target = target, .optimize = optimize, .stage0 = stage0 });
     const zig_archive = b.option([]const u8, "zig-archive", "Official Zig archive for the zxc host");
-    const cli_dependency = if (zig_archive) |path| b.dependency("cli", .{ .target = target, .optimize = optimize, .@"zig-archive" = path }) else b.dependency("cli", .{ .target = target, .optimize = optimize });
+    const cli_dependency = if (zig_archive) |path| b.dependency("cli", .{ .target = target, .optimize = optimize, .@"zig-archive" = path, .stage0 = stage0 }) else b.dependency("cli", .{ .target = target, .optimize = optimize, .stage0 = stage0 });
     const test_step = b.step("test", "Run ZX conformance catalogs and their integrity checks");
     const suites = @import("build/catalog.zig").load(b);
 

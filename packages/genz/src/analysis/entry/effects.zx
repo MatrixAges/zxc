@@ -30,17 +30,18 @@ export default function (in: Input): Output {
         tasks: false
     })
 
-    return !expressions({
+    const tasks = !expressions({
         expressions: in.expressions,
         allowed: in.tasks,
         expected: false,
         limit: in.tasks.length,
         tasks: true
     })
-        -> {
-            io,
-            process,
-            body_process,
-            tasks: _
-        }
+
+    return {
+        io,
+        process,
+        body_process,
+        tasks: tasks
+    }
 }

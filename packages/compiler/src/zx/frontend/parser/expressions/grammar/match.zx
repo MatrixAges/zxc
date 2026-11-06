@@ -58,20 +58,21 @@ export default function (in: Input): Output {
 
     if (taken.state.control.phase == Phase.MatchStart) {
         if (taken.state.control.token.symbol == Symbol.OpenBrace) {
-            return taken.state.frames.push({
+            const frames = taken.state.frames.push({
                 ...taken.frame,
                 kind: FrameKind.MatchCondition
             })[0]
-                -> consume({
-                    state: {
-                        prepared: taken.state.prepared,
-                        tree: taken.state.tree,
-                        types: taken.state.types,
-                        frames: _,
-                        control: taken.state.control
-                    },
-                    phase: Phase.MatchCondition
-                })
+
+            return consume({
+                state: {
+                    prepared: taken.state.prepared,
+                    tree: taken.state.tree,
+                    types: taken.state.types,
+                    frames: frames,
+                    control: taken.state.control
+                },
+                phase: Phase.MatchCondition
+            })
         }
 
         const frames = taken.state.frames.push(taken.frame)[0]
@@ -101,20 +102,21 @@ export default function (in: Input): Output {
     }
 
     if (taken.state.control.token.word == Keyword.Underscore) {
-        return taken.state.frames.push({
+        const frames = taken.state.frames.push({
             ...taken.frame,
             kind: FrameKind.MatchFallback
         })[0]
-            -> consume({
-                state: {
-                    prepared: taken.state.prepared,
-                    tree: taken.state.tree,
-                    types: taken.state.types,
-                    frames: _,
-                    control: taken.state.control
-                },
-                phase: Phase.MatchFallbackArrow
-            })
+
+        return consume({
+            state: {
+                prepared: taken.state.prepared,
+                tree: taken.state.tree,
+                types: taken.state.types,
+                frames: frames,
+                control: taken.state.control
+            },
+            phase: Phase.MatchFallbackArrow
+        })
     }
 
     const frames = taken.state.frames.push(taken.frame)[0]

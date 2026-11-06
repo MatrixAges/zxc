@@ -14,36 +14,40 @@ export type Input = {
 
 export type Output = Knowledge?
 
-    export default function (in: Input): Output {
-        const value: Knowledge? = null
+export default function (in: Input): Output {
+    const value: Knowledge? = null
 
-        const packed =
-            integers.widen(in.owner) * slot_stride + integers.widen(in.slot)
+    const packed =
+        integers.widen(in.owner) * slot_stride + integers.widen(in.slot)
 
-        const key = match in.kind {
-            GrowthKind.Normalized => integers.widen(in.owner),
-            GrowthKind.Value => integers.orBits(packed, value_renewal),
-            _ => packed
-        }
-
-        return loop({
-            index: 0,
-            value
-        }, {
-            while: (state, context) => state.value == null &&
-                state.index < context.values.length,
-            next: (state, context) => {
-                const entry = context.values[state.index]
-
-                if (entry.key == context.key) {
-                    state.value = entry.value
-                }
-
-                state.index += 1
-            },
-            return: state => state.value
-        }, {
-            values: in.values,
-            key
-        })
+    const key = match in.kind {
+        GrowthKind.Normalized => integers.widen(in.owner),
+        GrowthKind.Value => integers.orBits(packed, value_renewal),
+        _ => packed
     }
+
+    const loop_initial = {
+        index: 0,
+        value
+    }
+
+    const loop_scope = {
+        values: in.values,
+        key
+    }
+
+    return loop(loop_initial, {
+        while: state => state.value == null &&
+            state.index < loop_scope.values.length,
+        next: state => {
+            const entry = loop_scope.values[state.index]
+
+            if (entry.key == loop_scope.key) {
+                state.value = entry.value
+            }
+
+            state.index += 1
+        },
+        return: state => state.value
+    })
+}

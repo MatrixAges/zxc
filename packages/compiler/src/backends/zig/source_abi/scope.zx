@@ -4,32 +4,32 @@ import type { PlanInput as Input } from "./model"
 
 export type Output = u64?
 
-    export default function (in: Input): Output {
-        const empty: u64? = null
+export default function (in: Input): Output {
+    const empty: u64? = null
 
-        return loop({
-            roots: in.roots,
-            root: bytes.fromText(in.root),
-            selected: empty,
-            index: 0,
-            found: false
-        }, {
-            while: current => !current.found && current.index < current.roots.length,
-            next: current => {
-                if (
-                    bytes.equals(
-                        bytes.fromText(
-                            current.roots[current.index]
-                        ),
-                        current.root
-                    )
-                ) {
-                    current.selected = current.index
-                    current.found = true
-                }
+    return loop({
+        roots: in.roots,
+        root: bytes.fromText(in.root),
+        selected: empty,
+        index: 0,
+        found: false
+    }, {
+        while: current => !current.found && current.index < current.roots.length,
+        next: current => {
+            if (
+                bytes.equals(
+                    bytes.fromText(
+                        current.roots[current.index]
+                    ),
+                    current.root
+                )
+            ) {
+                current.selected = current.index
+                current.found = true
+            }
 
-                current.index += 1
-            },
-            return: state => state.selected
-        })
-    }
+            current.index += 1
+        },
+        return: state => state.selected
+    })
+}

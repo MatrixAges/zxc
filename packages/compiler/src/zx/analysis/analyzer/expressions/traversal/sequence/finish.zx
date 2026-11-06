@@ -16,25 +16,28 @@ export default function (in: Input): Output {
     const span = in.source.tree.nodes[frame.node].span
     const tuple = frame.tuple
 
-    const type_id = tuple != null ? {
-        state: in.state,
-        id: tuple
-    } : construct({
-        state: in.state,
-        candidate: {
-            kind: Kind.List,
-            first: frame.element ?? 0,
-            second: 0,
-            label: "",
-            children: [],
-            fields: {
-                names: [],
-                types: []
-            },
-            names: []
+    const type_id = match {
+        tuple != null => {
+            state: in.state,
+            id: tuple
         },
-        span
-    })
+        _ => construct({
+            state: in.state,
+            candidate: {
+                kind: Kind.List,
+                first: frame.element ?? 0,
+                second: 0,
+                label: "",
+                children: [],
+                fields: {
+                    names: [],
+                    types: []
+                },
+                names: []
+            },
+            span
+        })
+    }
 
     if (type_id.state.diagnostic.message != "") {
         return {

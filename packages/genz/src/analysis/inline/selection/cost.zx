@@ -1,0 +1,49 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import type { Expressions } from "core/expression_table/model"
+
+export type Input = {
+    table: Expressions,
+    marked: bool[],
+    costs: u64[],
+    limit: u64
+}
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    const table = in.table
+    const marked = in.marked
+    const costs = in.costs
+    const limit = in.limit
+
+    return loop({
+        position: 0,
+        cost: 0
+    }, {
+        while: current => current.position < marked.length,
+        next: current => {
+            if (
+                marked[current.position] &&
+                    table.kinds[current.position] == ExpressionKind.Call
+            ) {
+                const callee =
+                    integers.widen(
+                        table
+                            .call_functions[integers.widen(
+                                table.payloads[current.position]
+                            )]
+                    )
+
+                current.cost = match {
+                    current.cost > limit => current.cost,
+                    _ => current.cost + costs[callee]
+                }
+            }
+
+            current.position += 1
+        },
+        return: state => state.cost
+    })
+}

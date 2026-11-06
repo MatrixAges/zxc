@@ -24,13 +24,12 @@ export default function (in: Input): Output {
     if (kind == ExpressionKind.Reference) {
         const symbol = in.input.expressions.references[payload]
 
-        return (
-            - symbol == in.input.parameter
-            - or symbol == in.input.condition_parameter
-            - or (
-                in.binding != max_u32 && in.states[integers.widen(in.binding)]
-            )
-        )
+        return match {
+            symbol == in.input.parameter => true,
+            symbol == in.input.condition_parameter => true,
+            in.binding != max_u32 => in.states[integers.widen(in.binding)],
+            _ => false
+        }
     }
 
     if (kind == ExpressionKind.Scope) {

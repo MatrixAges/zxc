@@ -16,14 +16,18 @@ export default function (in: Input): Output {
         skip: false
     }))
 
-    const next = routed.active.present && !routed.skip ? feed({
-        state: routed,
-        byte: in.byte
-    }) : routed
+    const next = match {
+        routed.active.present && !routed.skip => feed({
+            state: routed,
+            byte: in.byte
+        }),
+        _ => routed
+    }
 
-    return next.offset + 1
-        -> {
-            ...next,
-            offset: _
-        }
+    const offset = next.offset + 1
+
+    return {
+        ...next,
+        offset: offset
+    }
 }

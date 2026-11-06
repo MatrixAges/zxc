@@ -32,9 +32,12 @@ export default function (in: Input): Output {
             type_id: in.type_id
         }) &&
             (
-                expressions.unary_operators[in.payload] == UnaryOperator.Not ?
-                    in.type_id ==
-                    1 : number == Numeric.Signed || number == Numeric.Float
+                match {
+                    expressions.unary_operators[in.payload] == UnaryOperator.Not =>
+                        in.type_id ==
+                        1,
+                    _ => number == Numeric.Signed || number == Numeric.Float
+                }
             )
     }
 
@@ -64,16 +67,17 @@ export default function (in: Input): Output {
     const equality =
         operator == BinaryOperator.Equal || operator == BinaryOperator.NotEqual
 
-    const condition = (
-        - equality
-        - and target == Kind.Optional
-        - and !comparable({
+    const optional_equality = equality && target == Kind.Optional
+
+    const condition = match {
+        !optional_equality => false,
+        comparable({
             table: context.table,
             type_id: left
-        })
-        - and expressions.kinds[left_index] != ExpressionKind.None
-        - and expressions.kinds[right_index] != ExpressionKind.None
-    )
+        }) => false,
+        expressions.kinds[left_index] == ExpressionKind.None => false,
+        _ => expressions.kinds[right_index] != ExpressionKind.None
+    }
 
     if (condition) {
         return false

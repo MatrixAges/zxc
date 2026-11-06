@@ -25,22 +25,23 @@ export default function (in: Input): Output {
             const parent = current.input.graph.owners[current.index]
             const owner = current.input.graph.owners[current.input.index]
             const partner = current.input.graph.partners[current.index]
-            const end =
-                (
-                    - parent == owner
-                    - and (
-                        token.text == comma || (
-                            partner != null && partner < current.index
-                        )
-                    )
-                )
+            const same_owner = parent == owner
+            const closing = partner != null && partner < current.index
+
+            const end = (
+                - same_owner
+                - and (token.text == comma || closing)
+            )
             const newline = current.index > current.input.index && token.newline
 
             if (end || newline) {
                 if (end && !newline) {
                     const tail =
-                        current.index + 1 < current.input.graph.trailers.length ?
-                        current.input.graph.trailers[current.index + 1] : 0
+                        match {
+                            current.index + 1 < current.input.graph.trailers.length =>
+                                current.input.graph.trailers[current.index + 1],
+                            _ => 0
+                        }
 
                     current.width +=
                         token.text.length +
@@ -52,16 +53,19 @@ export default function (in: Input): Output {
                 current.width +=
                     token.text.length + current.input.graph.gaps[current.index]
                 const priority = operatorPriority(token.text)
+                const has_priority = priority != no_operator
+                const limit = current.input.priority
+                const priority_end = (
+                    - same_owner
+                    - and has_priority
+                    - and priority <= limit
+                )
 
-                current.done =
-                    (
-                        - token.object
-                        - or token.multiline
-                        - or (
-                            parent == owner && priority != no_operator &&
-                                priority <= current.input.priority
-                        )
-                    )
+                current.done = (
+                    - token.object
+                    - or token.multiline
+                    - or priority_end
+                )
                 current.index += 1
             }
         },

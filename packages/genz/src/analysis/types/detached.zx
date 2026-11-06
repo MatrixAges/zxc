@@ -41,9 +41,11 @@ export default function (in: Input): Output {
                     next: members => {
                         members.stack =
                             members.stack.push(
-                                members.object ?
-                                    members.types.field_types[members.position] :
-                                    members.types.children[members.position]
+                                match {
+                                    members.object =>
+                                        members.types.field_types[members.position],
+                                    _ => members.types.children[members.position]
+                                }
                             )[0]
                         members.position += 1
                     },
@@ -51,9 +53,12 @@ export default function (in: Input): Output {
                 })
             } else {
                 const condition = (
-                    - kind != 0
-                    - and kind != 5
-                    - and kind != 7
+                    match kind {
+                        0 => false,
+                        5 => false,
+                        7 => false,
+                        _ => true
+                    }
                 )
 
                 if (condition) {

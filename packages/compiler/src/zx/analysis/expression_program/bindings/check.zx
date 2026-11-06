@@ -57,15 +57,18 @@ export default function (in: Input): Output {
         return: state => state.overlap
     })
 
-    return units ? {
-        code: "name",
-        message: "expression binding paths must not overlap",
-        start: in.span.start,
-        end: in.span.end
-    } : {
-        code: "",
-        message: "",
-        start: 0,
-        end: 0
+    return match {
+        units => {
+            code: "name",
+            message: "expression binding paths must not overlap",
+            start: in.span.start,
+            end: in.span.end
+        },
+        _ => {
+            code: "",
+            message: "",
+            start: 0,
+            end: 0
+        }
     }
 }

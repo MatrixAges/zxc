@@ -18,14 +18,17 @@ export type Output = {
 export default function (in: Input): Output {
     const native = in.native
 
-    const name: Name = native != null ? {
-        text: native.text.constant_names[in.index],
-        start: in.constant.name.start,
-        end: in.constant.name.end
-    } : text({
-        source: in.bytes,
-        span: in.constant.name
-    })
+    const name: Name = match {
+        native != null => {
+            text: native.text.constant_names[in.index],
+            start: in.constant.name.start,
+            end: in.constant.name.end
+        },
+        _ => text({
+            source: in.bytes,
+            span: in.constant.name
+        })
+    }
 
     const scope = in.scope
 
@@ -89,9 +92,12 @@ export default function (in: Input): Output {
             diagnostic: signature.diagnostic
         },
         reference:
-            native != null ? native.text.type_references[in.constant.annotation] : {
-                enumeration: false,
-                index: in.constant.annotation
+            match {
+                native != null => native.text.type_references[in.constant.annotation],
+                _ => {
+                    enumeration: false,
+                    index: in.constant.annotation
+                }
             },
         name
     }

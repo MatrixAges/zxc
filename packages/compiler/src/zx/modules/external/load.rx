@@ -5,10 +5,9 @@
 
     <Call module="../../frontend/parser/program" in={$in.bytes} />
 
-    <If
-        on={$ctx.program.diagnostic.message == "" && $ctx.program.body == null &&
-            $ctx.program.imports.length == 0 && $ctx.program.constants.length == 0}
-    >
+    <Call fn="declaration_only" in={$ctx.program} />
+
+    <If on={$ctx.declaration_only}>
         <Call
             module="signature"
             in={{

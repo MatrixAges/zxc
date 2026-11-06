@@ -10,16 +10,17 @@ export default function (in: Input): Output {
     const position = in.frames.imported.length - 1
     const frame = in.frames.imported[position]
 
-    return in.frames.imported.splice(position, 1, [{
+    const imported = in.frames.imported.splice(position, 1, [{
         ...frame,
         index: frame.index + 1,
         values: frame.values.push(in.value)[0]
     }])[0]
-        -> next({
-            ...in,
-            frames: {
-                ...in.frames,
-                imported: _
-            }
-        })
+
+    return next({
+        ...in,
+        frames: {
+            ...in.frames,
+            imported: imported
+        }
+    })
 }

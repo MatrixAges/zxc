@@ -109,16 +109,19 @@ export default function (in: Input): Output {
         const resolved: {
             state: Prepared,
             id: u32
-        } = statement.annotation == 0 ? {
-            state,
-            id: 0
-        } : annotation({
-            state,
-            reference: reference({
-                source: body.expression.source,
-                index: statement.annotation - 1
+        } = match {
+            statement.annotation == 0 => {
+                state,
+                id: 0
+            },
+            _ => annotation({
+                state,
+                reference: reference({
+                    source: body.expression.source,
+                    index: statement.annotation - 1
+                })
             })
-        })
+        }
 
         return request({
             body: {
@@ -169,14 +172,17 @@ export default function (in: Input): Output {
             slot: resolved.slot
         }
 
-        return resolved.state.diagnostic.message != "" ? prepared : request({
-            body: prepared,
-            node: statement.second,
-            expected: state.local.stores.types[integers.widen(
-                resolved.slot
-            )],
-            action: Action.Setter
-        })
+        return match {
+            resolved.state.diagnostic.message != "" => prepared,
+            _ => request({
+                body: prepared,
+                node: statement.second,
+                expected: state.local.stores.types[integers.widen(
+                    resolved.slot
+                )],
+                action: Action.Setter
+            })
+        }
     }
 
     if (statement.kind == StatementKind.Switch) {
@@ -205,10 +211,14 @@ export default function (in: Input): Output {
 
     return request({
         body,
-        node: statement.kind == StatementKind.Result ? statement.first - 1 :
-            statement.first,
-        expected: statement.kind == StatementKind.Result ? state.local.output_type :
-            null,
+        node: match {
+            statement.kind == StatementKind.Result => statement.first - 1,
+            _ => statement.first
+        },
+        expected: match {
+            statement.kind == StatementKind.Result => state.local.output_type,
+            _ => null
+        },
         action: match statement.kind {
             StatementKind.Result => Action.Result,
             StatementKind.Evaluate => Action.Evaluate,

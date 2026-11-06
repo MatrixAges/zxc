@@ -20,21 +20,25 @@ export type Input = {
 export type Output = Memory
 
 export default function (in: Input): Output {
-    const changed = (
-        in.operation == Operation.Borrow ? RewriteAction.Borrow :
-            RewriteAction.Freeze
-    )
-        -> (in.operation == Operation.Assign ? {
+    const action = match {
+        in.operation == Operation.Borrow => RewriteAction.Borrow,
+        _ => RewriteAction.Freeze
+    }
+
+    const changed = match {
+        in.operation == Operation.Assign => {
             forest: in.memory.forest,
             fact: in.fact
-        } : rewrite({
+        },
+        _ => rewrite({
             types: in.types,
             references: in.references,
             forest: in.memory.forest,
             left: in.memory.facts[in.id],
             right: 0,
-            action: _
-        }))
+            action: action
+        })
+    }
 
     const bound = bind({
         types: in.types,

@@ -8,14 +8,18 @@ export type Input = {
 export type Output = Result
 
 export default function (in: Input): Output {
-    return loop({
+    const loop_initial = {
         reached: in.held.reached,
         changed: in.held.changed || in.text.changed,
         index: 0
-    }, {
-        while: (state, context) => state.index < context.length,
-        next: (state, context) => {
-            if (context[state.index] && !state.reached[state.index]) {
+    }
+
+    const readonly_reached = in.text.reached
+
+    return loop(loop_initial, {
+        while: state => state.index < readonly_reached.length,
+        next: state => {
+            if (readonly_reached[state.index] && !state.reached[state.index]) {
                 state.reached[state.index] = true
                 state.changed = true
             }
@@ -26,5 +30,5 @@ export default function (in: Input): Output {
             "reached",
             "changed"
         ])
-    }, in.text.reached)
+    })
 }

@@ -62,12 +62,14 @@ export default function (in: Input): Output {
                         members.remaining -= 1
 
                         const child =
-                            members.object ?
-                            members.types
-                            .field_types[members.first +
-                                members.remaining] :
-                            members.types.children[members.first +
-                                members.remaining]
+                            match {
+                                members.object => members.types
+                                    .field_types[members.first +
+                                        members.remaining],
+                                _ => members.types
+                                    .children[members.first +
+                                        members.remaining]
+                            }
 
                         members.pending = members.pending.push({
                             id: child,

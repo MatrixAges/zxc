@@ -1,3 +1,4 @@
+import mark from "../../../../../ir/canonical/refinement/facts/mark"
 import { Phase, Action } from "../model"
 import prepare from "./prepare"
 
@@ -30,7 +31,9 @@ export default function (in: Input): Output {
         arms: ordered.arms.reverse()[0],
         index: 0,
         conditions: [],
-        results: []
+        results: [],
+        mark: mark(in.state.local.refinement.facts),
+        branch_mark: mark(in.state.local.refinement.facts)
     }
 
     const work = {

@@ -28,16 +28,20 @@ export type Output = Machine
 
 export default function (in: Input): Output {
     return loop(in, {
-        while: current =>
-            (
+        while: current => {
+            const actions = current.work.actions
+            const ready = (
                 - current.active
                 - and current.complete
                 - and !current.failed
-                - and current.work.actions.length != 0
-                - and family(
-                    current.work.actions[current.work.actions.length - 1]
-                ) == Family.Expression
-            ),
+                - and actions.length != 0
+            )
+
+            return match {
+                ready => family(actions[actions.length - 1]) == Family.Expression,
+                _ => false
+            }
+        },
         next: current => {
             const frame = top(current.work)
 
@@ -69,18 +73,19 @@ export default function (in: Input): Output {
                 }
 
                 if (located.found) {
-                    const decision = (
+                    const moving = match {
                         current.memory.memo[frame.subject] != 0 ||
-                            kind == ExpressionKind.Reference ? frame.moving :
-                            container && frame.moving
-                    )
-                        -> access({
-                            types: current.program.types,
-                            symbols: current.program.symbols,
-                            position: located.position,
-                            current: current.memory.states[located.position],
-                            moving: _
-                        })
+                            kind == ExpressionKind.Reference => frame.moving,
+                        _ => container && frame.moving
+                    }
+
+                    const decision = access({
+                        types: current.program.types,
+                        symbols: current.program.symbols,
+                        position: located.position,
+                        current: current.memory.states[located.position],
+                        moving: moving
+                    })
 
                     const observed = rewrite({
                         types: current.program.types,
@@ -107,10 +112,13 @@ export default function (in: Input): Output {
                             id: located.position,
                             operation: Operation.Assign,
                             fact:
-                                decision.assigned ==
-                                State.Moved ? uniform(
-                                    State.Moved
-                                ) : observed.fact
+                                match {
+                                    decision.assigned ==
+                                        State.Moved => uniform(
+                                            State.Moved
+                                        ),
+                                    _ => observed.fact
+                                }
                         })
                     }
 

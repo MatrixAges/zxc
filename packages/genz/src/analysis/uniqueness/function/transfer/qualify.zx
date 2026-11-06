@@ -45,25 +45,31 @@ export default function qualify(in: Input): Output {
         const index = integers.widen(symbol)
         const definition = metadata.definitions.kind[index]
 
-        const condition = (
-            - definition == Definition.Condition
-            - or definition == Definition.Element
-            - or definition == Definition.Unknown
-            - or crosses({
-                parents: metadata.parents,
-                concurrent: metadata.concurrent,
-                inner: metadata.usage.nodes.repeated[node],
-                outer: metadata.usage.def_loop[index]
-            })
-            - or !usage({
-                context,
-                root: symbol,
-                slot: in.slot,
-                observe: false
-            })
+        const is_condition = definition == Definition.Condition
+        const is_element = definition == Definition.Element
+        const is_unknown = definition == Definition.Unknown
+
+        const unavailable = (
+            - is_condition
+            - or is_element
+            - or is_unknown
         )
 
-        if (condition) {
+        if (unavailable || crosses({
+            parents: metadata.parents,
+            concurrent: metadata.concurrent,
+            inner: metadata.usage.nodes.repeated[node],
+            outer: metadata.usage.def_loop[index]
+        })) {
+            return false
+        }
+
+        if (!usage({
+            context,
+            root: symbol,
+            slot: in.slot,
+            observe: false
+        })) {
             return false
         }
 
@@ -141,30 +147,32 @@ export default function qualify(in: Input): Output {
         case ExpressionKind.Match:
             const first = integers.widen(expressions.match_first[payload])
 
-            return qualify({
+            const fallback = qualify({
                 ...in,
                 node: expressions.match_fallbacks[payload]
-            }) &&
-                loop({
-                    index: 0,
-                    valid: true
-                }, {
-                    while: (state, context) => state.valid &&
-                        state.index < context.count,
-                    next: (state, context) => {
-                        state.valid = qualify({
-                            ...context.source,
-                            node: context.results[context.first + state.index]
-                        })
-                        state.index += 1
-                    },
-                    return: state => state.valid
-                }, {
-                    source: in,
-                    results: expressions.match_results,
-                    first,
-                    count: integers.widen(expressions.match_count[payload])
-                })
+            })
+
+            if (!fallback) {
+                return false
+            }
+
+            const count = integers.widen(expressions.match_count[payload])
+            const results = expressions.match_results
+
+            return loop({
+                index: 0,
+                valid: true
+            }, {
+                while: state => state.valid && state.index < count,
+                next: state => {
+                    state.valid = qualify({
+                        ...in,
+                        node: results[first + state.index]
+                    })
+                    state.index += 1
+                },
+                return: state => state.valid
+            })
         case ExpressionKind.Binary:
             return expressions.binary_operators[payload] == BinaryOperator.Coalesce &&
                 qualify({

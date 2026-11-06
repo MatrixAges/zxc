@@ -124,8 +124,9 @@ export default function (in: Input): Output {
         return false
     }
 
-    return child_type == 0 ? result == 0 :
-        kind(
+    return match {
+        child_type == 0 => result == 0,
+        _ => kind(
             table.kinds[integers.widen(
                 result
             )]
@@ -135,4 +136,5 @@ export default function (in: Input): Output {
             id: child,
             type_id: table.first[integers.widen(result)]
         })
+    }
 }

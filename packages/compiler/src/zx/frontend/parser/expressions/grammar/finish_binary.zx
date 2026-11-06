@@ -17,17 +17,18 @@ export default function (in: Input): Output {
     const depth = in.frame.depth
     const family = in.frame.reset_family ? in.frame.family : in.state.control.family
 
-    return (in.state.frames.length == 0 ? Phase.Done : Phase.Returning)
-        -> {
-            prepared: in.state.prepared,
-            tree: in.state.tree,
-            types: in.state.types,
-            frames: in.state.frames,
-            control: {
-                ...in.state.control,
-                depth,
-                family,
-                phase: _
-            }
+    const phase = in.state.frames.length == 0 ? Phase.Done : Phase.Returning
+
+    return {
+        prepared: in.state.prepared,
+        tree: in.state.tree,
+        types: in.state.types,
+        frames: in.state.frames,
+        control: {
+            ...in.state.control,
+            depth,
+            family,
+            phase: phase
         }
+    }
 }

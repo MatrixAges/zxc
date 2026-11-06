@@ -20,12 +20,17 @@ export default function (in: Input): Output {
     const members = in.members
     const count = members.names.length
 
+    const different_namespaces = members.namespaces.length != count
+    const different_input_types = members.input_types.length != count
+    const different_output_types = members.output_types.length != count
+    const different_intrinsics = members.intrinsics.length != count
+
     const condition = (
-        - members.namespaces.length != count
+        - different_namespaces
         - or members.ids.length != count
-        - or members.input_types.length != count
-        - or members.output_types.length != count
-        - or members.intrinsics.length != count
+        - or different_input_types
+        - or different_output_types
+        - or different_intrinsics
     )
 
     if (condition) {
@@ -54,15 +59,14 @@ export default function (in: Input): Output {
             const input = values.input_types[row]
             const output = values.output_types[row]
 
-            current.valid =
-                (
-                    - text(values.names[row])
-                    - or (
-                        values.names[row] == "" &&
-                            values.intrinsics[row] != null
-                    )
-                    - and values.namespaces[row] == null
-                )
+            const name = values.names[row]
+            const named = match {
+                text(name) => true,
+                name == "" => values.intrinsics[row] != null,
+                _ => false
+            }
+
+            current.valid = named && values.namespaces[row] == null
 
             if (current.valid) {
                 if (values.intrinsics[row] != null) {

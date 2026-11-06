@@ -1,0 +1,82 @@
+import integers from "std:integer"
+
+import type { Expressions } from "core/expression_table/model"
+import type { Captures } from "../collections/model"
+
+export type Input = {
+    expressions: Expressions,
+    shared: Captures,
+    captures: Captures
+}
+
+export type Output = {
+    shared: Captures,
+    indices: u32[]
+}
+
+export default function (in: Input): Output {
+    const indices: u32[] = []
+
+    return loop({
+        shared: in.shared,
+        indices,
+        index: 0
+    }, {
+        while: current => current.index < in.captures.sources.length,
+        next: current => {
+            const symbol = in.captures.sources[current.index]
+            const value = in.captures.values[current.index]
+            const type_id = in.expressions.types[integers.widen(value)]
+            const index_initial = {
+                index: 0,
+                found: false
+            }
+
+            const index_scope = {
+                shared: current.shared,
+                expressions: in.expressions,
+                symbol,
+                type_id
+            }
+
+            const index = loop(index_initial, {
+                while: search =>
+                    !search.found && search.index < index_scope.shared.sources.length,
+                next: search => {
+                    const candidate = index_scope.shared.values[search.index]
+                    const matching =
+                        index_scope.shared.sources[search.index] == index_scope.symbol &&
+                        index_scope.expressions.types[integers.widen(
+                            candidate
+                        )] ==
+                        index_scope.type_id
+
+                    search.found = matching
+
+                    if (!matching) {
+                        search.index += 1
+                    }
+                },
+                return: search => search.index
+            })
+
+            if (index == current.shared.sources.length) {
+                current.shared = {
+                    sources: current.shared.sources.push(symbol)[0],
+                    targets:
+                        current.shared.targets.push(
+                            in.captures.targets[current.index]
+                        )[0],
+                    values: current.shared.values.push(value)[0]
+                }
+            }
+
+            current.indices = current.indices.push(integers.narrow(index))[0]
+            current.index += 1
+        },
+        return: current => current.pick([
+            "shared",
+            "indices"
+        ])
+    })
+}

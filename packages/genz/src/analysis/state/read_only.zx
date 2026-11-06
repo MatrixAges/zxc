@@ -28,29 +28,36 @@ export default function (in: Input): Output {
         index: 0,
         valid: true
     }, {
-        while: (current, source) => current.valid &&
-            current.index < source.functions.output_types.length,
-        next: (current, source) => {
+        while: current => current.valid &&
+            current.index < in.functions.output_types.length,
+        next: current => {
             const index = current.index
-            const functions = source.functions
-            const condition = (
-                - functions.native_modules[index] == null
-                - and functions.stores[index].types.length == 0
-                - and scalar({
-                    types: source.types,
-                    id: functions.output_types[index]
-                })
-                - and body({
+            const functions = in.functions
+            const native_modules = functions.native_modules
+            const stores = functions.stores
+            const local_body = match {
+                native_modules[index] == null => stores[index].types.length == 0,
+                _ => false
+            }
+
+            if (!local_body) {
+                current.valid = false
+            } else if (!scalar({
+                types: in.types,
+                id: functions.output_types[index]
+            })) {
+                current.valid = false
+            } else {
+                current.valid = body({
                     expressions: functions.expressions[index],
                     control: functions.control[index],
                     root: functions.roots[index],
                     contracts: functions.contracts[index]
                 })
-            )
+            }
 
-            current.valid = condition
             current.index += 1
         },
         return: current => current.valid
-    }, in)
+    })
 }

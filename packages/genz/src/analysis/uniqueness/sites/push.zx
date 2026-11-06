@@ -34,12 +34,17 @@ export default function (in: Input): Output {
 
     return {
         top: integers.narrow(index),
-        frames: index < in.stack.frames.length ? in.stack.frames.with(index, {
-            ...frame
-        }) : in.stack.frames.push({
-            ...frame
-        })[0],
-        cursors: index < in.stack.cursors.length ?
-            in.stack.cursors.with(index, cursor) : in.stack.cursors.push(cursor)[0]
+        frames: match {
+            index < in.stack.frames.length => in.stack.frames.with(index, {
+                ...frame
+            }),
+            _ => in.stack.frames.push({
+                ...frame
+            })[0]
+        },
+        cursors: match {
+            index < in.stack.cursors.length => in.stack.cursors.with(index, cursor),
+            _ => in.stack.cursors.push(cursor)[0]
+        }
     }
 }

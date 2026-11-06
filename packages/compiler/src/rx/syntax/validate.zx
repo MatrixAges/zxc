@@ -35,24 +35,36 @@ export default function (in: Input): Output {
         first: 0
     }
 
-    return in.reduce((state, byte) => ({
-        valid:
-            (
-                - state.valid
-                - and (
-                    - byte >= ascii_space
-                    - or byte == ascii_tab
-                    - or byte == ascii_line_feed
-                    - or byte == ascii_carriage_return
-                )
-                - and !(
-                    state.second == utf8_bmp_noncharacter_lead &&
-                        state.first == utf8_bmp_noncharacter_middle &&
-                        byte >= utf8_bmp_noncharacter_tail
-                )
-            ),
-        second: state.first,
-        first: byte
-    }), initial)[1]
-        -> (_.valid ? no_diagnostic : forbidden_character)
+    const checked = in.reduce((state, byte) => {
+        const allowed_byte = match byte {
+            ascii_tab => true,
+            ascii_line_feed => true,
+            ascii_carriage_return => true,
+            _ => byte >= ascii_space
+        }
+
+        const noncharacter_lead = state.second == utf8_bmp_noncharacter_lead
+        const noncharacter_middle = state.first == utf8_bmp_noncharacter_middle
+        const noncharacter_tail = byte >= utf8_bmp_noncharacter_tail
+
+        const noncharacter = (
+            - noncharacter_lead
+            - and noncharacter_middle
+            - and noncharacter_tail
+        )
+
+        const valid = (
+            - state.valid
+            - and allowed_byte
+            - and !noncharacter
+        )
+
+        return {
+            valid,
+            second: state.first,
+            first: byte
+        }
+    }, initial)[1]
+
+    return checked.valid ? no_diagnostic : forbidden_character
 }

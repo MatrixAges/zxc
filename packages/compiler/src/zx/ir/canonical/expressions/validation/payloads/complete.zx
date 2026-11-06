@@ -5,38 +5,70 @@ export type Input = State
 export type Output = bool
 
 export default function (in: Input): Output {
+    const is_length = in.integers == in.table.integers.length
+    const is_length_2 = in.negative_integers == in.table.negative_integers.length
+    const is_length_3 = in.floats == in.table.floats.length
+    const is_length_4 = in.strings == in.table.strings.length
+    const is_length_5 = in.booleans == in.table.booleans.length
+    const is_length_6 = in.some == in.table.some.length
+    const is_length_7 = in.captures == in.table.captures.length
+    const is_length_8 = in.tasks == in.table.task_bodies.length
+    const is_length_9 = in.awaits == in.table.awaits.length
+    const is_length_10 = in.cancellations == in.table.cancellations.length
+    const is_length_11 = in.parallels == in.table.parallel_first.length
+    const is_length_12 = in.optional_values == in.table.optional_values.length
+    const is_length_13 = in.enumerations == in.table.enumerations.length
+    const is_length_14 = in.errors == in.table.errors.length
+    const is_length_15 = in.references == in.table.references.length
+    const is_length_16 = in.stores == in.table.stores.length
+    const is_length_17 = in.projections == in.table.projection_targets.length
+    const is_length_18 = in.indices == in.table.index_targets.length
+    const is_length_19 = in.lengths == in.table.lengths.length
+    const is_length_20 = in.sequences == in.table.sequence_first.length
+    const is_length_21 = in.collections == in.table.collection_kinds.length
+    const is_length_22 = in.transforms == in.table.transform_kinds.length
+    const is_length_23 = in.scopes == in.table.scope_results.length
+    const is_length_24 = in.iterations == in.table.iteration_initials.length
+    const is_length_25 = in.updates == in.table.update_targets.length
+    const is_length_26 = in.calls == in.table.call_functions.length
+    const is_length_27 = in.unary == in.table.unary_operands.length
+    const is_length_28 = in.binary == in.table.binary_operators.length
+    const is_length_29 = in.conditionals == in.table.conditional_conditions.length
+    const is_length_30 = in.matches == in.table.match_subjects.length
+    const is_length_31 = in.objects == in.table.object_first.length
+
     return (
         - in.valid
-        - and in.integers == in.table.integers.length
-        - and in.negative_integers == in.table.negative_integers.length
-        - and in.floats == in.table.floats.length
-        - and in.strings == in.table.strings.length
-        - and in.booleans == in.table.booleans.length
-        - and in.some == in.table.some.length
-        - and in.captures == in.table.captures.length
-        - and in.tasks == in.table.task_bodies.length
-        - and in.awaits == in.table.awaits.length
-        - and in.cancellations == in.table.cancellations.length
-        - and in.parallels == in.table.parallel_first.length
-        - and in.optional_values == in.table.optional_values.length
-        - and in.enumerations == in.table.enumerations.length
-        - and in.errors == in.table.errors.length
-        - and in.references == in.table.references.length
-        - and in.stores == in.table.stores.length
-        - and in.projections == in.table.projection_targets.length
-        - and in.indices == in.table.index_targets.length
-        - and in.lengths == in.table.lengths.length
-        - and in.sequences == in.table.sequence_first.length
-        - and in.collections == in.table.collection_kinds.length
-        - and in.transforms == in.table.transform_kinds.length
-        - and in.scopes == in.table.scope_results.length
-        - and in.iterations == in.table.iteration_initials.length
-        - and in.updates == in.table.update_targets.length
-        - and in.calls == in.table.call_functions.length
-        - and in.unary == in.table.unary_operands.length
-        - and in.binary == in.table.binary_operators.length
-        - and in.conditionals == in.table.conditional_conditions.length
-        - and in.matches == in.table.match_subjects.length
-        - and in.objects == in.table.object_first.length
+        - and is_length
+        - and is_length_2
+        - and is_length_3
+        - and is_length_4
+        - and is_length_5
+        - and is_length_6
+        - and is_length_7
+        - and is_length_8
+        - and is_length_9
+        - and is_length_10
+        - and is_length_11
+        - and is_length_12
+        - and is_length_13
+        - and is_length_14
+        - and is_length_15
+        - and is_length_16
+        - and is_length_17
+        - and is_length_18
+        - and is_length_19
+        - and is_length_20
+        - and is_length_21
+        - and is_length_22
+        - and is_length_23
+        - and is_length_24
+        - and is_length_25
+        - and is_length_26
+        - and is_length_27
+        - and is_length_28
+        - and is_length_29
+        - and is_length_30
+        - and is_length_31
     )
 }

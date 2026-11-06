@@ -32,26 +32,30 @@ export default function (in: Input): Output {
         id: in.state.local.expressions.types[integers.widen(in.target)]
     }).first
 
-    const result = loop({
+    const result_initial = {
         state: in.state,
         parameters: in.parameters
-    }, {
+    }
+
+    const result_scope = {
+        element,
+        span: in.span
+    }
+
+    const result = loop(result_initial, {
         while: current => current.parameters.length < 2,
-        next: (current, source) => {
+        next: current => {
             const added = symbol({
                 state: current.state,
                 name: current.parameters.length == 0 ? left_name : right_name,
-                type_id: source.element,
+                type_id: result_scope.element,
                 ownership: Ownership.Borrowed,
-                span: source.span
+                span: result_scope.span
             })
 
             current.state = added.state
             current.parameters = current.parameters.push(added.symbol)[0]
         }
-    }, {
-        element,
-        span: in.span
     })
 
     const context = symbol({

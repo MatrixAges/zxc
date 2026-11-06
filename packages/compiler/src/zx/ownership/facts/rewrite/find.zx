@@ -50,8 +50,10 @@ export default function (in: Input): Output {
                 current.value = current.cache.values[record - 1]
                 current.active = false
             } else {
-                current.slot = current.slot + 1 == current.cache.slots.length ? 0 :
-                    current.slot + 1
+                current.slot = match {
+                    current.slot + 1 == current.cache.slots.length => 0,
+                    _ => current.slot + 1
+                }
             }
         }
     })

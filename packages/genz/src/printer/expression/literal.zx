@@ -28,10 +28,13 @@ export default function (in: Input): Output {
     }
 
     const condition = (
-        - kind == ExpressionsKind.Identifier
-        - or kind == ExpressionsKind.String
-        - or kind == ExpressionsKind.EnumLiteral
-        - or kind == ExpressionsKind.ErrorValue
+        match kind {
+            ExpressionsKind.Identifier => true,
+            ExpressionsKind.String => true,
+            ExpressionsKind.EnumLiteral => true,
+            ExpressionsKind.ErrorValue => true,
+            _ => false
+        }
     )
 
     if (condition) {
@@ -46,36 +49,45 @@ export default function (in: Input): Output {
             }
         }
 
-        return (kind == ExpressionsKind.EnumLiteral ? Token.Dot : Token.ErrorValue)
-            -> (kind == ExpressionsKind.EnumLiteral ||
-                kind == ExpressionsKind.ErrorValue ? [
+        const prefix = kind == ExpressionsKind.EnumLiteral ? Token.Dot : Token.ErrorValue
+
+        return match {
+            kind == ExpressionsKind.EnumLiteral ||
+                kind == ExpressionsKind.ErrorValue => [
                     {
                         ...frame,
-                        token: _
+                        token: prefix
                     },
                     leaf
-                ] : [leaf])
+                ],
+            _ => [leaf]
+        }
     }
 
     if (kind == ExpressionsKind.Integer || kind == ExpressionsKind.Float) {
         const number: Frame = {
             ...frame,
             action: Action.Integer,
-            number: kind == ExpressionsKind.Integer ? tree.integer[row] :
-                tree.float[row]
+            number: match {
+                kind == ExpressionsKind.Integer => tree.integer[row],
+                _ => tree.float[row]
+            }
         }
 
-        return kind == ExpressionsKind.Float ? [
-            {
-                ...frame,
-                token: Token.FloatOpen
-            },
-            number,
-            {
-                ...frame,
-                token: Token.FloatClose
-            }
-        ] : [number]
+        return match {
+            kind == ExpressionsKind.Float => [
+                {
+                    ...frame,
+                    token: Token.FloatOpen
+                },
+                number,
+                {
+                    ...frame,
+                    token: Token.FloatClose
+                }
+            ],
+            _ => [number]
+        }
     }
 
     return [{

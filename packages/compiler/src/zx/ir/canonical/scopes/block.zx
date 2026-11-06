@@ -15,8 +15,8 @@ export type Output = Result
 export default function (in: Input): Output {
     const frame = in.frame
 
-    const control = in.context.program
-        -> _.body.control
+    const program = in.context.program
+    const control = program.body.control
 
     if (frame.phase == Phase.Block) {
         if (frame.b > max_nesting_depth) {
@@ -26,7 +26,7 @@ export default function (in: Input): Output {
             }
         }
 
-        return schedule({
+        const restoration = schedule({
             state: in.state,
             frame: {
                 phase: Phase.Restore,
@@ -35,19 +35,21 @@ export default function (in: Input): Output {
                 c: in.state.refinement.facts.capture_errors.length
             }
         })
-            -> schedule({
-                state: _,
-                frame: {
-                    phase: Phase.BlockNext,
-                    a: frame.a,
-                    b: 0,
-                    c: frame.b
-                }
-            })
-            -> {
-                state: _,
-                valid: true
+
+        const entered = schedule({
+            state: restoration,
+            frame: {
+                phase: Phase.BlockNext,
+                a: frame.a,
+                b: 0,
+                c: frame.b
             }
+        })
+
+        return {
+            state: entered,
+            valid: true
+        }
     }
 
     const count = integers.widen(control.block_count[frame.a])
@@ -71,7 +73,7 @@ export default function (in: Input): Output {
         }
     }
 
-    return schedule({
+    const continuation = schedule({
         state: in.state,
         frame: {
             phase: Phase.BlockNext,
@@ -80,14 +82,15 @@ export default function (in: Input): Output {
             c: frame.c
         }
     })
-        -> statement({
-            context: in.context,
-            state: _,
-            frame: {
-                phase: Phase.BlockNext,
-                a: first + frame.b,
-                b: frame.c,
-                c: 0
-            }
-        })
+
+    return statement({
+        context: in.context,
+        state: continuation,
+        frame: {
+            phase: Phase.BlockNext,
+            a: first + frame.b,
+            b: frame.c,
+            c: 0
+        }
+    })
 }

@@ -1,0 +1,190 @@
+import {
+    ascii_lower_b,
+    ascii_lower_c,
+    ascii_lower_d,
+    ascii_lower_e,
+    ascii_lower_f,
+    ascii_lower_i,
+    ascii_lower_l,
+    ascii_lower_n,
+    ascii_lower_o,
+    ascii_lower_p,
+    ascii_lower_r,
+    ascii_lower_s,
+    ascii_lower_t,
+    ascii_lower_u,
+    ascii_lower_v,
+    ascii_lower_w
+} from "core/ascii/const"
+import { ascii_lower_first } from "core/const"
+
+import {
+    token_and,
+    token_else,
+    token_export,
+    token_or,
+    token_orelse,
+    token_return,
+} from "../token/const"
+import { token_anytype, token_unreachable } from "../token/names/const"
+import {
+    keyword_addrspace,
+    keyword_align,
+    keyword_allowzero,
+    keyword_anyframe,
+    keyword_asm,
+    keyword_break,
+    keyword_callconv,
+    keyword_catch,
+    keyword_comptime,
+    keyword_const,
+    keyword_continue,
+    keyword_defer,
+    keyword_enum,
+    keyword_errdefer,
+    keyword_error,
+    keyword_extern,
+    keyword_fn,
+    keyword_for,
+    keyword_if,
+    keyword_inline,
+    keyword_linksection,
+    keyword_noalias,
+    keyword_noinline,
+    keyword_nosuspend,
+    keyword_opaque,
+    keyword_packed,
+    keyword_pub,
+    keyword_resume,
+    keyword_struct,
+    keyword_suspend,
+    keyword_switch,
+    keyword_test,
+    keyword_threadlocal,
+    keyword_try,
+    keyword_union,
+    keyword_var,
+    keyword_volatile,
+    keyword_while
+} from "./const"
+
+export type Input = u8[]
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const candidates: string[] = match in[0] {
+        ascii_lower_first =>
+            [
+                keyword_addrspace,
+                keyword_align,
+                keyword_allowzero,
+                token_and,
+                keyword_anyframe,
+                keyword_asm
+            ],
+        ascii_lower_b => [keyword_break],
+        ascii_lower_c =>
+            [
+                keyword_callconv,
+                keyword_catch,
+                keyword_comptime,
+                keyword_const,
+                keyword_continue
+            ],
+        ascii_lower_d => [keyword_defer],
+        ascii_lower_e =>
+            [
+                token_else,
+                keyword_enum,
+                keyword_errdefer,
+                keyword_error,
+                token_export,
+                keyword_extern
+            ],
+        ascii_lower_f => [
+            keyword_fn,
+            keyword_for
+        ],
+        ascii_lower_i => [
+            keyword_if,
+            keyword_inline
+        ],
+        ascii_lower_l => [keyword_linksection],
+        ascii_lower_n => [
+            keyword_noalias,
+            keyword_noinline,
+            keyword_nosuspend
+        ],
+        ascii_lower_o => [
+            keyword_opaque,
+            token_or,
+            token_orelse
+        ],
+        ascii_lower_p => [
+            keyword_packed,
+            keyword_pub
+        ],
+        ascii_lower_r => [
+            keyword_resume,
+            token_return
+        ],
+        ascii_lower_s => [
+            keyword_struct,
+            keyword_suspend,
+            keyword_switch
+        ],
+        ascii_lower_t => [
+            keyword_test,
+            keyword_threadlocal,
+            keyword_try
+        ],
+        ascii_lower_u => [
+            keyword_union,
+        ],
+        ascii_lower_v => [
+            keyword_var,
+            keyword_volatile
+        ],
+        ascii_lower_w => [keyword_while],
+        _ => [],
+    }
+
+    const found = loop({
+        bytes: in,
+        candidates,
+        index: 0,
+        keyword: false
+    }, {
+        while: current =>
+            current.index < current.candidates.length && !current.keyword,
+        next: current => {
+            const word = current.candidates[current.index]
+
+            if (word.length == current.bytes.length) {
+                const compared = loop({
+                    bytes: current.bytes,
+                    word,
+                    index: 0,
+                    equal: true
+                }, {
+                    while: comparison =>
+                        comparison.index < comparison.bytes.length &&
+                        comparison.equal,
+                    next: comparison => {
+                        comparison.equal =
+                            comparison.bytes[comparison.index] ==
+                            comparison.word[comparison.index]
+                        comparison.index += 1
+                    }
+                })
+
+                current.keyword = compared.equal
+            }
+
+            current.index += 1
+        }
+    })
+
+    return found.keyword
+}

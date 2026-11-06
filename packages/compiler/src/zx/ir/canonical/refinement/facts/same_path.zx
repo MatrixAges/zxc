@@ -78,12 +78,17 @@ export default function (in: Input): Output {
                         current.expressions.references[right_payload]
                     current.active = false
                 } else {
-                    const condition = (
-                        - left_kind == ExpressionKind.Field
-                        - and right_kind == ExpressionKind.Field
-                        - and current.expressions.projection_indices[left_payload] ==
-                            current.expressions.projection_indices[right_payload]
-                    )
+                    const is_field = left_kind == ExpressionKind.Field
+
+                    const is_field_2 = right_kind == ExpressionKind.Field
+
+                    const fields = is_field && is_field_2
+                    const condition = match {
+                        fields =>
+                            current.expressions.projection_indices[left_payload] ==
+                            current.expressions.projection_indices[right_payload],
+                        _ => false
+                    }
 
                     if (condition) {
                         current.left =

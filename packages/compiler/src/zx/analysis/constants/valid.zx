@@ -71,31 +71,24 @@ export default function (in: Input): Output {
                     tables: current.types,
                     id: value.type_id
                 })
+                const not_signed = !value.negative || numeric.signed
+
                 const literal = match value.kind {
-                    ExpressionKind.Integer =>
-                        (
-                            - numeric.integer
-                            - and (!value.negative || numeric.signed)
-                            - and value.integer <= maximum({
-                                id: value.type_id,
-                                negative: value.negative
-                            })
-                        ),
-                    ExpressionKind.Float =>
-                        (
-                            - numeric.floating
-                            - and floats.isFinite(
-                                value.floating
-                            )
-                            - and (
-                                !numeric.single ||
-                                    floats.widen(
-                                        floats.narrow(
-                                            value.floating
-                                        )
-                                    ) == value.floating
-                            )
-                        ),
+                    ExpressionKind.Integer => match {
+                        !numeric.integer => false,
+                        !not_signed => false,
+                        _ => value.integer <= maximum({
+                            id: value.type_id,
+                            negative: value.negative
+                        })
+                    },
+                    ExpressionKind.Float => match {
+                        !numeric.floating => false,
+                        !floats.isFinite(value.floating) => false,
+                        !numeric.single => true,
+                        _ =>
+                            floats.widen(floats.narrow(value.floating)) == value.floating
+                    },
                     ExpressionKind.String =>
                         type_row.kind == Kind.Scalar &&
                         value.type_id == type_id_string,

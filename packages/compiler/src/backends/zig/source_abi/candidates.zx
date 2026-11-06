@@ -46,8 +46,10 @@ export default function (in: Input): Output {
         next: current => {
             const first = current.sources.interfaces.specifiers.length
             const external = current.index >= first
-            const source = external ? current.sources.externals :
-                current.sources.interfaces
+            const source = match {
+                external => current.sources.externals,
+                _ => current.sources.interfaces
+            }
             const index = external ? current.index - first : current.index
             const name = source.specifiers[index]
             const identity = source.identities[index] ?? name

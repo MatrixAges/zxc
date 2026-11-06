@@ -21,18 +21,27 @@ export default function (in: Input): Output {
             const opening = partner != null && partner > current.index
             const nonempty = partner != null && partner > current.index + 1
             const width =
-                opening &&
-                partner !=
-                null ? current.graph.widths[partner] -
-                current.graph.widths[current.index] +
-                current.graph.input.tokens[partner].text.length : 0
+                match {
+                    opening &&
+                        partner !=
+                        null => current.graph.widths[partner] -
+                        current.graph.widths[current.index] +
+                        current.graph.input.tokens[partner].text.length,
+                    _ => 0
+                }
             const margin =
-                current.graph.depths[current.index] ==
-                0 ? current.graph.input.prefix + current.graph.input.suffix : 0
+                match {
+                    current.graph.depths[current.index] ==
+                        0 => current.graph.input.prefix + current.graph.input.suffix,
+                    _ => 0
+                }
             const tail =
-                opening && partner != null &&
-                partner + 1 < current.graph.trailers.length ?
-                current.graph.trailers[partner + 1] : 0
+                match {
+                    opening && partner != null &&
+                        partner + 1 < current.graph.trailers.length =>
+                        current.graph.trailers[partner + 1],
+                    _ => 0
+                }
             const prefix =
                 current.graph.input.level * indent_width +
                 current.graph.depths[current.index] * indent_width +
@@ -41,19 +50,26 @@ export default function (in: Input): Output {
                 opening && partner != null &&
                 current.graph.vertical_counts[partner] >
                 current.graph.vertical_counts[current.index]
-            const limit = current.graph.input.width == 0 ? print_width :
-                current.graph.input.width
-            const wrap =
-                (
-                    - opening
-                    - and nonempty
-                    - and !token.block
-                    - and (
-                        - token.object
-                        - or token.multiline
-                        - or (!children && prefix + width + tail > limit)
-                    )
-                )
+            const limit = match {
+                current.graph.input.width == 0 => print_width,
+                _ => current.graph.input.width
+            }
+            const active = (
+                - opening
+                - and nonempty
+                - and !token.block
+            )
+
+            const forced = token.object || token.multiline
+            const measured = match {
+                active && !forced && !children => prefix + width + tail > limit,
+                _ => false
+            }
+
+            const wrap = (
+                - active
+                - and (forced || measured)
+            )
 
             current.wraps = current.wraps.push(wrap)[0]
             current.index += 1

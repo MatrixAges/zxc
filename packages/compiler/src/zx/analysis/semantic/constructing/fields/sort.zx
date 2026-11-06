@@ -28,10 +28,13 @@ export default function (in: Input): Output {
                 } else {
                     const left = current.root * 2 + 1
                     const right = left + 1
-                    const child = right < current.count && less({
-                        left: current.names[left],
-                        right: current.names[right]
-                    }) ? right : left
+                    const child = match {
+                        right < current.count && less({
+                            left: current.names[left],
+                            right: current.names[right]
+                        }) => right,
+                        _ => left
+                    }
 
                     if (less({
                         left: current.names[current.root],

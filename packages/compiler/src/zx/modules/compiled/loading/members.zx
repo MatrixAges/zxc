@@ -13,21 +13,24 @@ export type Input = {
 export type Output = Imports
 
 export default function (in: Input): Output {
-    return in.first
-        -> {
-            ...in.source,
-            ids:
-                in.source.ids.map(
-                    value => value == null ? null :
-                        integers.narrow(_ + integers.widen(value))
-                )[0],
-            input_types: in.source.input_types.map(
-                value =>
-                    value == null ? null : in.mapping[integers.widen(value)]
+    const first = in.first
+
+    return {
+        ...in.source,
+        ids:
+            in.source.ids.map(
+                value => match {
+                    value == null => null,
+                    _ => integers.narrow(first + integers.widen(value))
+                }
             )[0],
-            output_types: in.source.output_types.map(
-                value =>
-                    value == null ? null : in.mapping[integers.widen(value)]
-            )[0]
-        }
+        input_types: in.source.input_types.map(
+            value =>
+                value == null ? null : in.mapping[integers.widen(value)]
+        )[0],
+        output_types: in.source.output_types.map(
+            value =>
+                value == null ? null : in.mapping[integers.widen(value)]
+        )[0]
+    }
 }

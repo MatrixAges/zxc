@@ -1,0 +1,23 @@
+<Module>
+    <Type from="model" as="Encoding" />
+
+    <Args in={Encoding.Begin} out={Encoding.State} />
+
+    <Call
+        module="identity"
+        in={$in.pick([
+            "state",
+            "identity"
+        ])}
+    />
+
+    <Call
+        fn="word"
+        in={{
+            state: $ctx.identity,
+            value: $in.index
+        }}
+    />
+
+    <Return value={$ctx.word} />
+</Module>

@@ -6,10 +6,15 @@ import type { Input } from "./type_model"
 export type Output = bool
 
 export default function (in: Input): Output {
+    const is_length = in.binding_names.length == in.binding_types.length
+
+    const type_id = integers.widen(in.type_id)
+    const kind_count = in.table.kinds.length
+
     return (
         - in.depth < max_nesting_depth
         - and in.names.length != 0
-        - and integers.widen(in.type_id) < in.table.kinds.length
-        - and in.binding_names.length == in.binding_types.length
+        - and type_id < kind_count
+        - and is_length
     )
 }

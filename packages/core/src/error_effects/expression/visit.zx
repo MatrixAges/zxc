@@ -53,18 +53,22 @@ export default function (in: Input): Output {
     })
 
     const frames =
-        expressions.kinds[in.frame.index] == ExpressionKind.Call ? in.state.frames.push({
-            operation: Operation.Function,
-            source: 0,
-            index:
-                integers.widen(
-                    expressions
-                        .call_functions[integers.widen(
-                            expressions.payloads[in.frame.index]
-                        )]
-                ),
-            count: 0
-        })[0] : in.state.frames
+        match {
+            expressions.kinds[in.frame.index] == ExpressionKind.Call =>
+                in.state.frames.push({
+                    operation: Operation.Function,
+                    source: 0,
+                    index:
+                        integers.widen(
+                            expressions
+                                .call_functions[integers.widen(
+                                    expressions.payloads[in.frame.index]
+                                )]
+                        ),
+                    count: 0
+                })[0],
+            _ => in.state.frames
+        }
 
     const scheduled = loop({
         frames,

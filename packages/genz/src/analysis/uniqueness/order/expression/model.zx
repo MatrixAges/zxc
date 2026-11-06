@@ -1,0 +1,19 @@
+import type { ExpressionKind } from "core/expression_table/kinds"
+import type { Expressions } from "core/expression_table/model"
+import type { Stack } from "../model"
+
+export type Input = {
+    table: Expressions,
+    stack: Stack,
+    id: u32
+}
+
+export type Output = Stack
+
+export type Resolved = {
+    table: Expressions,
+    stack: Stack,
+    id: u32,
+    kind: ExpressionKind,
+    payload: u64
+}

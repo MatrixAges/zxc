@@ -11,6 +11,8 @@ import { WorkAction } from "../work/model"
 import pop from "../work/pop"
 import push from "../work/push"
 import top from "../work/top"
+import freeze from "./collections/freeze"
+import updated from "./collections/update"
 import family from "./family"
 import { Family } from "./model"
 
@@ -22,16 +24,20 @@ export type Output = Machine
 
 export default function (in: Input): Output {
     return loop(in, {
-        while: current =>
-            (
+        while: current => {
+            const actions = current.work.actions
+            const ready = (
                 - current.active
                 - and current.complete
                 - and !current.failed
-                - and current.work.actions.length != 0
-                - and family(
-                    current.work.actions[current.work.actions.length - 1]
-                ) == Family.Collections
-            ),
+                - and actions.length != 0
+            )
+
+            return match {
+                ready => family(actions[actions.length - 1]) == Family.Collections,
+                _ => false
+            }
+        },
         next: current => {
             const frame = top(current.work)
 
@@ -42,17 +48,18 @@ export default function (in: Input): Output {
                     integers.widen(
                         current.program.expressions.payloads[frame.subject]
                     )
-                const element = integers.widen(
+                const element_input = integers.widen(
                     current.program.expressions
                         .types[integers.widen(
                             current.program.expressions
                                 .collection_targets[collection]
                         )]
                 )
-                    -> integers.widen(row({
-                        tables: current.program.types,
-                        id: integers.narrow(_)
-                    }).first)
+
+                const element = integers.widen(row({
+                    tables: current.program.types,
+                    id: integers.narrow(element_input)
+                }).first)
                 const shares =
                     current.program.expressions.collection_kinds[collection] ==
                     CollectionKind.Pop ||
@@ -152,33 +159,35 @@ export default function (in: Input): Output {
                     }
                 }
             } else if (frame.action == WorkAction.CollectionResult) {
-                const element = integers.widen(
+                const element_input = integers.widen(
                     current.program.expressions.payloads[frame.subject]
                 )
-                    -> integers.widen(
-                        current.program.expressions
-                            .types[integers.widen(
-                                current.program.expressions
-                                    .collection_targets[_]
-                            )]
-                    )
-                    -> integers.widen(row({
-                        tables: current.program.types,
-                        id: integers.narrow(_)
-                    }).first)
 
-                const condition = (
-                    - current.references[element]
-                    - and (summary({
+                const element_step = integers.widen(
+                    current.program.expressions
+                        .types[integers.widen(
+                            current.program.expressions
+                                .collection_targets[element_input]
+                        )]
+                )
+
+                const element = integers.widen(row({
+                    tables: current.program.types,
+                    id: integers.narrow(element_step)
+                }).first)
+
+                const borrowed = match {
+                    current.references[element] => summary({
                         forest: current.memory.forest,
                         fact: current.value
                     }) == State.Borrowed || summary({
                         forest: current.memory.forest,
                         fact: current.value
-                    }) == State.Loaned)
-                )
+                    }) == State.Loaned,
+                    _ => false
+                }
 
-                if (condition) {
+                if (borrowed) {
                     current.values[current.values.length - 1] =
                         uniform(
                             State.Borrowed
@@ -195,99 +204,15 @@ export default function (in: Input): Output {
                     }
                 })
             } else if (frame.action == WorkAction.CollectionFreeze) {
-                const arguments = {
-                    first:
-                        integers.widen(
-                            current.program.expressions
-                                .collection_first[integers.widen(
-                                    current.program.expressions.payloads[frame.subject]
-                                )]
-                        ),
-                    count:
-                        integers.widen(
-                            current.program.expressions
-                                .collection_count[integers.widen(
-                                    current.program.expressions.payloads[frame.subject]
-                                )]
-                        )
-                }
-
-                if (frame.index < arguments.count) {
-                    current.memory = borrow({
-                        types: current.program.types,
-                        references: current.references,
-                        expressions: current.program.expressions,
-                        layout: current.layout,
-                        memory: current.memory,
-                        expression:
-                            integers.widen(
-                                current.program.expressions
-                                    .collection_arguments[arguments
-                                        .first +
-                                        frame.index]
-                            ),
-                        permanent: true
-                    })
-                    current.work = push({
-                        work: current.work,
-                        frame: {
-                            action: WorkAction.CollectionFreeze,
-                            subject: frame.subject,
-                            moving: false,
-                            index: frame.index + 1
-                        }
-                    })
-                }
+                current = freeze({
+                    machine: current,
+                    frame
+                })
             } else if (frame.action == WorkAction.UpdateResult) {
-                const update =
-                    integers.widen(
-                        current.program.expressions.payloads[frame.subject]
-                    )
-                const element = integers.widen(
-                    current.program.expressions.types[frame.subject]
-                )
-                    -> integers.widen(row({
-                        tables: current.program.types,
-                        id: integers.narrow(_)
-                    }).first)
-                const borrowed = current.references[element] || summary({
-                    forest: current.memory.forest,
-                    fact: current.value
-                }) == State.Borrowed || summary({
-                    forest: current.memory.forest,
-                    fact: current.value
-                }) == State.Loaned
-
-                if (borrowed) {
-                    current.memory = borrow({
-                        types: current.program.types,
-                        references: current.references,
-                        expressions: current.program.expressions,
-                        layout: current.layout,
-                        memory: current.memory,
-                        expression:
-                            integers.widen(
-                                current.program.expressions.update_targets[update]
-                            ),
-                        permanent: true
-                    })
-                    current.memory = borrow({
-                        types: current.program.types,
-                        references: current.references,
-                        expressions: current.program.expressions,
-                        layout: current.layout,
-                        memory: current.memory,
-                        expression:
-                            integers.widen(
-                                current.program.expressions.update_values[update]
-                            ),
-                        permanent: true
-                    })
-                }
-
-                current.value = uniform(
-                    borrowed ? State.Borrowed : State.Owned
-                )
+                current = updated({
+                    machine: current,
+                    frame
+                })
             }
         }
     })

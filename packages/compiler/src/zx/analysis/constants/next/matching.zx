@@ -22,9 +22,12 @@ export default function (in: Input): Output {
     const subject_id = expressions.match_subjects[payload]
 
     const subject =
-        subject_id != null ? in.cursor.values[integers.widen(
-            subject_id
-        )] : null
+        match {
+            subject_id != null => in.cursor.values[integers.widen(
+                subject_id
+            )],
+            _ => null
+        }
 
     if (subject_id != null && subject == null) {
         return {
@@ -51,12 +54,15 @@ export default function (in: Input): Output {
             }
         }
 
-        const matches = subject != null ? compare({
-            left: subject,
-            right: condition,
-            operator: BinaryOperator.Equal,
-            type_id: condition.type_id
-        }) : condition.boolean
+        const matches = match {
+            subject != null => compare({
+                left: subject,
+                right: condition,
+                operator: BinaryOperator.Equal,
+                type_id: condition.type_id
+            }),
+            _ => condition.boolean
+        }
 
         if (!matches) {
             return {
@@ -71,8 +77,10 @@ export default function (in: Input): Output {
         }
     }
 
-    const selected = in.frame.arm < count ? expressions.match_results[arm] :
-        expressions.match_fallbacks[payload]
+    const selected = match {
+        in.frame.arm < count => expressions.match_results[arm],
+        _ => expressions.match_fallbacks[payload]
+    }
 
     const value = in.cursor.values[integers.widen(selected)]
 

@@ -15,9 +15,11 @@ export default function (in: Input): Output {
     const kind = in.types.kinds[index]
     const empty: u32[] = []
 
+    const valid_deep = in.deep && (kind == 3 || kind == 6)
+
     const condition = (
         - kind == 2
-        - or (in.deep && (kind == 3 || kind == 6))
+        - or (valid_deep)
     )
 
     if (condition) {
@@ -39,10 +41,12 @@ export default function (in: Input): Output {
         while: current => current.position < current.count,
         next: current => {
             const child =
-                current.object ? current.types
-                .field_types[current.first +
-                    current.position] :
-                current.types.children[current.first + current.position]
+                match {
+                    current.object => current.types
+                        .field_types[current.first +
+                            current.position],
+                    _ => current.types.children[current.first + current.position]
+                }
 
             current.items = current.items.push(child)[0]
             current.position += 1

@@ -1,0 +1,115 @@
+import integers from "std:integer"
+import {
+    ExpressionKind,
+    CollectionKind,
+} from "core/expression_table/kinds"
+
+import { Action, Role } from "../model"
+import push from "../push"
+import sequence from "../sequence"
+
+import type { Resolved as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const table = in.table
+    const kind = in.kind
+    const payload = in.payload
+
+    const condition = (
+        match kind {
+            ExpressionKind.List => true,
+            ExpressionKind.Tuple => true,
+            ExpressionKind.Template => true,
+            _ => false
+        }
+    )
+
+    if (condition) {
+        const role = match kind {
+            ExpressionKind.Tuple => Role.member,
+            ExpressionKind.Template => Role.observe,
+            _ => Role.use
+        }
+
+        return sequence({
+            stack: in.stack,
+            parent: in.id,
+            values: table.sequence_items,
+            first: table.sequence_first[payload],
+            count: table.sequence_count[payload],
+            role,
+            positions: kind == ExpressionKind.Tuple,
+            indices: [],
+            repeated: false
+        })
+    }
+
+    if (kind == ExpressionKind.Parallel) {
+        return sequence({
+            stack: in.stack,
+            parent: in.id,
+            values: table.parallel_tasks,
+            first: table.parallel_first[payload],
+            count: table.parallel_count[payload],
+            role: Role.use,
+            positions: false,
+            indices: [],
+            repeated: true
+        })
+    }
+
+    if (kind == ExpressionKind.Object) {
+        const fields = sequence({
+            stack: in.stack,
+            parent: in.id,
+            values: table.object_field_values,
+            first: table.object_first[payload],
+            count: table.object_count[payload],
+            role: Role.member,
+            positions: false,
+            indices: table.object_field_indices,
+            repeated: false
+        })
+
+        return sequence({
+            stack: fields,
+            parent: in.id,
+            values: table.object_evaluation_values,
+            first: table.object_evaluation_first[payload],
+            count: table.object_evaluation_count[payload],
+            role: Role.evaluation,
+            positions: false,
+            indices: [],
+            repeated: false
+        })
+    }
+
+    if (kind == ExpressionKind.ListOperation) {
+        const arguments = sequence({
+            stack: in.stack,
+            parent: in.id,
+            values: table.collection_arguments,
+            first: table.collection_first[payload],
+            count: table.collection_count[payload],
+            role: match {
+                table.collection_kinds[payload] == CollectionKind.Push => Role.use,
+                _ => Role.observe
+            },
+            positions: false,
+            indices: [],
+            repeated: false
+        })
+
+        return push({
+            stack: arguments,
+            event: {
+                action: Action.Operand,
+                first: in.id,
+                second: table.collection_targets[payload],
+                role: Role.use
+            }
+        })
+    }
+
+    return in.stack
+}

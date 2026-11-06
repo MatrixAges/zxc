@@ -11,20 +11,21 @@ export type Input = {
 export type Output = State
 
 export default function (in: Input): Output {
-    return {
+    const diagnostic = {
         code: in.code,
         start: in.state.control.token.span.start,
         end: in.state.control.token.span.end,
         message: in.message
     }
-        -> {
-            expression: in.state.expression,
-            body: in.state.body,
-            contracts: in.state.contracts,
-            control: {
-                ...in.state.control,
-                phase: HeaderPhase.Done,
-                diagnostic: _
-            }
+
+    return {
+        expression: in.state.expression,
+        body: in.state.body,
+        contracts: in.state.contracts,
+        control: {
+            ...in.state.control,
+            phase: HeaderPhase.Done,
+            diagnostic: diagnostic
         }
+    }
 }

@@ -16,50 +16,58 @@ export default function (in: Input): Output {
         values: empty,
         index: 0
     }, {
-        while: (state, source) => state.index < source.object_first.length,
-        next: (state, source) => {
-            const first = integers.widen(source.object_first[state.index])
-            const count = integers.widen(source.object_count[state.index])
+        while: state => state.index < in.object_first.length,
+        next: state => {
+            const first = integers.widen(in.object_first[state.index])
+            const count = integers.widen(in.object_count[state.index])
             const target = state.values.length
             state.first = state.first.push(target)[0]
 
-            const values = loop({
+            const values_initial = {
                 values: state.values,
                 position: first
-            }, {
-                while: (field, context) => field.position < context.first + context.count,
-                next: (field, context) => {
+            }
+
+            const values_scope = {
+                source: in,
+                first,
+                count
+            }
+
+            const values = loop(values_initial, {
+                while: field => field.position < values_scope.first + values_scope.count,
+                next: field => {
                     field.values = field.values.push(
-                        context.source.object_field_values[field.position]
+                        values_scope.source.object_field_values[field.position]
                     )[0]
                     field.position += 1
                 },
                 return: state => state.values
-            }, {
-                source,
-                first,
-                count
             })
 
-            state.values = loop({
+            const loop_initial = {
                 values,
                 position: first
-            }, {
-                while: (field, context) => field.position < context.first + context.count,
-                next: (field, context) => {
-                    const index = integers.widen(
-                        context.source.object_field_indices[field.position]
-                    )
-                    field.values[context.target + index] =
-                        context.source.object_field_values[field.position]
-                    field.position += 1
-                },
-                return: state => state.values
-            }, {
-                source,
+            }
+
+            const loop_scope = {
+                source: in,
                 first,
                 count,
                 target
+            }
+
+            state.values = loop(loop_initial, {
+                while: field => field.position < loop_scope.first + loop_scope.count,
+                next: field => {
+                    const index = integers.widen(
+                        loop_scope.source.object_field_indices[field.position]
+                    )
+                    field.values[loop_scope.target + index] =
+                        loop_scope.source.object_field_values[field.position]
+                    field.position += 1
+                },
+                return: state => state.values
             })
             state.index += 1
         },
@@ -67,5 +75,5 @@ export default function (in: Input): Output {
             "first",
             "values"
         ])
-    }, in)
+    })
 }

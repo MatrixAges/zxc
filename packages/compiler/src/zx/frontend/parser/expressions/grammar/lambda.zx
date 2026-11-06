@@ -1,3 +1,4 @@
+import { Keyword } from "../../../lexer/keyword_model"
 import { Kind, Symbol } from "../../../lexer/token_model"
 import consume from "../state/consume"
 import fail from "../state/fail"
@@ -12,21 +13,34 @@ export type Output = ExprState
 
 export default function (in: Input): Output {
     if (in.control.phase == Phase.LambdaBody) {
-        return in.frames[in.frames.length - 1].flag
-            -> (
-                _ && in.control.token.symbol == Symbol.OpenBrace ? Phase.StateBlock :
-                    Phase.BeginBinary
-            )
-            -> {
-                prepared: in.prepared,
-                tree: in.tree,
-                types: in.types,
-                frames: in.frames,
-                control: {
-                    ...in.control,
-                    phase: _
-                }
+        const has_body = in.control.token.symbol == Symbol.OpenBrace
+
+        const tokens = match {
+            in.control.stream == 0 => in.prepared.lexical.lexed.tokens,
+            _ => in.prepared.lexical.interpolations[in.control.stream - 1].lexed.tokens
+        }
+
+        const next_index = in.control.index + 1
+
+        const declarations = match {
+            has_body && next_index < tokens.length =>
+                tokens[next_index].word == Keyword.Const ||
+                tokens[next_index].word == Keyword.Return,
+            _ => false
+        }
+
+        const updating = in.frames[in.frames.length - 1].flag
+
+        const block =
+            in.control.token.symbol == Symbol.OpenBrace && (updating || declarations)
+
+        return {
+            ...in,
+            control: {
+                ...in.control,
+                phase: block ? Phase.StateBlock : Phase.BeginBinary
             }
+        }
     }
 
     if (in.control.phase == Phase.LambdaArrow) {
@@ -105,7 +119,7 @@ export default function (in: Input): Output {
         count
     })[0]
 
-    return {
+    const tree = {
         nodes: taken.state.tree.nodes,
         items: taken.state.tree.items,
         fields: taken.state.tree.fields,
@@ -113,14 +127,15 @@ export default function (in: Input): Output {
         parts: taken.state.tree.parts,
         arms: taken.state.tree.arms
     }
-        -> consume({
-            state: {
-                prepared: taken.state.prepared,
-                tree: _,
-                types: taken.state.types,
-                frames,
-                control: taken.state.control
-            },
-            phase: Phase.LambdaSeparator
-        })
+
+    return consume({
+        state: {
+            prepared: taken.state.prepared,
+            tree: tree,
+            types: taken.state.types,
+            frames,
+            control: taken.state.control
+        },
+        phase: Phase.LambdaSeparator
+    })
 }

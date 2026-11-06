@@ -42,9 +42,12 @@ export default function (in: Input): Output {
     }
 
     const condition = (
-        - kind == ExpressionKind.List
-        - or kind == ExpressionKind.Tuple
-        - or kind == ExpressionKind.Object
+        match kind {
+            ExpressionKind.List => true,
+            ExpressionKind.Tuple => true,
+            ExpressionKind.Object => true,
+            _ => false
+        }
     )
 
     if (condition) {
@@ -52,26 +55,34 @@ export default function (in: Input): Output {
 
         const first =
             integers.widen(
-                object ? in.expressions.object_evaluation_first[payload] :
-                    in.expressions.sequence_first[payload]
+                match {
+                    object => in.expressions.object_evaluation_first[payload],
+                    _ => in.expressions.sequence_first[payload]
+                }
             )
 
         const count =
             integers.widen(
-                object ? in.expressions.object_evaluation_count[payload] :
-                    in.expressions.sequence_count[payload]
+                match {
+                    object => in.expressions.object_evaluation_count[payload],
+                    _ => in.expressions.sequence_count[payload]
+                }
             )
 
-        return (
-            object ? in.expressions.object_evaluation_values :
-                in.expressions.sequence_items
-        )
-            -> {
-                found: in.index < count,
-                expression: in.index < count ? integers.widen(
-                    _[first + in.index]
-                ) : 0
+        const values = match {
+            object => in.expressions.object_evaluation_values,
+            _ => in.expressions.sequence_items
+        }
+
+        return {
+            found: in.index < count,
+            expression: match {
+                in.index < count => integers.widen(
+                    values[first + in.index]
+                ),
+                _ => 0
             }
+        }
     }
 
     if (kind == ExpressionKind.ListUpdate) {
@@ -79,8 +90,10 @@ export default function (in: Input): Output {
             found: in.index < 2,
             expression:
                 integers.widen(
-                    in.index == 0 ? in.expressions.update_targets[payload] :
-                        in.expressions.update_values[payload]
+                    match {
+                        in.index == 0 => in.expressions.update_targets[payload],
+                        _ => in.expressions.update_values[payload]
+                    }
                 )
         }
     }
@@ -90,8 +103,10 @@ export default function (in: Input): Output {
             found: in.index < 2,
             expression:
                 integers.widen(
-                    in.index == 0 ? in.expressions.conditional_yes[payload] :
-                        in.expressions.conditional_no[payload]
+                    match {
+                        in.index == 0 => in.expressions.conditional_yes[payload],
+                        _ => in.expressions.conditional_no[payload]
+                    }
                 )
         }
     }
@@ -101,8 +116,10 @@ export default function (in: Input): Output {
             found: in.index < 2,
             expression:
                 integers.widen(
-                    in.index == 0 ? in.expressions.binary_left[payload] :
-                        in.expressions.binary_right[payload]
+                    match {
+                        in.index == 0 => in.expressions.binary_left[payload],
+                        _ => in.expressions.binary_right[payload]
+                    }
                 )
         }
     }
@@ -120,18 +137,21 @@ export default function (in: Input): Output {
         const operation = in.expressions.transform_kinds[payload]
         const initial = in.expressions.transform_initials[payload]
 
-        return (
+        const valid_operation = operation == TransformKind.Map ||
+            operation == TransformKind.Reduce
+
+        const found = (
             - in.index == 1
             - and initial != null
             - and (
-                operation == TransformKind.Map ||
-                    operation == TransformKind.Reduce
+                valid_operation
             )
         )
-            -> {
-                found: _,
-                expression: initial != null ? integers.widen(initial) : 0
-            }
+
+        return {
+            found: found,
+            expression: initial != null ? integers.widen(initial) : 0
+        }
     }
 
     if (in.index != 0) {
@@ -175,21 +195,25 @@ export default function (in: Input): Output {
     }
 
     const condition_2 = (
-        - kind == ExpressionKind.Some
-        - or kind == ExpressionKind.Capture
-        - or kind == ExpressionKind.OptionalValue
+        match kind {
+            ExpressionKind.Some => true,
+            ExpressionKind.Capture => true,
+            ExpressionKind.OptionalValue => true,
+            _ => false
+        }
     )
 
     if (condition_2) {
-        return match kind {
+        const expression = match kind {
             ExpressionKind.Some => in.expressions.some[payload],
             ExpressionKind.Capture => in.expressions.captures[payload],
             _ => in.expressions.optional_values[payload]
         }
-            -> {
-                found: true,
-                expression: integers.widen(_)
-            }
+
+        return {
+            found: true,
+            expression: integers.widen(expression)
+        }
     }
 
     if (in.permanent && kind == ExpressionKind.Call) {

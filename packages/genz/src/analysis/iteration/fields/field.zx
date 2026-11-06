@@ -37,11 +37,13 @@ export default function (in: Input): Output {
                 const kind = current.input.input.expressions.kinds[index]
                 const payload =
                     integers.widen(current.input.input.expressions.payloads[index])
-                const bound = kind == ExpressionKind.Reference ?
-                    current.input
-                    .bindings[integers.widen(
-                        current.input.input.expressions.references[payload]
-                    )] : max_u32
+                const bound = match {
+                    kind == ExpressionKind.Reference => current.input
+                        .bindings[integers.widen(
+                            current.input.input.expressions.references[payload]
+                        )],
+                    _ => max_u32
+                }
 
                 if (current.input.graph.states[index]) {
                     current.states[index] = state({

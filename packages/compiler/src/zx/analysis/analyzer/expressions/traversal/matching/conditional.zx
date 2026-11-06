@@ -1,0 +1,50 @@
+import integers from "std:integer"
+import append from "core/expression_table/append/conditional"
+
+import type { Result } from "core/expression_table/append/model"
+import type { Expressions } from "core/expression_table/model"
+
+export type Input = {
+    table: Expressions,
+    conditions: u32[],
+    results: u32[],
+    fallback: u32,
+    start: u64,
+    end: u64
+}
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const metadata = {
+        type_id: in.table.types[integers.widen(in.fallback)],
+        span_start: in.start,
+        span_end: in.end
+    }
+
+    return loop({
+        table: in.table,
+        id: in.fallback,
+        index: in.conditions.length
+    }, {
+        while: current => current.index != 0,
+        next: current => {
+            current.index -= 1
+
+            const result = append({
+                table: current.table,
+                metadata,
+                condition: in.conditions[current.index],
+                yes: in.results[current.index],
+                no: current.id
+            })
+
+            current.table = result.table
+            current.id = result.id
+        },
+        return: current => current.pick([
+            "table",
+            "id"
+        ])
+    })
+}

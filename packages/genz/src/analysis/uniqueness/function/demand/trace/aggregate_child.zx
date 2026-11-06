@@ -1,0 +1,52 @@
+import integers from "std:integer"
+
+import member from "../../levels/member"
+
+import type { Metadata, Request } from "../../levels/model"
+
+export type Input = {
+    metadata: Metadata,
+    type_id: u32,
+    object: bool,
+    first: u32,
+    index: u64,
+    slot: u32
+}
+
+export type Output = Request?
+
+export default function (in: Input): Output {
+    const expressions = in.metadata.expressions
+    const offset = integers.widen(in.first) + in.index
+
+    const index = match {
+        in.object => expressions.object_field_indices[offset],
+        _ => integers.narrow(in.index)
+    }
+
+    const selected = member({
+        metadata: in.metadata,
+        type_id: in.type_id,
+        index
+    })
+
+    if (in.slot < selected.offset) {
+        return null
+    }
+
+    if (
+        in.slot >=
+            selected.offset + in.metadata.counts[integers.widen(selected.type_id)]
+    ) {
+        return null
+    }
+
+    return {
+        node: match {
+            in.object => expressions.object_field_values[offset],
+            _ => expressions.sequence_items[offset]
+        },
+        slot: in.slot - selected.offset,
+        raw: false
+    }
+}

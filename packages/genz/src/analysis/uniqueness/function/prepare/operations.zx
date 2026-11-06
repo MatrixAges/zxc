@@ -18,25 +18,25 @@ export default function (in: Input): Output {
         operations,
         index: 0
     }, {
-        while: (state, source) => state.index < source.expressions.kinds.length,
-        next: (state, source) => {
-            if (source.time[state.index] != max_u32) {
-                const kind = source.expressions.kinds[state.index]
+        while: state => state.index < in.expressions.kinds.length,
+        next: state => {
+            if (in.time[state.index] != max_u32) {
+                const kind = in.expressions.kinds[state.index]
 
-                const condition = (
-                    - kind == ExpressionKind.Call
-                    - or kind == ExpressionKind.ListOperation
-                    - or kind == ExpressionKind.ListUpdate
-                    - or (
-                        kind == ExpressionKind.Transform &&
-                            source.expressions
-                            .transform_kinds[integers.widen(
-                                source.expressions.payloads[state.index]
-                            )] == TransformKind.Sort
-                    )
-                )
+                const selected = match kind {
+                    ExpressionKind.Call => true,
+                    ExpressionKind.ListOperation => true,
+                    ExpressionKind.ListUpdate => true,
+                    ExpressionKind.Transform => in.expressions
+                        .transform_kinds[
+                            integers.widen(
+                                in.expressions.payloads[state.index]
+                            )
+                        ] == TransformKind.Sort,
+                    _ => false
+                }
 
-                if (condition) {
+                if (selected) {
                     state.operations = state.operations.push(
                         integers.narrow(state.index)
                     )[0]
@@ -46,5 +46,5 @@ export default function (in: Input): Output {
             state.index += 1
         },
         return: state => state.operations
-    }, in)
+    })
 }

@@ -42,6 +42,12 @@ pub fn check(source: []const u8, mode: []const u8) !void {
             continue;
         }
 
+        if (std.mem.eql(u8, name, "zxAllocate") and call.ast.params.len == 6) {
+            if (!emptyArray(tree, call.ast.params[2])) copies += 1;
+
+            continue;
+        }
+
         if (tree.nodeTag(target) != .field_access or call.ast.params.len != 2) continue;
         if (!std.mem.eql(u8, tree.tokenSlice(tree.nodeData(target).node_and_token[1]), "dupe")) continue;
         if (!emptyArray(tree, call.ast.params[1])) copies += 1;

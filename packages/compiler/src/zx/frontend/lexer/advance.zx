@@ -34,25 +34,27 @@ export default function (in: Input): Output {
         )
 
         if (condition) {
-            return keywordTransition({
+            const next_keyword = keywordTransition({
                 state: in.state.keyword_state,
                 byte: in.byte
             })
-                -> {
-                    ...in.state,
-                    keyword_state: _
-                }
+
+            return {
+                ...in.state,
+                keyword_state: next_keyword
+            }
         }
 
-        return endIdentifier(in.state)
-            -> begin({
-                byte: in.byte,
-                next: in.next,
-                after: in.after,
-                has_next: in.has_next,
-                has_after: in.has_after,
-                state: _
-            })
+        const ended = endIdentifier(in.state)
+
+        return begin({
+            byte: in.byte,
+            next: in.next,
+            after: in.after,
+            has_next: in.has_next,
+            has_after: in.has_after,
+            state: ended
+        })
     }
 
     if (in.state.mode == Mode.Number) {

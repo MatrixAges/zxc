@@ -17,9 +17,13 @@ export type Input = {
 export type Output = bool
 
 export default function (in: Input): Output {
+    const not_length = in.paths.length != in.slot_types.length
+
+    const valid_type_only = in.type_only && in.paths.length != 0
+
     const condition = (
-        - in.paths.length != in.slot_types.length
-        - or (in.type_only && in.paths.length != 0)
+        - not_length
+        - or (valid_type_only)
     )
 
     if (condition) {
@@ -38,21 +42,25 @@ export default function (in: Input): Output {
             const type_id = current.slot_types[current.index]
             const index = integers.widen(type_id)
 
-            current.valid = (
-                - index < current.table.kinds.length
-                - and kind(
-                    current.table.kinds[index]
-                ) == Kind.Object
-                - and path({
+            const not_length_2 = index < current.table.kinds.length
+
+            const valid_path = match {
+                !not_length_2 => false,
+                kind(current.table.kinds[index]) != Kind.Object => false,
+                _ => path({
                     paths: current.paths,
                     index: current.index
                 })
-                - and !contains({
+            }
+
+            current.valid = match {
+                valid_path => !contains({
                     table: current.table,
                     id: type_id,
                     native_references: true
-                })
-            )
+                }),
+                _ => false
+            }
 
             current.index += 1
         },

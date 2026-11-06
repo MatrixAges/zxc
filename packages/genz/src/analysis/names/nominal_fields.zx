@@ -27,25 +27,28 @@ export default function (in: Input): Output {
     const origins = in.source.origins
     const code = origins.kinds[in.position]
 
-    const fields = match code {
+    const tag = match code {
         source_origin => source_tag,
         native_origin => native_tag,
         _ => external_tag
     }
-        -> in.fields.concat(
-            [
-                bytes.fromText(_),
-                bytes.fromText(origins.owners[in.position])
-            ]
-        )[0]
 
-    const with_name = (
-        code == external_origin ?
-            fields.push(bytes.fromText(origins.members[in.position]))[0] : fields
-    )
-        -> _.push(
-            bytes.fromText(in.source.types.labels[in.index])
-        )[0]
+    const fields = in.fields.concat(
+        [
+            bytes.fromText(tag),
+            bytes.fromText(origins.owners[in.position])
+        ]
+    )[0]
+
+    const with_member = match {
+        code == external_origin =>
+            fields.push(bytes.fromText(origins.members[in.position]))[0],
+        _ => fields
+    }
+
+    const with_name = with_member.push(
+        bytes.fromText(in.source.types.labels[in.index])
+    )[0]
 
     if (kind(in.source.types.kinds[in.index]) != Kind.Enumeration) {
         return with_name

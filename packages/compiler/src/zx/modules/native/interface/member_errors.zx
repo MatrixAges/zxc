@@ -21,13 +21,14 @@ export default function (in: Input): Output {
     }, {
         while: current => current.index < current.input.declaration.error_count,
         next: current => {
-            const name = current.input
+            const span = current.input
                 .errors[current.input.declaration.first_error +
                     current.index]
-                -> text({
-                    source: current.input.source,
-                    span: _
-                }).text
+
+            const name = text({
+                source: current.input.source,
+                span: span
+            }).text
 
             current.names = current.names.push(name)[0]
             current.index += 1

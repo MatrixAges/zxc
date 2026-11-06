@@ -18,9 +18,11 @@ export default function (in: Input): Output {
         while: current => current.index <
             current.symbols.length + current.types.length,
         next: current => {
-            const type_id = current.index < current.symbols.length ?
-                current.symbols[current.index] :
-                current.types[current.index - current.symbols.length]
+            const type_id = match {
+                current.index < current.symbols.length =>
+                    current.symbols[current.index],
+                _ => current.types[current.index - current.symbols.length]
+            }
 
             current.first = current.first.push(current.total)[0]
             current.total += current.counts[integers.widen(type_id)]

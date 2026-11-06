@@ -41,18 +41,19 @@ export default function (in: Input): Output {
     }
 
     if (node.kind == ExprKind.Field || node.kind == ExprKind.Index) {
-        return match {
+        const operation = match {
             node.kind == ExprKind.Index => Operation.Index,
             in.declared => Operation.DeclaredField,
             _ => Operation.Field,
         }
-            -> {
-                ...work,
-                frames: work.frames.push({
-                    operation: _,
-                    node: in.node
-                })[0].push(child)[0]
-            }
+
+        return {
+            ...work,
+            frames: work.frames.push({
+                operation: operation,
+                node: in.node
+            })[0].push(child)[0]
+        }
     }
 
     if (node.kind == ExprKind.Await) {
@@ -76,12 +77,15 @@ export default function (in: Input): Output {
     }
 
     if (node.kind == ExprKind.Unary) {
-        return node.flag ? {
-            ...work,
-            frames: work.frames.push(child)[0]
-        } : {
-            ...work,
-            result: 1
+        return match {
+            node.flag => {
+                ...work,
+                frames: work.frames.push(child)[0]
+            },
+            _ => {
+                ...work,
+                result: 1
+            }
         }
     }
 
@@ -99,26 +103,33 @@ export default function (in: Input): Output {
             }
         }
 
-        return (
-            - node.operator == Operator.Equal
-            - or node.operator == Operator.NotEqual
-            - or node.operator == Operator.Less
-            - or node.operator == Operator.LessEqual
-            - or node.operator == Operator.Greater
-            - or node.operator == Operator.GreaterEqual
-            - or node.operator == Operator.And
-            - or node.operator == Operator.Or
+        const boolean = (
+            match node.operator {
+                Operator.Equal => true,
+                Operator.NotEqual => true,
+                Operator.Less => true,
+                Operator.LessEqual => true,
+                Operator.Greater => true,
+                Operator.GreaterEqual => true,
+                Operator.And => true,
+                Operator.Or => true,
+                _ => false
+            }
         )
-            -> (_ ? {
+
+        return match {
+            boolean => {
                 ...work,
                 result: 1
-            } : {
+            },
+            _ => {
                 ...work,
                 frames: work.frames.push({
                     operation: Operation.Fallback,
                     node: node.second
                 })[0].push(child)[0]
-            })
+            }
+        }
     }
 
     if (node.kind == ExprKind.Conditional) {

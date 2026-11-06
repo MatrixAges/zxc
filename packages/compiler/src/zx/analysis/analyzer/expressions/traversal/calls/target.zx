@@ -30,8 +30,9 @@ export type Input = Work
 export type Output = Work
 
 export default function (in: Input): Output {
-    const frame = in.frames.methods.length - 1
-        -> in.frames.methods[_]
+    const frame_input = in.frames.methods.length - 1
+
+    const frame = in.frames.methods[frame_input]
 
     const node = in.source.tree.nodes[frame.node]
     const callee = in.source.tree.nodes[node.first]
@@ -73,9 +74,11 @@ export default function (in: Input): Output {
     })
 
     if (target.kind != Kind.List) {
+        const valid_text = name.text == method_pick || name.text == method_omit
+
         const condition = (
             - target.kind == Kind.Object
-            - and (name.text == method_pick || name.text == method_omit)
+            - and (valid_text)
         )
 
         if (condition) {
@@ -114,13 +117,15 @@ export default function (in: Input): Output {
         }
     }
 
+    const valid_text_2 = name.text == method_sort && node.count != 0
+
     const condition_2 = (
         - name.text == method_map
         - or name.text == method_reduce
         - or name.text == "filter"
         - or name.text == "every"
         - or name.text == "some"
-        - or (name.text == method_sort && node.count != 0)
+        - or (valid_text_2)
     )
 
     if (condition_2) {
@@ -141,10 +146,13 @@ export default function (in: Input): Output {
         })
 
         const tuple_result = (
-            - kind == TransformKind.Map
-            - or kind == TransformKind.Filter
-            - or kind == TransformKind.Reduce
-            - or kind == TransformKind.Sort
+            match kind {
+                TransformKind.Map => true,
+                TransformKind.Filter => true,
+                TransformKind.Reduce => true,
+                TransformKind.Sort => true,
+                _ => false
+            }
         )
 
         return transform({
@@ -155,11 +163,14 @@ export default function (in: Input): Output {
                 frames: {
                     ...in.frames,
                     methods: in.frames.methods.pop()[0],
-                    indices: hint.projection == null ? in.frames.indices :
-                        in.frames.indices.splice(in.frames.indices.length - 1, 1, [{
-                            ...in.frames.indices[in.frames.indices.length - 1],
-                            target: max_u32
-                        }])[0]
+                    indices: match {
+                        hint.projection == null => in.frames.indices,
+                        _ =>
+                            in.frames.indices.splice(in.frames.indices.length - 1, 1, [{
+                                ...in.frames.indices[in.frames.indices.length - 1],
+                                target: max_u32
+                            }])[0]
+                    }
                 }
             },
             node: frame.node,

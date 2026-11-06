@@ -17,7 +17,7 @@ export default function (in: Input): Output {
     const count = state.control.value_count + 1
     const end = state.control.location.offset + in.count
 
-    return state.tree.parts.push({
+    const parts = state.tree.parts.push({
         span: {
             start: 0,
             end: 0
@@ -26,25 +26,26 @@ export default function (in: Input): Output {
         codepoint: in.codepoint,
         previous: state.control.value_head
     })[0]
-        -> advance({
-            state: {
-                source: state.source,
-                tree: {
-                    nodes: state.tree.nodes,
-                    attributes: state.tree.attributes,
-                    text: state.tree.text,
-                    children: state.tree.children,
-                    parts: _
-                },
-                frames: state.frames,
-                frame: state.frame,
-                control: {
-                    ...state.control,
-                    value_head: head,
-                    value_count: count,
-                    text_start: end
-                }
+
+    return advance({
+        state: {
+            source: state.source,
+            tree: {
+                nodes: state.tree.nodes,
+                attributes: state.tree.attributes,
+                text: state.tree.text,
+                children: state.tree.children,
+                parts: parts
             },
-            count: in.count
-        })
+            frames: state.frames,
+            frame: state.frame,
+            control: {
+                ...state.control,
+                value_head: head,
+                value_count: count,
+                text_start: end
+            }
+        },
+        count: in.count
+    })
 }

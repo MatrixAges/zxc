@@ -28,54 +28,62 @@ export default function (in: Input): Output {
     const pending: Point[] = []
     const seen = visited(integers.widen(first[first.length - 1]))
 
-    const queue = loop({
+    const queue_initial = {
         queue: {
             count: 0,
             pending,
             visited: seen
         },
         index: 0
-    }, {
-        while: (state, context) => state.index < context.roots.length,
-        next: (state, context) => {
+    }
+
+    const queue_scope = {
+        roots: in.roots,
+        first
+    }
+
+    const queue = loop(queue_initial, {
+        while: state => state.index < queue_scope.roots.length,
+        next: state => {
             state.queue = push({
                 queue: state.queue,
-                first: context.first,
-                point: context.roots[state.index]
+                first: queue_scope.first,
+                point: queue_scope.roots[state.index]
             })
             state.index += 1
         },
         return: state => state.queue
-    }, {
-        roots: in.roots,
-        first
     })
 
-    const initial: State =
+    const expanded =
         in.context.body.expressions.call_functions.map(callee => false)[0]
-        -> {
+
+    const initial: State =
+        {
             remaining: count,
             queue,
-            expanded: _,
+            expanded: expanded,
             reached: in.reached,
             changed: false,
             every: false
         }
 
+    const readonly_context = in.context
+
     const result = loop(initial, {
         while: state => state.queue.count != 0 && state.remaining != 0 && !state.every,
-        next: (state, context) => {
+        next: state => {
             state.queue.count -= 1
             const point = state.queue.pending[state.queue.count]
 
             state = step({
                 state,
-                context,
+                context: readonly_context,
                 point
             })
 
         }
-    }, in.context)
+    })
 
     if (!result.every) {
         return result.pick([

@@ -1,0 +1,24 @@
+import enter from "../../../statements/scopes/enter"
+import { Phase } from "../model"
+
+import type { Work } from "../model"
+
+export type Input = Work
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    return {
+        ...in,
+        scopes: enter({
+            scopes: in.scopes,
+            local: in.state.local,
+            tree: in.source.blocks,
+            block: in.source.tree.nodes[in.node].first,
+            state_symbol: 0,
+            value_block: true,
+            expected: in.expected
+        }),
+        phase: Phase.ScopeNext
+    }
+}

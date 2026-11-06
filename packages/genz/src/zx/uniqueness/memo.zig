@@ -78,17 +78,25 @@ pub fn Result(comptime kind: Kind) type {
 /// The record of `kind` for the body `identity` in the state `state`, which `lastState` returned for an earlier
 /// lookup of the same kind; the next put records under the same key.
 pub fn find(self: *Self, comptime kind: Kind, identity: [32]u8, state: []const u8) std.mem.Allocator.Error!?Result(kind) {
-    if (generated_encoding) self.encoding.reset() else self.encoded.clearRetainingCapacity();
-    try self.appendBytes(&identity);
-    try self.appendBytes(state);
-    try self.digest(@tagName(kind));
+    if (generated_encoding) {
+        try self.encoding.replay(self.arena.allocator(), &identity, state);
+    } else {
+        self.encoded.clearRetainingCapacity();
+
+        try self.appendBytes(&identity);
+        try self.appendBytes(state);
+    }
+
+    try self.digest(kind);
 
     return use(Result(kind), &@field(self, @tagName(kind)), self.key);
 }
 
 /// The state the last lookup encoded, without the body identity; valid until the next lookup.
 pub fn lastState(self: *const Self) []const u8 {
-    return self.encodedBytes()[@sizeOf(Digest)..self.state_end];
+    const end = if (generated_encoding) self.encoding.stateEnd() else self.state_end;
+
+    return self.encodedBytes()[@sizeOf(Digest)..end];
 }
 
 pub fn getSettled(self: *Self, summaries: *const Summaries, state: State) std.mem.Allocator.Error!?Settled {
@@ -113,7 +121,7 @@ fn keyed(self: *Self, comptime kind: Kind, summaries: *const Summaries, state: S
         try self.levels(if (state.index < summaries.outputs.len) summaries.outputs[state.index] else &.{});
     }
 
-    try self.digest(@tagName(kind));
+    try self.digest(kind);
 }
 
 /// Records the analysis of the state `getSettled` digested into `key`.
@@ -216,9 +224,15 @@ fn use(comptime Value: type, map: *std.AutoHashMapUnmanaged(Digest, Value), key:
 }
 
 fn encode(self: *Self, summaries: *const Summaries, state: State) std.mem.Allocator.Error!void {
-    if (generated_encoding) self.encoding.reset() else self.encoded.clearRetainingCapacity();
-    try self.appendBytes(&state.identity);
-    try self.int(u32, @intCast(state.index));
+    if (generated_encoding) {
+        try self.encoding.begin(self.arena.allocator(), &state.identity, state.index);
+    } else {
+        self.encoded.clearRetainingCapacity();
+
+        try self.appendBytes(&state.identity);
+        try self.int(u32, @intCast(state.index));
+    }
+
     try self.levels(state.input);
     // The identity covers which functions the body calls and their signatures, so only their summaries follow.
     for (state.callees) |callee| try self.levels(summaries.output[callee]);
@@ -227,10 +241,14 @@ fn encode(self: *Self, summaries: *const Summaries, state: State) std.mem.Alloca
 }
 
 /// Sets `key` to the digest of the encoded state followed by `kind`.
-fn digest(self: *Self, kind: []const u8) std.mem.Allocator.Error!void {
-    self.state_end = self.encodedBytes().len;
+fn digest(self: *Self, kind: Kind) std.mem.Allocator.Error!void {
+    if (generated_encoding) {
+        try self.encoding.finish(self.arena.allocator(), @fromBackingInt(@intCast(@backingInt(kind))));
+    } else {
+        self.state_end = self.encoded.items.len;
 
-    try self.appendBytes(kind);
+        try self.appendBytes(@tagName(kind));
+    }
 
     Hash.hash(self.encodedBytes(), &self.key, .{});
 }

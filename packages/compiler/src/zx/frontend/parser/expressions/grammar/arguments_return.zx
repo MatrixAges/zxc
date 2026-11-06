@@ -48,17 +48,18 @@ export default function (in: Input): Output {
     }
 
     if (state.control.token.symbol == Symbol.Comma) {
-        return state.frames.push(continuation)[0]
-            -> consume({
-                state: {
-                    prepared: state.prepared,
-                    tree: state.tree,
-                    types: state.types,
-                    frames: _,
-                    control: state.control
-                },
-                phase: Phase.Arguments
-            })
+        const frames = state.frames.push(continuation)[0]
+
+        return consume({
+            state: {
+                prepared: state.prepared,
+                tree: state.tree,
+                types: state.types,
+                frames: frames,
+                control: state.control
+            },
+            phase: Phase.Arguments
+        })
     }
 
     if (state.control.token.symbol != closing) {

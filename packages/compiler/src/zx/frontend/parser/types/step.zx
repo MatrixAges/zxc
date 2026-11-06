@@ -20,15 +20,16 @@ export default function (in: Input): Output {
     }
 
     if (in.state.control.index < in.state.control.start) {
-        return in.state.control.index + 1
-            -> {
-                tree: in.state.tree,
-                frames: in.state.frames,
-                control: {
-                    ...in.state.control,
-                    index: _
-                }
+        const index = in.state.control.index + 1
+
+        return {
+            tree: in.state.tree,
+            frames: in.state.frames,
+            control: {
+                ...in.state.control,
+                index: index
             }
+        }
     }
 
     const state = {

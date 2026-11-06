@@ -10,8 +10,8 @@ export type Input = Step
 export type Output = Result
 
 export default function (in: Input): Output {
-    const expressions = in.context.program
-        -> _.body.expressions
+    const program = in.context.program
+    const expressions = program.body.expressions
 
     const payload = integers.widen(expressions.payloads[in.frame.a])
     const depth = in.frame.b + 1
@@ -68,15 +68,18 @@ export default function (in: Input): Output {
     const subject = expressions.match_subjects[payload]
 
     return {
-        state: subject == null ? cases : schedule({
-            state: cases,
-            frame: {
-                phase: Phase.Expression,
-                a: integers.widen(subject),
-                b: depth,
-                c: in.frame.c
-            }
-        }),
+        state: match {
+            subject == null => cases,
+            _ => schedule({
+                state: cases,
+                frame: {
+                    phase: Phase.Expression,
+                    a: integers.widen(subject),
+                    b: depth,
+                    c: in.frame.c
+                }
+            })
+        },
         valid: true
     }
 }

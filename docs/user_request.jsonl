@@ -428,3 +428,17 @@
 {"time": "2026-11-05", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "user", "text": "这是啥 不允许loop后接着取值（lint上），明明后续处理可以写在return里"}
 {"time": "2026-11-05", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "user", "text": "我说的pipeline完善是指多行连续const推演目标值 可以用pipeline代替写法 是这个"}
 {"time": "2026-11-05", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "user", "text": "还有每次提交推送的时候 要把未提交的内容 一起提交 保证没有未提交未推送内容"}
+{"time": "2026-11-05", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "user", "text": "我发现一个问题 pipeline应该限制适用场景，我设计的目标场景是\nconst = value\n              -> fn(_,value_b) + v_c\n              -> _ / v_d\n这样的场景，但是你却把它用在 一大坨（多行）代码中，代码可读性反而变差，还有，如果连续处理步骤不超过两步，不要用pipeline，如果处理的步骤换行了，就要想办法让换行的拆分成函数进而变化单行，更易读\nconst condition也是，子行不要出现换行，如果换行就要继续拆分\n从lint层面限制并改进代码"}
+{"time": "2026-11-05", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "user", "text": "pipeline是提取函数，condition是再提取condition，另外我说的换行在这里是不超过30列，还包括，condition子行不超过3个子元素"}
+{"time": "2026-11-05", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "user", "text": "也不是为了用上pipeline 所有都要改写 有些改写完代码更复杂可读性更差的 干脆别用pipeline"}
+{"time": "2026-11-05", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "user", "text": "condition反而可以不断更细粒度拆分更多 const condition，另外 const condition别嵌套使用，可读性会变差，用变量代替而不是直接把表达式作为子行嵌套进去"}
+{"time": "2026-11-05", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "user", "text": "另外 三元表达式也不允许多行或者内部嵌套复杂表达式，复杂表达用match或者其他语法代替，核心就是不要可出可读性可维护性很差的代码"}
+{"time": "2026-11-05", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "user", "text": "移除掉这个第三个参数支持，看起来很奇怪，改成基于作用域的向下传递（不可闭包，只读）"}
+{"time": "2026-11-06", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "user", "text": "我之前提出的需求未完成 完成后继续自举"}
+{"time": "2026-11-06", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "user", "text": "不仅仅是三元表达式 之前还有需求"}
+{"time": "2026-11-06", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "user", "text": "不是原始需求 是最近两天的需求"}
+{"time": "2026-11-06", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "user", "text": "倒着核对 有些已经完成了 有些是后续优化调整"}
+{"time": "2026-11-06", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "user", "text": "单个zx文件lint限制不超过240行 超过就要拆分成单独的纯函数文件组装逻辑"}
+{"time": "2026-11-06", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "user", "text": "这样设计 建议行数不超过180行，lint限制240行，中间60行用于一些特殊不适合拆分的场景"}
+{"time": "2026-11-06 07:37:49", "session": "2026-11-06-performance", "session_title": "自举性能退化定位", "source": "user", "text": "内存膨胀这么多 说明发生了严重错误实现"}
+{"time": "2026-11-06 12:08", "session": "01a191be-ab9d-77e0-96cb-07bc2b11a953", "session_title": "继续自举与性能门禁", "source": "user", "text": "0.1s内都可以接受（累积超过一定阈值除外）"}

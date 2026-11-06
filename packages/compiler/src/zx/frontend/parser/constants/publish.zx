@@ -39,11 +39,15 @@ export default function (in: Input): Output {
         }
     }
 
+    const is_semicolon = token.symbol == Symbol.Semicolon
+
+    const valid_token = token.kind != Kind.Eof && token.symbol != Symbol.CloseBrace &&
+        !token.line_break
+
     const condition = (
-        - token.symbol == Symbol.Semicolon
+        - is_semicolon
         - or (
-            token.kind != Kind.Eof && token.symbol != Symbol.CloseBrace &&
-                !token.line_break
+            valid_token
         )
     )
 
@@ -56,9 +60,11 @@ export default function (in: Input): Output {
                 start: token.span.start,
                 end: token.span.end,
                 message:
-                    token.symbol ==
-                    Symbol.Semicolon ? "semicolons are not allowed in ZX" :
-                    "expected a newline, closing block or end of source"
+                    match {
+                        token.symbol ==
+                            Symbol.Semicolon => "semicolons are not allowed in ZX",
+                        _ => "expected a newline, closing block or end of source"
+                    }
             }
         }
     }

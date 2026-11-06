@@ -44,8 +44,10 @@ export default function (in: Input): Output {
     return binary({
         state: empty.state,
         span: in.span,
-        operator: in.operation == Operation.IsNil ? BinaryOperator.Equal :
-            BinaryOperator.NotEqual,
+        operator: match {
+            in.operation == Operation.IsNil => BinaryOperator.Equal,
+            _ => BinaryOperator.NotEqual
+        },
         left: first,
         right: empty.value
     })

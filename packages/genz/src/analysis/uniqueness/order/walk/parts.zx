@@ -1,0 +1,43 @@
+import integers from "std:integer"
+
+import { Definition } from "../model"
+
+import type { Control } from "core/control_table/model"
+import type { Defined } from "../model"
+
+export type Input = {
+    control: Control,
+    definitions: Defined[],
+    statement: u64,
+    repeated: u32
+}
+
+export type Output = Defined[]
+
+export default function (in: Input): Output {
+    const first = integers.widen(in.control.destructure_first[in.statement])
+    const count = integers.widen(in.control.destructure_count[in.statement])
+    const value = in.control.destructure_values[in.statement]
+
+    return loop({
+        definitions: in.definitions,
+        index: 0
+    }, {
+        while: state => state.index < count,
+        next: state => {
+            const symbol = in.control.destructure_symbols[first + state.index]
+
+            if (symbol != null) {
+                state.definitions[integers.widen(symbol)] = {
+                    kind: Definition.Part,
+                    value,
+                    index: integers.narrow(state.index),
+                    repeated: in.repeated
+                }
+            }
+
+            state.index += 1
+        },
+        return: state => state.definitions
+    })
+}

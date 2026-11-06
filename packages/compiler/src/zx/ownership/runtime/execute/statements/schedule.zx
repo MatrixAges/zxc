@@ -1,0 +1,182 @@
+import integers from "std:integer"
+import { StatementKind } from "core/control_table/model"
+
+import optionalId from "../../../ir/widen_optional"
+import { WorkAction } from "../../work/model"
+import push from "../../work/push"
+
+import type { Control } from "core/control_table/model"
+import type { Work } from "../../work/model"
+
+export type Input = {
+    work: Work,
+    control: Control,
+    subject: u64
+}
+
+export type Output = Work?
+
+export default function (in: Input): Output {
+    const control = in.control
+    const kind = control.statement_kinds[in.subject]
+    const payload = integers.widen(control.statement_payloads[in.subject])
+
+    switch (kind) {
+        case StatementKind.Evaluate:
+            return push({
+                work: in.work,
+                frame: {
+                    action: WorkAction.Value,
+                    subject: integers.widen(control.evaluations[payload]),
+                    moving: false,
+                    index: 0
+                }
+            })
+
+        case StatementKind.Constant:
+            const work = push({
+                work: in.work,
+                frame: {
+                    action: WorkAction.Constant,
+                    subject: integers.widen(control.constant_symbols[payload]),
+                    moving: false,
+                    index: 0
+                }
+            })
+
+            return push({
+                work,
+                frame: {
+                    action: WorkAction.Value,
+                    subject: integers.widen(control.constant_values[payload]),
+                    moving: true,
+                    index: 0
+                }
+            })
+
+        case StatementKind.Result:
+            const value = optionalId(control.results[payload])
+
+            if (value == null) {
+                return in.work
+            }
+
+            const work = push({
+                work: in.work,
+                frame: {
+                    action: WorkAction.Result,
+                    subject: 0,
+                    moving: false,
+                    index: 0
+                }
+            })
+
+            return push({
+                work,
+                frame: {
+                    action: WorkAction.Value,
+                    subject: value,
+                    moving: true,
+                    index: 0
+                }
+            })
+
+        case StatementKind.StoreSet:
+            const work = push({
+                work: in.work,
+                frame: {
+                    action: WorkAction.Store,
+                    subject: integers.widen(control.setter_values[payload]),
+                    moving: false,
+                    index: 0
+                }
+            })
+
+            return push({
+                work,
+                frame: {
+                    action: WorkAction.Value,
+                    subject: integers.widen(control.setter_values[payload]),
+                    moving: false,
+                    index: 0
+                }
+            })
+
+        case StatementKind.Destructure:
+            const work = push({
+                work: in.work,
+                frame: {
+                    action: WorkAction.Destructure,
+                    subject: payload,
+                    moving: false,
+                    index: 0
+                }
+            })
+
+            return push({
+                work,
+                frame: {
+                    action: WorkAction.Value,
+                    subject: integers.widen(control.destructure_values[payload]),
+                    moving: true,
+                    index: 0
+                }
+            })
+
+        case StatementKind.Switch:
+            const work = push({
+                work: in.work,
+                frame: {
+                    action: WorkAction.SwitchSubject,
+                    subject: payload,
+                    moving: false,
+                    index: 0
+                }
+            })
+
+            return push({
+                work,
+                frame: {
+                    action: WorkAction.Value,
+                    subject: integers.widen(control.selection_subjects[payload]),
+                    moving: false,
+                    index: 0
+                }
+            })
+
+        case StatementKind.Parallel:
+            return push({
+                work: in.work,
+                frame: {
+                    action: WorkAction.Invocation,
+                    subject: payload,
+                    moving: false,
+                    index: 0
+                }
+            })
+
+        case StatementKind.Branch:
+            const work = push({
+                work: in.work,
+                frame: {
+                    action: WorkAction.BranchCondition,
+                    subject: payload,
+                    moving: false,
+                    index: 0
+                }
+            })
+
+            return push({
+                work,
+                frame: {
+                    action: WorkAction.Value,
+                    subject: integers.widen(control.branch_conditions[payload]),
+                    moving: false,
+                    index: 0
+                }
+            })
+
+        default:
+            return null
+    }
+}

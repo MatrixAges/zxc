@@ -7,22 +7,31 @@ export type Output = bool
 export default function (in: Input): Output {
     return match in.property {
         Property.Represented => (
-            - in.value == Query.Represented
-            - or in.value == Query.RepresentedNested
-            - or in.value == Query.RepresentedRows
-            - or in.value == Query.RepresentedNestedRows
+            match in.value {
+                Query.Represented => true,
+                Query.RepresentedNested => true,
+                Query.RepresentedRows => true,
+                Query.RepresentedNestedRows => true,
+                _ => false
+            }
         ),
         Property.Nested => (
-            - in.value == Query.Nested
-            - or in.value == Query.RepresentedNested
-            - or in.value == Query.NestedRows
-            - or in.value == Query.RepresentedNestedRows
+            match in.value {
+                Query.Nested => true,
+                Query.RepresentedNested => true,
+                Query.NestedRows => true,
+                Query.RepresentedNestedRows => true,
+                _ => false
+            }
         ),
         _ => (
-            - in.value == Query.InlineRows
-            - or in.value == Query.RepresentedRows
-            - or in.value == Query.NestedRows
-            - or in.value == Query.RepresentedNestedRows
+            match in.value {
+                Query.InlineRows => true,
+                Query.RepresentedRows => true,
+                Query.NestedRows => true,
+                Query.RepresentedNestedRows => true,
+                _ => false
+            }
         )
     }
 }

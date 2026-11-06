@@ -1,0 +1,24 @@
+import { fact_loaned, first_product_fact } from "../const"
+import { RewriteAction } from "./model"
+
+export type Input = {
+    left: u64,
+    right: u64,
+    action: RewriteAction
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const paired =
+        in.action == RewriteAction.Join || in.action == RewriteAction.ReleaseNewLoans
+
+    const identical = paired && in.left == in.right
+
+    return match {
+        identical => true,
+        in.action != RewriteAction.ReleaseNewLoans => false,
+        _ => (in.left < first_product_fact && in.left != fact_loaned) ||
+            in.right == fact_loaned
+    }
+}

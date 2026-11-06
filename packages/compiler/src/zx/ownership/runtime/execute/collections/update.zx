@@ -1,0 +1,62 @@
+import integers from "std:integer"
+import row from "core/type_table/row"
+
+import summary from "../../../facts/summary"
+import uniform from "../../../facts/uniform"
+import { State } from "../../../places/model"
+import borrow from "../../borrowing/execute"
+
+import type { Transition as Input, Machine as Output } from "../model"
+
+export default function (in: Input): Output {
+    const machine = in.machine
+    const frame = in.frame
+    const expressions = machine.program.expressions
+    const update = integers.widen(expressions.payloads[frame.subject])
+    const element_input = integers.widen(expressions.types[frame.subject])
+
+    const element = integers.widen(row({
+        tables: machine.program.types,
+        id: integers.narrow(element_input)
+    }).first)
+
+    const borrowed = machine.references[element] || summary({
+        forest: machine.memory.forest,
+        fact: machine.value
+    }) == State.Borrowed || summary({
+        forest: machine.memory.forest,
+        fact: machine.value
+    }) == State.Loaned
+
+    const memory = match {
+        borrowed => borrow({
+            types: machine.program.types,
+            references: machine.references,
+            expressions,
+            layout: machine.layout,
+            memory: machine.memory,
+            expression: integers.widen(expressions.update_targets[update]),
+            permanent: true
+        }),
+        _ => machine.memory
+    }
+
+    const updated = match {
+        borrowed => borrow({
+            types: machine.program.types,
+            references: machine.references,
+            expressions,
+            layout: machine.layout,
+            memory,
+            expression: integers.widen(expressions.update_values[update]),
+            permanent: true
+        }),
+        _ => memory
+    }
+
+    return {
+        ...machine,
+        memory: updated,
+        value: uniform(borrowed ? State.Borrowed : State.Owned)
+    }
+}

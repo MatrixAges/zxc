@@ -20,13 +20,16 @@ export default function (in: Input): Output {
     const root = integers.widen(in.root)
     const index = first[root] + in.slot
 
-    return index < first[root + 1] ? read({
-        state: context.metadata.states[integers.widen(index)],
-        observe: in.observe
-    }) : query({
-        ...context.metadata.usage,
-        root: in.root,
-        slot: in.slot,
-        observe: in.observe
-    })
+    return match {
+        index < first[root + 1] => read({
+            state: context.metadata.states[integers.widen(index)],
+            observe: in.observe
+        }),
+        _ => query({
+            ...context.metadata.usage,
+            root: in.root,
+            slot: in.slot,
+            observe: in.observe
+        })
+    }
 }

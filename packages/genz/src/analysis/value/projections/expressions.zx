@@ -11,7 +11,7 @@ import type { Input, State as Output } from "./model"
 export default function (in: Input): Output {
     const pending: u32[] = []
 
-    return loop({
+    const loop_initial = {
         state: {
             projected: in.names.map(name => true)[0],
             observed: in.expressions.kinds.map(kind => false)[0],
@@ -19,19 +19,24 @@ export default function (in: Input): Output {
             pending
         },
         index: 0
-    }, {
-        while: (current, table) => current.index < table.kinds.length,
-        next: (current, table) => {
-            const kind = table.kinds[current.index]
-            const payload = integers.widen(table.payloads[current.index])
+    }
+
+    const readonly_expressions = in.expressions
+
+    return loop(loop_initial, {
+        while: current => current.index < readonly_expressions.kinds.length,
+        next: current => {
+            const kind = readonly_expressions.kinds[current.index]
+            const payload =
+                integers.widen(readonly_expressions.payloads[current.index])
 
             if (kind == ExpressionKind.Conditional) {
                 current.state = observe({
                     state: current.state,
-                    id: table.conditional_conditions[payload]
+                    id: readonly_expressions.conditional_conditions[payload]
                 })
             } else if (kind == ExpressionKind.Match) {
-                const subject = table.match_subjects[payload]
+                const subject = readonly_expressions.match_subjects[payload]
 
                 if (subject != null) {
                     current.state = observe({
@@ -42,52 +47,72 @@ export default function (in: Input): Output {
 
                 current.state = loop({
                     state: current.state,
-                    position: integers.widen(table.match_first[payload]),
-                    end: integers.widen(table.match_first[payload]) +
-                        integers.widen(table.match_count[payload])
+                    position:
+                        integers.widen(
+                            readonly_expressions.match_first[payload]
+                        ),
+                    end: integers.widen(
+                        readonly_expressions.match_first[payload]
+                    ) +
+                        integers.widen(
+                            readonly_expressions.match_count[payload]
+                        )
                 }, {
                     while: row => row.position < row.end,
-                    next: (row, expressions) => {
+                    next: row => {
                         row.state = observe({
                             state: row.state,
-                            id: expressions.match_conditions[row.position]
+                            id: readonly_expressions.match_conditions[row.position]
                         })
                         row.position += 1
                     },
                     return: state => state.state
-                }, table)
+                })
             } else if (kind == ExpressionKind.Scope) {
                 current.state = loop({
                     state: observe({
                         state: current.state,
-                        id: table.scope_results[payload]
+                        id: readonly_expressions.scope_results[payload]
                     }),
-                    position: integers.widen(table.scope_first[payload]),
-                    end: integers.widen(table.scope_first[payload]) +
-                        integers.widen(table.scope_count[payload])
+                    position:
+                        integers.widen(
+                            readonly_expressions.scope_first[payload]
+                        ),
+                    end: integers.widen(
+                        readonly_expressions.scope_first[payload]
+                    ) +
+                        integers.widen(
+                            readonly_expressions.scope_count[payload]
+                        )
                 }, {
                     while: row => row.position < row.end,
-                    next: (row, expressions) => {
-                        const symbol = expressions.scope_symbols[row.position]
-                        const value = expressions.scope_values[row.position]
+                    next: row => {
+                        const symbol = readonly_expressions.scope_symbols[row.position]
+                        const value = readonly_expressions.scope_values[row.position]
 
-                        row.state = symbol == null ? observe({
-                            state: row.state,
-                            id: value
-                        }) : bind({
-                            state: row.state,
-                            symbol,
-                            value
-                        })
+                        row.state = match {
+                            symbol == null => observe({
+                                state: row.state,
+                                id: value
+                            }),
+                            _ => bind({
+                                state: row.state,
+                                symbol,
+                                value
+                            })
+                        }
                         row.position += 1
                     },
                     return: state => state.state
-                }, table)
+                })
             } else {
                 const condition = (
-                    - kind != ExpressionKind.Field
-                    - and kind != ExpressionKind.TupleField
-                    - and kind != ExpressionKind.Reference
+                    match kind {
+                        ExpressionKind.Field => false,
+                        ExpressionKind.TupleField => false,
+                        ExpressionKind.Reference => false,
+                        _ => true
+                    }
                 )
 
                 if (condition) {
@@ -98,9 +123,9 @@ export default function (in: Input): Output {
                         done: false
                     }, {
                         while: row => !row.done,
-                        next: (row, expressions) => {
+                        next: row => {
                             const value = child({
-                                table: expressions,
+                                table: readonly_expressions,
                                 id: row.id,
                                 index: row.index
                             })
@@ -116,32 +141,33 @@ export default function (in: Input): Output {
                             }
                         },
                         return: state => state.state
-                    }, table)
+                    })
 
                     if (kind == ExpressionKind.Task) {
                         current.state.projected = loop({
                             values: current.state.projected,
                             position:
                                 integers.widen(
-                                    table.task_capture_first[payload]
+                                    readonly_expressions.task_capture_first[payload]
                                 ),
                             end: integers.widen(
-                                table.task_capture_first[payload]
+                                readonly_expressions.task_capture_first[payload]
                             ) +
                                 integers.widen(
-                                    table.task_capture_count[payload]
+                                    readonly_expressions.task_capture_count[payload]
                                 )
                         }, {
                             while: row => row.position < row.end,
-                            next: (row, expressions) => {
+                            next: row => {
                                 row
                                     .values[integers.widen(
-                                        expressions.task_captures[row.position]
+                                        readonly_expressions
+                                            .task_captures[row.position]
                                     )] = false
                                 row.position += 1
                             },
                             return: state => state.values
-                        }, table)
+                        })
                     }
                 }
             }
@@ -149,5 +175,5 @@ export default function (in: Input): Output {
             current.index += 1
         },
         return: state => state.state
-    }, in.expressions)
+    })
 }

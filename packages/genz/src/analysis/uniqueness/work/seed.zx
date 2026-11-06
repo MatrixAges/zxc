@@ -7,11 +7,13 @@ export default function (in: Input): Output {
         state: in.state,
         index: 0
     }, {
-        while: (current, source) => current.index < source.native_modules.length + 1,
-        next: (current, source) => {
-            const active = current.index < source.native_modules.length
-                ? source.native_modules[current.index] == null
-                : !source.type_only
+        while: current => current.index < in.native_modules.length + 1,
+        next: current => {
+            const active = match {
+                current.index < in.native_modules.length =>
+                    in.native_modules[current.index] == null,
+                _ => !in.type_only
+            }
 
             if (active) {
                 current.state = push({
@@ -23,5 +25,5 @@ export default function (in: Input): Output {
             current.index += 1
         },
         return: current => current.state
-    }, in)
+    })
 }

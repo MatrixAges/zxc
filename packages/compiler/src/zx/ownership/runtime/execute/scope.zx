@@ -24,16 +24,20 @@ export type Output = Machine
 
 export default function (in: Input): Output {
     return loop(in, {
-        while: current =>
-            (
+        while: current => {
+            const actions = current.work.actions
+            const ready = (
                 - current.active
                 - and current.complete
                 - and !current.failed
-                - and current.work.actions.length != 0
-                - and family(
-                    current.work.actions[current.work.actions.length - 1]
-                ) == Family.Scope
-            ),
+                - and actions.length != 0
+            )
+
+            return match {
+                ready => family(actions[actions.length - 1]) == Family.Scope,
+                _ => false
+            }
+        },
         next: current => {
             const frame = top(current.work)
 

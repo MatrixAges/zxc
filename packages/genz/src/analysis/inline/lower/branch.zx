@@ -27,24 +27,25 @@ export default function (in: Input): Output {
     const branch_type = continuing ? integers.widen(state.void_type) : in.frame.c
     const tail = continuing ? 0 : in.frame.b
 
-    return {
+    const start = {
         ...in.frame,
         op: InlineOp.LowerStart,
         id: integers.widen(yes) + 1,
         b: tail,
         c: branch_type
     }
-        -> {
-            ...state,
-            frames: state.frames.concat([
-                {
-                    ...in.frame,
-                    op: InlineOp.LowerYes,
-                    g: continuing ? 1 : 0,
-                    h: branch_type,
-                    i: tail
-                },
-                _
-            ])[0]
-        }
+
+    return {
+        ...state,
+        frames: state.frames.concat([
+            {
+                ...in.frame,
+                op: InlineOp.LowerYes,
+                g: continuing ? 1 : 0,
+                h: branch_type,
+                i: tail
+            },
+            start
+        ])[0]
+    }
 }

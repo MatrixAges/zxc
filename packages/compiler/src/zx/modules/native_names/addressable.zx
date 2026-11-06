@@ -25,9 +25,12 @@ export default function (in: Input): Output {
             })
 
             const condition = (
-                - selected.kind == NodeKind.Optional
-                - or selected.kind == NodeKind.List
-                - or selected.kind == NodeKind.Application
+                match selected.kind {
+                    NodeKind.Optional => true,
+                    NodeKind.List => true,
+                    NodeKind.Application => true,
+                    _ => false
+                }
             )
 
             if (condition) {

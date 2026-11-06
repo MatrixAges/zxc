@@ -13,26 +13,26 @@ export type Input = {
 
 export type Output = Literal?
 
-    export default function (in: Input): Output {
-        const constants = in.constants
+export default function (in: Input): Output {
+    const constants = in.constants
 
-        if (constants == null) {
-            return null
-        }
-
-        const local = lookup({
-            active: in.active,
-            names: in.names,
-            scope_floor: 0,
-            name: in.name
-        })
-
-        if (local != null) {
-            return null
-        }
-
-        return find({
-            constants,
-            name: in.name
-        })
+    if (constants == null) {
+        return null
     }
+
+    const local = lookup({
+        active: in.active,
+        names: in.names,
+        scope_floor: 0,
+        name: in.name
+    })
+
+    if (local != null) {
+        return null
+    }
+
+    return find({
+        constants,
+        name: in.name
+    })
+}

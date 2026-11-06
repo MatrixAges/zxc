@@ -27,10 +27,13 @@ export default function (in: Input): Output {
     }
 
     if (kind == ExpressionsKind.ErrorUnion && tree.error_union_errors[row] == null) {
-        const prefix: Frame[] = tree.error_union_inferred[row] ? [] : [{
-            ...frame,
-            token: Token.Anyerror
-        }]
+        const prefix: Frame[] = match {
+            tree.error_union_inferred[row] => [],
+            _ => [{
+                ...frame,
+                token: Token.Anyerror
+            }]
+        }
 
         return prefix.concat([
             {
@@ -91,15 +94,18 @@ export default function (in: Input): Output {
         token: Token.BraceClose
     })[0]
 
-    return kind == ExpressionsKind.ErrorUnion ? closed.concat([
-        {
-            ...frame,
-            token: Token.ErrorUnion
-        },
-        {
-            ...frame,
-            action: Action.Expression,
-            id: tree.error_union_payload[row]
-        }
-    ])[0] : closed
+    return match {
+        kind == ExpressionsKind.ErrorUnion => closed.concat([
+            {
+                ...frame,
+                token: Token.ErrorUnion
+            },
+            {
+                ...frame,
+                action: Action.Expression,
+                id: tree.error_union_payload[row]
+            }
+        ])[0],
+        _ => closed
+    }
 }

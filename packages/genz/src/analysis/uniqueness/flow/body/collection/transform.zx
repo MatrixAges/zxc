@@ -1,0 +1,96 @@
+import integers from "std:integer"
+import { TransformKind } from "core/expression_table/kinds"
+
+import { buffer_slot } from "../const"
+import nested from "../nested"
+import push from "../push"
+import whole from "../whole"
+
+import type { State as Output, Step as Input } from "../model"
+
+export default function (in: Input): Output {
+    const body = in.context.body
+    const expressions = body.expressions
+    const node = integers.widen(in.point.node)
+    const payload = integers.widen(expressions.payloads[node])
+    const contents = in.context.contents
+    const operation = expressions.transform_kinds[payload]
+    const target = expressions.transform_targets[payload]
+    const initial = expressions.transform_initials[payload]
+
+    if (operation == TransformKind.Reduce && initial != null) {
+        const queue = push({
+            queue: in.state.queue,
+            first: body.prepared.first,
+            point: {
+                node: initial,
+                slot: in.point.slot
+            }
+        })
+
+        return {
+            ...in.state,
+            queue: push({
+                queue: queue,
+                first: body.prepared.first,
+                point: {
+                    node: expressions.transform_bodies[payload],
+                    slot: in.point.slot
+                }
+            })
+        }
+    }
+
+    if (contents && operation == TransformKind.Map) {
+        return {
+            ...in.state,
+            queue: whole({
+                queue: in.state.queue,
+                first: body.prepared.first,
+                node: expressions.transform_bodies[payload]
+            })
+        }
+    }
+
+    if (operation == TransformKind.Sort) {
+        return {
+            ...in.state,
+            queue: push({
+                queue: in.state.queue,
+                first: body.prepared.first,
+                point: {
+                    node: target,
+                    slot: buffer_slot
+                }
+            })
+        }
+    }
+
+    const is_filter = operation == TransformKind.Filter
+
+    const filter_contents = contents && is_filter
+
+    const condition = match {
+        filter_contents => nested({
+            body,
+            node: target
+        }),
+        _ => false
+    }
+
+    if (condition) {
+        return {
+            ...in.state,
+            queue: push({
+                queue: in.state.queue,
+                first: body.prepared.first,
+                point: {
+                    node: target,
+                    slot: buffer_slot
+                }
+            })
+        }
+    }
+
+    return in.state
+}

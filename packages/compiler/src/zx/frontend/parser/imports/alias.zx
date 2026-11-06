@@ -1,0 +1,50 @@
+import { Keyword } from "../../lexer/keyword_model"
+import { Kind } from "../../lexer/token_model"
+import { expected_alias } from "./const"
+import fail from "./fail"
+import { Phase } from "./model"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const state = in
+    const phase = state.control.phase
+    const word = state.control.token.word
+    const kind = state.control.token.kind
+    const index = state.control.index + 1
+
+    const span = {
+        start: state.control.token.span.start,
+        end: state.control.token.span.end
+    }
+
+    const exported = !(state.control.exported && word == Keyword.Default)
+
+    const condition_4 = (
+        - kind != Kind.Identifier
+        - and exported
+    )
+
+    if (condition_4) {
+        return fail({
+            state,
+            span,
+            message: expected_alias
+        })
+    }
+
+    return {
+        ...state,
+        names:
+            state.names.with(state.control.first + state.control.count - 1, span),
+        control: {
+            ...state.control,
+            phase: Phase.Separator,
+            index
+        }
+    }
+}

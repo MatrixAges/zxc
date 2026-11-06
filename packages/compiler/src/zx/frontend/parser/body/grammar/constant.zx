@@ -46,7 +46,7 @@ export default function (in: Input): Output {
             depth: in.frame.depth
         })
 
-        return {
+        const types = {
             tree: in.expression.types.tree,
             frames: initial.frames,
             control: {
@@ -54,28 +54,30 @@ export default function (in: Input): Output {
                 index
             }
         }
-            -> {
-                expression: {
-                    prepared: in.expression.prepared,
-                    tree: in.expression.tree,
-                    types: _,
-                    frames: in.expression.frames,
-                    control: in.expression.control
-                },
-                tree: in.tree,
-                frames: in.frames,
-                suspended: in.suspended,
-                frame: in.frame,
-                control: in.control
-            }
-            -> consume({
-                state: _,
-                phase: Phase.Type
-            })
+
+        const state = {
+            expression: {
+                prepared: in.expression.prepared,
+                tree: in.expression.tree,
+                types: types,
+                frames: in.expression.frames,
+                control: in.expression.control
+            },
+            tree: in.tree,
+            frames: in.frames,
+            suspended: in.suspended,
+            frame: in.frame,
+            control: in.control
+        }
+
+        return consume({
+            state: state,
+            phase: Phase.Type
+        })
     }
 
     if (in.control.phase == Phase.ConstName && symbol == Symbol.OpenBracket) {
-        return {
+        const state = {
             expression: in.expression,
             tree: in.tree,
             frames: in.frames,
@@ -86,10 +88,11 @@ export default function (in: Input): Output {
             },
             control: in.control
         }
-            -> consume({
-                state: _,
-                phase: Phase.PatternName
-            })
+
+        return consume({
+            state: state,
+            phase: Phase.PatternName
+        })
     }
 
     if (in.control.phase == Phase.PatternSeparator) {
@@ -148,30 +151,32 @@ export default function (in: Input): Output {
     const head = in.tree.names.length + 1
     const count = in.frame.count + 1
 
-    return in.tree.names.push({
+    const names = in.tree.names.push({
         span: name,
         previous: in.frame.head
     })[0]
-        -> {
-            statements: in.tree.statements,
-            blocks: in.tree.blocks,
-            items: in.tree.items,
-            names: _,
-            cases: in.tree.cases
-        }
-        -> consume({
-            state: {
-                expression: in.expression,
-                tree: _,
-                frames: in.frames,
-                suspended: in.suspended,
-                frame: {
-                    ...in.frame,
-                    head,
-                    count
-                },
-                control: in.control
+
+    const tree = {
+        statements: in.tree.statements,
+        blocks: in.tree.blocks,
+        items: in.tree.items,
+        names: names,
+        cases: in.tree.cases
+    }
+
+    return consume({
+        state: {
+            expression: in.expression,
+            tree: tree,
+            frames: in.frames,
+            suspended: in.suspended,
+            frame: {
+                ...in.frame,
+                head,
+                count
             },
-            phase: Phase.PatternSeparator
-        })
+            control: in.control
+        },
+        phase: Phase.PatternSeparator
+    })
 }

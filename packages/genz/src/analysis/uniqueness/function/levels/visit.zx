@@ -1,24 +1,12 @@
 import integers from "std:integer"
-import { max_u32 } from "core/const"
-import {
-    BinaryOperator,
-    CollectionKind,
-    ExpressionKind,
-    TransformKind
-}
-from "core/expression_table/kinds"
 
-import { buffer_slot, splice_retained_slot } from "../../flow/body/const"
-import crosses from "../../order/crosses_concurrent"
-import { Definition } from "../../order/model"
-import aggregate from "./aggregate"
 import complete from "./complete"
 import index from "./index"
 import meet from "./meet"
-import { Knowledge, Operation, Table } from "./model"
-import prefix from "./prefix"
-import projection from "./projection"
+import { Knowledge } from "./model"
 import read from "./read"
+import resolve from "./visit/resolve"
+import rightNode from "./visit/right_node"
 
 import type { Environment, Output, Read, Request } from "./model"
 
@@ -33,12 +21,15 @@ export default function visit(in: Input): Output {
     const context = in.environment.context
     const request = in.request
 
-    const destination = request.raw ? null : index({
-        first: context.metadata.usage.plan.slot_first,
-        symbols: context.metadata.usage.symbols,
-        node: request.node,
-        slot: request.slot
-    })
+    const destination = match {
+        request.raw => null,
+        _ => index({
+            first: context.metadata.usage.plan.slot_first,
+            symbols: context.metadata.usage.symbols,
+            node: request.node,
+            slot: request.slot
+        })
+    }
 
     const cached = destination == null ? Knowledge.Unknown : in.known[destination]
 
@@ -50,564 +41,158 @@ export default function visit(in: Input): Output {
         }
     }
 
-    const ending = {
-        context,
-        request,
-        destination,
-        operation: Operation.Pass,
-        linear_root: max_u32,
-        empty: false
-    }
+    const dependency = resolve({
+        metadata: context.metadata,
+        request
+    })
 
-    const empty: Output = {
-        known: in.known,
-        reads: in.reads,
-        value: Knowledge.None
+    const base = match {
+        dependency.carried_node == null => dependency.value,
+        _ => in.environment.carried[integers.widen(dependency.carried_node)][
+            integers.widen(
+                request.slot
+            )
+        ]
     }
 
     const expressions = context.metadata.expressions
-    const node = integers.widen(request.node)
-    const payload = integers.widen(expressions.payloads[node])
-    const kind = expressions.kinds[node]
 
-    if (kind == ExpressionKind.Field || kind == ExpressionKind.TupleField) {
-        return projection({
-            metadata: context.metadata,
-            slot: request.slot,
-            target: expressions.projection_targets[payload],
-            index: expressions.projection_indices[payload]
-        })
-            -> complete({
-                ...ending,
-                result: visit({
-                    ...in,
-                    request: _
-                })
-            })
+    const child = match {
+        dependency.iteration_owner == null => dependency.child_node,
+        expressions
+            .iteration_postconditions[integers.widen(
+                dependency.iteration_owner
+            )] => null,
+        _ =>
+            expressions
+            .iteration_initials[integers.widen(
+                dependency.iteration_owner
+            )]
     }
 
-    if (kind == ExpressionKind.OptionalValue) {
-        return complete({
-            ...ending,
-            result: visit({
-                ...in,
-                request: {
-                    node: expressions.optional_values[payload],
-                    slot: request.slot,
-                    raw: false
-                }
-            })
-        })
-    }
-
-    if (kind == ExpressionKind.Reference) {
-        const symbol = expressions.references[payload]
-        const symbol_index = integers.widen(symbol)
-
-        if (crosses({
-            parents: context.metadata.parents,
-            concurrent: context.metadata.concurrent,
-            inner: context.metadata.usage.nodes.repeated[node],
-            outer: context.metadata.usage.def_loop[symbol_index]
-        })) {
-            return complete({
-                ...ending,
-                result: empty
-            })
-        }
-
-        const definition = context.metadata.definitions.kind[symbol_index]
-        const target = context.metadata.definitions.value[symbol_index]
-        const target_index = integers.widen(target)
-
-        const reference = {
-            ...ending,
-            linear_root: symbol,
-            empty: definition == Definition.Value &&
-                expressions.kinds[target_index] == ExpressionKind.List &&
-                expressions
-                .sequence_count[
-                    integers.widen(
-                        expressions.payloads[target_index]
-                    )
-                ] == 0
-        }
-
-        if (definition == Definition.Value || definition == Definition.Part) {
-            return (definition == Definition.Part ? projection({
-                metadata: context.metadata,
-                slot: request.slot,
-                target,
-                index: context.metadata.definitions.index[symbol_index]
-            }) : {
-                node: target,
-                slot: request.slot,
+    const first: Output = match {
+        child != null => visit({
+            ...in,
+            request: {
+                node: child,
+                slot: dependency.child_slot,
                 raw: false
-            })
-                -> complete({
-                    ...reference,
-                    result: visit({
-                        ...in,
-                        request: _
-                    })
-                })
-        }
-
-        switch (definition) {
-            case Definition.Input:
-                if (integers.widen(request.slot) >= context.metadata.input.length) {
-                    return complete({
-                        ...reference,
-                        result: empty
-                    })
-                }
-
-                return read({
-                    context,
-                    reads: in.reads,
-                    table: Table.Input,
-                    function_index: context.metadata.function_index,
-                    slot: request.slot
-                })
-                    -> complete({
-                        ...reference,
-                        result: {
-                            known: in.known,
-                            ..._
-                        }
-                    })
-
-            case Definition.Carried:
-                return complete({
-                    ...reference,
-                    result: {
-                        ...empty,
-                        value: in.environment.carried[target_index][
-                            integers.widen(
-                                request.slot
-                            )
-                        ]
-                    }
-                })
-
-            case Definition.Condition:
-                const owner = integers.widen(expressions.payloads[target_index])
-
-                const value = in.environment.carried[target_index][
-                    integers.widen(
-                        request.slot
-                    )
-                ]
-
-                if (expressions.iteration_postconditions[owner]) {
-                    return complete({
-                        ...reference,
-                        result: {
-                            ...empty,
-                            value
-                        }
-                    })
-                }
-
-                const initial = visit({
-                    ...in,
-                    request: {
-                        node: expressions.iteration_initials[owner],
-                        slot: request.slot,
-                        raw: false
-                    }
-                })
-
-                return complete({
-                    ...reference,
-                    result: {
-                        ...initial,
-                        value: meet({
-                            left: value,
-                            right: initial.value
-                        })
-                    }
-                })
-
-            default:
-                return complete({
-                    ...reference,
-                    result: empty
-                })
-        }
-    }
-
-    const current = {
-        ...ending,
-        linear_root: integers.narrow(context.metadata.usage.symbols + node),
-        empty: kind == ExpressionKind.List && expressions.sequence_count[payload] == 0
-    }
-
-    if (kind == ExpressionKind.Object || kind == ExpressionKind.Tuple) {
-        const selected = aggregate({
-            metadata: context.metadata,
-            ...request.pick([
-                "node",
-                "slot"
-            ])
-        })
-
-        return complete({
-            ...current,
-            result: selected == null ? empty : visit({
-                ...in,
-                request: selected
-            })
-        })
-    }
-
-    switch (kind) {
-        case ExpressionKind.List:
-            return complete({
-                ...current,
-                result: {
-                    ...empty,
-                    value: current.empty ? Knowledge.All : Knowledge.None
-                }
-            })
-
-        case ExpressionKind.Call:
-            const callee = expressions.call_functions[payload]
-            const values = context.metadata.output[integers.widen(callee)]
-
-            if (integers.widen(request.slot) >= values.length) {
-                return complete({
-                    ...current,
-                    result: empty
-                })
             }
-
-            return read({
+        }),
+        dependency.read_table != null => {
+            known: in.known,
+            ...read({
                 context,
                 reads: in.reads,
-                table: Table.Output,
-                function_index: callee,
+                table: dependency.read_table,
+                function_index: dependency.read_function,
                 slot: request.slot
             })
-                -> complete({
-                    ...current,
-                    result: {
-                        known: in.known,
-                        ..._
-                    }
-                })
-
-        case ExpressionKind.ListOperation:
-            const target = expressions.collection_targets[payload]
-
-            if (request.slot != buffer_slot) {
-                return request.slot == splice_retained_slot && prefix({
-                    expressions,
-                    payload: expressions.payloads[node]
-                })
-                    -> complete({
-                        ...current,
-                        result: _ ? visit({
-                            ...in,
-                            request: {
-                                node: target,
-                                slot: buffer_slot,
-                                raw: false
-                            }
-                        }) : empty
-                    })
-            }
-
-            const operation = expressions.collection_kinds[payload]
-
-            if (operation == CollectionKind.Splice) {
-                return complete({
-                    ...current,
-                    result: {
-                        ...empty,
-                        value: Knowledge.Unique
-                    }
-                })
-            }
-
-            return complete({
-                ...current,
-                operation: match operation {
-                    CollectionKind.Push => Operation.Push,
-                    CollectionKind.Concat => Operation.Concat,
-                    CollectionKind.Sort => Operation.Written,
-                    CollectionKind.Reverse => Operation.Written,
-                    _ => Operation.Pass
-                },
-                result: visit({
-                    ...in,
-                    request: {
-                        node: target,
-                        slot: buffer_slot,
-                        raw: false
-                    }
-                })
-            })
-
-        case ExpressionKind.ListUpdate:
-            return complete({
-                ...current,
-                operation: Operation.Written,
-                result: visit({
-                    ...in,
-                    request: {
-                        node: expressions.update_targets[payload],
-                        slot: buffer_slot,
-                        raw: false
-                    }
-                })
-            })
-
-        case ExpressionKind.Some:
-            return complete({
-                ...current,
-                result: visit({
-                    ...in,
-                    request: {
-                        node: expressions.some[payload],
-                        slot: request.slot,
-                        raw: false
-                    }
-                })
-            })
-
-        case ExpressionKind.Scope:
-            return complete({
-                ...current,
-                result: visit({
-                    ...in,
-                    request: {
-                        node: expressions.scope_results[payload],
-                        slot: request.slot,
-                        raw: false
-                    }
-                })
-            })
-
-        case ExpressionKind.Binary:
-            if (expressions.binary_operators[payload] != BinaryOperator.Coalesce) {
-                return complete({
-                    ...current,
-                    result: empty
-                })
-            }
-
-            const left = visit({
-                ...in,
-                request: {
-                    node: expressions.binary_left[payload],
-                    slot: request.slot,
-                    raw: false
-                }
-            })
-
-            const right = visit({
-                environment: in.environment,
-                ...left.pick([
-                    "known",
-                    "reads"
-                ]),
-                request: {
-                    node: expressions.binary_right[payload],
-                    slot: request.slot,
-                    raw: false
-                }
-            })
-
-            return complete({
-                ...current,
-                result: {
-                    ...right,
-                    value: meet({
-                        left: left.value,
-                        right: right.value
-                    })
-                }
-            })
-
-        case ExpressionKind.Conditional:
-            const yes = visit({
-                ...in,
-                request: {
-                    node: expressions.conditional_yes[payload],
-                    slot: request.slot,
-                    raw: false
-                }
-            })
-
-            const no = visit({
-                environment: in.environment,
-                ...yes.pick([
-                    "known",
-                    "reads"
-                ]),
-                request: {
-                    node: expressions.conditional_no[payload],
-                    slot: request.slot,
-                    raw: false
-                }
-            })
-
-            return complete({
-                ...current,
-                result: {
-                    ...no,
-                    value: meet({
-                        left: yes.value,
-                        right: no.value
-                    })
-                }
-            })
-
-        case ExpressionKind.Match:
-            const first = integers.widen(expressions.match_first[payload])
-            const count = integers.widen(expressions.match_count[payload])
-
-            const fallback = visit({
-                ...in,
-                request: {
-                    node: expressions.match_fallbacks[payload],
-                    slot: request.slot,
-                    raw: false
-                }
-            })
-
-            const result = loop({
-                ...fallback,
-                cursor: 0
-            }, {
-                while: (state, source) => state.cursor < source.count,
-                next: (state, source) => {
-                    const child = visit({
-                        environment: source.environment,
-                        ...state.pick([
-                            "known",
-                            "reads"
-                        ]),
-                        request: {
-                            node: source.results[source.first + state.cursor],
-                            slot: source.slot,
-                            raw: false
-                        }
-                    })
-
-                    state = {
-                        ...child,
-                        value: meet({
-                            left: state.value,
-                            right: child.value
-                        }),
-                        cursor: state.cursor + 1
-                    }
-                }
-            }, {
-                environment: in.environment,
-                results: expressions.match_results,
-                first,
-                count,
-                slot: request.slot
-            })
-
-            return complete({
-                ...current,
-                result: result.pick([
-                    "known",
-                    "reads",
-                    "value"
-                ])
-            })
-
-        case ExpressionKind.Iteration:
-            const carried =
-                in.environment.carried[node][integers.widen(request.slot)]
-
-            if (expressions.iteration_postconditions[payload]) {
-                return complete({
-                    ...current,
-                    result: {
-                        ...empty,
-                        value: carried
-                    }
-                })
-            }
-
-            const initial = visit({
-                ...in,
-                request: {
-                    node: expressions.iteration_initials[payload],
-                    slot: request.slot,
-                    raw: false
-                }
-            })
-
-            return complete({
-                ...current,
-                result: {
-                    ...initial,
-                    value: meet({
-                        left: carried,
-                        right: initial.value
-                    })
-                }
-            })
-
-        case ExpressionKind.Transform:
-            const operation = expressions.transform_kinds[payload]
-
-            if (operation != TransformKind.Reduce) {
-                return complete({
-                    ...current,
-                    result: {
-                        ...empty,
-                        value: operation == TransformKind.Map ||
-                            operation == TransformKind.Filter ||
-                            operation == TransformKind.Sort ? Knowledge.Unique :
-                            Knowledge.None
-                    }
-                })
-            }
-
-            const initial_node = expressions.transform_initials[payload]
-
-            if (initial_node == null) {
-                return complete({
-                    ...current,
-                    result: empty
-                })
-            }
-
-            const carried =
-                in.environment.carried[node][integers.widen(request.slot)]
-
-            const initial = visit({
-                ...in,
-                request: {
-                    node: initial_node,
-                    slot: request.slot,
-                    raw: false
-                }
-            })
-
-            return complete({
-                ...current,
-                result: {
-                    ...initial,
-                    value: meet({
-                        left: carried,
-                        right: initial.value
-                    })
-                }
-            })
-
-        default:
-            return complete({
-                ...current,
-                result: empty
-            })
+        },
+        _ => {
+            known: in.known,
+            reads: in.reads,
+            value: base
+        }
     }
+
+    const initial = match {
+        dependency.carried_node != null && child != null => {
+            ...first,
+            value: meet({
+                left: base,
+                right: first.value
+            })
+        },
+        _ => first
+    }
+
+    const right_node: u32? = match {
+        !dependency.paired => null,
+        _ => rightNode({
+            table: expressions,
+            node: request.node
+        })
+    }
+
+    const right = match {
+        right_node == null => initial,
+        _ => visit({
+            environment: in.environment,
+            ...initial.pick([
+                "known",
+                "reads"
+            ]),
+            request: {
+                node: right_node,
+                slot: request.slot,
+                raw: false
+            }
+        })
+    }
+
+    const paired = match {
+        dependency.paired => {
+            ...right,
+            value: meet({
+                left: initial.value,
+                right: right.value
+            })
+        },
+        _ => right
+    }
+
+    const environment = in.environment
+    const results = expressions.match_results
+    const first_arm = dependency.arms_first
+    const arm_count = dependency.arms_count
+    const slot = request.slot
+
+    const result = loop({
+        ...paired,
+        cursor: 0
+    }, {
+        while: state => state.cursor < arm_count,
+        next: state => {
+            const child = visit({
+                environment,
+                ...state.pick([
+                    "known",
+                    "reads"
+                ]),
+                request: {
+                    node:
+                        results[first_arm + state.cursor],
+                    slot,
+                    raw: false
+                }
+            })
+
+            state = {
+                ...child,
+                value: meet({
+                    left: state.value,
+                    right: child.value
+                }),
+                cursor: state.cursor + 1
+            }
+        },
+        return: state => state.pick([
+            "known",
+            "reads",
+            "value"
+        ])
+    })
+
+    return complete({
+        context,
+        request,
+        destination,
+        ...dependency.pick([
+            "operation",
+            "linear_root",
+            "empty"
+        ]),
+        result
+    })
 }

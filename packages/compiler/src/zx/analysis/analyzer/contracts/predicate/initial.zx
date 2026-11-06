@@ -23,9 +23,12 @@ export default function (in: Input): Output {
                     ...context.source.indexed,
                     declarations: []
                 },
-                native: native == null ? null : {
-                    ...native,
-                    declarations: []
+                native: match {
+                    native == null => null,
+                    _ => {
+                        ...native,
+                        declarations: []
+                    }
                 }
             },
             resolved: {
@@ -56,7 +59,7 @@ export default function (in: Input): Output {
         diagnostic
     }
 
-    return initial({
+    const local = initial({
         signature,
         stores: {
             paths: [],
@@ -67,10 +70,11 @@ export default function (in: Input): Output {
         },
         allow_store: false
     })
-        -> {
-            types,
-            local: _,
-            input_type: in.input_type,
-            diagnostic
-        }
+
+    return {
+        types,
+        local: local,
+        input_type: in.input_type,
+        diagnostic
+    }
 }

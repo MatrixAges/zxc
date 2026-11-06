@@ -1,0 +1,82 @@
+import integers from "std:integer"
+import {
+    BinaryOperator,
+    ExpressionKind,
+    TransformKind
+} from "core/expression_table/kinds"
+
+import { Knowledge } from "../model"
+
+import type { Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const expressions = in.metadata.expressions
+    const node = integers.widen(in.request.node)
+    const kind = expressions.kinds[node]
+    const payload = integers.widen(expressions.payloads[node])
+
+    if (kind == ExpressionKind.Binary) {
+        if (expressions.binary_operators[payload] != BinaryOperator.Coalesce) {
+            return in.base
+        }
+
+        return {
+            ...in.base,
+            child_node: expressions.binary_left[payload],
+            paired: true
+        }
+    }
+
+    if (kind == ExpressionKind.Conditional) {
+        return {
+            ...in.base,
+            child_node: expressions.conditional_yes[payload],
+            paired: true
+        }
+    }
+
+    if (kind == ExpressionKind.Match) {
+        const first = integers.widen(expressions.match_first[payload])
+        const count = integers.widen(expressions.match_count[payload])
+
+        return {
+            ...in.base,
+            child_node: expressions.match_fallbacks[payload],
+            arms_first: first,
+            arms_count: count
+        }
+    }
+
+    if (kind == ExpressionKind.Iteration) {
+        return {
+            ...in.base,
+            carried_node: in.request.node,
+            iteration_owner: expressions.payloads[node]
+        }
+    }
+
+    const operation = expressions.transform_kinds[payload]
+
+    if (operation != TransformKind.Reduce) {
+        return {
+            ...in.base,
+            value: match operation {
+                TransformKind.Map => Knowledge.Unique,
+                TransformKind.Filter => Knowledge.Unique,
+                TransformKind.Sort => Knowledge.Unique,
+                _ => Knowledge.None
+            }
+        }
+    }
+
+    const initial = expressions.transform_initials[payload]
+
+    return match {
+        initial == null => in.base,
+        _ => {
+            ...in.base,
+            child_node: initial,
+            carried_node: in.request.node
+        }
+    }
+}

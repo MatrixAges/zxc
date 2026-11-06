@@ -8,10 +8,11 @@ export type Input = {
 export default function (in: Input): Output {
     const self_closing = in.end >= 2 && in.source[in.end - 2] == 47
 
-    return in.end - (self_closing ? 2 : 1)
-        -> {
-            start: _,
-            end: in.end,
-            self_closing
-        }
+    const marker = in.end - (self_closing ? 2 : 1)
+
+    return {
+        start: marker,
+        end: in.end,
+        self_closing
+    }
 }

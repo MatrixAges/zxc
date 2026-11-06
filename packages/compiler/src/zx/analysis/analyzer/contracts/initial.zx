@@ -18,9 +18,12 @@ export default function (in: Input): Output {
         state: in.state,
         source: in.source,
         items: in.items,
-        aliases: in.items.length == 0 ? in.state.types.context.aliases : {
-            names: in.state.types.context.aliases.names.concat(in.names)[0],
-            ids: in.state.types.context.aliases.ids.concat(in.types)[0]
+        aliases: match {
+            in.items.length == 0 => in.state.types.context.aliases,
+            _ => {
+                names: in.state.types.context.aliases.names.concat(in.names)[0],
+                ids: in.state.types.context.aliases.ids.concat(in.types)[0]
+            }
         },
         contracts: {
             kinds: [],

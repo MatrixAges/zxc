@@ -44,10 +44,12 @@ export default function (in: Input): Output {
         while: current => current.position < current.count,
         next: current => {
             const child =
-                current.object ? current.types
-                .field_types[current.first +
-                    current.position] :
-                current.types.children[current.first + current.position]
+                match {
+                    current.object => current.types
+                        .field_types[current.first +
+                            current.position],
+                    _ => current.types.children[current.first + current.position]
+                }
 
             current.bytes = key({
                 keys: current.keys,

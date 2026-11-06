@@ -23,14 +23,19 @@ export default function (in: Input): Output {
     const input = integers.widen(in.input_type)
     const output = integers.widen(in.output_type)
 
+    const has_kinds = in.expressions.kinds.length > maximum_body_expressions
+
     const condition = (
         - owner == null
         - or in.contracts.kinds.length != 0
-        - or in.expressions.kinds.length > maximum_body_expressions
-        - or kind(in.types.kinds[input]) != Kind.Object
+        - or has_kinds
     )
 
     if (condition) {
+        return false
+    }
+
+    if (kind(in.types.kinds[input]) != Kind.Object) {
         return false
     }
 
@@ -68,21 +73,24 @@ export default function (in: Input): Output {
         index: 0,
         bounded: true
     }, {
-        while: (state, source) => state.bounded &&
-            state.index < source.expressions.kinds.length,
-        next: (state, source) => {
-            const expression = source.expressions.kinds[state.index]
+        while: state => state.bounded &&
+            state.index < in.expressions.kinds.length,
+        next: state => {
+            const expression = in.expressions.kinds[state.index]
 
             state.bounded = (
-                - expression != ExpressionKind.Iteration
-                - and expression != ExpressionKind.Transform
-                - and expression != ExpressionKind.Task
-                - and expression != ExpressionKind.Parallel
+                match expression {
+                    ExpressionKind.Iteration => false,
+                    ExpressionKind.Transform => false,
+                    ExpressionKind.Task => false,
+                    ExpressionKind.Parallel => false,
+                    _ => true
+                }
             )
             state.index += 1
         },
         return: state => state.bounded
-    }, in)
+    })
 
     return bounded && body({
         expressions: in.expressions,

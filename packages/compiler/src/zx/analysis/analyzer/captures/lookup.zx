@@ -10,33 +10,33 @@ export type Input = {
 
 export type Output = u32?
 
-    export default function (in: Input): Output {
-        const missing: u32? = null
+export default function (in: Input): Output {
+    const missing: u32? = null
 
-        return loop({
-            bindings: in.captures.bindings,
-            row: in.captures.frames.first[integers.widen(in.frame)],
-            source: in.source,
-            found: missing
-        }, {
-            while: current => current.row != null && current.found == null,
-            next: current => {
-                const row = current.row
+    return loop({
+        bindings: in.captures.bindings,
+        row: in.captures.frames.first[integers.widen(in.frame)],
+        source: in.source,
+        found: missing
+    }, {
+        while: current => current.row != null && current.found == null,
+        next: current => {
+            const row = current.row
 
-                if (row != null) {
-                    if (
-                        current.bindings.sources[integers.widen(row)] == current.source
-                    ) {
-                        current.found = current.bindings.targets[integers.widen(
-                            row
-                        )]
-                    }
-
-                    current.row = current.bindings.next[integers.widen(
+            if (row != null) {
+                if (
+                    current.bindings.sources[integers.widen(row)] == current.source
+                ) {
+                    current.found = current.bindings.targets[integers.widen(
                         row
                     )]
                 }
-            },
-            return: state => state.found
-        })
-    }
+
+                current.row = current.bindings.next[integers.widen(
+                    row
+                )]
+            }
+        },
+        return: state => state.found
+    })
+}

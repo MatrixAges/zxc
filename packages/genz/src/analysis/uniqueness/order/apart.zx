@@ -51,17 +51,22 @@ export default function (in: Input): Output {
     const right = integers.widen(result.right)
     const different = left != right
 
-    const condition = (
+    const fork = in.regions.fork
+    const arm = in.regions.arm
+
+    const exclusive = (
         - different
-        - and in.regions.fork[left] == in.regions.fork[right]
-        - and in.regions.arm[left] != in.regions.arm[right]
+        - and fork[left] == fork[right]
+        - and arm[left] != arm[right]
     )
 
-    if (condition) {
+    if (exclusive) {
         return true
     }
 
-    return in.left_time < in.right_time ?
-        result.left_returns || (different && in.regions.returns[left]) :
-        result.right_returns || (different && in.regions.returns[right])
+    return match {
+        in.left_time < in.right_time =>
+            result.left_returns || (different && in.regions.returns[left]),
+        _ => result.right_returns || (different && in.regions.returns[right])
+    }
 }

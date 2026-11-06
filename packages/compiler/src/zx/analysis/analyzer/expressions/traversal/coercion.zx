@@ -1,0 +1,28 @@
+import coerce from "../coerce"
+
+import type { Work } from "./model"
+
+export type Input = Work
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const frame = in.frames.coercions[in.frames.coercions.length - 1]
+
+    const result = coerce({
+        state: in.state,
+        value: in.value,
+        expected: frame.expected,
+        span: frame.span
+    })
+
+    return {
+        ...in,
+        state: result.state,
+        value: result.value,
+        frames: {
+            ...in.frames,
+            coercions: in.frames.coercions.pop()[0]
+        }
+    }
+}

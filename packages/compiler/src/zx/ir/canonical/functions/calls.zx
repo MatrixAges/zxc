@@ -31,13 +31,18 @@ export default function (in: Input): Output {
             if (kind == ExpressionKind.StoreGet) {
                 current.valid = false
             } else {
+                const valid_kind = match kind {
+                    ExpressionKind.Task => true,
+                    ExpressionKind.AwaitTask => true,
+                    ExpressionKind.CancelTask => true,
+                    ExpressionKind.Parallel => true,
+                    _ => false
+                }
+
                 const condition = (
                     - !current.concurrent
                     - and (
-                        - kind == ExpressionKind.Task
-                        - or kind == ExpressionKind.AwaitTask
-                        - or kind == ExpressionKind.CancelTask
-                        - or kind == ExpressionKind.Parallel
+                        valid_kind
                     )
                 )
 
@@ -53,18 +58,19 @@ export default function (in: Input): Output {
                             current.expressions.call_functions[payload]
                         )
 
-                    current.valid =
-                        (
-                            - current.expressions.call_store_count[payload] == 0
-                            - and (
-                                - current.self_function != null
-                                - and target == current.self_function
-                                - or (
-                                    target < current.limit &&
-                                        current.allowed[target]
-                                )
-                            )
-                        )
+                    const no_stores = current.expressions.call_store_count[payload] == 0
+                    const self_call = match {
+                        !no_stores => false,
+                        current.self_function == null => false,
+                        _ => target == current.self_function
+                    }
+
+                    current.valid = match {
+                        !no_stores => false,
+                        self_call => true,
+                        target < current.limit => current.allowed[target],
+                        _ => false
+                    }
                 }
             }
 

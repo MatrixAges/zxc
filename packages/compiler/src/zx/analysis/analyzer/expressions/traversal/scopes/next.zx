@@ -3,9 +3,9 @@ import { NameKind } from "../../../source/model"
 import readName from "../../../source/name"
 import reference from "../../../source/reference"
 import bindingName from "../../../statements/scopes/binding_name"
-import finish from "../../../statements/scopes/finish"
 import annotation from "../../../types/annotation"
 import { Phase, Action } from "../model"
+import complete from "./complete"
 
 import type { Prepared } from "../../../model"
 import type { Work } from "../model"
@@ -19,41 +19,74 @@ export default function (in: Input): Output {
     const frame = in.scopes.frames[position]
 
     if (frame.next == frame.statements.length) {
-        const result = finish({
-            scopes: in.scopes,
-            local: in.state.local,
-            span: in.source.blocks.blocks[frame.source_block].span
-        })
-
-        return {
-            ...in,
-            scopes: result.scopes,
-            state: {
-                ...in.state,
-                local: result.local
-            },
-            value: result.value,
-            phase: Phase.Complete
-        }
+        return complete(in)
     }
 
     const id = frame.statements[frame.next]
     const statement = in.source.blocks.statements[id]
 
-    const work: Work = {
+    const scopes = {
         ...in.scopes,
         frames: in.scopes.frames.splice(position, 1, [{
             ...frame,
             next: frame.next + 1
         }])[0]
     }
-        -> {
-            ...in,
-            scopes: _,
-            node: statement.first,
-            expected: null,
-            phase: Phase.Evaluate
+
+    const work: Work = {
+        ...in,
+        scopes: scopes,
+        node: statement.first,
+        expected: null,
+        phase: Phase.Evaluate
+    }
+
+    if (frame.value_block && statement.kind == StatementKind.Result) {
+        if (statement.first == 0 || frame.next + 1 != frame.statements.length) {
+            return {
+                ...work,
+                state: {
+                    ...work.state,
+                    diagnostic: {
+                        code: "return_path",
+                        message: "callback blocks require a final return value",
+                        start: statement.span.start,
+                        end: statement.span.end
+                    }
+                }
+            }
         }
+
+        return {
+            ...work,
+            node: statement.first - 1,
+            expected: frame.expected,
+            frames: {
+                ...work.frames,
+                actions: work.frames.actions.push(Action.ValueReturn)[0]
+            }
+        }
+    }
+
+    const local_statement = statement.kind == StatementKind.Constant ||
+        statement.kind == StatementKind.Destructure ||
+        statement.kind == StatementKind.Evaluate
+
+    if (frame.value_block && !local_statement) {
+        return {
+            ...work,
+            state: {
+                ...work.state,
+                diagnostic: {
+                    code: "unsupported",
+                    message:
+                        "value callback blocks support local bindings and a final return",
+                    start: statement.span.start,
+                    end: statement.span.end
+                }
+            }
+        }
+    }
 
     if (
         statement.kind == StatementKind.Result || statement.kind == StatementKind.StoreSet
@@ -67,9 +100,11 @@ export default function (in: Input): Output {
                 diagnostic: {
                     code: returning ? "return_path" : "capability",
                     message:
-                        returning ?
-                        "loop steps yield state at the block end; return is not allowed" :
-                        "Store writes are not allowed in loop callbacks",
+                        match {
+                            returning =>
+                                "loop steps yield state at the block end; return is not allowed",
+                            _ => "Store writes are not allowed in loop callbacks"
+                        },
                     start: statement.span.start,
                     end: statement.span.end
                 }
@@ -78,16 +113,17 @@ export default function (in: Input): Output {
     }
 
     if (statement.kind == StatementKind.Constant) {
-        const diagnostic = readName({
+        const name = readName({
             source: work.source,
             kind: NameKind.Statement,
             index: id
         })
-            -> bindingName({
-                scopes: work.scopes,
-                local: work.state.local,
-                name: _
-            })
+
+        const diagnostic = bindingName({
+            scopes: work.scopes,
+            local: work.state.local,
+            name: name
+        })
 
         if (diagnostic.message != "") {
             return {
@@ -102,16 +138,19 @@ export default function (in: Input): Output {
         const resolved: {
             state: Prepared,
             id: u32
-        } = statement.annotation == 0 ? {
-            state: work.state,
-            id: 0
-        } : annotation({
-            state: work.state,
-            reference: reference({
-                source: work.source,
-                index: statement.annotation - 1
+        } = match {
+            statement.annotation == 0 => {
+                state: work.state,
+                id: 0
+            },
+            _ => annotation({
+                state: work.state,
+                reference: reference({
+                    source: work.source,
+                    index: statement.annotation - 1
+                })
             })
-        })
+        }
 
         return {
             ...work,
@@ -176,8 +215,10 @@ export default function (in: Input): Output {
             statements: work.frames.statements.push(id)[0],
             actions:
                 work.frames.actions.push(
-                    statement.kind == StatementKind.Evaluate ? Action.StateEvaluate :
-                        Action.StateDestructure
+                    match {
+                        statement.kind == StatementKind.Evaluate => Action.StateEvaluate,
+                        _ => Action.StateDestructure
+                    }
                 )[0]
         }
     }

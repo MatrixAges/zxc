@@ -23,16 +23,19 @@ export type Output = {
 export default function (in: Input): Output {
     const seen = in.loops.seen[in.index]
 
-    const value = seen ? rewrite({
-        types: in.types,
-        references: in.references,
-        forest: in.memory.forest,
-        left: in.loops.exits[in.index],
-        right: in.value,
-        action: RewriteAction.Join
-    }) : {
-        forest: in.memory.forest,
-        fact: in.value
+    const value = match {
+        seen => rewrite({
+            types: in.types,
+            references: in.references,
+            forest: in.memory.forest,
+            left: in.loops.exits[in.index],
+            right: in.value,
+            action: RewriteAction.Join
+        }),
+        _ => {
+            forest: in.memory.forest,
+            fact: in.value
+        }
     }
 
     const result = loop({
@@ -53,16 +56,19 @@ export default function (in: Input): Output {
             if (current.index < current.count) {
                 const position = current.first + current.index
                 const fact = current.facts[current.loops.roots[position]]
-                const joined = current.seen ? rewrite({
-                    types: current.types,
-                    references: current.references,
-                    forest: current.forest,
-                    left: current.loops.outputs[position],
-                    right: fact,
-                    action: RewriteAction.Join
-                }) : {
-                    forest: current.forest,
-                    fact
+                const joined = match {
+                    current.seen => rewrite({
+                        types: current.types,
+                        references: current.references,
+                        forest: current.forest,
+                        left: current.loops.outputs[position],
+                        right: fact,
+                        action: RewriteAction.Join
+                    }),
+                    _ => {
+                        forest: current.forest,
+                        fact
+                    }
                 }
 
                 current.forest = joined.forest

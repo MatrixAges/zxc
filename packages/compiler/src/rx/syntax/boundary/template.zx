@@ -44,12 +44,13 @@ export default function (in: Input): Output {
         )
 
         if (condition) {
-            return in.offset
-                -> fail({
-                    state: in,
-                    offset: _,
-                    message: unsupported_template_escape
-                })
+            const issue = in.offset
+
+            return fail({
+                state: in,
+                offset: issue,
+                message: unsupported_template_escape
+            })
         }
 
         return {
@@ -59,14 +60,15 @@ export default function (in: Input): Output {
     }
 
     if (byte == ascii_dollar && next == ascii_open_brace) {
-        return in.frame.depth + 1
-            -> open({
-                state: in,
-                mode: Mode.Interpolation,
-                offset: offset + 1,
-                start: offset + 1,
-                depth: _
-            })
+        const return_input = in.frame.depth + 1
+
+        return open({
+            state: in,
+            mode: Mode.Interpolation,
+            offset: offset + 1,
+            start: offset + 1,
+            depth: return_input
+        })
     }
 
     return {

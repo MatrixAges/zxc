@@ -40,14 +40,17 @@ export default function (in: Input): Output {
         }
     ]
 
-    const yes = (
-        tree.branch_capture_reference[row] ? Token.ReferenceCapture :
-            Token.CaptureOpen
-    )
-        -> (tree.branch_capture[row] == null ? opening : opening.concat([
+    const capture_prefix = match {
+        tree.branch_capture_reference[row] => Token.ReferenceCapture,
+        _ => Token.CaptureOpen
+    }
+
+    const captured = match {
+        tree.branch_capture[row] == null => opening,
+        _ => opening.concat([
             {
                 ...frame,
-                token: _
+                token: capture_prefix
             },
             {
                 ...frame,
@@ -58,13 +61,15 @@ export default function (in: Input): Output {
                 ...frame,
                 token: Token.CaptureClose
             }
-        ])[0])
-        -> _.push({
-            ...frame,
-            action: Action.Block,
-            id: tree.branch_yes_start[row],
-            count: tree.branch_yes_len[row]
-        })[0]
+        ])[0]
+    }
+
+    const yes = captured.push({
+        ...frame,
+        action: Action.Block,
+        id: tree.branch_yes_start[row],
+        count: tree.branch_yes_len[row]
+    })[0]
 
     if (tree.branch_no_len[row] == 0 && tree.branch_error_capture[row] == null) {
         return yes.push({
@@ -78,8 +83,9 @@ export default function (in: Input): Output {
         token: Token.ElseSeparator
     })[0]
 
-    return (tree.branch_error_capture[row] == null ? alternative :
-        alternative.concat([
+    const failed = match {
+        tree.branch_error_capture[row] == null => alternative,
+        _ => alternative.concat([
             {
                 ...frame,
                 token: Token.CaptureOpen
@@ -93,17 +99,19 @@ export default function (in: Input): Output {
                 ...frame,
                 token: Token.CaptureClose
             }
-        ])[0])
-        -> _.concat([
-            {
-                ...frame,
-                action: Action.Block,
-                id: tree.branch_no_start[row],
-                count: tree.branch_no_len[row]
-            },
-            {
-                ...frame,
-                token: Token.Newline
-            }
         ])[0]
+    }
+
+    return failed.concat([
+        {
+            ...frame,
+            action: Action.Block,
+            id: tree.branch_no_start[row],
+            count: tree.branch_no_len[row]
+        },
+        {
+            ...frame,
+            token: Token.Newline
+        }
+    ])[0]
 }

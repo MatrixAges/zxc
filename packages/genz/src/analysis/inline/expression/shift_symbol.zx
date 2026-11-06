@@ -1,0 +1,12 @@
+import integers from "std:integer"
+
+export type Input = {
+    symbol: u32,
+    offset: u64
+}
+
+export type Output = u32
+
+export default function (in: Input): Output {
+    return integers.narrow(integers.widen(in.symbol) + in.offset)
+}

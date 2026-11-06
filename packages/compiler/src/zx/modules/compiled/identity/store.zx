@@ -8,6 +8,7 @@ export type Input = {
 export type Output = string
 
 export default function (in: Input): Output {
-    return encoding.sliceBytes(in.value, 6, in.value.length)
-        -> `store.library:${in.instance.length}:${in.instance}:${_}`
+    const tail = encoding.sliceBytes(in.value, 6, in.value.length)
+
+    return `store.library:${in.instance.length}:${in.instance}:${tail}`
 }

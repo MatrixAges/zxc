@@ -15,30 +15,39 @@ export default function (in: Input): Output {
     const first = in.source.context.metadata.usage.plan.slot_first
     const symbols = in.source.context.metadata.usage.symbols
 
-    return loop({
+    const loop_initial = {
         transfers,
         node: 0,
         slot: 0
-    }, {
-        while: (state, source) => state.node < source.needed.length,
-        next: (state, source) => {
-            const base = source.first[source.symbols + state.node]
-            const end = source.first[source.symbols + state.node + 1]
+    }
+
+    const loop_scope = {
+        input: in.source,
+        needed,
+        first,
+        symbols
+    }
+
+    return loop(loop_initial, {
+        while: state => state.node < loop_scope.needed.length,
+        next: state => {
+            const base = loop_scope.first[loop_scope.symbols + state.node]
+            const end = loop_scope.first[loop_scope.symbols + state.node + 1]
 
             if (
-                !source.needed[state.node] ||
+                !loop_scope.needed[state.node] ||
                     state.slot >= integers.widen(end - base)
             ) {
                 state.node += 1
                 state.slot = 0
             } else {
                 if (qualify({
-                    context: source.input.context,
+                    context: loop_scope.input.context,
                     node: integers.narrow(state.node),
                     slot: integers.narrow(state.slot)
                 })) {
                     const bit = integers.widen(
-                        base - source.first[source.symbols]
+                        base - loop_scope.first[loop_scope.symbols]
                     ) + state.slot
                     const word = bit / bits_per_word
 
@@ -52,10 +61,5 @@ export default function (in: Input): Output {
             }
         },
         return: state => state.transfers
-    }, {
-        input: in.source,
-        needed,
-        first,
-        symbols
     })
 }

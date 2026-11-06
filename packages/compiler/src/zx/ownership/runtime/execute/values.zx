@@ -14,6 +14,7 @@ import push from "../work/push"
 import top from "../work/top"
 import family from "./family"
 import { Family } from "./model"
+import sequenceWork from "./values/sequence_work"
 
 import type { Machine } from "./model"
 
@@ -23,16 +24,20 @@ export type Output = Machine
 
 export default function (in: Input): Output {
     return loop(in, {
-        while: current =>
-            (
+        while: current => {
+            const actions = current.work.actions
+            const ready = (
                 - current.active
                 - and current.complete
                 - and !current.failed
-                - and current.work.actions.length != 0
-                - and family(
-                    current.work.actions[current.work.actions.length - 1]
-                ) == Family.Values
-            ),
+                - and actions.length != 0
+            )
+
+            return match {
+                ready => family(actions[actions.length - 1]) == Family.Values,
+                _ => false
+            }
+        },
         next: current => {
             const frame = top(current.work)
 
@@ -135,33 +140,10 @@ export default function (in: Input): Output {
                 }
 
                 if (frame.index < items.count) {
-                    current.work = push({
+                    current.work = sequenceWork({
                         work: current.work,
-                        frame: {
-                            action: WorkAction.SequenceResult,
-                            subject: frame.subject,
-                            moving: frame.moving,
-                            index: frame.index
-                        }
-                    })
-                    current.work = push({
-                        work: current.work,
-                        frame: {
-                            action:
-                                kind ==
-                                ExpressionKind.Template ? WorkAction.Value :
-                                WorkAction.Aggregate,
-                            subject:
-                                integers.widen(
-                                    current.program.expressions
-                                        .sequence_items[items
-                                            .first +
-                                            frame.index]
-                                ),
-                            moving: kind == ExpressionKind.Template ? false :
-                                frame.moving,
-                            index: 0
-                        }
+                        expressions: current.program.expressions,
+                        frame
                     })
                 } else if (kind == ExpressionKind.Tuple) {
                     const built = finish({
@@ -179,9 +161,12 @@ export default function (in: Input): Output {
                     current.value = built.fact
                 } else {
                     current.value =
-                        kind == ExpressionKind.Template ? uniform(
-                            State.Copy
-                        ) : current.values[current.values.length - 1]
+                        match {
+                            kind == ExpressionKind.Template => uniform(
+                                State.Copy
+                            ),
+                            _ => current.values[current.values.length - 1]
+                        }
                     current.values = current.values.pop()[0]
                 }
             } else if (frame.action == WorkAction.SequenceResult) {

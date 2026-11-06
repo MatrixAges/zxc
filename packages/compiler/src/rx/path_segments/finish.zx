@@ -16,15 +16,16 @@ export default function (in: Input): Output {
         return in
     }
 
-    return in.segments.push({
+    const segments = in.segments.push({
         start: in.start,
         end: in.offset,
         parent: in.dots && length == 2
     })[0]
-        -> {
-            offset: in.offset,
-            start: in.start,
-            dots: in.dots,
-            segments: _
-        }
+
+    return {
+        offset: in.offset,
+        start: in.start,
+        dots: in.dots,
+        segments: segments
+    }
 }

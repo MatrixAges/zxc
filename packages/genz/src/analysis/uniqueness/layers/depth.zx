@@ -8,30 +8,30 @@ export type Input = {
 
 export type Output = u32?
 
-    export default function (in: Input): Output {
-        return loop({
-            source: in,
-            index: 0,
-            depth: integers.narrow(0),
-            ordered: true
-        }, {
-            while: current =>
-                current.ordered && current.index < current.source.callees.length,
-            next: current => {
-                const callee = integers.widen(current.source.callees[current.index])
+export default function (in: Input): Output {
+    return loop({
+        source: in,
+        index: 0,
+        depth: integers.narrow(0),
+        ordered: true
+    }, {
+        while: current =>
+            current.ordered && current.index < current.source.callees.length,
+        next: current => {
+            const callee = integers.widen(current.source.callees[current.index])
 
-                if (callee >= current.source.index) {
-                    current.ordered = false
-                } else {
-                    const depth = current.source.depths[callee] + 1
+            if (callee >= current.source.index) {
+                current.ordered = false
+            } else {
+                const depth = current.source.depths[callee] + 1
 
-                    if (depth > current.depth) {
-                        current.depth = depth
-                    }
+                if (depth > current.depth) {
+                    current.depth = depth
                 }
+            }
 
-                current.index += 1
-            },
-            return: state => state.ordered ? state.depth : null
-        })
-    }
+            current.index += 1
+        },
+        return: state => state.ordered ? state.depth : null
+    })
+}

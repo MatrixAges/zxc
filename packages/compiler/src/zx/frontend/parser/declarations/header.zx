@@ -16,32 +16,34 @@ export default function (in: Input): Output {
         if (
             in.control.token.word != Keyword.Type && in.control.token.word != Keyword.Enum
         ) {
-            return in.control.opening_index
-                -> {
-                    declarations: in.declarations,
-                    members: in.members,
-                    types: in.types,
-                    control: {
-                        ...in.control,
-                        phase: Phase.Done,
-                        index: _
-                    }
+            const index = in.control.opening_index
+
+            return {
+                declarations: in.declarations,
+                members: in.members,
+                types: in.types,
+                control: {
+                    ...in.control,
+                    phase: Phase.Done,
+                    index: index
                 }
+            }
         }
 
-        return in.control.token.word == Keyword.Enum
-            -> consume({
-                state: {
-                    declarations: in.declarations,
-                    members: in.members,
-                    types: in.types,
-                    control: {
-                        ...in.control,
-                        enumeration: _
-                    }
-                },
-                phase: Phase.Name
-            })
+        const name = in.control.token.word == Keyword.Enum
+
+        return consume({
+            state: {
+                declarations: in.declarations,
+                members: in.members,
+                types: in.types,
+                control: {
+                    ...in.control,
+                    enumeration: name
+                }
+            },
+            phase: Phase.Name
+        })
     }
 
     if (in.control.phase == Phase.Name) {
@@ -52,22 +54,23 @@ export default function (in: Input): Output {
             })
         }
 
-        return {
+        const types = {
             start: in.control.token.span.start,
             end: in.control.token.span.end
         }
-            -> consume({
-                state: {
-                    declarations: in.declarations,
-                    members: in.members,
-                    types: in.types,
-                    control: {
-                        ...in.control,
-                        name: _
-                    }
-                },
-                phase: Phase.Open
-            })
+
+        return consume({
+            state: {
+                declarations: in.declarations,
+                members: in.members,
+                types: in.types,
+                control: {
+                    ...in.control,
+                    name: types
+                }
+            },
+            phase: Phase.Open
+        })
     }
 
     if (in.control.enumeration) {
@@ -98,7 +101,7 @@ export default function (in: Input): Output {
         depth: in.control.depth
     })
 
-    return {
+    const return_input = {
         tree: in.types.tree,
         frames: initial.frames,
         control: {
@@ -106,13 +109,14 @@ export default function (in: Input): Output {
             index
         }
     }
-        -> consume({
-            state: {
-                declarations: in.declarations,
-                members: in.members,
-                types: _,
-                control: in.control
-            },
-            phase: Phase.Value
-        })
+
+    return consume({
+        state: {
+            declarations: in.declarations,
+            members: in.members,
+            types: return_input,
+            control: in.control
+        },
+        phase: Phase.Value
+    })
 }

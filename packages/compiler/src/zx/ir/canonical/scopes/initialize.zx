@@ -69,10 +69,22 @@ export default function (in: Input): Output {
                 truths: []
             },
             frames: {
-                phases: root == null ? [] : [Phase.Block],
-                a: root == null ? [] : [integers.widen(root)],
-                b: root == null ? [] : [0],
-                c: root == null ? [] : [0]
+                phases: match {
+                    root == null => [],
+                    _ => [Phase.Block]
+                },
+                a: match {
+                    root == null => [],
+                    _ => [integers.widen(root)]
+                },
+                b: match {
+                    root == null => [],
+                    _ => [0]
+                },
+                c: match {
+                    root == null => [],
+                    _ => [0]
+                }
             }
         },
         valid: true

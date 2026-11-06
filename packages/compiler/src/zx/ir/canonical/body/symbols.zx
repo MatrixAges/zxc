@@ -13,14 +13,21 @@ export type Input = {
 export type Output = bool
 
 export default function (in: Input): Output {
+    const index_limit = integers.widen(max_u32)
+
     const count = in.symbols.names.length
 
+    const not_length = count != in.symbols.types.length
+    const not_length_2 = count != in.symbols.ownership.length
+    const not_length_3 = count != in.symbols.span_start.length
+    const not_length_4 = count != in.symbols.span_end.length
+
     const condition = (
-        - count > integers.widen(max_u32)
-        - or count != in.symbols.types.length
-        - or count != in.symbols.ownership.length
-        - or count != in.symbols.span_start.length
-        - or count != in.symbols.span_end.length
+        - count > index_limit
+        - or not_length
+        - or not_length_2
+        - or not_length_3
+        - or not_length_4
     )
 
     if (condition) {

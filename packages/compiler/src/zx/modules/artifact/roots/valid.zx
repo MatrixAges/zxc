@@ -15,25 +15,38 @@ export default function (in: Input): Output {
         return false
     }
 
+    const not_length = record.function_ids.length != record.function_inputs.length
+    const not_length_2 = record.function_ids.length != record.function_outputs.length
+    const not_length_3 = record.import_kinds.length != record.import_specifiers.length
+
     const condition = (
-        - record.function_ids.length != record.function_inputs.length
-        - or record.function_ids.length != record.function_outputs.length
-        - or record.import_kinds.length != record.import_specifiers.length
+        - not_length
+        - or not_length_2
+        - or not_length_3
     )
 
     if (condition) {
         return false
     }
 
+    const different_files = functions.files.length != count
+    const different_input_types = functions.input_types.length != count
+    const different_output_types = functions.output_types.length != count
+    const different_native_modules = functions.native_modules.length != count
+    const different_symbols = functions.symbols.length != count
+    const different_expressions = functions.expressions.length != count
+    const different_contracts = functions.contracts.length != count
+    const different_stores = functions.stores.length != count
+
     const condition_2 = (
-        - functions.files.length != count
-        - or functions.input_types.length != count
-        - or functions.output_types.length != count
-        - or functions.native_modules.length != count
-        - or functions.symbols.length != count
-        - or functions.expressions.length != count
-        - or functions.contracts.length != count
-        - or functions.stores.length != count
+        - different_files
+        - or different_input_types
+        - or different_output_types
+        - or different_native_modules
+        - or different_symbols
+        - or different_expressions
+        - or different_contracts
+        - or different_stores
     )
 
     if (condition_2) {

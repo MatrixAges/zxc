@@ -86,28 +86,31 @@ export default function (in: Input): Output {
                         field: current.expressions.object_field_indices[slot]
                     })
 
-                    const condition = (
-                        - target == current.expressions.object_field_indices[slot]
-                        - and current.expressions.collection_kinds[payload] ==
-                            CollectionKind.Push
-                        - and initial != null
-                        - and current.expressions.kinds[integers.widen(
-                            initial
-                        )] ==
-                            ExpressionKind.List
-                        - and current.expressions
-                            .sequence_count[integers.widen(
-                                current.expressions
-                                    .payloads[integers.widen(
-                                        initial
-                                    )]
-                            )] == 0
-                    )
+                    const expressions = current.expressions
+                    const same_field = target == expressions.object_field_indices[slot]
+                    const pushed = match {
+                        same_field =>
+                            expressions.collection_kinds[payload] == CollectionKind.Push,
+                        _ => false
+                    }
 
-                    if (condition) {
-                        current.found = {
-                            operation,
-                            source: current.source
+                    if (pushed && initial != null) {
+                        const initial_index = integers.widen(initial)
+
+                        if (
+                            expressions.kinds[initial_index] == ExpressionKind.List
+                        ) {
+                            const initial_payload =
+                                integers.widen(expressions.payloads[initial_index])
+
+                            if (
+                                expressions.sequence_count[initial_payload] == 0
+                            ) {
+                                current.found = {
+                                    operation,
+                                    source: current.source
+                                }
+                            }
                         }
                     }
                 }

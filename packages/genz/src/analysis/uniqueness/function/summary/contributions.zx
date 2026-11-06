@@ -15,42 +15,56 @@ export default function (in: Input): Output {
     const passed: Contribution[] = []
     const changed: u32[] = []
 
-    return loop({
+    const loop_initial = {
         known: in.working.known,
         reads: in.working.reads,
         index: 0,
         passed,
         changed
-    }, {
-        while: (state, source) => state.index < source.operations.length,
-        next: (state, source) => {
-            const expressions = source.context.metadata.expressions
+    }
 
-            const payload = integers.widen(source.operations[state.index])
-                -> integers.widen(expressions.payloads[_])
+    const readonly_source = in.source
+
+    return loop(loop_initial, {
+        while: state => state.index < readonly_source.operations.length,
+        next: state => {
+            const expressions = readonly_source.context.metadata.expressions
+
+            const node = integers.widen(readonly_source.operations[state.index])
+
+            const payload = integers.widen(expressions.payloads[node])
             const callee = expressions.call_functions[payload]
             const count =
-                bytes.atomicRowLength(source.inputs, integers.widen(callee))
+                bytes.atomicRowLength(readonly_source.inputs, integers.widen(callee))
             const levels: Knowledge[] = []
 
-            const row = loop({
+            const row_initial = {
                 known: state.known,
                 reads: state.reads,
                 changed: state.changed,
                 levels,
                 slot: 0
-            }, {
-                while: (current, input) => current.slot < input.count,
-                next: (current, input) => {
+            }
+
+            const row_scope = {
+                source: readonly_source,
+                callee,
+                count,
+                argument: expressions.call_arguments[payload]
+            }
+
+            const row = loop(row_initial, {
+                while: current => current.slot < row_scope.count,
+                next: current => {
                     const result = query({
-                        context: input.source.context,
+                        context: row_scope.source.context,
                         state: {
                             known: current.known,
-                            carried: input.source.carried,
+                            carried: row_scope.source.carried,
                             reads: current.reads
                         },
                         request: {
-                            node: input.argument,
+                            node: row_scope.argument,
                             slot: integers.narrow(current.slot),
                             raw: false
                         }
@@ -60,10 +74,10 @@ export default function (in: Input): Output {
                     current.reads = result.reads
                     current.levels = current.levels.push(result.value)[0]
 
-                    if (!input.source.deferred) {
+                    if (!row_scope.source.deferred) {
                         current.changed = publish({
-                            inputs: input.source.inputs,
-                            callee: input.callee,
+                            inputs: row_scope.source.inputs,
+                            callee: row_scope.callee,
                             slot: current.slot,
                             value: result.value,
                             changed: current.changed
@@ -72,11 +86,6 @@ export default function (in: Input): Output {
 
                     current.slot += 1
                 }
-            }, {
-                source,
-                callee,
-                count,
-                argument: expressions.call_arguments[payload]
             })
 
             state.known = row.known
@@ -95,5 +104,5 @@ export default function (in: Input): Output {
             "passed",
             "changed"
         ])
-    }, in.source)
+    })
 }

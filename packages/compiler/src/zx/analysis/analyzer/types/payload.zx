@@ -11,36 +11,36 @@ export type Input = {
 
 export type Output = u32?
 
-    export default function (in: Input): Output {
-        const expected = in.expected
+export default function (in: Input): Output {
+    const expected = in.expected
 
-        if (expected == null) {
-            return null
-        }
-
-        const tables = {
-            base: in.types.context.base,
-            delta: in.types.delta
-        }
-
-        return loop({
-            tables,
-            id: expected,
-            done: false
-        }, {
-            while: current => !current.done,
-            next: current => {
-                const value = row({
-                    tables: current.tables,
-                    id: current.id
-                })
-
-                if (value.kind == Kind.Optional) {
-                    current.id = value.first
-                } else {
-                    current.done = true
-                }
-            },
-            return: state => state.id
-        })
+    if (expected == null) {
+        return null
     }
+
+    const tables = {
+        base: in.types.context.base,
+        delta: in.types.delta
+    }
+
+    return loop({
+        tables,
+        id: expected,
+        done: false
+    }, {
+        while: current => !current.done,
+        next: current => {
+            const value = row({
+                tables: current.tables,
+                id: current.id
+            })
+
+            if (value.kind == Kind.Optional) {
+                current.id = value.first
+            } else {
+                current.done = true
+            }
+        },
+        return: state => state.id
+    })
+}

@@ -22,15 +22,18 @@ export default function (in: Input): Output {
     const capacity = in.buckets.length == 0 ? initial_buckets : in.buckets.length * 2
     const empty: u32[] = []
 
-    const buckets = grow ? loop({
-        values: empty,
-        capacity
-    }, {
-        while: current => current.values.length < current.capacity,
-        next: current => { current.values =
-            current.values.push(max_u32)[0] },
-        return: state => state.values
-    }) : in.buckets
+    const buckets = match {
+        grow => loop({
+            values: empty,
+            capacity
+        }, {
+            while: current => current.values.length < current.capacity,
+            next: current => { current.values =
+                current.values.push(max_u32)[0] },
+            return: state => state.values
+        }),
+        _ => in.buckets
+    }
 
     return loop({
         entries: in.entries,

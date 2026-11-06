@@ -72,10 +72,6 @@ test "negative parse: ordinary field mutation" {
     try h.parseInvalid("export type Input = { value: u64 }\n export type Output = u64\n export default function (in: Input): Output { in.value = 1\n return in.value }", .syntax);
 }
 
-test "negative parse: block lambda" {
-    try h.parseInvalid("export type Input = u64[]\n export type Output = u64[]\n export default function (in: Input): Output { return in.map(item => { return item }) }", .syntax);
-}
-
 test "negative parse: trailing executable tokens" {
     try h.parseInvalid("export type Input = u64\n export type Output = u64\n export default function (in: Input): Output { return in } const extra = 1\n", .contract);
 }

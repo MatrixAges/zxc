@@ -21,9 +21,12 @@ export default function (in: Input): Output {
     const payload = integers.widen(in.table.payloads[in.index])
 
     const condition = (
-        - kind == ExpressionKind.List
-        - or kind == ExpressionKind.Tuple
-        - or kind == ExpressionKind.Template
+        match kind {
+            ExpressionKind.List => true,
+            ExpressionKind.Tuple => true,
+            ExpressionKind.Template => true,
+            _ => false
+        }
     )
 
     if (condition) {
@@ -54,11 +57,19 @@ export default function (in: Input): Output {
     if (kind == ExpressionKind.Transform) {
         const initial = in.table.transform_initials[payload]
 
-        return (
-            - safe[integers.widen(in.table.transform_targets[payload])]
-            - and safe[integers.widen(in.table.transform_bodies[payload])]
-            - and (initial == null || safe[integers.widen(initial)])
-        )
+        const target = integers.widen(in.table.transform_targets[payload])
+
+        if (!safe[target]) {
+            return false
+        }
+
+        const body = integers.widen(in.table.transform_bodies[payload])
+
+        if (!safe[body]) {
+            return false
+        }
+
+        return initial == null || safe[integers.widen(initial)]
     }
 
     if (kind == ExpressionKind.Scope) {

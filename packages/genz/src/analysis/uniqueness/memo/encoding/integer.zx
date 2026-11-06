@@ -5,22 +5,28 @@ import { byte_radix } from "./const"
 import type { Integer as Input, State as Output } from "./model"
 
 export default function (in: Input): Output {
-    return loop({
+    const loop_initial = {
         state: in.state,
         value: in.value,
         index: 0
-    }, {
-        while: (current, width) => current.index < width,
+    }
+
+    const readonly_width = in.width
+
+    return loop(loop_initial, {
+        while: current => current.index < readonly_width,
         next: current => {
             const byte = integers.narrowByte(current.value % byte_radix)
 
-            current.state.buffer = current.state.end < current.state.buffer.length
-            ? current.state.buffer.with(current.state.end, byte)
-            : current.state.buffer.push(byte)[0]
+            current.state.buffer = match {
+                current.state.end < current.state.buffer.length =>
+                    current.state.buffer.with(current.state.end, byte),
+                _ => current.state.buffer.push(byte)[0]
+            }
             current.state.end += 1
             current.value /= byte_radix
             current.index += 1
         },
         return: current => current.state
-    }, in.width)
+    })
 }

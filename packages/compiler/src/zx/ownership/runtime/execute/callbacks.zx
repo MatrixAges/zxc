@@ -13,45 +13,36 @@ export type Output = Machine
 
 export default function (in: Input): Output {
     return loop(in, {
-        while: current =>
-            (
+        while: current => {
+            const actions = current.work.actions
+            const ready = (
                 - current.active
                 - and current.complete
                 - and !current.failed
-                - and current.work.actions.length != 0
-                - and family(
-                    current.work.actions[current.work.actions.length - 1]
-                ) == Family.Callbacks
-            ),
+                - and actions.length != 0
+            )
+
+            return match {
+                ready => family(actions[actions.length - 1]) == Family.Callbacks,
+                _ => false
+            }
+        },
         next: current => {
             const action = current.work.actions[current.work.actions.length - 1]
 
-            const condition = (
-                - action == WorkAction.IterationRound
-                - or action == WorkAction.IterationAdvance
-                - or action == WorkAction.IterationInitial
-                - or action == WorkAction.IterationCondition
-                - or action == WorkAction.IterationBody
-                - or action == WorkAction.IterationFinish
-            )
-
-            if (condition) {
-                current = iteration(current)
-            } else {
-                const condition_2 = (
-                    - action == WorkAction.TransformTarget
-                    - or action == WorkAction.TransformInitial
-                    - or action == WorkAction.TransformParameter
-                )
-
-                if (condition_2) {
-                    current = transformStart(current)
-                } else if (
-                    action == WorkAction.TransformBody ||
-                        action == WorkAction.TransformFinish
-                ) {
-                    current = transformFinish(current)
-                }
+            current = match action {
+                WorkAction.IterationRound => iteration(current),
+                WorkAction.IterationAdvance => iteration(current),
+                WorkAction.IterationInitial => iteration(current),
+                WorkAction.IterationCondition => iteration(current),
+                WorkAction.IterationBody => iteration(current),
+                WorkAction.IterationFinish => iteration(current),
+                WorkAction.TransformTarget => transformStart(current),
+                WorkAction.TransformInitial => transformStart(current),
+                WorkAction.TransformParameter => transformStart(current),
+                WorkAction.TransformBody => transformFinish(current),
+                WorkAction.TransformFinish => transformFinish(current),
+                _ => current
             }
         }
     })

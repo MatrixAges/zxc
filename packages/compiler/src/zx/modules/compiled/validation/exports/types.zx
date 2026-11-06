@@ -32,15 +32,16 @@ export default function (in: Input): Output {
             if (current.valid && function_id != null) {
                 const index = integers.widen(function_id)
 
-                current.valid =
-                    (
-                        - name != "Input"
-                        - or id == current.input.functions.input_types[index]
-                        - and (
-                            name != "Output" ||
-                                id == current.input.functions.output_types[index]
-                        )
-                    )
+                const input_matches = match {
+                    name != "Input" => true,
+                    _ => id == current.input.functions.input_types[index]
+                }
+
+                current.valid = match {
+                    !input_matches => false,
+                    name != "Output" => true,
+                    _ => id == current.input.functions.output_types[index]
+                }
             }
 
             current.index += 1

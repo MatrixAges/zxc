@@ -44,7 +44,7 @@ export default function (in: Input): Output {
         })
     }
 
-    return match in.mode {
+    const message = match in.mode {
         Mode.BlockComment => unterminated_block_comment,
         Mode.String => unterminated_string,
         Mode.StringEscape => unterminated_string,
@@ -53,11 +53,12 @@ export default function (in: Input): Output {
         Mode.InterpolationBlockComment => unterminated_template_comment,
         _ => unterminated_interpolation
     }
-        -> fail({
-            code: lexical_code,
-            start: in.start,
-            end: in.source_length,
-            message: _,
-            state: in
-        })
+
+    return fail({
+        code: lexical_code,
+        start: in.start,
+        end: in.source_length,
+        message: message,
+        state: in
+    })
 }

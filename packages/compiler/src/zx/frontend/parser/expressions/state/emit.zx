@@ -13,43 +13,45 @@ export type Output = ExprState
 
 export default function (in: Input): Output {
     if (in.node.depth > max_nesting_depth) {
-        return {
+        const diagnostic = {
             code: "unsupported",
             start: in.node.span.start,
             end: in.node.span.end,
             message: "expression nesting exceeds 256 levels"
         }
-            -> {
-                prepared: in.state.prepared,
-                tree: in.state.tree,
-                types: in.state.types,
-                frames: in.state.frames,
-                control: {
-                    ...in.state.control,
-                    phase: Phase.Done,
-                    diagnostic: _
-                }
-            }
-    }
 
-    const result = in.state.tree.nodes.length
-
-    return in.state.tree.nodes.push(in.node)[0]
-        -> {
+        return {
             prepared: in.state.prepared,
-            tree: {
-                nodes: _,
-                items: in.state.tree.items,
-                fields: in.state.tree.fields,
-                parameters: in.state.tree.parameters,
-                parts: in.state.tree.parts,
-                arms: in.state.tree.arms
-            },
+            tree: in.state.tree,
             types: in.state.types,
             frames: in.state.frames,
             control: {
                 ...in.state.control,
-                result
+                phase: Phase.Done,
+                diagnostic: diagnostic
             }
         }
+    }
+
+    const result = in.state.tree.nodes.length
+
+    const nodes = in.state.tree.nodes.push(in.node)[0]
+
+    return {
+        prepared: in.state.prepared,
+        tree: {
+            nodes: nodes,
+            items: in.state.tree.items,
+            fields: in.state.tree.fields,
+            parameters: in.state.tree.parameters,
+            parts: in.state.tree.parts,
+            arms: in.state.tree.arms
+        },
+        types: in.state.types,
+        frames: in.state.frames,
+        control: {
+            ...in.state.control,
+            result
+        }
+    }
 }

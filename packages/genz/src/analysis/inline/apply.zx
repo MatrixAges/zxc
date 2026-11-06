@@ -91,12 +91,15 @@ export default function (in: Input): Output {
                     })
 
                     current.results =
-                        current.results.push(rebuilt.failed ? unchanged : {
-                            changed: true,
-                            symbols: rebuilt.symbols,
-                            expressions: rebuilt.expressions,
-                            control: rebuilt.control,
-                            root: rebuilt.root
+                        current.results.push(match {
+                            rebuilt.failed => unchanged,
+                            _ => {
+                                changed: true,
+                                symbols: rebuilt.symbols,
+                                expressions: rebuilt.expressions,
+                                control: rebuilt.control,
+                                root: rebuilt.root
+                            }
                         })[0]
                 }
             }

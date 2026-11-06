@@ -21,13 +21,11 @@ export default function (in: Input): Output {
         }
     }
 
-    const condition = (
-        - value != null
-        - and value.kind == ExpressionKind.Float
-        - and !floats.isFinite(
-            value.floating
-        )
-    )
+    const condition = match {
+        value == null => false,
+        value.kind != ExpressionKind.Float => false,
+        _ => !floats.isFinite(value.floating)
+    }
 
     if (condition) {
         return {

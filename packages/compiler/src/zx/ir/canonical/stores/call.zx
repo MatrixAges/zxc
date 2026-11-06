@@ -16,14 +16,18 @@ export type Input = {
 export type Output = bool
 
 export default function (in: Input): Output {
-    const condition = (
-        - !validate(in.available)
-        - or !validate(in.required)
-        - or in.first > in.slots.length
-        - or in.count > in.slots.length - in.first
-        - or in.count != in.required.paths.length
-        - or (in.count != 0 && !in.orchestration)
-    )
+    const not_length = in.count != in.required.paths.length
+
+    const valid_count = in.count != 0 && !in.orchestration
+
+    const condition = match {
+        !validate(in.available) => true,
+        !validate(in.required) => true,
+        in.first > in.slots.length => true,
+        in.count > in.slots.length - in.first => true,
+        not_length => true,
+        _ => valid_count
+    }
 
     if (condition) {
         return false
@@ -64,21 +68,19 @@ export default function (in: Input): Output {
                     }
                 })
 
-                current.valid = (
-                    - !duplicate.found
-                    - and current.available.types[index] ==
-                        current.required.types[current.index]
-                    - and current.available.paths[index] ==
-                        current.required.paths[current.index]
-                    - and (
-                        !current.required.readable[current.index] ||
-                            current.available.readable[index]
-                    )
-                    - and (
-                        !current.required.writable[current.index] ||
-                            current.available.writable[index]
-                    )
-                )
+                const available = current.available
+                const required = current.required
+                const slot = current.index
+                const readable = required.readable
+                const writable = required.writable
+
+                current.valid = match {
+                    duplicate.found => false,
+                    available.types[index] != required.types[slot] => false,
+                    available.paths[index] != required.paths[slot] => false,
+                    readable[slot] && !available.readable[index] => false,
+                    _ => !writable[slot] || available.writable[index]
+                }
             }
 
             current.index += 1

@@ -13,9 +13,9 @@ export type Output = Frame[]
 export default function (in: Input): Output {
     const tree = in.source.expressions
     const kind = tree.tags[integers.widen(in.frame.id)]
+    const id = tree.offsets[integers.widen(in.frame.id)]
 
-    const row = tree.offsets[integers.widen(in.frame.id)]
-        -> integers.widen(_)
+    const row = integers.widen(id)
 
     const object = kind == ExpressionsKind.Object
 
@@ -31,31 +31,37 @@ export default function (in: Input): Output {
 
     const type_expr = object ? tree.object_type_expr[row] : null
 
-    const object_type: Frame = type_expr == null ? {
-        ...frame,
-        token: Token.Dot
-    } : {
-        ...frame,
-        action: Action.Expression,
-        id: type_expr
+    const object_type: Frame = match {
+        type_expr == null => {
+            ...frame,
+            token: Token.Dot
+        },
+        _ => {
+            ...frame,
+            action: Action.Expression,
+            id: type_expr
+        }
     }
 
-    const opening: Frame[] = object ? [
-        object_type,
-        {
-            ...frame,
-            token: Token.BraceOpen
-        }
-    ] : [
-        {
-            ...frame,
-            token: Token.StructOpen
-        },
-        {
-            ...frame,
-            action: Action.Enter
-        }
-    ]
+    const opening: Frame[] = match {
+        object => [
+            object_type,
+            {
+                ...frame,
+                token: Token.BraceOpen
+            }
+        ],
+        _ => [
+            {
+                ...frame,
+                token: Token.StructOpen
+            },
+            {
+                ...frame,
+                action: Action.Enter
+            }
+        ]
+    }
 
     const field_first = match kind {
         ExpressionsKind.Object => tree.object_fields_start[row],
@@ -136,21 +142,24 @@ export default function (in: Input): Output {
         }
     })
 
-    return object ? declarations.frames.push({
-        ...frame,
-        token: Token.ObjectClose
-    })[0] : declarations.frames.concat([
-        {
+    return match {
+        object => declarations.frames.push({
             ...frame,
-            action: Action.Leave
-        },
-        {
-            ...frame,
-            action: Action.Indent
-        },
-        {
-            ...frame,
-            token: Token.BraceClose
-        }
-    ])[0]
+            token: Token.ObjectClose
+        })[0],
+        _ => declarations.frames.concat([
+            {
+                ...frame,
+                action: Action.Leave
+            },
+            {
+                ...frame,
+                action: Action.Indent
+            },
+            {
+                ...frame,
+                token: Token.BraceClose
+            }
+        ])[0]
+    }
 }

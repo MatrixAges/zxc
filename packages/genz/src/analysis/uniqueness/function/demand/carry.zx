@@ -8,17 +8,14 @@ import usage from "../levels/usage"
 import value from "../levels/value"
 import growth from "./growth"
 
-import type { Trace, Working, Request } from "./model"
+import type { Trace, Continuation } from "./model"
 
 export type Input = {
     trace: Trace,
     owner: u32
 }
 
-export type Output = {
-    working: Working,
-    request?: Request
-}
+export type Output = Continuation
 
 export default function (in: Input): Output {
     const working = in.trace.working
@@ -28,34 +25,42 @@ export default function (in: Input): Output {
     const payload = integers.widen(expressions.payloads[owner])
     const iteration = expressions.kinds[owner] == ExpressionKind.Iteration
 
-    const parameter = iteration ? expressions.iteration_parameters[payload] :
-        expressions
-        .transform_parameters[integers.widen(
-            expressions.transform_first[payload]
-        )]
+    const parameter = match {
+        iteration => expressions.iteration_parameters[payload],
+        _ => expressions
+            .transform_parameters[integers.widen(
+                expressions.transform_first[payload]
+            )]
+    }
 
-    const condition: u32? = iteration ?
-        expressions.iteration_condition_parameters[payload] : null
+    const condition: u32? = match {
+        iteration => expressions.iteration_condition_parameters[payload],
+        _ => null
+    }
 
     const desired = value(in.trace.request.wanted)
 
+    const consumed = desired.unique && usage({
+        context,
+        root: parameter,
+        slot: in.trace.request.slot,
+        observe: false
+    })
+
+    const unique = match {
+        !consumed => false,
+        condition == null => true,
+        _ => usage({
+            context,
+            root: condition,
+            slot: in.trace.request.slot,
+            observe: true
+        })
+    }
+
     const want = knowledge({
         ...desired,
-        unique: (
-            - desired.unique
-            - and usage({
-                context,
-                root: parameter,
-                slot: in.trace.request.slot,
-                observe: false
-            })
-            - and (condition == null || usage({
-                context,
-                root: condition,
-                slot: in.trace.request.slot,
-                observe: true
-            }))
-        )
+        unique
     })
 
     if (want == Knowledge.None) {
@@ -81,8 +86,10 @@ export default function (in: Input): Output {
             grew: working.grew || result.grew
         },
         request: {
-            node: iteration ? expressions.iteration_bodies[payload] :
-                expressions.transform_bodies[payload],
+            node: match {
+                iteration => expressions.iteration_bodies[payload],
+                _ => expressions.transform_bodies[payload]
+            },
             slot: in.trace.request.slot,
             outer: null,
             repeated: false,

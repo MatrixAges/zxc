@@ -16,12 +16,15 @@ export type Output = ExprState
 export default function (in: Input): Output {
     const result = in.state.control.result
 
-    const name = in.frame.flag ? {
-        start: in.state.tree.nodes[result].span.start,
-        end: in.state.tree.nodes[result].span.end
-    } : {
-        start: in.frame.name.start,
-        end: in.frame.name.end
+    const name = match {
+        in.frame.flag => {
+            start: in.state.tree.nodes[result].span.start,
+            end: in.state.tree.nodes[result].span.end
+        },
+        _ => {
+            start: in.frame.name.start,
+            end: in.frame.name.end
+        }
     }
 
     const head = in.state.tree.fields.length + 1
@@ -59,17 +62,18 @@ export default function (in: Input): Output {
     }
 
     if (state.control.token.symbol == Symbol.Comma) {
-        return state.frames.push(continuation)[0]
-            -> consume({
-                state: {
-                    prepared: state.prepared,
-                    tree: state.tree,
-                    types: state.types,
-                    frames: _,
-                    control: state.control
-                },
-                phase: Phase.ObjectName
-            })
+        const frames = state.frames.push(continuation)[0]
+
+        return consume({
+            state: {
+                prepared: state.prepared,
+                tree: state.tree,
+                types: state.types,
+                frames: frames,
+                control: state.control
+            },
+            phase: Phase.ObjectName
+        })
     }
 
     if (state.control.token.symbol != Symbol.CloseBrace) {

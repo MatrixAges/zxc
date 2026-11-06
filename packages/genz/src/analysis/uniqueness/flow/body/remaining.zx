@@ -7,14 +7,14 @@ export default function (in: Input): Output {
         count: 0,
         index: 0
     }, {
-        while: (state, values) => state.index < values.length,
-        next: (state, values) => {
-            if (!values[state.index]) {
+        while: state => state.index < in.length,
+        next: state => {
+            if (!in[state.index]) {
                 state.count += 1
             }
 
             state.index += 1
         },
         return: state => state.count
-    }, in)
+    })
 }

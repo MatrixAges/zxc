@@ -1,0 +1,58 @@
+import integers from "std:integer"
+
+import { WorkAction } from "../../../work/model"
+import push from "../../../work/push"
+
+import type { Expressions } from "core/expression_table/model"
+import type { Frame, Work } from "../../../work/model"
+
+export type Input = {
+    work: Work,
+    expressions: Expressions,
+    frame: Frame
+}
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const frame = in.frame
+    const expressions = in.expressions
+    const selection = integers.widen(expressions.payloads[frame.subject])
+
+    if (frame.index >= integers.widen(expressions.match_count[selection])) {
+        return push({
+            work: in.work,
+            frame: {
+                action: WorkAction.Value,
+                subject: integers.widen(expressions.match_fallbacks[selection]),
+                moving: frame.moving,
+                index: 0
+            }
+        })
+    }
+
+    const work = push({
+        work: in.work,
+        frame: {
+            ...frame,
+            action: WorkAction.MatchCondition
+        }
+    })
+
+    return push({
+        work,
+        frame: {
+            action: WorkAction.Value,
+            subject: integers.widen(
+                expressions
+                    .match_conditions[
+                        integers.widen(
+                            expressions.match_first[selection]
+                        ) + frame.index
+                    ]
+            ),
+            moving: false,
+            index: 0
+        }
+    })
+}

@@ -38,26 +38,27 @@ export default function (in: Input): Output {
     }
 
     if (type_kind == Kind.Task) {
-        return (
-            - first < in.index
-            - and second < in.index
-            - and kind(
-                in.table.kinds[first]
-            ) != Kind.Task
-            - and kind(
-                in.table.kinds[second]
-            ) == Kind.ErrorSet
-        )
+        const valid_children = first < in.index && second < in.index
+
+        if (!valid_children) {
+            return false
+        }
+
+        const value_kind = kind(in.table.kinds[first])
+        const error_kind = kind(in.table.kinds[second])
+
+        return value_kind != Kind.Task && error_kind == Kind.ErrorSet
     }
 
     if (type_kind == Kind.Optional || type_kind == Kind.List) {
-        return (
-            - first < in.index
-            - and (type_kind != Kind.List || first != 0)
-            - and kind(
-                in.table.kinds[first]
-            ) != Kind.Task
-        )
+        const valid_type_kind = type_kind != Kind.List || first != 0
+        const valid_child = first < in.index && valid_type_kind
+
+        if (!valid_child) {
+            return false
+        }
+
+        return kind(in.table.kinds[first]) != Kind.Task
     }
 
     if (type_kind == Kind.Tuple || type_kind == Kind.Object) {
@@ -70,10 +71,11 @@ export default function (in: Input): Output {
         })
     }
 
-    const condition = (
-        - type_kind == Kind.Enumeration
-        - and (in.table.labels[in.index] == "" || second == 0)
-    )
+    const condition = match {
+        type_kind != Kind.Enumeration => false,
+        in.table.labels[in.index] == "" => true,
+        _ => second == 0
+    }
 
     if (condition) {
         return false

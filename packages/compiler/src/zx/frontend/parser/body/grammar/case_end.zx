@@ -30,7 +30,7 @@ export default function (in: Input): Output {
     const head = in.tree.cases.length + 1
     const count = parent.count + 1
 
-    return in.tree.cases.push({
+    const cases = in.tree.cases.push({
         span: {
             start: in.frame.start,
             end: in.expression.control.last_end
@@ -39,26 +39,28 @@ export default function (in: Input): Output {
         body,
         previous: parent.head
     })[0]
-        -> {
-            statements: in.tree.statements,
-            blocks,
-            items: in.tree.items,
-            names: in.tree.names,
-            cases: _
+
+    const tree = {
+        statements: in.tree.statements,
+        blocks,
+        items: in.tree.items,
+        names: in.tree.names,
+        cases: cases
+    }
+
+    return {
+        expression: in.expression,
+        tree: tree,
+        frames: popped[0],
+        suspended: in.suspended,
+        frame: {
+            ...parent,
+            head,
+            count
+        },
+        control: {
+            ...in.control,
+            phase: Phase.SwitchCase
         }
-        -> {
-            expression: in.expression,
-            tree: _,
-            frames: popped[0],
-            suspended: in.suspended,
-            frame: {
-                ...parent,
-                head,
-                count
-            },
-            control: {
-                ...in.control,
-                phase: Phase.SwitchCase
-            }
-        }
+    }
 }

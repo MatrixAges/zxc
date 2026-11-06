@@ -88,20 +88,23 @@ export default function (in: Input): Output {
         index: callee.first
     })
 
-    const condition = (
-        - lookup({
-            active: in.state.local.active,
-            names: in.state.local.symbols.names,
-            scope_floor: in.state.local.scope_floor,
-            name: namespace.text
-        }) != null
-        - or (in.source.constant_values != null && constant({
+    const binding = lookup({
+        active: in.state.local.active,
+        names: in.state.local.symbols.names,
+        scope_floor: in.state.local.scope_floor,
+        name: namespace.text
+    })
+
+    const condition = match {
+        binding != null => true,
+        in.source.constant_values == null => false,
+        _ => constant({
             active: in.state.local.active,
             names: in.state.local.symbols.names,
             constants: in.source.constant_values,
             name: namespace.text
-        }) != null)
-    )
+        }) != null
+    }
 
     if (condition) {
         return {

@@ -27,10 +27,12 @@ export default function (in: Input): Output {
     const overflow = result.carry != 0 && result.limbs.length == 32
 
     return {
-        limbs: result.carry == 0 || overflow ? result.limbs :
-            result.limbs.push(
+        limbs: match {
+            result.carry == 0 || overflow => result.limbs,
+            _ => result.limbs.push(
                 result.carry
-            )[0],
+            )[0]
+        },
         overflow
     }
 }

@@ -10,10 +10,14 @@ export type Output = bool
 export default function (in: Input): Output {
     const count = in.origins.ids.length
 
+    const different_kinds = in.origins.kinds.length != count
+    const different_owners = in.origins.owners.length != count
+    const different_members = in.origins.members.length != count
+
     const condition = (
-        - in.origins.kinds.length != count
-        - or in.origins.owners.length != count
-        - or in.origins.members.length != count
+        - different_kinds
+        - or different_owners
+        - or different_members
         - or in.names.length != count
     )
 

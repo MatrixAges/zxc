@@ -15,19 +15,22 @@ export default function (in: Input): Output {
         sites,
         root: 0
     }, {
-        while: (current, walk) => current.root < walk.source.symbols.length +
-            walk.source.expressions.kinds.length,
-        next: (current, walk) => {
-            const source = walk.source
+        while: current => current.root < in.source.symbols.length +
+            in.source.expressions.kinds.length,
+        next: current => {
+            const source = in.source
             const symbol = current.root < source.symbols.length
             const node = symbol ? 0 : current.root - source.symbols.length
-            const size = (
-                symbol ? source.symbols[current.root] :
-                    source.expressions.types[node]
-            )
-                -> source.counts[integers.widen(_)]
-            const kind = symbol ? ExpressionKind.Reference :
-                source.expressions.kinds[node]
+            const type_id = match {
+                symbol => source.symbols[current.root],
+                _ => source.expressions.types[node]
+            }
+
+            const size = source.counts[integers.widen(type_id)]
+            const kind = match {
+                symbol => ExpressionKind.Reference,
+                _ => source.expressions.kinds[node]
+            }
             const reached = symbol || source.nodes.time[node] != max_u32
             const projected = kind == ExpressionKind.Field ||
                 kind == ExpressionKind.TupleField || kind == ExpressionKind.OptionalValue
@@ -46,25 +49,26 @@ export default function (in: Input): Output {
                 if (symbol) {
                     current.sites = loop({
                         sites: current.sites,
-                        index: integers.widen(walk.references.first[current.root]),
+                        index: integers.widen(in.references.first[current.root]),
                         end: integers.widen(
-                            walk.references.first[current.root + 1]
+                            in.references.first[current.root + 1]
                         )
                     }, {
                         while: references => references.index < references.end,
-                        next: (references, walk) => {
-                            const source = walk.source
+                        next: references => {
+                            const source = in.source
                             const node =
-                                walk.references.items[references.index]
-                            const size = source.expressions
+                                in.references.items[references.index]
+                            const type_id = source.expressions
                                 .types[integers.widen(
                                     node
                                 )]
-                                -> source.counts[integers.widen(_)]
+
+                            const size = source.counts[integers.widen(type_id)]
 
                             if (size != 0) {
                                 references.sites = trace({
-                                    walk,
+                                    walk: in,
                                     node,
                                     size,
                                     sites: references.sites
@@ -74,10 +78,10 @@ export default function (in: Input): Output {
                             references.index += 1
                         },
                         return: state => state.sites
-                    }, walk)
+                    })
                 } else if (kind != ExpressionKind.Reference) {
                     current.sites = trace({
-                        walk,
+                        walk: in,
                         node: integers.narrow(node),
                         size,
                         sites: current.sites
@@ -87,7 +91,7 @@ export default function (in: Input): Output {
 
             current.root += 1
         }
-    }, in)
+    })
 
     return {
         first: result.first.push(integers.narrow(result.sites.length))[0],

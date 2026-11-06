@@ -25,13 +25,14 @@ export default function (in: Input): Output {
         })
     }
 
-    const child_index = match in.kind {
+    const child = match in.kind {
         ExpressionKind.OptionalValue => expressions.optional_values[in.payload],
         ExpressionKind.Length => expressions.lengths[in.payload],
         ExpressionKind.Index => expressions.index_targets[in.payload],
         _ => expressions.projection_targets[in.payload]
     }
-        -> integers.widen(_)
+
+    const child_index = integers.widen(child)
 
     if (child_index >= context.index) {
         return false
@@ -58,9 +59,11 @@ export default function (in: Input): Output {
             type_id: 5
         }) &&
             (
-                child_type == 10 ? in.type_id == 2 :
-                    child_kind == Kind.List &&
-                    table.first[child_type_index] == in.type_id
+                match {
+                    child_type == 10 => in.type_id == 2,
+                    _ => child_kind == Kind.List &&
+                        table.first[child_type_index] == in.type_id
+                }
             )
     }
 
@@ -71,7 +74,9 @@ export default function (in: Input): Output {
         return false
     }
 
-    return in.kind == ExpressionKind.Field ?
-        child_kind == Kind.Object && table.field_types[first + field] == in.type_id :
-        child_kind == Kind.Tuple && table.children[first + field] == in.type_id
+    return match {
+        in.kind == ExpressionKind.Field =>
+            child_kind == Kind.Object && table.field_types[first + field] == in.type_id,
+        _ => child_kind == Kind.Tuple && table.children[first + field] == in.type_id
+    }
 }

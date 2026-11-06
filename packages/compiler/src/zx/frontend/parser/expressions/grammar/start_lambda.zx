@@ -27,17 +27,18 @@ export default function (in: Input): Output {
     }
 
     if (parenthesized) {
-        return in.state.frames.push(continuation)[0]
-            -> consume({
-                state: {
-                    prepared: in.state.prepared,
-                    tree: in.state.tree,
-                    types: in.state.types,
-                    frames: _,
-                    control: in.state.control
-                },
-                phase: Phase.LambdaParameter
-            })
+        const frames = in.state.frames.push(continuation)[0]
+
+        return consume({
+            state: {
+                prepared: in.state.prepared,
+                tree: in.state.tree,
+                types: in.state.types,
+                frames: frames,
+                control: in.state.control
+            },
+            phase: Phase.LambdaParameter
+        })
     }
 
     const head = in.state.tree.parameters.length + 1
@@ -56,7 +57,7 @@ export default function (in: Input): Output {
         count: 1
     })[0]
 
-    return {
+    const tree = {
         nodes: in.state.tree.nodes,
         items: in.state.tree.items,
         fields: in.state.tree.fields,
@@ -64,14 +65,15 @@ export default function (in: Input): Output {
         parts: in.state.tree.parts,
         arms: in.state.tree.arms
     }
-        -> consume({
-            state: {
-                prepared: in.state.prepared,
-                tree: _,
-                types: in.state.types,
-                frames,
-                control: in.state.control
-            },
-            phase: Phase.LambdaArrow
-        })
+
+    return consume({
+        state: {
+            prepared: in.state.prepared,
+            tree: tree,
+            types: in.state.types,
+            frames,
+            control: in.state.control
+        },
+        phase: Phase.LambdaArrow
+    })
 }

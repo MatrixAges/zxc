@@ -13,7 +13,7 @@ export type Input = State
 export type Output = State
 
 export default function (in: Input): Output {
-    const types = {
+    const token = {
         kind: in.control.token.kind,
         word: in.control.token.word,
         symbol: in.control.token.symbol,
@@ -24,15 +24,18 @@ export default function (in: Input): Output {
         line_break: in.control.token.line_break,
         dollar: in.control.token.dollar
     }
-        -> typeStep({
-            state: in.types,
-            token: _
-        })
+
+    const types = typeStep({
+        state: in.types,
+        token: token
+    })
 
     const index = types.control.index
 
-    const last_end = index == in.control.index ? in.control.last_end :
-        in.control.token.span.end
+    const last_end = match {
+        index == in.control.index => in.control.last_end,
+        _ => in.control.token.span.end
+    }
 
     const failed = types.control.diagnostic.message != ""
     const done = typeDone(types.control.phase)
@@ -72,10 +75,15 @@ export default function (in: Input): Output {
         })
     }
 
+    const not_eof = state.control.token.kind != Kind.Eof
+    const not_close_brace = state.control.token.symbol != Symbol.CloseBrace
+
+    const line_break = !state.control.token.line_break
+
     const condition = (
-        - state.control.token.kind != Kind.Eof
-        - and state.control.token.symbol != Symbol.CloseBrace
-        - and !state.control.token.line_break
+        - not_eof
+        - and not_close_brace
+        - and line_break
     )
 
     if (condition) {

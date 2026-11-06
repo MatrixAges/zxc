@@ -1,0 +1,117 @@
+import integers from "std:integer"
+import {
+    ExpressionKind,
+    CollectionKind,
+    TransformKind
+} from "core/expression_table/kinds"
+
+import { buffer_slot, splice_retained_slot } from "../../../flow/body/const"
+import prefix from "../../levels/prefix"
+import mark from "../mark"
+import normalize from "../normalize"
+import provide from "../provide"
+
+import type { Trace as Input, Continuation as Output } from "../model"
+
+export default function (in: Input): Output {
+    const request = in.request
+    const working = in.working
+    const expressions = working.context.metadata.expressions
+    const node = integers.widen(request.node)
+    const payload = integers.widen(expressions.payloads[node])
+    const kind = expressions.kinds[node]
+
+    if (kind == ExpressionKind.ListOperation) {
+        const pop = expressions.collection_kinds[payload] == CollectionKind.Pop
+        const popped = request.slot == buffer_slot && pop
+
+        const retained = popped || (request.slot == splice_retained_slot && prefix({
+            expressions,
+            payload: expressions.payloads[node]
+        }))
+
+        if (retained) {
+            return {
+                working,
+                request: {
+                    ...request,
+                    node: expressions.collection_targets[payload],
+                    slot: buffer_slot
+                }
+            }
+        }
+
+        return {
+            working: match {
+                request.repeated => provide(in),
+                _ => working
+            },
+            request: null
+        }
+    }
+
+    const carried = match kind {
+        ExpressionKind.Iteration => true,
+        ExpressionKind.Transform =>
+            expressions.transform_kinds[payload] == TransformKind.Reduce,
+        _ => false
+    }
+
+    if (carried) {
+        return {
+            working: provide(in),
+            request: null
+        }
+    }
+
+    if (kind == ExpressionKind.Transform) {
+        return {
+            working: match {
+                request.repeated => normalize({
+                    working,
+                    leaf: request.outer,
+                    wanted: request.wanted
+                }),
+                _ => working
+            },
+            request: null
+        }
+    }
+
+    if (kind == ExpressionKind.Call) {
+        const function_index = expressions.call_functions[payload]
+
+        const marked = match {
+            in.source.native_modules[integers.widen(function_index)] != null => working,
+            _ => mark({
+                stage: {
+                    source: in.source,
+                    working
+                },
+                mark: {
+                    output: true,
+                    function_index,
+                    slot: request.slot,
+                    want: request.wanted
+                }
+            })
+        }
+
+        return {
+            working: normalize({
+                working: marked,
+                leaf: request.outer,
+                wanted: request.wanted
+            }),
+            request: null
+        }
+    }
+
+    return {
+        working: match {
+            request.repeated => provide(in),
+            _ => working
+        },
+        request: null
+    }
+}

@@ -11,23 +11,23 @@ export type Input = {
 
 export type Output = u32?
 
-    export default function (in: Input): Output {
-        const subject = integers.widen(in.subject)
+export default function (in: Input): Output {
+    const subject = integers.widen(in.subject)
 
-        if (in.expressions.kinds[subject] != ExpressionKind.Field) {
-            return null
-        }
-
-        const payload = integers.widen(in.expressions.payloads[subject])
-        const target = integers.widen(in.expressions.projection_targets[payload])
-        const reference = integers.widen(in.expressions.payloads[target])
-
-        if (
-            in.expressions.kinds[target] != ExpressionKind.Reference ||
-                in.expressions.references[reference] != in.symbol
-        ) {
-            return null
-        }
-
-        return in.expressions.projection_indices[payload]
+    if (in.expressions.kinds[subject] != ExpressionKind.Field) {
+        return null
     }
+
+    const payload = integers.widen(in.expressions.payloads[subject])
+    const target = integers.widen(in.expressions.projection_targets[payload])
+    const reference = integers.widen(in.expressions.payloads[target])
+
+    if (
+        in.expressions.kinds[target] != ExpressionKind.Reference ||
+            in.expressions.references[reference] != in.symbol
+    ) {
+        return null
+    }
+
+    return in.expressions.projection_indices[payload]
+}

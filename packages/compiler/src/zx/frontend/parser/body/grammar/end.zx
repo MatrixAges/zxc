@@ -18,10 +18,15 @@ export default function (in: Input): Output {
         })
     }
 
+    const not_eof = in.expression.control.token.kind != Kind.Eof
+    const not_close_brace = in.expression.control.token.symbol != Symbol.CloseBrace
+
+    const line_break = !in.expression.control.token.line_break
+
     const condition = (
-        - in.expression.control.token.kind != Kind.Eof
-        - and in.expression.control.token.symbol != Symbol.CloseBrace
-        - and !in.expression.control.token.line_break
+        - not_eof
+        - and not_close_brace
+        - and line_break
     )
 
     if (condition) {

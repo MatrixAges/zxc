@@ -28,7 +28,7 @@ export default function (in: Input): Output {
             })
         }
 
-        return {
+        const value = {
             ...node({
                 kind: ExprKind.Field,
                 start: in.control.primary_start,
@@ -42,13 +42,14 @@ export default function (in: Input): Output {
             },
             flag: in.control.hint.generic
         }
-            -> emit({
-                state: consume({
-                    state: in,
-                    phase: Phase.Postfix
-                }),
-                node: _
-            })
+
+        return emit({
+            state: consume({
+                state: in,
+                phase: Phase.Postfix
+            }),
+            node: value
+        })
     }
 
     if (in.control.token.symbol == Symbol.Dot) {
@@ -59,7 +60,7 @@ export default function (in: Input): Output {
     }
 
     if (in.control.token.symbol == Symbol.OpenBracket) {
-        const frames = {
+        const continuation = {
             ...frame({
                 kind: FrameKind.Index,
                 start: in.control.primary_start,
@@ -67,7 +68,8 @@ export default function (in: Input): Output {
             }),
             first: in.control.result
         }
-            -> in.frames.push(_)[0]
+
+        const frames = in.frames.push(continuation)[0]
 
         const control: ExprControl = {
             ...in.control,
@@ -88,11 +90,13 @@ export default function (in: Input): Output {
         })
     }
 
-    const condition = (
-        - in.control.token.symbol == Symbol.Less
-        - and in.tree.nodes[in.control.result].kind == ExprKind.Field
-        - and in.tree.nodes[in.control.result].flag
-    )
+    const is_less = in.control.token.symbol == Symbol.Less
+
+    const condition = match {
+        !is_less => false,
+        in.tree.nodes[in.control.result].kind != ExprKind.Field => false,
+        _ => in.tree.nodes[in.control.result].flag
+    }
 
     if (condition) {
         const index = in.control.index + 1
@@ -102,7 +106,7 @@ export default function (in: Input): Output {
             depth: in.control.depth
         })
 
-        return {
+        const types = {
             tree: in.types.tree,
             frames: initial.frames,
             control: {
@@ -110,16 +114,17 @@ export default function (in: Input): Output {
                 index
             }
         }
-            -> consume({
-                state: {
-                    prepared: in.prepared,
-                    tree: in.tree,
-                    types: _,
-                    frames: in.frames,
-                    control: in.control
-                },
-                phase: Phase.GenericType
-            })
+
+        return consume({
+            state: {
+                prepared: in.prepared,
+                tree: in.tree,
+                types: types,
+                frames: in.frames,
+                control: in.control
+            },
+            phase: Phase.GenericType
+        })
     }
 
     if (in.control.token.symbol == Symbol.OpenParen) {
@@ -129,16 +134,17 @@ export default function (in: Input): Output {
         })
     }
 
-    return in.control.depth - 1
-        -> resume({
-            prepared: in.prepared,
-            tree: in.tree,
-            types: in.types,
-            frames: in.frames,
-            control: {
-                ...in.control,
-                depth: _,
-                phase: Phase.Returning
-            }
-        })
+    const return_input = in.control.depth - 1
+
+    return resume({
+        prepared: in.prepared,
+        tree: in.tree,
+        types: in.types,
+        frames: in.frames,
+        control: {
+            ...in.control,
+            depth: return_input,
+            phase: Phase.Returning
+        }
+    })
 }

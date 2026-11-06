@@ -29,9 +29,14 @@ export default function (in: Input): Output {
             const type_kind = kind(current.input.table.kinds[type_index])
 
             if (next_child == null) {
+                const is_length = current.position == current.input.names.length
+
+                const depth = current.type_ids.length
+                const limit = max_nesting_depth - current.input.depth
+
                 const condition = (
-                    - current.type_ids.length > max_nesting_depth - current.input.depth
-                    - or current.position == current.input.names.length
+                    - depth > limit
+                    - or is_length
                     - or type_kind == Kind.Task
                 )
 

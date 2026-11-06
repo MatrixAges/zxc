@@ -1,0 +1,74 @@
+import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import { ExpressionsKind } from "../../../../printer/model/expressions"
+import tuple from "../tuple"
+
+import type { Aggregate, Build } from "../model"
+
+export type Input = Aggregate
+
+export type Output = Build
+
+export default function (in: Input): Output {
+    const state = in.state
+    const source = state.source.source
+    const index = state.index
+    const first = source.types.first[index]
+    const second = source.types.second[index]
+
+    const optional = {
+        ...state,
+        tags: state.tags.push(ExpressionsKind.OptionalType)[0],
+        offsets: state.offsets.push(integers.narrow(state.optional_type.length))[0],
+        optional_type: state.optional_type.push(source.abi_types[index])[0]
+    }
+
+    if (kind(source.types.kinds[index]) == Kind.Object) {
+        const nullable = {
+            ...optional,
+            tags: optional.tags.push(ExpressionsKind.NullValue)[0],
+            offsets: optional.offsets.push(integers.narrow(optional.null_count))[0],
+            null_count: optional.null_count + 1
+        }
+
+        return {
+            ...nullable,
+            tags: nullable.tags.push(ExpressionsKind.StructType)[0],
+            offsets: nullable.offsets.push(
+                integers.narrow(
+                    nullable.struct_type_start.length
+                )
+            )[0],
+            struct_type_start: nullable.struct_type_start.push(
+                integers.narrow(
+                    integers.widen(
+                        source.field_base
+                    ) + nullable.field_count
+                )
+            )[0],
+            struct_type_len: nullable.struct_type_len.push(second + 1)[0],
+            records: nullable.records.push({
+                owner: index,
+                view: in.view,
+                start: in.start
+            })[0],
+            field_count: nullable.field_count + integers.widen(second + 1)
+        }
+    }
+
+    return {
+        ...optional,
+        tags: optional.tags.push(ExpressionsKind.TupleType)[0],
+        offsets:
+            optional.offsets.push(integers.narrow(optional.tuple_type.length))[0],
+        tuple_type: optional.tuple_type.push(tuple({
+            children: source.types.children,
+            first: integers.widen(first),
+            count: integers.widen(second),
+            values: in.view ? optional.views : optional.values,
+            origin: in.start
+        }))[0]
+    }
+}

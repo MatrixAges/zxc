@@ -87,21 +87,30 @@ export default function (in: Input): Output {
 
     const character = state.value
 
-    return (
-        - character == integer.widenByte(ascii_tab)
-        - or character == integer.widenByte(ascii_line_feed)
-        - or character == integer.widenByte(ascii_carriage_return)
-        - or (
-            character >= integer.widenByte(ascii_space) &&
-                character <= xml_before_surrogates_last
-        )
-        - or (
-            character >= xml_after_surrogates_first && character <= xml_bmp_last
-        )
-        - or (character >= xml_supplementary_first && character <= unicode_last)
+    const valid_character =
+        character >= xml_after_surrogates_first && character <= xml_bmp_last
+
+    const valid_character_2 =
+        character >= xml_supplementary_first && character <= unicode_last
+
+    const allowed_tab = character == integer.widenByte(ascii_tab)
+    const allowed_newline = character == integer.widenByte(ascii_line_feed)
+    const allowed_return = character == integer.widenByte(ascii_carriage_return)
+    const above_space = character >= integer.widenByte(ascii_space)
+    const below_surrogates = character <= xml_before_surrogates_last
+    const basic_character = above_space && below_surrogates
+
+    const computed_valid = (
+        - allowed_tab
+        - or allowed_newline
+        - or allowed_return
+        - or basic_character
+        - or valid_character
+        - or valid_character_2
     )
-        -> {
-            codepoint: character,
-            message: _ ? no_diagnostic : forbidden_reference
-        }
+
+    return {
+        codepoint: character,
+        message: computed_valid ? no_diagnostic : forbidden_reference
+    }
 }

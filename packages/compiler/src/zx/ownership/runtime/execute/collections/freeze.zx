@@ -1,0 +1,45 @@
+import integers from "std:integer"
+
+import borrow from "../../borrowing/execute"
+import { WorkAction } from "../../work/model"
+import push from "../../work/push"
+
+import type { Transition as Input, Machine as Output } from "../model"
+
+export default function (in: Input): Output {
+    const machine = in.machine
+    const frame = in.frame
+    const expressions = machine.program.expressions
+    const payload = integers.widen(expressions.payloads[frame.subject])
+    const first = integers.widen(expressions.collection_first[payload])
+    const count = integers.widen(expressions.collection_count[payload])
+
+    if (frame.index >= count) {
+        return machine
+    }
+
+    const memory = borrow({
+        types: machine.program.types,
+        references: machine.references,
+        expressions,
+        layout: machine.layout,
+        memory: machine.memory,
+        expression:
+            integers.widen(expressions.collection_arguments[first + frame.index]),
+        permanent: true
+    })
+
+    return {
+        ...machine,
+        memory,
+        work: push({
+            work: machine.work,
+            frame: {
+                action: WorkAction.CollectionFreeze,
+                subject: frame.subject,
+                moving: false,
+                index: frame.index + 1
+            }
+        })
+    }
+}

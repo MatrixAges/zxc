@@ -11,22 +11,30 @@ export default function (in: Input): Output {
         roots,
         index: 0
     }, {
-        while: (state, source) =>
-            state.index < source.body.expressions.call_functions.length,
-        next: (state, source) => {
-            const expressions = source.body.expressions
-            const values = expressions.call_functions[state.index]
-                -> source.text_held[integers.widen(_)]
+        while: state =>
+            state.index < in.body.expressions.call_functions.length,
+        next: state => {
+            const expressions = in.body.expressions
+            const callee = expressions.call_functions[state.index]
 
-            state.roots = loop({
+            const values = in.text_held[integers.widen(callee)]
+
+            const loop_initial = {
                 roots: state.roots,
                 slot: 0
-            }, {
-                while: (slot, context) => slot.slot < context.values.length,
-                next: (slot, context) => {
-                    if (context.values[slot.slot]) {
+            }
+
+            const loop_scope = {
+                values,
+                argument: expressions.call_arguments[state.index]
+            }
+
+            state.roots = loop(loop_initial, {
+                while: slot => slot.slot < loop_scope.values.length,
+                next: slot => {
+                    if (loop_scope.values[slot.slot]) {
                         slot.roots = slot.roots.push({
-                            node: context.argument,
+                            node: loop_scope.argument,
                             slot: integers.narrow(slot.slot)
                         })[0]
                     }
@@ -34,12 +42,9 @@ export default function (in: Input): Output {
                     slot.slot += 1
                 },
                 return: state => state.roots
-            }, {
-                values,
-                argument: expressions.call_arguments[state.index]
             })
             state.index += 1
         },
         return: state => state.roots
-    }, in)
+    })
 }

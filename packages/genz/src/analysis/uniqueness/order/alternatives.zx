@@ -24,7 +24,7 @@ export default function (in: Input): Output {
     if (in.action == Action.Branch) {
         const payload = index
 
-        return push({
+        const pending = push({
             stack: in.stack,
             event: {
                 action: Action.BlockArm,
@@ -34,22 +34,23 @@ export default function (in: Input): Output {
                 fourth: control.branch_no[payload]
             }
         })
-            -> push({
-                stack: _,
-                event: {
-                    action: Action.BlockArm,
-                    first: max_u32,
-                    second: in.fork,
-                    third: integers.narrow(0),
-                    fourth: control.branch_yes[payload]
-                }
-            })
+
+        return push({
+            stack: pending,
+            event: {
+                action: Action.BlockArm,
+                first: max_u32,
+                second: in.fork,
+                third: integers.narrow(0),
+                fourth: control.branch_yes[payload]
+            }
+        })
     }
 
     if (in.action == Action.Conditional) {
         const payload = integers.widen(table.payloads[index])
 
-        return push({
+        const pending = push({
             stack: in.stack,
             event: {
                 action: Action.ValueArm,
@@ -59,39 +60,47 @@ export default function (in: Input): Output {
                 fourth: table.conditional_no[payload]
             }
         })
-            -> push({
-                stack: _,
-                event: {
-                    action: Action.ValueArm,
-                    first: in.index,
-                    second: in.fork,
-                    third: integers.narrow(0),
-                    fourth: table.conditional_yes[payload]
-                }
-            })
+
+        return push({
+            stack: pending,
+            event: {
+                action: Action.ValueArm,
+                first: in.index,
+                second: in.fork,
+                third: integers.narrow(0),
+                fourth: table.conditional_yes[payload]
+            }
+        })
     }
 
     const selection = in.action == Action.Switch
     const payload = selection ? index : integers.widen(table.payloads[index])
 
     const first = integers.widen(
-        selection ? control.selection_first[payload] :
-            table.match_first[payload]
+        match {
+            selection => control.selection_first[payload],
+            _ => table.match_first[payload]
+        }
     )
 
-    const count = selection ? control.selection_count[payload] :
-        table.match_count[payload]
+    const count = match {
+        selection => control.selection_count[payload],
+        _ => table.match_count[payload]
+    }
 
-    const stack = selection ? in.stack : push({
-        stack: in.stack,
-        event: {
-            action: Action.ValueArm,
-            first: in.index,
-            second: in.fork,
-            third: count,
-            fourth: table.match_fallbacks[payload]
-        }
-    })
+    const stack = match {
+        selection => in.stack,
+        _ => push({
+            stack: in.stack,
+            event: {
+                action: Action.ValueArm,
+                first: in.index,
+                second: in.fork,
+                third: count,
+                fourth: table.match_fallbacks[payload]
+            }
+        })
+    }
 
     return loop({
         source: in,
@@ -106,9 +115,10 @@ export default function (in: Input): Output {
 
             const source = current.source
             const position = current.first + current.index
-            const child = current.selection ?
-                source.source.control.case_bodies[position] :
-                source.source.expressions.match_results[position]
+            const child = match {
+                current.selection => source.source.control.case_bodies[position],
+                _ => source.source.expressions.match_results[position]
+            }
 
             current.stack = push({
                 stack: current.stack,

@@ -14,23 +14,28 @@ export type Input = {
 export default function (in: Input): Output {
     const counts: u32[] = in.program.types.kinds.map(kind => 0)[0]
 
-    const roots = loop({
+    const roots_initial = {
         roots:
             [in.program.output_type].concat(in.program.functions.output_types)[0],
         index: 0
-    }, {
-        while: (state, source) => state.index < source.types.kinds.length,
-        next: (state, source) => {
-            const target = kind(source.types.kinds[state.index])
+    }
+
+    const readonly_program = in.program
+
+    const roots = loop(roots_initial, {
+        while: state => state.index < readonly_program.types.kinds.length,
+        next: state => {
+            const target = kind(readonly_program.types.kinds[state.index])
 
             if (target == Kind.List || target == Kind.Task) {
-                state.roots = state.roots.push(source.types.first[state.index])[0]
+                state.roots =
+                    state.roots.push(readonly_program.types.first[state.index])[0]
             }
 
             state.index += 1
         },
         return: state => state.roots
-    }, in.program)
+    })
 
     const own = scan({
         tables:
@@ -45,16 +50,16 @@ export default function (in: Input): Output {
         roots: own.roots,
         index: 0
     }, {
-        while: (state, source) =>
-            state.index < source.program.functions.expressions.length,
-        next: (state, source) => {
-            const functions = source.program.functions
+        while: state =>
+            state.index < in.program.functions.expressions.length,
+        next: state => {
+            const functions = in.program.functions
 
             const result = scan({
                 tables: [functions.expressions[state.index]].concat(
                     functions.contracts[state.index].expressions
                 )[0],
-                boxed: source.boxed,
+                boxed: in.boxed,
                 counts: state.counts,
                 roots: state.roots
             })
@@ -67,5 +72,5 @@ export default function (in: Input): Output {
             "counts",
             "roots"
         ])
-    }, in)
+    })
 }

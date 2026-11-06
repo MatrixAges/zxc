@@ -86,14 +86,14 @@ export default function (in: Input): Output {
                 start,
                 pattern: app_name
             }) &&
-            !ends({
-                source: in.path,
-                pattern: gateway_name_suffix
-            }) &&
-            !ends({
-                source: in.path,
-                pattern: store_name_suffix
-            })
+                !ends({
+                    source: in.path,
+                    pattern: gateway_name_suffix
+                }) &&
+                !ends({
+                    source: in.path,
+                    pattern: store_name_suffix
+                })
         case Kind.StoreReference:
             return !rx || ends({
                 source: in.path,

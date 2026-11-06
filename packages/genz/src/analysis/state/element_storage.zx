@@ -14,16 +14,16 @@ export default function (in: Input): Output {
         values: in.types.kinds.map(value => false)[0],
         index: 0
     }, {
-        while: (state, source) => state.index < source.length,
-        next: (state, source) => {
-            const expressions = source[state.index]
+        while: state => state.index < tables.length,
+        next: state => {
+            const expressions = tables[state.index]
 
             state.values = loop({
                 values: state.values,
                 node: 0
             }, {
-                while: (row, expressions) => row.node < expressions.kinds.length,
-                next: (row, expressions) => {
+                while: row => row.node < expressions.kinds.length,
+                next: row => {
                     if (
                         expressions.kinds[row.node] == ExpressionKind.ListOperation
                     ) {
@@ -34,49 +34,56 @@ export default function (in: Input): Output {
                                 expressions.collection_targets[payload]
                             )
 
-                        const condition = (
-                            - operation == CollectionKind.Push
-                            - or operation == CollectionKind.Concat
-                            - and expressions.kinds[target] == ExpressionKind.Index
-                        )
+                        const is_push = operation == CollectionKind.Push
 
-                        if (condition) {
-                            const indexed = integers.widen(
-                                expressions
-                                    .index_targets[
-                                        integers.widen(
-                                            expressions.payloads[target]
-                                        )
-                                    ]
-                            )
+                        const is_concat = operation == CollectionKind.Concat
 
-                            row.values[integers.widen(
-                                expressions.types[indexed]
-                            )] = true
+                        if (is_push || is_concat) {
+                            const target_kind = expressions.kinds[target]
+
+                            if (target_kind == ExpressionKind.Index) {
+                                const indexed = integers.widen(
+                                    expressions
+                                        .index_targets[
+                                            integers.widen(
+                                                expressions.payloads[target]
+                                            )
+                                        ]
+                                )
+
+                                row
+                                    .values[integers.widen(
+                                        expressions.types[indexed]
+                                    )] = true
+                            }
                         }
                     }
 
                     row.node += 1
                 },
                 return: state => state.values
-            }, expressions)
+            })
             state.index += 1
         },
         return: state => state.values
-    }, tables)
+    })
 
-    return loop({
+    const loop_initial = {
         values: marked,
         index: 0
-    }, {
-        while: (state, source) => state.index < source.kinds.length,
-        next: (state, source) => {
-            if (kind(source.kinds[state.index]) == Kind.List) {
-                const child = integers.widen(source.first[state.index])
+    }
+
+    const readonly_types = in.types
+
+    return loop(loop_initial, {
+        while: state => state.index < readonly_types.kinds.length,
+        next: state => {
+            if (kind(readonly_types.kinds[state.index]) == Kind.List) {
+                const child = integers.widen(readonly_types.first[state.index])
 
                 state.values[state.index] = state.values[state.index] ||
                     (
-                        kind(source.kinds[child]) == Kind.List &&
+                        kind(readonly_types.kinds[child]) == Kind.List &&
                             state.values[child]
                     )
             }
@@ -84,5 +91,5 @@ export default function (in: Input): Output {
             state.index += 1
         },
         return: state => state.values
-    }, in.types)
+    })
 }

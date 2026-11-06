@@ -35,10 +35,14 @@ export default function (in: Input): Output {
         return false
     }
 
+    const not_length = in.selection_subjects.length != in.selection_first.length
+    const not_length_2 = in.selection_subjects.length != in.selection_count.length
+    const not_length_3 = in.selection_subjects.length != in.selection_exhaustive.length
+
     const condition = (
-        - in.selection_subjects.length != in.selection_first.length
-        - or in.selection_subjects.length != in.selection_count.length
-        - or in.selection_subjects.length != in.selection_exhaustive.length
+        - not_length
+        - or not_length_2
+        - or not_length_3
     )
 
     if (condition) {

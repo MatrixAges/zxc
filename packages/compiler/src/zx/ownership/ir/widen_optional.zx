@@ -2,12 +2,12 @@ import integers from "std:integer"
 
 export type Input = u32?
 
-    export type Output = u64?
+export type Output = u64?
 
-    export default function (in: Input): Output {
-        if (in == null) {
-            return null
-        }
-
-        return integers.widen(in)
+export default function (in: Input): Output {
+    if (in == null) {
+        return null
     }
+
+    return integers.widen(in)
+}

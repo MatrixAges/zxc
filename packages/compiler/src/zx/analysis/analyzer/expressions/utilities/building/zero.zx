@@ -21,16 +21,19 @@ export default function (in: Input): Output {
         span_end: in.span.end
     }
 
-    const result = in.type_id == type_id_f32 || in.type_id == type_id_f64 ? appendFloat({
-        table: in.state.local.expressions,
-        metadata,
-        value: 0.0
-    }) : appendInteger({
-        table: in.state.local.expressions,
-        metadata,
-        value: 0,
-        negative: false
-    })
+    const result = match {
+        in.type_id == type_id_f32 || in.type_id == type_id_f64 => appendFloat({
+            table: in.state.local.expressions,
+            metadata,
+            value: 0.0
+        }),
+        _ => appendInteger({
+            table: in.state.local.expressions,
+            metadata,
+            value: 0,
+            negative: false
+        })
+    }
 
     return {
         state: {

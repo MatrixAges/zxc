@@ -31,60 +31,63 @@ export default function (in: Input): Output {
             mark: frame.a
         })
 
-        return restoreFacts({
+        const facts = restoreFacts({
             facts: state.refinement.facts,
             mark: {
                 nonnull: frame.b,
                 captures: frame.c
             }
         })
-            -> {
-                state: {
-                    ...state,
-                    activity,
-                    refinement: {
-                        ...state.refinement,
-                        facts: _
-                    }
-                },
-                valid: true
-            }
+
+        return {
+            state: {
+                ...state,
+                activity,
+                refinement: {
+                    ...state.refinement,
+                    facts: facts
+                }
+            },
+            valid: true
+        }
     }
 
     if (frame.phase == Phase.RestoreFacts) {
-        return restoreFacts({
+        const facts = restoreFacts({
             facts: state.refinement.facts,
             mark: {
                 nonnull: frame.a,
                 captures: frame.b
             }
         })
-            -> {
-                state: {
-                    ...state,
-                    refinement: {
-                        ...state.refinement,
-                        facts: _
-                    }
-                },
-                valid: true
-            }
+
+        return {
+            state: {
+                ...state,
+                refinement: {
+                    ...state.refinement,
+                    facts: facts
+                }
+            },
+            valid: true
+        }
     }
 
     if (frame.phase == Phase.Assume) {
-        return assume({
+        const refinement = assume({
             state: state.refinement,
             expressions: program.body.expressions,
             condition: frame.a,
             truth: frame.b != 0
         })
-            -> {
-                state: {
-                    ...state,
-                    refinement: _
-                },
-                valid: true
-            }
+
+        return {
+            state: {
+                ...state,
+                refinement: refinement
+            },
+            valid: true
+        }
     }
 
     if (frame.phase == Phase.Declare || frame.phase == Phase.ScopeDeclare) {
@@ -106,7 +109,7 @@ export default function (in: Input): Output {
             return declared
         }
 
-        return bindPredicate({
+        const facts = bindPredicate({
             facts: declared.state.refinement.facts,
             expressions: program.body.expressions,
             value,
@@ -114,16 +117,17 @@ export default function (in: Input): Output {
             err: integers.narrow(frame.a),
             result: null
         })
-            -> {
-                ...declared,
-                state: {
-                    ...declared.state,
-                    refinement: {
-                        ...declared.state.refinement,
-                        facts: _
-                    }
+
+        return {
+            ...declared,
+            state: {
+                ...declared.state,
+                refinement: {
+                    ...declared.state.refinement,
+                    facts: facts
                 }
             }
+        }
     }
 
     return match frame.phase {

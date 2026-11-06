@@ -51,7 +51,7 @@ export default function (in: Input): Output {
         const value = table.constant_values[payload]
         const symbol = table.constant_symbols[payload]
 
-        return push({
+        const pending = push({
             stack: in.stack,
             event: {
                 action: Action.Define,
@@ -59,35 +59,37 @@ export default function (in: Input): Output {
                 second: value
             }
         })
-            -> push({
-                stack: _,
-                event: {
-                    action: Action.Operand,
-                    first: max_u32,
-                    second: value,
-                    third: symbol,
-                    role: Role.bind
-                }
-            })
+
+        return push({
+            stack: pending,
+            event: {
+                action: Action.Operand,
+                first: max_u32,
+                second: value,
+                third: symbol,
+                role: Role.bind
+            }
+        })
     }
 
     if (kind == StatementKind.Destructure) {
-        return push({
+        const pending = push({
             stack: in.stack,
             event: {
                 action: Action.Parts,
                 first: integers.narrow(payload)
             }
         })
-            -> push({
-                stack: _,
-                event: {
-                    action: Action.Operand,
-                    first: max_u32,
-                    second: table.destructure_values[payload],
-                    role: Role.use
-                }
-            })
+
+        return push({
+            stack: pending,
+            event: {
+                action: Action.Operand,
+                first: max_u32,
+                second: table.destructure_values[payload],
+                role: Role.use
+            }
+        })
     }
 
     if (kind == StatementKind.Parallel) {
@@ -105,22 +107,23 @@ export default function (in: Input): Output {
     }
 
     if (kind == StatementKind.Branch) {
-        return push({
+        const pending = push({
             stack: in.stack,
             event: {
                 action: Action.Branch,
                 first: integers.narrow(payload)
             }
         })
-            -> push({
-                stack: _,
-                event: {
-                    action: Action.Operand,
-                    first: max_u32,
-                    second: table.branch_conditions[payload],
-                    role: Role.observe
-                }
-            })
+
+        return push({
+            stack: pending,
+            event: {
+                action: Action.Operand,
+                first: max_u32,
+                second: table.branch_conditions[payload],
+                role: Role.observe
+            }
+        })
     }
 
     if (kind == StatementKind.Switch) {
@@ -176,20 +179,21 @@ export default function (in: Input): Output {
         return in.stack
     }
 
-    return push({
+    const computed_pending = push({
         stack: in.stack,
         event: {
             action: Action.Result,
             first: value
         }
     })
-        -> push({
-            stack: _,
-            event: {
-                action: Action.Operand,
-                first: max_u32,
-                second: value,
-                role: Role.use
-            }
-        })
+
+    return push({
+        stack: computed_pending,
+        event: {
+            action: Action.Operand,
+            first: max_u32,
+            second: value,
+            role: Role.use
+        }
+    })
 }

@@ -1,0 +1,51 @@
+import type { Plan, Build } from "../model"
+
+export type Input = Plan
+
+export type Output = Build
+
+export default function (in: Input): Output {
+    const empty: bool[] = []
+
+    const claimed = loop({
+        values: empty,
+        count: in.names.length
+    }, {
+        while: state => state.values.length < state.count,
+        next: state => { state.values = state.values.push(false)[0] },
+        return: state => state.values
+    })
+
+    return {
+        source: in.source,
+        names: in.names,
+        claimed,
+        index: 0,
+        field_count: 0,
+        opaque_count: 0,
+        has_lists: false,
+        valid: true,
+        tags: [],
+        offsets: [],
+        identifier: [],
+        primitive: [],
+        field_target: [],
+        field_name: [],
+        const_pointer: [],
+        optional_type: [],
+        const_slice: [],
+        error_set: [],
+        error_union_payload: [],
+        error_union_errors: [],
+        error_union_inferred: [],
+        call_callee: [],
+        call_arguments: [],
+        tuple_type: [],
+        enum_type: [],
+        struct_type_start: [],
+        struct_type_len: [],
+        declarations: [],
+        values: [],
+        layouts: []
+    }
+}

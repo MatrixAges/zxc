@@ -33,7 +33,7 @@ const result = loop(initial, {
 
 Use `do` instead of `next` to run the step at least once and check the updated state afterward. The rules cannot contain both. The condition returns `bool`; the step must be an update block. It may contain local `const` bindings, `if`, and `switch`, but cannot return early or write to Store.
 
-The rule callbacks of `loop` still use explicit state. Include required data in the initial state. An existing initial-state binding remains readable; the update does not mutate it. Bind the result to a new outer `const`. RX must use `Call.fn` to invoke the ZX module containing `loop`; function and method calls are not allowed inside RX attribute values. There is no `forEach` operation.
+`loop` takes only its initial state and rules. Each callback declares one state parameter and may read inputs and const bindings from the current function scope by name. Only the loop state can be updated; these references do not create storable or escaping closure values. An existing initial-state binding remains readable; the update does not mutate it. Bind the result to a new outer `const`. RX must use `Call.fn` to invoke the ZX module containing `loop`; function and method calls are not allowed inside RX attribute values. There is no `forEach` operation.
 
 The compiler emits ordinary Zig loops. Storage reuse depends on ownership and alias analysis; using `loop` does not guarantee that every application operation avoids allocation. See the [loop reference](https://github.com/MatrixAges/zxc/blob/master/docs/2026-10-06/loop使用参考.md) for syntax and verified boundaries.
 

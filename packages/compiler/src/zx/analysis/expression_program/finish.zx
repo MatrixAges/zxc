@@ -30,28 +30,30 @@ export default function (in: Input): Output {
         return: state => state.table
     })
 
-    const body = result({
+    const returned = result({
         table: constants,
         value: in.value
     })
-        -> block({
-            table: _,
-            first
-        })
 
-    return {
+    const body = block({
+        table: returned,
+        first
+    })
+
+    const local = {
         ...in.state.local,
         control: body.table,
         output_type: in.state.local.expressions.types[integers.widen(
             in.value
         )]
     }
-        -> {
-            ...in,
-            state: {
-                ...in.state,
-                local: _
-            },
-            root: body.id
-        }
+
+    return {
+        ...in,
+        state: {
+            ...in.state,
+            local: local
+        },
+        root: body.id
+    }
 }

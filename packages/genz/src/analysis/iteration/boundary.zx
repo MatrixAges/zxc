@@ -2,7 +2,7 @@ import integers from "std:integer"
 import kind from "core/type_table/kind"
 import { Kind } from "core/type_table/model"
 
-import descendant from "../types/descendant"
+import allowed from "./boundary/allowed"
 import fresh from "./fresh"
 
 import type { Input } from "./model"
@@ -23,39 +23,27 @@ export default function (in: Input): Output {
     const boundary = in.boundary
     const target = kind(in.types.kinds[integers.widen(boundary.type_id)])
 
-    const condition = (
-        - target != Kind.Object
-        - and target != Kind.Tuple
-        - or !fresh({
-            table: in.expressions,
-            id: boundary.result
-        })
-    )
+    const product = target == Kind.Object || target == Kind.Tuple
 
-    if (condition) {
+    if (!product || !fresh({
+        table: in.expressions,
+        id: boundary.result
+    })) {
         return {
             valid: false,
             allowed: []
         }
     }
 
-    return in.function_inputs.map((input, index) =>
-        (
-            - input != boundary.type_id
-            - and in.function_outputs[index] != boundary.type_id
-            - and !descendant({
-                types: in.types,
-                parent: input,
-                root: boundary.type_id
-            })
-            - and !descendant({
-                types: in.types,
-                parent: in.function_outputs[index],
-                root: boundary.type_id
-            })
-        ))[0]
-        -> {
-            valid: true,
-            allowed: _
-        }
+    const functions = in.function_inputs.map((input, index) => allowed({
+        source: in,
+        boundary: boundary.type_id,
+        input,
+        index
+    }))[0]
+
+    return {
+        valid: true,
+        allowed: functions
+    }
 }

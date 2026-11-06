@@ -29,11 +29,13 @@ export default function (in: Input): Output {
         return: state => state.target
     })
 
+    const valid_result = result.kind == Kind.Scalar && result.first == 10
+
     return (
         - result.kind == Kind.List
         - or result.kind == Kind.Object
         - or result.kind == Kind.Tuple
         - or result.kind == Kind.Task
-        - or (result.kind == Kind.Scalar && result.first == 10)
+        - or (valid_result)
     )
 }

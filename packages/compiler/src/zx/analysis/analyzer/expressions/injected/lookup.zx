@@ -40,17 +40,18 @@ export default function (in: Input): Output {
         }
     }
 
-    const local = readName({
+    const name = readName({
         source: in.source,
         kind: NameKind.Expression,
         index: root
     })
-        -> lookup({
-            active: in.local.active,
-            names: in.local.symbols.names,
-            scope_floor: in.local.scope_floor,
-            name: _.text
-        })
+
+    const local = lookup({
+        active: in.local.active,
+        names: in.local.symbols.names,
+        scope_floor: in.local.scope_floor,
+        name: name.text
+    })
 
     const missing: u32? = null
 
@@ -94,15 +95,19 @@ export default function (in: Input): Output {
         next: current => {
             const symbol = current.bindings[current.index]
 
-            const condition = (
-                - current.local == null
-                - or current.local == symbol
-                - and matches({
+            const local_matches = match {
+                current.local == null => true,
+                _ => current.local == symbol
+            }
+
+            const condition = match {
+                local_matches => matches({
                     source: current.source,
                     node: current.node,
                     path: current.names[integers.widen(symbol)]
-                })
-            )
+                }),
+                _ => false
+            }
 
             if (condition) {
                 current.symbol = symbol

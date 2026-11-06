@@ -16,15 +16,24 @@ export type Output = bool
 export default function (in: Input): Output {
     const count = in.table.kinds.length
 
+    const different_second = in.table.second.length != count
+    const different_labels = in.table.labels.length != count
+
+    const not_length = in.table.field_names.length != in.table.field_types.length
+
+    const not_maximum_count = in.table.children.length > in.maximum_count
+    const not_maximum_count_2 = in.table.field_types.length > in.maximum_count
+    const not_maximum_count_3 = in.table.names.length > in.maximum_count
+
     const condition = (
         - count > in.maximum_count
         - or in.table.first.length != count
-        - or in.table.second.length != count
-        - or in.table.labels.length != count
-        - or in.table.field_names.length != in.table.field_types.length
-        - or in.table.children.length > in.maximum_count
-        - or in.table.field_types.length > in.maximum_count
-        - or in.table.names.length > in.maximum_count
+        - or different_second
+        - or different_labels
+        - or not_length
+        - or not_maximum_count
+        - or not_maximum_count_2
+        - or not_maximum_count_3
     )
 
     if (condition) {
@@ -47,14 +56,14 @@ export default function (in: Input): Output {
             const count = integers.widen(current.table.second[current.index])
             const type_kind = kind(code)
 
-            const condition_2 = (
-                - code > 8
-                - or (
-                    type_kind != Kind.Enumeration &&
-                        type_kind != Kind.NativeReference &&
-                        current.table.labels[current.index] != ""
-                )
-            )
+            const unnamed = type_kind != Kind.Enumeration &&
+                type_kind != Kind.NativeReference
+
+            const condition_2 = match {
+                code > 8 => true,
+                unnamed => current.table.labels[current.index] != "",
+                _ => false
+            }
 
             if (condition_2) {
                 current.valid = false
@@ -97,10 +106,14 @@ export default function (in: Input): Output {
         }
     })
 
+    const is_length = state.child_end == in.table.children.length
+    const is_length_2 = state.field_end == in.table.field_types.length
+    const is_length_3 = state.name_end == in.table.names.length
+
     return (
         - state.valid
-        - and state.child_end == in.table.children.length
-        - and state.field_end == in.table.field_types.length
-        - and state.name_end == in.table.names.length
+        - and is_length
+        - and is_length_2
+        - and is_length_3
     )
 }

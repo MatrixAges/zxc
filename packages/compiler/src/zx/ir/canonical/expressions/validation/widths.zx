@@ -12,11 +12,16 @@ export default function (in: Input): Output {
         return false
     }
 
+    const not_length = in.kinds.length != in.types.length
+    const not_length_2 = in.kinds.length != in.span_start.length
+    const not_length_3 = in.kinds.length != in.span_end.length
+    const not_length_4 = in.kinds.length != in.payloads.length
+
     const condition = (
-        - in.kinds.length != in.types.length
-        - or in.kinds.length != in.span_start.length
-        - or in.kinds.length != in.span_end.length
-        - or in.kinds.length != in.payloads.length
+        - not_length
+        - or not_length_2
+        - or not_length_3
+        - or not_length_4
     )
 
     if (condition) {
@@ -50,22 +55,32 @@ export default function (in: Input): Output {
         return false
     }
 
+    const not_length_5 = in.collection_kinds.length != in.collection_targets.length
+    const not_length_6 = in.collection_kinds.length != in.collection_first.length
+    const not_length_7 = in.collection_kinds.length != in.collection_count.length
+
     const condition_2 = (
-        - in.collection_kinds.length != in.collection_targets.length
-        - or in.collection_kinds.length != in.collection_first.length
-        - or in.collection_kinds.length != in.collection_count.length
+        - not_length_5
+        - or not_length_6
+        - or not_length_7
     )
 
     if (condition_2) {
         return false
     }
 
+    const not_length_8 = in.transform_kinds.length != in.transform_targets.length
+    const not_length_9 = in.transform_kinds.length != in.transform_bodies.length
+    const not_length_10 = in.transform_kinds.length != in.transform_initials.length
+    const not_length_11 = in.transform_kinds.length != in.transform_first.length
+    const not_length_12 = in.transform_kinds.length != in.transform_count.length
+
     const condition_3 = (
-        - in.transform_kinds.length != in.transform_targets.length
-        - or in.transform_kinds.length != in.transform_bodies.length
-        - or in.transform_kinds.length != in.transform_initials.length
-        - or in.transform_kinds.length != in.transform_first.length
-        - or in.transform_kinds.length != in.transform_count.length
+        - not_length_8
+        - or not_length_9
+        - or not_length_10
+        - or not_length_11
+        - or not_length_12
     )
 
     if (condition_3) {
@@ -86,13 +101,27 @@ export default function (in: Input): Output {
         return false
     }
 
+    const not_length_13 =
+        in.iteration_initials.length != in.iteration_condition_parameters.length
+
+    const not_length_14 = in.iteration_initials.length != in.iteration_parameters.length
+
+    const not_length_15 =
+        in.iteration_initials.length != in.iteration_environment_symbols.length
+
+    const not_length_16 = in.iteration_initials.length != in.iteration_conditions.length
+    const not_length_17 = in.iteration_initials.length != in.iteration_bodies.length
+
+    const not_length_18 =
+        in.iteration_initials.length != in.iteration_postconditions.length
+
     const condition_4 = (
-        - in.iteration_initials.length != in.iteration_condition_parameters.length
-        - or in.iteration_initials.length != in.iteration_parameters.length
-        - or in.iteration_initials.length != in.iteration_environment_symbols.length
-        - or in.iteration_initials.length != in.iteration_conditions.length
-        - or in.iteration_initials.length != in.iteration_bodies.length
-        - or in.iteration_initials.length != in.iteration_postconditions.length
+        - not_length_13
+        - or not_length_14
+        - or not_length_15
+        - or not_length_16
+        - or not_length_17
+        - or not_length_18
     )
 
     if (condition_4) {
@@ -106,10 +135,14 @@ export default function (in: Input): Output {
         return false
     }
 
+    const not_length_19 = in.call_functions.length != in.call_arguments.length
+    const not_length_20 = in.call_functions.length != in.call_store_first.length
+    const not_length_21 = in.call_functions.length != in.call_store_count.length
+
     const condition_5 = (
-        - in.call_functions.length != in.call_arguments.length
-        - or in.call_functions.length != in.call_store_first.length
-        - or in.call_functions.length != in.call_store_count.length
+        - not_length_19
+        - or not_length_20
+        - or not_length_21
     )
 
     if (condition_5) {
@@ -134,10 +167,14 @@ export default function (in: Input): Output {
         return false
     }
 
+    const not_length_22 = in.match_subjects.length != in.match_fallbacks.length
+    const not_length_23 = in.match_subjects.length != in.match_first.length
+    const not_length_24 = in.match_subjects.length != in.match_count.length
+
     const condition_6 = (
-        - in.match_subjects.length != in.match_fallbacks.length
-        - or in.match_subjects.length != in.match_first.length
-        - or in.match_subjects.length != in.match_count.length
+        - not_length_22
+        - or not_length_23
+        - or not_length_24
     )
 
     if (condition_6) {
@@ -148,10 +185,14 @@ export default function (in: Input): Output {
         return false
     }
 
+    const not_length_25 = in.object_first.length != in.object_count.length
+    const not_length_26 = in.object_first.length != in.object_evaluation_first.length
+    const not_length_27 = in.object_first.length != in.object_evaluation_count.length
+
     const condition_7 = (
-        - in.object_first.length != in.object_count.length
-        - or in.object_first.length != in.object_evaluation_first.length
-        - or in.object_first.length != in.object_evaluation_count.length
+        - not_length_25
+        - or not_length_26
+        - or not_length_27
     )
 
     if (condition_7) {

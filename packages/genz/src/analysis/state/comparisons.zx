@@ -34,21 +34,27 @@ export default function (in: Input): Output {
                         current.expressions.binary_right[payload]
                     )
 
-                const condition = (
-                    - operator == BinaryOperator.Equal
-                    - or operator == BinaryOperator.NotEqual
-                    - and current.expressions.kinds[left] != ExpressionKind.None
-                    - and current.expressions.kinds[right] != ExpressionKind.None
-                )
+                const is_equal = operator == BinaryOperator.Equal
 
-                if (condition) {
-                    current.types =
-                        current.types.concat(
-                            [
-                                current.expressions.types[left],
-                                current.expressions.types[right]
-                            ]
-                        )[0]
+                const is_not_equal = operator == BinaryOperator.NotEqual
+
+                if (is_equal || is_not_equal) {
+                    const kinds = current.expressions.kinds
+                    const operands = match {
+                        kinds[left] != ExpressionKind.None =>
+                            kinds[right] != ExpressionKind.None,
+                        _ => false
+                    }
+
+                    if (operands) {
+                        current.types =
+                            current.types.concat(
+                                [
+                                    current.expressions.types[left],
+                                    current.expressions.types[right]
+                                ]
+                            )[0]
+                    }
                 }
             }
 

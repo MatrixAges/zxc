@@ -24,25 +24,25 @@ export default function (in: Input): Output {
         index: 0,
         working: in.working
     }, {
-        while: (state, context) => state.index < context.entries.length,
-        next: (state, context) => {
-            const entry = context.entries[state.index]
+        while: state => state.index < in.entries.length,
+        next: state => {
+            const entry = in.entries[state.index]
             const own_value = entry.key >= value_renewal
 
-            if (context.normalized || own_value) {
+            if (in.normalized || own_value) {
                 const packed = own_value ? entry.key - value_renewal : entry.key
-                const node = context.normalized ? entry.key : packed / slot_stride
-                const slot = context.normalized ? 0 : packed % slot_stride
+                const node = in.normalized ? entry.key : packed / slot_stride
+                const slot = in.normalized ? 0 : packed % slot_stride
 
-                if (context.source.time[node] != max_u32) {
+                if (in.source.time[node] != max_u32) {
                     const want = value(entry.value)
 
-                    if (context.normalized || want.unique) {
+                    if (in.normalized || want.unique) {
                         const result = query({
-                            context: context.source.context,
+                            context: in.source.context,
                             state: {
                                 known: state.working.known,
-                                carried: context.source.state.carried,
+                                carried: in.source.state.carried,
                                 reads: state.working.reads
                             },
                             request: {
@@ -57,16 +57,19 @@ export default function (in: Input): Output {
                             right: want
                         })
 
-                        const flag = context.normalized ? normalize_flag : renew_flag
+                        const flag = in.normalized ? normalize_flag : renew_flag
                         const previous = state.working.flags[node]
 
                         state.working = {
                             known: result.known,
                             reads: result.reads,
-                            flags: active ? state.working.flags.with(
-                                node,
-                                integers.orBits(previous, flag)
-                            ) : state.working.flags
+                            flags: match {
+                                active => state.working.flags.with(
+                                    node,
+                                    integers.orBits(previous, flag)
+                                ),
+                                _ => state.working.flags
+                            }
                         }
                     }
                 }
@@ -75,5 +78,5 @@ export default function (in: Input): Output {
             state.index += 1
         },
         return: state => state.working
-    }, in)
+    })
 }

@@ -18,8 +18,10 @@ export default function (in: Input): Output {
     }, {
         while: current => current.table <= current.body.contracts.expressions.length,
         next: current => {
-            const expressions = current.table == 0 ? current.body.expressions :
-                current.body.contracts.expressions[current.table - 1]
+            const expressions = match {
+                current.table == 0 => current.body.expressions,
+                _ => current.body.contracts.expressions[current.table - 1]
+            }
 
             current.needed = loop({
                 expressions,
@@ -31,12 +33,13 @@ export default function (in: Input): Output {
                     if (
                         items.expressions.kinds[items.index] == ExpressionKind.Call
                     ) {
+                        const callee_input = integers.widen(
+                            items.expressions.payloads[items.index]
+                        )
+
                         const callee =
                             integers.widen(
-                                items.expressions.payloads[items.index]
-                            )
-                            -> integers.widen(
-                                items.expressions.call_functions[_]
+                                items.expressions.call_functions[callee_input]
                             )
 
                         items.needed[callee] = true

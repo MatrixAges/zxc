@@ -13,22 +13,27 @@ export type Input = {
 }
 
 export default function (in: Input): Output {
-    return loop({
+    const loop_initial = {
         state: in.state
-    }, {
+    }
+
+    const readonly_expressions = in.expressions
+
+    return loop(loop_initial, {
         while: current => current.state.pending.length != 0,
-        next: (current, table) => {
+        next: current => {
             const id = integers.widen(
                 current.state.pending[current.state.pending.length - 1]
             )
 
             current.state.pending = current.state.pending.pop()[0]
 
-            const kind = table.kinds[id]
-            const payload = integers.widen(table.payloads[id])
+            const kind = readonly_expressions.kinds[id]
+            const payload = integers.widen(readonly_expressions.payloads[id])
 
             if (kind == ExpressionKind.Reference) {
-                const symbol = integers.widen(table.references[payload])
+                const symbol =
+                    integers.widen(readonly_expressions.references[payload])
                 const value = current.state.bindings[symbol]
 
                 current.state.projected[symbol] = false
@@ -43,37 +48,44 @@ export default function (in: Input): Output {
                 current.state = observe({
                     state: observe({
                         state: current.state,
-                        id: table.conditional_yes[payload]
+                        id: readonly_expressions.conditional_yes[payload]
                     }),
-                    id: table.conditional_no[payload]
+                    id: readonly_expressions.conditional_no[payload]
                 })
             } else if (kind == ExpressionKind.Match) {
                 current.state = loop({
                     state: observe({
                         state: current.state,
-                        id: table.match_fallbacks[payload]
+                        id: readonly_expressions.match_fallbacks[payload]
                     }),
-                    position: integers.widen(table.match_first[payload]),
-                    end: integers.widen(table.match_first[payload]) +
-                        integers.widen(table.match_count[payload])
+                    position:
+                        integers.widen(
+                            readonly_expressions.match_first[payload]
+                        ),
+                    end: integers.widen(
+                        readonly_expressions.match_first[payload]
+                    ) +
+                        integers.widen(
+                            readonly_expressions.match_count[payload]
+                        )
                 }, {
                     while: row => row.position < row.end,
-                    next: (row, expressions) => {
+                    next: row => {
                         row.state = observe({
                             state: row.state,
-                            id: expressions.match_results[row.position]
+                            id: readonly_expressions.match_results[row.position]
                         })
                         row.position += 1
                     },
                     return: state => state.state
-                }, table)
+                })
             } else if (kind == ExpressionKind.Scope) {
                 current.state = observe({
                     state: current.state,
-                    id: table.scope_results[payload]
+                    id: readonly_expressions.scope_results[payload]
                 })
             }
         },
         return: state => state.state.projected
-    }, in.expressions)
+    })
 }

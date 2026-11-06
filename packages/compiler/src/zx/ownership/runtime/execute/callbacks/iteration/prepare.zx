@@ -37,15 +37,21 @@ export default function (in: Input): Output {
 
     const parameter =
         integers.widen(
-            in.condition ?
-                machine.program.expressions.iteration_condition_parameters[iteration] :
-                machine.program.expressions.iteration_parameters[iteration]
+            match {
+                in.condition =>
+                    machine.program.expressions
+                    .iteration_condition_parameters[iteration],
+                _ => machine.program.expressions.iteration_parameters[iteration]
+            }
         )
 
     const expression =
         integers.widen(
-            in.condition ? machine.program.expressions.iteration_conditions[iteration] :
-                machine.program.expressions.iteration_bodies[iteration]
+            match {
+                in.condition =>
+                    machine.program.expressions.iteration_conditions[iteration],
+                _ => machine.program.expressions.iteration_bodies[iteration]
+            }
         )
 
     const memory = place({
@@ -64,28 +70,31 @@ export default function (in: Input): Output {
         capture: Capture.States
     })
 
-    return push({
+    const work = push({
         work: machine.work,
         frame: {
-            action: in.condition ? WorkAction.IterationCondition :
-                WorkAction.IterationBody,
+            action: match {
+                in.condition => WorkAction.IterationCondition,
+                _ => WorkAction.IterationBody
+            },
             subject: in.expression,
             moving: false,
             index: in.index
         }
     })
-        -> {
-            memory,
-            snapshots: captured.stack,
-            boundary: captured.frame,
-            work: push({
-                work: _,
-                frame: {
-                    action: WorkAction.Value,
-                    subject: expression,
-                    moving: !in.condition,
-                    index: 0
-                }
-            })
-        }
+
+    return {
+        memory,
+        snapshots: captured.stack,
+        boundary: captured.frame,
+        work: push({
+            work: work,
+            frame: {
+                action: WorkAction.Value,
+                subject: expression,
+                moving: !in.condition,
+                index: 0
+            }
+        })
+    }
 }

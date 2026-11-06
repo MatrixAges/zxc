@@ -55,16 +55,17 @@ export default function (in: Input): Output {
     })
 
     if (found.found) {
-        return declaration({
+        const selected = declaration({
             source: in.state.context.source,
             index: found.index
         })
-            -> fail({
-                state: in.state,
-                code: "name",
-                message: "a local type cannot replace an imported type",
-                name: _.name
-            })
+
+        return fail({
+            state: in.state,
+            code: "name",
+            message: "a local type cannot replace an imported type",
+            name: selected.name
+        })
     }
 
     return in.state

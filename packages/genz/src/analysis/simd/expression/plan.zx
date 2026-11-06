@@ -76,8 +76,10 @@ export default function (in: Input): Output {
                 const right = current.results[current.results.length - 1]
                 current.results = current.results.pop()[0]
                 const unary = frame.operation == Operation.Negate
-                const left = unary ? right :
-                    current.results[current.results.length - 1]
+                const left = match {
+                    unary => right,
+                    _ => current.results[current.results.length - 1]
+                }
 
                 if (!unary) {
                     current.results = current.results.pop()[0]

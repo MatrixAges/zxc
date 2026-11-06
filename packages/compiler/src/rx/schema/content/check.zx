@@ -1,3 +1,10 @@
+import {
+    ascii_space,
+    ascii_tab,
+    ascii_carriage_return,
+    ascii_line_feed
+} from "core/ascii/const"
+
 export type Input = u8[]
 
 export type Output = bool
@@ -7,16 +14,20 @@ export default function (in: Input): Output {
         source: in,
         offset: 0
     }, {
-        while: value =>
-            (
-                - value.offset < value.source.length
-                - and (
-                    - value.source[value.offset] == 32
-                    - or value.source[value.offset] == 9
-                    - or value.source[value.offset] == 13
-                    - or value.source[value.offset] == 10
-                )
-            ),
+        while: value => {
+            const remaining = value.offset < value.source.length
+
+            return match {
+                remaining => match value.source[value.offset] {
+                    ascii_space => true,
+                    ascii_tab => true,
+                    ascii_carriage_return => true,
+                    ascii_line_feed => true,
+                    _ => false
+                },
+                _ => false
+            }
+        },
         next: value => {
             value.offset += 1
         }

@@ -18,14 +18,14 @@ export default function (in: Input): Output {
         written,
         index: 0
     }, {
-        while: (state, context) => state.index < context.rows.sizes.length,
-        next: (state, context) => {
+        while: state => state.index < in.rows.sizes.length,
+        next: state => {
             const value = row({
-                program: context.program,
+                program: in.program,
                 index: state.index,
-                size: context.rows.sizes[state.index],
-                text: context.rows.texts[state.index],
-                external: context.rows.external[state.index]
+                size: in.rows.sizes[state.index],
+                text: in.rows.texts[state.index],
+                external: in.rows.external[state.index]
             })
 
             state.held = state.held.push(value.held)[0]
@@ -38,5 +38,5 @@ export default function (in: Input): Output {
             "text_held",
             "written"
         ])
-    }, in)
+    })
 }

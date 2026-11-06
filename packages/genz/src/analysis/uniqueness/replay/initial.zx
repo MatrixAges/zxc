@@ -15,15 +15,15 @@ export default function (in: Input): Output {
         planned,
         index: 0
     }, {
-        while: (state, context) => state.index < context.source.callees.length,
-        next: (state, context) => {
-            const previous = context.source.previous
-            const available = context.matched && previous != null
+        while: state => state.index < in.source.callees.length,
+        next: state => {
+            const previous = in.source.previous
+            const available = in.matched && previous != null
             const unchanged = available && equal({
                 previous: previous.identities,
-                current: context.source.identities,
-                start: state.index * context.source.key.length,
-                width: context.source.key.length
+                current: in.source.identities,
+                start: state.index * in.source.key.length,
+                width: in.source.key.length
             })
 
             state.changed = state.changed.push(!unchanged)[0]
@@ -47,5 +47,5 @@ export default function (in: Input): Output {
                 "planned"
             ])
         })
-    }, in)
+    })
 }

@@ -40,7 +40,13 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
     const deep_candidate = !self.state_active and (projected_output or mode == .discard) and pure and !layout_analysis.flat(self, type_id) and layout_analysis.represented(self, type_id);
     const buffered = deep_candidate and self.plan.get(id).buffered and try layout_analysis.buffers(self.allocator, self.program, iteration, self.identity_free_functions, self.plan.flags);
     const deep = buffered or (deep_candidate and try layout_analysis.deep(self.allocator, self.program, iteration, self.identity_free_functions));
-    const selected_state = !deep and self.state_plan.represented(self.program, type_id) and (self.state_active or selected_call != null or local_calls);
+    const scalar_result = if (consumer) |selected| @import("types/scalar.zig").check(self.program.types, self.program.expression(selected.result).type_id) else false;
+
+    const abi_state = !self.state_active and scalar_result and
+        @import("iteration_layout/types_seed.zig").scalarProduct(self.program, type_id) and
+        try layout_analysis.deep(self.allocator, self.program, iteration, self.identity_free_functions);
+
+    const selected_state = !deep and !abi_state and self.state_plan.represented(self.program, type_id) and (self.state_active or selected_call != null or local_calls);
     const layout = !deep and (selected_state or selected_call != null or ((local_calls or try layout_analysis.shallow(self.allocator, self.program, iteration)) and layout_analysis.aggregate(self, type_id)));
     const by_value = mode != .reference and layout;
 

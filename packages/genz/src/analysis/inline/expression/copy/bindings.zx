@@ -1,0 +1,73 @@
+import integers from "std:integer"
+import iteration from "core/expression_table/append/iteration"
+import scope from "core/expression_table/append/scope"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import shifted from "../shift_symbol"
+import scopePayload from "./scope"
+
+import type { Metadata, Result } from "core/expression_table/append/model"
+import type { Expressions } from "core/expression_table/model"
+
+export type Input = {
+    table: Expressions,
+    metadata: Metadata,
+    source: Expressions,
+    kind: ExpressionKind,
+    payload: u64,
+    mapped: u32[],
+    offset: u64
+}
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const source = in.source
+    const payload = in.payload
+    const mapped = in.mapped
+    const offset = in.offset
+
+    const base = {
+        table: in.table,
+        metadata: in.metadata
+    }
+
+    if (in.kind == ExpressionKind.Scope) {
+        return scope({
+            ...base,
+            ...scopePayload({
+                symbols: source.scope_symbols,
+                borrows: source.scope_borrows,
+                first: integers.widen(source.scope_first[payload]),
+                count: integers.widen(source.scope_count[payload]),
+                mapped,
+                offset
+            })
+        })
+    }
+
+    const environment = source.iteration_environment_symbols[payload]
+
+    return iteration({
+        ...base,
+        initial: mapped[0],
+        condition_parameter: shifted({
+            symbol: source.iteration_condition_parameters[payload],
+            offset
+        }),
+        parameter: shifted({
+            symbol: source.iteration_parameters[payload],
+            offset
+        }),
+        condition: mapped[1],
+        body: mapped[2],
+        postcondition: source.iteration_postconditions[payload],
+        environment_symbol: match {
+            environment == null => null,
+            _ => shifted({
+                symbol: environment,
+                offset
+            })
+        }
+    })
+}

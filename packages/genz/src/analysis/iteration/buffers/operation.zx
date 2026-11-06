@@ -32,12 +32,13 @@ export default function (in: Input): Output {
     }
 
     if (kind == ExpressionKind.ListOperation) {
-        return table.collection_kinds[payload]
-            -> match _ {
-                CollectionKind.Push => (flags / buffered_flag) % flag_radix != 0,
-                CollectionKind.Pop => (flags / buffered_flag) % flag_radix != 0,
-                _ => false
-            }
+        const operation = table.collection_kinds[payload]
+
+        return match operation {
+            CollectionKind.Push => (flags / buffered_flag) % flag_radix != 0,
+            CollectionKind.Pop => (flags / buffered_flag) % flag_radix != 0,
+            _ => false
+        }
     }
 
     if (kind == ExpressionKind.Binary) {
@@ -45,27 +46,26 @@ export default function (in: Input): Output {
         const right = integers.widen(table.binary_right[payload])
         const operator = table.binary_operators[payload]
 
-        const condition = (
-            - operator == BinaryOperator.Equal
-            - or operator == BinaryOperator.NotEqual
-            - and (
-                kindOf(
-                    in.source.source.types
-                        .kinds[integers.widen(
-                            table.types[left]
-                        )]
-                ) == Kind.List ||
-                    kindOf(
-                        in.source.source.types
-                            .kinds[integers.widen(
-                                table.types[right]
-                            )]
-                    ) == Kind.List
-            )
-        )
+        const is_equal = operator == BinaryOperator.Equal
+        const is_not_equal = operator == BinaryOperator.NotEqual
 
-        if (condition) {
-            return false
+        if (is_equal || is_not_equal) {
+            const types = in.source.source.types
+
+            const left_kind =
+                kindOf(types.kinds[integers.widen(table.types[left])])
+
+            const compares_list = match left_kind {
+                Kind.List => true,
+                _ =>
+                    kindOf(types.kinds[integers.widen(
+                        table.types[right]
+                    )]) == Kind.List
+            }
+
+            if (compares_list) {
+                return false
+            }
         }
     }
 

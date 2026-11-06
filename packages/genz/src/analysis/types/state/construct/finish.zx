@@ -1,0 +1,46 @@
+import type { Build, Types } from "../model"
+
+export type Input = Build
+
+export type Output = Types
+
+export default function (in: Input): Output {
+    const empty_ids: u32[] = []
+    const empty_text: u8[][] = []
+    const empty_errors: u8[][][] = []
+    const empty_optional_errors: u8[][]?[] = []
+    const empty_flags: bool[] = []
+    const empty_arguments: u32[][] = []
+
+    return {
+        expressions: {
+            tags: in.tags,
+            offsets: in.offsets,
+            identifier: in.identifier,
+            primitive: in.primitive,
+            field_target: empty_ids,
+            field_name: empty_text,
+            const_pointer: in.const_pointer,
+            optional_type: in.optional_type,
+            const_slice: in.const_slice,
+            error_set: empty_errors,
+            error_union_payload: empty_ids,
+            error_union_errors: empty_optional_errors,
+            error_union_inferred: empty_flags,
+            call_callee: empty_ids,
+            call_arguments: empty_arguments
+        },
+        definitions: {
+            tuple_type: in.tuple_type,
+            enum_type: in.enum_type,
+            struct_type_start: in.struct_type_start,
+            struct_type_len: in.struct_type_len
+        },
+        declarations: in.declarations,
+        records: in.records,
+        values: in.values,
+        layouts: in.layouts,
+        views: in.views,
+        valid: in.valid
+    }
+}

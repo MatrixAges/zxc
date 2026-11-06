@@ -18,8 +18,8 @@ export type Input = Step
 export type Output = Result
 
 export default function (in: Input): Output {
-    const expressions = in.context.program
-        -> _.body.expressions
+    const program = in.context.program
+    const expressions = program.body.expressions
 
     const frame = in.frame
 
@@ -65,11 +65,12 @@ export default function (in: Input): Output {
             }
         }
     } else if (kind == ExpressionKind.Call) {
-        const condition_2 = (
-            - frame.c == 1
-            - or frame.c == 3
-            - and expressions.call_store_count[payload] != 0
-        )
+        const checking_value = frame.c == 1 || frame.c == 3
+
+        const condition_2 = match {
+            checking_value => expressions.call_store_count[payload] != 0,
+            _ => false
+        }
 
         if (condition_2) {
             return {
@@ -91,7 +92,7 @@ export default function (in: Input): Output {
             }
         }
     } else if (kind == ExpressionKind.Iteration) {
-        return schedule({
+        const condition = schedule({
             state: in.state,
             frame: {
                 phase: Phase.IterationCondition,
@@ -100,19 +101,21 @@ export default function (in: Input): Output {
                 c: frame.c
             }
         })
-            -> schedule({
-                state: _,
-                frame: {
-                    phase: Phase.Expression,
-                    a: integers.widen(expressions.iteration_initials[payload]),
-                    b: frame.b + 1,
-                    c: frame.c
-                }
-            })
-            -> {
-                state: _,
-                valid: true
+
+        const initial = schedule({
+            state: condition,
+            frame: {
+                phase: Phase.Expression,
+                a: integers.widen(expressions.iteration_initials[payload]),
+                b: frame.b + 1,
+                c: frame.c
             }
+        })
+
+        return {
+            state: initial,
+            valid: true
+        }
     } else if (kind == ExpressionKind.Transform) {
         const callback = schedule({
             state: in.state,
@@ -126,9 +129,9 @@ export default function (in: Input): Output {
 
         const initial = expressions.transform_initials[payload]
 
-        return (initial == null
-            ? callback
-            : schedule({
+        const initialized = match {
+            initial == null => callback,
+            _ => schedule({
                 state: callback,
                 frame: {
                     phase: Phase.Expression,
@@ -136,20 +139,23 @@ export default function (in: Input): Output {
                     b: frame.b + 1,
                     c: frame.c
                 }
-            }))
-                -> schedule({
-                    state: _,
-                    frame: {
-                        phase: Phase.Expression,
-                        a: integers.widen(expressions.transform_targets[payload]),
-                        b: frame.b + 1,
-                        c: frame.c
-                    }
-                })
-                -> {
-                    state: _,
-                    valid: true
-                }
+            })
+        }
+
+        const target = schedule({
+            state: initialized,
+            frame: {
+                phase: Phase.Expression,
+                a: integers.widen(expressions.transform_targets[payload]),
+                b: frame.b + 1,
+                c: frame.c
+            }
+        })
+
+        return {
+            state: target,
+            valid: true
+        }
     }
 
     return match kind {

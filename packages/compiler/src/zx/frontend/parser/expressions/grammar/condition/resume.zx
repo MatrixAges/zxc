@@ -58,8 +58,12 @@ export default function (in: Input): Output {
         })
     }
 
-    const tokens = state.control.stream == 0 ? state.prepared.lexical.lexed.tokens :
-        state.prepared.lexical.interpolations[state.control.stream - 1].lexed.tokens
+    const tokens = match {
+        state.control.stream == 0 => state.prepared.lexical.lexed.tokens,
+        _ =>
+            state.prepared.lexical.interpolations[state.control.stream -
+                1].lexed.tokens
+    }
 
     const relation = tokens[state.control.index + 1]
 

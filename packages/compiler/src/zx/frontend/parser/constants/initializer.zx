@@ -24,13 +24,17 @@ export default function (in: Input): Output {
         tree: emptyBody()
     })
 
-    return (parsed.control.diagnostic.message != "" ? {
-        ...parsed.expression.control,
-        diagnostic: parsed.control.diagnostic
-    } : parsed.expression.control)
-        -> {
-            ...parsed.expression,
-            control: _,
-            body: parsed.tree
-        }
+    const control = match {
+        parsed.control.diagnostic.message != "" => {
+            ...parsed.expression.control,
+            diagnostic: parsed.control.diagnostic
+        },
+        _ => parsed.expression.control
+    }
+
+    return {
+        ...parsed.expression,
+        control: control,
+        body: parsed.tree
+    }
 }

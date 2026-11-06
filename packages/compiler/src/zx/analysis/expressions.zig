@@ -236,7 +236,11 @@ pub fn analyze(self: *Analyzer, expression: anytype, expected: ?ir.TypeId) zx.Er
         },
         .call => return @import("calls.zig").analyze(self, expression, expected),
         .lambda => return self.reporter.fail(.unsupported, span, "callbacks are only allowed directly in map, filter, reduce or loop rules"),
-        .state_block => return self.reporter.fail(.unsupported, span, "state update blocks are only allowed in loop"),
+        .state_block => |body| {
+            if (self.lambda_depth == 0) return self.reporter.fail(.unsupported, span, "state update blocks are only allowed in loop");
+
+            return @import("iteration/block.zig").analyzeValue(self, body, expected);
+        },
         .template => return @import("strings.zig").template(self, expression),
     }
 }

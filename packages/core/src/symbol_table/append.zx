@@ -17,15 +17,16 @@ export type Output = {
 }
 
 export default function (in: Input): Output {
-    return integers.narrow(in.table.names.length)
-        -> {
-            table: {
-                names: in.table.names.push(in.name)[0],
-                types: in.table.types.push(in.type_id)[0],
-                span_start: in.table.span_start.push(in.span_start)[0],
-                span_end: in.table.span_end.push(in.span_end)[0],
-                ownership: in.table.ownership.push(in.ownership)[0]
-            },
-            id: _
-        }
+    const id = integers.narrow(in.table.names.length)
+
+    return {
+        table: {
+            names: in.table.names.push(in.name)[0],
+            types: in.table.types.push(in.type_id)[0],
+            span_start: in.table.span_start.push(in.span_start)[0],
+            span_end: in.table.span_end.push(in.span_end)[0],
+            ownership: in.table.ownership.push(in.ownership)[0]
+        },
+        id: id
+    }
 }

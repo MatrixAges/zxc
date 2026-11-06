@@ -22,47 +22,55 @@ export default function (in: Input): Output {
     const xor = in.frame.connector == Connector.Xor
     const right = xor ? negate(in.state) : in.state
 
-    const left = xor ? negate({
-        ...right,
-        control: {
-            ...right.control,
-            result: in.frame.first
-        }
-    }) : right
+    const left = match {
+        xor => negate({
+            ...right,
+            control: {
+                ...right.control,
+                result: in.frame.first
+            }
+        }),
+        _ => right
+    }
 
     const left_id = xor ? left.control.result : in.frame.first
     const right_id = right.control.result
     const lhs = left.tree.nodes[left_id]
     const rhs = left.tree.nodes[right_id]
 
-    const operator = in.frame.connector == Connector.Or ||
+    const or_value = in.frame.connector == Connector.Or ||
         in.frame.connector == Connector.Nor
-        -> match {
-            xor => Operator.NotEqual,
-            (_) => Operator.Or,
-            _ => Operator.And
-        }
+
+    const operator = match {
+        xor => Operator.NotEqual,
+        (or_value) => Operator.Or,
+        _ => Operator.And
+    }
 
     const total = lhs.condition_terms + rhs.condition_terms
 
-    const combined = (total > term_limit ? term_limit : total)
-        -> emit({
-            state: left,
-            node: {
-                ...node({
-                    kind: ExprKind.Binary,
-                    start: in.frame.start,
-                    end: rhs.span.end,
-                    depth: (lhs.depth > rhs.depth ? lhs.depth : rhs.depth) + 1
-                }),
-                first: left_id,
-                second: right_id,
-                operator,
-                condition_list: true,
-                condition_terms: _
-            }
-        })
+    const terms = total > term_limit ? term_limit : total
 
-    return in.frame.connector == Connector.Nand || in.frame.connector == Connector.Nor ?
-        negate(combined) : combined
+    const combined = emit({
+        state: left,
+        node: {
+            ...node({
+                kind: ExprKind.Binary,
+                start: in.frame.start,
+                end: rhs.span.end,
+                depth: (lhs.depth > rhs.depth ? lhs.depth : rhs.depth) + 1
+            }),
+            first: left_id,
+            second: right_id,
+            operator,
+            condition_list: true,
+            condition_terms: terms
+        }
+    })
+
+    return match {
+        in.frame.connector == Connector.Nand || in.frame.connector == Connector.Nor =>
+            negate(combined),
+        _ => combined
+    }
 }

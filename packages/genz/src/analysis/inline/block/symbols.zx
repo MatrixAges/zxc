@@ -22,12 +22,14 @@ export default function (in: Input): Output {
         while: current => current.position < current.end,
         next: current => {
             const symbol = current.symbols[current.position]
-            const shifted: u32? = symbol == null ? null :
-                integers.narrow(
+            const shifted: u32? = match {
+                symbol == null => null,
+                _ => integers.narrow(
                     integers.widen(
                         symbol
                     ) + current.offset
                 )
+            }
 
             current.items = current.items.push(shifted)[0]
             current.position += 1

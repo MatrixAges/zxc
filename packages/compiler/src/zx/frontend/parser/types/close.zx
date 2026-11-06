@@ -12,22 +12,25 @@ export type Output = State
 export default function (in: Input): Output {
     const frame = copyFrame(in.frames[in.frames.length - 1])
 
-    return in.frames.pop()[0]
-        -> {
-            tree: in.tree,
-            frames: _,
-            control: in.control
-        }
-        -> addNode({
-            state: _,
-            kind: frame.kind,
-            name: frame.name,
-            child: 0,
-            head: frame.head,
-            count: frame.count
-        })
-        -> consume({
-            state: _,
-            phase: Phase.Suffix
-        })
+    const frames = in.frames.pop()[0]
+
+    const state = {
+        tree: in.tree,
+        frames: frames,
+        control: in.control
+    }
+
+    const completed = addNode({
+        state: state,
+        kind: frame.kind,
+        name: frame.name,
+        child: 0,
+        head: frame.head,
+        count: frame.count
+    })
+
+    return consume({
+        state: completed,
+        phase: Phase.Suffix
+    })
 }

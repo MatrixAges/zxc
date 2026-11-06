@@ -14,22 +14,33 @@ export default function (in: Input): Output {
     const expressions = context.expressions
     const function_index = integers.widen(expressions.call_functions[in.payload])
 
-    return (
-        - function_index < context.functions.input_types.length
-        - and in.type_id == context.functions.output_types[function_index]
-        - and typed({
-            expressions,
-            index: context.index,
-            id: expressions.call_arguments[in.payload],
-            type_id: context.functions.input_types[function_index]
-        })
-        - and call({
-            available: context.stores,
-            required: context.functions.stores[function_index],
-            slots: expressions.call_stores,
-            first: integers.widen(expressions.call_store_first[in.payload]),
-            count: integers.widen(expressions.call_store_count[in.payload]),
-            orchestration: context.orchestration
-        })
-    )
+    const not_length = function_index < context.functions.input_types.length
+
+    if (!not_length) {
+        return false
+    }
+
+    if (in.type_id != context.functions.output_types[function_index]) {
+        return false
+    }
+
+    const argument_valid = typed({
+        expressions,
+        index: context.index,
+        id: expressions.call_arguments[in.payload],
+        type_id: context.functions.input_types[function_index]
+    })
+
+    if (!argument_valid) {
+        return false
+    }
+
+    return call({
+        available: context.stores,
+        required: context.functions.stores[function_index],
+        slots: expressions.call_stores,
+        first: integers.widen(expressions.call_store_first[in.payload]),
+        count: integers.widen(expressions.call_store_count[in.payload]),
+        orchestration: context.orchestration
+    })
 }

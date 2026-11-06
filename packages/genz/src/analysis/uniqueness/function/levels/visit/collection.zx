@@ -1,0 +1,54 @@
+import integers from "std:integer"
+import { CollectionKind } from "core/expression_table/kinds"
+
+import { buffer_slot, splice_retained_slot } from "../../../flow/body/const"
+import { Knowledge, Operation } from "../model"
+import prefix from "../prefix"
+
+import type { Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const expressions = in.metadata.expressions
+    const request = in.request
+    const node = integers.widen(request.node)
+    const payload = integers.widen(expressions.payloads[node])
+    const target = expressions.collection_targets[payload]
+
+    if (request.slot != buffer_slot) {
+        const retained = request.slot == splice_retained_slot && prefix({
+            expressions,
+            payload: expressions.payloads[node]
+        })
+
+        return match {
+            retained => {
+                ...in.base,
+                child_node: target,
+                child_slot: buffer_slot
+            },
+            _ => in.base
+        }
+    }
+
+    const operation = expressions.collection_kinds[payload]
+
+    if (operation == CollectionKind.Splice) {
+        return {
+            ...in.base,
+            value: Knowledge.Unique
+        }
+    }
+
+    return {
+        ...in.base,
+        operation: match operation {
+            CollectionKind.Push => Operation.Push,
+            CollectionKind.Concat => Operation.Concat,
+            CollectionKind.Sort => Operation.Written,
+            CollectionKind.Reverse => Operation.Written,
+            _ => Operation.Pass
+        },
+        child_node: target,
+        child_slot: buffer_slot
+    }
+}

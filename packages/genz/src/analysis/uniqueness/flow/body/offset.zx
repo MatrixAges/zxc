@@ -13,8 +13,11 @@ export type Output = u32
 export default function (in: Input): Output {
     const type_id = in.body.expressions.types[integers.widen(in.node)]
 
-    return integers.widen(in.body.layout.unwrapped[integers.widen(
-        type_id
-    )])
-        -> in.body.layout.offsets[_][integers.widen(in.index)]
+    const return_input = integers.widen(
+        in.body.layout.unwrapped[integers.widen(
+            type_id
+        )]
+    )
+
+    return in.body.layout.offsets[return_input][integers.widen(in.index)]
 }

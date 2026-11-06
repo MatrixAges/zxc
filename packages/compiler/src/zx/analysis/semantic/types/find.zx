@@ -30,10 +30,13 @@ export default function (in: Input): Output {
 
     const direct =
         (
-            - entry.kind == Kind.Scalar
-            - or entry.kind == Kind.Optional
-            - or entry.kind == Kind.List
-            - or entry.kind == Kind.Task
+            match entry.kind {
+                Kind.Scalar => true,
+                Kind.Optional => true,
+                Kind.List => true,
+                Kind.Task => true,
+                _ => false
+            }
         )
 
     const initial_id: u32 = 0
@@ -55,10 +58,12 @@ export default function (in: Input): Output {
             const table = delta ? current.tables.delta : current.tables.base
             const position = delta ? current.index - base_count : current.index
             const shape =
-                current.direct ? table.first[position] == current.entry.first :
-                integers.widen(
-                    table.second[position]
-                ) == current.entry.count
+                match {
+                    current.direct => table.first[position] == current.entry.first,
+                    _ => integers.widen(
+                        table.second[position]
+                    ) == current.entry.count
+                }
 
             if (kind(table.kinds[position]) == current.entry.kind && shape) {
                 current.found = equal({

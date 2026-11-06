@@ -1,0 +1,35 @@
+import type { Bindings } from "../model"
+
+export type Input = {
+    bindings: Bindings,
+    parameters: u32[],
+    values: u32[],
+    reducing: bool
+}
+
+export type Output = Bindings
+
+export default function (in: Input): Output {
+    return loop({
+        ...in,
+        index: 0
+    }, {
+        while: active => active.index < active.parameters.length,
+        next: active => {
+            active.bindings.symbols =
+                active.bindings.symbols.push(
+                    active.parameters[active.index]
+                )[0]
+            active.bindings.values =
+                active.bindings.values.push(
+                    active.values[active.index]
+                )[0]
+            active.bindings.borrows =
+                active.bindings.borrows.push(
+                    !active.reducing || active.index != 0
+                )[0]
+            active.index += 1
+        },
+        return: state => state.bindings
+    })
+}

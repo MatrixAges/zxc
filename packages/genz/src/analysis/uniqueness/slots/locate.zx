@@ -13,16 +13,16 @@ export default function (in: Input): Output {
         last: in.offsets.length
     }, {
         while: state => state.last - state.first > 1,
-        next: (state, context) => {
+        next: state => {
             const middle = state.first + (state.last - state.first) / 2
 
-            if (context.offsets[middle] <= context.slot) {
+            if (in.offsets[middle] <= in.slot) {
                 state.first = middle
             } else {
                 state.last = middle
             }
         }
-    }, in)
+    })
 
     return integers.narrow(result.first)
 }

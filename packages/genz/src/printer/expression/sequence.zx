@@ -14,9 +14,9 @@ export type Output = Frame[]
 export default function (in: Input): Output {
     const tree = in.source.expressions
     const kind = tree.tags[integers.widen(in.frame.id)]
+    const id = tree.offsets[integers.widen(in.frame.id)]
 
-    const row = tree.offsets[integers.widen(in.frame.id)]
-        -> integers.widen(_)
+    const row = integers.widen(id)
 
     const arguments = kind == ExpressionsKind.Builtin || kind == ExpressionsKind.Call
 

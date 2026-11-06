@@ -1,0 +1,107 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+import strings from "std:string"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import { ExpressionsKind } from "../../../../printer/model/expressions"
+import { view_prefix } from "../const"
+import aggregate from "./aggregate"
+import list from "./list"
+
+import type { Selection, Build } from "../model"
+
+export type Input = Selection
+
+export type Output = Build
+
+export default function (in: Input): Output {
+    const state = in.state
+    const index = state.index
+    const source = state.source.source
+    const target = kind(source.types.kinds[index])
+    const name = state.source.names[index]
+    const fresh = !state.state_claimed[in.slot]
+
+    const claimed = {
+        ...state,
+        state_claimed: state.state_claimed.with(in.slot, true)
+    }
+
+    const constructed = match {
+        target == Kind.List => list({
+            ...in,
+            state: claimed
+        }),
+        _ => aggregate({
+            state: claimed,
+            start: in.start,
+            view: false
+        })
+    }
+
+    const declarations = match {
+        fresh => constructed.declarations.push({
+            name: bytes.fromText(name),
+            type_expr: null,
+            value: in.value - 1,
+            exported: source.exported
+        })[0],
+        _ => constructed.declarations
+    }
+
+    const named = {
+        ...constructed,
+        declarations,
+        tags: constructed.tags.push(ExpressionsKind.Identifier)[0],
+        offsets:
+            constructed.offsets.push(integers.narrow(constructed.identifier.length))[0],
+        identifier: constructed.identifier.push(bytes.fromText(name))[0]
+    }
+
+    if (target != Kind.Object && target != Kind.Tuple) {
+        return named
+    }
+
+    const changed = state.source.changed[index]
+
+    const view_name = strings.join("", [
+        view_prefix,
+        name
+    ])
+
+    const viewed = match {
+        changed => aggregate({
+            state: named,
+            start: in.value + 1,
+            view: true
+        }),
+        _ => named
+    }
+
+    const published = match {
+        !viewed.view_claimed[in.slot] => {
+            ...viewed,
+            declarations: viewed.declarations.push({
+                name: bytes.fromText(view_name),
+                type_expr: null,
+                value: changed ? in.view - 1 : in.value,
+                exported: source.exported
+            })[0],
+            view_claimed: viewed.view_claimed.with(in.slot, true)
+        },
+        _ => viewed
+    }
+
+    if (!changed) {
+        return published
+    }
+
+    return {
+        ...published,
+        tags: published.tags.push(ExpressionsKind.Identifier)[0],
+        offsets:
+            published.offsets.push(integers.narrow(published.identifier.length))[0],
+        identifier: published.identifier.push(bytes.fromText(view_name))[0]
+    }
+}

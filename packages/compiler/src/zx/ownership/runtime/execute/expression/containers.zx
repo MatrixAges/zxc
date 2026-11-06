@@ -14,7 +14,7 @@ import type { Input, Output } from "./model"
 
 export default function (in: Input): Output {
     if (in.kind == ExpressionKind.ListOperation) {
-        return push({
+        const work = push({
             work: in.machine.work,
             frame: {
                 action: WorkAction.CollectionTarget,
@@ -23,22 +23,23 @@ export default function (in: Input): Output {
                 index: 0
             }
         })
-            -> {
-                ...in.machine,
-                work: push({
-                    work: _,
-                    frame: {
-                        action: WorkAction.Value,
-                        subject:
-                            integers.widen(
-                                in.machine.program.expressions
-                                    .collection_targets[in.payload]
-                            ),
-                        moving: false,
-                        index: 0
-                    }
-                })
-            }
+
+        return {
+            ...in.machine,
+            work: push({
+                work: work,
+                frame: {
+                    action: WorkAction.Value,
+                    subject:
+                        integers.widen(
+                            in.machine.program.expressions
+                                .collection_targets[in.payload]
+                        ),
+                    moving: false,
+                    index: 0
+                }
+            })
+        }
     }
 
     if (in.kind == ExpressionKind.Object) {
@@ -59,7 +60,7 @@ export default function (in: Input): Output {
             count
         })
 
-        return push({
+        const work = push({
             work: in.machine.work,
             frame: {
                 action: WorkAction.ObjectFinish,
@@ -68,24 +69,25 @@ export default function (in: Input): Output {
                 index: captured.frame
             }
         })
-            -> {
-                ...in.machine,
-                snapshots: captured.stack,
-                builders: builder.builders,
-                memory: {
-                    ...in.machine.memory,
-                    forest: builder.forest
-                },
-                work: push({
-                    work: _,
-                    frame: {
-                        action: WorkAction.ObjectEvaluation,
-                        subject: in.frame.subject,
-                        moving: in.frame.moving,
-                        index: 0
-                    }
-                })
-            }
+
+        return {
+            ...in.machine,
+            snapshots: captured.stack,
+            builders: builder.builders,
+            memory: {
+                ...in.machine.memory,
+                forest: builder.forest
+            },
+            work: push({
+                work: work,
+                frame: {
+                    action: WorkAction.ObjectEvaluation,
+                    subject: in.frame.subject,
+                    moving: in.frame.moving,
+                    index: 0
+                }
+            })
+        }
     }
 
     if (in.kind == ExpressionKind.Task || in.kind == ExpressionKind.Parallel) {
@@ -94,8 +96,10 @@ export default function (in: Input): Output {
             work: push({
                 work: in.machine.work,
                 frame: {
-                    action: in.kind == ExpressionKind.Task ? WorkAction.TaskCapture :
-                        WorkAction.ParallelBranch,
+                    action: match {
+                        in.kind == ExpressionKind.Task => WorkAction.TaskCapture,
+                        _ => WorkAction.ParallelBranch
+                    },
                     subject: in.frame.subject,
                     moving: false,
                     index: 0
@@ -105,7 +109,7 @@ export default function (in: Input): Output {
     }
 
     if (in.kind == ExpressionKind.ListUpdate) {
-        return push({
+        const result = push({
             work: in.machine.work,
             frame: {
                 action: WorkAction.UpdateResult,
@@ -114,58 +118,62 @@ export default function (in: Input): Output {
                 index: 0
             }
         })
-            -> push({
-                work: _,
+
+        const value = push({
+            work: result,
+            frame: {
+                action: WorkAction.Value,
+                subject:
+                    integers.widen(
+                        in.machine.program.expressions.update_values[in.payload]
+                    ),
+                moving: true,
+                index: 0
+            }
+        })
+
+        const index = push({
+            work: value,
+            frame: {
+                action: WorkAction.Value,
+                subject:
+                    integers.widen(
+                        in.machine.program.expressions.update_indices[in.payload]
+                    ),
+                moving: false,
+                index: 0
+            }
+        })
+
+        return {
+            ...in.machine,
+            work: push({
+                work: index,
                 frame: {
                     action: WorkAction.Value,
                     subject:
                         integers.widen(
-                            in.machine.program.expressions.update_values[in.payload]
-                        ),
-                    moving: true,
-                    index: 0
-                }
-            })
-            -> push({
-                work: _,
-                frame: {
-                    action: WorkAction.Value,
-                    subject:
-                        integers.widen(
-                            in.machine.program.expressions.update_indices[in.payload]
+                            in.machine.program.expressions
+                                .update_targets[in.payload]
                         ),
                     moving: false,
                     index: 0
                 }
             })
-            -> {
-                ...in.machine,
-                work: push({
-                    work: _,
-                    frame: {
-                        action: WorkAction.Value,
-                        subject:
-                            integers.widen(
-                                in.machine.program.expressions
-                                    .update_targets[in.payload]
-                            ),
-                        moving: false,
-                        index: 0
-                    }
-                })
-            }
+        }
     }
 
     if (in.kind == ExpressionKind.Tuple) {
-        const builder = integers.widen(row({
+        const builder_input = integers.widen(row({
             tables: in.machine.program.types,
             id: in.machine.program.expressions.types[in.frame.subject]
         }).second)
-            -> begin({
-                forest: in.machine.memory.forest,
-                builders: in.machine.builders,
-                count: _
-            })
+
+        const builder = begin({
+            forest: in.machine.memory.forest,
+            builders: in.machine.builders,
+            count: builder_input
+        })
 
         return {
             ...in.machine,

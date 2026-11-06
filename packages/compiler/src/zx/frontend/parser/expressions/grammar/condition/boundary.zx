@@ -19,18 +19,16 @@ export default function (in: Input): Output {
         while: state => !state.done && state.index < state.tokens.length,
         next: state => {
             const token = state.tokens[state.index]
-            const closing = token.symbol == Symbol.CloseParen ||
-                token.symbol == Symbol.CloseBracket || token.symbol == Symbol.CloseBrace
+            const closing = match token.symbol {
+                Symbol.CloseParen => true,
+                Symbol.CloseBracket => true,
+                Symbol.CloseBrace => true,
+                _ => false
+            }
 
-            const condition = (
-                - token.kind == Kind.Eof
-                - or (
-                    - state.depth == 0
-                    - and (
-                        closing || token.symbol == Symbol.Minus && token.line_break
-                    )
-                )
-            )
+            const bullet = token.symbol == Symbol.Minus && token.line_break
+            const root_boundary = state.depth == 0 && (closing || bullet)
+            const condition = token.kind == Kind.Eof || root_boundary
 
             if (condition) {
                 state.done = true
@@ -39,13 +37,14 @@ export default function (in: Input): Output {
                     state.depth -= 1
                 }
 
-                const condition_2 = (
-                    - token.symbol == Symbol.OpenParen
-                    - or token.symbol == Symbol.OpenBracket
-                    - or token.symbol == Symbol.OpenBrace
-                )
+                const opening = match token.symbol {
+                    Symbol.OpenParen => true,
+                    Symbol.OpenBracket => true,
+                    Symbol.OpenBrace => true,
+                    _ => false
+                }
 
-                if (condition_2) {
+                if (opening) {
                     state.depth += 1
                 }
 

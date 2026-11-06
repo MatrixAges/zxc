@@ -31,7 +31,7 @@ export default function (in: Input): Output {
     if (expressions.kinds[in.frame.a] == ExpressionKind.Conditional) {
         const condition = integers.widen(expressions.conditional_conditions[payload])
 
-        return schedule({
+        const no_value = schedule({
             state: restored,
             frame: {
                 phase: Phase.Expression,
@@ -40,55 +40,61 @@ export default function (in: Input): Output {
                 c: flags
             }
         })
-            -> schedule({
-                state: _,
-                frame: {
-                    phase: Phase.Assume,
-                    a: condition,
-                    b: 0,
-                    c: 0
-                }
-            })
-            -> schedule({
-                state: _,
-                frame: {
-                    phase: Phase.RestoreFacts,
-                    a: facts,
-                    b: captures,
-                    c: 0
-                }
-            })
-            -> schedule({
-                state: _,
-                frame: {
-                    phase: Phase.Expression,
-                    a: integers.widen(expressions.conditional_yes[payload]),
-                    b: depth,
-                    c: flags
-                }
-            })
-            -> schedule({
-                state: _,
-                frame: {
-                    phase: Phase.Assume,
-                    a: condition,
-                    b: 1,
-                    c: 0
-                }
-            })
-            -> schedule({
-                state: _,
-                frame: {
-                    phase: Phase.Expression,
-                    a: condition,
-                    b: depth,
-                    c: flags
-                }
-            })
-            -> {
-                state: _,
-                valid: true
+
+        const no_facts = schedule({
+            state: no_value,
+            frame: {
+                phase: Phase.Assume,
+                a: condition,
+                b: 0,
+                c: 0
             }
+        })
+
+        const between = schedule({
+            state: no_facts,
+            frame: {
+                phase: Phase.RestoreFacts,
+                a: facts,
+                b: captures,
+                c: 0
+            }
+        })
+
+        const yes_value = schedule({
+            state: between,
+            frame: {
+                phase: Phase.Expression,
+                a: integers.widen(expressions.conditional_yes[payload]),
+                b: depth,
+                c: flags
+            }
+        })
+
+        const yes_facts = schedule({
+            state: yes_value,
+            frame: {
+                phase: Phase.Assume,
+                a: condition,
+                b: 1,
+                c: 0
+            }
+        })
+
+        const evaluated = schedule({
+            state: yes_facts,
+            frame: {
+                phase: Phase.Expression,
+                a: condition,
+                b: depth,
+                c: flags
+            }
+        })
+
+        return {
+            state: evaluated,
+            valid: true
+        }
     }
 
     const left = integers.widen(expressions.binary_left[payload])
@@ -104,29 +110,35 @@ export default function (in: Input): Output {
         }
     })
 
-    return (operator == BinaryOperator.LogicalAnd ? 1 : 0)
-        -> (operator == BinaryOperator.LogicalAnd || operator == BinaryOperator.LogicalOr
-            ? schedule({
-                state: right_value,
-                frame: {
-                    phase: Phase.Assume,
-                    a: left,
-                    b: _,
-                    c: 0
-                }
-            })
-            : right_value)
-                -> schedule({
-                    state: _,
+    const truth = operator == BinaryOperator.LogicalAnd ? 1 : 0
+
+    const right_facts =
+        match {
+            operator == BinaryOperator.LogicalAnd ||
+                operator == BinaryOperator.LogicalOr => schedule({
+                    state: right_value,
                     frame: {
-                        phase: Phase.Expression,
+                        phase: Phase.Assume,
                         a: left,
-                        b: depth,
-                        c: flags
+                        b: truth,
+                        c: 0
                     }
-                })
-                -> {
-                    state: _,
-                    valid: true
-                }
+                }),
+            _ => right_value
+        }
+
+    const left_value = schedule({
+        state: right_facts,
+        frame: {
+            phase: Phase.Expression,
+            a: left,
+            b: depth,
+            c: flags
+        }
+    })
+
+    return {
+        state: left_value,
+        valid: true
+    }
 }

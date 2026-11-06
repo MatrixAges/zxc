@@ -1,0 +1,25 @@
+import range from "../../ir/range"
+import shift from "./shift"
+
+export type Input = {
+    items: u32[],
+    first: u64,
+    count: u64,
+    offset: u64
+}
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    const none: u32[] = []
+
+    return shift({
+        ids: range({
+            items: in.items,
+            first: in.first,
+            count: in.count,
+            prefix: none
+        }),
+        offset: in.offset
+    })
+}

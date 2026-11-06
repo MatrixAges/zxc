@@ -24,17 +24,20 @@ export default function (in: Input): Output {
 
     const first = in.name[0]
 
+    const imported_kind = match {
+        first >= ascii_upper_first && first <= ascii_upper_last => NameKind.TypeDecl,
+        _ => NameKind.ImportedValue
+    }
+
     const kind =
-        (
-            first >= ascii_upper_first && first <= ascii_upper_last ? NameKind.TypeDecl :
-                NameKind.ImportedValue
-        )
-        -> (in.kind == NameKind.ImportedValue ? _ : in.kind)
+        in.kind == NameKind.ImportedValue ? imported_kind : in.kind
 
     const valid_first =
-        kind == NameKind.TypeDecl ? first >= ascii_upper_first &&
-        first <= ascii_upper_last :
-        first >= ascii_lower_first && first <= ascii_lower_last
+        match {
+            kind == NameKind.TypeDecl => first >= ascii_upper_first &&
+                first <= ascii_upper_last,
+            _ => first >= ascii_lower_first && first <= ascii_lower_last
+        }
 
     if (!valid_first) {
         return false
@@ -54,23 +57,26 @@ export default function (in: Input): Output {
             const lower = byte >= ascii_lower_first && byte <= ascii_lower_last
             const digit = byte >= ascii_digit_first && byte <= ascii_digit_last
 
-            const condition = (
-                - current.kind == NameKind.Value
-                - or current.kind == NameKind.ImportedValue
-                - and byte == ascii_underscore
-            )
+            const is_value = current.kind == NameKind.Value
+            const variable = match current.kind {
+                NameKind.Value => true,
+                NameKind.ImportedValue => true,
+                _ => false
+            }
+
+            const condition = variable && byte == ascii_underscore
 
             if (condition) {
                 current.valid = !current.after_underscore
                 current.after_underscore = true
             } else {
-                current.valid =
-                    (
-                        - upper
-                        - or lower
-                        - or digit
-                        - and (current.kind != NameKind.Value || !upper)
-                    )
+                const identifier = upper || lower || digit
+                const allowed_case = !is_value || !upper
+
+                current.valid = (
+                    - identifier
+                    - and allowed_case
+                )
                 current.after_underscore = false
             }
 

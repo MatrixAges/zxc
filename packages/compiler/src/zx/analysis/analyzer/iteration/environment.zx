@@ -1,0 +1,167 @@
+import tuple from "../collections/building/tuple"
+import bind from "../collections/sorting/body"
+import merge from "./merge"
+import prepare from "./prepare_context"
+
+import type { Span } from "../../../frontend/lexer/token_model"
+import type { Captures } from "../collections/model"
+import type { Prepared } from "../model"
+import type { IterationFrame } from "./model"
+
+export type Input = {
+    state: Prepared,
+    frame: IterationFrame,
+    body: u32,
+    projection?: {
+        parameter: u32,
+        body: u32
+    },
+    captures: Captures,
+    span: Span
+}
+
+export type Output = {
+    state: Prepared,
+    frame: IterationFrame,
+    body: u32,
+    projection?: {
+        parameter: u32,
+        body: u32
+    }
+}
+
+export default function (in: Input): Output {
+    const same_values = in.frame.condition_captures.values.length == 0
+    const same_values_2 = in.frame.step_captures.values.length == 0
+
+    const valid_projection = in.projection == null || in.captures.values.length == 0
+
+    const unreferenced = (
+        - same_values
+        - and same_values_2
+        - and (valid_projection)
+    )
+
+    if (unreferenced) {
+        return in.omit([
+            "captures",
+            "span"
+        ])
+    }
+
+    const empty: Captures = {
+        sources: [],
+        targets: [],
+        values: []
+    }
+
+    const condition = merge({
+        expressions: in.state.local.expressions,
+        shared: empty,
+        captures: in.frame.condition_captures
+    })
+
+    const step = merge({
+        expressions: in.state.local.expressions,
+        shared: condition.shared,
+        captures: in.frame.step_captures
+    })
+
+    const selected = merge({
+        expressions: in.state.local.expressions,
+        shared: step.shared,
+        captures: in.projection == null ? empty : in.captures
+    })
+
+    if (selected.shared.values.length == 0) {
+        return in.omit([
+            "captures",
+            "span"
+        ])
+    }
+
+    const direct = selected.shared.values.length == 1
+
+    const environment = match {
+        direct => {
+            state: in.state,
+            value: selected.shared.values[0]
+        },
+        _ => tuple({
+            state: in.state,
+            values: selected.shared.values,
+            span: in.span
+        })
+    }
+
+    const saved = prepare({
+        local: environment.state.local,
+        frame: {
+            ...in.frame,
+            readonly: {
+                node: in.frame.node,
+                initial: in.frame.initial,
+                initial_symbol: 0,
+                value: 0,
+                reference: 0,
+                symbol: 0,
+                parameter: null
+            }
+        },
+        value: environment.value
+    })
+
+    const context: u32 = saved.frame.readonly == null ? 0 : saved.frame.readonly.reference
+
+    const predicate = bind({
+        state: {
+            ...environment.state,
+            local: saved.local
+        },
+        context,
+        direct,
+        body: in.frame.condition,
+        captures: in.frame.condition_captures,
+        indices: condition.indices,
+        span: in.span
+    })
+
+    const next = bind({
+        state: predicate.state,
+        context,
+        direct,
+        body: in.body,
+        captures: in.frame.step_captures,
+        indices: step.indices,
+        span: in.span
+    })
+
+    const result = match {
+        in.projection == null => next,
+        _ => bind({
+            state: next.state,
+            context,
+            direct,
+            body: in.projection.body,
+            captures: in.captures,
+            indices: selected.indices,
+            span: in.span
+        })
+    }
+
+    return {
+        state: result.state,
+        frame: {
+            ...saved.frame,
+            condition: predicate.value
+        },
+        body: next.value,
+        projection: match {
+            in.projection == null => null,
+            _ => {
+                ...in.projection,
+                body: result.value
+            }
+        }
+    }
+}

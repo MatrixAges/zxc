@@ -13,19 +13,20 @@ export type Output = {
 export default function (in: Input): Output {
     const popped = in.frames.pop()
 
-    return popped[1] ?? frame({
+    const continuation = popped[1] ?? frame({
         kind: FrameKind.BinaryLeft,
         start: 0,
         depth: 0
     })
-        -> {
-            state: {
-                prepared: in.prepared,
-                tree: in.tree,
-                types: in.types,
-                frames: popped[0],
-                control: in.control
-            },
-            frame: _
-        }
+
+    return {
+        state: {
+            prepared: in.prepared,
+            tree: in.tree,
+            types: in.types,
+            frames: popped[0],
+            control: in.control
+        },
+        frame: continuation
+    }
 }

@@ -1,0 +1,48 @@
+import integers from "std:integer"
+
+import type { Input as Source, Frame } from "./model"
+
+export type Input = {
+    source: Source,
+    frame: Frame,
+    payload: u64
+}
+
+export type Output = {
+    first: i64,
+    last: i64,
+    offset: u32
+}
+
+export default function (in: Input): Output {
+    const source = in.source
+    const frame = in.frame
+
+    const type_id =
+        integers.widen(source.expressions.types[integers.widen(frame.node)])
+
+    const owner = integers.widen(source.layout.unwrapped[type_id])
+    const member = integers.widen(source.expressions.projection_indices[in.payload])
+    const offset = source.layout.offsets[owner][member]
+    const member_type = source.layout.members[owner][member]
+    const start = integers.widenSigned(offset) - frame.delta
+
+    const first = match {
+        start > integers.widenSigned(frame.lo) => start,
+        _ => integers.widenSigned(frame.lo)
+    }
+
+    const limit =
+        start + integers.widenSigned(source.counts[integers.widen(member_type)])
+
+    const clipped = match {
+        limit < integers.widenSigned(frame.hi) => limit,
+        _ => integers.widenSigned(frame.hi)
+    }
+
+    return {
+        first,
+        last: clipped > first ? clipped : first,
+        offset
+    }
+}

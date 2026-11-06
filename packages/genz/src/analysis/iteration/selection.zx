@@ -18,21 +18,27 @@ export default function (in: Input): Output {
     const first = integers.widen(in.table.match_first[payload])
     const count = integers.widen(in.table.match_count[payload])
 
-    return (
-        - subject == null
-        - or in.safe[integers.widen(subject)]
-        - and all({
-            safe: in.safe,
-            values: in.table.match_conditions,
-            first,
-            count
-        })
-        - and all({
-            safe: in.safe,
-            values: in.table.match_results,
-            first,
-            count
-        })
-        - and in.safe[integers.widen(in.table.match_fallbacks[payload])]
-    )
+    if (subject != null && !in.safe[integers.widen(subject)]) {
+        return false
+    }
+
+    if (!all({
+        safe: in.safe,
+        values: in.table.match_conditions,
+        first,
+        count
+    })) {
+        return false
+    }
+
+    if (!all({
+        safe: in.safe,
+        values: in.table.match_results,
+        first,
+        count
+    })) {
+        return false
+    }
+
+    return in.safe[integers.widen(in.table.match_fallbacks[payload])]
 }

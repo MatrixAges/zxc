@@ -1,0 +1,44 @@
+import finish from "../../../statements/scopes/finish"
+import { Phase } from "../model"
+
+import type { Work } from "../model"
+
+export type Input = Work
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const frame = in.scopes.frames[in.scopes.frames.length - 1]
+
+    if (frame.value_block && frame.result == null) {
+        return {
+            ...in,
+            state: {
+                ...in.state,
+                diagnostic: {
+                    code: "return_path",
+                    message: "callback blocks require a final return value",
+                    start: in.source.blocks.blocks[frame.source_block].span.start,
+                    end: in.source.blocks.blocks[frame.source_block].span.end
+                }
+            }
+        }
+    }
+
+    const result = finish({
+        scopes: in.scopes,
+        local: in.state.local,
+        span: in.source.blocks.blocks[frame.source_block].span
+    })
+
+    return {
+        ...in,
+        scopes: result.scopes,
+        state: {
+            ...in.state,
+            local: result.local
+        },
+        value: result.value,
+        phase: Phase.Complete
+    }
+}

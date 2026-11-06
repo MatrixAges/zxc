@@ -14,17 +14,18 @@ export type Output = Session
 
 export default function (in: Input): Output {
     return loop(in, {
-        while: current =>
-            (
-                - current.active
-                - and (
-                    - current.phase == Phase.Next
-                    - or current.phase == Phase.Query
-                    - or current.phase == Phase.Descend
-                    - or current.phase == Phase.Expand
-                    - or current.phase == Phase.Done
-                )
-            ),
+        while: current => {
+            const selected = match current.phase {
+                Phase.Next => true,
+                Phase.Query => true,
+                Phase.Descend => true,
+                Phase.Expand => true,
+                Phase.Done => true,
+                _ => false
+            }
+
+            return current.active && selected
+        },
         next: current => {
             if (current.phase == Phase.Next) {
                 if (current.work.length == 0) {
@@ -82,19 +83,20 @@ export default function (in: Input): Output {
                     current.root = current.position
                     current.phase = Phase.Enter
                 } else {
-                    const child = current.trail[current.trail.length - 1]
-                        -> lookup({
-                            index: {
-                                slots: current.layout.slots,
-                                parents: current.layout.parents,
-                                fields: current.layout.fields,
-                                values: current.layout.values
-                            },
-                            key: {
-                                parent: current.position,
-                                field: _
-                            }
-                        })
+                    const field = current.trail[current.trail.length - 1]
+
+                    const child = lookup({
+                        index: {
+                            slots: current.layout.slots,
+                            parents: current.layout.parents,
+                            fields: current.layout.fields,
+                            values: current.layout.values
+                        },
+                        key: {
+                            parent: current.position,
+                            field: field
+                        }
+                    })
 
                     current.trail = current.trail.pop()[0]
 

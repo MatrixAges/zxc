@@ -16,60 +16,65 @@ export default function (in: Input): Output {
     const condition = integers.widen(control.branch_conditions[payload])
 
     if (in.frame.phase == Phase.BranchPost) {
-        const restored: State = restore({
+        const facts = restore({
             facts: in.state.refinement.facts,
             mark: {
                 nonnull: in.frame.b,
                 captures: in.frame.c
             }
         })
-            -> {
-                ...in.state,
-                refinement: {
-                    ...in.state.refinement,
-                    facts: _
-                }
+
+        const restored: State = {
+            ...in.state,
+            refinement: {
+                ...in.state.refinement,
+                facts: facts
             }
+        }
 
         const yes =
-            in.context.prepared.returns[integers.widen(
-                control.branch_no[payload]
-            )]
-        ? schedule({
-            state: restored,
-            frame: {
-                phase: Phase.Assume,
-                a: condition,
-                b: 1,
-                c: 0
+            match {
+                in.context.prepared
+                    .returns[integers.widen(
+                        control.branch_no[payload]
+                    )] => schedule({
+                        state: restored,
+                        frame: {
+                            phase: Phase.Assume,
+                            a: condition,
+                            b: 1,
+                            c: 0
+                        }
+                    }),
+                _ => restored
             }
-        })
-        : restored
 
-        return (in.context.prepared
-            .returns[integers.widen(
-                control.branch_yes[payload]
-            )]
-            ? schedule({
-                state: yes,
-                frame: {
-                    phase: Phase.Assume,
-                    a: condition,
-                    b: 0,
-                    c: 0
-                }
-            })
-            : yes)
-                -> {
-                    state: _,
-                    valid: true
-                }
+        const no = match {
+            in.context.prepared
+                .returns[integers.widen(
+                    control.branch_yes[payload]
+                )] => schedule({
+                    state: yes,
+                    frame: {
+                        phase: Phase.Assume,
+                        a: condition,
+                        b: 0,
+                        c: 0
+                    }
+                }),
+            _ => yes
+        }
+
+        return {
+            state: no,
+            valid: true
+        }
     }
 
     const facts = in.state.refinement.facts.nonnull.length
     const captures = in.state.refinement.facts.capture_errors.length
 
-    return schedule({
+    const post = schedule({
         state: in.state,
         frame: {
             phase: Phase.BranchPost,
@@ -78,53 +83,59 @@ export default function (in: Input): Output {
             c: captures
         }
     })
-        -> schedule({
-            state: _,
-            frame: {
-                phase: Phase.Block,
-                a: integers.widen(control.branch_no[payload]),
-                b: in.frame.b + 1,
-                c: 0
-            }
-        })
-        -> schedule({
-            state: _,
-            frame: {
-                phase: Phase.Assume,
-                a: condition,
-                b: 0,
-                c: 0
-            }
-        })
-        -> schedule({
-            state: _,
-            frame: {
-                phase: Phase.RestoreFacts,
-                a: facts,
-                b: captures,
-                c: 0
-            }
-        })
-        -> schedule({
-            state: _,
-            frame: {
-                phase: Phase.Block,
-                a: integers.widen(control.branch_yes[payload]),
-                b: in.frame.b + 1,
-                c: 0
-            }
-        })
-        -> schedule({
-            state: _,
-            frame: {
-                phase: Phase.Assume,
-                a: condition,
-                b: 1,
-                c: 0
-            }
-        })
-        -> {
-            state: _,
-            valid: true
+
+    const no_body = schedule({
+        state: post,
+        frame: {
+            phase: Phase.Block,
+            a: integers.widen(control.branch_no[payload]),
+            b: in.frame.b + 1,
+            c: 0
         }
+    })
+
+    const no_facts = schedule({
+        state: no_body,
+        frame: {
+            phase: Phase.Assume,
+            a: condition,
+            b: 0,
+            c: 0
+        }
+    })
+
+    const computed_restored = schedule({
+        state: no_facts,
+        frame: {
+            phase: Phase.RestoreFacts,
+            a: facts,
+            b: captures,
+            c: 0
+        }
+    })
+
+    const yes_body = schedule({
+        state: computed_restored,
+        frame: {
+            phase: Phase.Block,
+            a: integers.widen(control.branch_yes[payload]),
+            b: in.frame.b + 1,
+            c: 0
+        }
+    })
+
+    const yes_facts = schedule({
+        state: yes_body,
+        frame: {
+            phase: Phase.Assume,
+            a: condition,
+            b: 1,
+            c: 0
+        }
+    })
+
+    return {
+        state: yes_facts,
+        valid: true
+    }
 }

@@ -58,22 +58,25 @@ export default function (in: Input): Output {
         }
     }
 
-    const local = type_id == scalar_bool ? {
-        ...result.local,
-        refinement: {
-            ...result.local.refinement,
-            facts: bindPredicate({
-                facts: result.local.refinement.facts,
-                expressions: result.local.expressions,
-                value: integers.widen(in.value),
-                count: 1,
-                err: result.id,
-                result: null
-            })
-        }
-    } : result.local
+    const local = match {
+        type_id == scalar_bool => {
+            ...result.local,
+            refinement: {
+                ...result.local.refinement,
+                facts: bindPredicate({
+                    facts: result.local.refinement.facts,
+                    expressions: result.local.expressions,
+                    value: integers.widen(in.value),
+                    count: 1,
+                    err: result.id,
+                    result: null
+                })
+            }
+        },
+        _ => result.local
+    }
 
-    return {
+    const bindings = {
         symbols: in.scopes.bindings.symbols.push(result.id)[0],
         values: in.scopes.bindings.values.push(in.value)[0],
         borrows:
@@ -85,13 +88,14 @@ export default function (in: Input): Output {
                 )
             )[0]
     }
-        -> {
-            scopes: {
-                ...in.scopes,
-                bindings: _
-            },
-            local,
-            symbol: result.id,
-            diagnostic: result.diagnostic
-        }
+
+    return {
+        scopes: {
+            ...in.scopes,
+            bindings: bindings
+        },
+        local,
+        symbol: result.id,
+        diagnostic: result.diagnostic
+    }
 }

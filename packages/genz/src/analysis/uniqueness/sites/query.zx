@@ -14,8 +14,10 @@ export default function (in: Input): Output {
     const first = integers.widen(in.plan.first[root])
     const end = integers.widen(in.plan.first[root + 1])
 
-    const home = root < in.symbols ? in.def_loop[root] :
-        in.nodes.repeated[root - in.symbols]
+    const home = match {
+        root < in.symbols => in.def_loop[root],
+        _ => in.nodes.repeated[root - in.symbols]
+    }
 
     return loop({
         query: in,
@@ -65,18 +67,17 @@ export default function (in: Input): Output {
                                 const same = sites.edge[index] == sites.edge[site] &&
                                     sites.delta[index] == sites.delta[site]
 
-                                const condition = (
+                                const competing = (
                                     - index != site
                                     - and overlaps
                                     - and !same
-                                    - and !exclusive({
-                                        query: pair.query,
-                                        left: site,
-                                        right: index
-                                    })
                                 )
 
-                                if (condition) {
+                                if (competing && !exclusive({
+                                    query: pair.query,
+                                    left: site,
+                                    right: index
+                                })) {
                                     pair.valid = role({
                                         query: pair.query,
                                         site: index

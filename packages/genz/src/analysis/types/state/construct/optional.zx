@@ -1,0 +1,31 @@
+import integers from "std:integer"
+
+import { ExpressionsKind } from "../../../../printer/model/expressions"
+
+import type { Build } from "../model"
+
+export type Input = Build
+
+export type Output = Build
+
+export default function (in: Input): Output {
+    const child = integers.widen(in.source.source.types.first[in.index])
+
+    const value = {
+        ...in,
+        tags: in.tags.push(ExpressionsKind.OptionalType)[0],
+        offsets: in.offsets.push(integers.narrow(in.optional_type.length))[0],
+        optional_type: in.optional_type.push(in.values[child])[0]
+    }
+
+    if (!in.source.changed[in.index]) {
+        return value
+    }
+
+    return {
+        ...value,
+        tags: value.tags.push(ExpressionsKind.OptionalType)[0],
+        offsets: value.offsets.push(integers.narrow(value.optional_type.length))[0],
+        optional_type: value.optional_type.push(value.views[child])[0]
+    }
+}

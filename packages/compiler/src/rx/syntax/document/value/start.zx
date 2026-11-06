@@ -13,26 +13,27 @@ export type Output = State
 export default function (in: Input): Output {
     const offset = in.state.control.location.offset
 
-    return {
+    const location = {
         offset,
         line: in.state.control.location.line,
         column: in.state.control.location.column
     }
-        -> {
-            source: in.state.source,
-            tree: in.state.tree,
-            frames: in.state.frames,
-            frame: in.state.frame,
-            control: {
-                ...in.state.control,
-                phase: Phase.Value,
-                value_kind: in.kind,
-                terminator: in.terminator,
-                value_start: offset,
-                text_start: offset,
-                value_head: 0,
-                value_count: 0,
-                value_location: _
-            }
+
+    return {
+        source: in.state.source,
+        tree: in.state.tree,
+        frames: in.state.frames,
+        frame: in.state.frame,
+        control: {
+            ...in.state.control,
+            phase: Phase.Value,
+            value_kind: in.kind,
+            terminator: in.terminator,
+            value_start: offset,
+            text_start: offset,
+            value_head: 0,
+            value_count: 0,
+            value_location: location
         }
+    }
 }

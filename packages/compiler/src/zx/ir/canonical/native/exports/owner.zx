@@ -7,11 +7,14 @@ export type Input = ExportContext
 
 export type Output = string?
 
-    export default function (in: Input): Output {
-        const module = in.functions.native_modules[in.index]
+export default function (in: Input): Output {
+    const module = in.functions.native_modules[in.index]
 
-        return module == null ? null : key({
+    return match {
+        module == null => null,
+        _ => key({
             modules: in.modules,
             index: integers.widen(module)
         })
     }
+}

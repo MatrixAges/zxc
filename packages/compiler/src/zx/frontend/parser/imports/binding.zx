@@ -1,0 +1,56 @@
+import { Keyword } from "../../lexer/keyword_model"
+import { Kind } from "../../lexer/token_model"
+import fail from "./fail"
+import { Phase } from "./model"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const state = in
+    const phase = state.control.phase
+    const word = state.control.token.word
+    const kind = state.control.token.kind
+    const index = state.control.index + 1
+
+    const span = {
+        start: state.control.token.span.start,
+        end: state.control.token.span.end
+    }
+
+    const phase_2 = !(phase == Phase.Name && word == Keyword.Default)
+
+    const condition_7 = (
+        - kind != Kind.Identifier
+        - and phase_2
+    )
+
+    if (condition_7) {
+        return fail({
+            state,
+            span,
+            message: "expected an identifier"
+        })
+    }
+
+    const count = state.control.count + 1
+
+    const names = state.names.push(span)[0]
+
+    return {
+        ...state,
+        names: names,
+        sources: state.sources.push(span)[0],
+        control: {
+            ...state.control,
+            phase: phase == Phase.Binding ? Phase.From : Phase.Separator,
+            count,
+            aliased: false,
+            default_binding: word == Keyword.Default,
+            index
+        }
+    }
+}

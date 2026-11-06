@@ -14,21 +14,25 @@ export type Input = {
 export type Output = State
 
 export default function (in: Input): Output {
-    const constants = loop({
+    const constants_initial = {
         state: in.state,
         index: 0
-    }, {
-        while: (current, control) => current.index < control.constant_symbols.length,
-        next: (current, control) => {
+    }
+
+    const readonly_control = in.control
+
+    const constants = loop(constants_initial, {
+        while: current => current.index < readonly_control.constant_symbols.length,
+        next: current => {
             current.state = bind({
                 state: current.state,
-                symbol: control.constant_symbols[current.index],
-                value: control.constant_values[current.index]
+                symbol: readonly_control.constant_symbols[current.index],
+                value: readonly_control.constant_values[current.index]
             })
             current.index += 1
         },
         return: state => state.state
-    }, in.control)
+    })
 
     const roots = [
         in.control.evaluations,
@@ -44,9 +48,9 @@ export default function (in: Input): Output {
         index: 0,
         position: 0
     }, {
-        while: (current, sources) => current.index < sources.length,
-        next: (current, sources) => {
-            const values = sources[current.index]
+        while: current => current.index < roots.length,
+        next: current => {
+            const values = roots[current.index]
 
             if (current.position < values.length) {
                 current.state = observe({
@@ -60,7 +64,7 @@ export default function (in: Input): Output {
             }
         },
         return: state => state.state
-    }, roots)
+    })
 
     const optional = [
         in.control.case_values,
@@ -72,9 +76,9 @@ export default function (in: Input): Output {
         index: 0,
         position: 0
     }, {
-        while: (current, sources) => current.index < sources.length,
-        next: (current, sources) => {
-            const values = sources[current.index]
+        while: current => current.index < optional.length,
+        next: current => {
+            const values = optional[current.index]
 
             if (current.position < values.length) {
                 const value = values[current.position]
@@ -93,7 +97,7 @@ export default function (in: Input): Output {
             }
         },
         return: state => state.state
-    }, optional)
+    })
 
     return loop({
         state: results,

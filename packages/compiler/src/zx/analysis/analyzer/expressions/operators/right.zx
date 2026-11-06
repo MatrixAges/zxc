@@ -27,12 +27,15 @@ export default function (in: Input): Output {
     const index = integers.widen(in.left)
 
     const left =
-        in.operator == BinaryOperator.Coalesce &&
-        expressions.kinds[index] ==
-        ExpressionKind.OptionalValue ? expressions
-        .optional_values[integers.widen(
-            expressions.payloads[index]
-        )] : in.left
+        match {
+            in.operator == BinaryOperator.Coalesce &&
+                expressions.kinds[index] ==
+                ExpressionKind.OptionalValue => expressions
+                .optional_values[integers.widen(
+                    expressions.payloads[index]
+                )],
+            _ => in.left
+        }
 
     const type_id = expressions.types[integers.widen(left)]
 
@@ -68,21 +71,25 @@ export default function (in: Input): Output {
         }
     }
 
-    return (classify(in.operator).logical ? assume({
-        state: in.state.local.refinement,
-        expressions: in.state.local.expressions,
-        condition: integers.widen(in.left),
-        truth: in.operator == BinaryOperator.LogicalAnd
-    }) : in.state.local.refinement)
-        -> {
-            state: {
-                ...in.state,
-                local: {
-                    ...in.state.local,
-                    refinement: _
-                }
-            },
-            expected: type_id,
-            left
-        }
+    const refinement = match {
+        classify(in.operator).logical => assume({
+            state: in.state.local.refinement,
+            expressions: in.state.local.expressions,
+            condition: integers.widen(in.left),
+            truth: in.operator == BinaryOperator.LogicalAnd
+        }),
+        _ => in.state.local.refinement
+    }
+
+    return {
+        state: {
+            ...in.state,
+            local: {
+                ...in.state.local,
+                refinement: refinement
+            }
+        },
+        expected: type_id,
+        left
+    }
 }

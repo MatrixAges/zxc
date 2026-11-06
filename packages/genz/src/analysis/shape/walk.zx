@@ -14,8 +14,10 @@ export default function (in: Input): Output {
         while: current => current.root < 2 || current.nodes.length != 0,
         next: current => {
             if (current.nodes.length == 0) {
-                const root = current.root == 0 ? current.request.input :
-                    current.request.output
+                const root = match {
+                    current.root == 0 => current.request.input,
+                    _ => current.request.output
+                }
 
                 current.root += 1
 

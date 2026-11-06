@@ -1,0 +1,130 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import { ExpressionsKind } from "../../../../printer/model/expressions"
+import position from "../../../names/position"
+import { list_nodes, object_nodes, tuple_nodes, list_field_count } from "../const"
+import optional from "./optional"
+import selected from "./selected"
+
+import type { Build } from "../model"
+
+export type Input = Build
+
+export type Output = Build
+
+export default function (in: Input): Output {
+    const index = in.index
+    const source = in.source.source
+    const target = kind(source.types.kinds[index])
+    const first = source.types.first[index]
+    const second = source.types.second[index]
+    const selected_type = source.selected[index]
+    const borrowed = source.borrowed[index]
+    const changed = in.source.changed[index]
+    const aggregate = target == Kind.Object || target == Kind.Tuple
+
+    const count = match {
+        target == Kind.Optional => changed ? 2 : 1,
+        !selected_type => 0,
+        target == Kind.List => list_nodes,
+        target == Kind.Object => object_nodes * (changed ? 2 : 1),
+        _ => tuple_nodes * (changed ? 2 : 1)
+    }
+
+    const field_count = match {
+        selected_type && target == Kind.List => integers.widen(list_field_count),
+        selected_type && target == Kind.Object =>
+            (integers.widen(second) + 1) * (changed ? 2 : 1),
+        _ => 0
+    }
+
+    const start_wide = integers.widen(source.base) + in.tags.length
+    const field_start = integers.widen(source.field_base)
+
+    if (
+        start_wide + count + (borrowed ? 1 : 0) > integers.widen(max_u32) ||
+            field_start + in.field_count + field_count > integers.widen(max_u32)
+    ) {
+        return {
+            ...in,
+            valid: false
+        }
+    }
+
+    const start = integers.narrow(start_wide)
+    const name = in.source.names[index]
+
+    const slot = match {
+        selected_type => position({
+            names: in.source.ordered,
+            name
+        }),
+        _ => 0
+    }
+
+    const value = match {
+        target == Kind.Optional => start,
+        !selected_type => source.abi_types[index],
+        _ => start + integers.narrow(count / (changed && aggregate ? 2 : 1)) - 1
+    }
+
+    const layout = match {
+        target == Kind.Optional || selected_type => value,
+        _ => source.abi_layouts[index]
+    }
+
+    const view = match {
+        target == Kind.Optional => changed ? start + 1 : value,
+        target == Kind.List &&
+            kind(source.types.kinds[integers.widen(first)]) == Kind.Object &&
+            source.selected[integers.widen(first)] => start,
+        selected_type && aggregate => match {
+            changed => start + integers.narrow(count) - 1,
+            _ => value
+        },
+        _ => source.abi_types[index]
+    }
+
+    const constructed = match {
+        target == Kind.Optional => optional(in),
+        selected_type => selected({
+            state: in,
+            start,
+            value,
+            view,
+            slot
+        }),
+        _ => in
+    }
+
+    const reference = match {
+        borrowed =>
+            integers.narrow(integers.widen(source.base) + constructed.tags.length),
+        _ => value
+    }
+
+    const referenced = match {
+        borrowed => {
+            ...constructed,
+            tags: constructed.tags.push(ExpressionsKind.ConstPointer)[0],
+            offsets: constructed.offsets.push(
+                integers.narrow(
+                    constructed.const_pointer.length
+                )
+            )[0],
+            const_pointer: constructed.const_pointer.push(value)[0]
+        },
+        _ => constructed
+    }
+
+    return {
+        ...referenced,
+        values: referenced.values.push(borrowed ? reference : value)[0],
+        layouts: referenced.layouts.push(layout)[0],
+        views: referenced.views.push(view)[0],
+        index: referenced.index + 1
+    }
+}

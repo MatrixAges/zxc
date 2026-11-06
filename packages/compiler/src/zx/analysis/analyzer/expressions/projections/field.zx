@@ -122,22 +122,23 @@ export default function (in: Input): Output {
         id: table.field_types[found.first + found.index]
     })
 
-    const refined = field.kind == Kind.Optional && contains({
-        facts: in.facts,
-        expressions: result.table,
-        value: result.id
-    })
-    ? append({
-        table: result.table,
-        metadata: {
-            type_id: field.first,
-            span_start: in.span.start,
-            span_end: in.span.end
-        },
-        kind: ValueKind.OptionalValue,
-        value: result.id
-    })
-    : result
+    const refined = match {
+        field.kind == Kind.Optional && contains({
+            facts: in.facts,
+            expressions: result.table,
+            value: result.id
+        }) => append({
+            table: result.table,
+            metadata: {
+                type_id: field.first,
+                span_start: in.span.start,
+                span_end: in.span.end
+            },
+            kind: ValueKind.OptionalValue,
+            value: result.id
+        }),
+        _ => result
+    }
 
     return {
         expressions: refined.table,

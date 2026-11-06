@@ -18,7 +18,9 @@ export default function (in: Input): Output {
         ((in.left % hash_primary_modulus) * hash_primary_multiplier) %
         hash_primary_modulus
 
-    return ((in.right % hash_secondary_modulus) * hash_secondary_multiplier) %
+    const return_input =
+        ((in.right % hash_secondary_modulus) * hash_secondary_multiplier) %
         hash_secondary_modulus
-        -> (left + _) % in.capacity
+
+    return (left + return_input) % in.capacity
 }

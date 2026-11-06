@@ -17,8 +17,10 @@ export type Input = {
 export type Output = State
 
 export default function (in: Input): Output {
-    const matches = in.word == Keyword.Root ? in.state.control.token.symbol == in.symbol :
-        in.state.control.token.word == in.word
+    const matches = match {
+        in.word == Keyword.Root => in.state.control.token.symbol == in.symbol,
+        _ => in.state.control.token.word == in.word
+    }
 
     if (!matches) {
         return fail({

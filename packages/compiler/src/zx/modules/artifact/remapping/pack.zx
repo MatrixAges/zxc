@@ -8,16 +8,16 @@ export type Output = {
     functions: u32[]
 }?
 
-    export default function (in: Input): Output {
-        const types = in.types
-        const functions = in.functions
+export default function (in: Input): Output {
+    const types = in.types
+    const functions = in.functions
 
-        if (types == null || functions == null) {
-            return null
-        }
-
-        return {
-            types,
-            functions
-        }
+    if (types == null || functions == null) {
+        return null
     }
+
+    return {
+        types,
+        functions
+    }
+}

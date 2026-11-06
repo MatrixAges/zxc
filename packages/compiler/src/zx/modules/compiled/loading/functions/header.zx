@@ -20,10 +20,12 @@ export default function (in: Input): Output {
     const source = in.request.source
     const native_id = source.native_modules[in.index]
 
-    const module_id: u32? = native_id == null ? null :
-        in.request.natives[integers.widen(
+    const module_id: u32? = match {
+        native_id == null => null,
+        _ => in.request.natives[integers.widen(
             native_id
         )]
+    }
 
     return {
         file: scope({

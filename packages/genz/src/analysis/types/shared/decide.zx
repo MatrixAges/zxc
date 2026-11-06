@@ -40,9 +40,12 @@ export default function (in: Input): Output {
 
     if (request.mode == Mode.Abi) {
         const condition = (
-            - target != Kind.Optional
-            - and target != Kind.List
-            - and target != Kind.Task
+            match target {
+                Kind.Optional => false,
+                Kind.List => false,
+                Kind.Task => false,
+                _ => true
+            }
         )
 
         if (condition) {
@@ -59,9 +62,12 @@ export default function (in: Input): Output {
             }
         }
     } else {
+        const valid_selected =
+            selected && (target == Kind.Object || target == Kind.Tuple)
+
         const condition_2 = (
             - target == Kind.Optional
-            - or (selected && (target == Kind.Object || target == Kind.Tuple))
+            - or (valid_selected)
         )
 
         if (condition_2) {
@@ -140,25 +146,29 @@ export default function (in: Input): Output {
         }
     }
 
+    const valid_mode = request.mode == Mode.State && target == Kind.Optional
+
+    const valid_mode_2 = request.mode == Mode.View && inline_list
+
+    const product = target == Kind.Object || target == Kind.Tuple
+    const state_value = target == Kind.Optional || (selected && product)
+
+    const state_view = (
+        - request.mode == Mode.View
+        - and state_value
+    )
+
+    const child_id = (
+        - request.mode == Mode.Abi
+        - or valid_mode
+        - or valid_mode_2
+    )
+
     const dependency: Request = {
-        id: (
-            - request.mode == Mode.Abi
-            - or (request.mode == Mode.State && target == Kind.Optional)
-            - or (request.mode == Mode.View && inline_list)
-        ) ? first : request.id,
+        id: child_id ? first : request.id,
         mode: match {
             request.mode == Mode.Abi => Mode.Abi,
-            request.mode == Mode.State && target == Kind.Optional => Mode.State,
-            (
-                - request.mode == Mode.View
-                - and (
-                    - target == Kind.Optional
-                    - or (
-                        selected &&
-                            (target == Kind.Object || target == Kind.Tuple)
-                    )
-                )
-            ) => Mode.State,
+            valid_mode || state_view => Mode.State,
             _ => Mode.Abi
         }
     }
@@ -179,8 +189,10 @@ export default function (in: Input): Output {
             request.mode == Mode.View && inline_list => Action.Slice,
             _ => Action.Alias
         },
-        child: request.mode == Mode.View && inline_list ?
-            resolved.layout : resolved.value,
+        child: match {
+            request.mode == Mode.View && inline_list => resolved.layout,
+            _ => resolved.value
+        },
         value: resolved.value,
         layout: resolved.layout
     }

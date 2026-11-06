@@ -31,13 +31,18 @@ export default function (in: Input): Output {
         next: current => {
             const kind = current.kinds[current.index]
 
+            const valid_kind = match kind {
+                ExpressionKind.Task => true,
+                ExpressionKind.AwaitTask => true,
+                ExpressionKind.CancelTask => true,
+                ExpressionKind.Parallel => true,
+                _ => false
+            }
+
             const condition = (
                 - current.tasks
                 - and (
-                    - kind == ExpressionKind.Task
-                    - or kind == ExpressionKind.AwaitTask
-                    - or kind == ExpressionKind.CancelTask
-                    - or kind == ExpressionKind.Parallel
+                    valid_kind
                 )
             )
 
@@ -52,15 +57,17 @@ export default function (in: Input): Output {
                             )]
                     )
 
-                current.valid =
-                    (
-                        - current.self_function != null
-                        - and target == current.self_function
-                        - or (
-                            target < current.limit &&
-                                current.allowed[target] == current.expected
-                        )
-                    )
+                const is_self_function = match {
+                    current.self_function != null => target == current.self_function,
+                    _ => false
+                }
+
+                current.valid = match {
+                    is_self_function => true,
+                    target < current.limit =>
+                        current.allowed[target] == current.expected,
+                    _ => false
+                }
             }
 
             current.index += 1
