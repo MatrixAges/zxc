@@ -51,25 +51,31 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
     };
 
     // Zig's own backend needs Apple's linker for a runnable result, and the host object calling into its partitions
-    // must come from the same backend. The entry library stays on LLVM: it only exports C symbols, and Apple's linker
-    // rejects Zig's own archives.
+    // must come from the same backend. That path keeps a separate LLVM entry library: Apple's linker rejects
+    // Zig's own archives, and only C symbols cross the backend boundary.
     const system_link = @import("system_link.zig");
-    const self_hosted = inputs.self_hosted_partitions != null and system_link.available(b, target);
+    const platform = system_link.available(b, target);
+    const self_hosted = inputs.self_hosted_partitions != null and platform;
+    const combined = platform and !self_hosted;
 
-    // With partitioned generated code the CLI is its own object as well, so a changed partition only relinks.
-    const host = b.addObject(.{ .name = "zxc_host", .use_llvm = if (self_hosted) false else null, .root_module = b.createModule(.{
+    if (combined) inputs.host.link_libc = true;
+
+    // LLVM can keep the standard entry and host in one archive; only the cross-backend link needs a C boundary.
+    const host = if (combined) b.addLibrary(.{ .name = "zxc_host", .linkage = .static, .root_module = inputs.host }) else b.addObject(.{ .name = "zxc_host", .use_llvm = if (self_hosted) false else null, .root_module = b.createModule(.{
         .root_source_file = b.path("src/host/export.zig"),
         .target = target,
         .optimize = optimize,
         .imports = &.{.{ .name = "main", .module = inputs.host }},
     }) });
 
-    const start = b.createModule(.{ .root_source_file = b.path("src/host/start.zig"), .target = target, .optimize = optimize, .link_libc = true });
+    const start = if (combined) inputs.host else b.createModule(.{ .root_source_file = b.path("src/host/start.zig"), .target = target, .optimize = optimize, .link_libc = true });
 
     // The platform link defines the identity in an object of its own, so the entry unit stays cached across edits.
-    if (system_link.available(b, target)) start.addOptions("cache_identity", b.addOptions()) else start.addImport("cache_identity", inputs.cache_identity.module(b));
+    if (!combined) {
+        if (platform) start.addOptions("cache_identity", b.addOptions()) else start.addImport("cache_identity", inputs.cache_identity.module(b));
+    }
 
-    const entry = b.addLibrary(.{ .name = "zxc_start", .linkage = .static, .root_module = start });
+    const entry = if (combined) host else b.addLibrary(.{ .name = "zxc_start", .linkage = .static, .root_module = start });
     var linked: std.ArrayList(*std.Build.Step.Compile) = .empty;
     // The platform link gets the runtimes Zig adds to its own executables from the entry library: compiler_rt,
     // and the sanitizer runtime the bundled C sources call in Debug.
@@ -78,7 +84,7 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
 
     var files: std.ArrayList(std.Build.LazyPath) = .empty;
 
-    linked.append(b.allocator, host) catch @panic("OOM");
+    if (!combined) linked.append(b.allocator, host) catch @panic("OOM");
 
     if (self_hosted) {
         inputs.self_hosted_partitions.?.addStepDependencies(&host.step);
@@ -98,7 +104,7 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
 
     linked.append(b.allocator, inputs.yaml) catch @panic("OOM");
 
-    if (system_link.available(b, target)) return .{ .file = system_link.link(b, target, entry, linked.items, files.items, inputs.cache_identity.assembly(b), self_hosted) };
+    if (platform) return .{ .file = system_link.link(b, target, entry, linked.items, files.items, inputs.cache_identity.assembly(b), self_hosted) };
 
     start.addObject(host);
     start.linkLibrary(inputs.yaml);
