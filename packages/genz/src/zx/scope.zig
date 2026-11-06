@@ -71,6 +71,10 @@ fn lowerMode(self: *Lower, scope: ir.ScopeRow, layout: bool) Lower.Error!node.Ex
         }
     }
 
+    const reuse = try @import("scope/reuse.zig").create(self, scope);
+
+    defer if (reuse) |*plan| plan.restore(self);
+
     var consumed_last = false;
     var result: ?node.ExpressionId = null;
 
@@ -98,6 +102,12 @@ fn lowerMode(self: *Lower, scope: ir.ScopeRow, layout: bool) Lower.Error!node.Ex
         const binding = scope.bindings.at(offset);
         var output: std.ArrayList(node.Statement) = .empty;
 
+        if (reuse) |*plan| if (try plan.append(self, &output, offset)) {
+            statements[offset] = try output.toOwnedSlice(self.allocator);
+
+            continue;
+        };
+
         if (binding.symbol) |symbol| {
             if (!self.used[@backingInt(symbol)] and self.program.expression(binding.value).value == .reference) {
                 statements[offset] = &.{};
@@ -122,11 +132,13 @@ fn lowerMode(self: *Lower, scope: ir.ScopeRow, layout: bool) Lower.Error!node.Ex
             const index = @backingInt(symbol);
 
             if (self.used[index]) {
-                try output.append(self.allocator, .{ .constant = .{
+                const declaration: node.Constant = .{
                     .name = self.names[index],
                     .type_expr = if (self.loop_fields != null and self.loop_fields.?.symbol(symbol)) self.loop_fields.?.layout else if (by_value) try self.layoutExpr(self.program.symbols.at(index).type_id) else try self.typeExpr(self.program.symbols.at(index).type_id),
                     .value = value,
-                } });
+                };
+
+                try output.append(self.allocator, if (reuse != null and reuse.?.variables[offset]) .{ .variable = declaration } else .{ .constant = declaration });
             } else try output.append(self.allocator, .{ .discard = value });
         } else try output.append(self.allocator, .{ .discard = value });
 

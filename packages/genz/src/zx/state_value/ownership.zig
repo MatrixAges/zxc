@@ -51,16 +51,16 @@ pub fn projected(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.Expr
         .value = value,
     } });
 
-    try clear(self, body, id, type_id, source, slot);
+    if (!try @import("ownership/outlined.zig").append(self, body, id, type_id, source, slot)) try clear(self, body, id, type_id, source, slot);
 
     return source;
 }
 
-fn count(self: *const Lower, id: ir.TypeId) u32 {
+pub fn count(self: *const Lower, id: ir.TypeId) u32 {
     return if (@backingInt(id) < self.slot_counts.len) self.slot_counts[@backingInt(id)] else 0;
 }
 
-fn needed(self: *const Lower, id: ir.ExprId, type_id: ir.TypeId, slot: u32) bool {
+pub fn needed(self: *const Lower, id: ir.ExprId, type_id: ir.TypeId, slot: u32) bool {
     const target = self.program.typeOf(type_id);
 
     if (target == .optional) return needed(self, id, target.optional, slot);
@@ -90,7 +90,7 @@ fn needed(self: *const Lower, id: ir.ExprId, type_id: ir.TypeId, slot: u32) bool
     return false;
 }
 
-fn clear(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId, type_id: ir.TypeId, value: node.ExpressionId, slot: u32) Lower.Error!void {
+pub fn clear(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId, type_id: ir.TypeId, value: node.ExpressionId, slot: u32) Lower.Error!void {
     if (!needed(self, id, type_id, slot)) return;
 
     const target = self.program.typeOf(type_id);

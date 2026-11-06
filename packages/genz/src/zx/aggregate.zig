@@ -12,6 +12,8 @@ pub fn objectValue(self: *Lower, id: ir.ExprId) Lower.Error!node.ExpressionId {
 }
 
 fn objectMode(self: *Lower, id: ir.ExprId, value: @FieldType(@FieldType(ir.ExpressionRow, "value"), "object"), layout: bool) Lower.Error!node.ExpressionId {
+    if (try @import("object_update.zig").lower(self, id)) |updated| return updated;
+
     const saved = try self.allocator.alloc(?node.ExpressionId, value.evaluation.len);
 
     for (value.evaluation, 0..) |item, index| saved[index] = self.cache.get(item);
