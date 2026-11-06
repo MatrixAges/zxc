@@ -66,17 +66,9 @@ pub fn generate(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, r
 
     std.mem.sort(compiler.project.Source, sources.items, {}, collection.lessSource);
     std.mem.sort(rx.TextSource, modules.items, {}, collection.lessModule);
+    std.mem.sort(compiler.project.Resource, templates.items, {}, collection.lessResource);
 
     for (sources.items) |*source| source.templates = templates.items;
-
-    const prepared_sources = switch (try compiler.project.prepareSources(allocator, sources.items, .{ .entry = "" })) {
-        .sources => |items| items,
-        .diagnostic => |issue| {
-            std.debug.print("{s}: {s}\n", .{ sources.items[issue.source_index.?].path, issue.message });
-
-            return error.InvalidTemplateResource;
-        },
-    };
 
     const packages = try allocator.alloc(compiler.project.Package, project.packages.len);
     var package_hash = compiler.Sha256.init(.{});
@@ -90,24 +82,17 @@ pub fn generate(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, r
 
     for (modules.items) |*module| module.packages = packages;
 
-    const parsed = try resident.modules.parse(modules.items, package_hash.finalResult());
-
-    if (parsed.value == .diagnostic) {
-        std.debug.print("{s}: {s}\n", .{ modules.items[parsed.value.diagnostic.source_index].path, parsed.value.diagnostic.issue.message });
-
-        return error.InvalidParserModule;
-    }
-
-    const inputs = try allocator.alloc(rx.ModuleSource, modules.items.len);
-
-    for (inputs, modules.items, parsed.parsed) |*item, source, module| item.* = .{ .path = source.path, .node = module.value.node, .packages = packages };
-
     const interfaces = try allocator.alloc(compiler.project.NativeInterface, project.interfaces.len);
+    var interface_error: ?anyerror = null;
 
     for (project.interfaces, interfaces) |interface, *target| {
         const source = for (sources.items) |candidate| {
             if (std.mem.eql(u8, candidate.path, interface.path)) break candidate.source;
-        } else try std.Io.Dir.cwd().readFileAlloc(io, interface.path, allocator, .unlimited);
+        } else std.Io.Dir.cwd().readFileAlloc(io, interface.path, allocator, .unlimited) catch |err| unread: {
+            if (interface_error == null) interface_error = err;
+
+            break :unread "";
+        };
 
         target.* = .{ .specifier = interface.specifier, .path = interface.path, .source = source, .module = interface.module };
     }
@@ -117,10 +102,10 @@ pub fn generate(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, r
     for (modules.items, rx_digests) |module, *item| item.* = .{ .path = module.path, .digest = resident.files.digest(module.path, module.source) };
 
     const frame = frameDigest(resident.digest, manifest_source, rx_digests, interfaces, true);
-    const inputs_digest = fingerprint(frame, partitions, prepared_sources, &resident.files);
+    const inputs_digest = fingerprint(frame, partitions, sources.items, templates.items, &resident.files);
 
     // An output directory reused across runs already holds the result when nothing it depends on changed.
-    if (request.write and try current(io, allocator, output, inputs_digest)) return "";
+    if (request.write and interface_error == null and try current(io, allocator, output, inputs_digest)) return "";
 
     const recorded = try std.fs.path.join(allocator, &.{ output, shared_output.fingerprint_name });
 
@@ -128,6 +113,29 @@ pub fn generate(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, r
         error.FileNotFound => {},
         else => return err,
     };
+
+    const prepared_sources = switch (try compiler.project.prepareSources(allocator, sources.items, .{ .entry = "" })) {
+        .sources => |items| items,
+        .diagnostic => |issue| {
+            std.debug.print("{s}: {s}\n", .{ sources.items[issue.source_index.?].path, issue.message });
+
+            return error.InvalidTemplateResource;
+        },
+    };
+
+    const parsed = try resident.modules.parse(modules.items, package_hash.finalResult());
+
+    if (parsed.value == .diagnostic) {
+        std.debug.print("{s}: {s}\n", .{ modules.items[parsed.value.diagnostic.source_index].path, parsed.value.diagnostic.issue.message });
+
+        return error.InvalidParserModule;
+    }
+
+    if (interface_error) |err| return err;
+
+    const inputs = try allocator.alloc(rx.ModuleSource, modules.items.len);
+
+    for (inputs, modules.items, parsed.parsed) |*item, source, module| item.* = .{ .path = source.path, .node = module.value.node, .packages = packages };
 
     const summary = try @import("shared_generation.zig").run(io, allocator, resident, project.entries, .{
         .modules = inputs,
@@ -166,16 +174,22 @@ fn frameDigest(generator: [32]u8, manifest_source: []const u8, modules: []const 
     return hash.finalResult();
 }
 
-/// The frame and every ZX source; sources enter by their digests, which `files` keeps for unchanged texts.
-fn fingerprint(frame: [32]u8, partitions: u32, sources: []const compiler.project.Source, files: *Files) [32]u8 {
+/// The frame and raw ZX/template inputs; a matching output needs no template expansion or RX parsing.
+fn fingerprint(frame: [32]u8, partitions: u32, sources: []const compiler.project.Source, templates: []const compiler.project.Resource, files: *Files) [32]u8 {
     var hash = compiler.Sha256.init(.{});
 
+    field(&hash, "zxc.bootstrap.inputs.v2");
     hash.update(&frame);
     hash.update(std.mem.asBytes(&partitions));
 
     for (sources) |source| {
         field(&hash, source.path);
         hash.update(&files.digest(source.path, source.source));
+    }
+
+    for (templates) |template| {
+        field(&hash, template.path);
+        hash.update(&files.digest(template.path, template.source));
     }
 
     var digest: [32]u8 = undefined;

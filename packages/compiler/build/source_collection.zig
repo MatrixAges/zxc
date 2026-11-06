@@ -13,6 +13,10 @@ pub fn lessModule(_: void, left: rx.TextSource, right: rx.TextSource) bool {
     return std.mem.lessThan(u8, left.path, right.path);
 }
 
+pub fn lessResource(_: void, left: compiler.project.Resource, right: compiler.project.Resource) bool {
+    return std.mem.lessThan(u8, left.path, right.path);
+}
+
 /// Appends the ZX and RX sources under `root`, named with `prefix`; `files`, when given, owns their texts. The tree is
 /// listed one depth at a time, every directory of a depth on its own core, and a listed file whose metadata vouches for
 /// the text `files` kept takes that text there; the calling thread reads the others afterwards.
