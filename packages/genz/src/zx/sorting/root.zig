@@ -33,7 +33,7 @@ pub fn lower(self: *Lower, id: ir.ExprId, value: ir.Transform) Lower.Error!node.
     const reuse = try aggregate.bind(self, &body, if (self.plan.get(id).in_place)
         try self.builder.expression(.{ .boolean = true })
     else if (lists.selected(self, list_type))
-        try lists.exclusive(self, source_value)
+        try lists.writable(self, source_value)
     else
         try self.builder.expression(.{ .boolean = false }));
     const environment = try aggregate.bind(self, &body, try self.expr(value.initial.?));
