@@ -1,0 +1,39 @@
+import integers from "std:integer"
+
+import { level_modulus } from "../../replay/ordered/const"
+import { level_pair_radix, level_count_width } from "./const"
+import integer from "./integer"
+
+import type { Levels as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const state = integer({
+        state: in.state,
+        value: integers.narrow(in.values.length)
+            -> integers.widen(_),
+        width: level_count_width
+    })
+
+    return loop({
+        state,
+        index: 0
+    }, {
+        while: (current, values) => current.index < values.length,
+        next: (current, values) => {
+            const lower = values[current.index] % level_modulus
+                -> integers.widenByte(_)
+            const upper = current.index + 1 < values.length
+            ? values[current.index + 1] % level_modulus
+                -> integers.widenByte(_)
+            : 0
+            const byte = integers.narrowByte(lower + upper * level_pair_radix)
+
+            current.state.buffer = current.state.end < current.state.buffer.length
+            ? current.state.buffer.with(current.state.end, byte)
+            : current.state.buffer.push(byte)[0]
+            current.state.end += 1
+            current.index += 2
+        },
+        return: current => current.state
+    }, in.values)
+}

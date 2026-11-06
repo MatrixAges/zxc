@@ -1,0 +1,20 @@
+export type State = {
+    buffer: u8[],
+    end: u64
+}
+
+export type Append = {
+    state: State,
+    bytes: u8[]
+}
+
+export type Integer = {
+    state: State,
+    value: u64,
+    width: u64
+}
+
+export type Levels = {
+    state: State,
+    values: u8[]
+}

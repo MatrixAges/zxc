@@ -1,0 +1,56 @@
+const std = @import("std");
+const creating = @import("generated_uniqueness_memo_create");
+const resetting = @import("generated_uniqueness_memo_reset");
+const appending = @import("generated_uniqueness_memo_append");
+const writing = @import("generated_uniqueness_memo_integer");
+const packing = @import("generated_uniqueness_memo_levels");
+const State = @typeInfo(@typeInfo(@TypeOf(creating.executeState)).@"fn".return_type.?).error_union.payload;
+const Self = @This();
+
+state: State,
+pub fn init() Self {
+    var empty = std.heap.FixedBufferAllocator.init(&.{});
+    const state = creating.executeState(empty.allocator(), {}) catch unreachable;
+
+    return .{ .state = state };
+}
+
+pub fn reset(self: *Self) void {
+    var empty = std.heap.FixedBufferAllocator.init(&.{});
+
+    self.call(empty.allocator(), resetting.executeState, self.state) catch unreachable;
+}
+
+pub fn bytes(self: *const Self) []const u8 {
+    return self.state.buffer.items[0..@intCast(self.state.end)];
+}
+
+pub fn append(self: *Self, allocator: std.mem.Allocator, values: []const u8) std.mem.Allocator.Error!void {
+    try self.call(allocator, appending.executeState, .{ .state = self.state, .bytes = .{ .items = values, .storage = .plain } });
+}
+
+pub fn integer(self: *Self, allocator: std.mem.Allocator, value: u64, width: usize) std.mem.Allocator.Error!void {
+    try self.call(allocator, writing.executeState, .{ .state = self.state, .value = value, .width = @as(u64, @intCast(width)) });
+}
+
+pub fn levels(self: *Self, allocator: std.mem.Allocator, values: []const u8) std.mem.Allocator.Error!void {
+    try self.call(allocator, packing.executeState, .{ .state = self.state, .values = .{ .items = values, .storage = .plain } });
+}
+
+fn Input(comptime function: anytype) type {
+    const parameter = @typeInfo(@TypeOf(function)).@"fn".param_types[1].?;
+
+    return if (@typeInfo(parameter) == .pointer) std.meta.Child(parameter) else parameter;
+}
+
+fn call(self: *Self, allocator: std.mem.Allocator, comptime function: anytype, input: Input(function)) std.mem.Allocator.Error!void {
+    const parameter = @typeInfo(@TypeOf(function)).@"fn".param_types[1].?;
+
+    self.state = function(allocator, if (@typeInfo(parameter) == .pointer) &input else input) catch |err| return failure(err);
+}
+
+fn failure(err: anyerror) std.mem.Allocator.Error {
+    if (err == error.OutOfMemory) return error.OutOfMemory;
+
+    std.debug.panic("memo encoding failed: {s}", .{@errorName(err)});
+}

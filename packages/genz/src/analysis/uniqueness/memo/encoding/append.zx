@@ -1,0 +1,20 @@
+import type { Append as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return loop({
+        state: in.state,
+        index: 0
+    }, {
+        while: (current, bytes) => current.index < bytes.length,
+        next: (current, bytes) => {
+            const value = bytes[current.index]
+
+            current.state.buffer = current.state.end < current.state.buffer.length
+            ? current.state.buffer.with(current.state.end, value)
+            : current.state.buffer.push(value)[0]
+            current.state.end += 1
+            current.index += 1
+        },
+        return: current => current.state
+    }, in.bytes)
+}
