@@ -25,11 +25,14 @@
         }}
     />
 
+    <Call fn="read_only" in={$in.program} />
+
     <Call
         fn="roots"
         in={{
             program: $in.program,
             records: $ctx.records,
+            read_only: $ctx.read_only,
             visible: $ctx.visible
         }}
     />

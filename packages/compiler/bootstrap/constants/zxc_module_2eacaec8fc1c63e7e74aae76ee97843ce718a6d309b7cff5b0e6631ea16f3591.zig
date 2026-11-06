@@ -1,10 +1,10 @@
 const std = @import("std");
 const zx_abi = @import("zxc_abi");
 
-pub fn callValue(allocator: ((std).mem).Allocator, in: (zx_abi).value_19ebf3d3daa1235aa9ca0e94693f070406096da386675c891f585ac3f6cab6cf) error{ IndexOutOfBounds, OutOfMemory, }!(zx_abi).value_55236f425e7ca85b27b66cbf27549e540336bb749c48e0162fd9997fd0cd1a60 {
+pub fn callValue(allocator: ((std).mem).Allocator, in: (zx_abi).value_d5a2abbc372f76159966b3930c9c4c5a4acd842be2767b076d686112aa34e82e) error{ IndexOutOfBounds, OutOfMemory, }!(zx_abi).value_629fd55d01eced1adea080e74d2d6104120cc49ea2a7ea4baf0c0cef5ae2d969 {
     @setRuntimeSafety(true);
 
-    const value_1: *const (zx_abi).zx_type_7172f221b5abe933ec705af5a9f87a7f7b6db5c720117ee4399833dfc85d12fb = ((in).input).expressions;
+    const value_1: *const (zx_abi).zx_type_7ffdc377160738ae985ed900d2d45ddfa5421b61324d50b3486bb087ea9c2a78 = ((in).input).expressions;
 
     const value_2: u64 = (try (@import("zxc_module_1556558f3553681db94a81603f876ffbf274fcc003da60e284e06b42ec076761.zig")).call(allocator, block_96: {
         const operand_94 = (block_93: {
@@ -67,7 +67,7 @@ pub fn callValue(allocator: ((std).mem).Allocator, in: (zx_abi).value_19ebf3d3da
             const operand_80 = @as(?*const (zx_abi).zx_type_308af60039628ab4f4c6af8f1a9f436729424c0f23744dd60fe8973cd7a15dc6, null);
             const operand_81 = @as([]const u8, "");
 
-            break :block_82 @as((zx_abi).value_55236f425e7ca85b27b66cbf27549e540336bb749c48e0162fd9997fd0cd1a60, (zx_abi).value_55236f425e7ca85b27b66cbf27549e540336bb749c48e0162fd9997fd0cd1a60{ .frame = operand_77, .child = operand_78, .value = operand_80, .message = operand_81, });
+            break :block_82 @as((zx_abi).value_629fd55d01eced1adea080e74d2d6104120cc49ea2a7ea4baf0c0cef5ae2d969, (zx_abi).value_629fd55d01eced1adea080e74d2d6104120cc49ea2a7ea4baf0c0cef5ae2d969{ .frame = operand_77, .child = operand_78, .value = operand_80, .message = operand_81, });
         };
     }
 
@@ -149,7 +149,7 @@ pub fn callValue(allocator: ((std).mem).Allocator, in: (zx_abi).value_19ebf3d3da
                 const operand_53 = @as(?*const (zx_abi).zx_type_308af60039628ab4f4c6af8f1a9f436729424c0f23744dd60fe8973cd7a15dc6, null);
                 const operand_54 = @as([]const u8, "");
 
-                break :block_55 @as((zx_abi).value_55236f425e7ca85b27b66cbf27549e540336bb749c48e0162fd9997fd0cd1a60, (zx_abi).value_55236f425e7ca85b27b66cbf27549e540336bb749c48e0162fd9997fd0cd1a60{ .frame = operand_50, .child = operand_51, .value = operand_53, .message = operand_54, });
+                break :block_55 @as((zx_abi).value_629fd55d01eced1adea080e74d2d6104120cc49ea2a7ea4baf0c0cef5ae2d969, (zx_abi).value_629fd55d01eced1adea080e74d2d6104120cc49ea2a7ea4baf0c0cef5ae2d969{ .frame = operand_50, .child = operand_51, .value = operand_53, .message = operand_54, });
             };
         }
 
@@ -200,7 +200,7 @@ pub fn callValue(allocator: ((std).mem).Allocator, in: (zx_abi).value_19ebf3d3da
                 const operand_35 = @as(?*const (zx_abi).zx_type_308af60039628ab4f4c6af8f1a9f436729424c0f23744dd60fe8973cd7a15dc6, null);
                 const operand_36 = @as([]const u8, "");
 
-                break :block_37 @as((zx_abi).value_55236f425e7ca85b27b66cbf27549e540336bb749c48e0162fd9997fd0cd1a60, (zx_abi).value_55236f425e7ca85b27b66cbf27549e540336bb749c48e0162fd9997fd0cd1a60{ .frame = operand_26, .child = operand_34, .value = operand_35, .message = operand_36, });
+                break :block_37 @as((zx_abi).value_629fd55d01eced1adea080e74d2d6104120cc49ea2a7ea4baf0c0cef5ae2d969, (zx_abi).value_629fd55d01eced1adea080e74d2d6104120cc49ea2a7ea4baf0c0cef5ae2d969{ .frame = operand_26, .child = operand_34, .value = operand_35, .message = operand_36, });
             };
         }
     }
@@ -266,7 +266,7 @@ pub fn callValue(allocator: ((std).mem).Allocator, in: (zx_abi).value_19ebf3d3da
 
         const operand_7 = @as([]const u8, "");
 
-        break :block_8 @as((zx_abi).value_55236f425e7ca85b27b66cbf27549e540336bb749c48e0162fd9997fd0cd1a60, (zx_abi).value_55236f425e7ca85b27b66cbf27549e540336bb749c48e0162fd9997fd0cd1a60{ .frame = operand_1, .child = operand_2, .value = operand_5, .message = operand_7, });
+        break :block_8 @as((zx_abi).value_629fd55d01eced1adea080e74d2d6104120cc49ea2a7ea4baf0c0cef5ae2d969, (zx_abi).value_629fd55d01eced1adea080e74d2d6104120cc49ea2a7ea4baf0c0cef5ae2d969{ .frame = operand_1, .child = operand_2, .value = operand_5, .message = operand_7, });
     };
 }
 

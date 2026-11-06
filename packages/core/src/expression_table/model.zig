@@ -52,6 +52,7 @@ pub const TransformKind = enum {
     Reduce,
     Every,
     Some,
+    Sort,
 };
 
 pub const UnaryOperator = enum {

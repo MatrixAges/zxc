@@ -1,10 +1,12 @@
 import integers from "std:integer"
+import { type_id_u8, type_id_f64 } from "core/const"
 import { TransformKind } from "core/expression_table/kinds"
 import { Kind } from "core/type_table/model"
 
 import gather from "../../captures/gather"
 import leave from "../../captures/leave"
 import construct from "../../types/construct"
+import { comparison_type_error } from "../sorting/const"
 
 import type { Span } from "../../../../frontend/lexer/token_model"
 import type { Prepared } from "../../model"
@@ -38,6 +40,33 @@ export default function (in: Input): Output {
             local: in.state.local,
             frame: in.frame
         })
+    }
+
+    const body_type = state.local.expressions.types[integers.widen(in.body)]
+
+    const invalid = (
+        - in.kind == TransformKind.Sort
+        - and (body_type < type_id_u8 || body_type > type_id_f64)
+    )
+
+    if (invalid) {
+        return {
+            state: {
+                ...state,
+                diagnostic: {
+                    code: "type_mismatch",
+                    message: comparison_type_error,
+                    start: in.span.start,
+                    end: in.span.end
+                }
+            },
+            callback: {
+                parameters: in.parameters,
+                captures,
+                body: in.body
+            },
+            result_type: in.result_type
+        }
     }
 
     const result = in.kind == TransformKind.Map ? construct({

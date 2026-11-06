@@ -1,4 +1,5 @@
 import integers from "std:integer"
+import { type_id_bool, type_id_u64 } from "core/const"
 import { TransformKind } from "core/expression_table/kinds"
 import { Kind } from "core/type_table/model"
 
@@ -52,35 +53,41 @@ export default function (in: Input): Output {
         id: hint ?? 0
     })
 
-    const body: u32? =
+    const body: u32? = match {
+        in.kind == TransformKind.Sort => null,
         in.kind == TransformKind.Filter || in.kind == TransformKind.Every ||
-        in.kind == TransformKind.Some
-        -> match {
-            (_) => 1,
-            in.kind == TransformKind.Reduce => accumulator,
-            hint != null && target.kind == Kind.List => target.first,
-            _ => null,
-        }
+            in.kind == TransformKind.Some => type_id_bool,
+        in.kind == TransformKind.Reduce => accumulator,
+        hint != null && target.kind == Kind.List => target.first,
+        _ => null
+    }
 
-    const parameters: u32[] =
-        in.kind == TransformKind.Reduce ? [
+    const parameters: u32[] = match in.kind {
+        TransformKind.Sort => [
+            element,
+            element
+        ],
+        TransformKind.Reduce => [
             accumulator,
             element,
-            5,
+            type_id_u64,
             source
-        ] : [
+        ],
+        _ => [
             element,
-            5,
+            type_id_u64,
             source
         ]
+    }
 
     return {
         parameters,
         body,
         result: match in.kind {
             TransformKind.Filter => source,
+            TransformKind.Sort => source,
             TransformKind.Reduce => accumulator,
-            _ => 1,
+            _ => type_id_bool,
         }
     }
 }

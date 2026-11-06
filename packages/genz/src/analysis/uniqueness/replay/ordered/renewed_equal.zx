@@ -1,0 +1,32 @@
+import { level_modulus } from "./const"
+
+import type { Renewed } from "./model"
+
+export type Input = {
+    left: Renewed[],
+    right: Renewed[]
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    if (in.left.length != in.right.length) {
+        return false
+    }
+
+    return loop({
+        index: 0,
+        equal: true
+    }, {
+        while: (state, source) => state.equal && state.index < source.left.length,
+        next: (state, source) => {
+            const left = source.left[state.index]
+            const right = source.right[state.index]
+
+            state.equal = left.key == right.key &&
+                left.want % level_modulus == right.want % level_modulus
+            state.index += 1
+        },
+        return: state => state.equal
+    }, in)
+}

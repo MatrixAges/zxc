@@ -6,7 +6,7 @@ pub fn agree(comptime kind: Memo.Kind, allocator: std.mem.Allocator, left: Memo.
     const comparison = switch (kind) {
         .settled => @import("generated_uniqueness_replay_settled"),
         .planned => @import("generated_uniqueness_replay_planned"),
-        .demanded => @compileError("Demand results require set comparison"),
+        .demanded => @import("generated_uniqueness_replay_demanded"),
     };
 
     const Parameter = @typeInfo(@TypeOf(comparison.executeValue)).@"fn".param_types[1].?;

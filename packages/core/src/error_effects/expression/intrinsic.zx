@@ -124,7 +124,8 @@ export default function (in: Input): Output {
         const operation = expressions.transform_kinds[integers.widen(payload)]
 
         return operation == TransformKind.Map ||
-            operation == TransformKind.Filter ? in.names.push(
+            operation == TransformKind.Filter || operation == TransformKind.Sort ?
+            in.names.push(
                 "OutOfMemory"
             )[0] : in.names
     }

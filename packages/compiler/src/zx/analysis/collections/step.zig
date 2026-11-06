@@ -45,6 +45,7 @@ pub fn build(builder: Builder, kind: @FieldType(ir.Transform, "kind"), parameter
     const value = try builder.reference(computed);
 
     const result = switch (kind) {
+        .sort => unreachable,
         .map => try builder.push(previous, value),
         .filter => try builder.expression(analyzer.node(previous).type_id, .{ .conditional = .{ .condition = value, .yes = try builder.push(previous, item), .no = previous } }),
         .reduce, .every, .some => value,

@@ -1,0 +1,34 @@
+import { sort_less, sort_equal, sort_greater } from "./const"
+import equal from "./normalized_equal"
+
+import type { Input, Output } from "./normalized_equal"
+
+export default function (in: Input): Output {
+    if (in.left.length != in.right.length) {
+        return false
+    }
+
+    if (equal(in)) {
+        return true
+    }
+
+    return {
+        left: in.left.sort(
+            (left, right) =>
+                match {
+                    left.id < right.id => sort_less,
+                    left.id == right.id => sort_equal,
+                    _ => sort_greater
+                }
+        )[0],
+        right: in.right.sort(
+            (left, right) =>
+                match {
+                    left.id < right.id => sort_less,
+                    left.id == right.id => sort_equal,
+                    _ => sort_greater
+                }
+        )[0]
+    }
+        -> equal(_)
+}

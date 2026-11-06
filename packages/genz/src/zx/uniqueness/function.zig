@@ -502,7 +502,7 @@ fn node(self: *Self, id: ir.ExprId, slot: u32) Level {
         },
         .list_update => |update| Level.written(self.level(update.target, 0)),
         .transform => |transform| switch (transform.kind) {
-            .map, .filter => .fresh,
+            .map, .filter, .sort => .fresh,
             .reduce => self.carried.get(id).?[slot].meet(self.level(transform.initial.?, slot)),
             .every, .some => .none,
         },

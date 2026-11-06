@@ -12,7 +12,8 @@ import type { Program } from "../model"
 export type Input = {
     program: Program,
     records: bool[],
-    visible: bool[]
+    visible: bool[],
+    read_only: bool
 }
 
 export type Output = u32[]
@@ -68,6 +69,7 @@ export default function (in: Input): Output {
         -> _.concat(sharing({
             types: in.program.types,
             records: in.records,
+            read_only: in.read_only,
             tables:
                 [in.program.expressions].concat(in.program.contracts.expressions)[0]
         }))[0]
@@ -76,6 +78,7 @@ export default function (in: Input): Output {
         functions: in.program.functions,
         types: in.program.types,
         records: in.records,
+        read_only: in.read_only,
         index: 0,
         roots: shared
     }, {
@@ -104,6 +107,7 @@ export default function (in: Input): Output {
             current.roots = current.roots.concat(sharing({
                 types: current.types,
                 records: current.records,
+                read_only: current.read_only,
                 tables: [current.functions.expressions[position]].concat(
                     current.functions.contracts[position].expressions
                 )[0]

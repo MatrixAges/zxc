@@ -52,7 +52,10 @@ export default function (in: Input): Output {
         return close(in)
     }
 
-    if (in.control.token.kind != Kind.Identifier) {
+    if (
+        in.control.token.kind != Kind.Identifier &&
+            in.control.token.kind != Kind.Keyword
+    ) {
         return fail({
             state: in,
             code: "syntax",

@@ -14,6 +14,7 @@ import {
     unsupported_code,
     clone_message
 } from "../../calls/const"
+import { method_sort } from "../../calls/list/const"
 import plan from "../../calls/list/plan"
 import items from "../../items"
 import { method_pick, method_omit } from "../../selection/const"
@@ -119,6 +120,7 @@ export default function (in: Input): Output {
         - or name.text == "filter"
         - or name.text == "every"
         - or name.text == "some"
+        - or (name.text == method_sort && node.count != 0)
     )
 
     if (condition_2) {
@@ -127,6 +129,7 @@ export default function (in: Input): Output {
             method_reduce => TransformKind.Reduce,
             "filter" => TransformKind.Filter,
             "every" => TransformKind.Every,
+            method_sort => TransformKind.Sort,
             _ => TransformKind.Some
         }
 
@@ -137,11 +140,16 @@ export default function (in: Input): Output {
             kind
         })
 
+        const tuple_result = (
+            - kind == TransformKind.Map
+            - or kind == TransformKind.Filter
+            - or kind == TransformKind.Reduce
+            - or kind == TransformKind.Sort
+        )
+
         return transform({
             projection: hint.projection,
-            tuple_result:
-                kind == TransformKind.Map || kind == TransformKind.Filter ||
-                kind == TransformKind.Reduce,
+            tuple_result,
             work: {
                 ...in,
                 frames: {

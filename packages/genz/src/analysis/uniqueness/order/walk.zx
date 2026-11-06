@@ -343,6 +343,9 @@ export default function (in: Input): Output {
                                 count: integers.widen(
                                     table.transform_count[payload]
                                 ),
+                                context:
+                                    table.transform_kinds[payload] == TransformKind.Sort ?
+                                    table.transform_initials[payload] : null,
                                 reduce:
                                     table.transform_kinds[payload] ==
                                     TransformKind.Reduce,
@@ -360,11 +363,19 @@ export default function (in: Input): Output {
                                     const carried =
                                         parameters.reduce && parameters.index == 0
 
+                                    const context = parameters.context
+                                    const captured =
+                                        context != null && parameters.index == 2
+
                                     parameters.definitions[target] = {
                                         ...parameters.definitions[target],
-                                        kind: carried ? Definition.Carried :
-                                            Definition.Element,
-                                        value: parameters.owner,
+                                        kind: match {
+                                            captured => Definition.Value,
+                                            carried => Definition.Carried,
+                                            _ => Definition.Element
+                                        },
+                                        value: captured && context != null ? context :
+                                            parameters.owner,
                                         repeated: parameters.repeated
                                     }
                                     parameters.index += 1

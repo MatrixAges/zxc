@@ -1,0 +1,52 @@
+<Module>
+    <Type from="model" as="Model" />
+    <Type from="building/integer" as="Result" />
+
+    <Args in={Model.Options} out={Result.Output} />
+
+    <Call
+        fn="building/tuple"
+        in={{
+            state: $in.state,
+            values: $in.callback.captures.values,
+            span: $in.span
+        }}
+    />
+
+    <Call
+        fn="sorting/parameters"
+        in={{
+            state: $ctx.tuple.state,
+            target: $in.target,
+            environment: $ctx.tuple.value,
+            parameters: $in.callback.parameters,
+            span: $in.span
+        }}
+    />
+
+    <Call
+        fn="sorting/body"
+        in={{
+            state: $ctx.parameters.state,
+            context: $ctx.parameters.context,
+            body: $in.callback.body,
+            captures: $in.callback.captures,
+            span: $in.span
+        }}
+    />
+
+    <Call
+        fn="sorting/finish"
+        in={{
+            options: {
+                ...$in,
+                state: $ctx.body.state
+            },
+            environment: $ctx.tuple.value,
+            parameters: $ctx.parameters.parameters,
+            body: $ctx.body.value
+        }}
+    />
+
+    <Return value={$ctx.finish} />
+</Module>

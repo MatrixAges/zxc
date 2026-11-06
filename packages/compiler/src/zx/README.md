@@ -48,11 +48,17 @@ RX 共用语法与值边界检查，图推导把选择挂入既有不动点，�
 
 ## 静态工具导入
 
-普通 `utils` 源码包从 `std:utils` 重导出编译期工具，支持命名、别名与 barrel。
+`std:utils` 提供编译期工具，支持命名导入、别名与 barrel。
 `std:utils` 同时沿用标准模块的 namespace 导入。
 绑定保存互斥的具体函数签名或静态操作身份，身份随编译库和语义缓存传递，不伪造 FunctionId。
 对象选择沿用上述字段逻辑；集合、判空与范围运算降低为既有 IR。
 
-语言原语为 `loop`。`map(array, lambda)` 与 `reduce(array, lambda[, initial])` 通过
-真实导入身份复用 iteration 分析，不提供 `.map/.reduce` 方法或运行时函数值。
-回调的预期类型与外层只读数据沿用 loop 的语义，RX 属性继续拒绝普通函数调用。
+语言原语为 `loop`；数组的 `.map/.filter/.reduce/.every/.some` 静态降低为循环。
+map/filter 返回 `[结果数组, void]`，reduce 返回 `[原数组, 累计值]`，every/some
+返回 bool；不从 std:utils 导出 map/reduce。回调类型与外层只读数据沿用 loop
+的语义，RX 属性继续拒绝普通函数调用。
+
+`.sort()` 保留数字与字符串排序；带内联数值比较器的 `.sort((a, b) => value)`
+支持任意元素和只读捕获，返回 `[新数组, void]`。比较器及捕获静态编译，错误
+由排序表达式传播；不引入运行时函数值。排序保持对象元素共享关系，沿用现有
+非稳定排序契约。

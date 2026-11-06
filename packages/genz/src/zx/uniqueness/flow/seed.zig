@@ -31,7 +31,7 @@ pub const Body = struct {
             };
 
             for (transform.parameters, 0..) |symbol, position| {
-                if (transform.kind == .reduce and position == 0) continue;
+                if ((transform.kind == .reduce and position == 0) or (transform.kind == .sort and position == 2)) continue;
                 try elements.put(allocator, symbol, transform.target);
             }
         }
@@ -222,7 +222,7 @@ pub const Walk = struct {
             .index => |item| if (self.contents) try self.push(item.target, 0),
             .transform => |transform| switch (transform.kind) {
                 .map => if (self.contents) try self.whole(transform.body),
-                .filter => if (self.contents and self.nested(transform.target)) try self.push(transform.target, 0),
+                .filter, .sort => if (self.contents and self.nested(transform.target)) try self.push(transform.target, 0),
                 .reduce => {
                     try self.push(transform.initial.?, slot);
                     try self.push(transform.body, slot);

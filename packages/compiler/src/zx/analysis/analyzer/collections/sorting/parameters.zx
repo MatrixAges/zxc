@@ -1,0 +1,76 @@
+import integers from "std:integer"
+import { Ownership } from "core/symbol_table/model"
+
+import row from "../../../semantic/types/row"
+import reference from "../building/reference"
+import symbol from "../building/symbol"
+import { left_name, right_name, context_name } from "./const"
+
+import type { Span } from "../../../../frontend/lexer/token_model"
+import type { Prepared } from "../../model"
+
+export type Input = {
+    state: Prepared,
+    target: u32,
+    environment: u32,
+    parameters: u32[],
+    span: Span
+}
+
+export type Output = {
+    state: Prepared,
+    parameters: u32[],
+    context: u32
+}
+
+export default function (in: Input): Output {
+    const element = row({
+        tables: {
+            base: in.state.types.context.base,
+            delta: in.state.types.delta
+        },
+        id: in.state.local.expressions.types[integers.widen(in.target)]
+    }).first
+
+    const result = loop({
+        state: in.state,
+        parameters: in.parameters
+    }, {
+        while: current => current.parameters.length < 2,
+        next: (current, source) => {
+            const added = symbol({
+                state: current.state,
+                name: current.parameters.length == 0 ? left_name : right_name,
+                type_id: source.element,
+                ownership: Ownership.Borrowed,
+                span: source.span
+            })
+
+            current.state = added.state
+            current.parameters = current.parameters.push(added.symbol)[0]
+        }
+    }, {
+        element,
+        span: in.span
+    })
+
+    const context = symbol({
+        state: result.state,
+        name: context_name,
+        type_id: result.state.local.expressions.types[integers.widen(in.environment)],
+        ownership: Ownership.Borrowed,
+        span: in.span
+    })
+
+    const value = reference({
+        state: context.state,
+        symbol: context.symbol,
+        span: in.span
+    })
+
+    return {
+        state: value.state,
+        parameters: result.parameters.push(context.symbol)[0],
+        context: value.value
+    }
+}

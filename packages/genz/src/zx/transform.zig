@@ -5,6 +5,8 @@ const Lower = @import("lower.zig");
 const aggregate = @import("aggregate.zig");
 
 pub fn lower(self: *Lower, id: ir.ExprId, value: ir.Transform) Lower.Error!node.ExpressionId {
+    if (value.kind == .sort) return @import("sorting/root.zig").lower(self, id, value);
+
     const state_symbols = try @import("state_value/locals.zig").parameters(self, value);
 
     defer for (state_symbols) |symbol| {

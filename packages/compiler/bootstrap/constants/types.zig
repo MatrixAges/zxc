@@ -1,6 +1,6 @@
 pub const zx_type_2af9665120767ed61dc0e8028c12ae89cfa0b236b6cd3a6cef89b0359def17b5 = enum { Integer, NegativeInteger, Float, String, Boolean, None, Unit, Some, Capture, Task, AwaitTask, CancelTask, Parallel, OptionalValue, EnumValue, ErrorValue, Reference, StoreGet, Field, Index, Length, List, Tuple, TupleField, Template, ListOperation, Transform, Scope, Iteration, ListUpdate, Call, Unary, Binary, Conditional, Match, Object, };
 pub const zx_type_8bd4167dcd5728435999e737ef2b1a179e96481385b73d70247081fd6402bb6d = enum { Push, Pop, Sort, Reverse, Splice, Concat, };
-pub const zx_type_fc8f584736df01963691da707910bd2c2c5e985c675abce771f0b48d679f9ea8 = enum { Map, Filter, Reduce, Every, Some, };
+pub const zx_type_e76202ba7e8fa459e4363bda9b871257e2b192c42640e03e65c79eedcb6527f5 = enum { Map, Filter, Reduce, Every, Some, Sort, };
 pub const zx_type_c6461b7a5dc793cd488e19b7dfaa77adb3feded09802d087ab84f52092ba2cdc = enum { Negate, Not, };
 pub const zx_type_c2cf793e3172a7ed4a668fba2693ad110a34623e2f0f6b109fb61f2967243a7a = enum { Coalesce, Add, Subtract, Multiply, Divide, Remainder, Equal, NotEqual, Less, LessEqual, Greater, GreaterEqual, LogicalAnd, LogicalOr, };
 pub const zx_type_86f402666e2483dcd5c437254561574187b9b98f0b7bf33508f30931fc136725 = enum { Root, Dead, UpperInput, UpperOutput, Underscore, Allocator, As, Async, Await, Break, Cancel, Case, Concurrent, Const, Declare, Default, Delete, Do, Else, Ensures, Enum, Export, False, For, From, Function, If, Import, In, Insert, Io, Let, Loop, Match, New, Next, Null, Process, QueryMany, QueryOne, Requires, Return, Store, Switch, Throw, Throws, Transaction, True, Try, Type, Update, Var, While, };
@@ -33,7 +33,7 @@ pub const zx_type_5a6a0f360a1353fb2b1ac9fda51403ae4d90f905d2e1747e832031c097b501
     target: *const zx_type_8dd5732202898334ee807f5723a53d8c4b095735e131ae1eb7ac2595144fe0ce,
 };
 
-pub const zx_type_7172f221b5abe933ec705af5a9f87a7f7b6db5c720117ee4399833dfc85d12fb = struct {
+pub const zx_type_7ffdc377160738ae985ed900d2d45ddfa5421b61324d50b3486bb087ea9c2a78 = struct {
     awaits: []const u32,
     binary_left: []const u32,
     binary_operators: []const zx_type_c2cf793e3172a7ed4a668fba2693ad110a34623e2f0f6b109fb61f2967243a7a,
@@ -114,7 +114,7 @@ pub const zx_type_7172f221b5abe933ec705af5a9f87a7f7b6db5c720117ee4399833dfc85d12
     transform_count: []const u32,
     transform_first: []const u32,
     transform_initials: []const ?u32,
-    transform_kinds: []const zx_type_fc8f584736df01963691da707910bd2c2c5e985c675abce771f0b48d679f9ea8,
+    transform_kinds: []const zx_type_e76202ba7e8fa459e4363bda9b871257e2b192c42640e03e65c79eedcb6527f5,
     transform_parameters: []const u32,
     transform_targets: []const u32,
     types: []const u32,
@@ -266,8 +266,8 @@ pub const zx_type_374d081f355fd18c68751135bfa3a434f73641e64e935769510631d7522164
     value: *const zx_type_308af60039628ab4f4c6af8f1a9f436729424c0f23744dd60fe8973cd7a15dc6,
 };
 
-pub const zx_type_b22857c6d80394aafb96a5095c5262fe2a0bc132890c2999fadf486eda660b6f = struct {
-    expressions: *const zx_type_7172f221b5abe933ec705af5a9f87a7f7b6db5c720117ee4399833dfc85d12fb,
+pub const zx_type_a2f55696926fa6cae227a00b4b0c8ef9b9fe8830a5393ec29139ceff8a5bc53c = struct {
+    expressions: *const zx_type_7ffdc377160738ae985ed900d2d45ddfa5421b61324d50b3486bb087ea9c2a78,
     root: u32,
 };
 
@@ -282,9 +282,9 @@ pub const zx_type_747aec58ab0a369e096dbf03c4b1be971405ed683dc5acaf4e98157d277d08
     values: []const ?*const zx_type_308af60039628ab4f4c6af8f1a9f436729424c0f23744dd60fe8973cd7a15dc6,
 };
 
-pub const zx_type_d374c65fa05c48ddd6bb079887a44fec10d4fc6dcf600a90427f98c1a8b60dff = struct {
+pub const zx_type_3528180fd373a5a0c276e40ab64970a4c5db15f49dd01fd3379db0094362ba3b = struct {
     cursor: *const zx_type_747aec58ab0a369e096dbf03c4b1be971405ed683dc5acaf4e98157d277d0872,
-    input: *const zx_type_b22857c6d80394aafb96a5095c5262fe2a0bc132890c2999fadf486eda660b6f,
+    input: *const zx_type_a2f55696926fa6cae227a00b4b0c8ef9b9fe8830a5393ec29139ceff8a5bc53c,
 };
 
 pub const zx_type_9ed7f5af41f537487554989df0f857074eb02932b19018890a5b1672aaa5e4c6 = struct {
@@ -294,10 +294,10 @@ pub const zx_type_9ed7f5af41f537487554989df0f857074eb02932b19018890a5b1672aaa5e4
     value: ?*const zx_type_308af60039628ab4f4c6af8f1a9f436729424c0f23744dd60fe8973cd7a15dc6,
 };
 
-pub const zx_type_63dae22256c354d358c41481ff8affd6d7b8f7f1ebb05c59cffd7fb79d7246ff = struct {
+pub const zx_type_835ea50a6ad051379c0d8291161ef08349e18c68fab315f7214f8609612b8882 = struct {
     cursor: *const zx_type_747aec58ab0a369e096dbf03c4b1be971405ed683dc5acaf4e98157d277d0872,
     frame: *const zx_type_14cd085379943d00f98557d8a978fe987a60a5b1449fe3c3d9a0ee66354180a2,
-    input: *const zx_type_b22857c6d80394aafb96a5095c5262fe2a0bc132890c2999fadf486eda660b6f,
+    input: *const zx_type_a2f55696926fa6cae227a00b4b0c8ef9b9fe8830a5393ec29139ceff8a5bc53c,
 };
 
 pub const zx_type_2731b098b3f87d364f2c1490adb4af73651edf53c240b37e0c984c0a5d80def8 = struct {
@@ -310,9 +310,9 @@ pub const zx_type_4833834b8ed594421fbc1c3875afdf368d94a20f770e0cbcf8a5f613ed0366
     value: *const zx_type_308af60039628ab4f4c6af8f1a9f436729424c0f23744dd60fe8973cd7a15dc6,
 };
 
-pub const zx_type_70cc73e2d4def4cea2ef2031e5a44f78bd47edce381ada1465ee5b5bfd0992e2 = struct {
+pub const zx_type_c22bc6bb44c823f09c9998e1942a4719f164fbdf3623e4af03459af19b95be16 = struct {
     id: u32,
-    input: *const zx_type_b22857c6d80394aafb96a5095c5262fe2a0bc132890c2999fadf486eda660b6f,
+    input: *const zx_type_a2f55696926fa6cae227a00b4b0c8ef9b9fe8830a5393ec29139ceff8a5bc53c,
 };
 
 pub const zx_type_f7c04f634ae5b2093751e64fbcd14059ec3f0109817b535637410782abe2f29d = struct {
@@ -323,9 +323,9 @@ pub const zx_type_f7c04f634ae5b2093751e64fbcd14059ec3f0109817b535637410782abe2f2
 
 pub const zx_type_c12d2a08c98afd4d27338af0512960bd597d7e2b5955217439f123f17fdfe651 = struct { []const bool, void, };
 
-pub const zx_type_d6435da976d23bf9746a320dccebec25c7ace68f4eea10815dda1261b4156f9e = struct {
+pub const zx_type_55be29164d191b55b126929541840511f2cfd9042570da147e26123a097e0c3f = struct {
     diagnostic: *const zx_type_94edbd569400ac1cc31d4b0416b2cb474e31926b1eb22311b10d54062266950e,
-    expressions: *const zx_type_7172f221b5abe933ec705af5a9f87a7f7b6db5c720117ee4399833dfc85d12fb,
+    expressions: *const zx_type_7ffdc377160738ae985ed900d2d45ddfa5421b61324d50b3486bb087ea9c2a78,
     index: u64,
     required: []const bool,
     root: u64,
@@ -348,13 +348,13 @@ pub const zx_type_156ae23e9cfe6b3b61799ecbfe5a0c6a998096a577c01043c475dbfd39725b
 pub const zx_type_b79feea7225ae16d3b76a61c59724050e86633ebc4eae2fc4bce2edf1904b799 = struct { []const ?*const zx_type_308af60039628ab4f4c6af8f1a9f436729424c0f23744dd60fe8973cd7a15dc6, void, };
 pub const zx_type_5ca1fc038738f67879719d537d111e5c64acab8474552600c933d54e8ab3a2e2 = struct { []const *const zx_type_14cd085379943d00f98557d8a978fe987a60a5b1449fe3c3d9a0ee66354180a2, void, };
 pub const zx_type_3d159c37008af2e57685ac6b4e5de89ab1ab609e4823dd7ab4303f3a49fd4087 = struct { []const *const zx_type_14cd085379943d00f98557d8a978fe987a60a5b1449fe3c3d9a0ee66354180a2, ?*const zx_type_14cd085379943d00f98557d8a978fe987a60a5b1449fe3c3d9a0ee66354180a2, };
-pub const zx_type_8bea333d4e0c31b925cf97af7051cbbb0e40b04ad0fd2948d3a6594dafd963cd = struct { *const zx_type_b22857c6d80394aafb96a5095c5262fe2a0bc132890c2999fadf486eda660b6f, };
-pub const zx_type_5ba03adb733bf20793003aa30a56fc053319db4aaf2881192385747967c33645 = struct { *const zx_type_b22857c6d80394aafb96a5095c5262fe2a0bc132890c2999fadf486eda660b6f, *const zx_type_94edbd569400ac1cc31d4b0416b2cb474e31926b1eb22311b10d54062266950e, };
-pub const zx_type_2935d1ef5da18cd52921455a2d8c87f333838dd6f17b03c138c3cb207463fe3d = struct { *const zx_type_b22857c6d80394aafb96a5095c5262fe2a0bc132890c2999fadf486eda660b6f, *const zx_type_94edbd569400ac1cc31d4b0416b2cb474e31926b1eb22311b10d54062266950e, *const zx_type_747aec58ab0a369e096dbf03c4b1be971405ed683dc5acaf4e98157d277d0872, };
-pub const zx_type_f69d03c0af5d7e54d270d1b4013392d37823ed00fb565102249cc68dcd5890c7 = struct { *const zx_type_b22857c6d80394aafb96a5095c5262fe2a0bc132890c2999fadf486eda660b6f, *const zx_type_94edbd569400ac1cc31d4b0416b2cb474e31926b1eb22311b10d54062266950e, *const zx_type_747aec58ab0a369e096dbf03c4b1be971405ed683dc5acaf4e98157d277d0872, *const zx_type_747aec58ab0a369e096dbf03c4b1be971405ed683dc5acaf4e98157d277d0872, };
-pub const zx_type_f33836a955bfb699893a25e3fc04308b2fcd70c576af3a6bb06b9114b12ebad8 = struct { *const zx_type_b22857c6d80394aafb96a5095c5262fe2a0bc132890c2999fadf486eda660b6f, *const zx_type_94edbd569400ac1cc31d4b0416b2cb474e31926b1eb22311b10d54062266950e, *const zx_type_747aec58ab0a369e096dbf03c4b1be971405ed683dc5acaf4e98157d277d0872, *const zx_type_747aec58ab0a369e096dbf03c4b1be971405ed683dc5acaf4e98157d277d0872, *const zx_type_2731b098b3f87d364f2c1490adb4af73651edf53c240b37e0c984c0a5d80def8, };
+pub const zx_type_75b1e354d2e30aacdacc30268840f689c5552c6eff6369dddca99de7117a7a93 = struct { *const zx_type_a2f55696926fa6cae227a00b4b0c8ef9b9fe8830a5393ec29139ceff8a5bc53c, };
+pub const zx_type_f909de019b2067fc86d685f082fd5e36978fbcf8fa6d9b20a9e43e8feaeca670 = struct { *const zx_type_a2f55696926fa6cae227a00b4b0c8ef9b9fe8830a5393ec29139ceff8a5bc53c, *const zx_type_94edbd569400ac1cc31d4b0416b2cb474e31926b1eb22311b10d54062266950e, };
+pub const zx_type_39eb6105f64e4b55d5c5e092d3486512b60e3e497e12c559c203446b09c9cb10 = struct { *const zx_type_a2f55696926fa6cae227a00b4b0c8ef9b9fe8830a5393ec29139ceff8a5bc53c, *const zx_type_94edbd569400ac1cc31d4b0416b2cb474e31926b1eb22311b10d54062266950e, *const zx_type_747aec58ab0a369e096dbf03c4b1be971405ed683dc5acaf4e98157d277d0872, };
+pub const zx_type_9a6706d126b3210e2c94950ab4d90dafe897b901e016959d5427ff42fd34fe78 = struct { *const zx_type_a2f55696926fa6cae227a00b4b0c8ef9b9fe8830a5393ec29139ceff8a5bc53c, *const zx_type_94edbd569400ac1cc31d4b0416b2cb474e31926b1eb22311b10d54062266950e, *const zx_type_747aec58ab0a369e096dbf03c4b1be971405ed683dc5acaf4e98157d277d0872, *const zx_type_747aec58ab0a369e096dbf03c4b1be971405ed683dc5acaf4e98157d277d0872, };
+pub const zx_type_bc214a1fbe80bb76365953a0a04d0157faced655a8df60d37bed4e1fb8a434f2 = struct { *const zx_type_a2f55696926fa6cae227a00b4b0c8ef9b9fe8830a5393ec29139ceff8a5bc53c, *const zx_type_94edbd569400ac1cc31d4b0416b2cb474e31926b1eb22311b10d54062266950e, *const zx_type_747aec58ab0a369e096dbf03c4b1be971405ed683dc5acaf4e98157d277d0872, *const zx_type_747aec58ab0a369e096dbf03c4b1be971405ed683dc5acaf4e98157d277d0872, *const zx_type_2731b098b3f87d364f2c1490adb4af73651edf53c240b37e0c984c0a5d80def8, };
 
-pub const value_f4aa2c599c0bc18901c2f6c9db2138425ca0ee4d492c27be8e2673ef09da1577 = struct {
+pub const value_4ae5d85f1854ef8438f79c8e2a34690101e11594d44d507f9e5d0fe976d713ba = struct {
     floating: bool,
     id: u32,
     integer: bool,
@@ -363,92 +363,92 @@ pub const value_f4aa2c599c0bc18901c2f6c9db2138425ca0ee4d492c27be8e2673ef09da1577
     zx_origin: ?*const zx_type_8dd5732202898334ee807f5723a53d8c4b095735e131ae1eb7ac2595144fe0ce = null,
 };
 
-pub const view_value_f4aa2c599c0bc18901c2f6c9db2138425ca0ee4d492c27be8e2673ef09da1577 = value_f4aa2c599c0bc18901c2f6c9db2138425ca0ee4d492c27be8e2673ef09da1577;
+pub const view_value_4ae5d85f1854ef8438f79c8e2a34690101e11594d44d507f9e5d0fe976d713ba = value_4ae5d85f1854ef8438f79c8e2a34690101e11594d44d507f9e5d0fe976d713ba;
 
-pub const value_b749f46f9933b921e9ebd0358cdb7d25caa0da1a70c6752e94602a4c2fe1d9ba = struct {
+pub const value_02644af81ff06785112d2893fa4d9a0a010d1d41f29ed957ae6316dd680a6080 = struct {
     items: []const zx_type_2af9665120767ed61dc0e8028c12ae89cfa0b236b6cd3a6cef89b0359def17b5,
-    headered: bool,
+    storage: enum { plain, owned, shared, exclusive, },
 };
 
-pub const value_3601a505cc029196b9f80a2e9e627c3124e337ad986f18c79a4a83913ccbbed1 = struct {
+pub const value_33852a8fbab30244ede08e3240b24724da5df4d16cab4ef72522d42b694006e6 = struct {
     items: []const u32,
-    headered: bool,
+    storage: enum { plain, owned, shared, exclusive, },
 };
 
-pub const value_7e61193154602caa91ad3929d87903c716c94593e4f5dab1a68ccd4f688177b7 = struct {
+pub const value_3224132989508ee2f68c19f842180f53cac2aac2ba04828dc887aca75b56bf7e = struct {
     items: []const u64,
-    headered: bool,
+    storage: enum { plain, owned, shared, exclusive, },
 };
 
-pub const value_e402d2c3c8c2bb696f40de34d87de1ef215a27350619e43c69fbfdf8cfd140e9 = struct {
+pub const value_165c4106406af1bd4eb68a86b6391eb0cd946c8f785b06760d1650ed1f07c55e = struct {
     items: []const f64,
-    headered: bool,
+    storage: enum { plain, owned, shared, exclusive, },
 };
 
-pub const value_5aa155b7163a2406278d1a4d745137c429abcba5974c727364036e4b06366865 = struct {
+pub const value_d69f4aae647c573ca8063979760fa78bcb70659168beea803671fe33e3700835 = struct {
     items: []const []const u8,
-    headered: bool,
+    storage: enum { plain, owned, shared, exclusive, },
 };
 
-pub const value_6be18e6b8bff66e51366ca4eca851d93b716a0e9a2a911a6ac6eee34ab0f9e90 = struct {
+pub const value_c92c000109b741fe69221f5cd67fb0680f37c213f585227f95c1c319008691c9 = struct {
     items: []const bool,
-    headered: bool,
+    storage: enum { plain, owned, shared, exclusive, },
 };
 
-pub const value_5864f652538d34059d1cbcbb3e39d60c475295118b845c67b6c3d91d7db981b2 = struct {
+pub const value_d175ce74dbe65e230b7918197f66d02d187ed19fc13da28d5b5782026e4b5529 = struct {
     items: []const ?u32,
-    headered: bool,
+    storage: enum { plain, owned, shared, exclusive, },
 };
 
-pub const value_1045a9ea40b68d7cc28c6e33274e088be414d14b4f4cb6ccc9ee13d7b7b6cc85 = struct {
+pub const value_927f6addc7d7aa31fbf38771fe9bc73433938e7c9d676fa276676bc77ffe4ca2 = struct {
     items: []const zx_type_8bd4167dcd5728435999e737ef2b1a179e96481385b73d70247081fd6402bb6d,
-    headered: bool,
+    storage: enum { plain, owned, shared, exclusive, },
 };
 
-pub const value_b10d30f42e1cad555b2a863b858978bc32e9e654c7d6d14f2efab90dc5216a3e = struct {
-    items: []const zx_type_fc8f584736df01963691da707910bd2c2c5e985c675abce771f0b48d679f9ea8,
-    headered: bool,
+pub const value_75ca53cd3ea4ef534e40e41ad99fcd468beea6263a11b3ccbb77cb14a85006e3 = struct {
+    items: []const zx_type_e76202ba7e8fa459e4363bda9b871257e2b192c42640e03e65c79eedcb6527f5,
+    storage: enum { plain, owned, shared, exclusive, },
 };
 
-pub const value_dda368664049d7230ce3d6a35ef33a87479d4bff865ca4355d9311051eb1269c = struct {
+pub const value_7f68867670f702c072bc9621ea4ac7465958aab9a186fc6231b1cdaccbd5803a = struct {
     items: []const zx_type_c6461b7a5dc793cd488e19b7dfaa77adb3feded09802d087ab84f52092ba2cdc,
-    headered: bool,
+    storage: enum { plain, owned, shared, exclusive, },
 };
 
-pub const value_1b37f4ddb87f3dbf00a1e1f28fda29d893611ffde7f109018d7b8ca921199b91 = struct {
+pub const value_2fc3a0e629e2ebb906be69d71f60f9d715668cf471cff4f8fc9417a7675f0d42 = struct {
     items: []const zx_type_c2cf793e3172a7ed4a668fba2693ad110a34623e2f0f6b109fb61f2967243a7a,
-    headered: bool,
+    storage: enum { plain, owned, shared, exclusive, },
 };
 
-pub const value_7a871c3b631b7fdbf31ef0ffcdfe77ba51faeb79b4306a221683d32323f01305 = struct {
+pub const value_0b3bdb04ce56dbb816aa5a61afab5d5e3f769b10ddac57c77e312ae03dbc25df = struct {
     items: []const *const zx_type_308af60039628ab4f4c6af8f1a9f436729424c0f23744dd60fe8973cd7a15dc6,
-    headered: bool,
+    storage: enum { plain, owned, shared, exclusive, },
 };
 
-pub const value_a60fc848d63560267d7cbaba3ba3f9684317a56cd59f9496d15d08627d620965 = struct {
+pub const value_56204d00921c77db48327c86c39a353531ec7fb63ae311b6628ea40dcbe3e37a = struct {
     expected: ?u32,
     floating: bool,
     negative: bool,
     zx_origin: ?*const zx_type_aa5186cf7ed833c23cde6e3df277bc296171f23ebbf833ea84d2f62346febac3 = null,
 };
 
-pub const view_value_a60fc848d63560267d7cbaba3ba3f9684317a56cd59f9496d15d08627d620965 = value_a60fc848d63560267d7cbaba3ba3f9684317a56cd59f9496d15d08627d620965;
+pub const view_value_56204d00921c77db48327c86c39a353531ec7fb63ae311b6628ea40dcbe3e37a = value_56204d00921c77db48327c86c39a353531ec7fb63ae311b6628ea40dcbe3e37a;
 
-pub const value_6486f8f42834a1fcf300f4901a4d6183cb4c4d0ef3b622b76393808c096fd123 = struct {
+pub const value_4c071f9504777ddeed90bd97d0884f5b59841982e195a30987fb29a8fe908f74 = struct {
     comparison: bool,
     equality: bool,
     logical: bool,
     zx_origin: ?*const zx_type_c47d0fc0fbede5d5ffc4e8d470a13ba4d11b3768bf927c8ac18e7e9635f0c30b = null,
 };
 
-pub const view_value_6486f8f42834a1fcf300f4901a4d6183cb4c4d0ef3b622b76393808c096fd123 = value_6486f8f42834a1fcf300f4901a4d6183cb4c4d0ef3b622b76393808c096fd123;
+pub const view_value_4c071f9504777ddeed90bd97d0884f5b59841982e195a30987fb29a8fe908f74 = value_4c071f9504777ddeed90bd97d0884f5b59841982e195a30987fb29a8fe908f74;
 
-pub const value_2fda5b7293c4a50cd8ca07bfc2f6c8847fcba96d1a531c51e5cf8fb2d91f0a7d = struct {
+pub const value_256208685e5aaa3abd3392807f3bc902fc360c2562ad171b98c84aa364a2b6b5 = struct {
     items: []const u8,
-    headered: bool,
+    storage: enum { plain, owned, shared, exclusive, },
 };
 
-pub const value_206a15237c8af47285e725802a32143935d732d6ec7fc59e6664e36a01e12bf5 = struct {
+pub const value_3306f97079931f3fe098a751ca79a1948cc526d3ad1a3aa19c07b173b2f73211 = struct {
     left: f64,
     operator: zx_type_c2cf793e3172a7ed4a668fba2693ad110a34623e2f0f6b109fb61f2967243a7a,
     right: f64,
@@ -456,17 +456,17 @@ pub const value_206a15237c8af47285e725802a32143935d732d6ec7fc59e6664e36a01e12bf5
     zx_origin: ?*const zx_type_5f777d5b198394d687d6c94540bd89ed586a39364125b4e444e5457a2eddeedd = null,
 };
 
-pub const view_value_206a15237c8af47285e725802a32143935d732d6ec7fc59e6664e36a01e12bf5 = value_206a15237c8af47285e725802a32143935d732d6ec7fc59e6664e36a01e12bf5;
+pub const view_value_3306f97079931f3fe098a751ca79a1948cc526d3ad1a3aa19c07b173b2f73211 = value_3306f97079931f3fe098a751ca79a1948cc526d3ad1a3aa19c07b173b2f73211;
 
-pub const value_defd8c9e22b8446d9338f20015137bcc4f67988eda2b69e5fd65ef522f0db8f5 = struct {
+pub const value_233907d63587384573101be8406d9f5996afd62986d63d6bdd1304ebd096a48a = struct {
     id: u32,
     negative: bool,
     zx_origin: ?*const zx_type_0855fc0e73cc445eae5fb13ad2d0cd33dcc2ed453b67b1c6a0482cc0e669a8d3 = null,
 };
 
-pub const view_value_defd8c9e22b8446d9338f20015137bcc4f67988eda2b69e5fd65ef522f0db8f5 = value_defd8c9e22b8446d9338f20015137bcc4f67988eda2b69e5fd65ef522f0db8f5;
+pub const view_value_233907d63587384573101be8406d9f5996afd62986d63d6bdd1304ebd096a48a = value_233907d63587384573101be8406d9f5996afd62986d63d6bdd1304ebd096a48a;
 
-pub const value_796a3ab69572c0f62968f53a3980c48892357c21acd7d69f07657b6bccae24de = struct {
+pub const value_70b6fe56ec1433c7db12ad7fe8b6ec16c18b25aaba658db9e05b52cea4a95808 = struct {
     code: []const u8,
     end: u64,
     message: []const u8,
@@ -474,50 +474,126 @@ pub const value_796a3ab69572c0f62968f53a3980c48892357c21acd7d69f07657b6bccae24de
     zx_origin: ?*const zx_type_94edbd569400ac1cc31d4b0416b2cb474e31926b1eb22311b10d54062266950e = null,
 };
 
-pub const view_value_796a3ab69572c0f62968f53a3980c48892357c21acd7d69f07657b6bccae24de = value_796a3ab69572c0f62968f53a3980c48892357c21acd7d69f07657b6bccae24de;
+pub const view_value_70b6fe56ec1433c7db12ad7fe8b6ec16c18b25aaba658db9e05b52cea4a95808 = value_70b6fe56ec1433c7db12ad7fe8b6ec16c18b25aaba658db9e05b52cea4a95808;
 
-pub const value_3595b9137d7a6c5736dd47cf6633f8eb71d34173497c5292980cf373581273b0 = struct {
-    items: []const *const zx_type_559bd2c4290cfe94ac1396a025d3ee4c6afa0eaed3781a98f1950b8cde0ee005,
-    headered: bool,
+pub const value_3bf53d3a03b7e4c880838f1068a9c20f44989a11b40f059ba75482c493abe02f = struct {
+    braces: u64,
+    depth: u64,
+    mode: zx_type_c869618c7e3f17a1c2362d2f314b70899c6c14ea6b593518bca68e66b4dee6a5,
+    start: u64,
+    zx_origin: ?*const zx_type_559bd2c4290cfe94ac1396a025d3ee4c6afa0eaed3781a98f1950b8cde0ee005 = null,
 };
 
-pub const value_8f770a2b876353c39559f600628fbcaef361f8ed144d7d911b3894b1e5483c5d = struct {
+pub const view_value_3bf53d3a03b7e4c880838f1068a9c20f44989a11b40f059ba75482c493abe02f = value_3bf53d3a03b7e4c880838f1068a9c20f44989a11b40f059ba75482c493abe02f;
+
+pub const value_7f8148048367d99b0847825125c8929f61f8d19eeb5de553f59f44fabca8686e = struct {
+    items: []const zx_type_559bd2c4290cfe94ac1396a025d3ee4c6afa0eaed3781a98f1950b8cde0ee005,
+    storage: enum { plain, owned, shared, exclusive, },
+};
+
+pub const value_801cdbd1a3aedcc1f03731a6d1e03b0f9773f31e04f8f2044ce1b7e8f8e6d5ac = struct {
     items: []const *const zx_type_7ab04c4134c734d3f48a1e6006346970e06231721631cbc913ff9aac5cf8bade,
-    headered: bool,
+    storage: enum { plain, owned, shared, exclusive, },
 };
 
-pub const value_cbc3bd3297089cd7d22ff5305996117cd1efb17f1d2f1346b5d4af01d1d7ec4d = struct {
+pub const value_73a50403a3dd2142645c07e043ea92990671d1a960d48eaffa082e0982ce9235 = struct {
     items: []const *const zx_type_b50367e564b9195aeea252f9613f88cf771e9f744be16af53d723d2cea11554b,
-    headered: bool,
+    storage: enum { plain, owned, shared, exclusive, },
 };
 
-pub const value_fc38e1f7fc73d0600fb854b11cd42411216908ef592d60497594b82b992070a8 = struct {
+pub const value_0ed333f01f927261cdb32efaf0ad31c885486680fd4f195515e9b1fef16d90e5 = struct {
+    ahead_one: u8,
+    ahead_two: u8,
+    braces: u64,
+    comments: value_73a50403a3dd2142645c07e043ea92990671d1a960d48eaffa082e0982ce9235,
+    depth: u64,
+    diagnostic: value_70b6fe56ec1433c7db12ad7fe8b6ec16c18b25aaba658db9e05b52cea4a95808,
+    dollar: bool,
+    frames: value_7f8148048367d99b0847825125c8929f61f8d19eeb5de553f59f44fabca8686e,
+    keyword_state: u64,
+    line_break: bool,
+    mode: zx_type_c869618c7e3f17a1c2362d2f314b70899c6c14ea6b593518bca68e66b4dee6a5,
+    number: *const zx_type_4b19569d4fbf3c9adcc1a15013e3a2eb5135e6763b5a0fda02bb1e2dd408977d,
+    offset: u64,
+    skip_until: u64,
+    source_length: u64,
+    start: u64,
+    symbol: zx_type_635c3b78ff481dd9bd161d064baf758b5895083287e43efd9d46b5291e4c9aa2,
+    tokens: value_801cdbd1a3aedcc1f03731a6d1e03b0f9773f31e04f8f2044ce1b7e8f8e6d5ac,
+    warmed: u8,
+    zx_origin: ?*const zx_type_236347990c6302cbba81ab192964858c9461a680bac0f1f51c3da4e720fa53c4 = null,
+};
+
+pub const view_value_0ed333f01f927261cdb32efaf0ad31c885486680fd4f195515e9b1fef16d90e5 = struct {
+    ahead_one: u8,
+    ahead_two: u8,
+    braces: u64,
+    comments: []const *const zx_type_b50367e564b9195aeea252f9613f88cf771e9f744be16af53d723d2cea11554b,
+    depth: u64,
+    diagnostic: value_70b6fe56ec1433c7db12ad7fe8b6ec16c18b25aaba658db9e05b52cea4a95808,
+    dollar: bool,
+    frames: []const zx_type_559bd2c4290cfe94ac1396a025d3ee4c6afa0eaed3781a98f1950b8cde0ee005,
+    keyword_state: u64,
+    line_break: bool,
+    mode: zx_type_c869618c7e3f17a1c2362d2f314b70899c6c14ea6b593518bca68e66b4dee6a5,
+    number: *const zx_type_4b19569d4fbf3c9adcc1a15013e3a2eb5135e6763b5a0fda02bb1e2dd408977d,
+    offset: u64,
+    skip_until: u64,
+    source_length: u64,
+    start: u64,
+    symbol: zx_type_635c3b78ff481dd9bd161d064baf758b5895083287e43efd9d46b5291e4c9aa2,
+    tokens: []const *const zx_type_7ab04c4134c734d3f48a1e6006346970e06231721631cbc913ff9aac5cf8bade,
+    warmed: u8,
+    zx_origin: ?*const zx_type_236347990c6302cbba81ab192964858c9461a680bac0f1f51c3da4e720fa53c4 = null,
+};
+
+pub const value_aee8d13fcff65359ca8b1bc12dd1015843eaf8243abcdf83f0d95f7c225814c3 = struct {
+    after: u8,
+    byte: u8,
+    has_after: bool,
+    has_next: bool,
+    next: u8,
+    state: value_0ed333f01f927261cdb32efaf0ad31c885486680fd4f195515e9b1fef16d90e5,
+    zx_origin: ?*const zx_type_57e31919cc7e828326c51c8148292fc6ce529567616ade4182868401ab08c2a8 = null,
+};
+
+pub const view_value_aee8d13fcff65359ca8b1bc12dd1015843eaf8243abcdf83f0d95f7c225814c3 = struct {
+    after: u8,
+    byte: u8,
+    has_after: bool,
+    has_next: bool,
+    next: u8,
+    state: view_value_0ed333f01f927261cdb32efaf0ad31c885486680fd4f195515e9b1fef16d90e5,
+    zx_origin: ?*const zx_type_57e31919cc7e828326c51c8148292fc6ce529567616ade4182868401ab08c2a8 = null,
+};
+
+pub const value_95a230426f58e2dcc38633e76b2defdea0ed4ce403a10783469a0d8a554aefb7 = struct {
     magnitude: u64,
     negative: bool,
     zx_origin: ?*const zx_type_1f2f9f7161ee72aa8644f406f749379b041af7e0336f63be0551449cc4818a78 = null,
 };
 
-pub const view_value_fc38e1f7fc73d0600fb854b11cd42411216908ef592d60497594b82b992070a8 = value_fc38e1f7fc73d0600fb854b11cd42411216908ef592d60497594b82b992070a8;
+pub const view_value_95a230426f58e2dcc38633e76b2defdea0ed4ce403a10783469a0d8a554aefb7 = value_95a230426f58e2dcc38633e76b2defdea0ed4ce403a10783469a0d8a554aefb7;
 
-pub const value_8ba89f6fd24b0d685288fcbd2d68ba4f61dabc30ebd626fb829a319904883aba = struct {
-    left: value_fc38e1f7fc73d0600fb854b11cd42411216908ef592d60497594b82b992070a8,
+pub const value_45e27a85c7b9586703e90f083f49768be5be45cac997454291d0ba1bf059ffb3 = struct {
+    left: value_95a230426f58e2dcc38633e76b2defdea0ed4ce403a10783469a0d8a554aefb7,
     operator: zx_type_c2cf793e3172a7ed4a668fba2693ad110a34623e2f0f6b109fb61f2967243a7a,
-    right: value_fc38e1f7fc73d0600fb854b11cd42411216908ef592d60497594b82b992070a8,
-    target: value_f4aa2c599c0bc18901c2f6c9db2138425ca0ee4d492c27be8e2673ef09da1577,
+    right: value_95a230426f58e2dcc38633e76b2defdea0ed4ce403a10783469a0d8a554aefb7,
+    target: value_4ae5d85f1854ef8438f79c8e2a34690101e11594d44d507f9e5d0fe976d713ba,
     zx_origin: ?*const zx_type_0a4f4736fab8b70e6704149509fbcef96f5940930b96cade1bb4740d1067ae5f = null,
 };
 
-pub const view_value_8ba89f6fd24b0d685288fcbd2d68ba4f61dabc30ebd626fb829a319904883aba = value_8ba89f6fd24b0d685288fcbd2d68ba4f61dabc30ebd626fb829a319904883aba;
+pub const view_value_45e27a85c7b9586703e90f083f49768be5be45cac997454291d0ba1bf059ffb3 = value_45e27a85c7b9586703e90f083f49768be5be45cac997454291d0ba1bf059ffb3;
 
-pub const value_368995f44f4ef4a2eb1f30d8e31e16c607e34b7636afa681c693d0d17558fb22 = struct {
+pub const value_518749b944e3124ffa95d6666f8946977aaa50b8334338de7d2d26f3ff6b1a64 = struct {
     message: []const u8,
-    value: value_fc38e1f7fc73d0600fb854b11cd42411216908ef592d60497594b82b992070a8,
+    value: value_95a230426f58e2dcc38633e76b2defdea0ed4ce403a10783469a0d8a554aefb7,
     zx_origin: ?*const zx_type_d97e9881bb57ab90dad7ca756824034566dfbfaf9e79c079546d4d78484f56a3 = null,
 };
 
-pub const view_value_368995f44f4ef4a2eb1f30d8e31e16c607e34b7636afa681c693d0d17558fb22 = value_368995f44f4ef4a2eb1f30d8e31e16c607e34b7636afa681c693d0d17558fb22;
+pub const view_value_518749b944e3124ffa95d6666f8946977aaa50b8334338de7d2d26f3ff6b1a64 = value_518749b944e3124ffa95d6666f8946977aaa50b8334338de7d2d26f3ff6b1a64;
 
-pub const value_542fb942b5e80bc6beb01a9ddd5b7761705bd8bb086ab54502b68ad08ec8495f = struct {
+pub const value_b31e1f3ff2606243a59770b9884ec2327cd4659f2c59d3c417c15492bad8fc24 = struct {
     left: *const zx_type_308af60039628ab4f4c6af8f1a9f436729424c0f23744dd60fe8973cd7a15dc6,
     operator: zx_type_c2cf793e3172a7ed4a668fba2693ad110a34623e2f0f6b109fb61f2967243a7a,
     right: *const zx_type_308af60039628ab4f4c6af8f1a9f436729424c0f23744dd60fe8973cd7a15dc6,
@@ -525,53 +601,53 @@ pub const value_542fb942b5e80bc6beb01a9ddd5b7761705bd8bb086ab54502b68ad08ec8495f
     zx_origin: ?*const zx_type_53ec76125587621e567047ed3078e428abfa19d940d79fb21079139e2232c5a2 = null,
 };
 
-pub const view_value_542fb942b5e80bc6beb01a9ddd5b7761705bd8bb086ab54502b68ad08ec8495f = value_542fb942b5e80bc6beb01a9ddd5b7761705bd8bb086ab54502b68ad08ec8495f;
+pub const view_value_b31e1f3ff2606243a59770b9884ec2327cd4659f2c59d3c417c15492bad8fc24 = value_b31e1f3ff2606243a59770b9884ec2327cd4659f2c59d3c417c15492bad8fc24;
 
-pub const value_47783bf8208b4a49087ce11f44967652d7dc3f4bd9d296ac7cc5fc8d83b84420 = struct {
+pub const value_df53e49a602877d45cafdf17dc2cca444fb52a1d2e680534d9c983eb4f36a801 = struct {
     message: []const u8,
     value: *const zx_type_308af60039628ab4f4c6af8f1a9f436729424c0f23744dd60fe8973cd7a15dc6,
     zx_origin: ?*const zx_type_374d081f355fd18c68751135bfa3a434f73641e64e935769510631d75221641f = null,
 };
 
-pub const view_value_47783bf8208b4a49087ce11f44967652d7dc3f4bd9d296ac7cc5fc8d83b84420 = value_47783bf8208b4a49087ce11f44967652d7dc3f4bd9d296ac7cc5fc8d83b84420;
+pub const view_value_df53e49a602877d45cafdf17dc2cca444fb52a1d2e680534d9c983eb4f36a801 = value_df53e49a602877d45cafdf17dc2cca444fb52a1d2e680534d9c983eb4f36a801;
 
-pub const value_9abd23e7675966d9bb975045a789abcb353fb365db04f01d35777c2ef0a68d56 = struct {
+pub const value_938b5aee96af2513a39c6c9580bfb4ce07898d210cdab6b831936ec6fed92a11 = struct {
     items: []const *const zx_type_14cd085379943d00f98557d8a978fe987a60a5b1449fe3c3d9a0ee66354180a2,
-    headered: bool,
+    storage: enum { plain, owned, shared, exclusive, },
 };
 
-pub const value_fbcea94e2e2f2dda10c1dba6b3907ac628e9d594ae91877115e25642bc706d58 = struct {
+pub const value_5f1583f2aba3e82ab92c5d7c1d88020cbc8cd72820181108872a12696a157af3 = struct {
     items: []const ?*const zx_type_308af60039628ab4f4c6af8f1a9f436729424c0f23744dd60fe8973cd7a15dc6,
-    headered: bool,
+    storage: enum { plain, owned, shared, exclusive, },
 };
 
-pub const value_bd11c8488411fc79a29bc272672f2513199013382497c34c01c8f5f18e855000 = struct {
-    diagnostic: value_796a3ab69572c0f62968f53a3980c48892357c21acd7d69f07657b6bccae24de,
-    frames: value_9abd23e7675966d9bb975045a789abcb353fb365db04f01d35777c2ef0a68d56,
-    values: value_fbcea94e2e2f2dda10c1dba6b3907ac628e9d594ae91877115e25642bc706d58,
+pub const value_3faf35ca62c26491ff01a804e4a5bb6666a95c6a1e7033348a49b71c2c1463d3 = struct {
+    diagnostic: value_70b6fe56ec1433c7db12ad7fe8b6ec16c18b25aaba658db9e05b52cea4a95808,
+    frames: value_938b5aee96af2513a39c6c9580bfb4ce07898d210cdab6b831936ec6fed92a11,
+    values: value_5f1583f2aba3e82ab92c5d7c1d88020cbc8cd72820181108872a12696a157af3,
     zx_origin: ?*const zx_type_747aec58ab0a369e096dbf03c4b1be971405ed683dc5acaf4e98157d277d0872 = null,
 };
 
-pub const view_value_bd11c8488411fc79a29bc272672f2513199013382497c34c01c8f5f18e855000 = struct {
-    diagnostic: value_796a3ab69572c0f62968f53a3980c48892357c21acd7d69f07657b6bccae24de,
+pub const view_value_3faf35ca62c26491ff01a804e4a5bb6666a95c6a1e7033348a49b71c2c1463d3 = struct {
+    diagnostic: value_70b6fe56ec1433c7db12ad7fe8b6ec16c18b25aaba658db9e05b52cea4a95808,
     frames: []const *const zx_type_14cd085379943d00f98557d8a978fe987a60a5b1449fe3c3d9a0ee66354180a2,
     values: []const ?*const zx_type_308af60039628ab4f4c6af8f1a9f436729424c0f23744dd60fe8973cd7a15dc6,
     zx_origin: ?*const zx_type_747aec58ab0a369e096dbf03c4b1be971405ed683dc5acaf4e98157d277d0872 = null,
 };
 
-pub const value_8001ec109b97ef5381b57c1004550f1b1fccb410092a55c2918813d207399fb1 = struct {
-    cursor: value_bd11c8488411fc79a29bc272672f2513199013382497c34c01c8f5f18e855000,
-    input: *const zx_type_b22857c6d80394aafb96a5095c5262fe2a0bc132890c2999fadf486eda660b6f,
-    zx_origin: ?*const zx_type_d374c65fa05c48ddd6bb079887a44fec10d4fc6dcf600a90427f98c1a8b60dff = null,
+pub const value_be3438cd8468068650625c09491e54db28baf0251ba1d37f3c00a8e8d2f371a7 = struct {
+    cursor: value_3faf35ca62c26491ff01a804e4a5bb6666a95c6a1e7033348a49b71c2c1463d3,
+    input: *const zx_type_a2f55696926fa6cae227a00b4b0c8ef9b9fe8830a5393ec29139ceff8a5bc53c,
+    zx_origin: ?*const zx_type_3528180fd373a5a0c276e40ab64970a4c5db15f49dd01fd3379db0094362ba3b = null,
 };
 
-pub const view_value_8001ec109b97ef5381b57c1004550f1b1fccb410092a55c2918813d207399fb1 = struct {
-    cursor: view_value_bd11c8488411fc79a29bc272672f2513199013382497c34c01c8f5f18e855000,
-    input: *const zx_type_b22857c6d80394aafb96a5095c5262fe2a0bc132890c2999fadf486eda660b6f,
-    zx_origin: ?*const zx_type_d374c65fa05c48ddd6bb079887a44fec10d4fc6dcf600a90427f98c1a8b60dff = null,
+pub const view_value_be3438cd8468068650625c09491e54db28baf0251ba1d37f3c00a8e8d2f371a7 = struct {
+    cursor: view_value_3faf35ca62c26491ff01a804e4a5bb6666a95c6a1e7033348a49b71c2c1463d3,
+    input: *const zx_type_a2f55696926fa6cae227a00b4b0c8ef9b9fe8830a5393ec29139ceff8a5bc53c,
+    zx_origin: ?*const zx_type_3528180fd373a5a0c276e40ab64970a4c5db15f49dd01fd3379db0094362ba3b = null,
 };
 
-pub const value_55236f425e7ca85b27b66cbf27549e540336bb749c48e0162fd9997fd0cd1a60 = struct {
+pub const value_629fd55d01eced1adea080e74d2d6104120cc49ea2a7ea4baf0c0cef5ae2d969 = struct {
     child: ?u32,
     frame: *const zx_type_14cd085379943d00f98557d8a978fe987a60a5b1449fe3c3d9a0ee66354180a2,
     message: []const u8,
@@ -579,91 +655,91 @@ pub const value_55236f425e7ca85b27b66cbf27549e540336bb749c48e0162fd9997fd0cd1a60
     zx_origin: ?*const zx_type_9ed7f5af41f537487554989df0f857074eb02932b19018890a5b1672aaa5e4c6 = null,
 };
 
-pub const view_value_55236f425e7ca85b27b66cbf27549e540336bb749c48e0162fd9997fd0cd1a60 = value_55236f425e7ca85b27b66cbf27549e540336bb749c48e0162fd9997fd0cd1a60;
+pub const view_value_629fd55d01eced1adea080e74d2d6104120cc49ea2a7ea4baf0c0cef5ae2d969 = value_629fd55d01eced1adea080e74d2d6104120cc49ea2a7ea4baf0c0cef5ae2d969;
 
-pub const value_19ebf3d3daa1235aa9ca0e94693f070406096da386675c891f585ac3f6cab6cf = struct {
-    cursor: value_bd11c8488411fc79a29bc272672f2513199013382497c34c01c8f5f18e855000,
+pub const value_d5a2abbc372f76159966b3930c9c4c5a4acd842be2767b076d686112aa34e82e = struct {
+    cursor: value_3faf35ca62c26491ff01a804e4a5bb6666a95c6a1e7033348a49b71c2c1463d3,
     frame: *const zx_type_14cd085379943d00f98557d8a978fe987a60a5b1449fe3c3d9a0ee66354180a2,
-    input: *const zx_type_b22857c6d80394aafb96a5095c5262fe2a0bc132890c2999fadf486eda660b6f,
-    zx_origin: ?*const zx_type_63dae22256c354d358c41481ff8affd6d7b8f7f1ebb05c59cffd7fb79d7246ff = null,
+    input: *const zx_type_a2f55696926fa6cae227a00b4b0c8ef9b9fe8830a5393ec29139ceff8a5bc53c,
+    zx_origin: ?*const zx_type_835ea50a6ad051379c0d8291161ef08349e18c68fab315f7214f8609612b8882 = null,
 };
 
-pub const view_value_19ebf3d3daa1235aa9ca0e94693f070406096da386675c891f585ac3f6cab6cf = struct {
-    cursor: view_value_bd11c8488411fc79a29bc272672f2513199013382497c34c01c8f5f18e855000,
+pub const view_value_d5a2abbc372f76159966b3930c9c4c5a4acd842be2767b076d686112aa34e82e = struct {
+    cursor: view_value_3faf35ca62c26491ff01a804e4a5bb6666a95c6a1e7033348a49b71c2c1463d3,
     frame: *const zx_type_14cd085379943d00f98557d8a978fe987a60a5b1449fe3c3d9a0ee66354180a2,
-    input: *const zx_type_b22857c6d80394aafb96a5095c5262fe2a0bc132890c2999fadf486eda660b6f,
-    zx_origin: ?*const zx_type_63dae22256c354d358c41481ff8affd6d7b8f7f1ebb05c59cffd7fb79d7246ff = null,
+    input: *const zx_type_a2f55696926fa6cae227a00b4b0c8ef9b9fe8830a5393ec29139ceff8a5bc53c,
+    zx_origin: ?*const zx_type_835ea50a6ad051379c0d8291161ef08349e18c68fab315f7214f8609612b8882 = null,
 };
 
-pub const value_642c6ad863927e4f01ec99e8a4e02008d0ac0c89888e087dcaa80fb66a73b191 = struct {
-    diagnostic: value_796a3ab69572c0f62968f53a3980c48892357c21acd7d69f07657b6bccae24de,
+pub const value_9f547a5bcbd2d2a08dcff17874a209d6ef606146a771bf27bd95cae4331964c4 = struct {
+    diagnostic: value_70b6fe56ec1433c7db12ad7fe8b6ec16c18b25aaba658db9e05b52cea4a95808,
     value: ?*const zx_type_308af60039628ab4f4c6af8f1a9f436729424c0f23744dd60fe8973cd7a15dc6,
     zx_origin: ?*const zx_type_2731b098b3f87d364f2c1490adb4af73651edf53c240b37e0c984c0a5d80def8 = null,
 };
 
-pub const view_value_642c6ad863927e4f01ec99e8a4e02008d0ac0c89888e087dcaa80fb66a73b191 = value_642c6ad863927e4f01ec99e8a4e02008d0ac0c89888e087dcaa80fb66a73b191;
+pub const view_value_9f547a5bcbd2d2a08dcff17874a209d6ef606146a771bf27bd95cae4331964c4 = value_9f547a5bcbd2d2a08dcff17874a209d6ef606146a771bf27bd95cae4331964c4;
 
-pub const value_bfe548552bdbc7afbd8c37ac2329ed6c5cacb808510796bb6bee50e007551f9f = struct {
+pub const value_2bc98809742cdb5e417517aaf2902b5999ac65f64b1c5cd3f15968b6f1ded035 = struct {
     operator: zx_type_c6461b7a5dc793cd488e19b7dfaa77adb3feded09802d087ab84f52092ba2cdc,
     value: *const zx_type_308af60039628ab4f4c6af8f1a9f436729424c0f23744dd60fe8973cd7a15dc6,
     zx_origin: ?*const zx_type_4833834b8ed594421fbc1c3875afdf368d94a20f770e0cbcf8a5f613ed036622 = null,
 };
 
-pub const view_value_bfe548552bdbc7afbd8c37ac2329ed6c5cacb808510796bb6bee50e007551f9f = value_bfe548552bdbc7afbd8c37ac2329ed6c5cacb808510796bb6bee50e007551f9f;
+pub const view_value_2bc98809742cdb5e417517aaf2902b5999ac65f64b1c5cd3f15968b6f1ded035 = value_2bc98809742cdb5e417517aaf2902b5999ac65f64b1c5cd3f15968b6f1ded035;
 
-pub const value_1323d051ef2b29690bf3e0d5973157e37a2ee5ed38a6c2349631e1e356aa78df = struct {
+pub const value_21db31953bd47b48935cb8043a96d297355441b1130768304d9d639e3e4fdb55 = struct {
     id: u32,
-    input: *const zx_type_b22857c6d80394aafb96a5095c5262fe2a0bc132890c2999fadf486eda660b6f,
-    zx_origin: ?*const zx_type_70cc73e2d4def4cea2ef2031e5a44f78bd47edce381ada1465ee5b5bfd0992e2 = null,
+    input: *const zx_type_a2f55696926fa6cae227a00b4b0c8ef9b9fe8830a5393ec29139ceff8a5bc53c,
+    zx_origin: ?*const zx_type_c22bc6bb44c823f09c9998e1942a4719f164fbdf3623e4af03459af19b95be16 = null,
 };
 
-pub const view_value_1323d051ef2b29690bf3e0d5973157e37a2ee5ed38a6c2349631e1e356aa78df = value_1323d051ef2b29690bf3e0d5973157e37a2ee5ed38a6c2349631e1e356aa78df;
+pub const view_value_21db31953bd47b48935cb8043a96d297355441b1130768304d9d639e3e4fdb55 = value_21db31953bd47b48935cb8043a96d297355441b1130768304d9d639e3e4fdb55;
 
-pub const value_f4eb87a03bc05a23dde3105c1a45777786d2fa256f6f7c64c15a2585268c8c00 = struct {
+pub const value_8324fa02a6095466a844c99c1e15660b69578e49f7e23c4b2f0c5958a28098b6 = struct {
     index: u64,
-    result: value_6be18e6b8bff66e51366ca4eca851d93b716a0e9a2a911a6ac6eee34ab0f9e90,
-    source: value_b749f46f9933b921e9ebd0358cdb7d25caa0da1a70c6752e94602a4c2fe1d9ba,
+    result: value_c92c000109b741fe69221f5cd67fb0680f37c213f585227f95c1c319008691c9,
+    source: value_02644af81ff06785112d2893fa4d9a0a010d1d41f29ed957ae6316dd680a6080,
     zx_origin: ?*const zx_type_f7c04f634ae5b2093751e64fbcd14059ec3f0109817b535637410782abe2f29d = null,
 };
 
-pub const view_value_f4eb87a03bc05a23dde3105c1a45777786d2fa256f6f7c64c15a2585268c8c00 = struct {
+pub const view_value_8324fa02a6095466a844c99c1e15660b69578e49f7e23c4b2f0c5958a28098b6 = struct {
     index: u64,
     result: []const bool,
     source: []const zx_type_2af9665120767ed61dc0e8028c12ae89cfa0b236b6cd3a6cef89b0359def17b5,
     zx_origin: ?*const zx_type_f7c04f634ae5b2093751e64fbcd14059ec3f0109817b535637410782abe2f29d = null,
 };
 
-pub const value_54590184f9eb36a4fbb5d772684604367e64a000990366136f68960087bda66c = struct { value_6be18e6b8bff66e51366ca4eca851d93b716a0e9a2a911a6ac6eee34ab0f9e90, void, ?*const zx_type_c12d2a08c98afd4d27338af0512960bd597d7e2b5955217439f123f17fdfe651, };
-pub const view_value_54590184f9eb36a4fbb5d772684604367e64a000990366136f68960087bda66c = struct { []const bool, void, ?*const zx_type_c12d2a08c98afd4d27338af0512960bd597d7e2b5955217439f123f17fdfe651, };
+pub const value_03820fc4aa3f9b6144cbcf8d718ea27ff53eb9c555fb4f164ffecf2faa07befb = struct { value_c92c000109b741fe69221f5cd67fb0680f37c213f585227f95c1c319008691c9, void, ?*const zx_type_c12d2a08c98afd4d27338af0512960bd597d7e2b5955217439f123f17fdfe651, };
+pub const view_value_03820fc4aa3f9b6144cbcf8d718ea27ff53eb9c555fb4f164ffecf2faa07befb = struct { []const bool, void, ?*const zx_type_c12d2a08c98afd4d27338af0512960bd597d7e2b5955217439f123f17fdfe651, };
 
-pub const value_3fcd3cda3c6203af2b98cb418207400fe9111d792353388c1180701c2f5358c5 = struct {
-    diagnostic: value_796a3ab69572c0f62968f53a3980c48892357c21acd7d69f07657b6bccae24de,
-    expressions: *const zx_type_7172f221b5abe933ec705af5a9f87a7f7b6db5c720117ee4399833dfc85d12fb,
+pub const value_7b8270d6a72fc47f5bdab3df507f6a882c4c11c531d5d08c7e73b12855f7393f = struct {
+    diagnostic: value_70b6fe56ec1433c7db12ad7fe8b6ec16c18b25aaba658db9e05b52cea4a95808,
+    expressions: *const zx_type_7ffdc377160738ae985ed900d2d45ddfa5421b61324d50b3486bb087ea9c2a78,
     index: u64,
-    required: value_6be18e6b8bff66e51366ca4eca851d93b716a0e9a2a911a6ac6eee34ab0f9e90,
+    required: value_c92c000109b741fe69221f5cd67fb0680f37c213f585227f95c1c319008691c9,
     root: u64,
-    zx_origin: ?*const zx_type_d6435da976d23bf9746a320dccebec25c7ace68f4eea10815dda1261b4156f9e = null,
+    zx_origin: ?*const zx_type_55be29164d191b55b126929541840511f2cfd9042570da147e26123a097e0c3f = null,
 };
 
-pub const view_value_3fcd3cda3c6203af2b98cb418207400fe9111d792353388c1180701c2f5358c5 = struct {
-    diagnostic: value_796a3ab69572c0f62968f53a3980c48892357c21acd7d69f07657b6bccae24de,
-    expressions: *const zx_type_7172f221b5abe933ec705af5a9f87a7f7b6db5c720117ee4399833dfc85d12fb,
+pub const view_value_7b8270d6a72fc47f5bdab3df507f6a882c4c11c531d5d08c7e73b12855f7393f = struct {
+    diagnostic: value_70b6fe56ec1433c7db12ad7fe8b6ec16c18b25aaba658db9e05b52cea4a95808,
+    expressions: *const zx_type_7ffdc377160738ae985ed900d2d45ddfa5421b61324d50b3486bb087ea9c2a78,
     index: u64,
     required: []const bool,
     root: u64,
-    zx_origin: ?*const zx_type_d6435da976d23bf9746a320dccebec25c7ace68f4eea10815dda1261b4156f9e = null,
+    zx_origin: ?*const zx_type_55be29164d191b55b126929541840511f2cfd9042570da147e26123a097e0c3f = null,
 };
 
-pub const value_65b207f6b3e6f9ec7c71f1166547870be5a4eefd2e08e7d7a8778df71ff76d1d = struct {
-    conditions: value_3601a505cc029196b9f80a2e9e627c3124e337ad986f18c79a4a83913ccbbed1,
+pub const value_51c7ae2890c137e1e5142626759d18fa4d8058932b94950f415cbd8b9e929182 = struct {
+    conditions: value_33852a8fbab30244ede08e3240b24724da5df4d16cab4ef72522d42b694006e6,
     end: u64,
     index: u64,
-    required: value_6be18e6b8bff66e51366ca4eca851d93b716a0e9a2a911a6ac6eee34ab0f9e90,
-    results: value_3601a505cc029196b9f80a2e9e627c3124e337ad986f18c79a4a83913ccbbed1,
+    required: value_c92c000109b741fe69221f5cd67fb0680f37c213f585227f95c1c319008691c9,
+    results: value_33852a8fbab30244ede08e3240b24724da5df4d16cab4ef72522d42b694006e6,
     zx_origin: ?*const zx_type_146be0007f8aaf60d5231bd6f760aba6560eb7b10bc80c99c0dfac4bef434836 = null,
 };
 
-pub const view_value_65b207f6b3e6f9ec7c71f1166547870be5a4eefd2e08e7d7a8778df71ff76d1d = struct {
+pub const view_value_51c7ae2890c137e1e5142626759d18fa4d8058932b94950f415cbd8b9e929182 = struct {
     conditions: []const u32,
     end: u64,
     index: u64,
@@ -672,36 +748,36 @@ pub const view_value_65b207f6b3e6f9ec7c71f1166547870be5a4eefd2e08e7d7a8778df71ff
     zx_origin: ?*const zx_type_146be0007f8aaf60d5231bd6f760aba6560eb7b10bc80c99c0dfac4bef434836 = null,
 };
 
-pub const value_5fd6d441d3180a196d3716fae1f94ba890f374bd50a3c6aa4ca3cce72e93f210 = struct {
+pub const value_48d362bf81c0e43769ec8adf253c78b7a0943a321c6f3546bf54d5bd5467a4ed = struct {
     index: u64,
-    result: value_fbcea94e2e2f2dda10c1dba6b3907ac628e9d594ae91877115e25642bc706d58,
-    source: value_b749f46f9933b921e9ebd0358cdb7d25caa0da1a70c6752e94602a4c2fe1d9ba,
+    result: value_5f1583f2aba3e82ab92c5d7c1d88020cbc8cd72820181108872a12696a157af3,
+    source: value_02644af81ff06785112d2893fa4d9a0a010d1d41f29ed957ae6316dd680a6080,
     zx_origin: ?*const zx_type_156ae23e9cfe6b3b61799ecbfe5a0c6a998096a577c01043c475dbfd39725bda = null,
 };
 
-pub const view_value_5fd6d441d3180a196d3716fae1f94ba890f374bd50a3c6aa4ca3cce72e93f210 = struct {
+pub const view_value_48d362bf81c0e43769ec8adf253c78b7a0943a321c6f3546bf54d5bd5467a4ed = struct {
     index: u64,
     result: []const ?*const zx_type_308af60039628ab4f4c6af8f1a9f436729424c0f23744dd60fe8973cd7a15dc6,
     source: []const zx_type_2af9665120767ed61dc0e8028c12ae89cfa0b236b6cd3a6cef89b0359def17b5,
     zx_origin: ?*const zx_type_156ae23e9cfe6b3b61799ecbfe5a0c6a998096a577c01043c475dbfd39725bda = null,
 };
 
-pub const value_728d2383a7b5714f531290e6953ef3a173b85b9ab82a32fc253477fa434524db = struct { value_fbcea94e2e2f2dda10c1dba6b3907ac628e9d594ae91877115e25642bc706d58, void, ?*const zx_type_b79feea7225ae16d3b76a61c59724050e86633ebc4eae2fc4bce2edf1904b799, };
-pub const view_value_728d2383a7b5714f531290e6953ef3a173b85b9ab82a32fc253477fa434524db = struct { []const ?*const zx_type_308af60039628ab4f4c6af8f1a9f436729424c0f23744dd60fe8973cd7a15dc6, void, ?*const zx_type_b79feea7225ae16d3b76a61c59724050e86633ebc4eae2fc4bce2edf1904b799, };
-pub const value_eaa664eee2bb19c07a88ce57ebf6c4dea99531bcff79b1fe1da0be5688f7dfc3 = struct { value_9abd23e7675966d9bb975045a789abcb353fb365db04f01d35777c2ef0a68d56, void, ?*const zx_type_5ca1fc038738f67879719d537d111e5c64acab8474552600c933d54e8ab3a2e2, };
-pub const view_value_eaa664eee2bb19c07a88ce57ebf6c4dea99531bcff79b1fe1da0be5688f7dfc3 = struct { []const *const zx_type_14cd085379943d00f98557d8a978fe987a60a5b1449fe3c3d9a0ee66354180a2, void, ?*const zx_type_5ca1fc038738f67879719d537d111e5c64acab8474552600c933d54e8ab3a2e2, };
-pub const value_d90f189322805b7fdb2e3387b8aa8810a25451eb3c4a02836900ff6ad2dc0a0f = struct { value_9abd23e7675966d9bb975045a789abcb353fb365db04f01d35777c2ef0a68d56, ?*const zx_type_14cd085379943d00f98557d8a978fe987a60a5b1449fe3c3d9a0ee66354180a2, ?*const zx_type_3d159c37008af2e57685ac6b4e5de89ab1ab609e4823dd7ab4303f3a49fd4087, };
-pub const view_value_d90f189322805b7fdb2e3387b8aa8810a25451eb3c4a02836900ff6ad2dc0a0f = struct { []const *const zx_type_14cd085379943d00f98557d8a978fe987a60a5b1449fe3c3d9a0ee66354180a2, ?*const zx_type_14cd085379943d00f98557d8a978fe987a60a5b1449fe3c3d9a0ee66354180a2, ?*const zx_type_3d159c37008af2e57685ac6b4e5de89ab1ab609e4823dd7ab4303f3a49fd4087, };
-pub const value_5284a695d3fd1af3bb301f2dcb48c66da960f451b43c0cd6a3a238e696c7938d = struct { *const zx_type_b22857c6d80394aafb96a5095c5262fe2a0bc132890c2999fadf486eda660b6f, ?*const zx_type_8bea333d4e0c31b925cf97af7051cbbb0e40b04ad0fd2948d3a6594dafd963cd, };
-pub const view_value_5284a695d3fd1af3bb301f2dcb48c66da960f451b43c0cd6a3a238e696c7938d = value_5284a695d3fd1af3bb301f2dcb48c66da960f451b43c0cd6a3a238e696c7938d;
-pub const value_cac4fa4047e7ce56bb20b223cf2f7b50f84c98edead5962dc79577d091843852 = struct { *const zx_type_b22857c6d80394aafb96a5095c5262fe2a0bc132890c2999fadf486eda660b6f, value_796a3ab69572c0f62968f53a3980c48892357c21acd7d69f07657b6bccae24de, ?*const zx_type_5ba03adb733bf20793003aa30a56fc053319db4aaf2881192385747967c33645, };
-pub const view_value_cac4fa4047e7ce56bb20b223cf2f7b50f84c98edead5962dc79577d091843852 = value_cac4fa4047e7ce56bb20b223cf2f7b50f84c98edead5962dc79577d091843852;
-pub const value_26dff3d33f63fc195c322ffd755955ef3a76393255506aef0574645d2c11aed2 = struct { *const zx_type_b22857c6d80394aafb96a5095c5262fe2a0bc132890c2999fadf486eda660b6f, value_796a3ab69572c0f62968f53a3980c48892357c21acd7d69f07657b6bccae24de, value_bd11c8488411fc79a29bc272672f2513199013382497c34c01c8f5f18e855000, ?*const zx_type_2935d1ef5da18cd52921455a2d8c87f333838dd6f17b03c138c3cb207463fe3d, };
-pub const view_value_26dff3d33f63fc195c322ffd755955ef3a76393255506aef0574645d2c11aed2 = struct { *const zx_type_b22857c6d80394aafb96a5095c5262fe2a0bc132890c2999fadf486eda660b6f, value_796a3ab69572c0f62968f53a3980c48892357c21acd7d69f07657b6bccae24de, view_value_bd11c8488411fc79a29bc272672f2513199013382497c34c01c8f5f18e855000, ?*const zx_type_2935d1ef5da18cd52921455a2d8c87f333838dd6f17b03c138c3cb207463fe3d, };
-pub const value_e9274dda57ba7f5ca622c89079ad36f2fea083d36f17a77fa326ea858dfa847e = struct { *const zx_type_b22857c6d80394aafb96a5095c5262fe2a0bc132890c2999fadf486eda660b6f, value_796a3ab69572c0f62968f53a3980c48892357c21acd7d69f07657b6bccae24de, value_bd11c8488411fc79a29bc272672f2513199013382497c34c01c8f5f18e855000, value_bd11c8488411fc79a29bc272672f2513199013382497c34c01c8f5f18e855000, ?*const zx_type_f69d03c0af5d7e54d270d1b4013392d37823ed00fb565102249cc68dcd5890c7, };
-pub const view_value_e9274dda57ba7f5ca622c89079ad36f2fea083d36f17a77fa326ea858dfa847e = struct { *const zx_type_b22857c6d80394aafb96a5095c5262fe2a0bc132890c2999fadf486eda660b6f, value_796a3ab69572c0f62968f53a3980c48892357c21acd7d69f07657b6bccae24de, view_value_bd11c8488411fc79a29bc272672f2513199013382497c34c01c8f5f18e855000, view_value_bd11c8488411fc79a29bc272672f2513199013382497c34c01c8f5f18e855000, ?*const zx_type_f69d03c0af5d7e54d270d1b4013392d37823ed00fb565102249cc68dcd5890c7, };
-pub const value_4bbf26bb46476cae7c61de9608a2e1e344d00929f75777262509fc8a803dec92 = struct { *const zx_type_b22857c6d80394aafb96a5095c5262fe2a0bc132890c2999fadf486eda660b6f, value_796a3ab69572c0f62968f53a3980c48892357c21acd7d69f07657b6bccae24de, value_bd11c8488411fc79a29bc272672f2513199013382497c34c01c8f5f18e855000, value_bd11c8488411fc79a29bc272672f2513199013382497c34c01c8f5f18e855000, value_642c6ad863927e4f01ec99e8a4e02008d0ac0c89888e087dcaa80fb66a73b191, ?*const zx_type_f33836a955bfb699893a25e3fc04308b2fcd70c576af3a6bb06b9114b12ebad8, };
-pub const view_value_4bbf26bb46476cae7c61de9608a2e1e344d00929f75777262509fc8a803dec92 = struct { *const zx_type_b22857c6d80394aafb96a5095c5262fe2a0bc132890c2999fadf486eda660b6f, value_796a3ab69572c0f62968f53a3980c48892357c21acd7d69f07657b6bccae24de, view_value_bd11c8488411fc79a29bc272672f2513199013382497c34c01c8f5f18e855000, view_value_bd11c8488411fc79a29bc272672f2513199013382497c34c01c8f5f18e855000, value_642c6ad863927e4f01ec99e8a4e02008d0ac0c89888e087dcaa80fb66a73b191, ?*const zx_type_f33836a955bfb699893a25e3fc04308b2fcd70c576af3a6bb06b9114b12ebad8, };
+pub const value_13356d39ddf3177e39325fb4aa979982608a3684af70f02e17d123aa2f8b3283 = struct { value_5f1583f2aba3e82ab92c5d7c1d88020cbc8cd72820181108872a12696a157af3, void, ?*const zx_type_b79feea7225ae16d3b76a61c59724050e86633ebc4eae2fc4bce2edf1904b799, };
+pub const view_value_13356d39ddf3177e39325fb4aa979982608a3684af70f02e17d123aa2f8b3283 = struct { []const ?*const zx_type_308af60039628ab4f4c6af8f1a9f436729424c0f23744dd60fe8973cd7a15dc6, void, ?*const zx_type_b79feea7225ae16d3b76a61c59724050e86633ebc4eae2fc4bce2edf1904b799, };
+pub const value_58e1795fdb635db9100e922c52e097020ab7211a8b685583f9bcc2429e02160a = struct { value_938b5aee96af2513a39c6c9580bfb4ce07898d210cdab6b831936ec6fed92a11, void, ?*const zx_type_5ca1fc038738f67879719d537d111e5c64acab8474552600c933d54e8ab3a2e2, };
+pub const view_value_58e1795fdb635db9100e922c52e097020ab7211a8b685583f9bcc2429e02160a = struct { []const *const zx_type_14cd085379943d00f98557d8a978fe987a60a5b1449fe3c3d9a0ee66354180a2, void, ?*const zx_type_5ca1fc038738f67879719d537d111e5c64acab8474552600c933d54e8ab3a2e2, };
+pub const value_f5683dc6904c174d83434650b9f32edae81bfd9d82b6497a3db2c60195d534c5 = struct { value_938b5aee96af2513a39c6c9580bfb4ce07898d210cdab6b831936ec6fed92a11, ?*const zx_type_14cd085379943d00f98557d8a978fe987a60a5b1449fe3c3d9a0ee66354180a2, ?*const zx_type_3d159c37008af2e57685ac6b4e5de89ab1ab609e4823dd7ab4303f3a49fd4087, };
+pub const view_value_f5683dc6904c174d83434650b9f32edae81bfd9d82b6497a3db2c60195d534c5 = struct { []const *const zx_type_14cd085379943d00f98557d8a978fe987a60a5b1449fe3c3d9a0ee66354180a2, ?*const zx_type_14cd085379943d00f98557d8a978fe987a60a5b1449fe3c3d9a0ee66354180a2, ?*const zx_type_3d159c37008af2e57685ac6b4e5de89ab1ab609e4823dd7ab4303f3a49fd4087, };
+pub const value_00dba8fdb15fc43173cd482b0a8b1a523dc0bfe811d661eba1d3c827a04d20fe = struct { *const zx_type_a2f55696926fa6cae227a00b4b0c8ef9b9fe8830a5393ec29139ceff8a5bc53c, ?*const zx_type_75b1e354d2e30aacdacc30268840f689c5552c6eff6369dddca99de7117a7a93, };
+pub const view_value_00dba8fdb15fc43173cd482b0a8b1a523dc0bfe811d661eba1d3c827a04d20fe = value_00dba8fdb15fc43173cd482b0a8b1a523dc0bfe811d661eba1d3c827a04d20fe;
+pub const value_f398b6fd0274d7ba57b70e402fbdaccd025f3b02e11767b6da93560f501362ed = struct { *const zx_type_a2f55696926fa6cae227a00b4b0c8ef9b9fe8830a5393ec29139ceff8a5bc53c, value_70b6fe56ec1433c7db12ad7fe8b6ec16c18b25aaba658db9e05b52cea4a95808, ?*const zx_type_f909de019b2067fc86d685f082fd5e36978fbcf8fa6d9b20a9e43e8feaeca670, };
+pub const view_value_f398b6fd0274d7ba57b70e402fbdaccd025f3b02e11767b6da93560f501362ed = value_f398b6fd0274d7ba57b70e402fbdaccd025f3b02e11767b6da93560f501362ed;
+pub const value_f652704343f81bd2b4671ac38b7d5d03f188b0c6ba716f18cedac5a1db4f028a = struct { *const zx_type_a2f55696926fa6cae227a00b4b0c8ef9b9fe8830a5393ec29139ceff8a5bc53c, value_70b6fe56ec1433c7db12ad7fe8b6ec16c18b25aaba658db9e05b52cea4a95808, value_3faf35ca62c26491ff01a804e4a5bb6666a95c6a1e7033348a49b71c2c1463d3, ?*const zx_type_39eb6105f64e4b55d5c5e092d3486512b60e3e497e12c559c203446b09c9cb10, };
+pub const view_value_f652704343f81bd2b4671ac38b7d5d03f188b0c6ba716f18cedac5a1db4f028a = struct { *const zx_type_a2f55696926fa6cae227a00b4b0c8ef9b9fe8830a5393ec29139ceff8a5bc53c, value_70b6fe56ec1433c7db12ad7fe8b6ec16c18b25aaba658db9e05b52cea4a95808, view_value_3faf35ca62c26491ff01a804e4a5bb6666a95c6a1e7033348a49b71c2c1463d3, ?*const zx_type_39eb6105f64e4b55d5c5e092d3486512b60e3e497e12c559c203446b09c9cb10, };
+pub const value_31af4c0ce00546d0f027ab553bc419968f78d0724ee273290f3ad340460e6089 = struct { *const zx_type_a2f55696926fa6cae227a00b4b0c8ef9b9fe8830a5393ec29139ceff8a5bc53c, value_70b6fe56ec1433c7db12ad7fe8b6ec16c18b25aaba658db9e05b52cea4a95808, value_3faf35ca62c26491ff01a804e4a5bb6666a95c6a1e7033348a49b71c2c1463d3, value_3faf35ca62c26491ff01a804e4a5bb6666a95c6a1e7033348a49b71c2c1463d3, ?*const zx_type_9a6706d126b3210e2c94950ab4d90dafe897b901e016959d5427ff42fd34fe78, };
+pub const view_value_31af4c0ce00546d0f027ab553bc419968f78d0724ee273290f3ad340460e6089 = struct { *const zx_type_a2f55696926fa6cae227a00b4b0c8ef9b9fe8830a5393ec29139ceff8a5bc53c, value_70b6fe56ec1433c7db12ad7fe8b6ec16c18b25aaba658db9e05b52cea4a95808, view_value_3faf35ca62c26491ff01a804e4a5bb6666a95c6a1e7033348a49b71c2c1463d3, view_value_3faf35ca62c26491ff01a804e4a5bb6666a95c6a1e7033348a49b71c2c1463d3, ?*const zx_type_9a6706d126b3210e2c94950ab4d90dafe897b901e016959d5427ff42fd34fe78, };
+pub const value_ff01e1c4700df889ee729ed6a35ca51024b576cd5350b1781097ea861c22d6ec = struct { *const zx_type_a2f55696926fa6cae227a00b4b0c8ef9b9fe8830a5393ec29139ceff8a5bc53c, value_70b6fe56ec1433c7db12ad7fe8b6ec16c18b25aaba658db9e05b52cea4a95808, value_3faf35ca62c26491ff01a804e4a5bb6666a95c6a1e7033348a49b71c2c1463d3, value_3faf35ca62c26491ff01a804e4a5bb6666a95c6a1e7033348a49b71c2c1463d3, value_9f547a5bcbd2d2a08dcff17874a209d6ef606146a771bf27bd95cae4331964c4, ?*const zx_type_bc214a1fbe80bb76365953a0a04d0157faced655a8df60d37bed4e1fb8a434f2, };
+pub const view_value_ff01e1c4700df889ee729ed6a35ca51024b576cd5350b1781097ea861c22d6ec = struct { *const zx_type_a2f55696926fa6cae227a00b4b0c8ef9b9fe8830a5393ec29139ceff8a5bc53c, value_70b6fe56ec1433c7db12ad7fe8b6ec16c18b25aaba658db9e05b52cea4a95808, view_value_3faf35ca62c26491ff01a804e4a5bb6666a95c6a1e7033348a49b71c2c1463d3, view_value_3faf35ca62c26491ff01a804e4a5bb6666a95c6a1e7033348a49b71c2c1463d3, value_9f547a5bcbd2d2a08dcff17874a209d6ef606146a771bf27bd95cae4331964c4, ?*const zx_type_bc214a1fbe80bb76365953a0a04d0157faced655a8df60d37bed4e1fb8a434f2, };
 
 pub const ZxHeader = struct {
     capacity: usize,
@@ -721,13 +797,27 @@ pub inline fn zxReserve(comptime T: type, allocator: ((@import("std")).mem).Allo
         }
     }
 
-    return (try zxAllocate(T, allocator, items, count));
+    return (try zxAllocate(T, allocator, items, count, false, 0));
 }
 
-pub fn zxAllocate(comptime T: type, allocator: ((@import("std")).mem).Allocator, items: []const T, count: usize) error{ OutOfMemory, }![]T {
+pub inline fn zxReserveBounded(comptime T: type, allocator: ((@import("std")).mem).Allocator, items: []const T, count: usize, minimum: usize) error{ OutOfMemory, }![]T {
+    if (((items).len == 0)) {
+        return (try zxAllocate(T, allocator, items, count, true, minimum));
+    }
+
+    return (try zxReserve(T, allocator, items, count, true));
+}
+
+pub fn zxAllocate(comptime T: type, allocator: ((@import("std")).mem).Allocator, items: []const T, count: usize, comptime exact: bool, minimum: usize) error{ OutOfMemory, }![]T {
     const offset = (comptime ((((@import("std")).mem).Alignment).of(T)).forward(@sizeOf(ZxHeader)));
-    const capacity: usize = (if ((count == 0)) 0 else ((@import("std")).math).ceilPowerOfTwoAssert(usize, @max(count, 8)));
-    const bytes = (try (allocator).alignedAlloc(u8, (comptime ((((@import("std")).mem).Alignment).of(T)).max((((@import("std")).mem).Alignment).of(ZxHeader))), (offset + (capacity * @sizeOf(T)))));
+    const capacity: usize = (if ((exact or (@max(count, minimum) == 0))) @max(count, minimum) else ((@import("std")).math).ceilPowerOfTwoAssert(usize, @max(@max(count, minimum), 8)));
+
+    const bytes = (try (allocator).alignedAlloc(u8, (comptime ((((@import("std")).mem).Alignment).of(T)).max((((@import("std")).mem).Alignment).of(ZxHeader))), (((@import("std")).math).add(usize, offset, (((@import("std")).math).mul(usize, capacity, @sizeOf(T)) catch {
+        return error.OutOfMemory;
+    })) catch {
+        return error.OutOfMemory;
+    })));
+
     const data: [*]T = @ptrCast(@alignCast(((bytes).ptr + offset)));
     const fresh: *ZxHeader = @ptrCast(@alignCast((@as([*]u8, ((bytes).ptr + offset)) - @sizeOf(ZxHeader))));
 
@@ -744,13 +834,13 @@ pub fn zxRetract(comptime T: type, items: []const T, length: usize) void {
     (current).committed = length;
 }
 
-pub fn zxRenew(allocator: ((@import("std")).mem).Allocator, target: anytype, comptime path: []const [2][]const u8) error{ OutOfMemory, }!void {
+pub fn zxRenew(allocator: ((@import("std")).mem).Allocator, target: anytype, comptime path: []const [2][]const u8, comptime exact: bool) error{ OutOfMemory, }!void {
     const V = @TypeOf((target).*);
     const info = @typeInfo(V);
 
     if ((info == .optional)) {
         if ((target).*) |*inner| {
-            (try zxRenew(allocator, inner, path));
+            (try zxRenew(allocator, inner, path, exact));
         }
     } else {
         if ((info == .pointer)) {
@@ -759,19 +849,21 @@ pub fn zxRenew(allocator: ((@import("std")).mem).Allocator, target: anytype, com
             } else {
                 const fresh = (try (allocator).create(((info).pointer).child));
                 (fresh).* = ((target).*).*;
-                (try zxRenew(allocator, fresh, path));
+                (try zxRenew(allocator, fresh, path, exact));
                 (target).* = fresh;
             }
         } else {
             if (((path).len == 0)) {
-                ((target).*).items = (try zxReserve(((@typeInfo(@TypeOf(((target).*).items))).pointer).child, allocator, ((target).*).items, (((target).*).items).len, false));
-                ((target).*).headered = true;
+                if ((!(((target).*).storage == .exclusive))) {
+                    ((target).*).items = (try zxAllocate(((@typeInfo(@TypeOf(((target).*).items))).pointer).child, allocator, ((target).*).items, (((target).*).items).len, exact, 0));
+                    ((target).*).storage = .exclusive;
+                }
             } else {
                 if (@hasField(V, ((path)[0])[1])) {
                     @field((target).*, ((path)[0])[1]) = null;
                 }
 
-                (try zxRenew(allocator, (&@field((target).*, ((path)[0])[0])), (path)[1..]));
+                (try zxRenew(allocator, (&@field((target).*, ((path)[0])[0])), (path)[1..], exact));
             }
         }
     }
@@ -875,6 +967,18 @@ pub const native = struct {
             pub const Input = *const zx_type_ae6651c9887b48c931a6403be40a5a1f94c3645f53da759472b124d54169c5b9;
             pub const Output = u64;
             pub const InputValue = zx_type_ae6651c9887b48c931a6403be40a5a1f94c3645f53da759472b124d54169c5b9;
+            pub const OutputValue = u64;
+        };
+        pub const shiftLeft = struct {
+            pub const Input = *const zx_type_ae6651c9887b48c931a6403be40a5a1f94c3645f53da759472b124d54169c5b9;
+            pub const Output = u64;
+            pub const InputValue = zx_type_ae6651c9887b48c931a6403be40a5a1f94c3645f53da759472b124d54169c5b9;
+            pub const OutputValue = u64;
+        };
+        pub const hash = struct {
+            pub const Input = u64;
+            pub const Output = u64;
+            pub const InputValue = u64;
             pub const OutputValue = u64;
         };
     };

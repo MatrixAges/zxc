@@ -3,6 +3,7 @@ import { TransformKind } from "core/expression_table/kinds"
 import { Kind } from "core/type_table/model"
 
 import kind from "../../../../analysis/semantic/types/kind"
+import sorting from "./sorting"
 import typed from "./typed"
 
 import type { Check } from "./model"
@@ -48,6 +49,10 @@ export default function (in: Input): Output {
 
     if (condition) {
         return false
+    }
+
+    if (operation == TransformKind.Sort) {
+        return sorting(in)
     }
 
     if (operation == TransformKind.Reduce && initial == null) {

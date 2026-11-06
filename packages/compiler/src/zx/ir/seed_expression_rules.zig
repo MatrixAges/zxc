@@ -276,6 +276,22 @@ const Check = struct {
             if (value.kind != .reduce and self.program.typeOf(self.program.expression(initial).type_id) == .task) return false;
         } else if (value.kind == .reduce) return false;
 
+        if (value.kind == .sort) {
+            if (source != .list or value.initial == null or value.parameters.len != 3) return false;
+
+            for (value.parameters, 0..) |parameter, index| {
+                if (@backingInt(parameter) >= self.program.symbols.count()) return false;
+
+                const expected = if (index == 2) self.program.expression(value.initial.?).type_id else source.list;
+
+                if (self.program.symbols.at(@backingInt(parameter)).type_id != expected) return false;
+            }
+
+            const body = self.program.expression(value.body).type_id;
+
+            return result == source_id and (numbers.isInteger(body) or numbers.isFloat(body));
+        }
+
         if (source != .list or value.parameters.len != @as(usize, if (value.initial != null) 2 else 1)) return false;
 
         for (value.parameters, 0..) |parameter, index| {
@@ -287,6 +303,7 @@ const Check = struct {
         }
 
         return switch (value.kind) {
+            .sort => unreachable,
             .map => target == .list and self.typed(value.body, target.list),
             .filter => result == source_id and self.typed(value.body, bool_type),
             .every, .some => result == bool_type and self.typed(value.body, bool_type),

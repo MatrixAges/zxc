@@ -156,6 +156,7 @@ pub const main = [_]Entry{
 };
 
 pub const ordered = [_]Entry{
+    .{ .path = "genz/analysis/uniqueness/replay/ordered/demanded.rx", .name = "uniqueness_replay_demanded", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/replay/ordered/settled.rx", .name = "uniqueness_replay_settled", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/replay/ordered/planned.rx", .name = "uniqueness_replay_planned", .owner = .genz },
 };

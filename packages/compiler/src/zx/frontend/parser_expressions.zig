@@ -111,7 +111,11 @@ fn primary(parser: *Parser, allow_lambda: bool) zx.Error!*const ast.Expression {
 
                 try fields.append(parser.allocator, .{ .name = .{ .text = "", .span = value.span }, .value = value, .spread = true });
             } else {
-                const name = try parser.name();
+                const keyword = parser.current().kind == .keyword;
+                const name = try parser.property();
+
+                if (keyword and !parser.at(":")) return parser.reporter.fail(.syntax, parser.current().span, "expected :");
+
                 const value = if (parser.take(":")) try parse(parser, 0) else try parser.make(name.span.start, .{ .identifier = name });
 
                 try fields.append(parser.allocator, .{ .name = name, .value = value });
@@ -139,7 +143,7 @@ fn primary(parser: *Parser, allow_lambda: bool) zx.Error!*const ast.Expression {
 
     while (true) {
         if (parser.take(".")) {
-            result = try parser.make(token.span.start, .{ .field = .{ .target = result, .name = try parser.name() } });
+            result = try parser.make(token.span.start, .{ .field = .{ .target = result, .name = try parser.property() } });
         } else if (parser.take("[")) {
             const index = try parse(parser, 0);
 

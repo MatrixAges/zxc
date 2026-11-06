@@ -56,7 +56,7 @@ pub fn visit(self: *Effects, values: ir.ExpressionTable, value: ir.ExpressionRow
             for (operation.arguments) |argument| try self.visit(values, argument);
         },
         .transform => |transform| {
-            if (transform.kind == .map or transform.kind == .filter) try self.add("OutOfMemory");
+            if (transform.kind == .map or transform.kind == .filter or transform.kind == .sort) try self.add("OutOfMemory");
             try self.visit(values, transform.target);
             try self.visit(values, transform.body);
             if (transform.initial) |initial| try self.visit(values, initial);

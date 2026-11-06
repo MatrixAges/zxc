@@ -234,7 +234,7 @@ fn visit(self: *Self, id: ir.ExprId) std.mem.Allocator.Error!void {
 
             defer self.current_loop = saved;
 
-            for (transform.parameters, 0..) |symbol, position| self.define(symbol, if (transform.kind == .reduce and position == 0) .{ .carried = id } else .element);
+            for (transform.parameters, 0..) |symbol, position| self.define(symbol, if (transform.kind == .sort and position == 2) .{ .value = transform.initial.? } else if (transform.kind == .reduce and position == 0) .{ .carried = id } else .element);
             try self.operand(parent, transform.body, .use);
         },
         .scope => |scope| {

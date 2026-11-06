@@ -1,0 +1,37 @@
+import parallel from "../../control/parallel"
+import expressions from "./expressions"
+
+import type { Contracts } from "core/contract_table/model"
+import type { Control } from "core/control_table/model"
+import type { Expressions } from "core/expression_table/model"
+
+export type Input = {
+    expressions: Expressions,
+    control: Control,
+    root?: u32,
+    contracts: Contracts
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    if (parallel(in.pick([
+        "control",
+        "root"
+    ])) || !expressions(in.expressions)) {
+        return false
+    }
+
+    return loop({
+        index: 0,
+        valid: true
+    }, {
+        while: (current, source) => current.valid &&
+            current.index < source.expressions.length,
+        next: (current, source) => {
+            current.valid = expressions(source.expressions[current.index])
+            current.index += 1
+        },
+        return: current => current.valid
+    }, in.contracts)
+}

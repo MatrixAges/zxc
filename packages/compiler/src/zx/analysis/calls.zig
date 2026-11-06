@@ -99,7 +99,9 @@ pub fn analyzeProjected(self: *Analyzer, expression: anytype, expected: ?ir.Type
     const kind = std.meta.stringToEnum(@FieldType(ir.Transform, "kind"), name);
 
     if (kind) |transform_kind| {
-        projected.* = projection != null and projection.? < 2 and (transform_kind == .map or transform_kind == .filter or transform_kind == .reduce);
+        if (transform_kind == .sort and call.arguments.len == 0) return @import("list_operations.zig").analyze(self, expression, target);
+
+        projected.* = projection != null and projection.? < 2 and (transform_kind == .map or transform_kind == .filter or transform_kind == .reduce or transform_kind == .sort);
 
         return @import("transforms.zig").analyzeProjected(self, expression, target, transform_kind, expected, if (projected.*) projection else null);
     }

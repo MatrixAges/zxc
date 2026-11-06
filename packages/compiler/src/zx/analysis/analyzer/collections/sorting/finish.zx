@@ -1,0 +1,103 @@
+import integers from "std:integer"
+import scope from "core/expression_table/append/scope"
+import append from "core/expression_table/append/transform"
+import { TransformKind } from "core/expression_table/kinds"
+import { Ownership } from "core/symbol_table/model"
+
+import reference from "../building/reference"
+import symbol from "../building/symbol"
+import resultValue from "../lowering/result"
+import { result_name } from "./const"
+
+import type { Result } from "../../expressions/model"
+import type { Options } from "../model"
+
+export type Input = {
+    options: Options,
+    environment: u32,
+    parameters: u32[],
+    body: u32
+}
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const options = in.options
+
+    const type_id = options.state.local.expressions
+        .types[integers.widen(
+            options.target
+        )]
+
+    const sorted = append({
+        table: options.state.local.expressions,
+        metadata: {
+            type_id,
+            span_start: options.span.start,
+            span_end: options.span.end
+        },
+        kind: TransformKind.Sort,
+        target: options.target,
+        body: in.body,
+        initial: in.environment,
+        parameters: in.parameters
+    })
+
+    const binding = symbol({
+        state: {
+            ...options.state,
+            local: {
+                ...options.state.local,
+                expressions: sorted.table
+            }
+        },
+        name: result_name,
+        type_id,
+        ownership: Ownership.Copy,
+        span: options.span
+    })
+
+    const value = reference({
+        state: binding.state,
+        symbol: binding.symbol,
+        span: options.span
+    })
+
+    const selected = resultValue({
+        state: value.state,
+        tuple: {
+            kind: TransformKind.Sort,
+            projection: options.projection,
+            source: options.target
+        },
+        value: value.value,
+        span: options.span
+    })
+
+    const result = scope({
+        table: selected.state.local.expressions,
+        metadata: {
+            type_id: selected.state.local.expressions
+                .types[integers.widen(
+                    selected.value
+                )],
+            span_start: options.span.start,
+            span_end: options.span.end
+        },
+        result: selected.value,
+        symbols: [binding.symbol],
+        values: [sorted.id],
+        borrows: [false]
+    })
+
+    return {
+        state: {
+            ...selected.state,
+            local: {
+                ...selected.state.local,
+                expressions: result.table
+            }
+        },
+        value: result.id
+    }
+}

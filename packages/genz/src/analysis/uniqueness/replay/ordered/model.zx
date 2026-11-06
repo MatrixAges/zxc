@@ -30,3 +30,32 @@ export type Plan = {
     left: Planned,
     right: Planned
 }
+
+export type Mark = {
+    output: bool,
+    function: u32,
+    slot: u32,
+    want: u8
+}
+
+export type Normalized = {
+    id: u32,
+    want: u8
+}
+
+export type Renewed = {
+    key: u64,
+    want: u8
+}
+
+export type Demanded = {
+    marks: Mark[],
+    normalized: Normalized[],
+    renewed: Renewed[],
+    grew: bool
+}
+
+export type Demand = {
+    left: Demanded,
+    right: Demanded
+}

@@ -17,7 +17,10 @@ export type Output = ExprState
 
 export default function (in: Input): Output {
     if (in.control.phase == Phase.FieldName) {
-        if (in.control.token.kind != Kind.Identifier) {
+        if (
+            in.control.token.kind != Kind.Identifier &&
+                in.control.token.kind != Kind.Keyword
+        ) {
             return fail({
                 state: in,
                 code: "syntax",

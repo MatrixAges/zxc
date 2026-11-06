@@ -11,6 +11,7 @@ import type { Table } from "core/type_table/model"
 export type Input = {
     types: Table,
     records: bool[],
+    read_only: bool,
     expressions: Expressions,
     roots: u32[]
 }
@@ -97,6 +98,7 @@ export default function (in: Input): Output {
         records: in.records,
         expressions: in.expressions,
         roots: updates,
+        read_only: in.read_only,
         index: 0
     }, {
         while: current => current.index < current.expressions.transform_kinds.length,
@@ -116,11 +118,14 @@ export default function (in: Input): Output {
                 current.records[index] &&
                     kind(current.types.kinds[index]) == Kind.Object
             ) {
-                const reused = operation == TransformKind.Filter ||
-                    (operation == TransformKind.Map && !fresh({
+                const reused = (
+                    - operation == TransformKind.Filter
+                    - or (operation == TransformKind.Sort && !current.read_only)
+                    - or (operation == TransformKind.Map && !fresh({
                         expressions,
                         id: body
                     }))
+                )
 
                 if (reused) {
                     current.roots = current.roots.push(child)[0]

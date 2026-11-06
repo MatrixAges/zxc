@@ -6,6 +6,7 @@ import type { Table } from "core/type_table/model"
 export type Input = {
     types: Table,
     records: bool[],
+    read_only: bool,
     tables: Expressions[]
 }
 
@@ -17,6 +18,7 @@ export default function (in: Input): Output {
     return loop({
         types: in.types,
         records: in.records,
+        read_only: in.read_only,
         tables: in.tables,
         roots,
         index: 0
@@ -26,6 +28,7 @@ export default function (in: Input): Output {
             current.roots = shared({
                 types: current.types,
                 records: current.records,
+                read_only: current.read_only,
                 expressions: current.tables[current.index],
                 roots: current.roots
             })

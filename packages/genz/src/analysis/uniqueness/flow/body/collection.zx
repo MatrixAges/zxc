@@ -157,7 +157,9 @@ export default function (in: Input): Output {
 
         const condition = (
             - contents
-            - and operation == TransformKind.Filter
+            - and (
+                operation == TransformKind.Filter || operation == TransformKind.Sort
+            )
             - and nested({
                 body,
                 node: target

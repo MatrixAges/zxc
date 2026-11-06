@@ -85,7 +85,7 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocat
 
         var hash = @import("zx").Sha256.init(.{});
 
-        hash.update("state.value.origin.v11");
+        hash.update("state.value.origin.v12");
         hash.update(&.{@intFromBool(selected[index])});
 
         switch (value) {

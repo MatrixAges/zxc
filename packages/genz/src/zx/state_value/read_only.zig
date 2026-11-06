@@ -26,11 +26,8 @@ fn scalar(program: ir.Program, id: ir.TypeId) bool {
 }
 
 fn expressions(table: ir.ExpressionTable, contracts: ir.ContractTable) bool {
-    for (table.kinds) |kind| switch (kind) {
-        .ListOperation, .ListUpdate, .Transform, .Parallel, .Task, .AwaitTask, .CancelTask, .StoreGet => return false,
-        else => {},
-    };
-
+    if (table.collection_kinds.len != 0 or table.update_targets.len != 0 or table.parallel_count.len != 0 or table.task_bodies.len != 0 or table.awaits.len != 0 or table.cancellations.len != 0 or table.stores.len != 0) return false;
+    for (table.transform_kinds) |kind| if (kind != .Sort) return false;
     for (contracts.expressions) |child| if (!expressions(child.*, .{})) return false;
 
     return true;

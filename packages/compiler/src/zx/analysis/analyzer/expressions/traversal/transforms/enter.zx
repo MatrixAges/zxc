@@ -25,7 +25,13 @@ export default function (in: Input): Output {
     const arguments = in.arguments
     const kind = in.kind
 
-    if (arguments.length < 1 || arguments.length > 2) {
+    const invalid = (
+        - arguments.length < 1
+        - or arguments.length > 2
+        - or (kind == TransformKind.Sort && arguments.length != 1)
+    )
+
+    if (invalid) {
         return {
             ...in.work,
             state: {

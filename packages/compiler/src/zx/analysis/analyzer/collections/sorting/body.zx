@@ -1,0 +1,83 @@
+import integers from "std:integer"
+import project from "core/expression_table/append/projection"
+import scope from "core/expression_table/append/scope"
+
+import type { Span } from "../../../../frontend/lexer/token_model"
+import type { Result } from "../../expressions/model"
+import type { Prepared } from "../../model"
+import type { Captures } from "../model"
+
+export type Input = {
+    state: Prepared,
+    context: u32,
+    body: u32,
+    captures: Captures,
+    span: Span
+}
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const values: u32[] = []
+    const symbols: u32?[] = []
+    const borrows: bool[] = []
+
+    const bound = loop({
+        expressions: in.state.local.expressions,
+        values,
+        symbols,
+        borrows,
+        index: 0
+    }, {
+        while: (current, source) => current.index < source.captures.targets.length,
+        next: (current, source) => {
+            const target = source.captures.targets[current.index]
+            const projected = project({
+                table: current.expressions,
+                metadata: {
+                    type_id: source.types[integers.widen(target)],
+                    span_start: source.span.start,
+                    span_end: source.span.end
+                },
+                target: source.context,
+                index: integers.narrow(current.index),
+                tuple: true
+            })
+
+            current.expressions = projected.table
+            current.values = current.values.push(projected.id)[0]
+            current.symbols = current.symbols.push(target)[0]
+            current.borrows = current.borrows.push(true)[0]
+            current.index += 1
+        }
+    }, {
+        captures: in.captures,
+        types: in.state.local.symbols.types,
+        context: in.context,
+        span: in.span
+    })
+
+    const result = scope({
+        table: bound.expressions,
+        metadata: {
+            type_id: in.state.local.expressions.types[integers.widen(in.body)],
+            span_start: in.span.start,
+            span_end: in.span.end
+        },
+        result: in.body,
+        symbols: bound.symbols,
+        values: bound.values,
+        borrows: bound.borrows
+    })
+
+    return {
+        state: {
+            ...in.state,
+            local: {
+                ...in.state.local,
+                expressions: result.table
+            }
+        },
+        value: result.id
+    }
+}

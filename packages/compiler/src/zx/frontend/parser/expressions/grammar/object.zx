@@ -102,10 +102,7 @@ export default function (in: Input): Output {
 
     const options = taken.frame.kind == FrameKind.OptionsValue
 
-    const condition = options && (
-        taken.state.control.token.word == Keyword.While ||
-            taken.state.control.token.word == Keyword.Return
-    )
+    const condition = taken.state.control.token.kind == Kind.Keyword
 
     const callback =
         options &&
@@ -114,7 +111,10 @@ export default function (in: Input): Output {
                 taken.state.control.token.word == Keyword.Do
         )
 
-    if (taken.state.control.token.kind != Kind.Identifier && !condition) {
+    if (
+        taken.state.control.token.kind != Kind.Identifier &&
+            taken.state.control.token.kind != Kind.Keyword
+    ) {
         return fail({
             state: taken.state,
             code: "syntax",

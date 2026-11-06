@@ -36,7 +36,11 @@ pub fn programWith(allocator: std.mem.Allocator, value: ir.Program, known: ?[]co
 }
 
 pub fn expression(allocator: std.mem.Allocator, types: ir.TypeTable, functions: ir.FunctionTable, values: ir.ExpressionTable, id: ir.ExprId) std.mem.Allocator.Error!?[]const []const u8 {
-    var self = Self{ .allocator = allocator, .types = types, .functions = functions };
+    return expressionWith(allocator, types, functions, values, id, null);
+}
+
+pub fn expressionWith(allocator: std.mem.Allocator, types: ir.TypeTable, functions: ir.FunctionTable, values: ir.ExpressionTable, id: ir.ExprId, known: ?[]const ?[]const []const u8) std.mem.Allocator.Error!?[]const []const u8 {
+    var self = Self{ .allocator = allocator, .types = types, .functions = functions, .known = known };
 
     defer self.deinit();
 

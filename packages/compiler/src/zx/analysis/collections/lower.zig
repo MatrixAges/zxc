@@ -9,6 +9,8 @@ const Callback = @import("callback.zig").Result;
 pub const Options = struct { tuple_result: bool = false, projection: ?u64 = null, span: zx.Span, kind: @FieldType(ir.Transform, "kind"), target: ir.ExprId, initial: ?ir.ExprId, ignored: ?ir.ExprId, callback: Callback, result_type: ir.TypeId };
 
 pub fn lower(analyzer: *Analyzer, options: Options) zx.Error!ir.ExprId {
+    if (options.kind == .sort) return @import("sorting.zig").lower(analyzer, options);
+
     const builder = Builder{ .analyzer = analyzer, .span = options.span };
     const source_symbol = try builder.symbol("$collection_source", analyzer.node(options.target).type_id);
     const source = try builder.reference(source_symbol);
@@ -24,6 +26,7 @@ pub fn lower(analyzer: *Analyzer, options: Options) zx.Error!ir.ExprId {
     }
 
     const initial_result = switch (options.kind) {
+        .sort => unreachable,
         .map, .filter => try builder.expression(options.result_type, .{ .list = &.{} }),
         .every, .some => try builder.expression(Types.scalarId(.bool), .{ .boolean = options.kind == .every }),
         .reduce => options.initial orelse try builder.expression(options.result_type, .{ .index = .{ .target = source, .index = try builder.integer(0) } }),

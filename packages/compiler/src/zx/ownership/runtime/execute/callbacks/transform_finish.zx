@@ -125,8 +125,13 @@ export default function (in: Input): Output {
                     (
                         - !predicate
                         - and (
-                            - current.program.expressions.transform_kinds[transform] ==
-                                TransformKind.Filter
+                            - (
+                                current.program.expressions.transform_kinds[transform] ==
+                                    TransformKind.Filter ||
+                                    current.program.expressions
+                                    .transform_kinds[transform] ==
+                                    TransformKind.Sort
+                            )
                             - and current.references[element]
                             - or result == State.Borrowed
                             - or (

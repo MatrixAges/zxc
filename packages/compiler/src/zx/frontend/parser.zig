@@ -56,6 +56,16 @@ pub fn name(self: *Self) zx.Error!ast.Name {
     return .{ .text = token.text(self.source), .span = token.span };
 }
 
+pub fn property(self: *Self) zx.Error!ast.Name {
+    const token = self.current();
+
+    if (token.kind != .identifier and token.kind != .keyword) return self.reporter.fail(.syntax, token.span, "expected a property name");
+
+    self.index += 1;
+
+    return .{ .text = token.text(self.source), .span = token.span };
+}
+
 pub fn enter(self: *Self) zx.Error!void {
     if (self.depth >= 256) return self.reporter.fail(.unsupported, self.current().span, "syntax nesting exceeds 256 levels");
 

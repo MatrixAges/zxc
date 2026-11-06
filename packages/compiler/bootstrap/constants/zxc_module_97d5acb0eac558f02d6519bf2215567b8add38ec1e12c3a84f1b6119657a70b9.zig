@@ -1,7 +1,7 @@
 const std = @import("std");
 const zx_abi = @import("zxc_abi");
 
-pub fn call(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_0855fc0e73cc445eae5fb13ad2d0cd33dcc2ed453b67b1c6a0482cc0e669a8d3) error{ }!u64 {
+pub inline fn call(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_0855fc0e73cc445eae5fb13ad2d0cd33dcc2ed453b67b1c6a0482cc0e669a8d3) error{ }!u64 {
     @setRuntimeSafety(true);
 
     return block_2: {

@@ -565,7 +565,8 @@ export default function visit(in: Input): Output {
                     result: {
                         ...empty,
                         value: operation == TransformKind.Map ||
-                            operation == TransformKind.Filter ? Knowledge.Unique :
+                            operation == TransformKind.Filter ||
+                            operation == TransformKind.Sort ? Knowledge.Unique :
                             Knowledge.None
                     }
                 })

@@ -1,7 +1,7 @@
 const std = @import("std");
 const zx_abi = @import("zxc_abi");
 
-pub fn callValue(allocator: ((std).mem).Allocator, in: (zx_abi).value_a60fc848d63560267d7cbaba3ba3f9684317a56cd59f9496d15d08627d620965) error{ OutOfMemory, }!(zx_abi).value_f4aa2c599c0bc18901c2f6c9db2138425ca0ee4d492c27be8e2673ef09da1577 {
+pub fn callValue(allocator: ((std).mem).Allocator, in: (zx_abi).value_56204d00921c77db48327c86c39a353531ec7fb63ae311b6628ea40dcbe3e37a) error{ OutOfMemory, }!(zx_abi).value_4ae5d85f1854ef8438f79c8e2a34690101e11594d44d507f9e5d0fe976d713ba {
     @setRuntimeSafety(true);
 
     _ = allocator;
@@ -35,7 +35,7 @@ pub fn callValue(allocator: ((std).mem).Allocator, in: (zx_abi).value_a60fc848d6
             break :block_13 value_1;
         } == @as(u32, 7)));
 
-        break :block_14 @as((zx_abi).value_f4aa2c599c0bc18901c2f6c9db2138425ca0ee4d492c27be8e2673ef09da1577, (zx_abi).value_f4aa2c599c0bc18901c2f6c9db2138425ca0ee4d492c27be8e2673ef09da1577{ .id = operand_1, .floating = operand_3, .single = operand_6, .integer = operand_8, .signed = operand_11, });
+        break :block_14 @as((zx_abi).value_4ae5d85f1854ef8438f79c8e2a34690101e11594d44d507f9e5d0fe976d713ba, (zx_abi).value_4ae5d85f1854ef8438f79c8e2a34690101e11594d44d507f9e5d0fe976d713ba{ .id = operand_1, .floating = operand_3, .single = operand_6, .integer = operand_8, .signed = operand_11, });
     };
 }
 

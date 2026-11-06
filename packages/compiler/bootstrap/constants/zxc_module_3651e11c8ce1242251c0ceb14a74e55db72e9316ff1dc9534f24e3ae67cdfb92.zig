@@ -1,7 +1,7 @@
 const std = @import("std");
 const zx_abi = @import("zxc_abi");
 
-pub fn callValue(allocator: ((std).mem).Allocator, in: (zx_abi).value_19ebf3d3daa1235aa9ca0e94693f070406096da386675c891f585ac3f6cab6cf) error{ IndexOutOfBounds, OutOfMemory, }!(zx_abi).value_55236f425e7ca85b27b66cbf27549e540336bb749c48e0162fd9997fd0cd1a60 {
+pub fn callValue(allocator: ((std).mem).Allocator, in: (zx_abi).value_d5a2abbc372f76159966b3930c9c4c5a4acd842be2767b076d686112aa34e82e) error{ IndexOutOfBounds, OutOfMemory, }!(zx_abi).value_629fd55d01eced1adea080e74d2d6104120cc49ea2a7ea4baf0c0cef5ae2d969 {
     @setRuntimeSafety(true);
 
     const value_1: (zx_abi).zx_type_2af9665120767ed61dc0e8028c12ae89cfa0b236b6cd3a6cef89b0359def17b5 = block_25: {
@@ -50,13 +50,13 @@ pub fn callValue(allocator: ((std).mem).Allocator, in: (zx_abi).value_19ebf3d3da
                 const operand_4 = (in).input;
                 const operand_5 = ((in).frame).id;
 
-                break :block_6 @as((zx_abi).value_1323d051ef2b29690bf3e0d5973157e37a2ee5ed38a6c2349631e1e356aa78df, (zx_abi).value_1323d051ef2b29690bf3e0d5973157e37a2ee5ed38a6c2349631e1e356aa78df{ .input = operand_4, .id = operand_5, });
+                break :block_6 @as((zx_abi).value_21db31953bd47b48935cb8043a96d297355441b1130768304d9d639e3e4fdb55, (zx_abi).value_21db31953bd47b48935cb8043a96d297355441b1130768304d9d639e3e4fdb55{ .input = operand_4, .id = operand_5, });
             };
 
-            var state_borrow_8: (zx_abi).zx_type_70cc73e2d4def4cea2ef2031e5a44f78bd47edce381ada1465ee5b5bfd0992e2 = undefined;
+            var state_borrow_8: (zx_abi).zx_type_c22bc6bb44c823f09c9998e1942a4719f164fbdf3623e4af03459af19b95be16 = undefined;
 
             const operand_10 = (try (@import("zxc_module_cf64de78638ac75e2cfa08d887799a00f788ef839699255831589bc118a1e950.zig")).callValue(allocator, ((operand_7).zx_origin orelse block_9: {
-                state_borrow_8 = (zx_abi).zx_type_70cc73e2d4def4cea2ef2031e5a44f78bd47edce381ada1465ee5b5bfd0992e2{ .id = (operand_7).id, .input = (operand_7).input, };
+                state_borrow_8 = (zx_abi).zx_type_c22bc6bb44c823f09c9998e1942a4719f164fbdf3623e4af03459af19b95be16{ .id = (operand_7).id, .input = (operand_7).input, };
 
                 break :block_9 (&state_borrow_8);
             })));
@@ -72,7 +72,7 @@ pub fn callValue(allocator: ((std).mem).Allocator, in: (zx_abi).value_19ebf3d3da
 
         const operand_14 = @as([]const u8, "");
 
-        break :block_15 @as((zx_abi).value_55236f425e7ca85b27b66cbf27549e540336bb749c48e0162fd9997fd0cd1a60, (zx_abi).value_55236f425e7ca85b27b66cbf27549e540336bb749c48e0162fd9997fd0cd1a60{ .frame = operand_1, .child = operand_2, .value = operand_3, .message = operand_14, });
+        break :block_15 @as((zx_abi).value_629fd55d01eced1adea080e74d2d6104120cc49ea2a7ea4baf0c0cef5ae2d969, (zx_abi).value_629fd55d01eced1adea080e74d2d6104120cc49ea2a7ea4baf0c0cef5ae2d969{ .frame = operand_1, .child = operand_2, .value = operand_3, .message = operand_14, });
     };
 }
 

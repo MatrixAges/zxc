@@ -24,8 +24,12 @@ export type Output = {
 }
 
 export default function (in: Input): Output {
-    const transformed = in.kind == TransformKind.Map ||
-        in.kind == TransformKind.Filter || in.kind == TransformKind.Reduce
+    const transformed = (
+        - in.kind == TransformKind.Map
+        - or in.kind == TransformKind.Filter
+        - or in.kind == TransformKind.Reduce
+        - or in.kind == TransformKind.Sort
+    )
 
     if (!transformed) {
         return {

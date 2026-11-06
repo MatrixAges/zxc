@@ -1,0 +1,43 @@
+<Module>
+    <Type from="model" as="Comparison" />
+
+    <Args in={Comparison.Demand} out={bool} />
+
+    <If on={$in.left.grew != $in.right.grew}>
+        <Return value={false} />
+    </If>
+
+    <Call
+        fn="marks"
+        in={{
+            left: $in.left.marks,
+            right: $in.right.marks
+        }}
+    />
+
+    <If on={!$ctx.marks}>
+        <Return value={false} />
+    </If>
+
+    <Call
+        fn="normalized"
+        in={{
+            left: $in.left.normalized,
+            right: $in.right.normalized
+        }}
+    />
+
+    <If on={!$ctx.normalized}>
+        <Return value={false} />
+    </If>
+
+    <Call
+        fn="renewed"
+        in={{
+            left: $in.left.renewed,
+            right: $in.right.renewed
+        }}
+    />
+
+    <Return value={$ctx.renewed} />
+</Module>

@@ -49,7 +49,10 @@ export default function (in: Input): Output {
             }, {
                 parameters: source.transform_parameters,
                 target: source.transform_targets[index],
-                end: first + integers.widen(source.transform_count[index])
+                end: first + (
+                    source.transform_kinds[index] == TransformKind.Sort ? 2 :
+                        integers.widen(source.transform_count[index])
+                )
             })
             state.index += 1
         },
