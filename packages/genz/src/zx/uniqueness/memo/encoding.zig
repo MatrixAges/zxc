@@ -7,6 +7,7 @@ const resetting = @import("generated_uniqueness_memo_reset");
 const appending = @import("generated_uniqueness_memo_append");
 const writing = @import("generated_uniqueness_memo_integer");
 const packing = @import("generated_uniqueness_memo_levels");
+const ordering = @import("generated_uniqueness_memo_entries");
 const State = @typeInfo(@typeInfo(@TypeOf(creating.executeState)).@"fn".return_type.?).error_union.payload;
 const Self = @This();
 
@@ -54,6 +55,13 @@ pub fn integer(self: *Self, allocator: std.mem.Allocator, value: u64, width: usi
 
 pub fn levels(self: *Self, allocator: std.mem.Allocator, values: []const u8) std.mem.Allocator.Error!void {
     try self.call(allocator, packing.executeState, .{ .state = self.state, .values = .{ .items = values, .storage = .plain } });
+}
+
+pub fn entries(self: *Self, allocator: std.mem.Allocator, records: anytype, width: usize) std.mem.Allocator.Error!void {
+    const Rows = @FieldType(Input(ordering.executeState), "records");
+    const values = @import("zx").columns.storage.view(@FieldType(Rows, "items"), @as([]const std.meta.Child(@TypeOf(records)), records));
+
+    try self.call(allocator, ordering.executeState, .{ .state = self.state, .records = .{ .items = values, .storage = .owned }, .width = @as(u64, @intCast(width)) });
 }
 
 fn Input(comptime function: anytype) type {

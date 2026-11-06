@@ -1,0 +1,32 @@
+import integers from "std:integer"
+
+import { level_modulus } from "../../replay/ordered/const"
+import { level_width } from "./const"
+import integer from "./integer"
+
+import type { Entries as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return loop({
+        state: in.state,
+        index: 0
+    }, {
+        while: current => current.index < in.records.length,
+        next: current => {
+            const record = in.records[current.index]
+            const state = integer({
+                state: current.state,
+                value: record.key,
+                width: in.width
+            })
+
+            current.state = integer({
+                state,
+                value: integers.widenByte(record.level % level_modulus),
+                width: level_width
+            })
+            current.index += 1
+        },
+        return: current => current.state
+    })
+}

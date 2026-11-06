@@ -15,7 +15,7 @@ import type { Table } from "core/type_table/model"
 export type Input = {
     types: Table,
     records: bool[],
-    read_only: bool,
+    visible: bool[],
     expressions: Expressions,
     roots: u32[]
 }
@@ -110,7 +110,6 @@ export default function (in: Input): Output {
         records: in.records,
         expressions: in.expressions,
         roots: updates,
-        read_only: in.read_only,
         index: 0
     }, {
         while: current => current.index < current.expressions.transform_kinds.length,
@@ -137,7 +136,7 @@ export default function (in: Input): Output {
                 const is_filter = operation == TransformKind.Filter
 
                 const valid_operation =
-                    operation == TransformKind.Sort && !current.read_only
+                    operation == TransformKind.Sort && in.visible[index]
 
                 const reused = match {
                     is_filter || valid_operation => true,

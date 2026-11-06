@@ -53,7 +53,7 @@ fn finish(self: *Self, unit: Unit) [32]u8 {
     const value_functions = self.value_functions;
     const state_plan = self.state_plan;
 
-    self.bytes("zxc.zig.input.v85");
+    self.bytes("zxc.zig.input.v86");
     self.bytes(@tagName(unit));
     self.write(program.version);
 

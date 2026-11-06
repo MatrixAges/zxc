@@ -121,6 +121,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/uniqueness/memo/encoding/append.zx", .name = "uniqueness_memo_append", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/memo/encoding/integer.zx", .name = "uniqueness_memo_integer", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/memo/encoding/levels.zx", .name = "uniqueness_memo_levels", .owner = .genz },
+    .{ .path = "genz/analysis/uniqueness/memo/encoding/entries.rx", .name = "uniqueness_memo_entries", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/work/create.rx", .name = "uniqueness_work_create", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/work/fill.rx", .name = "uniqueness_work_fill", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/work/push.rx", .name = "uniqueness_work_push", .owner = .genz },

@@ -48,3 +48,14 @@ export type Word = {
     state: State,
     value: u64
 }
+
+export type Record = {
+    key: u64,
+    level: u8
+}
+
+export type Entries = {
+    state: State,
+    records: Record[],
+    width: u64
+}

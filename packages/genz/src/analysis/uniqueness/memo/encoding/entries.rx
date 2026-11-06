@@ -1,0 +1,26 @@
+<Module>
+    <Type from="model" as="Encoding" />
+
+    <Args in={Encoding.Entries} out={Encoding.State} />
+
+    <Call fn="order" in={$in.records} />
+
+    <Call
+        fn="word"
+        in={{
+            state: $in.state,
+            value: $ctx.order.length
+        }}
+    />
+
+    <Call
+        fn="records"
+        in={{
+            state: $ctx.word,
+            records: $ctx.order,
+            width: $in.width
+        }}
+    />
+
+    <Return value={$ctx.records} />
+</Module>

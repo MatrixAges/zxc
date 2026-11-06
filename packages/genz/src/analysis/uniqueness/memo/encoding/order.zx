@@ -1,0 +1,17 @@
+import { sort_less, sort_equal, sort_greater } from "../../replay/ordered/const"
+
+import type { Record } from "./model"
+
+export type Input = Record[]
+
+export type Output = Record[]
+
+export default function (in: Input): Output {
+    return in.sort(
+        (left, right) => match {
+            left.key < right.key => sort_less,
+            left.key == right.key => sort_equal,
+            _ => sort_greater
+        }
+    )[0]
+}

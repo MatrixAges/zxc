@@ -262,6 +262,7 @@ fn entries(self: *Self, comptime Key: type, map: *const std.AutoHashMap(Key, Lev
     var values = map.iterator();
 
     while (values.next()) |entry| try self.order.append(self.arena.allocator(), .{ .key = entryKey(Key, entry.key_ptr.*), .level = entry.value_ptr.* });
+    if (generated_encoding) return self.encoding.entries(self.arena.allocator(), self.order.items, @sizeOf(if (Key == u64) u64 else u32));
 
     std.mem.sortUnstable(Record, self.order.items, {}, struct {
         fn less(_: void, left: Record, right: Record) bool {

@@ -2,6 +2,9 @@ import integers from "std:integer"
 import kind from "core/type_table/kind"
 import { Kind } from "core/type_table/model"
 
+import closure from "../types/closure"
+import unmarked from "../types/unmarked"
+
 import type { Table } from "core/type_table/model"
 import type { Boundaries } from "../model"
 
@@ -13,27 +16,39 @@ export type Input = {
 export type Output = u32[]
 
 export default function (in: Input): Output {
+    const empty = unmarked(in.types)
+
+    const inputs = closure({
+        types: in.types,
+        boxed: empty,
+        roots: in.source.inputs
+    })
+
+    const outputs = closure({
+        types: in.types,
+        boxed: empty,
+        roots: in.source.outputs
+    })
+
     const roots: u32[] = []
 
     return loop({
         roots,
         index: 0
     }, {
-        while: state => state.index < in.source.inputs.length,
+        while: state => state.index < in.types.kinds.length,
         next: state => {
-            const output = in.source.outputs[state.index]
-            const target = kind(in.types.kinds[integers.widen(output)])
-            const scalar = (
-                match target {
-                    Kind.Scalar => true,
-                    Kind.Enumeration => true,
-                    Kind.ErrorSet => true,
-                    _ => false
-                }
+            const index = state.index
+            const target = kind(in.types.kinds[index])
+            const product = target == Kind.Object || target == Kind.Tuple
+            const condition = (
+                - product
+                - and inputs[index]
+                - and outputs[index]
             )
 
-            if (!scalar) {
-                state.roots = state.roots.push(in.source.inputs[state.index])[0]
+            if (condition) {
+                state.roots = state.roots.push(integers.narrow(index))[0]
             }
 
             state.index += 1
