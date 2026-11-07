@@ -1,0 +1,69 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import integer from "../../../../printer/text/integer"
+import { Operation } from "../model"
+import enter from "./enter"
+
+import type { Step as Input, Walk as Output } from "../model"
+
+export default function (in: Input): Output {
+    const state = in.state
+    const depth = state.depth - 1
+    const node = state.stack[depth]
+    const index = integers.widen(node)
+    const next = state.next[depth]
+
+    if (next == state.plan.count[index]) {
+        return {
+            ...state,
+            depth,
+            plan: {
+                ...state.plan,
+                order: state.plan.order.push(node)[0]
+            }
+        }
+    }
+
+    const target = integers.widen(state.plan.types[index])
+    const first = in.source.types.first[target]
+    const position = integers.widen(first) + next
+    const selected = state.plan.kinds[index]
+
+    const child = match selected {
+        Operation.Object => in.source.types.field_types[position],
+        Operation.Tuple => in.source.types.children[position],
+        _ => first
+    }
+
+    const name = match selected {
+        Operation.Object => bytes.fromText(in.source.types.field_names[position]),
+        Operation.Tuple => integer({
+            output: [],
+            value: next
+        }),
+        _ => []
+    }
+
+    const child_index = integers.narrow(state.plan.kinds.length)
+
+    return enter({
+        step: {
+            source: in.source,
+            state: {
+                ...state,
+                next: state.next.with(depth, next + 1),
+                plan: {
+                    ...state.plan,
+                    children: state.plan.children.with(
+                        state.plan.first[index] + next,
+                        child_index
+                    )
+                }
+            }
+        },
+        type_id: child,
+        parent: node,
+        name
+    })
+}

@@ -1,0 +1,34 @@
+import { Operation } from "../model"
+import presence from "./presence"
+import project from "./project"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: state =>
+            state.context.valid && state.index < state.source.plan.kinds.length,
+        next: state => {
+            const projected = project(state)
+            const selected = state.source.plan.kinds[state.index]
+
+            const condition = match selected {
+                Operation.Optional => presence(projected),
+                _ => ({
+                    state: projected.context,
+                    id: 0
+                })
+            }
+
+            state = {
+                ...state,
+                context: condition.state,
+                index: state.index + 1,
+                values: state.values.push(projected.value)[0],
+                guards: state.guards.push(projected.guard)[0],
+                conditions: state.conditions.push(condition.id)[0],
+                results: state.results.push(0)[0]
+            }
+        }
+    })
+}

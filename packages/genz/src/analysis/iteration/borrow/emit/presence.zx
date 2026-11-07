@@ -1,0 +1,30 @@
+import binary from "../../../../ast/context/binary"
+import nullValue from "../../../../ast/context/null_value"
+import { ExpressionsBinaryOperator } from "../../../../printer/model/expressions"
+
+import type { Node as Output } from "../../../../ast/context/model"
+import type { Projected as Input } from "./model"
+
+export default function (in: Input): Output {
+    const absent = nullValue(in.context)
+
+    const present = binary({
+        state: absent.state,
+        operator: ExpressionsBinaryOperator.NotEqual,
+        left: in.value,
+        right: absent.id
+    })
+
+    const guard = in.guard
+
+    if (guard == null) {
+        return present
+    }
+
+    return binary({
+        state: present.state,
+        operator: ExpressionsBinaryOperator.LogicalAnd,
+        left: guard,
+        right: present.id
+    })
+}

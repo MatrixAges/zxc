@@ -1,0 +1,45 @@
+import integers from "std:integer"
+
+import { Operation } from "../model"
+import aggregate from "./aggregate"
+import bind from "./bind"
+import optional from "./optional"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return loop({
+        ...in,
+        index: 0
+    }, {
+        while: state =>
+            state.context.valid && state.index < state.source.plan.order.length,
+        next: state => {
+            const node = integers.widen(state.source.plan.order[state.index])
+            const kind = state.source.plan.kinds[node]
+            const value = match kind {
+                Operation.Value => ({
+                    state,
+                    id: state.values[node]
+                }),
+                Operation.Optional => optional({
+                    state,
+                    node
+                }),
+                _ => bind({
+                    value: aggregate({
+                        state,
+                        node
+                    }),
+                    guard: state.guards[node]
+                })
+            }
+
+            state = {
+                ...value.state,
+                index: state.index + 1,
+                results: value.state.results.with(node, value.id)
+            }
+        }
+    })
+}

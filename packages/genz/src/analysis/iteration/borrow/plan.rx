@@ -1,0 +1,17 @@
+<Module>
+    <Type from="model" as="Borrow" />
+
+    <Args in={Borrow.Input} out={Borrow.Plan} />
+
+    <Call fn="walk/initialize" in={$in} />
+
+    <Call
+        fn="walk/traverse"
+        in={{
+            source: $in,
+            state: $ctx.initialize
+        }}
+    />
+
+    <Return value={$ctx.traverse} />
+</Module>

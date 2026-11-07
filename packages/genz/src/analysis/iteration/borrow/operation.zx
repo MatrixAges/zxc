@@ -1,0 +1,33 @@
+import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import query from "../../types/layout/query"
+import { Property } from "../../types/layout/query"
+import { Operation } from "./model"
+
+import type { Input } from "./model"
+
+export type Output = Operation
+
+export default function (in: Input): Output {
+    const index = integers.widen(in.root)
+    const target = kind(in.types.kinds[index])
+
+    if (target == Kind.Optional) {
+        const child = integers.widen(in.types.first[index])
+
+        const represented = query({
+            value: in.layouts[child],
+            property: Property.Represented
+        })
+
+        return represented ? Operation.Optional : Operation.Value
+    }
+
+    return match target {
+        Kind.Object => Operation.Object,
+        Kind.Tuple => Operation.Tuple,
+        _ => Operation.Value
+    }
+}

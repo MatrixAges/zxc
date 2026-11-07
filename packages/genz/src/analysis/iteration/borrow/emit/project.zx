@@ -1,0 +1,47 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+
+import field from "../../../../ast/context/field"
+import unwrap from "../../../../ast/context/optional_unwrap"
+import { Operation } from "../model"
+
+import type { State as Input, Projected as Output } from "./model"
+
+export default function (in: Input): Output {
+    const parent = in.source.plan.parents[in.index]
+
+    if (parent == max_u32) {
+        return {
+            context: in.context,
+            value: in.source.value,
+            guard: null
+        }
+    }
+
+    const index = integers.widen(parent)
+
+    if (in.source.plan.kinds[index] == Operation.Optional) {
+        const value = unwrap({
+            state: in.context,
+            value: in.values[index]
+        })
+
+        return {
+            context: value.state,
+            value: value.id,
+            guard: in.conditions[index]
+        }
+    }
+
+    const value = field({
+        state: in.context,
+        target: in.values[index],
+        name: in.source.plan.names[in.index]
+    })
+
+    return {
+        context: value.state,
+        value: value.id,
+        guard: in.guards[index]
+    }
+}

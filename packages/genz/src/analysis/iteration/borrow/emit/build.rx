@@ -1,0 +1,12 @@
+<Module>
+    <Type from="model" as="Borrow" />
+
+    <Args in={Borrow.Input} out={Borrow.Output} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="prepare" in={$ctx.initialize} />
+    <Call fn="construct" in={$ctx.prepare} />
+    <Call fn="finish" in={$ctx.construct} />
+
+    <Return value={$ctx.finish} />
+</Module>

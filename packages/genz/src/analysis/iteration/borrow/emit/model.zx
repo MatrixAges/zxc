@@ -1,0 +1,52 @@
+import type { State as Context } from "../../../../ast/context/model"
+import type { Columns as Forms } from "../../../../ast/expressions/forms/model"
+import type { Columns as Expressions } from "../../../../ast/expressions/model"
+import type { Columns as Statements } from "../../../../ast/statements/model"
+import type { Field } from "../../../types/definitions/model"
+import type { Plan } from "../model"
+
+export type Input = {
+    plan: Plan,
+    layouts: u32[],
+    value: u32,
+    expression_base: u32,
+    field_base: u32,
+    serial: u64
+}
+
+export type State = {
+    source: Input,
+    context: Context,
+    index: u64,
+    values: u32[],
+    guards: u32?[],
+    conditions: u32[],
+    results: u32[],
+    fields: Field[]
+}
+
+export type Step = {
+    state: State,
+    node: u64
+}
+
+export type Value = {
+    state: State,
+    id: u32
+}
+
+export type Projected = {
+    context: Context,
+    value: u32,
+    guard?: u32
+}
+
+export type Output = {
+    expressions: Expressions,
+    forms: Forms,
+    statements: Statements,
+    fields: Field[],
+    root: u32,
+    serial: u64,
+    valid: bool
+}

@@ -1,0 +1,77 @@
+import integers from "std:integer"
+
+import { Operation } from "../model"
+import operation from "../operation"
+
+import type { Step, Walk } from "../model"
+
+export type Input = {
+    step: Step,
+    type_id: u32,
+    parent: u32,
+    name: u8[]
+}
+
+export type Output = Walk
+
+export default function (in: Input): Output {
+    const state = in.step.state
+
+    const selected = operation({
+        ...in.step.source,
+        root: in.type_id
+    })
+
+    const count = match selected {
+        Operation.Optional => 1,
+        Operation.Object =>
+            integers.widen(in.step.source.types.second[integers.widen(
+                in.type_id
+            )]),
+        Operation.Tuple =>
+            integers.widen(in.step.source.types.second[integers.widen(
+                in.type_id
+            )]),
+        _ => 0
+    }
+
+    const children = loop({
+        values: state.plan.children,
+        index: 0
+    }, {
+        while: current => current.index < count,
+        next: current => {
+            current.values = current.values.push(0)[0]
+            current.index += 1
+        },
+        return: current => current.values
+    })
+
+    const node = integers.narrow(state.plan.kinds.length)
+
+    const stack = match {
+        state.depth < state.stack.length => state.stack.with(state.depth, node),
+        _ => state.stack.push(node)[0]
+    }
+
+    const next = match {
+        state.depth < state.next.length => state.next.with(state.depth, 0),
+        _ => state.next.push(0)[0]
+    }
+
+    return {
+        plan: {
+            ...state.plan,
+            kinds: state.plan.kinds.push(selected)[0],
+            types: state.plan.types.push(in.type_id)[0],
+            parents: state.plan.parents.push(in.parent)[0],
+            names: state.plan.names.push(in.name)[0],
+            first: state.plan.first.push(state.plan.children.length)[0],
+            count: state.plan.count.push(count)[0],
+            children
+        },
+        stack,
+        next,
+        depth: state.depth + 1
+    }
+}

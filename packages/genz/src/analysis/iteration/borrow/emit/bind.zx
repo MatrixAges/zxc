@@ -1,0 +1,68 @@
+import bind from "../../../../ast/bind"
+import address from "../../../../ast/context/address"
+import conditional from "../../../../ast/context/conditional"
+import undefinedValue from "../../../../ast/context/undefined"
+import { operand_prefix } from "./const"
+
+import type { Value } from "./model"
+
+export type Input = {
+    value: Value,
+    guard?: u32
+}
+
+export type Output = Value
+
+export default function (in: Input): Output {
+    const state = in.value.state
+    const guard = in.guard
+
+    const initializer = match {
+        guard != null => undefinedValue(state.context),
+        _ => ({
+            state: state.context,
+            id: in.value.id
+        })
+    }
+
+    const guarded = match {
+        guard != null => conditional({
+            state: initializer.state,
+            condition: guard,
+            yes: in.value.id,
+            no: initializer.id
+        }),
+        _ => initializer
+    }
+
+    const context = guarded.state
+
+    const saved = bind({
+        expressions: context.expressions,
+        statements: context.statements,
+        expression_base: context.source.expression_base,
+        statement_base: 0,
+        serial: context.serial,
+        prefix: operand_prefix,
+        value: guarded.id
+    })
+
+    const result = address({
+        state: {
+            ...context,
+            expressions: saved.expressions,
+            statements: saved.statements,
+            serial: saved.serial,
+            valid: context.valid && saved.valid
+        },
+        value: saved.id
+    })
+
+    return {
+        id: result.id,
+        state: {
+            ...state,
+            context: result.state
+        }
+    }
+}

@@ -1,0 +1,16 @@
+import type { State as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        expressions: in.context.expressions,
+        forms: in.context.forms,
+        statements: in.context.statements,
+        fields: in.fields,
+        root: match {
+            in.context.valid => in.results[0],
+            _ => 0
+        },
+        serial: in.context.serial,
+        valid: in.context.valid
+    }
+}

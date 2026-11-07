@@ -1,0 +1,79 @@
+import integers from "std:integer"
+
+import builtin from "../../../../ast/context/builtin"
+import object from "../../../../ast/context/object"
+import tuple from "../../../../ast/context/tuple"
+import { ExpressionsBuiltinName } from "../../../../printer/model/expressions"
+import { Operation } from "../model"
+import children from "./children"
+
+import type { Step as Input, Value as Output } from "./model"
+
+export default function (in: Input): Output {
+    const state = in.state
+    const plan = state.source.plan
+    const layout = state.source.layouts[in.node]
+
+    if (plan.kinds[in.node] == Operation.Tuple) {
+        const values = tuple({
+            state: state.context,
+            values: children(in)
+        })
+
+        const result = builtin({
+            state: values.state,
+            name: ExpressionsBuiltinName.As,
+            arguments: [
+                layout,
+                values.id
+            ]
+        })
+
+        return {
+            id: result.id,
+            state: {
+                ...state,
+                context: result.state
+            }
+        }
+    }
+
+    const first = plan.first[in.node]
+    const end = first + plan.count[in.node]
+
+    const fields = loop({
+        index: first,
+        values: state.fields
+    }, {
+        while: current => current.index < end,
+        next: current => {
+            const child = integers.widen(plan.children[current.index])
+            current.values = current.values.push({
+                name: plan.names[child],
+                value: state.results[child],
+                default_value: null,
+                comptime_parameter: false
+            })[0]
+            current.index += 1
+        },
+        return: current => current.values
+    })
+
+    const result = object({
+        state: state.context,
+        type_expr: layout,
+        first: integers.narrow(
+            integers.widen(state.source.field_base) + state.fields.length
+        ),
+        count: integers.narrow(plan.count[in.node])
+    })
+
+    return {
+        id: result.id,
+        state: {
+            ...state,
+            context: result.state,
+            fields
+        }
+    }
+}
