@@ -19,9 +19,9 @@ text_held: []const []const bool,
 written: []const []const bool,
 /// `memo` keeps the summaries of each body by its `contents` and its callees' summaries, so a later program walks only
 /// the bodies whose content or callees changed.
-pub fn create(allocator: std.mem.Allocator, program: ir.Program, slots: Slots, texts: []const bool, contents: []const [32]u8, types: [32]u8, memo: ?*Memo) std.mem.Allocator.Error!Self {
+pub fn create(allocator: std.mem.Allocator, workspace: std.mem.Allocator, program: ir.Program, slots: Slots, texts: []const bool, contents: []const [32]u8, types: [32]u8, memo: ?*Memo) std.mem.Allocator.Error!Self {
     const count = program.functions.count();
-    var scratch = std.heap.ArenaAllocator.init(allocator);
+    var scratch = std.heap.ArenaAllocator.init(workspace);
 
     defer scratch.deinit();
 
@@ -38,7 +38,7 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program, slots: Slots, t
         } else null;
 
         try self.layered(program, slots, found, remembered);
-    } else try self.settle(temporary, program, slots);
+    } else try self.settle(temporary, workspace, program, slots);
 
     return self;
 }
@@ -172,7 +172,7 @@ const Layer = struct {
         if (held.len == 0) return;
 
         defer _ = walker.bodies.reset(.retain_capacity);
-        const body = try Body.create(walker.bodies.allocator(), function, self.slots);
+        const body = try Body.create(walker.bodies.allocator(), walker.bodies.allocator(), function, self.slots);
         const walk = &walker.walk.?;
 
         _ = try walk.analyze(index, &body, held, text_held, written);
@@ -180,7 +180,11 @@ const Layer = struct {
 };
 
 /// Settles summaries over a call graph with cycles: a body is walked again whenever a callee's summary grows.
-fn settle(self: Self, allocator: std.mem.Allocator, program: ir.Program, slots: Slots) std.mem.Allocator.Error!void {
+fn settle(self: Self, allocator: std.mem.Allocator, workspace: std.mem.Allocator, program: ir.Program, slots: Slots) std.mem.Allocator.Error!void {
+    var building = std.heap.ArenaAllocator.init(workspace);
+
+    defer building.deinit();
+
     const count = program.functions.count();
     const bodies = try allocator.alloc(?Body, count);
     const callers = try allocator.alloc(std.ArrayList(u32), count);
@@ -188,9 +192,10 @@ fn settle(self: Self, allocator: std.mem.Allocator, program: ir.Program, slots: 
     for (callers) |*list| list.* = .empty;
 
     for (0..count) |index| {
+        defer _ = building.reset(.retain_capacity);
         const function = program.functions.at(index);
 
-        bodies[index] = if (function.external == null and self.held[index].len != 0) try Body.create(allocator, function, slots) else null;
+        bodies[index] = if (function.external == null and self.held[index].len != 0) try Body.create(allocator, building.allocator(), function, slots) else null;
 
         if (bodies[index] == null) continue;
 

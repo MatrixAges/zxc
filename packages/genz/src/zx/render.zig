@@ -82,7 +82,7 @@ pub fn initializePrepared(temporary: std.mem.Allocator, workspace: std.mem.Alloc
 fn initializePreparedWithConcurrency(temporary: std.mem.Allocator, workspace: std.mem.Allocator, program: zx.ir.Program, comptime concurrent: bool) std.mem.Allocator.Error!Lower {
     const Analysis = @import("function_analysis.zig");
     const basis = try temporary.create(Analysis.Uniqueness.Basis);
-    basis.* = try .create(temporary, program, null);
+    basis.* = try .create(temporary, workspace, program, null);
 
     const facts = if (concurrent)
         try Analysis.analyzeConcurrent(temporary, workspace, program, &.{}, basis, null)

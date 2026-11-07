@@ -118,7 +118,7 @@ fn createWithConcurrency(backing: std.mem.Allocator, program: ir.Program, export
         .identity_free = try owned.dupe(bool, facts.identity_free),
         .fresh_outputs = try owned.dupe(bool, facts.fresh_outputs),
         .constructed_outputs = try owned.dupe(bool, facts.constructed_outputs),
-        .uniqueness = try copyPlans(owned, facts.uniqueness),
+        .uniqueness = facts.uniqueness,
         .basis = basis,
         .entry_summaries = try owned.create(Uniqueness.Summaries),
     };
@@ -151,6 +151,11 @@ const Source = union(enum) {
 };
 
 fn analyzeFrom(allocator: std.mem.Allocator, workspace: std.mem.Allocator, program: ir.Program, exported: []const ir.FunctionId, source: Source, memo: ?*Uniqueness.Memo, comptime concurrent: bool) std.mem.Allocator.Error!Self {
+    const plans = switch (source) {
+        .ready => allocator,
+        .build => |build| build.allocator,
+    };
+
     var uniqueness = Concurrent{ .arena = .init(workspace), .workspace = workspace, .program = program, .exported = exported, .source = source, .memo = memo };
 
     defer uniqueness.arena.deinit();
@@ -158,7 +163,7 @@ fn analyzeFrom(allocator: std.mem.Allocator, workspace: std.mem.Allocator, progr
     const thread: ?std.Thread = if (concurrent) std.Thread.spawn(.{}, Concurrent.run, .{&uniqueness}) catch null else null;
 
     if (thread == null) {
-        uniqueness.result = analyzeUniqueness(if (concurrent) uniqueness.arena.allocator() else allocator, workspace, program, exported, source, memo, concurrent);
+        uniqueness.result = analyzeUniqueness(if (concurrent) uniqueness.arena.allocator() else plans, workspace, program, exported, source, memo, concurrent);
     }
 
     const others = remaining(allocator, workspace, program, exported);
@@ -167,7 +172,7 @@ fn analyzeFrom(allocator: std.mem.Allocator, workspace: std.mem.Allocator, progr
 
     var value = try others;
 
-    value.uniqueness = if (concurrent) try copyPlans(allocator, try uniqueness.result) else try uniqueness.result;
+    value.uniqueness = if (concurrent) try copyPlans(plans, try uniqueness.result) else try uniqueness.result;
     value.basis = source.basis();
     value.entry_flags = try Entry.analyze(workspace, program, .{ .local = value.value.local, .pure = value.value.pure, .io = value.io, .process = value.process, .tasks = value.tasks });
 
@@ -269,7 +274,7 @@ const Concurrent = struct {
 fn analyzeUniqueness(allocator: std.mem.Allocator, workspace: std.mem.Allocator, program: ir.Program, exported: []const ir.FunctionId, source: Source, memo: ?*Uniqueness.Memo, comptime concurrent: bool) std.mem.Allocator.Error!Uniqueness.Result {
     if (source == .build) {
         const build = source.build;
-        build.basis.* = try Uniqueness.Basis.create(build.allocator, program, memo);
+        build.basis.* = try Uniqueness.Basis.create(build.allocator, workspace, program, memo);
     }
 
     return if (concurrent) Uniqueness.analyzeConcurrent(allocator, workspace, program, exported, source.basis(), memo) else Uniqueness.analyze(allocator, workspace, program, exported, source.basis(), memo);

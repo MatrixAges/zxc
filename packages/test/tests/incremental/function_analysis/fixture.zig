@@ -93,7 +93,7 @@ pub fn check(count: usize, capability: Capability) !void {
     defer arena.deinit();
 
     const value = try program(arena.allocator(), count, capability);
-    const basis = try checks.summary.Uniqueness.Basis.create(arena.allocator(), value, null);
+    const basis = try checks.summary.Uniqueness.Basis.create(arena.allocator(), std.testing.allocator, value, null);
     const borrowed = try checks.summary.analyze(arena.allocator(), arena.allocator(), value, &.{}, &basis, null);
     var owned = try checks.summary.create(std.testing.allocator, value);
 
