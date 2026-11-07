@@ -1,6 +1,7 @@
 const std = @import("std");
 const zx = @import("zx");
-pub const available = @import("genz_options").generated_analysis;
+const options = @import("genz_options");
+pub const available = if (@hasDecl(options, "partition_groups")) options.partition_groups else options.generated_analysis;
 
 pub const Input = struct {
     callees: []const []const u32,

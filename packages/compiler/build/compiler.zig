@@ -71,6 +71,7 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
 
     genz_options.addOption(bool, "generated", parser != null and !native_genz);
     genz_options.addOption(bool, "generated_analysis", parser != null and !native_genz and rx_analysis);
+    genz_options.addOption(bool, "partition_groups", true);
 
     const genz = b.createModule(.{
         .root_source_file = b.dependency("genz", .{ .target = target, .optimize = optimize }).path("src/root.zig"),
@@ -81,6 +82,8 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
             .{ .name = "genz_options", .module = genz_options.createModule() },
         },
     });
+
+    genz.addImport("generated_partition_groups", if (parser) |generated| generated.partition_groups else bootstrapModule(b, target, optimize, "partition", "partition_groups"));
 
     const module = b.createModule(.{
         .root_source_file = b.path("src/root.zig"),
@@ -112,11 +115,31 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
         });
 
         module.addImport("query_seed", query);
+        module.addImport("generated_input_snapshot", bootstrapModule(b, target, optimize, "input_snapshot", "input_snapshot"));
     }
 
     module.addImport("parser_options", parser_options);
 
     return .{ .frontend = frontend, .compiler = module };
+}
+
+fn bootstrapModule(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, directory: []const u8, entry: []const u8) *std.Build.Module {
+    const abi = b.createModule(.{ .root_source_file = b.path(b.fmt("bootstrap/{s}/types.zig", .{directory})), .target = target, .optimize = optimize });
+    const standard = b.dependency("zxc_std", .{ .target = target, .optimize = optimize }).module("zxc_std");
+
+    const generated = b.createModule(.{
+        .root_source_file = b.path(b.fmt("bootstrap/{s}/root.zig", .{directory})),
+        .target = target,
+        .optimize = optimize,
+        .imports = &.{ .{ .name = "zxc_abi", .module = abi }, .{ .name = "zxc_standard", .module = standard } },
+    });
+
+    return b.createModule(.{
+        .root_source_file = b.path(b.fmt("bootstrap/{s}/{s}.zig", .{ directory, entry })),
+        .target = target,
+        .optimize = optimize,
+        .imports = &.{.{ .name = "generated", .module = generated }},
+    });
 }
 
 pub fn nominalData(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) *std.Build.Module {

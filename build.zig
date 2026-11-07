@@ -22,7 +22,8 @@ pub fn build(b: *std.Build) void {
     b.getInstallStep().dependOn(&dsl_example.step);
     dsl_step.dependOn(&run_dsl_example.step);
 
-    const partitions = b.option(u32, "generated-partitions", "Compile generated bootstrap functions as this many separately cached objects (default 64 in Debug, 0 = one unit)") orelse @as(u32, if (optimize == .debug) 64 else 0);
+    const default_partitions: u32 = if (optimize == .debug) 64 else if (target.query.isNative() and (optimize == .safe or optimize == .small)) 2 else 0;
+    const partitions = b.option(u32, "generated-partitions", "Compile generated bootstrap functions as this many separately cached objects (default 64 in Debug, 2 in native Safe/Small, otherwise 0 = one unit)") orelse default_partitions;
     const rx_dependency = b.dependency("compiler", .{ .target = target, .optimize = optimize, .stage0 = stage0, .@"generated-partitions" = partitions });
 
     const rx_tests_options: std.Build.Module.CreateOptions = .{
@@ -31,6 +32,7 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
         .imports = &.{.{ .name = "rx", .module = rx_dependency.module("rx") }},
     };
+
     const rx_tests = b.addTest(.{ .root_module = b.createModule(rx_tests_options) });
 
     if (rx_dependency.builder.modules.get("generated_objects")) |objects| rx_tests.root_module.addImport("zxc_generated_objects", objects);

@@ -20,8 +20,6 @@ stored_checksum: []const u8 = "",
 actual_checksum: []const u8 = "",
 /// Platform observations only: RX/ZX decides whether the previous snapshot vouches for these files.
 pub fn prepare(io: std.Io, allocator: std.mem.Allocator, files: *Files, digest: [32]u8, project: manifest.Project, text: []const u8, partitions: u32, cache: []const u8) !?Self {
-    if (!source.available) return null;
-
     const roots = try allocator.alloc(Root, project.roots.len);
     var facts: std.ArrayList(Fact) = .empty;
 
@@ -91,8 +89,6 @@ pub fn prepare(io: std.Io, allocator: std.mem.Allocator, files: *Files, digest: 
 }
 
 pub fn current(self: Self, io: std.Io, allocator: std.mem.Allocator) !?[32]u8 {
-    if (!source.available) return null;
-
     const previous = self.previous orelse return null;
     const current_files = try columns(allocator, self.facts, null);
     const now: u96 = @bitCast(std.Io.Timestamp.now(io, .real).nanoseconds);
@@ -111,7 +107,7 @@ pub fn load(self: Self, io: std.Io, allocator: std.mem.Allocator, files: *Files,
 }
 
 pub fn save(self: Self, io: std.Io, allocator: std.mem.Allocator, files: *const Files, fingerprint: [32]u8) !void {
-    if (!source.available or self.facts.len == 0) return;
+    if (self.facts.len == 0) return;
     for (self.facts) |fact| if (files.version(fact.key) == null) return;
 
     const contents = try columns(allocator, self.facts, files);
@@ -135,8 +131,6 @@ pub fn save(self: Self, io: std.Io, allocator: std.mem.Allocator, files: *const 
 }
 
 fn columns(allocator: std.mem.Allocator, facts: []const Fact, files: ?*const Files) !source.Files {
-    if (!source.available) unreachable;
-
     var result: source.Files = undefined;
 
     inline for (@typeInfo(source.Files).@"struct".field_names) |field| {
@@ -161,8 +155,6 @@ fn columns(allocator: std.mem.Allocator, facts: []const Fact, files: ?*const Fil
 }
 
 fn timestamp(columns_value: *source.Files, comptime field: []const u8, index: usize, value: i96) void {
-    if (!source.available) unreachable;
-
     const bits: u96 = @bitCast(value);
 
     @constCast(@field(columns_value, field ++ "_low"))[index] = @truncate(bits);

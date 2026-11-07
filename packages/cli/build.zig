@@ -14,6 +14,7 @@ pub fn build(b: *std.Build) void {
         .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
+        .strip = if (optimize == .safe) true else null,
         .imports = &.{
             .{ .name = "rx", .module = compiler.module("rx") },
             .{ .name = "rx_analysis", .module = compiler.module("rx_analysis") },

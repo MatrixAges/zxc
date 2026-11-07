@@ -65,7 +65,7 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode, stage0: []con
     };
 
     // Each entry set runs as its own step, so builds that never import the checks do not generate them.
-    inline for (.{ entries.Set.main, entries.Set.checks, entries.Set.constant_seed, entries.Set.ordered }) |set| {
+    inline for (.{ entries.Set.main, entries.Set.checks, entries.Set.constant_seed, entries.Set.snapshot_seed, entries.Set.partition_seed, entries.Set.ordered }) |set| {
         const run = generatorRun(b, executable, stage0);
 
         const project = manifest.Project{
@@ -112,6 +112,14 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode, stage0: []con
             const install = b.addInstallDirectory(.{ .source_dir = directory, .install_dir = .prefix, .install_subdir = "bootstrap/constants" });
 
             b.step("bootstrap-constant-seed", "Generate the initial constant evaluator snapshot from RX and ZX").dependOn(&install.step);
+        } else if (set == .snapshot_seed) {
+            const install = b.addInstallDirectory(.{ .source_dir = directory, .install_dir = .prefix, .install_subdir = "bootstrap/input_snapshot" });
+
+            b.step("bootstrap-input-snapshot", "Generate the initial input snapshot predicate from RX and ZX").dependOn(&install.step);
+        } else if (set == .partition_seed) {
+            const install = b.addInstallDirectory(.{ .source_dir = directory, .install_dir = .prefix, .install_subdir = "bootstrap/partition" });
+
+            b.step("bootstrap-partition-seed", "Generate the initial partition planner from RX and ZX").dependOn(&install.step);
         } else @field(sources, @tagName(set)) = directory;
     }
 

@@ -15,8 +15,10 @@ pub const Entry = struct {
     }
 };
 
-pub const Set = enum { main, checks, constant_seed, ordered };
+pub const Set = enum { main, checks, constant_seed, snapshot_seed, partition_seed, ordered };
 const constant_fold = Entry{ .path = "zx/analysis/constants/evaluate.rx", .name = "constant_fold" };
+const input_snapshot = Entry{ .path = "inputs/snapshot/reuse.rx", .name = "input_snapshot", .owner = .compiler };
+const partition_groups = Entry{ .path = "genz/analysis/partition/plan.rx", .name = "partition_groups", .owner = .genz };
 
 /// Entries linked into zxc.
 pub const main = [_]Entry{
@@ -76,7 +78,7 @@ pub const main = [_]Entry{
     .{ .path = "zx/modules/compiled/validation/publication.zx", .name = "compiled_header" },
     .{ .path = "zx/modules/semantic_cache/restoring/native/restore.rx", .name = "native_restore" },
     .{ .path = "verification/query/build.rx", .name = "verification_query", .owner = .compiler },
-    .{ .path = "inputs/snapshot/reuse.rx", .name = "input_snapshot", .owner = .compiler },
+    input_snapshot,
     .{ .path = "backends/zig/source_abi/scoped.zx", .name = "source_abi_scoped", .owner = .compiler },
     .{ .path = "backends/zig/source_abi/plan.rx", .name = "source_abi_plan", .owner = .compiler },
     .{ .path = "backends/zig/source_abi/select.rx", .name = "source_abi", .owner = .compiler },
@@ -123,7 +125,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/uniqueness/memo/encoding/integer.zx", .name = "uniqueness_memo_integer", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/memo/encoding/levels.zx", .name = "uniqueness_memo_levels", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/memo/encoding/entries.rx", .name = "uniqueness_memo_entries", .owner = .genz },
-    .{ .path = "genz/analysis/partition/plan.rx", .name = "partition_groups", .owner = .genz },
+    partition_groups,
     .{ .path = "genz/analysis/uniqueness/work/create.rx", .name = "uniqueness_work_create", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/work/fill.rx", .name = "uniqueness_work_fill", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/work/push.rx", .name = "uniqueness_work_push", .owner = .genz },
@@ -196,6 +198,8 @@ pub fn of(set: Set) []const Entry {
         .checks => &checks,
         .ordered => &ordered,
         .constant_seed => &.{constant_fold},
+        .snapshot_seed => &.{input_snapshot},
+        .partition_seed => &.{partition_groups},
     };
 }
 
