@@ -300,9 +300,23 @@ pub fn plan(self: *Self, allocator: std.mem.Allocator) std.mem.Allocator.Error!P
 
     const values = try allocator.alloc(Flags, self.expressions.count());
 
+    errdefer allocator.free(values);
+
     try self.flags(values);
 
-    return .{ .flags = values, .renewals = try self.renewals(allocator) };
+    const renewed = try self.renewals(allocator);
+
+    errdefer {
+        for (renewed) |entry| allocator.free(entry.path);
+
+        allocator.free(renewed);
+    }
+
+    const transfers = try @import("function/seed_transfer.zig").build(self, allocator, values);
+
+    errdefer allocator.free(transfers);
+
+    return .{ .flags = values, .renewals = renewed, .transfers = transfers, .slot_first = try allocator.dupe(u32, self.sites.slot_first[self.sites.symbols.count()..]) };
 }
 
 /// How each list update lowers: appends check the frontier of a headered target, pops of a unique headered target hand

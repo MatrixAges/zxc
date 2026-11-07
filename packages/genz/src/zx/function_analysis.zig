@@ -233,7 +233,7 @@ fn remaining(allocator: std.mem.Allocator, workspace: std.mem.Allocator, program
         };
     }
 
-    const value = try @import("value_call/analysis.zig").analyze(allocator, program);
+    const value = try @import("value_call/analysis.zig").analyzeExported(allocator, program, exported);
 
     return .{
         .value = value,

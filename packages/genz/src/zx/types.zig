@@ -151,7 +151,7 @@ fn state(self: *Lower, index: usize) Lower.Error!void {
 
     const selected = try self.field(try self.builder.identifier("zx_abi"), try self.state_plan.name(self.allocator, id, try typeName(self, index)));
 
-    self.state_types[index] = selected;
+    self.state_types[index] = if (self.state_plan.referenced(id)) try self.builder.expression(.{ .const_pointer = selected }) else selected;
     self.state_layouts[index] = selected;
 }
 
@@ -187,7 +187,7 @@ fn view(self: *Lower, index: usize) Lower.Error!void {
     } else if (value == .list and @import("state_value/elements.zig").inlineStored(self, id)) {
         self.view_types[index] = try self.builder.expression(.{ .const_slice = try get(self, self.abi_layouts, value.list) });
     } else if ((value == .object or value == .tuple) and self.state_plan.selected[index]) {
-        const changed = switch (value) {
+        const changed = self.state_plan.referenced(id) or switch (value) {
             .object => |fields| changed: {
                 for (0..fields.len) |field_index| {
                     const child = fields.at(field_index).type_id;
@@ -210,7 +210,7 @@ fn view(self: *Lower, index: usize) Lower.Error!void {
         };
 
         if (!changed) {
-            self.view_types[index] = try get(self, self.state_types, id);
+            self.view_types[index] = try get(self, self.state_layouts, id);
 
             return;
         }

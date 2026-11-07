@@ -12,6 +12,7 @@ pub fn functions(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allo
     allocator.free(summary.state.borrowed);
     allocator.free(summary.state.keys);
     allocator.free(summary.state.queries);
+    allocator.free(summary.state.element_storage);
 
     return summary.values;
 }
@@ -19,13 +20,10 @@ pub fn functions(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allo
 pub const Summary = struct { pure: []bool, local: []bool, values: []bool, state: @import("../state_value/analysis.zig") };
 
 pub fn analyze(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!Summary {
-    const state = try @import("../state_value/analysis.zig").create(allocator, program);
+    return analyzeExported(allocator, program, &.{});
+}
 
-    errdefer allocator.free(state.selected);
-    errdefer allocator.free(state.borrowed);
-    errdefer allocator.free(state.keys);
-    errdefer allocator.free(state.queries);
-
+pub fn analyzeExported(allocator: std.mem.Allocator, program: ir.Program, exported: []const ir.FunctionId) std.mem.Allocator.Error!Summary {
     const pure = try allocator.alloc(bool, program.functions.count());
 
     errdefer allocator.free(pure);
@@ -36,10 +34,25 @@ pub fn analyze(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloca
 
     const eligible = try allocator.alloc(bool, program.functions.count());
 
+    errdefer allocator.free(eligible);
+
     for (0..program.functions.count()) |index| {
         const function = program.functions.at(index);
         pure[index] = isPure(program, function, pure[0..index]);
         local[index] = if (function.external != null) @import("../native_value.zig").isolated(program, function) else function.stores.count() == 0 and !parallel(function.body.block()) and calls(function.expressions, function.contracts, local[0..index], index);
+    }
+
+    const state = try @import("../state_value/analysis.zig").create(allocator, program, local, exported);
+
+    errdefer allocator.free(state.selected);
+    errdefer allocator.free(state.borrowed);
+    errdefer allocator.free(state.keys);
+    errdefer allocator.free(state.queries);
+    errdefer allocator.free(state.element_storage);
+
+    for (0..program.functions.count()) |index| {
+        const function = program.functions.at(index);
+
         eligible[index] = local[index] and (program.typeOf(function.output_type) == .object or (function.external == null and (state.represented(program, function.output_type) or state.inlineRows(program, function.input_type))));
     }
 

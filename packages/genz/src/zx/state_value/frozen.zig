@@ -25,6 +25,8 @@ pub fn mark(allocator: std.mem.Allocator, program: ir.Program, boxed: []bool, in
         }
     }
 
+    try @import("seed_rows.zig").carriers(allocator, program, boxed, built);
+
     for (0..count) |index| {
         if (program.types.at(index) == .object and !built[index] and !inline_rows) boxed[index] = true;
     }

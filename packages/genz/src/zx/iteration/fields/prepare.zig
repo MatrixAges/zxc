@@ -6,7 +6,6 @@ const Lower = @import("../../lower.zig");
 const Context = @import("root.zig");
 
 pub fn prepare(self: *Lower, iteration: ir.Iteration, type_id: ir.TypeId, body: *std.ArrayList(node.Statement), seed: node.ExpressionId) Lower.Error!?Context {
-    if (comptime !@import("genz_options").generated_analysis) return null;
     if (self.loop_fields != null or self.iteration_value != null or self.capture != null) return null;
     if (self.program.typeOf(type_id) != .object) return null;
 
@@ -23,25 +22,29 @@ pub fn prepare(self: *Lower, iteration: ir.Iteration, type_id: ir.TypeId, body: 
     for (candidates, 0..) |*candidate, index| candidate.* = worthwhile(self, fields.at(index).type_id);
     if (std.mem.indexOfScalar(bool, candidates, true) == null) return null;
 
-    const generated = @import("generated_loop_fields");
-    const Input = std.meta.Child(generated.Input);
+    const plan = blk: {
+        if (comptime !@import("genz_options").generated_analysis) break :blk try @import("seed.zig").create(scratch.allocator(), self.program, iteration, type_id, candidates);
 
-    const input: Input = .{
-        .expressions = zx.columns.pointer(@FieldType(Input, "expressions"), &@as(*const ir.Program, &self.program).expressions),
-        .symbol_types = zx.columns.slice(@FieldType(Input, "symbol_types"), self.program.symbols.types),
-        .parameter = @backingInt(iteration.parameter),
-        .condition_parameter = @backingInt(iteration.condition_parameter),
-        .initial = @backingInt(iteration.initial),
-        .body = @backingInt(iteration.body),
-        .condition = @backingInt(iteration.condition),
-        .state_type = @backingInt(type_id),
-        .field_count = fields.len,
-        .candidates = candidates,
-    };
+        const generated = @import("generated_loop_fields");
+        const Input = std.meta.Child(generated.Input);
 
-    const plan = generated.executeValue(scratch.allocator(), &input) catch |err| switch (err) {
-        error.OutOfMemory => return error.OutOfMemory,
-        else => unreachable,
+        const input: Input = .{
+            .expressions = zx.columns.pointer(@FieldType(Input, "expressions"), &@as(*const ir.Program, &self.program).expressions),
+            .symbol_types = zx.columns.slice(@FieldType(Input, "symbol_types"), self.program.symbols.types),
+            .parameter = @backingInt(iteration.parameter),
+            .condition_parameter = @backingInt(iteration.condition_parameter),
+            .initial = @backingInt(iteration.initial),
+            .body = @backingInt(iteration.body),
+            .condition = @backingInt(iteration.condition),
+            .state_type = @backingInt(type_id),
+            .field_count = fields.len,
+            .candidates = candidates,
+        };
+
+        break :blk generated.executeValue(scratch.allocator(), &input) catch |err| switch (err) {
+            error.OutOfMemory => return error.OutOfMemory,
+            else => unreachable,
+        };
     };
 
     if (!plan.valid) return null;

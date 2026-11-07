@@ -7,7 +7,7 @@ selected: []bool,
 borrowed: []const bool,
 keys: [][32]u8,
 queries: []const @import("queries.zig").Kind = &.{},
-pub fn create(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!Self {
+pub fn create(allocator: std.mem.Allocator, program: ir.Program, local: []const bool, exported: []const ir.FunctionId) std.mem.Allocator.Error!Self {
     const boxed = try allocator.alloc(bool, program.types.count());
 
     defer allocator.free(boxed);
@@ -15,9 +15,12 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocat
 
     const read_only = @import("read_only.zig");
     const inline_rows = read_only.scope(program);
+    const inline_records = try @import("seed_rows.zig").create(allocator, program, local, exported);
+
+    defer allocator.free(inline_records);
 
     for (0..program.types.count()) |position| switch (program.types.at(position)) {
-        .list => |child| if (!inline_rows or !read_only.record(program, child)) {
+        .list => |child| if ((!inline_rows and !inline_records[@backingInt(child)]) or !read_only.record(program, child)) {
             mark(program, boxed, child);
         },
         .task => |task| mark(program, boxed, task.result),
@@ -69,10 +72,14 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocat
 
     errdefer allocator.free(selected);
 
-    const borrowed = try allocator.alloc(bool, program.types.count());
+    const seed_borrow = @import("seed_borrow.zig");
+    const borrowed = try seed_borrow.create(allocator, program, boxed);
 
     errdefer allocator.free(borrowed);
-    @memset(borrowed, false);
+
+    const element_storage = try seed_borrow.elements(allocator, program);
+
+    errdefer allocator.free(element_storage);
 
     const keys = try allocator.alloc([32]u8, program.types.count());
 
@@ -86,7 +93,12 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocat
         var hash = @import("zx").Sha256.init(.{});
 
         hash.update("state.value.origin.v12");
-        hash.update(&.{@intFromBool(selected[index])});
+
+        const reference_layout_flag: u8 = 2;
+        const element_layout_flag: u8 = 4;
+        const layout: u8 = if (borrowed[index]) reference_layout_flag else @intFromBool(selected[index]);
+
+        hash.update(&.{layout + if (element_storage[index]) element_layout_flag else @as(u8, 0)});
 
         switch (value) {
             .optional, .list => |child| hash.update(&keys[@backingInt(child)]),
@@ -104,7 +116,7 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocat
 
     const queries = try @import("queries.zig").create(allocator, program, selected);
 
-    return .{ .selected = selected, .borrowed = borrowed, .keys = keys, .queries = queries };
+    return .{ .selected = selected, .borrowed = borrowed, .keys = keys, .queries = queries, .element_storage = element_storage };
 }
 
 fn duplicates(program: ir.Program, boxed: []bool, seen: []u32, round: u32, id: ir.TypeId) void {

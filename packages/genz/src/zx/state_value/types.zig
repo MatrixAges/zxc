@@ -72,7 +72,7 @@ pub fn lower(self: *Lower, output: *std.ArrayList(node.Declaration), exported: b
             break :blk try self.builder.identifier(name);
         };
 
-        self.state_types[index] = selected;
+        self.state_types[index] = if (self.state_plan.referenced(id)) try self.builder.expression(.{ .const_pointer = selected }) else selected;
         self.state_layouts[index] = selected;
 
         if (value == .list and @import("elements.zig").inlineStored(self, id) and self.program.typeOf(value.list) == .object) {
@@ -80,7 +80,7 @@ pub fn lower(self: *Lower, output: *std.ArrayList(node.Declaration), exported: b
         }
 
         if (value == .object or value == .tuple) {
-            const changed = switch (value) {
+            const changed = self.state_plan.referenced(id) or switch (value) {
                 .object => |fields| changed: {
                     for (0..fields.len) |field_index| {
                         const child = @backingInt(fields.at(field_index).type_id);

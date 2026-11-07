@@ -3,15 +3,68 @@ const ir = @import("zx").ir;
 
 pub const Flags = struct { inlined: bool = false, body_process: bool, io: bool, process: bool, scalar: bool, tasks: bool, value: bool };
 
+const minimum_record_fields = 6;
+const maximum_routing_fields = 4;
+const maximum_body_expressions = 192;
+const maximum_result_fields = 4;
+const maximum_scalar_expressions = 32;
+
 pub fn analyze(program: ir.Program, functions: anytype) Flags {
+    const io = @import("../io.zig").uses(program.expressions, program.contracts, functions.io);
+    const process = @import("../capabilities.zig").uses(program.expressions, program.contracts, functions.process);
+    const tasks = @import("../tasks/allocator.zig").required(program, functions.tasks);
+
     return .{
+        .inlined = !io and !process and !tasks and inlined(program, functions.self_function, functions.pure),
         .value = eligibleEntry(program, functions.local),
         .scalar = scalarLocals(program, functions.local),
-        .io = @import("../io.zig").uses(program.expressions, program.contracts, functions.io),
-        .process = @import("../capabilities.zig").uses(program.expressions, program.contracts, functions.process),
+        .io = io,
+        .process = process,
         .body_process = @import("../capabilities.zig").uses(program.expressions, .{}, functions.process),
-        .tasks = @import("../tasks/allocator.zig").required(program, functions.tasks),
+        .tasks = tasks,
     };
+}
+
+/// Matches Source entry/inlined: only small, bounded helpers with earlier pure callees.
+fn inlined(program: ir.Program, owner: ?ir.FunctionId, pure: []const bool) bool {
+    const function = owner orelse return false;
+
+    if (program.stores.count() != 0 or parallel(program.body.block())) return false;
+    if (program.contracts.kinds.len != 0 or program.expressions.count() > maximum_body_expressions) return false;
+
+    const input = program.typeOf(program.input_type);
+    const output = program.typeOf(program.output_type);
+
+    if (input != .object) return false;
+
+    var result = output;
+
+    while (result == .optional) result = program.typeOf(result.optional);
+
+    const primitive = result == .scalar or result == .enumeration or result == .error_set or result == .native_reference;
+
+    if (primitive) {
+        if (input.object.len > maximum_routing_fields or program.expressions.count() > maximum_scalar_expressions) return false;
+    } else if (input.object.len >= minimum_record_fields) {
+        if (output != .object or output.object.len > maximum_result_fields) return false;
+    } else {
+        if (input.object.len > maximum_routing_fields or result != .object or result.object.len > maximum_result_fields) return false;
+
+        for (0..result.object.len) |index| {
+            var field = program.typeOf(result.object.at(index).type_id);
+
+            while (field == .optional) field = program.typeOf(field.optional);
+
+            if (field != .scalar and field != .enumeration and field != .error_set) return false;
+        }
+    }
+
+    for (program.expressions.kinds) |kind| switch (kind) {
+        .Iteration, .Transform, .Task, .Parallel, .AwaitTask, .CancelTask => return false,
+        else => {},
+    };
+
+    return calls(program.expressions, program.contracts, pure[0..@backingInt(function)]);
 }
 
 pub fn scalarLocals(program: ir.Program, local: []const bool) bool {
