@@ -1,0 +1,13 @@
+import check from "./construction/check"
+
+import type { Functions as Input } from "../model"
+
+export type Output = bool[]
+
+export default function (in: Input): Output {
+    return in.roots.map((root, index) => check({
+        control: in.control[index],
+        expressions: in.expressions[index],
+        root
+    }))[0]
+}

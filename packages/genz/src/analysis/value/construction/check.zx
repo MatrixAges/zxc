@@ -1,0 +1,73 @@
+import integers from "std:integer"
+import { StatementKind } from "core/control_table/model"
+
+import result from "./result"
+
+import type { Control } from "core/control_table/model"
+import type { Expressions } from "core/expression_table/model"
+
+export type Input = {
+    control: Control,
+    expressions: Expressions,
+    root?: u32
+}
+
+export type Output = bool
+
+export default function check(in: Input): Output {
+    const root = in.root
+
+    if (root == null) {
+        return true
+    }
+
+    const block = integers.widen(root)
+    const first = integers.widen(in.control.block_first[block])
+    const end = first + integers.widen(in.control.block_count[block])
+
+    return loop({
+        position: first,
+        valid: true
+    }, {
+        while: current => current.valid && current.position < end,
+        next: current => {
+            const kind = in.control.statement_kinds[current.position]
+            const payload =
+                integers.widen(in.control.statement_payloads[current.position])
+
+            current.valid = match kind {
+                StatementKind.Result => result({
+                    expressions: in.expressions,
+                    value: in.control.results[payload]
+                }),
+                StatementKind.Branch => check({
+                    ...in,
+                    root: in.control.branch_yes[payload]
+                }) && check({
+                    ...in,
+                    root: in.control.branch_no[payload]
+                }),
+                StatementKind.Switch => loop({
+                    index: integers.widen(in.control.selection_first[payload]),
+                    valid: true
+                }, {
+                    while: branch => branch.valid && branch.index <
+                        integers.widen(in.control.selection_first[payload]) +
+                        integers.widen(in.control.selection_count[payload]),
+                    next: branch => {
+                        branch.valid = check({
+                            ...in,
+                            root: in.control.case_bodies[branch.index]
+                        })
+                        branch.index += 1
+                    },
+                    return: branch => branch.valid
+                }),
+                _ => true
+            }
+
+            current.position += 1
+        },
+        return: current => current.valid
+    })
+}

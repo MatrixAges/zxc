@@ -21,9 +21,7 @@ pub fn borrow(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId)
             return self.builder.expression(.{ .address_of = value });
         },
         .call => |invocation| {
-            const function = self.program.functions.at(@backingInt(invocation.function));
-
-            if (!self.value_functions[@backingInt(invocation.function)] or !@import("fresh.zig").check(function.expressions, function.body.block())) return existing(self, body, id);
+            if (!self.value_functions[@backingInt(invocation.function)] or !self.constructed_outputs[@backingInt(invocation.function)]) return existing(self, body, id);
 
             const argument = try borrow(self, body, invocation.argument);
             const cached = self.cache.get(invocation.argument);

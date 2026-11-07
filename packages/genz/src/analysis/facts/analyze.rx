@@ -20,6 +20,7 @@
                 unknown: bool[]
             },
             fresh_outputs: bool[],
+            constructed_outputs: bool[],
             grows: bool[],
             identity_free: bool[],
             io: bool[],
@@ -72,6 +73,7 @@
     <Call fn="../capability/tasks" in={$in.program} />
     <Call fn="../capability/growth/evaluate" in={$in.program.functions} />
     <Call fn="../types/fresh_outputs" in={$in.program} />
+    <Call fn="../value/constructed_outputs" in={$in.program.functions} />
 
     <Call
         fn="../identity/free"
@@ -95,6 +97,7 @@
             tasks: $ctx.tasks,
             grows: $ctx.evaluate,
             fresh_outputs: $ctx.fresh_outputs,
+            constructed_outputs: $ctx.constructed_outputs,
             identity_free: $ctx.free,
             errors: $ctx.functions
         }}

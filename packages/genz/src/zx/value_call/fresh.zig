@@ -1,4 +1,16 @@
+const std = @import("std");
 const ir = @import("zx").ir;
+
+pub fn functions(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error![]bool {
+    const values = try allocator.alloc(bool, program.functions.count());
+
+    for (values, 0..) |*value, index| {
+        const function = program.functions.at(index);
+        value.* = check(function.expressions, function.body.block());
+    }
+
+    return values;
+}
 
 pub fn check(expressions: ir.ExpressionTable, statements: ir.Block) bool {
     for (0..statements.len) |statement_index| {

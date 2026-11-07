@@ -1,0 +1,38 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import type { Expressions } from "core/expression_table/model"
+
+export type Input = {
+    expressions: Expressions,
+    value?: u32
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const value = in.value
+
+    if (value == null) {
+        return false
+    }
+
+    const expression = loop({
+        index: integers.widen(value)
+    }, {
+        while: current =>
+            in.expressions.kinds[current.index] == ExpressionKind.Scope,
+        next: current => {
+            const payload = integers.widen(in.expressions.payloads[current.index])
+
+            current.index = integers.widen(in.expressions.scope_results[payload])
+        },
+        return: current => in.expressions.kinds[current.index]
+    })
+
+    return match expression {
+        ExpressionKind.Object => true,
+        ExpressionKind.Tuple => true,
+        _ => false
+    }
+}

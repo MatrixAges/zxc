@@ -47,6 +47,7 @@ pure_functions: []const bool = &.{},
 identity_free_functions: []const bool = &.{},
 local_functions: []const bool = &.{},
 fresh_outputs: []const bool = &.{},
+constructed_outputs: []const bool = &.{},
 value_output: bool = false,
 public_value_output: bool = false,
 stack_symbols: std.AutoHashMapUnmanaged(ir.SymbolId, void) = .empty,
@@ -337,7 +338,7 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!node.ExpressionId {
             }
 
             if (!self.state_active and self.allows_allocation and self.value_functions[@backingInt(invocation.function)] and self.state_plan.represented(self.program, callee_function.output_type)) break :blk @import("value_call/root.zig").pointerInvocation(self, invocation);
-            if (self.allows_allocation and self.value_functions[@backingInt(invocation.function)] and @import("value_call/fresh.zig").check(callee_function.expressions, callee_function.body.block())) break :blk @import("value_call/root.zig").pointerInvocation(self, invocation);
+            if (self.allows_allocation and self.value_functions[@backingInt(invocation.function)] and self.constructed_outputs[@backingInt(invocation.function)]) break :blk @import("value_call/root.zig").pointerInvocation(self, invocation);
 
             const scalar = @import("types/scalar.zig").check(self.program.types, callee_function.output_type);
             const needs_io = self.io_functions[@backingInt(invocation.function)];

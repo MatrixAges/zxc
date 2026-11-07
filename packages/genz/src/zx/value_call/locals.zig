@@ -40,7 +40,7 @@ pub fn borrowed(self: *Lower, symbol: ir.SymbolId, value: ir.ExprId) Lower.Error
         .call => |invocation| {
             const function = self.program.functions.at(@backingInt(invocation.function));
 
-            return function.external != null or !@import("fresh.zig").check(function.expressions, function.body.block());
+            return function.external != null or !self.constructed_outputs[@backingInt(invocation.function)];
         },
         else => return false,
     }

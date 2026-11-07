@@ -25,6 +25,7 @@ errors: []const ?[]const []const u8,
 /// A loop that calls a function lowers in place only when the callee compares no aggregates by identity.
 identity_free: []const bool,
 fresh_outputs: []const bool,
+constructed_outputs: []const bool,
 state_plan: @import("genz").zx.state_value.Analysis,
 pub fn createAnalyzed(program: ir.Program, names: Names, unit: Unit, facts: @import("genz").zx.modules.Analysis) [32]u8 {
     var self = Self{
@@ -41,6 +42,7 @@ pub fn createAnalyzed(program: ir.Program, names: Names, unit: Unit, facts: @imp
         .errors = facts.errors,
         .identity_free = facts.identity_free,
         .fresh_outputs = facts.fresh_outputs,
+        .constructed_outputs = facts.constructed_outputs,
         .state_plan = facts.value.state,
     };
 
@@ -184,6 +186,7 @@ fn write(self: *Self, value: anytype) void {
         self.write(function.input_type);
         self.write(function.output_type);
         self.write(self.fresh_outputs[@backingInt(value)]);
+        self.write(self.constructed_outputs[@backingInt(value)]);
 
         return;
     }
