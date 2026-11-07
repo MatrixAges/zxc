@@ -4,7 +4,7 @@ const ir = zx.ir;
 const Lower = @import("../../lower.zig");
 const ownership = @import("../ownership.zig");
 
-pub fn build(self: *Lower, state_name: []const u8, id: ir.ExprId, type_id: ir.TypeId, slot: u32) Lower.Error![]const u8 {
+pub fn build(self: *Lower, id: ir.ExprId, type_id: ir.TypeId, slot: u32) Lower.Error![]const u8 {
     const generated = @import("generated_ownership_helper_name");
     const Input = std.meta.Child(generated.Input);
     const Eligibility = std.meta.Child(@FieldType(Input, "source"));
@@ -19,7 +19,9 @@ pub fn build(self: *Lower, state_name: []const u8, id: ir.ExprId, type_id: ir.Ty
 
     const input: Input = .{
         .hash = @ptrCast(&hash),
-        .state_name = state_name,
+        .names = self.type_names,
+        .index = @backingInt(type_id),
+        .key = &self.state_plan.keys[@backingInt(type_id)],
         .source = &source,
         .count = ownership.count(self, type_id),
     };

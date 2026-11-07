@@ -14,13 +14,13 @@ pub fn append(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId,
     if (!selected) return false;
 
     const type_expr = try @import("../../types.zig").get(self, self.state_types, type_id);
-    const base = if (self.type_names) |names| names[@backingInt(type_id)] else try std.fmt.allocPrint(self.allocator, "zx_type_{d}", .{@backingInt(type_id)});
-    const state_name = try self.state_plan.name(self.allocator, type_id, base);
 
     const name = if (@import("genz_options").generated_analysis)
-        try @import("naming.zig").build(self, state_name, id, type_id, slot)
+        try @import("naming.zig").build(self, id, type_id, slot)
 
     else seed: {
+        const base = if (self.type_names) |names| names[@backingInt(type_id)] else try std.fmt.allocPrint(self.allocator, "zx_type_{d}", .{@backingInt(type_id)});
+        const state_name = try self.state_plan.name(self.allocator, type_id, base);
         var hash = zx.Sha256.init(.{});
 
         hash.update(state_name);

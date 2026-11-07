@@ -3,7 +3,9 @@ import type { Eligibility } from "../../model"
 
 export type Input = {
     hash: Sha256State,
-    state_name: u8[],
+    names?: string[],
+    index: u64,
+    key: u8[],
     source: Eligibility,
     count: u32
 }
@@ -16,7 +18,7 @@ export type Slots = {
 
 export type Seed = {
     hash: Sha256State,
-    state_name: u8[]
+    state_name: string
 }
 
 export type Output = string

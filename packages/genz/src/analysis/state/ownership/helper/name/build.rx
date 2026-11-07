@@ -4,11 +4,20 @@
     <Args in={Name.Input} out={Name.Output} />
 
     <Call
-        fn="seed"
+        fn="../../../../types/state/name"
         in={$in.pick([
-            "hash",
-            "state_name"
+            "names",
+            "index",
+            "key"
         ])}
+    />
+
+    <Call
+        fn="seed"
+        in={{
+            hash: $in.hash,
+            state_name: $ctx.name
+        }}
     />
 
     <Call
