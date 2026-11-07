@@ -30,7 +30,7 @@ planned: []Planned,
 pub const Settled = struct { passed: []const Function.Contribution, output: []const Level, reads: []const Function.Read };
 
 pub const Demanded = struct { marks: []const Function.Mark, grew: bool, normalized: []const Memo.Normalized, renewed: []const Memo.Renewed, reads: []const Function.Read };
-pub const Planned = struct { flags: []const Function.Flags, renewals: []const Function.Renewal, transfers: []const u64 = &.{}, slot_first: []const u32 = &.{} };
+pub const Planned = struct { flags: []const Function.Flags, renewals: Function.Renewals, transfers: []const u64 = &.{}, slot_first: []const u32 = &.{} };
 
 const State = enum(u32) {
     idle,

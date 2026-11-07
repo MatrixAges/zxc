@@ -19,10 +19,11 @@ pub const Flags = Function.Flags;
 /// static uniqueness. Facts start optimistic and only ever weaken, so the greatest fixpoint is sound. Plain lists that
 /// reach an append get one growth copy where they enter; each new copy restarts the fixpoint, and copies only accrue.
 pub const Renewal = Function.Renewal;
+pub const Renewals = Function.Renewals;
 
 pub const Plan = struct {
     flags: []const Flags,
-    renewals: []const Renewal = &.{},
+    renewals: Renewals = &.{},
     transfers: []const u64 = &.{},
     slot_first: []const u32 = &.{},
     pub fn get(self: Plan, id: ir.ExprId) Flags {
@@ -183,7 +184,7 @@ fn analyzeWithConcurrency(allocator: std.mem.Allocator, workspace: std.mem.Alloc
 
         try replay.met(.planned, index, planned, memo);
 
-        const plan = Plan{ .flags = try allocator.dupe(Flags, planned.flags), .renewals = try copyRenewals(allocator, planned.renewals), .transfers = try allocator.dupe(u64, planned.transfers), .slot_first = try allocator.dupe(u32, planned.slot_first) };
+        const plan = Plan{ .flags = try allocator.dupe(Flags, planned.flags), .renewals = try @import("renewals.zig").copy(allocator, planned.renewals), .transfers = try allocator.dupe(u64, planned.transfers), .slot_first = try allocator.dupe(u32, planned.slot_first) };
 
         if (index < count) plans[index] = plan else entry_plan = plan;
     }
@@ -447,7 +448,7 @@ fn shortcut(allocator: std.mem.Allocator, temporary: std.mem.Allocator, program:
 
             if (renewed) |replacement| value.* = replacement;
 
-            break :plan .{ .flags = try allocator.dupe(Flags, value.flags), .renewals = try copyRenewals(allocator, value.renewals), .transfers = try allocator.dupe(u64, value.transfers), .slot_first = try allocator.dupe(u32, value.slot_first) };
+            break :plan .{ .flags = try allocator.dupe(Flags, value.flags), .renewals = try @import("renewals.zig").copy(allocator, value.renewals), .transfers = try allocator.dupe(u64, value.transfers), .slot_first = try allocator.dupe(u32, value.slot_first) };
         };
 
         if (index < count) plans[index] = plan else entry_plan = plan;
@@ -558,12 +559,4 @@ fn identify(shared: [32]u8, contents: []const [32]u8, units: []const ?*Unit) voi
     var work = Hashing{ .shared = shared, .contents = contents, .units = units };
 
     @import("zx").parallel.spread(Hashing, &work, Hashing.run, units.len);
-}
-
-fn copyRenewals(allocator: std.mem.Allocator, renewals: []const Renewal) std.mem.Allocator.Error![]const Renewal {
-    const result = try allocator.alloc(Renewal, renewals.len);
-
-    for (renewals, result) |renewal, *target| target.* = .{ .owner = renewal.owner, .path = try allocator.dupe(u32, renewal.path), .value = renewal.value };
-
-    return result;
 }

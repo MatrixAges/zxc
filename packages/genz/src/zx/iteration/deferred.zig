@@ -13,7 +13,7 @@ pub fn paths(self: *Lower, owner: ir.ExprId, iteration: ir.Iteration) Lower.Erro
     var selected: std.ArrayList([]const u32) = .empty;
 
     for (self.plan.renewals) |renewal| {
-        if (renewal.owner == owner and !renewal.value) try selected.append(scratch.allocator(), renewal.path);
+        if (renewal.owner == @backingInt(owner) and !renewal.value) try selected.append(scratch.allocator(), renewal.path);
     }
 
     if (selected.items.len == 0) return &.{};

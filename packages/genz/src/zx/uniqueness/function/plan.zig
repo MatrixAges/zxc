@@ -39,10 +39,9 @@ pub fn build(function: *Function, allocator: std.mem.Allocator) std.mem.Allocato
     try levels.publish(function);
 
     const flags = try allocator.alloc(Function.Flags, result.flags.len);
-    const renewals = try allocator.alloc(Function.Renewal, result.renewals.len);
+    const renewals = try @import("../renewals.zig").copy(allocator, result.renewals);
 
     for (result.flags, flags) |value, *target| target.* = @bitCast(@as(u8, @intCast(value)));
-    for (result.renewals, renewals) |value, *target| target.* = .{ .owner = @fromBackingInt(value.owner), .path = try allocator.dupe(u32, value.path), .value = value.value };
 
     return .{ .flags = flags, .renewals = renewals, .transfers = try allocator.dupe(u64, result.transfers), .slot_first = try allocator.dupe(u32, function.sites.slot_first[function.sites.symbols.count()..]) };
 }

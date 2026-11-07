@@ -18,7 +18,7 @@ pub const Demanded = struct { marks: []const Function.Mark, normalized: []const 
 pub const Normalized = struct { id: ir.ExprId, want: Level };
 pub const Renewed = struct { key: u64, want: Level };
 /// The plan of a body once every fact settled.
-pub const Planned = struct { flags: []const Function.Flags, renewals: []const Function.Renewal, transfers: []const u64 = &.{}, slot_first: []const u32 = &.{}, used: bool = true };
+pub const Planned = struct { flags: []const Function.Flags, renewals: Function.Renewals, transfers: []const u64 = &.{}, slot_first: []const u32 = &.{}, used: bool = true };
 /// Which input slots a body's output holds and its updates write, by the body and its callees' own.
 pub const Flowed = struct { held: []const bool, text_held: []const bool, written: []const bool, used: bool = true };
 
@@ -184,10 +184,7 @@ pub fn getPlanned(self: *Self, summaries: *const Summaries, state: State) std.me
 /// Records the plan of the state `getPlanned` digested into `key`.
 pub fn putPlanned(self: *Self, key: Digest, plan: Function.Plan) std.mem.Allocator.Error!Planned {
     const allocator = self.arena.allocator();
-    const owned = try allocator.alloc(Function.Renewal, plan.renewals.len);
-
-    for (plan.renewals, owned) |renewal, *target| target.* = .{ .owner = renewal.owner, .path = try allocator.dupe(u32, renewal.path), .value = renewal.value };
-
+    const owned = try @import("renewals.zig").copy(allocator, plan.renewals);
     const value = Planned{ .flags = try allocator.dupe(Function.Flags, plan.flags), .renewals = owned, .transfers = try allocator.dupe(u64, plan.transfers), .slot_first = try allocator.dupe(u32, plan.slot_first) };
 
     self.changed = true;

@@ -140,7 +140,7 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
     if (fields) |*selected| {
         var renewed = false;
 
-        for (self.plan.renewals) |renewal| if (renewal.owner == id and !renewal.value) {
+        for (self.plan.renewals) |renewal| if (renewal.owner == @backingInt(id) and !renewal.value) {
             renewed = true;
         };
 
@@ -166,7 +166,7 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
 
         var entered: std.ArrayList(node.Statement) = .empty;
 
-        for (self.plan.renewals) |renewal| if (renewal.owner == id and !renewal.value) {
+        for (self.plan.renewals) |renewal| if (renewal.owner == @backingInt(id) and !renewal.value) {
             try @import("growth.zig").renew(self, &entered, type_id, seed, renewal.path);
         };
 
@@ -223,7 +223,7 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
     var entered: std.ArrayList(node.Statement) = .empty;
     var renewal_index: usize = 0;
 
-    for (self.plan.renewals) |renewal| if (renewal.owner == id and !renewal.value) {
+    for (self.plan.renewals) |renewal| if (renewal.owner == @backingInt(id) and !renewal.value) {
         const delayed = renewal_index < deferred.len and deferred[renewal_index];
 
         renewal_index += 1;

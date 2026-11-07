@@ -256,7 +256,8 @@ fn renewal(owner: ir.ExprId, slot: u32) u64 {
 /// Marks a key whose growth copy renews the value of its expression rather than the state a loop enters with.
 const value_renewal: u64 = 1 << 63;
 /// A list slot of a loop state, or of an expression's own value when `value` is set, that starts from a growth copy.
-pub const Renewal = struct { owner: ir.ExprId, path: []const u32, value: bool = false };
+pub const Renewal = @import("renewals.zig").Record;
+pub const Renewals = @import("renewals.zig").Records;
 
 /// The slots that start from a growth copy, by member path from the loop state or the renewed value.
 fn renewals(self: *Self, allocator: std.mem.Allocator) std.mem.Allocator.Error![]const Renewal {
@@ -275,12 +276,12 @@ fn renewals(self: *Self, allocator: std.mem.Allocator) std.mem.Allocator.Error![
         const start = if (value) self.raw(owner, slot) else self.level(self.carriedState(owner).?.initial, slot);
 
         if (!Level.lacks(start, entry.value_ptr.*)) continue;
-        try result.append(allocator, .{ .owner = owner, .path = try self.slots.path(allocator, self.row(owner).type_id, slot), .value = value });
+        try result.append(allocator, .{ .owner = @backingInt(owner), .path = try self.slots.path(allocator, self.row(owner).type_id, slot), .value = value });
     }
 
     std.mem.sort(Renewal, result.items, {}, struct {
         fn less(_: void, left: Renewal, right: Renewal) bool {
-            if (left.owner != right.owner) return @backingInt(left.owner) < @backingInt(right.owner);
+            if (left.owner != right.owner) return left.owner < right.owner;
             if (left.value != right.value) return !left.value;
 
             return std.mem.order(u32, left.path, right.path) == .lt;
@@ -293,7 +294,7 @@ fn renewals(self: *Self, allocator: std.mem.Allocator) std.mem.Allocator.Error![
 }
 
 pub const Flags = packed struct(u8) { frontier: bool = false, retract: bool = false, in_place: bool = false, normalize: bool = false, renew: bool = false, grow: bool = false, lazy: bool = false, buffered: bool = false };
-pub const Plan = struct { flags: []const Flags, renewals: []const Renewal, transfers: []const u64 = &.{}, slot_first: []const u32 = &.{} };
+pub const Plan = struct { flags: []const Flags, renewals: Renewals, transfers: []const u64 = &.{}, slot_first: []const u32 = &.{} };
 
 pub fn plan(self: *Self, allocator: std.mem.Allocator) std.mem.Allocator.Error!Plan {
     if (generated_analysis) return @import("function/plan.zig").build(self, allocator);

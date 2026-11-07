@@ -298,9 +298,7 @@ fn copyPlans(allocator: std.mem.Allocator, source: Uniqueness.Result) std.mem.Al
 }
 
 fn copyPlan(allocator: std.mem.Allocator, source: Uniqueness.Plan) std.mem.Allocator.Error!Uniqueness.Plan {
-    const renewals = try allocator.alloc(Uniqueness.Renewal, source.renewals.len);
-
-    for (source.renewals, renewals) |renewal, *target| target.* = .{ .owner = renewal.owner, .path = try allocator.dupe(u32, renewal.path), .value = renewal.value };
+    const renewals = try @import("uniqueness/renewals.zig").copy(allocator, source.renewals);
 
     return .{ .flags = try allocator.dupe(Uniqueness.Flags, source.flags), .renewals = renewals, .transfers = try allocator.dupe(u64, source.transfers), .slot_first = try allocator.dupe(u32, source.slot_first) };
 }

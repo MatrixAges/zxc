@@ -37,7 +37,7 @@ pub fn lower(self: *Lower, id: ir.ExprId, value: ir.Transform) Lower.Error!node.
 
         var entered: std.ArrayList(node.Statement) = .empty;
 
-        for (self.plan.renewals) |renewal| if (renewal.owner == id and !renewal.value) {
+        for (self.plan.renewals) |renewal| if (renewal.owner == @backingInt(id) and !renewal.value) {
             try @import("growth.zig").renew(self, &entered, self.program.expression(id).type_id, try self.builder.identifier(accumulator), renewal.path);
         };
 

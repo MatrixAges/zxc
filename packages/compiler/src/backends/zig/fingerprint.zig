@@ -132,7 +132,7 @@ fn plan(self: *Self, value: @import("genz").zx.function_analysis.Uniqueness.Plan
     self.write(value.renewals.len);
 
     for (value.renewals) |renewal| {
-        self.write(@backingInt(renewal.owner));
+        self.write(renewal.owner);
         self.write(renewal.path);
         self.write(renewal.value);
     }
