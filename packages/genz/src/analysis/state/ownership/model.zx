@@ -1,0 +1,23 @@
+import type { Table } from "core/type_table/model"
+
+export type Eligibility = {
+    first: u32[],
+    transfers: u64[],
+    node: u32,
+    slot: u32
+}
+
+export type Facts = {
+    types: Table,
+    selected: bool[],
+    counts: u32[],
+    first: u32[],
+    transfers: u64[]
+}
+
+export type Input = {
+    facts: Facts,
+    node: u32,
+    type_id: u32,
+    slot: u32
+}

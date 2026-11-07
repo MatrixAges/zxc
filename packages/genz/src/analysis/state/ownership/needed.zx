@@ -1,0 +1,83 @@
+import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import eligible from "./eligible"
+
+import type { Input } from "./model"
+
+export type Output = bool
+
+export default function needed(in: Input): Output {
+    const facts = in.facts
+    const row = integers.widen(in.type_id)
+    const category = kind(facts.types.kinds[row])
+
+    if (category == Kind.Optional) {
+        return needed({
+            ...in,
+            type_id: facts.types.first[row]
+        })
+    }
+
+    if (!facts.selected[row]) {
+        return false
+    }
+
+    if (category == Kind.List) {
+        return !eligible({
+            ...facts.pick([
+                "first",
+                "transfers"
+            ]),
+            ...in.pick([
+                "node",
+                "slot"
+            ])
+        })
+    }
+
+    const object = category == Kind.Object
+
+    if (!object && category != Kind.Tuple) {
+        return false
+    }
+
+    const first = integers.widen(facts.types.first[row])
+    const count = integers.widen(facts.types.second[row])
+    const node = in.node
+
+    return loop({
+        index: 0,
+        offset: in.slot,
+        required: false
+    }, {
+        while: state => !state.required && state.index < count,
+        next: state => {
+            const position = first + state.index
+            const child = match {
+                object => facts.types.field_types[position],
+                _ => facts.types.children[position]
+            }
+
+            state.required = needed({
+                facts,
+                node,
+                type_id: child,
+                slot: state.offset
+            })
+
+            if (!state.required) {
+                const index = integers.widen(child)
+                const size = match {
+                    index < facts.counts.length => facts.counts[index],
+                    _ => 0
+                }
+
+                state.offset += size
+                state.index += 1
+            }
+        },
+        return: state => state.required
+    })
+}
