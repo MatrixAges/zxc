@@ -1,0 +1,40 @@
+import integers from "std:integer"
+
+import enter from "./enter"
+import finishReference from "./finish_reference"
+import list from "./list"
+import { Operation } from "./model"
+import optional from "./optional"
+
+import type { Input as Source, State } from "./model"
+
+export type Input = {
+    source: Source,
+    state: State
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const node = integers.widen(in.source.plan.events[in.state.index])
+
+    const step = {
+        ...in,
+        node
+    }
+
+    const state = match {
+        in.source.plan.entering[in.state.index] => enter(step),
+        _ => match in.source.plan.kinds[node] {
+            Operation.List => list(step),
+            Operation.Optional => optional(step),
+            Operation.Reference => finishReference(step),
+            _ => in.state
+        }
+    }
+
+    return {
+        ...state,
+        index: state.index + 1
+    }
+}

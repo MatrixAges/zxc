@@ -1,0 +1,11 @@
+<Module>
+    <Type from="../model" as="Ownership" />
+    <Type from="model" as="Clear" />
+
+    <Args in={Ownership.Outline} out={Clear.Plan} />
+
+    <Call fn="initialize_plan" in={$in} />
+    <Call fn="append" in={$ctx.initialize_plan} />
+
+    <Return value={$ctx.append} />
+</Module>

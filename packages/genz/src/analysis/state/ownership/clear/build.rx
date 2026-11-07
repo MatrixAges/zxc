@@ -1,0 +1,19 @@
+<Module>
+    <Type from="model" as="Clear" />
+
+    <Args in={Clear.Input} out={Clear.Output} />
+
+    <Call fn="initialize" in={$in} />
+
+    <Call
+        fn="walk"
+        in={{
+            source: $in,
+            state: $ctx.initialize
+        }}
+    />
+
+    <Call fn="publish" in={$ctx.walk} />
+
+    <Return value={$ctx.publish} />
+</Module>

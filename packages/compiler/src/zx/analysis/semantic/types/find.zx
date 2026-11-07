@@ -1,10 +1,7 @@
-import integers from "std:integer"
 import { Kind } from "core/type_table/model"
 
 import candidate from "../entries/candidate"
-import equal from "../entries/equal"
-import row from "../entries/row"
-import kind from "./kind"
+import scan from "./scan"
 
 import type { Tables } from "core/type_table/model"
 import type { Candidate, Search } from "./model"
@@ -39,49 +36,23 @@ export default function (in: Input): Output {
             }
         )
 
-    const initial_id: u32 = 0
-    const count = in.tables.base.kinds.length + in.tables.delta.kinds.length
-
-    const state = loop({
-        tables: in.tables,
+    const base = scan({
+        table: in.tables.base,
         entry,
         direct,
-        count,
-        index: 0,
-        found: false,
-        id: initial_id
-    }, {
-        while: current => !current.found && current.index < current.count,
-        next: current => {
-            const base_count = current.tables.base.kinds.length
-            const delta = current.index >= base_count
-            const table = delta ? current.tables.delta : current.tables.base
-            const position = delta ? current.index - base_count : current.index
-            const shape =
-                match {
-                    current.direct => table.first[position] == current.entry.first,
-                    _ => integers.widen(
-                        table.second[position]
-                    ) == current.entry.count
-                }
-
-            if (kind(table.kinds[position]) == current.entry.kind && shape) {
-                current.found = equal({
-                    left: row({
-                        table,
-                        index: position
-                    }),
-                    right: current.entry
-                })
-                current.id = integers.narrow(current.index)
-            }
-
-            current.index += 1
-        }
+        offset: 0,
+        previous: 0
     })
 
-    return {
-        found: state.found,
-        id: state.id
+    if (base.found) {
+        return base
     }
+
+    return scan({
+        table: in.tables.delta,
+        entry,
+        direct,
+        offset: in.tables.base.kinds.length,
+        previous: base.id
+    })
 }

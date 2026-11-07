@@ -1,0 +1,36 @@
+import assignment from "../../../../ast/body/assignment"
+import dereference from "../../../../ast/context/dereference"
+import slot from "../../../construction/reference/slot"
+
+import type { Step as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const storage = slot({
+        context: in.state.context,
+        layout: in.source.layouts[in.node]
+    })
+
+    const value = dereference({
+        state: storage.context,
+        value: in.state.values[in.node]
+    })
+
+    const assigned = assignment({
+        state: {
+            context: value.state,
+            body: in.state.body
+        },
+        target: storage.root,
+        value: value.id
+    })
+
+    return {
+        ...in.state,
+        ...assigned,
+        storage: {
+            tags: in.state.storage.tags.concat(storage.storage.tags)[0],
+            offsets: in.state.storage.offsets.concat(storage.storage.offsets)[0]
+        },
+        values: in.state.values.with(in.node, storage.root)
+    }
+}

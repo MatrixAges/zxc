@@ -1,0 +1,25 @@
+import assignment from "../../../../ast/body/assignment"
+import address from "../../../../ast/context/address"
+
+import type { Step as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const value = address({
+        state: in.state.context,
+        value: in.state.values[in.node]
+    })
+
+    const assigned = assignment({
+        state: {
+            context: value.state,
+            body: in.state.body
+        },
+        target: in.state.targets[in.node],
+        value: value.id
+    })
+
+    return {
+        ...in.state,
+        ...assigned
+    }
+}

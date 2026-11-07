@@ -1,0 +1,46 @@
+import unwrap from "../../../../ast/context/optional_unwrap"
+import { Operation } from "./model"
+import project from "./project"
+import reference from "./reference"
+
+import type { Step as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const value = project(in)
+
+    const state = {
+        ...in.state,
+        context: value.state,
+        values: in.state.values.with(in.node, value.id),
+        targets: in.state.targets.with(in.node, value.id)
+    }
+
+    const operation = in.source.plan.kinds[in.node]
+
+    if (operation == Operation.Reference) {
+        return reference({
+            ...in,
+            state
+        })
+    }
+
+    if (operation != Operation.Optional) {
+        return state
+    }
+
+    const payload = unwrap({
+        state: state.context,
+        value: value.id
+    })
+
+    return {
+        ...state,
+        context: payload.state,
+        values: state.values.with(in.node, payload.id),
+        bodies: state.bodies.with(in.node, state.body),
+        body: {
+            tags: [],
+            offsets: []
+        }
+    }
+}

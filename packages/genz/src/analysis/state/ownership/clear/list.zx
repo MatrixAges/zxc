@@ -1,0 +1,48 @@
+import bytes from "std:bytes"
+
+import assignment from "../../../../ast/body/assignment"
+import field from "../../../../ast/context/field"
+import { storage_field } from "../../../types/state/const"
+import choose from "../../list/choose"
+import { Operation, Storage } from "../../list/const"
+import permission from "../../list/permission"
+
+import type { Step as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const value = in.state.values[in.node]
+
+    const target = field({
+        state: in.state.context,
+        target: value,
+        name: bytes.fromText(storage_field)
+    })
+
+    const header = permission({
+        state: target.state,
+        value,
+        operation: Operation.Headered
+    })
+
+    const weakened = choose({
+        state: header.state,
+        ast: in.source.ast,
+        condition: header.id,
+        yes: Storage.Shared,
+        no: Storage.Plain
+    })
+
+    const assigned = assignment({
+        state: {
+            context: weakened.state,
+            body: in.state.body
+        },
+        target: target.id,
+        value: weakened.id
+    })
+
+    return {
+        ...in.state,
+        ...assigned
+    }
+}

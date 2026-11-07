@@ -1,0 +1,114 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import integer from "../../../../printer/text/integer"
+import needed from "../needed"
+import { Operation } from "./model"
+
+import type { Append as Input, Plan as Output } from "./model"
+
+export default function append(in: Input): Output {
+    const { source, plan } = in
+
+    const query = source.source
+
+    if (!needed(query)) {
+        return plan
+    }
+
+    const row = integers.widen(query.type_id)
+    const types = query.facts.types
+    const category = kind(types.kinds[row])
+    const referenced = row < source.referenced.length && source.referenced[row]
+
+    const operation = match {
+        referenced => Operation.Reference,
+        _ => match category {
+            Kind.List => Operation.List,
+            Kind.Optional => Operation.Optional,
+            Kind.Tuple => Operation.Tuple,
+            _ => Operation.Object
+        }
+    }
+
+    const node = integers.narrow(plan.types.length)
+
+    const entered = {
+        types: plan.types.push(query.type_id)[0],
+        parents: plan.parents.push(in.parent)[0],
+        names: plan.names.push(in.name)[0],
+        kinds: plan.kinds.push(operation)[0],
+        events: plan.events.push(node)[0],
+        entering: plan.entering.push(true)[0]
+    }
+
+    const optional = operation == Operation.Optional
+
+    const count = match operation {
+        Operation.List => 0,
+        Operation.Optional => 1,
+        _ => integers.widen(types.second[row])
+    }
+
+    const first = integers.widen(types.first[row])
+
+    const result = loop({
+        plan: entered,
+        index: 0,
+        slot: query.slot
+    }, {
+        while: state => state.index < count,
+        next: state => {
+            const position = first + state.index
+            const child = match operation {
+                Operation.Optional => types.first[row],
+                Operation.Tuple => types.children[position],
+                _ => types.field_types[position]
+            }
+
+            const name = match operation {
+                Operation.Optional => [],
+                Operation.Tuple => integer({
+                    output: [],
+                    value: state.index
+                }),
+                _ => bytes.fromText(types.field_names[position])
+            }
+
+            state.plan = append({
+                source: {
+                    ...source,
+                    source: {
+                        ...query,
+                        type_id: child,
+                        slot: state.slot
+                    }
+                },
+                plan: state.plan,
+                parent: node,
+                name
+            })
+
+            if (!optional) {
+                const index = integers.widen(child)
+                const size = match {
+                    index < query.facts.counts.length => query.facts.counts[index],
+                    _ => 0
+                }
+
+                state.slot += size
+            }
+
+            state.index += 1
+        },
+        return: state => state.plan
+    })
+
+    return {
+        ...result,
+        events: result.events.push(node)[0],
+        entering: result.entering.push(false)[0]
+    }
+}

@@ -1,0 +1,31 @@
+import branch from "../../../../ast/body/branch"
+import binary from "../../../../ast/context/binary"
+import nullValue from "../../../../ast/context/null_value"
+import { ExpressionsBinaryOperator } from "../../../../printer/model/expressions"
+
+import type { Step as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const absent = nullValue(in.state.context)
+
+    const condition = binary({
+        state: absent.state,
+        operator: ExpressionsBinaryOperator.NotEqual,
+        left: in.state.targets[in.node],
+        right: absent.id
+    })
+
+    const result = branch({
+        state: {
+            context: condition.state,
+            body: in.state.bodies[in.node]
+        },
+        condition: condition.id,
+        yes: in.state.body
+    })
+
+    return {
+        ...in.state,
+        ...result
+    }
+}

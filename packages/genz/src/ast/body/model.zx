@@ -1,0 +1,12 @@
+import type { StatementsKind } from "../../printer/model/statements"
+import type { State } from "../context/model"
+
+export type Body = {
+    tags: StatementsKind[],
+    offsets: u32[]
+}
+
+export type StateBody = {
+    context: State,
+    body: Body
+}

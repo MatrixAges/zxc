@@ -1,0 +1,57 @@
+import integers from "std:integer"
+
+import construct from "../statements/branch"
+
+import type { Body, StateBody } from "./model"
+
+export type Input = {
+    state: StateBody,
+    condition: u32,
+    yes: Body
+}
+
+export type Output = StateBody
+
+export default function (in: Input): Output {
+    const { context, body } = in.state
+
+    const first = integers.widen(context.source.statement_base) +
+        context.statements.tags.length
+
+    const count = integers.narrow(in.yes.tags.length)
+
+    const statements = {
+        ...context.statements,
+        tags: context.statements.tags.concat(in.yes.tags)[0],
+        offsets: context.statements.offsets.concat(in.yes.offsets)[0]
+    }
+
+    const result = construct({
+        table: {
+            ...statements,
+            ...body
+        },
+        base: 0,
+        condition: in.condition,
+        yes_start: integers.narrow(first),
+        yes_count: count,
+        no_start: integers.narrow(first + in.yes.tags.length),
+        no_count: 0
+    })
+
+    return {
+        context: {
+            ...context,
+            statements: {
+                ...result.table,
+                tags: statements.tags,
+                offsets: statements.offsets
+            },
+            valid: context.valid && result.valid
+        },
+        body: result.table.pick([
+            "tags",
+            "offsets"
+        ])
+    }
+}

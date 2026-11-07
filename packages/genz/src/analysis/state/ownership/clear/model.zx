@@ -1,0 +1,62 @@
+import type { Body } from "../../../../ast/body/model"
+import type { State as Context, Variables } from "../../../../ast/context/model"
+import type { Columns as Forms } from "../../../../ast/expressions/forms/model"
+import type { Columns as Expressions } from "../../../../ast/expressions/model"
+import type { Columns as Statements } from "../../../../ast/statements/model"
+import type { Ast } from "../../list/model"
+import type { Outline } from "../model"
+
+export enum Operation { List, Optional, Object, Tuple, Reference }
+
+export type Plan = {
+    types: u32[],
+    parents: u32[],
+    names: u8[][],
+    kinds: Operation[],
+    events: u32[],
+    entering: bool[]
+}
+
+export type Append = {
+    source: Outline,
+    plan: Plan,
+    parent: u32,
+    name: u8[]
+}
+
+export type Input = {
+    plan: Plan,
+    layouts: u32[],
+    ast: Ast,
+    value: u32,
+    expression_base: u32,
+    statement_base: u32,
+    serial: u64
+}
+
+export type State = {
+    context: Context,
+    body: Body,
+    storage: Body,
+    values: u32[],
+    targets: u32[],
+    bodies: Body[],
+    index: u64
+}
+
+export type Step = {
+    source: Input,
+    state: State,
+    node: u64
+}
+
+export type Output = {
+    expressions: Expressions,
+    forms: Forms,
+    statements: Statements,
+    body: Statements,
+    storage: Statements,
+    variables: Variables,
+    serial: u64,
+    valid: bool
+}

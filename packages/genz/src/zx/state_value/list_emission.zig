@@ -88,7 +88,7 @@ pub fn lower(self: *Lower, id: ?ir.TypeId, operation: Operation, request: Reques
     return @fromBackingInt(output.root);
 }
 
-fn borrow(self: *const Lower) Ast {
+pub fn borrow(self: *const Lower) Ast {
     const rows = &self.builder.nodes.expressions;
     const object = &rows.payloads.object.fields.fields.fields;
     const fields = &self.builder.nodes.field_columns.fields;

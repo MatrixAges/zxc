@@ -7,18 +7,22 @@ const Tag = std.meta.Tag(node.Statement);
 pub const Error = rows.Error;
 
 pub fn append(allocator: std.mem.Allocator, target: *std.ArrayList(node.Statement), source: anytype) Error!void {
-    return appendRows(allocator, target, source, false);
+    return appendRows(allocator, target, source, false, false);
 }
 
 /// Text must outlive the target list and every AST block subsequently built from it.
 pub fn appendBorrowingText(allocator: std.mem.Allocator, target: *std.ArrayList(node.Statement), source: anytype) Error!void {
-    return appendRows(allocator, target, source, true);
+    return appendRows(allocator, target, source, true, false);
 }
 
-fn appendRows(allocator: std.mem.Allocator, target: *std.ArrayList(node.Statement), source: anytype, comptime borrow_text: bool) Error!void {
+pub fn appendSelected(allocator: std.mem.Allocator, target: *std.ArrayList(node.Statement), source: anytype) Error!void {
+    return appendRows(allocator, target, source, false, true);
+}
+
+fn appendRows(allocator: std.mem.Allocator, target: *std.ArrayList(node.Statement), source: anytype, comptime borrow_text: bool, comptime selected_rows: bool) Error!void {
     var empty: Rows(Stored) = .init();
 
-    _ = try rows.check(&empty, source);
+    _ = if (comptime selected_rows) try @import("import_selected.zig").check(&empty, source) else try rows.check(&empty, source);
 
     const count = source.tags.len;
 

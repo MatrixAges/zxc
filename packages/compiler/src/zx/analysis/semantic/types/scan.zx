@@ -1,0 +1,64 @@
+import integers from "std:integer"
+import code from "core/type_table/code"
+
+import equal from "../entries/equal"
+import row from "../entries/row"
+
+import type { Table } from "core/type_table/model"
+import type { Entry } from "../entries/model"
+import type { Search } from "./model"
+
+export type Input = {
+    table: Table,
+    entry: Entry,
+    direct: bool,
+    offset: u64,
+    previous: u32
+}
+
+export type Output = Search
+
+export default function (in: Input): Output {
+    const expected = code(in.entry.kind)
+
+    const state = loop({
+        table: in.table,
+        entry: in.entry,
+        direct: in.direct,
+        count: in.table.kinds.length,
+        index: 0,
+        found: false,
+        id: in.previous
+    }, {
+        while: current => !current.found && current.index < current.count,
+        next: current => {
+            const table = current.table
+            const position = current.index
+            const shape =
+                match {
+                    current.direct => table.first[position] == current.entry.first,
+                    _ => integers.widen(
+                        table.second[position]
+                    ) == current.entry.count
+                }
+
+            if (table.kinds[position] == expected && shape) {
+                current.found = equal({
+                    left: row({
+                        table,
+                        index: position
+                    }),
+                    right: current.entry
+                })
+                current.id = integers.narrow(in.offset + current.index)
+            }
+
+            current.index += 1
+        }
+    })
+
+    return {
+        found: state.found,
+        id: state.id
+    }
+}
