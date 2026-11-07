@@ -1,0 +1,59 @@
+import integers from "std:integer"
+
+import boolean from "../../ast/context/boolean"
+import block from "../../ast/expressions/block"
+import breakValue from "../../ast/statements/break_value"
+import empty from "../../ast/statements/empty"
+import forLoop from "../../ast/statements/for_loop"
+
+import type { State as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const loop = forLoop({
+        table: empty({}),
+        base: in.main_start,
+        iterable: in.source.source,
+        capture: in.source.capture,
+        start: in.loop_start,
+        count: integers.narrow(in.source.element_count + 1),
+        index: null
+    })
+
+    const identity = boolean({
+        state: in.context,
+        value: in.identity
+    })
+
+    const completed = breakValue({
+        table: loop.table,
+        base: in.main_start,
+        label: in.source.label,
+        value: identity.id
+    })
+
+    const result = block({
+        table: identity.state.expressions,
+        base: in.source.expression_base,
+        label: in.source.label,
+        start: in.outer_start,
+        count: integers.narrow(in.source.outer_count + 2)
+    })
+
+    const valid = (
+        - in.valid
+        - and identity.state.valid
+        - and loop.valid
+        - and completed.valid
+        - and result.valid
+    )
+
+    return {
+        expressions: result.table,
+        forms: identity.state.forms,
+        stop: in.stop,
+        decision: in.decision,
+        main: completed.table,
+        root: result.id,
+        valid
+    }
+}

@@ -16,7 +16,15 @@ export type Columns = {
     for_loop_capture_reference: bool[],
     for_loop_index_capture: u8[]?[],
     break_value_label: u8[][],
-    break_value_value: u32[]
+    break_value_value: u32[],
+    branch_condition: u32[],
+    branch_yes_start: u32[],
+    branch_yes_len: u32[],
+    branch_no_start: u32[],
+    branch_no_len: u32[],
+    branch_capture: u8[]?[],
+    branch_capture_reference: bool[],
+    branch_error_capture: u8[]?[]
 }
 
 export type Result = {

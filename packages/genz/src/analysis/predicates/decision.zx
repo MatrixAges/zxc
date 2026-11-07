@@ -1,0 +1,58 @@
+import binary from "../../ast/context/binary"
+import boolean from "../../ast/context/boolean"
+import branch from "../../ast/statements/branch"
+import breakValue from "../../ast/statements/break_value"
+import { ExpressionsBinaryOperator } from "../../printer/model/expressions"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const stopped = boolean({
+        state: in.context,
+        value: !in.identity
+    })
+
+    const stop = breakValue({
+        table: in.stop,
+        base: in.source.statement_base,
+        label: in.source.label,
+        value: stopped.id
+    })
+
+    const identity = boolean({
+        state: stopped.state,
+        value: in.identity
+    })
+
+    const comparison = binary({
+        state: identity.state,
+        operator: ExpressionsBinaryOperator.NotEqual,
+        left: in.source.callback,
+        right: identity.id
+    })
+
+    const selected = branch({
+        table: in.decision,
+        base: in.decision_start,
+        condition: comparison.id,
+        yes_start: in.source.statement_base,
+        yes_count: 1,
+        no_start: 0,
+        no_count: 0
+    })
+
+    const valid = (
+        - in.valid
+        - and comparison.state.valid
+        - and stop.valid
+        - and selected.valid
+    )
+
+    return {
+        ...in,
+        context: comparison.state,
+        stop: stop.table,
+        decision: selected.table,
+        valid
+    }
+}

@@ -1,0 +1,34 @@
+import integers from "std:integer"
+import { TransformKind } from "core/expression_table/kinds"
+
+import context from "../../ast/context/initialize"
+import empty from "../../ast/statements/empty"
+
+import type { Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const base = integers.widen(in.statement_base)
+    const loop_start = base + 1
+    const decision_start = loop_start + in.element_count
+    const outer_start = decision_start + 1
+    const main_start = outer_start + in.outer_count
+
+    return {
+        source: in,
+        context: context({
+            capture: null,
+            expression_base: in.expression_base,
+            statement_base: in.statement_base,
+            field_base: 0,
+            serial: 0
+        }),
+        identity: in.kind == TransformKind.Every,
+        loop_start: integers.narrow(loop_start),
+        decision_start: integers.narrow(decision_start),
+        outer_start: integers.narrow(outer_start),
+        main_start: integers.narrow(main_start),
+        stop: empty({}),
+        decision: empty({}),
+        valid: true
+    }
+}

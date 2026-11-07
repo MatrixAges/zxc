@@ -1,0 +1,30 @@
+import construct from "../expressions/binary"
+
+import type { ExpressionsBinaryOperator } from "../../printer/model/expressions"
+import type { State, Node } from "./model"
+
+export type Input = {
+    state: State,
+    operator: ExpressionsBinaryOperator,
+    left: u32,
+    right: u32
+}
+
+export type Output = Node
+
+export default function (in: Input): Output {
+    const result = construct({
+        ...in.omit(["state"]),
+        table: in.state.expressions,
+        base: in.state.source.expression_base
+    })
+
+    return {
+        id: result.id,
+        state: {
+            ...in.state,
+            expressions: result.table,
+            valid: in.state.valid && result.valid
+        }
+    }
+}

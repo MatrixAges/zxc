@@ -1,0 +1,40 @@
+import type { TransformKind } from "core/expression_table/kinds"
+import type { State as Context } from "../../ast/context/model"
+import type { Columns as Forms } from "../../ast/expressions/forms/model"
+import type { Columns as Expressions } from "../../ast/expressions/model"
+import type { Columns as Statements } from "../../ast/statements/model"
+
+export type Input = {
+    source: u32,
+    label: u8[],
+    callback: u32,
+    kind: TransformKind,
+    capture: u8[],
+    outer_count: u64,
+    element_count: u64,
+    expression_base: u32,
+    statement_base: u32
+}
+
+export type State = {
+    source: Input,
+    context: Context,
+    identity: bool,
+    loop_start: u32,
+    decision_start: u32,
+    outer_start: u32,
+    main_start: u32,
+    stop: Statements,
+    decision: Statements,
+    valid: bool
+}
+
+export type Output = {
+    expressions: Expressions,
+    forms: Forms,
+    stop: Statements,
+    decision: Statements,
+    main: Statements,
+    root: u32,
+    valid: bool
+}

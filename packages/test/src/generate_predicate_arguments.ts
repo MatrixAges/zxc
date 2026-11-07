@@ -11,15 +11,15 @@ const base = 'built_ins/list/predicates/arguments'
 
 for (const method of ['every', 'some'] as Array<Method>) {
     for (const operation of ['source_value', 'position'] as const) {
-        const fields = operation === 'source_value' ? 'threshold: i64' : 'selected_index: u64, selected_value: i64'
+        const fields =
+            operation === 'source_value' ? '    threshold: i64' : '    selected_index: u64,\n    selected_value: i64'
         const selected =
-            method === 'some'
-                ? 'index == in.selected_index && item == in.selected_value'
-                : 'index != in.selected_index || item == in.selected_value'
-        const predicate =
             operation === 'source_value'
-                ? 'item > in.threshold && source[index] == item'
-                : `(${selected}) && source[index] == item`
+                ? '        const selected = item > in.threshold'
+                : `        const selected = (
+            - index ${method === 'some' ? '==' : '!='} in.selected_index
+            - ${method === 'some' ? 'and' : 'or'} item == in.selected_value
+        )`
         const rows = [
             ...samples.filter(sample => sample.method === method && sample.operation === operation),
             ...cases({ method, operation })
@@ -27,7 +27,33 @@ for (const method of ['every', 'some'] as Array<Method>) {
 
         writeOutput(
             `tests/${base}/${method}/${operation}.zx`,
-            `import host from "zig:host"\n\nexport type Input = { items: i64[], ${fields} }\n\nexport type Output = bool\n\nexport default function (in: Input): Output {\n    return host.source(in.items).${method}((item, index, source) => host.visit({ item, index, source }) && (${predicate}))\n}\n`
+            `import host from "zig:host"
+
+export type Input = {
+    items: i64[],
+${fields}
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    return host.source(in.items).${method}((item, index, source) => {
+        const visited = host.visit({
+            item,
+            index,
+            source
+        })
+
+${selected}
+
+        return (
+            - visited
+            - and selected
+            - and source[index] == item
+        )
+    })
+}
+`
         )
         writeCatalog(
             `tests/${base}/${method}/${operation}.jsonl`,

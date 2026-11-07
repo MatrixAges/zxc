@@ -1,0 +1,53 @@
+import { StatementsKind } from "../../printer/model/statements"
+import header from "./header"
+
+import type { Columns, Result } from "./model"
+
+export type Input = {
+    table: Columns,
+    base: u32,
+    condition: u32,
+    yes_start: u32,
+    yes_count: u32,
+    no_start: u32,
+    no_count: u32
+}
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const result = header({
+        ...in.table.pick([
+            "tags",
+            "offsets"
+        ]),
+        base: in.base,
+        kind: StatementsKind.Branch,
+        offset: in.table.branch_condition.length
+    })
+
+    if (!result.valid) {
+        return {
+            table: in.table,
+            valid: false
+        }
+    }
+
+    return {
+        valid: result.valid,
+        table: {
+            ...in.table,
+            tags: result.tags,
+            offsets: result.offsets,
+            branch_condition: in.table.branch_condition.push(in.condition)[0],
+            branch_yes_start: in.table.branch_yes_start.push(in.yes_start)[0],
+            branch_yes_len: in.table.branch_yes_len.push(in.yes_count)[0],
+            branch_no_start: in.table.branch_no_start.push(in.no_start)[0],
+            branch_no_len: in.table.branch_no_len.push(in.no_count)[0],
+            branch_capture: in.table.branch_capture.push(null)[0],
+            branch_capture_reference:
+                in.table.branch_capture_reference.push(false)[0],
+            branch_error_capture: in.table.branch_error_capture.push(null)[0]
+        }
+    }
+}
