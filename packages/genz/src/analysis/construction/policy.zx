@@ -1,0 +1,13 @@
+import { Mode } from "./model"
+
+import type { Policy as Input } from "./model"
+
+export type Output = Mode
+
+export default function (in: Input): Output {
+    if (!in.active || !in.selected) {
+        return Mode.Heap
+    }
+
+    return in.borrowed ? Mode.Reference : Mode.Value
+}

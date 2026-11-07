@@ -4,32 +4,13 @@ const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
 
 pub fn store(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.TypeId, value: node.ExpressionId) Lower.Error!node.ExpressionId {
-    const slot = try storage(self, id);
+    if (!@import("genz_options").generated_analysis) return @import("reference_seed.zig").store(self, body, id, value);
 
-    try body.append(self.allocator, .{ .assignment = .{ .target = slot, .value = value } });
-
-    return self.builder.expression(.{ .address_of = slot });
+    return @import("../construction/reference.zig").lower(self, body, id, value, false);
 }
 
 pub fn copy(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.TypeId, value: node.ExpressionId) Lower.Error!node.ExpressionId {
-    const slot = try storage(self, id);
+    if (!@import("genz_options").generated_analysis) return @import("reference_seed.zig").copy(self, body, id, value);
 
-    try body.append(self.allocator, .{ .assignment = .{
-        .target = slot,
-        .value = try self.builder.expression(.{ .dereference = value }),
-    } });
-
-    return slot;
-}
-
-fn storage(self: *Lower, id: ir.TypeId) Lower.Error!node.ExpressionId {
-    const name = try self.fresh("state_reference");
-
-    try self.reference_storage.append(self.allocator, .{ .variable = .{
-        .name = name,
-        .type_expr = try @import("../types.zig").get(self, self.state_layouts, id),
-        .value = try self.builder.expression(.undefined_value),
-    } });
-
-    return self.builder.identifier(name);
+    return @import("../construction/reference.zig").lower(self, body, id, value, true);
 }

@@ -1,0 +1,104 @@
+import integers from "std:integer"
+
+import conditional from "../../../ast/context/conditional"
+import nullValue from "../../../ast/context/null_value"
+import tuple from "../../../ast/context/tuple"
+import { ExpressionsKind } from "../../../printer/model/expressions"
+import { Phase } from "./const"
+
+import type { Step as Input, Walk as Output } from "./model"
+
+export default function (in: Input): Output {
+    const state = in.state
+    const frame = state.depth - 1
+    const id = integers.widen(state.ids[frame])
+    const payload = integers.widen(in.source.table.offsets[id])
+    const kind = in.source.table.tags[id]
+
+    if (kind != ExpressionsKind.Conditional) {
+        if (
+            kind == ExpressionsKind.Tuple &&
+                in.source.table.tuple[payload].length == in.source.arity
+        ) {
+            const absent = nullValue(state.context)
+
+            const value = tuple({
+                state: absent.state,
+                values: in.source.table.tuple[payload].push(absent.id)[0]
+            })
+
+            return {
+                ...state,
+                context: value.state,
+                result: value.id,
+                depth: frame
+            }
+        }
+
+        return {
+            ...state,
+            result: state.ids[frame],
+            depth: frame
+        }
+    }
+
+    const phase = state.phases[frame]
+
+    if (phase == Phase.AfterNo) {
+        const value = conditional({
+            state: state.context,
+            condition: in.source.table.conditional_condition[payload],
+            yes: state.yes[frame],
+            no: state.result,
+            capture: in.source.table.conditional_capture[payload],
+            error_capture: in.source.table.conditional_error_capture[payload]
+        })
+
+        return {
+            ...state,
+            context: value.state,
+            result: value.id,
+            depth: frame
+        }
+    }
+
+    const child = match phase {
+        Phase.Enter => in.source.table.conditional_yes[payload],
+        _ => in.source.table.conditional_no[payload]
+    }
+
+    const yes = match phase {
+        Phase.AfterYes => state.yes.with(frame, state.result),
+        _ => state.yes
+    }
+
+    const ids = match {
+        state.depth < state.ids.length => state.ids.with(state.depth, child),
+        _ => state.ids.push(child)[0]
+    }
+
+    const phases = match {
+        state.depth < state.phases.length =>
+            state.phases.with(state.depth, Phase.Enter),
+        _ => state.phases.push(Phase.Enter)[0]
+    }
+
+    const results = match {
+        state.depth < yes.length => yes.with(state.depth, 0),
+        _ => yes.push(0)[0]
+    }
+
+    return {
+        ...state,
+        ids,
+        phases: phases.with(
+            frame,
+            match phase {
+                Phase.Enter => Phase.AfterYes,
+                _ => Phase.AfterNo
+            }
+        ),
+        yes: results,
+        depth: state.depth + 1
+    }
+}

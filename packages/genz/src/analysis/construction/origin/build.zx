@@ -1,0 +1,50 @@
+import initialize from "../../../ast/context/initialize"
+import normalize from "./tuple"
+
+import type { Columns as Forms } from "../../../ast/expressions/forms/model"
+import type { Columns as Expressions } from "../../../ast/expressions/model"
+import type { Ast } from "../model"
+
+export type Input = {
+    table: Ast,
+    value: u32,
+    active: bool,
+    selected: bool,
+    is_tuple: bool,
+    arity: u64,
+    expression_base: u32
+}
+
+export type Output = {
+    expressions: Expressions,
+    forms: Forms,
+    root: u32,
+    valid: bool
+}
+
+export default function (in: Input): Output {
+    const context = initialize({
+        capture: null,
+        expression_base: in.expression_base,
+        statement_base: 0,
+        field_base: 0,
+        serial: 0
+    })
+
+    const value = normalize({
+        context,
+        ...in.pick([
+            "table",
+            "value",
+            "arity"
+        ]),
+        enabled: in.active && in.selected && in.is_tuple
+    })
+
+    return {
+        expressions: value.state.expressions,
+        forms: value.state.forms,
+        root: value.id,
+        valid: value.state.valid
+    }
+}

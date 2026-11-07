@@ -1,0 +1,17 @@
+import type { State as Context } from "../../../ast/context/model"
+import type { Columns as Statements } from "../../../ast/statements/model"
+
+export type Input = {
+    value: u32,
+    layout: u32,
+    copy: bool,
+    expression_base: u32,
+    serial: u64
+}
+
+export type State = {
+    source: Input,
+    context: Context,
+    storage: Statements,
+    root: u32
+}

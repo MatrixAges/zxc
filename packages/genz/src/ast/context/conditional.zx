@@ -7,7 +7,9 @@ export type Input = {
     state: State,
     condition: u32,
     yes: u32,
-    no: u32
+    no: u32,
+    capture?: u8[],
+    error_capture?: u8[]
 }
 
 export type Output = Node
@@ -48,9 +50,10 @@ export default function (in: Input): Output {
                     in.state.forms.conditional_condition.push(in.condition)[0],
                 conditional_yes: in.state.forms.conditional_yes.push(in.yes)[0],
                 conditional_no: in.state.forms.conditional_no.push(in.no)[0],
-                conditional_capture: in.state.forms.conditional_capture.push(null)[0],
+                conditional_capture:
+                    in.state.forms.conditional_capture.push(in.capture)[0],
                 conditional_error_capture:
-                    in.state.forms.conditional_error_capture.push(null)[0]
+                    in.state.forms.conditional_error_capture.push(in.error_capture)[0]
             }
         }
     }

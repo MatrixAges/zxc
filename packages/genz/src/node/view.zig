@@ -91,6 +91,8 @@ fn columnCount(comptime Column: type) usize {
 }
 
 pub fn compatible(comptime From: type, comptime To: type) void {
+    @setEvalBranchQuota(100_000);
+
     if (From == To) return;
     if (@sizeOf(From) != @sizeOf(To) or @alignOf(From) != @alignOf(To)) @compileError("AST column layout does not match the generated view");
 

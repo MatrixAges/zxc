@@ -1,0 +1,36 @@
+import advance from "./advance"
+import { Phase } from "./const"
+
+import type { Node as Output } from "../../../ast/context/model"
+import type { Input, Walk } from "./model"
+
+export default function (in: Input): Output {
+    if (!in.enabled) {
+        return {
+            state: in.context,
+            id: in.value
+        }
+    }
+
+    const state: Walk = {
+        context: in.context,
+        ids: [in.value],
+        phases: [Phase.Enter],
+        yes: [0],
+        depth: 1,
+        result: in.value
+    }
+
+    const result = loop(state, {
+        while: current => current.depth != 0,
+        next: current => { current = advance({
+            source: in,
+            state: current
+        }) }
+    })
+
+    return {
+        state: result.context,
+        id: result.result
+    }
+}

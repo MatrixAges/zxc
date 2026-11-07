@@ -146,12 +146,35 @@ pub fn elements(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloc
 }
 
 fn elementUses(expressions: ir.ExpressionTable, values: []bool) void {
-    for (expressions.collection_kinds, expressions.collection_targets) |kind, target| {
-        if (kind != .Push and kind != .Concat) continue;
-        if (expressions.kinds[target] != .Index) continue;
+    for (expressions.update_targets, expressions.update_values) |target, value| {
+        if (nestedAppend(expressions, value)) values[expressions.types[target]] = true;
+    }
+}
 
-        const indexed = expressions.index_targets[expressions.payloads[target]];
+fn nestedAppend(expressions: ir.ExpressionTable, initial: u32) bool {
+    var value = initial;
+    var appended = false;
 
-        values[expressions.types[indexed]] = true;
+    while (true) {
+        const payload = expressions.payloads[value];
+
+        switch (expressions.kinds[value]) {
+            .Scope => value = expressions.scope_results[payload],
+            .TupleField => {
+                const target = expressions.projection_targets[payload];
+
+                if (expressions.projection_indices[payload] != 0 or expressions.kinds[target] != .ListOperation) return false;
+
+                const operation = expressions.payloads[target];
+                const kind = expressions.collection_kinds[operation];
+
+                if (kind != .Push and kind != .Concat) return false;
+
+                appended = true;
+                value = expressions.collection_targets[operation];
+            },
+            .Index => return appended,
+            else => return false,
+        }
     }
 }

@@ -1,0 +1,108 @@
+import bytes from "std:bytes"
+
+import assignment from "../../ast/context/assignment"
+import binding from "../../ast/context/binding"
+import block from "../../ast/context/block"
+import builtin from "../../ast/context/builtin"
+import call from "../../ast/context/call"
+import { operand_prefix, block_prefix } from "../../ast/context/const"
+import dereference from "../../ast/context/dereference"
+import field from "../../ast/context/field"
+import identifier from "../../ast/context/identifier"
+import fresh from "../../ast/fresh"
+import { ExpressionsBuiltinName } from "../../printer/model/expressions"
+import { allocator_name, create_member } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const first = in.context.statements.tags.length
+
+    const allocator = identifier({
+        state: in.context,
+        name: bytes.fromText(allocator_name)
+    })
+
+    const target = field({
+        state: allocator.state,
+        target: allocator.id,
+        name: bytes.fromText(create_member)
+    })
+
+    const allocated = call({
+        state: target.state,
+        callee: target.id,
+        arguments: [in.source.layout],
+        fallible: true
+    })
+
+    const name = fresh({
+        serial: allocated.state.serial,
+        prefix: operand_prefix
+    })
+
+    const bound = binding({
+        state: {
+            ...allocated.state,
+            serial: name.serial
+        },
+        name: name.name,
+        value: allocated.id
+    })
+
+    const pointer = identifier({
+        state: bound,
+        name: name.name
+    })
+
+    const address = dereference({
+        state: pointer.state,
+        value: pointer.id
+    })
+
+    const value = builtin({
+        state: address.state,
+        name: ExpressionsBuiltinName.As,
+        arguments: [
+            in.source.layout,
+            in.root
+        ]
+    })
+
+    const assigned = assignment({
+        state: value.state,
+        target: address.id,
+        value: value.id
+    })
+
+    const result = builtin({
+        state: assigned,
+        name: ExpressionsBuiltinName.As,
+        arguments: [
+            in.source.type_expr,
+            pointer.id
+        ]
+    })
+
+    const label = fresh({
+        serial: result.state.serial,
+        prefix: block_prefix
+    })
+
+    const output = block({
+        state: {
+            ...result.state,
+            serial: label.serial
+        },
+        label: label.name,
+        first,
+        value: result.id
+    })
+
+    return {
+        ...in,
+        context: output.state,
+        root: output.id,
+        uses_allocator: true
+    }
+}

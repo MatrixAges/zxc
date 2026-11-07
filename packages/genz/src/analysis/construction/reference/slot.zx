@@ -1,0 +1,61 @@
+import identifier from "../../../ast/context/identifier"
+import undefinedValue from "../../../ast/context/undefined"
+import variable from "../../../ast/context/variable"
+import fresh from "../../../ast/fresh"
+import empty from "../../../ast/statements/empty"
+import { reference_prefix } from "../const"
+
+import type { State as Context } from "../../../ast/context/model"
+import type { Columns as Statements } from "../../../ast/statements/model"
+
+export type Input = {
+    context: Context,
+    layout: u32
+}
+
+export type Output = {
+    context: Context,
+    storage: Statements,
+    root: u32
+}
+
+export default function (in: Input): Output {
+    const name = fresh({
+        serial: in.context.serial,
+        prefix: reference_prefix
+    })
+
+    const value = undefinedValue({
+        ...in.context,
+        serial: name.serial
+    })
+
+    const declared = variable({
+        state: {
+            ...value.state,
+            source: {
+                ...value.state.source,
+                statement_base: 0
+            },
+            statements: empty({})
+        },
+        name: name.name,
+        type_expr: in.layout,
+        value: value.id
+    })
+
+    const slot = identifier({
+        state: {
+            ...declared,
+            source: value.state.source,
+            statements: in.context.statements
+        },
+        name: name.name
+    })
+
+    return {
+        context: slot.state,
+        storage: declared.statements,
+        root: slot.id
+    }
+}

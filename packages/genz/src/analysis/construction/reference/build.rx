@@ -1,0 +1,12 @@
+<Module>
+    <Type from="model" as="Reference" />
+    <Type from="../model" as="Construction" />
+
+    <Args in={Reference.Input} out={Construction.Output} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="action" in={$ctx.initialize} />
+    <Call fn="publish" in={$ctx.action} />
+
+    <Return value={$ctx.publish} />
+</Module>

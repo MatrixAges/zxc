@@ -305,16 +305,27 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!node.ExpressionId {
             break :blk self.projectedField(item.target, value.type_id, try std.fmt.allocPrint(self.allocator, "{d}", .{item.index}));
         },
         .index => |item| blk: {
-            const indexed = try @import("intrinsics.zig").index(self, try @import("state_value/list.zig").expression(self, item.target), try self.expr(item.index));
+            const raw = try self.abiNestedItems(item.target);
+            const source = raw orelse try @import("state_value/list.zig").expression(self, item.target);
+            const indexed = try @import("intrinsics.zig").index(self, source, try self.expr(item.index));
 
             if (!self.state_active or !self.state_plan.represented(self.program, value.type_id)) break :blk indexed;
 
             var body: std.ArrayList(node.Statement) = .empty;
-            const converted = try @import("state_value/elements.zig").read(self, &body, self.program.expression(item.target).type_id, indexed);
+
+            const converted = if (raw != null)
+                try @import("state_value/conversion.zig").convert(self, &body, value.type_id, try @import("aggregate.zig").bind(self, &body, indexed), .value)
+            else
+                try @import("state_value/elements.zig").read(self, &body, self.program.expression(item.target).type_id, indexed);
 
             break :blk @import("aggregate.zig").finish(self, &body, converted);
         },
-        .length => |child| self.cast(value_type, try self.field(try @import("state_value/list.zig").expression(self, child), "len")),
+        .length => |child| blk: {
+            const raw = try self.abiNestedItems(child);
+            const source = raw orelse try @import("state_value/list.zig").expression(self, child);
+
+            break :blk self.cast(value_type, try self.field(source, "len"));
+        },
         .unary => |unary| self.builder.expression(.{ .unary = .{ .operator = if (unary.operator == .not) .not else .negate, .operand = try self.expr(unary.operand) } }),
         .binary => |operation| self.binary(operation),
         .match_expr => |selection| @import("match.zig").lower(self, selection),
@@ -413,6 +424,18 @@ fn projectedField(self: *Self, target: ir.ExprId, id: ir.TypeId, name: []const u
     const bound = try @import("aggregate.zig").bind(self, &body, value);
 
     return @import("aggregate.zig").finish(self, &body, try @import("state_value/conversion.zig").convert(self, &body, id, bound, .value));
+}
+
+fn abiNestedItems(self: *Self, id: ir.ExprId) Error!?node.ExpressionId {
+    if (!self.state_active or self.iteration_value != null or self.loop_fields != null) return null;
+
+    const type_id = self.program.expression(id).type_id;
+    const kind = self.program.typeOf(type_id);
+
+    if (kind != .list or self.program.typeOf(kind.list) != .list) return null;
+    if (!@import("state_value/elements.zig").inlineStored(self, type_id)) return null;
+
+    return self.abiProjection(id);
 }
 
 fn abiProjection(self: *Self, id: ir.ExprId) Error!?node.ExpressionId {
@@ -527,24 +550,9 @@ pub fn cast(self: *Self, type_expr: node.ExpressionId, value: node.ExpressionId)
 }
 
 pub fn construct(self: *Self, type_id: ir.TypeId, value: node.ExpressionId) Error!node.ExpressionId {
-    if (@import("state_value/root.zig").selected(self, type_id)) {
-        const result = try self.cast(try self.layoutExpr(type_id), try @import("state_value/origin.zig").tuple(self, type_id, value));
+    if (!@import("genz_options").generated_analysis) return @import("construction_seed.zig").construct(self, type_id, value);
 
-        if (!self.state_plan.referenced(type_id)) return result;
-
-        var prefix: std.ArrayList(node.Statement) = .empty;
-        const pointer = try @import("state_value/reference.zig").store(self, &prefix, type_id, result);
-
-        return @import("aggregate.zig").finish(self, &prefix, pointer);
-    }
-
-    var body: std.ArrayList(node.Statement) = .empty;
-    const layout = try self.layoutExpr(type_id);
-    const pointer = try @import("aggregate.zig").bind(self, &body, try self.call(try self.field(try self.builder.identifier("allocator"), "create"), &.{layout}, true));
-
-    try body.append(self.allocator, .{ .assignment = .{ .target = try self.builder.expression(.{ .dereference = pointer }), .value = try self.cast(layout, value) } });
-
-    return @import("aggregate.zig").finish(self, &body, try self.cast(try self.typeExpr(type_id), pointer));
+    return @import("construction/build.zig").lower(self, type_id, value);
 }
 
 pub fn fresh(self: *Self, prefix: []const u8) Error![]const u8 {

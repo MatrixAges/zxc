@@ -1,0 +1,48 @@
+import address from "../../../ast/context/address"
+import assignment from "../../../ast/context/assignment"
+import dereference from "../../../ast/context/dereference"
+import slot from "./slot"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const storage = slot({
+        context: in.context,
+        layout: in.source.layout
+    })
+
+    const value = match {
+        in.source.copy => dereference({
+            state: storage.context,
+            value: in.root
+        }),
+        _ => {
+            state: storage.context,
+            id: in.root
+        }
+    }
+
+    const assigned = assignment({
+        state: value.state,
+        target: storage.root,
+        value: value.id
+    })
+
+    const result = match {
+        in.source.copy => {
+            state: assigned,
+            id: storage.root
+        },
+        _ => address({
+            state: assigned,
+            value: storage.root
+        })
+    }
+
+    return {
+        ...in,
+        context: result.state,
+        storage: storage.storage,
+        root: result.id
+    }
+}

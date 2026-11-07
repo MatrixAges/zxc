@@ -1,0 +1,60 @@
+import type { State as Context, Variables } from "../../ast/context/model"
+import type { Capture } from "../../ast/expressions/fallible"
+import type { Columns as Forms } from "../../ast/expressions/forms/model"
+import type { Columns as Expressions } from "../../ast/expressions/model"
+import type { Columns as Statements } from "../../ast/statements/model"
+import type { ExpressionsKind } from "../../printer/model/expressions"
+
+export enum Mode { Heap, Value, Reference }
+
+export type Policy = {
+    active: bool,
+    selected: bool,
+    borrowed: bool
+}
+
+export type Ast = {
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    tuple: u32[][],
+    conditional_condition: u32[],
+    conditional_yes: u32[],
+    conditional_no: u32[],
+    conditional_capture: u8[]?[],
+    conditional_error_capture: u8[]?[]
+}
+
+export type Input = {
+    mode: Mode,
+    ast: Ast,
+    value: u32,
+    layout: u32,
+    type_expr: u32,
+    storage_layout: u32,
+    is_tuple: bool,
+    arity: u64,
+    capture?: Capture,
+    expression_base: u32,
+    statement_base: u32,
+    serial: u64
+}
+
+export type State = {
+    source: Input,
+    context: Context,
+    storage: Statements,
+    root: u32,
+    uses_allocator: bool
+}
+
+export type Output = {
+    expressions: Expressions,
+    forms: Forms,
+    statements: Statements,
+    storage: Statements,
+    variables: Variables,
+    root: u32,
+    serial: u64,
+    uses_allocator: bool,
+    valid: bool
+}

@@ -1,7 +1,8 @@
 import integers from "std:integer"
-import { ExpressionKind, CollectionKind } from "core/expression_table/kinds"
 import kind from "core/type_table/kind"
 import { Kind } from "core/type_table/model"
+
+import nestedAppend from "./nested_append"
 
 import type { Program as Input } from "../model"
 
@@ -22,41 +23,19 @@ export default function (in: Input): Output {
                 values: state.values,
                 node: 0
             }, {
-                while: row => row.node < expressions.kinds.length,
+                while: row => row.node < expressions.update_targets.length,
                 next: row => {
-                    if (
-                        expressions.kinds[row.node] == ExpressionKind.ListOperation
-                    ) {
-                        const payload = integers.widen(expressions.payloads[row.node])
-                        const operation = expressions.collection_kinds[payload]
-                        const target =
-                            integers.widen(
-                                expressions.collection_targets[payload]
-                            )
+                    if (nestedAppend({
+                        expressions,
+                        value: expressions.update_values[row.node]
+                    })) {
+                        const target = integers.widen(
+                            expressions.update_targets[row.node]
+                        )
 
-                        const is_push = operation == CollectionKind.Push
-
-                        const is_concat = operation == CollectionKind.Concat
-
-                        if (is_push || is_concat) {
-                            const target_kind = expressions.kinds[target]
-
-                            if (target_kind == ExpressionKind.Index) {
-                                const indexed = integers.widen(
-                                    expressions
-                                        .index_targets[
-                                            integers.widen(
-                                                expressions.payloads[target]
-                                            )
-                                        ]
-                                )
-
-                                row
-                                    .values[integers.widen(
-                                        expressions.types[indexed]
-                                    )] = true
-                            }
-                        }
+                        row.values[integers.widen(
+                            expressions.types[target]
+                        )] = true
                     }
 
                     row.node += 1

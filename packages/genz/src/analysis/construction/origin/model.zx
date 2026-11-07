@@ -1,0 +1,25 @@
+import type { State as Context } from "../../../ast/context/model"
+import type { Ast } from "../model"
+import type { Phase } from "./const"
+
+export type Input = {
+    context: Context,
+    table: Ast,
+    value: u32,
+    enabled: bool,
+    arity: u64
+}
+
+export type Walk = {
+    context: Context,
+    ids: u32[],
+    phases: Phase[],
+    yes: u32[],
+    depth: u64,
+    result: u32
+}
+
+export type Step = {
+    source: Input,
+    state: Walk
+}

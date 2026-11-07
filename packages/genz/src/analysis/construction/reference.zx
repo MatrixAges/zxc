@@ -1,0 +1,50 @@
+import address from "../../ast/context/address"
+import assignment from "../../ast/context/assignment"
+import block from "../../ast/context/block"
+import { block_prefix } from "../../ast/context/const"
+import fresh from "../../ast/fresh"
+import slot from "./reference/slot"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const first = in.context.statements.tags.length
+
+    const storage = slot({
+        context: in.context,
+        layout: in.source.storage_layout
+    })
+
+    const stored = assignment({
+        state: storage.context,
+        target: storage.root,
+        value: in.root
+    })
+
+    const pointer = address({
+        state: stored,
+        value: storage.root
+    })
+
+    const label = fresh({
+        serial: pointer.state.serial,
+        prefix: block_prefix
+    })
+
+    const value = block({
+        state: {
+            ...pointer.state,
+            serial: label.serial
+        },
+        label: label.name,
+        first,
+        value: pointer.id
+    })
+
+    return {
+        ...in,
+        context: value.state,
+        storage: storage.storage,
+        root: value.id
+    }
+}
