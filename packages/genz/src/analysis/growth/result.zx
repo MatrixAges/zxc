@@ -1,0 +1,47 @@
+import header from "../../ast/statements/header"
+import { StatementsKind } from "../../printer/model/statements"
+import bind from "./bind"
+import { Operation } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    if (in.source.operation == Operation.Retract) {
+        const result = header({
+            ...in.body.pick([
+                "tags",
+                "offsets"
+            ]),
+            base: 0,
+            kind: StatementsKind.Expression,
+            offset: in.body.expression.length
+        })
+
+        return {
+            ...in,
+            context: {
+                ...in.context,
+                valid: in.context.valid && result.valid
+            },
+            body: {
+                ...in.body,
+                tags: result.tags,
+                offsets: result.offsets,
+                expression: in.body.expression.push(in.root)[0]
+            }
+        }
+    }
+
+    const value = bind({
+        state: in.context,
+        body: in.body,
+        value: in.root
+    })
+
+    return {
+        ...in,
+        context: value.state,
+        body: value.body,
+        root: value.id
+    }
+}

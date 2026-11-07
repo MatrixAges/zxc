@@ -1,0 +1,42 @@
+import binding from "../../ast/context/binding"
+import block from "../../ast/context/block"
+import { block_prefix } from "../../ast/context/const"
+import fresh from "../../ast/fresh"
+
+import type { Node as Output } from "../../ast/context/model"
+import type { Input } from "./bind"
+
+export default function (in: Input): Output {
+    const label = fresh({
+        serial: in.state.serial,
+        prefix: block_prefix
+    })
+
+    const first = in.state.statements.tags.length
+
+    const state = loop({
+        context: {
+            ...in.state,
+            serial: label.serial
+        },
+        index: 0
+    }, {
+        while: state => state.index < in.body.constant_name.length,
+        next: state => {
+            state.context = binding({
+                state: state.context,
+                name: in.body.constant_name[state.index],
+                value: in.body.constant_value[state.index]
+            })
+            state.index += 1
+        },
+        return: state => state.context
+    })
+
+    return block({
+        state,
+        label: label.name,
+        first,
+        value: in.value
+    })
+}

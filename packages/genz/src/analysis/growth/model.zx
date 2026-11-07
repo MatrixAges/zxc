@@ -1,0 +1,46 @@
+import type { State as Context } from "../../ast/context/model"
+import type { Capture } from "../../ast/expressions/fallible"
+import type { Columns as Forms } from "../../ast/expressions/forms/model"
+import type { Columns as Expressions } from "../../ast/expressions/model"
+import type { Columns as Statements } from "../../ast/statements/model"
+import type { Operation } from "./const"
+
+export type Input = {
+    operation: Operation,
+    element: u32,
+    value: u32,
+    count: u32,
+    minimum: u32,
+    flag: bool,
+    shared: bool,
+    capture?: Capture,
+    expression_base: u32,
+    statement_base: u32,
+    serial: u64
+}
+
+export type State = {
+    source: Input,
+    context: Context,
+    body: Statements,
+    arguments: u32[],
+    callee: u32,
+    root: u32
+}
+
+export type Bound = {
+    state: Context,
+    body: Statements,
+    id: u32
+}
+
+export type Output = {
+    expressions: Expressions,
+    forms: Forms,
+    statements: Statements,
+    body: Statements,
+    root: u32,
+    serial: u64,
+    uses_allocator: bool,
+    valid: bool
+}

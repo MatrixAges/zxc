@@ -66,17 +66,21 @@ pub fn renewValue(self: *Lower, id: ir.ExprId, value: node.ExpressionId) Lower.E
 
 /// A growable buffer of `count` elements holding `source` as its prefix; `frontier` reuses a headered source in place.
 pub fn reserve(self: *Lower, body: *std.ArrayList(node.Statement), element: node.ExpressionId, source: node.ExpressionId, count: node.ExpressionId, frontier: bool) Lower.Error!node.ExpressionId {
-    const arguments = [_]node.ExpressionId{ element, try self.builder.identifier("allocator"), source, count, try self.builder.expression(.{ .boolean = frontier }) };
+    if (!@import("genz_options").generated_analysis) return @import("growth/call_seed.zig").reserve(self, body, element, source, count, frontier);
 
-    return aggregate.bind(self, body, try self.call(try reference(self, "zxReserve"), &arguments, true));
+    return @import("growth/call.zig").lower(self, body, .Reserve, .{ .element = element, .value = source, .count = count, .flag = frontier });
 }
 
 pub fn reserveBounded(self: *Lower, body: *std.ArrayList(node.Statement), element: node.ExpressionId, source: node.ExpressionId, count: node.ExpressionId, minimum: node.ExpressionId) Lower.Error!node.ExpressionId {
-    return aggregate.bind(self, body, try self.call(try reference(self, "zxReserveBounded"), &.{ element, try self.builder.identifier("allocator"), source, count, minimum }, true));
+    if (!@import("genz_options").generated_analysis) return @import("growth/call_seed.zig").reserveBounded(self, body, element, source, count, minimum);
+
+    return @import("growth/call.zig").lower(self, body, .Bounded, .{ .element = element, .value = source, .count = count, .minimum = minimum });
 }
 
 pub fn copy(self: *Lower, body: *std.ArrayList(node.Statement), element: node.ExpressionId, source: node.ExpressionId, exact: bool) Lower.Error!node.ExpressionId {
-    return aggregate.bind(self, body, try self.call(try reference(self, "zxAllocate"), &.{ element, try self.builder.identifier("allocator"), source, try self.field(source, "len"), try self.builder.expression(.{ .boolean = exact }), try self.builder.integer(0) }, true));
+    if (!@import("genz_options").generated_analysis) return @import("growth/call_seed.zig").copy(self, body, element, source, exact);
+
+    return @import("growth/call.zig").lower(self, body, .Copy, .{ .element = element, .value = source, .flag = exact });
 }
 
 /// One growth copy of a plain list the plan found flowing into appends, so they extend it in place from then on.
@@ -116,7 +120,9 @@ pub fn normalize(self: *Lower, id: ir.ExprId, value: node.ExpressionId) Lower.Er
 }
 
 pub fn retract(self: *Lower, body: *std.ArrayList(node.Statement), element: node.ExpressionId, source: node.ExpressionId, length: node.ExpressionId) Lower.Error!void {
-    try body.append(self.allocator, .{ .expression = try self.call(try reference(self, "zxRetract"), &.{ element, source, length }, false) });
+    if (!@import("genz_options").generated_analysis) return @import("growth/call_seed.zig").retract(self, body, element, source, length);
+
+    _ = try @import("growth/call.zig").lower(self, body, .Retract, .{ .element = element, .value = source, .count = length });
 }
 
 fn reference(self: *Lower, name: []const u8) Lower.Error!node.ExpressionId {

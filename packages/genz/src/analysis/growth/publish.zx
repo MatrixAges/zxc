@@ -1,0 +1,16 @@
+import { Operation } from "./const"
+
+import type { State as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        expressions: in.context.expressions,
+        forms: in.context.forms,
+        statements: in.context.statements,
+        body: in.body,
+        root: in.root,
+        serial: in.context.serial,
+        uses_allocator: in.source.operation != Operation.Retract,
+        valid: in.context.valid
+    }
+}

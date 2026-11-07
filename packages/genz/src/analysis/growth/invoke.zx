@@ -1,0 +1,19 @@
+import call from "../../ast/context/call"
+import { Operation } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const value = call({
+        state: in.context,
+        callee: in.callee,
+        arguments: in.arguments,
+        fallible: in.source.operation != Operation.Retract
+    })
+
+    return {
+        ...in,
+        context: value.state,
+        root: value.id
+    }
+}

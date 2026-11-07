@@ -1,0 +1,42 @@
+import { operand_prefix } from "../../ast/context/const"
+import identifier from "../../ast/context/identifier"
+import fresh from "../../ast/fresh"
+import binding from "../../ast/statements/binding"
+
+import type { State } from "../../ast/context/model"
+import type { Columns as Statements } from "../../ast/statements/model"
+import type { Bound as Output } from "./model"
+
+export type Input = {
+    state: State,
+    body: Statements,
+    value: u32
+}
+
+export default function (in: Input): Output {
+    const name = fresh({
+        serial: in.state.serial,
+        prefix: operand_prefix
+    })
+
+    const body = binding({
+        table: in.body,
+        base: 0,
+        name: name.name,
+        value: in.value
+    })
+
+    const value = identifier({
+        state: {
+            ...in.state,
+            serial: name.serial,
+            valid: in.state.valid && body.valid
+        },
+        name: name.name
+    })
+
+    return {
+        ...value,
+        body: body.table
+    }
+}

@@ -1,0 +1,12 @@
+<Module>
+    <Type from="model" as="Growth" />
+
+    <Args in={Growth.State} out={Growth.State} />
+
+    <Call fn="arguments" in={$in} />
+    <Call fn="callee" in={$ctx.arguments} />
+    <Call fn="invoke" in={$ctx.callee} />
+    <Call fn="result" in={$ctx.invoke} />
+
+    <Return value={$ctx.result} />
+</Module>

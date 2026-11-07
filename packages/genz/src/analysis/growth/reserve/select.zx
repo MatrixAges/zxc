@@ -1,0 +1,39 @@
+import conditional from "../../../ast/context/conditional"
+import { Operation } from "../../state/list/const"
+import permission from "../../state/list/permission"
+import block from "../block"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const header = permission({
+        state: in.context,
+        value: in.value,
+        operation: Operation.Headered
+    })
+
+    const yes = block({
+        state: header.state,
+        body: in.yes.body,
+        value: in.yes.value
+    })
+
+    const no = block({
+        state: yes.state,
+        body: in.no.body,
+        value: in.no.value
+    })
+
+    const result = conditional({
+        state: no.state,
+        condition: header.id,
+        yes: yes.id,
+        no: no.id
+    })
+
+    return {
+        ...in,
+        context: result.state,
+        root: result.id
+    }
+}

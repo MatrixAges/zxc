@@ -1,0 +1,33 @@
+import type { State as Context } from "../../../ast/context/model"
+import type { Columns as Statements } from "../../../ast/statements/model"
+import type { Input as GrowthInput, Output } from "../model"
+
+export type Input = GrowthInput
+
+export type Branch = {
+    body: Statements,
+    value: u32
+}
+
+export type State = {
+    source: Input,
+    context: Context,
+    body: Statements,
+    value: u32,
+    items: u32,
+    no: Branch,
+    yes: Branch,
+    root: u32
+}
+
+export type BranchInput = {
+    state: State,
+    frontier: bool
+}
+
+export type BranchOutput = {
+    context: Context,
+    branch: Branch
+}
+
+export type Result = Output

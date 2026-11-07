@@ -2,7 +2,6 @@ const std = @import("std");
 const ir = @import("zx").ir;
 const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
-const aggregate = @import("../aggregate.zig");
 const seed = @import("list_seed.zig");
 pub const Storage = seed.Storage;
 
@@ -91,24 +90,9 @@ pub fn wrap(self: *Lower, id: ir.TypeId, value: node.ExpressionId, has_header: b
 }
 
 pub fn reserve(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.TypeId, value: node.ExpressionId, count: node.ExpressionId, frontier: bool) Lower.Error!node.ExpressionId {
-    const source = try aggregate.bind(self, body, value);
-    const view = try self.field(source, "items");
-    var yes: std.ArrayList(node.Statement) = .empty;
-    var no: std.ArrayList(node.Statement) = .empty;
-    const element = try @import("elements.zig").typeExpr(self, id);
-    const copied = try @import("../growth.zig").reserve(self, &no, element, view, count, false);
+    if (!@import("genz_options").generated_analysis) return seed.reserve(self, body, id, value, count, frontier);
 
-    const result = if (frontier) chosen: {
-        const extended = try @import("../growth.zig").reserve(self, &yes, element, view, count, true);
-
-        break :chosen try self.builder.expression(.{ .conditional = .{
-            .condition = try headered(self, source),
-            .yes = try aggregate.finish(self, &yes, extended),
-            .no = try aggregate.finish(self, &no, copied),
-        } });
-    } else try aggregate.finish(self, &no, copied);
-
-    return aggregate.bind(self, body, result);
+    return @import("../growth/call.zig").stateList(self, body, id, value, count, frontier);
 }
 
 pub fn expression(self: *Lower, id: ir.ExprId) Lower.Error!node.ExpressionId {

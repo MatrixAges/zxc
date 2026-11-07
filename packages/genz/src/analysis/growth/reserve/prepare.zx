@@ -1,0 +1,29 @@
+import bytes from "std:bytes"
+
+import field from "../../../ast/context/field"
+import { items_field } from "../../types/state/const"
+import bind from "../bind"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const bound = bind({
+        state: in.context,
+        body: in.body,
+        value: in.value
+    })
+
+    const items = field({
+        state: bound.state,
+        target: bound.id,
+        name: bytes.fromText(items_field)
+    })
+
+    return {
+        ...in,
+        context: items.state,
+        body: bound.body,
+        value: bound.id,
+        items: items.id
+    }
+}

@@ -1,0 +1,16 @@
+import branch from "./branch"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const result = branch({
+        state: in,
+        frontier: false
+    })
+
+    return {
+        ...in,
+        context: result.context,
+        no: result.branch
+    }
+}

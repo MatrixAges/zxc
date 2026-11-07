@@ -1,0 +1,32 @@
+import empty from "../../../ast/statements/empty"
+import apply from "../apply.rx"
+import { Operation } from "../const"
+
+import type { State as Growth } from "../model"
+import type { BranchInput as Input, BranchOutput as Output } from "./model"
+
+export default function (in: Input): Output {
+    const state: Growth = {
+        source: {
+            ...in.state.source,
+            operation: Operation.Reserve,
+            value: in.state.items,
+            flag: in.frontier
+        },
+        context: in.state.context,
+        body: empty({}),
+        arguments: [],
+        callee: 0,
+        root: in.state.items
+    }
+
+    const result = apply(state)
+
+    return {
+        context: result.context,
+        branch: {
+            body: result.body,
+            value: result.root
+        }
+    }
+}

@@ -1,0 +1,93 @@
+import bytes from "std:bytes"
+
+import boolean from "../../ast/context/boolean"
+import field from "../../ast/context/field"
+import identifier from "../../ast/context/identifier"
+import integer from "../../ast/context/integer"
+import { allocator_name } from "../construction/const"
+import { length_member } from "../intrinsics/index/const"
+import { Operation } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const source = in.source
+
+    if (source.operation == Operation.Retract) {
+        return {
+            ...in,
+            arguments: [
+                source.element,
+                source.value,
+                source.count
+            ]
+        }
+    }
+
+    const allocator = identifier({
+        state: in.context,
+        name: bytes.fromText(allocator_name)
+    })
+
+    if (source.operation == Operation.Bounded) {
+        return {
+            ...in,
+            context: allocator.state,
+            arguments: [
+                source.element,
+                allocator.id,
+                source.value,
+                source.count,
+                source.minimum
+            ]
+        }
+    }
+
+    if (source.operation == Operation.Copy) {
+        const count = field({
+            state: allocator.state,
+            target: source.value,
+            name: bytes.fromText(length_member)
+        })
+
+        const exact = boolean({
+            state: count.state,
+            value: source.flag
+        })
+
+        const offset = integer({
+            state: exact.state,
+            value: 0
+        })
+
+        return {
+            ...in,
+            context: offset.state,
+            arguments: [
+                source.element,
+                allocator.id,
+                source.value,
+                count.id,
+                exact.id,
+                offset.id
+            ]
+        }
+    }
+
+    const flag = boolean({
+        state: allocator.state,
+        value: source.flag
+    })
+
+    return {
+        ...in,
+        context: flag.state,
+        arguments: [
+            source.element,
+            allocator.id,
+            source.value,
+            source.count,
+            flag.id
+        ]
+    }
+}

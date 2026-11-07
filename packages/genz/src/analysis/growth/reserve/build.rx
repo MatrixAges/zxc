@@ -1,0 +1,22 @@
+<Module>
+    <Type from="model" as="Reserve" />
+
+    <Args in={Reserve.Input} out={Reserve.Result} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="prepare" in={$ctx.initialize} />
+    <Call fn="copy" in={$ctx.prepare} />
+
+    <If on={$in.flag}>
+        <Call fn="extend" in={$ctx.copy} />
+        <Call fn="select" in={$ctx.extend} />
+        <Call fn="publish" in={$ctx.select} />
+
+        <Return value={$ctx.publish} />
+    </If>
+
+    <Call fn="copied" in={$ctx.copy} />
+    <Call fn="publish" in={$ctx.copied} />
+
+    <Return value={$ctx.publish} />
+</Module>
