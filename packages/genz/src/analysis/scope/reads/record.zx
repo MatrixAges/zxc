@@ -1,0 +1,26 @@
+import insert from "core/integer/index/insert"
+
+import type { Last } from "./model"
+
+export type Input = {
+    last: Last,
+    symbol: u32,
+    position: u64
+}
+
+export type Output = Last
+
+export default function (in: Input): Output {
+    const inserted = insert({
+        index: in.last.index,
+        key: in.symbol
+    })
+
+    return {
+        index: inserted.index,
+        positions: match {
+            inserted.found => in.last.positions,
+            _ => in.last.positions.push(in.position)[0]
+        }
+    }
+}

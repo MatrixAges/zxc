@@ -1,0 +1,30 @@
+import walk from "./walk"
+
+import type { Work as Input, Last as Output } from "./model"
+
+export default function (in: Input): Output {
+    return loop({
+        work: in,
+        running: true
+    }, {
+        while: state => state.running,
+        next: state => {
+            const root = match {
+                state.work.position == in.source.bindings.length => in.source.result,
+                _ => in.source.bindings[state.work.position]
+            }
+
+            state.work = walk({
+                ...state.work,
+                pending: state.work.pending.push(root)[0]
+            })
+
+            if (state.work.position == 0) {
+                state.running = false
+            } else {
+                state.work.position -= 1
+            }
+        },
+        return: state => state.work.last
+    })
+}

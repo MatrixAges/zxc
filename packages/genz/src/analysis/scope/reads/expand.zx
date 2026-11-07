@@ -1,0 +1,36 @@
+import child from "core/expression_table/child"
+
+import type { Expressions } from "core/expression_table/model"
+
+export type Input = {
+    expressions: Expressions,
+    id: u64,
+    pending: u32[]
+}
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    return loop({
+        pending: in.pending,
+        index: 0,
+        running: true
+    }, {
+        while: state => state.running,
+        next: state => {
+            const item = child({
+                table: in.expressions,
+                id: in.id,
+                index: state.index
+            })
+
+            if (item == null) {
+                state.running = false
+            } else {
+                state.pending = state.pending.push(item)[0]
+                state.index += 1
+            }
+        },
+        return: state => state.pending
+    })
+}

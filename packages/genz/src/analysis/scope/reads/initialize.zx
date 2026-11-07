@@ -1,0 +1,16 @@
+import empty from "core/integer/index/empty"
+
+import type { Input, Work as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        source: in,
+        last: {
+            index: empty({}),
+            positions: []
+        },
+        seen: empty({}),
+        pending: [],
+        position: in.bindings.length
+    }
+}

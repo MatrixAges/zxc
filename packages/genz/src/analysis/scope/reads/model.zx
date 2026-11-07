@@ -1,0 +1,21 @@
+import type { Expressions } from "core/expression_table/model"
+import type { Index } from "core/integer/index/model"
+
+export type Input = {
+    expressions: Expressions,
+    bindings: u32[],
+    result: u32
+}
+
+export type Last = {
+    index: Index,
+    positions: u64[]
+}
+
+export type Work = {
+    source: Input,
+    last: Last,
+    seen: Index,
+    pending: u32[],
+    position: u64
+}

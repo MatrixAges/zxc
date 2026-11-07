@@ -149,6 +149,8 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/functions/requests/name.zx", .name = "function_reference_name", .owner = .genz },
     .{ .path = "genz/analysis/functions/requests/member.zx", .name = "function_reference_member", .owner = .genz },
     .{ .path = "genz/analysis/predicates/build.rx", .name = "predicate_emit", .owner = .genz },
+    .{ .path = "genz/analysis/scope/reads/collect.rx", .name = "scope_reads", .owner = .genz },
+    .{ .path = "genz/analysis/scope/reads/get.zx", .name = "scope_reads_get", .owner = .genz },
     .{ .path = "genz/analysis/inline/prepare.rx", .name = "inline_prepare", .owner = .genz },
     .{ .path = "genz/analysis/iteration/analyze.rx", .name = "iteration_layout", .owner = .genz },
     .{ .path = "genz/analysis/iteration/buffers/analyze.rx", .name = "iteration_buffers", .owner = .genz },

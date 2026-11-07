@@ -1,0 +1,19 @@
+import get from "core/integer/index/get"
+
+import type { Last } from "./model"
+
+export type Input = {
+    last: Last,
+    symbol: u32
+}
+
+export type Output = u64?
+
+export default function (in: Input): Output {
+    const position = get({
+        index: in.last.index,
+        key: in.symbol
+    })
+
+    return position == null ? null : in.last.positions[position]
+}

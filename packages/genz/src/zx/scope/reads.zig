@@ -1,54 +1,55 @@
 const std = @import("std");
 const ir = @import("zx").ir;
-const Children = @import("../inline_call/children.zig");
-pub const Last = std.AutoHashMapUnmanaged(ir.SymbolId, usize);
+const generated = @import("genz_options").generated_analysis;
+const Seed = @import("reads/seed.zig");
+const collecting = @import("generated_scope_reads");
+const querying = @import("generated_scope_reads_get");
+const State = if (generated) @typeInfo(@typeInfo(@TypeOf(collecting.executeValue)).@"fn".return_type.?).error_union.payload else void;
 
-pub fn collect(allocator: std.mem.Allocator, program: *const ir.Program, scope: ir.ScopeRow) std.mem.Allocator.Error!Last {
-    var last: Last = .empty;
+pub const Last = if (!generated) Seed.Last else struct {
+    arena: std.heap.ArenaAllocator,
+    state: State,
+    pub fn get(self: *const @This(), symbol: ir.SymbolId) ?usize {
+        const Parameter = @typeInfo(@TypeOf(querying.executeValue)).@"fn".param_types[1].?;
+        const indirect = @typeInfo(Parameter) == .pointer;
+        const Input = if (indirect) std.meta.Child(Parameter) else Parameter;
+        const LastParameter = @FieldType(Input, "last");
+        const last_indirect = @typeInfo(LastParameter) == .pointer;
+        const Value = if (last_indirect) std.meta.Child(LastParameter) else LastParameter;
+        var fixed = std.heap.FixedBufferAllocator.init(&.{});
+        const last = @import("zx").columns.view(Value, self.state);
+        const input: Input = .{ .last = if (last_indirect) &last else last, .symbol = @backingInt(symbol) };
+        const result = querying.executeValue(fixed.allocator(), if (indirect) &input else input) catch unreachable;
 
-    errdefer last.deinit(allocator);
-
-    var seen: std.AutoHashMapUnmanaged(ir.ExprId, void) = .empty;
-
-    defer seen.deinit(allocator);
-
-    var pending: std.ArrayList(ir.ExprId) = .empty;
-
-    defer pending.deinit(allocator);
-
-    var position = scope.bindings.len;
-
-    while (true) {
-        const root = if (position == scope.bindings.len) scope.result else scope.bindings.at(position).value;
-
-        try pending.append(allocator, root);
-
-        while (pending.pop()) |id| {
-            if ((try seen.getOrPut(allocator, id)).found_existing) continue;
-
-            const value = program.expression(id).value;
-
-            if (value == .reference) {
-                const entry = try last.getOrPut(allocator, value.reference);
-
-                if (!entry.found_existing) entry.value_ptr.* = position;
-            }
-
-            if (value == .task) for (value.task.captures) |symbol| {
-                const entry = try last.getOrPut(allocator, symbol);
-
-                if (!entry.found_existing) entry.value_ptr.* = position;
-            };
-
-            const children = Children.init(value);
-
-            for (0..children.len) |index| try pending.append(allocator, children.at(index));
-        }
-
-        if (position == 0) break;
-
-        position -= 1;
+        return if (result) |position| @intCast(position) else null;
     }
+    pub fn deinit(self: *@This(), allocator: std.mem.Allocator) void {
+        _ = allocator;
 
-    return last;
+        self.arena.deinit();
+    }
+};
+
+pub fn collect(workspace: std.mem.Allocator, program: *const ir.Program, scope: ir.ScopeRow) std.mem.Allocator.Error!Last {
+    if (!generated) return Seed.collect(workspace, program, scope);
+
+    const Parameter = @typeInfo(@TypeOf(collecting.executeValue)).@"fn".param_types[1].?;
+    const indirect = @typeInfo(Parameter) == .pointer;
+    const Input = if (indirect) std.meta.Child(Parameter) else Parameter;
+    var arena = std.heap.ArenaAllocator.init(workspace);
+
+    errdefer arena.deinit();
+
+    const input: Input = .{
+        .expressions = @import("zx").columns.pointer(@FieldType(Input, "expressions"), &program.expressions),
+        .bindings = scope.bindings.values,
+        .result = @backingInt(scope.result),
+    };
+
+    const state = collecting.executeValue(arena.allocator(), if (indirect) &input else input) catch |err| switch (err) {
+        error.OutOfMemory, error.IntegerOverflow => return error.OutOfMemory,
+        else => unreachable,
+    };
+
+    return .{ .arena = arena, .state = state };
 }

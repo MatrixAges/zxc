@@ -1,0 +1,37 @@
+import integers from "std:integer"
+
+import record from "./record"
+
+import type { Expressions } from "core/expression_table/model"
+import type { Last } from "./model"
+
+export type Input = {
+    last: Last,
+    expressions: Expressions,
+    position: u64,
+    payload: u64
+}
+
+export type Output = Last
+
+export default function (in: Input): Output {
+    const expressions = in.expressions
+    const first = integers.widen(expressions.task_capture_first[in.payload])
+    const count = integers.widen(expressions.task_capture_count[in.payload])
+
+    return loop({
+        last: in.last,
+        index: first
+    }, {
+        while: state => state.index < first + count,
+        next: state => {
+            state.last = record({
+                last: state.last,
+                symbol: expressions.task_captures[state.index],
+                position: in.position
+            })
+            state.index += 1
+        },
+        return: state => state.last
+    })
+}

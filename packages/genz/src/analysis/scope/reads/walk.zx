@@ -1,0 +1,55 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+import insert from "core/integer/index/insert"
+
+import captures from "./captures"
+import expand from "./expand"
+import record from "./record"
+
+import type { Work as Input, Work as Output } from "./model"
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: state => state.pending.length != 0,
+        next: state => {
+            const id = state.pending[state.pending.length - 1]
+            const marked = insert({
+                index: state.seen,
+                key: id
+            })
+
+            state.pending = state.pending.pop()[0]
+            state.seen = marked.index
+
+            if (!marked.found) {
+                const index = integers.widen(id)
+                const expressions = in.source.expressions
+                const kind = expressions.kinds[index]
+                const payload = integers.widen(expressions.payloads[index])
+
+                if (kind == ExpressionKind.Reference) {
+                    state.last = record({
+                        last: state.last,
+                        symbol: expressions.references[payload],
+                        position: state.position
+                    })
+                }
+
+                if (kind == ExpressionKind.Task) {
+                    state.last = captures({
+                        last: state.last,
+                        expressions,
+                        position: state.position,
+                        payload
+                    })
+                }
+
+                state.pending = expand({
+                    expressions,
+                    id: index,
+                    pending: state.pending
+                })
+            }
+        }
+    })
+}

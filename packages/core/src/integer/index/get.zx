@@ -1,0 +1,27 @@
+import integers from "std:integer"
+
+import { max_u32 } from "../../const"
+import probe from "./probe"
+
+import type { Key as Input } from "./model"
+
+export type Output = u64?
+
+export default function (in: Input): Output {
+    if (in.index.buckets.length == 0) {
+        return null
+    }
+
+    const slot = probe({
+        ...in.index,
+        key: in.key
+    })
+
+    const entry = in.index.buckets[slot]
+
+    if (entry == max_u32) {
+        return null
+    }
+
+    return integers.widen(entry)
+}

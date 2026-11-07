@@ -1,0 +1,10 @@
+<Module>
+    <Type from="model" as="Reads" />
+
+    <Args in={Reads.Input} out={Reads.Last} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="scan" in={$ctx.initialize} />
+
+    <Return value={$ctx.scan} />
+</Module>

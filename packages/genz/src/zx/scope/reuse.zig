@@ -23,9 +23,9 @@ pub fn create(lowering: *Lower, scope: ir.ScopeRow) Lower.Error!?Self {
 
     if (!present) return null;
 
-    var last = try reads.collect(lowering.allocator, &lowering.program, scope);
+    var last = try reads.collect(lowering.workspace, &lowering.program, scope);
 
-    defer last.deinit(lowering.allocator);
+    defer last.deinit(lowering.workspace);
 
     var positions: std.AutoHashMapUnmanaged(ir.SymbolId, usize) = .empty;
 
