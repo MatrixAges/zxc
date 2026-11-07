@@ -1,0 +1,43 @@
+import type { State as Context } from "../../../ast/context/model"
+import type { Capture } from "../../../ast/expressions/fallible"
+import type { Columns as Forms } from "../../../ast/expressions/forms/model"
+import type { Columns as Expressions } from "../../../ast/expressions/model"
+import type { Columns as Statements } from "../../../ast/statements/model"
+import type { Failure } from "../guard/model"
+
+export type Input = {
+    values: u32,
+    position: u32,
+    capture?: Capture,
+    expression_base: u32,
+    statement_base: u32,
+    serial: u64
+}
+
+export type State = {
+    source: Input,
+    context: Context,
+    values: u32,
+    position: u32,
+    values_name: u8[],
+    position_name: u8[],
+    condition: u32,
+    error_name: u8[],
+    failure_first: u32,
+    failure_count: u32,
+    root: u32
+}
+
+export type Projection = {
+    state: State,
+    failure: Failure
+}
+
+export type Output = {
+    expressions: Expressions,
+    forms: Forms,
+    statements: Statements,
+    root: u32,
+    serial: u64,
+    valid: bool
+}

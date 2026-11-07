@@ -14,6 +14,7 @@ export type Output = Node
 export default function (in: Input): Output {
     const values = match in.kind {
         ExpressionsKind.String => in.state.forms.string,
+        ExpressionsKind.ErrorValue => in.state.forms.error_value,
         _ => in.state.forms.enum_literal
     }
 
@@ -32,6 +33,10 @@ export default function (in: Input): Output {
         ExpressionsKind.String => {
             ...in.state.forms,
             string: result.values
+        },
+        ExpressionsKind.ErrorValue => {
+            ...in.state.forms,
+            error_value: result.values
         },
         _ => {
             ...in.state.forms,

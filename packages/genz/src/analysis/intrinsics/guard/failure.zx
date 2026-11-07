@@ -1,0 +1,61 @@
+import integers from "std:integer"
+
+import binding from "../../../ast/context/binding"
+import result from "../../../ast/context/result"
+import text from "../../../ast/context/text"
+import breakValue from "../../../ast/statements/break_value"
+import { ExpressionsKind } from "../../../printer/model/expressions"
+
+import type { State as Context } from "../../../ast/context/model"
+import type { Failure as Output } from "./model"
+
+export type Input = {
+    context: Context,
+    name: u8[]
+}
+
+export default function (in: Input): Output {
+    const first = integers.narrow(in.context.statements.tags.length)
+
+    const failure = text({
+        state: in.context,
+        kind: ExpressionsKind.ErrorValue,
+        value: in.name
+    })
+
+    const capture = in.context.source.capture
+
+    if (capture == null) {
+        return {
+            context: result({
+                state: failure.state,
+                value: failure.id
+            }),
+            first: in.context.source.statement_base + first,
+            count: 1
+        }
+    }
+
+    const bound = binding({
+        state: failure.state,
+        name: capture.name,
+        value: failure.id
+    })
+
+    const exited = breakValue({
+        table: bound.statements,
+        base: bound.source.statement_base,
+        label: capture.label,
+        value: capture.failure
+    })
+
+    return {
+        context: {
+            ...bound,
+            statements: exited.table,
+            valid: bound.valid && exited.valid
+        },
+        first: in.context.source.statement_base + first,
+        count: 2
+    }
+}

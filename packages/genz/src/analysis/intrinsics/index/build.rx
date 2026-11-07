@@ -1,0 +1,28 @@
+<Module>
+    <Type from="model" as="Index" />
+
+    <Args in={Index.Input} out={Index.Output} />
+
+    <Call fn="bind" in={$in} />
+    <Call fn="check" in={$ctx.bind} />
+
+    <Call
+        fn="../guard/failure"
+        in={{
+            context: $ctx.check.context,
+            name: $ctx.check.error_name
+        }}
+    />
+
+    <Call
+        fn="value"
+        in={{
+            state: $ctx.check,
+            failure: $ctx.failure
+        }}
+    />
+
+    <Call fn="finish" in={$ctx.value} />
+
+    <Return value={$ctx.finish} />
+</Module>

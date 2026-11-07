@@ -1,0 +1,29 @@
+import bytes from "std:bytes"
+
+import binary from "../../../ast/context/binary"
+import field from "../../../ast/context/field"
+import { ExpressionsBinaryOperator } from "../../../printer/model/expressions"
+import { length_member } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const length = field({
+        state: in.context,
+        target: in.values,
+        name: bytes.fromText(length_member)
+    })
+
+    const checked = binary({
+        state: length.state,
+        operator: ExpressionsBinaryOperator.GreaterEqual,
+        left: in.position,
+        right: length.id
+    })
+
+    return {
+        ...in,
+        context: checked.state,
+        condition: checked.id
+    }
+}

@@ -1,0 +1,56 @@
+import bytes from "std:bytes"
+
+import { operand_prefix } from "../../../ast/context/const"
+import identifier from "../../../ast/context/identifier"
+import initialize from "../../../ast/context/initialize"
+import fresh from "../../../ast/fresh"
+import { bounds_error } from "./const"
+
+import type { Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const initial = initialize({
+        capture: in.capture,
+        expression_base: in.expression_base,
+        statement_base: in.statement_base,
+        field_base: 0,
+        serial: in.serial
+    })
+
+    const values_name = fresh({
+        serial: initial.serial,
+        prefix: operand_prefix
+    })
+
+    const values = identifier({
+        state: initial,
+        name: values_name.name
+    })
+
+    const position_name = fresh({
+        serial: values_name.serial,
+        prefix: operand_prefix
+    })
+
+    const position = identifier({
+        state: values.state,
+        name: position_name.name
+    })
+
+    return {
+        source: in,
+        context: {
+            ...position.state,
+            serial: position_name.serial
+        },
+        values: values.id,
+        position: position.id,
+        values_name: values_name.name,
+        position_name: position_name.name,
+        condition: 0,
+        error_name: bytes.fromText(bounds_error),
+        failure_first: 0,
+        failure_count: 0,
+        root: 0
+    }
+}

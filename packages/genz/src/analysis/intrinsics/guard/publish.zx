@@ -1,0 +1,29 @@
+import branch from "../../../ast/statements/branch"
+import empty from "../../../ast/statements/empty"
+
+import type { Failure, Output } from "./model"
+
+export type Input = {
+    failure: Failure,
+    condition: u32
+}
+
+export default function (in: Input): Output {
+    const roots = branch({
+        table: empty({}),
+        base: 0,
+        condition: in.condition,
+        yes_start: in.failure.first,
+        yes_count: in.failure.count,
+        no_start: 0,
+        no_count: 0
+    })
+
+    return {
+        expressions: in.failure.context.expressions,
+        forms: in.failure.context.forms,
+        statements: in.failure.context.statements,
+        roots: roots.table,
+        valid: in.failure.context.valid && roots.valid
+    }
+}

@@ -1,0 +1,27 @@
+import type { State as Context } from "../../../ast/context/model"
+import type { Capture } from "../../../ast/expressions/fallible"
+import type { Columns as Forms } from "../../../ast/expressions/forms/model"
+import type { Columns as Expressions } from "../../../ast/expressions/model"
+import type { Columns as Statements } from "../../../ast/statements/model"
+
+export type Input = {
+    condition: u32,
+    name: u8[],
+    capture?: Capture,
+    expression_base: u32,
+    statement_base: u32
+}
+
+export type Failure = {
+    context: Context,
+    first: u32,
+    count: u32
+}
+
+export type Output = {
+    expressions: Expressions,
+    forms: Forms,
+    statements: Statements,
+    roots: Statements,
+    valid: bool
+}

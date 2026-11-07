@@ -1,0 +1,27 @@
+import builtin from "../../../ast/context/builtin"
+import index from "../../../ast/context/index"
+import { ExpressionsBuiltinName } from "../../../printer/model/expressions"
+
+import type { Projection as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const position = builtin({
+        state: in.failure.context,
+        name: ExpressionsBuiltinName.IntCast,
+        arguments: [in.state.position]
+    })
+
+    const value = index({
+        state: position.state,
+        target: in.state.values,
+        index: position.id
+    })
+
+    return {
+        ...in.state,
+        context: value.state,
+        failure_first: in.failure.first,
+        failure_count: in.failure.count,
+        root: value.id
+    }
+}

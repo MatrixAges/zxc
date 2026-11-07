@@ -1,0 +1,25 @@
+<Module>
+    <Type from="model" as="Guard" />
+
+    <Args in={Guard.Input} out={Guard.Output} />
+
+    <Call fn="initialize" in={$in} />
+
+    <Call
+        fn="failure"
+        in={{
+            context: $ctx.initialize,
+            name: $in.name
+        }}
+    />
+
+    <Call
+        fn="publish"
+        in={{
+            failure: $ctx.failure,
+            condition: $in.condition
+        }}
+    />
+
+    <Return value={$ctx.publish} />
+</Module>
