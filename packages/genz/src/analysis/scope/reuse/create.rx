@@ -1,0 +1,34 @@
+<Module>
+    <Type from="model" as="Reuse" />
+
+    <Args in={Reuse.Input} out={Reuse.Output} />
+
+    <Call fn="has" in={$in} />
+
+    <If on={$ctx.has}>
+        <Call
+            module="../reads/collect"
+            in={{
+                expressions: $in.expressions,
+                bindings: $in.bindings,
+                result: $in.result
+            }}
+        />
+
+        <Call
+            fn="initialize"
+            in={{
+                source: $in,
+                last: $ctx.collect
+            }}
+        />
+
+        <Call fn="plan" in={$ctx.initialize} />
+
+        <Return value={$ctx.plan} />
+
+        <Else>
+            <Return value={null} />
+        </Else>
+    </If>
+</Module>

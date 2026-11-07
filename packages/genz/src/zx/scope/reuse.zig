@@ -2,7 +2,7 @@ const std = @import("std");
 const ir = @import("zx").ir;
 const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
-const reads = @import("reads.zig");
+const view = @import("../../node/view.zig");
 const Self = @This();
 const Change = @import("../object_update.zig").Change;
 
@@ -11,32 +11,91 @@ changes: []?Change,
 variables: []bool,
 names: [][]const u8,
 pub fn create(lowering: *Lower, scope: ir.ScopeRow) Lower.Error!?Self {
-    if (!lowering.state_active or scope.bindings.len < 2 or lowering.iteration_value != null or lowering.loop_fields != null) return null;
+    if (!@import("genz_options").generated_analysis) {
+        const result = try @import("reuse/seed.zig").create(lowering, scope);
 
-    var present = false;
+        return if (result) |plan| .{ .scope = plan.scope, .changes = plan.changes, .variables = plan.variables, .names = plan.names } else null;
+    }
 
-    for (0..scope.bindings.len) |index| if (candidate(lowering, scope.bindings.at(index)) != null) {
-        present = true;
+    const enabled = @import("generated_scope_reuse_enabled");
+    var fixed = std.heap.FixedBufferAllocator.init(&.{});
 
-        break;
+    const flags: std.meta.Child(enabled.Input) = .{
+        .state_active = lowering.state_active,
+        .bindings = scope.bindings.len,
+        .iteration = lowering.iteration_value != null,
+        .loop_fields = lowering.loop_fields != null,
     };
 
-    if (!present) return null;
+    if (!(enabled.executeIn(fixed.allocator(), &flags) catch unreachable)) return null;
 
-    var last = try reads.collect(lowering.workspace, &lowering.program, scope);
+    const generated = @import("generated_scope_reuse");
+    const Parameter = @typeInfo(@TypeOf(generated.executeValue)).@"fn".param_types[1].?;
+    const indirect = @typeInfo(Parameter) == .pointer;
+    const Input = if (indirect) std.meta.Child(Parameter) else Parameter;
+    const CandidateParameter = @FieldType(Input, "candidates");
+    const candidates_indirect = @typeInfo(CandidateParameter) == .pointer;
+    const Candidates = if (candidates_indirect) std.meta.Child(CandidateParameter) else CandidateParameter;
+    var facts: std.MultiArrayList(Fact) = .empty;
 
-    defer last.deinit(lowering.workspace);
+    defer facts.deinit(lowering.workspace);
 
-    var positions: std.AutoHashMapUnmanaged(ir.SymbolId, usize) = .empty;
+    for (0..scope.bindings.len) |index| {
+        const binding = scope.bindings.at(index);
 
-    defer positions.deinit(lowering.allocator);
+        if (binding.symbol == null) continue;
+
+        if (@import("../object_update.zig").match(lowering, binding.value)) |change| {
+            try facts.append(lowering.workspace, .{
+                .binding = @intCast(index),
+                .previous = change.previous,
+                .reference = change.reference,
+                .field_index = change.field.index,
+                .field_value = change.field.value,
+                .type_id = change.type_id,
+            });
+        }
+    }
+
+    if (facts.len == 0) return null;
+
+    const candidates: Candidates = .{
+        .bindings = facts.items(.binding),
+        .previous = view.slice(@FieldType(Candidates, "previous"), facts.items(.previous)),
+        .types = view.slice(@FieldType(Candidates, "types"), facts.items(.type_id)),
+    };
+
+    const program: *const ir.Program = &lowering.program;
+
+    const input: Input = .{
+        .expressions = @import("zx").columns.pointer(@FieldType(Input, "expressions"), &program.expressions),
+        .bindings = scope.bindings.values,
+        .symbols = scope.bindings.symbols,
+        .symbol_types = program.symbols.types,
+        .result = @backingInt(scope.result),
+        .candidates = if (candidates_indirect) &candidates else candidates,
+    };
+
+    const checking = @import("generated_scope_reuse_has");
+
+    if (!(@import("zx").columns.invoke(checking.executeValue, fixed.allocator(), &input) catch unreachable)) return null;
 
     const changes = try lowering.allocator.alloc(?Change, scope.bindings.len);
     const variables = try lowering.allocator.alloc(bool, scope.bindings.len);
     const names = try lowering.allocator.alloc([]const u8, scope.bindings.len);
+    var scratch = std.heap.ArenaAllocator.init(lowering.workspace);
+
+    defer scratch.deinit();
+
+    const result = generated.executeValue(scratch.allocator(), if (indirect) &input else input) catch |err| switch (err) {
+        error.OutOfMemory, error.IntegerOverflow => return error.OutOfMemory,
+        else => unreachable,
+    };
+
+    const plan = result orelse return null;
 
     @memset(changes, null);
-    @memset(variables, false);
+    @memcpy(variables, plan.variables);
 
     for (0..scope.bindings.len) |index| {
         const binding = scope.bindings.at(index);
@@ -44,16 +103,12 @@ pub fn create(lowering: *Lower, scope: ir.ScopeRow) Lower.Error!?Self {
 
         names[index] = lowering.names[@backingInt(symbol)];
 
-        if (candidate(lowering, binding)) |change| {
-            if (positions.get(change.previous)) |previous| {
-                if (last.get(change.previous) == index) {
-                    changes[index] = change;
-                    variables[previous] = true;
-                }
-            }
-        }
-
-        try positions.put(lowering.allocator, symbol, index);
+        if (plan.changes[index]) |row| changes[index] = .{
+            .previous = facts.items(.previous)[row],
+            .reference = facts.items(.reference)[row],
+            .field = .{ .index = facts.items(.field_index)[row], .value = facts.items(.field_value)[row] },
+            .type_id = facts.items(.type_id)[row],
+        };
     }
 
     for (changes, 0..) |change, index| if (change) |update| {
@@ -85,12 +140,11 @@ pub fn append(self: *const Self, lowering: *Lower, output: *std.ArrayList(node.S
     return true;
 }
 
-fn candidate(lowering: *const Lower, binding: ir.ScopeBinding) ?Change {
-    const symbol = binding.symbol orelse return null;
-    const change = @import("../object_update.zig").match(lowering, binding.value) orelse return null;
-
-    if (change.previous == symbol) return null;
-    if (lowering.program.symbols.at(@backingInt(symbol)).type_id != change.type_id) return null;
-
-    return change;
-}
+const Fact = struct {
+    binding: u32,
+    previous: ir.SymbolId,
+    reference: ir.ExprId,
+    field_index: u32,
+    field_value: ir.ExprId,
+    type_id: ir.TypeId,
+};

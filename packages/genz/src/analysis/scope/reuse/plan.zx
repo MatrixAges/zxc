@@ -1,0 +1,58 @@
+import integers from "std:integer"
+
+import bind from "./bind"
+import select from "./select"
+
+import type { Work as Input, Plan as Output } from "./model"
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: state => state.binding < in.source.symbols.length,
+        next: state => {
+            const symbol = in.source.symbols[state.binding]
+            const candidates = in.source.candidates
+            const row = state.candidate
+            const present = match {
+                row < candidates.bindings.length =>
+                    integers.widen(candidates.bindings[row]) == state.binding,
+                _ => false
+            }
+
+            if (symbol != null) {
+                if (present) {
+                    const previous = select({
+                        source: in.source,
+                        last: in.last,
+                        bound: state.bound,
+                        row,
+                        binding: state.binding
+                    })
+
+                    if (previous != null) {
+                        state.changes = state.changes.with(
+                            state.binding,
+                            integers.narrow(row)
+                        )
+                        state.variables = state.variables.with(previous, true)
+                    }
+                }
+
+                state.bound = bind({
+                    bound: state.bound,
+                    symbol,
+                    position: state.binding
+                })
+            }
+
+            if (present) {
+                state.candidate += 1
+            }
+
+            state.binding += 1
+        },
+        return: state => ({
+            changes: state.changes,
+            variables: state.variables
+        })
+    })
+}

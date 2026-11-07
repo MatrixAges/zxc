@@ -1,0 +1,33 @@
+import empty from "core/integer/index/empty"
+
+import type { Preparation as Input, Work as Output } from "./model"
+
+export default function (in: Input): Output {
+    const changes: u32?[] = []
+    const variables: bool[] = []
+
+    return loop({
+        changes,
+        variables,
+        index: 0
+    }, {
+        while: state => state.index < in.source.symbols.length,
+        next: state => {
+            state.changes = state.changes.push(null)[0]
+            state.variables = state.variables.push(false)[0]
+            state.index += 1
+        },
+        return: state => ({
+            source: in.source,
+            last: in.last,
+            bound: {
+                index: empty({}),
+                positions: []
+            },
+            changes: state.changes,
+            variables: state.variables,
+            binding: 0,
+            candidate: 0
+        })
+    })
+}

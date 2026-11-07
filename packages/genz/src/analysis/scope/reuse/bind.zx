@@ -1,0 +1,27 @@
+import insert from "core/integer/index/insert"
+
+import type { Last as Positions } from "../reads/model"
+
+export type Input = {
+    bound: Positions,
+    symbol: u32,
+    position: u64
+}
+
+export type Output = Positions
+
+export default function (in: Input): Output {
+    const inserted = insert({
+        index: in.bound.index,
+        key: in.symbol
+    })
+
+    return {
+        index: inserted.index,
+        positions: match {
+            inserted.found =>
+                in.bound.positions.with(inserted.position, in.position),
+            _ => in.bound.positions.push(in.position)[0]
+        }
+    }
+}

@@ -1,0 +1,46 @@
+import get from "../reads/get"
+import qualified from "./qualified"
+
+import type { Last } from "../reads/model"
+import type { Input as Source } from "./model"
+
+export type Input = {
+    source: Source,
+    last: Last,
+    bound: Last,
+    row: u64,
+    binding: u64
+}
+
+export type Output = u64?
+
+export default function (in: Input): Output {
+    if (!qualified(in.pick([
+        "source",
+        "row"
+    ]))) {
+        return null
+    }
+
+    const symbol = in.source.candidates.previous[in.row]
+
+    const previous = get({
+        last: in.bound,
+        symbol
+    })
+
+    if (previous == null) {
+        return null
+    }
+
+    const last = get({
+        last: in.last,
+        symbol
+    })
+
+    if (last == null || last != in.binding) {
+        return null
+    }
+
+    return previous
+}
