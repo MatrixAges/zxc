@@ -1,0 +1,33 @@
+import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import integer from "../../../printer/text/integer"
+import origin from "../../types/state/origin"
+
+import type { Table } from "core/type_table/model"
+
+export type Input = {
+    types: Table,
+    id: u32
+}
+
+export type Output = u8[]
+
+export default function (in: Input): Output {
+    const id = integers.widen(in.id)
+    const count = integers.widen(in.types.second[id])
+
+    if (kind(in.types.kinds[id]) == Kind.Tuple) {
+        return integer({
+            output: [],
+            value: count
+        })
+    }
+
+    return origin({
+        names: in.types.field_names,
+        start: integers.widen(in.types.first[id]),
+        count
+    })
+}

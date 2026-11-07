@@ -172,6 +172,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/construction/build.rx", .name = "construction", .owner = .genz },
     .{ .path = "genz/analysis/construction/reference/build.rx", .name = "reference_slot", .owner = .genz },
     .{ .path = "genz/analysis/construction/origin/build.zx", .name = "tuple_origin", .owner = .genz },
+    .{ .path = "genz/analysis/construction/origin/name.zx", .name = "origin_name", .owner = .genz },
     .{ .path = "genz/analysis/iteration/buffer/view.zx", .name = "iteration_buffer_view", .owner = .genz },
     .{ .path = "genz/analysis/iteration/buffer/prepare.rx", .name = "iteration_buffer_prepare", .owner = .genz },
     .{ .path = "genz/analysis/iteration/buffer/redirect.rx", .name = "iteration_buffer_redirect", .owner = .genz },

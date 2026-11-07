@@ -3,6 +3,28 @@ const ir = @import("zx").ir;
 const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
 
+pub fn name(self: *const Lower, id: ir.TypeId) Lower.Error![]const u8 {
+    const value = self.program.typeOf(id);
+
+    if (value == .tuple) return std.fmt.allocPrint(self.allocator, "{d}", .{value.tuple.len});
+
+    var candidate: []const u8 = "zx_origin";
+    var index: usize = 0;
+
+    while (true) {
+        const present = for (0..value.object.len) |view_index| {
+            const field = value.object.at(view_index);
+
+            if (std.mem.eql(u8, field.name, candidate)) break true;
+        } else false;
+
+        if (!present) return candidate;
+
+        index += 1;
+        candidate = try std.fmt.allocPrint(self.allocator, "zx_origin_{d}", .{index});
+    }
+}
+
 pub fn tuple(self: *Lower, id: ir.TypeId, value: node.ExpressionId) Lower.Error!node.ExpressionId {
     if (!@import("root.zig").selected(self, id) or self.program.typeOf(id) != .tuple) return value;
 
