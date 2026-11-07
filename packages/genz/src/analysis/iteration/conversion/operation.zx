@@ -1,0 +1,19 @@
+import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import { Operation } from "./model"
+
+import type { Input } from "./model"
+
+export type Output = Operation
+
+export default function (in: Input): Output {
+    return match kind(in.types.kinds[integers.widen(in.root)]) {
+        Kind.Optional => Operation.Optional,
+        Kind.Object => Operation.Object,
+        Kind.Tuple => Operation.Tuple,
+        Kind.List => in.inline_lists ? Operation.Buffer : Operation.Value,
+        _ => Operation.Value
+    }
+}

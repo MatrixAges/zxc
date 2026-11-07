@@ -1,0 +1,19 @@
+<Module>
+    <Type from="emit/model" as="Conversion" />
+
+    <Args in={Conversion.Input} out={Conversion.Output} />
+
+    <Call fn="emit/initialize" in={$in} />
+
+    <Call
+        fn="emit/walk"
+        in={{
+            source: $in,
+            state: $ctx.initialize
+        }}
+    />
+
+    <Call fn="emit/publish" in={$ctx.walk} />
+
+    <Return value={$ctx.publish} />
+</Module>

@@ -1,0 +1,35 @@
+import type { Table } from "core/type_table/model"
+import type { Layout } from "../../types/layout"
+
+export enum Operation { Value, Optional, Object, Tuple, Buffer }
+
+export type Input = {
+    types: Table,
+    layouts: Layout[],
+    root: u32,
+    inline_lists: bool
+}
+
+export type Plan = {
+    kinds: Operation[],
+    types: u32[],
+    parents: u32[],
+    names: u8[][],
+    first: u64[],
+    count: u64[],
+    children: u32[],
+    events: u32[],
+    entering: bool[]
+}
+
+export type Walk = {
+    plan: Plan,
+    stack: u32[],
+    next: u64[],
+    depth: u64
+}
+
+export type Step = {
+    source: Input,
+    state: Walk
+}

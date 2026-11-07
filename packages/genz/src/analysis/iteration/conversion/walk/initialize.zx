@@ -1,0 +1,32 @@
+import { max_u32 } from "core/const"
+
+import enter from "./enter"
+
+import type { Input, Walk as Output } from "../model"
+
+export default function (in: Input): Output {
+    return enter({
+        step: {
+            source: in,
+            state: {
+                plan: {
+                    kinds: [],
+                    types: [],
+                    parents: [],
+                    names: [],
+                    first: [],
+                    count: [],
+                    children: [],
+                    events: [],
+                    entering: []
+                },
+                stack: [],
+                next: [],
+                depth: 0
+            }
+        },
+        type_id: in.root,
+        parent: max_u32,
+        name: []
+    })
+}

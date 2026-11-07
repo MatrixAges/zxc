@@ -1,0 +1,95 @@
+import bytes from "std:bytes"
+
+import address from "../../../../../ast/context/address"
+import call from "../../../../../ast/context/call"
+import { operand_prefix } from "../../../../../ast/context/const"
+import field from "../../../../../ast/context/field"
+import identifier from "../../../../../ast/context/identifier"
+import fresh from "../../../../../ast/fresh"
+import { length_member } from "../../../../intrinsics/index/const"
+import { element_prefix, ensure_member } from "../../const"
+
+import type { Step as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const frame = in.state.nodes[in.node]
+
+    const name = fresh({
+        serial: in.state.context.serial,
+        prefix: operand_prefix
+    })
+
+    const bound = identifier({
+        state: {
+            ...in.state.context,
+            serial: name.serial
+        },
+        name: name.name
+    })
+
+    const pointer = address({
+        state: bound.state,
+        value: frame.owner
+    })
+
+    const state = {
+        ...in.state,
+        context: pointer.state,
+        nodes: in.state.nodes.with(in.node, {
+            ...frame,
+            bound: bound.id,
+            bound_name: name.name,
+            address: pointer.id
+        })
+    }
+
+    if (in.source.plan.count[in.node] == 0) {
+        return state
+    }
+
+    const target = field({
+        state: state.context,
+        target: frame.owner,
+        name: bytes.fromText(ensure_member)
+    })
+
+    const length = field({
+        state: target.state,
+        target: bound.id,
+        name: bytes.fromText(length_member)
+    })
+
+    const capacity = call({
+        state: length.state,
+        callee: target.id,
+        arguments: [
+            frame.allocator,
+            length.id
+        ],
+        fallible: true
+    })
+
+    const capture = fresh({
+        serial: capacity.state.serial,
+        prefix: element_prefix
+    })
+
+    const item = identifier({
+        state: {
+            ...capacity.state,
+            serial: capture.serial
+        },
+        name: capture.name
+    })
+
+    return {
+        ...state,
+        context: item.state,
+        nodes: state.nodes.with(in.node, {
+            ...state.nodes[in.node],
+            capacity: capacity.id,
+            capture: capture.name,
+            child_value: item.id
+        })
+    }
+}

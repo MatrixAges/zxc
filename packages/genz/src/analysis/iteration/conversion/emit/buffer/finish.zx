@@ -1,0 +1,83 @@
+import binding from "../../../../../ast/context/binding"
+import block from "../../../../../ast/context/block"
+import { block_prefix } from "../../../../../ast/context/const"
+import expression from "../../../../../ast/context/expression_statement"
+import fresh from "../../../../../ast/fresh"
+import forLoop from "../../../../../ast/statements/for_loop"
+import append from "./append"
+import view from "./view"
+
+import type { Step as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const copied = in.source.plan.count[in.node] != 0
+
+    const prepared = match {
+        copied => append(in),
+        _ => in.state
+    }
+
+    const viewed = view({
+        ...in,
+        state: prepared
+    })
+
+    const frame = viewed.nodes[in.node]
+    const first = viewed.context.statements.tags.length
+
+    const bound = binding({
+        state: viewed.context,
+        name: frame.bound_name,
+        value: frame.input
+    })
+
+    const body = match {
+        copied => expression({
+            state: bound,
+            value: frame.capacity
+        }),
+        _ => bound
+    }
+
+    const loop = match {
+        copied => forLoop({
+            table: body.statements,
+            base: body.source.statement_base,
+            iterable: frame.bound,
+            capture: frame.capture,
+            start: frame.loop_first,
+            count: 1,
+            index: null
+        }),
+        _ => {
+            table: body.statements,
+            valid: true
+        }
+    }
+
+    const label = fresh({
+        serial: body.serial,
+        prefix: block_prefix
+    })
+
+    const value = block({
+        state: {
+            ...body,
+            serial: label.serial,
+            statements: loop.table,
+            valid: body.valid && loop.valid
+        },
+        label: label.name,
+        first,
+        value: frame.result
+    })
+
+    return {
+        ...viewed,
+        context: value.state,
+        nodes: viewed.nodes.with(in.node, {
+            ...frame,
+            result: value.id
+        })
+    }
+}

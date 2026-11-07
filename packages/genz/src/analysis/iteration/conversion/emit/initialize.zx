@@ -1,0 +1,36 @@
+import initialize from "../../../../ast/context/initialize"
+import empty from "../../../../ast/statements/empty"
+
+import type { Input, State as Output, Frame } from "./model"
+
+export default function (in: Input): Output {
+    const nodes: Frame[] = in.plan.types.map(type_id => ({
+        input: 0,
+        result: 0,
+        condition: 0,
+        child_value: 0,
+        owner: 0,
+        allocator: 0,
+        address: 0,
+        bound: 0,
+        bound_name: [],
+        capture: [],
+        capacity: 0,
+        loop_first: 0
+    }))[0]
+
+    return {
+        context: initialize(in.pick([
+            "capture",
+            "expression_base",
+            "statement_base",
+            "field_base",
+            "serial"
+        ])),
+        declarations: empty({}),
+        fields: [],
+        nodes,
+        index: 0,
+        uses_allocator: false
+    }
+}

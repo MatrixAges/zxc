@@ -1,0 +1,40 @@
+import integers from "std:integer"
+
+import builtin from "../../../../ast/context/builtin"
+import conditional from "../../../../ast/context/conditional"
+import nullValue from "../../../../ast/context/null_value"
+import { ExpressionsBuiltinName } from "../../../../printer/model/expressions"
+
+import type { Step as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const child =
+        integers.widen(in.source.plan.children[in.source.plan.first[in.node]])
+
+    const absent = nullValue(in.state.context)
+
+    const value = conditional({
+        state: absent.state,
+        condition: in.state.nodes[in.node].condition,
+        yes: in.state.nodes[child].result,
+        no: absent.id
+    })
+
+    const result = builtin({
+        state: value.state,
+        name: ExpressionsBuiltinName.As,
+        arguments: [
+            in.source.layouts[in.node],
+            value.id
+        ]
+    })
+
+    return {
+        ...in.state,
+        context: result.state,
+        nodes: in.state.nodes.with(in.node, {
+            ...in.state.nodes[in.node],
+            result: result.id
+        })
+    }
+}

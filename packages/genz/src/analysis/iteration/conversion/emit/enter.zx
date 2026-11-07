@@ -1,0 +1,65 @@
+import binary from "../../../../ast/context/binary"
+import nullValue from "../../../../ast/context/null_value"
+import unwrap from "../../../../ast/context/optional_unwrap"
+import { ExpressionsBinaryOperator } from "../../../../printer/model/expressions"
+import { Operation } from "../model"
+import declarations from "./buffer/declarations"
+import bufferInput from "./buffer/input"
+import project from "./project"
+
+import type { Step as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const projected = project(in)
+
+    const state = {
+        ...projected.state,
+        nodes: projected.state.nodes.with(in.node, {
+            ...projected.state.nodes[in.node],
+            input: projected.value,
+            result: projected.value
+        })
+    }
+
+    const kind = in.source.plan.kinds[in.node]
+
+    if (kind == Operation.Buffer) {
+        const declared = declarations({
+            ...in,
+            state
+        })
+
+        return bufferInput({
+            ...in,
+            state: declared
+        })
+    }
+
+    if (kind != Operation.Optional) {
+        return state
+    }
+
+    const absent = nullValue(state.context)
+
+    const present = binary({
+        state: absent.state,
+        operator: ExpressionsBinaryOperator.NotEqual,
+        left: projected.value,
+        right: absent.id
+    })
+
+    const payload = unwrap({
+        state: present.state,
+        value: projected.value
+    })
+
+    return {
+        ...state,
+        context: payload.state,
+        nodes: state.nodes.with(in.node, {
+            ...state.nodes[in.node],
+            condition: present.id,
+            child_value: payload.id
+        })
+    }
+}

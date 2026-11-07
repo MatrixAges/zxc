@@ -1,0 +1,45 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import call from "../../../../../ast/context/call"
+import expression from "../../../../../ast/context/expression_statement"
+import field from "../../../../../ast/context/field"
+import { append_member } from "../../const"
+
+import type { Step as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const child =
+        integers.widen(in.source.plan.children[in.source.plan.first[in.node]])
+
+    const target = field({
+        state: in.state.context,
+        target: in.state.nodes[in.node].owner,
+        name: bytes.fromText(append_member)
+    })
+
+    const append = call({
+        state: target.state,
+        callee: target.id,
+        arguments: [in.state.nodes[child].result],
+        fallible: false
+    })
+
+    const first =
+        append.state.source.statement_base +
+        integers.narrow(append.state.statements.tags.length)
+
+    const body = expression({
+        state: append.state,
+        value: append.id
+    })
+
+    return {
+        ...in.state,
+        context: body,
+        nodes: in.state.nodes.with(in.node, {
+            ...in.state.nodes[in.node],
+            loop_first: first
+        })
+    }
+}

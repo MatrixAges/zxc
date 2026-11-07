@@ -1,0 +1,55 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import boolean from "../../../../../ast/context/boolean"
+import field from "../../../../../ast/context/field"
+import object from "../../../../../ast/context/object"
+import fields from "../../../buffer/fields"
+import { items_field } from "../../../types/const"
+
+import type { Step as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const frame = in.state.nodes[in.node]
+    const owned = in.source.plan.count[in.node] != 0
+
+    const items = match {
+        owned => field({
+            state: in.state.context,
+            target: frame.owner,
+            name: bytes.fromText(items_field)
+        }),
+        _ => {
+            state: in.state.context,
+            id: frame.bound
+        }
+    }
+
+    const flag = boolean({
+        state: items.state,
+        value: owned
+    })
+
+    const values = fields({
+        owner: frame.address,
+        items: items.id,
+        owned: flag.id
+    })
+
+    const value = object({
+        state: flag.state,
+        type_expr: in.source.layouts[in.node],
+        first: in.source.field_base + integers.narrow(in.state.fields.length),
+        count: integers.narrow(values.length)
+    })
+
+    return {
+        ...in.state,
+        context: value.state,
+        fields: in.state.fields.concat(values)[0],
+        nodes: in.state.nodes.with(in.node, {
+            ...frame,
+            result: value.id
+        })
+    }
+}

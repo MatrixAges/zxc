@@ -1,0 +1,42 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+
+import field from "../../../../ast/context/field"
+import { Operation } from "../model"
+
+import type { Step as Input, Projected as Output } from "./model"
+
+export default function (in: Input): Output {
+    const parent = in.source.plan.parents[in.node]
+
+    if (parent == max_u32) {
+        return {
+            state: in.state,
+            value: in.source.value
+        }
+    }
+
+    const index = integers.widen(parent)
+    const kind = in.source.plan.kinds[index]
+
+    if (kind == Operation.Optional || kind == Operation.Buffer) {
+        return {
+            state: in.state,
+            value: in.state.nodes[index].child_value
+        }
+    }
+
+    const value = field({
+        state: in.state.context,
+        target: in.state.nodes[index].input,
+        name: in.source.plan.names[in.node]
+    })
+
+    return {
+        state: {
+            ...in.state,
+            context: value.state
+        },
+        value: value.id
+    }
+}

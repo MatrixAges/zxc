@@ -1,0 +1,87 @@
+import integers from "std:integer"
+
+import builtin from "../../../../ast/context/builtin"
+import object from "../../../../ast/context/object"
+import tuple from "../../../../ast/context/tuple"
+import { ExpressionsBuiltinName } from "../../../../printer/model/expressions"
+import { Operation } from "../model"
+
+import type { Field } from "../../../types/definitions/model"
+import type { Step as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const fields: Field[] = []
+    const values: u32[] = []
+    const kind = in.source.plan.kinds[in.node]
+
+    const children = loop({
+        fields,
+        values,
+        index: 0
+    }, {
+        while: state => state.index < in.source.plan.count[in.node],
+        next: state => {
+            const child = integers.widen(
+                in.source.plan.children[
+                    in.source.plan.first[in.node] + state.index
+                ]
+            )
+            const value = in.state.nodes[child].result
+
+            if (kind == Operation.Object) {
+                state.fields = state.fields.push({
+                    name: in.source.plan.names[child],
+                    value,
+                    default_value: null,
+                    comptime_parameter: false
+                })[0]
+            } else {
+                state.values = state.values.push(value)[0]
+            }
+
+            state.index += 1
+        }
+    })
+
+    if (kind == Operation.Object) {
+        const value = object({
+            state: in.state.context,
+            type_expr: in.source.layouts[in.node],
+            first: in.source.field_base + integers.narrow(in.state.fields.length),
+            count: integers.narrow(children.fields.length)
+        })
+
+        return {
+            ...in.state,
+            context: value.state,
+            fields: in.state.fields.concat(children.fields)[0],
+            nodes: in.state.nodes.with(in.node, {
+                ...in.state.nodes[in.node],
+                result: value.id
+            })
+        }
+    }
+
+    const value = tuple({
+        state: in.state.context,
+        values: children.values
+    })
+
+    const result = builtin({
+        state: value.state,
+        name: ExpressionsBuiltinName.As,
+        arguments: [
+            in.source.layouts[in.node],
+            value.id
+        ]
+    })
+
+    return {
+        ...in.state,
+        context: result.state,
+        nodes: in.state.nodes.with(in.node, {
+            ...in.state.nodes[in.node],
+            result: result.id
+        })
+    }
+}

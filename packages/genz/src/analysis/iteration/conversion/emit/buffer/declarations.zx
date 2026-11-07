@@ -1,0 +1,101 @@
+import bytes from "std:bytes"
+
+import call from "../../../../../ast/context/call"
+import deferExpression from "../../../../../ast/context/defer_expression"
+import field from "../../../../../ast/context/field"
+import identifier from "../../../../../ast/context/identifier"
+import standard from "../../../../../ast/context/standard"
+import text from "../../../../../ast/context/text"
+import variable from "../../../../../ast/context/variable"
+import fresh from "../../../../../ast/fresh"
+import { ExpressionsKind } from "../../../../../printer/model/expressions"
+import {
+    allocator_name,
+    array_list,
+    buffer_prefix,
+    empty_name,
+    deinit_member
+} from "../../const"
+
+import type { Step as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const owner_type = standard({
+        state: in.state.context,
+        path: [array_list],
+        arguments: [in.source.elements[in.node]],
+        fallible: false
+    })
+
+    const name = fresh({
+        serial: owner_type.state.serial,
+        prefix: buffer_prefix
+    })
+
+    const owner = identifier({
+        state: {
+            ...owner_type.state,
+            serial: name.serial
+        },
+        name: name.name
+    })
+
+    const allocator = identifier({
+        state: owner.state,
+        name: bytes.fromText(allocator_name)
+    })
+
+    const empty = text({
+        state: allocator.state,
+        kind: ExpressionsKind.EnumLiteral,
+        value: bytes.fromText(empty_name)
+    })
+
+    const declared = variable({
+        state: {
+            ...empty.state,
+            source: {
+                ...empty.state.source,
+                statement_base: 0
+            },
+            statements: in.state.declarations
+        },
+        name: name.name,
+        type_expr: owner_type.id,
+        value: empty.id
+    })
+
+    const target = field({
+        state: declared,
+        target: owner.id,
+        name: bytes.fromText(deinit_member)
+    })
+
+    const cleanup = call({
+        state: target.state,
+        callee: target.id,
+        arguments: [allocator.id],
+        fallible: false
+    })
+
+    const deferred = deferExpression({
+        state: cleanup.state,
+        value: cleanup.id
+    })
+
+    return {
+        ...in.state,
+        context: {
+            ...deferred,
+            source: empty.state.source,
+            statements: in.state.context.statements
+        },
+        declarations: deferred.statements,
+        uses_allocator: true,
+        nodes: in.state.nodes.with(in.node, {
+            ...in.state.nodes[in.node],
+            owner: owner.id,
+            allocator: allocator.id
+        })
+    }
+}
