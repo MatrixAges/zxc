@@ -1,0 +1,33 @@
+import integers from "std:integer"
+import child from "core/expression_table/child"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import type { Input } from "core/expression_table/child"
+
+export type Output = u32?
+
+export default function (in: Input): Output {
+    if (in.table.kinds[in.id] != ExpressionKind.Object) {
+        return child(in)
+    }
+
+    const payload = integers.widen(in.table.payloads[in.id])
+    const evaluations = integers.widen(in.table.object_evaluation_count[payload])
+    const fields = integers.widen(in.table.object_count[payload])
+
+    if (in.index < evaluations) {
+        const first = integers.widen(in.table.object_evaluation_first[payload])
+
+        return in.table.object_evaluation_values[first + in.index]
+    }
+
+    const index = in.index - evaluations
+
+    if (index >= fields) {
+        return null
+    }
+
+    const first = integers.widen(in.table.object_first[payload])
+
+    return in.table.object_field_values[first + index]
+}

@@ -1,0 +1,18 @@
+import integers from "std:integer"
+import empty from "core/integer/index/empty"
+
+import type { Input, Walk as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        projections: [],
+        path_first: [],
+        path_count: [],
+        path_steps: [],
+        seen: empty({}),
+        stack: [integers.narrow(in.result)],
+        next: [0],
+        depth: 1,
+        valid: true
+    }
+}

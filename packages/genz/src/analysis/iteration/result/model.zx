@@ -1,0 +1,48 @@
+import type { Expressions } from "core/expression_table/model"
+import type { Index } from "core/integer/index/model"
+import type { State as Cache } from "core/integer/map/model"
+import type { Table } from "core/type_table/model"
+
+export enum Mode { Eligible, Candidate, Plan }
+
+export type Input = {
+    types: Table,
+    table: Expressions,
+    symbol: u64,
+    result: u64,
+    cached?: Cache,
+    capture: bool,
+    mode: Mode
+}
+
+export type Decision = {
+    traverse: bool,
+    primitive: bool,
+    valid: bool
+}
+
+export type Output = {
+    primitive: bool,
+    valid: bool,
+    projections: u32[],
+    path_first: u64[],
+    path_count: u64[],
+    path_steps: u32[]
+}
+
+export type Walk = {
+    projections: u32[],
+    path_first: u64[],
+    path_count: u64[],
+    path_steps: u32[],
+    seen: Index,
+    stack: u32[],
+    next: u64[],
+    depth: u64,
+    valid: bool
+}
+
+export type Step = {
+    source: Input,
+    state: Walk
+}

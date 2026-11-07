@@ -159,6 +159,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/object_update/match/candidate.rx", .name = "object_update_candidate", .owner = .genz },
     .{ .path = "genz/analysis/inline/prepare.rx", .name = "inline_prepare", .owner = .genz },
     .{ .path = "genz/analysis/iteration/transfer/build.rx", .name = "iteration_transfer", .owner = .genz },
+    .{ .path = "genz/analysis/iteration/result/analyze.rx", .name = "iteration_result", .owner = .genz },
     .{ .path = "genz/analysis/iteration/buffer/view.zx", .name = "iteration_buffer_view", .owner = .genz },
     .{ .path = "genz/analysis/iteration/buffer/prepare.rx", .name = "iteration_buffer_prepare", .owner = .genz },
     .{ .path = "genz/analysis/iteration/buffer/redirect.rx", .name = "iteration_buffer_redirect", .owner = .genz },

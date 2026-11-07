@@ -1,89 +1,27 @@
-import integers from "std:integer"
-import { ExpressionKind } from "core/expression_table/kinds"
+import step from "./independent/step"
 
-import children from "../ir/children"
+import type { Input, Walk } from "./independent/model"
 
-import type { Expressions } from "core/expression_table/model"
-
-export type Input = {
-    table: Expressions,
-    id: u64,
-    symbol: u64
-}
+export type { Input } from "./independent/model"
 
 export type Output = bool
 
 export default function (in: Input): Output {
-    const stack: u64[] = [in.id]
+    const state: Walk = {
+        id: in.id,
+        parents: [],
+        next: [],
+        depth: 0,
+        valid: true,
+        done: false
+    }
 
-    return loop({
-        table: in.table,
-        symbol: in.symbol,
-        stack,
-        valid: true
-    }, {
-        while: current => current.valid && current.stack.length != 0,
-        next: current => {
-            const id = current.stack[current.stack.length - 1]
-            const table = current.table
-            const kind = table.kinds[id]
-            const payload = integers.widen(table.payloads[id])
-
-            current.stack = current.stack.pop()[0]
-
-            if (kind == ExpressionKind.Reference) {
-                current.valid =
-                    integers.widen(table.references[payload]) != current.symbol
-            } else {
-                const condition = (
-                    match kind {
-                        ExpressionKind.Integer => true,
-                        ExpressionKind.NegativeInteger => true,
-                        ExpressionKind.Float => true,
-                        ExpressionKind.String => true,
-                        ExpressionKind.Boolean => true,
-                        ExpressionKind.None => true,
-                        ExpressionKind.Unit => true,
-                        ExpressionKind.EnumValue => true,
-                        ExpressionKind.ErrorValue => true,
-                        _ => false
-                    }
-                )
-
-                if (condition) {
-                    current.valid = true
-                } else {
-                    const condition_2 = (
-                        match kind {
-                            ExpressionKind.Some => true,
-                            ExpressionKind.OptionalValue => true,
-                            ExpressionKind.Length => true,
-                            ExpressionKind.Field => true,
-                            ExpressionKind.TupleField => true,
-                            ExpressionKind.Index => true,
-                            ExpressionKind.Unary => true,
-                            ExpressionKind.Binary => true,
-                            ExpressionKind.Conditional => true,
-                            ExpressionKind.Call => true,
-                            ExpressionKind.Object => true,
-                            ExpressionKind.List => true,
-                            ExpressionKind.Tuple => true,
-                            ExpressionKind.Template => true,
-                            _ => false
-                        }
-                    )
-
-                    if (condition_2) {
-                        current.stack = current.stack.concat(children({
-                            table,
-                            id
-                        }).map(child => integers.widen(child))[0])[0]
-                    } else {
-                        current.valid = false
-                    }
-                }
-            }
-        },
-        return: state => state.valid
+    return loop(state, {
+        while: current => current.valid && !current.done,
+        next: current => { current = step({
+            source: in,
+            state: current
+        }) },
+        return: current => current.valid
     })
 }

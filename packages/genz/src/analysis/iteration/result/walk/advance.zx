@@ -1,0 +1,38 @@
+import integers from "std:integer"
+
+import child from "../../../consumer/child"
+import enter from "./enter"
+import push from "./push"
+
+import type { Step as Input, Walk as Output } from "../model"
+
+export default function (in: Input): Output {
+    const { source, state } = in
+
+    const frame = state.depth - 1
+
+    if (state.next[frame] == 0) {
+        return enter(in)
+    }
+
+    const selected = child({
+        table: source.table,
+        id: integers.widen(state.stack[frame]),
+        index: state.next[frame] - 1
+    })
+
+    if (selected == null) {
+        return {
+            ...state,
+            depth: state.depth - 1
+        }
+    }
+
+    return push({
+        state: {
+            ...state,
+            next: state.next.with(frame, state.next[frame] + 1)
+        },
+        id: selected
+    })
+}

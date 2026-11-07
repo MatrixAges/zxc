@@ -1,0 +1,145 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+import get from "core/integer/index/get"
+import insert from "core/integer/index/insert"
+import lookup from "core/integer/map/lookup"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import independent from "../../../consumer/independent"
+import literal from "../../../consumer/literal"
+import projection from "../../../consumer/projection"
+import primitive from "../../../types/primitive"
+import path from "./path"
+import record from "./record"
+
+import type { Step as Input, Walk as Output } from "../model"
+
+export default function (in: Input): Output {
+    const { source, state } = in
+
+    const id = state.stack[state.depth - 1]
+    const selected = integers.widen(id)
+
+    const query = {
+        table: source.table,
+        id: selected,
+        symbol: source.symbol
+    }
+
+    if (independent(query)) {
+        return {
+            ...state,
+            depth: state.depth - 1
+        }
+    }
+
+    if (source.cached != null) {
+        if (lookup({
+            ...source.cached.omit(["values"]),
+            key: id
+        }) != null) {
+            return {
+                ...state,
+                valid: false
+            }
+        }
+    }
+
+    if (get({
+        index: state.seen,
+        key: id
+    }) != null) {
+        return {
+            ...state,
+            depth: state.depth - 1
+        }
+    }
+
+    const indexed = insert({
+        index: state.seen,
+        key: id
+    })
+
+    const visited = {
+        ...state,
+        seen: indexed.index
+    }
+
+    const type_id = source.table.types[selected]
+
+    if (primitive({
+        types: source.types,
+        id: type_id
+    }) && projection({
+        table: source.table,
+        result: selected,
+        symbol: source.symbol
+    })) {
+        return record({
+            state: visited,
+            id,
+            steps: []
+        })
+    }
+
+    const type_index = integers.widen(type_id)
+    const expression_kind = source.table.kinds[selected]
+
+    if (
+        expression_kind == ExpressionKind.Object ||
+            expression_kind == ExpressionKind.Tuple
+    ) {
+        return {
+            ...visited,
+            next: visited.next.with(visited.depth - 1, 1)
+        }
+    }
+
+    const is_path = match expression_kind {
+        ExpressionKind.Field => true,
+        ExpressionKind.TupleField => true,
+        ExpressionKind.Reference => true,
+        _ => false
+    }
+
+    if (is_path) {
+        if (kind(source.types.kinds[type_index]) != Kind.List) {
+            return {
+                ...visited,
+                valid: false
+            }
+        }
+
+        if (!primitive({
+            types: source.types,
+            id: source.types.first[type_index]
+        })) {
+            return {
+                ...visited,
+                valid: false
+            }
+        }
+
+        const projected = path(query)
+
+        if (!projected.valid) {
+            return {
+                ...visited,
+                valid: false
+            }
+        }
+
+        return record({
+            state: visited,
+            id,
+            steps: projected.steps
+        })
+    }
+
+    return {
+        ...visited,
+        valid: literal(expression_kind),
+        depth: visited.depth - 1
+    }
+}

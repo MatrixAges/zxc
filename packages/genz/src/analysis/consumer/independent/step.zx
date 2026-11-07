@@ -1,0 +1,81 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import child from "../child"
+import literal from "../literal"
+import nested from "../nested"
+import advance from "./advance"
+
+import type { Step as Input, Walk as Output } from "./model"
+
+export default function (in: Input): Output {
+    const { source, state } = in
+
+    const kind = source.table.kinds[state.id]
+    const payload = integers.widen(source.table.payloads[state.id])
+
+    if (kind == ExpressionKind.Reference) {
+        if (integers.widen(source.table.references[payload]) == source.symbol) {
+            return {
+                ...state,
+                valid: false
+            }
+        }
+
+        return advance(in)
+    }
+
+    if (literal(kind)) {
+        return advance(in)
+    }
+
+    if (!nested(kind)) {
+        return {
+            ...state,
+            valid: false
+        }
+    }
+
+    const first = child({
+        table: source.table,
+        id: state.id,
+        index: 0
+    })
+
+    if (first == null) {
+        return advance(in)
+    }
+
+    const second = child({
+        table: source.table,
+        id: state.id,
+        index: 1
+    })
+
+    if (second == null) {
+        return {
+            ...state,
+            id: integers.widen(first)
+        }
+    }
+
+    const depth = state.depth
+
+    const parents = match {
+        depth < state.parents.length => state.parents.with(depth, state.id),
+        _ => state.parents.push(state.id)[0]
+    }
+
+    const next = match {
+        depth < state.next.length => state.next.with(depth, 1),
+        _ => state.next.push(1)[0]
+    }
+
+    return {
+        ...state,
+        id: integers.widen(first),
+        parents,
+        next,
+        depth: depth + 1
+    }
+}

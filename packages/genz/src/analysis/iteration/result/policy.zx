@@ -1,0 +1,81 @@
+import integers from "std:integer"
+import { scalar_void, scalar_string } from "core/type_table/const"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import projection from "../../consumer/projection"
+import primitive from "../../types/primitive"
+import { Mode } from "./model"
+
+import type { Input, Decision as Output } from "./model"
+
+export default function (in: Input): Output {
+    if (in.mode == Mode.Eligible && in.capture) {
+        return {
+            traverse: false,
+            primitive: false,
+            valid: false
+        }
+    }
+
+    const type_id = in.table.types[in.result]
+    const index = integers.widen(type_id)
+    const scalar_kind = kind(in.types.kinds[index])
+    const scalar_value = in.types.first[index]
+
+    const is_primitive = primitive({
+        types: in.types,
+        id: type_id
+    })
+
+    if (in.mode == Mode.Candidate) {
+        const allowed_value = (
+            - scalar_value != scalar_void
+            - and scalar_value != scalar_string
+        )
+
+        const is_scalar = scalar_kind == Kind.Scalar
+        const is_enum = scalar_kind == Kind.Enumeration
+        const is_error = scalar_kind == Kind.ErrorSet
+
+        const scalar = (
+            - is_scalar && allowed_value
+            - or is_enum
+            - or is_error
+        )
+
+        if (scalar) {
+            return {
+                traverse: false,
+                primitive: is_primitive,
+                valid: projection(in.pick([
+                    "table",
+                    "symbol",
+                    "result"
+                ]))
+            }
+        }
+    }
+
+    if (in.mode == Mode.Plan && is_primitive) {
+        return {
+            traverse: false,
+            primitive: true,
+            valid: true
+        }
+    }
+
+    if (is_primitive) {
+        return {
+            traverse: false,
+            primitive: is_primitive,
+            valid: false
+        }
+    }
+
+    return {
+        traverse: true,
+        primitive: is_primitive,
+        valid: true
+    }
+}

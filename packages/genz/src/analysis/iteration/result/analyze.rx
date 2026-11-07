@@ -1,0 +1,33 @@
+<Module>
+    <Type from="model" as="Result" />
+
+    <Args in={Result.Input} out={Result.Output} />
+
+    <Call fn="policy" in={$in} />
+
+    <If on={!$ctx.policy.traverse}>
+        <Call fn="empty" in={$ctx.policy} />
+
+        <Return value={$ctx.empty} />
+    </If>
+
+    <Call fn="initialize" in={$in} />
+
+    <Call
+        fn="walk/traverse"
+        in={{
+            source: $in,
+            state: $ctx.initialize
+        }}
+    />
+
+    <Call
+        fn="publish"
+        in={{
+            state: $ctx.traverse,
+            primitive: $ctx.policy.primitive
+        }}
+    />
+
+    <Return value={$ctx.publish} />
+</Module>

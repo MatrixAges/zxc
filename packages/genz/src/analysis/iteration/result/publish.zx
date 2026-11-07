@@ -1,0 +1,21 @@
+import type { Walk, Output } from "./model"
+
+export type Input = {
+    state: Walk,
+    primitive: bool
+}
+
+export default function (in: Input): Output {
+    return {
+        primitive: in.primitive,
+        ...in.state.pick(
+            [
+                "valid",
+                "projections",
+                "path_first",
+                "path_count",
+                "path_steps"
+            ]
+        )
+    }
+}

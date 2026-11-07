@@ -1,0 +1,25 @@
+import { ExpressionKind } from "core/expression_table/kinds"
+
+export type Input = ExpressionKind
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    return match in {
+        ExpressionKind.Some => true,
+        ExpressionKind.OptionalValue => true,
+        ExpressionKind.Length => true,
+        ExpressionKind.Field => true,
+        ExpressionKind.TupleField => true,
+        ExpressionKind.Index => true,
+        ExpressionKind.Unary => true,
+        ExpressionKind.Binary => true,
+        ExpressionKind.Conditional => true,
+        ExpressionKind.Call => true,
+        ExpressionKind.Object => true,
+        ExpressionKind.List => true,
+        ExpressionKind.Tuple => true,
+        ExpressionKind.Template => true,
+        _ => false
+    }
+}

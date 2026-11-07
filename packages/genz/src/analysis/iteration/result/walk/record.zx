@@ -1,0 +1,22 @@
+import type { Walk } from "../model"
+
+export type Input = {
+    state: Walk,
+    id: u32,
+    steps: u32[]
+}
+
+export type Output = Walk
+
+export default function (in: Input): Output {
+    const { state, id, steps } = in
+
+    return {
+        ...state,
+        projections: state.projections.push(id)[0],
+        path_first: state.path_first.push(state.path_steps.length)[0],
+        path_count: state.path_count.push(steps.length)[0],
+        path_steps: state.path_steps.concat(steps)[0],
+        depth: state.depth - 1
+    }
+}

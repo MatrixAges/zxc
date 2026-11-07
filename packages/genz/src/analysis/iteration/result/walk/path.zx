@@ -1,0 +1,42 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import type { Input } from "../../../consumer/path"
+
+export type Output = {
+    valid: bool,
+    steps: u32[]
+}
+
+export default function (in: Input): Output {
+    const steps: u32[] = []
+
+    return loop({
+        id: in.id,
+        steps,
+        active: true,
+        valid: false
+    }, {
+        while: state => state.active,
+        next: state => {
+            const kind = in.table.kinds[state.id]
+            const payload = integers.widen(in.table.payloads[state.id])
+
+            if (
+                kind == ExpressionKind.Field || kind == ExpressionKind.TupleField
+            ) {
+                state.steps =
+                    state.steps.push(in.table.projection_indices[payload])[0]
+                state.id = integers.widen(in.table.projection_targets[payload])
+            } else {
+                state.valid = kind == ExpressionKind.Reference &&
+                    integers.widen(in.table.references[payload]) == in.symbol
+                state.active = false
+            }
+        },
+        return: state => ({
+            valid: state.valid,
+            steps: state.steps.reverse()[0]
+        })
+    })
+}
