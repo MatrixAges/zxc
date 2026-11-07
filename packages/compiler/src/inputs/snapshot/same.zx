@@ -1,0 +1,33 @@
+import type { Cursor as Input } from "./model"
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const prev = in.previous
+    const next = in.current
+    const at = in.index
+    const prev_path = prev.paths[at]
+    const next_path = next.paths[at]
+    const prev_inode = prev.inodes[at]
+    const next_inode = next.inodes[at]
+    const prev_size = prev.sizes[at]
+    const next_size = next.sizes[at]
+    const prev_mhi = prev.mtime_high[at]
+    const next_mhi = next.mtime_high[at]
+    const prev_mlo = prev.mtime_low[at]
+    const next_mlo = next.mtime_low[at]
+    const prev_chi = prev.ctime_high[at]
+    const next_chi = next.ctime_high[at]
+    const prev_clo = prev.ctime_low[at]
+    const next_clo = next.ctime_low[at]
+
+    return (
+        - prev_path == next_path
+        - and prev_inode == next_inode
+        - and prev_size == next_size
+        - and prev_mhi == next_mhi
+        - and prev_mlo == next_mlo
+        - and prev_chi == next_chi
+        - and prev_clo == next_clo
+    )
+}

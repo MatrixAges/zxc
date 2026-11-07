@@ -76,6 +76,7 @@ pub const main = [_]Entry{
     .{ .path = "zx/modules/compiled/validation/publication.zx", .name = "compiled_header" },
     .{ .path = "zx/modules/semantic_cache/restoring/native/restore.rx", .name = "native_restore" },
     .{ .path = "verification/query/build.rx", .name = "verification_query", .owner = .compiler },
+    .{ .path = "inputs/snapshot/reuse.rx", .name = "input_snapshot", .owner = .compiler },
     .{ .path = "backends/zig/source_abi/scoped.zx", .name = "source_abi_scoped", .owner = .compiler },
     .{ .path = "backends/zig/source_abi/plan.rx", .name = "source_abi_plan", .owner = .compiler },
     .{ .path = "backends/zig/source_abi/select.rx", .name = "source_abi", .owner = .compiler },

@@ -5,7 +5,8 @@ const std = @import("std");
 const builtin = @import("builtin");
 const Files = @import("resident/files.zig");
 pub const Entry = struct { name: []const u8, kind: std.Io.File.Kind, metadata: ?Files.Metadata };
-pub const Reader = if (builtin.os.tag.isDarwin()) Bulk else Plain;
+pub const bulk_metadata = builtin.os.tag.isDarwin();
+pub const Reader = if (bulk_metadata) Bulk else Plain;
 
 const Plain = struct {
     iterator: std.Io.Dir.Iterator,

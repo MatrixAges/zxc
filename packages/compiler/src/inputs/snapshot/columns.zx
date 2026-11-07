@@ -1,0 +1,22 @@
+import type { Files as Input } from "./model"
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const count = in.paths.length
+    const inodes = in.inodes.length
+    const sizes = in.sizes.length
+    const mtime_high = in.mtime_high.length
+    const mtime_low = in.mtime_low.length
+    const ctime_high = in.ctime_high.length
+    const ctime_low = in.ctime_low.length
+
+    return (
+        - inodes == count
+        - and sizes == count
+        - and mtime_high == count
+        - and mtime_low == count
+        - and ctime_high == count
+        - and ctime_low == count
+    )
+}

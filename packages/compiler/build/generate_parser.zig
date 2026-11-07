@@ -6,6 +6,7 @@ const collection = @import("source_collection.zig");
 const manifest = @import("generation_manifest.zig");
 const Resident = @import("resident/state.zig");
 const Files = @import("resident/files.zig");
+const InputSnapshot = @import("input_snapshot.zig");
 
 pub fn main(init: std.process.Init) !void {
     const allocator = init.arena.allocator();
@@ -58,11 +59,19 @@ pub fn generate(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, r
 
     if (project.entries.len == 0) return error.EmptyEntrySet;
 
+    const snapshot = if (request.write) try InputSnapshot.prepare(io, allocator, &resident.files, resident.digest, project, manifest_source, partitions, request.cache) else null;
+
+    if (snapshot) |prepared| if (try prepared.current(io, allocator)) |digest| {
+        if (try current(io, allocator, output, digest)) return "";
+    };
+
     var sources: std.ArrayList(compiler.project.Source) = .empty;
     var modules: std.ArrayList(rx.TextSource) = .empty;
     var templates: std.ArrayList(compiler.project.Resource) = .empty;
 
-    for (project.roots) |root| try collection.collect(io, allocator, &resident.files, root.path, root.prefix, &sources, &modules, &templates);
+    if (snapshot) |prepared| {
+        try prepared.load(io, allocator, &resident.files, &sources, &modules, &templates);
+    } else for (project.roots) |root| try collection.collect(io, allocator, &resident.files, root.path, root.prefix, &sources, &modules, &templates);
 
     std.mem.sort(compiler.project.Source, sources.items, {}, collection.lessSource);
     std.mem.sort(rx.TextSource, modules.items, {}, collection.lessModule);
@@ -88,7 +97,7 @@ pub fn generate(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, r
     for (project.interfaces, interfaces) |interface, *target| {
         const source = for (sources.items) |candidate| {
             if (std.mem.eql(u8, candidate.path, interface.path)) break candidate.source;
-        } else std.Io.Dir.cwd().readFileAlloc(io, interface.path, allocator, .unlimited) catch |err| unread: {
+        } else resident.files.read(io, std.Io.Dir.cwd(), interface.path, try std.fs.path.resolve(allocator, &.{interface.path})) catch |err| unread: {
             if (interface_error == null) interface_error = err;
 
             break :unread "";
@@ -105,7 +114,14 @@ pub fn generate(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, r
     const inputs_digest = fingerprint(frame, partitions, sources.items, templates.items, &resident.files);
 
     // An output directory reused across runs already holds the result when nothing it depends on changed.
-    if (request.write and interface_error == null and try current(io, allocator, output, inputs_digest)) return "";
+    if (request.write and interface_error == null and try current(io, allocator, output, inputs_digest)) {
+        if (snapshot) |prepared| prepared.save(io, allocator, &resident.files, inputs_digest) catch |err| switch (err) {
+            error.OutOfMemory => return error.OutOfMemory,
+            else => {},
+        };
+
+        return "";
+    }
 
     const recorded = try std.fs.path.join(allocator, &.{ output, shared_output.fingerprint_name });
 
@@ -147,7 +163,14 @@ pub fn generate(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, r
         .rx_digests = rx_digests,
     }, if (request.write) output else null, request.cache, partitions);
 
-    if (request.write) try std.Io.Dir.cwd().writeFile(io, .{ .sub_path = recorded, .data = &std.fmt.bytesToHex(inputs_digest, .lower) });
+    if (request.write) {
+        try std.Io.Dir.cwd().writeFile(io, .{ .sub_path = recorded, .data = &std.fmt.bytesToHex(inputs_digest, .lower) });
+
+        if (snapshot) |prepared| prepared.save(io, allocator, &resident.files, inputs_digest) catch |err| switch (err) {
+            error.OutOfMemory => return error.OutOfMemory,
+            else => {},
+        };
+    }
 
     return summary;
 }

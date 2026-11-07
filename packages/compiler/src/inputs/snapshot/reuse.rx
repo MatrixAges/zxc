@@ -1,0 +1,21 @@
+<Module>
+    <Type from="model" as="Snapshot" />
+
+    <Args in={Snapshot.Input} out={bool} />
+
+    <Call fn="context" in={$in} />
+
+    <If on={!$ctx.context}>
+        <Return value={false} />
+    </If>
+
+    <Call fn="shape" in={$in} />
+
+    <If on={!$ctx.shape}>
+        <Return value={false} />
+    </If>
+
+    <Call fn="files" in={$in} />
+
+    <Return value={$ctx.files} />
+</Module>

@@ -71,8 +71,16 @@ pub fn unchanged(self: *const Self, io: std.Io, directory: std.Io.Dir, path: []c
     return if (vouches(entry, found)) entry.text else null;
 }
 
-fn metadata(stat: std.Io.File.Stat) Metadata {
+pub fn metadata(stat: std.Io.File.Stat) Metadata {
     return .{ .inode = stat.inode, .size = stat.size, .mtime = stat.mtime.nanoseconds, .ctime = stat.ctime.nanoseconds };
+}
+
+pub const Version = struct { metadata: Metadata, read: i96 };
+
+pub fn version(self: *const Self, key: []const u8) ?Version {
+    const entry = self.entries.get(key) orelse return null;
+
+    return .{ .metadata = .{ .inode = entry.inode, .size = entry.size, .mtime = entry.mtime, .ctime = entry.ctime }, .read = entry.read };
 }
 
 /// The Blake3 digest of `text`, remembered with the text `read` returned for `key` so an unchanged file is hashed once.

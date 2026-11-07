@@ -1,0 +1,35 @@
+export type Files = {
+    paths: string[],
+    inodes: u64[],
+    sizes: u64[],
+    mtime_high: i32[],
+    mtime_low: u64[],
+    ctime_high: i32[],
+    ctime_low: u64[],
+    read_high: i32[],
+    read_low: u64[]
+}
+
+export type Snapshot = {
+    context: string,
+    fingerprint: string,
+    files: Files
+}
+
+export type Input = {
+    context: string,
+    current: Files,
+    previous: Snapshot,
+    now_high: i32,
+    now_low: u64,
+    stored_checksum: string,
+    actual_checksum: string
+}
+
+export type Cursor = {
+    current: Files,
+    previous: Files,
+    index: u64,
+    now_high: i32,
+    now_low: u64
+}

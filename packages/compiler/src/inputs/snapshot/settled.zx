@@ -1,0 +1,47 @@
+import { max_u64 } from "core/const"
+
+import { timestamp_fence } from "./const"
+
+import type { Cursor as Input } from "./model"
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const at = in.index
+    const high = in.current.ctime_high[at]
+    const low = in.current.ctime_low[at]
+    const read_high = in.previous.read_high[at]
+    const read_low = in.previous.read_low[at]
+
+    if (read_high > in.now_high) {
+        return false
+    }
+
+    if (read_high == in.now_high && read_low > in.now_low) {
+        return false
+    }
+
+    if (read_high < high) {
+        return false
+    }
+
+    if (read_high == high) {
+        if (read_low <= low) {
+            return false
+        }
+
+        return read_low - low > timestamp_fence
+    }
+
+    if (read_high != high + 1) {
+        return true
+    }
+
+    if (read_low > timestamp_fence) {
+        return true
+    }
+
+    const remaining = timestamp_fence - read_low
+
+    return max_u64 - low >= remaining
+}

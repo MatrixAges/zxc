@@ -30,13 +30,14 @@ fn lowerMode(self: *Lower, scope: ir.ScopeRow, layout: bool) Lower.Error!node.Ex
     const result_type = self.program.expression(scope.result).type_id;
     const local_root = layout and analysis.aggregate(self, result_type);
     const projected = self.state_active and self.value_output;
+    const scoped_locals = self.value_output or (self.entry_flags.scalar and !self.entry_flags.tasks);
 
     const scalar_entry = !layout and self.entry_flags.scalar and
         @import("types/scalar.zig").check(self.program.types, result_type);
 
     if ((local_root or projected) and self.projected_symbols == null) self.projected_symbols = try @import("value_call/projections.zig").symbols(self.allocator, self.program);
 
-    if (local_root or projected or scalar_entry or self.value_output) {
+    if (local_root or projected or scalar_entry or scoped_locals) {
         for (0..scope.bindings.len) |record_index| {
             const binding = scope.bindings.at(record_index);
 
@@ -45,8 +46,9 @@ fn lowerMode(self: *Lower, scope: ir.ScopeRow, layout: bool) Lower.Error!node.Ex
                 const snapshot = local_root and type_id == result_type;
                 const kind = self.program.typeOf(type_id);
                 const borrowed_tuple = binding.borrow and kind == .tuple;
+                const fresh_scalar = self.entry_flags.scalar and !self.entry_flags.tasks and self.program.expression(binding.value).value == .object;
 
-                const local_aggregate = self.value_output and (kind == .object or borrowed_tuple) and
+                const local_aggregate = (self.value_output or fresh_scalar) and (kind == .object or borrowed_tuple) and
                     type_id != result_type and
                     !value_analysis.containsDescendant(self.program, result_type, type_id) and
                     !value_analysis.containsDescendant(self.program, self.program.output_type, type_id);
