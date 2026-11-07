@@ -1,0 +1,41 @@
+import integers from "std:integer"
+
+import named from "../../../ast/expressions/named"
+import { ExpressionsKind } from "../../../printer/model/expressions"
+import name from "./name"
+
+import type { State, Node } from "./model"
+
+export type Input = {
+    state: State,
+    type_id: u32
+}
+
+export type Output = Node
+
+export default function (in: Input): Output {
+    const result = named({
+        ...in.state.expressions.pick([
+            "tags",
+            "offsets"
+        ]),
+        values: in.state.expressions.identifier,
+        base: in.state.source.expression_base,
+        kind: ExpressionsKind.Identifier,
+        name: name(in.state.plan.numbers[integers.widen(in.type_id)])
+    })
+
+    return {
+        id: result.id,
+        state: {
+            ...in.state,
+            valid: in.state.valid && result.valid,
+            expressions: {
+                ...in.state.expressions,
+                tags: result.tags,
+                offsets: result.offsets,
+                identifier: result.values
+            }
+        }
+    }
+}

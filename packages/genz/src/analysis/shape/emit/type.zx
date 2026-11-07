@@ -1,0 +1,105 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+import typeKind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import named from "../../../ast/expressions/named"
+import { ExpressionsKind } from "../../../printer/model/expressions"
+import { kind_name, child_name, fields_name } from "./const"
+import field from "./field"
+import kind from "./kind"
+import members from "./members"
+import object from "./object"
+import reference from "./reference"
+
+import type { State, Node } from "./model"
+
+export type Input = {
+    state: State,
+    type_id: u32
+}
+
+export type Output = Node
+
+export default function (in: Input): Output {
+    const literal = named({
+        ...in.state.expressions.pick([
+            "tags",
+            "offsets"
+        ]),
+        values: in.state.expressions.enum_literal,
+        base: in.state.source.expression_base,
+        kind: ExpressionsKind.EnumLiteral,
+        name: bytes.fromText(kind({
+            types: in.state.source.types,
+            type_id: in.type_id
+        }))
+    })
+
+    const state: State = {
+        ...in.state,
+        expressions: {
+            ...in.state.expressions,
+            tags: literal.tags,
+            offsets: literal.offsets,
+            enum_literal: literal.values
+        },
+        valid: in.state.valid && literal.valid
+    }
+
+    const index = integers.widen(in.type_id)
+
+    const child_name_value: string? =
+        match typeKind(in.state.source.types.kinds[index]) {
+            Kind.Optional => child_name,
+            Kind.List => child_name,
+            Kind.Object => fields_name,
+            Kind.Tuple => fields_name,
+            _ => null
+        }
+
+    if (child_name_value == null) {
+        const first = state.fields.name.length
+
+        return object({
+            state: field({
+                state,
+                name: bytes.fromText(kind_name),
+                value: literal.id
+            }),
+            first
+        })
+    }
+
+    const child = match typeKind(in.state.source.types.kinds[index]) {
+        Kind.Object => members({
+            state,
+            type_id: in.type_id
+        }),
+        Kind.Tuple => members({
+            state,
+            type_id: in.type_id
+        }),
+        _ => reference({
+            state,
+            type_id: in.state.source.types.first[index]
+        })
+    }
+
+    const first = child.state.fields.name.length
+
+    const tagged = field({
+        state: child.state,
+        name: bytes.fromText(kind_name),
+        value: literal.id
+    })
+
+    return object({
+        state: field({
+            state: tagged,
+            name: bytes.fromText(child_name_value),
+            value: child.id
+        }),
+        first
+    })
+}

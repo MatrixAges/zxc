@@ -1,0 +1,37 @@
+import bytes from "std:bytes"
+
+import { input_name, output_name } from "./const"
+import reference from "./reference"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const input = reference({
+        state: in,
+        type_id: in.source.input
+    })
+
+    const output = reference({
+        state: input.state,
+        type_id: in.source.output
+    })
+
+    return {
+        ...output.state,
+        declarations: output.state.declarations.push({
+            name: bytes.fromText(input_name),
+            type_expr: null,
+            value: input.id,
+            exported: true
+        })[0].push({
+            name: bytes.fromText(output_name),
+            type_expr: null,
+            value: output.id,
+            exported: true
+        })[0]
+    }
+}

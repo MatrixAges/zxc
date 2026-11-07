@@ -1,0 +1,48 @@
+<Module>
+    <Type from="model" as="Emit" />
+
+    <Args in={Emit.Input} out={Emit.Output} />
+
+    <Call
+        module="../plan"
+        in={{
+            ...$in.types.pick([
+                "kinds",
+                "first",
+                "second",
+                "children",
+                "field_types"
+            ]),
+            input: $in.input,
+            output: $in.output
+        }}
+    />
+
+    <Call
+        fn="initialize"
+        in={{
+            source: $in,
+            plan: $ctx.plan
+        }}
+    />
+
+    <Call fn="construct" in={$ctx.initialize} />
+    <Call fn="roots" in={$ctx.construct} />
+
+    <Call
+        fn="../../../ast/declarations/constants"
+        in={{
+            values: $ctx.roots.declarations,
+            base: $in.declaration_base
+        }}
+    />
+
+    <Return
+        value={{
+            expressions: $ctx.roots.expressions,
+            fields: $ctx.roots.fields,
+            declarations: $ctx.constants.table,
+            valid: $ctx.roots.valid && $ctx.constants.valid
+        }}
+    />
+</Module>

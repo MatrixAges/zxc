@@ -1,0 +1,36 @@
+import integers from "std:integer"
+import { scalar_string } from "core/type_table/const"
+import typeKind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import {
+    scalar_kind,
+    string_kind,
+    optional_kind,
+    list_kind,
+    object_kind,
+    native_reference_kind
+} from "./const"
+
+import type { Table } from "core/type_table/model"
+
+export type Input = {
+    types: Table,
+    type_id: u32
+}
+
+export type Output = string
+
+export default function (in: Input): Output {
+    const index = integers.widen(in.type_id)
+
+    return match typeKind(in.types.kinds[index]) {
+        Kind.Scalar => in.types.first[index] == scalar_string ? string_kind : scalar_kind,
+        Kind.Optional => optional_kind,
+        Kind.List => list_kind,
+        Kind.Object => object_kind,
+        Kind.Tuple => object_kind,
+        Kind.NativeReference => native_reference_kind,
+        _ => scalar_kind
+    }
+}

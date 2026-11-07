@@ -1,0 +1,40 @@
+import integers from "std:integer"
+
+import object from "../../../ast/expressions/object"
+
+import type { State, Node } from "./model"
+
+export type Input = {
+    state: State,
+    first: u64
+}
+
+export type Output = Node
+
+export default function (in: Input): Output {
+    const result = object({
+        table: in.state.expressions.pick([
+            "tags",
+            "offsets",
+            "object_type_expr",
+            "object_fields_start",
+            "object_fields_len"
+        ]),
+        base: in.state.source.expression_base,
+        type_expr: null,
+        start: integers.narrow(integers.widen(in.state.source.field_base) + in.first),
+        count: integers.narrow(in.state.fields.name.length - in.first)
+    })
+
+    return {
+        id: result.id,
+        state: {
+            ...in.state,
+            expressions: {
+                ...in.state.expressions,
+                ...result.table
+            },
+            valid: in.state.valid && result.valid
+        }
+    }
+}

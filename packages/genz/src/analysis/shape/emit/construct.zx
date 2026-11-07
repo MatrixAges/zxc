@@ -1,0 +1,46 @@
+import integers from "std:integer"
+import typeKind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import name from "./name"
+import typeShape from "./type"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    return loop({
+        state: in,
+        index: 0
+    }, {
+        while: current =>
+            current.state.valid && current.index < in.plan.type_ids.length,
+        next: current => {
+            const type_id = in.plan.type_ids[current.index]
+            const index = integers.widen(type_id)
+
+            if (typeKind(in.source.types.kinds[index]) != Kind.Task) {
+                const value = typeShape({
+                    state: current.state,
+                    type_id
+                })
+
+                current.state = {
+                    ...value.state,
+                    declarations: value.state.declarations.push({
+                        name: name(in.plan.numbers[index]),
+                        type_expr: null,
+                        value: value.id,
+                        exported: false
+                    })[0]
+                }
+            }
+
+            current.index += 1
+        },
+        return: current => current.state
+    })
+}

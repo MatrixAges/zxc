@@ -1,0 +1,56 @@
+import { ExpressionsKind } from "../../printer/model/expressions"
+import header from "./header"
+
+export type Columns = {
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    object_type_expr: u32?[],
+    object_fields_start: u32[],
+    object_fields_len: u32[]
+}
+
+export type Input = {
+    table: Columns,
+    base: u32,
+    type_expr?: u32,
+    start: u32,
+    count: u32
+}
+
+export type Output = {
+    table: Columns,
+    id: u32,
+    valid: bool
+}
+
+export default function (in: Input): Output {
+    const result = header({
+        ...in.table.pick([
+            "tags",
+            "offsets"
+        ]),
+        base: in.base,
+        kind: ExpressionsKind.Object,
+        offset: in.table.object_type_expr.length
+    })
+
+    if (!result.valid) {
+        return {
+            table: in.table,
+            id: result.id,
+            valid: false
+        }
+    }
+
+    return {
+        id: result.id,
+        valid: true,
+        table: {
+            tags: result.tags,
+            offsets: result.offsets,
+            object_type_expr: in.table.object_type_expr.push(in.type_expr)[0],
+            object_fields_start: in.table.object_fields_start.push(in.start)[0],
+            object_fields_len: in.table.object_fields_len.push(in.count)[0]
+        }
+    }
+}

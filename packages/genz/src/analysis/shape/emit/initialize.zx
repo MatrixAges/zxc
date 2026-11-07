@@ -1,0 +1,32 @@
+import type { Plan } from "../model"
+import type { Input as Source, State } from "./model"
+
+export type Input = {
+    source: Source,
+    plan: Plan
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    return {
+        ...in,
+        expressions: {
+            tags: [],
+            offsets: [],
+            identifier: [],
+            enum_literal: [],
+            object_type_expr: [],
+            object_fields_start: [],
+            object_fields_len: []
+        },
+        fields: {
+            name: [],
+            value: [],
+            default_value: [],
+            comptime_parameter: []
+        },
+        declarations: [],
+        valid: true
+    }
+}

@@ -1,0 +1,45 @@
+import type { Table } from "core/type_table/model"
+import type { Constant, Columns as Declarations } from "../../../ast/declarations/model"
+import type { Columns as Fields } from "../../../ast/fields/model"
+import type { ExpressionsKind } from "../../../printer/model/expressions"
+import type { Plan } from "../model"
+
+export type Input = {
+    types: Table,
+    input: u32,
+    output: u32,
+    expression_base: u32,
+    field_base: u32,
+    declaration_base: u32
+}
+
+export type Expressions = {
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    identifier: u8[][],
+    enum_literal: u8[][],
+    object_type_expr: u32?[],
+    object_fields_start: u32[],
+    object_fields_len: u32[]
+}
+
+export type State = {
+    source: Input,
+    plan: Plan,
+    expressions: Expressions,
+    fields: Fields,
+    declarations: Constant[],
+    valid: bool
+}
+
+export type Node = {
+    state: State,
+    id: u32
+}
+
+export type Output = {
+    expressions: Expressions,
+    fields: Fields,
+    declarations: Declarations,
+    valid: bool
+}

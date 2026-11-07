@@ -1,0 +1,66 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+import typeKind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import integer from "../../../printer/text/integer"
+import field from "./field"
+import object from "./object"
+import reference from "./reference"
+
+import type { State, Node } from "./model"
+
+export type Input = {
+    state: State,
+    type_id: u32
+}
+
+export type Output = Node
+
+export default function (in: Input): Output {
+    const types = in.state.source.types
+    const index = integers.widen(in.type_id)
+    const first = integers.widen(types.first[index])
+    const end = first + integers.widen(types.second[index])
+    const object_type = typeKind(types.kinds[index]) == Kind.Object
+    const field_first = in.state.fields.name.length
+
+    const state = loop({
+        state: in.state,
+        index: first
+    }, {
+        while: current => current.state.valid && current.index < end,
+        next: current => {
+            const child = match object_type {
+                true => types.field_types[current.index],
+                _ => types.children[current.index]
+            }
+
+            const value = reference({
+                state: current.state,
+                type_id: child
+            })
+
+            const name = match object_type {
+                true => bytes.fromText(types.field_names[current.index]),
+                _ => integer({
+                    output: [],
+                    value: current.index - first
+                })
+            }
+
+            current.state = field({
+                state: value.state,
+                name,
+                value: value.id
+            })
+            current.index += 1
+        },
+        return: current => current.state
+    })
+
+    return object({
+        state,
+        first: field_first
+    })
+}
