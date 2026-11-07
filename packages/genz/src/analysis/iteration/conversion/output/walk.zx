@@ -1,0 +1,21 @@
+import advance from "./advance"
+
+import type { Input as Source, State } from "./model"
+
+export type Input = {
+    source: Source,
+    state: State
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    return loop(in.state, {
+        while: state => state.emitted.index < in.source.source.plan.events.length,
+        next: state => { state = advance({
+            source: in.source,
+            state
+        }) },
+        return: state => state
+    })
+}

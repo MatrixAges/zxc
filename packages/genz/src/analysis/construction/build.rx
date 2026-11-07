@@ -5,23 +5,9 @@
 
     <Call fn="initialize" in={$in} />
 
-    <If on={$in.mode == Construction.Mode.Heap}>
-        <Call fn="heap" in={$ctx.initialize} />
-        <Call fn="publish" in={$ctx.heap} />
+    <Call module="apply" in={$ctx.initialize} />
 
-        <Return value={$ctx.publish} />
-    </If>
-
-    <Call fn="value" in={$ctx.initialize} />
-
-    <If on={$in.mode == Construction.Mode.Reference}>
-        <Call fn="reference" in={$ctx.value} />
-        <Call fn="publish" in={$ctx.reference} />
-
-        <Return value={$ctx.publish} />
-    </If>
-
-    <Call fn="publish" in={$ctx.value} />
+    <Call fn="publish" in={$ctx.apply} />
 
     <Return value={$ctx.publish} />
 </Module>

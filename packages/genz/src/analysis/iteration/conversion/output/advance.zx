@@ -1,0 +1,64 @@
+import integers from "std:integer"
+
+import aggregate from "../emit/aggregate"
+import enter from "../emit/enter"
+import optional from "../emit/optional"
+import { Operation } from "../model"
+import construct from "./construct"
+
+import type { Step } from "../emit/model"
+import type { Input as Source, State } from "./model"
+
+export type Input = {
+    source: Source,
+    state: State
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const source = in.source.source
+    const state = in.state.emitted
+    const node = integers.widen(source.plan.events[state.index])
+
+    const step: Step = {
+        source,
+        state,
+        node
+    }
+
+    const kind = source.plan.kinds[node]
+    const is_object = kind == Operation.Object
+    const is_tuple = kind == Operation.Tuple
+    const entering = source.plan.entering[state.index]
+
+    const emitted = match {
+        entering => enter(step),
+        kind == Operation.Optional => optional(step),
+        is_object || is_tuple => aggregate(step),
+        _ => state
+    }
+
+    const result = match {
+        !entering && (is_object || is_tuple) => construct({
+            source: in.source,
+            state: {
+                ...in.state,
+                emitted
+            },
+            node
+        }),
+        _ => {
+            ...in.state,
+            emitted
+        }
+    }
+
+    return {
+        ...result,
+        emitted: {
+            ...result.emitted,
+            index: result.emitted.index + 1
+        }
+    }
+}

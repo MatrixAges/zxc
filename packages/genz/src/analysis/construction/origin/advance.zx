@@ -11,27 +11,49 @@ import type { Step as Input, Walk as Output } from "./model"
 export default function (in: Input): Output {
     const state = in.state
     const frame = state.depth - 1
-    const id = integers.widen(state.ids[frame])
-    const payload = integers.widen(in.source.table.offsets[id])
-    const kind = in.source.table.tags[id]
+    const raw = state.ids[frame]
+    const generated = raw >= state.context.source.expression_base
+
+    const id = integers.widen(
+        match {
+            generated => raw - state.context.source.expression_base,
+            _ => raw
+        }
+    )
+
+    const payload = integers.widen(
+        match {
+            generated => state.context.expressions.offsets[id],
+            _ => in.source.table.offsets[id]
+        }
+    )
+
+    const kind = match {
+        generated => state.context.expressions.tags[id],
+        _ => in.source.table.tags[id]
+    }
 
     if (kind != ExpressionsKind.Conditional) {
-        if (
-            kind == ExpressionsKind.Tuple &&
-                in.source.table.tuple[payload].length == in.source.arity
-        ) {
-            const absent = nullValue(state.context)
+        if (kind == ExpressionsKind.Tuple) {
+            const values = match {
+                generated => state.context.forms.tuple[payload],
+                _ => in.source.table.tuple[payload]
+            }
 
-            const value = tuple({
-                state: absent.state,
-                values: in.source.table.tuple[payload].push(absent.id)[0]
-            })
+            if (values.length == in.source.arity) {
+                const absent = nullValue(state.context)
 
-            return {
-                ...state,
-                context: value.state,
-                result: value.id,
-                depth: frame
+                const value = tuple({
+                    state: absent.state,
+                    values: values.push(absent.id)[0]
+                })
+
+                return {
+                    ...state,
+                    context: value.state,
+                    result: value.id,
+                    depth: frame
+                }
             }
         }
 
@@ -47,11 +69,20 @@ export default function (in: Input): Output {
     if (phase == Phase.AfterNo) {
         const value = conditional({
             state: state.context,
-            condition: in.source.table.conditional_condition[payload],
+            condition: match {
+                generated => state.context.forms.conditional_condition[payload],
+                _ => in.source.table.conditional_condition[payload]
+            },
             yes: state.yes[frame],
             no: state.result,
-            capture: in.source.table.conditional_capture[payload],
-            error_capture: in.source.table.conditional_error_capture[payload]
+            capture: match {
+                generated => state.context.forms.conditional_capture[payload],
+                _ => in.source.table.conditional_capture[payload]
+            },
+            error_capture: match {
+                generated => state.context.forms.conditional_error_capture[payload],
+                _ => in.source.table.conditional_error_capture[payload]
+            }
         })
 
         return {
@@ -63,8 +94,14 @@ export default function (in: Input): Output {
     }
 
     const child = match phase {
-        Phase.Enter => in.source.table.conditional_yes[payload],
-        _ => in.source.table.conditional_no[payload]
+        Phase.Enter => match {
+            generated => state.context.forms.conditional_yes[payload],
+            _ => in.source.table.conditional_yes[payload]
+        },
+        _ => match {
+            generated => state.context.forms.conditional_no[payload],
+            _ => in.source.table.conditional_no[payload]
+        }
     }
 
     const yes = match phase {

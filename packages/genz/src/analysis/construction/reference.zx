@@ -44,7 +44,11 @@ export default function (in: Input): Output {
     return {
         ...in,
         context: value.state,
-        storage: storage.storage,
+        storage: {
+            ...in.storage,
+            tags: in.storage.tags.concat(storage.storage.tags)[0],
+            offsets: in.storage.offsets.concat(storage.storage.offsets)[0]
+        },
         root: value.id
     }
 }

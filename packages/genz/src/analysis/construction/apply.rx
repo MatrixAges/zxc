@@ -1,0 +1,21 @@
+<Module>
+    <Type from="model" as="Construction" />
+
+    <Args in={Construction.State} out={Construction.State} />
+
+    <If on={$in.source.mode == Construction.Mode.Heap}>
+        <Call fn="heap" in={$in} />
+
+        <Return value={$ctx.heap} />
+    </If>
+
+    <Call fn="value" in={$in} />
+
+    <If on={$in.source.mode == Construction.Mode.Reference}>
+        <Call fn="reference" in={$ctx.value} />
+
+        <Return value={$ctx.reference} />
+    </If>
+
+    <Return value={$ctx.value} />
+</Module>

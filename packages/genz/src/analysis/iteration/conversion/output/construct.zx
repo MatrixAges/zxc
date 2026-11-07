@@ -1,0 +1,47 @@
+import construct from "../../../construction/apply.rx"
+import { Operation } from "../model"
+
+import type { State as Construction } from "../../../construction/model"
+import type { Step as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const source = in.source.source
+    const state = in.state.emitted
+    const root = state.nodes[in.node].result
+
+    const input: Construction = {
+        source: {
+            mode: in.source.modes[in.node],
+            ast: in.source.ast,
+            value: root,
+            layout: source.layouts[in.node],
+            type_expr: in.source.type_exprs[in.node],
+            storage_layout: in.source.storage_layouts[in.node],
+            is_tuple: source.plan.kinds[in.node] == Operation.Tuple,
+            arity: source.plan.count[in.node],
+            capture: source.capture,
+            expression_base: source.expression_base,
+            statement_base: source.statement_base,
+            serial: state.context.serial
+        },
+        context: state.context,
+        storage: in.state.storage,
+        root,
+        uses_allocator: state.uses_allocator
+    }
+
+    const result = construct(input)
+
+    return {
+        emitted: {
+            ...state,
+            context: result.context,
+            uses_allocator: result.uses_allocator,
+            nodes: state.nodes.with(in.node, {
+                ...state.nodes[in.node],
+                result: result.root
+            })
+        },
+        storage: result.storage
+    }
+}

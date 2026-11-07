@@ -1,0 +1,31 @@
+import type { Columns as Statements } from "../../../../ast/statements/model"
+import type { Mode, Ast } from "../../../construction/model"
+import type {
+    Input as Conversion,
+    State as Emission,
+    Output as Result
+} from "../emit/model"
+
+export type Input = {
+    source: Conversion,
+    modes: Mode[],
+    ast: Ast,
+    type_exprs: u32[],
+    storage_layouts: u32[]
+}
+
+export type State = {
+    emitted: Emission,
+    storage: Statements
+}
+
+export type Step = {
+    source: Input,
+    state: State,
+    node: u64
+}
+
+export type Output = {
+    result: Result,
+    storage: Statements
+}
