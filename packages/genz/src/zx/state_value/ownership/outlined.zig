@@ -16,18 +16,24 @@ pub fn append(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId,
     const type_expr = try @import("../../types.zig").get(self, self.state_types, type_id);
     const base = if (self.type_names) |names| names[@backingInt(type_id)] else try std.fmt.allocPrint(self.allocator, "zx_type_{d}", .{@backingInt(type_id)});
     const state_name = try self.state_plan.name(self.allocator, type_id, base);
-    var hash = zx.Sha256.init(.{});
 
-    hash.update(state_name);
-    hash.update(&.{0});
+    const name = if (@import("genz_options").generated_analysis)
+        try @import("naming.zig").build(self, state_name, id, type_id, slot)
 
-    for (0..ownership.count(self, type_id)) |index| hash.update(&.{@intFromBool(ownership.eligible(self, id, slot + @as(u32, @intCast(index))))});
+    else seed: {
+        var hash = zx.Sha256.init(.{});
 
-    var digest: [32]u8 = undefined;
+        hash.update(state_name);
+        hash.update(&.{0});
 
-    hash.final(&digest);
+        for (0..ownership.count(self, type_id)) |index| hash.update(&.{@intFromBool(ownership.eligible(self, id, slot + @as(u32, @intCast(index))))});
 
-    const name = try std.fmt.allocPrint(self.allocator, "zx_weaken_{s}", .{std.fmt.bytesToHex(digest, .lower)});
+        var digest: [32]u8 = undefined;
+
+        hash.final(&digest);
+
+        break :seed try std.fmt.allocPrint(self.allocator, "zx_weaken_{s}", .{std.fmt.bytesToHex(digest, .lower)});
+    };
 
     const present = for (self.task_declarations.items) |declaration| {
         if (declaration == .function and std.mem.eql(u8, declaration.function.name, name)) break true;

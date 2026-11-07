@@ -1,5 +1,6 @@
 const std = @import("std");
 const hash = @import("hash.zig");
+const sha256_state = @import("sha256_state.zig");
 const kdf = @import("kdf.zig");
 const aead = @import("aead.zig");
 const Sha256 = kdf.Module(std.crypto.auth.hmac.sha2.HmacSha256);
@@ -9,6 +10,9 @@ const Aes256 = aead.Module(std.crypto.aead.aes_gcm.Aes256Gcm, (1 << 36) - 32);
 const ChaCha = aead.Module(std.crypto.aead.chacha_poly.ChaCha20Poly1305, (1 << 38) - 64);
 pub const sha256 = hash.sha256;
 pub const sha256Parts = hash.sha256Parts;
+pub const updateSha256 = sha256_state.update;
+pub const updateSha256Byte = sha256_state.updateByte;
+pub const digestSha256 = sha256_state.digest;
 pub const sha512 = hash.sha512;
 pub const hmacSha256 = Sha256.hmac;
 pub const hmacSha512 = Sha512.hmac;

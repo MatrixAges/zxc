@@ -1,0 +1,13 @@
+import crypto from "std:crypto"
+
+import { helper_separator } from "../../const"
+
+import type { Sha256State as Output } from "std:crypto"
+import type { Seed as Input } from "./model"
+
+export default function (in: Input): Output {
+    crypto.updateSha256(in.hash, in.state_name)
+    crypto.updateSha256Byte(in.hash, helper_separator)
+
+    return in.hash
+}

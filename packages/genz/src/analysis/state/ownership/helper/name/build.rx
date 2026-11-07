@@ -1,0 +1,28 @@
+<Module>
+    <Type from="model" as="Name" />
+
+    <Args in={Name.Input} out={Name.Output} />
+
+    <Call
+        fn="seed"
+        in={$in.pick([
+            "hash",
+            "state_name"
+        ])}
+    />
+
+    <Call
+        fn="slots"
+        in={{
+            hash: $ctx.seed,
+            ...$in.pick([
+                "source",
+                "count"
+            ])
+        }}
+    />
+
+    <Call fn="format" in={$ctx.slots} />
+
+    <Return value={$ctx.format} />
+</Module>

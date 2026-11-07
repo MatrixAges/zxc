@@ -1,0 +1,30 @@
+import crypto from "std:crypto"
+
+import { transferable_slot, shared_slot } from "../../const"
+import eligible from "../../eligible"
+
+import type { Sha256State as Output } from "std:crypto"
+import type { Slots as Input } from "./model"
+
+export default function (in: Input): Output {
+    const initial: u32 = 0
+
+    return loop({
+        index: initial
+    }, {
+        while: current => current.index < in.count,
+        next: current => {
+            const selected = eligible({
+                ...in.source,
+                slot: in.source.slot + current.index
+            })
+
+            const value = selected ? transferable_slot : shared_slot
+
+            crypto.updateSha256Byte(in.hash, value)
+
+            current.index += 1
+        },
+        return: current => in.hash
+    })
+}
