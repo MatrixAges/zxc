@@ -15,8 +15,10 @@ import {
 import type { State as Input, State as Output } from "./model"
 
 export default function (in: Input): Output {
+    const { source, context } = in
+
     const name = bytes.fromText(
-        match in.source.operation {
+        match source.operation {
             Operation.Reserve => reserve_name,
             Operation.Bounded => bounded_name,
             Operation.Copy => allocate_name,
@@ -25,9 +27,9 @@ export default function (in: Input): Output {
         }
     )
 
-    if (in.source.shared) {
+    if (source.shared) {
         const owner = identifier({
-            state: in.context,
+            state: context,
             name: bytes.fromText(abi_binding)
         })
 
@@ -45,7 +47,7 @@ export default function (in: Input): Output {
     }
 
     const target = identifier({
-        state: in.context,
+        state: context,
         name
     })
 
