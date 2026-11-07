@@ -1,0 +1,35 @@
+import { Operation } from "../model"
+import field from "./field"
+import index from "./index"
+import length from "./length"
+
+import type { Step as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const position = in.state.index
+
+    const prepared = {
+        ...in,
+        state: {
+            ...in.state,
+            context: {
+                ...in.state.context,
+                serial: in.source.serials[position]
+            }
+        }
+    }
+
+    const result = match in.source.plan.operations[position] {
+        Operation.Field => field(prepared),
+        Operation.Index => index(prepared),
+        _ => length(prepared)
+    }
+
+    const expected = in.source.serials[position] + in.source.plan.fresh[position]
+
+    return {
+        ...result,
+        index: position + 1,
+        valid: result.valid && result.context.serial == expected
+    }
+}

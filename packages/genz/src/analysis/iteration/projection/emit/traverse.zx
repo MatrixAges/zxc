@@ -1,0 +1,13 @@
+import step from "./step"
+
+import type { Step as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    return loop(in.state, {
+        while: state => state.valid && state.index < in.source.plan.operations.length,
+        next: state => { state = step({
+            source: in.source,
+            state
+        }) }
+    })
+}

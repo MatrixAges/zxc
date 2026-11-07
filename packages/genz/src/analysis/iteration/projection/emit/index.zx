@@ -1,0 +1,44 @@
+import failure from "../../../intrinsics/guard/failure"
+import check from "../../../intrinsics/index/check"
+import complete from "../../../intrinsics/index/complete"
+import operands from "../../../intrinsics/index/operands"
+import project from "../../../intrinsics/index/value"
+import items from "./items"
+
+import type { Step as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const index = in.state.index
+
+    const source = items({
+        context: in.state.context,
+        value: in.state.value,
+        buffered: in.source.plan.buffered[index]
+    })
+
+    const bound = operands({
+        context: source.state,
+        values: source.id,
+        position: in.source.prepared[index]
+    })
+
+    const checked = check(bound)
+
+    const failed = failure({
+        context: checked.context,
+        name: checked.error_name
+    })
+
+    const projected = project({
+        state: checked,
+        failure: failed
+    })
+
+    const value = complete(projected)
+
+    return {
+        ...in.state,
+        context: value.state,
+        value: value.id
+    }
+}

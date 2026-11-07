@@ -1,0 +1,93 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import integer from "../../../../printer/text/integer"
+import { fresh_name_count } from "../../../intrinsics/index/const"
+import { Operation, Requirement } from "../model"
+
+import type { Input as Source, Row as Output } from "../model"
+
+export type Input = {
+    source: Source,
+    id: u32
+}
+
+export default function (in: Input): Output {
+    const source = in.source
+    const id = integers.widen(in.id)
+    const expression_kind = source.table.kinds[id]
+    const payload = integers.widen(source.table.payloads[id])
+    const type_id = source.table.types[id]
+
+    if (
+        expression_kind == ExpressionKind.Field ||
+            expression_kind == ExpressionKind.TupleField
+    ) {
+        const parent = integers.widen(source.table.projection_targets[payload])
+        const parent_type = integers.widen(source.table.types[parent])
+        const member = integers.widen(source.table.projection_indices[payload])
+
+        const name = match expression_kind {
+            ExpressionKind.Field => bytes.fromText(
+                source.types
+                    .field_names[
+                        integers.widen(
+                            source.types.first[parent_type]
+                        ) + member
+                    ]
+            ),
+            _ => integer({
+                output: [],
+                value: member
+            })
+        }
+
+        const buffered = source.inline_lists && kind(
+            source.types.kinds[
+                integers.widen(type_id)
+            ]
+        ) == Kind.List
+
+        return {
+            operation: Operation.Field,
+            requirement: buffered ? Requirement.IterationType : Requirement.None,
+            value: type_id,
+            name,
+            buffered,
+            fresh: 0
+        }
+    }
+
+    const parent = match expression_kind {
+        ExpressionKind.Index => source.table.index_targets[payload],
+        _ => source.table.lengths[payload]
+    }
+
+    const parent_type = integers.widen(source.table.types[integers.widen(parent)])
+
+    const buffered =
+        source.inline_lists && kind(source.types.kinds[parent_type]) == Kind.List
+
+    if (expression_kind == ExpressionKind.Index) {
+        return {
+            operation: Operation.Index,
+            requirement: Requirement.Expression,
+            value: source.table.index_values[payload],
+            name: [],
+            buffered,
+            fresh: fresh_name_count
+        }
+    }
+
+    return {
+        operation: Operation.Length,
+        requirement: Requirement.NativeType,
+        value: type_id,
+        name: [],
+        buffered,
+        fresh: 0
+    }
+}

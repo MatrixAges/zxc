@@ -1,0 +1,17 @@
+<Module>
+    <Type from="model" as="Projection" />
+
+    <Args in={Projection.Input} out={Projection.Plan} />
+
+    <Call fn="plan/chain" in={$in} />
+
+    <Call
+        fn="plan/build"
+        in={{
+            source: $in,
+            chain: $ctx.chain
+        }}
+    />
+
+    <Return value={$ctx.build} />
+</Module>

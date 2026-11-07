@@ -1,0 +1,46 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import type { Input, Chain as Output } from "../model"
+
+export default function (in: Input): Output {
+    const nodes: u32[] = []
+
+    return loop({
+        id: in.root,
+        nodes,
+        active: true,
+        valid: true
+    }, {
+        while: state => state.active,
+        next: state => {
+            const id = integers.widen(state.id)
+            const kind = in.table.kinds[id]
+            const payload = integers.widen(in.table.payloads[id])
+
+            if (kind == ExpressionKind.Reference) {
+                state.valid = in.table.references[payload] == in.symbol
+                state.active = false
+            } else {
+                state.nodes = state.nodes.push(state.id)[0]
+
+                if (
+                    kind == ExpressionKind.Field || kind == ExpressionKind.TupleField
+                ) {
+                    state.id = in.table.projection_targets[payload]
+                } else if (kind == ExpressionKind.Index) {
+                    state.id = in.table.index_targets[payload]
+                } else if (kind == ExpressionKind.Length) {
+                    state.id = in.table.lengths[payload]
+                } else {
+                    state.active = false
+                    state.valid = false
+                }
+            }
+        },
+        return: state => ({
+            nodes: state.nodes,
+            valid: state.valid
+        })
+    })
+}

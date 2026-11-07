@@ -1,0 +1,46 @@
+import row from "./row"
+
+import type { Input as Source, Chain, Plan as Output } from "../model"
+
+export type Input = {
+    source: Source,
+    chain: Chain
+}
+
+export default function (in: Input): Output {
+    const plan: Output = {
+        operations: [],
+        requirements: [],
+        values: [],
+        names: [],
+        buffered: [],
+        fresh: [],
+        valid: in.chain.valid
+    }
+
+    return loop({
+        plan,
+        remaining: in.chain.nodes.length
+    }, {
+        while: state => state.plan.valid && state.remaining != 0,
+        next: state => {
+            state.remaining -= 1
+
+            const item = row({
+                source: in.source,
+                id: in.chain.nodes[state.remaining]
+            })
+
+            state.plan = {
+                operations: state.plan.operations.push(item.operation)[0],
+                requirements: state.plan.requirements.push(item.requirement)[0],
+                values: state.plan.values.push(item.value)[0],
+                names: state.plan.names.push(item.name)[0],
+                buffered: state.plan.buffered.push(item.buffered)[0],
+                fresh: state.plan.fresh.push(item.fresh)[0],
+                valid: state.plan.valid
+            }
+        },
+        return: state => state.plan
+    })
+}

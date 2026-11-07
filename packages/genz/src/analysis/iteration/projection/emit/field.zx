@@ -1,0 +1,64 @@
+import integers from "std:integer"
+
+import field from "../../../../ast/context/field"
+import object from "../../../../ast/context/object"
+import fields from "../../buffer/fields"
+import project from "../../buffer/redirect/fields"
+import select from "../../buffer/redirect/select"
+
+import type { Step as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const index = in.state.index
+
+    const projected = field({
+        state: in.state.context,
+        target: in.state.value,
+        name: in.source.plan.names[index]
+    })
+
+    if (!in.source.plan.buffered[index]) {
+        return {
+            ...in.state,
+            context: projected.state,
+            value: projected.id
+        }
+    }
+
+    const prepared = project({
+        context: projected.state,
+        source: {
+            type_id: in.source.plan.values[index],
+            layout: in.source.prepared[index],
+            value: projected.id,
+            history: in.source.history,
+            expression_base: in.source.expression_base,
+            field_base: in.source.field_base
+        }
+    })
+
+    const selected = select({
+        ...prepared,
+        limit: in.source.history_count[index]
+    })
+
+    const values = fields(selected.pick([
+        "owner",
+        "items",
+        "owned"
+    ]))
+
+    const value = object({
+        state: selected.context,
+        type_expr: in.source.prepared[index],
+        first: in.source.field_base + integers.narrow(in.state.fields.length),
+        count: integers.narrow(values.length)
+    })
+
+    return {
+        ...in.state,
+        context: value.state,
+        value: value.id,
+        fields: in.state.fields.concat(values)[0]
+    }
+}

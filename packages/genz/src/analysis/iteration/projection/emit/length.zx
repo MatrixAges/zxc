@@ -1,0 +1,40 @@
+import bytes from "std:bytes"
+
+import builtin from "../../../../ast/context/builtin"
+import field from "../../../../ast/context/field"
+import { ExpressionsBuiltinName } from "../../../../printer/model/expressions"
+import { length_member } from "../../../intrinsics/index/const"
+import items from "./items"
+
+import type { Step as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const index = in.state.index
+
+    const source = items({
+        context: in.state.context,
+        value: in.state.value,
+        buffered: in.source.plan.buffered[index]
+    })
+
+    const length = field({
+        state: source.state,
+        target: source.id,
+        name: bytes.fromText(length_member)
+    })
+
+    const value = builtin({
+        state: length.state,
+        name: ExpressionsBuiltinName.As,
+        arguments: [
+            in.source.prepared[index],
+            length.id
+        ]
+    })
+
+    return {
+        ...in.state,
+        context: value.state,
+        value: value.id
+    }
+}

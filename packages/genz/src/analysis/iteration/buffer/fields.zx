@@ -1,0 +1,36 @@
+import bytes from "std:bytes"
+
+import { owner_field, items_field, owned_field } from "../types/const"
+
+import type { Field } from "../../types/definitions/model"
+
+export type Input = {
+    owner: u32,
+    items: u32,
+    owned: u32
+}
+
+export type Output = Field[]
+
+export default function (in: Input): Output {
+    return [
+        {
+            name: bytes.fromText(owner_field),
+            value: in.owner,
+            default_value: null,
+            comptime_parameter: false
+        },
+        {
+            name: bytes.fromText(items_field),
+            value: in.items,
+            default_value: null,
+            comptime_parameter: false
+        },
+        {
+            name: bytes.fromText(owned_field),
+            value: in.owned,
+            default_value: null,
+            comptime_parameter: false
+        }
+    ]
+}

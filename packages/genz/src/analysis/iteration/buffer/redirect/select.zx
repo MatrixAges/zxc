@@ -9,7 +9,7 @@ export default function (in: Input): Output {
         value: in,
         index: 0
     }, {
-        while: current => current.index < in.source.history.types.length,
+        while: current => current.index < in.limit,
         next: current => {
             const index = current.index
 

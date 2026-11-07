@@ -1,52 +1,9 @@
-import binding from "../../../ast/context/binding"
-import block from "../../../ast/context/block"
-import { block_prefix } from "../../../ast/context/const"
-import fresh from "../../../ast/fresh"
-import branch from "../../../ast/statements/branch"
+import complete from "./complete"
 
 import type { State as Input, Output } from "./model"
 
 export default function (in: Input): Output {
-    const first = in.context.statements.tags.length
-
-    const values = binding({
-        state: in.context,
-        name: in.values_name,
-        value: in.source.values
-    })
-
-    const position = binding({
-        state: values,
-        name: in.position_name,
-        value: in.source.position
-    })
-
-    const checked = branch({
-        table: position.statements,
-        base: position.source.statement_base,
-        condition: in.condition,
-        yes_start: in.failure_first,
-        yes_count: in.failure_count,
-        no_start: 0,
-        no_count: 0
-    })
-
-    const label = fresh({
-        serial: position.serial,
-        prefix: block_prefix
-    })
-
-    const value = block({
-        state: {
-            ...position,
-            statements: checked.table,
-            serial: label.serial,
-            valid: position.valid && checked.valid
-        },
-        label: label.name,
-        first,
-        value: in.root
-    })
+    const value = complete(in)
 
     return {
         expressions: value.state.expressions,

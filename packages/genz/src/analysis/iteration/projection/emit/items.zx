@@ -1,0 +1,27 @@
+import bytes from "std:bytes"
+
+import field from "../../../../ast/context/field"
+import { items_field } from "../../types/const"
+
+import type { State, Node as Output } from "../../../../ast/context/model"
+
+export type Input = {
+    context: State,
+    value: u32,
+    buffered: bool
+}
+
+export default function (in: Input): Output {
+    if (!in.buffered) {
+        return {
+            state: in.context,
+            id: in.value
+        }
+    }
+
+    return field({
+        state: in.context,
+        target: in.value,
+        name: bytes.fromText(items_field)
+    })
+}

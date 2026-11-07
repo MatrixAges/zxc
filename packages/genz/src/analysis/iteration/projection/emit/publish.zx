@@ -1,0 +1,19 @@
+import type { State, Output } from "../model"
+
+export type Input = {
+    state: State,
+    serial: u64
+}
+
+export default function (in: Input): Output {
+    return {
+        expressions: in.state.context.expressions,
+        forms: in.state.context.forms,
+        statements: in.state.context.statements,
+        fields: in.state.fields,
+        root: in.state.value,
+        serial: in.serial,
+        valid: in.state.valid && in.state.context.valid &&
+            in.state.context.serial == in.serial
+    }
+}

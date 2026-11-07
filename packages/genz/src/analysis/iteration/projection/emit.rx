@@ -1,0 +1,25 @@
+<Module>
+    <Type from="model" as="Projection" />
+
+    <Args in={Projection.Emit} out={Projection.Output} />
+
+    <Call fn="emit/initialize" in={$in} />
+
+    <Call
+        fn="emit/traverse"
+        in={{
+            source: $in,
+            state: $ctx.initialize
+        }}
+    />
+
+    <Call
+        fn="emit/publish"
+        in={{
+            state: $ctx.traverse,
+            serial: $in.serial
+        }}
+    />
+
+    <Return value={$ctx.publish} />
+</Module>

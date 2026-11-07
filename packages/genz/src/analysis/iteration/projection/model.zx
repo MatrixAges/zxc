@@ -1,0 +1,82 @@
+import type { Expressions } from "core/expression_table/model"
+import type { Table } from "core/type_table/model"
+import type { State as Context } from "../../../ast/context/model"
+import type { Capture } from "../../../ast/expressions/fallible"
+import type { Columns as Forms } from "../../../ast/expressions/forms/model"
+import type { Columns as AstExpressions } from "../../../ast/expressions/model"
+import type { Columns as Statements } from "../../../ast/statements/model"
+import type { Field } from "../../types/definitions/model"
+import type { State as History } from "../transfer/history/model"
+
+export enum Operation { Field, Index, Length }
+
+export enum Requirement { None, IterationType, Expression, NativeType }
+
+export type Input = {
+    types: Table,
+    table: Expressions,
+    root: u32,
+    symbol: u32,
+    inline_lists: bool
+}
+
+export type Chain = {
+    nodes: u32[],
+    valid: bool
+}
+
+export type Row = {
+    operation: Operation,
+    requirement: Requirement,
+    value: u32,
+    name: u8[],
+    buffered: bool,
+    fresh: u64
+}
+
+export type Plan = {
+    operations: Operation[],
+    requirements: Requirement[],
+    values: u32[],
+    names: u8[][],
+    buffered: bool[],
+    fresh: u64[],
+    valid: bool
+}
+
+export type Emit = {
+    plan: Plan,
+    prepared: u32[],
+    serials: u64[],
+    history_count: u64[],
+    history: History,
+    value: u32,
+    capture?: Capture,
+    expression_base: u32,
+    statement_base: u32,
+    field_base: u32,
+    serial: u64
+}
+
+export type State = {
+    context: Context,
+    fields: Field[],
+    value: u32,
+    index: u64,
+    valid: bool
+}
+
+export type Step = {
+    source: Emit,
+    state: State
+}
+
+export type Output = {
+    expressions: AstExpressions,
+    forms: Forms,
+    statements: Statements,
+    fields: Field[],
+    root: u32,
+    serial: u64,
+    valid: bool
+}

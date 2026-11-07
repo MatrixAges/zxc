@@ -1,8 +1,5 @@
-import bytes from "std:bytes"
-
-import field from "../../../../ast/context/field"
 import initialize from "../../../../ast/context/initialize"
-import { owner_field, items_field, owned_field } from "../../types/const"
+import fields from "./fields"
 
 import type { Redirect as Input, Redirected as Output } from "../model"
 
@@ -15,29 +12,8 @@ export default function (in: Input): Output {
         serial: 0
     })
 
-    const owner = field({
-        state: context,
-        target: in.value,
-        name: bytes.fromText(owner_field)
-    })
-
-    const items = field({
-        state: owner.state,
-        target: in.value,
-        name: bytes.fromText(items_field)
-    })
-
-    const owned = field({
-        state: items.state,
-        target: in.value,
-        name: bytes.fromText(owned_field)
-    })
-
-    return {
+    return fields({
         source: in,
-        context: owned.state,
-        owner: owner.id,
-        items: items.id,
-        owned: owned.id
-    }
+        context
+    })
 }
