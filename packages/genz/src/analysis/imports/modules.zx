@@ -1,0 +1,25 @@
+import module from "./module"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    return loop({
+        state: in,
+        position: 0
+    }, {
+        while: current => current.state.context.valid &&
+            current.position < in.source.modules.length,
+        next: current => {
+            current.state = module({
+                state: current.state,
+                position: current.position
+            })
+            current.position += 1
+        },
+        return: current => current.state
+    })
+}

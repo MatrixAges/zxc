@@ -1,0 +1,38 @@
+import integers from "std:integer"
+
+import probe from "./probe"
+
+import type { Index } from "./model"
+
+export type Input = {
+    index: Index,
+    key: u8[],
+    value: u32
+}
+
+export type Output = Index
+
+export default function (in: Input): Output {
+    const slot = probe(in.pick([
+        "index",
+        "key"
+    ]))
+
+    const previous = in.index.buckets[slot]
+
+    if (previous != null) {
+        return {
+            ...in.index,
+            values: in.index.values.with(integers.widen(previous), in.value)
+        }
+    }
+
+    return {
+        keys: in.index.keys.push(in.key)[0],
+        values: in.index.values.push(in.value)[0],
+        buckets: in.index.buckets.with(
+            slot,
+            integers.narrow(in.index.keys.length)
+        )
+    }
+}

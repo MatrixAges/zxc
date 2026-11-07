@@ -1,0 +1,30 @@
+import builtin from "../expressions/builtin"
+
+import type { ExpressionsBuiltinName } from "../../printer/model/expressions"
+import type { State, Node } from "./model"
+
+export type Input = {
+    state: State,
+    name: ExpressionsBuiltinName,
+    arguments: u32[]
+}
+
+export type Output = Node
+
+export default function (in: Input): Output {
+    const result = builtin({
+        table: in.state.expressions,
+        base: in.state.source.expression_base,
+        name: in.name,
+        arguments: in.arguments
+    })
+
+    return {
+        id: result.id,
+        state: {
+            ...in.state,
+            expressions: result.table,
+            valid: in.state.valid && result.valid
+        }
+    }
+}

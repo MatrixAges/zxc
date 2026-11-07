@@ -1,0 +1,48 @@
+import integers from "std:integer"
+
+import { DeclarationsKind } from "../../printer/model/declarations"
+import { ExpressionsKind, ExpressionsBuiltinName } from "../../printer/model/expressions"
+
+import type { Input as Source } from "./model"
+
+export type Input = {
+    source: Source,
+    position: u64
+}
+
+export type Output = u8[]?
+
+export default function (in: Input): Output {
+    const declarations = in.source.declarations
+    const row = integers.widen(in.source.first) + in.position
+
+    if (declarations.tags[row] != DeclarationsKind.Constant) {
+        return null
+    }
+
+    const offset = integers.widen(declarations.offsets[row])
+    const value = integers.widen(declarations.constant_value[offset])
+    const expressions = in.source.expressions
+
+    if (expressions.tags[value] != ExpressionsKind.Builtin) {
+        return null
+    }
+
+    const builtin = integers.widen(expressions.offsets[value])
+    const arguments = expressions.builtin_arguments[builtin]
+
+    if (
+        expressions.builtin_name[builtin] != ExpressionsBuiltinName.Import ||
+            arguments.length != 1
+    ) {
+        return null
+    }
+
+    const argument = integers.widen(arguments[0])
+
+    if (expressions.tags[argument] != ExpressionsKind.String) {
+        return null
+    }
+
+    return expressions.string[integers.widen(expressions.offsets[argument])]
+}

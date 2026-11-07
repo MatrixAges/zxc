@@ -1,0 +1,17 @@
+import integers from "std:integer"
+
+import probe from "./probe"
+
+import type { Input } from "./probe"
+
+export type Output = u32?
+
+export default function (in: Input): Output {
+    const entry = in.index.buckets[probe(in)]
+
+    if (entry == null) {
+        return null
+    }
+
+    return in.index.values[integers.widen(entry)]
+}

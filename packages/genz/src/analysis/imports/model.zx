@@ -1,0 +1,32 @@
+import type { Index } from "core/bytes/index/model"
+import type { State as Context } from "../../ast/context/model"
+import type { Constant, Columns as Constants } from "../../ast/declarations/model"
+import type { Columns as Forms } from "../../ast/expressions/forms/model"
+import type { Columns as Generated } from "../../ast/expressions/model"
+import type { Declarations } from "../../printer/model/declarations"
+import type { Expressions } from "../../printer/model/expressions"
+
+export type Input = {
+    expressions: Expressions,
+    declarations: Declarations,
+    first: u32,
+    count: u32,
+    modules: string[],
+    expression_base: u32
+}
+
+export type State = {
+    source: Input,
+    index: Index,
+    context: Context,
+    declarations: Constant[],
+    aliases: u32[]
+}
+
+export type Output = {
+    expressions: Generated,
+    forms: Forms,
+    declarations: Constants,
+    aliases: u32[],
+    valid: bool
+}

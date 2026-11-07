@@ -1,0 +1,27 @@
+import { bucket_ratio } from "./const"
+
+import type { Index } from "./model"
+
+export type Input = u64
+
+export type Output = Index
+
+export default function (in: Input): Output {
+    const initial: u32?[] = []
+
+    const buckets = loop({
+        values: initial
+    }, {
+        while: current => current.values.length < in * bucket_ratio + 1,
+        next: current => {
+            current.values = current.values.push(null)[0]
+        },
+        return: current => current.values
+    })
+
+    return {
+        keys: [],
+        values: [],
+        buckets
+    }
+}

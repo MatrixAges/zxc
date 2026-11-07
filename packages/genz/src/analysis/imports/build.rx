@@ -1,0 +1,27 @@
+<Module>
+    <Type from="model" as="Imports" />
+
+    <Args in={Imports.Input} out={Imports.Output} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="prelude" in={$ctx.initialize} />
+    <Call fn="modules" in={$ctx.prelude} />
+
+    <Call
+        fn="../../ast/declarations/constants"
+        in={{
+            values: $ctx.modules.declarations,
+            base: $in.count
+        }}
+    />
+
+    <Return
+        value={{
+            expressions: $ctx.modules.context.expressions,
+            forms: $ctx.modules.context.forms,
+            declarations: $ctx.constants.table,
+            aliases: $ctx.modules.aliases,
+            valid: $ctx.modules.context.valid && $ctx.constants.valid
+        }}
+    />
+</Module>

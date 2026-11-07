@@ -143,6 +143,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/uniqueness/layers/plan.rx", .name = "uniqueness_layers", .owner = .genz },
     .{ .path = "genz/analysis/shape/emit/build.rx", .name = "shape_declarations", .owner = .genz },
     .{ .path = "genz/analysis/templates/build.rx", .name = "template_emit", .owner = .genz },
+    .{ .path = "genz/analysis/imports/build.rx", .name = "native_imports", .owner = .genz },
     .{ .path = "genz/analysis/inline/prepare.rx", .name = "inline_prepare", .owner = .genz },
     .{ .path = "genz/analysis/iteration/analyze.rx", .name = "iteration_layout", .owner = .genz },
     .{ .path = "genz/analysis/iteration/buffers/analyze.rx", .name = "iteration_buffers", .owner = .genz },

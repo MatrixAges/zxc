@@ -1,0 +1,74 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+import get from "core/bytes/index/get"
+import put from "core/bytes/index/put"
+
+import builtin from "../../ast/context/builtin"
+import text from "../../ast/context/text"
+import { ExpressionsKind, ExpressionsBuiltinName } from "../../printer/model/expressions"
+import integer from "../../printer/text/integer"
+import { native_prefix } from "./const"
+
+import type { State } from "./model"
+
+export type Input = {
+    state: State,
+    position: u64
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const key = bytes.fromText(in.state.source.modules[in.position])
+
+    const existing = get({
+        index: in.state.index,
+        key
+    })
+
+    if (existing != null) {
+        return {
+            ...in.state,
+            aliases: in.state.aliases.push(existing)[0]
+        }
+    }
+
+    const alias = integers.narrow(
+        integers.widen(in.state.source.count) +
+            in.state.declarations.length
+    )
+
+    const name = integer({
+        output: bytes.fromText(native_prefix),
+        value: in.position
+    })
+
+    const path = text({
+        state: in.state.context,
+        kind: ExpressionsKind.String,
+        value: key
+    })
+
+    const value = builtin({
+        state: path.state,
+        name: ExpressionsBuiltinName.Import,
+        arguments: [path.id]
+    })
+
+    return {
+        ...in.state,
+        context: value.state,
+        index: put({
+            index: in.state.index,
+            key,
+            value: alias
+        }),
+        declarations: in.state.declarations.push({
+            name,
+            type_expr: null,
+            value: value.id,
+            exported: false
+        })[0],
+        aliases: in.state.aliases.push(alias)[0]
+    }
+}

@@ -1,41 +1,52 @@
 const std = @import("std");
 const node = @import("../node.zig");
+const view = @import("../node/view.zig");
 const Lower = @import("lower.zig");
 
-pub fn lower(self: *Lower, output: *std.ArrayList(node.Declaration)) Lower.Error![]const []const u8 {
-    const names = try self.allocator.alloc([]const u8, self.program.native_modules.count());
-    var imported: std.StringHashMapUnmanaged([]const u8) = .empty;
+pub fn lower(self: *Lower, declarations: *std.ArrayList(node.Declaration)) Lower.Error![]const []const u8 {
+    if (!@import("genz_options").generated_analysis) return @import("imports/seed.zig").lower(self, declarations);
 
-    for (output.items) |declaration| {
-        if (declaration != .constant) continue;
+    const generated = @import("generated_native_imports");
+    const Input = std.meta.Child(generated.Input);
+    var scratch = std.heap.ArenaAllocator.init(self.workspace);
 
-        const value = self.builder.nodes.get(declaration.constant.value);
+    defer scratch.deinit();
 
-        if (value != .builtin or value.builtin.name != .import or value.builtin.arguments.len != 1) continue;
+    const prelude = try self.builder.nodes.declarations(self.allocator, declarations.items);
+    const expressions = view.rows(std.meta.Child(@FieldType(Input, "expressions")), self.builder.nodes.expressions);
+    const previous = view.rows(std.meta.Child(@FieldType(Input, "declarations")), self.builder.nodes.declaration_rows);
 
-        const argument = self.builder.nodes.get(value.builtin.arguments[0]);
+    const input = Input{
+        .expressions = &expressions,
+        .declarations = &previous,
+        .first = prelude.start,
+        .count = prelude.len,
+        .modules = self.program.native_modules.import_names,
+        .expression_base = @intCast(self.builder.nodes.expressions.tags.items.len),
+    };
 
-        if (argument == .string) try imported.put(self.allocator, argument.string, declaration.constant.name);
-    }
+    const output = generated.executeIn(scratch.allocator(), &input) catch |err| switch (err) {
+        error.OutOfMemory, error.IntegerOverflow => return error.OutOfMemory,
+        else => unreachable,
+    };
 
-    for (0..self.program.native_modules.count(), names, 0..) |module_row, *name, index| {
-        const module = self.program.native_modules.at(module_row);
+    if (!output.valid) return error.OutOfMemory;
 
-        if (imported.get(module.import_name)) |existing| {
-            name.* = existing;
+    const imported = view.join(output.expressions.*, output.forms.*);
 
-            continue;
-        }
+    @import("../node/import_rows.zig").append(self.allocator, &self.builder.nodes.expressions, &imported) catch |err| switch (err) {
+        error.OutOfMemory => return error.OutOfMemory,
+        error.InvalidAst => unreachable,
+    };
 
-        name.* = try std.fmt.allocPrint(self.allocator, "zx_native_{d}", .{index});
+    @import("../node/import_constants.zig").append(self.allocator, declarations, output.declarations) catch |err| switch (err) {
+        error.OutOfMemory => return error.OutOfMemory,
+        error.InvalidAst => unreachable,
+    };
 
-        try imported.put(self.allocator, module.import_name, name.*);
+    const names = try self.allocator.alloc([]const u8, output.aliases.len);
 
-        try output.append(self.allocator, .{ .constant = .{
-            .name = name.*,
-            .value = try self.builtin(.import, &.{try self.builder.string(module.import_name)}),
-        } });
-    }
+    for (names, output.aliases) |*name, alias| name.* = declarations.items[alias].constant.name;
 
     return names;
 }

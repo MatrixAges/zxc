@@ -1,0 +1,41 @@
+import integers from "std:integer"
+import put from "core/bytes/index/put"
+
+import key from "./key"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const index = loop({
+        index: in.index,
+        position: 0
+    }, {
+        while: current => current.position < integers.widen(in.source.count),
+        next: current => {
+            const name = key({
+                source: in.source,
+                position: current.position
+            })
+
+            if (name != null) {
+                current.index = put({
+                    index: current.index,
+                    key: name,
+                    value: integers.narrow(current.position)
+                })
+            }
+
+            current.position += 1
+        },
+        return: current => current.index
+    })
+
+    return {
+        ...in,
+        index
+    }
+}

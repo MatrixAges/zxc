@@ -1,0 +1,37 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import type { Index } from "./model"
+
+export type Input = {
+    index: Index,
+    key: u8[]
+}
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    return loop({
+        slot: bytes.hash(in.key) % in.index.buckets.length,
+        found: false
+    }, {
+        while: current => !current.found,
+        next: current => {
+            const entry = in.index.buckets[current.slot]
+
+            if (entry == null) {
+                current.found = true
+            } else if (
+                bytes.equals(
+                    in.index.keys[integers.widen(entry)],
+                    in.key
+                )
+            ) {
+                current.found = true
+            } else {
+                current.slot = (current.slot + 1) % in.index.buckets.length
+            }
+        },
+        return: current => current.slot
+    })
+}
