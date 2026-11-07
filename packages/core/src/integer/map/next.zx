@@ -1,0 +1,32 @@
+import integers from "std:integer"
+
+import { used_flag } from "./const"
+
+import type { Next as Input, NextResult as Output } from "./model"
+
+export default function (in: Input): Output {
+    if (in.count == 0) {
+        return {
+            next: in.start,
+            position: null
+        }
+    }
+
+    return loop({
+        slot: in.start,
+        found: false
+    }, {
+        while: state => !state.found && state.slot < in.metadata.length,
+        next: state => {
+            state.found = integers.widenByte(in.metadata[state.slot]) >= used_flag
+
+            if (!state.found) {
+                state.slot += 1
+            }
+        },
+        return: state => ({
+            next: state.found ? state.slot + 1 : state.slot,
+            position: state.found ? state.slot : null
+        })
+    })
+}

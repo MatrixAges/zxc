@@ -1,0 +1,15 @@
+import find from "./find"
+
+import type { Lookup as Input } from "./model"
+
+export type Output = u64?
+
+export default function (in: Input): Output {
+    if (in.count == 0) {
+        return null
+    }
+
+    const result = find(in.omit(["count"]))
+
+    return result.found ? result.slot : null
+}

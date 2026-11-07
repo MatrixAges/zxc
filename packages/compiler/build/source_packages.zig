@@ -23,6 +23,8 @@ pub const entries: []const Package = &.{
     .{ .specifier = "core/bytes/index/initialize", .entry = "core/bytes/index/initialize.zx" },
     .{ .specifier = "core/bytes/index/get", .entry = "core/bytes/index/get.zx" },
     .{ .specifier = "core/bytes/index/put", .entry = "core/bytes/index/put.zx" },
+    .{ .specifier = "core/integer/map/model", .entry = "core/integer/map/model.zx" },
+    .{ .specifier = "core/integer/map/lookup", .entry = "core/integer/map/lookup.zx" },
     .{ .specifier = "core/integer/index/model", .entry = "core/integer/index/model.zx" },
     .{ .specifier = "core/integer/index/empty", .entry = "core/integer/index/empty.zx" },
     .{ .specifier = "core/integer/index/get", .entry = "core/integer/index/get.zx" },

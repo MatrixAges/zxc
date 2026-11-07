@@ -1,0 +1,56 @@
+import integers from "std:integer"
+
+import { free, tombstone, used_flag, fingerprint_scale } from "./const"
+
+import type { Search as Output } from "./model"
+
+export type Input = {
+    metadata: u8[],
+    keys: u32[],
+    key: u32
+}
+
+export default function (in: Input): Output {
+    const capacity = in.metadata.length
+    const hash = integers.hash32(in.key)
+    const tag = integers.narrowByte(used_flag + hash / fingerprint_scale)
+    const absent: u64? = null
+
+    return loop({
+        slot: hash % capacity,
+        remaining: capacity,
+        first: absent,
+        found: false,
+        done: false
+    }, {
+        while: state => !state.done,
+        next: state => {
+            const mark = in.metadata[state.slot]
+
+            if (mark == free) {
+                state.done = true
+                state.slot = state.first == null ? state.slot : state.first
+            } else if (mark == tag && in.keys[state.slot] == in.key) {
+                state.done = true
+                state.found = true
+            } else {
+                if (mark == tombstone && state.first == null) {
+                    state.first = state.slot
+                }
+
+                state.remaining -= 1
+                state.slot = (state.slot + 1) % capacity
+
+                if (state.remaining == 0) {
+                    state.done = true
+                    state.slot = state.first == null ? capacity : state.first
+                }
+            }
+        },
+        return: state => ({
+            slot: state.slot,
+            found: state.found,
+            tag
+        })
+    })
+}

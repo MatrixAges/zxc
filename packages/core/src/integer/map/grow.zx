@@ -1,0 +1,40 @@
+import integers from "std:integer"
+
+import allocate from "./allocate"
+import { used_flag } from "./const"
+import place from "./place"
+
+import type { State } from "./model"
+
+export type Input = {
+    state: State,
+    capacity: u64
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const fresh = allocate(integers.narrow(in.capacity))
+
+    return loop({
+        result: fresh,
+        slot: 0
+    }, {
+        while: state => state.slot < in.state.metadata.length &&
+            state.result.count < in.state.count,
+        next: state => {
+            if (
+                integers.widenByte(in.state.metadata[state.slot]) >= used_flag
+            ) {
+                state.result = place({
+                    state: state.result,
+                    key: in.state.keys[state.slot],
+                    value: in.state.values[state.slot]
+                })
+            }
+
+            state.slot += 1
+        },
+        return: state => state.result
+    })
+}

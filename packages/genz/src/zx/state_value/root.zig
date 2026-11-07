@@ -9,14 +9,14 @@ const Self = @This();
 lowering: *Lower,
 types: []node.ExpressionId,
 layouts: []node.ExpressionId,
-cache: std.AutoHashMapUnmanaged(ir.ExprId, node.ExpressionId),
+cache: @import("../cache.zig"),
 active: bool,
 pub fn enter(lowering: *Lower) Lower.Error!Self {
     const self = Self{ .lowering = lowering, .types = lowering.types, .layouts = lowering.layouts, .cache = lowering.cache, .active = lowering.state_active };
 
     if (self.active) return self;
 
-    var cache: std.AutoHashMapUnmanaged(ir.ExprId, node.ExpressionId) = .empty;
+    var cache: @import("../cache.zig") = .empty;
     var entries = self.cache.iterator();
 
     while (entries.next()) |entry| {

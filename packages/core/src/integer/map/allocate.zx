@@ -1,0 +1,31 @@
+import integers from "std:integer"
+
+import { free } from "./const"
+
+import type { State as Output } from "./model"
+
+export type Input = u32
+
+export default function (in: Input): Output {
+    const metadata: u8[] = []
+    const keys: u32[] = []
+    const values: u32[] = []
+    const zero: u32 = 0
+
+    return loop({
+        metadata,
+        keys,
+        values
+    }, {
+        while: state => state.metadata.length < integers.widen(in),
+        next: state => {
+            state.metadata = state.metadata.push(free)[0]
+            state.keys = state.keys.push(zero)[0]
+            state.values = state.values.push(zero)[0]
+        },
+        return: state => ({
+            count: 0,
+            ...state
+        })
+    })
+}

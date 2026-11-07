@@ -1,0 +1,46 @@
+export type State = {
+    count: u64,
+    metadata: u8[],
+    keys: u32[],
+    values: u32[]
+}
+
+export type Lookup = {
+    count: u64,
+    metadata: u8[],
+    keys: u32[],
+    key: u32
+}
+
+export type Key = {
+    state: State,
+    key: u32
+}
+
+export type Put = {
+    state: State,
+    key: u32,
+    value: u32
+}
+
+export type Search = {
+    slot: u64,
+    found: bool,
+    tag: u8
+}
+
+export type Removed = {
+    state: State,
+    removed: bool
+}
+
+export type Next = {
+    metadata: u8[],
+    count: u64,
+    start: u64
+}
+
+export type NextResult = {
+    next: u64,
+    position?: u64
+}

@@ -7,7 +7,7 @@ const Self = @This();
 
 allocator: std.mem.Allocator,
 program: ir.Program,
-cache: ?*const std.AutoHashMapUnmanaged(ir.ExprId, node.ExpressionId) = null,
+cache: ?*const @import("../cache.zig") = null,
 selected: consumer.Consumer,
 projections: std.ArrayList(ir.ExprId) = .empty,
 seen: std.AutoHashMapUnmanaged(ir.ExprId, void) = .empty,

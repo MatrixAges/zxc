@@ -1,0 +1,27 @@
+import { tombstone } from "./const"
+import lookup from "./lookup"
+
+import type { Key as Input, Removed as Output } from "./model"
+
+export default function (in: Input): Output {
+    const slot = lookup({
+        ...in.state.omit(["values"]),
+        key: in.key
+    })
+
+    if (slot == null) {
+        return {
+            state: in.state,
+            removed: false
+        }
+    }
+
+    return {
+        state: {
+            ...in.state,
+            count: in.state.count - 1,
+            metadata: in.state.metadata.with(slot, tombstone)
+        },
+        removed: true
+    }
+}

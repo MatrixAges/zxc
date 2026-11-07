@@ -20,6 +20,8 @@ import integer from "std:integer"
 
 `narrow` 是检查范围的转换，不会截断或环绕。调用者需要处理或传播 `IntegerOverflow`。
 
+`hash(u64)` 与 `hash32(u32)` 返回 seed 为 0 的 Wyhash 64 位值，分别读取输入整数本机字节序的 8 字节和 4 字节。它们无分配、支持并发；索引需要与四字节键的哈希保持一致时使用 `hash32`。
+
 ## 浮点转换与解析
 
 ```zx

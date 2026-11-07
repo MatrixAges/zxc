@@ -51,3 +51,7 @@ pub fn shiftLeft(value: u64, amount: u64) error{IntegerOverflow}!u64 {
 pub fn hash(value: u64) u64 {
     return std.hash.Wyhash.hash(0, std.mem.asBytes(&value));
 }
+
+pub fn hash32(value: u32) u64 {
+    return std.hash.Wyhash.hash(0, std.mem.asBytes(&value));
+}

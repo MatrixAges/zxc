@@ -1,5 +1,6 @@
 import integers from "std:integer"
 import { ExpressionKind } from "core/expression_table/kinds"
+import lookup from "core/integer/map/lookup"
 import kind from "core/type_table/kind"
 import { Kind } from "core/type_table/model"
 
@@ -43,10 +44,19 @@ export default function (in: Input): Output {
         return null
     }
 
-    if (in.cached || !plain({
+    if (!plain({
         flags: in.flags,
         id: in.id
     })) {
+        return null
+    }
+
+    const cached = lookup({
+        ...in.cache.omit(["values"]),
+        key: in.id
+    })
+
+    if (cached != null) {
         return null
     }
 

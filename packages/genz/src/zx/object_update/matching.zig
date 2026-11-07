@@ -13,6 +13,7 @@ pub fn match(lowering: *const Lower, id: ir.ExprId) ?Change {
 
     comptime std.debug.assert(@sizeOf(std.meta.Child(@TypeOf(flags))) == @sizeOf(u8));
 
+    const cache = lowering.cache.view(std.meta.Child(@FieldType(Input, "cache")));
     const state_members = lowering.state_symbols.view(std.meta.Child(@FieldType(Input, "state_members")));
     const stack_members = lowering.stack_symbols.view(std.meta.Child(@FieldType(Input, "stack_members")));
 
@@ -29,7 +30,7 @@ pub fn match(lowering: *const Lower, id: ir.ExprId) ?Change {
         .state_active = lowering.state_active,
         .iteration = lowering.iteration_value != null,
         .loop_fields = lowering.loop_fields != null,
-        .cached = lowering.cache.contains(id),
+        .cache = &cache,
     };
 
     var fixed = std.heap.FixedBufferAllocator.init(&.{});
