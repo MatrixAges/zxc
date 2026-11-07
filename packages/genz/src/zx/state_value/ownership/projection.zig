@@ -18,19 +18,6 @@ pub fn bind(self: *Lower, body: *std.ArrayList(node.Statement), name: []const u8
     return emit(self, body, generated, &input);
 }
 
-pub fn invoke(self: *Lower, body: *std.ArrayList(node.Statement), name: []const u8, value: node.ExpressionId) Lower.Error!void {
-    const generated = @import("generated_ownership_helper_invoke");
-    const Input = std.meta.Child(generated.Input);
-
-    const input: Input = .{
-        .name = name,
-        .value = @backingInt(value),
-        .expression_base = @intCast(self.builder.nodes.expressions.tags.items.len),
-    };
-
-    _ = try emit(self, body, generated, &input);
-}
-
 fn emit(self: *Lower, body: *std.ArrayList(node.Statement), comptime generated: type, input: generated.Input) Lower.Error!node.ExpressionId {
     var scratch = std.heap.ArenaAllocator.init(self.workspace);
     var buffer: [std.heap.page_size_min]u8 = undefined;

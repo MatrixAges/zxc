@@ -1,0 +1,40 @@
+import type { Created as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const generated = in.prepared.valid && in.clear.valid && in.declared.valid
+
+    return {
+        segments: [
+            {
+                expressions: in.prepared.expressions,
+                forms: in.prepared.forms,
+                borrow_text: true
+            },
+            {
+                expressions: in.clear.expressions,
+                forms: in.clear.forms,
+                borrow_text: false
+            },
+            {
+                expressions: in.declared.expressions,
+                forms: in.declared.forms,
+                borrow_text: true
+            },
+            {
+                expressions: in.invocation.state.expressions,
+                forms: in.invocation.state.forms,
+                borrow_text: true
+            }
+        ],
+        statements: in.body.statements,
+        body: in.invocation.state.statements,
+        storage: in.clear.storage,
+        variables: in.clear.variables,
+        declaration: {
+            columns: in.declared.declarations,
+            parameters: in.declared.parameters
+        },
+        serial: in.clear.serial,
+        valid: generated && in.invocation.state.valid
+    }
+}

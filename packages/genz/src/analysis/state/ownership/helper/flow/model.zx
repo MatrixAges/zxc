@@ -1,0 +1,81 @@
+import type { Variables, Node } from "../../../../../ast/context/model"
+import type { Columns as Declarations } from "../../../../../ast/declarations/function"
+import type { Columns as Forms } from "../../../../../ast/expressions/forms/model"
+import type { Columns as Expressions } from "../../../../../ast/expressions/model"
+import type { Columns as Statements } from "../../../../../ast/statements/model"
+import type { Ast } from "../../../list/model"
+import type { Output as Cleared, Plan } from "../../clear/model"
+import type { Outline } from "../../model"
+import type { Output as Declared } from "../declare"
+import type { Input as DeclarationInput, Parameters, Prepared } from "../model"
+
+export type Input = {
+    source: Outline,
+    name: u8[],
+    existing_names: u8[][],
+    type_expr: u32,
+    value: u32,
+    ast: Ast,
+    expression_base: u32,
+    statement_base: u32,
+    declaration_base: u32,
+    serial: u64
+}
+
+export type Segment = {
+    expressions: Expressions,
+    forms: Forms,
+    borrow_text: bool
+}
+
+export type Declaration = {
+    columns: Declarations,
+    parameters: Parameters
+}
+
+export type Output = {
+    segments: Segment[],
+    statements: Statements,
+    body: Statements,
+    storage: Statements,
+    variables: Variables,
+    declaration?: Declaration,
+    serial: u64,
+    valid: bool
+}
+
+export type ClearRequest = {
+    source: Input,
+    prepared: Prepared,
+    plan: Plan,
+    layouts: u32[]
+}
+
+export type BodyInput = {
+    source: Input,
+    prepared: Prepared,
+    clear: Cleared
+}
+
+export type Body = {
+    statements: Statements,
+    declaration: DeclarationInput
+}
+
+export type Invocation = {
+    source: Input,
+    count: u64
+}
+
+export type Created = {
+    prepared: Prepared,
+    clear: Cleared,
+    body: Body,
+    declared: Declared,
+    invocation: Node
+}
+
+export type Reused = {
+    invocation: Node,
+    serial: u64
+}

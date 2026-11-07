@@ -1,0 +1,26 @@
+import { Operation } from "../../clear/model"
+
+import type { Plan as Input } from "../../clear/model"
+
+export type Output = {
+    values: u32[],
+    valid: bool
+}
+
+export default function (in: Input): Output {
+    const valid = loop(0, {
+        while: index => index < in.kinds.length &&
+            in.kinds[index] != Operation.Reference,
+        next: index => {
+            index += 1
+        },
+        return: index => index == in.kinds.length
+    })
+
+    const zero: u32 = 0
+
+    return {
+        values: in.types.map(type_id => zero)[0],
+        valid
+    }
+}

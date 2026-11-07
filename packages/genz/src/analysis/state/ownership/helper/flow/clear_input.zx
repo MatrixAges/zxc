@@ -1,0 +1,19 @@
+import integers from "std:integer"
+
+import type { Input as Output } from "../../clear/model"
+import type { ClearRequest as Input } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        plan: in.plan,
+        layouts: in.layouts,
+        ast: in.source.ast,
+        value: in.prepared.root,
+        expression_base: integers.narrow(
+            integers.widen(in.source.expression_base) +
+                in.prepared.expressions.tags.length
+        ),
+        statement_base: in.source.statement_base,
+        serial: in.source.serial
+    }
+}

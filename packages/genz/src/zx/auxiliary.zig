@@ -95,6 +95,10 @@ pub fn containsFunction(self: *const Self, name: []const u8) bool {
     return entry.executeIn(fixed.allocator(), &input) catch @panic("invalid auxiliary lookup");
 }
 
+pub fn functionNames(self: *const Self) []const []const u8 {
+    return self.state.function_name.items;
+}
+
 pub fn store(self: *const Self, allocator: std.mem.Allocator, nodes: *@import("../node/storage.zig")) std.mem.Allocator.Error!stored.Declarations {
     if (!generated) return nodes.declarations(allocator, self.state.items);
 

@@ -1,0 +1,119 @@
+<Module>
+    <Type from="model" as="Flow" />
+
+    <Args in={Flow.Input} out={Flow.Output} />
+
+    <Call
+        fn="../../../../../ast/declarations/table/contains"
+        in={{
+            names: $in.existing_names,
+            name: $in.name
+        }}
+    />
+
+    <If on={!$ctx.contains}>
+        <Call
+            fn="../prepare"
+            in={{
+                expression_base: $in.expression_base
+            }}
+        />
+
+        <If on={!$ctx.prepare.valid}>
+            <Call fn="failed" in={$in.serial} />
+
+            <Return value={$ctx.failed} />
+        </If>
+
+        <Call module="../../clear/plan" in={$in.source} />
+
+        <Call fn="layouts" in={$ctx.plan} />
+
+        <If on={!$ctx.layouts.valid}>
+            <Call fn="failed" in={$in.serial} />
+
+            <Return value={$ctx.failed} />
+        </If>
+
+        <Call
+            fn="clear_input"
+            in={{
+                source: $in,
+                prepared: $ctx.prepare,
+                plan: $ctx.plan,
+                layouts: $ctx.layouts.values
+            }}
+        />
+
+        <Call module="../../clear/build" in={$ctx.clear_input} />
+
+        <If on={!$ctx.build.valid}>
+            <Call fn="failed" in={$in.serial} />
+
+            <Return value={$ctx.failed} />
+        </If>
+
+        <Call
+            fn="body"
+            in={{
+                source: $in,
+                prepared: $ctx.prepare,
+                clear: $ctx.build
+            }}
+        />
+
+        <Call fn="../declare" in={$ctx.body.declaration} />
+
+        <If on={!$ctx.declare.valid}>
+            <Call fn="failed" in={$in.serial} />
+
+            <Return value={$ctx.failed} />
+        </If>
+
+        <Call
+            fn="invoke_input"
+            in={{
+                source: $in,
+                count: $ctx.prepare.expressions.tags.length +
+                    $ctx.build.expressions.tags.length +
+                    $ctx.declare.expressions.tags.length
+            }}
+        />
+
+        <Call fn="../invoke" in={$ctx.invoke_input} />
+
+        <Call
+            fn="created"
+            in={{
+                prepared: $ctx.prepare,
+                clear: $ctx.build,
+                body: $ctx.body,
+                declared: $ctx.declare,
+                invocation: $ctx.invoke
+            }}
+        />
+
+        <Return value={$ctx.created} />
+
+        <Else>
+            <Call
+                fn="../invoke"
+                in={$in.pick([
+                    "name",
+                    "value",
+                    "expression_base"
+                ])}
+            />
+
+            <Call
+                fn="reused"
+                in={{
+                    invocation: $ctx.invoke,
+                    serial: $in.serial
+                }}
+            />
+
+            <Return value={$ctx.reused} />
+        </Else>
+    </If>
+</Module>

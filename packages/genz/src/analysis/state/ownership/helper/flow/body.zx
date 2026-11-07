@@ -1,0 +1,27 @@
+import integers from "std:integer"
+
+import type { BodyInput as Input, Body as Output } from "./model"
+
+export default function (in: Input): Output {
+    const first = integers.widen(in.source.statement_base) +
+        in.clear.statements.tags.length
+
+    const expression_base = integers.widen(in.source.expression_base) +
+        in.prepared.expressions.tags.length + in.clear.expressions.tags.length
+
+    return {
+        statements: {
+            ...in.clear.statements,
+            tags: in.clear.statements.tags.concat(in.clear.body.tags)[0],
+            offsets: in.clear.statements.offsets.concat(in.clear.body.offsets)[0]
+        },
+        declaration: {
+            name: in.source.name,
+            type_expr: in.source.type_expr,
+            body_start: integers.narrow(first),
+            body_count: integers.narrow(in.clear.body.tags.length),
+            expression_base: integers.narrow(expression_base),
+            declaration_base: in.source.declaration_base
+        }
+    }
+}

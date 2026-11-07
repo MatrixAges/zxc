@@ -1,0 +1,14 @@
+import integers from "std:integer"
+
+import type { Input as Output } from "../invoke"
+import type { Invocation as Input } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        name: in.source.name,
+        value: in.source.value,
+        expression_base: integers.narrow(
+            integers.widen(in.source.expression_base) + in.count
+        )
+    }
+}
