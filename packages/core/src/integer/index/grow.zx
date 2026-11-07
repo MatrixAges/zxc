@@ -29,7 +29,7 @@ export default function (in: Input): Output {
         buckets,
         position: 0
     }, {
-        while: state => state.position < in.index.keys.length,
+        while: state => state.position < in.index.count,
         next: state => {
             const slot = probe({
                 keys: in.index.keys,
@@ -47,6 +47,7 @@ export default function (in: Input): Output {
     })
 
     return {
+        count: in.index.count,
         keys: in.index.keys,
         buckets: filled
     }

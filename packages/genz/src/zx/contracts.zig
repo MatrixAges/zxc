@@ -12,6 +12,7 @@ pub fn preconditions(self: *Lower) Lower.Error![]const node.Statement {
 
         var predicate = self.*;
 
+        predicate.state_symbols = self.state_symbols.inherit();
         predicate.program.symbols = contract.symbols;
         predicate.program.expressions = contract.expressions;
 

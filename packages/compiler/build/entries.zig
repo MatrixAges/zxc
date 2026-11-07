@@ -15,7 +15,7 @@ pub const Entry = struct {
     }
 };
 
-pub const Set = enum { main, checks, constant_seed, snapshot_seed, partition_seed, ordered };
+pub const Set = enum { main, checks, constant_seed, snapshot_seed, partition_seed, ordered, members };
 const constant_fold = Entry{ .path = "zx/analysis/constants/evaluate.rx", .name = "constant_fold" };
 const input_snapshot = Entry{ .path = "inputs/snapshot/reuse.rx", .name = "input_snapshot", .owner = .compiler };
 const partition_groups = Entry{ .path = "genz/analysis/partition/plan.rx", .name = "partition_groups", .owner = .genz };
@@ -157,7 +157,6 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/object_update/emit/expression.rx", .name = "object_update_expression", .owner = .genz },
     .{ .path = "genz/analysis/object_update/emit/statements.rx", .name = "object_update_statements", .owner = .genz },
     .{ .path = "genz/analysis/object_update/match/candidate.rx", .name = "object_update_candidate", .owner = .genz },
-    .{ .path = "genz/analysis/object_update/match/eligible.zx", .name = "object_update_eligible", .owner = .genz },
     .{ .path = "genz/analysis/inline/prepare.rx", .name = "inline_prepare", .owner = .genz },
     .{ .path = "genz/analysis/iteration/analyze.rx", .name = "iteration_layout", .owner = .genz },
     .{ .path = "genz/analysis/iteration/buffers/analyze.rx", .name = "iteration_buffers", .owner = .genz },
@@ -182,6 +181,12 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/references/discover.rx", .name = "reference_graph", .owner = .genz },
     .{ .path = "genz/analysis/references/imports.rx", .name = "reference_imports", .owner = .genz },
     .{ .path = "genz/analysis/iteration/fields/plan.rx", .name = "loop_fields", .owner = .genz },
+};
+
+pub const members = [_]Entry{
+    .{ .path = "genz/analysis/members/add.zx", .name = "members_add", .owner = .genz },
+    .{ .path = "core/integer/index/get.zx", .name = "members_get", .owner = .genz },
+    .{ .path = "core/integer/index/remove.zx", .name = "members_remove", .owner = .genz },
 };
 
 pub const ordered = [_]Entry{
@@ -213,6 +218,7 @@ pub fn of(set: Set) []const Entry {
         .main => &main,
         .checks => &checks,
         .ordered => &ordered,
+        .members => &members,
         .constant_seed => &.{constant_fold},
         .snapshot_seed => &.{input_snapshot},
         .partition_seed => &.{partition_groups},
@@ -222,7 +228,7 @@ pub fn of(set: Set) []const Entry {
 pub fn ParserModules() type {
     comptime var names: []const []const u8 = &.{ "type_views", "nominal_data" };
 
-    for (main ++ ordered) |entry| {
+    for (main ++ ordered ++ members) |entry| {
         if (entry.owner == .frontend or entry.owner == .compiler or entry.owner == .genz) names = names ++ .{entry.name};
     }
 

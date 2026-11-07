@@ -24,7 +24,7 @@ export default function (in: Input): Output {
         }
     }
 
-    const count = in.index.keys.length + 1
+    const count = in.index.count + 1
     const position = integers.narrow(count) - 1
     const limit = in.index.buckets.length * load_numerator / load_denominator
 
@@ -40,13 +40,20 @@ export default function (in: Input): Output {
     }
 
     const slot = probe({
-        ...prepared,
+        ...prepared.omit(["count"]),
         key: in.key
     })
 
+    const keys = match {
+        prepared.count < prepared.keys.length =>
+            prepared.keys.with(prepared.count, in.key),
+        _ => prepared.keys.push(in.key)[0]
+    }
+
     return {
         index: {
-            keys: prepared.keys.push(in.key)[0],
+            count,
+            keys,
             buckets: prepared.buckets.with(slot, position)
         },
         position: integers.widen(position),

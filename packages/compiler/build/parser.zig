@@ -1,7 +1,7 @@
 const std = @import("std");
 const entries = @import("entries.zig");
 
-pub const Sources = struct { standard_abi: std.Build.LazyPath, main: std.Build.LazyPath, checks: std.Build.LazyPath, ordered: std.Build.LazyPath };
+pub const Sources = struct { standard_abi: std.Build.LazyPath, main: std.Build.LazyPath, checks: std.Build.LazyPath, ordered: std.Build.LazyPath, members: std.Build.LazyPath };
 
 pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode, stage0: []const u8, partitions: u32) Sources {
     const target = b.graph.host;
@@ -65,14 +65,21 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode, stage0: []con
     };
 
     // Each entry set runs as its own step, so builds that never import the checks do not generate them.
-    inline for (.{ entries.Set.main, entries.Set.checks, entries.Set.constant_seed, entries.Set.snapshot_seed, entries.Set.partition_seed, entries.Set.ordered }) |set| {
+    inline for (.{ entries.Set.main, entries.Set.checks, entries.Set.constant_seed, entries.Set.snapshot_seed, entries.Set.partition_seed, entries.Set.ordered, entries.Set.members }) |set| {
         const run = generatorRun(b, executable, stage0);
 
         const project = manifest.Project{
-            .roots = if (set == .ordered) &.{.{
-                .path = b.fmt("{s}/analysis/uniqueness/replay/ordered", .{directories[3]}),
-                .prefix = "genz/analysis/uniqueness/replay/ordered/",
-            }} else &manifest_roots,
+            .roots = switch (set) {
+                .ordered => &.{.{
+                    .path = b.fmt("{s}/analysis/uniqueness/replay/ordered", .{directories[3]}),
+                    .prefix = "genz/analysis/uniqueness/replay/ordered/",
+                }},
+                .members => &.{ manifest_roots[2], .{
+                    .path = b.fmt("{s}/analysis/members", .{directories[3]}),
+                    .prefix = "genz/analysis/members/",
+                } },
+                else => &manifest_roots,
+            },
             .entries = entries.of(set),
             .packages = @import("source_packages.zig").entries,
             .interfaces = &.{.{
@@ -88,11 +95,13 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode, stage0: []con
         run.addFileArg(manifests.add(@tagName(set) ++ ".json", content));
         run.addFileInput(b.dependency("zxc_std", .{}).path("interfaces/string.d.zx"));
 
-        if (set == .ordered) {
-            const relative = "src/analysis/uniqueness/replay/ordered";
+        if (set == .ordered or set == .members) {
+            const relative = if (set == .ordered) "src/analysis/uniqueness/replay/ordered" else "src/analysis/members";
             const directory = genz_dependency.builder.root.joinString(b.allocator, relative) catch @panic("out of memory");
 
             trackSources(b, run, genz_dependency.path(relative), directory) catch @panic("unable to track comparison sources");
+
+            if (set == .members) trackSources(b, run, roots[2], directories[2]) catch @panic("unable to track index sources");
         } else for (roots, directories) |root, directory| {
             trackSources(b, run, root, directory) catch @panic("unable to track RX and ZX bootstrap sources");
         }
@@ -173,7 +182,7 @@ fn lessThan(_: void, left: []const u8, right: []const u8) bool {
 /// layout of Zig's own types only agrees within one backend, and only Apple's linker turns them into a runnable
 /// executable on macOS; artifacts that cannot meet both keep `objects`. Each set compiles only when an artifact uses it.
 /// They come as one directory holding `zxc_partition_<n>.o` for each partition.
-pub const Shared = struct { generated: *std.Build.Module, checks: *std.Build.Module, ordered: *std.Build.Module, objects: ?*std.Build.Module, self_hosted_objects: ?std.Build.LazyPath };
+pub const Shared = struct { generated: *std.Build.Module, checks: *std.Build.Module, ordered: *std.Build.Module, members: *std.Build.Module, objects: ?*std.Build.Module, self_hosted_objects: ?std.Build.LazyPath };
 
 pub fn shared(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, source: Sources, strip: ?bool, partitions: u32) Shared {
     const abi = b.createModule(.{ .root_source_file = source.main.path(b, "types.zig"), .target = target, .optimize = optimize, .strip = strip });
@@ -262,7 +271,21 @@ pub fn shared(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
         .imports = &.{ .{ .name = "zxc_abi", .module = ordered_abi }, .{ .name = "zxc_string", .module = string } },
     });
 
-    return .{ .generated = generated, .checks = check_modules, .ordered = ordered, .objects = objects, .self_hosted_objects = self_hosted_objects };
+    const members_abi = b.createModule(.{ .root_source_file = source.members.path(b, "types.zig"), .target = target, .optimize = optimize, .strip = strip });
+
+    const members = b.createModule(.{
+        .root_source_file = source.members.path(b, "root.zig"),
+        .target = target,
+        .optimize = optimize,
+        .strip = strip,
+        .imports = &.{
+            .{ .name = "zxc_abi", .module = members_abi },
+            .{ .name = "zxc_standard", .module = standard },
+            .{ .name = "zxc_string", .module = string },
+        },
+    });
+
+    return .{ .generated = generated, .checks = check_modules, .ordered = ordered, .members = members, .objects = objects, .self_hosted_objects = self_hosted_objects };
 }
 
 /// Each partition is its own compilation unit; final artifacts link them by importing the returned module.
@@ -346,7 +369,7 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
     result.type_views = @import("compiler.zig").typeViews(b, target, optimize);
     result.nominal_data = @import("compiler.zig").nominalData(b, target, optimize);
 
-    inline for (.{ entries.Set.main, entries.Set.ordered }) |set| {
+    inline for (.{ entries.Set.main, entries.Set.ordered, entries.Set.members }) |set| {
         inline for (comptime entries.of(set)) |entry| {
             if (entry.owner == .frontend or entry.owner == .compiler or entry.owner == .genz) {
                 const directory = @field(source, @tagName(set));
@@ -358,7 +381,7 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
                     .strip = strip,
                 });
 
-                module.addImport("generated", if (set == .ordered) natives.ordered else natives.generated);
+                module.addImport("generated", if (set == .main) natives.generated else @field(natives, @tagName(set)));
                 @field(result, entry.name) = module;
             }
         }

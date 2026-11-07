@@ -1,0 +1,78 @@
+import integers from "std:integer"
+
+import { max_u32 } from "../../const"
+import probe from "./probe"
+
+import type { Key as Input, Removed as Output } from "./model"
+
+export default function (in: Input): Output {
+    const capacity = in.index.buckets.length
+
+    if (capacity == 0) {
+        return {
+            index: in.index,
+            position: null
+        }
+    }
+
+    const slot = probe({
+        ...in.index.omit(["count"]),
+        key: in.key
+    })
+
+    const entry = in.index.buckets[slot]
+
+    if (entry == max_u32) {
+        return {
+            index: in.index,
+            position: null
+        }
+    }
+
+    const position = integers.widen(entry)
+    const last = in.index.count - 1
+
+    const replacement = probe({
+        ...in.index.omit(["count"]),
+        key: in.index.keys[last]
+    })
+
+    const keys = in.index.keys.with(position, in.index.keys[last])
+    const buckets = in.index.buckets.with(replacement, entry)
+
+    return loop({
+        buckets,
+        hole: slot,
+        scan: (slot + 1) % capacity,
+        done: false
+    }, {
+        while: state => !state.done,
+        next: state => {
+            const item = state.buckets[state.scan]
+
+            if (item == max_u32) {
+                state.done = true
+            } else {
+                const key = keys[integers.widen(item)]
+                const home = integers.hash(integers.widen(key)) % capacity
+                const hole_distance = (state.hole + capacity - home) % capacity
+                const scan_distance = (state.scan + capacity - home) % capacity
+
+                if (hole_distance < scan_distance) {
+                    state.buckets = state.buckets.with(state.hole, item)
+                    state.hole = state.scan
+                }
+
+                state.scan = (state.scan + 1) % capacity
+            }
+        },
+        return: state => ({
+            index: {
+                count: last,
+                keys,
+                buckets: state.buckets.with(state.hole, max_u32)
+            },
+            position
+        })
+    })
+}

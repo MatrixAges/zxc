@@ -14,6 +14,7 @@ pub fn lower(self: *Lower, id: ir.ExprId, process: bool) Lower.Error!node.Expres
     const task = expression.value.task;
     const task_type = self.program.typeOf(expression.type_id).task;
     var worker = self.*;
+    worker.state_symbols = self.state_symbols.inherit();
     worker.names = try self.allocator.dupe([]const u8, self.names);
     worker.used = try self.allocator.alloc(bool, self.used.len);
     worker.cache_reads = try self.allocator.alloc(usize, self.cache_reads.len);
