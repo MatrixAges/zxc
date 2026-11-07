@@ -1,0 +1,38 @@
+import add from "./add"
+
+import type { Scope as Input, Registration as Output } from "./model"
+
+export default function (in: Input): Output {
+    const initial: Output = {
+        index: in.index,
+        added: []
+    }
+
+    if (!in.active) {
+        return initial
+    }
+
+    const facts = in.facts
+    const symbols = in.symbols
+
+    return loop({
+        state: initial,
+        index: 0
+    }, {
+        while: current => current.index < symbols.length,
+        next: current => {
+            const symbol = symbols[current.index]
+
+            if (symbol != null) {
+                current.state = add({
+                    facts,
+                    state: current.state,
+                    symbol
+                })
+            }
+
+            current.index += 1
+        },
+        return: current => current.state
+    })
+}

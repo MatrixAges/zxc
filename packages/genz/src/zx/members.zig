@@ -63,6 +63,6 @@ pub fn view(self: *const Self, comptime Target: type) Target {
     return .{ .count = state.count, .keys = state.keys.items, .buckets = state.buckets.items };
 }
 
-fn current(self: *Self) *State {
+pub fn current(self: *Self) *State {
     return self.borrowed orelse &self.state;
 }

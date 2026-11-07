@@ -1,0 +1,53 @@
+import type { Control } from "core/control_table/model"
+import type { TransformKind } from "core/expression_table/kinds"
+import type { Index } from "core/integer/index/model"
+import type { Table } from "core/type_table/model"
+import type { Query } from "../queries/model"
+
+export type Facts = {
+    symbol_types: u32[],
+    queries: Query[]
+}
+
+export type Registration = {
+    index: Index,
+    added: u32[]
+}
+
+export type Statements = {
+    facts: Facts,
+    index: Index,
+    active: bool,
+    control: Control,
+    first: u64,
+    count: u64
+}
+
+export type Scope = {
+    facts: Facts,
+    index: Index,
+    active: bool,
+    symbols: u32?[]
+}
+
+export type Elements = {
+    types: Table,
+    selected: bool[],
+    element_storage: bool[],
+    list: u32
+}
+
+export type Parameters = {
+    facts: Facts,
+    index: Index,
+    active: bool,
+    elements: Elements,
+    kind: TransformKind,
+    parameters: u32[]
+}
+
+export type Candidate = {
+    facts: Facts,
+    state: Registration,
+    symbol: u32
+}

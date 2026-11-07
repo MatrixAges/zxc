@@ -75,6 +75,12 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode, stage0: []con
                     .prefix = "genz/analysis/uniqueness/replay/ordered/",
                 }},
                 .collections => &.{ manifest_roots[2], .{
+                    .path = b.fmt("{s}/analysis/state/locals", .{directories[3]}),
+                    .prefix = "genz/analysis/state/locals/",
+                }, .{
+                    .path = b.fmt("{s}/analysis/state/queries", .{directories[3]}),
+                    .prefix = "genz/analysis/state/queries/",
+                }, .{
                     .path = b.fmt("{s}/analysis/members", .{directories[3]}),
                     .prefix = "genz/analysis/members/",
                 }, .{
@@ -106,6 +112,12 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode, stage0: []con
 
             if (set == .collections) {
                 trackSources(b, run, roots[2], directories[2]) catch @panic("unable to track index sources");
+
+                inline for (.{ "src/analysis/state/locals", "src/analysis/state/queries" }) |relative_state| {
+                    const state_directory = genz_dependency.builder.root.joinString(b.allocator, relative_state) catch @panic("out of memory");
+
+                    trackSources(b, run, genz_dependency.path(relative_state), state_directory) catch @panic("unable to track local state sources");
+                }
 
                 const history = "src/analysis/iteration/transfer/history";
                 const history_directory = genz_dependency.builder.root.joinString(b.allocator, history) catch @panic("out of memory");

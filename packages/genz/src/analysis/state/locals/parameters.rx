@@ -1,0 +1,33 @@
+<Module>
+    <Type from="model" as="Locals" />
+    <Type from="core/expression_table/kinds" as="Kinds" />
+
+    <Args in={Locals.Parameters} out={Locals.Registration} />
+
+    <If on={!$in.active}>
+        <Return
+            value={{
+                index: $in.index,
+                added: []
+            }}
+        />
+    </If>
+
+    <Call fn="accumulator" in={$in} />
+    <Call fn="inline_stored" in={$in.elements} />
+
+    <If on={$ctx.inline_stored}>
+        <Call
+            fn="add"
+            in={{
+                facts: $in.facts,
+                state: $ctx.accumulator,
+                symbol: $in.parameters[$in.kind == Kinds.TransformKind.Reduce ? 1 : 0]
+            }}
+        />
+
+        <Return value={$ctx.add} />
+    </If>
+
+    <Return value={$ctx.accumulator} />
+</Module>

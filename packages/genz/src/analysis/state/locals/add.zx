@@ -1,0 +1,38 @@
+import integers from "std:integer"
+import get from "core/integer/index/get"
+import insert from "core/integer/index/insert"
+
+import { Property } from "../queries/model"
+import read from "../queries/read"
+
+import type { Candidate as Input, Registration as Output } from "./model"
+
+export default function (in: Input): Output {
+    const type_id = in.facts.symbol_types[integers.widen(in.symbol)]
+
+    const represented = read({
+        value: in.facts.queries[integers.widen(type_id)],
+        property: Property.Represented
+    })
+
+    if (!represented) {
+        return in.state
+    }
+
+    const key = {
+        index: in.state.index,
+        key: in.symbol
+    }
+
+    if (get(key) != null) {
+        return in.state
+    }
+
+    const added = in.state.added.push(in.symbol)[0]
+    const registered = insert(key)
+
+    return {
+        index: registered.index,
+        added
+    }
+}

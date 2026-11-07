@@ -232,6 +232,9 @@ pub const growth = [_]Entry{
 };
 
 pub const collections = [_]Entry{
+    .{ .path = "genz/analysis/state/locals/statements.zx", .name = "state_locals_statements", .owner = .genz },
+    .{ .path = "genz/analysis/state/locals/scope.zx", .name = "state_locals_scope", .owner = .genz },
+    .{ .path = "genz/analysis/state/locals/parameters.rx", .name = "state_locals_parameters", .owner = .genz },
     .{ .path = "genz/analysis/iteration/transfer/history/append.zx", .name = "transfer_append", .owner = .genz },
     .{ .path = "core/integer/counter/increment.zx", .name = "counter_increment", .owner = .genz },
     .{ .path = "core/integer/counter/get.zx", .name = "counter_get", .owner = .genz },

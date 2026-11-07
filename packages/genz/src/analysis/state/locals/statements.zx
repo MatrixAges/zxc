@@ -1,0 +1,65 @@
+import integers from "std:integer"
+import { StatementKind } from "core/control_table/model"
+
+import add from "./add"
+
+import type { Statements as Input, Registration as Output } from "./model"
+
+export default function (in: Input): Output {
+    const initial: Output = {
+        index: in.index,
+        added: []
+    }
+
+    if (!in.active) {
+        return initial
+    }
+
+    const facts = in.facts
+    const control = in.control
+    const end = in.first + in.count
+
+    return loop({
+        state: initial,
+        position: in.first
+    }, {
+        while: current => current.position < end,
+        next: current => {
+            const position = current.position
+            const payload = integers.widen(control.statement_payloads[position])
+
+            current.state = match control.statement_kinds[position] {
+                StatementKind.Constant => add({
+                    facts,
+                    state: current.state,
+                    symbol: control.constant_symbols[payload]
+                }),
+                StatementKind.Destructure => loop({
+                    state: current.state,
+                    index: integers.widen(control.destructure_first[payload]),
+                    remaining: integers.widen(control.destructure_count[payload])
+                }, {
+                    while: item => item.remaining != 0,
+                    next: item => {
+                        const symbol = control.destructure_symbols[item.index]
+
+                        if (symbol != null) {
+                            item.state = add({
+                                facts,
+                                state: item.state,
+                                symbol
+                            })
+                        }
+
+                        item.index += 1
+                        item.remaining -= 1
+                    },
+                    return: item => item.state
+                }),
+                _ => current.state
+            }
+            current.position += 1
+        },
+        return: current => current.state
+    })
+}
