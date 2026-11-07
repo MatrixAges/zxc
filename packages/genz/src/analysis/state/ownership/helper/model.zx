@@ -1,0 +1,29 @@
+import type { Columns as Forms } from "../../../../ast/expressions/forms/model"
+import type { Columns as Expressions } from "../../../../ast/expressions/model"
+
+export type Preparation = {
+    expression_base: u32
+}
+
+export type Prepared = {
+    expressions: Expressions,
+    forms: Forms,
+    root: u32,
+    valid: bool
+}
+
+export type Input = {
+    name: u8[],
+    type_expr: u32,
+    body_start: u32,
+    body_count: u32,
+    expression_base: u32,
+    declaration_base: u32
+}
+
+export type Parameters = {
+    name: u8[][],
+    value: u32[],
+    default_value: u32?[],
+    comptime_parameter: bool[]
+}

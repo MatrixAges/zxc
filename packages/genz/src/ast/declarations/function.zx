@@ -1,0 +1,57 @@
+import { max_u32 } from "core/const"
+
+import { DeclarationsKind } from "../../printer/model/declarations"
+
+export type Input = {
+    base: u32,
+    name: u8[],
+    parameters_start: u32,
+    parameters_count: u32,
+    return_type: u32,
+    body_start: u32,
+    body_count: u32,
+    exported: bool,
+    abi_export: bool,
+    inlined: bool,
+    calling_convention?: u32
+}
+
+export type Columns = {
+    tags: DeclarationsKind[],
+    offsets: u32[],
+    function_name: u8[][],
+    function_parameters_start: u32[],
+    function_parameters_len: u32[],
+    function_return_type: u32[],
+    function_body_start: u32[],
+    function_body_len: u32[],
+    function_exported: bool[],
+    function_abi_export: bool[],
+    function_inlined: bool[],
+    function_calling_convention: u32?[]
+}
+
+export type Output = {
+    table: Columns,
+    valid: bool
+}
+
+export default function (in: Input): Output {
+    return {
+        valid: in.base < max_u32,
+        table: {
+            tags: [DeclarationsKind.Function],
+            offsets: [0],
+            function_name: [in.name],
+            function_parameters_start: [in.parameters_start],
+            function_parameters_len: [in.parameters_count],
+            function_return_type: [in.return_type],
+            function_body_start: [in.body_start],
+            function_body_len: [in.body_count],
+            function_exported: [in.exported],
+            function_abi_export: [in.abi_export],
+            function_inlined: [in.inlined],
+            function_calling_convention: [in.calling_convention]
+        }
+    }
+}

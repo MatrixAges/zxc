@@ -221,6 +221,8 @@ pub const growth = [_]Entry{
     .{ .path = "genz/analysis/state/ownership/outlined.zx", .name = "ownership_outlined", .owner = .genz },
     .{ .path = "genz/analysis/state/ownership/clear/plan.rx", .name = "ownership_clear_plan", .owner = .genz },
     .{ .path = "genz/analysis/state/ownership/clear/build.rx", .name = "ownership_clear", .owner = .genz },
+    .{ .path = "genz/analysis/state/ownership/helper/prepare.zx", .name = "ownership_helper_prepare", .owner = .genz },
+    .{ .path = "genz/analysis/state/ownership/helper/declare.zx", .name = "ownership_helper_declare", .owner = .genz },
     .{ .path = "genz/analysis/growth/value/build.rx", .name = "growth_value", .owner = .genz },
 };
 

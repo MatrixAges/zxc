@@ -36,14 +36,21 @@ pub fn append(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId,
     if (!present) {
         var statements: std.ArrayList(node.Statement) = .empty;
 
-        try ownership.clear(self, &statements, id, type_id, try self.builder.identifier("value"), slot);
+        if (@import("genz_options").generated_analysis) {
+            const parameter = try @import("helper.zig").prepare(self);
 
-        try self.task_declarations.append(self.allocator, .{ .function = .{
-            .name = name,
-            .parameters = try self.allocator.dupe(node.Field, &.{.{ .name = "value", .value = try self.builder.expression(.{ .pointer = type_expr }) }}),
-            .return_type = try self.builder.expression(.{ .primitive = .void }),
-            .body = try self.builder.statements(statements.items),
-        } });
+            try ownership.clear(self, &statements, id, type_id, parameter, slot);
+            try @import("helper.zig").declare(self, name, type_expr, try self.builder.statements(statements.items));
+        } else {
+            try ownership.clear(self, &statements, id, type_id, try self.builder.identifier("value"), slot);
+
+            try self.task_declarations.append(self.allocator, .{ .function = .{
+                .name = name,
+                .parameters = try self.allocator.dupe(node.Field, &.{.{ .name = "value", .value = try self.builder.expression(.{ .pointer = type_expr }) }}),
+                .return_type = try self.builder.expression(.{ .primitive = .void }),
+                .body = try self.builder.statements(statements.items),
+            } });
+        }
     }
 
     try body.append(self.allocator, .{ .expression = try self.call(try self.builder.identifier(name), &.{try self.builder.expression(.{ .address_of = value })}, false) });

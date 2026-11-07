@@ -1,0 +1,68 @@
+import bytes from "std:bytes"
+
+import initialize from "../../../../ast/context/initialize"
+import pointer from "../../../../ast/context/pointer"
+import primitive from "../../../../ast/context/primitive"
+import declareFunction from "../../../../ast/declarations/function"
+import { ExpressionsPrimitive } from "../../../../printer/model/expressions"
+import { helper_parameter } from "../const"
+
+import type { Columns as Declarations } from "../../../../ast/declarations/function"
+import type { Columns as Forms } from "../../../../ast/expressions/forms/model"
+import type { Columns as Expressions } from "../../../../ast/expressions/model"
+import type { Input, Parameters } from "./model"
+
+export type Output = {
+    expressions: Expressions,
+    forms: Forms,
+    declarations: Declarations,
+    parameters: Parameters,
+    valid: bool
+}
+
+export default function (in: Input): Output {
+    const context = initialize({
+        capture: null,
+        expression_base: in.expression_base,
+        statement_base: 0,
+        field_base: 0,
+        serial: 0
+    })
+
+    const parameter = pointer({
+        state: context,
+        value: in.type_expr
+    })
+
+    const result = primitive({
+        state: parameter.state,
+        value: ExpressionsPrimitive.Void
+    })
+
+    const declaration = declareFunction({
+        base: in.declaration_base,
+        name: in.name,
+        parameters_start: 0,
+        parameters_count: 1,
+        return_type: result.id,
+        body_start: in.body_start,
+        body_count: in.body_count,
+        exported: false,
+        abi_export: false,
+        inlined: false,
+        calling_convention: null
+    })
+
+    return {
+        expressions: result.state.expressions,
+        forms: result.state.forms,
+        declarations: declaration.table,
+        parameters: {
+            name: [bytes.fromText(helper_parameter)],
+            value: [parameter.id],
+            default_value: [null],
+            comptime_parameter: [false]
+        },
+        valid: result.state.valid && declaration.valid
+    }
+}
