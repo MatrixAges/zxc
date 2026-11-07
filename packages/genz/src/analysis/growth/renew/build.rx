@@ -1,0 +1,16 @@
+<Module>
+    <Type from="model" as="Renew" />
+    <Type from="../model" as="Growth" />
+
+    <Args in={Renew.Input} out={Growth.Output} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="path" in={$ctx.initialize} />
+    <Call fn="names" in={$ctx.path} />
+
+    <Call module="../apply" in={$ctx.names} />
+
+    <Call fn="../publish" in={$ctx.apply} />
+
+    <Return value={$ctx.publish} />
+</Module>

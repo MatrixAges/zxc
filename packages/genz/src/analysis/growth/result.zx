@@ -6,7 +6,9 @@ import { Operation } from "./const"
 import type { State as Input, State as Output } from "./model"
 
 export default function (in: Input): Output {
-    if (in.source.operation == Operation.Retract) {
+    const operation = in.source.operation
+
+    if (operation == Operation.Retract || operation == Operation.Renew) {
         const result = header({
             ...in.body.pick([
                 "tags",

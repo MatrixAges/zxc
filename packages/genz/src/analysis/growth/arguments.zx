@@ -1,5 +1,6 @@
 import bytes from "std:bytes"
 
+import address from "../../ast/context/address"
 import boolean from "../../ast/context/boolean"
 import field from "../../ast/context/field"
 import identifier from "../../ast/context/identifier"
@@ -28,6 +29,29 @@ export default function (in: Input): Output {
         state: in.context,
         name: bytes.fromText(allocator_name)
     })
+
+    if (source.operation == Operation.Renew) {
+        const target = address({
+            state: allocator.state,
+            value: source.value
+        })
+
+        const exact = boolean({
+            state: target.state,
+            value: source.flag
+        })
+
+        return {
+            ...in,
+            context: exact.state,
+            arguments: [
+                allocator.id,
+                target.id,
+                source.count,
+                exact.id
+            ]
+        }
+    }
 
     if (source.operation == Operation.Bounded) {
         return {

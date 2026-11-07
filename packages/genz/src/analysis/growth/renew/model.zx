@@ -1,0 +1,16 @@
+import type { Table } from "core/type_table/model"
+import type { Input as GrowthInput, State as Growth } from "../model"
+
+export type Input = {
+    source: GrowthInput,
+    types: Table,
+    type_id: u32,
+    path: u32[]
+}
+
+export type State = {
+    source: Input,
+    growth: Growth,
+    text: u32,
+    steps: u32[]
+}

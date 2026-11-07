@@ -47,7 +47,7 @@ pub fn normalize(self: *Lower, body: *std.ArrayList(node.Statement), element: no
     });
 }
 
-fn prepare(self: *const Lower, operation: @FieldType(Input, "operation"), request: Request) Input {
+pub fn prepare(self: *const Lower, operation: @FieldType(Input, "operation"), request: Request) Input {
     return .{
         .operation = operation,
         .element = @backingInt(request.element),
@@ -93,6 +93,10 @@ fn execute(self: *Lower, body: *std.ArrayList(node.Statement), comptime module: 
         else => unreachable,
     };
 
+    return publish(self, body, emitted);
+}
+
+pub fn publish(self: *Lower, body: *std.ArrayList(node.Statement), emitted: anytype) Lower.Error!node.ExpressionId {
     const wrapped = @hasField(std.meta.Child(@TypeOf(emitted)), "result");
     const output = if (wrapped) emitted.result else emitted;
 

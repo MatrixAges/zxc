@@ -1,0 +1,57 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import integer from "../../../printer/text/integer"
+import origin from "../../construction/origin/name"
+
+import type { Table } from "core/type_table/model"
+
+export type Input = {
+    types: Table,
+    owner: u32,
+    index: u32
+}
+
+export type Output = {
+    child: u32,
+    name: u8[],
+    origin: u8[]
+}
+
+export default function (in: Input): Output {
+    const owner = loop({
+        id: in.owner
+    }, {
+        while: state =>
+            kind(in.types.kinds[integers.widen(state.id)]) == Kind.Optional,
+        next: state => {
+            state.id = in.types.first[integers.widen(state.id)]
+        },
+        return: state => state.id
+    })
+
+    const row = integers.widen(owner)
+    const first = integers.widen(in.types.first[row])
+    const index = first + integers.widen(in.index)
+    const object = kind(in.types.kinds[row]) == Kind.Object
+
+    return {
+        child: match {
+            object => in.types.field_types[index],
+            _ => in.types.children[index]
+        },
+        name: match {
+            object => bytes.fromText(in.types.field_names[index]),
+            _ => integer({
+                output: [],
+                value: integers.widen(in.index)
+            })
+        },
+        origin: origin({
+            types: in.types,
+            id: owner
+        })
+    }
+}

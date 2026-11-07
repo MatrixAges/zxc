@@ -1,0 +1,60 @@
+import text from "../../../ast/context/text"
+import tuple from "../../../ast/context/tuple"
+import { ExpressionsKind } from "../../../printer/model/expressions"
+import member from "./member"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const source = in.source
+
+    const result = loop({
+        context: in.growth.context,
+        owner: source.type_id,
+        index: 0,
+        steps: in.steps
+    }, {
+        while: state => state.index < source.path.length,
+        next: state => {
+            const selected = member({
+                types: source.types,
+                owner: state.owner,
+                index: source.path[state.index]
+            })
+
+            const name = text({
+                state: state.context,
+                kind: ExpressionsKind.String,
+                value: selected.name
+            })
+
+            const origin = text({
+                state: name.state,
+                kind: ExpressionsKind.String,
+                value: selected.origin
+            })
+
+            const pair = tuple({
+                state: origin.state,
+                values: [
+                    name.id,
+                    origin.id
+                ]
+            })
+
+            state.context = pair.state
+            state.owner = selected.child
+            state.index += 1
+            state.steps = state.steps.push(pair.id)[0]
+        }
+    })
+
+    return {
+        ...in,
+        growth: {
+            ...in.growth,
+            context: result.context
+        },
+        steps: result.steps
+    }
+}

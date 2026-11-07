@@ -1,0 +1,41 @@
+import address from "../../../ast/context/address"
+import array from "../../../ast/context/array"
+import fixed from "../../../ast/context/fixed_array"
+import integer from "../../../ast/context/integer"
+import { renewal_pair_size } from "../const"
+
+import type { State as Output } from "../model"
+import type { State as Input } from "./model"
+
+export default function (in: Input): Output {
+    const size = integer({
+        state: in.growth.context,
+        value: renewal_pair_size
+    })
+
+    const pair = fixed({
+        state: size.state,
+        length: size.id,
+        element: in.text
+    })
+
+    const values = array({
+        state: pair.state,
+        element: pair.id,
+        values: in.steps
+    })
+
+    const names = address({
+        state: values.state,
+        value: values.id
+    })
+
+    return {
+        ...in.growth,
+        source: {
+            ...in.growth.source,
+            count: names.id
+        },
+        context: names.state
+    }
+}

@@ -179,6 +179,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/growth/build.rx", .name = "growth_call", .owner = .genz },
     .{ .path = "genz/analysis/growth/reserve/build.rx", .name = "growth_reserve", .owner = .genz },
     .{ .path = "genz/analysis/growth/normalize/build.rx", .name = "growth_normalize", .owner = .genz },
+    .{ .path = "genz/analysis/growth/renew/build.rx", .name = "growth_renew", .owner = .genz },
     .{ .path = "genz/analysis/iteration/buffer/view.zx", .name = "iteration_buffer_view", .owner = .genz },
     .{ .path = "genz/analysis/iteration/buffer/prepare.rx", .name = "iteration_buffer_prepare", .owner = .genz },
     .{ .path = "genz/analysis/iteration/buffer/redirect.rx", .name = "iteration_buffer_redirect", .owner = .genz },
