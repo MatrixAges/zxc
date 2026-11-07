@@ -4,56 +4,8 @@ const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
 
 pub fn lower(self: *Lower, storage: *std.ArrayList(node.Statement), body: *std.ArrayList(node.Statement), id: ir.TypeId, value: node.ExpressionId) Lower.Error!node.ExpressionId {
+    if (!@import("genz_options").generated_analysis) return @import("borrow_seed.zig").lower(self, storage, body, id, value);
     if (!self.state_plan.represented(self.program, id)) return value;
-    if (self.program.typeOf(id) == .list) return @import("elements.zig").convert(self, body, id, value, false);
 
-    const layout = try @import("../types.zig").get(self, self.abi_layouts, id);
-    var rebuilt: std.ArrayList(node.Statement) = .empty;
-
-    const result = switch (self.program.typeOf(id)) {
-        .optional => |child| {
-            var present: std.ArrayList(node.Statement) = .empty;
-            const payload = try self.builder.expression(.{ .optional_unwrap = value });
-            const converted = try lower(self, storage, &present, child, payload);
-
-            return self.cast(try @import("../types.zig").get(self, self.abi_types, id), try self.builder.expression(.{ .conditional = .{
-                .condition = try @import("../intrinsics.zig").binary(self, .not_equal, value, try self.builder.expression(.null_value)),
-                .yes = try @import("../aggregate.zig").finish(self, &present, converted),
-                .no = try self.builder.expression(.null_value),
-            } }));
-        },
-        .object => |fields| blk: {
-            const items = try self.allocator.alloc(node.Field, fields.len);
-
-            for (items, 0..) |*item, position| {
-                const field = fields.at(position);
-
-                item.* = .{
-                    .name = field.name,
-                    .value = try lower(self, storage, &rebuilt, field.type_id, try self.field(value, field.name)),
-                };
-            }
-
-            break :blk try self.builder.expression(.{ .object = .{ .type_expr = layout, .fields = items } });
-        },
-        .tuple => |children| blk: {
-            const items = try self.allocator.alloc(node.ExpressionId, children.len);
-
-            for (items, 0..) |*item, index| item.* = try lower(self, storage, &rebuilt, children.at(index), try self.field(value, try std.fmt.allocPrint(self.allocator, "{d}", .{index})));
-
-            break :blk try self.cast(layout, try self.builder.expression(.{ .tuple = items }));
-        },
-        else => unreachable,
-    };
-
-    const name = try self.fresh("state_borrow");
-    const slot = try self.builder.identifier(name);
-
-    try storage.append(self.allocator, .{ .variable = .{ .name = name, .type_expr = layout, .value = try self.builder.expression(.undefined_value) } });
-    try rebuilt.append(self.allocator, .{ .assignment = .{ .target = slot, .value = result } });
-
-    const origin = try self.field(value, try @import("origin.zig").name(self, id));
-    const fallback = try @import("../aggregate.zig").finish(self, &rebuilt, try self.builder.expression(.{ .address_of = slot }));
-
-    return self.builder.expression(.{ .binary = .{ .operator = .coalesce, .left = origin, .right = fallback } });
+    return @import("conversion_emission.zig").lowerWithStorage(self, storage, body, id, value, .borrow);
 }

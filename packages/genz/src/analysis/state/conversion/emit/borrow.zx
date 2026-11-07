@@ -1,0 +1,104 @@
+import assignment from "../../../../ast/body/assignment"
+import address from "../../../../ast/context/address"
+import binary from "../../../../ast/context/binary"
+import field from "../../../../ast/context/field"
+import identifier from "../../../../ast/context/identifier"
+import undefinedValue from "../../../../ast/context/undefined"
+import variable from "../../../../ast/context/variable"
+import fresh from "../../../../ast/fresh"
+import { ExpressionsBinaryOperator } from "../../../../printer/model/expressions"
+import { borrow_prefix } from "../const"
+import finish from "./finish"
+
+import type { Step as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const frame = in.state.nodes[in.node]
+
+    const name = fresh({
+        serial: in.state.context.serial,
+        prefix: borrow_prefix
+    })
+
+    const slot = identifier({
+        state: {
+            ...in.state.context,
+            serial: name.serial
+        },
+        name: name.name
+    })
+
+    const initial = undefinedValue(slot.state)
+
+    const declared = variable({
+        state: {
+            ...initial.state,
+            source: {
+                ...initial.state.source,
+                statement_base: 0
+            },
+            statements: {
+                ...initial.state.statements,
+                ...in.state.borrow_storage
+            }
+        },
+        name: name.name,
+        type_expr: in.source.layouts[in.node],
+        value: initial.id
+    })
+
+    const assigned = assignment({
+        state: {
+            context: {
+                ...declared,
+                source: initial.state.source,
+                statements: {
+                    ...declared.statements,
+                    tags: initial.state.statements.tags,
+                    offsets: initial.state.statements.offsets
+                }
+            },
+            body: in.state.body
+        },
+        target: slot.id,
+        value: frame.result
+    })
+
+    const origin = field({
+        state: assigned.context,
+        target: frame.input,
+        name: in.source.origins[in.node]
+    })
+
+    const pointer = address({
+        state: origin.state,
+        value: slot.id
+    })
+
+    const fallback = finish({
+        state: pointer.state,
+        body: assigned.body,
+        value: pointer.id
+    })
+
+    const result = binary({
+        state: fallback.state,
+        operator: ExpressionsBinaryOperator.Coalesce,
+        left: origin.id,
+        right: fallback.id
+    })
+
+    return {
+        ...in.state,
+        context: result.state,
+        body: frame.outer,
+        borrow_storage: declared.statements.pick([
+            "tags",
+            "offsets"
+        ]),
+        nodes: in.state.nodes.with(in.node, {
+            ...frame,
+            result: result.id
+        })
+    }
+}

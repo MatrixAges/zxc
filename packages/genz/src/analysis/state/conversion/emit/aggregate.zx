@@ -5,7 +5,8 @@ import object from "../../../../ast/context/object"
 import tuple from "../../../../ast/context/tuple"
 import { ExpressionsBuiltinName } from "../../../../printer/model/expressions"
 import isInput from "../is_input"
-import { Operation } from "../model"
+import { Operation, Mode } from "../model"
+import borrow from "./borrow"
 import origin from "./origin"
 import outbound from "./outbound"
 import reference from "./reference"
@@ -106,6 +107,13 @@ export default function (in: Input): Output {
         nodes: in.state.nodes.with(in.node, {
             ...in.state.nodes[in.node],
             result: result.id
+        })
+    }
+
+    if (in.source.plan.modes[in.node] == Mode.Borrow) {
+        return borrow({
+            ...in,
+            state
         })
     }
 

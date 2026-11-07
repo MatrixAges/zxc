@@ -13,6 +13,10 @@ export default function (in: Input): Output {
             ...in.context.statements,
             ...in.storage
         },
+        borrow_storage: {
+            ...in.context.statements,
+            ...in.borrow_storage
+        },
         variables: in.context.variables,
         fields: in.fields,
         root: in.nodes[0].result,

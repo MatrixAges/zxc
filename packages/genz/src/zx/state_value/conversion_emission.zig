@@ -7,6 +7,10 @@ const Mode = @import("conversion.zig").Mode;
 const view = @import("../../node/view.zig");
 
 pub fn lower(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.TypeId, value: node.ExpressionId, mode: Mode) Lower.Error!node.ExpressionId {
+    return lowerWithStorage(self, body, body, id, value, mode);
+}
+
+pub fn lowerWithStorage(self: *Lower, borrow_storage: *std.ArrayList(node.Statement), body: *std.ArrayList(node.Statement), id: ir.TypeId, value: node.ExpressionId, mode: Mode) Lower.Error!node.ExpressionId {
     const planner = @import("generated_state_conversion_plan");
     const PlanInput = std.meta.Child(planner.Input);
     const types = ir.TypeTable.borrow(std.meta.Child(@FieldType(PlanInput, "types")), self.program.types);
@@ -24,6 +28,7 @@ pub fn lower(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.TypeId, 
             .pointer => .Pointer,
             .layout => .Layout,
             .row_layout => .RowLayout,
+            .borrow => .Borrow,
             else => unreachable,
         },
     };
@@ -103,10 +108,12 @@ pub fn lower(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.TypeId, 
     const expressions = view.join(output.expressions.*, output.forms.*);
     const statements = view.join(output.statements.*, output.variables.*);
     const storage = view.join(output.storage.*, output.variables.*);
+    const borrowed = view.join(output.borrow_storage.*, output.variables.*);
     const flat = view.join(output.body.*, output.variables.*);
     @import("../../node/import_rows.zig").append(self.allocator, &self.builder.nodes.expressions, &expressions) catch |err| return imported(err);
     @import("../../node/import_selected.zig").append(self.allocator, &self.builder.nodes.statements, &statements) catch |err| return imported(err);
     @import("../../node/import_statements.zig").appendSelected(self.allocator, &self.reference_storage, &storage) catch |err| return imported(err);
+    @import("../../node/import_statements.zig").appendSelected(self.allocator, borrow_storage, &borrowed) catch |err| return imported(err);
     @import("../../node/import_statements.zig").appendSelected(self.allocator, body, &flat) catch |err| return imported(err);
     try self.builder.nodes.field_columns.reserve(self.allocator, output.fields.len);
 

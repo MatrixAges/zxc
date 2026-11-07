@@ -82,6 +82,7 @@ export default function append(in: Input): Output {
             const rows = selected == Operation.Rows && size == 2
             const mode = match {
                 input => Mode.Value,
+                source.mode == Mode.Borrow && selected != Operation.Rows => Mode.Borrow,
                 rows && current.index == 0 => Mode.RowValue,
                 _ => Mode.Pointer
             }
