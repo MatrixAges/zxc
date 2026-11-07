@@ -19,6 +19,11 @@ pub fn appendSelected(allocator: std.mem.Allocator, target: *std.ArrayList(node.
     return appendRows(allocator, target, source, false, true);
 }
 
+/// Selected rows may share payload columns; all text must outlive the target.
+pub fn appendSelectedBorrowingText(allocator: std.mem.Allocator, target: *std.ArrayList(node.Statement), source: anytype) Error!void {
+    return appendRows(allocator, target, source, true, true);
+}
+
 fn appendRows(allocator: std.mem.Allocator, target: *std.ArrayList(node.Statement), source: anytype, comptime borrow_text: bool, comptime selected_rows: bool) Error!void {
     var empty: Rows(Stored) = .init();
 

@@ -1,0 +1,26 @@
+import integers from "std:integer"
+
+import type { Input as Output } from "../../helper/name/model"
+import type { Input } from "./model"
+
+export default function (in: Input): Output {
+    const { facts, node, type_id, slot } = in.source.source
+
+    const row = integers.widen(type_id)
+    const zero: u32 = 0
+    const count = row < facts.counts.length ? facts.counts[row] : zero
+
+    return {
+        hash: in.hash,
+        names: in.names,
+        index: row,
+        key: in.key,
+        source: {
+            first: facts.first,
+            transfers: facts.transfers,
+            node,
+            slot
+        },
+        count
+    }
+}

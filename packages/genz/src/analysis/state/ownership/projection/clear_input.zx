@@ -1,0 +1,21 @@
+import integers from "std:integer"
+
+import type { Input as Output } from "../clear/model"
+import type { Clear as Input } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        ...in.source.pick([
+            "layouts",
+            "ast",
+            "statement_base",
+            "serial"
+        ]),
+        plan: in.plan,
+        value: in.projection.id,
+        expression_base: integers.narrow(
+            integers.widen(in.source.expression_base) +
+                in.projection.state.expressions.tags.length
+        )
+    }
+}

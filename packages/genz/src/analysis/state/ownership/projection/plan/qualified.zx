@@ -1,0 +1,13 @@
+import fresh from "../../../../../ast/fresh"
+import { qualified_prefix } from "../../const"
+
+import type { Output } from "../../../../../ast/fresh"
+
+export type Input = u64
+
+export default function (in: Input): Output {
+    return fresh({
+        serial: in,
+        prefix: qualified_prefix
+    })
+}

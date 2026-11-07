@@ -10,6 +10,7 @@ const Aes256 = aead.Module(std.crypto.aead.aes_gcm.Aes256Gcm, (1 << 36) - 32);
 const ChaCha = aead.Module(std.crypto.aead.chacha_poly.ChaCha20Poly1305, (1 << 38) - 64);
 pub const sha256 = hash.sha256;
 pub const sha256Parts = hash.sha256Parts;
+pub const resetSha256 = sha256_state.reset;
 pub const updateSha256 = sha256_state.update;
 pub const updateSha256Byte = sha256_state.updateByte;
 pub const digestSha256 = sha256_state.digest;

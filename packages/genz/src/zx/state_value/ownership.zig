@@ -28,28 +28,9 @@ pub fn erase(self: *Lower, body: *std.ArrayList(node.Statement), type_id: ir.Typ
 }
 
 pub fn projected(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId, type_id: ir.TypeId, value: node.ExpressionId, slot: u32) Lower.Error!node.ExpressionId {
-    if (!needed(self, id, type_id, slot)) return value;
+    if (!@import("genz_options").generated_analysis) return @import("ownership/projected_seed.zig").lower(self, body, id, type_id, value, slot);
 
-    const name = try self.fresh("qualified");
-
-    const source = if (@import("genz_options").generated_analysis)
-        try @import("ownership/projection.zig").bind(self, body, name, try @import("../types.zig").get(self, self.state_types, type_id), value)
-
-    else seed: {
-        const source = try self.builder.identifier(name);
-
-        try body.append(self.allocator, .{ .variable = .{
-            .name = name,
-            .type_expr = try @import("../types.zig").get(self, self.state_types, type_id),
-            .value = value,
-        } });
-
-        break :seed source;
-    };
-
-    if (!try @import("ownership/outlined.zig").append(self, body, id, type_id, source, slot)) try clear(self, body, id, type_id, source, slot);
-
-    return source;
+    return @import("ownership/projection.zig").lower(self, body, id, type_id, value, slot);
 }
 
 pub fn count(self: *const Lower, id: ir.TypeId) u32 {

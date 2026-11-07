@@ -1,0 +1,29 @@
+import type { Segment } from "../helper/flow/model"
+import type { Published as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const prefix: Segment[] = [{
+        expressions: in.projection.state.expressions,
+        forms: in.projection.state.forms,
+        borrow_text: true
+    }]
+
+    return {
+        result: {
+            ...in.result,
+            segments: prefix.concat(in.result.segments)[0],
+            valid: in.projection.state.valid && in.result.valid
+        },
+        binding: {
+            statements: in.projection.state.statements,
+            variables: in.projection.state.variables,
+            borrow_text: true
+        },
+        body: {
+            statements: in.result.body,
+            variables: in.result.variables,
+            borrow_text: in.borrow_body
+        },
+        root: in.projection.id
+    }
+}

@@ -1,0 +1,40 @@
+<Module>
+    <Type from="model" as="Plan" />
+
+    <Args in={Plan.Input} out={Plan.Output} />
+
+    <Call fn="../../needed" in={$in.source.source} />
+
+    <If on={!$ctx.needed}>
+        <Return value={null} />
+    </If>
+
+    <Call fn="qualified" in={$in.serial} />
+    <Call fn="../../outlined" in={$in.source} />
+
+    <If on={$ctx.outlined}>
+        <Call fn="name_input" in={$in} />
+
+        <Call module="../../helper/name/build" in={$ctx.name_input} />
+
+        <Return
+            value={{
+                qualified: $ctx.qualified,
+                helper_name: $ctx.build,
+                clear_plan: null
+            }}
+        />
+
+        <Else>
+            <Call module="../../clear/plan" in={$in.source} />
+
+            <Return
+                value={{
+                    qualified: $ctx.qualified,
+                    helper_name: null,
+                    clear_plan: $ctx.plan
+                }}
+            />
+        </Else>
+    </If>
+</Module>

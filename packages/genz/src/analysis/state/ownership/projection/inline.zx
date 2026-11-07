@@ -1,0 +1,24 @@
+import publish from "./publish"
+
+import type { Inline as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    return publish({
+        projection: in.projection,
+        result: {
+            segments: [{
+                expressions: in.clear.expressions,
+                forms: in.clear.forms,
+                borrow_text: false
+            }],
+            statements: in.clear.statements,
+            body: in.clear.body,
+            storage: in.clear.storage,
+            variables: in.clear.variables,
+            declaration: null,
+            serial: in.clear.serial,
+            valid: in.clear.valid
+        },
+        borrow_body: false
+    })
+}

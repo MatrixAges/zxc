@@ -1,0 +1,26 @@
+import integers from "std:integer"
+
+import type { Input as Output } from "../helper/flow/model"
+import type { Helper as Input } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        ...in.source.pick(
+            [
+                "source",
+                "existing_names",
+                "type_expr",
+                "ast",
+                "statement_base",
+                "declaration_base",
+                "serial"
+            ]
+        ),
+        name: in.name,
+        value: in.projection.id,
+        expression_base: integers.narrow(
+            integers.widen(in.source.expression_base) +
+                in.projection.state.expressions.tags.length
+        )
+    }
+}

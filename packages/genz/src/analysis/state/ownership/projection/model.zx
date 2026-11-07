@@ -1,0 +1,63 @@
+import type { Node, Variables } from "../../../../ast/context/model"
+import type { Columns as Statements } from "../../../../ast/statements/model"
+import type { Ast } from "../../list/model"
+import type { Output as Cleared, Plan } from "../clear/model"
+import type { Output as Result } from "../helper/flow/model"
+import type { Outline } from "../model"
+
+export type Input = {
+    source: Outline,
+    name: u8[],
+    helper_name?: u8[],
+    clear_plan?: Plan,
+    layouts: u32[],
+    existing_names: u8[][],
+    type_expr: u32,
+    value: u32,
+    ast: Ast,
+    expression_base: u32,
+    statement_base: u32,
+    declaration_base: u32,
+    serial: u64
+}
+
+export type Body = {
+    statements: Statements,
+    variables: Variables,
+    borrow_text: bool
+}
+
+export type Output = {
+    result: Result,
+    binding: Body,
+    body: Body,
+    root: u32
+}
+
+export type Helper = {
+    source: Input,
+    projection: Node,
+    name: u8[]
+}
+
+export type Clear = {
+    source: Input,
+    projection: Node,
+    plan: Plan
+}
+
+export type Published = {
+    projection: Node,
+    result: Result,
+    borrow_body: bool
+}
+
+export type Inline = {
+    projection: Node,
+    clear: Cleared
+}
+
+export type Failure = {
+    value: u32,
+    serial: u64
+}

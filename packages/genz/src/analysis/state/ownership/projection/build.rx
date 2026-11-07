@@ -1,0 +1,84 @@
+<Module>
+    <Type from="model" as="Projection" />
+
+    <Args in={Projection.Input} out={Projection.Output} />
+
+    <Call
+        fn="../projected"
+        in={$in.pick([
+            "name",
+            "type_expr",
+            "value",
+            "expression_base"
+        ])}
+    />
+
+    <If on={!$ctx.projected.state.valid}>
+        <Call
+            fn="failed"
+            in={$in.pick([
+                "value",
+                "serial"
+            ])}
+        />
+
+        <Return value={$ctx.failed} />
+    </If>
+
+    <If on={$in.helper_name != null}>
+        <Call
+            fn="helper_input"
+            in={{
+                source: $in,
+                projection: $ctx.projected,
+                name: $in.helper_name
+            }}
+        />
+
+        <Call module="../helper/flow/build" in={$ctx.helper_input} />
+
+        <Call
+            fn="publish"
+            in={{
+                projection: $ctx.projected,
+                result: $ctx.build,
+                borrow_body: true
+            }}
+        />
+
+        <Return value={$ctx.publish} />
+    </If>
+
+    <If on={$in.clear_plan != null}>
+        <Call
+            fn="clear_input"
+            in={{
+                source: $in,
+                projection: $ctx.projected,
+                plan: $in.clear_plan
+            }}
+        />
+
+        <Call module="../clear/build" in={$ctx.clear_input} />
+
+        <Call
+            fn="inline"
+            in={{
+                projection: $ctx.projected,
+                clear: $ctx.build
+            }}
+        />
+
+        <Return value={$ctx.inline} />
+    </If>
+
+    <Call
+        fn="failed"
+        in={$in.pick([
+            "value",
+            "serial"
+        ])}
+    />
+
+    <Return value={$ctx.failed} />
+</Module>

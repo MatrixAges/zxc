@@ -1,0 +1,20 @@
+import type { Sha256State } from "std:crypto"
+import type { Output as Qualified } from "../../../../../ast/fresh"
+import type { Plan } from "../../clear/model"
+import type { Outline } from "../../model"
+
+export type Input = {
+    source: Outline,
+    hash: Sha256State,
+    names?: string[],
+    key: u8[],
+    serial: u64
+}
+
+export type Request = {
+    qualified: Qualified,
+    helper_name?: string,
+    clear_plan?: Plan
+}
+
+export type Output = Request?

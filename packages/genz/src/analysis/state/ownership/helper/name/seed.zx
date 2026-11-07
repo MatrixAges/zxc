@@ -7,6 +7,7 @@ import type { Sha256State as Output } from "std:crypto"
 import type { Seed as Input } from "./model"
 
 export default function (in: Input): Output {
+    crypto.resetSha256(in.hash)
     crypto.updateSha256(in.hash, bytes.fromText(in.state_name))
     crypto.updateSha256Byte(in.hash, helper_separator)
 
