@@ -34,7 +34,7 @@ pub fn lower(self: *Lower, output: *std.ArrayList(node.Declaration), exported: b
 
         const selected = blk: {
             const definition = switch (value) {
-                .list => |child| try @import("list.zig").definition(self, id, child),
+                .list => |child| try @import("list_seed.zig").definition(self, id, child),
                 .object => |fields| object: {
                     const items = try self.allocator.alloc(node.Field, fields.len + 1);
 

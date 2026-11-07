@@ -1,0 +1,67 @@
+import conditional from "../../../ast/context/conditional"
+import choose from "./choose"
+import { Storage } from "./const"
+import literal from "./literal"
+
+import type { State, Node } from "../../../ast/context/model"
+import type { Ast } from "./model"
+
+export type Input = {
+    state: State,
+    ast: Ast,
+    header: u32,
+    unique: u32
+}
+
+export type Output = Node
+
+export default function (in: Input): Output {
+    const known = literal({
+        state: in.state,
+        ast: in.ast,
+        value: in.header
+    })
+
+    if (known != null) {
+        return choose({
+            state: in.state,
+            ast: in.ast,
+            condition: in.unique,
+            yes: known ? Storage.Exclusive : Storage.Owned,
+            no: known ? Storage.Shared : Storage.Plain
+        })
+    }
+
+    if (in.header == in.unique) {
+        return choose({
+            state: in.state,
+            ast: in.ast,
+            condition: in.header,
+            yes: Storage.Exclusive,
+            no: Storage.Plain
+        })
+    }
+
+    const yes = choose({
+        state: in.state,
+        ast: in.ast,
+        condition: in.unique,
+        yes: Storage.Exclusive,
+        no: Storage.Shared
+    })
+
+    const no = choose({
+        state: yes.state,
+        ast: in.ast,
+        condition: in.unique,
+        yes: Storage.Owned,
+        no: Storage.Plain
+    })
+
+    return conditional({
+        state: no.state,
+        condition: in.header,
+        yes: yes.id,
+        no: no.id
+    })
+}

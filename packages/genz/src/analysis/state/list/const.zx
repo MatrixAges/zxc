@@ -1,0 +1,19 @@
+export enum Storage { Plain, Owned, Shared, Exclusive }
+
+export enum Operation {
+    Tag,
+    Headered,
+    Exclusive,
+    Writable,
+    Weakened,
+    Create,
+    Proven,
+    Owned,
+    Borrowed,
+    Items,
+    Wrap
+}
+
+export const header_flag: u64 = 2
+
+export const plain_flag: u64 = 0

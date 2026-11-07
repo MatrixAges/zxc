@@ -1,0 +1,55 @@
+import type { State as Context } from "../../../ast/context/model"
+import type { Columns as Forms } from "../../../ast/expressions/forms/model"
+import type { Columns as Expressions } from "../../../ast/expressions/model"
+import type { ExpressionsKind } from "../../../printer/model/expressions"
+import type { Field } from "../../types/definitions/model"
+import type { Operation, Storage } from "./const"
+
+export type Ast = {
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    boolean: bool[],
+    object_start: u32[],
+    object_count: u32[],
+    field_name: u8[][],
+    field_value: u32[]
+}
+
+export type Query = {
+    operation: Operation,
+    selected: bool,
+    value: u32,
+    ast: Ast
+}
+
+export type Plan = {
+    passthrough?: u32,
+    layout: bool
+}
+
+export type Input = {
+    request: Query,
+    construct: bool,
+    condition: u32,
+    unique: u32,
+    storage: Storage,
+    flag: bool,
+    layout: u32,
+    expression_base: u32,
+    field_base: u32
+}
+
+export type State = {
+    source: Input,
+    context: Context,
+    root: u32,
+    fields: Field[]
+}
+
+export type Output = {
+    expressions: Expressions,
+    forms: Forms,
+    fields: Field[],
+    root: u32,
+    valid: bool
+}

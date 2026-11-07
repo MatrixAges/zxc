@@ -1,0 +1,19 @@
+<Module>
+    <Type from="model" as="List" />
+
+    <Args in={List.Input} out={List.Output} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="value" in={$ctx.initialize} />
+
+    <If on={$in.construct}>
+        <Call fn="record" in={$ctx.value} />
+        <Call fn="publish" in={$ctx.record} />
+
+        <Return value={$ctx.publish} />
+    </If>
+
+    <Call fn="publish" in={$ctx.value} />
+
+    <Return value={$ctx.publish} />
+</Module>

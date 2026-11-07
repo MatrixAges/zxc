@@ -1,0 +1,62 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import { ExpressionsKind } from "../../../printer/model/expressions"
+import { items_field, storage_field, list_field_count } from "../../types/state/const"
+import { Operation } from "./const"
+
+import type { Query as Input, Plan as Output } from "./model"
+
+export default function (in: Input): Output {
+    const guarded = in.operation == Operation.Owned || in.operation == Operation.Wrap
+    const items = in.operation == Operation.Items
+
+    const guarded_access = guarded || items
+
+    if (!in.selected && guarded_access) {
+        return {
+            passthrough: in.value,
+            layout: false
+        }
+    }
+
+    if (items) {
+        const id = integers.widen(in.value)
+
+        if (in.ast.tags[id] == ExpressionsKind.Object) {
+            const payload = integers.widen(in.ast.offsets[id])
+            const first = integers.widen(in.ast.object_start[payload])
+
+            if (in.ast.object_count[payload] == list_field_count) {
+                const first_name = bytes.equals(
+                    in.ast.field_name[first],
+                    bytes.fromText(items_field)
+                )
+
+                const second_name = bytes.equals(
+                    in.ast.field_name[first + 1],
+                    bytes.fromText(storage_field)
+                )
+
+                if (first_name && second_name) {
+                    return {
+                        passthrough: in.ast.field_value[first],
+                        layout: false
+                    }
+                }
+            }
+        }
+    }
+
+    return {
+        passthrough: null,
+        layout: match in.operation {
+            Operation.Create => true,
+            Operation.Proven => true,
+            Operation.Owned => true,
+            Operation.Borrowed => true,
+            Operation.Wrap => true,
+            _ => false
+        }
+    }
+}

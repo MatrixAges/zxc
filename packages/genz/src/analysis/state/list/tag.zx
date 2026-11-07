@@ -1,0 +1,35 @@
+import bytes from "std:bytes"
+
+import text from "../../../ast/context/text"
+import { ExpressionsKind } from "../../../printer/model/expressions"
+import {
+    storage_plain,
+    storage_owned,
+    storage_shared,
+    storage_exclusive
+} from "../../types/state/const"
+import { Storage } from "./const"
+
+import type { State, Node } from "../../../ast/context/model"
+
+export type Input = {
+    state: State,
+    storage: Storage
+}
+
+export type Output = Node
+
+export default function (in: Input): Output {
+    const name = match in.storage {
+        Storage.Plain => storage_plain,
+        Storage.Owned => storage_owned,
+        Storage.Shared => storage_shared,
+        _ => storage_exclusive
+    }
+
+    return text({
+        state: in.state,
+        kind: ExpressionsKind.EnumLiteral,
+        value: bytes.fromText(name)
+    })
+}

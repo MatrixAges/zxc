@@ -1,0 +1,38 @@
+import bytes from "std:bytes"
+
+import object from "../../../ast/context/object"
+import { items_field, storage_field, list_field_count } from "../../types/state/const"
+
+import type { Field } from "../../types/definitions/model"
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const fields: Field[] = [
+        {
+            name: bytes.fromText(items_field),
+            value: in.source.request.value,
+            default_value: null,
+            comptime_parameter: false
+        },
+        {
+            name: bytes.fromText(storage_field),
+            value: in.root,
+            default_value: null,
+            comptime_parameter: false
+        }
+    ]
+
+    const value = object({
+        state: in.context,
+        type_expr: in.source.layout,
+        first: in.source.field_base,
+        count: list_field_count
+    })
+
+    return {
+        ...in,
+        context: value.state,
+        root: value.id,
+        fields
+    }
+}

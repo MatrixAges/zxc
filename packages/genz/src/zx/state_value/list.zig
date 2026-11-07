@@ -3,111 +3,91 @@ const ir = @import("zx").ir;
 const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
 const aggregate = @import("../aggregate.zig");
-pub const Storage = enum { plain, owned, shared, exclusive };
+const seed = @import("list_seed.zig");
+pub const Storage = seed.Storage;
 
 pub fn selected(self: *const Lower, id: ir.TypeId) bool {
-    return self.state_active and self.state_plan.selected[@backingInt(id)] and self.program.typeOf(id) == .list;
-}
+    if (!@import("genz_options").generated_analysis) return seed.selected(self, id);
 
-pub fn definition(self: *Lower, id: ir.TypeId, child: ir.TypeId) Lower.Error!node.ExpressionId {
-    const element = if (self.program.typeOf(child) == .list and @import("elements.zig").inlineStored(self, id)) self.state_types else if (self.program.typeOf(child) == .object and self.state_plan.selected[@backingInt(child)]) self.abi_layouts else self.abi_types;
+    const generated = @import("generated_state_list_selected");
+    const Input = std.meta.Child(generated.Input);
+    const index = @backingInt(id);
 
-    return self.builder.expression(.{ .struct_type = try self.allocator.dupe(node.Field, &.{
-        .{ .name = "items", .value = try self.builder.expression(.{ .const_slice = try @import("../types.zig").get(self, element, child) }) },
-        .{ .name = "storage", .value = try self.builder.expression(.{ .enum_type = &.{ "plain", "owned", "shared", "exclusive" } }) },
-    }) });
+    const input: Input = .{
+        .active = self.state_active,
+        .chosen = if (self.state_active) self.state_plan.selected[index] else false,
+        .kind = if (self.state_active) self.program.types.kinds[index] else 0,
+    };
+
+    var fixed = std.heap.FixedBufferAllocator.init(&.{});
+
+    return @import("zx").columns.invoke(generated.executeValue, fixed.allocator(), &input) catch unreachable;
 }
 
 pub fn tag(self: *Lower, storage: Storage) Lower.Error!node.ExpressionId {
-    return self.builder.expression(.{ .enum_literal = @tagName(storage) });
+    if (!@import("genz_options").generated_analysis) return seed.tag(self, storage);
+
+    return @import("list_emission.zig").lower(self, null, .Tag, .{ .storage = @fromBackingInt(@backingInt(storage)) });
 }
 
 pub fn headered(self: *Lower, value: node.ExpressionId) Lower.Error!node.ExpressionId {
-    const storage = try self.field(value, "storage");
+    if (!@import("genz_options").generated_analysis) return seed.headered(self, value);
 
-    return @import("../intrinsics.zig").binary(self, .greater_equal,
-        try self.builtin(.intFromEnum, &.{storage}),
-        try self.builder.integer(@intFromEnum(Storage.shared)));
+    return @import("list_emission.zig").lower(self, null, .Headered, .{ .value = value });
 }
 
 pub fn exclusive(self: *Lower, value: node.ExpressionId) Lower.Error!node.ExpressionId {
-    return @import("../intrinsics.zig").binary(self, .equal, try self.field(value, "storage"), try tag(self, .exclusive));
+    if (!@import("genz_options").generated_analysis) return seed.exclusive(self, value);
+
+    return @import("list_emission.zig").lower(self, null, .Exclusive, .{ .value = value });
 }
 
 pub fn writable(self: *Lower, value: node.ExpressionId) Lower.Error!node.ExpressionId {
-    const storage = try self.builtin(.intFromEnum, &.{try self.field(value, "storage")});
-    const permission = try self.builtin(.rem, &.{ storage, try self.builder.integer(@intFromEnum(Storage.shared)) });
+    if (!@import("genz_options").generated_analysis) return seed.writable(self, value);
 
-    return @import("../intrinsics.zig").binary(self, .not_equal, permission, try self.builder.integer(@intFromEnum(Storage.plain)));
+    return @import("list_emission.zig").lower(self, null, .Writable, .{ .value = value });
 }
 
 pub fn weakened(self: *Lower, value: node.ExpressionId) Lower.Error!node.ExpressionId {
-    return choose(self, try headered(self, value), .shared, .plain);
-}
+    if (!@import("genz_options").generated_analysis) return seed.weakened(self, value);
 
-fn choose(self: *Lower, condition: node.ExpressionId, yes: Storage, no: Storage) Lower.Error!node.ExpressionId {
-    const value = self.builder.nodes.get(condition);
-
-    if (value == .boolean) return tag(self, if (value.boolean) yes else no);
-
-    return self.builder.expression(.{ .conditional = .{ .condition = condition, .yes = try tag(self, yes), .no = try tag(self, no) } });
+    return @import("list_emission.zig").lower(self, null, .Weakened, .{ .value = value });
 }
 
 pub fn create(self: *Lower, id: ir.TypeId, slice: node.ExpressionId, has_header: node.ExpressionId) Lower.Error!node.ExpressionId {
-    return construct(self, id, slice, try choose(self, has_header, .shared, .plain));
+    if (!@import("genz_options").generated_analysis) return seed.create(self, id, slice, has_header);
+
+    return @import("list_emission.zig").lower(self, id, .Create, .{ .value = slice, .condition = has_header });
 }
 
 pub fn proven(self: *Lower, id: ir.TypeId, slice: node.ExpressionId, has_header: node.ExpressionId, is_unique: node.ExpressionId) Lower.Error!node.ExpressionId {
-    const header = self.builder.nodes.get(has_header);
+    if (!@import("genz_options").generated_analysis) return seed.proven(self, id, slice, has_header, is_unique);
 
-    const storage = if (header == .boolean)
-        (if (header.boolean) try choose(self, is_unique, .exclusive, .shared) else try choose(self, is_unique, .owned, .plain))
-
-    else if (has_header == is_unique)
-        try choose(self, has_header, .exclusive, .plain)
-    else
-        try self.builder.expression(.{ .conditional = .{ .condition = has_header, .yes = try choose(self, is_unique, .exclusive, .shared), .no = try choose(self, is_unique, .owned, .plain) } });
-
-    return construct(self, id, slice, storage);
+    return @import("list_emission.zig").lower(self, id, .Proven, .{ .value = slice, .condition = has_header, .unique = is_unique });
 }
 
 pub fn owned(self: *Lower, id: ir.TypeId, slice: node.ExpressionId, has_header: node.ExpressionId) Lower.Error!node.ExpressionId {
-    if (!selected(self, id)) return slice;
+    if (!@import("genz_options").generated_analysis) return seed.owned(self, id, slice, has_header);
 
-    return proven(self, id, slice, has_header, try self.builder.expression(.{ .boolean = true }));
-}
-
-fn construct(self: *Lower, id: ir.TypeId, slice: node.ExpressionId, storage: node.ExpressionId) Lower.Error!node.ExpressionId {
-    return self.builder.expression(.{ .object = .{
-        .type_expr = try @import("../types.zig").get(self, self.state_types, id),
-        .fields = try self.allocator.dupe(node.Field, &.{
-            .{ .name = "items", .value = slice },
-            .{ .name = "storage", .value = storage },
-        }),
-    } });
+    return @import("list_emission.zig").lower(self, id, .Owned, .{ .value = slice, .condition = has_header, .selected = selected(self, id) });
 }
 
 pub fn borrowed(self: *Lower, id: ir.TypeId, slice: node.ExpressionId) Lower.Error!node.ExpressionId {
-    return create(self, id, slice, try self.builder.expression(.{ .boolean = false }));
+    if (!@import("genz_options").generated_analysis) return seed.borrowed(self, id, slice);
+
+    return @import("list_emission.zig").lower(self, id, .Borrowed, .{ .value = slice });
 }
 
 pub fn items(self: *Lower, id: ir.TypeId, value: node.ExpressionId) Lower.Error!node.ExpressionId {
-    if (!selected(self, id)) return value;
+    if (!@import("genz_options").generated_analysis) return seed.items(self, id, value);
 
-    const expression_value = self.builder.nodes.get(value);
+    return @import("list_emission.zig").lower(self, id, .Items, .{ .value = value, .selected = selected(self, id) });
+}
 
-    if (expression_value == .object) {
-        const fields = expression_value.object.fields;
+pub fn wrap(self: *Lower, id: ir.TypeId, value: node.ExpressionId, has_header: bool) Lower.Error!node.ExpressionId {
+    if (!@import("genz_options").generated_analysis) return seed.wrap(self, id, value, has_header);
 
-        if (fields.len == 2) {
-            const first = self.builder.nodes.field_columns.get(fields.start);
-            const second = self.builder.nodes.field_columns.get(fields.start + 1);
-
-            if (std.mem.eql(u8, first.name, "items") and std.mem.eql(u8, second.name, "storage")) return first.value;
-        }
-    }
-
-    return self.field(value, "items");
+    return @import("list_emission.zig").lower(self, id, .Wrap, .{ .value = value, .flag = has_header, .selected = selected(self, id) });
 }
 
 pub fn reserve(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.TypeId, value: node.ExpressionId, count: node.ExpressionId, frontier: bool) Lower.Error!node.ExpressionId {
@@ -133,10 +113,4 @@ pub fn reserve(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.TypeId
 
 pub fn expression(self: *Lower, id: ir.ExprId) Lower.Error!node.ExpressionId {
     return items(self, self.program.expression(id).type_id, try self.expr(id));
-}
-
-pub fn wrap(self: *Lower, id: ir.TypeId, value: node.ExpressionId, has_header: bool) Lower.Error!node.ExpressionId {
-    if (!selected(self, id)) return value;
-
-    return create(self, id, value, try self.builder.expression(.{ .boolean = has_header }));
 }

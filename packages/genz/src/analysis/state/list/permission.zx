@@ -1,0 +1,87 @@
+import bytes from "std:bytes"
+
+import binary from "../../../ast/context/binary"
+import builtin from "../../../ast/context/builtin"
+import field from "../../../ast/context/field"
+import integer from "../../../ast/context/integer"
+import {
+    ExpressionsBinaryOperator,
+    ExpressionsBuiltinName
+} from
+"../../../printer/model/expressions"
+import { storage_field } from "../../types/state/const"
+import { Operation, Storage, header_flag, plain_flag } from "./const"
+import tag from "./tag"
+
+import type { State, Node } from "../../../ast/context/model"
+
+export type Input = {
+    state: State,
+    value: u32,
+    operation: Operation
+}
+
+export type Output = Node
+
+export default function (in: Input): Output {
+    const storage = field({
+        state: in.state,
+        target: in.value,
+        name: bytes.fromText(storage_field)
+    })
+
+    if (in.operation == Operation.Exclusive) {
+        const exclusive = tag({
+            state: storage.state,
+            storage: Storage.Exclusive
+        })
+
+        return binary({
+            state: exclusive.state,
+            operator: ExpressionsBinaryOperator.Equal,
+            left: storage.id,
+            right: exclusive.id
+        })
+    }
+
+    const ordinal = builtin({
+        state: storage.state,
+        name: ExpressionsBuiltinName.IntFromEnum,
+        arguments: [storage.id]
+    })
+
+    const header = integer({
+        state: ordinal.state,
+        value: header_flag
+    })
+
+    if (in.operation == Operation.Writable) {
+        const permission = builtin({
+            state: header.state,
+            name: ExpressionsBuiltinName.Rem,
+            arguments: [
+                ordinal.id,
+                header.id
+            ]
+        })
+
+        const plain = integer({
+            state: permission.state,
+            value: plain_flag
+        })
+
+        return binary({
+            state: plain.state,
+            operator: ExpressionsBinaryOperator.NotEqual,
+            left: permission.id,
+            right: plain.id
+        })
+    }
+
+    return binary({
+        state: header.state,
+        operator: ExpressionsBinaryOperator.GreaterEqual,
+        left: ordinal.id,
+        right: header.id
+    })
+}

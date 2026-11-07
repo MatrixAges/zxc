@@ -1,0 +1,49 @@
+import conditional from "../../../ast/context/conditional"
+import literal from "./literal"
+import tag from "./tag"
+
+import type { State, Node } from "../../../ast/context/model"
+import type { Storage } from "./const"
+import type { Ast } from "./model"
+
+export type Input = {
+    state: State,
+    ast: Ast,
+    condition: u32,
+    yes: Storage,
+    no: Storage
+}
+
+export type Output = Node
+
+export default function (in: Input): Output {
+    const known = literal({
+        state: in.state,
+        ast: in.ast,
+        value: in.condition
+    })
+
+    if (known != null) {
+        return tag({
+            state: in.state,
+            storage: known ? in.yes : in.no
+        })
+    }
+
+    const yes = tag({
+        state: in.state,
+        storage: in.yes
+    })
+
+    const no = tag({
+        state: yes.state,
+        storage: in.no
+    })
+
+    return conditional({
+        state: no.state,
+        condition: in.condition,
+        yes: yes.id,
+        no: no.id
+    })
+}

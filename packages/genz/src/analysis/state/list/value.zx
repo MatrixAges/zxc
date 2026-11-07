@@ -1,0 +1,109 @@
+import bytes from "std:bytes"
+
+import boolean from "../../../ast/context/boolean"
+import field from "../../../ast/context/field"
+import { items_field } from "../../types/state/const"
+import choose from "./choose"
+import { Operation, Storage } from "./const"
+import permission from "./permission"
+import proven from "./proven"
+import tag from "./tag"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const source = in.source
+    const operation = source.request.operation
+
+    if (operation == Operation.Weakened) {
+        const header = permission({
+            state: in.context,
+            value: in.root,
+            operation: Operation.Headered
+        })
+
+        const value = choose({
+            state: header.state,
+            ast: source.request.ast,
+            condition: header.id,
+            yes: Storage.Shared,
+            no: Storage.Plain
+        })
+
+        return {
+            ...in,
+            context: value.state,
+            root: value.id
+        }
+    }
+
+    if (operation == Operation.Owned) {
+        const unique = boolean({
+            state: in.context,
+            value: true
+        })
+
+        const value = proven({
+            state: unique.state,
+            ast: source.request.ast,
+            header: source.condition,
+            unique: unique.id
+        })
+
+        return {
+            ...in,
+            context: value.state,
+            root: value.id
+        }
+    }
+
+    const root = match operation {
+        Operation.Items => field({
+            state: in.context,
+            target: in.root,
+            name: bytes.fromText(items_field)
+        }),
+        Operation.Tag => tag({
+            state: in.context,
+            storage: source.storage
+        }),
+        Operation.Headered => permission({
+            state: in.context,
+            value: in.root,
+            operation
+        }),
+        Operation.Exclusive => permission({
+            state: in.context,
+            value: in.root,
+            operation
+        }),
+        Operation.Writable => permission({
+            state: in.context,
+            value: in.root,
+            operation
+        }),
+        Operation.Proven => proven({
+            state: in.context,
+            ast: source.request.ast,
+            header: source.condition,
+            unique: source.unique
+        }),
+        Operation.Create => choose({
+            state: in.context,
+            ast: source.request.ast,
+            condition: source.condition,
+            yes: Storage.Shared,
+            no: Storage.Plain
+        }),
+        _ => tag({
+            state: in.context,
+            storage: source.flag ? Storage.Shared : Storage.Plain
+        })
+    }
+
+    return {
+        ...in,
+        context: root.state,
+        root: root.id
+    }
+}

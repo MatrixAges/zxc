@@ -1,0 +1,37 @@
+import integers from "std:integer"
+
+import { ExpressionsKind } from "../../../printer/model/expressions"
+
+import type { State } from "../../../ast/context/model"
+import type { Ast } from "./model"
+
+export type Input = {
+    state: State,
+    ast: Ast,
+    value: u32
+}
+
+export type Output = bool?
+
+export default function (in: Input): Output {
+    if (in.value >= in.state.source.expression_base) {
+        const index = integers.widen(in.value - in.state.source.expression_base)
+
+        if (in.state.expressions.tags[index] == ExpressionsKind.Boolean) {
+            return in.state.forms
+                .boolean[
+                    integers.widen(
+                        in.state.expressions.offsets[index]
+                    )
+                ]
+        }
+    } else {
+        const index = integers.widen(in.value)
+
+        if (in.ast.tags[index] == ExpressionsKind.Boolean) {
+            return in.ast.boolean[integers.widen(in.ast.offsets[index])]
+        }
+    }
+
+    return null
+}
