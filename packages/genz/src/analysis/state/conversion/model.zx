@@ -3,18 +3,20 @@ import type { Query } from "../queries/model"
 
 export enum Operation { Value, Optional, Object, Tuple, Borrowed, Rows }
 
-export enum Mode { Value, Layout, Row }
+export enum Mode { Value, ValueLayout, RowValue, Pointer, Layout, RowLayout }
 
 export type Input = {
     types: Table,
     queries: Query[],
     selected: bool[],
     element_storage: bool[],
-    root: u32
+    root: u32,
+    mode: Mode
 }
 
 export type Plan = {
     kinds: Operation[],
+    modes: Mode[],
     types: u32[],
     parents: u32[],
     names: u8[][],

@@ -13,7 +13,9 @@ import {
     ExpressionsBuiltinName
 } from "../../../../../printer/model/expressions"
 import { length_member } from "../../../../growth/const"
+import { items_field } from "../../../../types/state/const"
 import { element_prefix, index_prefix } from "../../const"
+import isInput from "../../is_input"
 import reserve from "./reserve"
 
 import type { Step as Input, State as Output } from "../model"
@@ -21,21 +23,33 @@ import type { Step as Input, State as Output } from "../model"
 export default function (in: Input): Output {
     const frame = in.state.nodes[in.node]
 
+    const value = match {
+        isInput(in.source.plan.modes[in.node]) => {
+            state: in.state.context,
+            id: frame.input
+        },
+        _ => field({
+            state: in.state.context,
+            target: frame.input,
+            name: bytes.fromText(items_field)
+        })
+    }
+
     const name = fresh({
-        serial: in.state.context.serial,
+        serial: value.state.serial,
         prefix: operand_prefix
     })
 
     const bound = binding({
         state: {
             context: {
-                ...in.state.context,
+                ...value.state,
                 serial: name.serial
             },
             body: in.state.body
         },
         name: name.name,
-        value: frame.input
+        value: value.id
     })
 
     const source = identifier({

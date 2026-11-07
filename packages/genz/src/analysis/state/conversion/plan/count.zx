@@ -2,6 +2,7 @@ import integers from "std:integer"
 import kind from "core/type_table/kind"
 import { Kind } from "core/type_table/model"
 
+import isInput from "../is_input"
 import { Operation } from "../model"
 
 import type { Input as Source } from "../model"
@@ -23,7 +24,10 @@ export default function (in: Input): Output {
         Operation.Tuple => integers.widen(types.second[row]),
         Operation.Rows => match {
             kind(types.kinds[integers.widen(types.first[row])]) == Kind.List => 1,
-            _ => 0
+            _ => match {
+                isInput(in.source.mode) => 0,
+                _ => 2
+            }
         },
         _ => 0
     }

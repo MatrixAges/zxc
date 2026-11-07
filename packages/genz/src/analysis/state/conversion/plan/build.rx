@@ -1,7 +1,7 @@
 <Module>
-    <Type from="../model" as="Inbound" />
+    <Type from="../model" as="Conversion" />
 
-    <Args in={Inbound.Input} out={Inbound.Plan} />
+    <Args in={Conversion.Input} out={Conversion.Plan} />
 
     <Call fn="initialize" in={$in} />
     <Call fn="append" in={$ctx.initialize} />

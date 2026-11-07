@@ -2,7 +2,8 @@ import bytes from "std:bytes"
 import integers from "std:integer"
 
 import integer from "../../../../printer/text/integer"
-import { Operation } from "../model"
+import isInput from "../is_input"
+import { Operation, Mode } from "../model"
 import count from "./count"
 import operation from "./operation"
 
@@ -31,6 +32,7 @@ export default function append(in: Input): Output {
 
     const entered: Output = {
         kinds: in.plan.kinds.push(selected)[0],
+        modes: in.plan.modes.push(source.mode)[0],
         types: in.plan.types.push(in.type_id)[0],
         parents: in.plan.parents.push(in.parent)[0],
         names: in.plan.names.push(in.name)[0],
@@ -76,8 +78,19 @@ export default function append(in: Input): Output {
                 )
             }
 
+            const input = isInput(source.mode)
+            const rows = selected == Operation.Rows && size == 2
+            const mode = match {
+                input => Mode.Value,
+                rows && current.index == 0 => Mode.RowValue,
+                _ => Mode.Pointer
+            }
+
             current.plan = append({
-                source,
+                source: {
+                    ...source,
+                    mode
+                },
                 plan,
                 type_id: child,
                 parent: node,

@@ -5,7 +5,7 @@ import type { Columns as Forms } from "../../../../ast/expressions/forms/model"
 import type { Columns as Expressions } from "../../../../ast/expressions/model"
 import type { Columns as Statements } from "../../../../ast/statements/model"
 import type { Field } from "../../../types/definitions/model"
-import type { Plan, Mode } from "../model"
+import type { Plan } from "../model"
 
 export type Input = {
     plan: Plan,
@@ -14,7 +14,6 @@ export type Input = {
     elements: u32[],
     origins: u8[][],
     referenced: bool[],
-    mode: Mode,
     value: u32,
     shared: bool,
     capture?: Capture,

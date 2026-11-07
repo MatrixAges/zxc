@@ -1,0 +1,86 @@
+import binary from "../../../../ast/context/binary"
+import conditional from "../../../../ast/context/conditional"
+import dereference from "../../../../ast/context/dereference"
+import field from "../../../../ast/context/field"
+import nullValue from "../../../../ast/context/null_value"
+import unwrap from "../../../../ast/context/optional_unwrap"
+import { ExpressionsBinaryOperator } from "../../../../printer/model/expressions"
+import { Mode } from "../model"
+import allocate from "./allocate"
+import finish from "./finish"
+
+import type { Step as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const mode = in.source.plan.modes[in.node]
+    const outer = in.state.nodes[in.node].outer
+
+    if (mode == Mode.RowLayout) {
+        return {
+            ...in.state,
+            body: {
+                tags: outer.tags.concat(in.state.body.tags)[0],
+                offsets: outer.offsets.concat(in.state.body.offsets)[0]
+            }
+        }
+    }
+
+    const state = match mode {
+        Mode.Pointer => allocate(in),
+        _ => in.state
+    }
+
+    const origin = field({
+        state: state.context,
+        target: state.nodes[in.node].input,
+        name: in.source.origins[in.node]
+    })
+
+    const existing = unwrap({
+        state: origin.state,
+        value: origin.id
+    })
+
+    const absent = nullValue(existing.state)
+
+    const condition = binary({
+        state: absent.state,
+        operator: ExpressionsBinaryOperator.NotEqual,
+        left: origin.id,
+        right: absent.id
+    })
+
+    const reused = match mode {
+        Mode.Layout => dereference({
+            state: condition.state,
+            value: existing.id
+        }),
+        _ => {
+            state: condition.state,
+            id: existing.id
+        }
+    }
+
+    const fallback = finish({
+        state: reused.state,
+        body: state.body,
+        value: state.nodes[in.node].result
+    })
+
+    const result = conditional({
+        state: fallback.state,
+        condition: condition.id,
+        yes: reused.id,
+        no: fallback.id
+    })
+
+    return {
+        ...state,
+        context: result.state,
+        body: outer,
+        nodes: state.nodes.with(in.node, {
+            ...state.nodes[in.node],
+            result: result.id
+        })
+    }
+}

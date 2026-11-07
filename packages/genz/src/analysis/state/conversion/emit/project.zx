@@ -20,6 +20,18 @@ export default function (in: Input): Output {
     const row = integers.widen(parent)
     const category = in.source.plan.kinds[row]
 
+    if (category == Operation.Rows && in.source.plan.count[row] == 2) {
+        const first = in.source.plan.first[row]
+        const initial = in.source.plan.children[first]
+
+        if (initial != integers.narrow(in.node)) {
+            return {
+                state: in.state.context,
+                id: in.state.nodes[integers.widen(initial)].result
+            }
+        }
+    }
+
     if (category == Operation.Optional || category == Operation.Rows) {
         return {
             state: in.state.context,

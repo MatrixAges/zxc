@@ -7,7 +7,7 @@ const Mode = @import("conversion.zig").Mode;
 const view = @import("../../node/view.zig");
 
 pub fn lower(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.TypeId, value: node.ExpressionId, mode: Mode) Lower.Error!node.ExpressionId {
-    const planner = @import("generated_state_inbound_plan");
+    const planner = @import("generated_state_conversion_plan");
     const PlanInput = std.meta.Child(planner.Input);
     const types = ir.TypeTable.borrow(std.meta.Child(@FieldType(PlanInput, "types")), self.program.types);
 
@@ -17,6 +17,15 @@ pub fn lower(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.TypeId, 
         .selected = self.state_plan.selected,
         .element_storage = self.state_plan.element_storage,
         .root = @backingInt(id),
+        .mode = switch (mode) {
+            .value => .Value,
+            .value_layout => .ValueLayout,
+            .row_value => .RowValue,
+            .pointer => .Pointer,
+            .layout => .Layout,
+            .row_layout => .RowLayout,
+            else => unreachable,
+        },
     };
 
     var scratch = std.heap.ArenaAllocator.init(self.workspace);
@@ -37,15 +46,32 @@ pub fn lower(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.TypeId, 
 
     for (plan.types, plan.kinds, layouts, targets, elements, origins, 0..) |type_id, kind, *layout, *target, *element, *origin, index| {
         const selected: ir.TypeId = @fromBackingInt(type_id);
-        layout.* = if (kind == .Value) 0 else @backingInt(try type_expression.get(self, self.state_layouts, selected));
-        target.* = if (kind == .Optional) @backingInt(try type_expression.get(self, self.state_types, selected)) else layout.*;
-        element.* = if (kind == .Rows) @backingInt(try type_expression.get(self, if (plan.count[index] == 0) self.abi_layouts else self.state_types, self.program.typeOf(selected).list)) else 0;
-        origin.* = if (kind == .Object) try @import("origin.zig").name(self, selected) else &.{};
+
+        const input = switch (plan.modes[index]) {
+            .Value, .ValueLayout, .RowValue => true,
+            else => false,
+        };
+
+        const list = kind == .Rows or kind == .Borrowed;
+        const represented_layout = kind != .Value and (input or !list);
+        const optional_target = kind == .Optional;
+        const pointer_target = !input and plan.modes[index] == .Pointer and (kind == .Object or kind == .Tuple);
+        const needs_target = optional_target or pointer_target;
+        const layout_table = if (input) self.state_layouts else self.abi_layouts;
+        const type_table = if (input) self.state_types else self.abi_types;
+
+        layout.* = if (represented_layout) @backingInt(try type_expression.get(self, layout_table, selected)) else 0;
+        target.* = if (needs_target) @backingInt(try type_expression.get(self, type_table, selected)) else layout.*;
+        element.* = if (kind == .Rows) @backingInt(try type_expression.get(self, if (!input) self.abi_types else if (plan.count[index] == 0) self.abi_layouts else self.state_types, self.program.typeOf(selected).list)) else 0;
+
+        const needs_origin = plan.modes[index] != .RowLayout and (kind == .Object or (kind == .Tuple and !input));
+
+        origin.* = if (needs_origin) try @import("origin.zig").name(self, selected) else &.{};
     }
 
     std.debug.assert(serial == self.serial and declarations == self.task_declarations.count());
 
-    const emitter = @import("generated_state_inbound_emit");
+    const emitter = @import("generated_state_conversion_emit");
     const Input = std.meta.Child(emitter.Input);
     const Capture = std.meta.Child(@typeInfo(@FieldType(Input, "capture")).optional.child);
     var boundary: Capture = undefined;
@@ -57,12 +83,6 @@ pub fn lower(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.TypeId, 
         .elements = elements,
         .origins = origins,
         .referenced = self.state_plan.borrowed,
-        .mode = switch (mode) {
-            .value => .Value,
-            .value_layout => .Layout,
-            .row_value => .Row,
-            else => unreachable,
-        },
         .value = @backingInt(value),
         .shared = self.shared_types,
         .capture = if (self.capture) |capture| capture: {
@@ -106,14 +126,14 @@ pub fn lower(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.TypeId, 
 fn failure(err: anyerror) Lower.Error {
     return switch (err) {
         error.OutOfMemory, error.IntegerOverflow, error.Overflow => error.OutOfMemory,
-        else => @panic("invalid inbound conversion"),
+        else => @panic("invalid state conversion"),
     };
 }
 
 fn imported(err: anyerror) Lower.Error {
     return switch (err) {
         error.OutOfMemory => error.OutOfMemory,
-        error.InvalidAst => @panic("invalid inbound conversion AST"),
+        error.InvalidAst => @panic("invalid state conversion AST"),
         else => unreachable,
     };
 }

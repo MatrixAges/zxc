@@ -1,0 +1,91 @@
+import bytes from "std:bytes"
+
+import assignment from "../../../../ast/body/assignment"
+import binding from "../../../../ast/body/binding"
+import builtin from "../../../../ast/context/builtin"
+import call from "../../../../ast/context/call"
+import { operand_prefix } from "../../../../ast/context/const"
+import dereference from "../../../../ast/context/dereference"
+import field from "../../../../ast/context/field"
+import identifier from "../../../../ast/context/identifier"
+import fresh from "../../../../ast/fresh"
+import { ExpressionsBuiltinName } from "../../../../printer/model/expressions"
+import { allocator_name, create_member } from "../../../construction/const"
+
+import type { Step as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const allocator = identifier({
+        state: in.state.context,
+        name: bytes.fromText(allocator_name)
+    })
+
+    const callee = field({
+        state: allocator.state,
+        target: allocator.id,
+        name: bytes.fromText(create_member)
+    })
+
+    const created = call({
+        state: callee.state,
+        callee: callee.id,
+        arguments: [in.source.layouts[in.node]],
+        fallible: true
+    })
+
+    const name = fresh({
+        serial: created.state.serial,
+        prefix: operand_prefix
+    })
+
+    const bound = binding({
+        state: {
+            context: {
+                ...created.state,
+                serial: name.serial
+            },
+            body: in.state.body
+        },
+        name: name.name,
+        value: created.id
+    })
+
+    const pointer = identifier({
+        state: bound.context,
+        name: name.name
+    })
+
+    const target = dereference({
+        state: pointer.state,
+        value: pointer.id
+    })
+
+    const assigned = assignment({
+        state: {
+            context: target.state,
+            body: bound.body
+        },
+        target: target.id,
+        value: in.state.nodes[in.node].result
+    })
+
+    const result = builtin({
+        state: assigned.context,
+        name: ExpressionsBuiltinName.As,
+        arguments: [
+            in.source.targets[in.node],
+            pointer.id
+        ]
+    })
+
+    return {
+        ...in.state,
+        context: result.state,
+        body: assigned.body,
+        uses_allocator: true,
+        nodes: in.state.nodes.with(in.node, {
+            ...in.state.nodes[in.node],
+            result: result.id
+        })
+    }
+}

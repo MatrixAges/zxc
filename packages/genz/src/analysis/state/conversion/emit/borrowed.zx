@@ -1,0 +1,46 @@
+import bytes from "std:bytes"
+
+import field from "../../../../ast/context/field"
+import { items_field } from "../../../types/state/const"
+import isInput from "../is_input"
+import record from "./record"
+
+import type { Step as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    if (!isInput(in.source.plan.modes[in.node])) {
+        const value = field({
+            state: in.state.context,
+            target: in.state.nodes[in.node].input,
+            name: bytes.fromText(items_field)
+        })
+
+        return {
+            ...in.state,
+            context: value.state,
+            nodes: in.state.nodes.with(in.node, {
+                ...in.state.nodes[in.node],
+                result: value.id
+            })
+        }
+    }
+
+    const result = record({
+        context: in.state.context,
+        fields: in.state.fields,
+        field_base: in.source.field_base,
+        layout: in.source.layouts[in.node],
+        value: in.state.nodes[in.node].input,
+        shared: false
+    })
+
+    return {
+        ...in.state,
+        context: result.context,
+        fields: result.fields,
+        nodes: in.state.nodes.with(in.node, {
+            ...in.state.nodes[in.node],
+            result: result.root
+        })
+    }
+}

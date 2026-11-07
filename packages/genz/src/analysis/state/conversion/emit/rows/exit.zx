@@ -14,6 +14,7 @@ import {
     ExpressionsBinaryOperator
 } from "../../../../../printer/model/expressions"
 import { length_member } from "../../../../growth/const"
+import isInput from "../../is_input"
 import finish from "../finish"
 import record from "../record"
 
@@ -28,7 +29,11 @@ export default function (in: Input): Output {
             state: in.state.context,
             id: in.state
                 .nodes[integers.widen(
-                    in.source.plan.children[in.source.plan.first[in.node]]
+                    in.source.plan
+                        .children[
+                            in.source.plan.first[in.node] +
+                                in.source.plan.count[in.node] - 1
+                        ]
                 )].result
         },
         _ => dereference({
@@ -78,31 +83,49 @@ export default function (in: Input): Output {
         index: frame.index
     })
 
-    const complete = record({
-        context: {
-            ...assigned.context,
-            statements: {
-                ...loop.table,
-                tags: statements.tags,
-                offsets: statements.offsets
-            },
-            valid: assigned.context.valid && loop.valid
+    const context = {
+        ...assigned.context,
+        statements: {
+            ...loop.table,
+            tags: statements.tags,
+            offsets: statements.offsets
         },
-        fields: in.state.fields,
-        field_base: in.source.field_base,
-        layout: in.source.layouts[in.node],
-        value: frame.target,
-        shared: true
-    })
+        valid: assigned.context.valid && loop.valid
+    }
 
-    const absent = record({
-        context: complete.context,
-        fields: complete.fields,
-        field_base: in.source.field_base,
-        layout: in.source.layouts[in.node],
-        value: frame.empty,
-        shared: false
-    })
+    const input = isInput(in.source.plan.modes[in.node])
+
+    const complete = match {
+        input => record({
+            context,
+            fields: in.state.fields,
+            field_base: in.source.field_base,
+            layout: in.source.layouts[in.node],
+            value: frame.target,
+            shared: true
+        }),
+        _ => {
+            context,
+            fields: in.state.fields,
+            root: frame.target
+        }
+    }
+
+    const absent = match {
+        input => record({
+            context: complete.context,
+            fields: complete.fields,
+            field_base: in.source.field_base,
+            layout: in.source.layouts[in.node],
+            value: frame.empty,
+            shared: false
+        }),
+        _ => {
+            context: complete.context,
+            fields: complete.fields,
+            root: frame.empty
+        }
+    }
 
     const length = field({
         state: absent.context,

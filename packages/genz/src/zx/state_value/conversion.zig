@@ -2,99 +2,16 @@ const std = @import("std");
 const ir = @import("zx").ir;
 const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
-const aggregate = @import("../aggregate.zig");
-const types = @import("../types.zig");
 
 pub const Mode = enum { value, value_layout, row_value, pointer, layout, row_layout, borrow, view_value, view_layout };
 
 pub fn convert(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.TypeId, value: node.ExpressionId, mode: Mode) Lower.Error!node.ExpressionId {
+    if (!@import("genz_options").generated_analysis) return @import("conversion_seed.zig").convert(self, body, id, value, mode);
     if (!self.state_plan.represented(self.program, id)) return value;
-    if (mode == .view_value or mode == .view_layout) return @import("view.zig").convert(self, body, id, value, mode == .view_value);
-    if (mode == .borrow) return @import("borrow.zig").lower(self, body, body, id, value);
 
-    const input = mode == .value or mode == .value_layout or mode == .row_value;
-
-    if (@import("genz_options").generated_analysis and input) return @import("inbound.zig").lower(self, body, id, value, mode);
-    if (self.program.typeOf(id) == .list) return @import("elements.zig").convert(self, body, id, value, input);
-
-    const layout = try types.get(self, if (input) self.state_layouts else self.abi_layouts, id);
-    const child_mode: Mode = if (input) .value else .pointer;
-    var fallback: std.ArrayList(node.Statement) = .empty;
-
-    const result = switch (self.program.typeOf(id)) {
-        .optional => |child| {
-            var present_body: std.ArrayList(node.Statement) = .empty;
-            const payload = try self.builder.expression(.{ .optional_unwrap = value });
-            const converted = try convert(self, &present_body, child, payload, child_mode);
-
-            return self.cast(try types.get(self, if (input) self.state_types else self.abi_types, id), try self.builder.expression(.{ .conditional = .{
-                .condition = try @import("../intrinsics.zig").binary(self, .not_equal, value, try self.builder.expression(.null_value)),
-                .yes = try aggregate.finish(self, &present_body, converted),
-                .no = try self.builder.expression(.null_value),
-            } }));
-        },
-        .object => |fields| blk: {
-            const items = try self.allocator.alloc(node.Field, fields.len + @intFromBool(input));
-
-            for (items[0..fields.len], 0..) |*item, position| {
-                const field = fields.at(position);
-
-                item.* = .{
-                    .name = field.name,
-                    .value = try convert(self, &fallback, field.type_id, try self.field(value, field.name), child_mode),
-                };
-            }
-
-            if (input) items[fields.len] = .{
-                .name = try @import("origin.zig").name(self, id),
-                .value = if (mode == .row_value) try self.builder.expression(.null_value) else if (mode == .value_layout) try self.builder.expression(.{ .address_of = value }) else value,
-            };
-
-            break :blk try self.builder.expression(.{ .object = .{ .type_expr = layout, .fields = items } });
-        },
-        .tuple => |children| blk: {
-            const items = try self.allocator.alloc(node.ExpressionId, children.len + @intFromBool(input));
-
-            for (items[0..children.len], 0..) |*item, position| {
-                const child = children.at(position);
-                const name = try std.fmt.allocPrint(self.allocator, "{d}", .{position});
-                item.* = try convert(self, &fallback, child, try self.field(value, name), child_mode);
-            }
-
-            if (input) items[children.len] = if (mode == .row_value) try self.builder.expression(.null_value) else if (mode == .value_layout) try self.builder.expression(.{ .address_of = value }) else value;
-
-            break :blk try self.cast(layout, try self.builder.expression(.{ .tuple = items }));
-        },
-        else => unreachable,
+    return switch (mode) {
+        .view_value, .view_layout => @import("view.zig").convert(self, body, id, value, mode == .view_value),
+        .borrow => @import("borrow.zig").lower(self, body, body, id, value),
+        else => @import("conversion_emission.zig").lower(self, body, id, value, mode),
     };
-
-    if (input) {
-        try body.appendSlice(self.allocator, fallback.items);
-        if (self.state_plan.referenced(id)) return @import("reference.zig").store(self, body, id, result);
-
-        return result;
-    }
-
-    if (mode == .row_layout) {
-        try body.appendSlice(self.allocator, fallback.items);
-
-        return result;
-    }
-
-    const created = if (mode == .layout) result else blk: {
-        const pointer = try aggregate.bind(self, &fallback, try self.call(try self.field(try self.builder.identifier("allocator"), "create"), &.{layout}, true));
-
-        try fallback.append(self.allocator, .{ .assignment = .{ .target = try self.builder.expression(.{ .dereference = pointer }), .value = result } });
-
-        break :blk try self.cast(try types.get(self, self.abi_types, id), pointer);
-    };
-
-    const origin = try self.field(value, try @import("origin.zig").name(self, id));
-    const existing = try self.builder.expression(.{ .optional_unwrap = origin });
-
-    return self.builder.expression(.{ .conditional = .{
-        .condition = try @import("../intrinsics.zig").binary(self, .not_equal, origin, try self.builder.expression(.null_value)),
-        .yes = if (mode == .layout) try self.builder.expression(.{ .dereference = existing }) else existing,
-        .no = try aggregate.finish(self, &fallback, created),
-    } });
 }

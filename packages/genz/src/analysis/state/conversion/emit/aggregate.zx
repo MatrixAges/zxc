@@ -4,8 +4,10 @@ import builtin from "../../../../ast/context/builtin"
 import object from "../../../../ast/context/object"
 import tuple from "../../../../ast/context/tuple"
 import { ExpressionsBuiltinName } from "../../../../printer/model/expressions"
+import isInput from "../is_input"
 import { Operation } from "../model"
 import origin from "./origin"
+import outbound from "./outbound"
 import reference from "./reference"
 
 import type { Field } from "../../../types/definitions/model"
@@ -42,18 +44,42 @@ export default function (in: Input): Output {
         }
     })
 
-    const provenance = origin(in)
+    const input = isInput(in.source.plan.modes[in.node])
+
+    const provenance = match {
+        input => origin(in),
+        _ => {
+            state: in.state.context,
+            id: in.state.nodes[in.node].input
+        }
+    }
+
+    const members = match {
+        input && category == Operation.Object => children.fields.push({
+            name: in.source.origins[in.node],
+            value: provenance.id,
+            default_value: null,
+            comptime_parameter: false
+        })[0],
+        _ => children.fields
+    }
+
+    const items = match {
+        input && category == Operation.Tuple =>
+            children.values.push(provenance.id)[0],
+        _ => children.values
+    }
 
     const product = match category {
         Operation.Object => object({
             state: provenance.state,
             type_expr: in.source.layouts[in.node],
             first: in.source.field_base + integers.narrow(in.state.fields.length),
-            count: integers.narrow(children.fields.length + 1)
+            count: integers.narrow(members.length)
         }),
         _ => tuple({
             state: provenance.state,
-            values: children.values.push(provenance.id)[0]
+            values: items
         })
     }
 
@@ -73,27 +99,32 @@ export default function (in: Input): Output {
         ...in.state,
         context: result.state,
         fields: match category {
-            Operation.Object => in.state.fields.concat(children.fields.push({
-                name: in.source.origins[in.node],
-                value: provenance.id,
-                default_value: null,
-                comptime_parameter: false
-            })[0])[0],
+            Operation.Object => in.state.fields.concat(members)[0],
             _ => in.state.fields
         },
-        body: {
-            tags: in.state.nodes[in.node].outer.tags.concat(in.state.body.tags)[0],
-            offsets:
-                in.state.nodes[in.node].outer.offsets.concat(in.state.body.offsets)[0]
-        },
+        body: in.state.body,
         nodes: in.state.nodes.with(in.node, {
             ...in.state.nodes[in.node],
             result: result.id
         })
     }
 
+    if (!input) {
+        return outbound({
+            ...in,
+            state
+        })
+    }
+
     return reference({
         ...in,
-        state
+        state: {
+            ...state,
+            body: {
+                tags: state.nodes[in.node].outer.tags.concat(state.body.tags)[0],
+                offsets:
+                    state.nodes[in.node].outer.offsets.concat(state.body.offsets)[0]
+            }
+        }
     })
 }

@@ -6,11 +6,11 @@ import type { Node as Output } from "../../../../ast/context/model"
 import type { Step as Input } from "./model"
 
 export default function (in: Input): Output {
-    const mode = in.node == 0 ? in.source.mode : Mode.Value
+    const mode = in.source.plan.modes[in.node]
 
     return match mode {
-        Mode.Row => nullValue(in.state.context),
-        Mode.Layout => address({
+        Mode.RowValue => nullValue(in.state.context),
+        Mode.ValueLayout => address({
             state: in.state.context,
             value: in.state.nodes[in.node].input
         }),
