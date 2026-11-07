@@ -1,0 +1,17 @@
+import type { Index } from "../index/model"
+
+export type State = {
+    index: Index,
+    values: u64[]
+}
+
+export type Key = {
+    state: State,
+    key: u32
+}
+
+export type Increment = {
+    state: State,
+    key: u32,
+    maximum: u64
+}

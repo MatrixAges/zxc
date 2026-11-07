@@ -9,10 +9,10 @@ const Self = @This();
 lowering: *Lower,
 declarations: *std.ArrayList(node.Statement),
 inline_lists: bool = false,
-types: std.AutoHashMapUnmanaged(ir.TypeId, node.ExpressionId) = .empty,
-symbols: std.AutoHashMapUnmanaged(ir.SymbolId, void) = .empty,
-cache: @import("../cache.zig") = .empty,
-reads: std.AutoHashMapUnmanaged(ir.ExprId, usize) = .empty,
+types: @import("../expression_map.zig").Map(ir.TypeId) = .empty,
+symbols: @import("../members.zig") = .empty,
+cache: @import("../expression_map.zig").Map(ir.ExprId) = .empty,
+reads: @import("../counter.zig") = .empty,
 transfers: std.ArrayList(struct { type_id: ir.TypeId, owner: node.ExpressionId, value: node.ExpressionId, ready: node.ExpressionId }) = .empty,
 argument: ?struct { id: ir.ExprId, value: node.ExpressionId } = null,
 pub fn represented(self: *const Self, id: ir.TypeId) bool {
@@ -46,11 +46,7 @@ pub fn expression(self: *Self, id: ir.ExprId) Lower.Error!?node.ExpressionId {
     if (self.argument) |argument| if (argument.id == id) return argument.value;
 
     if (self.cache.get(id)) |cached| {
-        const count = try self.reads.getOrPut(lowering.allocator, id);
-
-        if (!count.found_existing) count.value_ptr.* = 0;
-
-        count.value_ptr.* += 1;
+        try self.reads.increment(lowering.allocator, id);
 
         return cached;
     }

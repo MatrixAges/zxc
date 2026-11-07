@@ -1,0 +1,48 @@
+import get from "../index/get"
+import insert from "../index/insert"
+
+import type { Increment as Input, State } from "./model"
+
+export type Output = State?
+
+export default function (in: Input): Output {
+    if (in.maximum == 0) {
+        return null
+    }
+
+    const position = get({
+        index: in.state.index,
+        key: in.key
+    })
+
+    if (position != null) {
+        const previous = in.state.values[position]
+
+        if (previous >= in.maximum) {
+            return null
+        }
+
+        return {
+            ...in.state,
+            values: in.state.values.with(position, previous + 1)
+        }
+    }
+
+    const first: u64 = 1
+
+    const values = match {
+        in.state.index.count < in.state.values.length =>
+            in.state.values.with(in.state.index.count, first),
+        _ => in.state.values.push(first)[0]
+    }
+
+    const result = insert({
+        index: in.state.index,
+        key: in.key
+    })
+
+    return {
+        index: result.index,
+        values
+    }
+}

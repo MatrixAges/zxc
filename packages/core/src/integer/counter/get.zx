@@ -1,0 +1,14 @@
+import get from "../index/get"
+
+import type { Key as Input } from "./model"
+
+export type Output = u64?
+
+export default function (in: Input): Output {
+    const position = get({
+        index: in.state.index,
+        key: in.key
+    })
+
+    return position == null ? null : in.state.values[position]
+}
