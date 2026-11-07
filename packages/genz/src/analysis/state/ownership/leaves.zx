@@ -1,0 +1,96 @@
+import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import needed from "./needed"
+
+import type { Outline as Input } from "./model"
+
+export type Output = u64?
+
+export default function leaves(in: Input): Output {
+    const { source, referenced } = in
+
+    if (!needed(source)) {
+        return 0
+    }
+
+    const row = integers.widen(source.type_id)
+
+    if (row < referenced.length && referenced[row]) {
+        return null
+    }
+
+    const { facts, node, slot } = source
+
+    const types = facts.types
+    const category = kind(types.kinds[row])
+
+    if (category == Kind.List) {
+        return 1
+    }
+
+    if (category == Kind.Optional) {
+        return leaves({
+            ...in,
+            source: {
+                ...source,
+                type_id: types.first[row]
+            }
+        })
+    }
+
+    const object = category == Kind.Object
+
+    if (!object && category != Kind.Tuple) {
+        return 0
+    }
+
+    const first = integers.widen(types.first[row])
+    const count = integers.widen(types.second[row])
+    const total: u64 = 0
+
+    return loop({
+        index: 0,
+        offset: slot,
+        total,
+        valid: true
+    }, {
+        while: state => state.valid && state.index < count,
+        next: state => {
+            const position = first + state.index
+            const child = match {
+                object => types.field_types[position],
+                _ => types.children[position]
+            }
+
+            const writes = leaves({
+                referenced,
+                source: {
+                    facts,
+                    node,
+                    type_id: child,
+                    slot: state.offset
+                }
+            })
+
+            if (writes == null) {
+                state.valid = false
+            } else {
+                const index = integers.widen(child)
+                const size = match {
+                    index < facts.counts.length => facts.counts[index],
+                    _ => 0
+                }
+
+                state.total += writes
+                state.offset += size
+                state.index += 1
+            }
+        },
+        return: state => match {
+            state.valid => state.total,
+            _ => null
+        }
+    })
+}

@@ -218,6 +218,7 @@ pub const main = [_]Entry{
 pub const growth = [_]Entry{
     .{ .path = "genz/analysis/state/ownership/eligible.zx", .name = "ownership_eligible", .owner = .genz },
     .{ .path = "genz/analysis/state/ownership/needed.zx", .name = "ownership_needed", .owner = .genz },
+    .{ .path = "genz/analysis/state/ownership/outlined.zx", .name = "ownership_outlined", .owner = .genz },
     .{ .path = "genz/analysis/growth/value/build.rx", .name = "growth_value", .owner = .genz },
 };
 

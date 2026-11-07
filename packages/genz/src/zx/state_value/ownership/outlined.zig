@@ -6,11 +6,12 @@ const Lower = @import("../../lower.zig");
 const ownership = @import("../ownership.zig");
 
 pub fn append(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId, type_id: ir.TypeId, value: node.ExpressionId, slot: u32) Lower.Error!bool {
-    if (self.program.typeOf(type_id) == .optional) return false;
+    const selected = if (@import("genz_options").generated_analysis)
+        @import("query.zig").outlined(self, id, type_id, slot)
+    else
+        @import("query_seed.zig").outlined(self, id, type_id, slot);
 
-    const writes = leaves(self, id, type_id, slot) orelse return false;
-
-    if (writes < 2) return false;
+    if (!selected) return false;
 
     const type_expr = try @import("../../types.zig").get(self, self.state_types, type_id);
     const base = if (self.type_names) |names| names[@backingInt(type_id)] else try std.fmt.allocPrint(self.allocator, "zx_type_{d}", .{@backingInt(type_id)});
@@ -48,32 +49,4 @@ pub fn append(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId,
     try body.append(self.allocator, .{ .expression = try self.call(try self.builder.identifier(name), &.{try self.builder.expression(.{ .address_of = value })}, false) });
 
     return true;
-}
-
-fn leaves(self: *const Lower, id: ir.ExprId, type_id: ir.TypeId, slot: u32) ?usize {
-    if (!ownership.needed(self, id, type_id, slot)) return 0;
-    if (self.state_plan.referenced(type_id)) return null;
-
-    var offset = slot;
-    var total: usize = 0;
-
-    switch (self.program.typeOf(type_id)) {
-        .list => return 1,
-        .optional => |child| return leaves(self, id, child, slot),
-        .object => |fields| for (0..fields.len) |index| {
-            const child = fields.at(index).type_id;
-
-            total += leaves(self, id, child, offset) orelse return null;
-            offset += ownership.count(self, child);
-        },
-        .tuple => |fields| for (0..fields.len) |index| {
-            const child = fields.at(index);
-
-            total += leaves(self, id, child, offset) orelse return null;
-            offset += ownership.count(self, child);
-        },
-        else => {},
-    }
-
-    return total;
 }
