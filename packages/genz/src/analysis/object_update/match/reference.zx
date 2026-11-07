@@ -1,0 +1,42 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import type { Root } from "./model"
+
+export type Input = {
+    root: Root,
+    index: u64
+}
+
+export type Output = u32?
+
+export default function (in: Input): Output {
+    const expressions = in.root.source.expressions
+    const field = in.root.first + in.index
+    const value = integers.widen(expressions.object_field_values[field])
+
+    if (expressions.kinds[value] != ExpressionKind.Field) {
+        return null
+    }
+
+    const projection = integers.widen(expressions.payloads[value])
+
+    if (
+        expressions.projection_indices[projection] !=
+            expressions.object_field_indices[field]
+    ) {
+        return null
+    }
+
+    const target_id = expressions.projection_targets[projection]
+    const target = integers.widen(target_id)
+
+    if (
+        expressions.kinds[target] != ExpressionKind.Reference ||
+            expressions.types[target] != in.root.type_id
+    ) {
+        return null
+    }
+
+    return target_id
+}

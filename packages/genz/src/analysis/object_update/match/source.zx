@@ -1,0 +1,52 @@
+import integers from "std:integer"
+
+import plain from "./plain"
+import reference from "./reference"
+
+import type { Root as Input, Candidate } from "./model"
+
+export type Output = Candidate?
+
+export default function (in: Input): Output {
+    const empty: u32? = null
+
+    const found = loop({
+        index: 0,
+        reference: empty
+    }, {
+        while: state => state.index < in.count && state.reference == null,
+        next: state => {
+            state.reference = reference({
+                root: in,
+                index: state.index
+            })
+            state.index += 1
+        },
+        return: state => state.reference
+    })
+
+    if (found == null) {
+        return null
+    }
+
+    if (!plain({
+        flags: in.source.flags,
+        id: found
+    })) {
+        return null
+    }
+
+    const expressions = in.source.expressions
+    const payload = integers.widen(expressions.payloads[integers.widen(found)])
+    const previous = expressions.references[payload]
+
+    if (in.source.symbol_types[integers.widen(previous)] != in.type_id) {
+        return null
+    }
+
+    return {
+        root: in,
+        previous,
+        reference: found
+    }
+}

@@ -1,0 +1,69 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import { minimum_fields } from "./const"
+import plain from "./plain"
+
+import type { Input, Root } from "./model"
+
+export type Output = Root?
+
+export default function (in: Input): Output {
+    const disabled = (
+        - !in.state_active
+        - or in.iteration
+        - or in.loop_fields
+    )
+
+    if (disabled) {
+        return null
+    }
+
+    const node = integers.widen(in.id)
+
+    if (in.expressions.kinds[node] != ExpressionKind.Object) {
+        return null
+    }
+
+    const type_id = in.expressions.types[node]
+    const type_index = integers.widen(type_id)
+
+    if (kind(in.types.kinds[type_index]) != Kind.Object) {
+        return null
+    }
+
+    const borrowed = match {
+        type_index < in.borrowed.length => in.borrowed[type_index],
+        _ => false
+    }
+
+    if (!in.selected[type_index] || borrowed) {
+        return null
+    }
+
+    if (in.cached || !plain({
+        flags: in.flags,
+        id: in.id
+    })) {
+        return null
+    }
+
+    const payload = integers.widen(in.expressions.payloads[node])
+    const first = integers.widen(in.expressions.object_first[payload])
+    const count = integers.widen(in.expressions.object_count[payload])
+    const expected = integers.widen(in.types.second[type_index])
+
+    if (count < minimum_fields || count != expected) {
+        return null
+    }
+
+    return {
+        source: in,
+        type_id,
+        payload,
+        first,
+        count
+    }
+}

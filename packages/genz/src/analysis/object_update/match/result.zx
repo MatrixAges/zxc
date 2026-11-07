@@ -1,0 +1,22 @@
+import type { Candidate, Output } from "./model"
+
+export type Input = {
+    candidate: Candidate,
+    field_index?: u32,
+    field_value: u32,
+    valid: bool
+}
+
+export default function (in: Input): Output {
+    if (!in.valid || in.field_index == null) {
+        return null
+    }
+
+    return {
+        previous: in.candidate.previous,
+        reference: in.candidate.reference,
+        field_index: in.field_index,
+        field_value: in.field_value,
+        type_id: in.candidate.root.type_id
+    }
+}

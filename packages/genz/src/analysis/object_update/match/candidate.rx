@@ -1,0 +1,33 @@
+<Module>
+    <Type from="model" as="Update" />
+
+    <Args in={Update.Input} out={Update.Output} />
+
+    <Call fn="root" in={$in} />
+
+    <If on={$ctx.root != null}>
+        <Call fn="source" in={$ctx.root} />
+
+        <If on={$ctx.source != null}>
+            <Call fn="evaluation" in={$ctx.source} />
+
+            <If on={$ctx.evaluation}>
+                <Call fn="changed" in={$ctx.source} />
+
+                <Return value={$ctx.changed} />
+
+                <Else>
+                    <Return value={null} />
+                </Else>
+            </If>
+
+            <Else>
+                <Return value={null} />
+            </Else>
+        </If>
+
+        <Else>
+            <Return value={null} />
+        </Else>
+    </If>
+</Module>

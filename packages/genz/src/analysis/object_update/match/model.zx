@@ -1,0 +1,40 @@
+import type { Expressions } from "core/expression_table/model"
+import type { Table } from "core/type_table/model"
+
+export type Input = {
+    expressions: Expressions,
+    types: Table,
+    symbol_types: u32[],
+    flags: u8[],
+    selected: bool[],
+    borrowed: bool[],
+    id: u32,
+    state_active: bool,
+    iteration: bool,
+    loop_fields: bool,
+    cached: bool
+}
+
+export type Root = {
+    source: Input,
+    type_id: u32,
+    payload: u64,
+    first: u64,
+    count: u64
+}
+
+export type Candidate = {
+    root: Root,
+    previous: u32,
+    reference: u32
+}
+
+export type Change = {
+    previous: u32,
+    reference: u32,
+    field_index: u32,
+    field_value: u32,
+    type_id: u32
+}
+
+export type Output = Change?

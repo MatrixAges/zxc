@@ -1,0 +1,44 @@
+import result from "./result"
+import unchanged from "./unchanged"
+
+import type { Candidate as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const empty: u32? = null
+    const initial: u32 = 0
+
+    return loop({
+        index: 0,
+        field_index: empty,
+        field_value: initial,
+        valid: true
+    }, {
+        while: state => state.valid && state.index < in.root.count,
+        next: state => {
+            if (!unchanged({
+                candidate: in,
+                index: state.index
+            })) {
+                if (state.field_index != null) {
+                    state.valid = false
+                } else {
+                    const expressions = in.root.source.expressions
+                    const field = in.root.first + state.index
+
+                    state.field_index = expressions.object_field_indices[field]
+                    state.field_value = expressions.object_field_values[field]
+                }
+            }
+
+            state.index += 1
+        },
+        return: state => result({
+            candidate: in,
+            ...state.pick([
+                "field_index",
+                "field_value",
+                "valid"
+            ])
+        })
+    })
+}

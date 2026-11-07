@@ -1,0 +1,15 @@
+import type { Change, Output } from "./model"
+
+export type Input = {
+    change: Change,
+    state_member: bool,
+    stack_member: bool
+}
+
+export default function (in: Input): Output {
+    if (!in.state_member || in.stack_member) {
+        return null
+    }
+
+    return in.change
+}

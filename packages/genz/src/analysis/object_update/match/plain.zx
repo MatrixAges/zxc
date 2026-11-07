@@ -1,0 +1,23 @@
+import integers from "std:integer"
+
+import { normalize_flag, renew_flag } from "../../uniqueness/function/plan/const"
+
+export type Input = {
+    flags: u8[],
+    id: u32
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const index = integers.widen(in.id)
+
+    if (index >= in.flags.length) {
+        return true
+    }
+
+    const mask = integers.orBits(normalize_flag, renew_flag)
+    const value = integers.widenByte(in.flags[index])
+
+    return integers.andBits(value, mask) == 0
+}
