@@ -1,0 +1,36 @@
+import block from "../../../../ast/context/block"
+import { block_prefix } from "../../../../ast/context/const"
+import fresh from "../../../../ast/fresh"
+
+import type { Body } from "../../../../ast/body/model"
+import type { State, Node as Output } from "../../../../ast/context/model"
+
+export type Input = {
+    state: State,
+    body: Body,
+    value: u32
+}
+
+export default function (in: Input): Output {
+    const label = fresh({
+        serial: in.state.serial,
+        prefix: block_prefix
+    })
+
+    const first = in.state.statements.tags.length
+
+    return block({
+        state: {
+            ...in.state,
+            serial: label.serial,
+            statements: {
+                ...in.state.statements,
+                tags: in.state.statements.tags.concat(in.body.tags)[0],
+                offsets: in.state.statements.offsets.concat(in.body.offsets)[0]
+            }
+        },
+        label: label.name,
+        first,
+        value: in.value
+    })
+}

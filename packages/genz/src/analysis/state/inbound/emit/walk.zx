@@ -1,0 +1,46 @@
+import integers from "std:integer"
+
+import { Operation } from "../model"
+import aggregate from "./aggregate"
+import borrowed from "./borrowed"
+import enter from "./enter"
+import optional from "./optional"
+import rows from "./rows/exit"
+
+import type { Input as Source, State } from "./model"
+
+export type Input = {
+    source: Source,
+    state: State
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const source = in.source
+
+    return loop(in.state, {
+        while: state => state.index < source.plan.events.length && state.context.valid,
+        next: state => {
+            const node = integers.widen(source.plan.events[state.index])
+            const step = {
+                source,
+                state,
+                node
+            }
+
+            state = match {
+                source.plan.entering[state.index] => enter(step),
+                _ => match source.plan.kinds[node] {
+                    Operation.Optional => optional(step),
+                    Operation.Object => aggregate(step),
+                    Operation.Tuple => aggregate(step),
+                    Operation.Borrowed => borrowed(step),
+                    Operation.Rows => rows(step),
+                    _ => state
+                }
+            }
+            state.index += 1
+        }
+    })
+}

@@ -1,0 +1,151 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import assignment from "../../../../../ast/body/assignment"
+import binary from "../../../../../ast/context/binary"
+import conditional from "../../../../../ast/context/conditional"
+import dereference from "../../../../../ast/context/dereference"
+import field from "../../../../../ast/context/field"
+import identifier from "../../../../../ast/context/identifier"
+import index from "../../../../../ast/context/index"
+import integer from "../../../../../ast/context/integer"
+import forLoop from "../../../../../ast/statements/for_loop"
+import {
+    ExpressionsBinaryOperator
+} from "../../../../../printer/model/expressions"
+import { length_member } from "../../../../growth/const"
+import finish from "../finish"
+import record from "../record"
+
+import type { Step as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const frame = in.state.nodes[in.node]
+    const copied = in.source.plan.count[in.node] != 0
+
+    const converted = match {
+        copied => {
+            state: in.state.context,
+            id: in.state
+                .nodes[integers.widen(
+                    in.source.plan.children[in.source.plan.first[in.node]]
+                )].result
+        },
+        _ => dereference({
+            state: in.state.context,
+            value: frame.child
+        })
+    }
+
+    const position = identifier({
+        state: converted.state,
+        name: frame.index
+    })
+
+    const element = index({
+        state: position.state,
+        target: frame.target,
+        index: position.id
+    })
+
+    const assigned = assignment({
+        state: {
+            context: element.state,
+            body: in.state.body
+        },
+        target: element.id,
+        value: converted.id
+    })
+
+    const first = assigned.context.statements.tags.length
+
+    const statements = {
+        ...assigned.context.statements,
+        tags: assigned.context.statements.tags.concat(assigned.body.tags)[0],
+        offsets: assigned.context.statements.offsets.concat(assigned.body.offsets)[0]
+    }
+
+    const loop = forLoop({
+        table: {
+            ...statements,
+            ...frame.filled
+        },
+        base: 0,
+        iterable: frame.input,
+        capture: frame.capture,
+        start: assigned.context.source.statement_base + integers.narrow(first),
+        count: integers.narrow(assigned.body.tags.length),
+        index: frame.index
+    })
+
+    const complete = record({
+        context: {
+            ...assigned.context,
+            statements: {
+                ...loop.table,
+                tags: statements.tags,
+                offsets: statements.offsets
+            },
+            valid: assigned.context.valid && loop.valid
+        },
+        fields: in.state.fields,
+        field_base: in.source.field_base,
+        layout: in.source.layouts[in.node],
+        value: frame.target,
+        shared: true
+    })
+
+    const absent = record({
+        context: complete.context,
+        fields: complete.fields,
+        field_base: in.source.field_base,
+        layout: in.source.layouts[in.node],
+        value: frame.empty,
+        shared: false
+    })
+
+    const length = field({
+        state: absent.context,
+        target: frame.input,
+        name: bytes.fromText(length_member)
+    })
+
+    const zero = integer({
+        state: length.state,
+        value: 0
+    })
+
+    const condition = binary({
+        state: zero.state,
+        operator: ExpressionsBinaryOperator.Equal,
+        left: length.id,
+        right: zero.id
+    })
+
+    const filled = finish({
+        state: condition.state,
+        body: loop.table.pick([
+            "tags",
+            "offsets"
+        ]),
+        value: complete.root
+    })
+
+    const result = conditional({
+        state: filled.state,
+        condition: condition.id,
+        yes: absent.root,
+        no: filled.id
+    })
+
+    return {
+        ...in.state,
+        context: result.state,
+        fields: absent.fields,
+        body: frame.outer,
+        nodes: in.state.nodes.with(in.node, {
+            ...frame,
+            result: result.id
+        })
+    }
+}

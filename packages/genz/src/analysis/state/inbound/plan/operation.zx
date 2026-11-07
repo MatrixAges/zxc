@@ -1,0 +1,40 @@
+import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import inlineStored from "../../locals/inline_stored"
+import { Property } from "../../queries/model"
+import read from "../../queries/read"
+import { Operation } from "../model"
+
+import type { Input } from "../model"
+
+export type Output = Operation
+
+export default function (in: Input): Output {
+    const index = integers.widen(in.root)
+
+    if (!read({
+        value: in.queries[index],
+        property: Property.Represented
+    })) {
+        return Operation.Value
+    }
+
+    return match kind(in.types.kinds[index]) {
+        Kind.Optional => Operation.Optional,
+        Kind.Object => Operation.Object,
+        Kind.Tuple => Operation.Tuple,
+        _ => match {
+            inlineStored({
+                ...in.pick([
+                    "types",
+                    "selected",
+                    "element_storage"
+                ]),
+                list: in.root
+            }) => Operation.Rows,
+            _ => Operation.Borrowed
+        }
+    }
+}

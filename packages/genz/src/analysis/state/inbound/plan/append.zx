@@ -1,0 +1,96 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import integer from "../../../../printer/text/integer"
+import { Operation } from "../model"
+import count from "./count"
+import operation from "./operation"
+
+import type { Append as Input, Plan as Output } from "../model"
+
+export default function append(in: Input): Output {
+    const source = {
+        ...in.source,
+        root: in.type_id
+    }
+
+    const selected = operation(source)
+
+    const size = count({
+        source,
+        operation: selected
+    })
+
+    const node = integers.narrow(in.plan.types.length)
+    const first = in.plan.children.length
+
+    const children = loop(in.plan.children, {
+        while: values => values.length < first + size,
+        next: values => { values = values.push(0)[0] }
+    })
+
+    const entered: Output = {
+        kinds: in.plan.kinds.push(selected)[0],
+        types: in.plan.types.push(in.type_id)[0],
+        parents: in.plan.parents.push(in.parent)[0],
+        names: in.plan.names.push(in.name)[0],
+        first: in.plan.first.push(first)[0],
+        count: in.plan.count.push(size)[0],
+        children,
+        events: in.plan.events.push(node)[0],
+        entering: in.plan.entering.push(true)[0]
+    }
+
+    const types = source.types
+    const row = integers.widen(in.type_id)
+    const start = integers.widen(types.first[row])
+
+    const result = loop({
+        plan: entered,
+        index: 0
+    }, {
+        while: current => current.index < size,
+        next: current => {
+            const position = start + current.index
+            const child = match selected {
+                Operation.Object => types.field_types[position],
+                Operation.Tuple => types.children[position],
+                _ => types.first[row]
+            }
+
+            const name = match selected {
+                Operation.Object => bytes.fromText(types.field_names[position]),
+                Operation.Tuple => integer({
+                    output: [],
+                    value: current.index
+                }),
+                _ => []
+            }
+
+            const child_index = integers.narrow(current.plan.types.length)
+            const plan = {
+                ...current.plan,
+                children: current.plan.children.with(
+                    first + current.index,
+                    child_index
+                )
+            }
+
+            current.plan = append({
+                source,
+                plan,
+                type_id: child,
+                parent: node,
+                name
+            })
+            current.index += 1
+        },
+        return: current => current.plan
+    })
+
+    return {
+        ...result,
+        events: result.events.push(node)[0],
+        entering: result.entering.push(false)[0]
+    }
+}

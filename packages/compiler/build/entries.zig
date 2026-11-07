@@ -216,6 +216,8 @@ pub const main = [_]Entry{
 };
 
 pub const growth = [_]Entry{
+    .{ .path = "genz/analysis/state/inbound/plan/build.rx", .name = "state_inbound_plan", .owner = .genz },
+    .{ .path = "genz/analysis/state/inbound/emit/build.rx", .name = "state_inbound_emit", .owner = .genz },
     .{ .path = "genz/ast/declarations/table/create.zx", .name = "auxiliary_create", .owner = .genz },
     .{ .path = "genz/ast/declarations/table/constant.zx", .name = "auxiliary_constant", .owner = .genz },
     .{ .path = "genz/ast/declarations/table/function.zx", .name = "auxiliary_function", .owner = .genz },

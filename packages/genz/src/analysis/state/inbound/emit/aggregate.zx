@@ -1,0 +1,99 @@
+import integers from "std:integer"
+
+import builtin from "../../../../ast/context/builtin"
+import object from "../../../../ast/context/object"
+import tuple from "../../../../ast/context/tuple"
+import { ExpressionsBuiltinName } from "../../../../printer/model/expressions"
+import { Operation } from "../model"
+import origin from "./origin"
+import reference from "./reference"
+
+import type { Field } from "../../../types/definitions/model"
+import type { Step as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const fields: Field[] = []
+    const values: u32[] = []
+    const category = in.source.plan.kinds[in.node]
+
+    const children = loop({
+        fields,
+        values,
+        index: 0
+    }, {
+        while: current => current.index < in.source.plan.count[in.node],
+        next: current => {
+            const position = in.source.plan.first[in.node] + current.index
+            const child = integers.widen(in.source.plan.children[position])
+            const value = in.state.nodes[child].result
+
+            if (category == Operation.Object) {
+                current.fields = current.fields.push({
+                    name: in.source.plan.names[child],
+                    value,
+                    default_value: null,
+                    comptime_parameter: false
+                })[0]
+            } else {
+                current.values = current.values.push(value)[0]
+            }
+
+            current.index += 1
+        }
+    })
+
+    const provenance = origin(in)
+
+    const product = match category {
+        Operation.Object => object({
+            state: provenance.state,
+            type_expr: in.source.layouts[in.node],
+            first: in.source.field_base + integers.narrow(in.state.fields.length),
+            count: integers.narrow(children.fields.length + 1)
+        }),
+        _ => tuple({
+            state: provenance.state,
+            values: children.values.push(provenance.id)[0]
+        })
+    }
+
+    const result = match category {
+        Operation.Object => product,
+        _ => builtin({
+            state: product.state,
+            name: ExpressionsBuiltinName.As,
+            arguments: [
+                in.source.layouts[in.node],
+                product.id
+            ]
+        })
+    }
+
+    const state = {
+        ...in.state,
+        context: result.state,
+        fields: match category {
+            Operation.Object => in.state.fields.concat(children.fields.push({
+                name: in.source.origins[in.node],
+                value: provenance.id,
+                default_value: null,
+                comptime_parameter: false
+            })[0])[0],
+            _ => in.state.fields
+        },
+        body: {
+            tags: in.state.nodes[in.node].outer.tags.concat(in.state.body.tags)[0],
+            offsets:
+                in.state.nodes[in.node].outer.offsets.concat(in.state.body.offsets)[0]
+        },
+        nodes: in.state.nodes.with(in.node, {
+            ...in.state.nodes[in.node],
+            result: result.id
+        })
+    }
+
+    return reference({
+        ...in,
+        state
+    })
+}

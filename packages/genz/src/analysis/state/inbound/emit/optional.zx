@@ -1,0 +1,61 @@
+import integers from "std:integer"
+
+import binary from "../../../../ast/context/binary"
+import builtin from "../../../../ast/context/builtin"
+import conditional from "../../../../ast/context/conditional"
+import nullValue from "../../../../ast/context/null_value"
+import {
+    ExpressionsBinaryOperator,
+    ExpressionsBuiltinName
+} from "../../../../printer/model/expressions"
+import finish from "./finish"
+
+import type { Step as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const child =
+        integers.widen(in.source.plan.children[in.source.plan.first[in.node]])
+
+    const absent = nullValue(in.state.context)
+
+    const condition = binary({
+        state: absent.state,
+        operator: ExpressionsBinaryOperator.NotEqual,
+        left: in.state.nodes[in.node].input,
+        right: absent.id
+    })
+
+    const present = finish({
+        state: condition.state,
+        body: in.state.body,
+        value: in.state.nodes[child].result
+    })
+
+    const missing = nullValue(present.state)
+
+    const value = conditional({
+        state: missing.state,
+        condition: condition.id,
+        yes: present.id,
+        no: missing.id
+    })
+
+    const result = builtin({
+        state: value.state,
+        name: ExpressionsBuiltinName.As,
+        arguments: [
+            in.source.targets[in.node],
+            value.id
+        ]
+    })
+
+    return {
+        ...in.state,
+        context: result.state,
+        body: in.state.nodes[in.node].outer,
+        nodes: in.state.nodes.with(in.node, {
+            ...in.state.nodes[in.node],
+            result: result.id
+        })
+    }
+}

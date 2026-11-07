@@ -1,0 +1,10 @@
+<Module>
+    <Type from="../model" as="Inbound" />
+
+    <Args in={Inbound.Input} out={Inbound.Plan} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="append" in={$ctx.initialize} />
+
+    <Return value={$ctx.append} />
+</Module>

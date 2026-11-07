@@ -1,0 +1,64 @@
+import unwrap from "../../../../ast/context/optional_unwrap"
+import { Operation } from "../model"
+import project from "./project"
+import rows from "./rows/enter"
+
+import type { Step as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const value = project(in)
+    const category = in.source.plan.kinds[in.node]
+
+    const frame = {
+        ...in.state.nodes[in.node],
+        input: value.id,
+        result: value.id,
+        outer: in.state.body
+    }
+
+    const state = {
+        ...in.state,
+        context: value.state,
+        nodes: in.state.nodes.with(in.node, frame)
+    }
+
+    if (category == Operation.Rows) {
+        return rows({
+            ...in,
+            state
+        })
+    }
+
+    if (category == Operation.Optional) {
+        const payload = unwrap({
+            state: state.context,
+            value: value.id
+        })
+
+        return {
+            ...state,
+            context: payload.state,
+            nodes: state.nodes.with(in.node, {
+                ...frame,
+                child: payload.id
+            }),
+            body: {
+                tags: [],
+                offsets: []
+            }
+        }
+    }
+
+    const aggregate = category == Operation.Object || category == Operation.Tuple
+
+    return {
+        ...state,
+        body: match {
+            aggregate => {
+                tags: [],
+                offsets: []
+            },
+            _ => state.body
+        }
+    }
+}

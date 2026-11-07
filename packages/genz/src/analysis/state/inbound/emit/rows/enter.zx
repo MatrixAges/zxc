@@ -1,0 +1,125 @@
+import bytes from "std:bytes"
+
+import binding from "../../../../../ast/body/binding"
+import address from "../../../../../ast/context/address"
+import array from "../../../../../ast/context/array"
+import builtin from "../../../../../ast/context/builtin"
+import { operand_prefix } from "../../../../../ast/context/const"
+import constSlice from "../../../../../ast/context/const_slice"
+import field from "../../../../../ast/context/field"
+import identifier from "../../../../../ast/context/identifier"
+import fresh from "../../../../../ast/fresh"
+import {
+    ExpressionsBuiltinName
+} from "../../../../../printer/model/expressions"
+import { length_member } from "../../../../growth/const"
+import { element_prefix, index_prefix } from "../../const"
+import reserve from "./reserve"
+
+import type { Step as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const frame = in.state.nodes[in.node]
+
+    const name = fresh({
+        serial: in.state.context.serial,
+        prefix: operand_prefix
+    })
+
+    const bound = binding({
+        state: {
+            context: {
+                ...in.state.context,
+                serial: name.serial
+            },
+            body: in.state.body
+        },
+        name: name.name,
+        value: frame.input
+    })
+
+    const source = identifier({
+        state: bound.context,
+        name: name.name
+    })
+
+    const element = in.source.elements[in.node]
+
+    const values = array({
+        state: source.state,
+        element,
+        values: []
+    })
+
+    const pointer = address({
+        state: values.state,
+        value: values.id
+    })
+
+    const slice = constSlice({
+        state: pointer.state,
+        value: element
+    })
+
+    const empty = builtin({
+        state: slice.state,
+        name: ExpressionsBuiltinName.As,
+        arguments: [
+            slice.id,
+            pointer.id
+        ]
+    })
+
+    const length = field({
+        state: empty.state,
+        target: source.id,
+        name: bytes.fromText(length_member)
+    })
+
+    const target = reserve({
+        source: in.source,
+        context: length.state,
+        element,
+        value: empty.id,
+        count: length.id
+    })
+
+    const capture = fresh({
+        serial: target.context.serial,
+        prefix: element_prefix
+    })
+
+    const index = fresh({
+        serial: capture.serial,
+        prefix: index_prefix
+    })
+
+    const captured = identifier({
+        state: {
+            ...target.context,
+            serial: index.serial
+        },
+        name: capture.name
+    })
+
+    return {
+        ...in.state,
+        context: captured.state,
+        uses_allocator: true,
+        body: {
+            tags: [],
+            offsets: []
+        },
+        nodes: in.state.nodes.with(in.node, {
+            ...frame,
+            input: source.id,
+            empty: empty.id,
+            target: target.root,
+            child: captured.id,
+            capture: capture.name,
+            index: index.name,
+            outer: bound.body,
+            filled: target.body
+        })
+    }
+}

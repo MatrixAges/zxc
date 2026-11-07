@@ -1,0 +1,34 @@
+import type { Table } from "core/type_table/model"
+import type { Query } from "../queries/model"
+
+export enum Operation { Value, Optional, Object, Tuple, Borrowed, Rows }
+
+export enum Mode { Value, Layout, Row }
+
+export type Input = {
+    types: Table,
+    queries: Query[],
+    selected: bool[],
+    element_storage: bool[],
+    root: u32
+}
+
+export type Plan = {
+    kinds: Operation[],
+    types: u32[],
+    parents: u32[],
+    names: u8[][],
+    first: u64[],
+    count: u64[],
+    children: u32[],
+    events: u32[],
+    entering: bool[]
+}
+
+export type Append = {
+    source: Input,
+    plan: Plan,
+    type_id: u32,
+    parent: u32,
+    name: u8[]
+}

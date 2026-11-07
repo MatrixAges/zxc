@@ -1,0 +1,23 @@
+import { max_u32 } from "core/const"
+
+import type { Input, Append as Output } from "../model"
+
+export default function (in: Input): Output {
+    return {
+        source: in,
+        plan: {
+            kinds: [],
+            types: [],
+            parents: [],
+            names: [],
+            first: [],
+            count: [],
+            children: [],
+            events: [],
+            entering: []
+        },
+        type_id: in.root,
+        parent: max_u32,
+        name: []
+    }
+}

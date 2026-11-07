@@ -14,6 +14,7 @@ pub fn convert(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.TypeId
 
     const input = mode == .value or mode == .value_layout or mode == .row_value;
 
+    if (@import("genz_options").generated_analysis and input) return @import("inbound.zig").lower(self, body, id, value, mode);
     if (self.program.typeOf(id) == .list) return @import("elements.zig").convert(self, body, id, value, input);
 
     const layout = try types.get(self, if (input) self.state_layouts else self.abi_layouts, id);

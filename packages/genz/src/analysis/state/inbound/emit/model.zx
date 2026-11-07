@@ -1,0 +1,67 @@
+import type { Body } from "../../../../ast/body/model"
+import type { State as Context, Variables } from "../../../../ast/context/model"
+import type { Capture } from "../../../../ast/expressions/fallible"
+import type { Columns as Forms } from "../../../../ast/expressions/forms/model"
+import type { Columns as Expressions } from "../../../../ast/expressions/model"
+import type { Columns as Statements } from "../../../../ast/statements/model"
+import type { Field } from "../../../types/definitions/model"
+import type { Plan, Mode } from "../model"
+
+export type Input = {
+    plan: Plan,
+    layouts: u32[],
+    targets: u32[],
+    elements: u32[],
+    origins: u8[][],
+    referenced: bool[],
+    mode: Mode,
+    value: u32,
+    shared: bool,
+    capture?: Capture,
+    expression_base: u32,
+    statement_base: u32,
+    field_base: u32,
+    serial: u64
+}
+
+export type Frame = {
+    input: u32,
+    result: u32,
+    child: u32,
+    empty: u32,
+    target: u32,
+    capture: u8[],
+    index: u8[],
+    outer: Body,
+    filled: Body
+}
+
+export type State = {
+    context: Context,
+    body: Body,
+    storage: Body,
+    fields: Field[],
+    nodes: Frame[],
+    index: u64,
+    uses_allocator: bool
+}
+
+export type Step = {
+    source: Input,
+    state: State,
+    node: u64
+}
+
+export type Output = {
+    expressions: Expressions,
+    forms: Forms,
+    statements: Statements,
+    body: Statements,
+    storage: Statements,
+    variables: Variables,
+    fields: Field[],
+    root: u32,
+    serial: u64,
+    uses_allocator: bool,
+    valid: bool
+}

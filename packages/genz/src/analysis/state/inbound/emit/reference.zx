@@ -1,0 +1,49 @@
+import integers from "std:integer"
+
+import assignment from "../../../../ast/body/assignment"
+import address from "../../../../ast/context/address"
+import slot from "../../../construction/reference/slot"
+
+import type { Step as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const id = integers.widen(in.source.plan.types[in.node])
+    const references = in.source.referenced
+
+    if (id >= references.length || !references[id]) {
+        return in.state
+    }
+
+    const storage = slot({
+        context: in.state.context,
+        layout: in.source.layouts[in.node]
+    })
+
+    const assigned = assignment({
+        state: {
+            context: storage.context,
+            body: in.state.body
+        },
+        target: storage.root,
+        value: in.state.nodes[in.node].result
+    })
+
+    const result = address({
+        state: assigned.context,
+        value: storage.root
+    })
+
+    return {
+        ...in.state,
+        context: result.state,
+        body: assigned.body,
+        storage: {
+            tags: in.state.storage.tags.concat(storage.storage.tags)[0],
+            offsets: in.state.storage.offsets.concat(storage.storage.offsets)[0]
+        },
+        nodes: in.state.nodes.with(in.node, {
+            ...in.state.nodes[in.node],
+            result: result.id
+        })
+    }
+}

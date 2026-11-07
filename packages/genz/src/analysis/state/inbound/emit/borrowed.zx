@@ -1,0 +1,24 @@
+import record from "./record"
+
+import type { Step as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const result = record({
+        context: in.state.context,
+        fields: in.state.fields,
+        field_base: in.source.field_base,
+        layout: in.source.layouts[in.node],
+        value: in.state.nodes[in.node].input,
+        shared: false
+    })
+
+    return {
+        ...in.state,
+        context: result.context,
+        fields: result.fields,
+        nodes: in.state.nodes.with(in.node, {
+            ...in.state.nodes[in.node],
+            result: result.root
+        })
+    }
+}
