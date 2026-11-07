@@ -1,0 +1,24 @@
+import type { State as Output } from "./model"
+
+export type Input = u64
+
+export default function (in: Input): Output {
+    const seen: u8[] = []
+
+    return loop({
+        seen,
+        index: 0
+    }, {
+        while: state => state.index < in,
+        next: state => {
+            state.seen = state.seen.push(0)[0]
+            state.index += 1
+        },
+        return: state => ({
+            ids: [],
+            variants: [],
+            first: [],
+            seen: state.seen
+        })
+    })
+}

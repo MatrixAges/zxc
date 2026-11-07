@@ -1,0 +1,22 @@
+export enum Variant {
+    Regular,
+    Value
+}
+
+export type State = {
+    ids: u32[],
+    variants: Variant[],
+    first: bool[],
+    seen: u8[]
+}
+
+export type Request = {
+    id: u32,
+    variant: Variant
+}
+
+export type Push = {
+    state: State,
+    id: u32,
+    variant: Variant
+}

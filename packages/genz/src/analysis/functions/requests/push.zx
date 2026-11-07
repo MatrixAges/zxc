@@ -1,0 +1,30 @@
+import integers from "std:integer"
+
+import { regular_mask, value_mask } from "./const"
+import { Variant } from "./model"
+
+import type { Push as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const mask = in.variant == Variant.Regular ? regular_mask : value_mask
+
+    const index = integers.widen(in.id)
+    const previous = integers.widenByte(in.state.seen[index])
+    const bit = integers.widenByte(mask)
+
+    if (integers.andBits(previous, bit) != 0) {
+        return in.state
+    }
+
+    const ids = in.state.ids.push(in.id)[0]
+    const variants = in.state.variants.push(in.variant)[0]
+    const first = in.state.first.push(previous == 0)[0]
+    const seen = integers.narrowByte(integers.orBits(previous, bit))
+
+    return {
+        ids,
+        variants,
+        first,
+        seen: in.state.seen.with(index, seen)
+    }
+}

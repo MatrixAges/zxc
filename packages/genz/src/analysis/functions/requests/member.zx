@@ -1,0 +1,10 @@
+import { regular_member, value_member } from "./const"
+import { Variant } from "./model"
+
+export type Input = Variant
+
+export type Output = string
+
+export default function (in: Input): Output {
+    return in == Variant.Regular ? regular_member : value_member
+}

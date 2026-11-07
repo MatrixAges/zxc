@@ -109,8 +109,8 @@ pub fn declarations(self: *Self) Error![]const node.Declaration {
 
     var function_index: usize = 0;
 
-    while (function_index < function_requests.items.items.len) : (function_index += 1) {
-        try @import("functions/emit.zig").append(self, &output, function_requests.items.items[function_index]);
+    while (function_index < function_requests.count()) : (function_index += 1) {
+        try @import("functions/emit.zig").append(self, &output, function_requests.at(function_index));
     }
 
     try output.appendSlice(self.allocator, task_declarations.items);

@@ -1,0 +1,22 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import integer from "../../../printer/text/integer"
+import { function_prefix, value_suffix } from "./const"
+import { Variant } from "./model"
+
+import type { Request as Input } from "./model"
+
+export type Output = u8[]
+
+export default function (in: Input): Output {
+    const name = integer({
+        output: bytes.fromText(function_prefix),
+        value: integers.widen(in.id)
+    })
+
+    return match in.variant {
+        Variant.Regular => name,
+        _ => name.concat(bytes.fromText(value_suffix))[0]
+    }
+}
