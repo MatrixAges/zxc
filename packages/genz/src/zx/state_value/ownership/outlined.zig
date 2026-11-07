@@ -53,7 +53,11 @@ pub fn append(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId,
         }
     }
 
-    try body.append(self.allocator, .{ .expression = try self.call(try self.builder.identifier(name), &.{try self.builder.expression(.{ .address_of = value })}, false) });
+    if (@import("genz_options").generated_analysis) {
+        try @import("projection.zig").invoke(self, body, name, value);
+    } else {
+        try body.append(self.allocator, .{ .expression = try self.call(try self.builder.identifier(name), &.{try self.builder.expression(.{ .address_of = value })}, false) });
+    }
 
     return true;
 }

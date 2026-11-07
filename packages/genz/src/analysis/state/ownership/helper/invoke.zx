@@ -1,0 +1,50 @@
+import address from "../../../../ast/context/address"
+import call from "../../../../ast/context/call"
+import expression from "../../../../ast/context/expression_statement"
+import identifier from "../../../../ast/context/identifier"
+import initialize from "../../../../ast/context/initialize"
+
+import type { Node } from "../../../../ast/context/model"
+
+export type Input = {
+    name: u8[],
+    value: u32,
+    expression_base: u32
+}
+
+export type Output = Node
+
+export default function (in: Input): Output {
+    const context = initialize({
+        capture: null,
+        expression_base: in.expression_base,
+        statement_base: 0,
+        field_base: 0,
+        serial: 0
+    })
+
+    const callee = identifier({
+        state: context,
+        name: in.name
+    })
+
+    const argument = address({
+        state: callee.state,
+        value: in.value
+    })
+
+    const result = call({
+        state: argument.state,
+        callee: callee.id,
+        arguments: [argument.id],
+        fallible: false
+    })
+
+    return {
+        id: result.id,
+        state: expression({
+            state: result.state,
+            value: result.id
+        })
+    }
+}

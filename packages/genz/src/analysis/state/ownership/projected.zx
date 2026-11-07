@@ -1,0 +1,39 @@
+import identifier from "../../../ast/context/identifier"
+import initialize from "../../../ast/context/initialize"
+import variable from "../../../ast/context/variable"
+
+import type { Node } from "../../../ast/context/model"
+
+export type Input = {
+    name: u8[],
+    type_expr: u32,
+    value: u32,
+    expression_base: u32
+}
+
+export type Output = Node
+
+export default function (in: Input): Output {
+    const context = initialize({
+        capture: null,
+        expression_base: in.expression_base,
+        statement_base: 0,
+        field_base: 0,
+        serial: 0
+    })
+
+    const source = identifier({
+        state: context,
+        name: in.name
+    })
+
+    return {
+        id: source.id,
+        state: variable({
+            state: source.state,
+            name: in.name,
+            type_expr: in.type_expr,
+            value: in.value
+        })
+    }
+}

@@ -31,13 +31,21 @@ pub fn projected(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.Expr
     if (!needed(self, id, type_id, slot)) return value;
 
     const name = try self.fresh("qualified");
-    const source = try self.builder.identifier(name);
 
-    try body.append(self.allocator, .{ .variable = .{
-        .name = name,
-        .type_expr = try @import("../types.zig").get(self, self.state_types, type_id),
-        .value = value,
-    } });
+    const source = if (@import("genz_options").generated_analysis)
+        try @import("ownership/projection.zig").bind(self, body, name, try @import("../types.zig").get(self, self.state_types, type_id), value)
+
+    else seed: {
+        const source = try self.builder.identifier(name);
+
+        try body.append(self.allocator, .{ .variable = .{
+            .name = name,
+            .type_expr = try @import("../types.zig").get(self, self.state_types, type_id),
+            .value = value,
+        } });
+
+        break :seed source;
+    };
 
     if (!try @import("ownership/outlined.zig").append(self, body, id, type_id, source, slot)) try clear(self, body, id, type_id, source, slot);
 
