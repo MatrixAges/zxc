@@ -31,6 +31,7 @@ parameter_names: std.ArrayList([]const u8) = .empty,
 template_values: std.ArrayList([]const u8) = .empty,
 statement_names: std.ArrayList([]const u8) = .empty,
 destructure_names: std.ArrayList([]const u8) = .empty,
+binding_keys: std.ArrayList([]const u8) = .empty,
 type_references: std.ArrayList(*const TypeModel.Reference) = .empty,
 pub fn expression(self: *Self, source: *const zx.ast.Expression) std.mem.Allocator.Error!u64 {
     if (self.references.get(source)) |index| return index;

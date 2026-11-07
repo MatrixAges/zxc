@@ -7,6 +7,7 @@ import caseEnd from "./grammar/case_end"
 import constant from "./grammar/constant"
 import end from "./grammar/end"
 import advanceExpression from "./grammar/expression"
+import pattern from "./grammar/pattern/step"
 import result from "./grammar/result"
 import selection from "./grammar/selection"
 import statement from "./grammar/statement"
@@ -77,8 +78,11 @@ export default function (in: Input): Output {
         case Phase.Statement: return statement(state)
         case Phase.ConstName: return constant(state)
         case Phase.ConstAfterName: return constant(state)
-        case Phase.PatternName: return constant(state)
-        case Phase.PatternSeparator: return constant(state)
+        case Phase.PatternName: return pattern(state)
+        case Phase.PatternKey: return pattern(state)
+        case Phase.PatternAfterKey: return pattern(state)
+        case Phase.PatternKeywordKey: return pattern(state)
+        case Phase.PatternSeparator: return pattern(state)
         case Phase.ConstAssign: return constant(state)
         case Phase.Type: return typed(state)
         case Phase.ReturnValue: return result(state)

@@ -13,18 +13,22 @@ export type Input = {
 export type Output = Node
 
 export default function (in: Input): Output {
+    const { state, operator, left, right } = in
+
     const result = construct({
-        ...in.omit(["state"]),
-        table: in.state.expressions,
-        base: in.state.source.expression_base
+        operator,
+        left,
+        right,
+        table: state.expressions,
+        base: state.source.expression_base
     })
 
     return {
         id: result.id,
         state: {
-            ...in.state,
+            ...state,
             expressions: result.table,
-            valid: in.state.valid && result.valid
+            valid: state.valid && result.valid
         }
     }
 }

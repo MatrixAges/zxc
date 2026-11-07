@@ -41,6 +41,41 @@ pub fn Model(comptime Context: type) type {
                 return @import("expressions.zig").read(self);
             }
         };
+        pub const BindingPattern = struct {
+            context: *const Context,
+            index: usize,
+            span: zx.Span,
+            pub fn kind(self: @This()) std.meta.Tag(@FieldType(zx.ast.BindingPattern, "value")) {
+                return switch (self.context.storage.blocks.names[self.index].kind) {
+                    .Name => .name,
+                    .Object => .object,
+                    .Sequence => .sequence,
+                    .Hole => unreachable,
+                };
+            }
+            pub fn name(self: @This()) zx.ast.Name {
+                return self.context.name(self.context.storage.blocks.names[self.index].span);
+            }
+            pub fn count(self: @This()) usize {
+                return @intCast(self.context.storage.blocks.names[self.index].count);
+            }
+            pub fn child(self: @This(), position: usize) ?@This() {
+                const index = self.childIndex(position);
+                const node = self.context.storage.blocks.names[index];
+
+                if (node.kind == .Hole) return null;
+
+                return .{ .context = self.context, .index = index, .span = zx.syntax.header.span(node.span) };
+            }
+            pub fn key(self: @This(), position: usize) zx.ast.Name {
+                return self.context.name(self.context.storage.blocks.names[self.childIndex(position)].key);
+            }
+            fn childIndex(self: @This(), position: usize) usize {
+                std.debug.assert(position < self.count());
+
+                return self.context.order.edges[self.context.order.patterns[self.index] + position];
+            }
+        };
 
         pub const Block = struct { span: zx.Span, statements: Sequence(.statements) };
 
@@ -50,7 +85,7 @@ pub fn Model(comptime Context: type) type {
                 evaluate: Expression,
                 state_update: struct { target: Expression, value: Expression, operator: ?zx.syntax.Operator },
                 constant: struct { name: zx.ast.Name, annotation: ?Type, value: Expression },
-                destructure: struct { names: Sequence(.names), value: Expression },
+                destructure: struct { names: Sequence(.names), pattern: ?BindingPattern, value: Expression },
                 branch: struct { condition: Expression, yes: Block, no: ?Block },
                 switch_stmt: struct { subject: Expression, cases: Sequence(.cases) },
                 store_set: struct { target: Expression, value: Expression },

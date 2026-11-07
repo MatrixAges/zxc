@@ -4,6 +4,8 @@ const Context = @import("context.zig");
 pub fn fill(context: anytype) !void {
     const tree = context.tables.blocks;
 
+    try @import("patterns.zig").fill(context);
+
     for (tree.blocks, context.blocks) |node, *value| {
         const statements = try context.allocator.alloc(zx.ast.Statement, @intCast(node.count));
         var head = node.head;
@@ -34,11 +36,17 @@ fn statement(context: anytype, index: u64) !zx.ast.Statement {
             while (remaining != 0) {
                 remaining -= 1;
                 const edge = tree.names[@intCast(head - 1)];
-                names[remaining] = context.name(edge.span);
+
+                names[remaining] = if (edge.kind == .Hole)
+                    .{ .text = "_", .span = Context.span(if (node.second == 0) edge.span else tree.names[@intCast(node.second - 1)].span) }
+
+                else
+                    context.name(edge.span);
+
                 head = edge.previous;
             }
 
-            break :blk .{ .destructure = .{ .names = names, .value = context.expression(node.first) } };
+            break :blk .{ .destructure = .{ .names = names, .pattern = if (node.second == 0) null else &context.patterns[@intCast(node.second - 1)], .value = context.expression(node.first) } };
         },
         .Result => .{ .result = if (node.first == 0) null else context.expression(node.first - 1) },
         .Branch => .{ .branch = .{ .condition = context.expression(node.first), .yes = context.block(node.second), .no = if (node.third == 0) null else context.block(node.third - 1) } },

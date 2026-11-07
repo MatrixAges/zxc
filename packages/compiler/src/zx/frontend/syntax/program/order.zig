@@ -4,6 +4,7 @@ const Self = @This();
 expressions: []const usize,
 blocks: []const usize,
 statements: []const usize,
+patterns: []const usize,
 edges: []const usize,
 pub fn create(allocator: std.mem.Allocator, storage: anytype) std.mem.Allocator.Error!Self {
     var count: usize = 0;
@@ -11,11 +12,13 @@ pub fn create(allocator: std.mem.Allocator, storage: anytype) std.mem.Allocator.
     for (storage.expressions.nodes) |node| count = std.math.add(usize, count, expressionCount(node)) catch return error.OutOfMemory;
     for (storage.blocks.blocks) |node| count = std.math.add(usize, count, @intCast(node.count)) catch return error.OutOfMemory;
     for (storage.blocks.statements) |node| count = std.math.add(usize, count, statementCount(node)) catch return error.OutOfMemory;
+    for (storage.blocks.names) |node| count = std.math.add(usize, count, @intCast(node.count)) catch return error.OutOfMemory;
 
     const edges = try allocator.alloc(usize, count);
     const expressions = try allocator.alloc(usize, storage.expressions.nodes.len);
     const blocks = try allocator.alloc(usize, storage.blocks.blocks.len);
     const statements = try allocator.alloc(usize, storage.blocks.statements.len);
+    const patterns = try allocator.alloc(usize, storage.blocks.names.len);
     var offset: usize = 0;
 
     for (storage.expressions.nodes, expressions) |node, *first| {
@@ -61,7 +64,17 @@ pub fn create(allocator: std.mem.Allocator, storage: anytype) std.mem.Allocator.
         offset += length;
     }
 
-    return .{ .expressions = expressions, .blocks = blocks, .statements = statements, .edges = edges };
+    for (storage.blocks.names, patterns) |node, *first| {
+        first.* = offset;
+
+        const length: usize = @intCast(node.count);
+
+        fill(edges[offset..][0..length], node.head, storage.blocks.names);
+
+        offset += length;
+    }
+
+    return .{ .expressions = expressions, .blocks = blocks, .statements = statements, .patterns = patterns, .edges = edges };
 }
 
 fn fill(target: []usize, head: u64, edges: anytype) void {

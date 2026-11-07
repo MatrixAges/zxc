@@ -1,11 +1,15 @@
 import integers from "std:integer"
 import project from "core/expression_table/append/projection"
+import { ExpressionKind } from "core/expression_table/kinds"
 import { Kind } from "core/type_table/model"
 
 import refine from "../../../../ir/canonical/refinement/bind"
 import row from "../../../semantic/types/row"
 import { NameKind } from "../../source/model"
 import readName from "../../source/name"
+import flat from "../pattern/flat"
+import pad from "../pattern/pad"
+import pattern from "../pattern/scopes"
 import bind from "./bind"
 import bindingName from "./binding_name"
 import temporary from "./temporary"
@@ -40,9 +44,49 @@ export default function (in: Input): Output {
         id: in.state.local.expressions.types[integers.widen(in.value)]
     })
 
-    if (
-        target.kind != Kind.Tuple || integers.widen(target.second) != statement.count
-    ) {
+    if (statement.second != 0) {
+        const simple = flat({
+            source: in.source,
+            root: statement.second - 1
+        })
+
+        const captured =
+            in.state.local.expressions.kinds[integers.widen(in.value)] ==
+            ExpressionKind.Capture
+
+        const complete =
+            simple && target.kind == Kind.Tuple &&
+            statement.count <= integers.widen(target.second)
+
+        if (captured && !simple) {
+            return {
+                state: {
+                    ...in.state,
+                    diagnostic: {
+                        code: "type_mismatch",
+                        message:
+                            "try destructuring requires a flat complete tuple binding",
+                        start: statement.span.start,
+                        end: statement.span.end
+                    }
+                },
+                scopes: in.scopes
+            }
+        }
+
+        if (!captured && !complete) {
+            return pattern(in)
+        }
+    }
+
+    const captured =
+        in.state.local.expressions.kinds[integers.widen(in.value)] ==
+        ExpressionKind.Capture
+
+    const strict = captured || statement.second == 0
+    const wrong_count = strict && integers.widen(target.second) != statement.count
+
+    if (target.kind != Kind.Tuple || wrong_count) {
         return {
             state: {
                 ...in.state,
@@ -80,7 +124,7 @@ export default function (in: Input): Output {
         value: in.value
     })
 
-    const symbols: u32?[] = []
+    const initial_symbols: u32?[] = []
     const start = in.scopes.frames[in.scopes.frames.length - 1].active_mark
 
     const result = loop({
@@ -94,7 +138,7 @@ export default function (in: Input): Output {
         types: table.children,
         first: integers.widen(target.first),
         order,
-        symbols,
+        symbols: initial_symbols,
         saved: saved.value,
         start,
         index: 0
@@ -153,15 +197,27 @@ export default function (in: Input): Output {
         }
     })
 
-    const err = result.symbols.length == 2 ? result.symbols[0] : null
-    const value = result.symbols.length == 2 ? result.symbols[1] : null
+    if (result.state.diagnostic.message != "") {
+        return {
+            state: result.state,
+            scopes: result.scopes
+        }
+    }
+
+    const symbols = pad({
+        values: result.symbols,
+        count: integers.widen(target.second)
+    })
+
+    const err = symbols.length == 2 ? symbols[0] : null
+    const value = symbols.length == 2 ? symbols[1] : null
 
     const facts = match {
         result.state.diagnostic.message == "" => refine({
             facts: result.state.local.refinement.facts,
             expressions: result.state.local.expressions,
             value: integers.widen(in.value),
-            count: result.symbols.length,
+            count: symbols.length,
             err,
             result: value
         }),

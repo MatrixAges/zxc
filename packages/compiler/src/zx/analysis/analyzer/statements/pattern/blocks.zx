@@ -1,0 +1,62 @@
+import append from "core/control_table/append/constant"
+
+import run from "./run"
+
+import type { Source } from "../../expressions/request"
+import type { Prepared } from "../../model"
+import type { Blocks } from "../blocks/model"
+
+export type Input = {
+    state: Prepared,
+    blocks: Blocks,
+    source: Source,
+    statement: u64,
+    value: u32
+}
+
+export type Output = {
+    state: Prepared,
+    blocks: Blocks
+}
+
+export default function (in: Input): Output {
+    const result = run({
+        state: in.state,
+        source: in.source,
+        root: in.source.blocks.statements[in.statement].second - 1,
+        value: in.value,
+        scope_start: in.blocks.frames[in.blocks.frames.length - 1].active_mark,
+        reserved_name: null
+    })
+
+    if (result.state.diagnostic.message != "") {
+        return {
+            state: result.state,
+            blocks: in.blocks
+        }
+    }
+
+    const pending = loop({
+        table: in.blocks.pending,
+        index: 0
+    }, {
+        while: current => current.index < result.bindings.symbols.length,
+        next: current => {
+            current.table = append({
+                table: current.table,
+                symbol: result.bindings.symbols[current.index],
+                value: result.bindings.values[current.index]
+            })
+            current.index += 1
+        },
+        return: current => current.table
+    })
+
+    return {
+        state: result.state,
+        blocks: {
+            ...in.blocks,
+            pending
+        }
+    }
+}

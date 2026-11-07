@@ -79,14 +79,24 @@ fn statement(self: *Self, source: anytype) zx.Error!void {
             const value = try analyzer.expression(binding.value, null);
             const target = analyzer.types.get(analyzer.node(value).type_id);
 
-            if (target != .tuple or target.tuple.len != binding.names.len) return analyzer.reporter.fail(.type_mismatch, source.span, "tuple destructuring must match every result slot");
+            if (binding.pattern) |pattern| {
+                const patterns = @import("../bindings/pattern.zig");
+                const is_flat = patterns.flat(pattern);
+
+                if (analyzer.node(value).value == .capture and !is_flat) return analyzer.reporter.fail(.type_mismatch, source.span, "try destructuring requires a flat complete tuple binding");
+                if (analyzer.node(value).value != .capture and !(is_flat and target == .tuple and binding.names.len <= target.tuple.len)) return patterns.scope(self, pattern, value);
+            }
+
+            const strict = analyzer.node(value).value == .capture or binding.pattern == null;
+
+            if (target != .tuple or (strict and target.tuple.len != binding.names.len)) return analyzer.reporter.fail(.type_mismatch, source.span, "tuple destructuring must match every result slot");
 
             const saved = try self.temporary(value);
-            const symbols = try analyzer.allocator.alloc(?ir.SymbolId, binding.names.len);
+            const symbols = try analyzer.allocator.alloc(?ir.SymbolId, target.tuple.len);
 
             @memset(symbols, null);
 
-            for (0..target.tuple.len, 0..) |view_index, index| {
+            for (0..binding.names.len, 0..) |view_index, index| {
                 const type_id = target.tuple.at(view_index);
                 const name = syntax.item(binding.names, index);
 
@@ -185,12 +195,12 @@ fn switchStatement(self: *Self, source: anytype, span: zx.Span) zx.Error!void {
     try self.advance(result, span);
 }
 
-fn bindingName(self: *Self, name: zx.ast.Name) zx.Error!void {
+pub fn bindingName(self: *Self, name: zx.ast.Name) zx.Error!void {
     try @import("../statements.zig").bindingName(self.analyzer, name);
     if (std.mem.eql(u8, name.text, self.analyzer.symbols.at(@backingInt(self.state)).name)) return self.analyzer.reporter.fail(.name, name.span, "the loop state parameter cannot be redeclared");
 }
 
-fn bind(self: *Self, name: zx.ast.Name, value: ir.ExprId, scope_start: usize) zx.Error!ir.SymbolId {
+pub fn bind(self: *Self, name: zx.ast.Name, value: ir.ExprId, scope_start: usize) zx.Error!ir.SymbolId {
     const analyzer = self.analyzer;
     const type_id = analyzer.node(value).type_id;
 

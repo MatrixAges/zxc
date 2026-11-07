@@ -1,3 +1,4 @@
+import { PatternKind } from "../../../frontend/parser/body/model"
 import text from "../../semantic/resolving/source/text"
 import { NameKind } from "./model"
 
@@ -18,7 +19,19 @@ export default function (in: Input): Output {
         NameKind.Field => in.source.tree.fields[in.index].name,
         NameKind.Parameter => in.source.tree.parameters[in.index].name,
         NameKind.Statement => in.source.blocks.statements[in.index].name,
+        NameKind.BindingKey => in.source.blocks.names[in.index].key,
         _ => in.source.blocks.names[in.index].span,
+    }
+
+    if (
+        in.kind == NameKind.Destructure &&
+            in.source.blocks.names[in.index].kind == PatternKind.Hole
+    ) {
+        return {
+            text: "_",
+            start: span.start,
+            end: span.end
+        }
     }
 
     const native = in.source.native
@@ -35,6 +48,7 @@ export default function (in: Input): Output {
         NameKind.Field => native.text.field_names[in.index],
         NameKind.Parameter => native.text.parameter_names[in.index],
         NameKind.Statement => native.text.statement_names[in.index],
+        NameKind.BindingKey => native.text.binding_keys[in.index],
         _ => native.text.destructure_names[in.index],
     }
 

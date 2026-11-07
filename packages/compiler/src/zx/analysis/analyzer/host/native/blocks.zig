@@ -58,9 +58,25 @@ fn statement(context: *Context, source: zx.ast.Statement) std.mem.Allocator.Erro
             node.first = try context.expression(value.value);
             node.count = value.names.len;
 
-            for (value.names) |binding| {
-                try context.names.append(context.allocator, try context.keep(model.Name, .{ .span = try context.span(binding.span), .previous = node.head }));
+            if (value.pattern) |pattern| {
+                const id = try @import("patterns.zig").append(context, pattern, 0, null);
+                const root = context.names.items[@intCast(id)];
+
+                node.second = id + 1;
+                node.head = root.head;
+                node.count = root.count;
+            } else for (value.names) |binding| {
+                try context.names.append(context.allocator, try context.keep(model.Name, .{
+                    .span = try context.span(binding.span),
+                    .previous = node.head,
+                    .kind = .Name,
+                    .key = &model.empty_span,
+                    .head = 0,
+                    .count = 0,
+                }));
+
                 try context.destructure_names.append(context.allocator, binding.text);
+                try context.binding_keys.append(context.allocator, "");
 
                 node.head = context.names.items.len;
             }

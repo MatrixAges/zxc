@@ -1,0 +1,118 @@
+import { Kind, Symbol } from "../../../../lexer/token_model"
+import { PatternKind, Phase } from "../../model"
+import consume from "../../state/consume"
+import expect from "../../state/expect"
+import fail from "../../state/fail"
+import append from "./append"
+import close from "./close"
+import enter from "./enter"
+
+import type { State as Input, State as Output } from "../../model"
+
+export default function (in: Input): Output {
+    const token = in.expression.control.token
+    const symbol = token.symbol
+    const object = in.frame.pattern_kind == PatternKind.Object
+    const closing = object ? Symbol.CloseBrace : Symbol.CloseBracket
+
+    if (in.control.phase == Phase.PatternSeparator) {
+        if (symbol == closing) {
+            return close(in)
+        }
+
+        return expect({
+            state: in,
+            symbol: Symbol.Comma,
+            phase: object ? Phase.PatternKey : Phase.PatternName,
+            message: "expected a comma in binding pattern"
+        })
+    }
+
+    const after_key = in.control.phase == Phase.PatternAfterKey ||
+        in.control.phase == Phase.PatternKeywordKey
+
+    if (after_key) {
+        if (symbol == Symbol.Colon) {
+            return consume({
+                state: in,
+                phase: Phase.PatternName
+            })
+        }
+
+        if (in.control.phase == Phase.PatternKeywordKey) {
+            return fail({
+                state: in,
+                code: "syntax",
+                message: "keyword properties require a binding alias"
+            })
+        }
+
+        return append({
+            state: in,
+            span: in.frame.name,
+            kind: PatternKind.Name
+        })
+    }
+
+    if (symbol == closing) {
+        if (object && in.control.phase == Phase.PatternName) {
+            return fail({
+                state: in,
+                code: "syntax",
+                message: "expected a binding target"
+            })
+        }
+
+        return close(in)
+    }
+
+    if (!object && symbol == Symbol.Comma) {
+        return consume({
+            state: append({
+                state: in,
+                span: token.span,
+                kind: PatternKind.Hole
+            }),
+            phase: Phase.PatternName
+        })
+    }
+
+    if (in.control.phase == Phase.PatternName) {
+        if (symbol == Symbol.OpenBrace || symbol == Symbol.OpenBracket) {
+            return enter(in)
+        }
+    }
+
+    const property_keyword =
+        in.control.phase == Phase.PatternKey && token.kind == Kind.Keyword
+
+    if (token.kind != Kind.Identifier && !property_keyword) {
+        return fail({
+            state: in,
+            code: "syntax",
+            message: "expected a binding name"
+        })
+    }
+
+    if (in.control.phase == Phase.PatternKey) {
+        return consume({
+            state: {
+                ...in,
+                frame: {
+                    ...in.frame,
+                    name: token.span
+                }
+            },
+            phase: property_keyword ? Phase.PatternKeywordKey : Phase.PatternAfterKey
+        })
+    }
+
+    return consume({
+        state: append({
+            state: in,
+            span: token.span,
+            kind: PatternKind.Name
+        }),
+        phase: Phase.PatternSeparator
+    })
+}

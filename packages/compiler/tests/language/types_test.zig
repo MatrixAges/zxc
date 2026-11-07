@@ -44,10 +44,10 @@ test "types: missing optional object fields become none" {
     try check("export type Input = void\n export type Output = { value: u64 }\n export default function (in: Input): Output { return {} }", false);
 }
 
-test "types: tuple destructuring is explicit and arity checked" {
+test "types: tuple destructuring supports partial bindings" {
     try check("export type Input = void\n export type Output = u64\n export default function (in: Input): Output { const tuple: [u64, bool] = [1, true]\n const [value, _] = tuple\n return value }", true);
     try check("export type Input = void\n export type Output = u64\n export default function (in: Input): Output { const values = [1]\n const next = values.push(2)\n return next.length }", false);
-    try check("export type Input = void\n export type Output = u64\n export default function (in: Input): Output { const values = [1]\n const [next] = values.pop()\n return next.length }", false);
+    try check("export type Input = void\n export type Output = u64\n export default function (in: Input): Output { const values = [1]\n const [next] = values.pop()\n return next.length }", true);
 }
 
 test "types: optional containers and recursively nested aliases are distinct" {

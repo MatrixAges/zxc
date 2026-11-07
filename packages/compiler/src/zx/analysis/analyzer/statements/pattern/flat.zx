@@ -1,0 +1,33 @@
+import { PatternKind } from "../../../../frontend/parser/body/model"
+
+import type { Source } from "../../expressions/request"
+
+export type Input = {
+    source: Source,
+    root: u64
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const { source: { blocks }, root } = in
+
+    const pattern = blocks.names[root]
+
+    if (pattern.kind != PatternKind.Sequence) {
+        return false
+    }
+
+    return loop({
+        head: pattern.head,
+        valid: true
+    }, {
+        while: state => state.valid && state.head != 0,
+        next: state => {
+            const child = blocks.names[state.head - 1]
+            state.valid = child.kind == PatternKind.Name || child.kind == PatternKind.Hole
+            state.head = child.previous
+        },
+        return: state => state.valid
+    })
+}

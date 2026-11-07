@@ -15,9 +15,8 @@ export type Input = Request
 export type Output = Result
 
 export default function (in: Input): Output {
-    const first = in.values[0]
-    const lower = in.values[1]
-    const upper = in.values[2]
+    const [first, lower, upper] = in.values
+
     const type_id = in.state.local.expressions.types[integers.widen(first)]
 
     if (type_id < type_id_u8 || type_id > type_id_f64) {

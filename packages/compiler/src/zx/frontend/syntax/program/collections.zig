@@ -16,7 +16,11 @@ pub fn item(comptime kind: Kind, sequence: anytype, index: usize) @TypeOf(sequen
     return switch (kind) {
         .arguments => context.expression(context.storage.expressions.items[id].value),
         .parameters => context.name(context.storage.expressions.parameters[id].name),
-        .names => context.name(context.storage.blocks.names[id].span),
+        .names => value: {
+            const node = context.storage.blocks.names[id];
+
+            break :value if (node.kind == .Hole) .{ .text = "_", .span = span(node.span) } else context.name(node.span);
+        },
         .fields => block: {
             const edge = context.storage.expressions.fields[id];
 

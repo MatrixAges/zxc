@@ -1,9 +1,10 @@
 import { Kind, Symbol } from "../../../lexer/token_model"
 import typeInitial from "../../types/initial"
-import { StatementKind, Phase } from "../model"
+import { Phase } from "../model"
 import consume from "../state/consume"
 import expect from "../state/expect"
 import fail from "../state/fail"
+import pattern from "./pattern/enter"
 
 import type { State } from "../model"
 
@@ -76,46 +77,11 @@ export default function (in: Input): Output {
         })
     }
 
-    if (in.control.phase == Phase.ConstName && symbol == Symbol.OpenBracket) {
-        const state = {
-            expression: in.expression,
-            tree: in.tree,
-            frames: in.frames,
-            suspended: in.suspended,
-            frame: {
-                ...in.frame,
-                statement: StatementKind.Destructure
-            },
-            control: in.control
-        }
+    const constant_name = in.control.phase == Phase.ConstName
+    const pattern_open = symbol == Symbol.OpenBracket || symbol == Symbol.OpenBrace
 
-        return consume({
-            state: state,
-            phase: Phase.PatternName
-        })
-    }
-
-    if (in.control.phase == Phase.PatternSeparator) {
-        if (symbol == Symbol.CloseBracket) {
-            return consume({
-                state: in,
-                phase: Phase.ConstAssign
-            })
-        }
-
-        return expect({
-            state: in,
-            symbol: Symbol.Comma,
-            phase: Phase.PatternName,
-            message: "expected ]"
-        })
-    }
-
-    if (in.control.phase == Phase.PatternName && symbol == Symbol.CloseBracket) {
-        return consume({
-            state: in,
-            phase: Phase.ConstAssign
-        })
+    if (constant_name && pattern_open) {
+        return pattern(in)
     }
 
     if (in.expression.control.token.kind != Kind.Identifier) {
@@ -131,52 +97,14 @@ export default function (in: Input): Output {
         end: in.expression.control.token.span.end
     }
 
-    if (in.control.phase == Phase.ConstName) {
-        return consume({
-            state: {
-                expression: in.expression,
-                tree: in.tree,
-                frames: in.frames,
-                suspended: in.suspended,
-                frame: {
-                    ...in.frame,
-                    name
-                },
-                control: in.control
-            },
-            phase: Phase.ConstAfterName
-        })
-    }
-
-    const head = in.tree.names.length + 1
-    const count = in.frame.count + 1
-
-    const names = in.tree.names.push({
-        span: name,
-        previous: in.frame.head
-    })[0]
-
-    const tree = {
-        statements: in.tree.statements,
-        blocks: in.tree.blocks,
-        items: in.tree.items,
-        names: names,
-        cases: in.tree.cases
-    }
-
     return consume({
         state: {
-            expression: in.expression,
-            tree: tree,
-            frames: in.frames,
-            suspended: in.suspended,
+            ...in,
             frame: {
                 ...in.frame,
-                head,
-                count
-            },
-            control: in.control
+                name
+            }
         },
-        phase: Phase.PatternSeparator
+        phase: Phase.ConstAfterName
     })
 }

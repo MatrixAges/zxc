@@ -1,0 +1,149 @@
+import integers from "std:integer"
+import { ValueKind } from "core/expression_table/append/model"
+import reference from "core/expression_table/append/value"
+import { scalar_bool, scalar_void } from "core/type_table/const"
+
+import refine from "../../../../ir/canonical/refinement/bind"
+import append from "../../bindings/append"
+import { NameKind } from "../../source/model"
+import readName from "../../source/name"
+import bindingName from "../binding_name"
+import { temporary_name } from "./const"
+
+import type { Work, Bound as Output } from "./model"
+
+export type Input = {
+    work: Work,
+    node: u64,
+    value: u32,
+    temporary: bool
+}
+
+export default function (in: Input): Output {
+    const source = in.work.source.blocks.names[in.node]
+
+    const name = match {
+        in.temporary => ({
+            text: temporary_name,
+            start: source.span.start,
+            end: source.span.end
+        }),
+        _ => readName({
+            source: in.work.source,
+            kind: NameKind.Destructure,
+            index: in.node
+        })
+    }
+
+    if (!in.temporary && name.text == "_") {
+        return {
+            work: in.work,
+            value: in.value
+        }
+    }
+
+    const type_id = in.work.state.local.expressions.types[integers.widen(in.value)]
+    const reserved = in.work.reserved_name
+
+    const diagnostic = match {
+        in.temporary => in.work.state.diagnostic,
+        reserved != null && name.text == reserved => ({
+            code: "name",
+            message: "the loop state parameter cannot be redeclared",
+            start: name.start,
+            end: name.end
+        }),
+        type_id == scalar_void => ({
+            code: "type_mismatch",
+            message: "void results cannot be bound to a value",
+            start: name.start,
+            end: name.end
+        }),
+        _ => bindingName(name)
+    }
+
+    if (diagnostic.message != "") {
+        return {
+            work: {
+                ...in.work,
+                state: {
+                    ...in.work.state,
+                    diagnostic
+                }
+            },
+            value: in.value
+        }
+    }
+
+    const scope_start = match {
+        in.temporary => in.work.state.local.active.length,
+        _ => in.work.scope_start
+    }
+
+    const bound = append({
+        local: in.work.state.local,
+        name,
+        type_id,
+        scope_start
+    })
+
+    const local = bound.local
+
+    const facts = match {
+        type_id == scalar_bool && bound.diagnostic.message == "" => refine({
+            facts: local.refinement.facts,
+            expressions: local.expressions,
+            value: integers.widen(in.value),
+            count: 1,
+            err: bound.id,
+            result: null
+        }),
+        _ => local.refinement.facts
+    }
+
+    const active = match {
+        in.temporary => local.active.pop()[0],
+        _ => local.active
+    }
+
+    const saved = match {
+        in.temporary => reference({
+            table: local.expressions,
+            metadata: {
+                type_id,
+                span_start: source.span.start,
+                span_end: source.span.end
+            },
+            kind: ValueKind.Reference,
+            value: bound.id
+        }),
+        _ => ({
+            table: local.expressions,
+            id: in.value
+        })
+    }
+
+    return {
+        value: saved.id,
+        work: {
+            ...in.work,
+            state: {
+                ...in.work.state,
+                diagnostic: bound.diagnostic,
+                local: {
+                    ...local,
+                    active,
+                    expressions: saved.table,
+                    refinement: {
+                        ...local.refinement,
+                        facts
+                    }
+                }
+            },
+            bindings: {
+                symbols: in.work.bindings.symbols.push(bound.id)[0],
+                values: in.work.bindings.values.push(in.value)[0]
+            }
+        }
+    }
+}

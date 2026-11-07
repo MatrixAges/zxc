@@ -1,0 +1,47 @@
+import { max_nesting_depth } from "core/const"
+
+import { Symbol } from "../../../../lexer/token_model"
+import { FrameKind, PatternKind, StatementKind, Phase } from "../../model"
+import consume from "../../state/consume"
+import fail from "../../state/fail"
+import frame from "../../state/frame"
+
+import type { State as Input, State as Output } from "../../model"
+
+export default function (in: Input): Output {
+    if (in.frame.depth >= max_nesting_depth) {
+        return fail({
+            state: in,
+            code: "unsupported",
+            message: "syntax nesting exceeds 256 levels"
+        })
+    }
+
+    const object = in.expression.control.token.symbol == Symbol.OpenBrace
+
+    const parent = match in.frame.kind {
+        FrameKind.Pattern => in.frame,
+        _ => ({
+            ...in.frame,
+            statement: StatementKind.Destructure
+        })
+    }
+
+    const initial = frame({
+        kind: FrameKind.Pattern,
+        start: in.expression.control.token.span.start,
+        depth: in.frame.depth + 1
+    })
+
+    return consume({
+        state: {
+            ...in,
+            frames: in.frames.push(parent)[0],
+            frame: {
+                ...initial,
+                pattern_kind: object ? PatternKind.Object : PatternKind.Sequence
+            }
+        },
+        phase: object ? Phase.PatternKey : Phase.PatternName
+    })
+}

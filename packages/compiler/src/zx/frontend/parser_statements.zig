@@ -10,8 +10,8 @@ const Type = grammar.reference(*const ast.Type, Parser.typeNode);
 const Block = grammar.reference(ast.Block, Parser.block);
 const Annotation = grammar.sequence(.{ grammar.token(":"), Type });
 const Binding = grammar.sequence(.{ Name, grammar.optional(Annotation), grammar.required(grammar.token("="), "expected ="), Expression });
-const Pattern = grammar.sequence(.{ grammar.token("["), grammar.separated(Name, ",", "]"), grammar.required(grammar.token("]"), "expected ]"), grammar.required(grammar.token("="), "expected ="), Expression });
-const Declaration = grammar.choice(.{ grammar.map(Pattern, Value, destructure), grammar.map(Binding, Value, constant) });
+const Pattern = @import("parser_binding_pattern.zig").Declaration;
+const Declaration = grammar.choice(.{ Pattern, grammar.map(Binding, Value, constant) });
 const Constant = grammar.sequence(.{ grammar.token("const"), Declaration, grammar.reference(void, Parser.endStatement) });
 const Return = grammar.sequence(.{ grammar.token("return"), grammar.reference(Value, result), grammar.reference(void, Parser.endStatement) });
 const ConditionExpression = grammar.reference(*const ast.Expression, condition);
@@ -59,10 +59,6 @@ fn takeSecond(comptime Rule: type) fn (*Parser, Rule.Value) zx.Error!Value {
 
 fn constant(_: *Parser, values: Binding.Value) zx.Error!Value {
     return .{ .constant = .{ .name = values[0], .annotation = if (values[1]) |annotation| annotation[1] else null, .value = values[3] } };
-}
-
-fn destructure(_: *Parser, values: Pattern.Value) zx.Error!Value {
-    return .{ .destructure = .{ .names = values[1], .value = values[4] } };
 }
 
 fn result(parser: *Parser) zx.Error!Value {

@@ -45,3 +45,41 @@ pub fn typeChild(reference: anytype) @TypeOf(reference) {
 
     return .{ .view = reference.view, .ref = reference.view.child(reference.ref) };
 }
+
+pub fn bindingKind(pattern: anytype) std.meta.Tag(@FieldType(ast.BindingPattern, "value")) {
+    if (@TypeOf(pattern) == *const ast.BindingPattern or @TypeOf(pattern) == *ast.BindingPattern) return std.meta.activeTag(pattern.value);
+
+    return pattern.kind();
+}
+
+pub fn bindingName(pattern: anytype) ast.Name {
+    if (@TypeOf(pattern) == *const ast.BindingPattern or @TypeOf(pattern) == *ast.BindingPattern) return pattern.value.name;
+
+    return pattern.name();
+}
+
+pub fn bindingCount(pattern: anytype) usize {
+    if (@TypeOf(pattern) == *const ast.BindingPattern or @TypeOf(pattern) == *ast.BindingPattern) return switch (pattern.value) {
+        .name => 0,
+        .object => |items| items.len,
+        .sequence => |items| items.len,
+    };
+
+    return pattern.count();
+}
+
+pub fn bindingChild(pattern: anytype, index: usize) ?@TypeOf(pattern) {
+    if (@TypeOf(pattern) == *const ast.BindingPattern or @TypeOf(pattern) == *ast.BindingPattern) return switch (pattern.value) {
+        .object => |fields| fields[index].pattern,
+        .sequence => |items| items[index],
+        .name => unreachable,
+    };
+
+    return pattern.child(index);
+}
+
+pub fn bindingKey(pattern: anytype, index: usize) ast.Name {
+    if (@TypeOf(pattern) == *const ast.BindingPattern or @TypeOf(pattern) == *ast.BindingPattern) return pattern.value.object[index].key;
+
+    return pattern.key(index);
+}

@@ -23,6 +23,7 @@ pub fn apply(context: *Context, declarations: []const zx.ast.Declaration, import
         .template_values = context.template_values.items,
         .statement_names = context.statement_names.items,
         .destructure_names = context.destructure_names.items,
+        .binding_keys = context.binding_keys.items,
         .type_references = borrow.slice(@FieldType(model.Text, "type_references"), @as([]const *const Reference, context.type_references.items)),
     });
 

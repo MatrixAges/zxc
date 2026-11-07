@@ -1,0 +1,13 @@
+export type Input = {
+    values: u32?[],
+    count: u64
+}
+
+export type Output = u32?[]
+
+export default function (in: Input): Output {
+    return loop(in.values, {
+        while: values => values.length < in.count,
+        next: values => { values = values.push(null)[0] }
+    })
+}

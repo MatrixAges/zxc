@@ -1,0 +1,63 @@
+import { FrameKind, PatternKind, Phase } from "../../model"
+import consume from "../../state/consume"
+
+import type { State as Input, State as Output } from "../../model"
+
+export default function (in: Input): Output {
+    const parent = in.frames[in.frames.length - 1]
+
+    const span = {
+        start: 0,
+        end: 0
+    }
+
+    const key = match {
+        parent.kind == FrameKind.Pattern &&
+            parent.pattern_kind == PatternKind.Object => parent.name,
+        _ => span
+    }
+
+    const head = in.tree.names.length + 1
+
+    const names = in.tree.names.push({
+        span: {
+            start: in.frame.start,
+            end: in.expression.control.token.span.end
+        },
+        previous: parent.kind == FrameKind.Pattern ? parent.head : 0,
+        kind: in.frame.pattern_kind,
+        key,
+        head: in.frame.head,
+        count: in.frame.count
+    })[0]
+
+    const next = match parent.kind {
+        FrameKind.Pattern => ({
+            ...parent,
+            head,
+            count: parent.count + 1
+        }),
+        _ => ({
+            ...parent,
+            second: head,
+            head: in.frame.head,
+            count: in.frame.count
+        })
+    }
+
+    return consume({
+        state: {
+            ...in,
+            tree: {
+                ...in.tree,
+                names
+            },
+            frames: in.frames.pop()[0],
+            frame: next
+        },
+        phase: match parent.kind {
+            FrameKind.Pattern => Phase.PatternSeparator,
+            _ => Phase.ConstAssign
+        }
+    })
+}

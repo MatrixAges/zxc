@@ -1,0 +1,52 @@
+import { PatternKind, Phase } from "../../model"
+
+import type { Span } from "../../../../lexer/token_model"
+import type { State } from "../../model"
+
+export type Input = {
+    state: State,
+    span: Span,
+    kind: PatternKind
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const state = in.state
+
+    const span = {
+        start: 0,
+        end: 0
+    }
+
+    const key = match state.frame.pattern_kind {
+        PatternKind.Object => state.frame.name,
+        _ => span
+    }
+
+    const head = state.tree.names.length + 1
+
+    return {
+        ...state,
+        tree: {
+            ...state.tree,
+            names: state.tree.names.push({
+                span: in.span,
+                previous: state.frame.head,
+                kind: in.kind,
+                key,
+                head: 0,
+                count: 0
+            })[0]
+        },
+        frame: {
+            ...state.frame,
+            head,
+            count: state.frame.count + 1
+        },
+        control: {
+            ...state.control,
+            phase: Phase.PatternSeparator
+        }
+    }
+}

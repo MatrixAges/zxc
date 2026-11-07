@@ -1,10 +1,12 @@
 import type { Append as Input, State as Output } from "./model"
 
 export default function (in: Input): Output {
+    const { state, type_id, owner, value, ready } = in
+
     return {
-        types: in.state.types.push(in.type_id)[0],
-        owners: in.state.owners.push(in.owner)[0],
-        values: in.state.values.push(in.value)[0],
-        ready: in.state.ready.push(in.ready)[0]
+        types: state.types.push(type_id)[0],
+        owners: state.owners.push(owner)[0],
+        values: state.values.push(value)[0],
+        ready: state.ready.push(ready)[0]
     }
 }

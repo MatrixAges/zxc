@@ -1,0 +1,122 @@
+import integers from "std:integer"
+import { scalar_string } from "core/type_table/const"
+import { Kind } from "core/type_table/model"
+
+import { PatternKind } from "../../../../frontend/parser/body/model"
+import row from "../../../semantic/types/row"
+import bind from "./bind"
+import reusable from "./reusable"
+
+import type { Work as Input, Work as Output } from "./model"
+
+export default function (in: Input): Output {
+    const position = in.frames.length - 1
+    const frame = in.frames[position]
+    const node = in.source.blocks.names[frame.node]
+
+    if (node.kind == PatternKind.Name) {
+        const bound = bind({
+            work: in,
+            node: frame.node,
+            value: frame.value,
+            temporary: false
+        })
+
+        return {
+            ...bound.work,
+            frames: bound.work.frames.pop()[0]
+        }
+    }
+
+    if (node.kind == PatternKind.Hole) {
+        return {
+            ...in,
+            frames: in.frames.pop()[0]
+        }
+    }
+
+    const type_id = in.state.local.expressions.types[integers.widen(frame.value)]
+
+    const target = row({
+        tables: {
+            base: in.state.types.context.base,
+            delta: in.state.types.delta
+        },
+        id: type_id
+    })
+
+    const sequence = node.kind == PatternKind.Sequence
+
+    const valid = match {
+        sequence =>
+            target.kind == Kind.List || target.kind == Kind.Tuple ||
+            type_id == scalar_string,
+        _ =>
+            target.kind == Kind.Object || target.kind == Kind.List ||
+            type_id == scalar_string
+    }
+
+    const excessive =
+        sequence && target.kind == Kind.Tuple &&
+        node.count > integers.widen(target.second)
+
+    if (!valid || excessive) {
+        return {
+            ...in,
+            state: {
+                ...in.state,
+                diagnostic: {
+                    code: "type_mismatch",
+                    message: match {
+                        excessive =>
+                            "tuple binding contains more positions than the tuple",
+                        sequence => "sequence binding requires a list, tuple or string",
+                        _ => "object binding requires an object or existing named members"
+                    },
+                    start: node.span.start,
+                    end: node.span.end
+                }
+            }
+        }
+    }
+
+    const saved = match {
+        reusable({
+            expressions: in.state.local.expressions,
+            value: frame.value
+        }) => ({
+            work: in,
+            value: frame.value
+        }),
+        _ => bind({
+            work: in,
+            node: frame.node,
+            value: frame.value,
+            temporary: true
+        })
+    }
+
+    const empty: u64[] = []
+
+    const order = loop({
+        head: node.head,
+        values: empty
+    }, {
+        while: state => state.head != 0,
+        next: state => {
+            state.values = state.values.push(state.head - 1)[0]
+            state.head = in.source.blocks.names[state.head - 1].previous
+        },
+        return: state => state.values.reverse()[0]
+    })
+
+    return {
+        ...saved.work,
+        frames: saved.work.frames.with(position, {
+            ...frame,
+            value: saved.value,
+            entered: true,
+            order
+        })
+    }
+}

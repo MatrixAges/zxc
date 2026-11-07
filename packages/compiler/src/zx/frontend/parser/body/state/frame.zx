@@ -1,5 +1,5 @@
 import { Operator } from "../../expressions/prepare/model"
-import { FrameKind, StatementKind, Phase } from "../model"
+import { FrameKind, StatementKind, Phase, PatternKind } from "../model"
 
 import type { Frame } from "../model"
 
@@ -15,6 +15,7 @@ export default function (in: Input): Output {
     return {
         kind: in.kind,
         statement: StatementKind.Result,
+        pattern_kind: PatternKind.Name,
         start: in.start,
         depth: in.depth,
         phase: Phase.Done,

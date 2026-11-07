@@ -1,0 +1,91 @@
+import integers from "std:integer"
+import integer from "core/expression_table/append/integer"
+import { scalar_u64 } from "core/type_table/const"
+
+import { PatternKind } from "../../../../frontend/parser/body/model"
+import field from "../../expressions/projections/field"
+import index from "../../expressions/projections/index"
+import { NameKind } from "../../source/model"
+import readName from "../../source/name"
+
+import type { Work, Bound as Output } from "./model"
+
+export type Input = {
+    work: Work,
+    child: u64
+}
+
+export default function (in: Input): Output {
+    const { work, child } = in
+
+    const frame = work.frames[work.frames.length - 1]
+    const node = work.source.blocks.names[frame.node]
+    const span = work.source.blocks.names[child].span
+
+    if (node.kind == PatternKind.Object) {
+        const selected = field({
+            expressions: work.state.local.expressions,
+            tables: {
+                base: work.state.types.context.base,
+                delta: work.state.types.delta
+            },
+            facts: work.state.local.refinement.facts,
+            diagnostic: work.state.diagnostic,
+            target: frame.value,
+            name: readName({
+                source: work.source,
+                kind: NameKind.BindingKey,
+                index: child
+            }),
+            span
+        })
+
+        return {
+            work: {
+                ...work,
+                state: {
+                    ...work.state,
+                    diagnostic: selected.diagnostic,
+                    local: {
+                        ...work.state.local,
+                        expressions: selected.expressions
+                    }
+                }
+            },
+            value: selected.value
+        }
+    }
+
+    const position = integer({
+        table: work.state.local.expressions,
+        metadata: {
+            type_id: scalar_u64,
+            span_start: span.start,
+            span_end: span.end
+        },
+        value: frame.next,
+        negative: false
+    })
+
+    const selected = index({
+        state: {
+            ...work.state,
+            local: {
+                ...work.state.local,
+                expressions: position.table
+            }
+        },
+        target: frame.value,
+        index: position.id,
+        index_span: span,
+        span
+    })
+
+    return {
+        work: {
+            ...work,
+            state: selected.state
+        },
+        value: selected.value
+    }
+}

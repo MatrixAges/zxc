@@ -1,0 +1,68 @@
+import { PatternKind } from "../../../../frontend/parser/body/model"
+import enter from "./enter"
+import project from "./project"
+
+import type { Input, Output, Work } from "./model"
+
+export default function (in: Input): Output {
+    const initial: Work = {
+        state: in.state,
+        source: in.source,
+        scope_start: in.scope_start,
+        reserved_name: in.reserved_name,
+        bindings: {
+            symbols: [],
+            values: []
+        },
+        frames: [{
+            node: in.root,
+            value: in.value,
+            entered: false,
+            order: [],
+            next: 0
+        }]
+    }
+
+    return loop(initial, {
+        while: work => work.state.diagnostic.message == "" && work.frames.length != 0,
+        next: work => {
+            const position = work.frames.length - 1
+            const frame = work.frames[position]
+
+            if (!frame.entered) {
+                work = enter(work)
+            } else if (frame.next == frame.order.length) {
+                work.frames = work.frames.pop()[0]
+            } else {
+                const child = frame.order[frame.next]
+                const frames = work.frames.with(position, {
+                    ...frame,
+                    next: frame.next + 1
+                })
+
+                if (work.source.blocks.names[child].kind == PatternKind.Hole) {
+                    work.frames = frames
+                } else {
+                    const { work: selected_work, value } = project({
+                        work,
+                        child
+                    })
+                    work = {
+                        ...selected_work,
+                        frames: frames.push({
+                            node: child,
+                            value,
+                            entered: false,
+                            order: [],
+                            next: 0
+                        })[0]
+                    }
+                }
+            }
+        },
+        return: work => ({
+            state: work.state,
+            bindings: work.bindings
+        })
+    })
+}

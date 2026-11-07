@@ -1,0 +1,43 @@
+import type { Source } from "../../expressions/request"
+import type { Prepared } from "../../model"
+
+export type Input = {
+    state: Prepared,
+    source: Source,
+    root: u64,
+    value: u32,
+    scope_start: u64,
+    reserved_name?: string
+}
+
+export type Bindings = {
+    symbols: u32[],
+    values: u32[]
+}
+
+export type Frame = {
+    node: u64,
+    value: u32,
+    entered: bool,
+    order: u64[],
+    next: u64
+}
+
+export type Work = {
+    state: Prepared,
+    source: Source,
+    scope_start: u64,
+    reserved_name?: string,
+    bindings: Bindings,
+    frames: Frame[]
+}
+
+export type Bound = {
+    work: Work,
+    value: u32
+}
+
+export type Output = {
+    state: Prepared,
+    bindings: Bindings
+}

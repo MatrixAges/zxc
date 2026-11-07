@@ -51,6 +51,10 @@ pub fn indexed(allocator: std.mem.Allocator, source: []const u8, output: anytype
         if (item.kind == .Switch) result.excludeEnding(@intCast(item.span.end), true);
     }
 
+    for (output.blocks.names) |item| {
+        if (item.kind == .Object) result.excludeStart(@intCast(item.span.start), false);
+    }
+
     var expression_index = output.expressions.nodes.len;
 
     while (expression_index > 0) {
@@ -75,7 +79,11 @@ fn block(result: *Projection, value: anytype) void {
 
         switch (statement.value) {
             .constant => |item| expression(result, item.value),
-            .destructure => |item| expression(result, item.value),
+            .destructure => |item| {
+                expression(result, item.value);
+
+                if (item.pattern) |pattern| bindingPattern(result, pattern);
+            },
             .result => |item| if (item) |child| expression(result, child),
             .evaluate => |item| expression(result, item),
             .state_update => |item| {
@@ -160,5 +168,13 @@ pub fn expression(result: *Projection, value: anytype) void {
             expression(result, item.fallback);
         },
         else => {},
+    }
+}
+
+fn bindingPattern(result: *Projection, pattern: anytype) void {
+    if (syntax.bindingKind(pattern) == .object) result.excludeStart(pattern.span.start, false);
+
+    for (0..syntax.bindingCount(pattern)) |index| {
+        if (syntax.bindingChild(pattern, index)) |child| bindingPattern(result, child);
     }
 }

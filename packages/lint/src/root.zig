@@ -88,7 +88,9 @@ fn checkBlock(block: anytype, context: ExpressionContext) ?zx.Diagnostic {
                 if (checkNestedExpression(binding.value, false, context)) |issue| return issue;
             },
             .destructure => |binding| {
-                for (0..binding.names.len) |name_index| {
+                if (binding.pattern) |pattern| {
+                    if (checkPattern(pattern)) |issue| return issue;
+                } else for (0..binding.names.len) |name_index| {
                     const name = syntax.item(binding.names, name_index);
 
                     if (!std.mem.eql(u8, name.text, "_")) {
@@ -309,4 +311,18 @@ fn checkConditionItem(expression: anytype, nested: bool, context: ExpressionCont
     child.condition_item = true;
 
     return checkNestedExpression(expression, nested, child);
+}
+
+fn checkPattern(pattern: anytype) ?zx.Diagnostic {
+    if (syntax.bindingKind(pattern) == .name) {
+        const name = syntax.bindingName(pattern);
+
+        return if (std.mem.eql(u8, name.text, "_")) null else checkBinding(name, .value);
+    }
+
+    for (0..syntax.bindingCount(pattern)) |index| {
+        if (syntax.bindingChild(pattern, index)) |child| if (checkPattern(child)) |issue| return issue;
+    }
+
+    return null;
 }

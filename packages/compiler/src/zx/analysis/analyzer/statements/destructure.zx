@@ -1,5 +1,6 @@
 import integers from "std:integer"
 import append from "core/control_table/append/destructure"
+import { ExpressionKind } from "core/expression_table/kinds"
 import { Kind } from "core/type_table/model"
 
 import refine from "../../../ir/canonical/refinement/bind"
@@ -8,6 +9,9 @@ import bind from "../bindings/append"
 import { NameKind } from "../source/model"
 import readName from "../source/name"
 import bindingName from "./binding_name"
+import pattern from "./pattern/blocks"
+import flat from "./pattern/flat"
+import pad from "./pattern/pad"
 
 import type { Source } from "../expressions/request"
 import type { Prepared } from "../model"
@@ -39,9 +43,49 @@ export default function (in: Input): Output {
         id: in.state.local.expressions.types[integers.widen(in.value)]
     })
 
-    if (
-        target.kind != Kind.Tuple || integers.widen(target.second) != statement.count
-    ) {
+    if (statement.second != 0) {
+        const simple = flat({
+            source: in.source,
+            root: statement.second - 1
+        })
+
+        const captured =
+            in.state.local.expressions.kinds[integers.widen(in.value)] ==
+            ExpressionKind.Capture
+
+        const complete =
+            simple && target.kind == Kind.Tuple &&
+            statement.count <= integers.widen(target.second)
+
+        if (captured && !simple) {
+            return {
+                state: {
+                    ...in.state,
+                    diagnostic: {
+                        code: "type_mismatch",
+                        message:
+                            "try destructuring requires a flat complete tuple binding",
+                        start: statement.span.start,
+                        end: statement.span.end
+                    }
+                },
+                blocks: in.blocks
+            }
+        }
+
+        if (!captured && !complete) {
+            return pattern(in)
+        }
+    }
+
+    const captured =
+        in.state.local.expressions.kinds[integers.widen(in.value)] ==
+        ExpressionKind.Capture
+
+    const strict = captured || statement.second == 0
+    const wrong_count = strict && integers.widen(target.second) != statement.count
+
+    if (target.kind != Kind.Tuple || wrong_count) {
         return {
             state: {
                 ...in.state,
@@ -74,7 +118,7 @@ export default function (in: Input): Output {
     })
 
     const table = target.delta ? tables.delta : tables.base
-    const symbols: u32?[] = []
+    const initial_symbols: u32?[] = []
     const start = in.blocks.frames[in.blocks.frames.length - 1].active_mark
 
     const result = loop({
@@ -83,7 +127,7 @@ export default function (in: Input): Output {
         types: table.children,
         first: integers.widen(target.first),
         order,
-        symbols,
+        symbols: initial_symbols,
         start,
         index: 0
     }, {
@@ -137,13 +181,18 @@ export default function (in: Input): Output {
         }
     }
 
+    const symbols = pad({
+        values: result.symbols,
+        count: integers.widen(target.second)
+    })
+
     const facts = refine({
         facts: result.state.local.refinement.facts,
         expressions: result.state.local.expressions,
         value: integers.widen(in.value),
-        count: result.symbols.length,
-        err: result.symbols.length == 2 ? result.symbols[0] : null,
-        result: result.symbols.length == 2 ? result.symbols[1] : null
+        count: symbols.length,
+        err: symbols.length == 2 ? symbols[0] : null,
+        result: symbols.length == 2 ? symbols[1] : null
     })
 
     return {
@@ -162,7 +211,7 @@ export default function (in: Input): Output {
             pending: append({
                 table: in.blocks.pending,
                 value: in.value,
-                symbols: result.symbols
+                symbols
             })
         }
     }

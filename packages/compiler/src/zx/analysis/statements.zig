@@ -46,11 +46,28 @@ pub fn block(self: *Analyzer, value: anytype) zx.Error!ir.BlockId {
                 const initializer = try self.expression(binding.value, null);
                 const value_type = self.types.get(self.node(initializer).type_id);
 
-                if (value_type != .tuple or value_type.tuple.len != binding.names.len) return self.reporter.fail(.type_mismatch, statement.span, "tuple destructuring must match every result slot; use _ to discard a slot");
+                if (binding.pattern) |pattern| {
+                    const patterns = @import("bindings/pattern.zig");
+                    const is_flat = patterns.flat(pattern);
 
-                const symbols = try self.allocator.alloc(?ir.SymbolId, binding.names.len);
+                    if (self.node(initializer).value == .capture and !is_flat) return self.reporter.fail(.type_mismatch, statement.span, "try destructuring requires a flat complete tuple binding");
 
-                for (0..value_type.tuple.len, 0..) |view_index, index| {
+                    if (self.node(initializer).value != .capture and !(is_flat and value_type == .tuple and binding.names.len <= value_type.tuple.len)) {
+                        try patterns.statements(self, &result, pattern, initializer, scope_start);
+
+                        continue;
+                    }
+                }
+
+                const strict = self.node(initializer).value == .capture or binding.pattern == null;
+
+                if (value_type != .tuple or (strict and value_type.tuple.len != binding.names.len)) return self.reporter.fail(.type_mismatch, statement.span, "tuple destructuring must match every result slot; use _ to discard a slot");
+
+                const symbols = try self.allocator.alloc(?ir.SymbolId, value_type.tuple.len);
+
+                @memset(symbols, null);
+
+                for (0..binding.names.len, 0..) |view_index, index| {
                     const type_id = value_type.tuple.at(view_index);
                     const name = syntax.item(binding.names, index);
 

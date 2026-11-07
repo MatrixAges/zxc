@@ -15,7 +15,9 @@ export enum StatementKind {
     StateUpdate
 }
 
-export enum FrameKind { Root, Block, Statement, Case }
+export enum FrameKind { Root, Block, Statement, Case, Pattern }
+
+export enum PatternKind { Name, Object, Sequence, Hole }
 
 export enum Phase {
     BlockOpen,
@@ -24,6 +26,9 @@ export enum Phase {
     ConstName,
     ConstAfterName,
     PatternName,
+    PatternKey,
+    PatternAfterKey,
+    PatternKeywordKey,
     PatternSeparator,
     ConstAssign,
     ReturnValue,
@@ -80,7 +85,11 @@ export type Item = {
 
 export type Name = {
     span: Span,
-    previous: u64
+    previous: u64,
+    kind: PatternKind,
+    key: Span,
+    head: u64,
+    count: u64
 }
 
 export type Case = {
@@ -101,6 +110,7 @@ export type Tree = {
 export type Frame = {
     kind: FrameKind,
     statement: StatementKind,
+    pattern_kind: PatternKind,
     start: u64,
     depth: u64,
     phase: Phase,

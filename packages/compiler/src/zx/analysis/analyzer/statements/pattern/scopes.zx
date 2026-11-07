@@ -1,0 +1,78 @@
+import integers from "std:integer"
+
+import borrow from "../scopes/borrow"
+import run from "./run"
+
+import type { Source } from "../../expressions/request"
+import type { Prepared } from "../../model"
+import type { Scopes } from "../scopes/model"
+
+export type Input = {
+    state: Prepared,
+    scopes: Scopes,
+    source: Source,
+    statement: u64,
+    value: u32
+}
+
+export type Output = {
+    state: Prepared,
+    scopes: Scopes
+}
+
+export default function (in: Input): Output {
+    const frame = in.scopes.frames[in.scopes.frames.length - 1]
+
+    const result = run({
+        state: in.state,
+        source: in.source,
+        root: in.source.blocks.statements[in.statement].second - 1,
+        value: in.value,
+        scope_start: frame.active_mark,
+        reserved_name:
+            in.state.local.symbols.names[integers.widen(frame.state_symbol)]
+    })
+
+    if (result.state.diagnostic.message != "") {
+        return {
+            state: result.state,
+            scopes: in.scopes
+        }
+    }
+
+    const bindings = loop({
+        values: in.scopes.bindings,
+        index: 0
+    }, {
+        while: current => current.index < result.bindings.symbols.length,
+        next: current => {
+            const value = result.bindings.values[current.index]
+            current.values = {
+                symbols:
+                    current.values.symbols.push(
+                        result.bindings.symbols[current.index]
+                    )[0],
+                values: current.values.values.push(value)[0],
+                borrows:
+                    current.values.borrows.push(
+                        borrow(
+                            result.state.local.expressions
+                                .kinds[integers.widen(
+                                    value
+                                )]
+                        )
+                    )[0]
+            }
+            current.index += 1
+        },
+        return: current => current.values
+    })
+
+    return {
+        state: result.state,
+        scopes: {
+            ...in.scopes,
+            bindings
+        }
+    }
+}

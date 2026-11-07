@@ -58,7 +58,7 @@ pub const Statement = struct {
         evaluate: *const Expression,
         state_update: struct { target: *const Expression, value: *const Expression, operator: ?Operator },
         constant: struct { name: Name, annotation: ?*const Type = null, value: *const Expression },
-        destructure: struct { names: []const Name, value: *const Expression },
+        destructure: struct { names: []const Name = &.{}, pattern: ?*const BindingPattern = null, value: *const Expression },
         branch: struct { condition: *const Expression, yes: Block, no: ?Block },
         switch_stmt: struct { subject: *const Expression, cases: []const SwitchCase },
         store_set: struct { target: *const Expression, value: *const Expression },
@@ -66,6 +66,16 @@ pub const Statement = struct {
     },
 };
 
+pub const BindingPattern = struct {
+    span: Span,
+    value: union(enum) {
+        name: Name,
+        object: []const BindingField,
+        sequence: []const ?*const BindingPattern,
+    },
+};
+
+pub const BindingField = struct { key: Name, pattern: *const BindingPattern };
 pub const Block = struct { span: Span, statements: []const Statement };
 pub const SwitchCase = struct { value: ?*const Expression, body: Block, span: Span };
 

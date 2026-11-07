@@ -9,6 +9,7 @@ pub fn init(allocator: std.mem.Allocator, source: []const u8, tables: anytype) !
         .types = try allocator.alloc(zx.ast.Type, tables.types.nodes.len),
         .expressions = try allocator.alloc(zx.ast.Expression, tables.expressions.nodes.len),
         .blocks = try allocator.alloc(zx.ast.Block, tables.blocks.blocks.len),
+        .patterns = try allocator.alloc(zx.ast.BindingPattern, tables.blocks.names.len),
     };
 }
 
@@ -20,6 +21,7 @@ fn Tables(comptime Storage: type) type {
         types: []zx.ast.Type,
         expressions: []zx.ast.Expression,
         blocks: []zx.ast.Block,
+        patterns: []zx.ast.BindingPattern,
         pub fn text(self: @This(), value: anytype) []const u8 {
             return self.source[@intCast(value.start)..@intCast(value.end)];
         }

@@ -62,3 +62,11 @@ map/filter 返回 `[结果数组, void]`，reduce 返回 `[原数组, 累计值]
 支持任意元素和只读捕获，返回 `[新数组, void]`。比较器及捕获静态编译，错误
 由排序表达式传播；不引入运行时函数值。排序保持对象元素共享关系，沿用现有
 非稳定排序契约。
+
+## const 解构
+
+Native 与 Source 解析器共用显式绑定模式：对象键/别名、嵌套、序列与空位。类型分析
+将其降为现有 constant、field、tuple_field、index；有可观测效果的来源只绑定一次，
+完整平坦元组保持原有 destructure IR，省略位置补 discard。直接 capture 仍需完整
+平坦元组，不能破坏 refinement 与所有权契约。应用语法见
+[编码约定](../../../skills/rx/编码约定.md#解构绑定)。
