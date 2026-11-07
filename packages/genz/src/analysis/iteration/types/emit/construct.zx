@@ -1,0 +1,27 @@
+import { Operation } from "../model"
+import declare from "./declare"
+import definition from "./definition"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: state => state.valid && state.index < state.source.plan.kinds.length,
+        next: state => {
+            const kind = state.source.plan.kinds[state.index]
+            const result = definition(state)
+            const value = match kind {
+                Operation.List => declare(result),
+                Operation.Object => declare(result),
+                Operation.Tuple => declare(result),
+                _ => result
+            }
+
+            state = {
+                ...value.state,
+                index: state.index + 1,
+                values: value.state.values.push(value.id)[0]
+            }
+        }
+    })
+}

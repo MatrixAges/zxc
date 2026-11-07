@@ -1,0 +1,95 @@
+import integers from "std:integer"
+
+import header from "../../../../ast/expressions/header"
+import {
+    ExpressionsKind,
+    ExpressionsPrimitive
+} from "../../../../printer/model/expressions"
+
+import type { State, Node as Output } from "./model"
+
+export type Input = {
+    state: State,
+    kind: ExpressionsKind,
+    value: u32,
+    children: u32[],
+    first: u64,
+    count: u64
+}
+
+export default function (in: Input): Output {
+    const state = in.state
+    const layouts = state.layouts
+
+    const offset = match in.kind {
+        ExpressionsKind.OptionalType => layouts.optional_type.length,
+        ExpressionsKind.Pointer => layouts.pointer.length,
+        ExpressionsKind.ConstSlice => layouts.const_slice.length,
+        ExpressionsKind.Primitive => layouts.primitive.length,
+        ExpressionsKind.TupleType => layouts.tuple_type.length,
+        _ => layouts.struct_type_start.length
+    }
+
+    const result = header({
+        ...state.expressions.pick([
+            "tags",
+            "offsets"
+        ]),
+        base: state.source.expression_base,
+        kind: in.kind,
+        offset
+    })
+
+    if (!result.valid) {
+        return {
+            id: result.id,
+            state: {
+                ...state,
+                valid: false
+            }
+        }
+    }
+
+    const forms = match in.kind {
+        ExpressionsKind.OptionalType => ({
+            ...layouts,
+            optional_type: layouts.optional_type.push(in.value)[0]
+        }),
+        ExpressionsKind.Pointer => ({
+            ...layouts,
+            pointer: layouts.pointer.push(in.value)[0]
+        }),
+        ExpressionsKind.ConstSlice => ({
+            ...layouts,
+            const_slice: layouts.const_slice.push(in.value)[0]
+        }),
+        ExpressionsKind.Primitive => ({
+            ...layouts,
+            primitive: layouts.primitive.push(ExpressionsPrimitive.Bool)[0]
+        }),
+        ExpressionsKind.TupleType => ({
+            ...layouts,
+            tuple_type: layouts.tuple_type.push(in.children)[0]
+        }),
+        _ => ({
+            ...layouts,
+            struct_type_start:
+                layouts.struct_type_start.push(integers.narrow(in.first))[0],
+            struct_type_len:
+                layouts.struct_type_len.push(integers.narrow(in.count))[0]
+        })
+    }
+
+    return {
+        id: result.id,
+        state: {
+            ...state,
+            expressions: {
+                ...state.expressions,
+                tags: result.tags,
+                offsets: result.offsets
+            },
+            layouts: forms
+        }
+    }
+}

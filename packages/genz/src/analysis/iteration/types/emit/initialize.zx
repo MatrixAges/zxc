@@ -1,0 +1,28 @@
+import expressions from "../../../../ast/expressions/empty"
+import statements from "../../../../ast/statements/empty"
+
+import type { Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        source: in,
+        index: 0,
+        expressions: expressions({}),
+        layouts: {
+            optional_type: [],
+            pointer: [],
+            const_slice: [],
+            primitive: [],
+            tuple_type: [],
+            struct_type_start: [],
+            struct_type_len: []
+        },
+        fields: [],
+        statements: statements({}),
+        values: [],
+        cache_types: [],
+        cache_values: [],
+        serial: in.serial,
+        valid: true
+    }
+}

@@ -1,0 +1,61 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import { ExpressionsKind } from "../../../../printer/model/expressions"
+import { Operation } from "../model"
+import children from "./children"
+import form from "./form"
+
+import type { State as Input, Node as Output } from "./model"
+
+export default function (in: Input): Output {
+    const plan = in.source.plan
+    const values = children(in)
+
+    if (plan.kinds[in.index] == Operation.Tuple) {
+        return form({
+            state: in,
+            kind: ExpressionsKind.TupleType,
+            value: 0,
+            children: values,
+            first: 0,
+            count: 0
+        })
+    }
+
+    const first = in.fields.length
+    const type_id = plan.types[in.index]
+    const names = integers.widen(in.source.types.first[integers.widen(type_id)])
+
+    const fields = loop({
+        values: in.fields,
+        index: 0
+    }, {
+        while: state => state.index < values.length,
+        next: state => {
+            state.values = state.values.push({
+                name:
+                    bytes.fromText(
+                        in.source.types.field_names[names + state.index]
+                    ),
+                value: values[state.index],
+                default_value: null,
+                comptime_parameter: false
+            })[0]
+            state.index += 1
+        },
+        return: state => state.values
+    })
+
+    return form({
+        state: {
+            ...in,
+            fields
+        },
+        kind: ExpressionsKind.StructType,
+        value: 0,
+        children: [],
+        first: integers.widen(in.source.field_base) + first,
+        count: values.length
+    })
+}

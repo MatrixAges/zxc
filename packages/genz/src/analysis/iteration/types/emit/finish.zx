@@ -1,0 +1,22 @@
+import integers from "std:integer"
+
+import type { State as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        ...in.pick([
+            "expressions",
+            "layouts",
+            "fields",
+            "statements",
+            "cache_types",
+            "cache_values",
+            "serial",
+            "valid"
+        ]),
+        root: match {
+            in.valid => in.values[integers.widen(in.source.plan.root)],
+            _ => 0
+        }
+    }
+}

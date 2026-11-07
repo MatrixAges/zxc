@@ -1,0 +1,31 @@
+import type { Walk } from "../model"
+
+export type Input = {
+    state: Walk,
+    type_id: u32
+}
+
+export type Output = Walk
+
+export default function (in: Input): Output {
+    const state = in.state
+    const depth = state.depth
+
+    if (depth < state.stack_types.length) {
+        return {
+            ...state,
+            stack_types: state.stack_types.with(depth, in.type_id),
+            stack_next: state.stack_next.with(depth, 0),
+            stack_first: state.stack_first.with(depth, state.result_count),
+            depth: depth + 1
+        }
+    }
+
+    return {
+        ...state,
+        stack_types: state.stack_types.push(in.type_id)[0],
+        stack_next: state.stack_next.push(0)[0],
+        stack_first: state.stack_first.push(state.result_count)[0],
+        depth: depth + 1
+    }
+}

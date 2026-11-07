@@ -1,0 +1,47 @@
+import integers from "std:integer"
+
+import { ExpressionsKind } from "../../../../printer/model/expressions"
+import { Operation } from "../model"
+import aggregate from "./aggregate"
+import form from "./form"
+import list from "./list"
+
+import type { State as Input, Node as Output } from "./model"
+
+export default function (in: Input): Output {
+    const plan = in.source.plan
+    const kind = plan.kinds[in.index]
+
+    if (kind == Operation.Native) {
+        return {
+            state: in,
+            id: in.source.prepared[integers.widen(plan.values[in.index])]
+        }
+    }
+
+    if (kind == Operation.Existing) {
+        return {
+            state: in,
+            id: plan.values[in.index]
+        }
+    }
+
+    if (kind == Operation.Optional) {
+        return form({
+            state: in,
+            kind: ExpressionsKind.OptionalType,
+            value: in.values[integers.widen(
+                plan.children[plan.first[in.index]]
+            )],
+            children: [],
+            first: 0,
+            count: 0
+        })
+    }
+
+    if (kind == Operation.List) {
+        return list(in)
+    }
+
+    return aggregate(in)
+}

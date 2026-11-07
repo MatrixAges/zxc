@@ -1,0 +1,113 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import call from "../../../../ast/expressions/call"
+import field from "../../../../ast/expressions/field"
+import identifier from "../../../../ast/expressions/identifier"
+import { ExpressionsKind } from "../../../../printer/model/expressions"
+import {
+    standard_name,
+    array_list,
+    owner_field,
+    items_field,
+    owned_field
+} from "../const"
+import form from "./form"
+
+import type { State as Input, Node as Output } from "./model"
+
+export default function (in: Input): Output {
+    const plan = in.source.plan
+
+    const element = in
+        .values[integers.widen(plan.children[plan.first[in.index]])]
+
+    const root = identifier({
+        table: in.expressions,
+        base: in.source.expression_base,
+        name: bytes.fromText(standard_name)
+    })
+
+    const member = field({
+        table: root.table,
+        base: in.source.expression_base,
+        target: root.id,
+        name: bytes.fromText(array_list)
+    })
+
+    const owner = call({
+        table: member.table,
+        base: in.source.expression_base,
+        callee: member.id,
+        arguments: [element]
+    })
+
+    const valid = (
+        - in.valid
+        - and root.valid
+        - and member.valid
+        - and owner.valid
+    )
+
+    const pointer = form({
+        state: {
+            ...in,
+            expressions: owner.table,
+            valid
+        },
+        kind: ExpressionsKind.Pointer,
+        value: owner.id,
+        children: [],
+        first: 0,
+        count: 0
+    })
+
+    const items = form({
+        state: pointer.state,
+        kind: ExpressionsKind.ConstSlice,
+        value: element,
+        children: [],
+        first: 0,
+        count: 0
+    })
+
+    const owned = form({
+        state: items.state,
+        kind: ExpressionsKind.Primitive,
+        value: 0,
+        children: [],
+        first: 0,
+        count: 0
+    })
+
+    const first = owned.state.fields.length
+
+    const fields = owned.state.fields.push({
+        name: bytes.fromText(owner_field),
+        value: pointer.id,
+        default_value: null,
+        comptime_parameter: false
+    })[0].push({
+        name: bytes.fromText(items_field),
+        value: items.id,
+        default_value: null,
+        comptime_parameter: false
+    })[0].push({
+        name: bytes.fromText(owned_field),
+        value: owned.id,
+        default_value: null,
+        comptime_parameter: false
+    })[0]
+
+    return form({
+        state: {
+            ...owned.state,
+            fields
+        },
+        kind: ExpressionsKind.StructType,
+        value: 0,
+        children: [],
+        first: integers.widen(in.source.field_base) + first,
+        count: fields.length - first
+    })
+}

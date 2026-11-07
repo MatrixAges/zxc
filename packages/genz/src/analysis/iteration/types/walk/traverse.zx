@@ -1,0 +1,19 @@
+import advance from "./advance"
+
+import type { Step as Input, Plan as Output } from "../model"
+
+export default function (in: Input): Output {
+    return loop(in.state, {
+        while: state => state.depth != 0,
+        next: state => {
+            state = advance({
+                source: in.source,
+                state
+            })
+        },
+        return: state => ({
+            ...state.plan,
+            root: state.results[0]
+        })
+    })
+}

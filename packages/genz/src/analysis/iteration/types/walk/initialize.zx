@@ -1,0 +1,28 @@
+import type { Input, Walk as Output } from "../model"
+
+export default function (in: Input): Output {
+    return {
+        plan: {
+            kinds: [],
+            types: [],
+            first: [],
+            count: [],
+            values: [],
+            children: [],
+            leaves: [],
+            root: 0
+        },
+        cache: {
+            count: 0,
+            metadata: [],
+            keys: [],
+            values: []
+        },
+        stack_types: [in.root],
+        stack_next: [0],
+        stack_first: [0],
+        depth: 1,
+        results: [],
+        result_count: 0
+    }
+}

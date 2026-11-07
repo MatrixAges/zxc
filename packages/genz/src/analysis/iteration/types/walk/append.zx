@@ -1,0 +1,63 @@
+import integers from "std:integer"
+import put from "core/integer/map/put"
+
+import { Operation } from "../model"
+import complete from "./complete"
+
+import type { Walk } from "../model"
+
+export type Input = {
+    state: Walk,
+    kind: Operation,
+    type_id: u32,
+    value: u32,
+    named: bool
+}
+
+export type Output = Walk
+
+export default function (in: Input): Output {
+    const state = in.state
+    const first = state.stack_first[state.depth - 1]
+
+    const children = loop({
+        values: state.plan.children,
+        index: first
+    }, {
+        while: current => current.index < state.result_count,
+        next: current => {
+            current.values = current.values.push(state.results[current.index])[0]
+            current.index += 1
+        },
+        return: current => current.values
+    })
+
+    const id = integers.narrow(state.plan.kinds.length)
+
+    const cache = match {
+        in.named => put({
+            state: state.cache,
+            key: in.type_id,
+            value: id
+        }),
+        _ => state.cache
+    }
+
+    return complete({
+        state: {
+            ...state,
+            cache,
+            result_count: first,
+            plan: {
+                ...state.plan,
+                kinds: state.plan.kinds.push(in.kind)[0],
+                types: state.plan.types.push(in.type_id)[0],
+                first: state.plan.first.push(state.plan.children.length)[0],
+                count: state.plan.count.push(state.result_count - first)[0],
+                values: state.plan.values.push(in.value)[0],
+                children
+            }
+        },
+        value: id
+    })
+}

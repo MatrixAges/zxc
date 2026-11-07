@@ -37,17 +37,20 @@ fn appendRows(allocator: std.mem.Allocator, target: *std.ArrayList(node.Statemen
         target.appendAssumeCapacity(switch (tag) {
             inline .constant, .variable => |selected| value: {
                 const prefix = @tagName(selected);
-                const text = @field(source, prefix ++ "_name")[offset];
-                const type_expr = @field(source, prefix ++ "_type_expr")[offset];
 
-                const constant: node.Constant = .{
-                    .name = if (comptime borrow_text) text else try allocator.dupe(u8, text),
-                    .type_expr = if (type_expr) |id| @fromBackingInt(id) else null,
-                    .value = @fromBackingInt(@field(source, prefix ++ "_value")[offset]),
-                    .exported = @field(source, prefix ++ "_exported")[offset],
-                };
+                if (comptime @hasField(std.meta.Child(@TypeOf(source)), prefix ++ "_name")) {
+                    const text = @field(source, prefix ++ "_name")[offset];
+                    const type_expr = @field(source, prefix ++ "_type_expr")[offset];
 
-                break :value @unionInit(node.Statement, prefix, constant);
+                    const constant: node.Constant = .{
+                        .name = if (comptime borrow_text) text else try allocator.dupe(u8, text),
+                        .type_expr = if (type_expr) |id| @fromBackingInt(id) else null,
+                        .value = @fromBackingInt(@field(source, prefix ++ "_value")[offset]),
+                        .exported = @field(source, prefix ++ "_exported")[offset],
+                    };
+
+                    break :value @unionInit(node.Statement, prefix, constant);
+                } else return error.InvalidAst;
             },
             .assignment => .{ .assignment = .{
                 .target = @fromBackingInt(source.assignment_target[offset]),

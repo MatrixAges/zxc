@@ -1,0 +1,104 @@
+import integers from "std:integer"
+import lookup from "core/integer/map/lookup"
+
+import { Operation } from "../model"
+import operation from "../operation"
+import append from "./append"
+import complete from "./complete"
+import push from "./push"
+
+import type { Step as Input, Walk as Output } from "../model"
+
+export default function (in: Input): Output {
+    const state = in.state
+    const slot = state.depth - 1
+    const id = state.stack_types[slot]
+    const next = state.stack_next[slot]
+
+    if (next == 0) {
+        const previous = lookup({
+            ...state.cache.omit(["values"]),
+            key: id
+        })
+
+        if (previous != null) {
+            return complete({
+                state,
+                value: state.cache.values[previous]
+            })
+        }
+
+        const cached = lookup({
+            ...in.source.cached.omit(["values"]),
+            key: id
+        })
+
+        if (cached != null) {
+            return append({
+                state,
+                kind: Operation.Existing,
+                type_id: id,
+                value: in.source.cached.values[cached],
+                named: false
+            })
+        }
+    }
+
+    const type_index = integers.widen(id)
+    const kind = in.source.types.kinds[type_index]
+
+    const selected = operation({
+        kind,
+        inline_lists: in.source.inline_lists
+    })
+
+    if (selected == Operation.Native) {
+        return append({
+            state: {
+                ...state,
+                plan: {
+                    ...state.plan,
+                    leaves: state.plan.leaves.push(id)[0]
+                }
+            },
+            kind: selected,
+            type_id: id,
+            value: integers.narrow(state.plan.leaves.length),
+            named: false
+        })
+    }
+
+    const count = match selected {
+        Operation.Optional => 1,
+        Operation.List => 1,
+        _ => integers.widen(in.source.types.second[type_index])
+    }
+
+    if (next < count) {
+        const first = in.source.types.first[type_index]
+
+        const child = match selected {
+            Operation.Object =>
+                in.source.types.field_types[integers.widen(first) + next],
+            Operation.Tuple =>
+                in.source.types.children[integers.widen(first) + next],
+            _ => first
+        }
+
+        return push({
+            state: {
+                ...state,
+                stack_next: state.stack_next.with(slot, next + 1)
+            },
+            type_id: child
+        })
+    }
+
+    return append({
+        state,
+        kind: selected,
+        type_id: id,
+        value: 0,
+        named: selected != Operation.Optional
+    })
+}

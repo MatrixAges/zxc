@@ -1,0 +1,29 @@
+import integers from "std:integer"
+
+import type { State as Input } from "./model"
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    const plan = in.source.plan
+    const first = plan.first[in.index]
+    const end = first + plan.count[in.index]
+    const empty: u32[] = []
+
+    return loop({
+        index: first,
+        values: empty
+    }, {
+        while: state => state.index < end,
+        next: state => {
+            state.values =
+                state.values.push(
+                    in.values[integers.widen(
+                        plan.children[state.index]
+                    )]
+                )[0]
+            state.index += 1
+        },
+        return: state => state.values
+    })
+}

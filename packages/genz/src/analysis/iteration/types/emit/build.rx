@@ -1,0 +1,11 @@
+<Module>
+    <Type from="model" as="Types" />
+
+    <Args in={Types.Input} out={Types.Output} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="construct" in={$ctx.initialize} />
+    <Call fn="finish" in={$ctx.construct} />
+
+    <Return value={$ctx.finish} />
+</Module>

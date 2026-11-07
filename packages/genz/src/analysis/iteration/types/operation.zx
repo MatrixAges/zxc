@@ -1,0 +1,24 @@
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import { Operation } from "./model"
+
+export type Input = {
+    kind: u8,
+    inline_lists: bool
+}
+
+export type Output = Operation
+
+export default function (in: Input): Output {
+    return match kind(in.kind) {
+        Kind.Optional => Operation.Optional,
+        Kind.Object => Operation.Object,
+        Kind.Tuple => Operation.Tuple,
+        Kind.List => match {
+            in.inline_lists => Operation.List,
+            _ => Operation.Native
+        },
+        _ => Operation.Native
+    }
+}

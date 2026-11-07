@@ -1,0 +1,42 @@
+import identifier from "../../../../ast/expressions/identifier"
+import fresh from "../../../../ast/fresh"
+import binding from "../../../../ast/statements/binding"
+import { type_prefix } from "../const"
+
+import type { Node as Input, Node as Output } from "./model"
+
+export default function (in: Input): Output {
+    const state = in.state
+
+    const name = fresh({
+        serial: state.serial,
+        prefix: type_prefix
+    })
+
+    const value = identifier({
+        table: state.expressions,
+        base: state.source.expression_base,
+        name: name.name
+    })
+
+    const statement = binding({
+        table: state.statements,
+        base: 0,
+        name: name.name,
+        value: in.id
+    })
+
+    return {
+        id: value.id,
+        state: {
+            ...state,
+            expressions: value.table,
+            statements: statement.table,
+            serial: name.serial,
+            cache_types:
+                state.cache_types.push(state.source.plan.types[state.index])[0],
+            cache_values: state.cache_values.push(value.id)[0],
+            valid: state.valid && value.valid && statement.valid
+        }
+    }
+}

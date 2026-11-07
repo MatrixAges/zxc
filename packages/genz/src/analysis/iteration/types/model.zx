@@ -1,0 +1,45 @@
+import type { State as Cache } from "core/integer/map/model"
+import type { Table } from "core/type_table/model"
+
+export enum Operation {
+    Native,
+    Existing,
+    Optional,
+    List,
+    Object,
+    Tuple
+}
+
+export type Input = {
+    types: Table,
+    cached: Cache,
+    root: u32,
+    inline_lists: bool
+}
+
+export type Plan = {
+    kinds: Operation[],
+    types: u32[],
+    first: u64[],
+    count: u64[],
+    values: u32[],
+    children: u32[],
+    leaves: u32[],
+    root: u32
+}
+
+export type Walk = {
+    plan: Plan,
+    cache: Cache,
+    stack_types: u32[],
+    stack_next: u64[],
+    stack_first: u64[],
+    depth: u64,
+    results: u32[],
+    result_count: u64
+}
+
+export type Step = {
+    source: Input,
+    state: Walk
+}

@@ -1,0 +1,56 @@
+import type { Table } from "core/type_table/model"
+import type { Columns as Expressions } from "../../../../ast/expressions/model"
+import type { Columns as Statements } from "../../../../ast/statements/model"
+import type { ExpressionsPrimitive } from "../../../../printer/model/expressions"
+import type { Field } from "../../../types/definitions/model"
+import type { Plan } from "../model"
+
+export type Input = {
+    types: Table,
+    plan: Plan,
+    prepared: u32[],
+    expression_base: u32,
+    field_base: u32,
+    serial: u64
+}
+
+export type Layouts = {
+    optional_type: u32[],
+    pointer: u32[],
+    const_slice: u32[],
+    primitive: ExpressionsPrimitive[],
+    tuple_type: u32[][],
+    struct_type_start: u32[],
+    struct_type_len: u32[]
+}
+
+export type State = {
+    source: Input,
+    index: u64,
+    expressions: Expressions,
+    layouts: Layouts,
+    fields: Field[],
+    statements: Statements,
+    values: u32[],
+    cache_types: u32[],
+    cache_values: u32[],
+    serial: u64,
+    valid: bool
+}
+
+export type Node = {
+    state: State,
+    id: u32
+}
+
+export type Output = {
+    expressions: Expressions,
+    layouts: Layouts,
+    fields: Field[],
+    statements: Statements,
+    cache_types: u32[],
+    cache_values: u32[],
+    root: u32,
+    serial: u64,
+    valid: bool
+}
