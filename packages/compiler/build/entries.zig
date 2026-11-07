@@ -216,6 +216,11 @@ pub const main = [_]Entry{
 };
 
 pub const growth = [_]Entry{
+    .{ .path = "genz/ast/declarations/table/create.zx", .name = "auxiliary_create", .owner = .genz },
+    .{ .path = "genz/ast/declarations/table/constant.zx", .name = "auxiliary_constant", .owner = .genz },
+    .{ .path = "genz/ast/declarations/table/function.zx", .name = "auxiliary_function", .owner = .genz },
+    .{ .path = "genz/ast/declarations/table/replace.zx", .name = "auxiliary_replace", .owner = .genz },
+    .{ .path = "genz/ast/declarations/table/contains.zx", .name = "auxiliary_contains", .owner = .genz },
     .{ .path = "genz/analysis/state/ownership/eligible.zx", .name = "ownership_eligible", .owner = .genz },
     .{ .path = "genz/analysis/state/ownership/needed.zx", .name = "ownership_needed", .owner = .genz },
     .{ .path = "genz/analysis/state/ownership/outlined.zx", .name = "ownership_outlined", .owner = .genz },

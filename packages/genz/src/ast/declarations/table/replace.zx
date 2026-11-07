@@ -1,0 +1,36 @@
+import integers from "std:integer"
+
+import { DeclarationsKind } from "../../../printer/model/declarations"
+
+import type { Replacement as Input, Result as Output } from "./model"
+
+export default function (in: Input): Output {
+    if (in.index >= in.state.tags.length) {
+        return {
+            state: in.state,
+            valid: false
+        }
+    }
+
+    if (in.state.tags[in.index] != DeclarationsKind.Constant) {
+        return {
+            state: in.state,
+            valid: false
+        }
+    }
+
+    const row = integers.widen(in.state.offsets[in.index])
+
+    const { name, type_expr, value, exported } = in.value
+
+    return {
+        state: {
+            ...in.state,
+            constant_name: in.state.constant_name.with(row, name),
+            constant_type_expr: in.state.constant_type_expr.with(row, type_expr),
+            constant_value: in.state.constant_value.with(row, value),
+            constant_exported: in.state.constant_exported.with(row, exported)
+        },
+        valid: true
+    }
+}

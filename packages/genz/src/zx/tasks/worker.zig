@@ -5,7 +5,7 @@ const Lower = @import("../lower.zig");
 const standardField = @import("../intrinsics.zig").standardField;
 
 pub fn lower(self: *Lower, id: ir.ExprId, process: bool) Lower.Error!node.ExpressionId {
-    const declaration_index = self.task_declarations.items.len;
+    const declaration_index = self.task_declarations.count();
     const name = try std.fmt.allocPrint(self.allocator, "zx_task_worker_{d}", .{declaration_index});
 
     try self.task_declarations.append(self.allocator, .{ .constant = .{ .name = name, .value = try self.builder.expression(.undefined_value) } });
@@ -59,7 +59,8 @@ pub fn lower(self: *Lower, id: ir.ExprId, process: bool) Lower.Error!node.Expres
     try body.append(self.allocator, .{ .result = result });
 
     const function: node.Declaration = .{ .function = .{ .name = "run", .parameters = try parameters.toOwnedSlice(self.allocator), .return_type = try self.builder.expression(.{ .error_union = .{ .payload = try self.typeExpr(task_type.result), .errors = self.program.typeOf(task_type.errors).error_set } }), .body = try self.builder.statements(body.items) } };
-    self.task_declarations.items[declaration_index] = .{ .constant = .{ .name = name, .value = try self.builder.expression(.{ .namespace_type = try self.allocator.dupe(node.Declaration, &.{function}) }) } };
+
+    try self.task_declarations.replace(self.allocator, declaration_index, .{ .constant = .{ .name = name, .value = try self.builder.expression(.{ .namespace_type = try self.allocator.dupe(node.Declaration, &.{function}) }) } });
 
     return self.builder.identifier(name);
 }

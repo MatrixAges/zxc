@@ -35,9 +35,7 @@ pub fn append(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId,
         break :seed try std.fmt.allocPrint(self.allocator, "zx_weaken_{s}", .{std.fmt.bytesToHex(digest, .lower)});
     };
 
-    const present = for (self.task_declarations.items) |declaration| {
-        if (declaration == .function and std.mem.eql(u8, declaration.function.name, name)) break true;
-    } else false;
+    const present = self.task_declarations.containsFunction(name);
 
     if (!present) {
         var statements: std.ArrayList(node.Statement) = .empty;

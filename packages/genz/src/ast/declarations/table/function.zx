@@ -1,0 +1,51 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+
+import { DeclarationsKind } from "../../../printer/model/declarations"
+
+import type { FunctionInput as Input, Result as Output } from "./model"
+
+export default function (in: Input): Output {
+    if (in.state.tags.length >= integers.widen(max_u32)) {
+        return {
+            state: in.state,
+            valid: false
+        }
+    }
+
+    const offset = integers.narrow(in.state.function_name.length)
+    const value = in.value
+    const start = in.parameter_base + value.function_parameters_start[0]
+
+    return {
+        state: {
+            ...in.state,
+            tags: in.state.tags.push(DeclarationsKind.Function)[0],
+            offsets: in.state.offsets.push(offset)[0],
+            function_name: in.state.function_name.push(value.function_name[0])[0],
+            function_parameters_start:
+                in.state.function_parameters_start.push(start)[0],
+            function_parameters_len:
+                in.state.function_parameters_len.push(
+                    value.function_parameters_len[0]
+                )[0],
+            function_return_type:
+                in.state.function_return_type.push(value.function_return_type[0])[0],
+            function_body_start:
+                in.state.function_body_start.push(value.function_body_start[0])[0],
+            function_body_len:
+                in.state.function_body_len.push(value.function_body_len[0])[0],
+            function_exported:
+                in.state.function_exported.push(value.function_exported[0])[0],
+            function_abi_export:
+                in.state.function_abi_export.push(value.function_abi_export[0])[0],
+            function_inlined:
+                in.state.function_inlined.push(value.function_inlined[0])[0],
+            function_calling_convention:
+                in.state.function_calling_convention.push(
+                    value.function_calling_convention[0]
+                )[0]
+        },
+        valid: true
+    }
+}

@@ -68,15 +68,16 @@ type_names: ?[]const []const u8 = null,
 function_modules: ?[]const []const u8 = null,
 function_requests: *@import("functions/requests.zig") = undefined,
 comparisons: *std.ArrayList(ir.TypeId) = undefined,
-task_declarations: *std.ArrayList(node.Declaration) = undefined,
+task_declarations: *@import("auxiliary.zig") = undefined,
 pub fn refreshEntry(self: *Self) Error!void {
     self.entry_flags = try @import("entry_flags.zig").analyze(self.workspace, self.program, .{ .local = self.local_functions, .pure = self.pure_functions, .io = self.io_functions, .process = self.process_functions, .tasks = self.task_functions, .self_function = self.self_function });
 }
 
-pub fn declarations(self: *Self) Error![]const node.Declaration {
+pub fn declarations(self: *Self) Error!@import("../node/stored.zig").Declarations {
     var output: std.ArrayList(node.Declaration) = .empty;
     var comparisons: std.ArrayList(ir.TypeId) = .empty;
-    var task_declarations: std.ArrayList(node.Declaration) = .empty;
+    var task_declarations = @import("auxiliary.zig").init();
+
     self.comparisons = &comparisons;
     self.task_declarations = &task_declarations;
 
@@ -90,7 +91,7 @@ pub fn declarations(self: *Self) Error![]const node.Declaration {
     for (self.program.exports) |item| try output.append(self.allocator, .{ .constant = .{ .name = item.name, .value = try self.typeExpr(item.type_id), .exported = true } });
     try output.append(self.allocator, .{ .constant = .{ .name = "requires_io", .value = try self.builder.expression(.{ .boolean = self.entry_flags.io }), .exported = true } });
     try output.append(self.allocator, .{ .constant = .{ .name = "requires_process", .value = try self.builder.expression(.{ .boolean = self.entry_flags.process }), .exported = true } });
-    if (self.program.type_only) return output.toOwnedSlice(self.allocator);
+    if (self.program.type_only) return self.builder.nodes.declarations(self.allocator, output.items);
     try @import("shape.zig").lower(self, &output);
 
     for ([_][]const u8{ "Input", "Output" }, [_]ir.TypeId{ self.program.input_type, self.program.output_type }) |contract_name, type_id| {
@@ -113,11 +114,12 @@ pub fn declarations(self: *Self) Error![]const node.Declaration {
         try @import("functions/emit.zig").append(self, &output, function_requests.at(function_index));
     }
 
-    try output.appendSlice(self.allocator, task_declarations.items);
-    if (self.uses_parallel) try output.append(self.allocator, try @import("parallel/allocator.zig").declaration(self));
-    for (comparisons.items) |type_id| try output.append(self.allocator, try @import("comparison.zig").ordering(self, type_id));
+    var suffix: std.ArrayList(node.Declaration) = .empty;
 
-    return output.toOwnedSlice(self.allocator);
+    if (self.uses_parallel) try suffix.append(self.allocator, try @import("parallel/allocator.zig").declaration(self));
+    for (comparisons.items) |type_id| try suffix.append(self.allocator, try @import("comparison.zig").ordering(self, type_id));
+
+    return task_declarations.assemble(self.allocator, self.builder.nodes, output.items, suffix.items);
 }
 
 pub fn functionValue(self: *Self, name: []const u8) Error!node.Declaration {

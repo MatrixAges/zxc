@@ -1,21 +1,37 @@
 const std = @import("std");
 const node = @import("../node.zig");
+const Fields = @import("stored.zig").Fields;
 pub const Error = std.mem.Allocator.Error || error{InvalidAst};
 
 /// Imports complete field columns and owns their text in the target allocator.
 pub fn append(allocator: std.mem.Allocator, target: anytype, source: anytype) Error!void {
+    _ = try appendFields(allocator, target, source, false);
+}
+
+/// Text must outlive the target; field descriptors receive owned column storage.
+pub fn appendBorrowingText(allocator: std.mem.Allocator, target: anytype, source: anytype) Error!Fields {
+    return appendFields(allocator, target, source, true);
+}
+
+fn appendFields(allocator: std.mem.Allocator, target: anytype, source: anytype, comptime borrow_text: bool) Error!Fields {
     const count = source.name.len;
 
-    if (source.value.len != count or source.default_value.len != count or source.comptime_parameter.len != count) return error.InvalidAst;
+    inline for (@typeInfo(std.meta.Child(@TypeOf(source))).@"struct".field_names) |name| {
+        if (@field(source, name).len != count) return error.InvalidAst;
+    }
+
     if (count > std.math.maxInt(u32) - target.count()) return error.OutOfMemory;
+
+    const start: u32 = @intCast(target.count());
+
     try target.reserve(allocator, count);
 
-    for (source.name, source.value, source.default_value, source.comptime_parameter) |name, value, default, comptime_parameter| {
-        target.append(node.Field{
-            .name = try allocator.dupe(u8, name),
-            .value = @fromBackingInt(value),
-            .default_value = if (default) |id| @fromBackingInt(id) else null,
-            .comptime_parameter = comptime_parameter,
-        });
-    }
+    for (0..count) |index| target.append(node.Field{
+        .name = if (comptime borrow_text) source.name[index] else try allocator.dupe(u8, source.name[index]),
+        .value = @fromBackingInt(source.value[index]),
+        .default_value = if (source.default_value[index]) |id| @fromBackingInt(id) else null,
+        .comptime_parameter = source.comptime_parameter[index],
+    });
+
+    return .{ .start = start, .len = @intCast(count) };
 }

@@ -9,7 +9,7 @@ const functions = @import("functions.zig");
 const intrinsic = @import("../intrinsics.zig");
 
 pub fn lower(self: *Lower, id: ir.ExprId, value: ir.Transform) Lower.Error!node.ExpressionId {
-    const slot = self.task_declarations.items.len;
+    const slot = self.task_declarations.count();
     const name = try std.fmt.allocPrint(self.allocator, "zx_sort_worker_{d}", .{slot});
 
     try self.task_declarations.append(self.allocator, .{ .constant = .{ .name = name, .value = try self.builder.expression(.undefined_value) } });
@@ -19,7 +19,9 @@ pub fn lower(self: *Lower, id: ir.ExprId, value: ir.Transform) Lower.Error!node.
     const errors = try zx.error_effects.expressionWith(self.allocator, self.program.types, self.program.functions, self.program.expressions, id, self.function_errors);
     const worker = try @import("worker.zig").build(self, value, child, errors);
     const declarations = try self.allocator.dupe(node.Declaration, &.{ worker.declaration, try functions.less(self, child), try functions.sort(self, child, errors) });
-    self.task_declarations.items[slot] = .{ .constant = .{ .name = name, .value = try self.builder.expression(.{ .namespace_type = declarations }) } };
+
+    try self.task_declarations.replace(self.allocator, slot, .{ .constant = .{ .name = name, .value = try self.builder.expression(.{ .namespace_type = declarations }) } });
+
     self.uses_allocator = true;
     self.uses_io = self.uses_io or worker.io;
     self.uses_process = self.uses_process or worker.process;

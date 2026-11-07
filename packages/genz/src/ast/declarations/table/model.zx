@@ -1,0 +1,44 @@
+import type { DeclarationsKind } from "../../../printer/model/declarations"
+import type { Columns as Functions } from "../function"
+import type { Constant } from "../model"
+
+export type Table = {
+    tags: DeclarationsKind[],
+    offsets: u32[],
+    constant_name: u8[][],
+    constant_type_expr: u32?[],
+    constant_value: u32[],
+    constant_exported: bool[],
+    function_name: u8[][],
+    function_parameters_start: u32[],
+    function_parameters_len: u32[],
+    function_return_type: u32[],
+    function_body_start: u32[],
+    function_body_len: u32[],
+    function_exported: bool[],
+    function_abi_export: bool[],
+    function_inlined: bool[],
+    function_calling_convention: u32?[]
+}
+
+export type Result = {
+    state: Table,
+    valid: bool
+}
+
+export type ConstantInput = {
+    state: Table,
+    value: Constant
+}
+
+export type Replacement = {
+    state: Table,
+    value: Constant,
+    index: u64
+}
+
+export type FunctionInput = {
+    state: Table,
+    value: Functions,
+    parameter_base: u32
+}

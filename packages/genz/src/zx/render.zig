@@ -33,7 +33,7 @@ fn emitWithConcurrency(allocator: std.mem.Allocator, program: zx.ir.Program, com
     const temporary = arena.allocator();
     var lower = try initializePreparedWithConcurrency(temporary, allocator, try prepare(temporary, program), concurrent);
 
-    return render(allocator, lower.builder.nodes, try lower.declarations());
+    return @import("../render.zig").renderStored(allocator, lower.builder.nodes, try lower.declarations());
 }
 
 pub fn bundle(allocator: std.mem.Allocator, program: zx.ir.Program) std.mem.Allocator.Error!Bundle {
@@ -58,7 +58,7 @@ fn bundleWithConcurrency(allocator: std.mem.Allocator, program: zx.ir.Program, c
 
     lower.shared_types = true;
 
-    return .{ .source = try render(allocator, lower.builder.nodes, try lower.declarations()), .types = types };
+    return .{ .source = try @import("../render.zig").renderStored(allocator, lower.builder.nodes, try lower.declarations()), .types = types };
 }
 
 pub const Bundle = struct {

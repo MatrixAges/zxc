@@ -35,7 +35,7 @@ pub fn declare(self: *Lower, name: []const u8, type_expr: node.ExpressionId, bod
         .body_start = body.start,
         .body_count = body.len,
         .expression_base = @intCast(self.builder.nodes.expressions.tags.items.len),
-        .declaration_base = @intCast(self.task_declarations.items.len),
+        .declaration_base = @intCast(self.task_declarations.count()),
     };
 
     var scratch = std.heap.ArenaAllocator.init(self.workspace);
@@ -51,7 +51,10 @@ pub fn declare(self: *Lower, name: []const u8, type_expr: node.ExpressionId, bod
     const expressions = view.join(output.expressions.*, output.forms.*);
 
     rows.appendBorrowingText(self.allocator, &self.builder.nodes.expressions, &expressions) catch |err| return imported(err);
-    @import("../../../node/import_functions.zig").appendBorrowingText(self.allocator, self.task_declarations, output.declarations, output.parameters) catch |err| return imported(err);
+
+    const parameters = @import("../../../node/import_fields.zig").appendBorrowingText(self.allocator, &self.builder.nodes.field_columns, output.parameters) catch |err| return imported(err);
+
+    try self.task_declarations.appendFunction(self.allocator, output.declarations, parameters.start);
 }
 
 fn failure(err: anyerror) Lower.Error {

@@ -106,8 +106,7 @@ pub fn publicEntry(allocator: std.mem.Allocator, backing: std.mem.Allocator, pro
     const temporary = arena.allocator();
     var lower = try initialize(temporary, backing, program, names, facts);
     var declarations: std.ArrayList(node.Declaration) = .empty;
-
-    try declarations.appendSlice(temporary, try lower.declarations());
+    const prefix = try lower.declarations();
 
     for (members) |member| {
         const module = try lower.builder.builtin(.import, &.{try lower.builder.string(names.functions[@backingInt(member.function)])});
@@ -119,7 +118,11 @@ pub fn publicEntry(allocator: std.mem.Allocator, backing: std.mem.Allocator, pro
         } });
     }
 
-    return render(allocator, lower.builder.nodes, declarations.items);
+    const suffix = try lower.builder.nodes.declarations(temporary, declarations.items);
+
+    std.debug.assert(prefix.start + prefix.len == suffix.start);
+
+    return @import("../render.zig").renderStored(allocator, lower.builder.nodes, .{ .start = prefix.start, .len = prefix.len + suffix.len });
 }
 
 pub fn entry(allocator: std.mem.Allocator, program: ir.Program, names: Names) Error![]u8 {
@@ -169,7 +172,7 @@ fn entryPrepared(allocator: std.mem.Allocator, backing: std.mem.Allocator, progr
 
     var lower = try initialize(arena.allocator(), backing, program, names, facts);
 
-    return render(allocator, lower.builder.nodes, try lower.declarations());
+    return @import("../render.zig").renderStored(allocator, lower.builder.nodes, try lower.declarations());
 }
 
 fn typesPrepared(allocator: std.mem.Allocator, backing: std.mem.Allocator, program: ir.Program, names: Names, facts: Analysis) Error![]u8 {
@@ -203,7 +206,8 @@ fn functionPrepared(allocator: std.mem.Allocator, backing: std.mem.Allocator, pr
 
     var output: std.ArrayList(node.Declaration) = .empty;
     var comparisons: std.ArrayList(ir.TypeId) = .empty;
-    var task_declarations: std.ArrayList(node.Declaration) = .empty;
+    var task_declarations = @import("auxiliary.zig").init();
+
     lower.comparisons = &comparisons;
     lower.task_declarations = &task_declarations;
 
@@ -242,10 +246,14 @@ fn functionPrepared(allocator: std.mem.Allocator, backing: std.mem.Allocator, pr
     }
 
     if (lower.uses_parallel) try output.append(temporary, try @import("parallel/allocator.zig").declaration(&lower));
-    try output.appendSlice(temporary, task_declarations.items);
-    for (comparisons.items) |type_id| try output.append(temporary, try @import("comparison.zig").ordering(&lower, type_id));
 
-    return render(allocator, lower.builder.nodes, try output.toOwnedSlice(temporary));
+    var suffix: std.ArrayList(node.Declaration) = .empty;
+
+    for (comparisons.items) |type_id| try suffix.append(temporary, try @import("comparison.zig").ordering(&lower, type_id));
+
+    const declarations = try task_declarations.assemble(temporary, lower.builder.nodes, output.items, suffix.items);
+
+    return @import("../render.zig").renderStored(allocator, lower.builder.nodes, declarations);
 }
 
 fn initialize(allocator: std.mem.Allocator, backing: std.mem.Allocator, program: ir.Program, names: Names, facts: Analysis) Error!Lower {

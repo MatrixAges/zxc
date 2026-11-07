@@ -1,0 +1,24 @@
+import type { Table as Output } from "./model"
+
+export type Input = {}
+
+export default function (in: Input): Output {
+    return {
+        tags: [],
+        offsets: [],
+        constant_name: [],
+        constant_type_expr: [],
+        constant_value: [],
+        constant_exported: [],
+        function_name: [],
+        function_parameters_start: [],
+        function_parameters_len: [],
+        function_return_type: [],
+        function_body_start: [],
+        function_body_len: [],
+        function_exported: [],
+        function_abi_export: [],
+        function_inlined: [],
+        function_calling_convention: []
+    }
+}
