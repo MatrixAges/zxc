@@ -1,5 +1,7 @@
 import address from "../../../../ast/context/address"
+import field from "../../../../ast/context/field"
 import nullValue from "../../../../ast/context/null_value"
+import isView from "../is_view"
 import { Mode } from "../model"
 
 import type { Node as Output } from "../../../../ast/context/model"
@@ -7,6 +9,14 @@ import type { Step as Input } from "./model"
 
 export default function (in: Input): Output {
     const mode = in.source.plan.modes[in.node]
+
+    if (isView(mode)) {
+        return field({
+            state: in.state.context,
+            target: in.state.nodes[in.node].input,
+            name: in.source.origins[in.node]
+        })
+    }
 
     return match mode {
         Mode.RowValue => nullValue(in.state.context),

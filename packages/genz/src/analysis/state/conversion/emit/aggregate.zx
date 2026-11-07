@@ -5,6 +5,7 @@ import object from "../../../../ast/context/object"
 import tuple from "../../../../ast/context/tuple"
 import { ExpressionsBuiltinName } from "../../../../printer/model/expressions"
 import isInput from "../is_input"
+import isView from "../is_view"
 import { Operation, Mode } from "../model"
 import borrow from "./borrow"
 import origin from "./origin"
@@ -45,10 +46,13 @@ export default function (in: Input): Output {
         }
     })
 
-    const input = isInput(in.source.plan.modes[in.node])
+    const mode = in.source.plan.modes[in.node]
+    const view = isView(mode)
+    const input = isInput(mode)
+    const provenance_field = input || view
 
     const provenance = match {
-        input => origin(in),
+        provenance_field => origin(in),
         _ => {
             state: in.state.context,
             id: in.state.nodes[in.node].input
@@ -56,7 +60,7 @@ export default function (in: Input): Output {
     }
 
     const members = match {
-        input && category == Operation.Object => children.fields.push({
+        provenance_field && category == Operation.Object => children.fields.push({
             name: in.source.origins[in.node],
             value: provenance.id,
             default_value: null,
@@ -66,7 +70,7 @@ export default function (in: Input): Output {
     }
 
     const items = match {
-        input && category == Operation.Tuple =>
+        provenance_field && category == Operation.Tuple =>
             children.values.push(provenance.id)[0],
         _ => children.values
     }
@@ -108,6 +112,25 @@ export default function (in: Input): Output {
             ...in.state.nodes[in.node],
             result: result.id
         })
+    }
+
+    if (view) {
+        const joined = {
+            ...state,
+            body: {
+                tags: state.nodes[in.node].outer.tags.concat(state.body.tags)[0],
+                offsets:
+                    state.nodes[in.node].outer.offsets.concat(state.body.offsets)[0]
+            }
+        }
+
+        return match mode {
+            Mode.ViewValue => reference({
+                ...in,
+                state: joined
+            }),
+            _ => joined
+        }
     }
 
     if (in.source.plan.modes[in.node] == Mode.Borrow) {

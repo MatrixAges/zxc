@@ -1,0 +1,99 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import inlineStored from "../../locals/inline_stored"
+import { Property } from "../../queries/model"
+import read from "../../queries/read"
+import isView from "../is_view"
+import { Mode, Operation } from "../model"
+import operation from "../plan/operation"
+import { Resource } from "./model"
+
+import type { Query as Input, Decision as Output } from "./model"
+
+export default function (in: Input): Output {
+    const source = {
+        ...in.source.source,
+        root: in.type_id,
+        mode: in.mode
+    }
+
+    const row = integers.widen(in.type_id)
+
+    const initial: Output = {
+        operation: Operation.Value,
+        mode: in.mode,
+        resource: Resource.None
+    }
+
+    if (!read({
+        value: source.queries[row],
+        property: Property.Represented
+    })) {
+        return initial
+    }
+
+    if (!isView(in.mode)) {
+        return {
+            ...initial,
+            operation: operation(source)
+        }
+    }
+
+    const types = source.types
+
+    if (kind(types.kinds[row]) == Kind.List) {
+        const child = integers.widen(types.first[row])
+        const rows = kind(types.kinds[child]) == Kind.Object
+
+        if (rows && inlineStored({
+            ...source.pick([
+                "types",
+                "selected",
+                "element_storage"
+            ]),
+            list: in.type_id
+        })) {
+            return {
+                ...initial,
+                operation: Operation.Borrowed
+            }
+        }
+
+        const mode = in.mode == Mode.ViewValue ? Mode.Value : Mode.Pointer
+
+        return {
+            ...initial,
+            mode,
+            operation: operation({
+                ...source,
+                mode
+            })
+        }
+    }
+
+    if (in.source.states[row] == max_u32) {
+        return {
+            ...initial,
+            resource: Resource.State
+        }
+    }
+
+    if (in.source.views[row] == max_u32) {
+        return {
+            ...initial,
+            resource: Resource.View
+        }
+    }
+
+    if (in.source.states[row] == in.source.views[row]) {
+        return initial
+    }
+
+    return {
+        ...initial,
+        operation: operation(source)
+    }
+}

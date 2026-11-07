@@ -1,0 +1,31 @@
+import isInput from "../is_input"
+import isView from "../is_view"
+import { Mode, Operation } from "../model"
+
+export type Input = {
+    mode: Mode,
+    operation: Operation,
+    count: u64,
+    index: u64
+}
+
+export type Output = Mode
+
+export default function (in: Input): Output {
+    if (isView(in.mode)) {
+        return in.mode
+    }
+
+    if (isInput(in.mode)) {
+        return Mode.Value
+    }
+
+    const borrow = in.mode == Mode.Borrow && in.operation != Operation.Rows
+    const rows = in.operation == Operation.Rows && in.count == 2
+
+    return match {
+        borrow => Mode.Borrow,
+        rows && in.index == 0 => Mode.RowValue,
+        _ => Mode.Pointer
+    }
+}

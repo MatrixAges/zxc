@@ -1,0 +1,63 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+
+import count from "../plan/count"
+
+import type { Decision, Step, Walk as Output } from "./model"
+
+export type Input = {
+    step: Step,
+    decision: Decision
+}
+
+export default function (in: Input): Output {
+    const state = in.step.state
+    const pending = state.pending
+    const node = integers.narrow(state.plan.types.length)
+    const first = state.plan.children.length
+
+    const size = count({
+        source: {
+            ...in.step.source.source,
+            root: pending.type_id,
+            mode: in.decision.mode
+        },
+        operation: in.decision.operation
+    })
+
+    const children = loop(state.plan.children, {
+        while: values => values.length < first + size,
+        next: values => { values = values.push(0)[0] }
+    })
+
+    const linked = match {
+        pending.parent != max_u32 => children.with(pending.slot, node),
+        _ => children
+    }
+
+    return {
+        ...state,
+        plan: {
+            kinds: state.plan.kinds.push(in.decision.operation)[0],
+            modes: state.plan.modes.push(in.decision.mode)[0],
+            types: state.plan.types.push(pending.type_id)[0],
+            parents: state.plan.parents.push(pending.parent)[0],
+            names: state.plan.names.push(pending.name)[0],
+            first: state.plan.first.push(first)[0],
+            count: state.plan.count.push(size)[0],
+            children: linked,
+            events: state.plan.events.push(node)[0],
+            entering: state.plan.entering.push(true)[0]
+        },
+        nodes: match {
+            state.depth < state.nodes.length => state.nodes.with(state.depth, node),
+            _ => state.nodes.push(node)[0]
+        },
+        next: match {
+            state.depth < state.next.length => state.next.with(state.depth, 0),
+            _ => state.next.push(0)[0]
+        },
+        depth: state.depth + 1,
+        waiting: false
+    }
+}

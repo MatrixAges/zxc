@@ -1,0 +1,71 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import integer from "../../../../printer/text/integer"
+import { Operation } from "../model"
+import childMode from "../plan/child_mode"
+
+import type { Step as Input, Walk as Output } from "./model"
+
+export default function (in: Input): Output {
+    const state = in.state
+    const top = state.depth - 1
+    const node = state.nodes[top]
+    const next = state.next[top]
+    const row = integers.widen(node)
+    const size = state.plan.count[row]
+
+    if (next == size) {
+        return {
+            ...state,
+            plan: {
+                ...state.plan,
+                events: state.plan.events.push(node)[0],
+                entering: state.plan.entering.push(false)[0]
+            },
+            depth: top,
+            complete: top == 0
+        }
+    }
+
+    const types = in.source.source.types
+    const owner = integers.widen(state.plan.types[row])
+    const first = integers.widen(types.first[owner])
+    const position = first + next
+    const category = state.plan.kinds[row]
+
+    const type_id = match category {
+        Operation.Object => types.field_types[position],
+        Operation.Tuple => types.children[position],
+        _ => types.first[owner]
+    }
+
+    const name = match category {
+        Operation.Object => bytes.fromText(types.field_names[position]),
+        Operation.Tuple => integer({
+            output: [],
+            value: next
+        }),
+        _ => []
+    }
+
+    const mode = childMode({
+        mode: state.plan.modes[row],
+        operation: category,
+        count: size,
+        index: next
+    })
+
+    return {
+        ...state,
+        next: state.next.with(top, next + 1),
+        pending: {
+            type_id,
+            mode,
+            parent: node,
+            name,
+            slot: state.plan.first[row] + next
+        },
+        waiting: true
+    }
+}

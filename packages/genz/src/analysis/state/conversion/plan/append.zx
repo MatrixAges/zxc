@@ -2,8 +2,8 @@ import bytes from "std:bytes"
 import integers from "std:integer"
 
 import integer from "../../../../printer/text/integer"
-import isInput from "../is_input"
-import { Operation, Mode } from "../model"
+import { Operation } from "../model"
+import childMode from "./child_mode"
 import count from "./count"
 import operation from "./operation"
 
@@ -78,14 +78,12 @@ export default function append(in: Input): Output {
                 )
             }
 
-            const input = isInput(source.mode)
-            const rows = selected == Operation.Rows && size == 2
-            const mode = match {
-                input => Mode.Value,
-                source.mode == Mode.Borrow && selected != Operation.Rows => Mode.Borrow,
-                rows && current.index == 0 => Mode.RowValue,
-                _ => Mode.Pointer
-            }
+            const mode = childMode({
+                mode: source.mode,
+                operation: selected,
+                count: size,
+                index: current.index
+            })
 
             current.plan = append({
                 source: {

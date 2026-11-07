@@ -1,0 +1,45 @@
+import type { Input as Conversion, Plan, Mode, Operation } from "../model"
+
+export enum Resource { None, State, View }
+
+export type Input = {
+    source: Conversion,
+    states: u32[],
+    views: u32[]
+}
+
+export type Query = {
+    source: Input,
+    type_id: u32,
+    mode: Mode
+}
+
+export type Decision = {
+    operation: Operation,
+    mode: Mode,
+    resource: Resource
+}
+
+export type Candidate = {
+    type_id: u32,
+    mode: Mode,
+    parent: u32,
+    name: u8[],
+    slot: u64
+}
+
+export type Walk = {
+    plan: Plan,
+    nodes: u32[],
+    next: u64[],
+    depth: u64,
+    pending: Candidate,
+    waiting: bool,
+    complete: bool,
+    resource: Resource
+}
+
+export type Step = {
+    source: Input,
+    state: Walk
+}

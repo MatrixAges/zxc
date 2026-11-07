@@ -29,7 +29,8 @@ pub fn lowerWithStorage(self: *Lower, borrow_storage: *std.ArrayList(node.Statem
             .layout => .Layout,
             .row_layout => .RowLayout,
             .borrow => .Borrow,
-            else => unreachable,
+            .view_value => .ViewValue,
+            .view_layout => .ViewLayout,
         },
     };
 
@@ -40,7 +41,12 @@ pub fn lowerWithStorage(self: *Lower, borrow_storage: *std.ArrayList(node.Statem
     defer scratch.deinit();
 
     const temporary = buffered.allocator();
-    const plan = planner.executeIn(temporary, &request) catch |err| return failure(err);
+
+    const plan = if (mode == .view_value or mode == .view_layout)
+        try @import("view_plan.zig").build(self, temporary, &request)
+    else
+        planner.executeIn(temporary, &request) catch |err| return failure(err);
+
     const layouts = try temporary.alloc(u32, plan.types.len);
     const targets = try temporary.alloc(u32, plan.types.len);
     const elements = try temporary.alloc(u32, plan.types.len);
@@ -53,7 +59,7 @@ pub fn lowerWithStorage(self: *Lower, borrow_storage: *std.ArrayList(node.Statem
         const selected: ir.TypeId = @fromBackingInt(type_id);
 
         const input = switch (plan.modes[index]) {
-            .Value, .ValueLayout, .RowValue => true,
+            .Value, .ValueLayout, .RowValue, .ViewValue => true,
             else => false,
         };
 
@@ -62,14 +68,24 @@ pub fn lowerWithStorage(self: *Lower, borrow_storage: *std.ArrayList(node.Statem
         const optional_target = kind == .Optional;
         const pointer_target = !input and plan.modes[index] == .Pointer and (kind == .Object or kind == .Tuple);
         const needs_target = optional_target or pointer_target;
-        const layout_table = if (input) self.state_layouts else self.abi_layouts;
-        const type_table = if (input) self.state_types else self.abi_types;
+        const view_mode = plan.modes[index] == .ViewValue or plan.modes[index] == .ViewLayout;
+        const referenced = input and self.state_plan.referenced(selected);
+
+        const layout_table = if (view_mode)
+            (if (!input) self.view_types else if (referenced) self.state_layouts else self.state_types)
+
+        else if (input)
+            self.state_layouts
+        else
+            self.abi_layouts;
+
+        const type_table = if (view_mode) layout_table else if (input) self.state_types else self.abi_types;
 
         layout.* = if (represented_layout) @backingInt(try type_expression.get(self, layout_table, selected)) else 0;
         target.* = if (needs_target) @backingInt(try type_expression.get(self, type_table, selected)) else layout.*;
         element.* = if (kind == .Rows) @backingInt(try type_expression.get(self, if (!input) self.abi_types else if (plan.count[index] == 0) self.abi_layouts else self.state_types, self.program.typeOf(selected).list)) else 0;
 
-        const needs_origin = plan.modes[index] != .RowLayout and (kind == .Object or (kind == .Tuple and !input));
+        const needs_origin = plan.modes[index] != .RowLayout and (kind == .Object or (kind == .Tuple and (!input or view_mode)));
 
         origin.* = if (needs_origin) try @import("origin.zig").name(self, selected) else &.{};
     }

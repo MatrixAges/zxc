@@ -1,0 +1,42 @@
+import { max_u32 } from "core/const"
+
+import { Resource } from "./model"
+
+import type { Mode } from "../model"
+
+export type Input = {
+    root: u32,
+    mode: Mode
+}
+
+import type { Walk as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        plan: {
+            kinds: [],
+            modes: [],
+            types: [],
+            parents: [],
+            names: [],
+            first: [],
+            count: [],
+            children: [],
+            events: [],
+            entering: []
+        },
+        nodes: [],
+        next: [],
+        depth: 0,
+        pending: {
+            type_id: in.root,
+            mode: in.mode,
+            parent: max_u32,
+            name: [],
+            slot: 0
+        },
+        waiting: true,
+        complete: false,
+        resource: Resource.None
+    }
+}

@@ -1,0 +1,45 @@
+import advance from "./advance"
+import enter from "./enter"
+import { Resource } from "./model"
+import query from "./query"
+
+import type { Step as Input, Walk as Output } from "./model"
+
+export default function (in: Input): Output {
+    const source = in.source
+
+    return loop({
+        ...in.state,
+        resource: Resource.None
+    }, {
+        while: state => !state.complete && state.resource == Resource.None,
+        next: state => {
+            if (state.waiting) {
+                const decision = query({
+                    source,
+                    type_id: state.pending.type_id,
+                    mode: state.pending.mode
+                })
+
+                state = match decision.resource {
+                    Resource.None => enter({
+                        step: {
+                            source,
+                            state
+                        },
+                        decision
+                    }),
+                    _ => {
+                        ...state,
+                        resource: decision.resource
+                    }
+                }
+            } else {
+                state = advance({
+                    source,
+                    state
+                })
+            }
+        }
+    })
+}
