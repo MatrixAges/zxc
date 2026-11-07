@@ -1,0 +1,22 @@
+<Module>
+    <Type from="model" as="Normalize" />
+
+    <Args in={Normalize.Input} out={Normalize.Output} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="prepare" in={$ctx.initialize} />
+    <Call fn="copy" in={$ctx.prepare} />
+
+    <If on={$in.selected}>
+        <Call fn="select" in={$ctx.copy} />
+        <Call fn="record" in={$ctx.select} />
+        <Call fn="publish" in={$ctx.record} />
+
+        <Return value={$ctx.publish} />
+    </If>
+
+    <Call fn="copied" in={$ctx.copy} />
+    <Call fn="publish" in={$ctx.copied} />
+
+    <Return value={$ctx.publish} />
+</Module>

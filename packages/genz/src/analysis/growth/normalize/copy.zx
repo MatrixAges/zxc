@@ -1,0 +1,42 @@
+import bytes from "std:bytes"
+
+import field from "../../../ast/context/field"
+import empty from "../../../ast/statements/empty"
+import apply from "../apply.rx"
+import { length_member } from "../const"
+
+import type { State as Growth } from "../model"
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const length = field({
+        state: in.context,
+        target: in.items,
+        name: bytes.fromText(length_member)
+    })
+
+    const state: Growth = {
+        source: {
+            ...in.source.source,
+            value: in.items,
+            count: length.id,
+            flag: false
+        },
+        context: length.state,
+        body: empty({}),
+        arguments: [],
+        callee: 0,
+        root: in.items
+    }
+
+    const result = apply(state)
+
+    return {
+        ...in,
+        context: result.context,
+        copied: {
+            body: result.body,
+            value: result.root
+        }
+    }
+}

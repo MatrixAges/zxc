@@ -16,7 +16,7 @@ const Request = struct {
 pub fn lower(self: *Lower, body: *std.ArrayList(node.Statement), operation: @FieldType(Input, "operation"), request: Request) Lower.Error!node.ExpressionId {
     const input = prepare(self, operation, request);
 
-    return execute(self, body, generated, &input);
+    return execute(self, body, generated, &input, .{});
 }
 
 pub fn stateList(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.TypeId, value: node.ExpressionId, count: node.ExpressionId, frontier: bool) Lower.Error!node.ExpressionId {
@@ -28,7 +28,23 @@ pub fn stateList(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.Type
 
     const input = prepare(self, .Reserve, .{ .element = element, .value = value, .count = count, .flag = frontier });
 
-    return execute(self, body, @import("generated_growth_reserve"), &input);
+    return execute(self, body, @import("generated_growth_reserve"), &input, .{});
+}
+
+const Normalization = struct {
+    selected: bool = false,
+    layout: u32 = 0,
+    field_base: u32 = 0,
+};
+
+pub fn normalize(self: *Lower, body: *std.ArrayList(node.Statement), element: node.ExpressionId, value: node.ExpressionId, selected: bool, layout: ?node.ExpressionId) Lower.Error!node.ExpressionId {
+    const input = prepare(self, .Reserve, .{ .element = element, .value = value });
+
+    return execute(self, body, @import("generated_growth_normalize"), &input, .{
+        .selected = selected,
+        .layout = if (layout) |expression| @backingInt(expression) else 0,
+        .field_base = @intCast(self.builder.nodes.field_columns.count()),
+    });
 }
 
 fn prepare(self: *const Lower, operation: @FieldType(Input, "operation"), request: Request) Input {
@@ -47,7 +63,7 @@ fn prepare(self: *const Lower, operation: @FieldType(Input, "operation"), reques
     };
 }
 
-fn execute(self: *Lower, body: *std.ArrayList(node.Statement), comptime module: type, input: *const Input) Lower.Error!node.ExpressionId {
+fn execute(self: *Lower, body: *std.ArrayList(node.Statement), comptime module: type, input: *const Input, normalization: Normalization) Lower.Error!node.ExpressionId {
     var scratch = std.heap.ArenaAllocator.init(self.workspace);
     var buffer: [std.heap.page_size_min]u8 = undefined;
     var buffered = std.heap.BufferFirstAllocator.init(&buffer, scratch.allocator());
@@ -63,10 +79,22 @@ fn execute(self: *Lower, body: *std.ArrayList(node.Statement), comptime module: 
         prepared.capture = &boundary;
     }
 
-    const output = module.executeIn(buffered.allocator(), &prepared) catch |err| switch (@as(anyerror, err)) {
+    const Parameter = std.meta.Child(module.Input);
+
+    const payload: Parameter = if (@hasField(Parameter, "source")) .{
+        .source = &prepared,
+        .selected = normalization.selected,
+        .layout = normalization.layout,
+        .field_base = normalization.field_base,
+    } else prepared;
+
+    const emitted = module.executeIn(buffered.allocator(), &payload) catch |err| switch (@as(anyerror, err)) {
         error.OutOfMemory, error.IntegerOverflow, error.Overflow => return error.OutOfMemory,
         else => unreachable,
     };
+
+    const wrapped = @hasField(std.meta.Child(@TypeOf(emitted)), "result");
+    const output = if (wrapped) emitted.result else emitted;
 
     if (!output.valid) return error.OutOfMemory;
 
@@ -75,6 +103,17 @@ fn execute(self: *Lower, body: *std.ArrayList(node.Statement), comptime module: 
     try apply.expressions(self, output);
     try apply.rows(self, &self.builder.nodes.statements, output.statements);
     try apply.flat(self, body, output.body);
+
+    if (wrapped) {
+        try self.builder.nodes.field_columns.reserve(self.allocator, emitted.fields.len);
+
+        for (emitted.fields) |field| self.builder.nodes.field_columns.append(.{
+            .name = try self.allocator.dupe(u8, field.name),
+            .value = @fromBackingInt(field.value),
+            .default_value = if (field.default_value) |value| @fromBackingInt(value) else null,
+            .comptime_parameter = field.comptime_parameter,
+        });
+    }
 
     self.serial = @intCast(output.serial);
     self.uses_allocator = self.uses_allocator or output.uses_allocator;

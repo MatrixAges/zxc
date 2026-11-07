@@ -1,0 +1,28 @@
+import type { State as Context } from "../../../ast/context/model"
+import type { Columns as Statements } from "../../../ast/statements/model"
+import type { Field } from "../../types/definitions/model"
+import type { Input as GrowthInput, Output as GrowthOutput } from "../model"
+import type { Branch } from "../reserve/model"
+
+export type Input = {
+    source: GrowthInput,
+    selected: bool,
+    layout: u32,
+    field_base: u32
+}
+
+export type State = {
+    source: Input,
+    context: Context,
+    body: Statements,
+    value: u32,
+    items: u32,
+    copied: Branch,
+    root: u32,
+    fields: Field[]
+}
+
+export type Output = {
+    result: GrowthOutput,
+    fields: Field[]
+}

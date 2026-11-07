@@ -85,6 +85,7 @@ pub fn copy(self: *Lower, body: *std.ArrayList(node.Statement), element: node.Ex
 
 /// One growth copy of a plain list the plan found flowing into appends, so they extend it in place from then on.
 pub fn normalize(self: *Lower, id: ir.ExprId, value: node.ExpressionId) Lower.Error!node.ExpressionId {
+    if (!@import("genz_options").generated_analysis) return @import("growth/normalize_seed.zig").normalize(self, id, value);
     if (self.iteration_value) |context| if (context.buffered(self.program.expression(id).type_id)) return value;
 
     var body: std.ArrayList(node.Statement) = .empty;
@@ -96,25 +97,14 @@ pub fn normalize(self: *Lower, id: ir.ExprId, value: node.ExpressionId) Lower.Er
     else
         try @import("iteration_value/types.zig").element(self, child);
 
-    const lists = @import("state_value/list.zig");
-    const selected = lists.selected(self, type_id);
+    const selected = @import("state_value/list.zig").selected(self, type_id);
     const qualified = if (selected) try @import("state_value/ownership.zig").clip(self, &body, id, value) else value;
-    const evaluated = try aggregate.bind(self, &body, qualified);
-    const source = try aggregate.bind(self, &body, try lists.items(self, type_id, evaluated));
-    var copied: std.ArrayList(node.Statement) = .empty;
-    const duplicate = try reserve(self, &copied, element, source, try self.field(source, "len"), false);
+    const serial = self.serial;
+    const layout = if (selected) try @import("types.zig").get(self, self.state_types, type_id) else null;
 
-    const buffer = if (selected) try aggregate.bind(self, &body, try self.builder.expression(.{ .conditional = .{
-        .condition = try lists.exclusive(self, evaluated),
-        .yes = source,
-        .no = try aggregate.finish(self, &copied, duplicate),
-    } })) else try aggregate.finish(self, &copied, duplicate);
+    std.debug.assert(serial == self.serial);
 
-    const result = if (selected)
-        try lists.proven(self, type_id, buffer, try self.builder.expression(.{ .boolean = true }), try self.builder.expression(.{ .boolean = true }))
-
-    else
-        buffer;
+    const result = try @import("growth/call.zig").normalize(self, &body, element, qualified, selected, layout);
 
     return aggregate.finish(self, &body, result);
 }

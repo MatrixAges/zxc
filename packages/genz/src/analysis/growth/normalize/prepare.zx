@@ -1,0 +1,41 @@
+import bytes from "std:bytes"
+
+import field from "../../../ast/context/field"
+import { items_field } from "../../types/state/const"
+import bind from "../bind"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const value = bind({
+        state: in.context,
+        body: in.body,
+        value: in.value
+    })
+
+    const items = match {
+        in.source.selected => field({
+            state: value.state,
+            target: value.id,
+            name: bytes.fromText(items_field)
+        }),
+        _ => value.pick([
+            "state",
+            "id"
+        ])
+    }
+
+    const source = bind({
+        state: items.state,
+        body: value.body,
+        value: items.id
+    })
+
+    return {
+        ...in,
+        context: source.state,
+        body: source.body,
+        value: value.id,
+        items: source.id
+    }
+}

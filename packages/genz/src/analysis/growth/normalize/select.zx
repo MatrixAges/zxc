@@ -1,0 +1,41 @@
+import conditional from "../../../ast/context/conditional"
+import { Operation } from "../../state/list/const"
+import permission from "../../state/list/permission"
+import bind from "../bind"
+import block from "../block"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const exclusive = permission({
+        state: in.context,
+        value: in.value,
+        operation: Operation.Exclusive
+    })
+
+    const copied = block({
+        state: exclusive.state,
+        body: in.copied.body,
+        value: in.copied.value
+    })
+
+    const selected = conditional({
+        state: copied.state,
+        condition: exclusive.id,
+        yes: in.items,
+        no: copied.id
+    })
+
+    const result = bind({
+        state: selected.state,
+        body: in.body,
+        value: selected.id
+    })
+
+    return {
+        ...in,
+        context: result.state,
+        body: result.body,
+        root: result.id
+    }
+}

@@ -1,0 +1,21 @@
+import initialize from "../initialize"
+
+import type { Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const state = initialize(in.source)
+
+    return {
+        source: in,
+        context: state.context,
+        body: state.body,
+        value: in.source.value,
+        items: in.source.value,
+        copied: {
+            body: state.body,
+            value: in.source.value
+        },
+        root: in.source.value,
+        fields: []
+    }
+}
