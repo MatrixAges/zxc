@@ -1,0 +1,53 @@
+import { ExpressionsKind } from "../../printer/model/expressions"
+import header from "../expressions/header"
+
+import type { State, Node } from "./model"
+
+export type Input = {
+    state: State,
+    length: u32,
+    element: u32
+}
+
+export type Output = Node
+
+export default function (in: Input): Output {
+    const result = header({
+        ...in.state.expressions.pick([
+            "tags",
+            "offsets"
+        ]),
+        base: in.state.source.expression_base,
+        kind: ExpressionsKind.FixedArrayType,
+        offset: in.state.forms.fixed_array_type_length.length
+    })
+
+    if (!result.valid) {
+        return {
+            id: result.id,
+            state: {
+                ...in.state,
+                valid: false
+            }
+        }
+    }
+
+    return {
+        id: result.id,
+        state: {
+            ...in.state,
+            expressions: {
+                ...in.state.expressions,
+                tags: result.tags,
+                offsets: result.offsets
+            },
+            forms: {
+                ...in.state.forms,
+                fixed_array_type_length:
+                    in.state.forms.fixed_array_type_length.push(in.length)[0],
+                fixed_array_type_element:
+                    in.state.forms.fixed_array_type_element.push(in.element)[0]
+            }
+        }
+    }
+}

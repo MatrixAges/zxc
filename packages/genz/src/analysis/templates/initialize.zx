@@ -1,0 +1,19 @@
+import initialize from "../../ast/context/initialize"
+
+import type { Input, State } from "./model"
+
+export type Output = State
+
+export default function (in: Input): Output {
+    return {
+        source: in,
+        context: initialize(in.pick([
+            "capture",
+            "expression_base",
+            "statement_base",
+            "field_base",
+            "serial"
+        ])),
+        strings: []
+    }
+}

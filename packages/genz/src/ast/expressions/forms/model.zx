@@ -1,0 +1,22 @@
+import type { ExpressionsPrimitive } from "../../../printer/model/expressions"
+
+export type Columns = {
+    string: u8[][],
+    enum_literal: u8[][],
+    primitive: ExpressionsPrimitive[],
+    object_type_expr: u32?[],
+    object_fields_start: u32[],
+    object_fields_len: u32[],
+    tuple: u32[][],
+    array_element_type: u32[],
+    array_values: u32[][],
+    address_of: u32[],
+    const_slice: u32[],
+    fixed_array_type_length: u32[],
+    fixed_array_type_element: u32[],
+    conditional_condition: u32[],
+    conditional_yes: u32[],
+    conditional_no: u32[],
+    conditional_capture: u8[]?[],
+    conditional_error_capture: u8[]?[]
+}

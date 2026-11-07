@@ -1,9 +1,14 @@
-import catchValue from "../../../../ast/expressions/catch"
-import wrapper from "../../../../ast/expressions/wrapper"
-import { ExpressionsKind } from "../../../../printer/model/expressions"
+import { ExpressionsKind } from "../../printer/model/expressions"
+import catchValue from "./catch"
+import wrapper from "./wrapper"
 
-import type { Columns, Result } from "../../../../ast/expressions/model"
-import type { Capture } from "../model"
+import type { Columns, Result } from "./model"
+
+export type Capture = {
+    name: u8[],
+    label: u8[],
+    failure: u32
+}
 
 export type Input = {
     table: Columns,

@@ -1,0 +1,69 @@
+import bytes from "std:bytes"
+
+import address from "../../ast/context/address"
+import array from "../../ast/context/array"
+import constSlice from "../../ast/context/const_slice"
+import identifier from "../../ast/context/identifier"
+import primitive from "../../ast/context/primitive"
+import standard from "../../ast/context/standard"
+import { ExpressionsPrimitive } from "../../printer/model/expressions"
+import { allocator_name, memory_name, concat_name } from "./const"
+
+import type { State, Output } from "./model"
+
+export type Input = State
+
+export default function (in: Input): Output {
+    const byte = primitive({
+        state: in.context,
+        value: ExpressionsPrimitive.U8
+    })
+
+    const element = constSlice({
+        state: byte.state,
+        value: byte.id
+    })
+
+    const values = array({
+        state: element.state,
+        element: element.id,
+        values: in.strings
+    })
+
+    const allocator = identifier({
+        state: values.state,
+        name: bytes.fromText(allocator_name)
+    })
+
+    const target = address({
+        state: allocator.state,
+        value: values.id
+    })
+
+    const result = standard({
+        state: target.state,
+        path: [
+            memory_name,
+            concat_name
+        ],
+        arguments: [
+            allocator.id,
+            byte.id,
+            target.id
+        ],
+        fallible: true
+    })
+
+    return {
+        ...result.state.pick([
+            "expressions",
+            "forms",
+            "statements",
+            "variables",
+            "serial",
+            "valid"
+        ]),
+        root: result.id,
+        uses_allocator: true
+    }
+}

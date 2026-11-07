@@ -1,0 +1,28 @@
+import type { Columns } from "./model"
+
+export type Input = {}
+
+export type Output = Columns
+
+export default function (in: Input): Output {
+    return {
+        string: [],
+        enum_literal: [],
+        primitive: [],
+        object_type_expr: [],
+        object_fields_start: [],
+        object_fields_len: [],
+        tuple: [],
+        array_element_type: [],
+        array_values: [],
+        address_of: [],
+        const_slice: [],
+        fixed_array_type_length: [],
+        fixed_array_type_element: [],
+        conditional_condition: [],
+        conditional_yes: [],
+        conditional_no: [],
+        conditional_capture: [],
+        conditional_error_capture: []
+    }
+}

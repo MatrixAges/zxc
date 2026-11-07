@@ -1,0 +1,49 @@
+import bytes from "std:bytes"
+
+import identifier from "../../ast/context/identifier"
+import standard from "../../ast/context/standard"
+import text from "../../ast/context/text"
+import tuple from "../../ast/context/tuple"
+import { ExpressionsKind } from "../../printer/model/expressions"
+import { allocator_name, float_format, format_name, alloc_print_name } from "./const"
+
+import type { State, Node } from "../../ast/context/model"
+
+export type Input = {
+    state: State,
+    value: u32
+}
+
+export type Output = Node
+
+export default function (in: Input): Output {
+    const allocator = identifier({
+        state: in.state,
+        name: bytes.fromText(allocator_name)
+    })
+
+    const format = text({
+        state: allocator.state,
+        kind: ExpressionsKind.String,
+        value: bytes.fromText(float_format)
+    })
+
+    const arguments = tuple({
+        state: format.state,
+        values: [in.value]
+    })
+
+    return standard({
+        state: arguments.state,
+        path: [
+            format_name,
+            alloc_print_name
+        ],
+        arguments: [
+            allocator.id,
+            format.id,
+            arguments.id
+        ],
+        fallible: true
+    })
+}

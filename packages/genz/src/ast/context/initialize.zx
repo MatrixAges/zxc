@@ -1,0 +1,25 @@
+import expressions from "../expressions/empty"
+import forms from "../expressions/forms/empty"
+import statements from "../statements/empty"
+
+import type { Input, State } from "./model"
+
+export type Output = State
+
+export default function (in: Input): Output {
+    return {
+        source: in,
+        expressions: expressions({}),
+        forms: forms({}),
+        statements: statements({}),
+        variables: {
+            variable_name: [],
+            variable_type_expr: [],
+            variable_value: [],
+            variable_exported: []
+        },
+        undefined_count: 0,
+        serial: in.serial,
+        valid: true
+    }
+}

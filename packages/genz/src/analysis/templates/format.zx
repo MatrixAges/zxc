@@ -1,0 +1,57 @@
+import integers from "std:integer"
+import {
+    scalar_bool,
+    scalar_string,
+    scalar_f32,
+    scalar_f64
+} from "core/type_table/const"
+
+import boolean from "./boolean"
+import decimal from "./decimal"
+import float from "./float"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const result = loop({
+        context: in.context,
+        strings: in.strings,
+        index: 0
+    }, {
+        while: current => current.context.valid && current.index < in.source.items.length,
+        next: current => {
+            const item = integers.widen(in.source.items[current.index])
+            const type_id = integers.widen(in.source.expression_types[item])
+            const scalar = in.source.types.first[type_id]
+            const input = {
+                state: current.context,
+                value: in.source.values[current.index]
+            }
+
+            const value = match scalar {
+                scalar_string => {
+                    state: current.context,
+                    id: in.source.values[current.index]
+                },
+                scalar_bool => boolean(input),
+                scalar_f32 => float(input),
+                scalar_f64 => float(input),
+                _ => decimal(input)
+            }
+
+            current.context = value.state
+            current.strings = current.strings.push(value.id)[0]
+            current.index += 1
+        }
+    })
+
+    return {
+        source: in.source,
+        context: result.context,
+        strings: result.strings
+    }
+}

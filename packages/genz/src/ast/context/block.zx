@@ -1,0 +1,45 @@
+import integers from "std:integer"
+
+import block from "../expressions/block"
+import breakValue from "../statements/break_value"
+
+import type { State, Node } from "./model"
+
+export type Input = {
+    state: State,
+    label: u8[],
+    first: u64,
+    value: u32
+}
+
+export type Output = Node
+
+export default function (in: Input): Output {
+    const statements = breakValue({
+        table: in.state.statements,
+        base: in.state.source.statement_base,
+        label: in.label,
+        value: in.value
+    })
+
+    const result = block({
+        table: in.state.expressions,
+        base: in.state.source.expression_base,
+        label: in.label,
+        start:
+            integers.narrow(
+                integers.widen(in.state.source.statement_base) + in.first
+            ),
+        count: integers.narrow(statements.table.tags.length - in.first)
+    })
+
+    return {
+        id: result.id,
+        state: {
+            ...in.state,
+            expressions: result.table,
+            statements: statements.table,
+            valid: in.state.valid && statements.valid && result.valid
+        }
+    }
+}

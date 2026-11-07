@@ -1,0 +1,11 @@
+<Module>
+    <Type from="model" as="Template" />
+
+    <Args in={Template.Input} out={Template.Output} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="format" in={$ctx.initialize} />
+    <Call fn="concat" in={$ctx.format} />
+
+    <Return value={$ctx.concat} />
+</Module>

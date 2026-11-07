@@ -1,0 +1,49 @@
+import object from "../expressions/object"
+
+import type { State, Node } from "./model"
+
+export type Input = State
+
+export type Output = Node
+
+export default function (in: Input): Output {
+    const result = object({
+        table: {
+            ...in.expressions.pick([
+                "tags",
+                "offsets"
+            ]),
+            ...in.forms.pick([
+                "object_type_expr",
+                "object_fields_start",
+                "object_fields_len"
+            ])
+        },
+        base: in.source.expression_base,
+        type_expr: null,
+        start: in.source.field_base,
+        count: 0
+    })
+
+    return {
+        id: result.id,
+        state: {
+            ...in,
+            expressions: {
+                ...in.expressions,
+                ...result.table.pick([
+                    "tags",
+                    "offsets"
+                ])
+            },
+            forms: {
+                ...in.forms,
+                ...result.table.omit([
+                    "tags",
+                    "offsets"
+                ])
+            },
+            valid: in.valid && result.valid
+        }
+    }
+}

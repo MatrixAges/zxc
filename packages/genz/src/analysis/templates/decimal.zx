@@ -1,0 +1,163 @@
+import bytes from "std:bytes"
+import { decimal_radix } from "core/const"
+
+import address from "../../ast/context/address"
+import block from "../../ast/context/block"
+import call from "../../ast/context/call"
+import options from "../../ast/context/empty_object"
+import field from "../../ast/context/field"
+import fixedArray from "../../ast/context/fixed_array"
+import identifier from "../../ast/context/identifier"
+import integer from "../../ast/context/integer"
+import primitive from "../../ast/context/primitive"
+import slice from "../../ast/context/slice"
+import standard from "../../ast/context/standard"
+import text from "../../ast/context/text"
+import undefinedValue from "../../ast/context/undefined"
+import variable from "../../ast/context/variable"
+import fresh from "../../ast/fresh"
+import { ExpressionsKind, ExpressionsPrimitive } from "../../printer/model/expressions"
+import {
+    allocator_name,
+    dupe_name,
+    decimal_prefix,
+    digits_prefix,
+    decimal_buffer_length,
+    lower_case,
+    format_name,
+    print_int_name
+} from "./const"
+
+import type { State, Node } from "../../ast/context/model"
+
+export type Input = {
+    state: State,
+    value: u32
+}
+
+export type Output = Node
+
+export default function (in: Input): Output {
+    const label = fresh({
+        serial: in.state.serial,
+        prefix: decimal_prefix
+    })
+
+    const name = fresh({
+        serial: label.serial,
+        prefix: digits_prefix
+    })
+
+    const buffer = identifier({
+        state: {
+            ...in.state,
+            serial: name.serial
+        },
+        name: name.name
+    })
+
+    const target = address({
+        state: buffer.state,
+        value: buffer.id
+    })
+
+    const radix = integer({
+        state: target.state,
+        value: decimal_radix
+    })
+
+    const lower = text({
+        state: radix.state,
+        kind: ExpressionsKind.EnumLiteral,
+        value: bytes.fromText(lower_case)
+    })
+
+    const format_options = options(lower.state)
+
+    const length = standard({
+        state: format_options.state,
+        path: [
+            format_name,
+            print_int_name
+        ],
+        arguments: [
+            target.id,
+            in.value,
+            radix.id,
+            lower.id,
+            format_options.id
+        ],
+        fallible: false
+    })
+
+    const start = integer({
+        state: length.state,
+        value: 0
+    })
+
+    const digits = slice({
+        state: start.state,
+        target: buffer.id,
+        start: start.id,
+        end: length.id
+    })
+
+    const allocator = identifier({
+        state: digits.state,
+        name: bytes.fromText(allocator_name)
+    })
+
+    const dupe = field({
+        state: allocator.state,
+        target: allocator.id,
+        name: bytes.fromText(dupe_name)
+    })
+
+    const byte = primitive({
+        state: dupe.state,
+        value: ExpressionsPrimitive.U8
+    })
+
+    const copy = call({
+        state: byte.state,
+        callee: dupe.id,
+        arguments: [
+            byte.id,
+            digits.id
+        ],
+        fallible: true
+    })
+
+    const capacity = integer({
+        state: copy.state,
+        value: decimal_buffer_length
+    })
+
+    const element = primitive({
+        state: capacity.state,
+        value: ExpressionsPrimitive.U8
+    })
+
+    const buffer_type = fixedArray({
+        state: element.state,
+        length: capacity.id,
+        element: element.id
+    })
+
+    const initial = undefinedValue(buffer_type.state)
+    const first = initial.state.statements.tags.length
+
+    const state = variable({
+        state: initial.state,
+        name: name.name,
+        type_expr: buffer_type.id,
+        value: initial.id
+    })
+
+    return block({
+        state,
+        label: label.name,
+        first,
+        value: copy.id
+    })
+}

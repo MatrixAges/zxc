@@ -1,0 +1,49 @@
+import { ExpressionsKind } from "../../printer/model/expressions"
+import header from "../expressions/header"
+
+import type { State, Node } from "./model"
+
+export type Input = {
+    state: State,
+    values: u32[]
+}
+
+export type Output = Node
+
+export default function (in: Input): Output {
+    const result = header({
+        ...in.state.expressions.pick([
+            "tags",
+            "offsets"
+        ]),
+        base: in.state.source.expression_base,
+        kind: ExpressionsKind.Tuple,
+        offset: in.state.forms.tuple.length
+    })
+
+    if (!result.valid) {
+        return {
+            id: result.id,
+            state: {
+                ...in.state,
+                valid: false
+            }
+        }
+    }
+
+    return {
+        id: result.id,
+        state: {
+            ...in.state,
+            expressions: {
+                ...in.state.expressions,
+                tags: result.tags,
+                offsets: result.offsets
+            },
+            forms: {
+                ...in.state.forms,
+                tuple: in.state.forms.tuple.push(in.values)[0]
+            }
+        }
+    }
+}

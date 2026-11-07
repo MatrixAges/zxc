@@ -1,0 +1,36 @@
+import bytes from "std:bytes"
+
+import conditional from "../../ast/context/conditional"
+import text from "../../ast/context/text"
+import { ExpressionsKind } from "../../printer/model/expressions"
+import { true_text, false_text } from "./const"
+
+import type { State, Node } from "../../ast/context/model"
+
+export type Input = {
+    state: State,
+    value: u32
+}
+
+export type Output = Node
+
+export default function (in: Input): Output {
+    const yes = text({
+        state: in.state,
+        kind: ExpressionsKind.String,
+        value: bytes.fromText(true_text)
+    })
+
+    const no = text({
+        state: yes.state,
+        kind: ExpressionsKind.String,
+        value: bytes.fromText(false_text)
+    })
+
+    return conditional({
+        state: no.state,
+        condition: in.value,
+        yes: yes.id,
+        no: no.id
+    })
+}

@@ -1,0 +1,35 @@
+import type { Capture } from "../expressions/fallible"
+import type { Columns as Forms } from "../expressions/forms/model"
+import type { Columns as Expressions } from "../expressions/model"
+import type { Columns as Statements } from "../statements/model"
+
+export type Input = {
+    capture?: Capture,
+    expression_base: u32,
+    statement_base: u32,
+    field_base: u32,
+    serial: u64
+}
+
+export type Variables = {
+    variable_name: u8[][],
+    variable_type_expr: u32?[],
+    variable_value: u32[],
+    variable_exported: bool[]
+}
+
+export type State = {
+    source: Input,
+    expressions: Expressions,
+    forms: Forms,
+    statements: Statements,
+    variables: Variables,
+    undefined_count: u64,
+    serial: u64,
+    valid: bool
+}
+
+export type Node = {
+    state: State,
+    id: u32
+}

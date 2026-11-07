@@ -1,0 +1,31 @@
+import construct from "../expressions/slice"
+
+import type { State, Node } from "./model"
+
+export type Input = {
+    state: State,
+    target: u32,
+    start?: u32,
+    end?: u32
+}
+
+export type Output = Node
+
+export default function (in: Input): Output {
+    const result = construct({
+        table: in.state.expressions,
+        base: in.state.source.expression_base,
+        target: in.target,
+        start: in.start,
+        end: in.end
+    })
+
+    return {
+        id: result.id,
+        state: {
+            ...in.state,
+            expressions: result.table,
+            valid: in.state.valid && result.valid
+        }
+    }
+}
