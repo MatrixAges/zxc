@@ -17,7 +17,7 @@ pub fn appendBorrowingText(allocator: std.mem.Allocator, target: anytype, source
     return appendRows(allocator, target, source, true, true);
 }
 
-fn appendRows(allocator: std.mem.Allocator, target: anytype, source: anytype, comptime copy_payloads: bool, comptime borrow_text: bool) Error!void {
+pub fn check(target: anytype, source: anytype) Error!Counts(@TypeOf(target)) {
     @setEvalBranchQuota(100_000);
 
     const View = std.meta.Child(@TypeOf(source));
@@ -45,10 +45,30 @@ fn appendRows(allocator: std.mem.Allocator, target: anytype, source: anytype, co
         const Column = @FieldType(Payloads, name);
         column_count += comptime present(View, Column, name);
 
-        try validate(&@field(target.payloads, name), source, name, counts[index]);
+        try validateColumn(&@field(target.payloads, name), source, name, counts[index]);
     }
 
     if (comptime column_count != fields.len) @compileError("AST import has unknown columns");
+
+    return counts;
+}
+
+fn Counts(comptime Target: type) type {
+    const Payloads = @FieldType(std.meta.Child(Target), "payloads");
+
+    return [@typeInfo(Payloads).@"struct".field_names.len]usize;
+}
+
+fn appendRows(allocator: std.mem.Allocator, target: anytype, source: anytype, comptime copy_payloads: bool, comptime borrow_text: bool) Error!void {
+    @setEvalBranchQuota(100_000);
+
+    const View = std.meta.Child(@TypeOf(source));
+    const Payloads = @TypeOf(target.payloads);
+    const names = @typeInfo(Payloads).@"struct".field_names;
+    const Tag = std.meta.Child(@TypeOf(target.tags.items));
+    const fields = @typeInfo(View).@"struct".field_names;
+    const counts = try check(target, source);
+
     try target.tags.ensureUnusedCapacity(allocator, source.tags.len);
     try target.offsets.ensureUnusedCapacity(allocator, source.offsets.len);
 
@@ -110,13 +130,13 @@ fn present(comptime View: type, comptime Column: type, comptime prefix: []const 
     return count;
 }
 
-fn validate(column: anytype, source: anytype, comptime prefix: []const u8, count: usize) Error!void {
+fn validateColumn(column: anytype, source: anytype, comptime prefix: []const u8, count: usize) Error!void {
     const Column = std.meta.Child(@TypeOf(column));
     const View = std.meta.Child(@TypeOf(source));
 
     if (@hasField(Column, "fields")) {
         inline for (@typeInfo(@TypeOf(column.fields)).@"struct".field_names) |name| {
-            try validate(&@field(column.fields, name), source, prefix ++ "_" ++ name, count);
+            try validateColumn(&@field(column.fields, name), source, prefix ++ "_" ++ name, count);
         }
     } else if (std.meta.Child(@TypeOf(column.values.items)) != void) {
         if (@hasField(View, prefix)) {

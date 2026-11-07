@@ -1,0 +1,17 @@
+import context from "../../../ast/context/initialize"
+
+import type { Write as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        source: in,
+        context: context({
+            capture: null,
+            expression_base: in.expression_base,
+            statement_base: in.statement_base,
+            field_base: 0,
+            serial: 0
+        }),
+        target: 0
+    }
+}

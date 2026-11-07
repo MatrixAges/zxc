@@ -1,0 +1,26 @@
+import construct from "../statements/assignment"
+
+import type { State } from "./model"
+
+export type Input = {
+    state: State,
+    target: u32,
+    value: u32
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const result = construct({
+        table: in.state.statements,
+        base: in.state.source.statement_base,
+        target: in.target,
+        value: in.value
+    })
+
+    return {
+        ...in.state,
+        statements: result.table,
+        valid: in.state.valid && result.valid
+    }
+}

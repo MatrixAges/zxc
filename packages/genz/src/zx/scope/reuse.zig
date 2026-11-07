@@ -128,6 +128,13 @@ pub fn restore(self: *const Self, lowering: *Lower) void {
 
 pub fn append(self: *const Self, lowering: *Lower, output: *std.ArrayList(node.Statement), index: usize) Lower.Error!bool {
     const change = self.changes[index] orelse return false;
+
+    if (@import("genz_options").generated_analysis) {
+        try @import("../object_update/emit.zig").statements(lowering, output, change);
+
+        return true;
+    }
+
     const field = lowering.program.typeOf(change.type_id).object.at(change.field.index);
     const value = try @import("../aggregate.zig").bind(lowering, output, try lowering.expr(change.field.value));
     const target = try lowering.builder.identifier(lowering.names[@backingInt(change.previous)]);

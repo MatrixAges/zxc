@@ -1,0 +1,38 @@
+import type { Table } from "core/type_table/model"
+import type { State as Context, Variables } from "../../../ast/context/model"
+import type { Columns as Forms } from "../../../ast/expressions/forms/model"
+import type { Columns as Expressions } from "../../../ast/expressions/model"
+import type { Columns as Statements } from "../../../ast/statements/model"
+
+export type Write = {
+    types: Table,
+    type_id: u32,
+    field: u32,
+    target_name: u8[],
+    value_name: u8[],
+    value: u32,
+    expression_base: u32,
+    statement_base: u32
+}
+
+export type Expression = {
+    source: Write,
+    layout: u32,
+    initial: u32,
+    label: u8[]
+}
+
+export type State = {
+    source: Write,
+    context: Context,
+    target: u32
+}
+
+export type Output = {
+    expressions: Expressions,
+    forms: Forms,
+    statements: Statements,
+    variables: Variables,
+    root: u32,
+    valid: bool
+}

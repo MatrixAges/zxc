@@ -1,0 +1,24 @@
+import block from "../../../ast/context/block"
+import publish from "./publish"
+
+import type { State, Output } from "./model"
+
+export type Input = {
+    state: State,
+    label: u8[]
+}
+
+export default function (in: Input): Output {
+    const result = block({
+        state: in.state.context,
+        label: in.label,
+        first: 0,
+        value: in.state.target
+    })
+
+    return publish({
+        ...in.state,
+        context: result.state,
+        target: result.id
+    })
+}

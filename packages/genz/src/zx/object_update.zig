@@ -1,29 +1,15 @@
-const std = @import("std");
 const ir = @import("zx").ir;
 const node = @import("../node.zig");
 const Lower = @import("lower.zig");
-const aggregate = @import("aggregate.zig");
+
 pub const Change = struct { previous: ir.SymbolId, reference: ir.ExprId, field: ir.ObjectField, type_id: ir.TypeId };
 
 pub fn lower(lowering: *Lower, id: ir.ExprId) Lower.Error!?node.ExpressionId {
     const change = match(lowering, id) orelse return null;
-    var body: std.ArrayList(node.Statement) = .empty;
-    const name = try lowering.fresh("updated");
-    const target = try lowering.builder.identifier(name);
 
-    try body.append(lowering.allocator, .{ .variable = .{
-        .name = name,
-        .type_expr = try lowering.layoutExpr(change.type_id),
-        .value = try lowering.expr(change.reference),
-    } });
+    if (!@import("genz_options").generated_analysis) return try @import("object_update/seed.zig").lower(lowering, change);
 
-    const value = try aggregate.bind(lowering, &body, try lowering.expr(change.field.value));
-    const field = lowering.program.typeOf(change.type_id).object.at(change.field.index);
-
-    try body.append(lowering.allocator, .{ .assignment = .{ .target = try lowering.field(target, field.name), .value = value } });
-    try body.append(lowering.allocator, .{ .assignment = .{ .target = try lowering.field(target, try @import("state_value/origin.zig").name(lowering, change.type_id)), .value = try lowering.builder.expression(.null_value) } });
-
-    return try aggregate.finish(lowering, &body, target);
+    return try @import("object_update/emit.zig").expression(lowering, change);
 }
 
 pub fn match(lowering: *const Lower, id: ir.ExprId) ?Change {

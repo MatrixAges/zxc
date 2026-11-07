@@ -1,0 +1,28 @@
+<Module>
+    <Type from="model" as="Update" />
+
+    <Args in={Update.Expression} out={Update.Output} />
+
+    <Call fn="initialize" in={$in.source} />
+
+    <Call
+        fn="variable"
+        in={{
+            state: $ctx.initialize,
+            layout: $in.layout,
+            initial: $in.initial
+        }}
+    />
+
+    <Call fn="write" in={$ctx.variable} />
+
+    <Call
+        fn="finish"
+        in={{
+            state: $ctx.write,
+            label: $in.label
+        }}
+    />
+
+    <Return value={$ctx.finish} />
+</Module>

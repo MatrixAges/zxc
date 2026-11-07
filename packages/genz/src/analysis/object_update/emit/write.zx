@@ -1,0 +1,70 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import assignment from "../../../ast/context/assignment"
+import binding from "../../../ast/context/binding"
+import field from "../../../ast/context/field"
+import identifier from "../../../ast/context/identifier"
+import nullValue from "../../../ast/context/null_value"
+import origin from "../../types/state/origin"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const target = identifier({
+        state: in.context,
+        name: in.source.target_name
+    })
+
+    const bound = binding({
+        state: target.state,
+        name: in.source.value_name,
+        value: in.source.value
+    })
+
+    const value = identifier({
+        state: bound,
+        name: in.source.value_name
+    })
+
+    const type_id = integers.widen(in.source.type_id)
+    const first = integers.widen(in.source.types.first[type_id])
+    const count = integers.widen(in.source.types.second[type_id])
+    const index = first + integers.widen(in.source.field)
+
+    const updated = field({
+        state: value.state,
+        target: target.id,
+        name: bytes.fromText(in.source.types.field_names[index])
+    })
+
+    const written = assignment({
+        state: updated.state,
+        target: updated.id,
+        value: value.id
+    })
+
+    const name = origin({
+        names: in.source.types.field_names,
+        start: first,
+        count
+    })
+
+    const previous = field({
+        state: written,
+        target: target.id,
+        name
+    })
+
+    const cleared = nullValue(previous.state)
+
+    return {
+        ...in,
+        target: target.id,
+        context: assignment({
+            state: cleared.state,
+            target: previous.id,
+            value: cleared.id
+        })
+    }
+}

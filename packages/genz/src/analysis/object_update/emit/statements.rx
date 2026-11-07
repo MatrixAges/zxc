@@ -1,0 +1,11 @@
+<Module>
+    <Type from="model" as="Update" />
+
+    <Args in={Update.Write} out={Update.Output} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="write" in={$ctx.initialize} />
+    <Call fn="publish" in={$ctx.write} />
+
+    <Return value={$ctx.publish} />
+</Module>

@@ -154,6 +154,8 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/scope/reuse/enabled.zx", .name = "scope_reuse_enabled", .owner = .genz },
     .{ .path = "genz/analysis/scope/reuse/has.zx", .name = "scope_reuse_has", .owner = .genz },
     .{ .path = "genz/analysis/scope/reuse/create.rx", .name = "scope_reuse", .owner = .genz },
+    .{ .path = "genz/analysis/object_update/emit/expression.rx", .name = "object_update_expression", .owner = .genz },
+    .{ .path = "genz/analysis/object_update/emit/statements.rx", .name = "object_update_statements", .owner = .genz },
     .{ .path = "genz/analysis/inline/prepare.rx", .name = "inline_prepare", .owner = .genz },
     .{ .path = "genz/analysis/iteration/analyze.rx", .name = "iteration_layout", .owner = .genz },
     .{ .path = "genz/analysis/iteration/buffers/analyze.rx", .name = "iteration_buffers", .owner = .genz },

@@ -1,0 +1,23 @@
+import variable from "../../../ast/context/variable"
+
+import type { State } from "./model"
+
+export type Input = {
+    state: State,
+    layout: u32,
+    initial: u32
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    return {
+        ...in.state,
+        context: variable({
+            state: in.state.context,
+            name: in.state.source.target_name,
+            type_expr: in.layout,
+            value: in.initial
+        })
+    }
+}
