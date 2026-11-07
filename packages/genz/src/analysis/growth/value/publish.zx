@@ -1,0 +1,15 @@
+import type { Output } from "../model"
+import type { State as Input } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        expressions: in.growth.context.expressions,
+        forms: in.growth.context.forms,
+        statements: in.growth.context.statements,
+        body: in.growth.body,
+        root: in.source.source.value,
+        serial: in.growth.context.serial,
+        uses_allocator: in.applied,
+        valid: in.growth.context.valid
+    }
+}

@@ -1,0 +1,14 @@
+<Module>
+    <Type from="model" as="Renew" />
+    <Type from="../model" as="Growth" />
+
+    <Args in={Renew.Preparation} out={Growth.State} />
+
+    <Call fn="prepare" in={$in} />
+    <Call fn="path" in={$ctx.prepare} />
+    <Call fn="names" in={$ctx.path} />
+
+    <Call module="../apply" in={$ctx.names} />
+
+    <Return value={$ctx.apply} />
+</Module>

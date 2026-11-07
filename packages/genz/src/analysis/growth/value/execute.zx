@@ -1,0 +1,48 @@
+import append from "../renew/append.rx"
+import buffered from "../renew/buffered"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const source = in.source
+
+    const result = loop({
+        growth: in.growth,
+        applied: false,
+        index: 0
+    }, {
+        while: state => state.index < source.records.length,
+        next: state => {
+            const record = source.records[state.index]
+            const selected = record.owner == source.owner && record.value
+
+            if (selected && !buffered({
+                types: source.types,
+                type_id: source.type_id,
+                path: record.path,
+                inline_lists: source.inline_lists
+            })) {
+                state.growth = append({
+                    source: {
+                        ...source.pick([
+                            "types",
+                            "type_id"
+                        ]),
+                        source: source.source,
+                        path: record.path
+                    },
+                    growth: state.growth
+                })
+                state.applied = true
+            }
+
+            state.index += 1
+        }
+    })
+
+    return {
+        ...in,
+        growth: result.growth,
+        applied: result.applied
+    }
+}

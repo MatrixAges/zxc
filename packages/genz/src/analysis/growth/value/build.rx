@@ -1,0 +1,12 @@
+<Module>
+    <Type from="model" as="Value" />
+    <Type from="../model" as="Growth" />
+
+    <Args in={Value.Input} out={Growth.Output} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="execute" in={$ctx.initialize} />
+    <Call fn="publish" in={$ctx.execute} />
+
+    <Return value={$ctx.publish} />
+</Module>

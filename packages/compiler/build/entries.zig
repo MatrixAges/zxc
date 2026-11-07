@@ -15,7 +15,7 @@ pub const Entry = struct {
     }
 };
 
-pub const Set = enum { main, checks, constant_seed, snapshot_seed, partition_seed, ordered, collections };
+pub const Set = enum { main, checks, constant_seed, snapshot_seed, partition_seed, ordered, collections, growth };
 const constant_fold = Entry{ .path = "zx/analysis/constants/evaluate.rx", .name = "constant_fold" };
 const input_snapshot = Entry{ .path = "inputs/snapshot/reuse.rx", .name = "input_snapshot", .owner = .compiler };
 const partition_groups = Entry{ .path = "genz/analysis/partition/plan.rx", .name = "partition_groups", .owner = .genz };
@@ -180,6 +180,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/growth/reserve/build.rx", .name = "growth_reserve", .owner = .genz },
     .{ .path = "genz/analysis/growth/normalize/build.rx", .name = "growth_normalize", .owner = .genz },
     .{ .path = "genz/analysis/growth/renew/build.rx", .name = "growth_renew", .owner = .genz },
+    .{ .path = "genz/analysis/growth/renew/buffered.zx", .name = "growth_renew_buffered", .owner = .genz },
     .{ .path = "genz/analysis/iteration/buffer/view.zx", .name = "iteration_buffer_view", .owner = .genz },
     .{ .path = "genz/analysis/iteration/buffer/prepare.rx", .name = "iteration_buffer_prepare", .owner = .genz },
     .{ .path = "genz/analysis/iteration/buffer/redirect.rx", .name = "iteration_buffer_redirect", .owner = .genz },
@@ -212,6 +213,10 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/references/discover.rx", .name = "reference_graph", .owner = .genz },
     .{ .path = "genz/analysis/references/imports.rx", .name = "reference_imports", .owner = .genz },
     .{ .path = "genz/analysis/iteration/fields/plan.rx", .name = "loop_fields", .owner = .genz },
+};
+
+pub const growth = [_]Entry{
+    .{ .path = "genz/analysis/growth/value/build.rx", .name = "growth_value", .owner = .genz },
 };
 
 pub const collections = [_]Entry{
@@ -258,6 +263,7 @@ pub fn of(set: Set) []const Entry {
         .checks => &checks,
         .ordered => &ordered,
         .collections => &collections,
+        .growth => &growth,
         .constant_seed => &.{constant_fold},
         .snapshot_seed => &.{input_snapshot},
         .partition_seed => &.{partition_groups},
@@ -267,7 +273,7 @@ pub fn of(set: Set) []const Entry {
 pub fn ParserModules() type {
     comptime var names: []const []const u8 = &.{ "type_views", "nominal_data" };
 
-    for (main ++ ordered ++ collections) |entry| {
+    for (main ++ ordered ++ collections ++ growth) |entry| {
         if (entry.owner == .frontend or entry.owner == .compiler or entry.owner == .genz) names = names ++ .{entry.name};
     }
 

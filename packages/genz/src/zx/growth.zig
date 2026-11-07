@@ -34,13 +34,15 @@ pub fn renew(self: *Lower, body: *std.ArrayList(node.Statement), type_id: ir.Typ
 /// The value of `id` with the lists the plan renews in it moved to growth buffers of their own, where a value read out of
 /// a list or another opaque source enters the values that later appends extend.
 pub fn renewValue(self: *Lower, id: ir.ExprId, value: node.ExpressionId) Lower.Error!node.ExpressionId {
+    if (!@import("genz_options").generated_analysis) return @import("growth/value_seed.zig").renewValue(self, id, value);
+
     var body: std.ArrayList(node.Statement) = .empty;
     const name = try self.fresh("renewed");
     const renewed = try self.builder.identifier(name);
     const source = if (self.state_active) try @import("state_value/ownership.zig").clip(self, &body, id, value) else value;
 
     try body.append(self.allocator, .{ .variable = .{ .name = name, .value = source } });
-    for (self.plan.renewals) |renewal| if (renewal.owner == @backingInt(id) and renewal.value) try renew(self, &body, self.program.expression(id).type_id, renewed, renewal.path);
+    try @import("growth/renew.zig").appendValue(self, &body, id, renewed);
 
     return aggregate.finish(self, &body, renewed);
 }

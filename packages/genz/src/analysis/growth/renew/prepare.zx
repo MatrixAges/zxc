@@ -1,0 +1,31 @@
+import slice from "../../../ast/context/const_slice"
+import primitive from "../../../ast/context/primitive"
+import { ExpressionsPrimitive } from "../../../printer/model/expressions"
+
+import type { Preparation as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const byte = primitive({
+        state: in.growth.context,
+        value: ExpressionsPrimitive.U8
+    })
+
+    const text = slice({
+        state: byte.state,
+        value: byte.id
+    })
+
+    return {
+        source: in.source,
+        growth: {
+            ...in.growth,
+            source: in.source.source,
+            arguments: [],
+            callee: 0,
+            root: in.source.source.value,
+            context: text.state
+        },
+        text: text.id,
+        steps: []
+    }
+}

@@ -1,0 +1,58 @@
+import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import type { Table } from "core/type_table/model"
+
+export type Input = {
+    types: Table,
+    type_id: u32,
+    path: u32[],
+    inline_lists: bool
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    if (!in.inline_lists) {
+        return false
+    }
+
+    const result = loop({
+        type_id: in.type_id,
+        index: 0,
+        valid: true
+    }, {
+        while: state => state.valid && state.index < in.path.length,
+        next: state => {
+            const owner = loop({
+                id: state.type_id
+            }, {
+                while: current =>
+                    kind(in.types.kinds[integers.widen(current.id)]) == Kind.Optional,
+                next: current => {
+                    current.id = in.types.first[integers.widen(current.id)]
+                },
+                return: current => current.id
+            })
+
+            const row = integers.widen(owner)
+            const member = integers.widen(in.types.first[row]) +
+                integers.widen(in.path[state.index])
+            const category = kind(in.types.kinds[row])
+
+            if (category == Kind.Object) {
+                state.type_id = in.types.field_types[member]
+            } else if (category == Kind.Tuple) {
+                state.type_id = in.types.children[member]
+            } else {
+                state.valid = false
+            }
+
+            state.index += 1
+        }
+    })
+
+    return result.valid &&
+        kind(in.types.kinds[integers.widen(result.type_id)]) == Kind.List
+}

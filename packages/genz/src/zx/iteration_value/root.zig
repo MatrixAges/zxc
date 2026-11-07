@@ -24,6 +24,8 @@ pub fn buffered(self: *const Self, id: ir.TypeId) bool {
 }
 
 pub fn bufferedPath(self: *const Self, id: ir.TypeId, path: []const u32) bool {
+    if (@import("genz_options").generated_analysis) return @import("../growth/renew.zig").bufferedPath(self.lowering, id, path, self.inline_lists);
+
     var current = id;
 
     for (path) |step| {

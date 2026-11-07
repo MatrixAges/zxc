@@ -1,0 +1,18 @@
+import type { Table } from "core/type_table/model"
+import type { Renewal } from "../../uniqueness/function/plan/model"
+import type { Input as GrowthInput, State as Growth } from "../model"
+
+export type Input = {
+    source: GrowthInput,
+    types: Table,
+    type_id: u32,
+    owner: u32,
+    records: Renewal[],
+    inline_lists: bool
+}
+
+export type State = {
+    source: Input,
+    growth: Growth,
+    applied: bool
+}
