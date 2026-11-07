@@ -1,0 +1,65 @@
+import type { State as Context, Variables } from "../../../ast/context/model"
+import type { Capture } from "../../../ast/expressions/fallible"
+import type { Columns as Forms } from "../../../ast/expressions/forms/model"
+import type { Columns as Expressions } from "../../../ast/expressions/model"
+import type { Columns as Statements } from "../../../ast/statements/model"
+import type { State as History, Record } from "./history/model"
+
+export type Input = {
+    type_id: u32,
+    kind: u32,
+    element: u32,
+    value: u32,
+    history: History,
+    capture?: Capture,
+    expression_base: u32,
+    statement_base: u32,
+    serial: u64
+}
+
+export type Names = {
+    result: u8[],
+    cleanup: u8[],
+    ready: u8[],
+    operand: u8[]
+}
+
+export type Naming = {
+    names: Names,
+    serial: u64
+}
+
+export type Values = {
+    empty: u32,
+    result: u32,
+    cleanup: u32,
+    ready: u32,
+    allocator: u32,
+    value: u32,
+    owner: u32,
+    items: u32,
+    owned: u32,
+    shared: u32,
+    chosen: u32,
+    root: u32,
+}
+
+export type State = {
+    source: Input,
+    names: Names,
+    context: Context,
+    prefix: Statements,
+    values: Values
+}
+
+export type Output = {
+    expressions: Expressions,
+    forms: Forms,
+    statements: Statements,
+    prefix: Statements,
+    variables: Variables,
+    record: Record,
+    root: u32,
+    serial: u64,
+    valid: bool
+}

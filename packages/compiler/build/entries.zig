@@ -158,6 +158,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/object_update/emit/statements.rx", .name = "object_update_statements", .owner = .genz },
     .{ .path = "genz/analysis/object_update/match/candidate.rx", .name = "object_update_candidate", .owner = .genz },
     .{ .path = "genz/analysis/inline/prepare.rx", .name = "inline_prepare", .owner = .genz },
+    .{ .path = "genz/analysis/iteration/transfer/build.rx", .name = "iteration_transfer", .owner = .genz },
     .{ .path = "genz/analysis/iteration/borrow/operation.zx", .name = "iteration_borrow_operation", .owner = .genz },
     .{ .path = "genz/analysis/iteration/borrow/plan.rx", .name = "iteration_borrow_plan", .owner = .genz },
     .{ .path = "genz/analysis/iteration/borrow/emit/build.rx", .name = "iteration_borrow_emit", .owner = .genz },
@@ -190,6 +191,7 @@ pub const main = [_]Entry{
 };
 
 pub const collections = [_]Entry{
+    .{ .path = "genz/analysis/iteration/transfer/history/append.zx", .name = "transfer_append", .owner = .genz },
     .{ .path = "core/integer/counter/increment.zx", .name = "counter_increment", .owner = .genz },
     .{ .path = "core/integer/counter/get.zx", .name = "counter_get", .owner = .genz },
     .{ .path = "core/integer/map/put.zx", .name = "cache_put", .owner = .genz },

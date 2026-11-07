@@ -77,6 +77,9 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode, stage0: []con
                 .collections => &.{ manifest_roots[2], .{
                     .path = b.fmt("{s}/analysis/members", .{directories[3]}),
                     .prefix = "genz/analysis/members/",
+                }, .{
+                    .path = b.fmt("{s}/analysis/iteration/transfer/history", .{directories[3]}),
+                    .prefix = "genz/analysis/iteration/transfer/history/",
                 } },
                 else => &manifest_roots,
             },
@@ -101,7 +104,14 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode, stage0: []con
 
             trackSources(b, run, genz_dependency.path(relative), directory) catch @panic("unable to track comparison sources");
 
-            if (set == .collections) trackSources(b, run, roots[2], directories[2]) catch @panic("unable to track index sources");
+            if (set == .collections) {
+                trackSources(b, run, roots[2], directories[2]) catch @panic("unable to track index sources");
+
+                const history = "src/analysis/iteration/transfer/history";
+                const history_directory = genz_dependency.builder.root.joinString(b.allocator, history) catch @panic("out of memory");
+
+                trackSources(b, run, genz_dependency.path(history), history_directory) catch @panic("unable to track transfer history");
+            }
         } else for (roots, directories) |root, directory| {
             trackSources(b, run, root, directory) catch @panic("unable to track RX and ZX bootstrap sources");
         }

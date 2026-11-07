@@ -1,0 +1,99 @@
+import assignment from "../../../ast/context/assignment"
+import binary from "../../../ast/context/binary"
+import binding from "../../../ast/context/binding"
+import block from "../../../ast/context/block"
+import boolean from "../../../ast/context/boolean"
+import conditional from "../../../ast/context/conditional"
+import unary from "../../../ast/context/unary"
+import fresh from "../../../ast/fresh"
+import {
+    ExpressionsBinaryOperator,
+    ExpressionsUnaryOperator
+} from "../../../printer/model/expressions"
+import { block_prefix } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const first = in.context.statements.tags.length
+
+    const input = binding({
+        state: in.context,
+        name: in.names.operand,
+        value: in.source.value
+    })
+
+    const unshared = unary({
+        state: input,
+        operator: ExpressionsUnaryOperator.Not,
+        operand: in.values.shared
+    })
+
+    const cleanup_owned = binary({
+        state: unshared.state,
+        operator: ExpressionsBinaryOperator.LogicalAnd,
+        left: in.values.owned,
+        right: unshared.id
+    })
+
+    const result = assignment({
+        state: cleanup_owned.state,
+        target: in.values.result,
+        value: in.values.chosen
+    })
+
+    const cleanup_value = conditional({
+        state: result,
+        condition: cleanup_owned.id,
+        yes: in.values.result,
+        no: in.values.empty
+    })
+
+    const cleanup = assignment({
+        state: cleanup_value.state,
+        target: in.values.cleanup,
+        value: cleanup_value.id
+    })
+
+    const ready_value = boolean({
+        state: cleanup,
+        value: true
+    })
+
+    const ready = assignment({
+        state: ready_value.state,
+        target: in.values.ready,
+        value: ready_value.id
+    })
+
+    const label = fresh({
+        serial: ready.serial,
+        prefix: block_prefix
+    })
+
+    const evaluated = block({
+        state: {
+            ...ready,
+            serial: label.serial
+        },
+        label: label.name,
+        first,
+        value: in.values.result
+    })
+
+    const expression = conditional({
+        state: evaluated.state,
+        condition: in.values.ready,
+        yes: in.values.result,
+        no: evaluated.id
+    })
+
+    return {
+        ...in,
+        context: expression.state,
+        values: {
+            ...in.values,
+            root: expression.id
+        }
+    }
+}

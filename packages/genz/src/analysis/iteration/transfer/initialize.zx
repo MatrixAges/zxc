@@ -1,0 +1,36 @@
+import initialize from "../../../ast/context/initialize"
+import statements from "../../../ast/statements/empty"
+import names from "./names"
+
+import type { Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const naming = names(in.serial)
+
+    return {
+        source: in,
+        names: naming.names,
+        context: initialize({
+            capture: in.capture,
+            expression_base: in.expression_base,
+            statement_base: in.statement_base,
+            field_base: 0,
+            serial: naming.serial
+        }),
+        prefix: statements({}),
+        values: {
+            empty: 0,
+            result: 0,
+            cleanup: 0,
+            ready: 0,
+            allocator: 0,
+            value: 0,
+            owner: 0,
+            items: 0,
+            owned: 0,
+            shared: 0,
+            chosen: 0,
+            root: 0,
+        }
+    }
+}

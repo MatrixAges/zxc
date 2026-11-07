@@ -1,0 +1,15 @@
+<Module>
+    <Type from="model" as="Transfer" />
+
+    <Args in={Transfer.Input} out={Transfer.Output} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="prepare" in={$ctx.initialize} />
+    <Call fn="prefix" in={$ctx.prepare} />
+    <Call fn="take" in={$ctx.prefix} />
+    <Call fn="shared" in={$ctx.take} />
+    <Call fn="evaluate" in={$ctx.shared} />
+    <Call fn="finish" in={$ctx.evaluate} />
+
+    <Return value={$ctx.finish} />
+</Module>

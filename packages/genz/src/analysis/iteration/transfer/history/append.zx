@@ -1,0 +1,10 @@
+import type { Append as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        types: in.state.types.push(in.type_id)[0],
+        owners: in.state.owners.push(in.owner)[0],
+        values: in.state.values.push(in.value)[0],
+        ready: in.state.ready.push(in.ready)[0]
+    }
+}

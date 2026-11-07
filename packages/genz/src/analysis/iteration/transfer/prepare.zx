@@ -1,0 +1,83 @@
+import bytes from "std:bytes"
+
+import address from "../../../ast/context/address"
+import array from "../../../ast/context/array"
+import field from "../../../ast/context/field"
+import identifier from "../../../ast/context/identifier"
+import { owner_field, items_field, owned_field } from "../types/const"
+import { allocator_name } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const empty = array({
+        state: in.context,
+        element: in.source.element,
+        values: []
+    })
+
+    const address_value = address({
+        state: empty.state,
+        value: empty.id
+    })
+
+    const result = identifier({
+        state: address_value.state,
+        name: in.names.result
+    })
+
+    const cleanup = identifier({
+        state: result.state,
+        name: in.names.cleanup
+    })
+
+    const ready = identifier({
+        state: cleanup.state,
+        name: in.names.ready
+    })
+
+    const allocator = identifier({
+        state: ready.state,
+        name: bytes.fromText(allocator_name)
+    })
+
+    const value = identifier({
+        state: allocator.state,
+        name: in.names.operand
+    })
+
+    const owner = field({
+        state: value.state,
+        target: value.id,
+        name: bytes.fromText(owner_field)
+    })
+
+    const items = field({
+        state: owner.state,
+        target: value.id,
+        name: bytes.fromText(items_field)
+    })
+
+    const owned = field({
+        state: items.state,
+        target: value.id,
+        name: bytes.fromText(owned_field)
+    })
+
+    return {
+        ...in,
+        context: owned.state,
+        values: {
+            ...in.values,
+            empty: address_value.id,
+            result: result.id,
+            cleanup: cleanup.id,
+            ready: ready.id,
+            allocator: allocator.id,
+            value: value.id,
+            owner: owner.id,
+            items: items.id,
+            owned: owned.id
+        }
+    }
+}

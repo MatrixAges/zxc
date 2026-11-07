@@ -1,0 +1,31 @@
+import bytes from "std:bytes"
+
+import field from "../../../ast/context/field"
+import { owner_field } from "../types/const"
+
+import type { State as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const owner = field({
+        state: in.context,
+        target: in.source.value,
+        name: bytes.fromText(owner_field)
+    })
+
+    return {
+        expressions: owner.state.expressions,
+        forms: owner.state.forms,
+        statements: owner.state.statements,
+        prefix: in.prefix,
+        variables: owner.state.variables,
+        record: {
+            type_id: in.source.type_id,
+            owner: owner.id,
+            value: in.values.result,
+            ready: in.values.ready
+        },
+        root: in.values.root,
+        serial: owner.state.serial,
+        valid: owner.state.valid
+    }
+}

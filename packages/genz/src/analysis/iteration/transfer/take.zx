@@ -1,0 +1,82 @@
+import bytes from "std:bytes"
+
+import assignment from "../../../ast/context/assignment"
+import block from "../../../ast/context/block"
+import call from "../../../ast/context/call"
+import conditional from "../../../ast/context/conditional"
+import field from "../../../ast/context/field"
+import fresh from "../../../ast/fresh"
+import { items_field } from "../types/const"
+import { block_prefix, length_member, transfer_member } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const items = field({
+        state: in.context,
+        target: in.values.owner,
+        name: bytes.fromText(items_field)
+    })
+
+    const owner_length = field({
+        state: items.state,
+        target: items.id,
+        name: bytes.fromText(length_member)
+    })
+
+    const length = field({
+        state: owner_length.state,
+        target: in.values.items,
+        name: bytes.fromText(length_member)
+    })
+
+    const synced = assignment({
+        state: length.state,
+        target: owner_length.id,
+        value: length.id
+    })
+
+    const target = field({
+        state: synced,
+        target: in.values.owner,
+        name: bytes.fromText(transfer_member)
+    })
+
+    const transferred = call({
+        state: target.state,
+        callee: target.id,
+        arguments: [in.values.allocator],
+        fallible: true
+    })
+
+    const label = fresh({
+        serial: transferred.state.serial,
+        prefix: block_prefix
+    })
+
+    const taken = block({
+        state: {
+            ...transferred.state,
+            serial: label.serial
+        },
+        label: label.name,
+        first: 0,
+        value: transferred.id
+    })
+
+    const chosen = conditional({
+        state: taken.state,
+        condition: in.values.owned,
+        yes: taken.id,
+        no: in.values.items
+    })
+
+    return {
+        ...in,
+        context: chosen.state,
+        values: {
+            ...in.values,
+            chosen: chosen.id
+        }
+    }
+}

@@ -1,0 +1,66 @@
+import bytes from "std:bytes"
+
+import boolean from "../../../ast/context/boolean"
+import call from "../../../ast/context/call"
+import errdefer from "../../../ast/context/errdefer"
+import field from "../../../ast/context/field"
+import variable from "../../../ast/context/variable"
+import statements from "../../../ast/statements/empty"
+import { free_member } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const result = variable({
+        state: in.context,
+        name: in.names.result,
+        type_expr: in.source.kind,
+        value: in.values.empty
+    })
+
+    const cleanup = variable({
+        state: result,
+        name: in.names.cleanup,
+        type_expr: in.source.kind,
+        value: in.values.empty
+    })
+
+    const pending = boolean({
+        state: cleanup,
+        value: false
+    })
+
+    const ready = variable({
+        state: pending.state,
+        name: in.names.ready,
+        type_expr: null,
+        value: pending.id
+    })
+
+    const target = field({
+        state: ready,
+        target: in.values.allocator,
+        name: bytes.fromText(free_member)
+    })
+
+    const free = call({
+        state: target.state,
+        callee: target.id,
+        arguments: [in.values.cleanup],
+        fallible: false
+    })
+
+    const deferred = errdefer({
+        state: free.state,
+        value: free.id
+    })
+
+    return {
+        ...in,
+        prefix: deferred.statements,
+        context: {
+            ...deferred,
+            statements: statements({})
+        }
+    }
+}

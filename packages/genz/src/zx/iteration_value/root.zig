@@ -13,7 +13,7 @@ types: @import("../expression_map.zig").Map(ir.TypeId) = .empty,
 symbols: @import("../members.zig") = .empty,
 cache: @import("../expression_map.zig").Map(ir.ExprId) = .empty,
 reads: @import("../counter.zig") = .empty,
-transfers: std.ArrayList(struct { type_id: ir.TypeId, owner: node.ExpressionId, value: node.ExpressionId, ready: node.ExpressionId }) = .empty,
+transfers: @import("../transfers.zig") = .empty,
 argument: ?struct { id: ir.ExprId, value: node.ExpressionId } = null,
 pub fn represented(self: *const Self, id: ir.TypeId) bool {
     return analysis.represented(self.lowering, id) or self.buffered(id);

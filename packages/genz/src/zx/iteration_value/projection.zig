@@ -39,8 +39,9 @@ fn redirect(self: *Context, type_id: ir.TypeId, source: node.ExpressionId) Lower
     const lowering = self.lowering;
     const owner = try lowering.field(source, "owner");
     var items = try lowering.field(source, "items");
+    var records = self.transfers.iterator();
 
-    for (self.transfers.items) |previous| {
+    while (records.next()) |previous| {
         if (previous.type_id != type_id) continue;
 
         items = try lowering.builder.expression(.{ .conditional = .{

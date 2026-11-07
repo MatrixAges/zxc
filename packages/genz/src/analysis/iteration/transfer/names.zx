@@ -1,0 +1,38 @@
+import fresh from "../../../ast/fresh"
+import { result_prefix, cleanup_prefix, ready_prefix, operand_prefix } from "./const"
+
+import type { Naming as Output } from "./model"
+
+export type Input = u64
+
+export default function (in: Input): Output {
+    const result = fresh({
+        serial: in,
+        prefix: result_prefix
+    })
+
+    const cleanup = fresh({
+        serial: result.serial,
+        prefix: cleanup_prefix
+    })
+
+    const ready = fresh({
+        serial: cleanup.serial,
+        prefix: ready_prefix
+    })
+
+    const operand = fresh({
+        serial: ready.serial,
+        prefix: operand_prefix
+    })
+
+    return {
+        names: {
+            result: result.name,
+            cleanup: cleanup.name,
+            ready: ready.name,
+            operand: operand.name
+        },
+        serial: operand.serial
+    }
+}

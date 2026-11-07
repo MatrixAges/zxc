@@ -1,0 +1,21 @@
+export type State = {
+    types: u32[],
+    owners: u32[],
+    values: u32[],
+    ready: u32[]
+}
+
+export type Record = {
+    type_id: u32,
+    owner: u32,
+    value: u32,
+    ready: u32
+}
+
+export type Append = {
+    state: State,
+    type_id: u32,
+    owner: u32,
+    value: u32,
+    ready: u32
+}

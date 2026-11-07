@@ -152,8 +152,7 @@ pub fn buffered(context: *@import("root.zig"), body: *std.ArrayList(node.Stateme
 
         const result = shared orelse try @import("transfer.zig").lower(context, body, type_id, value);
 
-        if (shared == null) try transferred.append(lowering.allocator, .{ .path = path.items, .value = context.transfers.items[context.transfers.items.len - 1].value });
-
+        if (shared == null) try transferred.append(lowering.allocator, .{ .path = path.items, .value = context.transfers.at(context.transfers.len() - 1).value });
         try lowering.cache.put(lowering.allocator, id, result);
     }
 

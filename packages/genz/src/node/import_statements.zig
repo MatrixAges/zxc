@@ -25,7 +25,7 @@ fn appendRows(allocator: std.mem.Allocator, target: *std.ArrayList(node.Statemen
     if (count > std.math.maxInt(u32) - target.items.len) return error.OutOfMemory;
 
     for (source.tags) |item| switch (@as(Tag, @fromBackingInt(@backingInt(item)))) {
-        .constant, .variable, .assignment, .break_value => {},
+        .constant, .variable, .assignment, .break_value, .errdefer_expression => {},
         else => return error.InvalidAst,
     };
 
@@ -52,6 +52,11 @@ fn appendRows(allocator: std.mem.Allocator, target: *std.ArrayList(node.Statemen
                     break :value @unionInit(node.Statement, prefix, constant);
                 } else return error.InvalidAst;
             },
+            .errdefer_expression => if (comptime @hasField(std.meta.Child(@TypeOf(source)), "errdefer_expression"))
+                .{ .errdefer_expression = @fromBackingInt(source.errdefer_expression[offset]) }
+
+            else
+                return error.InvalidAst,
             .assignment => .{ .assignment = .{
                 .target = @fromBackingInt(source.assignment_target[offset]),
                 .value = @fromBackingInt(source.assignment_value[offset]),
