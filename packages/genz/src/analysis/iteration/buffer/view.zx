@@ -1,0 +1,28 @@
+import boolean from "../../../ast/context/boolean"
+import initialize from "../../../ast/context/initialize"
+import object from "./object"
+
+import type { View as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const context = initialize({
+        capture: null,
+        expression_base: in.expression_base,
+        statement_base: 0,
+        field_base: in.field_base,
+        serial: 0
+    })
+
+    const owned = boolean({
+        state: context,
+        value: in.owned
+    })
+
+    return object({
+        context: owned.state,
+        layout: in.layout,
+        owner: in.owner,
+        items: in.items,
+        owned: owned.id
+    })
+}

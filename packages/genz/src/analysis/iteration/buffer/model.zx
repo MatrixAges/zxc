@@ -1,0 +1,72 @@
+import type { State as Context } from "../../../ast/context/model"
+import type { Capture } from "../../../ast/expressions/fallible"
+import type { Columns as Forms } from "../../../ast/expressions/forms/model"
+import type { Columns as Expressions } from "../../../ast/expressions/model"
+import type { Columns as Statements } from "../../../ast/statements/model"
+import type { Field } from "../../types/definitions/model"
+import type { State as History } from "../transfer/history/model"
+
+export type View = {
+    layout: u32,
+    owner: u32,
+    items: u32,
+    owned: bool,
+    expression_base: u32,
+    field_base: u32
+}
+
+export type Construct = {
+    context: Context,
+    layout: u32,
+    owner: u32,
+    items: u32,
+    owned: u32
+}
+
+export type Output = {
+    expressions: Expressions,
+    forms: Forms,
+    fields: Field[],
+    root: u32,
+    valid: bool
+}
+
+export type Redirect = {
+    type_id: u32,
+    layout: u32,
+    value: u32,
+    history: History,
+    expression_base: u32,
+    field_base: u32
+}
+
+export type Redirected = {
+    source: Redirect,
+    context: Context,
+    owner: u32,
+    items: u32,
+    owned: u32
+}
+
+export type Prepare = {
+    value: u32,
+    capture?: Capture,
+    expression_base: u32,
+    statement_base: u32
+}
+
+export type Prepared = {
+    context: Context,
+    owner: u32,
+    items: u32,
+    owned: u32,
+    copied: u32
+}
+
+export type Preparation = {
+    expressions: Expressions,
+    forms: Forms,
+    statements: Statements,
+    roots: Statements,
+    valid: bool
+}

@@ -1,0 +1,11 @@
+<Module>
+    <Type from="model" as="Buffer" />
+
+    <Args in={Buffer.Redirect} out={Buffer.Output} />
+
+    <Call fn="redirect/project" in={$in} />
+    <Call fn="redirect/select" in={$ctx.project} />
+    <Call fn="redirect/finish" in={$ctx.select} />
+
+    <Return value={$ctx.finish} />
+</Module>

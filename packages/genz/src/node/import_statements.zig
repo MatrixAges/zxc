@@ -25,7 +25,7 @@ fn appendRows(allocator: std.mem.Allocator, target: *std.ArrayList(node.Statemen
     if (count > std.math.maxInt(u32) - target.items.len) return error.OutOfMemory;
 
     for (source.tags) |item| switch (@as(Tag, @fromBackingInt(@backingInt(item)))) {
-        .constant, .variable, .assignment, .break_value, .errdefer_expression => {},
+        .constant, .variable, .assignment, .break_value, .errdefer_expression, .branch => {},
         else => return error.InvalidAst,
     };
 
@@ -57,6 +57,14 @@ fn appendRows(allocator: std.mem.Allocator, target: *std.ArrayList(node.Statemen
 
             else
                 return error.InvalidAst,
+            .branch => if (comptime @hasField(std.meta.Child(@TypeOf(source)), "branch_condition")) .{ .branch = .{
+                .condition = @fromBackingInt(source.branch_condition[offset]),
+                .yes = .{ .start = source.branch_yes_start[offset], .len = source.branch_yes_len[offset] },
+                .no = .{ .start = source.branch_no_start[offset], .len = source.branch_no_len[offset] },
+                .capture = if (source.branch_capture[offset]) |text| if (comptime borrow_text) text else try allocator.dupe(u8, text) else null,
+                .capture_reference = source.branch_capture_reference[offset],
+                .error_capture = if (source.branch_error_capture[offset]) |text| if (comptime borrow_text) text else try allocator.dupe(u8, text) else null,
+            } } else return error.InvalidAst,
             .assignment => .{ .assignment = .{
                 .target = @fromBackingInt(source.assignment_target[offset]),
                 .value = @fromBackingInt(source.assignment_value[offset]),

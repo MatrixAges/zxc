@@ -37,19 +37,13 @@ pub fn create(self: *Context, id: ir.TypeId, source: node.ExpressionId) Lower.Er
 }
 
 pub fn view(self: *Context, id: ir.TypeId, owner: node.ExpressionId, items: node.ExpressionId, owned: bool) Lower.Error!node.ExpressionId {
-    return self.lowering.builder.expression(.{ .object = .{ .type_expr = try @import("types.zig").get(self, id), .fields = try self.lowering.allocator.dupe(node.Field, &.{
-        .{ .name = "owner", .value = owner },
-        .{ .name = "items", .value = items },
-        .{ .name = "owned", .value = try self.lowering.builder.expression(.{ .boolean = owned }) },
-    }) } });
+    if (!@import("genz_options").generated_analysis) return @import("buffer_seed.zig").view(self, id, owner, items, owned);
+
+    return @import("buffer_emission.zig").view(self, id, owner, items, owned);
 }
 
 pub fn prepare(self: *Context, body: *std.ArrayList(node.Statement), source: node.ExpressionId) Lower.Error!void {
-    const lowering = self.lowering;
-    const owner = try lowering.field(source, "owner");
-    const items = try lowering.field(source, "items");
-    const copied = node.Statement{ .expression = try lowering.call(try lowering.field(owner, "appendSlice"), &.{ try lowering.builder.identifier("allocator"), items }, true) };
-    const sync = node.Statement{ .assignment = .{ .target = try lowering.field(try lowering.field(owner, "items"), "len"), .value = try lowering.field(items, "len") } };
+    if (!@import("genz_options").generated_analysis) return @import("buffer_seed.zig").prepare(self, body, source);
 
-    try body.append(lowering.allocator, try lowering.builder.branch(try lowering.field(source, "owned"), &.{sync}, &.{copied}));
+    return @import("buffer_emission.zig").prepare(self, body, source);
 }

@@ -1,0 +1,47 @@
+import binary from "../../../../ast/context/binary"
+import conditional from "../../../../ast/context/conditional"
+import { ExpressionsBinaryOperator } from "../../../../printer/model/expressions"
+
+import type { Redirected as Input, Redirected as Output } from "../model"
+
+export default function (in: Input): Output {
+    return loop({
+        value: in,
+        index: 0
+    }, {
+        while: current => current.index < in.source.history.types.length,
+        next: current => {
+            const index = current.index
+
+            if (in.source.history.types[index] == in.source.type_id) {
+                const equal = binary({
+                    state: current.value.context,
+                    operator: ExpressionsBinaryOperator.Equal,
+                    left: in.owner,
+                    right: in.source.history.owners[index]
+                })
+                const ready = binary({
+                    state: equal.state,
+                    operator: ExpressionsBinaryOperator.LogicalAnd,
+                    left: in.source.history.ready[index],
+                    right: equal.id
+                })
+                const selected = conditional({
+                    state: ready.state,
+                    condition: ready.id,
+                    yes: in.source.history.values[index],
+                    no: current.value.items
+                })
+
+                current.value = {
+                    ...current.value,
+                    context: selected.state,
+                    items: selected.id
+                }
+            }
+
+            current.index += 1
+        },
+        return: current => current.value
+    })
+}

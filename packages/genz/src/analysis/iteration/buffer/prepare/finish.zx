@@ -1,0 +1,24 @@
+import branch from "../../../../ast/statements/branch"
+import empty from "../../../../ast/statements/empty"
+
+import type { Prepared as Input, Preparation as Output } from "../model"
+
+export default function (in: Input): Output {
+    const roots = branch({
+        table: empty({}),
+        base: 0,
+        condition: in.owned,
+        yes_start: in.context.source.statement_base,
+        yes_count: 1,
+        no_start: in.context.source.statement_base + 1,
+        no_count: 1
+    })
+
+    return {
+        expressions: in.context.expressions,
+        forms: in.context.forms,
+        statements: in.context.statements,
+        roots: roots.table,
+        valid: in.context.valid && roots.valid
+    }
+}

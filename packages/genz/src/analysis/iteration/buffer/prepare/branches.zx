@@ -1,0 +1,45 @@
+import bytes from "std:bytes"
+
+import assignment from "../../../../ast/context/assignment"
+import expression from "../../../../ast/context/expression_statement"
+import field from "../../../../ast/context/field"
+import { items_field } from "../../types/const"
+import { length_member } from "../const"
+
+import type { Prepared as Input, Prepared as Output } from "../model"
+
+export default function (in: Input): Output {
+    const owner_items = field({
+        state: in.context,
+        target: in.owner,
+        name: bytes.fromText(items_field)
+    })
+
+    const owner_length = field({
+        state: owner_items.state,
+        target: owner_items.id,
+        name: bytes.fromText(length_member)
+    })
+
+    const length = field({
+        state: owner_length.state,
+        target: in.items,
+        name: bytes.fromText(length_member)
+    })
+
+    const synced = assignment({
+        state: length.state,
+        target: owner_length.id,
+        value: length.id
+    })
+
+    const copied = expression({
+        state: synced,
+        value: in.copied
+    })
+
+    return {
+        ...in,
+        context: copied
+    }
+}

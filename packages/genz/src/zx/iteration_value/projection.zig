@@ -36,24 +36,7 @@ pub fn read(self: *Context, selected: Consumer, id: ir.ExprId, state: node.Expre
 }
 
 fn redirect(self: *Context, type_id: ir.TypeId, source: node.ExpressionId) Lower.Error!node.ExpressionId {
-    const lowering = self.lowering;
-    const owner = try lowering.field(source, "owner");
-    var items = try lowering.field(source, "items");
-    var records = self.transfers.iterator();
+    if (!@import("genz_options").generated_analysis) return @import("projection_seed.zig").redirect(self, type_id, source);
 
-    while (records.next()) |previous| {
-        if (previous.type_id != type_id) continue;
-
-        items = try lowering.builder.expression(.{ .conditional = .{
-            .condition = try @import("../intrinsics.zig").binary(lowering, .logical_and, previous.ready, try @import("../intrinsics.zig").binary(lowering, .equal, owner, previous.owner)),
-            .yes = previous.value,
-            .no = items,
-        } });
-    }
-
-    return lowering.builder.expression(.{ .object = .{ .type_expr = try @import("types.zig").get(self, type_id), .fields = try lowering.allocator.dupe(node.Field, &.{
-        .{ .name = "owner", .value = owner },
-        .{ .name = "items", .value = items },
-        .{ .name = "owned", .value = try lowering.field(source, "owned") },
-    }) } });
+    return @import("buffer_emission.zig").redirect(self, type_id, source);
 }
