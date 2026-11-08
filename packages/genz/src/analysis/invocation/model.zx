@@ -1,0 +1,37 @@
+import type { Capture } from "../../ast/expressions/fallible"
+import type { ExpressionsKind } from "../../printer/model/expressions"
+
+export type Expressions = {
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    identifier: u8[][],
+    field_target: u32[]
+}
+
+export type Input = {
+    expressions: Expressions,
+    callee: u32,
+    arguments: u32[],
+    expression_base: u32,
+    fallible: bool,
+    capture?: Capture
+}
+
+export type Nodes = {
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    call_callee: u32[],
+    call_arguments: u32[][],
+    try_value: u32[],
+    catch_value_value: u32[],
+    catch_value_capture: u8[][],
+    catch_value_label: u8[][],
+    catch_value_result: u32[]
+}
+
+export type Output = {
+    nodes: Nodes,
+    root: u32,
+    uses_allocator: bool,
+    valid: bool
+}

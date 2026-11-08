@@ -1,0 +1,26 @@
+import { ExpressionsKind } from "../../printer/model/expressions"
+
+import type {
+    ExpressionsBuiltinName
+} from "../../printer/model/expressions"
+
+export type Input = {
+    name: ExpressionsBuiltinName,
+    arguments: u32[]
+}
+
+export type Output = {
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    builtin_name: ExpressionsBuiltinName[],
+    builtin_arguments: u32[][]
+}
+
+export default function (in: Input): Output {
+    return {
+        tags: [ExpressionsKind.Builtin],
+        offsets: [0],
+        builtin_name: [in.name],
+        builtin_arguments: [in.arguments]
+    }
+}

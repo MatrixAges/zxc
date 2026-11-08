@@ -1,0 +1,74 @@
+import { max_u32 } from "core/const"
+
+import { ExpressionsKind } from "../../printer/model/expressions"
+import allocator from "./allocator"
+
+import type { Input, Nodes, Output } from "./model"
+
+export default function (in: Input): Output {
+    const uses_allocator = allocator(in)
+
+    const nodes: Nodes = {
+        tags: [ExpressionsKind.Call],
+        offsets: [0],
+        call_callee: [in.callee],
+        call_arguments: [in.arguments],
+        try_value: [],
+        catch_value_value: [],
+        catch_value_capture: [],
+        catch_value_label: [],
+        catch_value_result: []
+    }
+
+    if (!in.fallible || in.expression_base >= max_u32 - 1) {
+        return {
+            nodes,
+            root: in.expression_base,
+            uses_allocator,
+            valid: in.expression_base < max_u32 && !in.fallible
+        }
+    }
+
+    const capture = in.capture
+
+    if (capture == null) {
+        return {
+            nodes: {
+                ...nodes,
+                tags: [
+                    ExpressionsKind.Call,
+                    ExpressionsKind.TryValue
+                ],
+                offsets: [
+                    0,
+                    0
+                ],
+                try_value: [in.expression_base]
+            },
+            root: in.expression_base + 1,
+            uses_allocator,
+            valid: true
+        }
+    }
+
+    return {
+        nodes: {
+            ...nodes,
+            tags: [
+                ExpressionsKind.Call,
+                ExpressionsKind.CatchValue
+            ],
+            offsets: [
+                0,
+                0
+            ],
+            catch_value_value: [in.expression_base],
+            catch_value_capture: [capture.name],
+            catch_value_label: [capture.label],
+            catch_value_result: [capture.failure]
+        },
+        root: in.expression_base + 1,
+        uses_allocator,
+        valid: true
+    }
+}

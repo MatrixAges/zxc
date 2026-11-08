@@ -505,30 +505,15 @@ pub fn field(self: *Self, target: node.ExpressionId, name: []const u8) Error!nod
 }
 
 pub fn call(self: *Self, callee: node.ExpressionId, arguments: []const node.ExpressionId, fallible: bool) Error!node.ExpressionId {
-    const target = self.builder.nodes.get(callee);
+    if (!@import("genz_options").generated_analysis) return @import("invocation/seed.zig").call(self, callee, arguments, fallible);
 
-    if (target == .field) {
-        const owner = self.builder.nodes.get(target.field.target);
-
-        if (owner == .identifier and std.mem.eql(u8, owner.identifier, "allocator")) self.uses_allocator = true;
-    }
-
-    for (arguments) |argument_id| {
-        const argument = self.builder.nodes.get(argument_id);
-
-        if (argument == .identifier and std.mem.eql(u8, argument.identifier, "allocator")) self.uses_allocator = true;
-    }
-
-    const result = try self.builder.expression(.{ .call = .{ .callee = callee, .arguments = try self.allocator.dupe(node.ExpressionId, arguments) } });
-
-    if (!fallible) return result;
-    if (self.capture) |boundary| return self.builder.expression(.{ .catch_value = .{ .value = result, .capture = boundary.name, .label = boundary.label, .result = boundary.failure } });
-
-    return self.builder.expression(.{ .try_value = result });
+    return @import("invocation/call.zig").lower(self, callee, arguments, fallible);
 }
 
 pub fn builtin(self: *Self, name: @FieldType(@FieldType(node.Expression, "builtin"), "name"), arguments: []const node.ExpressionId) Error!node.ExpressionId {
-    return self.builder.expression(.{ .builtin = .{ .name = name, .arguments = try self.allocator.dupe(node.ExpressionId, arguments) } });
+    if (!@import("genz_options").generated_analysis) return @import("invocation/seed.zig").builtin(self, name, arguments);
+
+    return @import("invocation/builtin.zig").lower(self, name, arguments);
 }
 
 pub fn cast(self: *Self, type_expr: node.ExpressionId, value: node.ExpressionId) Error!node.ExpressionId {

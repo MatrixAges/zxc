@@ -1,0 +1,40 @@
+import integers from "std:integer"
+
+import { ExpressionsKind } from "../../printer/model/expressions"
+import identifier from "./identifier"
+
+import type { Input } from "./model"
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const expressions = in.expressions
+    const row = integers.widen(in.callee)
+
+    if (expressions.tags[row] == ExpressionsKind.Field) {
+        const offset = integers.widen(expressions.offsets[row])
+        const owner = expressions.field_target[offset]
+
+        if (identifier({
+            expressions,
+            id: owner
+        })) {
+            return true
+        }
+    }
+
+    return loop({
+        index: 0,
+        found: false
+    }, {
+        while: state => !state.found && state.index < in.arguments.length,
+        next: state => {
+            state.found = identifier({
+                expressions,
+                id: in.arguments[state.index]
+            })
+            state.index += 1
+        },
+        return: state => state.found
+    })
+}
