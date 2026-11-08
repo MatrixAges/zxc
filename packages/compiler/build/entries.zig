@@ -151,6 +151,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/uniqueness/layers/plan.rx", .name = "uniqueness_layers", .owner = .genz },
     .{ .path = "genz/analysis/shape/emit/build.rx", .name = "shape_declarations", .owner = .genz },
     .{ .path = "genz/analysis/templates/build.rx", .name = "template_emit", .owner = .genz },
+    .{ .path = "genz/analysis/comparison/equality/build.rx", .name = "equality_emit", .owner = .genz },
     .{ .path = "genz/analysis/imports/build.rx", .name = "native_imports", .owner = .genz },
     .{ .path = "genz/analysis/functions/requests/create.zx", .name = "function_requests_create", .owner = .genz },
     .{ .path = "genz/analysis/functions/requests/push.zx", .name = "function_requests_push", .owner = .genz },

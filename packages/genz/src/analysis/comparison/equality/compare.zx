@@ -1,0 +1,114 @@
+import integers from "std:integer"
+import { scalar_string } from "core/type_table/const"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import binary from "../../../ast/context/binary"
+import conditional from "../../../ast/context/conditional"
+import nullValue from "../../../ast/context/null_value"
+import optionalUnwrap from "../../../ast/context/optional_unwrap"
+import primitive from "../../../ast/context/primitive"
+import standard from "../../../ast/context/standard"
+import {
+    ExpressionsBinaryOperator,
+    ExpressionsPrimitive
+} from "../../../printer/model/expressions"
+import { memory_name, equal_name } from "./const"
+
+import type { Node as Output } from "../../../ast/context/model"
+import type { Compare as Input } from "./model"
+
+export default function compare(in: Input): Output {
+    const index = integers.widen(in.type_id)
+    const target = kind(in.types.kinds[index])
+    const string = target == Kind.Scalar && in.types.first[index] == scalar_string
+
+    if (string) {
+        const byte = primitive({
+            state: in.context,
+            value: ExpressionsPrimitive.U8
+        })
+
+        return standard({
+            state: byte.state,
+            path: [
+                memory_name,
+                equal_name
+            ],
+            arguments: [
+                byte.id,
+                in.left,
+                in.right
+            ],
+            fallible: false
+        })
+    }
+
+    if (target != Kind.Optional) {
+        return binary({
+            ...in.pick([
+                "left",
+                "right"
+            ]),
+            state: in.context,
+            operator: ExpressionsBinaryOperator.Equal
+        })
+    }
+
+    const first_null = nullValue(in.context)
+
+    const left_null = binary({
+        state: first_null.state,
+        operator: ExpressionsBinaryOperator.Equal,
+        left: in.left,
+        right: first_null.id
+    })
+
+    const second_null = nullValue(left_null.state)
+
+    const right_null = binary({
+        state: second_null.state,
+        operator: ExpressionsBinaryOperator.Equal,
+        left: in.right,
+        right: second_null.id
+    })
+
+    const either = binary({
+        state: right_null.state,
+        operator: ExpressionsBinaryOperator.LogicalOr,
+        left: left_null.id,
+        right: right_null.id
+    })
+
+    const both = binary({
+        state: either.state,
+        operator: ExpressionsBinaryOperator.LogicalAnd,
+        left: left_null.id,
+        right: right_null.id
+    })
+
+    const left = optionalUnwrap({
+        state: both.state,
+        value: in.left
+    })
+
+    const right = optionalUnwrap({
+        state: left.state,
+        value: in.right
+    })
+
+    const child = compare({
+        types: in.types,
+        type_id: in.types.first[index],
+        left: left.id,
+        right: right.id,
+        context: right.state
+    })
+
+    return conditional({
+        state: child.state,
+        condition: either.id,
+        yes: both.id,
+        no: child.id
+    })
+}

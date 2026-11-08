@@ -1,0 +1,33 @@
+import type { Table } from "core/type_table/model"
+import type { State as Context, Variables } from "../../../ast/context/model"
+import type { Columns as Forms } from "../../../ast/expressions/forms/model"
+import type { Columns as Expressions } from "../../../ast/expressions/model"
+import type { Columns as Statements } from "../../../ast/statements/model"
+
+export type Input = {
+    types: Table,
+    type_id: u32,
+    left: u32,
+    right: u32,
+    expression_base: u32,
+    statement_base: u32,
+    serial: u64
+}
+
+export type Compare = {
+    types: Table,
+    type_id: u32,
+    left: u32,
+    right: u32,
+    context: Context
+}
+
+export type Output = {
+    expressions: Expressions,
+    forms: Forms,
+    statements: Statements,
+    variables: Variables,
+    root: u32,
+    serial: u64,
+    valid: bool
+}

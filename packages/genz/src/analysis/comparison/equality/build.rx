@@ -1,0 +1,12 @@
+<Module>
+    <Type from="model" as="Equality" />
+
+    <Args in={Equality.Input} out={Equality.Output} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="bind" in={$ctx.initialize} />
+    <Call fn="compare" in={$ctx.bind} />
+    <Call fn="finish" in={$ctx.compare} />
+
+    <Return value={$ctx.finish} />
+</Module>

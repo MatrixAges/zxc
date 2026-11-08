@@ -1,0 +1,33 @@
+import finish from "../../../ast/finish"
+import { block_prefix } from "./const"
+
+import type { Node as Input } from "../../../ast/context/model"
+import type { Output } from "./model"
+
+export default function (in: Input): Output {
+    const result = finish({
+        ...in.state.pick([
+            "expressions",
+            "statements",
+            "serial"
+        ]),
+        ...in.state.source.pick([
+            "expression_base",
+            "statement_base"
+        ]),
+        prefix: block_prefix,
+        value: in.id
+    })
+
+    return {
+        ...result.pick([
+            "expressions",
+            "statements",
+            "serial"
+        ]),
+        forms: in.state.forms,
+        variables: in.state.variables,
+        root: result.id,
+        valid: in.state.valid && result.valid
+    }
+}

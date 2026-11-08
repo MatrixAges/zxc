@@ -1,0 +1,49 @@
+import bind from "../../../ast/bind"
+import { operand_prefix } from "./const"
+
+import type { Compare as Input, Compare as Output } from "./model"
+
+export default function (in: Input): Output {
+    const left = bind({
+        ...in.context.pick([
+            "expressions",
+            "statements",
+            "serial"
+        ]),
+        ...in.context.source.pick([
+            "expression_base",
+            "statement_base"
+        ]),
+        prefix: operand_prefix,
+        value: in.left
+    })
+
+    const right = bind({
+        ...left.pick([
+            "expressions",
+            "statements",
+            "serial"
+        ]),
+        ...in.context.source.pick([
+            "expression_base",
+            "statement_base"
+        ]),
+        prefix: operand_prefix,
+        value: in.right
+    })
+
+    return {
+        ...in,
+        left: left.id,
+        right: right.id,
+        context: {
+            ...in.context,
+            ...right.pick([
+                "expressions",
+                "statements",
+                "serial"
+            ]),
+            valid: in.context.valid && left.valid && right.valid
+        }
+    }
+}
