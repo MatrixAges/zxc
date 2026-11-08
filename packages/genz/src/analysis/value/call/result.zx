@@ -1,0 +1,29 @@
+import { Result } from "./model"
+
+import type { Returned as Input, Result as Output } from "./model"
+
+export default function (in: Input): Output {
+    if (in.boundary.pointer_result) {
+        return in.pointer || in.borrowed ? Result.Value : Result.Dereference
+    }
+
+    if (in.borrowed) {
+        return in.boundary.state_result ? Result.Borrow : Result.Address
+    }
+
+    if (in.boundary.state_result && !in.active) {
+        return Result.Convert
+    }
+
+    const plain = !in.boundary.state_result
+    const pointer = in.pointer
+    const product = in.boundary.product
+
+    const construct = (
+        - plain
+        - and pointer
+        - and product
+    )
+
+    return construct ? Result.Construct : Result.Value
+}

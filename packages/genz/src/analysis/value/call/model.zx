@@ -1,0 +1,76 @@
+import type { ExpressionKind } from "core/expression_table/kinds"
+import type { Lookup } from "core/integer/map/model"
+import type { Table } from "core/type_table/model"
+import type { Query } from "../../state/queries/model"
+
+export enum Expression {
+    Value,
+    Dereference,
+    Capture,
+    Object,
+    Tuple,
+    Collection,
+    Scope,
+    Iteration,
+    Match,
+    Conditional,
+    Invocation
+}
+
+export type Dispatch = {
+    kind: ExpressionKind,
+    type_kind: u8,
+    query: Query,
+    normalize: bool,
+    renew: bool,
+    active: bool,
+    cache: Lookup,
+    value_function: bool
+}
+
+export enum Argument { Value, BorrowObject, StackObject }
+
+export enum Result { Value, Dereference, Borrow, Address, Convert, Construct }
+
+export type Facts = {
+    types: Table,
+    cache: Lookup,
+    input: u32,
+    output: u32,
+    input_query: Query,
+    output_query: Query,
+    argument_kind: ExpressionKind,
+    active: bool,
+    allows_allocation: bool,
+    borrowed: bool,
+    pointer: bool
+}
+
+export type Input = Facts
+
+export type Boundary = {
+    legacy: bool,
+    product: bool,
+    state_result: bool,
+    pointer_result: bool,
+    transition: bool,
+    input_value: bool,
+    clip: bool
+}
+
+export type Returned = {
+    boundary: Boundary,
+    active: bool,
+    borrowed: bool,
+    pointer: bool
+}
+
+export type Output = {
+    argument: Argument,
+    legacy: bool,
+    legacy_deref: bool,
+    transition: bool,
+    input_value: bool,
+    clip: bool,
+    result: Result
+}

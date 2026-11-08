@@ -1,0 +1,49 @@
+import { ExpressionKind } from "core/expression_table/kinds"
+import lookup from "core/integer/map/lookup"
+
+import descendant from "../../types/descendant"
+import shared from "../shares_aggregate"
+import { Argument } from "./model"
+
+import type { Input, Argument as Output } from "./model"
+
+export default function (in: Input): Output {
+    const can_stack = !descendant({
+        types: in.types,
+        parent: in.output,
+        root: in.input
+    })
+
+    const object = in.argument_kind == ExpressionKind.Object
+    const active = in.active
+
+    const eligible = (
+        - !active
+        - and can_stack
+        - and object
+    )
+
+    if (!eligible) {
+        return Argument.Value
+    }
+
+    if (lookup(in.cache) != null) {
+        return Argument.Value
+    }
+
+    const shares = shared(in.pick([
+        "types",
+        "input",
+        "output"
+    ]))
+
+    if (in.pointer && shares) {
+        return Argument.Value
+    }
+
+    if (in.borrowed || !shares) {
+        return Argument.BorrowObject
+    }
+
+    return Argument.StackObject
+}

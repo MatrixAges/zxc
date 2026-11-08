@@ -1,0 +1,51 @@
+import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import { Property } from "../../state/queries/model"
+import query from "../../state/queries/read"
+
+import type { Facts as Input, Boundary as Output } from "./model"
+
+export default function (in: Input): Output {
+    const state_result = query({
+        value: in.output_query,
+        property: Property.Represented
+    })
+
+    const state_callee = state_result || query({
+        value: in.input_query,
+        property: Property.InlineRows
+    })
+
+    const target = kind(in.types.kinds[integers.widen(in.output)])
+    const product = target == Kind.Object || target == Kind.Tuple
+    const borrowed = in.borrowed
+    const active = in.active
+    const allows_allocation = in.allows_allocation
+
+    const eligible = (
+        - !borrowed
+        - and state_result
+        - and !active
+        - and !allows_allocation
+    )
+
+    const legacy = match {
+        eligible => query({
+            value: in.output_query,
+            property: Property.Nested
+        }),
+        _ => false
+    }
+
+    return {
+        legacy,
+        product,
+        state_result,
+        pointer_result: state_callee && !state_result && product,
+        transition: state_callee != active,
+        input_value: state_callee,
+        clip: state_callee && active
+    }
+}

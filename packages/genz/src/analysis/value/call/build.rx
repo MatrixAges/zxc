@@ -1,0 +1,32 @@
+<Module>
+    <Type from="model" as="Call" />
+
+    <Args in={Call.Input} out={Call.Output} />
+
+    <Call fn="argument" in={$in} />
+    <Call fn="boundary" in={$in} />
+
+    <Call
+        fn="result"
+        in={{
+            boundary: $ctx.boundary,
+            active: $in.active,
+            borrowed: $in.borrowed,
+            pointer: $in.pointer
+        }}
+    />
+
+    <Return
+        value={{
+            argument: $ctx.argument,
+            ...$ctx.boundary.pick([
+                "legacy",
+                "transition",
+                "input_value",
+                "clip"
+            ]),
+            legacy_deref: $ctx.boundary.product,
+            result: $ctx.result
+        }}
+    />
+</Module>

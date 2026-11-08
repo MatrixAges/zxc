@@ -1,0 +1,48 @@
+import { ExpressionKind } from "core/expression_table/kinds"
+import lookup from "core/integer/map/lookup"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import { Property } from "../../state/queries/model"
+import query from "../../state/queries/read"
+import { Expression } from "./model"
+
+import type { Dispatch as Input, Expression as Output } from "./model"
+
+export default function (in: Input): Output {
+    if (in.normalize) {
+        return Expression.Value
+    }
+
+    if (in.active && query({
+        value: in.query,
+        property: Property.Represented
+    })) {
+        return Expression.Value
+    }
+
+    const target = kind(in.type_kind)
+    const product = target == Kind.Object || target == Kind.Tuple
+    const fallback = product ? Expression.Dereference : Expression.Value
+
+    if (in.renew) {
+        return fallback
+    }
+
+    if (lookup(in.cache) != null) {
+        return fallback
+    }
+
+    return match in.kind {
+        ExpressionKind.Capture => Expression.Capture,
+        ExpressionKind.Object => Expression.Object,
+        ExpressionKind.Tuple => Expression.Tuple,
+        ExpressionKind.ListOperation => Expression.Collection,
+        ExpressionKind.Scope => Expression.Scope,
+        ExpressionKind.Iteration => Expression.Iteration,
+        ExpressionKind.Match => Expression.Match,
+        ExpressionKind.Conditional => Expression.Conditional,
+        ExpressionKind.Call => in.value_function ? Expression.Invocation : fallback,
+        _ => fallback
+    }
+}
