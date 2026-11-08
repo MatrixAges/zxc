@@ -1,0 +1,35 @@
+import crypto from "std:crypto"
+import integers from "std:integer"
+
+import { native_function, source_function } from "./const"
+
+import type { Input } from "./model"
+
+export type Output = void
+
+export default function (in: Input): Output {
+    crypto.updateSha256U64Le(in.hash, in.input_types.length)
+
+    const result = loop({
+        index: 0
+    }, {
+        while: state => state.index < in.input_types.length,
+        next: state => {
+            crypto.updateSha256U64Le(
+                in.hash,
+                integers.widen(in.input_types[state.index])
+            )
+            crypto.updateSha256U64Le(
+                in.hash,
+                integers.widen(in.output_types[state.index])
+            )
+
+            const external = in.native_modules[state.index] != null
+            const kind = external ? native_function : source_function
+
+            crypto.updateSha256Byte(in.hash, kind)
+
+            state.index += 1
+        }
+    })
+}

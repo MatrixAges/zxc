@@ -9,6 +9,8 @@ const Self = @This();
 /// changing it keeps its digest.
 hash: Hash = .init(.{}),
 pub fn program(value: ir.Program, basis: *const Basis) [32]u8 {
+    if (@import("genz_options").generated_analysis) return @import("identity/program.zig").build(value, basis);
+
     var self = Self{};
 
     self.bytes("zxc.uniqueness.program.v16");

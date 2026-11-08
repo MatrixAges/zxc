@@ -1,0 +1,10 @@
+import crypto from "std:crypto"
+
+import type { Bytes as Input } from "./model"
+
+export type Output = void
+
+export default function (in: Input): Output {
+    crypto.updateSha256U64Le(in.hash, in.bytes.length)
+    crypto.updateSha256(in.hash, in.bytes)
+}

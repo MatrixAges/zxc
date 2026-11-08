@@ -15,6 +15,13 @@ pub fn updateByte(in: *const anyopaque, value: u8) void {
     state(in).update(&.{value});
 }
 
+pub fn updateU64Le(in: *const anyopaque, value: u64) void {
+    var encoded: [@sizeOf(u64)]u8 = undefined;
+
+    std.mem.writeInt(u64, &encoded, value, .little);
+    state(in).update(&encoded);
+}
+
 /// Finalizes the borrowed state once; the returned digest belongs to allocator.
 pub fn digest(allocator: std.mem.Allocator, in: *const anyopaque) std.mem.Allocator.Error![]const u8 {
     const output = try allocator.create([Hash.digest_length]u8);

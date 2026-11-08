@@ -1,0 +1,23 @@
+import bytes from "std:bytes"
+import crypto from "std:crypto"
+
+import frame from "./bytes"
+import { identity_domain } from "./const"
+
+import type { Input } from "./model"
+
+export type Output = void
+
+export default function (in: Input): Output {
+    crypto.resetSha256(in.hash)
+
+    frame({
+        hash: in.hash,
+        bytes: bytes.fromText(identity_domain)
+    })
+
+    frame({
+        hash: in.hash,
+        bytes: in.types
+    })
+}

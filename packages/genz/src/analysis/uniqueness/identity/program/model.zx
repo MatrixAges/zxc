@@ -1,0 +1,22 @@
+import type { Sha256State } from "std:crypto"
+
+export type Input = {
+    hash: Sha256State,
+    types: u8[],
+    input_types: u32[],
+    output_types: u32[],
+    native_modules: u32?[],
+    held: u8[][],
+    written: u8[][],
+    return_only: u8[]
+}
+
+export type Bytes = {
+    hash: Sha256State,
+    bytes: u8[]
+}
+
+export type Rows = {
+    hash: Sha256State,
+    rows: u8[][]
+}

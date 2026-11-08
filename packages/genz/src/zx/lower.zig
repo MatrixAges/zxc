@@ -366,7 +366,7 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!node.ExpressionId {
                 const argument = try @import("aggregate.zig").bind(self, &body, try self.cast(try self.layoutExpr(argument_value.type_id), layout));
 
                 break :temporary try self.builder.expression(.{ .address_of = argument });
-            } else if (scalar and self.pure_functions[@backingInt(invocation.function)] and !self.cache.contains(invocation.argument)) temporary: {
+            } else if (scalar and (self.pure_functions[@backingInt(invocation.function)] or self.local_functions[@backingInt(invocation.function)]) and !self.cache.contains(invocation.argument)) temporary: {
                 break :temporary try @import("value_call/argument.zig").borrow(self, &body, invocation.argument);
             } else if (self.state_active) converted: {
                 const argument = try @import("aggregate.zig").bind(self, &body, try self.expr(invocation.argument));

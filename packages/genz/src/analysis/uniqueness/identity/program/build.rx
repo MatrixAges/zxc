@@ -1,0 +1,32 @@
+<Module>
+    <Type from="model" as="Identity" />
+
+    <Args in={Identity.Input} out={void} />
+
+    <Call fn="seed" in={$in} />
+    <Call fn="signatures" in={$in} />
+
+    <Call
+        fn="rows"
+        in={{
+            hash: $in.hash,
+            rows: $in.held
+        }}
+    />
+
+    <Call
+        fn="rows"
+        in={{
+            hash: $in.hash,
+            rows: $in.written
+        }}
+    />
+
+    <Call
+        fn="bytes"
+        in={{
+            hash: $in.hash,
+            bytes: $in.return_only
+        }}
+    />
+</Module>

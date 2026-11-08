@@ -13,6 +13,7 @@ pub const sha256Parts = hash.sha256Parts;
 pub const resetSha256 = sha256_state.reset;
 pub const updateSha256 = sha256_state.update;
 pub const updateSha256Byte = sha256_state.updateByte;
+pub const updateSha256U64Le = sha256_state.updateU64Le;
 pub const digestSha256 = sha256_state.digest;
 pub const sha512 = hash.sha512;
 pub const hmacSha256 = Sha256.hmac;
