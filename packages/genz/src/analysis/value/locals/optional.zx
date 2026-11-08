@@ -1,0 +1,77 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+import lookup from "core/integer/map/lookup"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import { Property } from "../../state/queries/model"
+import query from "../../state/queries/read"
+import shared from "../shares_aggregate"
+
+import type { Optional as Input } from "./model"
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const source = in.source
+    const active = source.active
+    const scalar = source.scalar
+    const tasks = source.tasks
+    const used = in.used
+
+    const blocked = (
+        - active
+        - or !scalar
+        - or tasks
+        - or !used
+    )
+
+    if (blocked) {
+        return false
+    }
+
+    if (lookup(in.cache) != null) {
+        return false
+    }
+
+    if (in.normalize || in.renew) {
+        return false
+    }
+
+    const position = integers.widen(in.value)
+    const type_id = source.expressions.types[position]
+    const index = integers.widen(type_id)
+    const optional = kind(source.types.kinds[index]) == Kind.Optional
+    const call = source.expressions.kinds[position] == ExpressionKind.Call
+
+    if (!optional || !call) {
+        return false
+    }
+
+    if (!query({
+        value: source.queries[index],
+        property: Property.Represented
+    })) {
+        return false
+    }
+
+    const child = integers.widen(source.types.first[index])
+    const target = kind(source.types.kinds[child])
+
+    if (target != Kind.Object && target != Kind.Tuple) {
+        return false
+    }
+
+    if (shared({
+        types: source.types,
+        input: type_id,
+        output: in.boundary
+    })) {
+        return false
+    }
+
+    const payload = integers.widen(source.expressions.payloads[position])
+    const callee = integers.widen(source.expressions.call_functions[payload])
+
+    return source.value_functions[callee]
+}

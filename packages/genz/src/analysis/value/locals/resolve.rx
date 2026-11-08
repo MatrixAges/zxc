@@ -1,0 +1,45 @@
+<Module>
+    <Type from="model" as="Locals" />
+
+    <Args in={Locals.Candidate} out={Locals.Resolution} />
+
+    <Call fn="borrowed" in={$in} />
+
+    <If on={$ctx.borrowed.resource == Locals.Resource.Aliases}>
+        <Call
+            module="../input_aliases/analyze"
+            in={$in.source.pick([
+                "names",
+                "expressions",
+                "control"
+            ])}
+        />
+
+        <Call
+            module="resume"
+            in={{
+                ...$in,
+                phase: Locals.Resource.Aliases,
+                cache: {
+                    ...$in.cache,
+                    aliases: $ctx.analyze
+                }
+            }}
+        />
+
+        <Return value={$ctx.resume} />
+    </If>
+
+    <If on={$ctx.borrowed.resource == Locals.Resource.Projections}>
+        <Call module="project" in={$in} />
+
+        <Return value={$ctx.project} />
+    </If>
+
+    <Return
+        value={{
+            cache: $in.cache,
+            borrowed: $ctx.borrowed.borrowed
+        }}
+    />
+</Module>

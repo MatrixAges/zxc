@@ -1,0 +1,54 @@
+import integers from "std:integer"
+import { StatementKind } from "core/control_table/model"
+import get from "core/integer/index/get"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import descendant from "../../types/descendant"
+
+import type { Input, Walk as Output } from "./model"
+
+export default function (in: Input): Output {
+    const skipped: Output = {
+        ...in.state,
+        position: in.state.position + 1
+    }
+
+    const control = in.control
+    const position = in.state.position
+
+    if (control.statement_kinds[position] != StatementKind.Constant) {
+        return skipped
+    }
+
+    const payload = integers.widen(control.statement_payloads[position])
+    const symbol = control.constant_symbols[payload]
+    const type_id = in.source.symbol_types[integers.widen(symbol)]
+    const index = integers.widen(type_id)
+
+    if (in.source.active && in.source.selected[index]) {
+        return skipped
+    }
+
+    if (kind(in.source.types.kinds[index]) != Kind.Object || descendant({
+        types: in.source.types,
+        parent: in.source.output_type,
+        root: type_id
+    })) {
+        return skipped
+    }
+
+    if (get({
+        index: in.state.index,
+        key: symbol
+    }) != null) {
+        return skipped
+    }
+
+    return {
+        ...in.state,
+        pending: true,
+        symbol,
+        value: control.constant_values[payload]
+    }
+}

@@ -1,0 +1,82 @@
+import type { Control } from "core/control_table/model"
+import type { Expressions } from "core/expression_table/model"
+import type { Index } from "core/integer/index/model"
+import type { Lookup } from "core/integer/map/model"
+import type { Table } from "core/type_table/model"
+import type { Query } from "../../state/queries/model"
+
+export enum Resource { None, Aliases, Projections }
+
+export type Facts = {
+    types: Table,
+    expressions: Expressions,
+    symbol_types: u32[],
+    names: string[],
+    control: Control,
+    queries: Query[],
+    selected: bool[],
+    native_modules: u32?[],
+    constructed_outputs: bool[],
+    value_functions: bool[],
+    active: bool,
+    value_output: bool,
+    scalar: bool,
+    tasks: bool,
+    output_type: u32
+}
+
+export type Cache = {
+    aliases?: bool[],
+    projected?: bool[]
+}
+
+export type Resolution = {
+    cache: Cache,
+    borrowed: bool
+}
+
+export type Candidate = {
+    source: Facts,
+    cache: Cache,
+    symbol: u32,
+    value: u32,
+    phase: Resource
+}
+
+export type Decision = {
+    borrowed: bool,
+    resource: Resource
+}
+
+export type Projection = {
+    expressions: Expressions,
+    value: u32
+}
+
+export type Walk = {
+    index: Index,
+    added: u32[],
+    cache: Cache,
+    position: u64,
+    pending: bool,
+    symbol: u32,
+    value: u32
+}
+
+export type Input = {
+    source: Facts,
+    control: Control,
+    first: u64,
+    count: u64,
+    state: Walk
+}
+
+export type Optional = {
+    source: Facts,
+    cache: Lookup,
+    value: u32,
+    boundary: u32,
+    used: bool,
+    normalize: bool,
+    renew: bool
+}

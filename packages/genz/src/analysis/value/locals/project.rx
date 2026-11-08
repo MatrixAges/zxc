@@ -1,0 +1,36 @@
+<Module>
+    <Type from="model" as="Locals" />
+
+    <Args in={Locals.Candidate} out={Locals.Resolution} />
+
+    <Call
+        module="../projections/analyze"
+        in={$in.source.pick([
+            "names",
+            "expressions",
+            "control"
+        ])}
+    />
+
+    <Call
+        fn="borrowed"
+        in={{
+            ...$in,
+            phase: Locals.Resource.Projections,
+            cache: {
+                ...$in.cache,
+                projected: $ctx.analyze
+            }
+        }}
+    />
+
+    <Return
+        value={{
+            cache: {
+                ...$in.cache,
+                projected: $ctx.analyze
+            },
+            borrowed: $ctx.borrowed.borrowed
+        }}
+    />
+</Module>

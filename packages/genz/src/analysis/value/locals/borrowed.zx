@@ -1,0 +1,99 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import { Property } from "../../state/queries/model"
+import query from "../../state/queries/read"
+import inputProjection from "./input_projection"
+import { Resource } from "./model"
+
+import type { Candidate as Input, Decision as Output } from "./model"
+
+export default function (in: Input): Output {
+    const source = in.source
+    const position = integers.widen(in.value)
+
+    const owned: Output = {
+        borrowed: false,
+        resource: Resource.None
+    }
+
+    if (in.phase == Resource.None) {
+        const type_id =
+            integers.widen(source.symbol_types[integers.widen(in.symbol)])
+
+        if (source.active && query({
+            value: source.queries[type_id],
+            property: Property.Represented
+        })) {
+            return owned
+        }
+
+        const target = source.expressions.kinds[position]
+        const payload = integers.widen(source.expressions.payloads[position])
+
+        if (target == ExpressionKind.Call) {
+            const callee = integers.widen(source.expressions.call_functions[payload])
+
+            return {
+                ...owned,
+                borrowed: source.native_modules[callee] != null ||
+                    !source.constructed_outputs[callee]
+            }
+        }
+
+        const projection = match target {
+            ExpressionKind.Reference => true,
+            ExpressionKind.Field => true,
+            ExpressionKind.TupleField => true,
+            ExpressionKind.Index => true,
+            ExpressionKind.OptionalValue => true,
+            _ => false
+        }
+
+        if (!projection) {
+            return owned
+        }
+
+        if (!source.active || inputProjection({
+            expressions: source.expressions,
+            value: in.value
+        })) {
+            return {
+                ...owned,
+                borrowed: true
+            }
+        }
+    }
+
+    if (in.phase != Resource.Projections) {
+        const aliases = in.cache.aliases
+
+        if (aliases == null) {
+            return {
+                ...owned,
+                resource: Resource.Aliases
+            }
+        }
+
+        if (aliases[position]) {
+            return {
+                ...owned,
+                borrowed: true
+            }
+        }
+    }
+
+    const projected = in.cache.projected
+
+    if (projected == null) {
+        return {
+            ...owned,
+            resource: Resource.Projections
+        }
+    }
+
+    return {
+        ...owned,
+        borrowed: projected[integers.widen(in.symbol)]
+    }
+}

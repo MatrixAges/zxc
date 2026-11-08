@@ -1,0 +1,36 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import { input_symbol } from "./const"
+
+import type { Projection as Input } from "./model"
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    return loop({
+        value: in.value,
+        complete: false,
+        found: false
+    }, {
+        while: current => !current.complete,
+        next: current => {
+            const position = integers.widen(current.value)
+            const payload = integers.widen(in.expressions.payloads[position])
+            const target = in.expressions.kinds[position]
+            const projection = target == ExpressionKind.Field ||
+                target == ExpressionKind.TupleField
+
+            if (projection) {
+                current.value = in.expressions.projection_targets[payload]
+            } else if (target == ExpressionKind.OptionalValue) {
+                current.value = in.expressions.optional_values[payload]
+            } else {
+                current.found = target == ExpressionKind.Reference &&
+                    in.expressions.references[payload] == input_symbol
+                current.complete = true
+            }
+        },
+        return: current => current.found
+    })
+}

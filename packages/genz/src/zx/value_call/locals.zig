@@ -1,87 +1,145 @@
 const std = @import("std");
-const ir = @import("zx").ir;
+const zx = @import("zx");
+const ir = zx.ir;
 const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
-const analysis = @import("analysis.zig");
+const seed = @import("locals_seed.zig");
+const generated = @import("genz_options").generated_analysis;
 
 pub fn register(self: *Lower, statements: ir.Block) Lower.Error![]const ir.SymbolId {
-    if (!self.value_output and !self.entry_flags.scalar) return &.{};
+    if (!generated) return seed.register(self, statements);
 
-    var symbols: std.ArrayList(ir.SymbolId) = .empty;
+    const entry = @import("generated_value_local_register");
+    const Parameter = @typeInfo(@TypeOf(entry.executeState)).@"fn".param_types[1].?;
+    const Input = Child(Parameter);
+    const Facts = std.meta.Child(@FieldType(Input, "source"));
+    const Walk = @FieldType(Input, "state");
+    const types = ir.TypeTable.borrow(std.meta.Child(@FieldType(Facts, "types")), self.program.types);
+    const data = facts(self, Facts, &types);
 
-    for (0..statements.len) |statement_index| {
-        const statement = statements.at(statement_index);
+    const state: Walk = .{
+        .index = zx.columns.view(@FieldType(Walk, "index"), self.stack_symbols.current().*),
+        .added = .{ .items = &.{}, .storage = .plain },
+        .cache = cache(self, @FieldType(Walk, "cache")),
+        .position = statements.first,
+        .pending = false,
+        .symbol = 0,
+        .value = 0,
+    };
 
-        switch (statement) {
-            .constant => |binding| {
-                const type_id = self.program.symbols.at(@backingInt(binding.symbol)).type_id;
+    const input: Input = .{
+        .source = &data,
+        .control = zx.columns.pointer(@FieldType(Input, "control"), statements.control),
+        .first = statements.first,
+        .count = statements.len,
+        .state = state,
+    };
 
-                if (@import("../state_value/root.zig").selected(self, type_id)) continue;
-                if (self.program.typeOf(type_id) != .object or analysis.containsDescendant(self.program, self.program.output_type, type_id)) continue;
-                if (self.stack_symbols.contains(binding.symbol)) continue;
-                if (try borrowed(self, binding.symbol, binding.value)) continue;
-                try symbols.append(self.allocator, binding.symbol);
-                try self.stack_symbols.put(self.allocator, binding.symbol, {});
-            },
-            else => {},
-        }
-    }
+    const output = entry.executeState(self.allocator, if (@typeInfo(Parameter) == .pointer) &input else input) catch |err| return failure(err);
+    const current = self.stack_symbols.current();
 
-    return symbols.toOwnedSlice(self.allocator);
+    current.* = zx.columns.view(@TypeOf(current.*), output.index);
+
+    publish(self, output.cache);
+    comptime std.debug.assert(@typeInfo(ir.SymbolId).@"enum".tag_type == u32);
+
+    return @as([*]const ir.SymbolId, @ptrCast(output.added.items.ptr))[0..output.added.items.len];
 }
 
 pub fn borrowed(self: *Lower, symbol: ir.SymbolId, value: ir.ExprId) Lower.Error!bool {
-    const type_id = self.program.symbols.at(@backingInt(symbol)).type_id;
+    if (!generated) return seed.borrowed(self, symbol, value);
 
-    if (self.state_active and self.state_plan.represented(self.program, type_id)) return false;
+    const entry = @import("generated_value_local_resolve");
+    const Parameter = @typeInfo(@TypeOf(entry.executeState)).@"fn".param_types[1].?;
+    const Input = Child(Parameter);
+    const Facts = std.meta.Child(@FieldType(Input, "source"));
+    const types = ir.TypeTable.borrow(std.meta.Child(@FieldType(Facts, "types")), self.program.types);
+    const data = facts(self, Facts, &types);
 
-    switch (self.program.expression(value).value) {
-        .reference, .field, .tuple_field, .index, .optional_value => {},
-        .call => |invocation| {
-            const function = self.program.functions.at(@backingInt(invocation.function));
+    const input: Input = .{
+        .source = &data,
+        .cache = cache(self, @FieldType(Input, "cache")),
+        .symbol = @backingInt(symbol),
+        .value = @backingInt(value),
+        .phase = .None,
+    };
 
-            return function.external != null or !self.constructed_outputs[@backingInt(invocation.function)];
-        },
-        else => return false,
-    }
+    const output = entry.executeState(self.allocator, if (@typeInfo(Parameter) == .pointer) &input else input) catch |err| return failure(err);
 
-    if (!self.state_active or inputProjection(self.program, value)) return true;
-    if (self.input_aliases == null) self.input_aliases = try @import("input_aliases.zig").expressions(self.allocator, self.program);
-    if (self.input_aliases.?[@backingInt(value)]) return true;
-    if (self.projected_symbols == null) self.projected_symbols = try @import("projections.zig").symbols(self.allocator, self.program);
+    publish(self, output.cache);
 
-    return self.projected_symbols.?[@backingInt(symbol)];
+    return output.borrowed;
 }
 
 pub fn optionalCall(self: *Lower, body: *std.ArrayList(node.Statement), symbol: ir.SymbolId, value: ir.ExprId, boundary: ir.TypeId) Lower.Error!?node.ExpressionId {
-    if (self.state_active or !self.entry_flags.scalar or self.entry_flags.tasks or !self.used[@backingInt(symbol)]) return null;
-    if (self.cache.contains(value) or self.plan.get(value).normalize or self.plan.get(value).renew) return null;
+    if (!generated) return seed.optionalCall(self, body, symbol, value, boundary);
 
-    const expression = self.program.expression(value);
-    const result = self.program.typeOf(expression.type_id);
+    const entry = @import("generated_value_local_optional");
+    const Input = std.meta.Child(entry.Input);
+    const Facts = std.meta.Child(@FieldType(Input, "source"));
+    const types = ir.TypeTable.borrow(std.meta.Child(@FieldType(Facts, "types")), self.program.types);
+    const data = facts(self, Facts, &types);
+    const Lookup = std.meta.Child(@FieldType(Input, "cache"));
+    const cached: Lookup = .{ .count = self.cache.state.count, .metadata = self.cache.state.metadata.items, .keys = self.cache.state.keys.items, .key = @backingInt(value) };
+    const flags = self.plan.get(value);
 
-    if (result != .optional or expression.value != .call) return null;
-    if (!self.state_plan.represented(self.program, expression.type_id)) return null;
+    const input: Input = .{
+        .source = &data,
+        .cache = &cached,
+        .value = @backingInt(value),
+        .boundary = @backingInt(boundary),
+        .used = self.used[@backingInt(symbol)],
+        .normalize = flags.normalize,
+        .renew = flags.renew,
+    };
 
-    const child = self.program.typeOf(result.optional);
+    var fixed = std.heap.FixedBufferAllocator.init(&.{});
+    const selected = zx.columns.invoke(entry.executeValue, fixed.allocator(), &input) catch |err| return failure(err);
 
-    if (child != .object and child != .tuple) return null;
-    if (analysis.sharesAggregate(self.program, expression.type_id, boundary)) return null;
+    if (!selected) return null;
 
-    const invocation = expression.value.call;
-
-    if (!self.value_functions[@backingInt(invocation.function)]) return null;
-
-    return try @import("root.zig").borrowInvocation(self, body, invocation);
+    return try @import("root.zig").borrowInvocation(self, body, self.program.expression(value).value.call);
 }
 
-fn inputProjection(program: ir.Program, id: ir.ExprId) bool {
-    var current = id;
+fn cache(self: *const Lower, comptime Cache: type) Cache {
+    return .{
+        .aliases = if (self.input_aliases) |items| .{ .items = items, .storage = .plain } else null,
+        .projected = if (self.projected_symbols) |items| .{ .items = items, .storage = .plain } else null,
+    };
+}
 
-    while (true) switch (program.expression(current).value) {
-        .field, .tuple_field => |projection| current = projection.target,
-        .optional_value => |child| current = child,
-        .reference => |symbol| return @backingInt(symbol) == 0,
-        else => return false,
+fn publish(self: *Lower, value: anytype) void {
+    self.input_aliases = if (value.aliases) |items| items.items else null;
+    self.projected_symbols = if (value.projected) |items| items.items else null;
+}
+
+fn facts(self: *const Lower, comptime Facts: type, types: anytype) Facts {
+    return .{
+        .types = types,
+        .expressions = zx.columns.pointer(@FieldType(Facts, "expressions"), &self.program.expressions),
+        .symbol_types = self.program.symbols.types,
+        .names = self.program.symbols.names,
+        .control = zx.columns.pointer(@FieldType(Facts, "control"), self.program.body.control),
+        .queries = zx.columns.slice(@FieldType(Facts, "queries"), self.state_plan.queries),
+        .selected = self.state_plan.selected,
+        .native_modules = self.program.functions.native_modules,
+        .constructed_outputs = self.constructed_outputs,
+        .value_functions = self.value_functions,
+        .active = self.state_active,
+        .value_output = self.value_output,
+        .scalar = self.entry_flags.scalar,
+        .tasks = self.entry_flags.tasks,
+        .output_type = @backingInt(self.program.output_type),
+    };
+}
+
+fn Child(comptime Value: type) type {
+    return if (@typeInfo(Value) == .pointer) std.meta.Child(Value) else Value;
+}
+
+fn failure(err: anyerror) Lower.Error {
+    return switch (err) {
+        error.OutOfMemory, error.IntegerOverflow, error.Overflow => error.OutOfMemory,
+        else => @panic("invalid local value registration"),
     };
 }

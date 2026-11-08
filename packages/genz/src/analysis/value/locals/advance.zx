@@ -1,0 +1,54 @@
+import insert from "core/integer/index/insert"
+
+import candidate from "./candidate"
+import { Resource } from "./model"
+import resolve from "./resolve.rx"
+
+import type { Input, Walk as Output } from "./model"
+
+export default function (in: Input): Output {
+    if (!in.source.value_output && !in.source.scalar) {
+        return in.state
+    }
+
+    const source = in.source
+    const end = in.first + in.count
+
+    return loop(in.state, {
+        while: current => current.position < end,
+        next: current => {
+            if (!current.pending) {
+                current = candidate({
+                    ...in,
+                    state: current
+                })
+            }
+
+            if (current.pending) {
+                const decision = resolve({
+                    source,
+                    cache: current.cache,
+                    symbol: current.symbol,
+                    value: current.value,
+                    phase: Resource.None
+                })
+
+                current.cache = decision.cache
+
+                if (!decision.borrowed) {
+                    const added = current.added.push(current.symbol)[0]
+                    const registered = insert({
+                        index: current.index,
+                        key: current.symbol
+                    })
+
+                    current.added = added
+                    current.index = registered.index
+                }
+
+                current.pending = false
+                current.position += 1
+            }
+        }
+    })
+}

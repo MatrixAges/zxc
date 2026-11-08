@@ -1,0 +1,20 @@
+<Module>
+    <Type from="model" as="Locals" />
+
+    <Args in={Locals.Candidate} out={Locals.Resolution} />
+
+    <Call fn="borrowed" in={$in} />
+
+    <If on={$ctx.borrowed.resource == Locals.Resource.Projections}>
+        <Call module="project" in={$in} />
+
+        <Return value={$ctx.project} />
+    </If>
+
+    <Return
+        value={{
+            cache: $in.cache,
+            borrowed: $ctx.borrowed.borrowed
+        }}
+    />
+</Module>
