@@ -292,7 +292,7 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!node.ExpressionId {
             const raw = try self.abiNestedItems(child);
             const source = raw orelse try @import("state_value/list.zig").expression(self, child);
 
-            break :blk self.cast(value_type, try self.field(source, "len"));
+            break :blk @import("access/emit.zig").length(self, source, value_type);
         },
         .unary => |unary| @import("operators/unary.zig").lower(self, unary),
         .binary => |operation| self.binary(operation),
@@ -316,7 +316,7 @@ fn projectedField(self: *Self, target: ir.ExprId, id: ir.TypeId, name: []const u
     var value = try self.field(raw orelse try self.projection(target), name);
 
     if (self.loop_fields) |context| {
-        if (context.field(self, target, name)) value = try self.builder.expression(.{ .dereference = value });
+        if (context.field(self, target, name)) value = try @import("access/emit.zig").dereference(self, value);
     }
 
     const route = @import("access/projection/rules.zig").result(self, id, target_type, raw != null, true);
@@ -399,7 +399,7 @@ pub fn layoutExpr(self: *Self, id: ir.TypeId) Error!node.ExpressionId {
 }
 
 pub fn field(self: *Self, target: node.ExpressionId, name: []const u8) Error!node.ExpressionId {
-    return self.builder.expression(.{ .field = .{ .target = target, .name = name } });
+    return @import("access/emit.zig").field(self, target, name);
 }
 
 pub fn call(self: *Self, callee: node.ExpressionId, arguments: []const node.ExpressionId, fallible: bool) Error!node.ExpressionId {

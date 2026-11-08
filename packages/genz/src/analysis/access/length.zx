@@ -1,0 +1,38 @@
+import bytes from "std:bytes"
+
+import {
+    ExpressionsKind,
+    ExpressionsBuiltinName
+} from "../../printer/model/expressions"
+import { length_member } from "../intrinsics/index/const"
+
+export type Input = {
+    source: u32,
+    arguments: u32[]
+}
+
+export type Output = {
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    field_target: u32[],
+    field_name: u8[][],
+    builtin_name: ExpressionsBuiltinName[],
+    builtin_arguments: u32[][]
+}
+
+export default function (in: Input): Output {
+    return {
+        tags: [
+            ExpressionsKind.Field,
+            ExpressionsKind.Builtin
+        ],
+        offsets: [
+            0,
+            0
+        ],
+        field_target: [in.source],
+        field_name: [bytes.fromText(length_member)],
+        builtin_name: [ExpressionsBuiltinName.As],
+        builtin_arguments: [in.arguments]
+    }
+}
