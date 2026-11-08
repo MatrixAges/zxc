@@ -55,6 +55,8 @@ const Remembered = struct {
     found: []bool,
     /// The key of a body: its content within the types, and the summaries of each function it calls.
     fn key(self: Remembered, flow: Self, function: ir.Function, index: usize) Memo.Digest {
+        if (generated_analysis) return @import("flow/key.zig").build(flow, function, &self.types, &self.contents[index]);
+
         var hash = @import("zx").Sha256.init(.{});
         var result: Memo.Digest = undefined;
 

@@ -1,0 +1,16 @@
+import bytes from "std:bytes"
+import crypto from "std:crypto"
+
+import { identity_domain } from "./const"
+
+import type { Sha256State as Output } from "std:crypto"
+import type { Input } from "./model"
+
+export default function (in: Input): Output {
+    crypto.resetSha256(in.hash)
+    crypto.updateSha256(in.hash, bytes.fromText(identity_domain))
+    crypto.updateSha256(in.hash, in.types)
+    crypto.updateSha256(in.hash, in.content)
+
+    return in.hash
+}

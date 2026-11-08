@@ -5,6 +5,9 @@ pub fn build(b: *std.Build) void {
     const optimize = b.standardOptimizeOption(.{});
     const stage0 = b.option([]const u8, "stage0", "Pinned bootstrap generator executable; empty uses the initial seed") orelse "";
     const standard = b.addModule("standard", .{ .root_source_file = b.dependency("zxc_std", .{}).path("src/root.zig"), .target = target, .optimize = optimize });
+
+    standard.addImport("sha256_backend", b.dependency("zxc_std", .{ .target = target, .optimize = optimize }).module("sha256_backend"));
+
     const lexer = @import("build/lexer.zig");
     const lexer_source = lexer.generate(b, optimize, stage0);
     const parser = @import("build/parser.zig");

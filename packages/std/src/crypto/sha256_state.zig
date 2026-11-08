@@ -1,12 +1,12 @@
 const std = @import("std");
-const Hash = std.crypto.hash.sha2.Sha256;
+const Hash = @import("sha256_backend").Sha256;
 
 /// Initializes or restarts host-provided Hash storage without allocating.
 pub fn reset(in: *const anyopaque) void {
     state(in).* = Hash.init(.{});
 }
 
-/// Borrows an initialized Sha256 owned by the host. Updates and finalization require exclusive access.
+/// Borrows an initialized standard.Sha256 owned by the host. Updates and finalization require exclusive access.
 pub fn update(in: *const anyopaque, bytes: []const u8) void {
     state(in).update(bytes);
 }

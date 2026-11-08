@@ -1,3 +1,4 @@
+pub const Sha256 = @import("sha256_backend").Sha256;
 pub const encoding = @import("encoding.zig");
 pub const querystring = @import("querystring/root.zig");
 pub const zlib = @import("zlib/root.zig");

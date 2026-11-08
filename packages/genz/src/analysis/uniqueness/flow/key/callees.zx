@@ -1,0 +1,42 @@
+import crypto from "std:crypto"
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import word from "./word"
+
+import type { Input } from "./model"
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const result = loop({
+        index: 0
+    }, {
+        while: state => state.index < in.kinds.length,
+        next: state => {
+            if (in.kinds[state.index] == ExpressionKind.Call) {
+                const payload = integers.widen(in.payloads[state.index])
+                const callee = integers.widen(in.call_functions[payload])
+                const held = in.held[callee]
+                const text = in.text_held[callee]
+
+                word({
+                    hash: in.hash,
+                    value: integers.narrow(held.length),
+                    little_endian: in.little_endian
+                })
+                crypto.updateSha256(in.hash, held)
+
+                word({
+                    hash: in.hash,
+                    value: integers.narrow(text.length),
+                    little_endian: in.little_endian
+                })
+                crypto.updateSha256(in.hash, text)
+                crypto.updateSha256(in.hash, in.written[callee])
+            }
+
+            state.index += 1
+        }
+    })
+}

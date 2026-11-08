@@ -112,6 +112,8 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
             .imports = &.{.{ .name = "zxc_abi", .module = abi }},
         });
 
+        standard.addImport("sha256_backend", b.dependency("zxc_std", .{ .target = target, .optimize = optimize }).module("sha256_backend"));
+
         const fixture = b.createModule(.{
             .root_source_file = b.path("tests/standard/resources/fs/fixture.zig"),
             .target = target,

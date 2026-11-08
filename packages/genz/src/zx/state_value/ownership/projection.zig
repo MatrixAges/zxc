@@ -24,7 +24,7 @@ pub fn lower(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId, 
 
     const query: Query = .{ .facts = &facts, .node = @backingInt(id), .type_id = @backingInt(type_id), .slot = slot };
     const outline: Outline = .{ .source = &query, .referenced = self.state_plan.borrowed };
-    var hash: std.crypto.hash.sha2.Sha256 = undefined;
+    var hash: zx.Sha256 = undefined;
 
     const plan_input: PlanInput = .{
         .source = &outline,

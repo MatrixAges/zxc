@@ -221,6 +221,8 @@ pub fn shared(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
         .imports = &.{.{ .name = "zxc_abi", .module = abi }},
     });
 
+    standard.addImport("sha256_backend", b.dependency("zxc_std", .{ .target = target, .optimize = optimize }).module("sha256_backend"));
+
     const string = b.createModule(.{ .root_source_file = b.dependency("zxc_std", .{}).path("src/string.zig"), .target = target, .optimize = optimize, .strip = strip });
 
     const generated = b.createModule(.{
@@ -389,7 +391,9 @@ fn cachedObjects(b: *std.Build, optimize: std.builtin.OptimizeMode, source: Sour
     run.addFileArg(b.path("build/partition/bridge.zig"));
     run.addArgs(&.{ "--", "build-obj", if (llvm) "-fllvm" else "-fno-llvm", if (strip orelse false) "-fstrip" else "-fno-strip", level, "--dep", "zxc_bridge", "--dep", "zxc_functions", "-Mroot=%generated%/part_%index%/root.zig" });
     run.addArgs(stripped);
-    run.addArgs(&.{ level, "-Mzxc_abi=%generated%/types.zig", level, "--dep", "zxc_abi", b.fmt("-Mzxc_standard={s}", .{b.dependency("zxc_std", .{}).builder.root.joinString(b.allocator, "src/root.zig") catch @panic("out of memory")}) });
+    run.addArgs(&.{ level, "-Mzxc_abi=%generated%/types.zig", level, "--dep", "zxc_abi", "--dep", "sha256_backend", b.fmt("-Mzxc_standard={s}", .{b.dependency("zxc_std", .{}).builder.root.joinString(b.allocator, "src/root.zig") catch @panic("out of memory")}) });
+    run.addArgs(stripped);
+    run.addArgs(&.{ level, b.fmt("-Msha256_backend={s}", .{b.dependency("zxc_std", .{}).builder.root.joinString(b.allocator, "src/crypto/sha256.zig") catch @panic("out of memory")}) });
     run.addArgs(stripped);
     run.addArgs(&.{ level, b.fmt("-Mzxc_string={s}", .{b.dependency("zxc_std", .{}).builder.root.joinString(b.allocator, "src/string.zig") catch @panic("out of memory")}) });
     run.addArgs(stripped);
