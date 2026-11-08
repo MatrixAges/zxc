@@ -1,9 +1,5 @@
-import bytes from "std:bytes"
-
 import call from "./call"
-import { standard_name } from "./const"
-import field from "./field"
-import identifier from "./identifier"
+import standardField from "./standard_field"
 
 import type { State, Node } from "./model"
 
@@ -17,25 +13,9 @@ export type Input = {
 export type Output = Node
 
 export default function (in: Input): Output {
-    const root = identifier({
+    const target = standardField({
         state: in.state,
-        name: bytes.fromText(standard_name)
-    })
-
-    const target = loop({
-        node: root,
-        index: 0
-    }, {
-        while: current => current.node.state.valid && current.index < in.path.length,
-        next: current => {
-            current.node = field({
-                state: current.node.state,
-                target: current.node.id,
-                name: bytes.fromText(in.path[current.index])
-            })
-            current.index += 1
-        },
-        return: current => current.node
+        path: in.path
     })
 
     return call({

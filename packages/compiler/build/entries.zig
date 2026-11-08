@@ -190,6 +190,8 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/store/transaction/declaration.zx", .name = "store_pending_type", .owner = .genz },
     .{ .path = "genz/analysis/store/transaction/initialize.rx", .name = "store_pending_initial", .owner = .genz },
     .{ .path = "genz/analysis/store/transaction/commit.zx", .name = "store_commit", .owner = .genz },
+    .{ .path = "genz/analysis/external/build.rx", .name = "external_body", .owner = .genz },
+    .{ .path = "genz/analysis/external/prototype.zx", .name = "external_prototype", .owner = .genz },
     .{ .path = "genz/analysis/access/projection/raw.zx", .name = "projection_raw", .owner = .genz },
     .{ .path = "genz/analysis/access/projection/route.zx", .name = "projection_route", .owner = .genz },
     .{ .path = "genz/analysis/access/projection/anchor.zx", .name = "projection_anchor", .owner = .genz },

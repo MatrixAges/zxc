@@ -1,0 +1,51 @@
+import type { Input as Bases, State as Context } from "../../ast/context/model"
+import type { Columns as Expressions } from "../../ast/expressions/model"
+import type { StatementsKind } from "../../printer/model/statements"
+
+export type Input = {
+    native: u8[],
+    member: u8[][],
+    allocator_argument: bool,
+    io_argument: bool,
+    process_argument: bool,
+    expand_tuple: bool,
+    fallible: bool,
+    input_kind: u8,
+    input_scalar: u32,
+    input_count: u32,
+    bases: Bases
+}
+
+export type State = {
+    source: Input,
+    context: Context,
+    callee: u32,
+    allocator: u32,
+    arguments: u32[],
+    no_input: bool
+}
+
+export type Called = {
+    state: State,
+    returned: u32,
+    discard_input?: u32,
+    uses_allocator: bool
+}
+
+export type Statements = {
+    tags: StatementsKind[],
+    offsets: u32[],
+    discard: u32[],
+    constant_name: u8[][],
+    constant_type_expr: u32?[],
+    constant_value: u32[],
+    constant_exported: bool[],
+    result: u32?[]
+}
+
+export type Output = {
+    expressions: Expressions,
+    statements: Statements,
+    uses_allocator: bool,
+    valid: bool
+}

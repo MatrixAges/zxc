@@ -1,50 +1,53 @@
 const std = @import("std");
-const ir = @import("zx").ir;
+const zx = @import("zx");
+const ir = zx.ir;
 const node = @import("../node.zig");
+const view = @import("../node/view.zig");
 const Lower = @import("lower.zig");
+const generated = @import("genz_options").generated_analysis;
+const seed = @import("external_seed.zig");
 
 pub fn lower(self: *Lower, function: ir.Function, index: usize) Lower.Error!node.Declaration {
+    if (!generated) return seed.lower(self, function, index);
+
+    const entry = @import("generated_external_body");
+    const Input = std.meta.Child(entry.Input);
+    const Bases = std.meta.Child(@FieldType(Input, "bases"));
     const implementation = function.external.?;
-    self.uses_allocator = false;
+    const row = @backingInt(function.input_type);
+    var bases = context(Bases, self);
 
-    var callee = try self.builder.identifier(self.native_names[@backingInt(implementation.module)]);
+    bases.capture = if (self.capture) |capture| &.{ .name = capture.name, .label = capture.label, .failure = @backingInt(capture.failure) } else null;
 
-    for (implementation.member) |part| callee = try self.field(callee, part);
+    const input: Input = .{
+        .native = self.native_names[@backingInt(implementation.module)],
+        .member = implementation.member,
+        .allocator_argument = implementation.allocator_argument,
+        .io_argument = implementation.io_argument,
+        .process_argument = implementation.process_argument,
+        .expand_tuple = implementation.expand_tuple,
+        .fallible = implementation.fallible,
+        .input_kind = self.program.types.kinds[row],
+        .input_scalar = self.program.types.first[row],
+        .input_count = self.program.types.second[row],
+        .bases = &bases,
+    };
 
-    const allocator = try self.builder.identifier("allocator");
-    var arguments: std.ArrayList(node.ExpressionId) = .empty;
+    var scratch = std.heap.ArenaAllocator.init(self.workspace);
+    var buffer: [std.heap.page_size_min]u8 = undefined;
+    var memory = std.heap.BufferFirstAllocator.init(&buffer, scratch.allocator());
 
-    if (implementation.allocator_argument) try arguments.append(self.allocator, allocator);
-    if (implementation.io_argument) try arguments.append(self.allocator, try self.builder.identifier("io"));
-    if (implementation.process_argument) try arguments.append(self.allocator, try self.builder.identifier("process"));
+    defer scratch.deinit();
 
-    const input_type = self.program.typeOf(function.input_type);
-    const no_input = (implementation.expand_tuple and input_type.tuple.len == 0) or (input_type == .scalar and input_type.scalar == .void);
+    const result = entry.executeIn(memory.allocator(), &input) catch |err| return failure(err);
 
-    if (implementation.expand_tuple) {
-        for (0..input_type.tuple.len) |position| {
-            const argument = try self.field(try self.builder.identifier("in"), try std.fmt.allocPrint(self.allocator, "{d}", .{position}));
+    if (!result.valid) return error.OutOfMemory;
 
-            try arguments.append(self.allocator, argument);
-        }
-    } else if (!no_input) {
-        const argument = try self.builder.identifier("in");
-
-        try arguments.append(self.allocator, argument);
-    }
-
+    @import("../node/import_rows.zig").append(self.allocator, &self.builder.nodes.expressions, result.expressions) catch |err| return failure(err);
     var body: std.ArrayList(node.Statement) = .empty;
 
-    if (no_input) try body.append(self.allocator, .{ .discard = try self.builder.identifier("in") });
-
-    const returned = try self.call(callee, arguments.items, implementation.fallible);
-
-    try body.append(self.allocator, .{ .constant = .{ .name = "native_result", .value = returned } });
-
-    const result = try self.builder.identifier("native_result");
-
-    if (!self.uses_allocator) try body.append(self.allocator, .{ .discard = allocator });
-    try body.append(self.allocator, .{ .result = result });
+    @import("../node/import_statements.zig").appendBorrowingText(self.allocator, &body, result.statements) catch |err| return failure(err);
+    self.uses_allocator = result.uses_allocator;
 
     var declaration = try prototype(self, function, index);
 
@@ -54,14 +57,64 @@ pub fn lower(self: *Lower, function: ir.Function, index: usize) Lower.Error!node
 }
 
 pub fn prototype(self: *Lower, function: ir.Function, index: usize) Lower.Error!node.Function {
+    if (!generated) return seed.prototype(self, function, index);
+
+    const entry = @import("generated_external_prototype");
+    const Input = std.meta.Child(entry.Input);
+    const Bases = std.meta.Child(@FieldType(Input, "bases"));
     const implementation = function.external.?;
-    const parameters = try self.allocator.alloc(node.Field, 2 + @as(usize, @intFromBool(implementation.io_argument)) + @as(usize, @intFromBool(implementation.process_argument)));
+    const input_type = try self.typeExpr(function.input_type);
+    const output_type = try self.typeExpr(function.output_type);
+    var bases = context(Bases, self);
 
-    parameters[0] = .{ .name = "allocator", .value = try @import("intrinsics.zig").standardField(self, &.{ "mem", "Allocator" }) };
-    parameters[1] = .{ .name = "in", .value = try self.typeExpr(function.input_type) };
+    bases.capture = if (self.capture) |capture| &.{ .name = capture.name, .label = capture.label, .failure = @backingInt(capture.failure) } else null;
 
-    if (implementation.io_argument) parameters[2] = .{ .name = "io", .value = try @import("intrinsics.zig").standardField(self, &.{"Io"}) };
-    if (implementation.process_argument) parameters[parameters.len - 1] = .{ .name = "process", .value = try @import("intrinsics.zig").standardField(self, &.{ "process", "Init", "Minimal" }) };
+    const input: Input = .{
+        .index = @intCast(index),
+        .input_type = @backingInt(input_type),
+        .output_type = @backingInt(output_type),
+        .io_argument = implementation.io_argument,
+        .process_argument = implementation.process_argument,
+        .fallible = implementation.fallible,
+        .errors = implementation.errors,
+        .bases = &bases,
+    };
 
-    return .{ .name = try std.fmt.allocPrint(self.allocator, "function_{d}", .{index}), .parameters = parameters, .body = .{}, .return_type = try self.builder.expression(.{ .error_union = .{ .payload = try self.typeExpr(function.output_type), .errors = if (implementation.fallible) implementation.errors else &.{} } }) };
+    var scratch = std.heap.ArenaAllocator.init(self.workspace);
+    var buffer: [std.heap.page_size_min]u8 = undefined;
+    var memory = std.heap.BufferFirstAllocator.init(&buffer, scratch.allocator());
+
+    defer scratch.deinit();
+
+    const result = entry.executeIn(memory.allocator(), &input) catch |err| return failure(err);
+
+    if (!result.valid) return error.OutOfMemory;
+
+    const expressions = view.join(result.expressions.*, result.extra.*);
+
+    @import("../node/import_rows.zig").appendBorrowingText(self.allocator, &self.builder.nodes.expressions, &expressions) catch |err| return failure(err);
+
+    return .{
+        .name = try self.allocator.dupe(u8, result.name),
+        .parameters = @import("../node/import_fields.zig").materializeBorrowingText(self.allocator, result.parameters) catch |err| return failure(err),
+        .return_type = @fromBackingInt(result.return_type),
+        .body = .{},
+    };
+}
+
+fn context(comptime Bases: type, self: *const Lower) Bases {
+    return .{
+        .capture = null,
+        .expression_base = @intCast(self.builder.nodes.expressions.tags.items.len),
+        .statement_base = @intCast(self.builder.nodes.statements.tags.items.len),
+        .field_base = @intCast(self.builder.nodes.field_columns.count()),
+        .serial = self.serial,
+    };
+}
+
+fn failure(err: anyerror) Lower.Error {
+    return switch (err) {
+        error.OutOfMemory, error.IntegerOverflow, error.Overflow => error.OutOfMemory,
+        else => unreachable,
+    };
 }

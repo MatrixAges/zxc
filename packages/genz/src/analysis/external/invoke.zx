@@ -1,0 +1,50 @@
+import bytes from "std:bytes"
+
+import call from "../../ast/context/call"
+import identifier from "../../ast/context/identifier"
+import allocator from "../invocation/allocator_view"
+import { input_name } from "./const"
+
+import type { Node } from "../../ast/context/model"
+import type { State as Input, Called as Output } from "./model"
+
+export default function (in: Input): Output {
+    const discarded: Node? = match {
+        in.no_input => identifier({
+            state: in.context,
+            name: bytes.fromText(input_name)
+        }),
+        _ => null
+    }
+
+    const context = discarded == null ? in.context : discarded.state
+
+    const uses_allocator = allocator({
+        expressions: context.expressions.pick([
+            "tags",
+            "offsets",
+            "identifier",
+            "field_target"
+        ]),
+        base: in.source.bases.expression_base,
+        callee: in.callee,
+        arguments: in.arguments
+    })
+
+    const result = call({
+        state: context,
+        callee: in.callee,
+        arguments: in.arguments,
+        fallible: in.source.fallible
+    })
+
+    return {
+        state: {
+            ...in,
+            context: result.state
+        },
+        returned: result.id,
+        discard_input: discarded == null ? null : discarded.id,
+        uses_allocator
+    }
+}

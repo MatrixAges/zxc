@@ -13,6 +13,26 @@ pub fn appendBorrowingText(allocator: std.mem.Allocator, target: anytype, source
     return appendFields(allocator, target, source, true);
 }
 
+/// Materializes standalone fields; borrowed text must outlive the returned descriptors.
+pub fn materializeBorrowingText(allocator: std.mem.Allocator, source: anytype) Error![]const node.Field {
+    const count = source.name.len;
+
+    inline for (@typeInfo(std.meta.Child(@TypeOf(source))).@"struct".field_names) |name| {
+        if (@field(source, name).len != count) return error.InvalidAst;
+    }
+
+    const result = try allocator.alloc(node.Field, count);
+
+    for (result, 0..) |*item, index| item.* = .{
+        .name = source.name[index],
+        .value = @fromBackingInt(source.value[index]),
+        .default_value = if (source.default_value[index]) |id| @fromBackingInt(id) else null,
+        .comptime_parameter = source.comptime_parameter[index],
+    };
+
+    return result;
+}
+
 fn appendFields(allocator: std.mem.Allocator, target: anytype, source: anytype, comptime borrow_text: bool) Error!Fields {
     const count = source.name.len;
 

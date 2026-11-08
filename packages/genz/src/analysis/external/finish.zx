@@ -1,0 +1,63 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import identifier from "../../ast/context/identifier"
+import { StatementsKind } from "../../printer/model/statements"
+import { result_name } from "./const"
+
+import type { Called as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const result = identifier({
+        state: in.state.context,
+        name: bytes.fromText(result_name)
+    })
+
+    const tags: StatementsKind[] = []
+    const offsets: u32[] = []
+    const discard: u32[] = []
+
+    const initial = match {
+        in.discard_input != null => {
+            tags: tags.push(StatementsKind.Discard)[0],
+            offsets: offsets.push(0)[0],
+            discard: discard.push(in.discard_input)[0]
+        },
+        _ => {
+            tags,
+            offsets,
+            discard
+        }
+    }
+
+    const bound = {
+        tags: initial.tags.push(StatementsKind.Constant)[0],
+        offsets: initial.offsets.push(0)[0],
+        discard: initial.discard
+    }
+
+    const final = match {
+        !in.uses_allocator => {
+            tags: bound.tags.push(StatementsKind.Discard)[0],
+            offsets: bound.offsets.push(integers.narrow(bound.discard.length))[0],
+            discard: bound.discard.push(in.state.allocator)[0]
+        },
+        _ => bound
+    }
+
+    return {
+        expressions: result.state.expressions,
+        statements: {
+            tags: final.tags.push(StatementsKind.Result)[0],
+            offsets: final.offsets.push(0)[0],
+            discard: final.discard,
+            constant_name: [bytes.fromText(result_name)],
+            constant_type_expr: [null],
+            constant_value: [in.returned],
+            constant_exported: [false],
+            result: [result.id]
+        },
+        uses_allocator: in.uses_allocator,
+        valid: result.state.valid
+    }
+}

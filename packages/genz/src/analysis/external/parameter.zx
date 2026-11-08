@@ -1,0 +1,30 @@
+import standardField from "../../ast/context/standard_field"
+import append from "../../ast/fields/append"
+
+import type { State } from "./prototype_model"
+
+export type Input = {
+    state: State,
+    name: u8[],
+    path: string[]
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const value = standardField({
+        state: in.state.context,
+        path: in.path
+    })
+
+    return {
+        context: value.state,
+        fields: append({
+            table: in.state.fields,
+            name: in.name,
+            value: value.id,
+            default_value: null,
+            comptime_parameter: false
+        })
+    }
+}

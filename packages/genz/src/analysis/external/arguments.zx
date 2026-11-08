@@ -1,0 +1,74 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import field from "../../ast/context/field"
+import identifier from "../../ast/context/identifier"
+import integer from "../../printer/text/integer"
+import argument from "./argument"
+import { input_name, io_name, process_name } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const allocated = match {
+        in.source.allocator_argument => {
+            ...in,
+            arguments: in.arguments.push(in.allocator)[0]
+        },
+        _ => in
+    }
+
+    const io = match {
+        in.source.io_argument => argument({
+            state: allocated,
+            name: bytes.fromText(io_name)
+        }),
+        _ => allocated
+    }
+
+    const injected = match {
+        in.source.process_argument => argument({
+            state: io,
+            name: bytes.fromText(process_name)
+        }),
+        _ => io
+    }
+
+    if (!in.source.expand_tuple) {
+        if (in.no_input) {
+            return injected
+        }
+
+        return argument({
+            state: injected,
+            name: bytes.fromText(input_name)
+        })
+    }
+
+    return loop({
+        state: injected,
+        index: 0
+    }, {
+        while: current => current.index < integers.widen(in.source.input_count),
+        next: current => {
+            const owner = identifier({
+                state: current.state.context,
+                name: bytes.fromText(input_name)
+            })
+
+            const value = field({
+                state: owner.state,
+                target: owner.id,
+                name: integer({
+                    output: [],
+                    value: current.index
+                })
+            })
+
+            current.state.context = value.state
+            current.state.arguments = current.state.arguments.push(value.id)[0]
+            current.index += 1
+        },
+        return: current => current.state
+    })
+}

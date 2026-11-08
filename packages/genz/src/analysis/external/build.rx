@@ -1,0 +1,12 @@
+<Module>
+    <Type from="model" as="External" />
+
+    <Args in={External.Input} out={External.Output} />
+
+    <Call fn="callee" in={$in} />
+    <Call fn="arguments" in={$ctx.callee} />
+    <Call fn="invoke" in={$ctx.arguments} />
+    <Call fn="finish" in={$ctx.invoke} />
+
+    <Return value={$ctx.finish} />
+</Module>

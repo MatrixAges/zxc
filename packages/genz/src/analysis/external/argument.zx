@@ -1,0 +1,23 @@
+import identifier from "../../ast/context/identifier"
+
+import type { State } from "./model"
+
+export type Input = {
+    state: State,
+    name: u8[]
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const argument = identifier({
+        state: in.state.context,
+        name: in.name
+    })
+
+    return {
+        ...in.state,
+        context: argument.state,
+        arguments: in.state.arguments.push(argument.id)[0]
+    }
+}
