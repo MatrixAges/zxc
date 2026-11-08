@@ -1,0 +1,63 @@
+import { StatementsKind } from "../../printer/model/statements"
+
+export type Input = {
+    kind: StatementsKind,
+    name: u8[],
+    type_expr?: u32,
+    value: u32
+}
+
+export type Output = {
+    tags: StatementsKind[],
+    offsets: u32[],
+    constant_name: u8[][],
+    constant_type_expr: u32?[],
+    constant_value: u32[],
+    constant_exported: bool[],
+    variable_name: u8[][],
+    variable_type_expr: u32?[],
+    variable_value: u32[],
+    variable_exported: bool[],
+    discard: u32[],
+    break_value_label: u8[][],
+    break_value_value: u32[]
+}
+
+export default function (in: Input): Output {
+    const empty: Output = {
+        tags: [in.kind],
+        offsets: [0],
+        constant_name: [],
+        constant_type_expr: [],
+        constant_value: [],
+        constant_exported: [],
+        variable_name: [],
+        variable_type_expr: [],
+        variable_value: [],
+        variable_exported: [],
+        discard: [],
+        break_value_label: [],
+        break_value_value: []
+    }
+
+    return match in.kind {
+        StatementsKind.Constant => {
+            ...empty,
+            constant_name: [in.name],
+            constant_type_expr: [in.type_expr],
+            constant_value: [in.value],
+            constant_exported: [false]
+        },
+        StatementsKind.Variable => {
+            ...empty,
+            variable_name: [in.name],
+            variable_type_expr: [in.type_expr],
+            variable_value: [in.value],
+            variable_exported: [false]
+        },
+        _ => {
+            ...empty,
+            discard: [in.value]
+        }
+    }
+}

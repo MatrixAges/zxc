@@ -31,7 +31,7 @@ pub fn lower(self: *Lower, values: ir.Block) Lower.Error![]const node.Statement 
             .evaluate => |id| try output.append(self.allocator, .{ .discard = try @import("iteration.zig").discard(self, id) }),
             .parallel => |invocations| try output.appendSlice(self.allocator, try @import("parallel/root.zig").lower(self, invocations)),
             .constant => |binding| binding_block: {
-                if (self.program.typeOf(self.program.expression(binding.value).type_id) == .task) {
+                if (@import("binding.zig").before(self, binding.value, binding.symbol, false) == .Task) {
                     try @import("tasks/root.zig").bind(self, &output, self.names[@backingInt(binding.symbol)], binding.value, false);
 
                     break :binding_block;
@@ -39,9 +39,12 @@ pub fn lower(self: *Lower, values: ir.Block) Lower.Error![]const node.Statement 
 
                 const borrowed = try locals.optionalCall(self, &output, binding.symbol, binding.value, self.program.output_type);
                 const value = borrowed orelse if (self.stack_symbols.contains(binding.symbol)) try @import("value_call/root.zig").expression(self, binding.value) else try self.expr(binding.value);
-                const index = @backingInt(binding.symbol);
 
-                if (self.used[index]) try output.append(self.allocator, .{ .constant = .{ .name = self.names[index], .type_expr = if (self.stack_symbols.contains(binding.symbol)) try self.layoutExpr(self.program.symbols.at(index).type_id) else try self.typeExpr(self.program.symbols.at(index).type_id), .value = value } }) else try output.append(self.allocator, .{ .discard = value });
+                try @import("binding.zig").append(self, &output, .{
+                    .symbol = binding.symbol,
+                    .value = value,
+                    .by_value = self.stack_symbols.contains(binding.symbol),
+                });
             },
             .destructure => |binding| {
                 const name = try self.fresh("tuple");

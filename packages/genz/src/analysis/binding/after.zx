@@ -1,0 +1,35 @@
+import { StatementsKind } from "../../printer/model/statements"
+import { TypeMode } from "./model"
+
+export type Input = {
+    has_symbol: bool,
+    used: bool,
+    by_value: bool,
+    loop_field: bool,
+    mutable: bool
+}
+
+export type Output = {
+    kind: StatementsKind,
+    type_mode: TypeMode
+}
+
+export default function (in: Input): Output {
+    if (!in.has_symbol || !in.used) {
+        return {
+            kind: StatementsKind.Discard,
+            type_mode: TypeMode.None
+        }
+    }
+
+    const type_mode = match {
+        in.loop_field => TypeMode.LoopLayout,
+        in.by_value => TypeMode.Layout,
+        _ => TypeMode.Abi
+    }
+
+    return {
+        kind: in.mutable ? StatementsKind.Variable : StatementsKind.Constant,
+        type_mode
+    }
+}

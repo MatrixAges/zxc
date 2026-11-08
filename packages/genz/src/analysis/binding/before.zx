@@ -1,0 +1,34 @@
+import { ExpressionKind } from "core/expression_table/kinds"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import { Route as Output } from "./model"
+
+export type Input = {
+    kind: ExpressionKind,
+    type_kind: u8,
+    scope: bool,
+    has_symbol: bool,
+    used: bool
+}
+
+export default function (in: Input): Output {
+    const unused = in.has_symbol && !in.used
+    const reference = in.kind == ExpressionKind.Reference
+
+    const skip = (
+        - in.scope
+        - and unused
+        - and reference
+    )
+
+    if (skip) {
+        return Output.Skip
+    }
+
+    if (kind(in.type_kind) == Kind.Task) {
+        return Output.Task
+    }
+
+    return Output.Ordinary
+}

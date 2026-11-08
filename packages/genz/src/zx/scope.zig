@@ -63,15 +63,15 @@ fn lowerMode(self: *Lower, scope: ir.ScopeRow, layout: bool) Lower.Error!node.Ex
             continue;
         };
 
-        if (binding.symbol) |symbol| {
-            if (!self.used[@backingInt(symbol)] and self.program.expression(binding.value).value == .reference) {
-                statements[offset] = &.{};
+        const route = @import("binding.zig").before(self, binding.value, binding.symbol, true);
 
-                continue;
-            }
+        if (route == .Skip) {
+            statements[offset] = &.{};
+
+            continue;
         }
 
-        if (self.program.typeOf(self.program.expression(binding.value).type_id) == .task) {
+        if (route == .Task) {
             try @import("tasks/root.zig").bind(self, &output, self.names[@backingInt(binding.symbol.?)], binding.value, false);
 
             statements[offset] = try output.toOwnedSlice(self.allocator);
@@ -83,19 +83,13 @@ fn lowerMode(self: *Lower, scope: ir.ScopeRow, layout: bool) Lower.Error!node.Ex
         const borrowed = if (binding.symbol) |symbol| try @import("value_call/locals.zig").optionalCall(self, &output, symbol, binding.value, result_type) else null;
         const value = borrowed orelse if (binding.symbol == null) try @import("iteration.zig").discard(self, binding.value) else if (by_value) try values.expression(self, binding.value) else try self.expr(binding.value);
 
-        if (binding.symbol) |symbol| {
-            const index = @backingInt(symbol);
-
-            if (self.used[index]) {
-                const declaration: node.Constant = .{
-                    .name = self.names[index],
-                    .type_expr = if (self.loop_fields != null and self.loop_fields.?.symbol(symbol)) self.loop_fields.?.layout else if (by_value) try self.layoutExpr(self.program.symbols.at(index).type_id) else try self.typeExpr(self.program.symbols.at(index).type_id),
-                    .value = value,
-                };
-
-                try output.append(self.allocator, if (reuse != null and reuse.?.variables[offset]) .{ .variable = declaration } else .{ .constant = declaration });
-            } else try output.append(self.allocator, .{ .discard = value });
-        } else try output.append(self.allocator, .{ .discard = value });
+        try @import("binding.zig").append(self, &output, .{
+            .symbol = binding.symbol,
+            .value = value,
+            .by_value = by_value,
+            .scope = true,
+            .mutable = reuse != null and reuse.?.variables[offset],
+        });
 
         statements[offset] = try output.toOwnedSlice(self.allocator);
     }
