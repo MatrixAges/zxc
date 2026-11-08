@@ -54,13 +54,21 @@ fn inlined(program: ir.Program, owner: ?ir.FunctionId, pure: []const bool) bool 
             var field = program.typeOf(result.object.at(index).type_id);
 
             while (field == .optional) field = program.typeOf(field.optional);
-
             if (field != .scalar and field != .enumeration and field != .error_set) return false;
         }
     }
 
-    for (program.expressions.kinds) |kind| switch (kind) {
+    var cost = program.expressions.count();
+
+    for (program.expressions.kinds, 0..) |kind, index| switch (kind) {
         .Iteration, .Transform, .Task, .Parallel, .AwaitTask, .CancelTask => return false,
+        .Object => {
+            const fields = program.expressions.object_count[program.expressions.payloads[index]];
+
+            if (fields > maximum_body_expressions - cost) return false;
+
+            cost += fields;
+        },
         else => {},
     };
 

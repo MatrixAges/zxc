@@ -71,7 +71,8 @@ export default function (in: Input): Output {
 
     const bounded = loop({
         index: 0,
-        bounded: true
+        bounded: true,
+        cost: in.expressions.kinds.length
     }, {
         while: state => state.bounded &&
             state.index < in.expressions.kinds.length,
@@ -87,6 +88,18 @@ export default function (in: Input): Output {
                     _ => true
                 }
             )
+
+            if (expression == ExpressionKind.Object) {
+                const payload = integers.widen(in.expressions.payloads[state.index])
+                const fields = integers.widen(in.expressions.object_count[payload])
+
+                if (fields > maximum_body_expressions - state.cost) {
+                    state.bounded = false
+                } else {
+                    state.cost += fields
+                }
+            }
+
             state.index += 1
         },
         return: state => state.bounded
