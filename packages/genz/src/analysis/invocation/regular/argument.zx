@@ -1,0 +1,66 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+import lookup from "core/integer/map/lookup"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+import scalar from "core/type_table/scalar"
+
+import { Argument } from "./model"
+
+import type { Ordinary as Input, Argument as Output } from "./model"
+
+export default function (in: Input): Output {
+    const source = in.source
+    const tuple = source.argument_kind == ExpressionKind.Tuple
+    const expand_tuple = source.expand_tuple
+
+    if (expand_tuple && tuple) {
+        if (lookup(source.cache) == null) {
+            return Argument.ExternalTuple
+        }
+    }
+
+    const scalar_result = scalar({
+        ...source.types,
+        type_id: source.output
+    })
+
+    if (scalar_result) {
+        const pure_or_local = source.pure_functions[source.function] ||
+            source.local_functions[source.function]
+
+        if (pure_or_local) {
+            if (lookup(source.cache) == null) {
+                return Argument.ScalarBorrow
+            }
+        }
+    }
+
+    if (!source.active) {
+        return Argument.Value
+    }
+
+    const output = kind(source.types.kinds[integers.widen(source.output)])
+    const product = output == Kind.Object || output == Kind.Tuple
+    const distinct = source.input != source.output
+    const values = source.value_functions
+    const fresh = source.fresh_outputs
+    const row = source.function
+
+    const independent = (
+        - product
+        - and distinct
+        - and values[row]
+        - and fresh[row]
+    )
+
+    const represented = in.represented
+    const pure = source.pure_functions
+
+    const borrow = (
+        - !represented
+        - and (pure[row] || independent)
+    )
+
+    return borrow ? Argument.StateBorrow : Argument.StatePointer
+}

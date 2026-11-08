@@ -1,0 +1,45 @@
+<Module>
+    <Type from="model" as="Invocation" />
+
+    <Args in={Invocation.Input} out={Invocation.Output} />
+
+    <Call fn="route" in={$in} />
+
+    <If on={$ctx.route.route != Invocation.Route.Regular}>
+        <Return
+            value={{
+                route: $ctx.route.route,
+                regular: null
+            }}
+        />
+    </If>
+
+    <Call
+        fn="argument"
+        in={{
+            source: $in,
+            represented: $ctx.route.represented
+        }}
+    />
+
+    <Call
+        fn="plan"
+        in={{
+            argument: $ctx.argument,
+            represented: $ctx.route.represented,
+            ...$in.pick([
+                "active",
+                "stores"
+            ]),
+            io: $in.io_functions[$in.function],
+            process: $in.process_functions[$in.function]
+        }}
+    />
+
+    <Return
+        value={{
+            route: $ctx.route.route,
+            regular: $ctx.plan
+        }}
+    />
+</Module>

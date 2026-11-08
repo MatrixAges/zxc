@@ -1,0 +1,61 @@
+import type { ExpressionKind } from "core/expression_table/kinds"
+import type { Lookup } from "core/integer/map/model"
+import type { Query } from "../../state/queries/model"
+
+export enum Route { Regular, Value, Pointer }
+
+export enum Argument { Value, ExternalTuple, ScalarBorrow, StateBorrow, StatePointer }
+
+export type Types = {
+    kinds: u8[],
+    first: u32[]
+}
+
+export type Input = {
+    types: Types,
+    cache: Lookup,
+    input: u32,
+    output: u32,
+    input_query: Query,
+    output_query: Query,
+    argument_kind: ExpressionKind,
+    expand_tuple: bool,
+    active: bool,
+    allows_allocation: bool,
+    function: u64,
+    value_functions: bool[],
+    constructed_outputs: bool[],
+    pure_functions: bool[],
+    local_functions: bool[],
+    fresh_outputs: bool[],
+    io_functions: bool[],
+    process_functions: bool[],
+    stores: u64
+}
+
+export type Boundary = {
+    route: Route,
+    represented: bool
+}
+
+export type Ordinary = {
+    source: Input,
+    represented: bool
+}
+
+export type Plan = {
+    argument: Argument,
+    convert_output: bool,
+    stores: bool,
+    io: bool,
+    process: bool,
+    argument_count: u64,
+    store_slot: u64,
+    io_slot: u64,
+    process_slot: u64
+}
+
+export type Output = {
+    route: Route,
+    regular?: Plan
+}

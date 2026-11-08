@@ -1,0 +1,33 @@
+import { argument_prefix_count } from "./const"
+
+import type { Plan as Output, Argument } from "./model"
+
+export type Input = {
+    argument: Argument,
+    active: bool,
+    represented: bool,
+    io: bool,
+    process: bool,
+    stores: u64
+}
+
+export default function (in: Input): Output {
+    const stores = in.stores > 0
+    const store_count = stores ? 1 : 0
+    const io_count = in.io ? 1 : 0
+    const process_count = in.process ? 1 : 0
+    const io_slot = argument_prefix_count + store_count
+    const process_slot = io_slot + io_count
+
+    return {
+        argument: in.argument,
+        convert_output: in.active && in.represented,
+        stores,
+        io: in.io,
+        process: in.process,
+        argument_count: process_slot + process_count,
+        store_slot: argument_prefix_count,
+        io_slot,
+        process_slot
+    }
+}

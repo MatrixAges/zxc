@@ -1,0 +1,70 @@
+import { Property } from "../../state/queries/model"
+import query from "../../state/queries/read"
+import { Route } from "./model"
+
+import type { Input, Boundary as Output } from "./model"
+
+export default function (in: Input): Output {
+    const represented = query({
+        value: in.output_query,
+        property: Property.Represented
+    })
+
+    const state_callee = represented || query({
+        value: in.input_query,
+        property: Property.InlineRows
+    })
+
+    const active = in.active
+    const allows_allocation = in.allows_allocation
+
+    if (!active && !allows_allocation) {
+        return {
+            route: Route.Regular,
+            represented
+        }
+    }
+
+    const value_function = in.value_functions[in.function]
+
+    const active_value = (
+        - active
+        - and value_function
+        - and state_callee
+    )
+
+    if (active_value) {
+        return {
+            route: represented ? Route.Value : Route.Pointer,
+            represented
+        }
+    }
+
+    const allocated_value = (
+        - !active
+        - and allows_allocation
+        - and value_function
+        - and represented
+    )
+
+    if (allocated_value) {
+        return {
+            route: Route.Pointer,
+            represented
+        }
+    }
+
+    if (allows_allocation && value_function) {
+        if (in.constructed_outputs[in.function]) {
+            return {
+                route: Route.Pointer,
+                represented
+            }
+        }
+    }
+
+    return {
+        route: Route.Regular,
+        represented
+    }
+}
