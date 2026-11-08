@@ -1,0 +1,53 @@
+import bytes from "std:bytes"
+
+import { context_name } from "../../store/const"
+import transaction from "../../store/transaction/policy"
+import { input_name, io_name, process_name } from "../signature/const"
+import discard from "./discard"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const transactional = transaction({
+        mode: in.source.store_mode,
+        count: in.source.store_count
+    })
+
+    const context_unused = (
+        - in.source.store_count > 0
+        - and !transactional
+        - and !in.source.uses_context
+    )
+
+    const needed = [
+        context_unused,
+        in.source.needs_io && !in.uses_io,
+        in.source.needs_process && !in.source.uses_process,
+        !in.source.used_input
+    ]
+
+    const names = [
+        context_name,
+        io_name,
+        process_name,
+        input_name
+    ]
+
+    return loop({
+        state: in,
+        index: 0
+    }, {
+        while: current => current.index < names.length,
+        next: current => {
+            if (needed[current.index]) {
+                current.state = discard({
+                    state: current.state,
+                    name: bytes.fromText(names[current.index])
+                })
+            }
+
+            current.index += 1
+        },
+        return: current => current.state
+    })
+}

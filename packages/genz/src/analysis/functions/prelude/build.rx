@@ -1,0 +1,14 @@
+<Module>
+    <Type from="model" as="Prelude" />
+
+    <Args in={Prelude.Input} out={Prelude.Output} />
+
+    <Call fn="safety" in={$in} />
+
+    <Call module="resource" in={$ctx.safety} />
+
+    <Call fn="unused" in={$ctx.resource} />
+    <Call fn="finish" in={$ctx.unused} />
+
+    <Return value={$ctx.finish} />
+</Module>

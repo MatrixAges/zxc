@@ -1,0 +1,24 @@
+import bytes from "std:bytes"
+
+import binding from "../../../ast/context/binding"
+import { allocator_name } from "../../construction/const"
+import { arena_name } from "../signature/const"
+import allocatorCall from "./allocator_call"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const value = allocatorCall({
+        state: in.context,
+        owner: bytes.fromText(arena_name)
+    })
+
+    return {
+        ...in,
+        context: binding({
+            state: value.state,
+            name: bytes.fromText(allocator_name),
+            value: value.id
+        })
+    }
+}

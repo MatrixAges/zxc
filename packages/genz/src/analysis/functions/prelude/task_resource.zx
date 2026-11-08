@@ -1,0 +1,114 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import binding from "../../../ast/context/binding"
+import identifier from "../../../ast/context/identifier"
+import object from "../../../ast/context/object"
+import text from "../../../ast/context/text"
+import variable from "../../../ast/context/variable"
+import constants from "../../../ast/declarations/constants"
+import appendValues from "../../../ast/fields/append_values"
+import { ExpressionsKind } from "../../../printer/model/expressions"
+import { allocator_name } from "../../construction/const"
+import { arena_name, io_name } from "../signature/const"
+import allocatorCall from "./allocator_call"
+import { task_name, task_type_name, child_name, mutex_name, init_name } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const task_type = in.source.task_type
+
+    if (task_type == null) {
+        return {
+            ...in,
+            context: {
+                ...in.context,
+                valid: false
+            }
+        }
+    }
+
+    const child = allocatorCall({
+        state: in.context,
+        owner: bytes.fromText(arena_name)
+    })
+
+    const io = identifier({
+        state: child.state,
+        name: bytes.fromText(io_name)
+    })
+
+    const mutex = text({
+        state: io.state,
+        kind: ExpressionsKind.EnumLiteral,
+        value: bytes.fromText(init_name)
+    })
+
+    const fields = appendValues({
+        table: in.fields,
+        names: [
+            bytes.fromText(child_name),
+            bytes.fromText(io_name),
+            bytes.fromText(mutex_name)
+        ],
+        values: [
+            child.id,
+            io.id,
+            mutex.id
+        ]
+    })
+
+    const type_node = identifier({
+        state: mutex.state,
+        name: bytes.fromText(task_type_name)
+    })
+
+    const value = object({
+        state: type_node.state,
+        type_expr: type_node.id,
+        first: integers.narrow(
+            integers.widen(in.source.bases.field_base) + in.fields.name.length
+        ),
+        count: integers.narrow(fields.name.length - in.fields.name.length)
+    })
+
+    const stored = variable({
+        state: value.state,
+        name: bytes.fromText(task_name),
+        type_expr: null,
+        value: value.id
+    })
+
+    const allocator = allocatorCall({
+        state: stored,
+        owner: bytes.fromText(task_name)
+    })
+
+    const declaration = constants({
+        base: in.source.auxiliary_base,
+        values: [{
+            name: bytes.fromText(task_type_name),
+            type_expr: null,
+            value: task_type,
+            exported: false
+        }]
+    })
+
+    const context = binding({
+        state: allocator.state,
+        name: bytes.fromText(allocator_name),
+        value: allocator.id
+    })
+
+    return {
+        ...in,
+        context: {
+            ...context,
+            valid: context.valid && declaration.valid
+        },
+        fields,
+        declarations: declaration.table,
+        uses_io: true
+    }
+}

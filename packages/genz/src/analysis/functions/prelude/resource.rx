@@ -1,0 +1,25 @@
+<Module>
+    <Type from="model" as="Prelude" />
+
+    <Args in={Prelude.State} out={Prelude.State} />
+
+    <If on={$in.source.exported && $in.source.uses_allocator}>
+        <If on={$in.source.tasks}>
+            <Call fn="task_resource" in={$in} />
+
+            <Return value={$ctx.task_resource} />
+        </If>
+
+        <Call fn="arena" in={$in} />
+
+        <Return value={$ctx.arena} />
+    </If>
+
+    <If on={!$in.source.uses_allocator}>
+        <Call fn="resource_discard" in={$in} />
+
+        <Return value={$ctx.resource_discard} />
+    </If>
+
+    <Return value={$in} />
+</Module>

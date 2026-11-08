@@ -1,0 +1,35 @@
+import bytes from "std:bytes"
+
+import call from "../../../ast/context/call"
+import field from "../../../ast/context/field"
+import identifier from "../../../ast/context/identifier"
+import { allocator_name } from "../../construction/const"
+
+import type { State, Node } from "../../../ast/context/model"
+
+export type Input = {
+    state: State,
+    owner: u8[]
+}
+
+export type Output = Node
+
+export default function (in: Input): Output {
+    const owner = identifier({
+        state: in.state,
+        name: in.owner
+    })
+
+    const callee = field({
+        state: owner.state,
+        target: owner.id,
+        name: bytes.fromText(allocator_name)
+    })
+
+    return call({
+        state: callee.state,
+        callee: callee.id,
+        arguments: [],
+        fallible: false
+    })
+}

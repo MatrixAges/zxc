@@ -1,0 +1,16 @@
+import bytes from "std:bytes"
+
+import { allocator_name } from "../../construction/const"
+import { arena_name } from "../signature/const"
+import discard from "./discard"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const name = in.source.exported ? arena_name : allocator_name
+
+    return discard({
+        state: in,
+        name: bytes.fromText(name)
+    })
+}

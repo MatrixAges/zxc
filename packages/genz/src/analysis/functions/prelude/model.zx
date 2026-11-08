@@ -1,0 +1,84 @@
+import type { StoreMode } from "core/function_table/complete"
+import type { Input as Bases, State as Context } from "../../../ast/context/model"
+import type { Variables } from "../../../ast/context/model"
+import type { Columns as Declarations } from "../../../ast/declarations/model"
+import type { Columns as Fields } from "../../../ast/fields/model"
+import type {
+    ExpressionsKind,
+    ExpressionsBuiltinName
+} from "../../../printer/model/expressions"
+import type { StatementsKind } from "../../../printer/model/statements"
+
+export type TaskInput = {
+    exported: bool,
+    uses_allocator: bool,
+    tasks: bool
+}
+
+export type Input = {
+    exported: bool,
+    uses_allocator: bool,
+    tasks: bool,
+    needs_io: bool,
+    uses_io: bool,
+    needs_process: bool,
+    uses_process: bool,
+    uses_context: bool,
+    used_input: bool,
+    store_count: u64,
+    store_mode: StoreMode,
+    task_type?: u32,
+    auxiliary_base: u32,
+    bases: Bases
+}
+
+export type State = {
+    source: Input,
+    context: Context,
+    fields: Fields,
+    discard: u32[],
+    declarations: Declarations,
+    uses_io: bool
+}
+
+export type Expressions = {
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    identifier: u8[][],
+    builtin_name: ExpressionsBuiltinName[],
+    builtin_arguments: u32[][],
+    field_target: u32[],
+    field_name: u8[][],
+    call_callee: u32[],
+    call_arguments: u32[][]
+}
+
+export type Forms = {
+    boolean: bool[],
+    enum_literal: u8[][],
+    object_type_expr: u32?[],
+    object_fields_start: u32[],
+    object_fields_len: u32[]
+}
+
+export type Statements = {
+    tags: StatementsKind[],
+    offsets: u32[],
+    expression: u32[],
+    discard: u32[],
+    constant_name: u8[][],
+    constant_type_expr: u32?[],
+    constant_value: u32[],
+    constant_exported: bool[]
+}
+
+export type Output = {
+    expressions: Expressions,
+    forms: Forms,
+    statements: Statements,
+    variables: Variables,
+    fields: Fields,
+    declarations: Declarations,
+    uses_io: bool,
+    valid: bool
+}

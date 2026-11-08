@@ -1,0 +1,45 @@
+import identifier from "../../../ast/context/identifier"
+import header from "../../../ast/statements/header"
+import { StatementsKind } from "../../../printer/model/statements"
+
+import type { State } from "./model"
+
+export type Input = {
+    state: State,
+    name: u8[]
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const value = identifier({
+        state: in.state.context,
+        name: in.name
+    })
+
+    const context = value.state
+
+    const statement = header({
+        ...context.statements.pick([
+            "tags",
+            "offsets"
+        ]),
+        base: context.source.statement_base,
+        kind: StatementsKind.Discard,
+        offset: in.state.discard.length
+    })
+
+    return {
+        ...in.state,
+        context: {
+            ...context,
+            statements: {
+                ...context.statements,
+                tags: statement.tags,
+                offsets: statement.offsets
+            },
+            valid: context.valid && statement.valid
+        },
+        discard: in.state.discard.push(value.id)[0]
+    }
+}

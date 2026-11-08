@@ -1,0 +1,34 @@
+import boolean from "../../../ast/context/boolean"
+import builtin from "../../../ast/context/builtin"
+import expression from "../../../ast/context/expression_statement"
+import initialize from "../../../ast/context/initialize"
+import emptyDeclarations from "../../../ast/declarations/empty"
+import emptyFields from "../../../ast/fields/empty"
+import { ExpressionsBuiltinName } from "../../../printer/model/expressions"
+
+import type { Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const value = boolean({
+        state: initialize(in.bases),
+        value: true
+    })
+
+    const call = builtin({
+        state: value.state,
+        name: ExpressionsBuiltinName.SetRuntimeSafety,
+        arguments: [value.id]
+    })
+
+    return {
+        source: in,
+        context: expression({
+            state: call.state,
+            value: call.id
+        }),
+        fields: emptyFields({}),
+        discard: [],
+        declarations: emptyDeclarations({}),
+        uses_io: in.uses_io
+    }
+}

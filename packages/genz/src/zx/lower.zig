@@ -175,20 +175,7 @@ pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declar
     const preconditions = try @import("contracts.zig").preconditions(self);
     var body: std.ArrayList(node.Statement) = .empty;
 
-    try body.append(self.allocator, .{ .expression = try self.builtin(.setRuntimeSafety, &.{try self.builder.expression(.{ .boolean = true })}) });
-
-    if (exported and self.uses_allocator) {
-        if (self.entry_flags.tasks) {
-            self.uses_io = true;
-
-            try @import("tasks/allocator.zig").initialize(self, &body);
-        } else try body.append(self.allocator, .{ .constant = .{ .name = "allocator", .value = try self.call(try self.field(try self.builder.identifier("arena"), "allocator"), &.{}, false) } });
-    } else if (!self.uses_allocator) try body.append(self.allocator, .{ .discard = try self.builder.identifier(if (exported) "arena" else "allocator") });
-
-    if (self.program.stores.count() > 0 and !self.transaction() and !self.uses_context) try body.append(self.allocator, .{ .discard = try self.builder.identifier("context") });
-    if (needs_io and !self.uses_io) try body.append(self.allocator, .{ .discard = try self.builder.identifier("io") });
-    if (needs_process and !self.uses_process) try body.append(self.allocator, .{ .discard = try self.builder.identifier("process") });
-    if (!self.used[0]) try body.append(self.allocator, .{ .discard = try self.builder.identifier("in") });
+    try @import("functions/prelude/build.zig").append(self, &body, .{ .exported = exported, .io = needs_io, .process = needs_process });
     try @import("store/transaction.zig").initialize(self, &body);
     try body.appendSlice(self.allocator, self.reference_storage.items);
     try body.appendSlice(self.allocator, preconditions);

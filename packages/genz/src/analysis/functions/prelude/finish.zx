@@ -1,0 +1,41 @@
+import type { State as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        expressions: in.context.expressions.pick([
+            "tags",
+            "offsets",
+            "identifier",
+            "builtin_name",
+            "builtin_arguments",
+            "field_target",
+            "field_name",
+            "call_callee",
+            "call_arguments"
+        ]),
+        forms: in.context.forms.pick([
+            "boolean",
+            "enum_literal",
+            "object_type_expr",
+            "object_fields_start",
+            "object_fields_len"
+        ]),
+        statements: {
+            ...in.context.statements.pick([
+                "tags",
+                "offsets",
+                "expression",
+                "constant_name",
+                "constant_type_expr",
+                "constant_value",
+                "constant_exported"
+            ]),
+            discard: in.discard
+        },
+        variables: in.context.variables,
+        fields: in.fields,
+        declarations: in.declarations,
+        uses_io: in.uses_io,
+        valid: in.context.valid
+    }
+}
