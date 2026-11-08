@@ -1,0 +1,18 @@
+<Module>
+    <Type from="model" as="Literal" />
+
+    <Args in={Literal.Input} out={Literal.Output} />
+
+    <Call fn="decode" in={$in} />
+
+    <Call
+        fn="emit"
+        in={{
+            literal: $ctx.decode,
+            type_expr: $in.type_expr,
+            base: $in.base
+        }}
+    />
+
+    <Return value={$ctx.emit} />
+</Module>

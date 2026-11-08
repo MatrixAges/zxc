@@ -261,16 +261,8 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!node.ExpressionId {
         .parallel => |branches| @import("tasks/root.zig").parallel(self, value.type_id, branches),
         .capture => |child| @import("capture.zig").lower(self, value.type_id, child),
         .optional_value => |child| self.builder.expression(.{ .optional_unwrap = try self.expr(child) }),
-        .integer => |integer| self.cast(value_type, try self.builder.integer(integer)),
-        .negative_integer => |integer| self.cast(value_type, try self.builder.expression(.{ .unary = .{ .operator = .negate, .operand = try self.builder.integer(integer) } })),
-        .float => |float| self.cast(value_type, try self.builder.expression(.{ .float = float })),
-        .boolean => |boolean| self.builder.expression(.{ .boolean = boolean }),
-        .string => |text| self.cast(value_type, try self.builder.string(text)),
-        .unit => self.builder.expression(.unit),
-        .none => self.cast(value_type, try self.builder.expression(.null_value)),
+        .integer, .negative_integer, .float, .boolean, .string, .unit, .none, .enum_value, .error_value => @import("literals.zig").lower(self, id, value_type),
         .some => |child| self.cast(value_type, try self.expr(child)),
-        .enum_value => |member| self.cast(value_type, try self.builder.expression(.{ .enum_literal = self.program.typeOf(value.type_id).enumeration.members[member] })),
-        .error_value => |member| self.cast(value_type, try self.builder.expression(.{ .error_value = self.program.typeOf(value.type_id).error_set[member] })),
         .store_get => |slot| blk: {
             self.uses_context = true;
 

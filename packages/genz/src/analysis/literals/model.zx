@@ -1,0 +1,66 @@
+import type { ExpressionKind } from "core/expression_table/kinds"
+import type { Table } from "core/type_table/model"
+import type {
+    ExpressionsKind,
+    ExpressionsUnaryOperator,
+    ExpressionsBuiltinName
+} from "../../printer/model/expressions"
+
+export type Expressions = {
+    kinds: ExpressionKind[],
+    types: u32[],
+    payloads: u32[],
+    integers: u64[],
+    negative_integers: u64[],
+    floats: f64[],
+    strings: string[],
+    booleans: bool[],
+    enumerations: u32[],
+    errors: u32[]
+}
+
+export type Input = {
+    expressions: Expressions,
+    types: Table,
+    id: u32,
+    type_expr: u32,
+    base: u32
+}
+
+export type Literal = {
+    kind: ExpressionsKind,
+    integer: u64,
+    float: u64,
+    text: u8[],
+    boolean: bool,
+    negative: bool,
+    cast: bool,
+    valid: bool
+}
+
+export type Emit = {
+    literal: Literal,
+    type_expr: u32,
+    base: u32
+}
+
+export type Nodes = {
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    integer: u64[],
+    float: u64[],
+    string: u8[][],
+    boolean: bool[],
+    enum_literal: u8[][],
+    error_value: u8[][],
+    unary_operator: ExpressionsUnaryOperator[],
+    unary_operand: u32[],
+    builtin_name: ExpressionsBuiltinName[],
+    builtin_arguments: u32[][]
+}
+
+export type Output = {
+    nodes: Nodes,
+    root: u32,
+    valid: bool
+}

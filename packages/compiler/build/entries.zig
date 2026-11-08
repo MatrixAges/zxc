@@ -156,6 +156,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/comparison/name.zx", .name = "comparison_name", .owner = .genz },
     .{ .path = "genz/analysis/static_list/candidate.zx", .name = "static_list_candidate", .owner = .genz },
     .{ .path = "genz/analysis/static_list/emit.zx", .name = "static_list_emit", .owner = .genz },
+    .{ .path = "genz/analysis/literals/build.rx", .name = "literal_emit", .owner = .genz },
     .{ .path = "genz/analysis/imports/build.rx", .name = "native_imports", .owner = .genz },
     .{ .path = "genz/analysis/functions/requests/create.zx", .name = "function_requests_create", .owner = .genz },
     .{ .path = "genz/analysis/functions/requests/push.zx", .name = "function_requests_push", .owner = .genz },

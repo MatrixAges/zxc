@@ -1,0 +1,92 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+
+import {
+    ExpressionsKind,
+    ExpressionsUnaryOperator,
+    ExpressionsBuiltinName
+} from "../../printer/model/expressions"
+
+import type { Emit as Input, Nodes, Output } from "./model"
+
+export default function (in: Input): Output {
+    const literal = in.literal
+
+    const empty: Nodes = {
+        tags: [literal.kind],
+        offsets: [0],
+        integer: [],
+        float: [],
+        string: [],
+        boolean: [],
+        enum_literal: [],
+        error_value: [],
+        unary_operator: [],
+        unary_operand: [],
+        builtin_name: [],
+        builtin_arguments: []
+    }
+
+    const value = match literal.kind {
+        ExpressionsKind.Integer => {
+            ...empty,
+            integer: [literal.integer]
+        },
+        ExpressionsKind.Float => {
+            ...empty,
+            float: [literal.float]
+        },
+        ExpressionsKind.String => {
+            ...empty,
+            string: [literal.text]
+        },
+        ExpressionsKind.Boolean => {
+            ...empty,
+            boolean: [literal.boolean]
+        },
+        ExpressionsKind.EnumLiteral => {
+            ...empty,
+            enum_literal: [literal.text]
+        },
+        ExpressionsKind.ErrorValue => {
+            ...empty,
+            error_value: [literal.text]
+        },
+        _ => empty
+    }
+
+    const negated = match {
+        literal.negative => {
+            ...value,
+            tags: value.tags.push(ExpressionsKind.Unary)[0],
+            offsets: value.offsets.push(0)[0],
+            unary_operator: [ExpressionsUnaryOperator.Negate],
+            unary_operand: [in.base]
+        },
+        _ => value
+    }
+
+    const cast = match {
+        literal.cast => {
+            ...negated,
+            tags: negated.tags.push(ExpressionsKind.Builtin)[0],
+            offsets: negated.offsets.push(0)[0],
+            builtin_name: [ExpressionsBuiltinName.As],
+            builtin_arguments: [[
+                in.type_expr,
+                integers.narrow(
+                    integers.widen(in.base) + negated.tags.length - 1
+                )
+            ]]
+        },
+        _ => negated
+    }
+
+    const end = integers.widen(in.base) + cast.tags.length
+
+    return {
+        nodes: cast,
+        root: integers.narrow(end - 1),
+        valid: literal.valid && end <= integers.widen(max_u32)
+    }
+}

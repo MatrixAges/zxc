@@ -1,0 +1,86 @@
+import bytes from "std:bytes"
+import floats from "std:float"
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import { ExpressionsKind } from "../../printer/model/expressions"
+
+import type { Input, Literal as Output } from "./model"
+
+export default function (in: Input): Output {
+    const index = integers.widen(in.id)
+    const source = in.expressions
+    const kind = source.kinds[index]
+    const payload = integers.widen(source.payloads[index])
+
+    const target = match kind {
+        ExpressionKind.Integer => ExpressionsKind.Integer,
+        ExpressionKind.NegativeInteger => ExpressionsKind.Integer,
+        ExpressionKind.Float => ExpressionsKind.Float,
+        ExpressionKind.String => ExpressionsKind.String,
+        ExpressionKind.Boolean => ExpressionsKind.Boolean,
+        ExpressionKind.Unit => ExpressionsKind.Unit,
+        ExpressionKind.None => ExpressionsKind.NullValue,
+        ExpressionKind.EnumValue => ExpressionsKind.EnumLiteral,
+        ExpressionKind.ErrorValue => ExpressionsKind.ErrorValue,
+        _ => ExpressionsKind.UnreachableValue
+    }
+
+    const integer = match kind {
+        ExpressionKind.Integer => source.integers[payload],
+        ExpressionKind.NegativeInteger => source.negative_integers[payload],
+        _ => 0
+    }
+
+    const float = match kind {
+        ExpressionKind.Float => floats.bits(source.floats[payload]),
+        _ => 0
+    }
+
+    const type_id = integers.widen(source.types[index])
+
+    const text = match kind {
+        ExpressionKind.String => bytes.fromText(source.strings[payload]),
+        ExpressionKind.EnumValue => bytes.fromText(
+            in.types
+                .names[
+                    integers.widen(
+                        in.types.first[type_id]
+                    ) +
+                        integers.widen(source.enumerations[payload])
+                ]
+        ),
+        ExpressionKind.ErrorValue => bytes.fromText(
+            in.types
+                .names[
+                    integers.widen(
+                        in.types.first[type_id]
+                    ) +
+                        integers.widen(source.errors[payload])
+                ]
+        ),
+        _ => []
+    }
+
+    const boolean = match kind {
+        ExpressionKind.Boolean => source.booleans[payload],
+        _ => false
+    }
+
+    const cast = match kind {
+        ExpressionKind.Boolean => false,
+        ExpressionKind.Unit => false,
+        _ => true
+    }
+
+    return {
+        kind: target,
+        integer,
+        float,
+        text,
+        boolean,
+        negative: kind == ExpressionKind.NegativeInteger,
+        cast,
+        valid: target != ExpressionsKind.UnreachableValue
+    }
+}

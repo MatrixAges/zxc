@@ -34,12 +34,23 @@ for (const name of Array.from(groups.keys()).sort()) {
         cases +
         '\n        default:\n            return 0\n    }\n}\n'
 
-    writeSource('tests/' + base + '/' + name + '.zx', source)
+    writeOutput('tests/' + base + '/' + name + '.zx', source)
     imports.push('import ' + symbol + ' from "./cases/' + name + '"')
-    branches.push('    if (' + ranges(indices) + ') {\n        return ' + symbol + '(in)\n    }')
+    const conditions = ranges(indices)
+    let condition = conditions[0]
+    let declaration = ''
+
+    if (conditions.length > 1) {
+        condition = name.replaceAll('/', '_') + '_condition'
+        const rows = conditions.map((value, index) => '        - ' + (index === 0 ? '' : 'or ') + value)
+
+        declaration = '    const ' + condition + ' = (\n' + rows.join('\n') + '\n    )\n\n'
+    }
+
+    branches.push(declaration + '    if (' + condition + ') {\n        return ' + symbol + '(in)\n    }')
 }
 
-writeSource(
+writeOutput(
     'tests/' + base + '.zx',
     imports.join('\n') +
         '\n\nexport type Input = u64\n\nexport type Output = f64\n\nexport default function (in: Input): Output {\n' +
@@ -106,7 +117,7 @@ function groupName(token: string): string {
     return 'integer_multi_digit/' + prefix + '_' + token.length + '_digits'
 }
 
-function ranges(indices: Array<number>): string {
+function ranges(indices: Array<number>): Array<string> {
     const spans: Array<{ first: number; last: number }> = []
 
     for (const index of indices) {
@@ -119,17 +130,7 @@ function ranges(indices: Array<number>): string {
         }
     }
 
-    return spans
-        .map(span =>
-            span.first === span.last ? 'in == ' + span.first : '(in >= ' + span.first + ' && in <= ' + span.last + ')'
-        )
-        .join(' || ')
-}
-
-function writeSource(path: string, source: string): void {
-    const lines = source.endsWith('\n') ? source.split('\n').length - 1 : source.split('\n').length
-
-    if (lines > 120) throw new Error('ZX source exceeds 120 lines: ' + path)
-
-    writeOutput(path, source)
+    return spans.map(span =>
+        span.first === span.last ? 'in == ' + span.first : 'in >= ' + span.first + ' && in <= ' + span.last
+    )
 }

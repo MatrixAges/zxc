@@ -21,71 +21,134 @@ export type Input = u64
 export type Output = f64
 
 export default function (in: Input): Output {
-    if ((in >= 99 && in <= 128)) {
+    if (in >= 99 && in <= 128) {
         return fraction(in)
     }
 
-    if ((in >= 149 && in <= 168) || in == 371) {
+    const fraction_exponent_negative_condition = (
+        - in >= 149 && in <= 168
+        - or in == 371
+    )
+
+    if (fraction_exponent_negative_condition) {
         return fractionExponentNegative(in)
     }
 
-    if ((in >= 169 && in <= 188) || in == 372) {
+    const fraction_exponent_positive_condition = (
+        - in >= 169 && in <= 188
+        - or in == 372
+    )
+
+    if (fraction_exponent_positive_condition) {
         return fractionExponentPositive(in)
     }
 
-    if ((in >= 129 && in <= 148) || (in >= 189 && in <= 208)) {
+    const fraction_exponent_unsigned_condition = (
+        - in >= 129 && in <= 148
+        - or in >= 189 && in <= 208
+    )
+
+    if (fraction_exponent_unsigned_condition) {
         return fractionExponentUnsigned(in)
     }
 
-    if ((in >= 0 && in <= 9)) {
+    if (in >= 0 && in <= 9) {
         return integerDigit(in)
     }
 
-    if ((in >= 39 && in <= 48) || (in >= 229 && in <= 238)) {
+    const integer_lower_exponent_negative_condition = (
+        - in >= 39 && in <= 48
+        - or in >= 229 && in <= 238
+    )
+
+    if (integer_lower_exponent_negative_condition) {
         return integerLowerExponentNegative(in)
     }
 
-    if ((in >= 59 && in <= 68) || (in >= 249 && in <= 258)) {
+    const integer_lower_exponent_positive_condition = (
+        - in >= 59 && in <= 68
+        - or in >= 249 && in <= 258
+    )
+
+    if (integer_lower_exponent_positive_condition) {
         return integerLowerExponentPositive(in)
     }
 
-    if ((in >= 19 && in <= 28) || (in >= 79 && in <= 88) || (in >= 209 && in <= 218) || (in >= 269 && in <= 278)) {
+    const integer_lower_exponent_unsigned_condition = (
+        - in >= 19 && in <= 28
+        - or in >= 79 && in <= 88
+        - or in >= 209 && in <= 218
+        - or in >= 269 && in <= 278
+    )
+
+    if (integer_lower_exponent_unsigned_condition) {
         return integerLowerExponentUnsigned(in)
     }
 
-    if ((in >= 10 && in <= 18)) {
+    if (in >= 10 && in <= 18) {
         return integerMultiDigitDecimal2Digits(in)
     }
 
-    if ((in >= 373 && in <= 392)) {
+    if (in >= 373 && in <= 392) {
         return integerMultiDigitDecimal3Digits(in)
     }
 
-    if ((in >= 289 && in <= 290)) {
+    if (in >= 289 && in <= 290) {
         return integerMultiDigitLeadingZero2Digits(in)
     }
 
-    if ((in >= 291 && in <= 300) || (in >= 311 && in <= 320) || (in >= 331 && in <= 340) || (in >= 351 && in <= 360)) {
+    const integer_multi_digit_leading_zero_3_digits_condition = (
+        - in >= 291 && in <= 300
+        - or in >= 311 && in <= 320
+        - or in >= 331 && in <= 340
+        - or in >= 351 && in <= 360
+    )
+
+    if (integer_multi_digit_leading_zero_3_digits_condition) {
         return integerMultiDigitLeadingZero3Digits(in)
     }
 
-    if ((in >= 301 && in <= 310) || (in >= 321 && in <= 330) || (in >= 341 && in <= 350) || (in >= 361 && in <= 370)) {
+    const integer_multi_digit_leading_zero_4_digits_condition = (
+        - in >= 301 && in <= 310
+        - or in >= 321 && in <= 330
+        - or in >= 341 && in <= 350
+        - or in >= 361 && in <= 370
+    )
+
+    if (integer_multi_digit_leading_zero_4_digits_condition) {
         return integerMultiDigitLeadingZero4Digits(in)
     }
 
-    if ((in >= 393 && in <= 402)) {
+    if (in >= 393 && in <= 402) {
         return integerSigned(in)
     }
 
-    if ((in >= 49 && in <= 58) || (in >= 239 && in <= 248)) {
+    const integer_upper_exponent_negative_condition = (
+        - in >= 49 && in <= 58
+        - or in >= 239 && in <= 248
+    )
+
+    if (integer_upper_exponent_negative_condition) {
         return integerUpperExponentNegative(in)
     }
 
-    if ((in >= 69 && in <= 78) || (in >= 259 && in <= 268)) {
+    const integer_upper_exponent_positive_condition = (
+        - in >= 69 && in <= 78
+        - or in >= 259 && in <= 268
+    )
+
+    if (integer_upper_exponent_positive_condition) {
         return integerUpperExponentPositive(in)
     }
 
-    if ((in >= 29 && in <= 38) || (in >= 89 && in <= 98) || (in >= 219 && in <= 228) || (in >= 279 && in <= 288)) {
+    const integer_upper_exponent_unsigned_condition = (
+        - in >= 29 && in <= 38
+        - or in >= 89 && in <= 98
+        - or in >= 219 && in <= 228
+        - or in >= 279 && in <= 288
+    )
+
+    if (integer_upper_exponent_unsigned_condition) {
         return integerUpperExponentUnsigned(in)
     }
 
