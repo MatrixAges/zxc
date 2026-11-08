@@ -1,0 +1,37 @@
+import { StatementsKind } from "../../../printer/model/statements"
+
+export type Input = {
+    condition: u32,
+    yes_start: u32,
+    yes_count: u32,
+    no_start: u32,
+    no_count: u32
+}
+
+export type Output = {
+    tags: StatementsKind[],
+    offsets: u32[],
+    branch_condition: u32[],
+    branch_yes_start: u32[],
+    branch_yes_len: u32[],
+    branch_no_start: u32[],
+    branch_no_len: u32[],
+    branch_capture: u8[]?[],
+    branch_capture_reference: bool[],
+    branch_error_capture: u8[]?[]
+}
+
+export default function (in: Input): Output {
+    return {
+        tags: [StatementsKind.Branch],
+        offsets: [0],
+        branch_condition: [in.condition],
+        branch_yes_start: [in.yes_start],
+        branch_yes_len: [in.yes_count],
+        branch_no_start: [in.no_start],
+        branch_no_len: [in.no_count],
+        branch_capture: [null],
+        branch_capture_reference: [false],
+        branch_error_capture: [null]
+    }
+}

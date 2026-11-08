@@ -1,0 +1,22 @@
+import { StatementsKind } from "../../../printer/model/statements"
+
+export type Input = {
+    target: u32,
+    value: u32
+}
+
+export type Output = {
+    tags: StatementsKind[],
+    offsets: u32[],
+    assignment_target: u32[],
+    assignment_value: u32[]
+}
+
+export default function (in: Input): Output {
+    return {
+        tags: [StatementsKind.Assignment],
+        offsets: [0],
+        assignment_target: [in.target],
+        assignment_value: [in.value]
+    }
+}

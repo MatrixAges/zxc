@@ -1,0 +1,19 @@
+import { StatementsKind } from "../../../printer/model/statements"
+
+export type Input = {
+    value: u32
+}
+
+export type Output = {
+    tags: StatementsKind[],
+    offsets: u32[],
+    discard: u32[]
+}
+
+export default function (in: Input): Output {
+    return {
+        tags: [StatementsKind.Discard],
+        offsets: [0],
+        discard: [in.value]
+    }
+}

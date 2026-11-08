@@ -2,6 +2,7 @@ const std = @import("std");
 const ir = @import("zx").ir;
 const node = @import("../node.zig");
 const Lower = @import("lower.zig");
+const emission = @import("statements/basic.zig");
 
 pub fn lower(self: *Lower, values: ir.Block) Lower.Error![]const node.Statement {
     const state_symbols = try @import("state_value/locals.zig").statements(self, values);
@@ -28,7 +29,7 @@ pub fn lower(self: *Lower, values: ir.Block) Lower.Error![]const node.Statement 
         if (try @import("store/begin.zig").statement(self, values, offset)) |begin| try output.append(self.allocator, begin);
 
         switch (values.at(offset)) {
-            .evaluate => |id| try output.append(self.allocator, .{ .discard = try @import("iteration.zig").discard(self, id) }),
+            .evaluate => |id| try emission.discard(self, &output, try @import("iteration.zig").discard(self, id)),
             .parallel => |invocations| try output.appendSlice(self.allocator, try @import("parallel/root.zig").lower(self, invocations)),
             .constant => |binding| binding_block: {
                 if (@import("binding.zig").before(self, binding.value, binding.symbol, false) == .Task) {
@@ -48,12 +49,19 @@ pub fn lower(self: *Lower, values: ir.Block) Lower.Error![]const node.Statement 
             },
             .destructure => |binding| try @import("statements/destructure/lower.zig").append(self, &output, binding),
             .result => |value| consumed_previous = try @import("statements/result/lower.zig").append(self, &output, values, offset, value),
-            .branch => |branch| try output.append(self.allocator, .{ .branch = .{ .condition = try self.expr(branch.condition), .yes = try self.builder.statements(try lower(self, branch.yes)), .no = try self.builder.statements(try lower(self, branch.no)) } }),
+            .branch => |branch| {
+                const condition = try self.expr(branch.condition);
+                const yes = try self.builder.statements(try lower(self, branch.yes));
+                const no = try self.builder.statements(try lower(self, branch.no));
+
+                try emission.branch(self, &output, condition, yes, no);
+            },
             .switch_stmt => |selection| try output.appendSlice(self.allocator, try switchStatement(self, selection)),
             .store_set => |setter| {
-                const name = try std.fmt.allocPrint(self.allocator, "store_{d}", .{setter.slot});
+                const target = try emission.storeTarget(self, setter.slot);
+                const value = try self.expr(setter.value);
 
-                try output.append(self.allocator, .{ .assignment = .{ .target = try self.field(try self.builder.identifier("pending"), name), .value = try self.expr(setter.value) } });
+                try emission.assignment(self, &output, target, value);
             },
         }
 
