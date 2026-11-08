@@ -1,0 +1,71 @@
+import { max_u32 } from "core/const"
+import { scalar_void } from "core/type_table/const"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import { ExpressionsKind } from "../../printer/model/expressions"
+
+export type Input = {
+    name: u8[],
+    payload_kind: u8,
+    payload_scalar: u32,
+    expression_base: u32
+}
+
+export type Nodes = {
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    identifier: u8[][],
+    tuple: u32[][]
+}
+
+export type Output = {
+    nodes: Nodes,
+    root: u32,
+    is_void: bool,
+    valid: bool
+}
+
+export default function (in: Input): Output {
+    const is_void =
+        kind(in.payload_kind) == Kind.Scalar && in.payload_scalar == scalar_void
+
+    const base = in.expression_base
+
+    if (base > max_u32 - 3) {
+        return {
+            nodes: {
+                tags: [],
+                offsets: [],
+                identifier: [],
+                tuple: []
+            },
+            root: base,
+            is_void,
+            valid: false
+        }
+    }
+
+    return {
+        nodes: {
+            tags: [
+                is_void ? ExpressionsKind.Unit : ExpressionsKind.NullValue,
+                ExpressionsKind.Identifier,
+                ExpressionsKind.Tuple
+            ],
+            offsets: [
+                0,
+                0,
+                0
+            ],
+            identifier: [in.name],
+            tuple: [[
+                base + 1,
+                base
+            ]]
+        },
+        root: base + 2,
+        is_void,
+        valid: true
+    }
+}

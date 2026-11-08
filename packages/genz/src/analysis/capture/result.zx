@@ -1,0 +1,106 @@
+import { max_u32 } from "core/const"
+
+import {
+    ExpressionsKind,
+    ExpressionsBuiltinName
+} from "../../printer/model/expressions"
+import { StatementsKind } from "../../printer/model/statements"
+
+export type Input = {
+    value: u32,
+    type_expr: u32,
+    is_void: bool,
+    expression_base: u32
+}
+
+export type Nodes = {
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    builtin_name: ExpressionsBuiltinName[],
+    builtin_arguments: u32[][],
+    tuple: u32[][]
+}
+
+export type Statements = {
+    tags: StatementsKind[],
+    offsets: u32[],
+    expression: u32[],
+    break_value_label: u8[][],
+    break_value_value: u32[]
+}
+
+export type Output = {
+    nodes: Nodes,
+    statements: Statements,
+    root: u32,
+    valid: bool
+}
+
+export default function (in: Input): Output {
+    const base = in.expression_base
+
+    const statements: Statements = match in.is_void {
+        true => {
+            tags: [StatementsKind.Expression],
+            offsets: [0],
+            expression: [in.value],
+            break_value_label: [],
+            break_value_value: []
+        },
+        _ => {
+            tags: [],
+            offsets: [],
+            expression: [],
+            break_value_label: [],
+            break_value_value: []
+        }
+    }
+
+    if (base > max_u32 - 3) {
+        return {
+            nodes: {
+                tags: [],
+                offsets: [],
+                builtin_name: [],
+                builtin_arguments: [],
+                tuple: []
+            },
+            statements,
+            root: base,
+            valid: false
+        }
+    }
+
+    return {
+        nodes: {
+            tags: [
+                in.is_void ? ExpressionsKind.Unit : ExpressionsKind.Builtin,
+                ExpressionsKind.NullValue,
+                ExpressionsKind.Tuple
+            ],
+            offsets: [
+                0,
+                0,
+                0
+            ],
+            builtin_name: match in.is_void {
+                true => [],
+                _ => [ExpressionsBuiltinName.As]
+            },
+            builtin_arguments: match in.is_void {
+                true => [],
+                _ => [[
+                    in.type_expr,
+                    in.value
+                ]]
+            },
+            tuple: [[
+                base + 1,
+                base
+            ]]
+        },
+        statements,
+        root: base + 2,
+        valid: true
+    }
+}

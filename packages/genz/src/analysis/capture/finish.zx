@@ -1,0 +1,99 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+
+import {
+    ExpressionsKind,
+    ExpressionsBuiltinName
+} from "../../printer/model/expressions"
+import { StatementsKind } from "../../printer/model/statements"
+
+export type Input = {
+    value: u32,
+    layout: u32,
+    label: u8[],
+    expression_base: u32,
+    statement_base: u32,
+    body_count: u64
+}
+
+export type Nodes = {
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    builtin_name: ExpressionsBuiltinName[],
+    builtin_arguments: u32[][],
+    block_label: u8[][],
+    block_statements_start: u32[],
+    block_statements_len: u32[]
+}
+
+export type Statements = {
+    tags: StatementsKind[],
+    offsets: u32[],
+    break_value_label: u8[][],
+    break_value_value: u32[]
+}
+
+export type Output = {
+    nodes: Nodes,
+    statements: Statements,
+    root: u32,
+    valid: bool
+}
+
+export default function (in: Input): Output {
+    const base = in.expression_base
+    const count = in.body_count + 1
+    const end = integers.widen(in.statement_base) + count
+    const valid = base <= max_u32 - 2 && end <= integers.widen(max_u32)
+
+    if (!valid) {
+        return {
+            nodes: {
+                tags: [],
+                offsets: [],
+                builtin_name: [],
+                builtin_arguments: [],
+                block_label: [],
+                block_statements_start: [],
+                block_statements_len: []
+            },
+            statements: {
+                tags: [],
+                offsets: [],
+                break_value_label: [],
+                break_value_value: []
+            },
+            root: base,
+            valid: false
+        }
+    }
+
+    return {
+        nodes: {
+            tags: [
+                ExpressionsKind.Builtin,
+                ExpressionsKind.Block
+            ],
+            offsets: [
+                0,
+                0
+            ],
+            builtin_name: [ExpressionsBuiltinName.As],
+            builtin_arguments: [[
+                in.layout,
+                in.value
+            ]],
+            block_label: [in.label],
+            block_statements_start: [in.statement_base],
+            block_statements_len: [integers.narrow(count)]
+        },
+        statements: {
+            tags: [StatementsKind.BreakValue],
+            offsets: [0],
+            break_value_label: [in.label],
+            break_value_value: [base]
+        },
+        root: base + 1,
+        valid: true
+    }
+}
