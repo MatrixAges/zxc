@@ -1,0 +1,28 @@
+import type { Columns as Declarations } from "../../../ast/declarations/model"
+import type { Columns as Fields } from "../../../ast/fields/model"
+import type { ExpressionsKind } from "../../../printer/model/expressions"
+
+export type Input = {
+    types: u32[],
+    name: u8[],
+    expression_base: u32,
+    field_base: u32,
+    declaration_base: u32
+}
+
+export type Expressions = {
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    optional_type: u32[],
+    struct_type_start: u32[],
+    struct_type_len: u32[]
+}
+
+export type Output = {
+    expressions: Expressions,
+    fields: Fields,
+    declarations: Declarations,
+    valid: bool
+}
+
+export type Result = Output?

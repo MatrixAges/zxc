@@ -1,0 +1,39 @@
+<Module>
+    <Type from="initial_model" as="Initial" />
+
+    <Args in={Initial.Input} out={Initial.Result} />
+
+    <Call
+        fn="policy"
+        in={{
+            mode: $in.mode,
+            count: $in.store_count
+        }}
+    />
+
+    <If on={!$ctx.policy}>
+        <Return value={null} />
+    </If>
+
+    <Call fn="null_fields" in={$in} />
+    <Call fn="pending_object" in={$ctx.null_fields} />
+
+    <Call
+        fn="../../control/writes"
+        in={{
+            control: $in.control,
+            first: $in.first,
+            count: $in.count
+        }}
+    />
+
+    <Call
+        fn="pending_binding"
+        in={{
+            object: $ctx.pending_object,
+            mutable: $ctx.writes
+        }}
+    />
+
+    <Return value={$ctx.pending_binding} />
+</Module>

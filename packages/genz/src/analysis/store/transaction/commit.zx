@@ -1,0 +1,49 @@
+import bytes from "std:bytes"
+
+import call from "../../../ast/context/call"
+import field from "../../../ast/context/field"
+import identifier from "../../../ast/context/identifier"
+import initialize from "../../../ast/context/initialize"
+import { context_name, commit_name, pending_name } from "../const"
+
+import type { Input as Bases } from "../../../ast/context/model"
+import type { Columns as Expressions } from "../../../ast/expressions/model"
+
+export type Input = Bases
+
+export type Output = {
+    expressions: Expressions,
+    root: u32,
+    valid: bool
+}
+
+export default function (in: Input): Output {
+    const context = identifier({
+        state: initialize(in),
+        name: bytes.fromText(context_name)
+    })
+
+    const callee = field({
+        state: context.state,
+        target: context.id,
+        name: bytes.fromText(commit_name)
+    })
+
+    const pending = identifier({
+        state: callee.state,
+        name: bytes.fromText(pending_name)
+    })
+
+    const result = call({
+        state: pending.state,
+        callee: callee.id,
+        arguments: [pending.id],
+        fallible: true
+    })
+
+    return {
+        expressions: result.state.expressions,
+        root: result.id,
+        valid: result.state.valid
+    }
+}

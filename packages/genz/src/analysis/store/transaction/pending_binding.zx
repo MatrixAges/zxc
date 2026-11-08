@@ -1,0 +1,25 @@
+import bytes from "std:bytes"
+
+import { StatementsKind } from "../../../printer/model/statements"
+import emit from "../../binding/emit"
+import { pending_name } from "../const"
+
+import type { Binding as Input, Output } from "./initial_model"
+
+export default function (in: Input): Output {
+    const state = in.object.state
+    const kind = in.mutable ? StatementsKind.Variable : StatementsKind.Constant
+
+    return {
+        expressions: state.context.expressions,
+        forms: state.context.forms,
+        fields: state.fields,
+        statements: emit({
+            kind,
+            name: bytes.fromText(pending_name),
+            type_expr: in.object.type_expr,
+            value: in.object.value
+        }),
+        valid: state.context.valid
+    }
+}

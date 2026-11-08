@@ -1,0 +1,85 @@
+import integers from "std:integer"
+
+import constants from "../../../ast/declarations/constants"
+import header from "../../../ast/expressions/header"
+import appendField from "../../../ast/fields/append"
+import emptyFields from "../../../ast/fields/empty"
+import { ExpressionsKind } from "../../../printer/model/expressions"
+import slotName from "../slot_name"
+
+import type { Input, Result as Output } from "./declaration_model"
+
+export default function (in: Input): Output {
+    if (in.types.length == 0) {
+        return null
+    }
+
+    const tags: ExpressionsKind[] = []
+    const offsets: u32[] = []
+    const optional_type: u32[] = []
+
+    const built = loop({
+        tags,
+        offsets,
+        optional_type,
+        fields: emptyFields({}),
+        index: 0,
+        valid: true
+    }, {
+        while: current => current.index < in.types.length,
+        next: current => {
+            const node = header({
+                tags: current.tags,
+                offsets: current.offsets,
+                base: in.expression_base,
+                kind: ExpressionsKind.OptionalType,
+                offset: current.optional_type.length
+            })
+
+            current.tags = node.tags
+            current.offsets = node.offsets
+            current.optional_type =
+                current.optional_type.push(in.types[current.index])[0]
+            current.fields = appendField({
+                table: current.fields,
+                name: slotName(current.index),
+                value: node.id,
+                default_value: null,
+                comptime_parameter: false
+            })
+            current.valid = current.valid && node.valid
+            current.index += 1
+        }
+    })
+
+    const structure = header({
+        tags: built.tags,
+        offsets: built.offsets,
+        base: in.expression_base,
+        kind: ExpressionsKind.StructType,
+        offset: 0
+    })
+
+    const declarations = constants({
+        values: [{
+            name: in.name,
+            type_expr: null,
+            value: structure.id,
+            exported: true
+        }],
+        base: in.declaration_base
+    })
+
+    return {
+        expressions: {
+            tags: structure.tags,
+            offsets: structure.offsets,
+            optional_type: built.optional_type,
+            struct_type_start: [in.field_base],
+            struct_type_len: [integers.narrow(in.types.length)]
+        },
+        fields: built.fields,
+        declarations: declarations.table,
+        valid: built.valid && structure.valid && declarations.valid
+    }
+}

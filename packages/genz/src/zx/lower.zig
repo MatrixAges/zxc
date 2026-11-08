@@ -189,17 +189,7 @@ pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declar
     if (needs_io and !self.uses_io) try body.append(self.allocator, .{ .discard = try self.builder.identifier("io") });
     if (needs_process and !self.uses_process) try body.append(self.allocator, .{ .discard = try self.builder.identifier("process") });
     if (!self.used[0]) try body.append(self.allocator, .{ .discard = try self.builder.identifier("in") });
-
-    if (self.transaction()) {
-        const fields = try self.allocator.alloc(node.Field, self.program.stores.count());
-
-        for (fields, 0..) |*item, index| item.* = .{ .name = try std.fmt.allocPrint(self.allocator, "store_{d}", .{index}), .value = try self.builder.expression(.null_value) };
-
-        const pending = node.Constant{ .name = "pending", .type_expr = try self.builder.identifier(self.pending_name), .value = try self.builder.expression(.{ .object = .{ .type_expr = try self.builder.identifier(self.pending_name), .fields = fields } }) };
-
-        try body.append(self.allocator, if (@import("statements.zig").writes(self.program.body.block())) .{ .variable = pending } else .{ .constant = pending });
-    }
-
+    try @import("store/transaction.zig").initialize(self, &body);
     try body.appendSlice(self.allocator, self.reference_storage.items);
     try body.appendSlice(self.allocator, preconditions);
     try body.appendSlice(self.allocator, body_statements);
@@ -435,9 +425,9 @@ pub fn statements(self: *Self, values: ir.Block) Error![]const node.Statement {
 }
 
 pub fn transaction(self: *const Self) bool {
-    return self.program.stores.count() > 0 and self.program.store_mode == .transaction;
+    return @import("store/transaction.zig").active(self);
 }
 
 pub fn commit(self: *Self) Error!node.ExpressionId {
-    return self.call(try self.field(try self.builder.identifier("context"), "commit"), &.{try self.builder.identifier("pending")}, true);
+    return @import("store/transaction.zig").commit(self);
 }

@@ -1,0 +1,34 @@
+import integers from "std:integer"
+
+import identifier from "../../../ast/context/identifier"
+import object from "../../../ast/context/object"
+
+import type { State as Input, Object as Output } from "./initial_model"
+
+export default function (in: Input): Output {
+    const declared = identifier({
+        state: in.context,
+        name: in.source.name
+    })
+
+    const type_node = identifier({
+        state: declared.state,
+        name: in.source.name
+    })
+
+    const value = object({
+        state: type_node.state,
+        type_expr: type_node.id,
+        first: in.source.bases.field_base,
+        count: integers.narrow(in.source.store_count)
+    })
+
+    return {
+        type_expr: declared.id,
+        value: value.id,
+        state: {
+            ...in,
+            context: value.state
+        }
+    }
+}

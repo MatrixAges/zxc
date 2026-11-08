@@ -1,0 +1,12 @@
+import { StoreMode } from "core/function_table/complete"
+
+export type Input = {
+    mode: StoreMode,
+    count: u64
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    return in.count > 0 && in.mode == StoreMode.transaction
+}

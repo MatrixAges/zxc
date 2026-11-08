@@ -5,6 +5,15 @@ pub const Error = std.mem.Allocator.Error || error{InvalidAst};
 
 /// Imports constant declaration columns directly into an unstored declaration list.
 pub fn append(allocator: std.mem.Allocator, target: *std.ArrayList(node.Declaration), source: anytype) Error!void {
+    return appendRows(allocator, target, source, false);
+}
+
+/// Text must outlive the declaration list and every AST container subsequently built from it.
+pub fn appendBorrowingText(allocator: std.mem.Allocator, target: *std.ArrayList(node.Declaration), source: anytype) Error!void {
+    return appendRows(allocator, target, source, true);
+}
+
+fn appendRows(allocator: std.mem.Allocator, target: *std.ArrayList(node.Declaration), source: anytype, comptime borrow_text: bool) Error!void {
     const count = source.tags.len;
 
     if (source.offsets.len != count or source.constant_name.len != count or source.constant_type_expr.len != count or source.constant_value.len != count or source.constant_exported.len != count) return error.InvalidAst;
@@ -18,7 +27,7 @@ pub fn append(allocator: std.mem.Allocator, target: *std.ArrayList(node.Declarat
 
     for (source.offsets) |offset| {
         target.appendAssumeCapacity(.{ .constant = .{
-            .name = try allocator.dupe(u8, source.constant_name[offset]),
+            .name = if (comptime borrow_text) source.constant_name[offset] else try allocator.dupe(u8, source.constant_name[offset]),
             .type_expr = if (source.constant_type_expr[offset]) |id| @fromBackingInt(id) else null,
             .value = @fromBackingInt(source.constant_value[offset]),
             .exported = source.constant_exported[offset],

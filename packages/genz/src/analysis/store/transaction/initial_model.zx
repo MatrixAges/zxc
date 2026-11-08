@@ -1,0 +1,44 @@
+import type { Control } from "core/control_table/model"
+import type { StoreMode } from "core/function_table/complete"
+import type { Input as Bases, State as Context } from "../../../ast/context/model"
+import type { Columns as Forms } from "../../../ast/expressions/forms/model"
+import type { Columns as Expressions } from "../../../ast/expressions/model"
+import type { Columns as Fields } from "../../../ast/fields/model"
+import type { Output as Statements } from "../../binding/emit"
+
+export type Input = {
+    mode: StoreMode,
+    store_count: u64,
+    name: u8[],
+    control: Control,
+    first: u64,
+    count: u64,
+    bases: Bases
+}
+
+export type State = {
+    source: Input,
+    context: Context,
+    fields: Fields
+}
+
+export type Object = {
+    state: State,
+    type_expr: u32,
+    value: u32
+}
+
+export type Binding = {
+    object: Object,
+    mutable: bool
+}
+
+export type Output = {
+    expressions: Expressions,
+    forms: Forms,
+    fields: Fields,
+    statements: Statements,
+    valid: bool
+}
+
+export type Result = Output?

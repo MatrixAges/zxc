@@ -1,6 +1,5 @@
 import bytes from "std:bytes"
 import { max_u32 } from "core/const"
-import { StoreMode } from "core/function_table/complete"
 import kind from "core/type_table/kind"
 import { Kind } from "core/type_table/model"
 
@@ -12,9 +11,11 @@ import integer from "../../printer/text/integer"
 import { context_name } from "../comparison/const"
 import { Property } from "../state/queries/model"
 import query from "../state/queries/read"
-import { store_prefix, pending_name } from "./const"
+import { store_prefix, pending_name } from "../store/const"
+import policy from "../store/transaction/policy"
 import { Result } from "./model"
 
+import type { StoreMode } from "core/function_table/complete"
 import type { Query } from "../state/queries/model"
 
 export type Input = {
@@ -48,7 +49,11 @@ export type Output = {
 }
 
 export default function (in: Input): Output {
-    const transaction = in.store_count > 0 && in.store_mode == StoreMode.transaction
+    const transaction = policy({
+        mode: in.store_mode,
+        count: in.store_count
+    })
+
     const count: u32 = transaction ? 6 : 3
     const base = in.expression_base
 

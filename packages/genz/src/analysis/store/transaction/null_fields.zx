@@ -1,0 +1,36 @@
+import initialize from "../../../ast/context/initialize"
+import nullValue from "../../../ast/context/null_value"
+import append from "../../../ast/fields/append"
+import emptyFields from "../../../ast/fields/empty"
+import slotName from "../slot_name"
+
+import type { Input, State as Output } from "./initial_model"
+
+export default function (in: Input): Output {
+    const fields = loop({
+        context: initialize(in.bases),
+        fields: emptyFields({}),
+        index: 0
+    }, {
+        while: current => current.index < in.store_count,
+        next: current => {
+            const value = nullValue(current.context)
+
+            current.context = value.state
+            current.fields = append({
+                table: current.fields,
+                name: slotName(current.index),
+                value: value.id,
+                default_value: null,
+                comptime_parameter: false
+            })
+            current.index += 1
+        }
+    })
+
+    return {
+        source: in,
+        context: fields.context,
+        fields: fields.fields
+    }
+}
