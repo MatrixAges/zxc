@@ -1,0 +1,106 @@
+import integers from "std:integer"
+
+import { Role } from "../../order/model"
+
+import type { Site, Trace as Output } from "../model"
+import type { Expansion as Input } from "./model"
+
+export default function (in: Input): Output {
+    const input = in.source
+    const first: u32[] = []
+    const sites: Site[] = []
+
+    return loop({
+        first,
+        sites,
+        root: 0,
+        candidate: 0,
+        serial: input.plan.edge_count
+    }, {
+        while: state => state.root + 1 < input.plan.first.length,
+        next: state => {
+            state.first = state.first.push(integers.narrow(state.sites.length))[0]
+
+            const expanded = loop({
+                sites: state.sites,
+                candidate: state.candidate,
+                serial: state.serial,
+                index: integers.widen(input.plan.first[state.root])
+            }, {
+                while: current => current.index <
+                    integers.widen(input.plan.first[state.root + 1]),
+                next: current => {
+                    const site = input.rows[current.index]
+                    const selected = match {
+                        current.candidate < in.candidates.length =>
+                            integers.widen(in.candidates[current.candidate]) ==
+                            current.index,
+                        _ => false
+                    }
+
+                    const original_role = input.plan.sites.role[current.index]
+                    const edge = match {
+                        selected => integers.narrow(current.serial),
+                        _ => site.edge
+                    }
+
+                    current.sites = current.sites.push({
+                        ...site,
+                        role: selected ? Role.observe : original_role,
+                        edge
+                    })[0]
+
+                    if (selected) {
+                        current.serial += 1
+                        current.candidate += 1
+
+                        const root = input.source.symbols.length +
+                            integers.widen(site.parent)
+
+                        const observations = loop({
+                            sites: current.sites,
+                            serial: current.serial,
+                            index: integers.widen(input.plan.first[root])
+                        }, {
+                            while: observed => observed.index <
+                                integers.widen(input.plan.first[root + 1]),
+                            next: observed => {
+                                const use = input.rows[observed.index]
+
+                                observed.sites = observed.sites.push({
+                                    ...site,
+                                    top: use.top,
+                                    parent: use.parent,
+                                    region: use.region,
+                                    a: use.a,
+                                    b: use.b,
+                                    c: use.c,
+                                    d: use.d,
+                                    arms: use.arms,
+                                    edge: integers.narrow(observed.serial),
+                                    role: Role.observe
+                                })[0]
+                                observed.serial += 1
+                                observed.index += 1
+                            }
+                        })
+
+                        current.sites = observations.sites
+                        current.serial = observations.serial
+                    }
+
+                    current.index += 1
+                }
+            })
+
+            state.sites = expanded.sites
+            state.candidate = expanded.candidate
+            state.serial = expanded.serial
+            state.root += 1
+        },
+        return: state => {
+            first: state.first.push(integers.narrow(state.sites.length))[0],
+            sites: state.sites
+        }
+    })
+}

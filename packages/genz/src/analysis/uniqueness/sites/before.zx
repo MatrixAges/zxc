@@ -18,6 +18,13 @@ export default function (in: Input): Output {
     const consumer = integers.widen(sites.top[in.consumer])
     const seen = nodes.time[observation]
 
+    if (integers.widen(sites.edge[in.observation]) >= in.query.plan.edge_count) {
+        const parent = sites.parent[in.observation]
+        const boundary = parent == max_u32 ? observation : integers.widen(parent)
+
+        return nodes.finish[boundary] <= nodes.time[consumer]
+    }
+
     if (seen < nodes.time[consumer]) {
         return true
     }

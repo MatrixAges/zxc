@@ -1,0 +1,17 @@
+import type { Input as Source, Plan, Site } from "../model"
+
+export type Input = {
+    source: Source,
+    plan: Plan,
+    rows: Site[]
+}
+
+export type Selected = {
+    source: Input,
+    site: u64
+}
+
+export type Expansion = {
+    source: Input,
+    candidates: u32[]
+}

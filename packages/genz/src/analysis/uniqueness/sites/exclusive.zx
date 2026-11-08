@@ -14,6 +14,14 @@ export type Output = bool
 
 export default function (in: Input): Output {
     const sites = in.query.plan.sites
+
+    const marked = integers.widen(sites.edge[in.left]) >= in.query.plan.edge_count ||
+        integers.widen(sites.edge[in.right]) >= in.query.plan.edge_count
+
+    if (marked) {
+        return false
+    }
+
     const left_time = in.query.nodes.time[integers.widen(sites.top[in.left])]
     const right_time = in.query.nodes.time[integers.widen(sites.top[in.right])]
 

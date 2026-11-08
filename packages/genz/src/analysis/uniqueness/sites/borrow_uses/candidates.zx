@@ -1,0 +1,30 @@
+import integers from "std:integer"
+
+import eligible from "./eligible"
+
+import type { Input } from "./model"
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    const candidates: u32[] = []
+
+    return loop({
+        candidates,
+        index: 0
+    }, {
+        while: state => state.index < in.rows.length,
+        next: state => {
+            if (eligible({
+                source: in,
+                site: state.index
+            })) {
+                state.candidates =
+                    state.candidates.push(integers.narrow(state.index))[0]
+            }
+
+            state.index += 1
+        },
+        return: state => state.candidates
+    })
+}

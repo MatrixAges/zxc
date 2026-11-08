@@ -102,6 +102,9 @@ pub fn create(allocator: std.mem.Allocator, order: *const Order, slots: Slots, s
     first[roots] = @intCast(sites.items.len);
 
     var self = Self{ .order = order, .slots = slots, .expressions = expressions, .symbols = symbols, .summaries = summaries, .first = first, .sites = sites.items, .slot_first = &.{}, .memo = &.{} };
+
+    try @import("borrow_seed.zig").normalize(allocator, &self);
+
     const slot_first = try allocator.alloc(u32, roots + 1);
     var total: u32 = 0;
 
@@ -180,8 +183,11 @@ fn decide(self: *Self, root: u32, slot: u32) bool {
 
         for (range, 0..) |other, other_index| {
             if (other_index == index or slot < other.lo or slot >= other.hi or (other.edge == site.edge and other.delta == site.delta)) continue;
-            if (order.apart(site.region, order.timeAt(@backingInt(site.top)), other.region, order.timeAt(@backingInt(other.top)))) continue;
-            if (site.arms.apart(order, order.timeAt(@backingInt(site.top)), other.arms, order.timeAt(@backingInt(other.top)))) continue;
+
+            const marked = site.edge >= order.edgeCount() or other.edge >= order.edgeCount();
+
+            if (!marked and order.apart(site.region, order.timeAt(@backingInt(site.top)), other.region, order.timeAt(@backingInt(other.top)))) continue;
+            if (!marked and site.arms.apart(order, order.timeAt(@backingInt(site.top)), other.arms, order.timeAt(@backingInt(other.top)))) continue;
             if (self.role(other, slot) != .observe) return false;
             if (!before(order, other, site)) return false;
         }
@@ -194,6 +200,12 @@ fn decide(self: *Self, root: u32, slot: u32) bool {
 /// both read through one shared node, when the observing node finishes before the consuming node starts. A statement
 /// consumes its value once the value is built, so whatever the building reads comes first.
 fn before(order: *const Order, observation: Site, consumer: Site) bool {
+    if (observation.edge >= order.edgeCount()) {
+        const boundary = if (observation.parent == Order.none) @backingInt(observation.top) else observation.parent;
+
+        return order.finishAt(boundary) <= order.timeAt(@backingInt(consumer.top));
+    }
+
     const seen = order.timeAt(@backingInt(observation.top));
 
     if (seen < order.timeAt(@backingInt(consumer.top))) return true;

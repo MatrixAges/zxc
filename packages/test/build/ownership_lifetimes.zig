@@ -10,12 +10,13 @@ pub fn add(b: *std.Build, cli: *std.Build.Dependency, target: std.Build.Resolved
         .optimize = optimize,
     }) });
 
-    for ([_][]const u8{ "direct", "dead", "live_view", "fresh_append" }) |name| {
+    for ([_][]const u8{ "direct", "dead", "live_view", "fresh_append", "read_direct", "read_view", "read_overlap", "read_branch", "call_overlap" }) |name| {
         const compile = b.addRunArtifact(cli.artifact("zxc"));
 
         compile.setCwd(b.path(directory ++ "/fixtures"));
         compile.addFileArg(b.path(b.fmt("{s}/fixtures/{s}.zx", .{ directory, name })));
         compile.addFileInput(b.path(directory ++ "/fixtures/borrow.zx"));
+        compile.addFileInput(b.path(directory ++ "/fixtures/choose_view.zx"));
         compile.addArg("--out");
 
         const source = compile.addOutputFileArg(b.fmt("{s}.zig", .{name}));

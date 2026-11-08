@@ -1,0 +1,13 @@
+export type Input = {
+    values: u64[],
+    tag: u64
+}
+
+export type Output = u64[]
+
+export default function (in: Input): Output {
+    return match {
+        in.values[0] == in.tag => in.values,
+        _ => []
+    }
+}

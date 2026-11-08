@@ -5,6 +5,7 @@ const live = @import("live_view");
 
 comptime {
     _ = @import("fresh_append_test.zig");
+    _ = @import("read_test.zig");
 }
 
 test "metadata-only views preserve values without retaining source storage" {

@@ -1,0 +1,31 @@
+<Module>
+    <Type from="model" as="Borrow" />
+    <Type from="../model" as="Sites" />
+
+    <Args in={Borrow.Input} out={Sites.Plan} />
+
+    <Call fn="candidates" in={$in} />
+
+    <If on={$ctx.candidates.length == 0}>
+        <Return value={$in.plan} />
+    </If>
+
+    <Call
+        fn="expand"
+        in={{
+            source: $in,
+            candidates: $ctx.candidates
+        }}
+    />
+
+    <Call fn="../publish" in={$ctx.expand.sites} />
+
+    <Return
+        value={{
+            edge_count: $in.plan.edge_count,
+            first: $ctx.expand.first,
+            slot_first: $in.plan.slot_first,
+            sites: $ctx.publish
+        }}
+    />
+</Module>

@@ -5,14 +5,7 @@
 
     <Task
         name="plan"
-        out={{
-            first: $ctx.walk.first,
-            slot_first: $ctx.slots,
-            sites: {
-                ...$ctx.publish,
-                role: $ctx.resolve_roles
-            }
-        }}
+        out={$ctx.build}
     >
         <Call fn="consumers" in={$in} />
         <Call fn="references" in={$in} />
@@ -35,6 +28,23 @@
                 source: $in,
                 first: $ctx.walk.first,
                 sites: $ctx.publish
+            }}
+        />
+
+        <Call
+            module="borrow_uses/build"
+            in={{
+                source: $in,
+                rows: $ctx.walk.sites,
+                plan: {
+                    edge_count: $in.edges.parent.length,
+                    first: $ctx.walk.first,
+                    slot_first: $ctx.slots,
+                    sites: {
+                        ...$ctx.publish,
+                        role: $ctx.resolve_roles
+                    }
+                }
             }}
         />
     </Task>

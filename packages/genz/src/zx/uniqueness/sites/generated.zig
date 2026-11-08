@@ -56,8 +56,7 @@ pub fn build(allocator: std.mem.Allocator, workspace: std.mem.Allocator, order: 
     }
 
     const plan = try allocator.create(Plan);
-
-    plan.* = .{ .first = try allocator.dupe(u32, output.plan.first), .slot_first = try allocator.dupe(u32, output.plan.slot_first), .sites = sites };
+    plan.* = .{ .edge_count = output.plan.edge_count, .first = try allocator.dupe(u32, output.plan.first), .slot_first = try allocator.dupe(u32, output.plan.slot_first), .sites = sites };
 
     return .{ .plan = plan, .states = try allocator.dupe(State, output.states) };
 }
