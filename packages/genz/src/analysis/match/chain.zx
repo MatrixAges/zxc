@@ -1,0 +1,57 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+
+import { ExpressionsKind } from "../../printer/model/expressions"
+import { request_stride } from "./const"
+import empty from "./empty"
+
+import type { Emit as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const initial = empty(in)
+
+    const built = loop({
+        ...initial.nodes,
+        root: initial.root,
+        index: 0
+    }, {
+        while: state => state.index < in.count,
+        next: state => {
+            const first = state.index * request_stride
+            const id = integers.widen(in.base) + state.index
+
+            state.tags = state.tags.push(ExpressionsKind.Conditional)[0]
+            state.offsets = state.offsets.push(integers.narrow(state.index))[0]
+            state.conditional_condition =
+                state.conditional_condition.push(in.values[first])[0]
+            state.conditional_yes =
+                state.conditional_yes.push(in.values[first + 1])[0]
+            state.conditional_no = state.conditional_no.push(state.root)[0]
+            state.conditional_capture = state.conditional_capture.push(null)[0]
+            state.conditional_error_capture =
+                state.conditional_error_capture.push(null)[0]
+            state.root = integers.narrow(id)
+            state.index += 1
+        }
+    })
+
+    const end = integers.widen(in.base) + in.count
+
+    return {
+        nodes: built.pick([
+            "tags",
+            "offsets",
+            "conditional_condition",
+            "conditional_yes",
+            "conditional_no",
+            "conditional_capture",
+            "conditional_error_capture",
+            "selection_subject",
+            "selection_arms_start",
+            "selection_arms_len"
+        ]),
+        arms: initial.arms,
+        root: built.root,
+        valid: end <= integers.widen(max_u32)
+    }
+}

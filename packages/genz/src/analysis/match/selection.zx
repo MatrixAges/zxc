@@ -1,0 +1,73 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+
+import { ExpressionsKind } from "../../printer/model/expressions"
+import { request_stride } from "./const"
+import empty from "./empty"
+
+import type { Emit as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const initial = empty(in)
+
+    if (in.count == 0) {
+        return {
+            ...initial,
+            valid: false
+        }
+    }
+
+    const arms = loop({
+        ...initial.arms,
+        index: 0
+    }, {
+        while: state => state.index < in.count,
+        next: state => {
+            const last = state.index + 1 == in.count
+            const position = (in.count - state.index - 1) * request_stride
+
+            const value: u32? = match {
+                last => null,
+                _ => in.values[position]
+            }
+
+            const result = match {
+                last => in.base,
+                _ => in.values[position + 1]
+            }
+
+            state.value = state.value.push(value)[0]
+            state.capture = state.capture.push(null)[0]
+            state.result = state.result.push(result)[0]
+            state.index += 1
+        }
+    })
+
+    return {
+        nodes: {
+            tags: [
+                ExpressionsKind.Conditional,
+                ExpressionsKind.Selection
+            ],
+            offsets: [
+                0,
+                0
+            ],
+            conditional_condition: [in.values[0]],
+            conditional_yes: [in.values[1]],
+            conditional_no: [in.fallback],
+            conditional_capture: [null],
+            conditional_error_capture: [null],
+            selection_subject: [in.values[in.count * request_stride]],
+            selection_arms_start: [in.arm_base],
+            selection_arms_len: [integers.narrow(in.count)]
+        },
+        arms: arms.pick([
+            "value",
+            "capture",
+            "result"
+        ]),
+        root: in.base + 1,
+        valid: integers.widen(in.base) + 1 < integers.widen(max_u32)
+    }
+}

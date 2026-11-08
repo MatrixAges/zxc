@@ -1,0 +1,54 @@
+import type { ExpressionsKind } from "../../printer/model/expressions"
+import type { Input as Labels } from "../selection/labels/model"
+
+export enum Operation { Expression, Value, Equality, Literal }
+
+export type Input = {
+    source: Labels,
+    results: u32[],
+    layout: bool
+}
+
+export type Plan = {
+    operations: Operation[],
+    first: u32[],
+    second: u32[],
+    count: u64,
+    selected: bool,
+    valid: bool
+}
+
+export type Nodes = {
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    conditional_condition: u32[],
+    conditional_yes: u32[],
+    conditional_no: u32[],
+    conditional_capture: u8[]?[],
+    conditional_error_capture: u8[]?[],
+    selection_subject: u32[],
+    selection_arms_start: u32[],
+    selection_arms_len: u32[]
+}
+
+export type Arms = {
+    value: u32?[],
+    capture: u8[]?[],
+    result: u32[]
+}
+
+export type Emit = {
+    selected: bool,
+    count: u64,
+    values: u32[],
+    fallback: u32,
+    base: u32,
+    arm_base: u32
+}
+
+export type Output = {
+    nodes: Nodes,
+    arms: Arms,
+    root: u32,
+    valid: bool
+}

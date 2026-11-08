@@ -161,6 +161,8 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/operators/unary.zx", .name = "unary_emit", .owner = .genz },
     .{ .path = "genz/analysis/selection/labels/analyze.rx", .name = "selection_labels", .owner = .genz },
     .{ .path = "genz/analysis/selection/conditional.zx", .name = "conditional_emit", .owner = .genz },
+    .{ .path = "genz/analysis/match/plan.rx", .name = "match_plan", .owner = .genz },
+    .{ .path = "genz/analysis/match/emit.rx", .name = "match_emit", .owner = .genz },
     .{ .path = "genz/analysis/imports/build.rx", .name = "native_imports", .owner = .genz },
     .{ .path = "genz/analysis/functions/requests/create.zx", .name = "function_requests_create", .owner = .genz },
     .{ .path = "genz/analysis/functions/requests/push.zx", .name = "function_requests_push", .owner = .genz },

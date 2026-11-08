@@ -1,0 +1,74 @@
+import { Operation } from "./model"
+
+import type { Input as Source, Plan as Output } from "./model"
+
+export type Input = {
+    source: Source,
+    selected: bool
+}
+
+export default function (in: Input): Output {
+    const source = in.source.source
+    const count = source.conditions.length
+    const value_operation = in.source.layout ? Operation.Value : Operation.Expression
+    const operations: Operation[] = []
+    const first: u32[] = []
+    const second: u32[] = []
+
+    const requests = loop({
+        operations,
+        first,
+        second,
+        remaining: count
+    }, {
+        while: state => state.remaining != 0,
+        next: state => {
+            state.remaining -= 1
+            const index = state.remaining
+            const literal = in.selected && index + 1 < count
+
+            const operation = match {
+                literal => Operation.Literal,
+                source.subject != null => Operation.Equality,
+                _ => Operation.Expression
+            }
+
+            const left = match operation {
+                Operation.Equality => source.subject ?? 0,
+                _ => source.conditions[index]
+            }
+
+            const right = match operation {
+                Operation.Equality => source.conditions[index],
+                _ => 0
+            }
+
+            state.operations =
+                state.operations.push(operation)[0].push(value_operation)[0]
+            state.first =
+                state.first.push(left)[0].push(in.source.results[index])[0]
+            state.second = state.second.push(right)[0].push(0)[0]
+        }
+    })
+
+    const final = match {
+        in.selected => {
+            ...requests,
+            operations: requests.operations.push(Operation.Expression)[0],
+            first: requests.first.push(source.subject ?? 0)[0],
+            second: requests.second.push(0)[0]
+        },
+        _ => requests
+    }
+
+    return {
+        ...final.pick([
+            "operations",
+            "first",
+            "second"
+        ]),
+        count,
+        selected: in.selected,
+        valid: in.source.results.length == count
+    }
+}

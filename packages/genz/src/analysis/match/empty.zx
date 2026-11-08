@@ -1,0 +1,25 @@
+import type { Emit as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        nodes: {
+            tags: [],
+            offsets: [],
+            conditional_condition: [],
+            conditional_yes: [],
+            conditional_no: [],
+            conditional_capture: [],
+            conditional_error_capture: [],
+            selection_subject: [],
+            selection_arms_start: [],
+            selection_arms_len: []
+        },
+        arms: {
+            value: [],
+            capture: [],
+            result: []
+        },
+        root: in.fallback,
+        valid: true
+    }
+}

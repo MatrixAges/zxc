@@ -1,0 +1,17 @@
+<Module>
+    <Type from="model" as="Match" />
+
+    <Args in={Match.Input} out={Match.Plan} />
+
+    <Call module="../selection/labels/analyze" in={$in.source} />
+
+    <Call
+        fn="requests"
+        in={{
+            source: $in,
+            selected: $ctx.analyze
+        }}
+    />
+
+    <Return value={$ctx.requests} />
+</Module>

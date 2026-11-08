@@ -1,0 +1,15 @@
+<Module>
+    <Type from="model" as="Match" />
+
+    <Args in={Match.Emit} out={Match.Output} />
+
+    <If on={$in.selected}>
+        <Call fn="selection" in={$in} />
+
+        <Return value={$ctx.selection} />
+    </If>
+
+    <Call fn="chain" in={$in} />
+
+    <Return value={$ctx.chain} />
+</Module>

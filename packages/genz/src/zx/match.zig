@@ -3,6 +3,7 @@ const ir = @import("zx").ir;
 const node = @import("../node.zig");
 const Lower = @import("lower.zig");
 const aggregate = @import("aggregate.zig");
+const bridge = @import("match/bridge.zig");
 
 pub fn lower(self: *Lower, selection: ir.MatchRow) Lower.Error!node.ExpressionId {
     return lowerMode(self, selection, false);
@@ -13,6 +14,8 @@ pub fn lowerValue(self: *Lower, selection: ir.MatchRow) Lower.Error!node.Express
 }
 
 fn lowerMode(self: *Lower, selection: ir.MatchRow, layout: bool) Lower.Error!node.ExpressionId {
+    if (!@import("genz_options").generated_analysis) return if (layout) @import("match/seed.zig").lowerValue(self, selection) else @import("match/seed.zig").lower(self, selection);
+
     var body: std.ArrayList(node.Statement) = .empty;
     const previous = if (selection.subject) |subject| self.cache.get(subject) else null;
 
@@ -29,49 +32,30 @@ fn lowerMode(self: *Lower, selection: ir.MatchRow, layout: bool) Lower.Error!nod
         }
     }
 
-    const values = @import("value_call/root.zig");
-    var result = if (layout) try values.expression(self, selection.fallback) else try self.expr(selection.fallback);
-    var index = selection.arms.len;
+    const fallback = if (layout) try @import("value_call/root.zig").expression(self, selection.fallback) else try self.expr(selection.fallback);
+    var scratch = std.heap.ArenaAllocator.init(self.workspace);
+    var buffer: [std.heap.page_size_min]u8 = undefined;
+    var buffered = std.heap.BufferFirstAllocator.init(&buffer, scratch.allocator());
 
-    if (try @import("selection.zig").constantLabels(self, selection)) {
-        index -= 1;
-        const last = selection.arms.at(index);
-        const condition = try self.binary(.{ .operator = .equal, .left = selection.subject.?, .right = last.condition });
-        const yes = if (layout) try values.expression(self, last.result) else try self.expr(last.result);
+    defer scratch.deinit();
 
-        result = try @import("selection/conditional.zig").construct(self, condition, yes, result);
-        const arms = try self.allocator.alloc(node.SelectionArm, index + 1);
+    const allocator = buffered.allocator();
+    const plan = try bridge.plan(self, allocator, selection, layout);
 
-        arms[index] = .{ .result = result };
+    if (!plan.valid) return error.OutOfMemory;
 
-        while (index != 0) {
-            index -= 1;
-            const arm = selection.arms.at(index);
-            const label = try @import("selection.zig").literal(self, arm.condition);
-            const value = if (layout) try values.expression(self, arm.result) else try self.expr(arm.result);
+    const values = try allocator.alloc(node.ExpressionId, plan.operations.len);
 
-            arms[index] = .{ .value = label, .result = value };
-        }
-
-        const selected = try self.builder.expression(.{ .selection = .{ .subject = try self.expr(selection.subject.?), .arms = arms } });
-
-        return aggregate.finish(self, &body, selected);
+    for (plan.operations, plan.first, plan.second, values) |operation, first, second, *value| {
+        value.* = switch (operation) {
+            .Expression => try self.expr(@fromBackingInt(first)),
+            .Value => try @import("value_call/root.zig").expression(self, @fromBackingInt(first)),
+            .Equality => try self.binary(.{ .operator = .equal, .left = @fromBackingInt(first), .right = @fromBackingInt(second) }),
+            .Literal => try @import("selection.zig").literal(self, @fromBackingInt(first)),
+        };
     }
 
-    while (index > 0) {
-        index -= 1;
-        const arm = selection.arms.at(index);
-
-        const condition = if (selection.subject) |subject|
-            try self.binary(.{ .operator = .equal, .left = subject, .right = arm.condition })
-
-        else
-            try self.expr(arm.condition);
-
-        const yes = if (layout) try values.expression(self, arm.result) else try self.expr(arm.result);
-
-        result = try @import("selection/conditional.zig").construct(self, condition, yes, result);
-    }
+    const result = try bridge.emit(self, allocator, plan.selected, plan.count, values, fallback);
 
     return if (selection.subject == null) result else aggregate.finish(self, &body, result);
 }
