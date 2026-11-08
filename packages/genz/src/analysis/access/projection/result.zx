@@ -1,0 +1,54 @@
+import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import stored from "../../state/locals/storage"
+import { Property } from "../../state/queries/model"
+import query from "../../state/queries/read"
+import { Result } from "./model"
+
+import type { Storage } from "../../state/locals/storage"
+import type { Query } from "../../state/queries/model"
+
+export type Input = {
+    storage: Storage,
+    type_id: u32,
+    target: Query,
+    result: Query,
+    active: bool,
+    raw: bool,
+    field: bool
+}
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    if (!in.active || !query({
+        value: in.result,
+        property: Property.Represented
+    })) {
+        return Result.Direct
+    }
+
+    if (!in.field) {
+        return in.raw ? Result.Value : Result.Element
+    }
+
+    if (!in.raw && query({
+        value: in.target,
+        property: Property.Represented
+    })) {
+        return Result.Direct
+    }
+
+    const list = kind(in.storage.kinds[integers.widen(in.type_id)]) == Kind.List
+
+    if (list && !stored({
+        storage: in.storage,
+        list: in.type_id
+    })) {
+        return Result.Borrowed
+    }
+
+    return Result.Value
+}

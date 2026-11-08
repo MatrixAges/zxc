@@ -1,0 +1,44 @@
+import { ExpressionKind } from "core/expression_table/kinds"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import { Property } from "../../state/queries/model"
+import query from "../../state/queries/read"
+import { Route } from "./model"
+
+import type { Query } from "../../state/queries/model"
+
+export type Input = {
+    kind: ExpressionKind,
+    type_kind: u8,
+    query: Query,
+    normalize: bool,
+    renew: bool,
+    cached: bool
+}
+
+export type Output = {
+    route: Route,
+    managed_parent: bool
+}
+
+export default function (in: Input): Output {
+    const route = match {
+        in.normalize || in.renew => Route.None,
+        !query({
+            value: in.query,
+            property: Property.Represented
+        }) => Route.Anchor,
+        in.cached => Route.None,
+        _ => match in.kind {
+            ExpressionKind.Field => Route.Field,
+            ExpressionKind.Index => Route.Index,
+            _ => Route.None
+        }
+    }
+
+    return {
+        route,
+        managed_parent: route == Route.Index && kind(in.type_kind) == Kind.Object
+    }
+}

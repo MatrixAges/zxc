@@ -1,0 +1,38 @@
+import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+export type Storage = {
+    kinds: u8[],
+    first: u32[],
+    selected: bool[],
+    element_storage: bool[]
+}
+
+export type Input = {
+    storage: Storage,
+    list: u32
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const list = integers.widen(in.list)
+    const storage = in.storage
+
+    if (kind(storage.kinds[list]) != Kind.List) {
+        return false
+    }
+
+    const child = integers.widen(storage.first[list])
+    const target = kind(storage.kinds[child])
+    const elements = storage.element_storage
+
+    const stored = (
+        - target == Kind.List
+        - and list < elements.length
+        - and elements[list]
+    )
+
+    return (target == Kind.Object || stored) && storage.selected[child]
+}

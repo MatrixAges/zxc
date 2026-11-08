@@ -275,12 +275,13 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!node.ExpressionId {
             const raw = try self.abiNestedItems(item.target);
             const source = raw orelse try @import("state_value/list.zig").expression(self, item.target);
             const indexed = try @import("intrinsics.zig").index(self, source, try self.expr(item.index));
+            const route = @import("access/projection/rules.zig").result(self, value.type_id, self.program.expression(item.target).type_id, raw != null, false);
 
-            if (!self.state_active or !self.state_plan.represented(self.program, value.type_id)) break :blk indexed;
+            if (route == .Direct) break :blk indexed;
 
             var body: std.ArrayList(node.Statement) = .empty;
 
-            const converted = if (raw != null)
+            const converted = if (route == .Value)
                 try @import("state_value/conversion.zig").convert(self, &body, value.type_id, try @import("aggregate.zig").bind(self, &body, indexed), .value)
             else
                 try @import("state_value/elements.zig").read(self, &body, self.program.expression(item.target).type_id, indexed);
@@ -310,16 +311,18 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!node.ExpressionId {
 
 fn projectedField(self: *Self, target: ir.ExprId, id: ir.TypeId, name: []const u8) Error!node.ExpressionId {
     const target_type = self.program.expression(target).type_id;
-    const represented_target = self.state_active and self.state_plan.represented(self.program, target_type);
-    const raw = if (represented_target and self.iteration_value == null and self.loop_fields == null and self.program.typeOf(target_type) == .object) try self.abiProjection(target) else null;
+    const eligible = @import("access/projection/rules.zig").raw(self, target_type, false);
+    const raw = if (eligible) try self.abiProjection(target) else null;
     var value = try self.field(raw orelse try self.projection(target), name);
 
     if (self.loop_fields) |context| {
         if (context.field(self, target, name)) value = try self.builder.expression(.{ .dereference = value });
     }
 
-    if (!self.state_active or !self.state_plan.represented(self.program, id) or (raw == null and represented_target)) return value;
-    if (self.program.typeOf(id) == .list and !@import("state_value/elements.zig").inlineStored(self, id)) return @import("state_value/list.zig").borrowed(self, id, value);
+    const route = @import("access/projection/rules.zig").result(self, id, target_type, raw != null, true);
+
+    if (route == .Direct) return value;
+    if (route == .Borrowed) return @import("state_value/list.zig").borrowed(self, id, value);
 
     var body: std.ArrayList(node.Statement) = .empty;
     const bound = try @import("aggregate.zig").bind(self, &body, value);
@@ -328,52 +331,42 @@ fn projectedField(self: *Self, target: ir.ExprId, id: ir.TypeId, name: []const u
 }
 
 fn abiNestedItems(self: *Self, id: ir.ExprId) Error!?node.ExpressionId {
-    if (!self.state_active or self.iteration_value != null or self.loop_fields != null) return null;
-
     const type_id = self.program.expression(id).type_id;
-    const kind = self.program.typeOf(type_id);
+    const eligible = @import("access/projection/rules.zig").raw(self, type_id, true);
 
-    if (kind != .list or self.program.typeOf(kind.list) != .list) return null;
-    if (!@import("state_value/elements.zig").inlineStored(self, type_id)) return null;
+    if (!eligible) return null;
 
     return self.abiProjection(id);
 }
 
 fn abiProjection(self: *Self, id: ir.ExprId) Error!?node.ExpressionId {
     const value = self.program.expression(id);
-    const flags = self.plan.get(id);
+    const plan = @import("access/projection/rules.zig").route(self, id);
 
-    if (flags.normalize or flags.renew) return null;
-    if (!self.state_plan.represented(self.program, value.type_id)) return try self.projection(id);
-    if (self.cache.contains(id)) return null;
-
-    return switch (value.value) {
-        .field => |selected| blk: {
+    return switch (plan.route) {
+        .None => null,
+        .Anchor => try self.projection(id),
+        .Field => field: {
+            const selected = value.value.field;
             const parent = try self.abiProjection(selected.target) orelse return null;
             const fields = self.program.typeOf(self.program.expression(selected.target).type_id).object;
 
-            break :blk try self.field(parent, fields.at(selected.index).name);
+            break :field try self.field(parent, fields.at(selected.index).name);
         },
-        .index => |selected| blk: {
+        .Index => index: {
+            const selected = value.value.index;
             const raw = try self.abiProjection(selected.target);
+            const parent = raw orelse if (plan.managed_parent) try @import("state_value/list.zig").expression(self, selected.target) else return null;
 
-            const parent = raw orelse if (self.program.typeOf(value.type_id) == .object)
-                try @import("state_value/list.zig").expression(self, selected.target)
-            else
-                return null;
-
-            break :blk try @import("intrinsics.zig").index(self, parent, try self.expr(selected.index));
+            break :index try @import("intrinsics.zig").index(self, parent, try self.expr(selected.index));
         },
-        else => null,
     };
 }
 
 fn projection(self: *Self, id: ir.ExprId) Error!node.ExpressionId {
-    switch (self.program.expression(id).value) {
-        .scope, .iteration, .list_operation => return @import("value_call/root.zig").expression(self, id),
-        .call => |value| if (self.value_functions[@backingInt(value.function)]) return @import("value_call/root.zig").expression(self, id),
-        else => {},
-    }
+    const use_value = @import("access/projection/rules.zig").value(self, id);
+
+    if (use_value) return @import("value_call/root.zig").expression(self, id);
 
     return self.expr(id);
 }
