@@ -4,6 +4,22 @@ const node = @import("../../node.zig");
 const view = @import("../../node/view.zig");
 const Lower = @import("../lower.zig");
 
+pub fn object(self: *Lower, type_expr: node.ExpressionId, fields: []const node.Field) Lower.Error!node.ExpressionId {
+    if (!@import("genz_options").generated_analysis) return self.builder.expression(.{ .object = .{ .type_expr = type_expr, .fields = fields } });
+
+    const entry = @import("generated_aggregate_object");
+    const Input = std.meta.Child(entry.Input);
+    const stored = try self.builder.nodes.fields(self.allocator, fields);
+
+    const input: Input = .{
+        .type_expr = @backingInt(type_expr),
+        .first = stored.start,
+        .count = stored.len,
+    };
+
+    return append(self, entry, &input, 1);
+}
+
 pub fn tuple(self: *Lower, values: []const node.ExpressionId) Lower.Error!node.ExpressionId {
     if (!@import("genz_options").generated_analysis) return self.builder.expression(.{ .tuple = values });
 

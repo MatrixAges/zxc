@@ -70,7 +70,8 @@ fn objectMode(self: *Lower, id: ir.ExprId, value: @FieldType(@FieldType(ir.Expre
         if (counts[index] == self.cache_reads[@backingInt(item)]) try body.append(self.allocator, .{ .discard = try self.builder.identifier(names[index]) });
     }
 
-    const result = try self.builder.expression(.{ .object = .{ .type_expr = if (context) |selected| selected.layout else try self.layoutExpr(type_id), .fields = fields } });
+    const object_type = if (context) |selected| selected.layout else try self.layoutExpr(type_id);
+    const result = try @import("aggregate/literals.zig").object(self, object_type, fields);
 
     return finish(self, &body, if (layout or context != null) result else try self.construct(type_id, result));
 }
