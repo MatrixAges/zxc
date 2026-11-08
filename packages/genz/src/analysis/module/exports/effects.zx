@@ -1,0 +1,31 @@
+import bytes from "std:bytes"
+
+import { requires_io_name, requires_process_name } from "../const"
+import flag from "./flag"
+
+import type { Output } from "../model"
+import type { State as Input } from "./model"
+
+export default function (in: Input): Output {
+    const io = flag({
+        state: in,
+        name: bytes.fromText(requires_io_name),
+        value: in.source.io
+    })
+
+    const process = flag({
+        state: io,
+        name: bytes.fromText(requires_process_name),
+        value: in.source.process
+    })
+
+    return {
+        expressions: process.context.expressions,
+        forms: process.context.forms.pick([
+            "string",
+            "boolean"
+        ]),
+        declarations: process.declarations,
+        valid: process.valid && process.context.valid
+    }
+}

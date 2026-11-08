@@ -1,0 +1,47 @@
+import bytes from "std:bytes"
+
+import builtin from "../../ast/context/builtin"
+import { standard_name } from "../../ast/context/const"
+import initialize from "../../ast/context/initialize"
+import text from "../../ast/context/text"
+import constant from "../../ast/declarations/append_constant"
+import empty from "../../ast/declarations/empty"
+import { ExpressionsBuiltinName, ExpressionsKind } from "../../printer/model/expressions"
+
+import type { Input } from "../../ast/context/model"
+import type { Output } from "./model"
+
+export default function (in: Input): Output {
+    const name = bytes.fromText(standard_name)
+
+    const literal = text({
+        state: initialize(in),
+        kind: ExpressionsKind.String,
+        value: name
+    })
+
+    const value = builtin({
+        state: literal.state,
+        name: ExpressionsBuiltinName.Import,
+        arguments: [literal.id]
+    })
+
+    const declaration = constant({
+        table: empty({}),
+        value: {
+            name,
+            value: value.id,
+            exported: false
+        }
+    })
+
+    return {
+        expressions: value.state.expressions,
+        forms: value.state.forms.pick([
+            "string",
+            "boolean"
+        ]),
+        declarations: declaration.table,
+        valid: value.state.valid && declaration.valid
+    }
+}

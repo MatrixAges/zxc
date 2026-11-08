@@ -1,0 +1,14 @@
+import type { Columns as Declarations } from "../../ast/declarations/model"
+import type { Columns as Expressions } from "../../ast/expressions/model"
+
+export type Forms = {
+    string: u8[][],
+    boolean: bool[]
+}
+
+export type Output = {
+    expressions: Expressions,
+    forms: Forms,
+    declarations: Declarations,
+    valid: bool
+}

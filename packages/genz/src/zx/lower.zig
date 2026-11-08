@@ -87,25 +87,13 @@ pub fn declarations(self: *Self) Error!@import("../node/stored.zig").Declaration
 
     self.function_requests = &function_requests;
 
-    try output.append(self.allocator, .{ .constant = .{ .name = "std", .value = try self.builtin(.import, &.{try self.builder.string("std")}) } });
+    try @import("module/emitting.zig").standard(self, &output);
     if (self.function_modules == null) self.native_names = try @import("imports.zig").lower(self, &output);
     try @import("types.zig").lower(self, &output, false);
-    for (self.program.exports) |item| try output.append(self.allocator, .{ .constant = .{ .name = item.name, .value = try self.typeExpr(item.type_id), .exported = true } });
-    try output.append(self.allocator, .{ .constant = .{ .name = "requires_io", .value = try self.builder.expression(.{ .boolean = self.entry_flags.io }), .exported = true } });
-    try output.append(self.allocator, .{ .constant = .{ .name = "requires_process", .value = try self.builder.expression(.{ .boolean = self.entry_flags.process }), .exported = true } });
+    try @import("module/emitting.zig").exports(self, &output);
     if (self.program.type_only) return self.builder.nodes.declarations(self.allocator, output.items);
     try @import("shape.zig").lower(self, &output);
-
-    for ([_][]const u8{ "Input", "Output" }, [_]ir.TypeId{ self.program.input_type, self.program.output_type }) |contract_name, type_id| {
-        var exported = false;
-
-        for (self.program.exports) |item| {
-            if (std.mem.eql(u8, item.name, contract_name)) exported = true;
-        }
-
-        if (!exported) try output.append(self.allocator, .{ .constant = .{ .name = contract_name, .value = try self.typeExpr(type_id), .exported = true } });
-    }
-
+    try @import("module/emitting.zig").contracts(self, &output);
     try @import("store.zig").declaration(self, &output);
     try @import("entry.zig").declarations(self, &output);
     try @import("entry_values.zig").declarations(self, &output);

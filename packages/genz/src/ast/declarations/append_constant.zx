@@ -1,0 +1,37 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+
+import { DeclarationsKind } from "../../printer/model/declarations"
+
+import type { Columns, Constant, Result as Output } from "./model"
+
+export type Input = {
+    table: Columns,
+    value: Constant
+}
+
+export default function (in: Input): Output {
+    if (in.table.tags.length >= integers.widen(max_u32)) {
+        return {
+            table: in.table,
+            valid: false
+        }
+    }
+
+    return {
+        table: {
+            tags: in.table.tags.push(DeclarationsKind.Constant)[0],
+            offsets: in.table.offsets.push(
+                integers.narrow(
+                    in.table.constant_name.length
+                )
+            )[0],
+            constant_name: in.table.constant_name.push(in.value.name)[0],
+            constant_type_expr:
+                in.table.constant_type_expr.push(in.value.type_expr)[0],
+            constant_value: in.table.constant_value.push(in.value.value)[0],
+            constant_exported: in.table.constant_exported.push(in.value.exported)[0]
+        },
+        valid: true
+    }
+}

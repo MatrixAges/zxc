@@ -1,0 +1,39 @@
+import initialize from "../../../ast/context/initialize"
+import constant from "../../../ast/declarations/append_constant"
+import empty from "../../../ast/declarations/empty"
+
+import type { Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const initial: Output = {
+        source: in,
+        context: initialize(in.bases),
+        declarations: empty({}),
+        valid: true
+    }
+
+    return loop({
+        state: initial,
+        index: 0
+    }, {
+        while: current => current.index < in.names.length,
+        next: current => {
+            const result = constant({
+                table: current.state.declarations,
+                value: {
+                    name: in.names[current.index],
+                    value: in.values[current.index],
+                    exported: true
+                }
+            })
+
+            current.state = {
+                ...current.state,
+                declarations: result.table,
+                valid: current.state.valid && result.valid
+            }
+            current.index += 1
+        },
+        return: current => current.state
+    })
+}

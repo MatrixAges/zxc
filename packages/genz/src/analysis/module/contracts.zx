@@ -1,0 +1,42 @@
+import bytes from "std:bytes"
+
+import { input_type_name, output_type_name } from "./const"
+
+export type Input = {
+    names: u8[][]
+}
+
+export type Output = {
+    input: bool,
+    output: bool
+}
+
+export default function (in: Input): Output {
+    const input_name = bytes.fromText(input_type_name)
+    const output_name = bytes.fromText(output_type_name)
+
+    return loop({
+        input: true,
+        output: true,
+        index: 0
+    }, {
+        while: current => current.index < in.names.length,
+        next: current => {
+            const name = in.names[current.index]
+
+            if (bytes.equals(name, input_name)) {
+                current.input = false
+            }
+
+            if (bytes.equals(name, output_name)) {
+                current.output = false
+            }
+
+            current.index += 1
+        },
+        return: current => current.pick([
+            "input",
+            "output"
+        ])
+    })
+}

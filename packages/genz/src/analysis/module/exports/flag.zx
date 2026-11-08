@@ -1,0 +1,35 @@
+import boolean from "../../../ast/context/boolean"
+import constant from "../../../ast/declarations/append_constant"
+
+import type { State } from "./model"
+
+export type Input = {
+    state: State,
+    name: u8[],
+    value: bool
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const value = boolean({
+        state: in.state.context,
+        value: in.value
+    })
+
+    const declaration = constant({
+        table: in.state.declarations,
+        value: {
+            name: in.name,
+            value: value.id,
+            exported: true
+        }
+    })
+
+    return {
+        ...in.state,
+        context: value.state,
+        declarations: declaration.table,
+        valid: in.state.valid && declaration.valid
+    }
+}

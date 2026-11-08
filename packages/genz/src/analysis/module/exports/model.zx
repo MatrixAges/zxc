@@ -1,0 +1,17 @@
+import type { Input as Bases, State as Context } from "../../../ast/context/model"
+import type { Columns as Declarations } from "../../../ast/declarations/model"
+
+export type Input = {
+    names: u8[][],
+    values: u32[],
+    io: bool,
+    process: bool,
+    bases: Bases
+}
+
+export type State = {
+    source: Input,
+    context: Context,
+    declarations: Declarations,
+    valid: bool
+}

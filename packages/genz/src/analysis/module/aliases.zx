@@ -1,0 +1,52 @@
+import bytes from "std:bytes"
+
+import constant from "../../ast/declarations/append_constant"
+import empty from "../../ast/declarations/empty"
+import { input_type_name, output_type_name } from "./const"
+
+import type { Result as Output } from "../../ast/declarations/model"
+
+export type Input = {
+    input_type?: u32,
+    output_type?: u32
+}
+
+export default function (in: Input): Output {
+    const initial: Output = {
+        table: empty({}),
+        valid: true
+    }
+
+    const input_type = in.input_type
+    const output_type = in.output_type
+
+    const input = match {
+        input_type != null => constant({
+            table: initial.table,
+            value: {
+                name: bytes.fromText(input_type_name),
+                value: input_type,
+                exported: true
+            }
+        }),
+        _ => initial
+    }
+
+    if (output_type == null) {
+        return input
+    }
+
+    const output = constant({
+        table: input.table,
+        value: {
+            name: bytes.fromText(output_type_name),
+            value: output_type,
+            exported: true
+        }
+    })
+
+    return {
+        table: output.table,
+        valid: input.valid && output.valid
+    }
+}

@@ -1,0 +1,11 @@
+<Module>
+    <Type from="model" as="Exports" />
+    <Type from="../model" as="Module" />
+
+    <Args in={Exports.Input} out={Module.Output} />
+
+    <Call fn="declared" in={$in} />
+    <Call fn="effects" in={$ctx.declared} />
+
+    <Return value={$ctx.effects} />
+</Module>
