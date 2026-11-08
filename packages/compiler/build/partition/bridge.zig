@@ -36,14 +36,18 @@ pub fn importComptime(comptime function: anytype, comptime symbol: []const u8) F
     return forwarder(@TypeOf(function), symbol, function);
 }
 
-fn Forward(comptime F: type, comptime symbol: []const u8, comptime implementation: ?*const F) type {
+fn Forward(comptime F: type, comptime symbol: []const u8, comptime implementation: anytype) type {
     const parameters = @typeInfo(F).@"fn".param_types;
 
     return struct {
         const entry = @extern(*const fn (*const Arguments(F), *Payload(F)) callconv(.c) u16, .{ .name = symbol });
 
         inline fn forward(arguments: *const Arguments(F)) Return(F) {
-            if (@inComptime()) return invoke((implementation orelse @compileError("runtime partition entry used at comptime")).*, arguments);
+            if (@inComptime()) {
+                if (comptime @TypeOf(implementation) == @TypeOf(null)) @compileError("runtime partition entry used at comptime");
+
+                return invoke(implementation, arguments);
+            }
 
             var result: Payload(F) = undefined;
             const status = entry(arguments, &result);
@@ -101,7 +105,7 @@ fn ForwardType(comptime F: type) type {
     });
 }
 
-fn forwarder(comptime F: type, comptime symbol: []const u8, comptime implementation: ?*const F) ForwardType(F) {
+fn forwarder(comptime F: type, comptime symbol: []const u8, comptime implementation: anytype) ForwardType(F) {
     const forward = Forward(F, symbol, implementation);
 
     return switch (@typeInfo(F).@"fn".param_types.len) {
