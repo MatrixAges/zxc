@@ -1,0 +1,43 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+
+import {
+    ExpressionsKind,
+    ExpressionsBuiltinName
+} from "../../printer/model/expressions"
+
+import type { Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const tags = [
+        ExpressionsKind.Array,
+        ExpressionsKind.AddressOf,
+        ExpressionsKind.ComptimeValue,
+        ExpressionsKind.Builtin
+    ]
+
+    const end = integers.widen(in.base) + tags.length
+
+    return {
+        nodes: {
+            tags,
+            offsets: [
+                0,
+                0,
+                0,
+                0
+            ],
+            array_element_type: [in.element],
+            array_values: [in.values],
+            address_of: [in.base],
+            comptime_value: [in.base + 1],
+            builtin_name: [ExpressionsBuiltinName.As],
+            builtin_arguments: [[
+                in.target,
+                in.base + 2
+            ]]
+        },
+        root: integers.narrow(end - 1),
+        valid: end <= integers.widen(max_u32)
+    }
+}

@@ -1,0 +1,51 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import type { Candidate as Input } from "./model"
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    if (!in.scalar) {
+        return false
+    }
+
+    const element = in.types.first[integers.widen(in.type_id)]
+
+    const supported = match kind(in.types.kinds[integers.widen(element)]) {
+        Kind.Scalar => true,
+        Kind.Enumeration => true,
+        Kind.ErrorSet => true,
+        _ => false
+    }
+
+    if (!supported) {
+        return false
+    }
+
+    return loop({
+        index: 0,
+        valid: true
+    }, {
+        while: state => state.valid && state.index < in.items.length,
+        next: state => {
+            const item = in.items[state.index]
+
+            state.valid = match in.kinds[integers.widen(item)] {
+                ExpressionKind.Integer => true,
+                ExpressionKind.NegativeInteger => true,
+                ExpressionKind.Float => true,
+                ExpressionKind.String => true,
+                ExpressionKind.Boolean => true,
+                ExpressionKind.Unit => true,
+                ExpressionKind.EnumValue => true,
+                ExpressionKind.ErrorValue => true,
+                _ => false
+            }
+            state.index += 1
+        },
+        return: state => state.valid
+    })
+}

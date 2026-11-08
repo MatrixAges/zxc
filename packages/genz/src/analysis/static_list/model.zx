@@ -1,0 +1,38 @@
+import type { ExpressionKind } from "core/expression_table/kinds"
+import type { Table } from "core/type_table/model"
+import type {
+    ExpressionsKind,
+    ExpressionsBuiltinName
+} from "../../printer/model/expressions"
+
+export type Candidate = {
+    scalar: bool,
+    types: Table,
+    kinds: ExpressionKind[],
+    type_id: u32,
+    items: u32[]
+}
+
+export type Input = {
+    values: u32[],
+    element: u32,
+    target: u32,
+    base: u32
+}
+
+export type Nodes = {
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    array_element_type: u32[],
+    array_values: u32[][],
+    address_of: u32[],
+    comptime_value: u32[],
+    builtin_name: ExpressionsBuiltinName[],
+    builtin_arguments: u32[][]
+}
+
+export type Output = {
+    nodes: Nodes,
+    root: u32,
+    valid: bool
+}
