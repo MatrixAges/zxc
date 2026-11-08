@@ -1,0 +1,115 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import pointer from "../../../ast/context/pointer"
+import primitive from "../../../ast/context/primitive"
+import standardField from "../../../ast/context/standard_field"
+import appendValues from "../../../ast/fields/append_values"
+import {
+    ExpressionsPrimitive,
+    ExpressionsKind
+} from "../../../printer/model/expressions"
+import { memory_name as memory_module } from "../../functions/signature/const"
+import { context_name } from "../../store/const"
+import { length_name, memory_name, alignment_name } from "../const"
+import { alignment_type_name, return_address_name } from "../const"
+import wrappedType from "../wrapped_type"
+import spec from "./spec"
+
+import type { Node } from "../model"
+import type { Input, Prepared as Output } from "./model"
+
+export default function (in: Input): Output {
+    const selected = spec(in.kind)
+
+    const size = primitive({
+        state: in.state.context,
+        value: ExpressionsPrimitive.Usize
+    })
+
+    const byte = primitive({
+        state: size.state,
+        value: ExpressionsPrimitive.U8
+    })
+
+    const opaque = primitive({
+        state: byte.state,
+        value: ExpressionsPrimitive.Anyopaque
+    })
+
+    const context = pointer({
+        state: opaque.state,
+        value: opaque.id
+    })
+
+    const memory: Node = match {
+        selected.allocate => {
+            state: {
+                ...in.state,
+                context: context.state
+            },
+            id: size.id
+        },
+        _ => wrappedType({
+            state: {
+                ...in.state,
+                context: context.state
+            },
+            kind: ExpressionsKind.MutableSlice,
+            value: byte.id
+        })
+    }
+
+    const alignment = standardField({
+        state: memory.state.context,
+        path: [
+            memory_module,
+            alignment_type_name
+        ]
+    })
+
+    const first_name = selected.allocate ? length_name : memory_name
+
+    const prefix = {
+        names: [
+            bytes.fromText(context_name),
+            bytes.fromText(first_name),
+            bytes.fromText(alignment_name)
+        ],
+        values: [
+            context.id,
+            memory.id,
+            alignment.id
+        ]
+    }
+
+    const sized = match {
+        !selected.allocate && !selected.release => {
+            names: prefix.names.push(bytes.fromText(length_name))[0],
+            values: prefix.values.push(size.id)[0]
+        },
+        _ => prefix
+    }
+
+    const names = sized.names.push(bytes.fromText(return_address_name))[0]
+    const values = sized.values.push(size.id)[0]
+
+    return {
+        state: {
+            ...memory.state,
+            context: alignment.state,
+            fields: appendValues({
+                table: memory.state.fields,
+                names,
+                values
+            })
+        },
+        spec: selected,
+        first: integers.narrow(
+            integers.widen(in.state.source.bases.field_base) +
+                in.state.fields.name.length
+        ),
+        count: integers.narrow(names.length),
+        u8_type: byte.id
+    }
+}

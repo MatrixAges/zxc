@@ -196,6 +196,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/functions/signature/mode.zx", .name = "function_signature_mode", .owner = .genz },
     .{ .path = "genz/analysis/functions/prelude/build.rx", .name = "function_prelude", .owner = .genz },
     .{ .path = "genz/analysis/functions/prelude/task_required.zx", .name = "function_task_allocator", .owner = .genz },
+    .{ .path = "genz/analysis/allocator/build.rx", .name = "allocator_type", .owner = .genz },
     .{ .path = "genz/analysis/access/projection/raw.zx", .name = "projection_raw", .owner = .genz },
     .{ .path = "genz/analysis/access/projection/route.zx", .name = "projection_route", .owner = .genz },
     .{ .path = "genz/analysis/access/projection/anchor.zx", .name = "projection_anchor", .owner = .genz },

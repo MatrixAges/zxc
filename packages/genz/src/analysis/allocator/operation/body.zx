@@ -1,0 +1,41 @@
+import deferExpression from "../../../ast/context/defer_expression"
+import expression from "../../../ast/context/expression_statement"
+import result from "../../../ast/context/result"
+
+import type { Locked as Input, Called as Output } from "./model"
+
+export default function (in: Input): Output {
+    const called = in.called
+
+    const lock = expression({
+        state: called.prepared.state.context,
+        value: in.lock
+    })
+
+    const unlock = deferExpression({
+        state: lock,
+        value: in.unlock
+    })
+
+    const context = match {
+        called.prepared.spec.release => expression({
+            state: unlock,
+            value: called.raw
+        }),
+        _ => result({
+            state: unlock,
+            value: called.raw
+        })
+    }
+
+    return {
+        ...called,
+        prepared: {
+            ...called.prepared,
+            state: {
+                ...called.prepared.state,
+                context
+            }
+        }
+    }
+}

@@ -1,0 +1,71 @@
+import header from "../../ast/expressions/header"
+import { ExpressionsKind } from "../../printer/model/expressions"
+
+import type { State, Node as Output } from "./model"
+
+export type Input = {
+    state: State,
+    kind: ExpressionsKind,
+    value: u32
+}
+
+export default function (in: Input): Output {
+    const state = in.state
+
+    const supported = match in.kind {
+        ExpressionsKind.MutableSlice => true,
+        ExpressionsKind.ManyPointer => true,
+        ExpressionsKind.OptionalType => true,
+        _ => false
+    }
+
+    const values = match in.kind {
+        ExpressionsKind.MutableSlice => state.extra.mutable_slice,
+        ExpressionsKind.ManyPointer => state.extra.many_pointer,
+        _ => state.extra.optional_type
+    }
+
+    const result = header({
+        ...state.context.expressions.pick([
+            "tags",
+            "offsets"
+        ]),
+        base: state.source.bases.expression_base,
+        kind: in.kind,
+        offset: values.length
+    })
+
+    const appended = values.push(in.value)[0]
+
+    const extra = match in.kind {
+        ExpressionsKind.MutableSlice => {
+            ...state.extra,
+            mutable_slice: appended
+        },
+        ExpressionsKind.ManyPointer => {
+            ...state.extra,
+            many_pointer: appended
+        },
+        _ => {
+            ...state.extra,
+            optional_type: appended
+        }
+    }
+
+    return {
+        id: result.id,
+        state: {
+            ...state,
+            context: {
+                ...state.context,
+                expressions: {
+                    ...state.context.expressions,
+                    tags: result.tags,
+                    offsets: result.offsets
+                },
+                valid: state.context.valid && result.valid && supported
+            },
+            extra
+        }
+    }
+}

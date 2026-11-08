@@ -1,0 +1,63 @@
+import bytes from "std:bytes"
+
+import address from "../../../ast/context/address"
+import call from "../../../ast/context/call"
+import field from "../../../ast/context/field"
+import standardField from "../../../ast/context/standard_field"
+import { io_type_name } from "../../functions/signature/const"
+import { lock_name, unlock_name, threaded_name } from "../const"
+import { threaded_lock_name, threaded_unlock_name } from "../const"
+
+import type { State, Node } from "../../../ast/context/model"
+
+export type Input = {
+    state: State,
+    with_io: bool,
+    io: u32,
+    mutex: u32,
+    unlock: bool
+}
+
+export type Output = Node
+
+export default function (in: Input): Output {
+    if (in.with_io) {
+        const name = in.unlock ? unlock_name : lock_name
+
+        const callee = field({
+            state: in.state,
+            target: in.mutex,
+            name: bytes.fromText(name)
+        })
+
+        return call({
+            state: callee.state,
+            callee: callee.id,
+            arguments: [in.io],
+            fallible: false
+        })
+    }
+
+    const name = in.unlock ? threaded_unlock_name : threaded_lock_name
+
+    const callee = standardField({
+        state: in.state,
+        path: [
+            io_type_name,
+            threaded_name,
+            name
+        ]
+    })
+
+    const mutex = address({
+        state: callee.state,
+        value: in.mutex
+    })
+
+    return call({
+        state: mutex.state,
+        callee: callee.id,
+        arguments: [mutex.id],
+        fallible: false
+    })
+}

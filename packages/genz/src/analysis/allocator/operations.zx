@@ -1,0 +1,46 @@
+import bytes from "std:bytes"
+
+import identifier from "../../ast/context/identifier"
+import { Operation } from "./const"
+import build from "./operation/build.rx"
+import spec from "./operation/spec"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const kinds = [
+        Operation.Allocate,
+        Operation.Resize,
+        Operation.Remap,
+        Operation.Release
+    ]
+
+    return loop({
+        state: in,
+        index: 0
+    }, {
+        while: current => current.index < kinds.length,
+        next: current => {
+            const kind = kinds[current.index]
+            const state = build({
+                state: current.state,
+                kind
+            })
+
+            const name = bytes.fromText(spec(kind).name)
+            const value = identifier({
+                state: state.context,
+                name
+            })
+
+            current.state = {
+                ...state,
+                context: value.state,
+                vtable_names: state.vtable_names.push(name)[0],
+                vtable_values: state.vtable_values.push(value.id)[0]
+            }
+            current.index += 1
+        },
+        return: current => current.state
+    })
+}

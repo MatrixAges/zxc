@@ -1,0 +1,50 @@
+import integers from "std:integer"
+
+import container from "../../ast/expressions/container"
+
+import type { State as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const value = container({
+        table: {
+            ...in.context.expressions.pick([
+                "tags",
+                "offsets"
+            ]),
+            ...in.extra.pick([
+                "container_type_fields_start",
+                "container_type_fields_len",
+                "container_type_declarations_start",
+                "container_type_declarations_len"
+            ])
+        },
+        base: in.source.bases.expression_base,
+        fields_first: in.source.bases.field_base,
+        fields_count: in.root_count,
+        declarations_first: in.source.declaration_base,
+        declarations_count: integers.narrow(in.declarations.tags.length)
+    })
+
+    return {
+        expressions: {
+            ...in.context.expressions,
+            ...value.table.pick([
+                "tags",
+                "offsets"
+            ])
+        },
+        forms: in.context.forms,
+        extra: {
+            ...in.extra,
+            ...value.table.omit([
+                "tags",
+                "offsets"
+            ])
+        },
+        statements: in.context.statements,
+        fields: in.fields,
+        declarations: in.declarations,
+        root: value.id,
+        valid: in.context.valid && value.valid
+    }
+}

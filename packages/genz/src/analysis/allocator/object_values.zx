@@ -1,0 +1,38 @@
+import integers from "std:integer"
+
+import object from "../../ast/context/object"
+import appendValues from "../../ast/fields/append_values"
+
+import type { State, Node as Output } from "./model"
+
+export type Input = {
+    state: State,
+    names: u8[][],
+    values: u32[]
+}
+
+export default function (in: Input): Output {
+    const state = in.state
+
+    const value = object({
+        state: state.context,
+        type_expr: null,
+        first: integers.narrow(
+            integers.widen(state.source.bases.field_base) + state.fields.name.length
+        ),
+        count: integers.narrow(in.names.length)
+    })
+
+    return {
+        id: value.id,
+        state: {
+            ...state,
+            context: value.state,
+            fields: appendValues({
+                table: state.fields,
+                names: in.names,
+                values: in.values
+            })
+        }
+    }
+}

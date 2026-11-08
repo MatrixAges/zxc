@@ -1,0 +1,38 @@
+import lockCall from "./lock_call"
+
+import type { Called as Input, Locked as Output } from "./model"
+
+export default function (in: Input): Output {
+    const request = {
+        with_io: in.prepared.state.source.with_io,
+        io: in.io,
+        mutex: in.mutex
+    }
+
+    const lock = lockCall({
+        ...request,
+        state: in.prepared.state.context,
+        unlock: false
+    })
+
+    const unlock = lockCall({
+        ...request,
+        state: lock.state,
+        unlock: true
+    })
+
+    return {
+        called: {
+            ...in,
+            prepared: {
+                ...in.prepared,
+                state: {
+                    ...in.prepared.state,
+                    context: unlock.state
+                }
+            }
+        },
+        lock: lock.id,
+        unlock: unlock.id
+    }
+}

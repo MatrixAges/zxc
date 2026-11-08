@@ -1,0 +1,32 @@
+import { Operation } from "../const"
+import { alloc_name, resize_name, remap_name, free_name } from "../const"
+import { raw_alloc_name, raw_resize_name, raw_remap_name, raw_free_name } from "../const"
+
+import type { Spec as Output } from "./model"
+
+export type Input = Operation
+
+export default function (in: Input): Output {
+    const name = match in {
+        Operation.Allocate => alloc_name,
+        Operation.Resize => resize_name,
+        Operation.Remap => remap_name,
+        _ => free_name
+    }
+
+    const raw_name = match in {
+        Operation.Allocate => raw_alloc_name,
+        Operation.Resize => raw_resize_name,
+        Operation.Remap => raw_remap_name,
+        _ => raw_free_name
+    }
+
+    return {
+        kind: in,
+        name,
+        raw_name,
+        allocate: in == Operation.Allocate,
+        release: in == Operation.Release,
+        resize: in == Operation.Resize
+    }
+}

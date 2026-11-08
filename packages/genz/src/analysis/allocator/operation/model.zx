@@ -1,0 +1,38 @@
+import type { Operation } from "../const"
+import type { State } from "../model"
+
+export type Input = {
+    state: State,
+    kind: Operation
+}
+
+export type Spec = {
+    kind: Operation,
+    name: string,
+    raw_name: string,
+    allocate: bool,
+    release: bool,
+    resize: bool
+}
+
+export type Prepared = {
+    state: State,
+    spec: Spec,
+    first: u32,
+    count: u32,
+    u8_type: u32
+}
+
+export type Called = {
+    prepared: Prepared,
+    raw: u32,
+    io: u32,
+    mutex: u32,
+    body_first: u64
+}
+
+export type Locked = {
+    called: Called,
+    lock: u32,
+    unlock: u32
+}

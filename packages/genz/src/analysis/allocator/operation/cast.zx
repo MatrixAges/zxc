@@ -1,0 +1,57 @@
+import bytes from "std:bytes"
+
+import binding from "../../../ast/context/binding"
+import builtin from "../../../ast/context/builtin"
+import identifier from "../../../ast/context/identifier"
+import pointer from "../../../ast/context/pointer"
+import { ExpressionsBuiltinName } from "../../../printer/model/expressions"
+import { self_name } from "../../store/adapter/const"
+import { context_name } from "../../store/const"
+
+import type { Called as Input, Called as Output } from "./model"
+
+export default function (in: Input): Output {
+    const this_type = builtin({
+        state: in.prepared.state.context,
+        name: ExpressionsBuiltinName.This,
+        arguments: []
+    })
+
+    const type_node = pointer({
+        state: this_type.state,
+        value: this_type.id
+    })
+
+    const context = identifier({
+        state: type_node.state,
+        name: bytes.fromText(context_name)
+    })
+
+    const aligned = builtin({
+        state: context.state,
+        name: ExpressionsBuiltinName.AlignCast,
+        arguments: [context.id]
+    })
+
+    const cast = builtin({
+        state: aligned.state,
+        name: ExpressionsBuiltinName.PtrCast,
+        arguments: [aligned.id]
+    })
+
+    return {
+        ...in,
+        prepared: {
+            ...in.prepared,
+            state: {
+                ...in.prepared.state,
+                context: binding({
+                    state: cast.state,
+                    name: bytes.fromText(self_name),
+                    type_expr: type_node.id,
+                    value: cast.id
+                })
+            }
+        }
+    }
+}

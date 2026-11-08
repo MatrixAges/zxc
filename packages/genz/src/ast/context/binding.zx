@@ -5,6 +5,7 @@ import type { State } from "./model"
 export type Input = {
     state: State,
     name: u8[],
+    type_expr?: u32,
     value: u32
 }
 
@@ -15,6 +16,7 @@ export default function (in: Input): Output {
         table: in.state.statements,
         base: in.state.source.statement_base,
         name: in.name,
+        type_expr: in.type_expr,
         value: in.value
     })
 

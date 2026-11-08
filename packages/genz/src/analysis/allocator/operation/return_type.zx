@@ -1,0 +1,45 @@
+import primitive from "../../../ast/context/primitive"
+import {
+    ExpressionsKind,
+    ExpressionsPrimitive
+} from "../../../printer/model/expressions"
+import wrappedType from "../wrapped_type"
+
+import type { Node as Output } from "../model"
+import type { Called as Input } from "./model"
+
+export default function (in: Input): Output {
+    const state = in.prepared.state
+
+    if (in.prepared.spec.release || in.prepared.spec.resize) {
+        const kind = match {
+            in.prepared.spec.release => ExpressionsPrimitive.Void,
+            _ => ExpressionsPrimitive.Bool
+        }
+
+        const result = primitive({
+            state: state.context,
+            value: kind
+        })
+
+        return {
+            id: result.id,
+            state: {
+                ...state,
+                context: result.state
+            }
+        }
+    }
+
+    const pointer = wrappedType({
+        state,
+        kind: ExpressionsKind.ManyPointer,
+        value: in.prepared.u8_type
+    })
+
+    return wrappedType({
+        state: pointer.state,
+        kind: ExpressionsKind.OptionalType,
+        value: pointer.id
+    })
+}

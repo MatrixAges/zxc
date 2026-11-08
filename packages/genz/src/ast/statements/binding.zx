@@ -7,6 +7,7 @@ export type Input = {
     table: Columns,
     base: u32,
     name: u8[],
+    type_expr?: u32,
     value: u32
 }
 
@@ -37,7 +38,7 @@ export default function (in: Input): Output {
             tags: result.tags,
             offsets: result.offsets,
             constant_name: in.table.constant_name.push(in.name)[0],
-            constant_type_expr: in.table.constant_type_expr.push(null)[0],
+            constant_type_expr: in.table.constant_type_expr.push(in.type_expr)[0],
             constant_value: in.table.constant_value.push(in.value)[0],
             constant_exported: in.table.constant_exported.push(false)[0]
         }

@@ -1,0 +1,45 @@
+import bytes from "std:bytes"
+
+import address from "../../ast/context/address"
+import identifier from "../../ast/context/identifier"
+import { self_name } from "../store/adapter/const"
+import { pointer_name, vtable_name } from "./const"
+import objectValues from "./object_values"
+
+import type { State as Input, Node as Output } from "./model"
+
+export default function (in: Input): Output {
+    const self = identifier({
+        state: in.context,
+        name: bytes.fromText(self_name)
+    })
+
+    const vtable = objectValues({
+        state: {
+            ...in,
+            context: self.state
+        },
+        names: in.vtable_names,
+        values: in.vtable_values
+    })
+
+    const pointer = address({
+        state: vtable.state.context,
+        value: vtable.id
+    })
+
+    return objectValues({
+        state: {
+            ...vtable.state,
+            context: pointer.state
+        },
+        names: [
+            bytes.fromText(pointer_name),
+            bytes.fromText(vtable_name)
+        ],
+        values: [
+            self.id,
+            pointer.id
+        ]
+    })
+}
