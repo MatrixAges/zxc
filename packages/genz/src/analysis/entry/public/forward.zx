@@ -1,0 +1,138 @@
+import integers from "std:integer"
+import { StatementKind } from "core/control_table/model"
+import { ExpressionKind } from "core/expression_table/kinds"
+import { scalar_void } from "core/type_table/const"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import allowed from "./forward/allowed"
+
+import type { Control } from "core/control_table/model"
+import type { Expressions } from "core/expression_table/model"
+import type { Stores } from "core/store_table/model"
+import type { Table } from "core/type_table/model"
+import type { Facts } from "../../state/ownership/model"
+
+export type Functions = {
+    input_types: u32[],
+    output_types: u32[],
+    stores: Stores[]
+}
+
+export type Input = {
+    represented_output: bool,
+    types: Table,
+    control: Control,
+    root?: u32,
+    expressions: Expressions,
+    stores: u64,
+    contracts: u64,
+    functions: Functions,
+    values: bool[],
+    flags: u8[],
+    ownership: Facts,
+    input_type: u32,
+    output_type: u32
+}
+
+export type Output = u32?
+
+export default function (in: Input): Output {
+    if (!in.represented_output) {
+        return null
+    }
+
+    if (in.stores != 0 || in.contracts != 0) {
+        return null
+    }
+
+    const root = in.root
+
+    if (root == null) {
+        return null
+    }
+
+    const block = integers.widen(root)
+    const control = in.control
+
+    if (control.block_count[block] != 1) {
+        return null
+    }
+
+    const first = integers.widen(control.block_first[block])
+
+    if (control.statement_kinds[first] != StatementKind.Result) {
+        return null
+    }
+
+    const result =
+        control.results[integers.widen(control.statement_payloads[first])]
+
+    if (result == null) {
+        return null
+    }
+
+    const row = integers.widen(result)
+    const expressions = in.expressions
+
+    if (expressions.kinds[row] != ExpressionKind.Call) {
+        return null
+    }
+
+    const payload = integers.widen(expressions.payloads[row])
+    const argument = expressions.call_arguments[payload]
+    const function_id = expressions.call_functions[payload]
+
+    const safety = {
+        flags: in.flags,
+        types: expressions.types,
+        ownership: in.ownership
+    }
+
+    if (!allowed({
+        ...safety,
+        node: argument
+    })) {
+        return null
+    }
+
+    if (!allowed({
+        ...safety,
+        node: result
+    })) {
+        return null
+    }
+
+    const callee = integers.widen(function_id)
+    const functions = in.functions
+
+    if (!in.values[callee] || functions.stores[callee].types.length != 0) {
+        return null
+    }
+
+    const same_input = functions.input_types[callee] == in.input_type
+    const same_output = functions.output_types[callee] == in.output_type
+
+    if (!same_input || !same_output) {
+        return null
+    }
+
+    const arg = integers.widen(argument)
+    const arg_payload = integers.widen(expressions.payloads[arg])
+
+    if (expressions.kinds[arg] == ExpressionKind.Reference) {
+        if (expressions.references[arg_payload] == 0) {
+            return function_id
+        }
+    }
+
+    const input_type = integers.widen(functions.input_types[callee])
+    const unit = expressions.kinds[arg] == ExpressionKind.Unit
+    const scalar = kind(in.types.kinds[input_type]) == Kind.Scalar
+
+    if (!unit || !scalar) {
+        return null
+    }
+
+    return in.types.first[input_type] == scalar_void ? function_id : null
+}

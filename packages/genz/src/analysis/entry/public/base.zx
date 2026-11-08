@@ -1,0 +1,23 @@
+import bytes from "std:bytes"
+
+import { execute_name, allocator_entry_name } from "./const"
+
+export type Input = {
+    tasks: bool
+}
+
+export type Output = {
+    name: u8[],
+    forward: bool,
+    exported: bool
+}
+
+export default function (in: Input): Output {
+    const name = in.tasks ? execute_name : allocator_entry_name
+
+    return {
+        name: bytes.fromText(name),
+        forward: !in.tasks,
+        exported: in.tasks
+    }
+}

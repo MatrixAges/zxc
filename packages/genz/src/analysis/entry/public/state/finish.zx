@@ -1,0 +1,77 @@
+import bytes from "std:bytes"
+
+import initialize from "../../../../ast/context/initialize"
+import result from "../../../../ast/context/result"
+import errorUnion from "../../../../ast/expressions/error_union"
+import { value_entry_name } from "../const"
+
+import type { Input as Bases } from "../../../../ast/context/model"
+import type { Columns as Expressions } from "../../../../ast/expressions/model"
+import type { Columns as Statements } from "../../../../ast/statements/model"
+
+export type Input = {
+    value: u32,
+    output_type: u32,
+    errors?: u8[][],
+    inferred: bool,
+    inlined: bool,
+    bases: Bases
+}
+
+export type Extra = {
+    error_union_payload: u32[],
+    error_union_errors: u8[][]?[],
+    error_union_inferred: bool[]
+}
+
+export type Output = {
+    expressions: Expressions,
+    extra: Extra,
+    statements: Statements,
+    name: u8[],
+    return_type: u32,
+    inlined: bool,
+    valid: bool
+}
+
+export default function (in: Input): Output {
+    const context = result({
+        state: initialize(in.bases),
+        value: in.value
+    })
+
+    const error_type = errorUnion({
+        table: {
+            ...context.expressions.pick([
+                "tags",
+                "offsets"
+            ]),
+            error_union_payload: [],
+            error_union_errors: [],
+            error_union_inferred: []
+        },
+        base: in.bases.expression_base,
+        payload: in.output_type,
+        errors: in.errors,
+        inferred: in.inferred
+    })
+
+    return {
+        expressions: {
+            ...context.expressions,
+            ...error_type.table.pick([
+                "tags",
+                "offsets"
+            ])
+        },
+        extra: error_type.table.omit([
+            "tags",
+            "offsets"
+        ]),
+        statements: context.statements,
+        name: bytes.fromText(value_entry_name),
+        return_type: error_type.id,
+        inlined: in.inlined,
+        valid: context.valid && error_type.valid
+    }
+}

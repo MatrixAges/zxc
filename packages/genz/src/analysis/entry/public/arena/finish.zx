@@ -1,0 +1,37 @@
+import bytes from "std:bytes"
+
+import call from "../../../../ast/context/call"
+import identifier from "../../../../ast/context/identifier"
+import result from "../../../../ast/context/result"
+import { execute_name } from "../const"
+
+import type { State as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const callee = identifier({
+        state: in.context,
+        name: in.source.name
+    })
+
+    const value = call({
+        state: callee.state,
+        callee: callee.id,
+        arguments: in.arguments,
+        fallible: false
+    })
+
+    const context = result({
+        state: value.state,
+        value: value.id
+    })
+
+    return {
+        expressions: context.expressions,
+        forms: context.forms,
+        parameters: in.parameters,
+        statements: context.statements,
+        name: bytes.fromText(execute_name),
+        return_type: in.source.return_type,
+        valid: context.valid
+    }
+}

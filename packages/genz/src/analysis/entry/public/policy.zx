@@ -1,0 +1,50 @@
+import bytes from "std:bytes"
+import { Kind } from "core/type_table/model"
+
+import { value_entry_name, state_entry_name } from "./const"
+
+export enum Value {
+    Alias,
+    Aggregate,
+    Task
+}
+
+export type Input = {
+    tasks: bool,
+    enabled: bool,
+    type_only: bool,
+    represented_input: bool,
+    represented_output: bool,
+    output_kind: Kind
+}
+
+export type Output = {
+    name: u8[],
+    state_name: u8[],
+    state: bool,
+    value: Value,
+    public_value_output: bool
+}
+
+export default function (in: Input): Output {
+    const available = in.enabled && !in.type_only
+    const represented = in.represented_input || in.represented_output
+
+    const aggregate = (
+        - in.output_kind == Kind.Object
+        - or in.output_kind == Kind.Tuple
+        - or in.represented_output
+    )
+
+    return {
+        name: bytes.fromText(value_entry_name),
+        state_name: bytes.fromText(state_entry_name),
+        public_value_output: in.represented_output,
+        state: available && !in.tasks && represented,
+        value: match {
+            aggregate => Value.Aggregate,
+            in.tasks => Value.Task,
+            _ => Value.Alias
+        }
+    }
+}

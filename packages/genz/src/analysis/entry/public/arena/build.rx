@@ -1,0 +1,10 @@
+<Module>
+    <Type from="model" as="Arena" />
+
+    <Args in={Arena.Input} out={Arena.Output} />
+
+    <Call fn="parameters" in={$in} />
+    <Call fn="finish" in={$ctx.parameters} />
+
+    <Return value={$ctx.finish} />
+</Module>

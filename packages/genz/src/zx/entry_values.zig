@@ -1,24 +1,21 @@
 const std = @import("std");
 const node = @import("../node.zig");
 const Lower = @import("lower.zig");
+const emit = @import("entry/emitting.zig");
 
 pub fn declarations(lowering: *Lower, output: *std.ArrayList(node.Declaration)) Lower.Error!void {
+    if (!emit.generated) return @import("entry/values_seed.zig").declarations(lowering, output);
     if (!lowering.entry_flags.value) return;
-    if (try @import("entry_state.zig").declarations(lowering, output)) return;
 
-    const output_type = lowering.program.typeOf(lowering.program.output_type);
-    const aggregate = output_type == .object or output_type == .tuple or lowering.state_plan.represented(lowering.program, lowering.program.output_type);
+    const route = @import("entry/policy.zig").value(lowering);
 
-    if (!aggregate and !lowering.entry_flags.tasks) return output.append(lowering.allocator, .{ .constant = .{
-        .name = "executeValue",
-        .value = try lowering.builder.identifier("executeIn"),
-        .exported = true,
-    } });
+    if (route.state and try @import("entry_state.zig").declarations(lowering, output, route.state_name)) return;
+    if (route.value == .Alias) return output.append(lowering.allocator, try emit.alias(lowering, false, null));
 
-    lowering.public_value_output = lowering.state_plan.represented(lowering.program, lowering.program.output_type);
+    lowering.public_value_output = route.public_value_output;
     defer lowering.public_value_output = false;
+    var value = if (route.value == .Aggregate) try lowering.functionValue(route.name) else try lowering.function(route.name, false);
 
-    var value = if (aggregate) try lowering.functionValue("executeValue") else try lowering.function("executeValue", false);
     value.function.exported = true;
 
     try output.append(lowering.allocator, value);

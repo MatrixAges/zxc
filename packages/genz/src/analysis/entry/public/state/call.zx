@@ -1,0 +1,38 @@
+import call from "../../../../ast/context/call"
+import identifier from "../../../../ast/context/identifier"
+import initialize from "../../../../ast/context/initialize"
+
+import type { Input as Bases } from "../../../../ast/context/model"
+import type { Columns as Expressions } from "../../../../ast/expressions/model"
+
+export type Input = {
+    name: u8[],
+    arguments: u32[],
+    bases: Bases
+}
+
+export type Output = {
+    expressions: Expressions,
+    root: u32,
+    valid: bool
+}
+
+export default function (in: Input): Output {
+    const callee = identifier({
+        state: initialize(in.bases),
+        name: in.name
+    })
+
+    const result = call({
+        state: callee.state,
+        callee: callee.id,
+        arguments: in.arguments,
+        fallible: true
+    })
+
+    return {
+        expressions: result.state.expressions,
+        root: result.id,
+        valid: result.state.valid
+    }
+}

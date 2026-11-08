@@ -1,0 +1,82 @@
+import bytes from "std:bytes"
+
+import call from "../../../../ast/context/call"
+import field from "../../../../ast/context/field"
+import identifier from "../../../../ast/context/identifier"
+import initialize from "../../../../ast/context/initialize"
+import pointer from "../../../../ast/context/pointer"
+import standard from "../../../../ast/context/standard_field"
+import {
+    arena_name,
+    heap_name,
+    arena_type_name
+} from "../../../functions/signature/const"
+import { allocator_method } from "../const"
+
+import type { Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const arena = identifier({
+        state: initialize(in.bases),
+        name: bytes.fromText(arena_name)
+    })
+
+    const arena_type = standard({
+        state: arena.state,
+        path: [
+            heap_name,
+            arena_type_name
+        ]
+    })
+
+    const address = pointer({
+        state: arena_type.state,
+        value: arena_type.id
+    })
+
+    const method = field({
+        state: address.state,
+        target: arena.id,
+        name: bytes.fromText(allocator_method)
+    })
+
+    const allocator = call({
+        state: method.state,
+        callee: method.id,
+        arguments: [],
+        fallible: false
+    })
+
+    const arguments: u32[] = [allocator.id]
+
+    const remaining = loop({
+        context: allocator.state,
+        arguments,
+        index: 1
+    }, {
+        while: current => current.index < in.parameters.name.length,
+        next: current => {
+            const value = identifier({
+                state: current.context,
+                name: in.parameters.name[current.index]
+            })
+
+            current.context = value.state
+            current.arguments = current.arguments.push(value.id)[0]
+            current.index += 1
+        }
+    })
+
+    return {
+        source: in,
+        context: remaining.context,
+        parameters: {
+            ...in.parameters,
+            name: in.parameters.name.with(0, bytes.fromText(arena_name)),
+            value: in.parameters.value.with(0, address.id),
+            default_value: in.parameters.default_value.with(0, null),
+            comptime_parameter: in.parameters.comptime_parameter.with(0, false)
+        },
+        arguments: remaining.arguments
+    }
+}
