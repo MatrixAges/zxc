@@ -1,0 +1,29 @@
+import { ExpressionsKind } from "../../printer/model/expressions"
+
+export type Input = {
+    condition: u32,
+    yes: u32,
+    no: u32
+}
+
+export type Output = {
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    conditional_condition: u32[],
+    conditional_yes: u32[],
+    conditional_no: u32[],
+    conditional_capture: u8[]?[],
+    conditional_error_capture: u8[]?[]
+}
+
+export default function (in: Input): Output {
+    return {
+        tags: [ExpressionsKind.Conditional],
+        offsets: [0],
+        conditional_condition: [in.condition],
+        conditional_yes: [in.yes],
+        conditional_no: [in.no],
+        conditional_capture: [null],
+        conditional_error_capture: [null]
+    }
+}

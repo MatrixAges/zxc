@@ -1,0 +1,20 @@
+import key from "./key"
+
+import type { Expressions, Key } from "./model"
+
+export type Input = {
+    expressions: Expressions,
+    id: u32,
+    expected: Key
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const actual = key(in.pick([
+        "expressions",
+        "id"
+    ]))
+
+    return actual.value == in.expected.value && actual.negative == in.expected.negative
+}

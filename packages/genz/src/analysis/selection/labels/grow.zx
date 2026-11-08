@@ -1,0 +1,61 @@
+import integers from "std:integer"
+
+import { initial_capacity, capacity_growth } from "./const"
+import key from "./key"
+
+import type { Expressions } from "./model"
+
+export type Input = {
+    expressions: Expressions,
+    slots: u64[]
+}
+
+export type Output = u64[]
+
+export default function (in: Input): Output {
+    const capacity = match {
+        in.slots.length == 0 => initial_capacity,
+        _ => in.slots.length * capacity_growth
+    }
+
+    const empty: u64[] = []
+
+    const initialized = loop({
+        slots: empty
+    }, {
+        while: state => state.slots.length < capacity,
+        next: state => { state.slots = state.slots.push(0)[0] },
+        return: state => state.slots
+    })
+
+    return loop({
+        slots: initialized,
+        index: 0
+    }, {
+        while: state => state.index < in.slots.length,
+        next: state => {
+            const stored = in.slots[state.index]
+
+            if (stored != 0) {
+                const value = key({
+                    expressions: in.expressions,
+                    id: integers.narrow(stored - 1)
+                })
+                const slots = state.slots
+
+                const position = loop({
+                    position: integers.hash(value.value) % capacity
+                }, {
+                    while: state => slots[state.position] != 0,
+                    next: state => { state.position = (state.position + 1) % capacity },
+                    return: state => state.position
+                })
+
+                state.slots = slots.with(position, stored)
+            }
+
+            state.index += 1
+        },
+        return: state => state.slots
+    })
+}

@@ -38,7 +38,8 @@ fn lowerMode(self: *Lower, selection: ir.MatchRow, layout: bool) Lower.Error!nod
         const last = selection.arms.at(index);
         const condition = try self.binary(.{ .operator = .equal, .left = selection.subject.?, .right = last.condition });
         const yes = if (layout) try values.expression(self, last.result) else try self.expr(last.result);
-        result = try self.builder.expression(.{ .conditional = .{ .condition = condition, .yes = yes, .no = result } });
+
+        result = try @import("selection/conditional.zig").construct(self, condition, yes, result);
         const arms = try self.allocator.alloc(node.SelectionArm, index + 1);
 
         arms[index] = .{ .result = result };
@@ -68,7 +69,8 @@ fn lowerMode(self: *Lower, selection: ir.MatchRow, layout: bool) Lower.Error!nod
             try self.expr(arm.condition);
 
         const yes = if (layout) try values.expression(self, arm.result) else try self.expr(arm.result);
-        result = try self.builder.expression(.{ .conditional = .{ .condition = condition, .yes = yes, .no = result } });
+
+        result = try @import("selection/conditional.zig").construct(self, condition, yes, result);
     }
 
     return if (selection.subject == null) result else aggregate.finish(self, &body, result);

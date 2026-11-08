@@ -1,0 +1,25 @@
+import { dense_word_count } from "./const"
+
+import type { State as Output } from "./model"
+
+export type Input = {}
+
+export default function (in: Input): Output {
+    const empty: u64[] = []
+
+    const dense = loop({
+        words: empty
+    }, {
+        while: state => state.words.length < dense_word_count,
+        next: state => { state.words = state.words.push(0)[0] },
+        return: state => state.words
+    })
+
+    return {
+        index: 0,
+        dense,
+        slots: [],
+        count: 0,
+        valid: true
+    }
+}

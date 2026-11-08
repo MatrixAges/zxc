@@ -325,7 +325,7 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!node.ExpressionId {
         .unary => |unary| @import("operators/unary.zig").lower(self, unary),
         .binary => |operation| self.binary(operation),
         .match_expr => |selection| @import("match.zig").lower(self, selection),
-        .conditional => |conditional| self.builder.expression(.{ .conditional = .{ .condition = try self.expr(conditional.condition), .yes = try self.expr(conditional.yes), .no = try self.expr(conditional.no) } }),
+        .conditional => |conditional| @import("selection/conditional.zig").lower(self, conditional),
         .object => |object| @import("aggregate.zig").object(self, id, object),
         .list, .tuple, .template => |items| @import("aggregate.zig").sequence(self, value, items),
         .list_operation => @import("collections.zig").lower(self, id),

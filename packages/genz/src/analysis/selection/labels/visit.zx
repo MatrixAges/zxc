@@ -1,0 +1,70 @@
+import integers from "std:integer"
+
+import { dense_key_limit, dense_word_bits } from "./const"
+import key from "./key"
+import mark from "./mark"
+
+import type { Scan, State as Output } from "./model"
+
+export type Input = {
+    scan: Scan,
+    id: u32,
+    type_id: u32
+}
+
+export default function (in: Input): Output {
+    const state = in.scan.state
+    const expressions = in.scan.source.expressions
+
+    if (expressions.types[integers.widen(in.id)] != in.type_id) {
+        return {
+            ...state,
+            valid: false
+        }
+    }
+
+    const value = key({
+        expressions,
+        id: in.id
+    })
+
+    if (!value.valid) {
+        return {
+            ...state,
+            valid: false
+        }
+    }
+
+    const dense = !value.negative && value.value < dense_key_limit
+
+    if (dense) {
+        const word = value.value / dense_word_bits
+        const mask = integers.bitMask(value.value % dense_word_bits)
+        const previous = state.dense[word]
+
+        return {
+            ...state,
+            dense: state.dense.with(word, integers.orBits(previous, mask)),
+            valid: integers.andBits(previous, mask) == 0
+        }
+    }
+
+    const marked = mark({
+        expressions,
+        ...state.pick([
+            "slots",
+            "count"
+        ]),
+        id: in.id,
+        key: value
+    })
+
+    return {
+        ...state,
+        ...marked.pick([
+            "slots",
+            "count"
+        ]),
+        valid: marked.fresh
+    }
+}

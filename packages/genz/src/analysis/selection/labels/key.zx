@@ -1,0 +1,48 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import type { Expressions, Key as Output } from "./model"
+
+export type Input = {
+    expressions: Expressions,
+    id: u32
+}
+
+export default function (in: Input): Output {
+    const index = integers.widen(in.id)
+    const source = in.expressions
+    const payload = integers.widen(source.payloads[index])
+
+    return match source.kinds[index] {
+        ExpressionKind.Integer => {
+            value: source.integers[payload],
+            negative: false,
+            valid: true
+        },
+        ExpressionKind.NegativeInteger => {
+            value: source.negative_integers[payload],
+            negative: source.negative_integers[payload] != 0,
+            valid: true
+        },
+        ExpressionKind.Boolean => {
+            value: source.booleans[payload] ? 1 : 0,
+            negative: false,
+            valid: true
+        },
+        ExpressionKind.EnumValue => {
+            value: integers.widen(source.enumerations[payload]),
+            negative: false,
+            valid: true
+        },
+        ExpressionKind.ErrorValue => {
+            value: integers.widen(source.errors[payload]),
+            negative: false,
+            valid: true
+        },
+        _ => {
+            value: 0,
+            negative: false,
+            valid: false
+        }
+    }
+}

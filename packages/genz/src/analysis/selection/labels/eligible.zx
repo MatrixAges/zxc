@@ -1,0 +1,41 @@
+import integers from "std:integer"
+import {
+    scalar_void,
+    scalar_string,
+    scalar_f32,
+    scalar_f64
+} from "core/type_table/const"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import { minimum_labels } from "./const"
+
+import type { Input } from "./model"
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    if (in.subject == null || in.conditions.length < minimum_labels) {
+        return false
+    }
+
+    const type_id = in.expressions.types[integers.widen(in.subject)]
+    const index = integers.widen(type_id)
+    const target = kind(in.types.kinds[index])
+
+    if (target == Kind.Enumeration || target == Kind.ErrorSet) {
+        return true
+    }
+
+    if (target != Kind.Scalar) {
+        return false
+    }
+
+    return match in.types.first[index] {
+        scalar_void => false,
+        scalar_string => false,
+        scalar_f32 => false,
+        scalar_f64 => false,
+        _ => true
+    }
+}

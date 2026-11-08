@@ -1,0 +1,53 @@
+import type { ExpressionKind } from "core/expression_table/kinds"
+import type { Table } from "core/type_table/model"
+
+export type Expressions = {
+    kinds: ExpressionKind[],
+    types: u32[],
+    payloads: u32[],
+    integers: u64[],
+    negative_integers: u64[],
+    booleans: bool[],
+    enumerations: u32[],
+    errors: u32[]
+}
+
+export type Input = {
+    expressions: Expressions,
+    types: Table,
+    subject?: u32,
+    conditions: u32[]
+}
+
+export type Key = {
+    value: u64,
+    negative: bool,
+    valid: bool
+}
+
+export type State = {
+    index: u64,
+    dense: u64[],
+    slots: u64[],
+    count: u64,
+    valid: bool
+}
+
+export type Scan = {
+    source: Input,
+    state: State
+}
+
+export type Mark = {
+    expressions: Expressions,
+    slots: u64[],
+    count: u64,
+    id: u32,
+    key: Key
+}
+
+export type Marked = {
+    slots: u64[],
+    count: u64,
+    fresh: bool
+}

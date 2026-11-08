@@ -1,0 +1,40 @@
+import integers from "std:integer"
+
+import { load_factor } from "./const"
+import grow from "./grow"
+import matches from "./matches"
+
+import type { Mark as Input, Marked as Output } from "./model"
+
+export default function (in: Input): Output {
+    const slots = match {
+        in.count * load_factor >= in.slots.length => grow(in.pick([
+            "expressions",
+            "slots"
+        ])),
+        _ => in.slots
+    }
+
+    const position = loop({
+        position: integers.hash(in.key.value) % slots.length
+    }, {
+        while: state => slots[state.position] != 0 && !matches({
+            expressions: in.expressions,
+            id: integers.narrow(slots[state.position] - 1),
+            expected: in.key
+        }),
+        next: state => { state.position = (state.position + 1) % slots.length },
+        return: state => state.position
+    })
+
+    const fresh = slots[position] == 0
+
+    return {
+        slots: match {
+            fresh => slots.with(position, integers.widen(in.id) + 1),
+            _ => slots
+        },
+        count: fresh ? in.count + 1 : in.count,
+        fresh
+    }
+}

@@ -1,0 +1,23 @@
+<Module>
+    <Type from="model" as="Labels" />
+
+    <Args in={Labels.Input} out={bool} />
+
+    <Call fn="eligible" in={$in} />
+
+    <If on={!$ctx.eligible}>
+        <Return value={false} />
+    </If>
+
+    <Call fn="initialize" in={{}} />
+
+    <Call
+        fn="scan"
+        in={{
+            source: $in,
+            state: $ctx.initialize
+        }}
+    />
+
+    <Return value={$ctx.scan} />
+</Module>

@@ -1,13 +1,12 @@
 const std = @import("std");
-const ir = @import("zx").ir;
+const zx = @import("zx");
+const ir = zx.ir;
 const Lower = @import("lower.zig");
-const Key = struct { negative: bool = false, value: u64 };
-const Dense = std.StaticBitSet(@as(usize, std.math.maxInt(u8)) + 1);
 
 pub fn constantLabels(self: *Lower, selection: ir.MatchRow) Lower.Error!bool {
-    const subject = selection.subject orelse return false;
+    if (!@import("genz_options").generated_analysis) return @import("selection/seed.zig").constantLabels(self, selection);
 
-    return labels(self, subject, selection.arms.conditions[0..selection.arms.len]);
+    return query(self, selection.subject, selection.arms.conditions[0..selection.arms.len]);
 }
 
 pub fn literal(self: *Lower, id: ir.ExprId) Lower.Error!@import("../node.zig").ExpressionId {
@@ -21,47 +20,33 @@ pub fn literal(self: *Lower, id: ir.ExprId) Lower.Error!@import("../node.zig").E
 }
 
 pub fn labels(self: *Lower, subject: ir.ExprId, conditions: []const u32) Lower.Error!bool {
-    if (conditions.len < 2) return false;
+    if (!@import("genz_options").generated_analysis) return @import("selection/seed.zig").labels(self, subject, conditions);
 
-    const table = &self.program.expressions;
-    const type_id = table.types[@backingInt(subject)];
+    return query(self, subject, conditions);
+}
 
-    switch (self.program.typeOf(@fromBackingInt(type_id))) {
-        .enumeration, .error_set => {},
-        .scalar => |scalar| switch (scalar) {
-            .void, .string, .f32, .f64 => return false,
-            else => {},
-        },
-        else => return false,
-    }
+fn query(self: *Lower, subject: ?ir.ExprId, conditions: []const u32) Lower.Error!bool {
+    const generated = @import("generated_selection_labels");
+    const Input = std.meta.Child(generated.Input);
+    const Expressions = std.meta.Child(@FieldType(Input, "expressions"));
+    const expressions = zx.columns.borrow(Expressions, @as(*const ir.ExpressionTable, &self.program.expressions));
+    const types = ir.TypeTable.borrow(std.meta.Child(@FieldType(Input, "types")), self.program.types);
 
-    var seen: std.AutoHashMapUnmanaged(Key, void) = .empty;
-    var dense = Dense.empty;
+    const input: Input = .{
+        .expressions = &expressions,
+        .types = &types,
+        .subject = if (subject) |id| @backingInt(id) else null,
+        .conditions = conditions,
+    };
 
-    defer seen.deinit(self.allocator);
+    var scratch = std.heap.ArenaAllocator.init(self.workspace);
+    var buffer: [std.heap.page_size_min]u8 = undefined;
+    var buffered = std.heap.BufferFirstAllocator.init(&buffer, scratch.allocator());
 
-    for (conditions) |label| {
-        if (table.types[label] != type_id) return false;
+    defer scratch.deinit();
 
-        const payload = table.payloads[label];
-
-        const key: Key = switch (table.kinds[label]) {
-            .Integer => .{ .value = table.integers[payload] },
-            .NegativeInteger => .{ .negative = table.negative_integers[payload] != 0, .value = table.negative_integers[payload] },
-            .Boolean => .{ .value = @intFromBool(table.booleans[payload]) },
-            .EnumValue => .{ .value = table.enumerations[payload] },
-            .ErrorValue => .{ .value = table.errors[payload] },
-            else => return false,
-        };
-
-        if (!key.negative and key.value < Dense.bit_length) {
-            const bit: usize = @intCast(key.value);
-
-            if (dense.isSet(bit)) return false;
-
-            dense.set(bit);
-        } else if ((try seen.getOrPut(self.allocator, key)).found_existing) return false;
-    }
-
-    return true;
+    return zx.columns.invoke(generated.executeValue, buffered.allocator(), @as(*const Input, &input)) catch |err| switch (err) {
+        error.OutOfMemory, error.IntegerOverflow => return error.OutOfMemory,
+        else => unreachable,
+    };
 }
