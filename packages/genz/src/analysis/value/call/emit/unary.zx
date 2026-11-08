@@ -1,0 +1,22 @@
+import address from "../../../../ast/context/address"
+import dereference from "../../../../ast/context/dereference"
+
+import type { Unary as Input, Work as Output } from "./model"
+
+export default function (in: Input): Output {
+    const source = {
+        state: in.state.context,
+        value: in.state.root
+    }
+
+    const result = match in.address {
+        true => address(source),
+        _ => dereference(source)
+    }
+
+    return {
+        ...in.state,
+        context: result.state,
+        root: result.id
+    }
+}

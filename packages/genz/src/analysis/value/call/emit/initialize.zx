@@ -1,0 +1,22 @@
+import initialize from "../../../../ast/context/initialize"
+import { Result } from "../model"
+
+import type { Input, Work as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        source: in,
+        context: initialize(in.context),
+        body: {
+            tags: [],
+            offsets: []
+        },
+        root: in.value,
+        name: [],
+        name_index: 0,
+        uses_allocator: false,
+        legacy: false,
+        legacy_deref: false,
+        result: Result.Value
+    }
+}

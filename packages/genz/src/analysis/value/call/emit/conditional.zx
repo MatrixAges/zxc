@@ -1,0 +1,22 @@
+import conditional from "../../../../ast/context/conditional"
+
+import type { Work as Input, Work as Output } from "./model"
+
+export default function (in: Input): Output {
+    const result = conditional({
+        state: in.context,
+        ...in.source.pick([
+            "condition",
+            "yes",
+            "no"
+        ]),
+        capture: null,
+        error_capture: null
+    })
+
+    return {
+        ...in,
+        context: result.state,
+        root: result.id
+    }
+}

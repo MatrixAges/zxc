@@ -6,6 +6,7 @@ const aggregate = @import("../aggregate.zig");
 const generated = @import("genz_options").generated_analysis;
 const seed = @import("seed.zig");
 const policy = @import("policy.zig");
+const emission = @import("emission.zig");
 pub const analysis = @import("analysis.zig");
 pub const functions = analysis.functions;
 pub const containsDescendant = analysis.containsDescendant;
@@ -18,7 +19,7 @@ pub fn expression(self: *Lower, id: ir.ExprId) Lower.Error!node.ExpressionId {
 
     return switch (selected) {
         .Value => self.expr(id),
-        .Dereference => self.builder.expression(.{ .dereference = try self.expr(id) }),
+        .Dereference => emission.emit(self, null, .Dereference, .{ .value = try self.expr(id) }),
         .Capture => @import("../capture.zig").lowerValue(self, value.type_id, value.value.capture),
         .Object => aggregate.objectValue(self, id),
         .Tuple => aggregate.tupleValue(self, value, value.value.tuple),
@@ -26,11 +27,13 @@ pub fn expression(self: *Lower, id: ir.ExprId) Lower.Error!node.ExpressionId {
         .Scope => @import("../scope.zig").lowerValue(self, value.value.scope),
         .Iteration => @import("../iteration.zig").lowerValue(self, id, value.value.iteration),
         .Match => @import("../match.zig").lowerValue(self, value.value.match_expr),
-        .Conditional => self.builder.expression(.{ .conditional = .{
-            .condition = try self.expr(value.value.conditional.condition),
-            .yes = try expression(self, value.value.conditional.yes),
-            .no = try expression(self, value.value.conditional.no),
-        } }),
+        .Conditional => conditional: {
+            const condition = try self.expr(value.value.conditional.condition);
+            const yes = try expression(self, value.value.conditional.yes);
+            const no = try expression(self, value.value.conditional.no);
+
+            break :conditional emission.emit(self, null, .Conditional, .{ .condition = condition, .yes = yes, .no = no });
+        },
         .Invocation => invocation(self, value.value.call),
     };
 }
@@ -41,7 +44,7 @@ pub fn invocation(self: *Lower, value: @FieldType(@FieldType(ir.ExpressionRow, "
     var body: std.ArrayList(node.Statement) = .empty;
     const result = try lowerInvocation(self, &body, value, false, .layout);
 
-    return aggregate.finish(self, &body, result);
+    return emission.emit(self, &body, .Block, .{ .value = result });
 }
 
 pub fn borrowInvocation(self: *Lower, body: *std.ArrayList(node.Statement), value: @FieldType(@FieldType(ir.ExpressionRow, "value"), "call")) Lower.Error!node.ExpressionId {
@@ -56,7 +59,7 @@ pub fn pointerInvocation(self: *Lower, value: @FieldType(@FieldType(ir.Expressio
     var body: std.ArrayList(node.Statement) = .empty;
     const result = try lowerInvocation(self, &body, value, false, .pointer);
 
-    return aggregate.finish(self, &body, result);
+    return emission.emit(self, &body, .Block, .{ .value = result });
 }
 
 fn lowerInvocation(self: *Lower, body: *std.ArrayList(node.Statement), value: @FieldType(@FieldType(ir.ExpressionRow, "value"), "call"), borrowed: bool, result_mode: @import("../state_value/conversion.zig").Mode) Lower.Error!node.ExpressionId {
@@ -66,35 +69,29 @@ fn lowerInvocation(self: *Lower, body: *std.ArrayList(node.Statement), value: @F
     var argument = switch (plan.argument) {
         .Value => try self.expr(value.argument),
         .BorrowObject => try @import("argument.zig").borrow(self, body, value.argument),
-        .StackObject => stack: {
-            const layout = try aggregate.bind(self, body, try aggregate.objectValue(self, value.argument));
-
-            break :stack try self.builder.expression(.{ .address_of = layout });
-        },
+        .StackObject => try emission.emit(self, body, .Stack, .{ .value = try aggregate.objectValue(self, value.argument) }),
     };
 
     if (plan.legacy) {
-        const result = try self.call(try self.functionReference(value.function), &.{ try self.builder.identifier("allocator"), argument }, true);
+        const callee = try self.functionReference(value.function);
 
-        return if (plan.legacy_deref) self.builder.expression(.{ .dereference = result }) else result;
+        return emission.emit(self, body, .Invoke, .{ .callee = callee, .value = argument, .plan = plan });
     }
 
     if (plan.transition) {
-        argument = try aggregate.bind(self, body, argument);
+        argument = try emission.emit(self, body, .Bind, .{ .value = argument });
         argument = try @import("../state_value/conversion.zig").convert(self, body, function.input_type, argument, if (plan.input_value) .value else .borrow);
     }
 
     if (plan.clip) argument = try @import("../state_value/ownership.zig").clip(self, body, value.argument, argument);
 
     const callee = try self.requestFunction(value.function, .value);
-    const result = try self.call(callee, &.{ try self.builder.identifier("allocator"), argument }, true);
+    const result = try emission.emit(self, body, .Invoke, .{ .callee = callee, .value = argument, .plan = plan });
 
     return switch (plan.result) {
-        .Value => result,
-        .Dereference => self.builder.expression(.{ .dereference = result }),
-        .Borrow => @import("../state_value/conversion.zig").convert(self, body, function.output_type, try aggregate.bind(self, body, result), .borrow),
-        .Address => self.builder.expression(.{ .address_of = try aggregate.bind(self, body, result) }),
-        .Convert => @import("../state_value/conversion.zig").convert(self, body, function.output_type, try aggregate.bind(self, body, result), result_mode),
-        .Construct => self.construct(function.output_type, try aggregate.bind(self, body, result)),
+        .Borrow => @import("../state_value/conversion.zig").convert(self, body, function.output_type, result, .borrow),
+        .Convert => @import("../state_value/conversion.zig").convert(self, body, function.output_type, result, result_mode),
+        .Construct => self.construct(function.output_type, result),
+        else => result,
     };
 }

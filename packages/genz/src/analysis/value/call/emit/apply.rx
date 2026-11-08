@@ -1,0 +1,57 @@
+<Module>
+    <Type from="model" as="Emission" />
+
+    <Args in={Emission.Work} out={Emission.Work} />
+
+    <Switch on={$in.source.operation}>
+        <Case value={Emission.Operation.Bind}>
+            <Call fn="bind" in={$in} />
+
+            <Return value={$ctx.bind} />
+        </Case>
+
+        <Case value={Emission.Operation.Stack}>
+            <Call fn="bind" in={$in} />
+
+            <Call
+                fn="unary"
+                in={{
+                    state: $ctx.bind,
+                    address: true
+                }}
+            />
+
+            <Return value={$ctx.unary} />
+        </Case>
+
+        <Case value={Emission.Operation.Invoke}>
+            <Call module="invocation" in={$in} />
+
+            <Return value={$ctx.invocation} />
+        </Case>
+
+        <Case value={Emission.Operation.Dereference}>
+            <Call
+                fn="unary"
+                in={{
+                    state: $in,
+                    address: false
+                }}
+            />
+
+            <Return value={$ctx.unary} />
+        </Case>
+
+        <Case value={Emission.Operation.Conditional}>
+            <Call fn="conditional" in={$in} />
+
+            <Return value={$ctx.conditional} />
+        </Case>
+
+        <Case value={Emission.Operation.Block}>
+            <Call fn="block" in={$in} />
+
+            <Return value={$ctx.block} />
+        </Case>
+    </Switch>
+</Module>

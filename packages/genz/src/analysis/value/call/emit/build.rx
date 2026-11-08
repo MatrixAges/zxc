@@ -1,0 +1,13 @@
+<Module>
+    <Type from="model" as="Emission" />
+
+    <Args in={Emission.Input} out={Emission.Output} />
+
+    <Call fn="initialize" in={$in} />
+
+    <Call module="apply" in={$ctx.initialize} />
+
+    <Call fn="publish" in={$ctx.apply} />
+
+    <Return value={$ctx.publish} />
+</Module>

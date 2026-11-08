@@ -1,0 +1,60 @@
+<Module>
+    <Type from="model" as="Emission" />
+    <Type from="../model" as="Policy" />
+
+    <Args in={Emission.Work} out={Emission.Work} />
+
+    <Call fn="invoke" in={$in} />
+
+    <If on={!$ctx.invoke.context.valid}>
+        <Return value={$ctx.invoke} />
+    </If>
+
+    <If on={$ctx.invoke.legacy}>
+        <If on={$ctx.invoke.legacy_deref}>
+            <Call
+                fn="unary"
+                in={{
+                    state: $ctx.invoke,
+                    address: false
+                }}
+            />
+
+            <Return value={$ctx.unary} />
+        </If>
+
+        <Return value={$ctx.invoke} />
+    </If>
+
+    <If on={$ctx.invoke.result == Policy.Result.Value}>
+        <Return value={$ctx.invoke} />
+    </If>
+
+    <If on={$ctx.invoke.result == Policy.Result.Dereference}>
+        <Call
+            fn="unary"
+            in={{
+                state: $ctx.invoke,
+                address: false
+            }}
+        />
+
+        <Return value={$ctx.unary} />
+    </If>
+
+    <Call fn="bind" in={$ctx.invoke} />
+
+    <If on={$ctx.invoke.result == Policy.Result.Address}>
+        <Call
+            fn="unary"
+            in={{
+                state: $ctx.bind,
+                address: true
+            }}
+        />
+
+        <Return value={$ctx.unary} />
+    </If>
+
+    <Return value={$ctx.bind} />
+</Module>

@@ -1,0 +1,17 @@
+import type { Work as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        ...in.pick([
+            "context",
+            "root",
+            "name",
+            "name_index",
+            "uses_allocator"
+        ]),
+        body: {
+            ...in.context.statements,
+            ...in.body
+        }
+    }
+}

@@ -1,0 +1,48 @@
+import bytes from "std:bytes"
+
+import call from "../../../../ast/context/call"
+import identifier from "../../../../ast/context/identifier"
+import { allocator_name } from "../../../construction/const"
+
+import type { Work as Input, Work as Output } from "./model"
+
+export default function (in: Input): Output {
+    const plan = in.source.plan
+
+    if (plan == null) {
+        return {
+            ...in,
+            context: {
+                ...in.context,
+                valid: false
+            }
+        }
+    }
+
+    const allocator = identifier({
+        state: in.context,
+        name: bytes.fromText(allocator_name)
+    })
+
+    const result = call({
+        state: allocator.state,
+        callee: in.source.callee,
+        arguments: [
+            allocator.id,
+            in.root
+        ],
+        fallible: true
+    })
+
+    return {
+        ...in,
+        context: result.state,
+        root: result.id,
+        uses_allocator: true,
+        ...plan.pick([
+            "legacy",
+            "legacy_deref",
+            "result"
+        ])
+    }
+}

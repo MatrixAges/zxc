@@ -1,0 +1,43 @@
+import integers from "std:integer"
+
+import { block_prefix } from "../../../../ast/context/const"
+import block from "../../../../ast/expressions/block"
+import fresh from "../../../../ast/fresh"
+import breakValue from "../../../../ast/statements/break_value"
+
+import type { Work as Input, Work as Output } from "./model"
+
+export default function (in: Input): Output {
+    const label = fresh({
+        serial: in.context.serial,
+        prefix: block_prefix
+    })
+
+    const statements = breakValue({
+        table: in.context.statements,
+        base: in.context.source.statement_base,
+        label: label.name,
+        value: in.root
+    })
+
+    const result = block({
+        table: in.context.expressions,
+        base: in.context.source.expression_base,
+        label: label.name,
+        start: in.source.body_first,
+        count: integers.narrow(integers.widen(in.source.body_count) + 1)
+    })
+
+    return {
+        ...in,
+        root: result.id,
+        name: label.name,
+        context: {
+            ...in.context,
+            expressions: result.table,
+            statements: statements.table,
+            serial: label.serial,
+            valid: in.context.valid && statements.valid && result.valid
+        }
+    }
+}

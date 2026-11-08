@@ -1,0 +1,46 @@
+import type { Body } from "../../../../ast/body/model"
+import type { Input as Context, State } from "../../../../ast/context/model"
+import type { Columns } from "../../../../ast/statements/model"
+import type { Output as Policy, Result } from "../model"
+
+export enum Operation { Bind, Stack, Invoke, Dereference, Conditional, Block }
+
+export type Input = {
+    context: Context,
+    operation: Operation,
+    value: u32,
+    callee: u32,
+    condition: u32,
+    yes: u32,
+    no: u32,
+    body_first: u32,
+    body_count: u32,
+    plan?: Policy
+}
+
+export type Work = {
+    source: Input,
+    context: State,
+    body: Body,
+    root: u32,
+    name: u8[],
+    name_index: u64,
+    uses_allocator: bool,
+    legacy: bool,
+    legacy_deref: bool,
+    result: Result
+}
+
+export type Unary = {
+    state: Work,
+    address: bool
+}
+
+export type Output = {
+    context: State,
+    body: Columns,
+    root: u32,
+    name: u8[],
+    name_index: u64,
+    uses_allocator: bool
+}
