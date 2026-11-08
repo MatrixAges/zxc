@@ -1,0 +1,39 @@
+import type { ExpressionsKind } from "../../../printer/model/expressions"
+import type { StatementsKind } from "../../../printer/model/statements"
+
+export type Input = {
+    value: u32,
+    expression_base: u32,
+    statement_base: u32,
+    body_count: u64,
+    serial: u64
+}
+
+export type Expressions = {
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    identifier: u8[][],
+    block_label: u8[][],
+    block_statements_start: u32[],
+    block_statements_len: u32[]
+}
+
+export type Statements = {
+    tags: StatementsKind[],
+    offsets: u32[],
+    constant_name: u8[][],
+    constant_type_expr: u32?[],
+    constant_value: u32[],
+    constant_exported: bool[],
+    break_value_label: u8[][],
+    break_value_value: u32[]
+}
+
+export type Output = {
+    expressions: Expressions,
+    statements: Statements,
+    name: u8[],
+    serial: u64,
+    root: u32,
+    valid: bool
+}

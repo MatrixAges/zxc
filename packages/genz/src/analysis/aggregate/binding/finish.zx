@@ -1,0 +1,44 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+
+import { block_prefix } from "../../../ast/context/const"
+import fresh from "../../../ast/fresh"
+import { ExpressionsKind } from "../../../printer/model/expressions"
+import { StatementsKind } from "../../../printer/model/statements"
+
+import type { Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const name = fresh({
+        serial: in.serial,
+        prefix: block_prefix
+    })
+
+    const count = in.body_count + 1
+    const end = integers.widen(in.statement_base) + count
+
+    return {
+        expressions: {
+            tags: [ExpressionsKind.Block],
+            offsets: [0],
+            identifier: [],
+            block_label: [name.name],
+            block_statements_start: [in.statement_base],
+            block_statements_len: [integers.narrow(count)]
+        },
+        statements: {
+            tags: [StatementsKind.BreakValue],
+            offsets: [0],
+            constant_name: [],
+            constant_type_expr: [],
+            constant_value: [],
+            constant_exported: [],
+            break_value_label: [name.name],
+            break_value_value: [in.value]
+        },
+        name: name.name,
+        serial: name.serial,
+        root: in.expression_base,
+        valid: in.expression_base < max_u32 && end <= integers.widen(max_u32)
+    }
+}

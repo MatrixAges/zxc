@@ -81,10 +81,10 @@ fn appendRows(allocator: std.mem.Allocator, target: *std.ArrayList(node.Statemen
                 .capture_reference = source.branch_capture_reference[offset],
                 .error_capture = if (source.branch_error_capture[offset]) |text| if (comptime borrow_text) text else try allocator.dupe(u8, text) else null,
             } } else return error.InvalidAst,
-            .assignment => .{ .assignment = .{
+            .assignment => if (comptime @hasField(std.meta.Child(@TypeOf(source)), "assignment_target")) .{ .assignment = .{
                 .target = @fromBackingInt(source.assignment_target[offset]),
                 .value = @fromBackingInt(source.assignment_value[offset]),
-            } },
+            } } else return error.InvalidAst,
             .break_value => .{ .break_value = .{
                 .label = if (comptime borrow_text) source.break_value_label[offset] else try allocator.dupe(u8, source.break_value_label[offset]),
                 .value = @fromBackingInt(source.break_value_value[offset]),

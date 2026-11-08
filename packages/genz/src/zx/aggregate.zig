@@ -122,17 +122,13 @@ fn sequenceMode(self: *Lower, value: ir.ExpressionRow, items: []const ir.ExprId,
 }
 
 pub fn bind(self: *Lower, body: *std.ArrayList(node.Statement), expression: node.ExpressionId) Lower.Error!node.ExpressionId {
-    const name = try self.fresh("operand");
+    if (!@import("genz_options").generated_analysis) return @import("aggregate/binding_seed.zig").bind(self, body, expression);
 
-    try body.append(self.allocator, .{ .constant = .{ .name = name, .value = expression } });
-
-    return self.builder.identifier(name);
+    return @import("aggregate/binding.zig").bind(self, body, expression);
 }
 
 pub fn finish(self: *Lower, body: *std.ArrayList(node.Statement), result: node.ExpressionId) Lower.Error!node.ExpressionId {
-    const label = try self.fresh("block");
+    if (!@import("genz_options").generated_analysis) return @import("aggregate/binding_seed.zig").finish(self, body, result);
 
-    try body.append(self.allocator, .{ .break_value = .{ .label = label, .value = result } });
-
-    return self.builder.expression(.{ .block = .{ .label = label, .statements = try self.builder.statements(body.items) } });
+    return @import("aggregate/binding.zig").finish(self, body, result);
 }
