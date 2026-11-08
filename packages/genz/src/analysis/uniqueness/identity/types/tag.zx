@@ -1,0 +1,31 @@
+import { Kind } from "core/type_table/model"
+
+import {
+    scalar_tag,
+    object_tag,
+    optional_tag,
+    list_tag,
+    tuple_tag,
+    errors_tag,
+    task_tag,
+    enumeration_tag,
+    reference_tag
+} from "./const"
+
+export type Input = Kind
+
+export type Output = string
+
+export default function (in: Input): Output {
+    return match in {
+        Kind.Scalar => scalar_tag,
+        Kind.Object => object_tag,
+        Kind.Optional => optional_tag,
+        Kind.List => list_tag,
+        Kind.Tuple => tuple_tag,
+        Kind.ErrorSet => errors_tag,
+        Kind.Task => task_tag,
+        Kind.Enumeration => enumeration_tag,
+        _ => reference_tag
+    }
+}

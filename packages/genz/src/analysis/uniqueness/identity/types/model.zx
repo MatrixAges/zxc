@@ -1,0 +1,27 @@
+import type { Sha256State } from "std:crypto"
+import type { Table } from "core/type_table/model"
+
+export type Input = {
+    hash: Sha256State,
+    types: Table
+}
+
+export type Row = {
+    hash: Sha256State,
+    types: Table,
+    index: u64
+}
+
+export type Ids = {
+    hash: Sha256State,
+    values: u32[],
+    first: u64,
+    count: u64
+}
+
+export type Names = {
+    hash: Sha256State,
+    values: string[],
+    first: u64,
+    count: u64
+}

@@ -1,0 +1,8 @@
+<Module>
+    <Type from="model" as="Identity" />
+
+    <Args in={Identity.Input} out={void} />
+
+    <Call fn="seed" in={$in} />
+    <Call fn="walk" in={$in} />
+</Module>

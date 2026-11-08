@@ -32,6 +32,8 @@ pub fn program(value: ir.Program, basis: *const Basis) [32]u8 {
 
 /// The types every list slot derives from.
 pub fn types(value: ir.TypeTable) [32]u8 {
+    if (@import("genz_options").generated_analysis) return @import("identity/types.zig").build(value);
+
     var self = Self{};
 
     self.bytes("zxc.uniqueness.types.v1");

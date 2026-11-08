@@ -1,0 +1,74 @@
+import bytes from "std:bytes"
+import crypto from "std:crypto"
+import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import frame from "../bytes"
+import fields from "./fields"
+import ids from "./ids"
+import names from "./names"
+import tag from "./tag"
+
+import type { Row as Input } from "./model"
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const target = kind(in.types.kinds[in.index])
+    const first = integers.widen(in.types.first[in.index])
+    const second = integers.widen(in.types.second[in.index])
+
+    frame({
+        hash: in.hash,
+        bytes: bytes.fromText(tag(target))
+    })
+
+    if (target == Kind.Object) {
+        fields(in)
+
+        return
+    }
+
+    if (target == Kind.Tuple) {
+        ids({
+            hash: in.hash,
+            values: in.types.children,
+            first,
+            count: second
+        })
+
+        crypto.updateSha256U64Le(in.hash, second)
+
+        return
+    }
+
+    if (target == Kind.Task) {
+        crypto.updateSha256U64Le(in.hash, first)
+        crypto.updateSha256U64Le(in.hash, second)
+
+        return
+    }
+
+    if (target == Kind.NativeReference || target == Kind.Enumeration) {
+        frame({
+            hash: in.hash,
+            bytes: bytes.fromText(in.types.labels[in.index])
+        })
+    }
+
+    if (target == Kind.Enumeration || target == Kind.ErrorSet) {
+        names({
+            hash: in.hash,
+            values: in.types.names,
+            first,
+            count: second
+        })
+
+        return
+    }
+
+    if (target != Kind.NativeReference) {
+        crypto.updateSha256U64Le(in.hash, first)
+    }
+}

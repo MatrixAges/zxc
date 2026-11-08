@@ -1,0 +1,21 @@
+import row from "./row"
+
+import type { Input } from "./model"
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const result = loop({
+        index: 0
+    }, {
+        while: state => state.index < in.types.kinds.length,
+        next: state => {
+            row({
+                ...in,
+                index: state.index
+            })
+
+            state.index += 1
+        }
+    })
+}
