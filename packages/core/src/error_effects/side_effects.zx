@@ -1,0 +1,75 @@
+import integers from "std:integer"
+
+import { StatementKind } from "../control_table/model"
+import { Operation } from "./model"
+
+import type { State, Frame } from "./model"
+
+export type Input = {
+    state: State,
+    frame: Frame
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const state = {
+        ...in.state,
+        unknown: true
+    }
+
+    if (!state.collect) {
+        return state
+    }
+
+    const control = state.sources[in.frame.source].control
+    const payload = integers.widen(control.statement_payloads[in.frame.index])
+
+    const frames = match {
+        in.frame.count == 1 => state.frames,
+        _ => state.frames.push({
+            ...in.frame,
+            index: in.frame.index + 1,
+            count: in.frame.count - 1
+        })[0]
+    }
+
+    if (control.statement_kinds[in.frame.index] == StatementKind.StoreSet) {
+        return {
+            ...state,
+            frames: frames.push({
+                operation: Operation.Expression,
+                source: in.frame.source,
+                index: integers.widen(control.setter_values[payload]),
+                count: 0
+            })[0]
+        }
+    }
+
+    const first = integers.widen(control.parallel_first[payload])
+    const count = integers.widen(control.parallel_count[payload])
+
+    const pending = loop({
+        frames,
+        index: count
+    }, {
+        while: current => current.index != 0,
+        next: current => {
+            current.index -= 1
+            current.frames = current.frames.push({
+                operation: Operation.Expression,
+                source: in.frame.source,
+                index: integers.widen(
+                    control.parallel_values[first + current.index]
+                ),
+                count: 0
+            })[0]
+        },
+        return: current => current.frames
+    })
+
+    return {
+        ...state,
+        frames: pending
+    }
+}

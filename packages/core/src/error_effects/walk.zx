@@ -1,4 +1,5 @@
 import block from "./block"
+import schedule from "./expression/schedule"
 import expression from "./expression/visit"
 import call from "./function"
 import { Operation } from "./model"
@@ -11,7 +12,8 @@ export type Output = State
 
 export default function (in: Input): Output {
     return loop(in, {
-        while: current => !current.unknown && current.frames.length != 0,
+        while: current =>
+            (!current.unknown || current.collect) && current.frames.length != 0,
         next: current => {
             const frame = current.frames[current.frames.length - 1]
 
@@ -26,6 +28,10 @@ export default function (in: Input): Output {
                     state: current,
                     index: frame.index
                 }),
+                Operation.Children => schedule({
+                    state: current,
+                    frame
+                }),
                 _ => block({
                     state: current,
                     frame
@@ -34,7 +40,12 @@ export default function (in: Input): Output {
 
             current.sources = result.sources
             current.frames = result.frames
+            current.visited = result.visited
+            current.visited_count = result.visited_count
+            current.callees = result.callees
             current.called = result.called
+            current.called_count = result.called_count
+            current.next_expression = result.next_expression
             current.names = result.names
             current.unknown = result.unknown
         }

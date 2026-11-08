@@ -1,0 +1,49 @@
+import initial from "../initial"
+import { Operation } from "../model"
+
+import type { State } from "../model"
+import type { Input } from "./model"
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const functions = in.context.functions
+
+    if (functions.native_modules[in.index] != null) {
+        return {
+            context: in.context,
+            sources: [],
+            frames: [{
+                operation: Operation.Function,
+                source: 0,
+                index: in.index,
+                count: 0
+            }],
+            visited: [],
+            visited_count: 0,
+            next_expression: 0,
+            called: [],
+            called_count: 0,
+            names: [],
+            unknown: false,
+            collect: true,
+            callees: []
+        }
+    }
+
+    const state = initial({
+        context: in.context,
+        expressions: functions.expressions[in.index],
+        control: functions.control[in.index],
+        root: functions.roots[in.index],
+        contracts: functions.contracts[in.index],
+        stores: functions.stores[in.index].types.length != 0,
+        expression: 0,
+        program: true
+    })
+
+    return {
+        ...state,
+        collect: true
+    }
+}

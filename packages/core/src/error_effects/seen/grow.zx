@@ -1,9 +1,13 @@
+import integers from "std:integer"
+
+import { initial_capacity, capacity_growth } from "./const"
+
 export type Input = u64[]
 
 export type Output = u64[]
 
 export default function (in: Input): Output {
-    const capacity = in.length == 0 ? 16 : in.length * 2
+    const capacity = in.length == 0 ? initial_capacity : in.length * capacity_growth
     const slots: u64[] = []
 
     const empty = loop({
@@ -25,18 +29,19 @@ export default function (in: Input): Output {
             const key = current.previous[current.index]
 
             if (key != 0) {
+                const slots = current.slots
+
                 const position = loop({
-                    slots: current.slots,
-                    position: (key * 2654435761) % current.slots.length
+                    position: integers.hash(key) % current.slots.length
                 }, {
-                    while: item => item.slots[item.position] != 0,
+                    while: item => slots[item.position] != 0,
                     next: item =>
                         { item.position =
-                            (item.position + 1) % item.slots.length },
+                            (item.position + 1) % slots.length },
                     return: state => state.position
                 })
 
-                current.slots = current.slots.splice(position, 1, [key])[0]
+                current.slots = current.slots.with(position, key)
             }
 
             current.index += 1

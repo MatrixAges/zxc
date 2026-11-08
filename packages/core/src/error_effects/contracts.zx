@@ -2,6 +2,8 @@ import integers from "std:integer"
 
 import { ContractKind } from "../contract_table/model"
 import empty from "../control_table/empty"
+import add from "./add"
+import { precondition_failed } from "./const"
 import { Operation } from "./model"
 import source from "./source"
 
@@ -36,9 +38,10 @@ export default function (in: Input): Output {
 
                 current.state = registered.state
                 current.state.names =
-                    current.state.names.push(
-                        "PreconditionFailed"
-                    )[0]
+                    add({
+                        names: current.state.names,
+                        name: precondition_failed
+                    })
                 current.state.frames = current.state.frames.push({
                     operation: Operation.Expression,
                     source: registered.source,

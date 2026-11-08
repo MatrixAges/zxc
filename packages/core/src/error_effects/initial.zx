@@ -15,10 +15,13 @@ export default function (in: Input): Output {
         context: in.context,
         sources: [],
         frames: [],
-        called: {
-            slots: [],
-            count: 0
-        },
+        visited: [],
+        visited_count: 0,
+        next_expression: 0,
+        called: [],
+        called_count: 0,
+        collect: false,
+        callees: [],
         names: [],
         unknown: in.program && in.stores
     }

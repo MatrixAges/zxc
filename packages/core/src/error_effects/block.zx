@@ -4,6 +4,7 @@ import { StatementKind } from "../control_table/model"
 import selectionReturns from "../control_table/selection_returns"
 import { ExpressionKind } from "../expression_table/kinds"
 import { Operation } from "./model"
+import sideEffects from "./side_effects"
 
 import type { State, Frame } from "./model"
 
@@ -25,10 +26,7 @@ export default function (in: Input): Output {
     const payload = control.statement_payloads[in.frame.index]
 
     if (kind == StatementKind.StoreSet || kind == StatementKind.Parallel) {
-        return {
-            ...in.state,
-            unknown: true
-        }
+        return sideEffects(in)
     }
 
     const terminal = match kind {

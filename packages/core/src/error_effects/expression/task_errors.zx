@@ -1,6 +1,7 @@
 import integers from "std:integer"
 
 import row from "../../type_table/row"
+import add from "../add"
 
 import type { Tables } from "../../type_table/model"
 
@@ -25,11 +26,19 @@ export default function (in: Input): Output {
 
     const table = errors.delta ? in.tables.delta : in.tables.base
 
-    return in.names.concat(
-        table.names.splice(
-            integers.widen(errors.first),
-            integers.widen(errors.second),
-            []
-        )[1]
-    )[0]
+    return loop({
+        names: in.names,
+        index: 0
+    }, {
+        while: current => current.index < integers.widen(errors.second),
+        next: current => {
+            current.names = add({
+                names: current.names,
+                name: table.names[integers.widen(errors.first) + current.index]
+            })
+
+            current.index += 1
+        },
+        return: current => current.names
+    })
 }

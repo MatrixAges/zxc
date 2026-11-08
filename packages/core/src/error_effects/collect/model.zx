@@ -1,0 +1,12 @@
+import type { Context } from "../model"
+
+export type Input = {
+    context: Context,
+    index: u64
+}
+
+export type Own = {
+    names: string[],
+    unknown: bool,
+    callees: u32[]
+}

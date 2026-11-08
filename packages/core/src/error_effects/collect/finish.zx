@@ -1,0 +1,12 @@
+import names from "../names"
+
+import type { State as Input } from "../model"
+import type { Own as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        names: names(in.names),
+        unknown: in.unknown,
+        callees: in.callees
+    }
+}

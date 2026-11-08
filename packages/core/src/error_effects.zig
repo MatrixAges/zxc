@@ -53,6 +53,8 @@ pub fn expressionWith(allocator: std.mem.Allocator, types: ir.TypeTable, functio
 /// The error set of every function at once; see `error_effects/functions.zig`.
 pub const perFunction = @import("error_effects/functions.zig").all;
 pub const functionBodies = @import("error_effects/functions.zig").collect;
+pub const Bodies = @import("error_effects/functions.zig").Bodies;
+pub const Own = @import("error_effects/functions.zig").Own;
 
 pub fn deinit(self: *Self) void {
     self.names.deinit(self.allocator);

@@ -2,8 +2,7 @@ import integers from "std:integer"
 
 import { ExpressionKind } from "../../expression_table/kinds"
 import { Operation } from "../model"
-import insert from "../seen/insert"
-import children from "./children"
+import mark from "../seen/mark"
 import intrinsic from "./intrinsic"
 
 import type { State, Frame } from "../model"
@@ -18,44 +17,35 @@ export type Output = State
 export default function (in: Input): Output {
     const source = in.state.sources[in.frame.source]
 
-    const visited = insert({
-        seen: source.visited,
-        id: integers.narrow(in.frame.index)
+    const visited = mark({
+        slots: in.state.visited,
+        count: in.state.visited_count,
+        id: source.offset + in.frame.index
     })
 
-    if (!visited.fresh) {
-        return {
-            ...in.state,
-            sources: in.state.sources.splice(in.frame.source, 1, [{
-                ...source,
-                visited: visited.seen
-            }])[0]
-        }
+    const state = {
+        ...in.state,
+        visited: visited.slots,
+        visited_count: visited.count
     }
 
-    const sources = in.state.sources.splice(in.frame.source, 1, [{
-        ...source,
-        visited: visited.seen
-    }])[0]
+    if (!visited.fresh) {
+        return state
+    }
 
     const expressions = source.expressions
 
     const names = intrinsic({
-        tables: in.state.context.types,
+        tables: state.context.types,
         expressions,
         index: in.frame.index,
-        names: in.state.names
-    })
-
-    const values = children({
-        expressions,
-        index: in.frame.index
+        names: state.names
     })
 
     const frames =
         match {
             expressions.kinds[in.frame.index] == ExpressionKind.Call =>
-                in.state.frames.push({
+                state.frames.push({
                     operation: Operation.Function,
                     source: 0,
                     index:
@@ -67,31 +57,18 @@ export default function (in: Input): Output {
                         ),
                     count: 0
                 })[0],
-            _ => in.state.frames
+            _ => state.frames
         }
 
-    const scheduled = loop({
-        frames,
+    const scheduled = frames.push({
+        operation: Operation.Children,
         source: in.frame.source,
-        values,
-        index: values.length
-    }, {
-        while: current => current.index > 0,
-        next: current => {
-            current.index -= 1
-            current.frames = current.frames.push({
-                operation: Operation.Expression,
-                source: current.source,
-                index: integers.widen(current.values[current.index]),
-                count: 0
-            })[0]
-        },
-        return: state => state.frames
-    })
+        index: in.frame.index,
+        count: 0
+    })[0]
 
     return {
-        ...in.state,
-        sources,
+        ...state,
         names,
         frames: scheduled
     }

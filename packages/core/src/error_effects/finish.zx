@@ -1,3 +1,5 @@
+import names from "./names"
+
 import type { State } from "./model"
 
 export type Input = State
@@ -9,30 +11,5 @@ export default function (in: Input): Output {
         return null
     }
 
-    const names = in.names.sort()[0]
-    const values: string[] = []
-
-    return loop({
-        names,
-        values,
-        index: 0
-    }, {
-        while: current => current.index < current.names.length,
-        next: current => {
-            if (
-                current.index == 0 ||
-                    current.names[current.index] != current
-                    .names[current.index -
-                        1]
-            ) {
-                current.values =
-                    current.values.push(
-                        current.names[current.index]
-                    )[0]
-            }
-
-            current.index += 1
-        },
-        return: state => state.values
-    })
+    return names(in.names)
 }

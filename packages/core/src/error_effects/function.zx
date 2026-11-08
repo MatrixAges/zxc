@@ -1,8 +1,9 @@
 import integers from "std:integer"
 
 import contracts from "./contracts"
+import merge from "./functions/merge_names"
 import { Operation } from "./model"
-import insert from "./seen/insert"
+import mark from "./seen/mark"
 import source from "./source"
 
 import type { State } from "./model"
@@ -22,14 +23,16 @@ export default function (in: Input): Output {
         }
     }
 
-    const called = insert({
-        seen: in.state.called,
-        id: integers.narrow(in.index)
+    const called = mark({
+        slots: in.state.called,
+        count: in.state.called_count,
+        id: in.index
     })
 
     const state = {
         ...in.state,
-        called: called.seen
+        called: called.slots,
+        called_count: called.count
     }
 
     if (!called.fresh) {
@@ -52,8 +55,18 @@ export default function (in: Input): Output {
             },
             _ => {
                 ...state,
-                names: state.names.concat(names)[0]
+                names: merge({
+                    names: state.names,
+                    added: names
+                })
             }
+        }
+    }
+
+    if (state.collect) {
+        return {
+            ...state,
+            callees: state.callees.push(integers.narrow(in.index))[0]
         }
     }
 

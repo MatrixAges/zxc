@@ -28,7 +28,7 @@ pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, progr
     defer scratch.deinit();
 
     const temporary = scratch.allocator();
-    var bodies = try zx.error_effects.functionBodies(temporary, program.types, program.functions);
+    var bodies = try @import("error_sources.zig").collect(temporary, program.types, program.functions);
 
     defer bodies.deinit();
 

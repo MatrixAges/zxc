@@ -1,0 +1,48 @@
+import integers from "std:integer"
+
+import { capacity_growth } from "./const"
+import grow from "./grow"
+
+export type Input = {
+    slots: u64[],
+    count: u64,
+    id: u64
+}
+
+export type Output = {
+    slots: u64[],
+    count: u64,
+    fresh: bool
+}
+
+export default function (in: Input): Output {
+    const slots = match {
+        in.count * capacity_growth >= in.slots.length => grow(in.slots),
+        _ => in.slots
+    }
+
+    const key = in.id + 1
+
+    const position = loop({
+        position: integers.hash(key) % slots.length
+    }, {
+        while: current =>
+            slots[current.position] != 0 &&
+            slots[current.position] != key,
+        next: current =>
+            { current.position =
+                (current.position + 1) % slots.length },
+        return: state => state.position
+    })
+
+    const fresh = slots[position] == 0
+
+    return {
+        slots: match {
+            fresh => slots.with(position, key),
+            _ => slots
+        },
+        count: fresh ? in.count + 1 : in.count,
+        fresh
+    }
+}

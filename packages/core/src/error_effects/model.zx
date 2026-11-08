@@ -3,9 +3,8 @@ import type { Control } from "../control_table/model"
 import type { Expressions } from "../expression_table/model"
 import type { Table } from "../function_table/model"
 import type { Tables } from "../type_table/model"
-import type { Seen } from "./seen/model"
 
-export enum Operation { Expression, Function, Block }
+export enum Operation { Expression, Function, Block, Children }
 
 export type Frame = {
     operation: Operation,
@@ -18,7 +17,7 @@ export type Source = {
     expressions: Expressions,
     control: Control,
     returns: bool[],
-    visited: Seen
+    offset: u64
 }
 
 export type Context = {
@@ -30,9 +29,15 @@ export type State = {
     context: Context,
     sources: Source[],
     frames: Frame[],
-    called: Seen,
+    called: u64[],
+    called_count: u64,
+    visited: u64[],
+    visited_count: u64,
+    next_expression: u64,
     names: string[],
-    unknown: bool
+    unknown: bool,
+    collect: bool,
+    callees: u32[]
 }
 
 export type Request = {

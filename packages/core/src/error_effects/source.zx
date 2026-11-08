@@ -20,16 +20,14 @@ export default function (in: Input): Output {
         expressions: in.expressions,
         control: in.control,
         returns: terminates(in.control),
-        visited: {
-            slots: [],
-            count: 0
-        }
+        offset: in.state.next_expression
     }
 
     return {
         state: {
             ...in.state,
-            sources: in.state.sources.push(source)[0]
+            sources: in.state.sources.push(source)[0],
+            next_expression: in.state.next_expression + in.expressions.kinds.length
         },
         source: in.state.sources.length
     }

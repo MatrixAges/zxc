@@ -7,6 +7,13 @@ import {
 } from "../../expression_table/kinds"
 import { Kind } from "../../type_table/model"
 import row from "../../type_table/row"
+import add from "../add"
+import {
+    out_of_memory,
+    index_out_of_bounds,
+    overflow,
+    concurrency_unavailable
+} from "../const"
 import taskErrors from "./task_errors"
 
 import type { Expressions } from "../../expression_table/model"
@@ -41,13 +48,17 @@ export default function (in: Input): Output {
     }
 
     if (kind == ExpressionKind.Parallel) {
-        const names = in.names.push("ConcurrencyUnavailable")[0]
+        const names = add({
+            names: in.names,
+            name: concurrency_unavailable
+        })
 
         const initial = match {
             expressions.types[in.index] == 0 => names,
-            _ => names.push(
-                "OutOfMemory"
-            )[0]
+            _ => add({
+                names,
+                name: out_of_memory
+            })
         }
 
         return loop({
@@ -90,27 +101,48 @@ export default function (in: Input): Output {
     }
 
     if (kind == ExpressionKind.Index) {
-        return in.names.push("IndexOutOfBounds")[0]
+        return add({
+            names: in.names,
+            name: index_out_of_bounds
+        })
     }
 
     if (kind == ExpressionKind.ListUpdate) {
-        return in.names.push("OutOfMemory")[0].push("IndexOutOfBounds")[0]
+        return add({
+            names: add({
+                names: in.names,
+                name: out_of_memory
+            }),
+            name: index_out_of_bounds
+        })
     }
 
     if (kind == ExpressionKind.ListOperation) {
         const operation = expressions.collection_kinds[integers.widen(payload)]
-        const allocated = in.names.push("OutOfMemory")[0]
 
-        const overflow =
+        const allocated = add({
+            names: in.names,
+            name: out_of_memory
+        })
+
+        const overflows =
             operation == CollectionKind.Push || operation == CollectionKind.Concat ||
             operation == CollectionKind.Splice
 
-        const names =
-            overflow ? allocated.push("Overflow")[0] : allocated
+        const names = match {
+            overflows => add({
+                names: allocated,
+                name: overflow
+            }),
+            _ => allocated
+        }
 
         return match {
             operation ==
-                CollectionKind.Splice => names.push("IndexOutOfBounds")[0],
+                CollectionKind.Splice => add({
+                    names,
+                    name: index_out_of_bounds
+                }),
             _ => names
         }
     }
@@ -123,9 +155,10 @@ export default function (in: Input): Output {
 
         return match {
             target.kind == Kind.Object ||
-                target.kind == Kind.Tuple => in.names.push(
-                    "OutOfMemory"
-                )[0],
+                target.kind == Kind.Tuple => add({
+                    names: in.names,
+                    name: out_of_memory
+                }),
             _ => in.names
         }
     }
@@ -136,9 +169,10 @@ export default function (in: Input): Output {
         return match {
             operation == TransformKind.Map ||
                 operation == TransformKind.Filter || operation == TransformKind.Sort =>
-                in.names.push(
-                    "OutOfMemory"
-                )[0],
+                add({
+                    names: in.names,
+                    name: out_of_memory
+                }),
             _ => in.names
         }
     }
@@ -154,5 +188,11 @@ export default function (in: Input): Output {
         }
     )
 
-    return allocating ? in.names.push("OutOfMemory")[0] : in.names
+    return match {
+        allocating => add({
+            names: in.names,
+            name: out_of_memory
+        }),
+        _ => in.names
+    }
 }
