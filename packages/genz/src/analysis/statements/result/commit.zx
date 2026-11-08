@@ -1,0 +1,34 @@
+import header from "../../../ast/statements/header"
+import { StatementsKind } from "../../../printer/model/statements"
+import commit from "../../store/transaction/commit_value"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const result = commit(in.context)
+    const table = result.state.statements
+
+    const row = header({
+        ...table.pick([
+            "tags",
+            "offsets"
+        ]),
+        base: 0,
+        kind: StatementsKind.Expression,
+        offset: table.expression.length
+    })
+
+    return {
+        ...in,
+        context: {
+            ...result.state,
+            statements: {
+                ...table,
+                tags: row.tags,
+                offsets: row.offsets,
+                expression: table.expression.push(result.id)[0]
+            },
+            valid: result.state.valid && row.valid
+        }
+    }
+}

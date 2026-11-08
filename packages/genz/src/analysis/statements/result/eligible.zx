@@ -1,0 +1,29 @@
+import { StatementKind } from "core/control_table/model"
+
+import type { Control } from "core/control_table/model"
+
+export type Input = {
+    control: Control,
+    first: u64,
+    count: u64,
+    offset: u64,
+    has_value: bool
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const condition = (
+        - !in.has_value
+        - or in.offset + 1 != in.count
+        - or in.offset == 0
+    )
+
+    if (condition) {
+        return false
+    }
+
+    const previous = in.first + in.offset - 1
+
+    return in.control.statement_kinds[previous] == StatementKind.Constant
+}

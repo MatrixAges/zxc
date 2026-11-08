@@ -1,0 +1,37 @@
+import header from "../../../ast/statements/header"
+import { StatementsKind } from "../../../printer/model/statements"
+
+import type { State as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const table = in.context.statements
+
+    const row = header({
+        ...table.pick([
+            "tags",
+            "offsets"
+        ]),
+        base: 0,
+        kind: StatementsKind.Result,
+        offset: table.result.length
+    })
+
+    return {
+        expressions: in.context.expressions,
+        statements: {
+            tags: row.tags,
+            offsets: row.offsets,
+            ...table.pick([
+                "constant_name",
+                "constant_type_expr",
+                "constant_value",
+                "constant_exported",
+                "expression"
+            ]),
+            result: table.result.push(in.value)[0]
+        },
+        serial: in.context.serial,
+        name: in.name,
+        valid: in.context.valid && row.valid
+    }
+}

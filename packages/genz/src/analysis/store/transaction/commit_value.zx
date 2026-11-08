@@ -1,0 +1,35 @@
+import bytes from "std:bytes"
+
+import call from "../../../ast/context/call"
+import field from "../../../ast/context/field"
+import identifier from "../../../ast/context/identifier"
+import { context_name, commit_name, pending_name } from "../const"
+
+import type { State as Input, Node as Output } from "../../../ast/context/model"
+
+export default function (in: Input): Output {
+    const context = identifier({
+        state: in,
+        name: bytes.fromText(context_name)
+    })
+
+    const callee = field({
+        state: context.state,
+        target: context.id,
+        name: bytes.fromText(commit_name)
+    })
+
+    const pending = identifier({
+        state: callee.state,
+        name: bytes.fromText(pending_name)
+    })
+
+    const result = call({
+        state: pending.state,
+        callee: callee.id,
+        arguments: [pending.id],
+        fallible: true
+    })
+
+    return result
+}

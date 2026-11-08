@@ -1,0 +1,44 @@
+import identifier from "../../../ast/context/identifier"
+import fresh from "../../../ast/fresh"
+import binding from "../../../ast/statements/binding"
+import { output_prefix } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const value = in.value
+
+    if (value == null) {
+        return in
+    }
+
+    const name = fresh({
+        serial: in.context.serial,
+        prefix: output_prefix
+    })
+
+    const reference = identifier({
+        state: {
+            ...in.context,
+            serial: name.serial
+        },
+        name: name.name
+    })
+
+    const saved = binding({
+        table: reference.state.statements,
+        base: 0,
+        name: name.name,
+        value
+    })
+
+    return {
+        context: {
+            ...reference.state,
+            statements: saved.table,
+            valid: reference.state.valid && saved.valid
+        },
+        value: reference.id,
+        name: name.name
+    }
+}
