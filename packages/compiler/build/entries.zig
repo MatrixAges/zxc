@@ -180,6 +180,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/binding/before.zx", .name = "binding_before", .owner = .genz },
     .{ .path = "genz/analysis/binding/after.zx", .name = "binding_after", .owner = .genz },
     .{ .path = "genz/analysis/binding/emit.zx", .name = "binding_emit", .owner = .genz },
+    .{ .path = "genz/analysis/control/writes.zx", .name = "control_writes", .owner = .genz },
     .{ .path = "genz/analysis/access/projection/raw.zx", .name = "projection_raw", .owner = .genz },
     .{ .path = "genz/analysis/access/projection/route.zx", .name = "projection_route", .owner = .genz },
     .{ .path = "genz/analysis/access/projection/anchor.zx", .name = "projection_anchor", .owner = .genz },
