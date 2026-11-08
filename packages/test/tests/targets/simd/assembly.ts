@@ -1,24 +1,66 @@
 import assert from 'node:assert/strict'
 
 export default function checkAssembly(args: { assembly: string; type: string; cpu: string }): void {
-	const { assembly, type, cpu } = args
-	const file = assembly.match(/^\s*\.file\s+(\d+)\s+"[^"\n]*"\s+"(?:[^"\n]*[/\\])?program\.zig"/m)?.[1]
+    const { assembly, type, cpu } = args
+    const functions = new Map<string, { instructions: Array<string>; calls: Array<string> }>()
+    const aliases = new Map<string, string>()
+    let current: { instructions: Array<string>; calls: Array<string> } | undefined
 
-	assert.ok(file, 'Generated program source is missing from WASM debug locations')
+    for (const line of assembly.split('\n')) {
+        const alias = line.match(/^([^\s=]+)\s*=\s*([^\s]+)\s*$/)
 
-	let current_file: string | undefined
-	const instructions: Array<string> = []
+        if (alias) aliases.set(alias[1], alias[2])
 
-	for (const line of assembly.split('\n')) {
-		const location = line.match(/^\s*\.loc\s+(\d+)\s/)
+        const declaration = line.match(/^\s*\.type\s+([^,\s]+),\s*@function/)
 
-		if (location) current_file = location[1]
-		if (current_file === file && /^\s*f(?:32|64)(?:x[24])?\.(?:add|sub|mul|div)\b/.test(line))
-			instructions.push(line.trim())
-	}
+        if (declaration) {
+            current = { instructions: [], calls: [] }
+            functions.set(declaration[1], current)
+        }
 
-	assert.notEqual(instructions.length, 0, 'Generated program has no attributed floating-point arithmetic')
+        if (!current) continue
 
-	if (cpu === 'baseline+simd128') assert.ok(instructions.includes(`${type}x${type === 'f32' ? 4 : 2}.mul`))
-	else assert.ok(instructions.every(instruction => !/f(?:32x4|64x2)\./.test(instruction)))
+        if (/^\s*f(?:32|64)(?:x[24])?\.(?:add|sub|mul|div)\b/.test(line)) current.instructions.push(line.trim())
+
+        const call = line.match(/^\s*(?:return_)?call\s+([^\s,]+)/)
+
+        if (call) current.calls.push(call[1])
+        if (/^\s*end_function\b/.test(line)) current = undefined
+    }
+
+    const pending = ['zxc_execute']
+    const visited = new Set<string>()
+    const instructions: Array<string> = []
+
+    assert.ok(
+        functions.has(aliases.get('zxc_execute') ?? 'zxc_execute'),
+        'WASM application entry is missing from assembly'
+    )
+
+    while (pending.length !== 0) {
+        const name = pending.pop()!
+
+        if (visited.has(name)) continue
+
+        visited.add(name)
+
+        const target = aliases.get(name)
+
+        if (target) {
+            pending.push(target)
+            continue
+        }
+
+        const body = functions.get(name)
+
+        if (!body) continue
+
+        instructions.push(...body.instructions)
+        pending.push(...body.calls)
+    }
+
+    assert.notEqual(instructions.length, 0, 'WASM application has no floating-point arithmetic')
+
+    if (cpu === 'baseline+simd128') assert.ok(instructions.includes(`${type}x${type === 'f32' ? 4 : 2}.mul`))
+    else assert.ok(instructions.every(instruction => !/f(?:32x4|64x2)\./.test(instruction)))
 }

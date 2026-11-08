@@ -1,0 +1,24 @@
+<Module>
+    <Type from="model" as="Consumer" />
+
+    <Args in={Consumer.Input} out={Consumer.Output} />
+
+    <Call fn="fallback" in={$in} />
+
+    <If on={$ctx.fallback}>
+        <Call
+            fn="../projection"
+            in={$in.pick([
+                "table",
+                "symbol",
+                "result"
+            ])}
+        />
+
+        <If on={$ctx.projection}>
+            <Return value={Consumer.Action.Consume} />
+        </If>
+    </If>
+
+    <Return value={Consumer.Action.None} />
+</Module>

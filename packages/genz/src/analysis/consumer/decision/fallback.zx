@@ -1,0 +1,13 @@
+import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import type { Input } from "./model"
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const type_id = integers.widen(in.table.types[in.result])
+
+    return kind(in.types.kinds[type_id]) == Kind.List
+}

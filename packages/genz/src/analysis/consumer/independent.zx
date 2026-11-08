@@ -1,27 +1,55 @@
-import step from "./independent/step"
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
 
-import type { Input, Walk } from "./independent/model"
+import child from "./child"
+import literal from "./literal"
+import nested from "./nested"
+
+import type { Input } from "./independent/model"
 
 export type { Input } from "./independent/model"
 
 export type Output = bool
 
-export default function (in: Input): Output {
-    const state: Walk = {
-        id: in.id,
-        parents: [],
-        next: [],
-        depth: 0,
-        valid: true,
-        done: false
+export default function independent(in: Input): Output {
+    const kind = in.table.kinds[in.id]
+    const payload = integers.widen(in.table.payloads[in.id])
+
+    if (kind == ExpressionKind.Reference) {
+        return integers.widen(in.table.references[payload]) != in.symbol
     }
 
-    return loop(state, {
-        while: current => current.valid && !current.done,
-        next: current => { current = step({
-            source: in,
-            state: current
-        }) },
-        return: current => current.valid
+    if (literal(kind)) {
+        return true
+    }
+
+    if (!nested(kind)) {
+        return false
+    }
+
+    return loop({
+        index: 0,
+        valid: true,
+        done: false
+    }, {
+        while: state => state.valid && !state.done,
+        next: state => {
+            const selected = child({
+                table: in.table,
+                id: in.id,
+                index: state.index
+            })
+
+            if (selected == null) {
+                state.done = true
+            } else {
+                state.valid = independent({
+                    ...in,
+                    id: integers.widen(selected)
+                })
+                state.index += 1
+            }
+        },
+        return: state => state.valid
     })
 }

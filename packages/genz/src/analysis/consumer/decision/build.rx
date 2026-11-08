@@ -1,0 +1,29 @@
+<Module>
+    <Type from="model" as="Consumer" />
+
+    <Args in={Consumer.Input} out={Consumer.Output} />
+
+    <Call fn="gate" in={$in} />
+
+    <Switch on={$ctx.gate}>
+        <Case value={Consumer.Gate.None}>
+            <Return value={Consumer.Action.None} />
+        </Case>
+
+        <Case value={Consumer.Gate.Simd}>
+            <Return value={Consumer.Action.Simd} />
+        </Case>
+
+        <Case value={Consumer.Gate.Policy}>
+            <Call module="policy" in={$in} />
+
+            <Return value={$ctx.policy} />
+        </Case>
+
+        <Case value={Consumer.Gate.Fallback}>
+            <Call module="fallback" in={$in} />
+
+            <Return value={$ctx.fallback} />
+        </Case>
+    </Switch>
+</Module>

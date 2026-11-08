@@ -1,0 +1,46 @@
+import integers from "std:integer"
+import lookup from "core/integer/map/lookup"
+import { scalar_string, scalar_void } from "core/type_table/const"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import { Branch } from "./model"
+
+import type { Input, Branch as Output } from "./model"
+
+export default function (in: Input): Output {
+    if (in.transaction) {
+        return Branch.None
+    }
+
+    const type_id = integers.widen(in.table.types[in.result])
+    const target = kind(in.types.kinds[type_id])
+    const value = in.types.first[type_id]
+    const ordinary = value != scalar_string && value != scalar_void
+    const scalar = target == Kind.Scalar && ordinary
+    const enumeration = target == Kind.Enumeration
+    const error_set = target == Kind.ErrorSet
+
+    const direct = (
+        - scalar
+        - or enumeration
+        - or error_set
+    )
+
+    if (direct) {
+        return Branch.Scalar
+    }
+
+    if (in.capture) {
+        return Branch.None
+    }
+
+    if (lookup({
+        ...in.cache.omit(["values"]),
+        key: integers.narrow(in.result)
+    }) != null) {
+        return Branch.None
+    }
+
+    return Branch.Eligible
+}

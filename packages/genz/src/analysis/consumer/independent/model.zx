@@ -5,17 +5,3 @@ export type Input = {
     id: u64,
     symbol: u64
 }
-
-export type Walk = {
-    id: u64,
-    parents: u64[],
-    next: u64[],
-    depth: u64,
-    valid: bool,
-    done: bool
-}
-
-export type Step = {
-    source: Input,
-    state: Walk
-}

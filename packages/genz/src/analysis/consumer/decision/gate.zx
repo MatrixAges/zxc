@@ -1,0 +1,39 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+import lookup from "core/integer/map/lookup"
+
+import { Gate, Phase } from "./model"
+
+import type { Input, Gate as Output } from "./model"
+
+export default function (in: Input): Output {
+    if (in.phase == Phase.Fallback) {
+        return Gate.Fallback
+    }
+
+    if (in.phase == Phase.AfterSimd) {
+        return Gate.Policy
+    }
+
+    const cache = in.cache.omit(["values"])
+
+    if (lookup({
+        ...cache,
+        key: in.value
+    }) != null) {
+        return Gate.None
+    }
+
+    if (in.table.kinds[integers.widen(in.value)] != ExpressionKind.Iteration) {
+        return Gate.None
+    }
+
+    if (lookup({
+        ...cache,
+        key: integers.narrow(in.result)
+    }) == null) {
+        return Gate.Simd
+    }
+
+    return Gate.Policy
+}
