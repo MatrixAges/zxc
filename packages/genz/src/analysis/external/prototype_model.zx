@@ -1,6 +1,5 @@
-import type { Input as Bases, State as Context } from "../../ast/context/model"
-import type { Columns as Expressions } from "../../ast/expressions/model"
-import type { Columns as Fields } from "../../ast/fields/model"
+import type { Input as Bases } from "../../ast/context/model"
+import type { Output as Signature } from "../functions/signature/model"
 
 export type Input = {
     index: u32,
@@ -13,22 +12,4 @@ export type Input = {
     bases: Bases
 }
 
-export type State = {
-    context: Context,
-    fields: Fields
-}
-
-export type Extra = {
-    error_union_payload: u32[],
-    error_union_errors: u8[][]?[],
-    error_union_inferred: bool[]
-}
-
-export type Output = {
-    expressions: Expressions,
-    extra: Extra,
-    parameters: Fields,
-    name: u8[],
-    return_type: u32,
-    valid: bool
-}
+export type Output = Signature

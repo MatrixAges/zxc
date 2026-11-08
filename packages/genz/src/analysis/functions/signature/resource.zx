@@ -1,0 +1,55 @@
+import bytes from "std:bytes"
+
+import initialize from "../../../ast/context/initialize"
+import pointer from "../../../ast/context/pointer"
+import standardField from "../../../ast/context/standard_field"
+import append from "../../../ast/fields/append"
+import emptyFields from "../../../ast/fields/empty"
+import { allocator_name } from "../../construction/const"
+import { allocator_type_name, arena_name, arena_type_name } from "./const"
+import { heap_name, memory_name } from "./const"
+import parameter from "./parameter"
+
+import type { Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const state = {
+        context: initialize(in.bases),
+        fields: emptyFields({})
+    }
+
+    if (!in.exported) {
+        return parameter({
+            state,
+            name: bytes.fromText(allocator_name),
+            path: [
+                memory_name,
+                allocator_type_name
+            ]
+        })
+    }
+
+    const arena = standardField({
+        state: state.context,
+        path: [
+            heap_name,
+            arena_type_name
+        ]
+    })
+
+    const type_node = pointer({
+        state: arena.state,
+        value: arena.id
+    })
+
+    return {
+        context: type_node.state,
+        fields: append({
+            table: state.fields,
+            name: bytes.fromText(arena_name),
+            value: type_node.id,
+            default_value: null,
+            comptime_parameter: false
+        })
+    }
+}

@@ -1,0 +1,45 @@
+import errorUnion from "../../../ast/expressions/error_union"
+
+import type { Prepared as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const context = in.state.context
+
+    const result = errorUnion({
+        table: {
+            ...context.expressions.pick([
+                "tags",
+                "offsets"
+            ]),
+            error_union_payload: [],
+            error_union_errors: [],
+            error_union_inferred: []
+        },
+        base: in.source.bases.expression_base,
+        payload: in.source.output_type,
+        errors: in.source.errors,
+        inferred: false
+    })
+
+    return {
+        expressions: {
+            ...context.expressions,
+            tags: result.table.tags,
+            offsets: result.table.offsets
+        },
+        forms: context.forms.pick([
+            "pointer",
+            "primitive"
+        ]),
+        extra: result.table.omit([
+            "tags",
+            "offsets"
+        ]),
+        parameters: in.state.fields,
+        name: in.source.name,
+        return_type: result.id,
+        exported: in.source.exported,
+        inlined: in.source.inlined,
+        valid: context.valid && result.valid
+    }
+}

@@ -90,7 +90,8 @@ pub fn prototype(self: *Lower, function: ir.Function, index: usize) Lower.Error!
 
     if (!result.valid) return error.OutOfMemory;
 
-    const expressions = view.join(result.expressions.*, result.extra.*);
+    const values = view.join(result.expressions.*, result.forms.*);
+    const expressions = view.join(values, result.extra.*);
 
     @import("../node/import_rows.zig").appendBorrowingText(self.allocator, &self.builder.nodes.expressions, &expressions) catch |err| return failure(err);
 

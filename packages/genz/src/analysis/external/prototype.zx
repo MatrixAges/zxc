@@ -1,109 +1,28 @@
-import bytes from "std:bytes"
-
-import initialize from "../../ast/context/initialize"
-import errorUnion from "../../ast/expressions/error_union"
-import append from "../../ast/fields/append"
-import emptyFields from "../../ast/fields/empty"
-import { allocator_name } from "../construction/const"
 import { Variant } from "../functions/requests/model"
 import name from "../functions/requests/name"
-import {
-    allocator_type_name,
-    input_name,
-    io_name,
-    io_type_name,
-    memory_name,
-    process_name,
-    process_init_name,
-    process_minimal_name
-} from "./const"
-import parameter from "./parameter"
+import build from "../functions/signature/build.rx"
 
-import type { Input, Output, State } from "./prototype_model"
+import type { Input, Output } from "./prototype_model"
 
 export default function (in: Input): Output {
-    const allocator = parameter({
-        state: {
-            context: initialize(in.bases),
-            fields: emptyFields({})
-        },
-        name: bytes.fromText(allocator_name),
-        path: [
-            memory_name,
-            allocator_type_name
-        ]
-    })
-
-    const input: State = {
-        context: allocator.context,
-        fields: append({
-            table: allocator.fields,
-            name: bytes.fromText(input_name),
-            value: in.input_type,
-            default_value: null,
-            comptime_parameter: false
-        })
-    }
-
-    const io = match {
-        in.io_argument => parameter({
-            state: input,
-            name: bytes.fromText(io_name),
-            path: [io_type_name]
-        }),
-        _ => input
-    }
-
-    const parameters = match {
-        in.process_argument => parameter({
-            state: io,
-            name: bytes.fromText(process_name),
-            path: [
-                process_name,
-                process_init_name,
-                process_minimal_name
-            ]
-        }),
-        _ => io
-    }
-
     const errors: u8[][]? = match {
         in.fallible => in.errors,
         _ => []
     }
 
-    const result = errorUnion({
-        table: {
-            ...parameters.context.expressions.pick([
-                "tags",
-                "offsets"
-            ]),
-            error_union_payload: [],
-            error_union_errors: [],
-            error_union_inferred: []
-        },
-        base: in.bases.expression_base,
-        payload: in.output_type,
-        errors,
-        inferred: false
-    })
-
-    return {
-        expressions: {
-            ...parameters.context.expressions,
-            tags: result.table.tags,
-            offsets: result.table.offsets
-        },
-        extra: result.table.omit([
-            "tags",
-            "offsets"
-        ]),
-        parameters: parameters.fields,
+    return build({
         name: name({
             id: in.index,
             variant: Variant.Regular
         }),
-        return_type: result.id,
-        valid: parameters.context.valid && result.valid
-    }
+        input_type: in.input_type,
+        output_type: in.output_type,
+        store_count: 0,
+        io: in.io_argument,
+        process: in.process_argument,
+        errors,
+        exported: false,
+        inlined: false,
+        bases: in.bases
+    })
 }

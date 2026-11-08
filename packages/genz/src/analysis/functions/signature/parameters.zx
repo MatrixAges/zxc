@@ -1,0 +1,77 @@
+import bytes from "std:bytes"
+
+import primitive from "../../../ast/context/primitive"
+import append from "../../../ast/fields/append"
+import { ExpressionsPrimitive } from "../../../printer/model/expressions"
+import { context_name } from "../../store/const"
+import { input_name, io_name, io_type_name } from "./const"
+import { process_name, process_init_name, process_minimal_name } from "./const"
+import parameter from "./parameter"
+import resource from "./resource"
+
+import type { Node } from "../../../ast/context/model"
+import type { Input, Prepared as Output, State } from "./model"
+
+export default function (in: Input): Output {
+    const allocator = resource(in)
+
+    const input: State = {
+        context: allocator.context,
+        fields: append({
+            table: allocator.fields,
+            name: bytes.fromText(input_name),
+            value: in.input_type,
+            default_value: null,
+            comptime_parameter: false
+        })
+    }
+
+    const context_type: Node? = match {
+        in.store_count > 0 => primitive({
+            state: input.context,
+            value: ExpressionsPrimitive.Anytype
+        }),
+        _ => null
+    }
+
+    const context: State = match {
+        context_type != null => {
+            context: context_type.state,
+            fields: append({
+                table: input.fields,
+                name: bytes.fromText(context_name),
+                value: context_type.id,
+                default_value: null,
+                comptime_parameter: false
+            })
+        },
+        _ => input
+    }
+
+    const io = match {
+        in.io => parameter({
+            state: context,
+            name: bytes.fromText(io_name),
+            path: [io_type_name]
+        }),
+        _ => context
+    }
+
+    const parameters = match {
+        in.process => parameter({
+            state: io,
+            name: bytes.fromText(process_name),
+            path: [
+                process_name,
+                process_init_name,
+                process_minimal_name
+            ]
+        }),
+        _ => io
+    }
+
+    return {
+        source: in,
+        state: parameters
+    }
+}

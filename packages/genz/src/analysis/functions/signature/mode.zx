@@ -1,0 +1,29 @@
+export enum Representation {
+    Abi,
+    Layout,
+    View
+}
+
+export type Input = {
+    public_value: bool,
+    value: bool
+}
+
+export type Output = {
+    input: Representation,
+    output: Representation
+}
+
+export default function (in: Input): Output {
+    if (in.public_value) {
+        return {
+            input: Representation.View,
+            output: Representation.View
+        }
+    }
+
+    return {
+        input: Representation.Abi,
+        output: in.value ? Representation.Layout : Representation.Abi
+    }
+}
