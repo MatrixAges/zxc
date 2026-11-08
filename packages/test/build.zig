@@ -27,6 +27,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(@import("build/store_alias_lifetime.zig").add(b, compiler, target, optimize));
     test_step.dependOn(@import("build/cached_ownership.zig").add(b, compiler, target, optimize));
     test_step.dependOn(@import("build/field_ownership.zig").add(b, compiler, target, optimize));
+    test_step.dependOn(@import("build/ownership_lifetimes.zig").add(b, cli_dependency, target, optimize));
     test_step.dependOn(@import("build/object_append.zig").add(b, compiler, target, optimize));
     test_step.dependOn(@import("build/object_reduce.zig").add(b, compiler, target, optimize));
     test_step.dependOn(@import("build/value_return.zig").add(b, compiler, target, optimize));
