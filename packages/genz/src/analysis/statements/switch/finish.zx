@@ -1,0 +1,73 @@
+import binding from "../../../ast/statements/binding"
+import header from "../../../ast/statements/header"
+import { StatementsKind } from "../../../printer/model/statements"
+
+import type { State as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const children = in.branches.pick([
+        "tags",
+        "offsets"
+    ])
+
+    const subject = binding({
+        table: {
+            ...in.context.statements,
+            ...in.branches,
+            tags: [],
+            offsets: []
+        },
+        base: 0,
+        name: in.source.name,
+        value: in.source.subject
+    })
+
+    const root = in.value
+
+    const empty = in.source.total_count == 0 ||
+        (in.source.total_count == 1 && in.source.cases.body_start.length == 0)
+
+    const discard = root != null || empty
+
+    const saved: u32 = match {
+        root != null => root,
+        _ => in.source.reference
+    }
+
+    const outer = match {
+        discard => header({
+            ...subject.table.pick([
+                "tags",
+                "offsets"
+            ]),
+            base: 0,
+            kind: StatementsKind.Discard,
+            offset: 0
+        }),
+        _ => {
+            ...subject.table.pick([
+                "tags",
+                "offsets"
+            ]),
+            valid: true
+        }
+    }
+
+    return {
+        expressions: in.context.expressions,
+        extra: in.extra,
+        statements: {
+            ...subject.table,
+            tags: outer.tags.concat(in.outer.tags)[0],
+            offsets: outer.offsets.concat(in.outer.offsets)[0]
+        },
+        discard: match {
+            discard => [saved],
+            _ => []
+        },
+        children,
+        tail: in.tail,
+        arms: in.arms,
+        valid: in.context.valid && subject.valid && outer.valid
+    }
+}

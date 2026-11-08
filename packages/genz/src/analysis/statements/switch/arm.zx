@@ -1,0 +1,39 @@
+import block from "../../../ast/expressions/block"
+import branch from "./branch"
+
+import type { Item as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const source = in.state.source
+    const last = in.index + 1 == source.cases.body_start.length
+
+    const state = match {
+        last => branch(in),
+        _ => in.state
+    }
+
+    const start = last ? state.tail.start : source.cases.body_start[in.index]
+    const count = last ? state.tail.count : source.cases.body_count[in.index]
+
+    const result = block({
+        table: state.context.expressions,
+        base: source.bases.expression_base,
+        label: [],
+        start,
+        count
+    })
+
+    return {
+        ...state,
+        context: {
+            ...state.context,
+            expressions: result.table,
+            valid: state.context.valid && result.valid
+        },
+        arms: {
+            value: state.arms.value.push(source.cases.literals[in.index])[0],
+            capture: state.arms.capture.push(null)[0],
+            result: state.arms.result.push(result.id)[0]
+        }
+    }
+}

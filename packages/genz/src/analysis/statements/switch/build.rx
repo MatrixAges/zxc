@@ -1,0 +1,19 @@
+<Module>
+    <Type from="model" as="Switch" />
+
+    <Args in={Switch.Input} out={Switch.Output} />
+
+    <Call fn="initialize" in={$in} />
+
+    <If on={$in.selected}>
+        <Call fn="selection" in={$ctx.initialize} />
+        <Call fn="finish" in={$ctx.selection} />
+
+        <Return value={$ctx.finish} />
+    </If>
+
+    <Call fn="chain" in={$ctx.initialize} />
+    <Call fn="finish" in={$ctx.chain} />
+
+    <Return value={$ctx.finish} />
+</Module>

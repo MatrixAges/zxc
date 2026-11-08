@@ -1,0 +1,62 @@
+import integers from "std:integer"
+
+import header from "../../../ast/expressions/header"
+import { ExpressionsKind } from "../../../printer/model/expressions"
+import arm from "./arm"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const built = loop({
+        state: in,
+        index: in.source.cases.body_start.length
+    }, {
+        while: current => current.index > 0,
+        next: current => {
+            current.index -= 1
+            current.state = arm({
+                state: current.state,
+                index: current.index
+            })
+        },
+        return: current => current.state
+    })
+
+    const result = header({
+        ...built.context.expressions.pick([
+            "tags",
+            "offsets"
+        ]),
+        base: built.source.bases.expression_base,
+        kind: ExpressionsKind.Selection,
+        offset: 0
+    })
+
+    return {
+        ...built,
+        context: {
+            ...built.context,
+            expressions: {
+                ...built.context.expressions,
+                tags: result.tags,
+                offsets: result.offsets
+            },
+            valid: built.context.valid && result.valid
+        },
+        extra: {
+            selection_subject: [built.source.reference],
+            selection_arms_start: [built.source.arm_base],
+            selection_arms_len: [integers.narrow(built.arms.value.length)]
+        },
+        arms: {
+            value: built.arms.value.reverse()[0],
+            capture: built.arms.capture.reverse()[0],
+            result: built.arms.result.reverse()[0]
+        },
+        tail: {
+            start: 0,
+            count: 0
+        },
+        value: result.id
+    }
+}

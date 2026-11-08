@@ -1,0 +1,82 @@
+import type { Input as Bases, State as Context } from "../../../ast/context/model"
+import type { Columns as Expressions } from "../../../ast/expressions/model"
+import type { Columns as Statements } from "../../../ast/statements/model"
+import type { StatementsKind } from "../../../printer/model/statements"
+import type { Arms } from "../../match/model"
+
+export type Headers = {
+    tags: StatementsKind[],
+    offsets: u32[]
+}
+
+export type Block = {
+    start: u32,
+    count: u32
+}
+
+export type Cases = {
+    body_start: u32[],
+    body_count: u32[],
+    conditions: u32[],
+    literals: u32?[]
+}
+
+export type Input = {
+    name: u8[],
+    subject: u32,
+    reference: u32,
+    selected: bool,
+    exhaustive: bool,
+    total_count: u64,
+    fallback_start?: u32,
+    fallback_count: u32,
+    cases: Cases,
+    arm_base: u32,
+    bases: Bases
+}
+
+export type Extra = {
+    selection_subject: u32[],
+    selection_arms_start: u32[],
+    selection_arms_len: u32[]
+}
+
+export type Branches = {
+    tags: StatementsKind[],
+    offsets: u32[],
+    branch_condition: u32[],
+    branch_yes_start: u32[],
+    branch_yes_len: u32[],
+    branch_no_start: u32[],
+    branch_no_len: u32[],
+    branch_capture: u8[]?[],
+    branch_capture_reference: bool[],
+    branch_error_capture: u8[]?[]
+}
+
+export type State = {
+    source: Input,
+    context: Context,
+    branches: Branches,
+    tail: Block,
+    outer: Headers,
+    arms: Arms,
+    extra: Extra,
+    value?: u32
+}
+
+export type Item = {
+    state: State,
+    index: u64
+}
+
+export type Output = {
+    expressions: Expressions,
+    extra: Extra,
+    statements: Statements,
+    discard: u32[],
+    children: Headers,
+    tail: Block,
+    arms: Arms,
+    valid: bool
+}

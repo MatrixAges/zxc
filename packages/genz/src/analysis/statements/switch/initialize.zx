@@ -1,0 +1,100 @@
+import initialize from "../../../ast/context/initialize"
+import header from "../../../ast/statements/header"
+import { StatementsKind } from "../../../printer/model/statements"
+
+import type { Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const empty: Output = {
+        source: in,
+        context: initialize(in.bases),
+        branches: {
+            tags: [],
+            offsets: [],
+            branch_condition: [],
+            branch_yes_start: [],
+            branch_yes_len: [],
+            branch_no_start: [],
+            branch_no_len: [],
+            branch_capture: [],
+            branch_capture_reference: [],
+            branch_error_capture: []
+        },
+        tail: {
+            start: 0,
+            count: 0
+        },
+        outer: {
+            tags: [],
+            offsets: []
+        },
+        arms: {
+            value: [],
+            capture: [],
+            result: []
+        },
+        extra: {
+            selection_subject: [],
+            selection_arms_start: [],
+            selection_arms_len: []
+        },
+        value: null
+    }
+
+    const fallback = in.fallback_start
+
+    if (fallback != null) {
+        return {
+            ...empty,
+            tail: {
+                start: fallback,
+                count: in.fallback_count
+            }
+        }
+    }
+
+    if (!in.exhaustive) {
+        return empty
+    }
+
+    const row = header({
+        tags: [],
+        offsets: [],
+        base: in.bases.statement_base,
+        kind: StatementsKind.UnreachableStmt,
+        offset: 0
+    })
+
+    if (in.cases.body_start.length == 0) {
+        return {
+            ...empty,
+            outer: row.pick([
+                "tags",
+                "offsets"
+            ]),
+            context: {
+                ...empty.context,
+                valid: row.valid
+            }
+        }
+    }
+
+    return {
+        ...empty,
+        context: {
+            ...empty.context,
+            valid: row.valid
+        },
+        branches: {
+            ...empty.branches,
+            ...row.pick([
+                "tags",
+                "offsets"
+            ])
+        },
+        tail: {
+            start: in.bases.statement_base,
+            count: 1
+        }
+    }
+}

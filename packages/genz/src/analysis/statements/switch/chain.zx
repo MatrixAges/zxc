@@ -1,0 +1,20 @@
+import branch from "./branch"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return loop({
+        state: in,
+        index: in.source.cases.body_start.length
+    }, {
+        while: current => current.index > 0,
+        next: current => {
+            current.index -= 1
+            current.state = branch({
+                state: current.state,
+                index: current.index
+            })
+        },
+        return: current => current.state
+    })
+}

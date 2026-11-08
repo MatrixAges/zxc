@@ -1,0 +1,94 @@
+import integers from "std:integer"
+
+import header from "../../../ast/statements/header"
+import { StatementsKind } from "../../../printer/model/statements"
+
+import type { Item as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const state = in.state
+    const source = state.source
+    const table = state.branches
+
+    const first = integers.narrow(
+        integers.widen(source.bases.statement_base) + table.tags.length
+    )
+
+    const row = header({
+        ...table.pick([
+            "tags",
+            "offsets"
+        ]),
+        base: source.bases.statement_base,
+        kind: StatementsKind.Branch,
+        offset: table.branch_condition.length
+    })
+
+    if (!row.valid) {
+        return {
+            ...state,
+            context: {
+                ...state.context,
+                valid: false
+            }
+        }
+    }
+
+    const result = {
+        ...row.pick([
+            "tags",
+            "offsets"
+        ]),
+        branch_condition:
+            table.branch_condition.push(source.cases.conditions[in.index])[0],
+        branch_yes_start:
+            table.branch_yes_start.push(source.cases.body_start[in.index])[0],
+        branch_yes_len:
+            table.branch_yes_len.push(source.cases.body_count[in.index])[0],
+        branch_no_start: table.branch_no_start.push(state.tail.start)[0],
+        branch_no_len: table.branch_no_len.push(state.tail.count)[0],
+        branch_capture: table.branch_capture.push(null)[0],
+        branch_capture_reference: table.branch_capture_reference.push(false)[0],
+        branch_error_capture: table.branch_error_capture.push(null)[0]
+    }
+
+    if (!source.selected && in.index == 0) {
+        return {
+            ...state,
+            context: {
+                ...state.context,
+                valid: state.context.valid && row.valid
+            },
+            branches: {
+                ...result,
+                ...table.pick([
+                    "tags",
+                    "offsets"
+                ])
+            },
+            outer: {
+                tags: [StatementsKind.Branch],
+                offsets: [
+                    integers.narrow(result.branch_condition.length - 1)
+                ]
+            },
+            tail: {
+                start: 0,
+                count: 0
+            }
+        }
+    }
+
+    return {
+        ...state,
+        context: {
+            ...state.context,
+            valid: state.context.valid && row.valid
+        },
+        branches: result,
+        tail: {
+            start: first,
+            count: 1
+        }
+    }
+}
