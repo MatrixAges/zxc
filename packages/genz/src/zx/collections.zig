@@ -132,7 +132,9 @@ fn lowerMode(self: *Lower, id: ir.ExprId, layout: ?node.ExpressionId, removed_on
             } else try copy(self, &append, try slice(self, buffer, length, null), arguments[0]);
 
             const wrapped = if (provenance.selected(self, source_type)) wrapped: {
-                const exclusive = try intrinsic.binary(self, .logical_or, if (flags.frontier) try intrinsic.binary(self, .equal, length, try self.builder.integer(0)) else try self.builder.expression(.{ .unary = .{ .operator = .not, .operand = source_headered } }), try provenance.exclusive(self, source_value));
+                const allocated = try intrinsic.binary(self, .not_equal, try self.field(buffer, "ptr"), try self.field(source, "ptr"));
+                const fresh = try intrinsic.binary(self, .logical_or, try intrinsic.binary(self, .equal, length, try self.builder.integer(0)), allocated);
+                const exclusive = try intrinsic.binary(self, .logical_or, fresh, try provenance.exclusive(self, source_value));
 
                 break :wrapped try provenance.proven(self, source_type, buffer, try self.builder.expression(.{ .boolean = true }), exclusive);
             } else buffer;

@@ -1,6 +1,7 @@
 const std = @import("std");
 const compiler = @import("compiler");
 const report = @import("report.zig");
+const phases = @import("source_phases.zig");
 
 fn source(allocator: std.mem.Allocator, loans: usize) ![]u8 {
     var text: std.Io.Writer.Allocating = .init(allocator);
@@ -15,6 +16,8 @@ fn source(allocator: std.mem.Allocator, loans: usize) ![]u8 {
 }
 
 test "Source loan reporting cost over increasing actual typed IR" {
+    var previous_bytes: ?usize = null;
+
     for ([_]usize{ 64, 256, 1024 }) |loans| {
         const text = try source(std.testing.allocator, loans);
 
@@ -61,5 +64,20 @@ test "Source loan reporting cost over increasing actual typed IR" {
 
         std.mem.sort(i96, &samples, {}, std.sort.asc(i96));
         std.debug.print("loan source cost: loans={d} expressions={d} edges={d} allocations={d} requested_bytes={d} wall_p50_ns={d}\n", .{ loans, analyzed.value.ir.expressions.count(), edges, allocations, bytes, samples[samples.len / 2] });
+
+        if (previous_bytes) |previous| try std.testing.expect(bytes < previous * 8);
+
+        previous_bytes = bytes;
+
+        var scratch = std.heap.ArenaAllocator.init(std.testing.allocator);
+
+        defer scratch.deinit();
+
+        const output = try phases.run(scratch.allocator(), analyzed.value.ir);
+        const expected = try report.run(scratch.allocator(), analyzed.value.ir);
+
+        try std.testing.expectEqual(loans, output.loans.len);
+        try std.testing.expectEqual(edges, output.edges);
+        try std.testing.expectEqualDeep(expected, output);
     }
 }

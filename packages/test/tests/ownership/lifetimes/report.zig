@@ -6,6 +6,10 @@ const Input = std.meta.Child(entry.Input);
 const Functions = std.meta.Child(@FieldType(Input, "functions"));
 
 pub fn run(allocator: std.mem.Allocator, program: compiler.ir.Program) !entry.Output {
+    return withInput(allocator, program, entry.executeIn);
+}
+
+pub fn withInput(allocator: std.mem.Allocator, program: compiler.ir.Program, comptime execute: anytype) !entry.Output {
     const types = compiler.ir.TypeTable.borrow(std.meta.Child(@FieldType(Input, "types")), program.types);
     var functions: Functions = undefined;
 
@@ -21,5 +25,5 @@ pub fn run(allocator: std.mem.Allocator, program: compiler.ir.Program) !entry.Ou
         .functions = &functions,
     };
 
-    return entry.executeIn(allocator, &input);
+    return execute(allocator, &input);
 }

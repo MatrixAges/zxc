@@ -2,6 +2,10 @@ const std = @import("std");
 const direct = @import("direct");
 const dead = @import("dead");
 
+comptime {
+    _ = @import("fresh_append_test.zig");
+}
+
 test "dead view preserves values while exposing extra allocation" {
     for ([_]u64{ 0, 1, 100, std.math.maxInt(u64) }) |value| {
         var direct_buffer: [8192]u8 = undefined;

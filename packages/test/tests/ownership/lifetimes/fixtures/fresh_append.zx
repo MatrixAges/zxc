@@ -1,0 +1,30 @@
+export type Input = {
+    values: u64[],
+    remove: bool,
+    concatenate: bool,
+    prefix: u64,
+    appended: u64
+}
+
+export type Output = {
+    retained: u64[],
+    values: u64[]
+}
+
+export default function (in: Input): Output {
+    const retained = in.values.push(in.prefix)[0]
+    const source = in.remove ? retained.pop()[0] : retained
+
+    const updated = match {
+        in.concatenate => source.concat([in.appended])[0],
+        _ => source.push(in.appended)[0]
+    }
+
+    const modified = updated.with(0, in.appended)
+    const values = modified.reverse()[0]
+
+    return {
+        retained,
+        values
+    }
+}

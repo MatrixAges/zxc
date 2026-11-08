@@ -8,7 +8,13 @@ const manifest = JSON.parse(readFileSync(base_path, 'utf8')) as {
 }
 
 manifest.roots.push({ path: source_path, prefix: 'probe/' })
-manifest.entries = [{ path: 'probe/build.rx', name: 'loan_report' }]
+manifest.entries = [
+    { path: 'probe/build.rx', name: 'loan_report' },
+    { path: 'probe/collect.zx', name: 'loan_collect' },
+    { path: 'genz/analysis/scope/reads/collect.rx', name: 'loan_reads' },
+    { path: 'probe/access.zx', name: 'loan_access' },
+    { path: 'probe/plan.zx', name: 'loan_plan' }
+]
 manifest.packages.push(
     { specifier: 'genz/scope_reads', entry: 'genz/analysis/scope/reads/collect.rx' },
     { specifier: 'genz/scope_reads/model', entry: 'genz/analysis/scope/reads/model.zx' }
