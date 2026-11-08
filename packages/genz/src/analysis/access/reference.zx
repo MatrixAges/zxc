@@ -1,0 +1,85 @@
+import { max_u32 } from "core/const"
+import get from "core/integer/index/get"
+
+import { ExpressionsKind } from "../../printer/model/expressions"
+import { Result } from "./model"
+
+import type { Index } from "core/integer/index/model"
+
+export type Input = {
+    name: u8[],
+    symbol: u32,
+    stack: Index,
+    state: Index,
+    active: bool,
+    public_value_output: bool,
+    expression_base: u32
+}
+
+export type Nodes = {
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    identifier: u8[][],
+    address_of: u32[]
+}
+
+export type Output = {
+    nodes: Nodes,
+    root: u32,
+    result: Result,
+    valid: bool
+}
+
+export default function (in: Input): Output {
+    const stack = get({
+        index: in.stack,
+        key: in.symbol
+    }) != null
+
+    const count: u32 = stack ? 2 : 1
+    const base = in.expression_base
+
+    const result = match {
+        !in.active => Result.Direct,
+        get({
+            index: in.state,
+            key: in.symbol
+        }) != null => Result.Direct,
+        in.public_value_output && in.symbol == 0 => Result.ViewValue,
+        _ => Result.Value
+    }
+
+    const nodes: Nodes = {
+        tags: [ExpressionsKind.Identifier],
+        offsets: [0],
+        identifier: [in.name],
+        address_of: []
+    }
+
+    if (!stack || base > max_u32 - count) {
+        return {
+            nodes,
+            root: base,
+            result,
+            valid: base <= max_u32 - count
+        }
+    }
+
+    return {
+        nodes: {
+            ...nodes,
+            tags: [
+                ExpressionsKind.Identifier,
+                ExpressionsKind.AddressOf
+            ],
+            offsets: [
+                0,
+                0
+            ],
+            address_of: [base]
+        },
+        root: base + 1,
+        result,
+        valid: true
+    }
+}

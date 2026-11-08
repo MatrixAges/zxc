@@ -168,6 +168,8 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/invocation/call.zx", .name = "invocation_call", .owner = .genz },
     .{ .path = "genz/analysis/invocation/builtin.zx", .name = "invocation_builtin", .owner = .genz },
     .{ .path = "genz/analysis/invocation/regular/build.rx", .name = "regular_call_plan", .owner = .genz },
+    .{ .path = "genz/analysis/access/store.zx", .name = "store_access", .owner = .genz },
+    .{ .path = "genz/analysis/access/reference.zx", .name = "reference_access", .owner = .genz },
     .{ .path = "genz/analysis/imports/build.rx", .name = "native_imports", .owner = .genz },
     .{ .path = "genz/analysis/functions/requests/create.zx", .name = "function_requests_create", .owner = .genz },
     .{ .path = "genz/analysis/functions/requests/push.zx", .name = "function_requests_push", .owner = .genz },

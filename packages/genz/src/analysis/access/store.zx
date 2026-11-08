@@ -1,0 +1,146 @@
+import bytes from "std:bytes"
+import { max_u32 } from "core/const"
+import { StoreMode } from "core/function_table/complete"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import {
+    ExpressionsKind,
+    ExpressionsBinaryOperator
+} from "../../printer/model/expressions"
+import integer from "../../printer/text/integer"
+import { context_name } from "../comparison/const"
+import { Property } from "../state/queries/model"
+import query from "../state/queries/read"
+import { store_prefix, pending_name } from "./const"
+import { Result } from "./model"
+
+import type { Query } from "../state/queries/model"
+
+export type Input = {
+    slot: u64,
+    type_kind: u8,
+    query: Query,
+    active: bool,
+    store_count: u64,
+    store_mode: StoreMode,
+    expression_base: u32
+}
+
+export type Nodes = {
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    identifier: u8[][],
+    field_target: u32[],
+    field_name: u8[][],
+    dereference: u32[],
+    binary_operator: ExpressionsBinaryOperator[],
+    binary_left: u32[],
+    binary_right: u32[]
+}
+
+export type Output = {
+    nodes: Nodes,
+    name: u8[],
+    root: u32,
+    result: Result,
+    valid: bool
+}
+
+export default function (in: Input): Output {
+    const transaction = in.store_count > 0 && in.store_mode == StoreMode.transaction
+    const count: u32 = transaction ? 6 : 3
+    const base = in.expression_base
+
+    const name = integer({
+        output: bytes.fromText(store_prefix),
+        value: in.slot
+    })
+
+    const represented = in.active && query({
+        value: in.query,
+        property: Property.Represented
+    })
+
+    const result = match {
+        !represented => Result.Direct,
+        kind(in.type_kind) == Kind.List => Result.BorrowedList,
+        _ => Result.Value
+    }
+
+    if (base > max_u32 - count) {
+        return {
+            nodes: {
+                tags: [],
+                offsets: [],
+                identifier: [],
+                field_target: [],
+                field_name: [],
+                dereference: [],
+                binary_operator: [],
+                binary_left: [],
+                binary_right: []
+            },
+            name,
+            root: base,
+            result,
+            valid: false
+        }
+    }
+
+    const nodes: Nodes = {
+        tags: [
+            ExpressionsKind.Identifier,
+            ExpressionsKind.Field,
+            ExpressionsKind.Dereference
+        ],
+        offsets: [
+            0,
+            0,
+            0
+        ],
+        identifier: [bytes.fromText(context_name)],
+        field_target: [base],
+        field_name: [name],
+        dereference: [base + 1],
+        binary_operator: [],
+        binary_left: [],
+        binary_right: []
+    }
+
+    if (!transaction) {
+        return {
+            nodes,
+            name,
+            root: base + 2,
+            result,
+            valid: true
+        }
+    }
+
+    return {
+        nodes: {
+            ...nodes,
+            tags: nodes.tags.concat([
+                ExpressionsKind.Identifier,
+                ExpressionsKind.Field,
+                ExpressionsKind.Binary
+            ])[0],
+            offsets: nodes.offsets.concat([
+                1,
+                1,
+                0
+            ])[0],
+            identifier: nodes.identifier.push(bytes.fromText(pending_name))[0],
+            field_target: nodes.field_target.push(base + 3)[0],
+            field_name: nodes.field_name.push(name)[0],
+            binary_operator: [ExpressionsBinaryOperator.Coalesce],
+            binary_left: [base + 4],
+            binary_right: [base + 2]
+        },
+        name,
+        root: base + 5,
+        result,
+        valid: true
+    }
+}

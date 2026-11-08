@@ -263,37 +263,8 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!node.ExpressionId {
         .optional_value => |child| self.builder.expression(.{ .optional_unwrap = try self.expr(child) }),
         .integer, .negative_integer, .float, .boolean, .string, .unit, .none, .enum_value, .error_value => @import("literals.zig").lower(self, id, value_type),
         .some => |child| self.cast(value_type, try self.expr(child)),
-        .store_get => |slot| blk: {
-            self.uses_context = true;
-
-            const name = try std.fmt.allocPrint(self.allocator, "store_{d}", .{slot});
-            const current = try self.builder.expression(.{ .dereference = try self.field(try self.builder.identifier("context"), name) });
-            const stored = if (self.transaction()) try self.builder.expression(.{ .binary = .{ .operator = .coalesce, .left = try self.field(try self.builder.identifier("pending"), name), .right = current } }) else current;
-
-            if (!self.state_active or !self.state_plan.represented(self.program, value.type_id)) break :blk stored;
-            if (self.program.typeOf(value.type_id) == .list) break :blk @import("state_value/list.zig").borrowed(self, value.type_id, stored);
-
-            var body: std.ArrayList(node.Statement) = .empty;
-            const source = try @import("aggregate.zig").bind(self, &body, stored);
-            const converted = try @import("state_value/conversion.zig").convert(self, &body, value.type_id, source, .value);
-
-            break :blk @import("aggregate.zig").finish(self, &body, converted);
-        },
-        .reference => |symbol| blk: {
-            self.used[@backingInt(symbol)] = true;
-
-            const reference = try self.builder.identifier(self.names[@backingInt(symbol)]);
-            const value_reference = if (self.stack_symbols.contains(symbol)) try self.builder.expression(.{ .address_of = reference }) else reference;
-
-            if (self.state_active and !self.state_symbols.contains(symbol)) {
-                var body: std.ArrayList(node.Statement) = .empty;
-                const converted = try @import("state_value/conversion.zig").convert(self, &body, value.type_id, value_reference, if (self.public_value_output and @backingInt(symbol) == 0) .view_value else .value);
-
-                break :blk @import("aggregate.zig").finish(self, &body, converted);
-            }
-
-            break :blk value_reference;
-        },
+        .store_get => |slot| @import("access/store.zig").lower(self, slot, value.type_id),
+        .reference => |symbol| @import("access/reference.zig").lower(self, symbol, value.type_id),
         .field => |item| self.projectedField(item.target, value.type_id, self.program.typeOf(self.program.expression(item.target).type_id).object.at(item.index).name),
         .tuple_field => |item| blk: {
             if (try @import("collections.zig").projection(self, item.target, item.index)) |selected| break :blk selected;
