@@ -1,0 +1,90 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import initialize from "../../../ast/context/initialize"
+import appendField from "../../../ast/fields/append"
+import emptyFields from "../../../ast/fields/empty"
+import integer from "../../../printer/text/integer"
+import { allocator_name } from "../../construction/const"
+import {
+    io_name,
+    io_type_name,
+    memory_name,
+    allocator_type_name
+} from "../../functions/signature/const"
+import {
+    process_name,
+    process_init_name,
+    process_minimal_name
+} from "../../functions/signature/const"
+import parameter from "../../functions/signature/parameter"
+import { capture_prefix } from "./const"
+
+import type { Input, Output } from "./prepare_model"
+
+export default function (in: Input): Output {
+    const allocator = parameter({
+        state: {
+            context: initialize(in.bases),
+            fields: emptyFields({})
+        },
+        name: bytes.fromText(allocator_name),
+        path: [
+            memory_name,
+            allocator_type_name
+        ]
+    })
+
+    const io = parameter({
+        state: allocator,
+        name: bytes.fromText(io_name),
+        path: [io_type_name]
+    })
+
+    const injected = match {
+        in.process => parameter({
+            state: io,
+            name: bytes.fromText(process_name),
+            path: [
+                process_name,
+                process_init_name,
+                process_minimal_name
+            ]
+        }),
+        _ => io
+    }
+
+    const fields = loop({
+        fields: injected.fields,
+        index: 0
+    }, {
+        while: current => current.index < in.symbols.length,
+        next: current => {
+            const name = integer({
+                output: bytes.fromText(capture_prefix),
+                value: integers.widen(in.symbols[current.index])
+            })
+
+            current.fields = appendField({
+                table: current.fields,
+                name,
+                value: in.types[current.index],
+                default_value: null,
+                comptime_parameter: false
+            })
+            current.index += 1
+        },
+        return: current => current.fields
+    })
+
+    return {
+        expressions: injected.context.expressions,
+        fields,
+        first: in.bases.field_base,
+        count: integers.narrow(fields.name.length),
+        capture_first: integers.narrow(
+            integers.widen(in.bases.field_base) + injected.fields.name.length
+        ),
+        valid: injected.context.valid
+    }
+}

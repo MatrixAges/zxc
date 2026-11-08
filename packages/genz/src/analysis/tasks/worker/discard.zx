@@ -1,0 +1,103 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import discard from "../../../ast/context/discard"
+import initialize from "../../../ast/context/initialize"
+import { allocator_name } from "../../construction/const"
+import { io_name, process_name } from "../../functions/signature/const"
+
+import type { Input as Bases } from "../../../ast/context/model"
+import type { Columns as Expressions } from "../../../ast/expressions/model"
+import type { StatementsKind } from "../../../printer/model/statements"
+
+export type Input = {
+    process: bool,
+    uses_allocator: bool,
+    uses_io: bool,
+    uses_process: bool,
+    captures: u32[],
+    used: bool[],
+    names: u8[][],
+    bases: Bases
+}
+
+export type Statements = {
+    tags: StatementsKind[],
+    offsets: u32[],
+    discard: u32[]
+}
+
+export type Output = {
+    expressions: Expressions,
+    statements: Statements,
+    valid: bool
+}
+
+export default function (in: Input): Output {
+    const values: u32[] = []
+
+    const names = [
+        allocator_name,
+        io_name,
+        process_name
+    ]
+
+    const needed = [
+        !in.uses_allocator,
+        !in.uses_io,
+        in.process && !in.uses_process
+    ]
+
+    const injected = loop({
+        state: {
+            state: initialize(in.bases),
+            values
+        },
+        index: 0
+    }, {
+        while: current => current.index < names.length,
+        next: current => {
+            if (needed[current.index]) {
+                current.state = discard({
+                    ...current.state,
+                    name: bytes.fromText(names[current.index])
+                })
+            }
+
+            current.index += 1
+        },
+        return: current => current.state
+    })
+
+    const captured = loop({
+        state: injected,
+        index: 0
+    }, {
+        while: current => current.index < in.captures.length,
+        next: current => {
+            const symbol = integers.widen(in.captures[current.index])
+
+            if (!in.used[symbol]) {
+                current.state = discard({
+                    ...current.state,
+                    name: in.names[symbol]
+                })
+            }
+
+            current.index += 1
+        },
+        return: current => current.state
+    })
+
+    return {
+        expressions: captured.state.expressions,
+        statements: {
+            ...captured.state.statements.pick([
+                "tags",
+                "offsets"
+            ]),
+            discard: captured.values
+        },
+        valid: captured.state.valid
+    }
+}

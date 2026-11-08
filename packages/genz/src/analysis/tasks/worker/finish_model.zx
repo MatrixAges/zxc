@@ -1,0 +1,43 @@
+import type { Input as Bases, State as Context } from "../../../ast/context/model"
+import type { Columns as Functions } from "../../../ast/declarations/function"
+import type { Columns as Aliases } from "../../../ast/declarations/model"
+import type { Columns as Expressions } from "../../../ast/expressions/model"
+import type { Columns as Statements } from "../../../ast/statements/model"
+
+export type Input = {
+    name: u8[],
+    value: u32,
+    output_type: u32,
+    errors?: u8[][],
+    parameters_first: u32,
+    parameters_count: u32,
+    body_first: u32,
+    declaration_base: u32,
+    bases: Bases
+}
+
+export type Extra = {
+    error_union_payload: u32[],
+    error_union_errors: u8[][]?[],
+    error_union_inferred: bool[],
+    namespace_type_start: u32[],
+    namespace_type_len: u32[]
+}
+
+export type State = {
+    source: Input,
+    context: Context,
+    extra: Extra,
+    declarations: Functions
+    return_type: u32
+}
+
+export type Output = {
+    expressions: Expressions,
+    extra: Extra,
+    statements: Statements,
+    declarations: Functions,
+    alias: Aliases,
+    root: u32,
+    valid: bool
+}

@@ -1,0 +1,39 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import appendFunction from "../../../ast/declarations/append_function"
+import { run_name } from "../../parallel/worker/const"
+
+import type { State as Input, State as Output } from "./finish_model"
+
+export default function (in: Input): Output {
+    const declaration = appendFunction({
+        table: in.declarations,
+        value: {
+            base: in.source.declaration_base,
+            name: bytes.fromText(run_name),
+            parameters_start: in.source.parameters_first,
+            parameters_count: in.source.parameters_count,
+            return_type: in.return_type,
+            body_start: in.source.body_first,
+            body_count: integers.narrow(
+                integers.widen(in.source.bases.statement_base) -
+                    integers.widen(in.source.body_first) +
+                    in.context.statements.tags.length
+            ),
+            exported: false,
+            abi_export: false,
+            inlined: false,
+            calling_convention: null
+        }
+    })
+
+    return {
+        ...in,
+        context: {
+            ...in.context,
+            valid: in.context.valid && declaration.valid
+        },
+        declarations: declaration.table
+    }
+}

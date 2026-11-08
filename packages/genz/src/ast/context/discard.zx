@@ -1,0 +1,48 @@
+import { StatementsKind } from "../../printer/model/statements"
+import header from "../statements/header"
+import identifier from "./identifier"
+
+import type { State } from "./model"
+
+export type Input = {
+    state: State,
+    values: u32[],
+    name: u8[]
+}
+
+export type Output = {
+    state: State,
+    values: u32[]
+}
+
+export default function (in: Input): Output {
+    const value = identifier({
+        state: in.state,
+        name: in.name
+    })
+
+    const context = value.state
+
+    const statement = header({
+        ...context.statements.pick([
+            "tags",
+            "offsets"
+        ]),
+        base: context.source.statement_base,
+        kind: StatementsKind.Discard,
+        offset: in.values.length
+    })
+
+    return {
+        state: {
+            ...context,
+            statements: {
+                ...context.statements,
+                tags: statement.tags,
+                offsets: statement.offsets
+            },
+            valid: context.valid && statement.valid
+        },
+        values: in.values.push(value.id)[0]
+    }
+}

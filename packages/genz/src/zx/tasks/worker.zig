@@ -1,15 +1,13 @@
-const std = @import("std");
 const ir = @import("zx").ir;
 const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
-const standardField = @import("../intrinsics.zig").standardField;
+const emitting = @import("worker/emitting.zig");
 
 pub fn lower(self: *Lower, id: ir.ExprId, process: bool) Lower.Error!node.ExpressionId {
+    if (!@import("genz_options").generated_analysis) return @import("worker_seed.zig").lower(self, id, process);
+
     const declaration_index = self.task_declarations.count();
-    const name = try std.fmt.allocPrint(self.allocator, "zx_task_worker_{d}", .{declaration_index});
-
-    try self.task_declarations.append(self.allocator, .{ .constant = .{ .name = name, .value = try self.builder.expression(.undefined_value) } });
-
+    const name = try emitting.reserve(self, declaration_index);
     const expression = self.program.expression(id);
     const task = expression.value.task;
     const task_type = self.program.typeOf(expression.type_id).task;
@@ -30,37 +28,29 @@ pub fn lower(self: *Lower, id: ir.ExprId, process: bool) Lower.Error!node.Expres
     @memset(worker.used, false);
     @memset(worker.cache_reads, 0);
 
-    var parameters: std.ArrayList(node.Field) = .empty;
+    const parameters = try emitting.prepare(self, task.captures, process);
 
-    try parameters.append(self.allocator, .{ .name = "allocator", .value = try standardField(self, &.{ "mem", "Allocator" }) });
-    try parameters.append(self.allocator, .{ .name = "io", .value = try standardField(self, &.{"Io"}) });
-    if (process) try parameters.append(self.allocator, .{ .name = "process", .value = try standardField(self, &.{ "process", "Init", "Minimal" }) });
-
-    for (task.captures) |symbol| {
-        const index = @backingInt(symbol);
-
-        worker.names[index] = try std.fmt.allocPrint(self.allocator, "capture_{d}", .{index});
-
-        try parameters.append(self.allocator, .{ .name = worker.names[index], .value = try self.typeExpr(self.program.symbols.at(index).type_id) });
+    for (task.captures, 0..) |symbol, index| {
+        worker.names[@backingInt(symbol)] = self.builder.nodes.field_columns.get(parameters.capture_first + index).name;
     }
 
     const result = try worker.expr(task.body);
-    var body: std.ArrayList(node.Statement) = .empty;
+    const output_type = try self.typeExpr(task_type.result);
+    const errors = self.program.typeOf(task_type.errors).error_set;
+    const body_first: u32 = @intCast(self.builder.nodes.statements.tags.items.len);
 
-    if (!worker.uses_allocator) try body.append(self.allocator, .{ .discard = try self.builder.identifier("allocator") });
-    if (!worker.uses_io) try body.append(self.allocator, .{ .discard = try self.builder.identifier("io") });
-    if (process and !worker.uses_process) try body.append(self.allocator, .{ .discard = try self.builder.identifier("process") });
+    try emitting.discard(self, &worker, task.captures, process);
 
-    for (task.captures) |symbol| {
-        if (!worker.used[@backingInt(symbol)]) try body.append(self.allocator, .{ .discard = try self.builder.identifier(worker.names[@backingInt(symbol)]) });
-    }
+    _ = try self.builder.statements(worker.reference_storage.items);
 
-    try body.appendSlice(self.allocator, worker.reference_storage.items);
-    try body.append(self.allocator, .{ .result = result });
-
-    const function: node.Declaration = .{ .function = .{ .name = "run", .parameters = try parameters.toOwnedSlice(self.allocator), .return_type = try self.builder.expression(.{ .error_union = .{ .payload = try self.typeExpr(task_type.result), .errors = self.program.typeOf(task_type.errors).error_set } }), .body = try self.builder.statements(body.items) } };
-
-    try self.task_declarations.replace(self.allocator, declaration_index, .{ .constant = .{ .name = name, .value = try self.builder.expression(.{ .namespace_type = try self.allocator.dupe(node.Declaration, &.{function}) }) } });
-
-    return self.builder.identifier(name);
+    return emitting.finish(self, .{
+        .name = name,
+        .value = result,
+        .output_type = output_type,
+        .errors = errors,
+        .parameters_first = parameters.first,
+        .parameters_count = parameters.count,
+        .body_first = body_first,
+        .slot = declaration_index,
+    });
 }

@@ -1,0 +1,19 @@
+import type { Input as Bases } from "../../../ast/context/model"
+import type { Columns as Expressions } from "../../../ast/expressions/model"
+import type { Columns as Fields } from "../../../ast/fields/model"
+
+export type Input = {
+    process: bool,
+    symbols: u32[],
+    types: u32[],
+    bases: Bases
+}
+
+export type Output = {
+    expressions: Expressions,
+    fields: Fields,
+    first: u32,
+    count: u32,
+    capture_first: u32,
+    valid: bool
+}

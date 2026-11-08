@@ -1,0 +1,64 @@
+import identifier from "../../../ast/context/identifier"
+import constants from "../../../ast/declarations/constants"
+import namespace from "../../../ast/expressions/namespace"
+
+import type { State as Input, Output } from "./finish_model"
+
+export default function (in: Input): Output {
+    const value = namespace({
+        table: {
+            ...in.context.expressions.pick([
+                "tags",
+                "offsets"
+            ]),
+            ...in.extra.pick([
+                "namespace_type_start",
+                "namespace_type_len"
+            ])
+        },
+        base: in.source.bases.expression_base,
+        start: in.source.declaration_base,
+        count: 1
+    })
+
+    const root = identifier({
+        state: {
+            ...in.context,
+            expressions: {
+                ...in.context.expressions,
+                ...value.table.pick([
+                    "tags",
+                    "offsets"
+                ])
+            },
+            valid: in.context.valid && value.valid
+        },
+        name: in.source.name
+    })
+
+    const alias = constants({
+        base: 0,
+        values: [{
+            name: in.source.name,
+            type_expr: null,
+            value: value.id,
+            exported: false
+        }]
+    })
+
+    return {
+        expressions: root.state.expressions,
+        extra: {
+            ...in.extra,
+            ...value.table.omit([
+                "tags",
+                "offsets"
+            ])
+        },
+        statements: root.state.statements,
+        declarations: in.declarations,
+        alias: alias.table,
+        root: root.id,
+        valid: root.state.valid && alias.valid
+    }
+}
