@@ -1,0 +1,31 @@
+import { ExpressionsKind } from "../../printer/model/expressions"
+
+export type Input = {
+    values: u32[],
+    element: u32,
+    base: u32
+}
+
+export type Output = {
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    array_element_type: u32[],
+    array_values: u32[][],
+    address_of: u32[]
+}
+
+export default function (in: Input): Output {
+    return {
+        tags: [
+            ExpressionsKind.Array,
+            ExpressionsKind.AddressOf
+        ],
+        offsets: [
+            0,
+            0
+        ],
+        array_element_type: [in.element],
+        array_values: [in.values],
+        address_of: [in.base]
+    }
+}

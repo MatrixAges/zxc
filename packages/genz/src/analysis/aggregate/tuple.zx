@@ -1,0 +1,17 @@
+import { ExpressionsKind } from "../../printer/model/expressions"
+
+export type Input = u32[]
+
+export type Output = {
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    tuple: u32[][]
+}
+
+export default function (in: Input): Output {
+    return {
+        tags: [ExpressionsKind.Tuple],
+        offsets: [0],
+        tuple: [in]
+    }
+}
