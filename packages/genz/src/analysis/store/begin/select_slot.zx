@@ -1,0 +1,26 @@
+export type Input = {
+    slots: u32[],
+    slot: u32
+}
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    const found = loop({
+        index: 0,
+        found: false
+    }, {
+        while: current => !current.found && current.index < in.slots.length,
+        next: current => {
+            current.found = in.slots[current.index] == in.slot
+            current.index += 1
+        },
+        return: current => current.found
+    })
+
+    if (found) {
+        return in.slots
+    }
+
+    return in.slots.push(in.slot)[0]
+}

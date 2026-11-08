@@ -1,0 +1,76 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+import { StoreMode } from "core/function_table/complete"
+
+import selectSlot from "./select_slot"
+import value from "./value"
+
+import type { Input } from "./model"
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    const slots: u32[] = []
+
+    return loop({
+        slots,
+        cursor: in.index,
+        running: true
+    }, {
+        while: current => current.running && current.cursor < in.count,
+        next: current => {
+            const node = value({
+                control: in.control,
+                row: in.first + current.cursor
+            })
+
+            if (node == null) {
+                current.running = false
+            } else {
+                const row = integers.widen(node)
+                const kind = in.values.kinds[row]
+                const payload = integers.widen(in.values.payloads[row])
+
+                if (kind == ExpressionKind.StoreGet) {
+                    current.slots = selectSlot({
+                        slots: current.slots,
+                        slot: in.values.stores[payload]
+                    })
+                } else if (kind == ExpressionKind.Call) {
+                    const callee = integers.widen(in.values.call_functions[payload])
+
+                    if (in.function_modes[callee] == StoreMode.transaction) {
+                        const first =
+                            integers.widen(in.values.call_store_first[payload])
+                        const count =
+                            integers.widen(in.values.call_store_count[payload])
+
+                        current.slots = loop({
+                            slots: current.slots,
+                            index: 0
+                        }, {
+                            while: selected => selected.index < count,
+                            next: selected => {
+                                selected.slots = selectSlot({
+                                    slots: selected.slots,
+                                    slot: in.values.call_stores[first +
+                                        selected.index]
+                                })
+
+                                selected.index += 1
+                            },
+                            return: selected => selected.slots
+                        })
+                    }
+
+                    current.running = false
+                } else {
+                    current.running = false
+                }
+            }
+
+            current.cursor += 1
+        },
+        return: current => current.slots
+    })
+}

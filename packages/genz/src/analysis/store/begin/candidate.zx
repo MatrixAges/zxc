@@ -1,0 +1,48 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+import { StoreMode } from "core/function_table/complete"
+
+import value from "./value"
+
+import type { Input } from "./model"
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    if (in.mode != StoreMode.orchestration || in.store_count == 0) {
+        return false
+    }
+
+    const first = value({
+        control: in.control,
+        row: in.first + in.index
+    })
+
+    if (first == null) {
+        return false
+    }
+
+    const kind = in.values.kinds[integers.widen(first)]
+    const applicable = kind == ExpressionKind.StoreGet || kind == ExpressionKind.Call
+
+    if (!applicable) {
+        return false
+    }
+
+    if (in.index > 0) {
+        const previous = value({
+            control: in.control,
+            row: in.first + in.index - 1
+        })
+
+        if (previous != null) {
+            if (
+                in.values.kinds[integers.widen(previous)] == ExpressionKind.StoreGet
+            ) {
+                return false
+            }
+        }
+    }
+
+    return true
+}

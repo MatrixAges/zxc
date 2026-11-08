@@ -1,0 +1,35 @@
+import bytes from "std:bytes"
+
+import identifier from "../../../ast/context/identifier"
+import initialize from "../../../ast/context/initialize"
+import { context_name } from "../const"
+import array from "./array"
+import invoke from "./invoke"
+
+import type { Emit as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const context = identifier({
+        state: initialize(in.bases),
+        name: bytes.fromText(context_name)
+    })
+
+    const slots = array({
+        state: context.state,
+        slots: in.slots
+    })
+
+    const result = invoke({
+        state: slots.state,
+        parent: context.id,
+        slots: slots.id
+    })
+
+    return {
+        expressions: result.state.expressions,
+        forms: result.state.forms,
+        statements: result.state.statements,
+        variables: result.state.variables,
+        valid: result.state.valid
+    }
+}

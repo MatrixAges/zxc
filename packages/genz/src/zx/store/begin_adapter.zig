@@ -1,6 +1,6 @@
 const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
-const begin = @import("begin.zig");
+const begin = @import("begin_seed.zig");
 
 pub fn declaration(self: *Lower, mapping: []const u32) Lower.Error!node.Declaration {
     const selected = try self.builder.identifier("selected");

@@ -1,0 +1,27 @@
+<Module>
+    <Type from="model" as="Begin" />
+
+    <Args in={Begin.Input} out={Begin.Result} />
+
+    <Call fn="candidate" in={$in} />
+
+    <If on={!$ctx.candidate}>
+        <Return value={null} />
+    </If>
+
+    <Call fn="collect" in={$in} />
+
+    <If on={$ctx.collect.length == 0}>
+        <Return value={null} />
+    </If>
+
+    <Call
+        fn="emit"
+        in={{
+            slots: $ctx.collect,
+            bases: $in.bases
+        }}
+    />
+
+    <Return value={$ctx.emit} />
+</Module>

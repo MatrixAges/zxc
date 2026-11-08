@@ -1,0 +1,51 @@
+import type { StatementKind } from "core/control_table/model"
+import type { ExpressionKind } from "core/expression_table/kinds"
+import type { StoreMode } from "core/function_table/complete"
+import type { Input as Bases, Variables } from "../../../ast/context/model"
+import type { Columns as Forms } from "../../../ast/expressions/forms/model"
+import type { Columns as Expressions } from "../../../ast/expressions/model"
+import type { Columns as Statements } from "../../../ast/statements/model"
+
+export type Control = {
+    statement_kinds: StatementKind[],
+    statement_payloads: u32[],
+    evaluations: u32[],
+    constant_values: u32[]
+}
+
+export type Values = {
+    kinds: ExpressionKind[],
+    payloads: u32[],
+    stores: u32[],
+    call_functions: u32[],
+    call_store_first: u32[],
+    call_store_count: u32[],
+    call_stores: u32[]
+}
+
+export type Input = {
+    control: Control,
+    values: Values,
+    function_modes: StoreMode[],
+    mode: StoreMode,
+    store_count: u64,
+    first: u64,
+    count: u64,
+    index: u64,
+    bases: Bases
+}
+
+export type Emit = {
+    slots: u32[],
+    bases: Bases
+}
+
+export type Output = {
+    expressions: Expressions,
+    forms: Forms,
+    statements: Statements,
+    variables: Variables,
+    valid: bool
+}
+
+export type Result = Output?
