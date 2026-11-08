@@ -1,0 +1,20 @@
+<Module>
+    <Type from="model" as="Entry" />
+    <Type from="../../conversion/emit/model" as="Conversion" />
+
+    <Args in={Entry.Input} out={Conversion.Output} />
+
+    <If on={$in.conversion != null}>
+        <Call fn="convert" in={$in} />
+        <Call fn="finish" in={$ctx.convert} />
+        <Call fn="publish" in={$ctx.finish} />
+
+        <Return value={$ctx.publish} />
+    </If>
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="finish" in={$ctx.initialize} />
+    <Call fn="publish" in={$ctx.finish} />
+
+    <Return value={$ctx.publish} />
+</Module>

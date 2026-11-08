@@ -1,0 +1,13 @@
+import type { Input as Context } from "../../../../ast/context/model"
+import type { Input as Conversion, State } from "../../conversion/emit/model"
+
+export type Input = {
+    context: Context,
+    conversion?: Conversion,
+    value: u32
+}
+
+export type Work = {
+    state: State,
+    value: u32
+}

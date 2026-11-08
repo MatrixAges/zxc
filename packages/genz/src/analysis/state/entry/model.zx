@@ -1,0 +1,25 @@
+import type { State as Cache } from "core/integer/map/model"
+
+export type Facts = {
+    count: u64,
+    metadata: u8[],
+    keys: u32[],
+    values: u32[],
+    types: u32[]
+}
+
+export type Walk = {
+    cache: Cache,
+    cursor: u64,
+    complete: bool,
+    pending: bool,
+    key: u32,
+    value: u32,
+    type_id: u32
+}
+
+export type Input = {
+    source: Facts,
+    state: Walk,
+    converted?: u32
+}

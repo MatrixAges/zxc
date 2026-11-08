@@ -1,0 +1,46 @@
+import integers from "std:integer"
+import next from "core/integer/map/next"
+import put from "core/integer/map/put"
+
+import type { Input, Walk as Output } from "./model"
+
+export default function (in: Input): Output {
+    const cache = match {
+        in.state.pending && in.converted != null => put({
+            state: in.state.cache,
+            key: in.state.key,
+            value: in.converted
+        }),
+        _ => in.state.cache
+    }
+
+    const found = next({
+        metadata: in.source.metadata,
+        count: in.source.count,
+        start: in.state.cursor
+    })
+
+    const position = found.position
+
+    if (position == null) {
+        return {
+            ...in.state,
+            cache,
+            cursor: found.next,
+            pending: false,
+            complete: true
+        }
+    }
+
+    const key = in.source.keys[position]
+
+    return {
+        cache,
+        cursor: found.next,
+        pending: true,
+        complete: false,
+        key,
+        value: in.source.values[position],
+        type_id: in.source.types[integers.widen(key)]
+    }
+}

@@ -1,0 +1,30 @@
+import type { Output } from "../../conversion/emit/model"
+import type { Work as Input } from "./model"
+
+export default function (in: Input): Output {
+    const state = in.state
+
+    return {
+        expressions: state.context.expressions,
+        forms: state.context.forms,
+        statements: state.context.statements,
+        body: {
+            ...state.context.statements,
+            ...state.body
+        },
+        storage: {
+            ...state.context.statements,
+            ...state.storage
+        },
+        borrow_storage: {
+            ...state.context.statements,
+            ...state.borrow_storage
+        },
+        variables: state.context.variables,
+        fields: state.fields,
+        root: in.value,
+        serial: state.context.serial,
+        uses_allocator: state.uses_allocator,
+        valid: state.context.valid
+    }
+}

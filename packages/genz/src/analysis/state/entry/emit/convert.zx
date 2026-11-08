@@ -1,0 +1,23 @@
+import initialize from "../../conversion/emit/initialize"
+import walk from "../../conversion/emit/walk"
+import empty from "./initialize"
+
+import type { Input, Work as Output } from "./model"
+
+export default function (in: Input): Output {
+    const conversion = in.conversion
+
+    if (conversion == null) {
+        return empty(in)
+    }
+
+    const state = walk({
+        source: conversion,
+        state: initialize(conversion)
+    })
+
+    return {
+        state,
+        value: state.nodes[0].result
+    }
+}

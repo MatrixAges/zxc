@@ -1,0 +1,23 @@
+import finish from "../../conversion/emit/finish"
+
+import type { Work as Input, Work as Output } from "./model"
+
+export default function (in: Input): Output {
+    const result = finish({
+        state: in.state.context,
+        body: in.state.body,
+        value: in.value
+    })
+
+    return {
+        value: result.id,
+        state: {
+            ...in.state,
+            context: result.state,
+            body: {
+                tags: [],
+                offsets: []
+            }
+        }
+    }
+}

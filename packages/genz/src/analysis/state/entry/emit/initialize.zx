@@ -1,0 +1,28 @@
+import initialize from "../../../../ast/context/initialize"
+
+import type { Input, Work as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        value: in.value,
+        state: {
+            context: initialize(in.context),
+            body: {
+                tags: [],
+                offsets: []
+            },
+            storage: {
+                tags: [],
+                offsets: []
+            },
+            borrow_storage: {
+                tags: [],
+                offsets: []
+            },
+            fields: [],
+            nodes: [],
+            index: 0,
+            uses_allocator: false
+        }
+    }
+}

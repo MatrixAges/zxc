@@ -19,7 +19,9 @@ pub fn enter(lowering: *Lower) Lower.Error!Self {
     var cache: @import("../expression_map.zig").Map(ir.ExprId) = .empty;
     var entries = self.cache.iterator();
 
-    while (entries.next()) |entry| {
+    if (@import("genz_options").generated_analysis) {
+        cache = try @import("entry.zig").lower(lowering, &self.cache);
+    } else while (entries.next()) |entry| {
         var body: std.ArrayList(node.Statement) = .empty;
         const value = try conversion.convert(lowering, &body, lowering.program.expression(entry.key_ptr.*).type_id, entry.value_ptr.*, .value);
 
