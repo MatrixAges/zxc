@@ -1,0 +1,17 @@
+import crypto from "std:crypto"
+import integers from "std:integer"
+
+import ids from "../types/ids"
+
+import type { Row as Input } from "./model"
+
+export type Output = void
+
+export default function (in: Input): Output {
+    ids({
+        hash: in.hash,
+        values: in.expressions.sequence_items,
+        first: integers.widen(in.expressions.sequence_first[in.payload]),
+        count: integers.widen(in.expressions.sequence_count[in.payload])
+    })
+}

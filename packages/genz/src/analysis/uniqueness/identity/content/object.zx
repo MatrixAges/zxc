@@ -1,0 +1,38 @@
+import crypto from "std:crypto"
+import integers from "std:integer"
+
+import ids from "../types/ids"
+
+import type { Row as Input } from "./model"
+
+export type Output = void
+
+export default function (in: Input): Output {
+    ids({
+        hash: in.hash,
+        values: in.expressions.object_field_indices,
+        first: integers.widen(in.expressions.object_first[in.payload]),
+        count: integers.widen(in.expressions.object_count[in.payload])
+    })
+
+    ids({
+        hash: in.hash,
+        values: in.expressions.object_field_values,
+        first: integers.widen(in.expressions.object_first[in.payload]),
+        count: integers.widen(in.expressions.object_count[in.payload])
+    })
+
+    crypto.updateSha256U64Le(
+        in.hash,
+        integers.widen(in.expressions.object_count[in.payload])
+    )
+
+    ids({
+        hash: in.hash,
+        values: in.expressions.object_evaluation_values,
+        first: integers.widen(in.expressions.object_evaluation_first[in.payload]),
+        count: integers.widen(
+            in.expressions.object_evaluation_count[in.payload]
+        )
+    })
+}

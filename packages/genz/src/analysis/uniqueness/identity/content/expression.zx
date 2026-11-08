@@ -1,0 +1,79 @@
+import bytes from "std:bytes"
+import crypto from "std:crypto"
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import frame from "../bytes"
+import binary from "./binary"
+import call from "./call"
+import collection from "./collection"
+import conditional from "./conditional"
+import index from "./index"
+import iteration from "./iteration"
+import matching from "./match"
+import object from "./object"
+import parallel from "./parallel"
+import projection from "./projection"
+import scalar from "./scalar"
+import scope from "./scope"
+import sequence from "./sequence"
+import tag from "./tag"
+import task from "./task"
+import transform from "./transform"
+import unary from "./unary"
+import update from "./update"
+
+import type { Input as Content } from "./model"
+
+export type Input = {
+    content: Content,
+    index: u64
+}
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const expressions = in.content.expressions
+    const hash = in.content.hash
+    const kind = expressions.kinds[in.index]
+    const payload = integers.widen(expressions.payloads[in.index])
+
+    crypto.updateSha256U64Le(hash, integers.widen(expressions.types[in.index]))
+
+    frame({
+        hash,
+        bytes: bytes.fromText(tag(kind))
+    })
+
+    const row = {
+        hash,
+        expressions,
+        payload
+    }
+
+    return match kind {
+        ExpressionKind.Task => task(row),
+        ExpressionKind.Parallel => parallel(row),
+        ExpressionKind.Field => projection(row),
+        ExpressionKind.TupleField => projection(row),
+        ExpressionKind.Index => index(row),
+        ExpressionKind.List => sequence(row),
+        ExpressionKind.Tuple => sequence(row),
+        ExpressionKind.Template => sequence(row),
+        ExpressionKind.ListOperation => collection(row),
+        ExpressionKind.Transform => transform(row),
+        ExpressionKind.Scope => scope(row),
+        ExpressionKind.Iteration => iteration(row),
+        ExpressionKind.ListUpdate => update(row),
+        ExpressionKind.Call => call(row),
+        ExpressionKind.Unary => unary(row),
+        ExpressionKind.Binary => binary(row),
+        ExpressionKind.Conditional => conditional(row),
+        ExpressionKind.Match => matching(row),
+        ExpressionKind.Object => object(row),
+        _ => scalar({
+            ...row,
+            kind
+        })
+    }
+}

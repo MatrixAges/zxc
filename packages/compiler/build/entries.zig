@@ -110,6 +110,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/uniqueness/flow/key/build.rx", .name = "uniqueness_flow_key", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/identity/program/build.rx", .name = "uniqueness_program_identity", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/identity/types/build.rx", .name = "uniqueness_types_identity", .owner = .genz },
+    .{ .path = "genz/analysis/uniqueness/identity/content/build.rx", .name = "uniqueness_content_identity", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/level/evaluate.zx", .name = "uniqueness_level", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/level/lacks.zx", .name = "uniqueness_level_lacks", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/function/levels/close.rx", .name = "uniqueness_function_close", .owner = .genz },

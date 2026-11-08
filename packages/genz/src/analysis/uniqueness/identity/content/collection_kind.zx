@@ -1,0 +1,25 @@
+import { CollectionKind } from "core/expression_table/kinds"
+
+import {
+    collection_push,
+    collection_pop,
+    collection_sort,
+    collection_reverse,
+    collection_splice,
+    collection_concat
+} from "./const"
+
+export type Input = CollectionKind
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    return match in {
+        CollectionKind.Push => collection_push,
+        CollectionKind.Pop => collection_pop,
+        CollectionKind.Sort => collection_sort,
+        CollectionKind.Reverse => collection_reverse,
+        CollectionKind.Splice => collection_splice,
+        _ => collection_concat
+    }
+}

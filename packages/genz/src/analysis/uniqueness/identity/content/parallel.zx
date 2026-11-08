@@ -1,0 +1,30 @@
+import crypto from "std:crypto"
+import integers from "std:integer"
+
+import ids from "../types/ids"
+import optionals from "./optionals"
+
+import type { Row as Input } from "./model"
+
+export type Output = void
+
+export default function (in: Input): Output {
+    ids({
+        hash: in.hash,
+        values: in.expressions.parallel_tasks,
+        first: integers.widen(in.expressions.parallel_first[in.payload]),
+        count: integers.widen(in.expressions.parallel_count[in.payload])
+    })
+
+    optionals({
+        hash: in.hash,
+        values: in.expressions.parallel_fields,
+        first: integers.widen(in.expressions.parallel_first[in.payload]),
+        count: integers.widen(in.expressions.parallel_count[in.payload])
+    })
+
+    crypto.updateSha256U64Le(
+        in.hash,
+        integers.widen(in.expressions.parallel_count[in.payload])
+    )
+}

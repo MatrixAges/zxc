@@ -1,0 +1,42 @@
+import bytes from "std:bytes"
+import crypto from "std:crypto"
+import integers from "std:integer"
+import { Ownership } from "core/symbol_table/model"
+
+import frame from "../bytes"
+import { copy_ownership, borrowed_ownership, owned_ownership } from "./const"
+
+import type { Input } from "./model"
+
+export type Output = void
+
+export default function (in: Input): Output {
+    crypto.updateSha256U64Le(in.hash, in.symbols.names.length)
+
+    const result = loop({
+        index: 0
+    }, {
+        while: state => state.index < in.symbols.names.length,
+        next: state => {
+            frame({
+                hash: in.hash,
+                bytes: bytes.fromText(in.symbols.names[state.index])
+            })
+
+            crypto.updateSha256U64Le(
+                in.hash,
+                integers.widen(in.symbols.types[state.index])
+            )
+
+            const ownership = match in.symbols.ownership[state.index] {
+                Ownership.Copy => copy_ownership,
+                Ownership.Borrowed => borrowed_ownership,
+                _ => owned_ownership
+            }
+
+            crypto.updateSha256U64Le(in.hash, ownership)
+
+            state.index += 1
+        }
+    })
+}

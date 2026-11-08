@@ -1,0 +1,160 @@
+import bytes from "std:bytes"
+import crypto from "std:crypto"
+import integers from "std:integer"
+import { StatementKind } from "core/control_table/model"
+
+import frame from "../bytes"
+import invocations from "./invocations"
+import optional from "./optional"
+import optionals from "./optionals"
+import tag from "./statement_tag"
+
+import type { Block as Input } from "./model"
+
+export type Output = void
+
+export default function block(in: Input): Output {
+    crypto.updateSha256U64Le(in.hash, in.count)
+
+    const result = loop({
+        index: 0
+    }, {
+        while: state => state.index < in.count,
+        next: state => {
+            const index = in.first + state.index
+            const kind = in.control.statement_kinds[index]
+            const payload = integers.widen(in.control.statement_payloads[index])
+
+            frame({
+                hash: in.hash,
+                bytes: bytes.fromText(tag(kind))
+            })
+
+            if (kind == StatementKind.Evaluate) {
+                crypto.updateSha256U64Le(
+                    in.hash,
+                    integers.widen(in.control.evaluations[payload])
+                )
+            }
+
+            if (kind == StatementKind.Constant) {
+                crypto.updateSha256U64Le(
+                    in.hash,
+                    integers.widen(in.control.constant_symbols[payload])
+                )
+                crypto.updateSha256U64Le(
+                    in.hash,
+                    integers.widen(in.control.constant_values[payload])
+                )
+            }
+
+            if (kind == StatementKind.Parallel) {
+                invocations({
+                    ...in,
+                    first: integers.widen(in.control.parallel_first[payload]),
+                    count: integers.widen(in.control.parallel_count[payload])
+                })
+            }
+
+            if (kind == StatementKind.Destructure) {
+                optionals({
+                    hash: in.hash,
+                    values: in.control.destructure_symbols,
+                    first: integers.widen(in.control.destructure_first[payload]),
+                    count: integers.widen(in.control.destructure_count[payload])
+                })
+
+                crypto.updateSha256U64Le(
+                    in.hash,
+                    integers.widen(in.control.destructure_values[payload])
+                )
+            }
+
+            if (kind == StatementKind.Branch) {
+                crypto.updateSha256U64Le(
+                    in.hash,
+                    integers.widen(in.control.branch_conditions[payload])
+                )
+
+                const yes = integers.widen(in.control.branch_yes[payload])
+                const no = integers.widen(in.control.branch_no[payload])
+
+                block({
+                    ...in,
+                    first: integers.widen(in.control.block_first[yes]),
+                    count: integers.widen(in.control.block_count[yes])
+                })
+
+                block({
+                    ...in,
+                    first: integers.widen(in.control.block_first[no]),
+                    count: integers.widen(in.control.block_count[no])
+                })
+            }
+
+            if (kind == StatementKind.Switch) {
+                crypto.updateSha256U64Le(
+                    in.hash,
+                    integers.widen(in.control.selection_subjects[payload])
+                )
+
+                const first = integers.widen(in.control.selection_first[payload])
+                const count = integers.widen(in.control.selection_count[payload])
+
+                crypto.updateSha256U64Le(in.hash, count)
+
+                const cases = loop({
+                    index: 0
+                }, {
+                    while: current => current.index < count,
+                    next: current => {
+                        const slot = first + current.index
+                        const child = integers.widen(in.control.case_bodies[slot])
+
+                        optional({
+                            hash: in.hash,
+                            value: in.control.case_values[slot]
+                        })
+
+                        block({
+                            ...in,
+                            first: integers.widen(
+                                in.control.block_first[child]
+                            ),
+                            count: integers.widen(
+                                in.control.block_count[child]
+                            )
+                        })
+
+                        current.index += 1
+                    }
+                })
+
+                crypto.updateSha256Byte(
+                    in.hash,
+                    in.control.selection_exhaustive[payload] ? 1 : 0
+                )
+            }
+
+            if (kind == StatementKind.StoreSet) {
+                crypto.updateSha256U64Le(
+                    in.hash,
+                    integers.widen(in.control.setter_slots[payload])
+                )
+                crypto.updateSha256U64Le(
+                    in.hash,
+                    integers.widen(in.control.setter_values[payload])
+                )
+            }
+
+            if (kind == StatementKind.Result) {
+                optional({
+                    hash: in.hash,
+                    value: in.control.results[payload]
+                })
+            }
+
+            state.index += 1
+        }
+    })
+}

@@ -1,0 +1,43 @@
+import crypto from "std:crypto"
+import integers from "std:integer"
+
+import ids from "../types/ids"
+import booleans from "./booleans"
+import optionals from "./optionals"
+
+import type { Row as Input } from "./model"
+
+export type Output = void
+
+export default function (in: Input): Output {
+    optionals({
+        hash: in.hash,
+        values: in.expressions.scope_symbols,
+        first: integers.widen(in.expressions.scope_first[in.payload]),
+        count: integers.widen(in.expressions.scope_count[in.payload])
+    })
+
+    ids({
+        hash: in.hash,
+        values: in.expressions.scope_values,
+        first: integers.widen(in.expressions.scope_first[in.payload]),
+        count: integers.widen(in.expressions.scope_count[in.payload])
+    })
+
+    booleans({
+        hash: in.hash,
+        values: in.expressions.scope_borrows,
+        first: integers.widen(in.expressions.scope_first[in.payload]),
+        count: integers.widen(in.expressions.scope_count[in.payload])
+    })
+
+    crypto.updateSha256U64Le(
+        in.hash,
+        integers.widen(in.expressions.scope_count[in.payload])
+    )
+
+    crypto.updateSha256U64Le(
+        in.hash,
+        integers.widen(in.expressions.scope_results[in.payload])
+    )
+}

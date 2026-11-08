@@ -1,0 +1,25 @@
+import crypto from "std:crypto"
+
+import optional from "./optional"
+
+import type { Optionals as Input } from "./model"
+
+export type Output = void
+
+export default function (in: Input): Output {
+    crypto.updateSha256U64Le(in.hash, in.count)
+
+    const result = loop({
+        index: 0
+    }, {
+        while: state => state.index < in.count,
+        next: state => {
+            optional({
+                hash: in.hash,
+                value: in.values[in.first + state.index]
+            })
+
+            state.index += 1
+        }
+    })
+}

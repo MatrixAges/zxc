@@ -1,0 +1,17 @@
+import { UnaryOperator } from "core/expression_table/kinds"
+
+import {
+    unary_negate,
+    unary_not
+} from "./const"
+
+export type Input = UnaryOperator
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    return match in {
+        UnaryOperator.Negate => unary_negate,
+        _ => unary_not
+    }
+}

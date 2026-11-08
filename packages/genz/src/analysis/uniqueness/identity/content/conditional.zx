@@ -1,0 +1,23 @@
+import crypto from "std:crypto"
+import integers from "std:integer"
+
+import type { Row as Input } from "./model"
+
+export type Output = void
+
+export default function (in: Input): Output {
+    crypto.updateSha256U64Le(
+        in.hash,
+        integers.widen(in.expressions.conditional_conditions[in.payload])
+    )
+
+    crypto.updateSha256U64Le(
+        in.hash,
+        integers.widen(in.expressions.conditional_yes[in.payload])
+    )
+
+    crypto.updateSha256U64Le(
+        in.hash,
+        integers.widen(in.expressions.conditional_no[in.payload])
+    )
+}

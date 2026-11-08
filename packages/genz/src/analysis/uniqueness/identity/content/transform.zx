@@ -1,0 +1,39 @@
+import crypto from "std:crypto"
+import integers from "std:integer"
+
+import ids from "../types/ids"
+import optional from "./optional"
+import transformKind from "./transform_kind"
+
+import type { Row as Input } from "./model"
+
+export type Output = void
+
+export default function (in: Input): Output {
+    crypto.updateSha256U64Le(
+        in.hash,
+        transformKind(in.expressions.transform_kinds[in.payload])
+    )
+
+    crypto.updateSha256U64Le(
+        in.hash,
+        integers.widen(in.expressions.transform_targets[in.payload])
+    )
+
+    ids({
+        hash: in.hash,
+        values: in.expressions.transform_parameters,
+        first: integers.widen(in.expressions.transform_first[in.payload]),
+        count: integers.widen(in.expressions.transform_count[in.payload])
+    })
+
+    crypto.updateSha256U64Le(
+        in.hash,
+        integers.widen(in.expressions.transform_bodies[in.payload])
+    )
+
+    optional({
+        hash: in.hash,
+        value: in.expressions.transform_initials[in.payload]
+    })
+}

@@ -1,0 +1,79 @@
+import bytes from "std:bytes"
+import crypto from "std:crypto"
+import floats from "std:float"
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import frame from "../bytes"
+
+import type { Value as Input } from "./model"
+
+export type Output = void
+
+export default function (in: Input): Output {
+    if (in.kind == ExpressionKind.None || in.kind == ExpressionKind.Unit) {
+        return
+    }
+
+    return match in.kind {
+        ExpressionKind.Integer =>
+            crypto.updateSha256U64Le(in.hash, in.expressions.integers[in.payload]),
+        ExpressionKind.NegativeInteger => crypto.updateSha256U64Le(
+            in.hash,
+            in.expressions.negative_integers[in.payload]
+        ),
+        ExpressionKind.Float => crypto.updateSha256U64Le(
+            in.hash,
+            floats.bits(in.expressions.floats[in.payload])
+        ),
+        ExpressionKind.String => frame({
+            hash: in.hash,
+            bytes: bytes.fromText(in.expressions.strings[in.payload])
+        }),
+        ExpressionKind.Boolean =>
+            crypto.updateSha256Byte(
+                in.hash,
+                in.expressions.booleans[in.payload] ? 1 : 0
+            ),
+        ExpressionKind.Some => crypto.updateSha256U64Le(
+            in.hash,
+            integers.widen(in.expressions.some[in.payload])
+        ),
+        ExpressionKind.Capture => crypto.updateSha256U64Le(
+            in.hash,
+            integers.widen(in.expressions.captures[in.payload])
+        ),
+        ExpressionKind.AwaitTask => crypto.updateSha256U64Le(
+            in.hash,
+            integers.widen(in.expressions.awaits[in.payload])
+        ),
+        ExpressionKind.CancelTask => crypto.updateSha256U64Le(
+            in.hash,
+            integers.widen(in.expressions.cancellations[in.payload])
+        ),
+        ExpressionKind.OptionalValue => crypto.updateSha256U64Le(
+            in.hash,
+            integers.widen(in.expressions.optional_values[in.payload])
+        ),
+        ExpressionKind.EnumValue => crypto.updateSha256U64Le(
+            in.hash,
+            integers.widen(in.expressions.enumerations[in.payload])
+        ),
+        ExpressionKind.ErrorValue => crypto.updateSha256U64Le(
+            in.hash,
+            integers.widen(in.expressions.errors[in.payload])
+        ),
+        ExpressionKind.Reference => crypto.updateSha256U64Le(
+            in.hash,
+            integers.widen(in.expressions.references[in.payload])
+        ),
+        ExpressionKind.StoreGet => crypto.updateSha256U64Le(
+            in.hash,
+            integers.widen(in.expressions.stores[in.payload])
+        ),
+        _ => crypto.updateSha256U64Le(
+            in.hash,
+            integers.widen(in.expressions.lengths[in.payload])
+        )
+    }
+}

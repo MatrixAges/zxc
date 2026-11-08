@@ -1,0 +1,23 @@
+import crypto from "std:crypto"
+
+import type { Booleans as Input } from "./model"
+
+export type Output = void
+
+export default function (in: Input): Output {
+    crypto.updateSha256U64Le(in.hash, in.count)
+
+    const result = loop({
+        index: 0
+    }, {
+        while: state => state.index < in.count,
+        next: state => {
+            crypto.updateSha256Byte(
+                in.hash,
+                in.values[in.first + state.index] ? 1 : 0
+            )
+
+            state.index += 1
+        }
+    })
+}

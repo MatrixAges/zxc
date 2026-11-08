@@ -1,0 +1,45 @@
+import crypto from "std:crypto"
+import integers from "std:integer"
+
+import optional from "./optional"
+
+import type { Row as Input } from "./model"
+
+export type Output = void
+
+export default function (in: Input): Output {
+    optional({
+        hash: in.hash,
+        value: in.expressions.iteration_environment_symbols[in.payload]
+    })
+
+    crypto.updateSha256U64Le(
+        in.hash,
+        integers.widen(in.expressions.iteration_initials[in.payload])
+    )
+
+    crypto.updateSha256U64Le(
+        in.hash,
+        integers.widen(in.expressions.iteration_condition_parameters[in.payload])
+    )
+
+    crypto.updateSha256U64Le(
+        in.hash,
+        integers.widen(in.expressions.iteration_parameters[in.payload])
+    )
+
+    crypto.updateSha256U64Le(
+        in.hash,
+        integers.widen(in.expressions.iteration_conditions[in.payload])
+    )
+
+    crypto.updateSha256U64Le(
+        in.hash,
+        integers.widen(in.expressions.iteration_bodies[in.payload])
+    )
+
+    crypto.updateSha256Byte(
+        in.hash,
+        in.expressions.iteration_postconditions[in.payload] ? 1 : 0
+    )
+}

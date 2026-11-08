@@ -1,0 +1,21 @@
+<Module>
+    <Type from="model" as="Identity" />
+
+    <Args in={Identity.Input} out={void} />
+
+    <Call fn="seed" in={$in.hash} />
+    <Call fn="symbols" in={$in} />
+    <Call fn="expressions" in={$in} />
+
+    <Call
+        fn="block"
+        in={{
+            hash: $in.hash,
+            control: $in.control,
+            first: $in.first,
+            count: $in.count
+        }}
+    />
+
+    <Call fn="signature" in={$in} />
+</Module>

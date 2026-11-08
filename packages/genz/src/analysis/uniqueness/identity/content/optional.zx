@@ -1,0 +1,15 @@
+import crypto from "std:crypto"
+import integers from "std:integer"
+
+import type { Optional as Input } from "./model"
+
+export type Output = void
+
+export default function (in: Input): Output {
+    if (in.value != null) {
+        crypto.updateSha256Byte(in.hash, 1)
+        crypto.updateSha256U64Le(in.hash, integers.widen(in.value))
+    } else {
+        crypto.updateSha256Byte(in.hash, 0)
+    }
+}

@@ -1,0 +1,29 @@
+import { StatementKind } from "core/control_table/model"
+
+import {
+    evaluate_tag,
+    constant_tag,
+    parallel_tag,
+    destructure_tag,
+    branch_tag,
+    switch_stmt_tag,
+    store_set_tag,
+    result_tag
+} from "./const"
+
+export type Input = StatementKind
+
+export type Output = string
+
+export default function (in: Input): Output {
+    return match in {
+        StatementKind.Evaluate => evaluate_tag,
+        StatementKind.Constant => constant_tag,
+        StatementKind.Parallel => parallel_tag,
+        StatementKind.Destructure => destructure_tag,
+        StatementKind.Branch => branch_tag,
+        StatementKind.Switch => switch_stmt_tag,
+        StatementKind.StoreSet => store_set_tag,
+        _ => result_tag
+    }
+}

@@ -44,6 +44,8 @@ pub fn types(value: ir.TypeTable) [32]u8 {
 
 /// A body by itself, apart from the program it sits in.
 pub fn content(symbols: ir.SymbolTable, expressions: ir.ExpressionTable, block: ir.Block, input_type: ir.TypeId, output_type: ir.TypeId) [32]u8 {
+    if (@import("genz_options").generated_analysis) return @import("identity/content.zig").build(symbols, expressions, block, input_type, output_type);
+
     var self = Self{};
 
     self.write(.{ .symbols = symbols, .expressions = expressions, .block = block, .input_type = input_type, .output_type = output_type });

@@ -1,0 +1,55 @@
+import type { Sha256State } from "std:crypto"
+import type { Control } from "core/control_table/model"
+import type { ExpressionKind } from "core/expression_table/kinds"
+import type { Expressions } from "core/expression_table/model"
+import type { Symbols } from "core/symbol_table/model"
+
+export type Input = {
+    hash: Sha256State,
+    symbols: Symbols,
+    expressions: Expressions,
+    control: Control,
+    first: u64,
+    count: u64,
+    input_type: u32,
+    output_type: u32
+}
+
+export type Row = {
+    hash: Sha256State,
+    expressions: Expressions,
+    payload: u64
+}
+
+export type Block = {
+    hash: Sha256State,
+    control: Control,
+    first: u64,
+    count: u64
+}
+
+export type Optional = {
+    hash: Sha256State,
+    value?: u32
+}
+
+export type Optionals = {
+    hash: Sha256State,
+    values: u32?[],
+    first: u64,
+    count: u64
+}
+
+export type Booleans = {
+    hash: Sha256State,
+    values: bool[],
+    first: u64,
+    count: u64
+}
+
+export type Value = {
+    hash: Sha256State,
+    expressions: Expressions,
+    payload: u64,
+    kind: ExpressionKind
+}

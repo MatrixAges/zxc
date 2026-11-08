@@ -1,0 +1,25 @@
+import { TransformKind } from "core/expression_table/kinds"
+
+import {
+    transform_map,
+    transform_filter,
+    transform_reduce,
+    transform_every,
+    transform_some,
+    transform_sort
+} from "./const"
+
+export type Input = TransformKind
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    return match in {
+        TransformKind.Map => transform_map,
+        TransformKind.Filter => transform_filter,
+        TransformKind.Reduce => transform_reduce,
+        TransformKind.Every => transform_every,
+        TransformKind.Some => transform_some,
+        _ => transform_sort
+    }
+}

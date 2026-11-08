@@ -1,0 +1,25 @@
+import crypto from "std:crypto"
+
+import expression from "./expression"
+
+import type { Input } from "./model"
+
+export type Output = void
+
+export default function (in: Input): Output {
+    crypto.updateSha256U64Le(in.hash, in.expressions.kinds.length)
+
+    const result = loop({
+        index: 0
+    }, {
+        while: state => state.index < in.expressions.kinds.length,
+        next: state => {
+            expression({
+                content: in,
+                index: state.index
+            })
+
+            state.index += 1
+        }
+    })
+}

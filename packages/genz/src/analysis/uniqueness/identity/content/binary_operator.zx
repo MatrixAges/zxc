@@ -1,0 +1,41 @@
+import { BinaryOperator } from "core/expression_table/kinds"
+
+import {
+    binary_coalesce,
+    binary_add,
+    binary_subtract,
+    binary_multiply,
+    binary_divide,
+    binary_remainder,
+    binary_equal,
+    binary_not_equal,
+    binary_less,
+    binary_less_equal,
+    binary_greater,
+    binary_greater_equal,
+    binary_logical_and,
+    binary_logical_or
+} from "./const"
+
+export type Input = BinaryOperator
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    return match in {
+        BinaryOperator.Coalesce => binary_coalesce,
+        BinaryOperator.Add => binary_add,
+        BinaryOperator.Subtract => binary_subtract,
+        BinaryOperator.Multiply => binary_multiply,
+        BinaryOperator.Divide => binary_divide,
+        BinaryOperator.Remainder => binary_remainder,
+        BinaryOperator.Equal => binary_equal,
+        BinaryOperator.NotEqual => binary_not_equal,
+        BinaryOperator.Less => binary_less,
+        BinaryOperator.LessEqual => binary_less_equal,
+        BinaryOperator.Greater => binary_greater,
+        BinaryOperator.GreaterEqual => binary_greater_equal,
+        BinaryOperator.LogicalAnd => binary_logical_and,
+        _ => binary_logical_or
+    }
+}
