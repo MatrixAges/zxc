@@ -1,0 +1,45 @@
+import { scalar_string } from "core/type_table/const"
+
+import binary from "../../../ast/context/binary"
+import primitive from "../../../ast/context/primitive"
+import standard from "../../../ast/context/standard"
+import {
+    ExpressionsBinaryOperator,
+    ExpressionsPrimitive
+} from "../../../printer/model/expressions"
+import { memory_name, less_name } from "../const"
+
+import type { Node as Output } from "../../../ast/context/model"
+import type { State as Input } from "./model"
+
+export default function (in: Input): Output {
+    if (in.source.naming.scalar == scalar_string) {
+        const byte = primitive({
+            state: in.context,
+            value: ExpressionsPrimitive.U8
+        })
+
+        return standard({
+            state: byte.state,
+            path: [
+                memory_name,
+                less_name
+            ],
+            arguments: [
+                byte.id,
+                in.left,
+                in.right
+            ],
+            fallible: false
+        })
+    }
+
+    return binary({
+        ...in.pick([
+            "left",
+            "right"
+        ]),
+        state: in.context,
+        operator: ExpressionsBinaryOperator.Less
+    })
+}

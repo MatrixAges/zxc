@@ -1,0 +1,95 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import result from "../../../ast/body/result"
+import primitive from "../../../ast/context/primitive"
+import declaration from "../../../ast/declarations/function"
+import { ExpressionsPrimitive } from "../../../printer/model/expressions"
+import { context_name, left_name, right_name } from "../const"
+import name from "../name"
+
+import type { Node } from "../../../ast/context/model"
+import type { Input as Declaration } from "../../../ast/declarations/function"
+import type { State, Output } from "./model"
+
+export type Input = {
+    state: State,
+    value: Node
+}
+
+export default function (in: Input): Output {
+    const body = result({
+        state: {
+            context: in.value.state,
+            body: in.state.body
+        },
+        value: in.value.id
+    })
+
+    const context = primitive({
+        state: body.context,
+        value: ExpressionsPrimitive.Void
+    })
+
+    const boolean = primitive({
+        state: context.state,
+        value: ExpressionsPrimitive.Bool
+    })
+
+    const first = integers.widen(in.state.source.statement_base) +
+        boolean.state.statements.tags.length
+
+    const parameters = [
+        bytes.fromText(context_name),
+        bytes.fromText(left_name),
+        bytes.fromText(right_name)
+    ]
+
+    const description: Declaration = {
+        base: 0,
+        name: name(in.state.source.naming),
+        parameters_start: 0,
+        parameters_count: integers.narrow(parameters.length),
+        return_type: boolean.id,
+        body_start: integers.narrow(first),
+        body_count: integers.narrow(body.body.tags.length),
+        exported: false,
+        abi_export: false,
+        inlined: false
+    }
+
+    const built = declaration(description)
+
+    return {
+        ...boolean.state.pick([
+            "expressions",
+            "forms"
+        ]),
+        statements: {
+            ...boolean.state.statements,
+            tags: boolean.state.statements.tags.concat(body.body.tags)[0],
+            offsets: boolean.state.statements.offsets.concat(body.body.offsets)[0]
+        },
+        discard: in.state.discard,
+        fields: {
+            name: parameters,
+            value: [
+                context.id,
+                in.state.source.type_expr,
+                in.state.source.type_expr
+            ],
+            default_value: [
+                null,
+                null,
+                null
+            ],
+            comptime_parameter: [
+                false,
+                false,
+                false
+            ]
+        },
+        declaration: built.table,
+        valid: boolean.state.valid && built.valid
+    }
+}

@@ -1,0 +1,15 @@
+<Module>
+    <Type from="model" as="Ordering" />
+
+    <Args in={Ordering.State} out={Ordering.State} />
+
+    <If on={$in.floating}>
+        <Call fn="guards" in={$in} />
+
+        <Return value={$ctx.guards} />
+
+        <Else>
+            <Return value={$in} />
+        </Else>
+    </If>
+</Module>

@@ -1,0 +1,64 @@
+import branch from "../../../ast/body/branch"
+import result from "../../../ast/body/result"
+import boolean from "../../../ast/context/boolean"
+import standard from "../../../ast/context/standard"
+import { math_name, is_nan_name } from "../const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return loop({
+        state: in,
+        second: false,
+        done: false
+    }, {
+        while: current => !current.done && current.state.context.valid,
+        next: current => {
+            const value = current.second ? in.right : in.left
+
+            const check = standard({
+                state: current.state.context,
+                path: [
+                    math_name,
+                    is_nan_name
+                ],
+                arguments: [value],
+                fallible: false
+            })
+
+            const answer = boolean({
+                state: check.state,
+                value: current.second
+            })
+
+            const yes = result({
+                state: {
+                    context: answer.state,
+                    body: {
+                        tags: [],
+                        offsets: []
+                    }
+                },
+                value: answer.id
+            })
+
+            const guarded = branch({
+                state: {
+                    context: yes.context,
+                    body: current.state.body
+                },
+                condition: check.id,
+                yes: yes.body
+            })
+
+            current.state = {
+                ...current.state,
+                context: guarded.context,
+                body: guarded.body
+            }
+            current.done = current.second
+            current.second = true
+        },
+        return: current => current.state
+    })
+}

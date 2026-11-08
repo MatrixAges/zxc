@@ -1,0 +1,21 @@
+<Module>
+    <Type from="model" as="Ordering" />
+
+    <Args in={Ordering.Input} out={Ordering.Output} />
+
+    <Call fn="initialize" in={$in} />
+
+    <Call module="guard" in={$ctx.initialize} />
+
+    <Call fn="compare" in={$ctx.guard} />
+
+    <Call
+        fn="finish"
+        in={{
+            state: $ctx.guard,
+            value: $ctx.compare
+        }}
+    />
+
+    <Return value={$ctx.finish} />
+</Module>

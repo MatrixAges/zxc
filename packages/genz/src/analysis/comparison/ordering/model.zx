@@ -1,0 +1,35 @@
+import type { Body } from "../../../ast/body/model"
+import type { State as Context } from "../../../ast/context/model"
+import type { Columns as Declaration } from "../../../ast/declarations/function"
+import type { Columns as Forms } from "../../../ast/expressions/forms/model"
+import type { Columns as Expressions } from "../../../ast/expressions/model"
+import type { Columns as Fields } from "../../../ast/fields/model"
+import type { Columns as Statements } from "../../../ast/statements/model"
+import type { Input as Naming } from "../name"
+
+export type Input = {
+    naming: Naming,
+    type_expr: u32,
+    expression_base: u32,
+    statement_base: u32
+}
+
+export type State = {
+    source: Input,
+    context: Context,
+    body: Body,
+    left: u32,
+    right: u32,
+    discard: u32[],
+    floating: bool
+}
+
+export type Output = {
+    expressions: Expressions,
+    forms: Forms,
+    statements: Statements,
+    discard: u32[],
+    fields: Fields,
+    declaration: Declaration,
+    valid: bool
+}

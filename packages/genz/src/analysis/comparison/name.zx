@@ -1,0 +1,67 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+import {
+    type_name_void,
+    type_name_bool,
+    type_name_u8,
+    type_name_u16,
+    type_name_u32,
+    type_name_u64,
+    type_name_i32,
+    type_name_i64,
+    type_name_f32,
+    type_name_f64,
+    type_name_string
+} from "core/const"
+import {
+    scalar_void,
+    scalar_bool,
+    scalar_u8,
+    scalar_u16,
+    scalar_u32,
+    scalar_u64,
+    scalar_i32,
+    scalar_i64,
+    scalar_f32,
+    scalar_f64,
+    scalar_string
+} from "core/type_table/const"
+
+import integer from "../../printer/text/integer"
+import { comparison_prefix } from "./const"
+
+export type Input = {
+    type_id: u32,
+    scalar: u32,
+    named: bool
+}
+
+export type Output = u8[]
+
+export default function (in: Input): Output {
+    const prefix = bytes.fromText(comparison_prefix)
+
+    if (!in.named) {
+        return integer({
+            output: prefix,
+            value: integers.widen(in.type_id)
+        })
+    }
+
+    const scalar = match in.scalar {
+        scalar_void => type_name_void,
+        scalar_bool => type_name_bool,
+        scalar_u8 => type_name_u8,
+        scalar_u16 => type_name_u16,
+        scalar_u32 => type_name_u32,
+        scalar_u64 => type_name_u64,
+        scalar_i32 => type_name_i32,
+        scalar_i64 => type_name_i64,
+        scalar_f32 => type_name_f32,
+        scalar_f64 => type_name_f64,
+        scalar_string => type_name_string,
+        _ => type_name_void
+    }
+
+    return prefix.concat(bytes.fromText(scalar))[0]
+}
