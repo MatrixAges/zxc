@@ -76,6 +76,8 @@ fn isPure(program: ir.Program, function: ir.Function, before: []const bool) bool
 }
 
 pub fn sharesAggregate(program: ir.Program, input: ir.TypeId, output: ir.TypeId) bool {
+    if (@import("genz_options").generated_analysis) return @import("relations.zig").shared(program, input, output);
+
     const value = program.typeOf(input);
 
     if ((value == .object or value == .tuple) and contains(program, output, input)) return true;
@@ -97,6 +99,8 @@ pub fn sharesAggregate(program: ir.Program, input: ir.TypeId, output: ir.TypeId)
 }
 
 pub fn containsDescendant(program: ir.Program, parent: ir.TypeId, root: ir.TypeId) bool {
+    if (@import("genz_options").generated_analysis) return @import("relations.zig").descendant(program, parent, root);
+
     return switch (program.typeOf(parent)) {
         .optional, .list => |child| contains(program, child, root),
         .tuple => |children| blk: {

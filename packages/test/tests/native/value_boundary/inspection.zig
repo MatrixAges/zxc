@@ -15,6 +15,7 @@ pub fn check(allocator: std.mem.Allocator, program: compiler.ir.Program, case: C
     defer allocator.free(summary.state.borrowed);
     defer allocator.free(summary.state.keys);
     defer allocator.free(summary.state.queries);
+    defer allocator.free(summary.state.element_storage);
 
     var native_count: usize = 0;
     var ordinary_count: usize = 0;

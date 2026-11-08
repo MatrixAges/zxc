@@ -1,68 +1,45 @@
 import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
 
-import children from "./children"
+import contains from "./contains"
 
-import type { Table } from "core/type_table/model"
-
-export type Input = {
-    types: Table,
-    parent: u32,
-    root: u32
-}
+import type { Input } from "./contains"
 
 export type Output = bool
 
 export default function (in: Input): Output {
-    const direct = children({
-        types: in.types,
-        id: in.parent,
-        deep: false
-    })
+    const index = integers.widen(in.parent)
+    const target = kind(in.types.kinds[index])
 
-    const stack =
-        match {
-            in.types.kinds[integers.widen(in.parent)] ==
-                3 => direct.push(
-                    in.types.first[integers.widen(
-                        in.parent
-                    )]
-                )[0],
-            _ => direct
-        }
+    if (target == Kind.Optional || target == Kind.List) {
+        return contains({
+            ...in,
+            parent: in.types.first[index]
+        })
+    }
+
+    if (target != Kind.Object && target != Kind.Tuple) {
+        return false
+    }
+
+    const first = integers.widen(in.types.first[index])
+    const count = integers.widen(in.types.second[index])
+    const items = target == Kind.Object ? in.types.field_types : in.types.children
 
     return loop({
-        types: in.types,
-        root: in.root,
-        stack,
+        index: 0,
         found: false
     }, {
-        while: current => !current.found && current.stack.length != 0,
-        next: current => {
-            const id = current.stack[current.stack.length - 1]
+        while: state => !state.found && state.index < count,
+        next: state => {
+            const parent = items[first + state.index]
 
-            current.stack = current.stack.pop()[0]
-
-            if (id == current.root) {
-                current.found = true
-            } else {
-                const kind = current.types.kinds[integers.widen(id)]
-                const nested = children({
-                    types: current.types,
-                    id,
-                    deep: false
-                })
-
-                current.stack = current.stack.concat(nested)[0]
-
-                if (kind == 3) {
-                    current.stack =
-                        current.stack.push(
-                            current.types.first[integers.widen(
-                                id
-                            )]
-                        )[0]
-                }
-            }
+            state.found = contains({
+                ...in,
+                parent
+            })
+            state.index += 1
         },
         return: state => state.found
     })
