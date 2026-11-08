@@ -1,0 +1,36 @@
+import fresh from "../../../ast/fresh"
+import { allocator_prefix, type_prefix, input_prefix } from "./const"
+import { worker_prefix, thread_prefix } from "./const"
+
+export enum Kind {
+    Allocator,
+    Type,
+    Input,
+    Worker,
+    Thread
+}
+
+export type Input = {
+    serial: u64,
+    kind: Kind
+}
+
+export type Output = {
+    serial: u64,
+    name: u8[]
+}
+
+export default function (in: Input): Output {
+    const prefix = match in.kind {
+        Kind.Allocator => allocator_prefix,
+        Kind.Type => type_prefix,
+        Kind.Input => input_prefix,
+        Kind.Worker => worker_prefix,
+        _ => thread_prefix
+    }
+
+    return fresh({
+        serial: in.serial,
+        prefix
+    })
+}

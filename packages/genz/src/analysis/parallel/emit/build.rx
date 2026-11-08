@@ -1,0 +1,15 @@
+<Module>
+    <Type from="model" as="Parallel" />
+
+    <Args in={Parallel.Input} out={Parallel.Output} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="spawn" in={$ctx.initialize} />
+    <Call fn="shared" in={$ctx.spawn} />
+    <Call fn="workers" in={$ctx.shared} />
+    <Call fn="scope" in={$ctx.workers} />
+    <Call fn="results" in={$ctx.scope} />
+    <Call fn="finish" in={$ctx.results} />
+
+    <Return value={$ctx.finish} />
+</Module>

@@ -1,0 +1,18 @@
+import initialize from "../../../ast/context/initialize"
+import emptyFields from "../../../ast/fields/empty"
+
+import type { Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        source: in,
+        context: initialize(in.bases),
+        fields: emptyFields({}),
+        extra: {
+            discard: [],
+            scope_start: [],
+            scope_len: []
+        },
+        inner_count: 0
+    }
+}

@@ -1,0 +1,27 @@
+import integers from "std:integer"
+
+import spawnItem from "./spawn_item"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const state = loop({
+        state: in,
+        index: 0
+    }, {
+        while: current => current.index < in.source.records.length,
+        next: current => {
+            current.state = spawnItem({
+                state: current.state,
+                record: in.source.records[current.index]
+            })
+            current.index += 1
+        },
+        return: current => current.state
+    })
+
+    return {
+        ...state,
+        inner_count: integers.narrow(state.context.statements.tags.length)
+    }
+}

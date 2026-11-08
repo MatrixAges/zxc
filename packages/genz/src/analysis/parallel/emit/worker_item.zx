@@ -1,0 +1,71 @@
+import bytes from "std:bytes"
+
+import binding from "../../../ast/context/binding"
+import identifier from "../../../ast/context/identifier"
+import undefinedValue from "../../../ast/context/undefined"
+import variable from "../../../ast/context/variable"
+import { allocator_name } from "../../construction/const"
+import allocatorCall from "../../functions/prelude/allocator_call"
+import { input_name, result_name } from "../worker/const"
+import object from "./object"
+
+import type { Item as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const input = binding({
+        state: in.state.context,
+        name: in.record.input_name,
+        value: in.record.argument
+    })
+
+    const type_binding = binding({
+        state: input,
+        name: in.record.type_name,
+        value: in.record.worker_type
+    })
+
+    const allocator = allocatorCall({
+        state: type_binding,
+        owner: in.state.source.shared
+    })
+
+    const value = identifier({
+        state: allocator.state,
+        name: in.record.input_name
+    })
+
+    const result = undefinedValue(value.state)
+
+    const type_node = identifier({
+        state: result.state,
+        name: in.record.type_name
+    })
+
+    const worker = object({
+        state: {
+            ...in.state,
+            context: type_node.state
+        },
+        type_expr: type_node.id,
+        names: [
+            bytes.fromText(allocator_name),
+            bytes.fromText(input_name),
+            bytes.fromText(result_name)
+        ],
+        values: [
+            allocator.id,
+            value.id,
+            result.id
+        ]
+    })
+
+    return {
+        ...worker.state,
+        context: variable({
+            state: worker.state.context,
+            name: in.record.worker_name,
+            type_expr: null,
+            value: worker.id
+        })
+    }
+}

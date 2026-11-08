@@ -1,0 +1,20 @@
+import result from "./result_item"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return loop({
+        state: in,
+        index: 0
+    }, {
+        while: current => current.index < in.source.records.length,
+        next: current => {
+            current.state = result({
+                state: current.state,
+                record: in.source.records[current.index]
+            })
+            current.index += 1
+        },
+        return: current => current.state
+    })
+}

@@ -1,59 +1,99 @@
 const std = @import("std");
-const ir = @import("zx").ir;
+const zx = @import("zx");
+const ir = zx.ir;
 const node = @import("../../node.zig");
+const view = @import("../../node/view.zig");
 const Lower = @import("../lower.zig");
-const standardField = @import("../intrinsics.zig").standardField;
 
 pub fn lower(self: *Lower, invocations: @FieldType(ir.StatementRow, "parallel")) Lower.Error![]const node.Statement {
+    if (!@import("genz_options").generated_analysis) return @import("root_seed.zig").lower(self, invocations);
+
     self.uses_parallel = true;
     self.uses_allocator = true;
 
-    var output: std.ArrayList(node.Statement) = .empty;
-    var spawning: std.ArrayList(node.Statement) = .empty;
-    const workers = try self.allocator.alloc([]const u8, invocations.len);
-    const shared = try self.fresh("parallel_allocator");
+    const entry = @import("generated_parallel_emit");
+    const Input = std.meta.Child(entry.Input);
+    const RecordRef = std.meta.Child(@FieldType(Input, "records"));
+    const Record = if (@typeInfo(RecordRef) == .pointer) std.meta.Child(RecordRef) else RecordRef;
+    var scratch = std.heap.ArenaAllocator.init(self.workspace);
+    var buffer: [std.heap.page_size_min]u8 = undefined;
+    var memory = std.heap.BufferFirstAllocator.init(&buffer, scratch.allocator());
 
-    try output.append(self.allocator, .{ .variable = .{ .name = shared, .value = try self.builder.expression(.{ .object = .{ .type_expr = try self.builder.identifier("zx_parallel_allocator"), .fields = try self.allocator.dupe(node.Field, &.{.{ .name = "child", .value = try self.builder.identifier("allocator") }}) } }) } });
+    defer scratch.deinit();
 
-    for (0..invocations.len, workers) |invocation_index, *worker| {
-        const invocation = invocations.at(invocation_index);
+    const references = try memory.allocator().alloc(RecordRef, invocations.len);
+    const records = if (@typeInfo(RecordRef) == .pointer) try memory.allocator().alloc(Record, invocations.len) else references;
+    const shared = try fresh(self, .Allocator);
+
+    for (0..invocations.len) |index| {
+        const invocation = invocations.at(index);
         const call = self.program.expression(invocation.value).value.call;
-        const type_name = try self.fresh("ParallelWorker");
-        const input_name = try self.fresh("parallel_input");
-        worker.* = try self.fresh("parallel_worker");
+        const type_name = try fresh(self, .Type);
+        const input_name = try fresh(self, .Input);
+        const worker_name = try fresh(self, .Worker);
+        const argument = try self.expr(call.argument);
+        const worker_type = try @import("worker.zig").lower(self, call.function);
+        const thread_name = try fresh(self, .Thread);
 
-        try output.append(self.allocator, .{ .constant = .{ .name = input_name, .value = try self.expr(call.argument) } });
-        try output.append(self.allocator, .{ .constant = .{ .name = type_name, .value = try workerType(self, call.function) } });
+        records[index] = .{
+            .argument = @backingInt(argument),
+            .worker_type = @backingInt(worker_type),
+            .type_name = type_name,
+            .input_name = input_name,
+            .worker_name = worker_name,
+            .thread_name = thread_name,
+            .symbol = if (invocation.symbol) |id| @backingInt(id) else null,
+        };
 
-        const fields = try self.allocator.dupe(node.Field, &.{
-            .{ .name = "allocator", .value = try self.call(try self.field(try self.builder.identifier(shared), "allocator"), &.{}, false) },
-            .{ .name = "input", .value = try self.builder.identifier(input_name) },
-            .{ .name = "result", .value = try self.builder.expression(.undefined_value) },
-        });
-
-        try output.append(self.allocator, .{ .variable = .{ .name = worker.*, .value = try self.builder.expression(.{ .object = .{ .type_expr = try self.builder.identifier(type_name), .fields = fields } }) } });
-
-        const thread = try self.fresh("parallel_thread");
-        const arguments = try self.builder.expression(.{ .tuple = try self.allocator.dupe(node.ExpressionId, &.{try self.builder.expression(.{ .address_of = try self.builder.identifier(worker.*) })}) });
-        const spawn = try self.call(try standardField(self, &.{ "Thread", "spawn" }), &.{ try self.builder.expression(.{ .object = .{ .fields = &.{} } }), try self.field(try self.builder.identifier(type_name), "run"), arguments }, true);
-
-        try spawning.append(self.allocator, .{ .constant = .{ .name = thread, .value = spawn } });
-        try spawning.append(self.allocator, .{ .defer_expression = try self.call(try self.field(try self.builder.identifier(thread), "join"), &.{}, false) });
+        if (comptime @typeInfo(RecordRef) == .pointer) references[index] = &records[index];
     }
 
-    try output.append(self.allocator, .{ .scope = try self.builder.statements(spawning.items) });
+    const bases: std.meta.Child(@FieldType(Input, "bases")) = .{
+        .capture = if (self.capture) |capture| &.{ .name = capture.name, .label = capture.label, .failure = @backingInt(capture.failure) } else null,
+        .expression_base = @intCast(self.builder.nodes.expressions.tags.items.len),
+        .statement_base = @intCast(self.builder.nodes.statements.tags.items.len),
+        .field_base = @intCast(self.builder.nodes.field_columns.count()),
+        .serial = self.serial,
+    };
 
-    for (0..invocations.len, workers) |invocation_index, worker| {
-        const invocation = invocations.at(invocation_index);
-        const value = try self.builder.expression(.{ .try_value = try self.field(try self.builder.identifier(worker), "result") });
-        const name = if (invocation.symbol) |symbol| if (self.used[@backingInt(symbol)]) self.names[@backingInt(symbol)] else null else null;
+    const input: Input = .{ .shared = shared, .records = references, .used = self.used, .names = self.names, .bases = &bases };
+    const result = entry.executeIn(memory.allocator(), &input) catch |err| return failure(err);
 
-        try output.append(self.allocator, if (name) |used| .{ .constant = .{ .name = used, .value = value } } else .{ .discard = value });
-    }
+    if (!result.valid) return error.OutOfMemory;
+
+    const expressions = view.join(result.expressions.*, result.forms.*);
+    const statements = view.join(view.join(result.statements.*, result.variables.*), result.extra.*);
+    @import("../../node/import_rows.zig").appendBorrowingText(self.allocator, &self.builder.nodes.expressions, &expressions) catch |err| return failure(err);
+    _ = @import("../../node/import_fields.zig").appendBorrowingText(self.allocator, &self.builder.nodes.field_columns, result.fields) catch |err| return failure(err);
+
+    var children = statements;
+    children.tags = statements.tags[0..result.inner_count];
+    children.offsets = statements.offsets[0..result.inner_count];
+    @import("../../node/import_selected.zig").append(self.allocator, &self.builder.nodes.statements, &children) catch |err| return failure(err);
+
+    var outer = statements;
+
+    outer.tags = statements.tags[result.inner_count..];
+    outer.offsets = statements.offsets[result.inner_count..];
+    var output: std.ArrayList(node.Statement) = .empty;
+    @import("../../node/import_statements.zig").appendSelectedBorrowingText(self.allocator, &output, &outer) catch |err| return failure(err);
 
     return output.toOwnedSlice(self.allocator);
 }
 
-fn workerType(self: *Lower, id: ir.FunctionId) Lower.Error!node.ExpressionId {
-    return @import("worker.zig").lower(self, id);
+fn fresh(self: *Lower, kind: anytype) Lower.Error![]const u8 {
+    const entry = @import("generated_parallel_label");
+    const input: std.meta.Child(entry.Input) = .{ .serial = self.serial, .kind = kind };
+    const output = zx.columns.invoke(entry.executeValue, self.allocator, &input) catch |err| return failure(err);
+
+    self.serial = @intCast(output.serial);
+
+    return output.name;
+}
+
+fn failure(err: anyerror) Lower.Error {
+    return switch (err) {
+        error.OutOfMemory, error.IntegerOverflow, error.Overflow => error.OutOfMemory,
+        else => unreachable,
+    };
 }

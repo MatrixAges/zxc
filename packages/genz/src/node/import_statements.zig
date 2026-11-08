@@ -34,7 +34,7 @@ fn appendRows(allocator: std.mem.Allocator, target: *std.ArrayList(node.Statemen
     if (count > std.math.maxInt(u32) - target.items.len) return error.OutOfMemory;
 
     for (source.tags) |item| switch (@as(Tag, @fromBackingInt(@backingInt(item)))) {
-        .constant, .variable, .assignment, .break_value, .errdefer_expression, .defer_expression, .branch, .expression, .discard, .result => {},
+        .constant, .variable, .assignment, .break_value, .errdefer_expression, .defer_expression, .branch, .expression, .discard, .result, .scope => {},
         else => return error.InvalidAst,
     };
 
@@ -93,6 +93,10 @@ fn appendRows(allocator: std.mem.Allocator, target: *std.ArrayList(node.Statemen
             .assignment => if (comptime @hasField(std.meta.Child(@TypeOf(source)), "assignment_target")) .{ .assignment = .{
                 .target = @fromBackingInt(source.assignment_target[offset]),
                 .value = @fromBackingInt(source.assignment_value[offset]),
+            } } else return error.InvalidAst,
+            .scope => if (comptime @hasField(std.meta.Child(@TypeOf(source)), "scope_start")) .{ .scope = .{
+                .start = source.scope_start[offset],
+                .len = source.scope_len[offset],
             } } else return error.InvalidAst,
             .break_value => if (comptime @hasField(std.meta.Child(@TypeOf(source)), "break_value_label")) .{ .break_value = .{
                 .label = if (comptime borrow_text) source.break_value_label[offset] else try allocator.dupe(u8, source.break_value_label[offset]),

@@ -1,0 +1,20 @@
+import bytes from "std:bytes"
+
+import constants from "../../../ast/declarations/constants"
+import { allocator_type_name } from "./const"
+
+import type { Columns as Output } from "../../../ast/declarations/model"
+
+export type Input = u32
+
+export default function (in: Input): Output {
+    return constants({
+        base: 0,
+        values: [{
+            name: bytes.fromText(allocator_type_name),
+            type_expr: null,
+            value: in,
+            exported: false
+        }]
+    }).table
+}

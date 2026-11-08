@@ -1,0 +1,79 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import binding from "../../../ast/context/binding"
+import field from "../../../ast/context/field"
+import identifier from "../../../ast/context/identifier"
+import wrapped from "../../../ast/expressions/wrapper"
+import header from "../../../ast/statements/header"
+import { ExpressionsKind } from "../../../printer/model/expressions"
+import { StatementsKind } from "../../../printer/model/statements"
+import { result_name } from "../worker/const"
+
+import type { Item as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const worker = identifier({
+        state: in.state.context,
+        name: in.record.worker_name
+    })
+
+    const result = field({
+        state: worker.state,
+        target: worker.id,
+        name: bytes.fromText(result_name)
+    })
+
+    const value = wrapped({
+        table: result.state.expressions,
+        base: in.state.source.bases.expression_base,
+        kind: ExpressionsKind.TryValue,
+        value: result.id
+    })
+
+    const context = {
+        ...result.state,
+        expressions: value.table,
+        valid: result.state.valid && value.valid
+    }
+
+    const symbol = in.record.symbol
+
+    if (symbol != null && in.state.source.used[integers.widen(symbol)]) {
+        return {
+            ...in.state,
+            context: binding({
+                state: context,
+                name: in.state.source.names[integers.widen(symbol)],
+                value: value.id
+            })
+        }
+    }
+
+    const discarded = header({
+        ...context.statements.pick([
+            "tags",
+            "offsets"
+        ]),
+        base: in.state.source.bases.statement_base,
+        kind: StatementsKind.Discard,
+        offset: in.state.extra.discard.length
+    })
+
+    return {
+        ...in.state,
+        context: {
+            ...context,
+            statements: {
+                ...context.statements,
+                tags: discarded.tags,
+                offsets: discarded.offsets
+            },
+            valid: context.valid && discarded.valid
+        },
+        extra: {
+            ...in.state.extra,
+            discard: in.state.extra.discard.push(value.id)[0]
+        }
+    }
+}

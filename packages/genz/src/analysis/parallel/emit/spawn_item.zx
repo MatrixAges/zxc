@@ -1,0 +1,96 @@
+import bytes from "std:bytes"
+
+import address from "../../../ast/context/address"
+import binding from "../../../ast/context/binding"
+import call from "../../../ast/context/call"
+import deferExpression from "../../../ast/context/defer_expression"
+import emptyObject from "../../../ast/context/empty_object"
+import field from "../../../ast/context/field"
+import identifier from "../../../ast/context/identifier"
+import standardField from "../../../ast/context/standard_field"
+import tuple from "../../../ast/context/tuple"
+import { run_name } from "../worker/const"
+import { thread_type_name, spawn_name, join_name } from "./const"
+
+import type { Item as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const worker = identifier({
+        state: in.state.context,
+        name: in.record.worker_name
+    })
+
+    const pointer = address({
+        state: worker.state,
+        value: worker.id
+    })
+
+    const arguments = tuple({
+        state: pointer.state,
+        values: [pointer.id]
+    })
+
+    const callee = standardField({
+        state: arguments.state,
+        path: [
+            thread_type_name,
+            spawn_name
+        ]
+    })
+
+    const options = emptyObject(callee.state)
+
+    const type_node = identifier({
+        state: options.state,
+        name: in.record.type_name
+    })
+
+    const run = field({
+        state: type_node.state,
+        target: type_node.id,
+        name: bytes.fromText(run_name)
+    })
+
+    const spawn = call({
+        state: run.state,
+        callee: callee.id,
+        arguments: [
+            options.id,
+            run.id,
+            arguments.id
+        ],
+        fallible: true
+    })
+
+    const bound = binding({
+        state: spawn.state,
+        name: in.record.thread_name,
+        value: spawn.id
+    })
+
+    const thread = identifier({
+        state: bound,
+        name: in.record.thread_name
+    })
+
+    const join = field({
+        state: thread.state,
+        target: thread.id,
+        name: bytes.fromText(join_name)
+    })
+
+    const joined = call({
+        state: join.state,
+        callee: join.id,
+        arguments: [],
+        fallible: false
+    })
+
+    return {
+        ...in.state,
+        context: deferExpression({
+            state: joined.state,
+            value: joined.id
+        })
+    }
+}

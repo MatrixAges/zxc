@@ -1,0 +1,35 @@
+import header from "../../../ast/statements/header"
+import { StatementsKind } from "../../../printer/model/statements"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const value = header({
+        ...in.context.statements.pick([
+            "tags",
+            "offsets"
+        ]),
+        base: in.source.bases.statement_base,
+        kind: StatementsKind.Scope,
+        offset: in.extra.scope_start.length
+    })
+
+    return {
+        ...in,
+        context: {
+            ...in.context,
+            statements: {
+                ...in.context.statements,
+                tags: value.tags,
+                offsets: value.offsets
+            },
+            valid: in.context.valid && value.valid
+        },
+        extra: {
+            ...in.extra,
+            scope_start:
+                in.extra.scope_start.push(in.source.bases.statement_base)[0],
+            scope_len: in.extra.scope_len.push(in.inner_count)[0]
+        }
+    }
+}

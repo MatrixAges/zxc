@@ -1,0 +1,42 @@
+import bytes from "std:bytes"
+
+import identifier from "../../../ast/context/identifier"
+import variable from "../../../ast/context/variable"
+import { allocator_name } from "../../construction/const"
+import { child_name } from "../../functions/prelude/const"
+import { allocator_type_name } from "./const"
+import object from "./object"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const type_node = identifier({
+        state: in.context,
+        name: bytes.fromText(allocator_type_name)
+    })
+
+    const allocator = identifier({
+        state: type_node.state,
+        name: bytes.fromText(allocator_name)
+    })
+
+    const value = object({
+        state: {
+            ...in,
+            context: allocator.state
+        },
+        type_expr: type_node.id,
+        names: [bytes.fromText(child_name)],
+        values: [allocator.id]
+    })
+
+    return {
+        ...value.state,
+        context: variable({
+            state: value.state.context,
+            name: in.source.shared,
+            type_expr: null,
+            value: value.id
+        })
+    }
+}

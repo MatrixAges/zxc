@@ -1,0 +1,59 @@
+import type { Input as Bases, State as Context } from "../../../ast/context/model"
+import type { Variables } from "../../../ast/context/model"
+import type { Columns as Forms } from "../../../ast/expressions/forms/model"
+import type { Columns as Expressions } from "../../../ast/expressions/model"
+import type { Columns as Fields } from "../../../ast/fields/model"
+import type { Columns as Statements } from "../../../ast/statements/model"
+
+export type Record = {
+    argument: u32,
+    worker_type: u32,
+    type_name: u8[],
+    input_name: u8[],
+    worker_name: u8[],
+    thread_name: u8[],
+    symbol?: u32
+}
+
+export type Input = {
+    shared: u8[],
+    records: Record[],
+    used: bool[],
+    names: u8[][],
+    bases: Bases
+}
+
+export type Extra = {
+    discard: u32[],
+    scope_start: u32[],
+    scope_len: u32[]
+}
+
+export type State = {
+    source: Input,
+    context: Context,
+    fields: Fields,
+    extra: Extra,
+    inner_count: u32
+}
+
+export type Node = {
+    state: State,
+    id: u32
+}
+
+export type Item = {
+    state: State,
+    record: Record
+}
+
+export type Output = {
+    expressions: Expressions,
+    forms: Forms,
+    statements: Statements,
+    variables: Variables,
+    extra: Extra,
+    fields: Fields,
+    inner_count: u32,
+    valid: bool
+}
