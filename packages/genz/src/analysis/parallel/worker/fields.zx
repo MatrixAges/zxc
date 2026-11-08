@@ -1,0 +1,82 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import initialize from "../../../ast/context/initialize"
+import standardField from "../../../ast/context/standard_field"
+import emptyFunctions from "../../../ast/declarations/empty_functions"
+import errorUnion from "../../../ast/expressions/error_union"
+import appendValues from "../../../ast/fields/append_values"
+import emptyFields from "../../../ast/fields/empty"
+import { allocator_name } from "../../construction/const"
+import { memory_name, allocator_type_name } from "../../functions/signature/const"
+import { input_name, result_name } from "./const"
+
+import type { Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const allocator = standardField({
+        state: initialize(in.bases),
+        path: [
+            memory_name,
+            allocator_type_name
+        ]
+    })
+
+    const result = errorUnion({
+        table: {
+            ...allocator.state.expressions.pick([
+                "tags",
+                "offsets"
+            ]),
+            error_union_payload: [],
+            error_union_errors: [],
+            error_union_inferred: []
+        },
+        base: in.bases.expression_base,
+        payload: in.output_type,
+        errors: null,
+        inferred: false
+    })
+
+    const fields = appendValues({
+        table: emptyFields({}),
+        names: [
+            bytes.fromText(allocator_name),
+            bytes.fromText(input_name),
+            bytes.fromText(result_name)
+        ],
+        values: [
+            allocator.id,
+            in.input_type,
+            result.id
+        ]
+    })
+
+    return {
+        source: in,
+        context: {
+            ...allocator.state,
+            expressions: {
+                ...allocator.state.expressions,
+                ...result.table.pick([
+                    "tags",
+                    "offsets"
+                ])
+            },
+            valid: allocator.state.valid && result.valid
+        },
+        fields,
+        root_count: integers.narrow(fields.name.length),
+        declarations: emptyFunctions({}),
+        extra: {
+            ...result.table.omit([
+                "tags",
+                "offsets"
+            ]),
+            container_type_fields_start: [],
+            container_type_fields_len: [],
+            container_type_declarations_start: [],
+            container_type_declarations_len: []
+        }
+    }
+}

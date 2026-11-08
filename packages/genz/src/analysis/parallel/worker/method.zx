@@ -1,0 +1,69 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import builtin from "../../../ast/context/builtin"
+import pointer from "../../../ast/context/pointer"
+import primitive from "../../../ast/context/primitive"
+import functionDeclaration from "../../../ast/declarations/append_function"
+import appendField from "../../../ast/fields/append"
+import {
+    ExpressionsBuiltinName,
+    ExpressionsPrimitive
+} from "../../../printer/model/expressions"
+import { self_name } from "../../store/adapter/const"
+import { run_name } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const this_type = builtin({
+        state: in.context,
+        name: ExpressionsBuiltinName.This,
+        arguments: []
+    })
+
+    const self = pointer({
+        state: this_type.state,
+        value: this_type.id
+    })
+
+    const result = primitive({
+        state: self.state,
+        value: ExpressionsPrimitive.Void
+    })
+
+    const declaration = functionDeclaration({
+        table: in.declarations,
+        value: {
+            base: in.source.declaration_base,
+            name: bytes.fromText(run_name),
+            parameters_start: integers.narrow(
+                integers.widen(in.source.bases.field_base) + in.fields.name.length
+            ),
+            parameters_count: 1,
+            return_type: result.id,
+            body_start: in.source.bases.statement_base,
+            body_count: integers.narrow(in.context.statements.tags.length),
+            exported: false,
+            abi_export: false,
+            inlined: false,
+            calling_convention: null
+        }
+    })
+
+    return {
+        ...in,
+        context: {
+            ...result.state,
+            valid: result.state.valid && declaration.valid
+        },
+        fields: appendField({
+            table: in.fields,
+            name: bytes.fromText(self_name),
+            value: self.id,
+            default_value: null,
+            comptime_parameter: false
+        }),
+        declarations: declaration.table
+    }
+}

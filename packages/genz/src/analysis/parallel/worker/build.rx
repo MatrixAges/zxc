@@ -1,0 +1,12 @@
+<Module>
+    <Type from="model" as="Worker" />
+
+    <Args in={Worker.Input} out={Worker.Output} />
+
+    <Call fn="fields" in={$in} />
+    <Call fn="body" in={$ctx.fields} />
+    <Call fn="method" in={$ctx.body} />
+    <Call fn="finish" in={$ctx.method} />
+
+    <Return value={$ctx.finish} />
+</Module>

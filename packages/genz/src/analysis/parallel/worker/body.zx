@@ -1,0 +1,55 @@
+import bytes from "std:bytes"
+
+import assignment from "../../../ast/context/assignment"
+import call from "../../../ast/context/call"
+import field from "../../../ast/context/field"
+import identifier from "../../../ast/context/identifier"
+import { allocator_name } from "../../construction/const"
+import { self_name } from "../../store/adapter/const"
+import { input_name, result_name } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const self = identifier({
+        state: in.context,
+        name: bytes.fromText(self_name)
+    })
+
+    const target = field({
+        state: self.state,
+        target: self.id,
+        name: bytes.fromText(result_name)
+    })
+
+    const allocator = field({
+        state: target.state,
+        target: self.id,
+        name: bytes.fromText(allocator_name)
+    })
+
+    const input = field({
+        state: allocator.state,
+        target: self.id,
+        name: bytes.fromText(input_name)
+    })
+
+    const value = call({
+        state: input.state,
+        callee: in.source.callee,
+        arguments: [
+            allocator.id,
+            input.id
+        ],
+        fallible: false
+    })
+
+    return {
+        ...in,
+        context: assignment({
+            state: value.state,
+            target: target.id,
+            value: value.id
+        })
+    }
+}
