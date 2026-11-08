@@ -31,7 +31,7 @@ test "Store proof spread_replace_all analysis linking codec allocation failures"
 
 test "Store proof branch_borrowed analysis linking codec allocation failures" {
     try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{
-        .value = "in.count == 0 ? { count: 9, rows: [[1,2]], labels: [\"fresh\"] } : in",
+        .value = "match { in.count == 0 => { count: 9, rows: [[1,2]], labels: [\"fresh\"] }, _ => in }",
         .expected = false,
         .helper = true,
         .service = true,

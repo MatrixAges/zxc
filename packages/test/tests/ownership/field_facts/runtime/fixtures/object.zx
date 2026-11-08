@@ -12,12 +12,15 @@ export type Output = {
 export default function (in: Input): Output {
     const fresh = in.values.map(item => item + 1)[0]
 
-    const box = in.choice ? {
-        fresh,
-        view: in.values
-    } : {
-        fresh,
-        view: fresh
+    const box = match {
+        in.choice => {
+            fresh,
+            view: in.values
+        },
+        _ => {
+            fresh,
+            view: fresh
+        }
     }
 
     return {

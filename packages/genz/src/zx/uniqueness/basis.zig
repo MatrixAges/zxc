@@ -10,6 +10,8 @@ const Self = @This();
 /// bodies, so one basis serves the whole program and every entry body later analyzed against it.
 slots: Slots,
 flow: Flow,
+return_only: []const bool,
+
 /// The content of each function body, hashed when `memo` keeps analyses across programs; empty otherwise.
 contents: []const [32]u8 = &.{},
 /// The digest of the type table, taken with `contents`.
@@ -21,7 +23,7 @@ pub fn create(allocator: std.mem.Allocator, workspace: std.mem.Allocator, progra
     const contents = if (kept != null) try @import("identity.zig").contents(allocator, program) else &.{};
     const types: [32]u8 = if (kept != null) @import("identity.zig").types(program.types) else @splat(0);
 
-    return .{ .slots = slots, .flow = try .create(allocator, workspace, program, slots, built.texts, contents, types, kept), .contents = contents, .types = types };
+    return .{ .slots = slots, .flow = try .create(allocator, workspace, program, slots, built.texts, contents, types, kept), .return_only = try @import("return_only.zig").create(allocator, workspace, program), .contents = contents, .types = types };
 }
 
 pub fn lists(allocator: std.mem.Allocator, slots: Slots, type_id: ir.TypeId) std.mem.Allocator.Error![]const ir.TypeId {

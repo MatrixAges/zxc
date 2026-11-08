@@ -209,6 +209,11 @@ pub fn role(self: Self, site: Site, slot: u32) Order.Role {
 
     const callee = self.expressions.get(@fromBackingInt(site.parent)).value.call.function;
     const input: u32 = @intCast(@as(i64, slot) + site.delta);
+    const index = @backingInt(callee);
+    const result = self.nodeRoot(@fromBackingInt(site.parent));
+
+    if (self.summaries.return_only[index] and input < self.summaries.written[index].len and self.summaries.held[index].len == self.summaries.written[index].len and
+        std.mem.indexOfScalar(bool, self.summaries.written[index], true) == null and self.first[result] == self.first[result + 1]) return .observe;
 
     return if (self.summaries.mayHold(callee, input) or self.summaries.mayMutate(callee, input)) .use else .observe;
 }

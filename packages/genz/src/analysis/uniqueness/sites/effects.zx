@@ -1,23 +1,27 @@
 import integers from "std:integer"
 
 import { Role } from "../order/model"
+import borrowOnly from "./borrow_only"
 
 import type { Effects as Output } from "./model"
 
 export type Input = {
     held: bool[][],
-    written: bool[][]
+    written: bool[][],
+    return_only: bool[]
 }
 
 export default function (in: Input): Output {
     const kinds: Role[] = []
     const limits: u32[] = []
+    const borrow_only: bool[] = []
 
     const result = loop({
         held: in.held,
         written: in.written,
         kinds,
         limits,
+        borrow_only,
         index: 0
     }, {
         while: current => current.index < current.held.length,
@@ -53,12 +57,18 @@ export default function (in: Input): Output {
 
             current.kinds = current.kinds.push(kind)[0]
             current.limits = current.limits.push(integers.narrow(count))[0]
+            current.borrow_only = current.borrow_only.push(borrowOnly({
+                return_only: in.return_only[current.index],
+                held,
+                written
+            }))[0]
             current.index += 1
         }
     })
 
     return {
         kind: result.kinds,
-        limit: result.limits
+        limit: result.limits,
+        borrow_only: result.borrow_only
     }
 }

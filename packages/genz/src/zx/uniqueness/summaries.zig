@@ -15,6 +15,7 @@ inputs: [][]Level,
 outputs: [][]Level,
 held: []const []const bool,
 written: []const []const bool,
+return_only: []const bool,
 effects: if (generated_analysis) Generated.Output else void,
 storage: if (generated_analysis) @import("summaries/storage.zig").Model else void,
 pub fn create(allocator: std.mem.Allocator, program: ir.Program, basis: *const Basis) std.mem.Allocator.Error!Self {
@@ -42,12 +43,12 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program, basis: *const B
         @memset(outputs[index], .none);
     }
 
-    const effects = if (generated_analysis) Generated.executeIn(allocator, &.{ .held = basis.flow.held, .written = basis.flow.written }) catch |err| switch (err) {
+    const effects = if (generated_analysis) Generated.executeIn(allocator, &.{ .held = basis.flow.held, .written = basis.flow.written, .return_only = basis.return_only }) catch |err| switch (err) {
         error.OutOfMemory => return error.OutOfMemory,
         else => unreachable,
     } else {};
 
-    return .{ .input = input, .output = output, .inputs = inputs, .outputs = outputs, .held = basis.flow.held, .written = basis.flow.written, .effects = effects, .storage = {} };
+    return .{ .input = input, .output = output, .inputs = inputs, .outputs = outputs, .held = basis.flow.held, .written = basis.flow.written, .return_only = basis.return_only, .effects = effects, .storage = {} };
 }
 
 pub fn mayHold(self: Self, function: ir.FunctionId, slot: u32) bool {

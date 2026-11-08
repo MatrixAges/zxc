@@ -101,7 +101,7 @@ test "Store proof direct deep_both" {
 
 test "Store proof direct branch_fresh" {
     try h.run(.{
-        .value = "in.count == 0 ? { count: 9, rows: [[1,2]], labels: [\"fresh\"] } : { count: 10, rows: [[3]], labels: [\"other\"] }",
+        .value = "match { in.count == 0 => { count: 9, rows: [[1,2]], labels: [\"fresh\"] }, _ => { count: 10, rows: [[3]], labels: [\"other\"] } }",
         .expected = true,
         .helper = false,
         .service = false,
@@ -110,7 +110,7 @@ test "Store proof direct branch_fresh" {
 
 test "Store proof direct branch_borrowed" {
     try h.run(.{
-        .value = "in.count == 0 ? { count: 9, rows: [[1,2]], labels: [\"fresh\"] } : in",
+        .value = "match { in.count == 0 => { count: 9, rows: [[1,2]], labels: [\"fresh\"] }, _ => in }",
         .expected = false,
         .helper = false,
         .service = false,

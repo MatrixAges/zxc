@@ -1,0 +1,19 @@
+import { StatementKind } from "core/control_table/model"
+
+export type Input = StatementKind[]
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    return loop({
+        index: 0,
+        valid: true
+    }, {
+        while: state => state.valid && state.index < in.length,
+        next: state => {
+            state.valid = in[state.index] != StatementKind.Parallel
+            state.index += 1
+        },
+        return: state => state.valid
+    })
+}

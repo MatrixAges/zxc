@@ -27,11 +27,11 @@ test "Store archive rejects forged labels nested service owned summary" {
 }
 
 test "Store archive rejects forged branch helper owned summary" {
-    try h.run(.{ .value = "in.count == 0 ? {count: 9, rows: [[1]], labels: [\"fresh\"]} : in", .expected = false, .helper = true, .service = false, .forge_summary = true });
+    try h.run(.{ .value = "match { in.count == 0 => {count: 9, rows: [[1]], labels: [\"fresh\"]}, _ => in }", .expected = false, .helper = true, .service = false, .forge_summary = true });
 }
 
 test "Store archive rejects forged branch nested service owned summary" {
-    try h.run(.{ .value = "in.count == 0 ? {count: 9, rows: [[1]], labels: [\"fresh\"]} : in", .expected = false, .helper = true, .service = true, .forge_summary = true });
+    try h.run(.{ .value = "match { in.count == 0 => {count: 9, rows: [[1]], labels: [\"fresh\"]}, _ => in }", .expected = false, .helper = true, .service = true, .forge_summary = true });
 }
 
 test "Store forged whole summary allocation failures" {

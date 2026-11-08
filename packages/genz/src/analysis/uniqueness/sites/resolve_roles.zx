@@ -6,6 +6,7 @@ import type { Columns, Input as Source } from "./model"
 
 export type Input = {
     source: Source,
+    first: u32[],
     sites: Columns
 }
 
@@ -38,20 +39,23 @@ export default function (in: Input): Output {
                         current.source.expressions.call_functions[payload]
                     )
                 const kind = current.source.effects.kind[callee]
+                const delta = current.sites.delta[index]
+                const first = integers.widenSigned(current.sites.lo[index]) + delta
+                const end = integers.widenSigned(current.sites.hi[index]) + delta
+                const limit =
+                    integers.widenSigned(current.source.effects.limit[callee])
+                const known = first >= 0 && end <= limit
+                const root = current.source.symbols.length + parent
+                const observes = kind == Role.observe ||
+                    (
+                        current.source.effects.borrow_only[callee] &&
+                            in.first[root] == in.first[root + 1]
+                    )
 
-                if (kind == Role.use) {
+                if (known && observes) {
+                    current.role = Role.observe
+                } else if (kind == Role.use) {
                     current.role = Role.use
-                } else if (kind == Role.observe) {
-                    const delta = current.sites.delta[index]
-                    const first =
-                        integers.widenSigned(current.sites.lo[index]) + delta
-                    const end = integers.widenSigned(current.sites.hi[index]) + delta
-                    const limit =
-                        integers.widenSigned(current.source.effects.limit[callee])
-
-                    if (first >= 0 && end <= limit) {
-                        current.role = Role.observe
-                    }
                 }
             }
 

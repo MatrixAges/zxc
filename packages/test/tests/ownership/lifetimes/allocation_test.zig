@@ -1,12 +1,13 @@
 const std = @import("std");
 const direct = @import("direct");
 const dead = @import("dead");
+const live = @import("live_view");
 
 comptime {
     _ = @import("fresh_append_test.zig");
 }
 
-test "dead view preserves values while exposing extra allocation" {
+test "metadata-only views preserve values without retaining source storage" {
     for ([_]u64{ 0, 1, 100, std.math.maxInt(u64) }) |value| {
         var direct_buffer: [8192]u8 = undefined;
         var direct_memory = std.heap.FixedBufferAllocator.init(&direct_buffer);
@@ -19,6 +20,20 @@ test "dead view preserves values while exposing extra allocation" {
 
         try std.testing.expectEqualSlices(u64, &.{ value, 1 }, first.items);
         try std.testing.expectEqualSlices(u64, first.items, second.items);
-        if (value == 0) std.debug.print("loan baseline: direct {d} allocations/{d} bytes, dead view {d} allocations/{d} bytes\n", .{ direct_counter.alloc_index, direct_counter.allocated_bytes, dead_counter.alloc_index, dead_counter.allocated_bytes });
+        try std.testing.expectEqual(direct_counter.alloc_index, dead_counter.alloc_index);
+        try std.testing.expectEqual(direct_counter.allocated_bytes, dead_counter.allocated_bytes);
+        if (value == 0) std.debug.print("loan allocations: direct {d}/{d} bytes, metadata view {d}/{d} bytes\n", .{ direct_counter.alloc_index, direct_counter.allocated_bytes, dead_counter.alloc_index, dead_counter.allocated_bytes });
+    }
+}
+
+test "data reads through a live view retain the original source values" {
+    for ([_]u64{ 0, 1, 100, std.math.maxInt(u64) - 1 }) |value| {
+        var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+
+        defer arena.deinit();
+
+        const output = try live.execute(&arena, value);
+
+        try std.testing.expectEqualSlices(u64, &.{ value + 1, value }, output);
     }
 }

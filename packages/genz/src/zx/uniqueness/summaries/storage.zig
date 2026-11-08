@@ -24,7 +24,7 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program, basis: *const B
         else => std.debug.panic("summary storage failed: {s}", .{@errorName(err)}),
     };
 
-    const held = effects.executeIn(allocator, &.{ .held = basis.flow.held, .written = basis.flow.written }) catch |err| switch (err) {
+    const held = effects.executeIn(allocator, &.{ .held = basis.flow.held, .written = basis.flow.written, .return_only = basis.return_only }) catch |err| switch (err) {
         error.OutOfMemory => return error.OutOfMemory,
         else => unreachable,
     };
@@ -36,6 +36,7 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program, basis: *const B
         .outputs = try rows(allocator, storage.outputs, storage.layout.output_first),
         .held = basis.flow.held,
         .written = basis.flow.written,
+        .return_only = basis.return_only,
         .effects = held,
         .storage = storage,
     };

@@ -102,6 +102,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/uniqueness/sites/query.zx", .name = "uniqueness_usage", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/sites/read.zx", .name = "uniqueness_usage_read", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/sites/effects.zx", .name = "uniqueness_effects", .owner = .genz },
+    .{ .path = "genz/analysis/uniqueness/return_only.zx", .name = "uniqueness_return_only", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/slots/build.rx", .name = "uniqueness_slots", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/slots/list_type.zx", .name = "uniqueness_list_type", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/slots/path.zx", .name = "uniqueness_slot_path", .owner = .genz },

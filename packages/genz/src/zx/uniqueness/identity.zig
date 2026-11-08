@@ -11,7 +11,7 @@ hash: Hash = .init(.{}),
 pub fn program(value: ir.Program, basis: *const Basis) [32]u8 {
     var self = Self{};
 
-    self.bytes("zxc.uniqueness.program.v14");
+    self.bytes("zxc.uniqueness.program.v15");
     self.bytes(&basis.types);
     self.write(value.functions.count());
 
@@ -23,6 +23,7 @@ pub fn program(value: ir.Program, basis: *const Basis) [32]u8 {
 
     self.write(basis.flow.held);
     self.write(basis.flow.written);
+    self.write(basis.return_only);
 
     return self.finish();
 }

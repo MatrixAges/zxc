@@ -10,7 +10,7 @@ pub fn add(b: *std.Build, cli: *std.Build.Dependency, target: std.Build.Resolved
         .optimize = optimize,
     }) });
 
-    for ([_][]const u8{ "direct", "dead", "fresh_append" }) |name| {
+    for ([_][]const u8{ "direct", "dead", "live_view", "fresh_append" }) |name| {
         const compile = b.addRunArtifact(cli.artifact("zxc"));
 
         compile.setCwd(b.path(directory ++ "/fixtures"));
