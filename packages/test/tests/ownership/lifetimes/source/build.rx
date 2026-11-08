@@ -1,0 +1,44 @@
+<Module>
+    <Type from="model" as="Loans" />
+
+    <Args in={Loans.Input} out={Loans.Output} />
+
+    <Call fn="collect" in={$in} />
+
+    <If on={!$ctx.collect.supported}>
+        <Call fn="empty" in={{}} />
+
+        <Return value={$ctx.empty} />
+    </If>
+
+    <Call
+        module="genz/scope_reads"
+        in={{
+            expressions: $in.expressions,
+            bindings: $ctx.collect.bindings,
+            result: $ctx.collect.result
+        }}
+    />
+
+    <Call
+        fn="access"
+        in={{
+            source: $in,
+            linear: $ctx.collect
+        }}
+    />
+
+    <Call
+        fn="plan"
+        in={{
+            source: {
+                source: $in,
+                linear: $ctx.collect
+            },
+            last: $ctx.scope_reads,
+            access: $ctx.access
+        }}
+    />
+
+    <Return value={$ctx.plan} />
+</Module>

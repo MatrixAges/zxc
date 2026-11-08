@@ -1,0 +1,101 @@
+import integers from "std:integer"
+import child from "core/expression_table/child"
+import { ExpressionKind } from "core/expression_table/kinds"
+import empty from "core/integer/index/empty"
+import insert from "core/integer/index/insert"
+
+import type { Prepared as Input, Access as Output } from "./model"
+
+export default function (in: Input): Output {
+    const expressions = in.source.expressions
+    const pending = in.linear.bindings.push(in.linear.result)[0]
+
+    return loop({
+        pending,
+        safe: pending.map(value => false)[0],
+        seen: empty({}),
+        retained: empty({}),
+        unsupported: false,
+        edges: 0
+    }, {
+        while: state => state.pending.length != 0,
+        next: state => {
+            const top = state.pending.length - 1
+            const id = state.pending[top]
+            const safe = state.safe[top]
+
+            state.pending = state.pending.pop()[0]
+            state.safe = state.safe.pop()[0]
+
+            const index = integers.widen(id)
+            const target = expressions.kinds[index]
+            const payload = integers.widen(expressions.payloads[index])
+
+            if (target == ExpressionKind.Reference) {
+                if (!safe) {
+                    state.retained = insert({
+                        index: state.retained,
+                        key: expressions.references[payload]
+                    }).index
+                }
+            } else {
+                const seen = insert({
+                    index: state.seen,
+                    key: id
+                })
+
+                state.seen = seen.index
+
+                if (!seen.found) {
+                    const branching = match target {
+                        ExpressionKind.Conditional => true,
+                        ExpressionKind.Match => true,
+                        ExpressionKind.Iteration => true,
+                        ExpressionKind.Transform => true,
+                        ExpressionKind.Task => true,
+                        ExpressionKind.Parallel => true,
+                        _ => false
+                    }
+
+                    state.unsupported = state.unsupported || branching
+                    const children = loop({
+                        pending: state.pending,
+                        safe: state.safe,
+                        position: 0,
+                        edges: state.edges,
+                        done: false
+                    }, {
+                        while: current => !current.done,
+                        next: current => {
+                            const selected = child({
+                                table: expressions,
+                                id: index,
+                                index: current.position
+                            })
+
+                            if (selected == null) {
+                                current.done = true
+                            } else {
+                                current.pending = current.pending.push(selected)[0]
+                                current.safe = current.safe.push(
+                                    target == ExpressionKind.Length
+                                )[0]
+                                current.edges += 1
+                                current.position += 1
+                            }
+                        }
+                    })
+
+                    state.pending = children.pending
+                    state.safe = children.safe
+                    state.edges = children.edges
+                }
+            }
+        },
+        return: state => state.pick([
+            "retained",
+            "unsupported",
+            "edges"
+        ])
+    })
+}

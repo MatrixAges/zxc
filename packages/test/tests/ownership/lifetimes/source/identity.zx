@@ -1,0 +1,74 @@
+import integers from "std:integer"
+import { StatementKind } from "core/control_table/model"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import { input_symbol } from "./const"
+
+import type { Table } from "core/function_table/model"
+
+export type Input = {
+    functions: Table,
+    function: u32
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const index = integers.widen(in.function)
+    const functions = in.functions
+
+    if (functions.native_modules[index] != null) {
+        return false
+    }
+
+    const same_type = functions.input_types[index] == functions.output_types[index]
+    const no_stores = functions.stores[index].paths.length == 0
+    const no_contracts = functions.contracts[index].kinds.length == 0
+
+    const supported = (
+        - same_type
+        - and no_stores
+        - and no_contracts
+    )
+
+    if (!supported) {
+        return false
+    }
+
+    const root = functions.roots[index]
+
+    if (root == null) {
+        return false
+    }
+
+    const control = functions.control[index]
+    const position = integers.widen(root)
+
+    if (control.block_count[position] != 1) {
+        return false
+    }
+
+    const statement = integers.widen(control.block_first[position])
+
+    if (control.statement_kinds[statement] != StatementKind.Result) {
+        return false
+    }
+
+    const payload = integers.widen(control.statement_payloads[statement])
+    const result = control.results[payload]
+
+    if (result == null) {
+        return false
+    }
+
+    const expressions = functions.expressions[index]
+    const selected = integers.widen(result)
+
+    if (expressions.kinds[selected] != ExpressionKind.Reference) {
+        return false
+    }
+
+    const reference = integers.widen(expressions.payloads[selected])
+
+    return expressions.references[reference] == input_symbol
+}

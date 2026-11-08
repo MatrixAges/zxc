@@ -1,0 +1,70 @@
+import integers from "std:integer"
+import { StatementKind } from "core/control_table/model"
+
+import type { Input, Linear as Output } from "./model"
+
+export type State = {
+    bindings: u32[],
+    symbols: u32?[],
+    result?: u32,
+    supported: bool,
+    position: u64
+}
+
+export default function (in: Input): Output {
+    if (in.body == null) {
+        return {
+            bindings: [],
+            symbols: [],
+            result: 0,
+            supported: false
+        }
+    }
+
+    const root = integers.widen(in.body)
+    const first = integers.widen(in.control.block_first[root])
+    const count = integers.widen(in.control.block_count[root])
+
+    const initial: State = {
+        bindings: [],
+        symbols: [],
+        result: null,
+        supported: true,
+        position: 0
+    }
+
+    return loop(initial, {
+        while: state => state.supported && state.position < count,
+        next: state => {
+            const index = first + state.position
+            const target = in.control.statement_kinds[index]
+            const payload = integers.widen(in.control.statement_payloads[index])
+
+            if (target == StatementKind.Constant) {
+                state.bindings = state.bindings.push(
+                    in.control.constant_values[payload]
+                )[0]
+                state.symbols = state.symbols.push(
+                    in.control.constant_symbols[payload]
+                )[0]
+            } else if (target == StatementKind.Evaluate) {
+                state.bindings =
+                    state.bindings.push(in.control.evaluations[payload])[0]
+                state.symbols = state.symbols.push(null)[0]
+            } else if (target == StatementKind.Result) {
+                state.result = in.control.results[payload]
+                state.supported = state.position + 1 == count
+            } else {
+                state.supported = false
+            }
+
+            state.position += 1
+        },
+        return: state => {
+            bindings: state.bindings,
+            symbols: state.symbols,
+            result: state.result ?? 0,
+            supported: state.supported && state.result != null
+        }
+    })
+}

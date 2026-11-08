@@ -1,0 +1,71 @@
+import type { Control } from "core/control_table/model"
+import type { Expressions } from "core/expression_table/model"
+import type { Table as Functions } from "core/function_table/model"
+import type { Index } from "core/integer/index/model"
+import type { Table as Types } from "core/type_table/model"
+import type { Last } from "genz/scope_reads/model"
+
+export type Input = {
+    types: Types,
+    expressions: Expressions,
+    control: Control,
+    body?: u32,
+    functions: Functions
+}
+
+export enum Reason {
+    Candidate,
+    UnsupportedControl,
+    UnknownCallee,
+    UnknownOrigin,
+    UnsupportedType,
+    RetainedUse,
+    Returned
+}
+
+export type Linear = {
+    bindings: u32[],
+    symbols: u32?[],
+    result: u32,
+    supported: bool
+}
+
+export type Access = {
+    retained: Index,
+    unsupported: bool,
+    edges: u64
+}
+
+export type Loan = {
+    alias: u32,
+    source?: u32,
+    expression: u32,
+    created: u64,
+    last?: u64,
+    release?: u64,
+    reason: Reason
+}
+
+export type Output = {
+    loans: Loan[],
+    supported: bool,
+    edges: u64
+}
+
+export type Prepared = {
+    source: Input,
+    linear: Linear
+}
+
+export type Planning = {
+    source: Prepared,
+    last: Last,
+    access: Access
+}
+
+export type Selected = {
+    source: Input,
+    symbol: u32,
+    value: u32,
+    position: u64
+}

@@ -40,6 +40,9 @@ pub fn build(b: *std.Build) void {
     b.modules.put(b.allocator, "frontend_checks", parser.checks(b, target, optimize, parser_source, natives, generated_strip)) catch @panic("out of memory");
 
     if (natives.objects) |objects| b.modules.put(b.allocator, "generated_objects", objects) catch @panic("out of memory");
+
+    b.modules.put(b.allocator, "generated_standard", natives.generated.import_table.get("zxc_standard").?) catch @panic("out of memory");
+
     if (natives.self_hosted_objects) |objects| b.addNamedLazyPath("generated_objects_self_hosted", objects);
 
     const rx = b.addModule("rx", .{
@@ -91,6 +94,7 @@ pub fn build(b: *std.Build) void {
         .imports = &.{ .{ .name = "compiler", .module = module }, .{ .name = "rx", .module = rx }, .{ .name = "rx_analysis", .module = rx_analysis } },
     }) });
 
+    b.addNamedLazyPath("bootstrap_generator", bootstrap_tool.getEmittedBin());
     @import("build/compiler_rt.zig").configure(b, bootstrap_tool);
 
     linkGenerated(bootstrap_tool, natives);

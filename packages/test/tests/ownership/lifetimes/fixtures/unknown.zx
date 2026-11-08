@@ -1,0 +1,12 @@
+import borrow from "./unknown_helper"
+
+export type Input = u64[]
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    const view = borrow(in)
+    const size = view.length
+
+    return size
+}

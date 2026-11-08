@@ -101,7 +101,12 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode, stage0: []con
         const content = std.json.Stringify.valueAlloc(b.allocator, project, .{}) catch @panic("out of memory");
 
         run.addArg("--manifest");
-        run.addFileArg(manifests.add(@tagName(set) ++ ".json", content));
+
+        const manifest_path = manifests.add(@tagName(set) ++ ".json", content);
+
+        if (set == .main) b.addNamedLazyPath("generation_manifest", manifest_path);
+
+        run.addFileArg(manifest_path);
         run.addFileInput(b.dependency("zxc_std", .{}).path("interfaces/string.d.zx"));
 
         if (set == .ordered or set == .collections) {

@@ -446,13 +446,27 @@ fn abiProjection(self: *Self, id: ir.ExprId) Error!?node.ExpressionId {
 
     if (flags.normalize or flags.renew) return null;
     if (!self.state_plan.represented(self.program, value.type_id)) return try self.projection(id);
-    if (self.cache.contains(id) or value.value != .field) return null;
+    if (self.cache.contains(id)) return null;
 
-    const selected = value.value.field;
-    const parent = try self.abiProjection(selected.target) orelse return null;
-    const fields = self.program.typeOf(self.program.expression(selected.target).type_id).object;
+    return switch (value.value) {
+        .field => |selected| blk: {
+            const parent = try self.abiProjection(selected.target) orelse return null;
+            const fields = self.program.typeOf(self.program.expression(selected.target).type_id).object;
 
-    return try self.field(parent, fields.at(selected.index).name);
+            break :blk try self.field(parent, fields.at(selected.index).name);
+        },
+        .index => |selected| blk: {
+            const raw = try self.abiProjection(selected.target);
+
+            const parent = raw orelse if (self.program.typeOf(value.type_id) == .object)
+                try @import("state_value/list.zig").expression(self, selected.target)
+            else
+                return null;
+
+            break :blk try @import("intrinsics.zig").index(self, parent, try self.expr(selected.index));
+        },
+        else => null,
+    };
 }
 
 fn projection(self: *Self, id: ir.ExprId) Error!node.ExpressionId {

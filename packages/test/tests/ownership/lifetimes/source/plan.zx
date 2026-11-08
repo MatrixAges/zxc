@@ -1,0 +1,70 @@
+import get from "core/integer/index/get"
+
+import candidate from "./candidate"
+import { Reason } from "./model"
+
+import type { Loan, Planning as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const prepared = in.source
+    const linear = prepared.linear
+    const loans: Loan[] = []
+
+    return loop({
+        loans,
+        position: 0
+    }, {
+        while: state => state.position < linear.bindings.length,
+        next: state => {
+            const symbol = linear.symbols[state.position]
+
+            if (symbol != null) {
+                const selected = candidate({
+                    source: prepared.source,
+                    symbol,
+                    value: linear.bindings[state.position],
+                    position: state.position
+                })
+
+                if (selected != null) {
+                    const index = get({
+                        index: in.last.index,
+                        key: symbol
+                    })
+
+                    const last: u64? = index == null ? null : in.last.positions[index]
+                    const retained = get({
+                        index: in.access.retained,
+                        key: symbol
+                    }) != null
+
+                    const reason = match {
+                        in.access.unsupported => Reason.UnsupportedControl,
+                        last == linear.bindings.length => Reason.Returned,
+                        retained => Reason.RetainedUse,
+                        _ => selected.reason
+                    }
+
+                    const release: u64? = match {
+                        reason == Reason.Candidate => (last ?? state.position) + 1,
+                        _ => null
+                    }
+
+                    state.loans = state.loans.push({
+                        ...selected,
+                        last,
+                        release,
+                        reason
+                    })[0]
+                }
+            }
+
+            state.position += 1
+        },
+        return: state => {
+            loans: state.loans,
+            supported: !in.access.unsupported,
+            edges: in.access.edges
+        }
+    })
+}

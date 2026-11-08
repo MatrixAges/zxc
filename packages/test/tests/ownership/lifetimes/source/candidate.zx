@@ -1,0 +1,69 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+import { Ownership } from "core/symbol_table/model"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import identity from "./identity"
+import { Reason } from "./model"
+import origin from "./origin"
+
+import type { Selected as Input, Loan } from "./model"
+
+export type Output = Loan?
+
+export default function (in: Input): Output {
+    const expressions = in.source.expressions
+    const index = integers.widen(in.value)
+
+    if (expressions.kinds[index] != ExpressionKind.Call) {
+        return null
+    }
+
+    const payload = integers.widen(expressions.payloads[index])
+    const function_id = expressions.call_functions[payload]
+    const selected = integers.widen(function_id)
+
+    if (in.source.functions.ownership[selected] != Ownership.Borrowed) {
+        return null
+    }
+
+    const value = expressions.call_arguments[payload]
+
+    const base: Loan = {
+        alias: in.symbol,
+        source: null,
+        expression: value,
+        created: in.position,
+        last: null,
+        release: null,
+        reason: Reason.UnknownCallee
+    }
+
+    if (!identity({
+        functions: in.source.functions,
+        function: function_id
+    })) {
+        return base
+    }
+
+    const type_id = integers.widen(expressions.types[index])
+
+    if (kind(in.source.types.kinds[type_id]) != Kind.List) {
+        return {
+            ...base,
+            reason: Reason.UnsupportedType
+        }
+    }
+
+    const source = origin({
+        expressions,
+        value
+    })
+
+    return {
+        ...base,
+        source,
+        reason: source == null ? Reason.UnknownOrigin : Reason.Candidate
+    }
+}

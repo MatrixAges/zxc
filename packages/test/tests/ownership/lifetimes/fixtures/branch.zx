@@ -1,0 +1,12 @@
+import borrow from "./borrow"
+
+export type Input = u64[]
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    const view = borrow(in)
+    const size = in.length == 0 ? view.length : view.length
+
+    return size
+}
