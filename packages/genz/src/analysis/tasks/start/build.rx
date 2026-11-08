@@ -1,0 +1,10 @@
+<Module>
+    <Type from="model" as="Start" />
+
+    <Args in={Start.Input} out={Start.Output} />
+
+    <Call fn="arguments" in={$in} />
+    <Call fn="invoke" in={$ctx.arguments} />
+
+    <Return value={$ctx.invoke} />
+</Module>

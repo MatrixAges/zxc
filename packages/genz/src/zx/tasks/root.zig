@@ -2,109 +2,118 @@ const std = @import("std");
 const ir = @import("zx").ir;
 const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
+const emit = @import("emitting.zig");
+const generated = @import("genz_options").generated_analysis;
 
 pub fn start(self: *Lower, id: ir.ExprId, concurrent: bool) Lower.Error!node.ExpressionId {
-    const task = self.program.expression(id).value.task;
-    var arguments: std.ArrayList(node.ExpressionId) = .empty;
+    if (!generated) return @import("root_seed.zig").start(self, id, concurrent);
+
+    const captures = self.program.expression(id).value.task.captures;
+    const process = self.entry_flags.body_process;
+
     self.uses_allocator = true;
     self.uses_io = true;
 
-    try arguments.append(self.allocator, try self.builder.identifier("allocator"));
-    try arguments.append(self.allocator, try self.builder.identifier("io"));
+    if (process) self.uses_process = true;
 
-    const process = self.entry_flags.body_process;
+    var scratch = std.heap.ArenaAllocator.init(self.workspace);
 
-    if (process) {
-        self.uses_process = true;
+    defer scratch.deinit();
 
-        try arguments.append(self.allocator, try self.builder.identifier("process"));
-    }
+    const names = try scratch.allocator().alloc([]const u8, captures.len);
+    const addresses = try scratch.allocator().alloc(bool, captures.len);
 
-    for (task.captures) |symbol| {
+    for (captures, names, addresses) |symbol, *name, *address| {
         self.used[@backingInt(symbol)] = true;
 
-        const value = try self.builder.identifier(self.names[@backingInt(symbol)]);
-
-        try arguments.append(self.allocator, if (self.stack_symbols.contains(symbol)) try self.builder.expression(.{ .address_of = value }) else value);
+        name.* = self.names[@backingInt(symbol)];
+        address.* = self.stack_symbols.contains(symbol);
     }
 
     const worker = try @import("worker.zig").lower(self, id, process);
 
-    return self.call(try self.field(try self.builder.identifier("io"), if (concurrent) "concurrent" else "async"), &.{ try self.field(worker, "run"), try self.builder.expression(.{ .tuple = try arguments.toOwnedSlice(self.allocator) }) }, concurrent);
+    return emit.start(self, worker, process, concurrent, names, addresses);
 }
 
 pub fn bind(self: *Lower, output: *std.ArrayList(node.Statement), name: []const u8, id: ir.ExprId, concurrent: bool) Lower.Error!void {
-    try output.append(self.allocator, .{ .variable = .{ .name = name, .value = try start(self, id, concurrent) } });
+    if (!generated) return @import("root_seed.zig").bind(self, output, name, id, concurrent);
 
-    const cleanup = try self.call(try self.field(try self.builder.identifier(name), "cancel"), &.{try self.builder.identifier("io")}, false);
-
-    try output.append(self.allocator, .{ .defer_scope = try self.builder.statements(&.{.{ .discard_error = cleanup }}) });
+    return emit.bind(self, output, name, try start(self, id, concurrent));
 }
 
 pub fn wait(self: *Lower, child: ir.ExprId) Lower.Error!node.ExpressionId {
+    if (!generated) return @import("root_seed.zig").wait(self, child);
+
     self.uses_io = true;
 
-    if (self.program.expression(child).value != .task) return self.call(try self.field(try self.expr(child), "await"), &.{try self.builder.identifier("io")}, true);
+    if (self.program.expression(child).value != .task) return emit.call(self, try self.expr(child), null, .Await, true);
 
-    const name = try self.fresh("future");
+    const name = try emit.fresh(self, .Future);
     var body: std.ArrayList(node.Statement) = .empty;
 
     try bind(self, &body, name, child, false);
 
-    return @import("../aggregate.zig").finish(self, &body, try self.call(try self.field(try self.builder.identifier(name), "await"), &.{try self.builder.identifier("io")}, true));
+    const value = try emit.call(self, null, name, .Await, true);
+
+    return @import("../aggregate.zig").finish(self, &body, value);
 }
 
 pub fn parallel(self: *Lower, type_id: ir.TypeId, branches: @FieldType(@FieldType(ir.ExpressionRow, "value"), "parallel")) Lower.Error!node.ExpressionId {
+    if (!generated) return @import("root_seed.zig").parallel(self, type_id, branches);
+
+    var scratch = std.heap.ArenaAllocator.init(self.workspace);
+
+    defer scratch.deinit();
+
+    const temporary = scratch.allocator();
+    const futures = try temporary.alloc([]const u8, branches.len);
+    const results = try temporary.alloc([]const u8, branches.len);
+    const values = try temporary.alloc(?[]const u8, branches.len);
+    const fields = try temporary.alloc(?[]const u8, branches.len);
     var body: std.ArrayList(node.Statement) = .empty;
-    const futures = try self.allocator.alloc([]const u8, branches.len);
-    const results = try self.allocator.alloc([]const u8, branches.len);
-    var fields: std.ArrayList(node.Field) = .empty;
 
-    for (0..branches.len, futures) |record_index, *name| {
-        const branch = branches.at(record_index);
-        name.* = try self.fresh("future");
+    for (0..branches.len, futures) |index, *name| {
+        name.* = try emit.fresh(self, .Future);
 
-        try bind(self, &body, name.*, branch.task, true);
+        try bind(self, &body, name.*, branches.at(index).task, true);
     }
 
-    for (futures, results) |future, *result| {
-        result.* = try self.fresh("task_result");
+    for (results) |*name| name.* = try emit.fresh(self, .Result);
+    try @import("parallel.zig").awaitAll(self, &body, futures, results);
 
-        try body.append(self.allocator, .{ .constant = .{ .name = result.*, .value = try self.call(try self.field(try self.builder.identifier(future), "await"), &.{try self.builder.identifier("io")}, false) } });
+    for (0..branches.len, values, fields) |index, *name, *field| {
+        if (branches.at(index).field) |selected| {
+            name.* = try emit.fresh(self, .Value);
+            field.* = self.program.typeOf(type_id).object.at(selected).name;
+        } else {
+            name.* = null;
+            field.* = null;
+        }
     }
 
-    for (0..branches.len, results) |record_index, result| {
-        const branch = branches.at(record_index);
-        const raw = try self.builder.identifier(result);
-        const value = if (self.capture) |boundary| try self.builder.expression(.{ .catch_value = .{ .value = raw, .capture = boundary.name, .label = boundary.label, .result = boundary.failure } }) else try self.builder.expression(.{ .try_value = raw });
+    const object = self.program.typeOf(type_id) == .object;
+    const raw = try @import("parallel.zig").result(self, &body, results, values, fields, object);
+    const value = if (object) try self.construct(type_id, raw) else raw;
 
-        if (branch.field) |index| {
-            const name = try self.fresh("task_value");
-
-            try body.append(self.allocator, .{ .constant = .{ .name = name, .value = value } });
-            try fields.append(self.allocator, .{ .name = self.program.typeOf(type_id).object.at(index).name, .value = try self.builder.identifier(name) });
-        } else try body.append(self.allocator, .{ .expression = value });
-    }
-
-    const result = if (self.program.typeOf(type_id) == .object) try self.construct(type_id, try self.builder.expression(.{ .object = .{ .fields = try fields.toOwnedSlice(self.allocator) } })) else try self.builder.expression(.unit);
-
-    return @import("../aggregate.zig").finish(self, &body, result);
+    return @import("../aggregate.zig").finish(self, &body, value);
 }
 
 pub fn cancel(self: *Lower, child: ir.ExprId) Lower.Error!node.ExpressionId {
+    if (!generated) return @import("root_seed.zig").cancel(self, child);
+
     self.uses_io = true;
 
     var body: std.ArrayList(node.Statement) = .empty;
+    var name: ?[]const u8 = null;
+    var value: ?node.ExpressionId = null;
 
-    const future = if (self.program.expression(child).value == .task) blk: {
-        const name = try self.fresh("future");
+    if (self.program.expression(child).value == .task) {
+        name = try emit.fresh(self, .Future);
 
-        try bind(self, &body, name, child, false);
+        try bind(self, &body, name.?, child, false);
+    } else value = try self.expr(child);
 
-        break :blk try self.builder.identifier(name);
-    } else try self.expr(child);
+    const result = try emit.cancel(self, &body, value, name);
 
-    try body.append(self.allocator, .{ .discard_error = try self.call(try self.field(future, "cancel"), &.{try self.builder.identifier("io")}, false) });
-
-    return @import("../aggregate.zig").finish(self, &body, try self.builder.expression(.unit));
+    return @import("../aggregate.zig").finish(self, &body, result);
 }

@@ -1,0 +1,57 @@
+import binding from "../../../ast/context/binding"
+import expression from "../../../ast/context/expression_statement"
+import identifier from "../../../ast/context/identifier"
+import fallible from "../../../ast/expressions/fallible"
+
+import type { Item as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const raw = identifier({
+        state: in.state.context,
+        name: in.state.source.results[in.index]
+    })
+
+    const result = fallible({
+        table: raw.state.expressions,
+        base: in.state.source.bases.expression_base,
+        value: raw.id,
+        capture: in.state.source.bases.capture
+    })
+
+    const context = {
+        ...raw.state,
+        expressions: result.table,
+        valid: raw.state.valid && result.valid
+    }
+
+    const name = in.state.source.values[in.index]
+    const field = in.state.source.fields[in.index]
+
+    if (name == null || field == null) {
+        return {
+            ...in.state,
+            context: expression({
+                state: context,
+                value: result.id
+            })
+        }
+    }
+
+    const bound = binding({
+        state: context,
+        name,
+        value: result.id
+    })
+
+    const reference = identifier({
+        state: bound,
+        name
+    })
+
+    return {
+        ...in.state,
+        context: reference.state,
+        names: in.state.names.push(field)[0],
+        values: in.state.values.push(reference.id)[0]
+    }
+}

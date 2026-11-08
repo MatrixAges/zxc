@@ -1,0 +1,57 @@
+import binding from "../../../ast/context/binding"
+import identifier from "../../../ast/context/identifier"
+import initialize from "../../../ast/context/initialize"
+import invoke from "../future/invoke"
+import { Method } from "../future/invoke"
+
+import type { Input as Bases } from "../../../ast/context/model"
+import type { Columns as Expressions } from "../../../ast/expressions/model"
+import type { Columns as Statements } from "../../../ast/statements/model"
+
+export type Input = {
+    futures: u8[][],
+    results: u8[][],
+    bases: Bases
+}
+
+export type Output = {
+    expressions: Expressions,
+    statements: Statements,
+    valid: bool
+}
+
+export default function (in: Input): Output {
+    return loop({
+        context: initialize(in.bases),
+        index: 0
+    }, {
+        while: current => current.index < in.futures.length,
+        next: current => {
+            const future = identifier({
+                state: current.context,
+                name: in.futures[current.index]
+            })
+
+            const result = invoke({
+                state: future.state,
+                future: future.id,
+                method: Method.Await,
+                fallible: false
+            })
+
+            current.context = binding({
+                state: result.state,
+                name: in.results[current.index],
+                value: result.id
+            })
+            current.index += 1
+        },
+        return: current => {
+            return {
+                expressions: current.context.expressions,
+                statements: current.context.statements,
+                valid: current.context.valid
+            }
+        }
+    })
+}

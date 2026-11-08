@@ -1,0 +1,29 @@
+import { ExpressionsKind } from "../../printer/model/expressions"
+import header from "../expressions/header"
+
+import type { State as Input, Node as Output } from "./model"
+
+export default function (in: Input): Output {
+    const result = header({
+        ...in.expressions.pick([
+            "tags",
+            "offsets"
+        ]),
+        base: in.source.expression_base,
+        kind: ExpressionsKind.Unit,
+        offset: 0
+    })
+
+    return {
+        state: {
+            ...in,
+            expressions: {
+                ...in.expressions,
+                tags: result.tags,
+                offsets: result.offsets
+            },
+            valid: in.valid && result.valid
+        },
+        id: result.id
+    }
+}

@@ -1,0 +1,10 @@
+<Module>
+    <Type from="model" as="Parallel" />
+
+    <Args in={Parallel.Input} out={Parallel.Output} />
+
+    <Call fn="resolve" in={$in} />
+    <Call fn="finish" in={$ctx.resolve} />
+
+    <Return value={$ctx.finish} />
+</Module>

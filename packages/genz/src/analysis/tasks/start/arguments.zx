@@ -1,0 +1,72 @@
+import bytes from "std:bytes"
+
+import address from "../../../ast/context/address"
+import identifier from "../../../ast/context/identifier"
+import initialize from "../../../ast/context/initialize"
+import { allocator_name } from "../../construction/const"
+import { io_name, process_name } from "../../functions/signature/const"
+
+import type { Node } from "../../../ast/context/model"
+import type { Input, Prepared as Output } from "./model"
+
+export default function (in: Input): Output {
+    const allocator = identifier({
+        state: initialize(in.bases),
+        name: bytes.fromText(allocator_name)
+    })
+
+    const io = identifier({
+        state: allocator.state,
+        name: bytes.fromText(io_name)
+    })
+
+    const arguments = [
+        allocator.id,
+        io.id
+    ]
+
+    const initial = match {
+        in.process => identifier({
+            state: io.state,
+            name: bytes.fromText(process_name)
+        }),
+        _ => io
+    }
+
+    const injected = match {
+        in.process => arguments.push(initial.id)[0],
+        _ => arguments
+    }
+
+    const captures = loop({
+        context: initial.state,
+        arguments: injected,
+        index: 0
+    }, {
+        while: current => current.index < in.names.length,
+        next: current => {
+            const reference = identifier({
+                state: current.context,
+                name: in.names[current.index]
+            })
+
+            const value: Node = match {
+                in.addresses[current.index] => address({
+                    state: reference.state,
+                    value: reference.id
+                }),
+                _ => reference
+            }
+
+            current.context = value.state
+            current.arguments = current.arguments.push(value.id)[0]
+            current.index += 1
+        }
+    })
+
+    return {
+        source: in,
+        context: captures.context,
+        arguments: captures.arguments
+    }
+}

@@ -1,0 +1,79 @@
+import identifier from "../../../ast/context/identifier"
+import initialize from "../../../ast/context/initialize"
+import header from "../../../ast/statements/header"
+import { StatementsKind } from "../../../printer/model/statements"
+import invoke from "./invoke"
+import { Method } from "./invoke"
+
+import type { Input as Bases } from "../../../ast/context/model"
+import type { Columns as Expressions } from "../../../ast/expressions/model"
+
+export type Input = {
+    name: u8[],
+    value: u32,
+    bases: Bases
+}
+
+export type Statements = {
+    tags: StatementsKind[],
+    offsets: u32[],
+    variable_name: u8[][],
+    variable_type_expr: u32?[],
+    variable_value: u32[],
+    variable_exported: bool[],
+    discard_error: u32[],
+    defer_scope_start: u32[],
+    defer_scope_len: u32[]
+}
+
+export type Output = {
+    expressions: Expressions,
+    statements: Statements,
+    valid: bool
+}
+
+export default function (in: Input): Output {
+    const future = identifier({
+        state: initialize(in.bases),
+        name: in.name
+    })
+
+    const cleanup = invoke({
+        state: future.state,
+        future: future.id,
+        method: Method.Cancel,
+        fallible: false
+    })
+
+    const child = header({
+        tags: [],
+        offsets: [],
+        base: in.bases.statement_base,
+        kind: StatementsKind.DiscardError,
+        offset: 0
+    })
+
+    return {
+        expressions: cleanup.state.expressions,
+        statements: {
+            tags: [
+                StatementsKind.DiscardError,
+                StatementsKind.Variable,
+                StatementsKind.DeferScope
+            ],
+            offsets: [
+                0,
+                0,
+                0
+            ],
+            variable_name: [in.name],
+            variable_type_expr: [null],
+            variable_value: [in.value],
+            variable_exported: [false],
+            discard_error: [cleanup.id],
+            defer_scope_start: [in.bases.statement_base],
+            defer_scope_len: [1]
+        },
+        valid: cleanup.state.valid && child.valid
+    }
+}

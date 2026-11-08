@@ -34,7 +34,7 @@ fn appendRows(allocator: std.mem.Allocator, target: *std.ArrayList(node.Statemen
     if (count > std.math.maxInt(u32) - target.items.len) return error.OutOfMemory;
 
     for (source.tags) |item| switch (@as(Tag, @fromBackingInt(@backingInt(item)))) {
-        .constant, .variable, .assignment, .break_value, .errdefer_expression, .defer_expression, .branch, .expression, .discard, .result, .scope => {},
+        .constant, .variable, .assignment, .break_value, .errdefer_expression, .defer_expression, .branch, .expression, .discard, .discard_error, .result, .scope, .defer_scope => {},
         else => return error.InvalidAst,
     };
 
@@ -64,6 +64,10 @@ fn appendRows(allocator: std.mem.Allocator, target: *std.ArrayList(node.Statemen
             .discard => if (comptime @hasField(std.meta.Child(@TypeOf(source)), "discard"))
                 .{ .discard = @fromBackingInt(source.discard[offset]) }
 
+            else
+                return error.InvalidAst,
+            .discard_error => if (comptime @hasField(std.meta.Child(@TypeOf(source)), "discard_error"))
+                .{ .discard_error = @fromBackingInt(source.discard_error[offset]) }
             else
                 return error.InvalidAst,
             .result => if (comptime @hasField(std.meta.Child(@TypeOf(source)), "result"))
@@ -97,6 +101,10 @@ fn appendRows(allocator: std.mem.Allocator, target: *std.ArrayList(node.Statemen
             .scope => if (comptime @hasField(std.meta.Child(@TypeOf(source)), "scope_start")) .{ .scope = .{
                 .start = source.scope_start[offset],
                 .len = source.scope_len[offset],
+            } } else return error.InvalidAst,
+            .defer_scope => if (comptime @hasField(std.meta.Child(@TypeOf(source)), "defer_scope_start")) .{ .defer_scope = .{
+                .start = source.defer_scope_start[offset],
+                .len = source.defer_scope_len[offset],
             } } else return error.InvalidAst,
             .break_value => if (comptime @hasField(std.meta.Child(@TypeOf(source)), "break_value_label")) .{ .break_value = .{
                 .label = if (comptime borrow_text) source.break_value_label[offset] else try allocator.dupe(u8, source.break_value_label[offset]),

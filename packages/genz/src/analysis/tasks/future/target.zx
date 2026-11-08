@@ -1,0 +1,39 @@
+import identifier from "../../../ast/context/identifier"
+
+import type { State, Node } from "../../../ast/context/model"
+
+export type Input = {
+    state: State,
+    value?: u32,
+    name?: u8[]
+}
+
+export type Output = Node
+
+export default function (in: Input): Output {
+    const value = in.value
+
+    if (value != null) {
+        return {
+            state: in.state,
+            id: value
+        }
+    }
+
+    const name = in.name
+
+    if (name == null) {
+        return {
+            state: {
+                ...in.state,
+                valid: false
+            },
+            id: in.state.source.expression_base
+        }
+    }
+
+    return identifier({
+        state: in.state,
+        name
+    })
+}

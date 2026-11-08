@@ -1,0 +1,31 @@
+import fresh from "../../../ast/fresh"
+import { future_prefix, result_prefix, value_prefix } from "./const"
+
+export enum Kind {
+    Future,
+    Result,
+    Value
+}
+
+export type Input = {
+    serial: u64,
+    kind: Kind
+}
+
+export type Output = {
+    serial: u64,
+    name: u8[]
+}
+
+export default function (in: Input): Output {
+    const prefix = match in.kind {
+        Kind.Future => future_prefix,
+        Kind.Result => result_prefix,
+        _ => value_prefix
+    }
+
+    return fresh({
+        serial: in.serial,
+        prefix
+    })
+}

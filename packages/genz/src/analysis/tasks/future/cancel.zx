@@ -1,0 +1,56 @@
+import initialize from "../../../ast/context/initialize"
+import unit from "../../../ast/context/unit"
+import { StatementsKind } from "../../../printer/model/statements"
+import invoke from "./invoke"
+import { Method } from "./invoke"
+import target from "./target"
+
+import type { Input as Bases } from "../../../ast/context/model"
+import type { Columns as Expressions } from "../../../ast/expressions/model"
+
+export type Input = {
+    value?: u32,
+    name?: u8[],
+    bases: Bases
+}
+
+export type Statements = {
+    tags: StatementsKind[],
+    offsets: u32[],
+    discard_error: u32[]
+}
+
+export type Output = {
+    expressions: Expressions,
+    statements: Statements,
+    root: u32,
+    valid: bool
+}
+
+export default function (in: Input): Output {
+    const future = target({
+        state: initialize(in.bases),
+        value: in.value,
+        name: in.name
+    })
+
+    const canceled = invoke({
+        state: future.state,
+        future: future.id,
+        method: Method.Cancel,
+        fallible: false
+    })
+
+    const result = unit(canceled.state)
+
+    return {
+        expressions: result.state.expressions,
+        statements: {
+            tags: [StatementsKind.DiscardError],
+            offsets: [0],
+            discard_error: [canceled.id]
+        },
+        root: result.id,
+        valid: result.state.valid
+    }
+}

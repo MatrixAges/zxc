@@ -1,0 +1,25 @@
+import type { Input as Bases, State as Context } from "../../../ast/context/model"
+import type { Columns as Forms } from "../../../ast/expressions/forms/model"
+import type { Columns as Expressions } from "../../../ast/expressions/model"
+
+export type Input = {
+    worker: u32,
+    process: bool,
+    concurrent: bool,
+    names: u8[][],
+    addresses: bool[],
+    bases: Bases
+}
+
+export type Prepared = {
+    source: Input,
+    context: Context,
+    arguments: u32[]
+}
+
+export type Output = {
+    expressions: Expressions,
+    forms: Forms,
+    root: u32,
+    valid: bool
+}

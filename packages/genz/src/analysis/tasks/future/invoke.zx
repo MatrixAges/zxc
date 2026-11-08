@@ -1,0 +1,45 @@
+import bytes from "std:bytes"
+
+import call from "../../../ast/context/call"
+import field from "../../../ast/context/field"
+import identifier from "../../../ast/context/identifier"
+import { io_name } from "../../functions/signature/const"
+import { await_name, cancel_name } from "./const"
+
+import type { State, Node } from "../../../ast/context/model"
+
+export enum Method {
+    Await,
+    Cancel
+}
+
+export type Input = {
+    state: State,
+    future: u32,
+    method: Method,
+    fallible: bool
+}
+
+export type Output = Node
+
+export default function (in: Input): Output {
+    const name = in.method == Method.Await ? await_name : cancel_name
+
+    const callee = field({
+        state: in.state,
+        target: in.future,
+        name: bytes.fromText(name)
+    })
+
+    const io = identifier({
+        state: callee.state,
+        name: bytes.fromText(io_name)
+    })
+
+    return call({
+        state: io.state,
+        callee: callee.id,
+        arguments: [io.id],
+        fallible: in.fallible
+    })
+}

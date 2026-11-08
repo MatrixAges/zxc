@@ -1,0 +1,34 @@
+import type { Input as Bases, State as Context } from "../../../ast/context/model"
+import type { Columns as Forms } from "../../../ast/expressions/forms/model"
+import type { Columns as Expressions } from "../../../ast/expressions/model"
+import type { Columns as Fields } from "../../../ast/fields/model"
+import type { Columns as Statements } from "../../../ast/statements/model"
+
+export type Input = {
+    results: u8[][],
+    values: u8[]?[],
+    fields: u8[]?[],
+    object: bool,
+    bases: Bases
+}
+
+export type State = {
+    source: Input,
+    context: Context,
+    names: u8[][],
+    values: u32[]
+}
+
+export type Item = {
+    state: State,
+    index: u64
+}
+
+export type Output = {
+    expressions: Expressions,
+    forms: Forms,
+    statements: Statements,
+    fields: Fields,
+    root: u32,
+    valid: bool
+}

@@ -1,0 +1,54 @@
+import bytes from "std:bytes"
+
+import call from "../../../ast/context/call"
+import field from "../../../ast/context/field"
+import identifier from "../../../ast/context/identifier"
+import tuple from "../../../ast/context/tuple"
+import { io_name } from "../../functions/signature/const"
+import { run_name } from "../../parallel/worker/const"
+import { async_name, concurrent_name } from "../future/const"
+
+import type { Prepared as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const io = identifier({
+        state: in.context,
+        name: bytes.fromText(io_name)
+    })
+
+    const name = in.source.concurrent ? concurrent_name : async_name
+
+    const callee = field({
+        state: io.state,
+        target: io.id,
+        name: bytes.fromText(name)
+    })
+
+    const worker = field({
+        state: callee.state,
+        target: in.source.worker,
+        name: bytes.fromText(run_name)
+    })
+
+    const arguments = tuple({
+        state: worker.state,
+        values: in.arguments
+    })
+
+    const result = call({
+        state: arguments.state,
+        callee: callee.id,
+        arguments: [
+            worker.id,
+            arguments.id
+        ],
+        fallible: in.source.concurrent
+    })
+
+    return {
+        expressions: result.state.expressions,
+        forms: result.state.forms,
+        root: result.id,
+        valid: result.state.valid
+    }
+}
