@@ -1,0 +1,26 @@
+import binding from "../../../ast/body/binding"
+
+import type { Work as Input, Work as Output } from "./model"
+
+export default function (in: Input): Output {
+    if (!in.source.choice.capture) {
+        return in
+    }
+
+    const result = binding({
+        state: in.state.pick([
+            "context",
+            "body"
+        ]),
+        name: in.source.name,
+        value: in.root
+    })
+
+    return {
+        ...in,
+        state: {
+            ...in.state,
+            ...result
+        }
+    }
+}

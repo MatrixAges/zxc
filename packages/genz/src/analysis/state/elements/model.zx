@@ -1,0 +1,57 @@
+import type { Capture } from "../../../ast/expressions/fallible"
+import type {
+    Input as Conversion,
+    Output as Converted,
+    State
+} from "../conversion/emit/model"
+import type { Input as Facts, Mode } from "../conversion/model"
+import type { Ast } from "../list/model"
+
+export enum Operation { Read, Write, Capture, Type }
+
+export enum Table { Abi, Layout, State }
+
+export type Query = {
+    source: Facts,
+    operation: Operation,
+    active: bool,
+    used: bool
+}
+
+export type Choice = {
+    passthrough: bool,
+    discard: bool,
+    discard_name: u8[],
+    stored: bool,
+    bind: bool,
+    capture: bool,
+    type_id: u32,
+    mode: Mode,
+    table: Table
+}
+
+export type Input = {
+    choice: Choice,
+    conversion?: Conversion,
+    ast: Ast,
+    layout: u32,
+    value: u32,
+    name: u8[],
+    capture?: Capture,
+    expression_base: u32,
+    statement_base: u32,
+    field_base: u32,
+    serial: u64
+}
+
+export type Work = {
+    source: Input,
+    state: State,
+    root: u32,
+    name: u8[]
+}
+
+export type Output = {
+    result: Converted,
+    name: u8[]
+}

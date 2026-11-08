@@ -1,0 +1,69 @@
+import bytes from "std:bytes"
+
+import boolean from "../../../ast/context/boolean"
+import field from "../../../ast/context/field"
+import { items_field } from "../../types/state/const"
+import { Operation, Storage } from "../list/const"
+import permission from "../list/permission"
+import proven from "../list/proven"
+import record from "../list/record"
+
+import type { Work as Input, Work as Output } from "./model"
+
+export default function (in: Input): Output {
+    const items = field({
+        state: in.state.context,
+        target: in.root,
+        name: bytes.fromText(items_field)
+    })
+
+    const header = permission({
+        state: items.state,
+        value: in.root,
+        operation: Operation.Headered
+    })
+
+    const unique = boolean({
+        state: header.state,
+        value: false
+    })
+
+    const storage = proven({
+        state: unique.state,
+        ast: in.source.ast,
+        header: header.id,
+        unique: unique.id
+    })
+
+    const result = record({
+        source: {
+            request: {
+                operation: Operation.Proven,
+                selected: true,
+                value: items.id,
+                ast: in.source.ast
+            },
+            construct: true,
+            condition: header.id,
+            unique: unique.id,
+            storage: Storage.Plain,
+            flag: false,
+            layout: in.source.layout,
+            expression_base: in.source.expression_base,
+            field_base: in.source.field_base
+        },
+        context: storage.state,
+        root: storage.id,
+        fields: []
+    })
+
+    return {
+        ...in,
+        state: {
+            ...in.state,
+            context: result.context,
+            fields: result.fields
+        },
+        root: result.root
+    }
+}

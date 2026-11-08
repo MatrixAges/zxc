@@ -1,0 +1,70 @@
+import identifier from "../../../ast/context/identifier"
+import initialize from "../../../ast/context/initialize"
+import fresh from "../../../ast/fresh"
+import { element_prefix } from "../conversion/const"
+
+import type { Input, Work as Output } from "./model"
+
+export default function (in: Input): Output {
+    const context = initialize(
+        in.pick(
+            [
+                "capture",
+                "expression_base",
+                "statement_base",
+                "field_base",
+                "serial"
+            ]
+        )
+    )
+
+    const name = match {
+        in.choice.capture => fresh({
+            serial: context.serial,
+            prefix: element_prefix
+        }),
+        _ => {
+            serial: context.serial,
+            name: in.name
+        }
+    }
+
+    const value = match {
+        in.choice.capture => identifier({
+            state: {
+                ...context,
+                serial: name.serial
+            },
+            name: name.name
+        }),
+        _ => {
+            state: context,
+            id: in.value
+        }
+    }
+
+    return {
+        source: in,
+        root: value.id,
+        name: name.name,
+        state: {
+            context: value.state,
+            body: {
+                tags: [],
+                offsets: []
+            },
+            storage: {
+                tags: [],
+                offsets: []
+            },
+            borrow_storage: {
+                tags: [],
+                offsets: []
+            },
+            fields: [],
+            nodes: [],
+            index: 0,
+            uses_allocator: false
+        }
+    }
+}

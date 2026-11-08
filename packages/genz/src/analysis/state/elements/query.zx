@@ -1,0 +1,98 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import { Mode } from "../conversion/model"
+import inlineStored from "../locals/inline_stored"
+import { Property } from "../queries/model"
+import read from "../queries/read"
+import { discard_name } from "./const"
+import { Operation, Table } from "./model"
+
+import type { Query as Input, Choice as Output } from "./model"
+
+export default function (in: Input): Output {
+    const initial: Output = {
+        passthrough: true,
+        discard: false,
+        discard_name: [],
+        stored: false,
+        bind: false,
+        capture: false,
+        type_id: 0,
+        mode: Mode.Value,
+        table: Table.Abi
+    }
+
+    const capture = in.operation == Operation.Capture
+
+    if (capture && !in.used) {
+        return {
+            ...initial,
+            discard: true,
+            discard_name: bytes.fromText(discard_name)
+        }
+    }
+
+    if (!in.active && in.operation != Operation.Type) {
+        return initial
+    }
+
+    const source = in.source
+    const root = integers.widen(source.root)
+    const child = source.types.first[root]
+    const index = integers.widen(child)
+    const target = kind(source.types.kinds[index])
+
+    const selected = inlineStored({
+        ...source.pick([
+            "types",
+            "selected",
+            "element_storage"
+        ]),
+        list: source.root
+    })
+
+    const table = match {
+        !in.active || !selected => Table.Abi,
+        target == Kind.List => Table.State,
+        _ => Table.Layout
+    }
+
+    if (in.operation == Operation.Type) {
+        return {
+            ...initial,
+            type_id: child,
+            table
+        }
+    }
+
+    if (capture && !selected) {
+        return initial
+    }
+
+    const represented = read({
+        value: source.queries[index],
+        property: Property.Represented
+    })
+
+    const input = in.operation != Operation.Write
+
+    return {
+        passthrough: !represented && !selected,
+        discard: false,
+        discard_name: [],
+        stored: selected && target == Kind.List,
+        bind: input && selected,
+        capture,
+        type_id: child,
+        mode: match {
+            input && selected => Mode.RowValue,
+            input => Mode.Value,
+            selected => Mode.RowLayout,
+            _ => Mode.Pointer
+        },
+        table
+    }
+}

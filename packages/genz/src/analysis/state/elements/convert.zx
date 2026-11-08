@@ -1,0 +1,43 @@
+import initialize from "../conversion/emit/initialize"
+import walk from "../conversion/emit/walk"
+
+import type { Work as Input, Work as Output } from "./model"
+
+export default function (in: Input): Output {
+    const conversion = in.source.conversion
+
+    if (conversion == null) {
+        return {
+            ...in,
+            state: {
+                ...in.state,
+                context: {
+                    ...in.state.context,
+                    valid: false
+                }
+            }
+        }
+    }
+
+    const source = {
+        ...conversion,
+        value: in.root
+    }
+
+    const initial = initialize(source)
+
+    const state = walk({
+        source,
+        state: {
+            ...initial,
+            context: in.state.context,
+            body: in.state.body
+        }
+    })
+
+    return {
+        ...in,
+        state,
+        root: state.nodes[0].result
+    }
+}

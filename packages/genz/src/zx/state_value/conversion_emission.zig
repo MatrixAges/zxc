@@ -47,6 +47,25 @@ pub fn lowerWithStorage(self: *Lower, borrow_storage: *std.ArrayList(node.Statem
     else
         planner.executeIn(temporary, &request) catch |err| return failure(err);
 
+    var boundary: Capture = undefined;
+
+    const capture = if (self.capture) |captured| capture: {
+        boundary = .{ .name = captured.name, .label = captured.label, .failure = @backingInt(captured.failure) };
+
+        break :capture &boundary;
+    } else null;
+
+    const input = try prepare(self, temporary, plan, value, capture);
+    const output = @import("generated_state_conversion_emit").executeIn(temporary, &input) catch |err| return failure(err);
+
+    return apply(self, borrow_storage, body, output);
+}
+
+pub const Input = std.meta.Child(@import("generated_state_conversion_emit").Input);
+pub const Capture = std.meta.Child(@typeInfo(@FieldType(Input, "capture")).optional.child);
+const Plan = std.meta.Child(@import("generated_state_conversion_plan").Output);
+
+pub fn prepare(self: *Lower, temporary: std.mem.Allocator, plan: *const Plan, value: node.ExpressionId, capture: ?*const Capture) Lower.Error!Input {
     const layouts = try temporary.alloc(u32, plan.types.len);
     const targets = try temporary.alloc(u32, plan.types.len);
     const elements = try temporary.alloc(u32, plan.types.len);
@@ -92,12 +111,7 @@ pub fn lowerWithStorage(self: *Lower, borrow_storage: *std.ArrayList(node.Statem
 
     std.debug.assert(serial == self.serial and declarations == self.task_declarations.count());
 
-    const emitter = @import("generated_state_conversion_emit");
-    const Input = std.meta.Child(emitter.Input);
-    const Capture = std.meta.Child(@typeInfo(@FieldType(Input, "capture")).optional.child);
-    var boundary: Capture = undefined;
-
-    const input: Input = .{
+    return .{
         .plan = plan,
         .layouts = layouts,
         .targets = targets,
@@ -106,19 +120,15 @@ pub fn lowerWithStorage(self: *Lower, borrow_storage: *std.ArrayList(node.Statem
         .referenced = self.state_plan.borrowed,
         .value = @backingInt(value),
         .shared = self.shared_types,
-        .capture = if (self.capture) |capture| capture: {
-            boundary = .{ .name = capture.name, .label = capture.label, .failure = @backingInt(capture.failure) };
-
-            break :capture &boundary;
-        } else null,
+        .capture = capture,
         .expression_base = @intCast(self.builder.nodes.expressions.tags.items.len),
         .statement_base = @intCast(self.builder.nodes.statements.tags.items.len),
         .field_base = @intCast(self.builder.nodes.field_columns.count()),
         .serial = self.serial,
     };
+}
 
-    const output = emitter.executeIn(temporary, &input) catch |err| return failure(err);
-
+pub fn apply(self: *Lower, borrow_storage: *std.ArrayList(node.Statement), body: *std.ArrayList(node.Statement), output: anytype) Lower.Error!node.ExpressionId {
     if (!output.valid) return error.OutOfMemory;
 
     const expressions = view.join(output.expressions.*, output.forms.*);
