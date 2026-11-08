@@ -1,0 +1,15 @@
+import builtin from "../../ast/context/builtin"
+
+import type { Node as Output } from "../../ast/context/model"
+import type { State as Input } from "./model"
+
+export default function (in: Input): Output {
+    return builtin({
+        state: in.context,
+        name: in.policy.builtin,
+        arguments: [
+            in.source.left,
+            in.source.right
+        ]
+    })
+}

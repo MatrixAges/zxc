@@ -1,0 +1,46 @@
+import type { ExpressionKind, BinaryOperator } from "core/expression_table/kinds"
+import type { Table } from "core/type_table/model"
+import type { State as Context } from "../../ast/context/model"
+import type {
+    ExpressionsPrimitive,
+    ExpressionsBuiltinName
+} from "../../printer/model/expressions"
+import type { Output as Equality } from "../comparison/equality/model"
+
+export enum Mode { Direct, Nulls, Equal, NotEqual, SignedRemainder, Builtin }
+
+export type Expressions = {
+    kinds: ExpressionKind[],
+    types: u32[]
+}
+
+export type Input = {
+    expressions: Expressions,
+    types: Table,
+    operator: BinaryOperator,
+    left_ir: u32,
+    right_ir: u32,
+    left: u32,
+    right: u32,
+    type_expr: u32,
+    expression_base: u32,
+    statement_base: u32,
+    serial: u64
+}
+
+export type Policy = {
+    mode: Mode,
+    type_id: u32,
+    left_none: bool,
+    right_none: bool,
+    wide: ExpressionsPrimitive,
+    builtin: ExpressionsBuiltinName
+}
+
+export type State = {
+    source: Input,
+    policy: Policy,
+    context: Context
+}
+
+export type Output = Equality

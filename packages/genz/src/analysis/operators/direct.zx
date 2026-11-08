@@ -1,0 +1,34 @@
+import binary from "../../ast/context/binary"
+import nullValue from "../../ast/context/null_value"
+import { Mode } from "./model"
+import operator from "./operator"
+
+import type { Node } from "../../ast/context/model"
+import type { State as Input } from "./model"
+
+export type Output = Node
+
+export default function (in: Input): Output {
+    const left = match {
+        in.policy.mode == Mode.Nulls && in.policy.left_none => nullValue(in.context),
+        _ => {
+            state: in.context,
+            id: in.source.left
+        }
+    }
+
+    const right = match {
+        in.policy.mode == Mode.Nulls && in.policy.right_none => nullValue(left.state),
+        _ => {
+            state: left.state,
+            id: in.source.right
+        }
+    }
+
+    return binary({
+        state: right.state,
+        operator: operator(in.source.operator),
+        left: left.id,
+        right: right.id
+    })
+}

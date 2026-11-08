@@ -1,0 +1,55 @@
+import builtin from "../../ast/context/builtin"
+import primitive from "../../ast/context/primitive"
+import { ExpressionsBuiltinName } from "../../printer/model/expressions"
+
+import type { Node as Output } from "../../ast/context/model"
+import type { State as Input } from "./model"
+
+export default function (in: Input): Output {
+    const wide = primitive({
+        state: in.context,
+        value: in.policy.wide
+    })
+
+    const left = builtin({
+        state: wide.state,
+        name: ExpressionsBuiltinName.As,
+        arguments: [
+            wide.id,
+            in.source.left
+        ]
+    })
+
+    const right = builtin({
+        state: left.state,
+        name: ExpressionsBuiltinName.As,
+        arguments: [
+            wide.id,
+            in.source.right
+        ]
+    })
+
+    const remainder = builtin({
+        state: right.state,
+        name: ExpressionsBuiltinName.Rem,
+        arguments: [
+            left.id,
+            right.id
+        ]
+    })
+
+    const narrowed = builtin({
+        state: remainder.state,
+        name: ExpressionsBuiltinName.IntCast,
+        arguments: [remainder.id]
+    })
+
+    return builtin({
+        state: narrowed.state,
+        name: ExpressionsBuiltinName.As,
+        arguments: [
+            in.source.type_expr,
+            narrowed.id
+        ]
+    })
+}

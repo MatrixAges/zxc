@@ -1,0 +1,16 @@
+import type { Node as Input } from "../../ast/context/model"
+import type { Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        ...in.state.pick([
+            "expressions",
+            "forms",
+            "statements",
+            "variables",
+            "serial",
+            "valid"
+        ]),
+        root: in.id
+    }
+}

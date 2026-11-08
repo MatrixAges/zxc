@@ -1,0 +1,32 @@
+import { UnaryOperator } from "core/expression_table/kinds"
+
+import {
+    ExpressionsKind,
+    ExpressionsUnaryOperator
+} from "../../printer/model/expressions"
+
+export type Input = {
+    operator: UnaryOperator,
+    operand: u32
+}
+
+export type Output = {
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    unary_operator: ExpressionsUnaryOperator[],
+    unary_operand: u32[]
+}
+
+export default function (in: Input): Output {
+    const operator = match in.operator {
+        UnaryOperator.Not => ExpressionsUnaryOperator.Not,
+        _ => ExpressionsUnaryOperator.Negate
+    }
+
+    return {
+        tags: [ExpressionsKind.Unary],
+        offsets: [0],
+        unary_operator: [operator],
+        unary_operand: [in.operand]
+    }
+}

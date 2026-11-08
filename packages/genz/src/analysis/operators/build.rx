@@ -1,0 +1,80 @@
+<Module>
+    <Type from="model" as="Operator" />
+
+    <Args in={Operator.Input} out={Operator.Output} />
+
+    <Call fn="classify" in={$in} />
+
+    <If on={$ctx.classify.mode == Operator.Mode.Equal}>
+        <Call
+            module="../comparison/equality/build"
+            in={{
+                ...$in.pick([
+                    "types",
+                    "left",
+                    "right",
+                    "expression_base",
+                    "statement_base",
+                    "serial"
+                ]),
+                type_id: $ctx.classify.type_id
+            }}
+        />
+
+        <Return value={$ctx.build} />
+    </If>
+
+    <If on={$ctx.classify.mode == Operator.Mode.NotEqual}>
+        <Call
+            module="../comparison/equality/build"
+            in={{
+                ...$in.pick([
+                    "types",
+                    "left",
+                    "right",
+                    "expression_base",
+                    "statement_base",
+                    "serial"
+                ]),
+                type_id: $ctx.classify.type_id
+            }}
+        />
+
+        <Call
+            fn="negate"
+            in={{
+                output: $ctx.build,
+                base: $in.expression_base
+            }}
+        />
+
+        <Return value={$ctx.negate} />
+    </If>
+
+    <Call
+        fn="initialize"
+        in={{
+            source: $in,
+            policy: $ctx.classify
+        }}
+    />
+
+    <If on={$ctx.classify.mode == Operator.Mode.SignedRemainder}>
+        <Call fn="remainder" in={$ctx.initialize} />
+        <Call fn="publish" in={$ctx.remainder} />
+
+        <Return value={$ctx.publish} />
+    </If>
+
+    <If on={$ctx.classify.mode == Operator.Mode.Builtin}>
+        <Call fn="builtin" in={$ctx.initialize} />
+        <Call fn="publish" in={$ctx.builtin} />
+
+        <Return value={$ctx.publish} />
+    </If>
+
+    <Call fn="direct" in={$ctx.initialize} />
+    <Call fn="publish" in={$ctx.direct} />
+
+    <Return value={$ctx.publish} />
+</Module>

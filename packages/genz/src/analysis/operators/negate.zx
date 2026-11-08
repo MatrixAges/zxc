@@ -1,0 +1,25 @@
+import unary from "../../ast/expressions/unary"
+import { ExpressionsUnaryOperator } from "../../printer/model/expressions"
+
+import type { Output } from "./model"
+
+export type Input = {
+    output: Output,
+    base: u32
+}
+
+export default function (in: Input): Output {
+    const result = unary({
+        table: in.output.expressions,
+        base: in.base,
+        operator: ExpressionsUnaryOperator.Not,
+        operand: in.output.root
+    })
+
+    return {
+        ...in.output,
+        expressions: result.table,
+        root: result.id,
+        valid: in.output.valid && result.valid
+    }
+}

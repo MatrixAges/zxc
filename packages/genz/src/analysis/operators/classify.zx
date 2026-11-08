@@ -1,0 +1,70 @@
+import integers from "std:integer"
+import { ExpressionKind, BinaryOperator } from "core/expression_table/kinds"
+import {
+    scalar_string,
+    scalar_f32,
+    scalar_f64,
+    scalar_i32,
+    scalar_i64
+} from "core/type_table/const"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import {
+    ExpressionsPrimitive,
+    ExpressionsBuiltinName
+} from "../../printer/model/expressions"
+import { Mode } from "./model"
+
+import type { Input, Policy as Output } from "./model"
+
+export default function (in: Input): Output {
+    const left = integers.widen(in.left_ir)
+    const right = integers.widen(in.right_ir)
+    const type_id = in.expressions.types[left]
+    const index = integers.widen(type_id)
+    const target = kind(in.types.kinds[index])
+    const first = in.types.first[index]
+
+    const equality = in.operator == BinaryOperator.Equal ||
+        in.operator == BinaryOperator.NotEqual
+
+    const optional = target == Kind.Optional
+    const scalar = target == Kind.Scalar
+    const string = scalar && first == scalar_string
+    const left_none = in.expressions.kinds[left] == ExpressionKind.None
+    const right_none = in.expressions.kinds[right] == ExpressionKind.None
+    const nulls = left_none || right_none
+
+    const null_comparison = (
+        - equality
+        - and optional
+        - and nulls
+    )
+
+    const comparison = equality && (optional || string)
+    const floating = scalar && (first == scalar_f32 || first == scalar_f64)
+    const signed = scalar && (first == scalar_i32 || first == scalar_i64)
+    const remainder = in.operator == BinaryOperator.Remainder
+    const division = in.operator == BinaryOperator.Divide
+    const wide_remainder = remainder && signed
+    const builtin = remainder || (division && !floating)
+
+    const mode = match {
+        null_comparison => Mode.Nulls,
+        comparison && in.operator == BinaryOperator.Equal => Mode.Equal,
+        comparison => Mode.NotEqual,
+        wide_remainder => Mode.SignedRemainder,
+        builtin => Mode.Builtin,
+        _ => Mode.Direct
+    }
+
+    return {
+        mode,
+        type_id,
+        left_none,
+        right_none,
+        wide: first == scalar_i32 ? ExpressionsPrimitive.I33 : ExpressionsPrimitive.I65,
+        builtin: division ? ExpressionsBuiltinName.DivTrunc : ExpressionsBuiltinName.Rem
+    }
+}

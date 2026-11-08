@@ -1,0 +1,25 @@
+import { BinaryOperator } from "core/expression_table/kinds"
+
+import { ExpressionsBinaryOperator } from "../../printer/model/expressions"
+
+export type Input = BinaryOperator
+
+export type Output = ExpressionsBinaryOperator
+
+export default function (in: Input): Output {
+    return match in {
+        BinaryOperator.Add => ExpressionsBinaryOperator.Add,
+        BinaryOperator.Subtract => ExpressionsBinaryOperator.Subtract,
+        BinaryOperator.Multiply => ExpressionsBinaryOperator.Multiply,
+        BinaryOperator.Divide => ExpressionsBinaryOperator.Divide,
+        BinaryOperator.Equal => ExpressionsBinaryOperator.Equal,
+        BinaryOperator.NotEqual => ExpressionsBinaryOperator.NotEqual,
+        BinaryOperator.Less => ExpressionsBinaryOperator.Less,
+        BinaryOperator.LessEqual => ExpressionsBinaryOperator.LessEqual,
+        BinaryOperator.Greater => ExpressionsBinaryOperator.Greater,
+        BinaryOperator.GreaterEqual => ExpressionsBinaryOperator.GreaterEqual,
+        BinaryOperator.LogicalAnd => ExpressionsBinaryOperator.LogicalAnd,
+        BinaryOperator.LogicalOr => ExpressionsBinaryOperator.LogicalOr,
+        _ => ExpressionsBinaryOperator.Coalesce
+    }
+}

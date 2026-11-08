@@ -322,7 +322,7 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!node.ExpressionId {
 
             break :blk self.cast(value_type, try self.field(source, "len"));
         },
-        .unary => |unary| self.builder.expression(.{ .unary = .{ .operator = if (unary.operator == .not) .not else .negate, .operand = try self.expr(unary.operand) } }),
+        .unary => |unary| @import("operators/unary.zig").lower(self, unary),
         .binary => |operation| self.binary(operation),
         .match_expr => |selection| @import("match.zig").lower(self, selection),
         .conditional => |conditional| self.builder.expression(.{ .conditional = .{ .condition = try self.expr(conditional.condition), .yes = try self.expr(conditional.yes), .no = try self.expr(conditional.no) } }),
@@ -485,33 +485,9 @@ pub fn requestFunction(self: *Self, id: ir.FunctionId, variant: @import("functio
 }
 
 pub fn binary(self: *Self, value: @FieldType(@FieldType(ir.ExpressionRow, "value"), "binary")) Error!node.ExpressionId {
-    const left = try self.expr(value.left);
-    const right = try self.expr(value.right);
-    const type_id = self.program.expression(value.left).type_id;
-    const target = self.program.typeOf(type_id);
+    if (!@import("genz_options").generated_analysis) return @import("operators/seed.zig").binary(self, value);
 
-    if ((value.operator == .equal or value.operator == .not_equal) and target == .optional and (self.program.expression(value.left).value == .none or self.program.expression(value.right).value == .none)) {
-        return self.builder.expression(.{ .binary = .{ .operator = if (value.operator == .equal) .equal else .not_equal, .left = if (self.program.expression(value.left).value == .none) try self.builder.expression(.null_value) else left, .right = if (self.program.expression(value.right).value == .none) try self.builder.expression(.null_value) else right } });
-    }
-
-    if ((value.operator == .equal or value.operator == .not_equal) and (target == .optional or (target == .scalar and target.scalar == .string))) {
-        const equal = try @import("comparison.zig").equal(self, type_id, left, right);
-
-        return if (value.operator == .equal) equal else self.builder.expression(.{ .unary = .{ .operator = .not, .operand = equal } });
-    }
-
-    const floating = target == .scalar and (target.scalar == .f32 or target.scalar == .f64);
-
-    if (value.operator == .remainder and target == .scalar and (target.scalar == .i32 or target.scalar == .i64)) {
-        const wide = try self.builder.expression(.{ .primitive = if (target.scalar == .i32) .i33 else .i65 });
-        const remainder = try self.builtin(.rem, &.{ try self.cast(wide, left), try self.cast(wide, right) });
-
-        return self.cast(try self.typeExpr(type_id), try self.builtin(.intCast, &.{remainder}));
-    }
-
-    if (value.operator == .remainder or (value.operator == .divide and !floating)) return self.builtin(if (value.operator == .divide) .divTrunc else .rem, &.{ left, right });
-
-    return self.builder.expression(.{ .binary = .{ .operator = std.meta.stringToEnum(node.BinaryOperator, @tagName(value.operator)).?, .left = left, .right = right } });
+    return @import("operators/binary.zig").lower(self, value);
 }
 
 /// The type expression of `id` in the current representation.
