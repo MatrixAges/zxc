@@ -1,0 +1,18 @@
+import type { Cache } from "./model"
+
+export type Input = {
+    known?: string[]?[],
+    index: u64
+}
+
+export type Output = Cache?
+
+export default function (in: Input): Output {
+    if (in.known == null) {
+        return null
+    }
+
+    return {
+        errors: in.known[in.index]
+    }
+}

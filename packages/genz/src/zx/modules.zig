@@ -94,6 +94,7 @@ fn selectFunction(lower: *Lower, id: ir.FunctionId) Error!ir.Function {
     lower.self_function = id;
 
     try lower.refreshEntry();
+    try @import("error_effects.zig").forFunction(lower, id);
 
     return selected;
 }

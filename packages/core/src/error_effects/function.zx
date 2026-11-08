@@ -70,6 +70,24 @@ export default function (in: Input): Output {
         }
     }
 
+    if (state.known != null) {
+        const names = state.known[in.index]
+
+        return match {
+            names == null => {
+                ...state,
+                unknown: true
+            },
+            _ => {
+                ...state,
+                names: merge({
+                    names: state.names,
+                    added: names
+                })
+            }
+        }
+    }
+
     if (functions.stores[in.index].types.length != 0) {
         return {
             ...state,

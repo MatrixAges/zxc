@@ -28,6 +28,7 @@ pub fn append(self: *Lower, output: *std.ArrayList(node.Declaration), request: R
     helper.self_function = request.id;
 
     try helper.refreshEntry();
+    try @import("../error_effects.zig").forFunction(&helper, request.id);
 
     helper.plan = self.plans[index];
     helper.pending_name = try std.fmt.allocPrint(self.allocator, "zx_pending_{d}", .{index});

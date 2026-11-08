@@ -42,6 +42,7 @@ task_functions: []const bool,
 value_functions: []const bool = &.{},
 /// The errors each function raises, joined at calls instead of visiting the callee; null visits callees.
 function_errors: ?[]const ?[]const []const u8 = null,
+error_cache: ?@import("error_effects.zig").Cache = null,
 pure_functions: []const bool = &.{},
 /// The pure functions that compare no represented aggregates by identity, themselves or through their callees.
 identity_free_functions: []const bool = &.{},
@@ -70,6 +71,7 @@ function_requests: *@import("functions/requests.zig") = undefined,
 comparisons: *std.ArrayList(ir.TypeId) = undefined,
 task_declarations: *@import("auxiliary.zig") = undefined,
 pub fn refreshEntry(self: *Self) Error!void {
+    self.error_cache = null;
     self.entry_flags = try @import("entry_flags.zig").analyze(self.workspace, self.program, .{ .local = self.local_functions, .pure = self.pure_functions, .io = self.io_functions, .process = self.process_functions, .tasks = self.task_functions, .self_function = self.self_function });
 }
 
@@ -155,7 +157,7 @@ pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declar
     self.uses_io = false;
     self.uses_process = false;
 
-    const errors = try @import("zx").error_effects.programWith(self.allocator, self.program, self.function_errors);
+    const errors = try @import("error_effects.zig").program(self);
 
     self.allows_allocation = if (errors) |names| for (names) |error_name| {
         if (std.mem.eql(u8, error_name, "OutOfMemory")) break true;
@@ -211,7 +213,7 @@ pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declar
 }
 
 pub fn prototype(self: *Self, name: []const u8, exported: bool) Error!node.Function {
-    const errors = try @import("zx").error_effects.programWith(self.allocator, self.program, self.function_errors);
+    const errors = try @import("error_effects.zig").program(self);
 
     return self.prototypeWithErrors(name, exported, errors);
 }

@@ -37,6 +37,7 @@ export type State = {
     names: string[],
     unknown: bool,
     collect: bool,
+    known?: string[]?[],
     callees: u32[]
 }
 
@@ -48,5 +49,6 @@ export type Request = {
     contracts: Contracts,
     stores: bool,
     expression: u32,
-    program: bool
+    program: bool,
+    known?: string[]?[]
 }

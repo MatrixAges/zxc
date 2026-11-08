@@ -1,0 +1,25 @@
+<Module>
+    <Type from="model" as="Model" />
+
+    <Args in={Model.Input} out={Model.Output} />
+
+    <If on={$in.cache != null}>
+        <Return
+            value={{
+                cache: $in.cache,
+                fresh: false
+            }}
+        />
+    </If>
+
+    <Call module="../analyze" in={$in.request} />
+
+    <Return
+        value={{
+            cache: {
+                errors: $ctx.analyze
+            },
+            fresh: true
+        }}
+    />
+</Module>

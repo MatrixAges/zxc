@@ -1,0 +1,15 @@
+import type { Request } from "../model"
+
+export type Cache = {
+    errors?: string[]
+}
+
+export type Input = {
+    cache?: Cache,
+    request: Request
+}
+
+export type Output = {
+    cache: Cache,
+    fresh: bool
+}

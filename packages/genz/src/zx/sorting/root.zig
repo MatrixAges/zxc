@@ -16,7 +16,7 @@ pub fn lower(self: *Lower, id: ir.ExprId, value: ir.Transform) Lower.Error!node.
 
     const list_type = self.program.expression(value.target).type_id;
     const child = try @import("../state_value/elements.zig").typeExpr(self, list_type);
-    const errors = try zx.error_effects.expressionWith(self.allocator, self.program.types, self.program.functions, self.program.expressions, id, self.function_errors);
+    const errors = try @import("../error_effects.zig").expression(self, id);
     const worker = try @import("worker.zig").build(self, value, child, errors);
     const declarations = try self.allocator.dupe(node.Declaration, &.{ worker.declaration, try functions.less(self, child), try functions.sort(self, child, errors) });
 

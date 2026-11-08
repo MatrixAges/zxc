@@ -21,6 +21,7 @@ export default function (in: Input): Output {
         called: [],
         called_count: 0,
         collect: false,
+        known: in.known,
         callees: [],
         names: [],
         unknown: in.program && in.stores
