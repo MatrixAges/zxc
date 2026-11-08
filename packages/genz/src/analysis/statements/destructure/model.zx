@@ -1,0 +1,60 @@
+import type { ExpressionsKind } from "../../../printer/model/expressions"
+import type { StatementsKind } from "../../../printer/model/statements"
+
+export type Input = {
+    name: u8[],
+    value: u32,
+    symbols: u32?[],
+    names: u8[][],
+    used: bool[],
+    expression_base: u32
+}
+
+export type State = {
+    source: Input,
+    reference: u32,
+    expression_tags: ExpressionsKind[],
+    expression_offsets: u32[],
+    identifier: u8[][],
+    field_target: u32[],
+    field_name: u8[][],
+    statement_tags: StatementsKind[],
+    statement_offsets: u32[],
+    constant_name: u8[][],
+    constant_type_expr: u32?[],
+    constant_value: u32[],
+    constant_exported: bool[],
+    discard: u32[],
+    bound: bool,
+    valid: bool
+}
+
+export type Projection = {
+    state: State,
+    index: u64,
+    symbol: u32
+}
+
+export type Expressions = {
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    identifier: u8[][],
+    field_target: u32[],
+    field_name: u8[][]
+}
+
+export type Statements = {
+    tags: StatementsKind[],
+    offsets: u32[],
+    constant_name: u8[][],
+    constant_type_expr: u32?[],
+    constant_value: u32[],
+    constant_exported: bool[],
+    discard: u32[]
+}
+
+export type Output = {
+    expressions: Expressions,
+    statements: Statements,
+    valid: bool
+}

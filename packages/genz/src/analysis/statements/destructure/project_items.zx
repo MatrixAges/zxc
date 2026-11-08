@@ -1,0 +1,33 @@
+import integers from "std:integer"
+
+import projection from "./projection"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return loop({
+        state: in,
+        index: 0
+    }, {
+        while: current => current.state.valid &&
+            current.index < current.state.source.symbols.length,
+        next: current => {
+            const symbol = current.state.source.symbols[current.index]
+
+            if (symbol != null) {
+                if (current.state.source.used[integers.widen(
+                    symbol
+                )]) {
+                    current.state = projection({
+                        state: current.state,
+                        index: current.index,
+                        symbol
+                    })
+                }
+            }
+
+            current.index += 1
+        },
+        return: current => current.state
+    })
+}

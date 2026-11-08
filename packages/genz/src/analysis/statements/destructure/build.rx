@@ -1,0 +1,19 @@
+<Module>
+    <Type from="model" as="Destructure" />
+
+    <Args in={Destructure.Input} out={Destructure.Output} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="project_items" in={$ctx.initialize} />
+
+    <If on={!$ctx.project_items.bound}>
+        <Call fn="discard" in={$ctx.project_items} />
+        <Call fn="finish" in={$ctx.discard} />
+
+        <Return value={$ctx.finish} />
+    </If>
+
+    <Call fn="finish" in={$ctx.project_items} />
+
+    <Return value={$ctx.finish} />
+</Module>

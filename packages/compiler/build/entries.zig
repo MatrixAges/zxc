@@ -166,6 +166,8 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/statements/switch/name.zx", .name = "switch_name", .owner = .genz },
     .{ .path = "genz/analysis/statements/switch/reference.zx", .name = "switch_reference", .owner = .genz },
     .{ .path = "genz/analysis/statements/switch/build.rx", .name = "switch_emit", .owner = .genz },
+    .{ .path = "genz/analysis/statements/destructure/name.zx", .name = "destructure_name", .owner = .genz },
+    .{ .path = "genz/analysis/statements/destructure/build.rx", .name = "destructure_emit", .owner = .genz },
     .{ .path = "genz/analysis/aggregate/binding/bind.zx", .name = "operand_binding", .owner = .genz },
     .{ .path = "genz/analysis/aggregate/binding/finish.zx", .name = "result_block", .owner = .genz },
     .{ .path = "genz/analysis/invocation/call.zx", .name = "invocation_call", .owner = .genz },

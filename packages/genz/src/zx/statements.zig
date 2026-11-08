@@ -46,29 +46,7 @@ pub fn lower(self: *Lower, values: ir.Block) Lower.Error![]const node.Statement 
                     .by_value = self.stack_symbols.contains(binding.symbol),
                 });
             },
-            .destructure => |binding| {
-                const name = try self.fresh("tuple");
-                const value = self.program.expression(binding.value);
-                const tuple = if (value.value == .capture) try @import("capture.zig").lowerValue(self, value.type_id, value.value.capture) else try self.expr(binding.value);
-
-                try output.append(self.allocator, .{ .constant = .{ .name = name, .value = tuple } });
-
-                var used = false;
-
-                for (0..binding.symbols.len) |index| {
-                    const symbol = binding.symbols.at(index);
-
-                    if (symbol) |id| {
-                        if (self.used[@backingInt(id)]) {
-                            used = true;
-
-                            try output.append(self.allocator, .{ .constant = .{ .name = self.names[@backingInt(id)], .value = try self.field(try self.builder.identifier(name), try std.fmt.allocPrint(self.allocator, "{d}", .{index})) } });
-                        }
-                    }
-                }
-
-                if (!used) try output.append(self.allocator, .{ .discard = try self.builder.identifier(name) });
-            },
+            .destructure => |binding| try @import("statements/destructure/lower.zig").append(self, &output, binding),
             .result => |value| {
                 var returned: ?node.ExpressionId = null;
 

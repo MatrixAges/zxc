@@ -1,0 +1,25 @@
+import type { State as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        expressions: {
+            tags: in.expression_tags,
+            offsets: in.expression_offsets,
+            identifier: in.identifier,
+            field_target: in.field_target,
+            field_name: in.field_name
+        },
+        statements: {
+            tags: in.statement_tags,
+            offsets: in.statement_offsets,
+            ...in.pick([
+                "constant_name",
+                "constant_type_expr",
+                "constant_value",
+                "constant_exported",
+                "discard"
+            ])
+        },
+        valid: in.valid
+    }
+}

@@ -1,0 +1,34 @@
+import header from "../../../ast/expressions/header"
+import { ExpressionsKind } from "../../../printer/model/expressions"
+import { StatementsKind } from "../../../printer/model/statements"
+
+import type { Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const reference = header({
+        tags: [],
+        offsets: [],
+        base: in.expression_base,
+        kind: ExpressionsKind.Identifier,
+        offset: 0
+    })
+
+    return {
+        source: in,
+        reference: reference.id,
+        expression_tags: reference.tags,
+        expression_offsets: reference.offsets,
+        identifier: [in.name],
+        field_target: [],
+        field_name: [],
+        statement_tags: [StatementsKind.Constant],
+        statement_offsets: [0],
+        constant_name: [in.name],
+        constant_type_expr: [null],
+        constant_value: [in.value],
+        constant_exported: [false],
+        discard: [],
+        bound: false,
+        valid: reference.valid
+    }
+}

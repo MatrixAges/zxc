@@ -1,0 +1,18 @@
+import fresh from "../../../ast/fresh"
+import { tuple_prefix } from "./const"
+
+export type Input = {
+    serial: u64
+}
+
+export type Output = {
+    serial: u64,
+    name: u8[]
+}
+
+export default function (in: Input): Output {
+    return fresh({
+        serial: in.serial,
+        prefix: tuple_prefix
+    })
+}

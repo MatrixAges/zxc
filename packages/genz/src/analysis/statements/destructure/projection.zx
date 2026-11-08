@@ -1,0 +1,59 @@
+import integers from "std:integer"
+
+import expression from "../../../ast/expressions/header"
+import statement from "../../../ast/statements/header"
+import { ExpressionsKind } from "../../../printer/model/expressions"
+import { StatementsKind } from "../../../printer/model/statements"
+import integer from "../../../printer/text/integer"
+
+import type { Projection as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const state = in.state
+
+    const field = expression({
+        tags: state.expression_tags,
+        offsets: state.expression_offsets,
+        base: state.source.expression_base,
+        kind: ExpressionsKind.Field,
+        offset: state.field_target.length
+    })
+
+    const binding = statement({
+        tags: state.statement_tags,
+        offsets: state.statement_offsets,
+        base: 0,
+        kind: StatementsKind.Constant,
+        offset: state.constant_name.length
+    })
+
+    if (!field.valid || !binding.valid) {
+        return {
+            ...state,
+            valid: false
+        }
+    }
+
+    const name = integer({
+        output: [],
+        value: in.index
+    })
+
+    return {
+        ...state,
+        expression_tags: field.tags,
+        expression_offsets: field.offsets,
+        field_target: state.field_target.push(state.reference)[0],
+        field_name: state.field_name.push(name)[0],
+        statement_tags: binding.tags,
+        statement_offsets: binding.offsets,
+        constant_name:
+            state.constant_name.push(state.source.names[integers.widen(
+                in.symbol
+            )])[0],
+        constant_type_expr: state.constant_type_expr.push(null)[0],
+        constant_value: state.constant_value.push(field.id)[0],
+        constant_exported: state.constant_exported.push(false)[0],
+        bound: true
+    }
+}
