@@ -1,0 +1,72 @@
+import type { Index } from "core/integer/index/model"
+import type { Layout } from "../../../types/layout"
+import type { Cache, Facts, Resolution } from "../model"
+
+export type Description = {
+    source: Facts,
+    layouts: Layout[],
+    symbols: u32?[],
+    values: u32[],
+    borrows: bool[],
+    result: u32,
+    layout: bool
+}
+
+export type Input = {
+    source: Description,
+    index: Index,
+    cache: Cache
+}
+
+export type Flags = {
+    local_root: bool,
+    projected: bool,
+    scalar_entry: bool,
+    enabled: bool,
+    needs_projection: bool
+}
+
+export type Scan = {
+    source: Description,
+    flags: Flags,
+    projected: bool[]
+}
+
+export enum Phase { Candidate, Resolve, Append, Insert, Done }
+
+export type State = {
+    index: Index,
+    added: u32[],
+    cache: Cache,
+    flags: Flags,
+    projected: bool[],
+    position: u64,
+    symbol: u32,
+    value: u32,
+    phase: Phase
+}
+
+export type Prepared = {
+    source: Input,
+    flags: Flags,
+    cache: Cache,
+    projected: bool[]
+}
+
+export type Step = {
+    source: Description,
+    state: State
+}
+
+export type Resolved = {
+    state: State,
+    resolution: Resolution
+}
+
+export type Candidate = {
+    scan: Scan,
+    index: Index,
+    symbol: u32,
+    value: u32,
+    borrow: bool
+}

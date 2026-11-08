@@ -1,0 +1,20 @@
+import { Phase } from "./model"
+
+import type { Resolved as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    if (in.resolution.borrowed) {
+        return {
+            ...in.state,
+            cache: in.resolution.cache,
+            position: in.state.position + 1,
+            phase: Phase.Candidate
+        }
+    }
+
+    return {
+        ...in.state,
+        cache: in.resolution.cache,
+        phase: Phase.Append
+    }
+}

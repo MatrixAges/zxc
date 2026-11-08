@@ -5,6 +5,7 @@ import { Property } from "../../state/queries/model"
 import query from "../../state/queries/read"
 import inputProjection from "./input_projection"
 import { Resource } from "./model"
+import projection from "./projection"
 
 import type { Candidate as Input, Decision as Output } from "./model"
 
@@ -41,16 +42,7 @@ export default function (in: Input): Output {
             }
         }
 
-        const projection = match target {
-            ExpressionKind.Reference => true,
-            ExpressionKind.Field => true,
-            ExpressionKind.TupleField => true,
-            ExpressionKind.Index => true,
-            ExpressionKind.OptionalValue => true,
-            _ => false
-        }
-
-        if (!projection) {
+        if (!projection(target)) {
             return owned
         }
 

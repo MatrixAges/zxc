@@ -216,6 +216,8 @@ pub const main = [_]Entry{
 };
 
 pub const growth = [_]Entry{
+    .{ .path = "genz/analysis/value/locals/scope/build.rx", .name = "value_scope_initialize", .owner = .genz },
+    .{ .path = "genz/analysis/value/locals/scope/step.rx", .name = "value_scope_step", .owner = .genz },
     .{ .path = "genz/analysis/value/locals/resolve.rx", .name = "value_local_resolve", .owner = .genz },
     .{ .path = "genz/analysis/value/locals/advance.zx", .name = "value_local_register", .owner = .genz },
     .{ .path = "genz/analysis/value/locals/optional.zx", .name = "value_local_optional", .owner = .genz },

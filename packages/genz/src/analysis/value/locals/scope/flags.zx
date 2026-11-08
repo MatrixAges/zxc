@@ -1,0 +1,46 @@
+import integers from "std:integer"
+import scalar from "core/type_table/scalar"
+
+import { Property } from "../../../types/layout/query"
+import query from "../../../types/layout/query"
+
+import type { Input, Flags as Output } from "./model"
+
+export default function (in: Input): Output {
+    const scope = in.source
+    const source = scope.source
+    const result = source.expressions.types[integers.widen(scope.result)]
+
+    const local_root = scope.layout && query({
+        value: scope.layouts[integers.widen(result)],
+        property: Property.Aggregate
+    })
+
+    const projected = source.active && source.value_output
+    const scoped_locals = source.value_output || (source.scalar && !source.tasks)
+
+    const scalar_entry = !scope.layout && source.scalar && scalar({
+        ...source.types.pick([
+            "kinds",
+            "first"
+        ]),
+        type_id: result
+    })
+
+    const enabled = (
+        - local_root
+        - or projected
+        - or scalar_entry
+        - or scoped_locals
+    )
+
+    const project = local_root || projected
+
+    return {
+        local_root,
+        projected,
+        scalar_entry,
+        enabled,
+        needs_projection: project && in.cache.projected == null
+    }
+}

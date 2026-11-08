@@ -1,0 +1,45 @@
+<Module>
+    <Type from="model" as="Scope" />
+
+    <Args in={Scope.Input} out={Scope.State} />
+
+    <Call fn="flags" in={$in} />
+
+    <If on={$ctx.flags.needs_projection}>
+        <Call
+            module="../../projections/analyze"
+            in={$in.source.source.pick([
+                "names",
+                "expressions",
+                "control"
+            ])}
+        />
+
+        <Call
+            fn="initialize"
+            in={{
+                source: $in,
+                flags: $ctx.flags,
+                cache: {
+                    ...$in.cache,
+                    projected: $ctx.analyze
+                },
+                projected: $ctx.analyze
+            }}
+        />
+
+        <Return value={$ctx.initialize} />
+    </If>
+
+    <Call
+        fn="initialize"
+        in={{
+            source: $in,
+            flags: $ctx.flags,
+            cache: $in.cache,
+            projected: $in.cache.projected ?? []
+        }}
+    />
+
+    <Return value={$ctx.initialize} />
+</Module>

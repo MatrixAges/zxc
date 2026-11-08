@@ -1,0 +1,46 @@
+import candidate from "./candidate"
+import { Phase } from "./model"
+
+import type { Step as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const source = in.source
+
+    if (in.state.position == source.symbols.length) {
+        return {
+            ...in.state,
+            phase: Phase.Done
+        }
+    }
+
+    return loop(in.state, {
+        while: current => current.phase == Phase.Candidate &&
+            current.position < source.symbols.length,
+        next: current => {
+            const position = current.position
+            const symbol = source.symbols[position]
+
+            if (symbol != null && candidate({
+                scan: {
+                    source,
+                    flags: current.flags,
+                    projected: current.projected
+                },
+                index: current.index,
+                symbol,
+                value: source.values[position],
+                borrow: source.borrows[position]
+            })) {
+                current.symbol = symbol
+                current.value = source.values[position]
+                current.phase = Phase.Resolve
+            } else {
+                current.position += 1
+            }
+
+            if (current.position == source.symbols.length) {
+                current.phase = Phase.Done
+            }
+        }
+    })
+}

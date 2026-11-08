@@ -1,0 +1,97 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+import get from "core/integer/index/get"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import descendant from "../../../types/descendant"
+import { Property } from "../../../types/layout/query"
+import query from "../../../types/layout/query"
+import projection from "../projection"
+
+import type { Candidate as Input } from "./model"
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const scope = in.scan.source
+    const source = scope.source
+    const flags = in.scan.flags
+    const symbol = integers.widen(in.symbol)
+    const type_id = source.symbol_types[symbol]
+    const index = integers.widen(type_id)
+    const result = source.expressions.types[integers.widen(scope.result)]
+    const snapshot = flags.local_root && type_id == result
+    const target = kind(source.types.kinds[index])
+    const object = target == Kind.Object
+    const borrowed_tuple = in.borrow && target == Kind.Tuple
+    const value_kind = source.expressions.kinds[integers.widen(in.value)]
+
+    const fresh_scalar = source.scalar && !source.tasks &&
+        value_kind == ExpressionKind.Object
+
+    const fresh = source.value_output || fresh_scalar
+    const product = object || borrowed_tuple
+    const distinct = type_id != result
+
+    const local = (
+        - fresh
+        - and product
+        - and distinct
+    )
+
+    const local_aggregate = match {
+        local => !descendant({
+            types: source.types,
+            parent: result,
+            root: type_id
+        }) && !descendant({
+            types: source.types,
+            parent: source.output_type,
+            root: type_id
+        }),
+        _ => false
+    }
+
+    const invalid_scalar = !object && !borrowed_tuple
+
+    if (flags.scalar_entry && invalid_scalar) {
+        return false
+    }
+
+    const admitted = snapshot || flags.scalar_entry || local_aggregate
+
+    if (!admitted) {
+        const observed = flags.projected || flags.local_root
+
+        if (!observed) {
+            return false
+        }
+
+        if (!in.scan.projected[symbol]) {
+            return false
+        }
+    }
+
+    if (source.active && source.selected[index]) {
+        return false
+    }
+
+    if (!query({
+        value: scope.layouts[index],
+        property: Property.Aggregate
+    })) {
+        return false
+    }
+
+    if (get({
+        index: in.index,
+        key: in.symbol
+    }) != null) {
+        return false
+    }
+
+    const borrowed_alias = in.borrow && object && projection(value_kind)
+
+    return !borrowed_alias
+}

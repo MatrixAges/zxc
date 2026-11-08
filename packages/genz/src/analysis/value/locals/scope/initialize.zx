@@ -1,0 +1,17 @@
+import { Phase } from "./model"
+
+import type { Prepared as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        index: in.source.index,
+        added: [],
+        cache: in.cache,
+        flags: in.flags,
+        projected: in.projected,
+        position: 0,
+        symbol: 0,
+        value: 0,
+        phase: in.flags.enabled ? Phase.Candidate : Phase.Done
+    }
+}

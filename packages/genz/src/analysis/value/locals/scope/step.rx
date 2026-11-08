@@ -1,0 +1,53 @@
+<Module>
+    <Type from="model" as="Scope" />
+    <Type from="../model" as="Locals" />
+
+    <Args in={Scope.Step} out={Scope.State} />
+
+    <Switch on={$in.state.phase}>
+        <Case value={Scope.Phase.Candidate}>
+            <Call fn="scan" in={$in} />
+
+            <Return value={$ctx.scan} />
+        </Case>
+
+        <Case value={Scope.Phase.Resolve}>
+            <Call
+                module="../resolve"
+                in={{
+                    source: $in.source.source,
+                    cache: $in.state.cache,
+                    symbol: $in.state.symbol,
+                    value: $in.state.value,
+                    phase: Locals.Resource.None
+                }}
+            />
+
+            <Call
+                fn="resolved"
+                in={{
+                    state: $in.state,
+                    resolution: $ctx.resolve
+                }}
+            />
+
+            <Return value={$ctx.resolved} />
+        </Case>
+
+        <Case value={Scope.Phase.Append}>
+            <Call fn="append" in={$in.state} />
+
+            <Return value={$ctx.append} />
+        </Case>
+
+        <Case value={Scope.Phase.Insert}>
+            <Call fn="insert" in={$in.state} />
+
+            <Return value={$ctx.insert} />
+        </Case>
+
+        <Case value={Scope.Phase.Done}>
+            <Return value={$in.state} />
+        </Case>
+    </Switch>
+</Module>

@@ -1,0 +1,11 @@
+import { Phase } from "./model"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        ...in,
+        added: in.added.push(in.symbol)[0],
+        phase: Phase.Insert
+    }
+}

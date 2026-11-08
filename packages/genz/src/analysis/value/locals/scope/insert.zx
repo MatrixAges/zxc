@@ -1,0 +1,19 @@
+import insert from "core/integer/index/insert"
+
+import { Phase } from "./model"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const result = insert({
+        index: in.index,
+        key: in.symbol
+    })
+
+    return {
+        ...in,
+        index: result.index,
+        position: in.position + 1,
+        phase: Phase.Candidate
+    }
+}

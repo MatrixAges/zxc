@@ -46,6 +46,63 @@ pub fn register(self: *Lower, statements: ir.Block) Lower.Error![]const ir.Symbo
     return @as([*]const ir.SymbolId, @ptrCast(output.added.items.ptr))[0..output.added.items.len];
 }
 
+pub fn scope(self: *Lower, value: ir.ScopeRow, layout: bool) Lower.Error![]const ir.SymbolId {
+    if (!generated) return seed.scope(self, value, layout);
+
+    const creating = @import("generated_value_scope_initialize");
+    const Parameter = @typeInfo(@TypeOf(creating.executeState)).@"fn".param_types[1].?;
+    const Input = Child(Parameter);
+    const Description = Child(@FieldType(Input, "source"));
+    const Facts = Child(@FieldType(Description, "source"));
+    const types = ir.TypeTable.borrow(Child(@FieldType(Facts, "types")), self.program.types);
+    const data = facts(self, Facts, &types);
+
+    const description: Description = .{
+        .source = &data,
+        .layouts = read(@FieldType(Description, "layouts"), self.layout_types),
+        .symbols = read(@FieldType(Description, "symbols"), value.bindings.symbols),
+        .values = read(@FieldType(Description, "values"), value.bindings.values),
+        .borrows = read(@FieldType(Description, "borrows"), value.bindings.borrows),
+        .result = @backingInt(value.result),
+        .layout = layout,
+    };
+
+    const input: Input = .{
+        .source = &description,
+        .index = zx.columns.view(@FieldType(Input, "index"), self.stack_symbols.current().*),
+        .cache = cache(self, @FieldType(Input, "cache")),
+    };
+
+    var state = creating.executeState(self.allocator, if (@typeInfo(Parameter) == .pointer) &input else input) catch |err| return failure(err);
+
+    publish(self, state.cache);
+
+    errdefer for (state.added.items) |symbol| {
+        _ = self.stack_symbols.remove(@fromBackingInt(symbol));
+    };
+
+    const stepping = @import("generated_value_scope_step");
+    const StepParameter = @typeInfo(@TypeOf(stepping.executeState)).@"fn".param_types[1].?;
+    const Step = Child(StepParameter);
+    const step_source = zx.columns.view(Child(@FieldType(Step, "source")), description);
+
+    while (state.phase != .Done) {
+        const step: Step = .{ .source = &step_source, .state = state };
+
+        state = stepping.executeState(self.allocator, if (@typeInfo(StepParameter) == .pointer) &step else step) catch |err| return failure(err);
+
+        const current = self.stack_symbols.current();
+
+        current.* = zx.columns.view(@TypeOf(current.*), state.index);
+
+        publish(self, state.cache);
+    }
+
+    comptime std.debug.assert(@typeInfo(ir.SymbolId).@"enum".tag_type == u32);
+
+    return @as([*]const ir.SymbolId, @ptrCast(state.added.items.ptr))[0..state.added.items.len];
+}
+
 pub fn borrowed(self: *Lower, symbol: ir.SymbolId, value: ir.ExprId) Lower.Error!bool {
     if (!generated) return seed.borrowed(self, symbol, value);
 
@@ -99,6 +156,12 @@ pub fn optionalCall(self: *Lower, body: *std.ArrayList(node.Statement), symbol: 
     if (!selected) return null;
 
     return try @import("root.zig").borrowInvocation(self, body, self.program.expression(value).value.call);
+}
+
+fn read(comptime Target: type, values: anytype) Target {
+    if (@typeInfo(Target) == .pointer) return zx.columns.slice(Target, values);
+
+    return .{ .items = zx.columns.slice(@FieldType(Target, "items"), values), .storage = .plain };
 }
 
 fn cache(self: *const Lower, comptime Cache: type) Cache {
