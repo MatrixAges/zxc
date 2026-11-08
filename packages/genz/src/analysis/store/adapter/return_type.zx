@@ -1,0 +1,55 @@
+import primitive from "../../../ast/context/primitive"
+import errorUnion from "../../../ast/expressions/error_union"
+import { ExpressionsPrimitive } from "../../../printer/model/expressions"
+
+import type { State as Input, Node as Output } from "./model"
+
+export default function (in: Input): Output {
+    const payload = primitive({
+        state: in.context,
+        value: ExpressionsPrimitive.Void
+    })
+
+    const result = errorUnion({
+        table: {
+            ...payload.state.expressions.pick([
+                "tags",
+                "offsets"
+            ]),
+            ...in.extra.pick([
+                "error_union_payload",
+                "error_union_errors",
+                "error_union_inferred"
+            ])
+        },
+        base: in.source.bases.expression_base,
+        payload: payload.id,
+        errors: null,
+        inferred: false
+    })
+
+    return {
+        id: result.id,
+        state: {
+            ...in,
+            context: {
+                ...payload.state,
+                expressions: {
+                    ...payload.state.expressions,
+                    ...result.table.pick([
+                        "tags",
+                        "offsets"
+                    ])
+                },
+                valid: payload.state.valid && result.valid
+            },
+            extra: {
+                ...in.extra,
+                ...result.table.omit([
+                    "tags",
+                    "offsets"
+                ])
+            }
+        }
+    }
+}

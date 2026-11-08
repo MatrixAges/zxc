@@ -1,0 +1,55 @@
+import { ExpressionsKind } from "../../printer/model/expressions"
+import header from "./header"
+
+export type Columns = {
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    container_type_fields_start: u32[],
+    container_type_fields_len: u32[],
+    container_type_declarations_start: u32[],
+    container_type_declarations_len: u32[]
+}
+
+export type Input = {
+    table: Columns,
+    base: u32,
+    fields_first: u32,
+    fields_count: u32,
+    declarations_first: u32,
+    declarations_count: u32
+}
+
+export type Output = {
+    table: Columns,
+    id: u32,
+    valid: bool
+}
+
+export default function (in: Input): Output {
+    const result = header({
+        ...in.table.pick([
+            "tags",
+            "offsets"
+        ]),
+        base: in.base,
+        kind: ExpressionsKind.ContainerType,
+        offset: in.table.container_type_fields_start.length
+    })
+
+    return {
+        id: result.id,
+        valid: result.valid,
+        table: {
+            tags: result.tags,
+            offsets: result.offsets,
+            container_type_fields_start:
+                in.table.container_type_fields_start.push(in.fields_first)[0],
+            container_type_fields_len:
+                in.table.container_type_fields_len.push(in.fields_count)[0],
+            container_type_declarations_start:
+                in.table.container_type_declarations_start.push(in.declarations_first)[0],
+            container_type_declarations_len:
+                in.table.container_type_declarations_len.push(in.declarations_count)[0]
+        }
+    }
+}

@@ -1,0 +1,23 @@
+import initialize from "../../../ast/context/initialize"
+import functions from "../../../ast/declarations/empty_functions"
+import fields from "../../../ast/fields/empty"
+
+import type { Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        source: in,
+        context: initialize(in.bases),
+        fields: fields({}),
+        declarations: functions({}),
+        extra: {
+            error_union_payload: [],
+            error_union_errors: [],
+            error_union_inferred: [],
+            container_type_fields_start: [],
+            container_type_fields_len: [],
+            container_type_declarations_start: [],
+            container_type_declarations_len: []
+        }
+    }
+}

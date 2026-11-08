@@ -1,0 +1,21 @@
+import type { Columns } from "./model"
+
+export type Input = {
+    table: Columns,
+    name: u8[],
+    value: u32,
+    default_value?: u32,
+    comptime_parameter: bool
+}
+
+export type Output = Columns
+
+export default function (in: Input): Output {
+    return {
+        name: in.table.name.push(in.name)[0],
+        value: in.table.value.push(in.value)[0],
+        default_value: in.table.default_value.push(in.default_value)[0],
+        comptime_parameter:
+            in.table.comptime_parameter.push(in.comptime_parameter)[0]
+    }
+}

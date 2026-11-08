@@ -1,0 +1,46 @@
+import integers from "std:integer"
+
+import array from "../../../ast/context/array"
+import integer from "../../../ast/context/integer"
+import primitive from "../../../ast/context/primitive"
+import { ExpressionsPrimitive } from "../../../printer/model/expressions"
+
+import type { State, Node as Output } from "../../../ast/context/model"
+
+export type Input = {
+    state: State,
+    slots: u32[]
+}
+
+export default function (in: Input): Output {
+    const values: u32[] = []
+
+    const entries = loop({
+        state: in.state,
+        values,
+        index: 0
+    }, {
+        while: current => current.index < in.slots.length,
+        next: current => {
+            const value = integer({
+                state: current.state,
+                value: integers.widen(in.slots[current.index])
+            })
+
+            current.state = value.state
+            current.values = current.values.push(value.id)[0]
+            current.index += 1
+        }
+    })
+
+    const element = primitive({
+        state: entries.state,
+        value: ExpressionsPrimitive.U32
+    })
+
+    return array({
+        state: element.state,
+        element: element.id,
+        values: entries.values
+    })
+}

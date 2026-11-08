@@ -1,0 +1,32 @@
+import append from "./append"
+
+import type { Columns } from "./model"
+
+export type Input = {
+    table: Columns,
+    names: u8[][],
+    values: u32[]
+}
+
+export type Output = Columns
+
+export default function (in: Input): Output {
+    return loop({
+        table: in.table,
+        index: 0
+    }, {
+        while: current => current.index < in.names.length,
+        next: current => {
+            current.table = append({
+                table: current.table,
+                name: in.names[current.index],
+                value: in.values[current.index],
+                default_value: null,
+                comptime_parameter: false
+            })
+
+            current.index += 1
+        },
+        return: current => current.table
+    })
+}

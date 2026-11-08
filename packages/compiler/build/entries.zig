@@ -184,6 +184,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/aggregate/tuple.zx", .name = "aggregate_tuple", .owner = .genz },
     .{ .path = "genz/analysis/aggregate/array.zx", .name = "aggregate_array", .owner = .genz },
     .{ .path = "genz/analysis/aggregate/object.zx", .name = "aggregate_object", .owner = .genz },
+    .{ .path = "genz/analysis/store/adapter/build.rx", .name = "store_adapter", .owner = .genz },
     .{ .path = "genz/analysis/access/projection/raw.zx", .name = "projection_raw", .owner = .genz },
     .{ .path = "genz/analysis/access/projection/route.zx", .name = "projection_route", .owner = .genz },
     .{ .path = "genz/analysis/access/projection/anchor.zx", .name = "projection_anchor", .owner = .genz },

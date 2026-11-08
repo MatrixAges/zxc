@@ -1,0 +1,27 @@
+import { ExpressionsKind } from "../../printer/model/expressions"
+import wrapper from "../expressions/wrapper"
+
+import type { State, Node as Output } from "./model"
+
+export type Input = {
+    state: State,
+    value: u32
+}
+
+export default function (in: Input): Output {
+    const result = wrapper({
+        table: in.state.expressions,
+        base: in.state.source.expression_base,
+        kind: ExpressionsKind.ComptimeValue,
+        value: in.value
+    })
+
+    return {
+        id: result.id,
+        state: {
+            ...in.state,
+            expressions: result.table,
+            valid: in.state.valid && result.valid
+        }
+    }
+}

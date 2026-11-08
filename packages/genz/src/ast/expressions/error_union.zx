@@ -1,0 +1,48 @@
+import { ExpressionsKind } from "../../printer/model/expressions"
+import header from "./header"
+
+export type Columns = {
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    error_union_payload: u32[],
+    error_union_errors: u8[][]?[],
+    error_union_inferred: bool[]
+}
+
+export type Input = {
+    table: Columns,
+    base: u32,
+    payload: u32,
+    errors?: u8[][],
+    inferred: bool
+}
+
+export type Output = {
+    table: Columns,
+    id: u32,
+    valid: bool
+}
+
+export default function (in: Input): Output {
+    const result = header({
+        ...in.table.pick([
+            "tags",
+            "offsets"
+        ]),
+        base: in.base,
+        kind: ExpressionsKind.ErrorUnion,
+        offset: in.table.error_union_payload.length
+    })
+
+    return {
+        id: result.id,
+        valid: result.valid,
+        table: {
+            tags: result.tags,
+            offsets: result.offsets,
+            error_union_payload: in.table.error_union_payload.push(in.payload)[0],
+            error_union_errors: in.table.error_union_errors.push(in.errors)[0],
+            error_union_inferred: in.table.error_union_inferred.push(in.inferred)[0]
+        }
+    }
+}

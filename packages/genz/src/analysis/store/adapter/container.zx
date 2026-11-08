@@ -1,0 +1,60 @@
+import integers from "std:integer"
+
+import construct from "../../../ast/expressions/container"
+
+import type { State, Node as Output } from "./model"
+
+export type Input = {
+    state: State,
+    first: u32,
+    count: u32
+}
+
+export default function (in: Input): Output {
+    const state = in.state
+
+    const value = construct({
+        table: {
+            ...state.context.expressions.pick([
+                "tags",
+                "offsets"
+            ]),
+            ...state.extra.pick([
+                "container_type_fields_start",
+                "container_type_fields_len",
+                "container_type_declarations_start",
+                "container_type_declarations_len"
+            ])
+        },
+        base: state.source.bases.expression_base,
+        fields_first: in.first,
+        fields_count: in.count,
+        declarations_first: state.source.declaration_base,
+        declarations_count: integers.narrow(state.declarations.tags.length)
+    })
+
+    return {
+        id: value.id,
+        state: {
+            ...state,
+            context: {
+                ...state.context,
+                expressions: {
+                    ...state.context.expressions,
+                    ...value.table.pick([
+                        "tags",
+                        "offsets"
+                    ])
+                },
+                valid: state.context.valid && value.valid
+            },
+            extra: {
+                ...state.extra,
+                ...value.table.omit([
+                    "tags",
+                    "offsets"
+                ])
+            }
+        }
+    }
+}

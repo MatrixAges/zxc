@@ -10,7 +10,8 @@ export type Input = {
     capture: u8[],
     start: u32,
     count: u32,
-    index?: u8[]
+    index?: u8[],
+    capture_reference?: bool
 }
 
 export type Output = Result
@@ -44,7 +45,7 @@ export default function (in: Input): Output {
             for_loop_body_start: in.table.for_loop_body_start.push(in.start)[0],
             for_loop_body_len: in.table.for_loop_body_len.push(in.count)[0],
             for_loop_capture_reference:
-                in.table.for_loop_capture_reference.push(false)[0],
+                in.table.for_loop_capture_reference.push(in.capture_reference ?? false)[0],
             for_loop_index_capture:
                 in.table.for_loop_index_capture.push(in.index)[0]
         }

@@ -1,0 +1,15 @@
+import bytes from "std:bytes"
+
+import integer from "../../../printer/text/integer"
+import { slot_prefix } from "./const"
+
+export type Input = u64
+
+export type Output = u8[]
+
+export default function (in: Input): Output {
+    return integer({
+        output: bytes.fromText(slot_prefix),
+        value: in
+    })
+}

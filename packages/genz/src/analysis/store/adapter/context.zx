@@ -1,0 +1,77 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import builtin from "../../../ast/context/builtin"
+import field from "../../../ast/context/field"
+import identifier from "../../../ast/context/identifier"
+import { ExpressionsBuiltinName } from "../../../printer/model/expressions"
+import { context_name, parent_name } from "./const"
+import slotName from "./slot_name"
+
+import type { State as Input, Readable as Output } from "./model"
+
+export default function (in: Input): Output {
+    const context = identifier({
+        state: in.context,
+        name: bytes.fromText(context_name)
+    })
+
+    const parent = builtin({
+        state: context.state,
+        name: ExpressionsBuiltinName.TypeOf,
+        arguments: [context.id]
+    })
+
+    const names: u8[][] = [bytes.fromText(parent_name)]
+    const types: u32[] = [parent.id]
+    const values: u32[] = [context.id]
+
+    return loop({
+        state: {
+            ...in,
+            context: parent.state
+        },
+        names,
+        types,
+        values,
+        index: 0
+    }, {
+        while: current => current.index < in.source.mapping.length,
+        next: current => {
+            const index = current.index
+
+            if (in.source.readable[index]) {
+                const pointer = field({
+                    state: current.state.context,
+                    target: context.id,
+                    name: slotName(integers.widen(
+                        in.source.mapping[index]
+                    ))
+                })
+
+                const type_node = builtin({
+                    state: pointer.state,
+                    name: ExpressionsBuiltinName.TypeOf,
+                    arguments: [pointer.id]
+                })
+
+                current.state = {
+                    ...current.state,
+                    context: type_node.state
+                }
+
+                current.names = current.names.push(slotName(index))[0]
+                current.types = current.types.push(type_node.id)[0]
+                current.values = current.values.push(pointer.id)[0]
+            }
+
+            current.index += 1
+        },
+        return: current => current.pick([
+            "state",
+            "names",
+            "types",
+            "values"
+        ])
+    })
+}

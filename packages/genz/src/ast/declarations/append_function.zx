@@ -1,0 +1,54 @@
+import integers from "std:integer"
+
+import construct from "./function"
+
+import type { Input as Function, Columns } from "./function"
+
+export type Input = {
+    table: Columns,
+    value: Function
+}
+
+export type Output = {
+    table: Columns,
+    valid: bool
+}
+
+export default function (in: Input): Output {
+    const result = construct(in.value)
+    const row = result.table
+
+    return {
+        valid: result.valid,
+        table: {
+            tags: in.table.tags.concat(row.tags)[0],
+            offsets:
+                in.table.offsets.push(integers.narrow(
+                    in.table.function_name.length
+                ))[0],
+            function_name: in.table.function_name.concat(row.function_name)[0],
+            function_parameters_start:
+                in.table.function_parameters_start.concat(
+                    row.function_parameters_start
+                )[0],
+            function_parameters_len:
+                in.table.function_parameters_len.concat(row.function_parameters_len)[0],
+            function_return_type:
+                in.table.function_return_type.concat(row.function_return_type)[0],
+            function_body_start:
+                in.table.function_body_start.concat(row.function_body_start)[0],
+            function_body_len:
+                in.table.function_body_len.concat(row.function_body_len)[0],
+            function_exported:
+                in.table.function_exported.concat(row.function_exported)[0],
+            function_abi_export:
+                in.table.function_abi_export.concat(row.function_abi_export)[0],
+            function_inlined:
+                in.table.function_inlined.concat(row.function_inlined)[0],
+            function_calling_convention:
+                in.table.function_calling_convention.concat(
+                    row.function_calling_convention
+                )[0]
+        }
+    }
+}

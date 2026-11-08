@@ -1,0 +1,94 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import call from "../../../ast/context/call"
+import field from "../../../ast/context/field"
+import identifier from "../../../ast/context/identifier"
+import result from "../../../ast/context/result"
+import declaration from "../../../ast/declarations/append_function"
+import { self_name, parent_name, commit_name, changes_name } from "./const"
+import parameters from "./parameters"
+import returnType from "./return_type"
+
+import type { Patched as Input, Readable as Output } from "./model"
+
+export default function (in: Input): Output {
+    const initial = in.readable.state
+
+    const self = identifier({
+        state: initial.context,
+        name: bytes.fromText(self_name)
+    })
+
+    const parent = field({
+        state: self.state,
+        target: self.id,
+        name: bytes.fromText(parent_name)
+    })
+
+    const callee = field({
+        state: parent.state,
+        target: parent.id,
+        name: bytes.fromText(commit_name)
+    })
+
+    const invoke = call({
+        state: callee.state,
+        callee: callee.id,
+        arguments: [in.patch],
+        fallible: true
+    })
+
+    const args = parameters({
+        state: {
+            ...initial,
+            context: invoke.state
+        },
+        name: bytes.fromText(changes_name),
+        comptime_parameter: false
+    })
+
+    const type_node = returnType(args.state)
+
+    const body = integers.narrow(
+        integers.widen(initial.source.bases.statement_base) +
+            type_node.state.context.statements.tags.length
+    )
+
+    const context = result({
+        state: type_node.state.context,
+        value: invoke.id
+    })
+
+    const declared = declaration({
+        table: type_node.state.declarations,
+        value: {
+            base: integers.narrow(
+                integers.widen(initial.source.declaration_base) +
+                    initial.declarations.tags.length
+            ),
+            name: bytes.fromText(commit_name),
+            parameters_start: args.first,
+            parameters_count: 2,
+            return_type: type_node.id,
+            body_start: body,
+            body_count: 1,
+            exported: true,
+            abi_export: false,
+            inlined: false,
+            calling_convention: null
+        }
+    })
+
+    return {
+        ...in.readable,
+        state: {
+            ...type_node.state,
+            context: {
+                ...context,
+                valid: context.valid && declared.valid
+            },
+            declarations: declared.table
+        }
+    }
+}

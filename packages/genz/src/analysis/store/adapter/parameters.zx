@@ -1,0 +1,67 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import builtin from "../../../ast/context/builtin"
+import primitive from "../../../ast/context/primitive"
+import append from "../../../ast/fields/append"
+import {
+    ExpressionsBuiltinName,
+    ExpressionsPrimitive
+} from "../../../printer/model/expressions"
+import { self_name } from "./const"
+
+import type { State } from "./model"
+
+export type Input = {
+    state: State,
+    name: u8[],
+    comptime_parameter: bool
+}
+
+export type Output = {
+    state: State,
+    first: u32
+}
+
+export default function (in: Input): Output {
+    const self = builtin({
+        state: in.state.context,
+        name: ExpressionsBuiltinName.This,
+        arguments: []
+    })
+
+    const value = primitive({
+        state: self.state,
+        value: ExpressionsPrimitive.Anytype
+    })
+
+    const first = integers.narrow(
+        integers.widen(in.state.source.bases.field_base) +
+            in.state.fields.name.length
+    )
+
+    const owner = append({
+        table: in.state.fields,
+        name: bytes.fromText(self_name),
+        value: self.id,
+        default_value: null,
+        comptime_parameter: false
+    })
+
+    const fields = append({
+        table: owner,
+        name: in.name,
+        value: value.id,
+        default_value: null,
+        comptime_parameter: in.comptime_parameter
+    })
+
+    return {
+        first,
+        state: {
+            ...in.state,
+            context: value.state,
+            fields
+        }
+    }
+}

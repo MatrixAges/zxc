@@ -1,0 +1,20 @@
+import type { Columns as Output } from "./function"
+
+export type Input = {}
+
+export default function (in: Input): Output {
+    return {
+        tags: [],
+        offsets: [],
+        function_name: [],
+        function_parameters_start: [],
+        function_parameters_len: [],
+        function_return_type: [],
+        function_body_start: [],
+        function_body_len: [],
+        function_exported: [],
+        function_abi_export: [],
+        function_inlined: [],
+        function_calling_convention: []
+    }
+}

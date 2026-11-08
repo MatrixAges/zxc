@@ -1,0 +1,122 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import builtin from "../../../ast/context/builtin"
+import call from "../../../ast/context/call"
+import comptimeValue from "../../../ast/context/comptime"
+import { standard_name } from "../../../ast/context/const"
+import expressionStatement from "../../../ast/context/expression_statement"
+import field from "../../../ast/context/field"
+import identifier from "../../../ast/context/identifier"
+import text from "../../../ast/context/text"
+import branch from "../../../ast/statements/branch"
+import {
+    ExpressionsBuiltinName,
+    ExpressionsKind
+} from "../../../printer/model/expressions"
+import { meta_name, has_method_name, begin_name } from "./const"
+
+import type { State } from "../../../ast/context/model"
+
+export type Input = {
+    state: State,
+    parent: u32,
+    slots: u32
+}
+
+export type Output = {
+    state: State,
+    body: u32
+}
+
+export default function (in: Input): Output {
+    const standard = identifier({
+        state: in.state,
+        name: bytes.fromText(standard_name)
+    })
+
+    const meta = field({
+        state: standard.state,
+        target: standard.id,
+        name: bytes.fromText(meta_name)
+    })
+
+    const method = field({
+        state: meta.state,
+        target: meta.id,
+        name: bytes.fromText(has_method_name)
+    })
+
+    const type_node = builtin({
+        state: method.state,
+        name: ExpressionsBuiltinName.TypeOf,
+        arguments: [in.parent]
+    })
+
+    const name = text({
+        state: type_node.state,
+        kind: ExpressionsKind.String,
+        value: bytes.fromText(begin_name)
+    })
+
+    const supported = call({
+        state: name.state,
+        callee: method.id,
+        arguments: [
+            type_node.id,
+            name.id
+        ],
+        fallible: false
+    })
+
+    const callee = field({
+        state: supported.state,
+        target: in.parent,
+        name: bytes.fromText(begin_name)
+    })
+
+    const invoke = call({
+        state: callee.state,
+        callee: callee.id,
+        arguments: [in.slots],
+        fallible: true
+    })
+
+    const condition = comptimeValue({
+        state: invoke.state,
+        value: supported.id
+    })
+
+    const yes_first = integers.narrow(
+        integers.widen(in.state.source.statement_base) +
+            condition.state.statements.tags.length
+    )
+
+    const yes = expressionStatement({
+        state: condition.state,
+        value: invoke.id
+    })
+
+    const body = integers.narrow(
+        integers.widen(in.state.source.statement_base) + yes.statements.tags.length
+    )
+
+    const result = branch({
+        table: yes.statements,
+        base: in.state.source.statement_base,
+        condition: condition.id,
+        yes_start: yes_first,
+        yes_count: 1,
+        no_start: 0,
+        no_count: 0
+    })
+
+    return {
+        body,
+        state: {
+            ...yes,
+            statements: result.table,
+            valid: yes.valid && result.valid
+        }
+    }
+}

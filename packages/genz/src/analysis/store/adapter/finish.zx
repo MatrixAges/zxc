@@ -1,0 +1,100 @@
+import integers from "std:integer"
+
+import binding from "../../../ast/context/binding"
+import block from "../../../ast/context/block"
+import identifier from "../../../ast/context/identifier"
+import object from "../../../ast/context/object"
+import appendValues from "../../../ast/fields/append_values"
+import fresh from "../../../ast/fresh"
+import { context_prefix, block_prefix } from "./const"
+import container from "./container"
+
+import type { Readable as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const name = fresh({
+        serial: in.state.context.serial,
+        prefix: context_prefix
+    })
+
+    const type_node = identifier({
+        state: in.state.context,
+        name: name.name
+    })
+
+    const values_first = integers.narrow(
+        integers.widen(in.state.source.bases.field_base) +
+            in.state.fields.name.length
+    )
+
+    const values = appendValues({
+        table: in.state.fields,
+        names: in.names,
+        values: in.values
+    })
+
+    const result = object({
+        state: type_node.state,
+        type_expr: type_node.id,
+        first: values_first,
+        count: integers.narrow(in.names.length)
+    })
+
+    const label = fresh({
+        serial: name.serial,
+        prefix: block_prefix
+    })
+
+    const fields_first = integers.narrow(
+        integers.widen(in.state.source.bases.field_base) + values.name.length
+    )
+
+    const fields = appendValues({
+        table: values,
+        names: in.names,
+        values: in.types
+    })
+
+    const structure = container({
+        state: {
+            ...in.state,
+            context: {
+                ...result.state,
+                serial: label.serial
+            },
+            fields
+        },
+        first: fields_first,
+        count: integers.narrow(in.names.length)
+    })
+
+    const first = structure.state.context.statements.tags.length
+
+    const declared = binding({
+        state: structure.state.context,
+        name: name.name,
+        value: structure.id
+    })
+
+    const output = block({
+        state: declared,
+        label: label.name,
+        first,
+        value: result.id
+    })
+
+    return {
+        expressions: output.state.expressions,
+        forms: output.state.forms,
+        extra: structure.state.extra,
+        statements: output.state.statements,
+        variables: output.state.variables,
+        fields: structure.state.fields,
+        declarations: structure.state.declarations,
+        root: output.id,
+        serial: output.state.serial,
+        undefined_count: output.state.undefined_count,
+        null_count: output.state.null_count,
+        valid: output.state.valid
+    }
+}
