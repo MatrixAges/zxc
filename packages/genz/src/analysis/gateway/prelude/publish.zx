@@ -1,0 +1,15 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+
+import type { State as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const count = integers.widen(in.source.declaration_base) + in.declarations.length
+
+    return {
+        expressions: in.context.expressions,
+        forms: in.context.forms,
+        declarations: in.declarations,
+        valid: in.context.valid && count <= integers.widen(max_u32)
+    }
+}

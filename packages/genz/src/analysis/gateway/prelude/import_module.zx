@@ -1,0 +1,31 @@
+import importPath from "../../../ast/context/import_path"
+
+import type { State } from "./model"
+
+export type Input = {
+    state: State,
+    name: u8[],
+    module_name: string,
+    exported: bool
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const imported = importPath({
+        state: in.state.context,
+        module: in.module_name,
+        path: []
+    })
+
+    return {
+        ...in.state,
+        context: imported.state,
+        declarations: in.state.declarations.push({
+            name: in.name,
+            value: imported.id,
+            type_expr: null,
+            exported: in.exported
+        })[0]
+    }
+}

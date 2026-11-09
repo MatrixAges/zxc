@@ -1,0 +1,24 @@
+import bytes from "std:bytes"
+
+import { standard_name } from "../../../ast/context/const"
+import { state_name } from "../const"
+import { state_module } from "./const"
+import importModule from "./import_module"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const standard = importModule({
+        state: in,
+        name: bytes.fromText(standard_name),
+        module_name: standard_name,
+        exported: false
+    })
+
+    return importModule({
+        state: standard,
+        name: bytes.fromText(state_name),
+        module_name: state_module,
+        exported: true
+    })
+}

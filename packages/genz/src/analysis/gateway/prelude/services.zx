@@ -1,0 +1,29 @@
+import bytes from "std:bytes"
+
+import integer from "../../../printer/text/integer"
+import { service_prefix } from "./const"
+import importModule from "./import_module"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return loop({
+        state: in,
+        index: 0
+    }, {
+        while: current => current.index < in.source.service_modules.length,
+        next: current => {
+            current.state = importModule({
+                state: current.state,
+                name: integer({
+                    output: bytes.fromText(service_prefix),
+                    value: current.index
+                }),
+                module_name: in.source.service_modules[current.index],
+                exported: false
+            })
+            current.index += 1
+        },
+        return: current => current.state
+    })
+}

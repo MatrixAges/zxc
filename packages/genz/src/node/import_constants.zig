@@ -13,6 +13,13 @@ pub fn appendBorrowingText(allocator: std.mem.Allocator, target: *std.ArrayList(
     return appendRows(allocator, target, source, true);
 }
 
+/// Text must outlive the declaration list and every AST container subsequently built from it.
+pub fn appendValuesBorrowingText(allocator: std.mem.Allocator, target: *std.ArrayList(node.Declaration), values: anytype) Error!void {
+    if (values.len > std.math.maxInt(u32) - target.items.len) return error.OutOfMemory;
+    try target.ensureUnusedCapacity(allocator, values.len);
+    for (values) |value| try appendValue(allocator, target, value, true);
+}
+
 fn appendRows(allocator: std.mem.Allocator, target: *std.ArrayList(node.Declaration), source: anytype, comptime borrow_text: bool) Error!void {
     const count = source.tags.len;
 
@@ -26,11 +33,20 @@ fn appendRows(allocator: std.mem.Allocator, target: *std.ArrayList(node.Declarat
     try target.ensureUnusedCapacity(allocator, count);
 
     for (source.offsets) |offset| {
-        target.appendAssumeCapacity(.{ .constant = .{
-            .name = if (comptime borrow_text) source.constant_name[offset] else try allocator.dupe(u8, source.constant_name[offset]),
-            .type_expr = if (source.constant_type_expr[offset]) |id| @fromBackingInt(id) else null,
-            .value = @fromBackingInt(source.constant_value[offset]),
+        try appendValue(allocator, target, .{
+            .name = source.constant_name[offset],
+            .type_expr = source.constant_type_expr[offset],
+            .value = source.constant_value[offset],
             .exported = source.constant_exported[offset],
-        } });
+        }, borrow_text);
     }
+}
+
+fn appendValue(allocator: std.mem.Allocator, target: *std.ArrayList(node.Declaration), value: anytype, comptime borrow_text: bool) Error!void {
+    target.appendAssumeCapacity(.{ .constant = .{
+        .name = if (comptime borrow_text) value.name else try allocator.dupe(u8, value.name),
+        .type_expr = if (value.type_expr) |id| @fromBackingInt(id) else null,
+        .value = @fromBackingInt(value.value),
+        .exported = value.exported,
+    } });
 }

@@ -64,6 +64,6 @@ fn append(allocator: std.mem.Allocator, files: *std.ArrayList(modules.File), obj
     return .{
         .name = "application",
         .imports = imports,
-        .source = try generating.gateway.entry.render(allocator, .{ .services = services, .routes = options.routes, .listen = options.listen, .max_header_bytes = options.max_header_bytes, .max_body_bytes = options.max_body_bytes }),
+        .source = try generating.gateway.entry.render(allocator, .{ .services = services, .service_modules = imports[1..], .routes = options.routes, .listen = options.listen, .max_header_bytes = options.max_header_bytes, .max_body_bytes = options.max_body_bytes }),
     };
 }

@@ -1,0 +1,13 @@
+<Module>
+    <Type from="model" as="Prelude" />
+
+    <Args in={Prelude.Input} out={Prelude.Output} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="imports" in={$ctx.initialize} />
+    <Call fn="configuration" in={$ctx.imports} />
+    <Call fn="services" in={$ctx.configuration} />
+    <Call fn="publish" in={$ctx.services} />
+
+    <Return value={$ctx.publish} />
+</Module>

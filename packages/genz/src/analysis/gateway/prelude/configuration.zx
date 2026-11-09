@@ -1,0 +1,61 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import integer from "../../../ast/context/integer"
+import primitive from "../../../ast/context/primitive"
+import text from "../../../ast/context/text"
+import {
+    ExpressionsKind as K,
+    ExpressionsPrimitive as P
+} from "../../../printer/model/expressions"
+import { listen_name, max_header_bytes_name, max_body_bytes_name } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const listen = text({
+        state: in.context,
+        kind: K.String,
+        value: bytes.fromText(in.source.listen)
+    })
+
+    const listening = in.declarations.push({
+        name: bytes.fromText(listen_name),
+        value: listen.id,
+        type_expr: null,
+        exported: true
+    })[0]
+
+    const header = integer({
+        state: listen.state,
+        value: integers.widen(in.source.max_header_bytes)
+    })
+
+    const limited = listening.push({
+        name: bytes.fromText(max_header_bytes_name),
+        value: header.id,
+        type_expr: null,
+        exported: true
+    })[0]
+
+    const body = integer({
+        state: header.state,
+        value: integers.widen(in.source.max_body_bytes)
+    })
+
+    const size = primitive({
+        state: body.state,
+        value: P.Usize
+    })
+
+    return {
+        ...in,
+        context: size.state,
+        declarations: limited.push({
+            name: bytes.fromText(max_body_bytes_name),
+            value: body.id,
+            type_expr: size.id,
+            exported: false
+        })[0]
+    }
+}
