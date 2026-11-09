@@ -1,6 +1,6 @@
 const std = @import("std");
 
-pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode, stage0: []const u8) std.Build.LazyPath {
+pub fn generate(b: *std.Build, stage0: []const u8, executable: *std.Build.Step.Compile) std.Build.LazyPath {
     if (stage0.len != 0) {
         const run = b.addSystemCommand(&.{ stage0, "--lexer" });
 
@@ -12,28 +12,9 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode, stage0: []con
         return run.addOutputFileArg("lexer.zig");
     }
 
-    const target = b.graph.host;
-
-    const seed = b.createModule(.{
-        .root_source_file = b.path("bootstrap/lexer/lex.zig"),
-        .target = target,
-        .optimize = optimize,
-        .imports = &.{.{ .name = "zx", .module = b.dependency("core", .{ .target = target, .optimize = optimize }).module("core") }},
-    });
-
-    const lint = b.dependency("lint", .{ .target = target, .optimize = optimize, .seed = true }).module("lint");
-    const compiler = @import("compiler.zig").create(b, target, optimize, seed, null, lint);
-    const flow = @import("seed_rx.zig").create(b, target, optimize, compiler.frontend, lint);
-
-    const executable = b.addExecutable(.{ .name = "generate-lexer", .root_module = b.createModule(.{
-        .root_source_file = b.path("build/generate_lexer.zig"),
-        .target = target,
-        .optimize = optimize,
-        .imports = &.{ .{ .name = "compiler", .module = compiler.compiler }, .{ .name = "rx", .module = flow.syntax }, .{ .name = "rx_analysis", .module = flow.analysis } },
-    }) });
-
     const run = b.addRunArtifact(executable);
 
+    run.addArg("--lexer");
     run.addDirectoryArg2(b.path("src/zx/frontend/lexer"), .{});
     run.addDirectoryArg2(b.path("../core/src"), .{});
     trackSources(b, run) catch @panic("unable to track ZX lexer sources");

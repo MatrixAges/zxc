@@ -9,10 +9,11 @@ pub fn build(b: *std.Build) void {
     standard.addImport("sha256_backend", b.dependency("zxc_std", .{ .target = target, .optimize = optimize }).module("sha256_backend"));
 
     const lexer = @import("build/lexer.zig");
-    const lexer_source = lexer.generate(b, optimize, stage0);
+    const generator = @import("build/bootstrap_tool.zig").create(b, optimize);
+    const lexer_source = lexer.generate(b, stage0, generator);
     const parser = @import("build/parser.zig");
     const generated_partitions = b.option(u32, "generated-partitions", "Compile generated bootstrap functions as this many separately cached objects; artifacts link them by importing `generated_objects` (0 = one unit)") orelse 0;
-    const parser_source = parser.generate(b, optimize, stage0, generated_partitions);
+    const parser_source = parser.generate(b, optimize, stage0, generated_partitions, generator);
     const generated_debug = b.option(bool, "generated-debug", "Keep debug information in generated bootstrap modules (slower and heavier zxc compiles)") orelse false;
     const generated_strip: ?bool = if (generated_debug) null else true;
 

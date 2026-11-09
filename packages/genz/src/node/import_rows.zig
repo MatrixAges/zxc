@@ -95,19 +95,23 @@ fn appendRows(allocator: std.mem.Allocator, target: anytype, source: anytype, co
         }
     }
 
-    for (prepared.tags, prepared.offsets) |item, offset| {
-        const tag: Tag = @fromBackingInt(@backingInt(item));
+    const tags = @as([*]const Tag, @ptrCast(prepared.tags.ptr))[0..prepared.tags.len];
 
+    commitHeaders(target, tags, prepared.offsets);
+
+    inline for (names, 0..) |name, index| {
+        if (counts[index] != 0) commit(&@field(target.payloads, name), prepared, name, counts[index]);
+    }
+}
+
+fn commitHeaders(target: anytype, tags: []const std.meta.Child(@TypeOf(target.tags.items)), offsets: anytype) void {
+    for (tags, offsets) |tag, offset| {
         const base = switch (tag) {
             inline else => |selected| @field(target.payloads, @tagName(selected)).count(),
         };
 
         target.tags.appendAssumeCapacity(tag);
         target.offsets.appendAssumeCapacity(@intCast(base + offset));
-    }
-
-    inline for (names, 0..) |name, index| {
-        if (counts[index] != 0) commit(&@field(target.payloads, name), prepared, name, counts[index]);
     }
 }
 
