@@ -1,0 +1,30 @@
+import evaluate from "../../../ast/statements/builder/evaluate"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const values = [
+        in.symbols.scope,
+        in.symbols.io,
+        in.symbols.process
+    ]
+
+    return loop({
+        statements: in.statements,
+        index: 0
+    }, {
+        while: current => current.index < values.length,
+        next: current => {
+            current.statements = evaluate({
+                state: current.statements,
+                value: values[current.index],
+                discard: true
+            })
+            current.index += 1
+        },
+        return: current => {
+            ...in,
+            statements: current.statements
+        }
+    })
+}

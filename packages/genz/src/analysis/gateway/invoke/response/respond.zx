@@ -7,14 +7,8 @@ import append from "../../../../ast/fields/append"
 import binding from "../../../../ast/statements/builder/binding"
 import result from "../../../../ast/statements/builder/result"
 import { ExpressionsKind as K } from "../../../../printer/model/expressions"
-import {
-    encoded_name,
-    header_name,
-    header_value_name,
-    content_type_name,
-    json_media_type,
-    ok_name
-} from "../const"
+import { header_name, header_value_name } from "../../const"
+import { encoded_name, content_type_name, json_media_type, ok_name } from "../const"
 import reply from "../reply"
 
 import type { State as Input, State as Output } from "../model"

@@ -1,0 +1,22 @@
+import result from "../../../ast/statements/builder/result"
+import { not_found_name, not_found_message } from "./const"
+import reply from "./reply"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const sent = reply({
+        state: in,
+        status: not_found_name,
+        message: not_found_message,
+        headers: []
+    })
+
+    return {
+        ...sent.state,
+        statements: result({
+            state: sent.state.statements,
+            value: sent.id
+        })
+    }
+}

@@ -1,0 +1,67 @@
+import bytes from "std:bytes"
+
+import call from "../../../ast/context/call"
+import field from "../../../ast/context/field"
+import identifier from "../../../ast/context/identifier"
+import unary from "../../../ast/context/unary"
+import branch from "../../../ast/statements/builder/branch"
+import open from "../../../ast/statements/builder/open"
+import result from "../../../ast/statements/builder/result"
+import { ExpressionsUnaryOperator as U } from "../../../printer/model/expressions"
+import { bad_request_name } from "../const"
+import { valid_head_name, head_buffer_name, invalid_headers_message } from "./const"
+import reply from "./reply"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const valid_head = identifier({
+        state: in.context,
+        name: bytes.fromText(valid_head_name)
+    })
+
+    const head = field({
+        state: valid_head.state,
+        target: in.symbols.request,
+        name: bytes.fromText(head_buffer_name)
+    })
+
+    const valid = call({
+        state: head.state,
+        callee: valid_head.id,
+        arguments: [head.id],
+        fallible: false
+    })
+
+    const invalid = unary({
+        state: valid.state,
+        operator: U.Not,
+        operand: valid.id
+    })
+
+    const sent = reply({
+        state: {
+            ...in,
+            context: invalid.state
+        },
+        status: bad_request_name,
+        message: invalid_headers_message,
+        headers: []
+    })
+
+    const scope = open(sent.state.statements)
+
+    return {
+        ...sent.state,
+        statements: branch({
+            scope: {
+                ...scope,
+                state: result({
+                    state: scope.state,
+                    value: sent.id
+                })
+            },
+            condition: invalid.id
+        })
+    }
+}

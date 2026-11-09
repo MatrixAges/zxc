@@ -1,7 +1,7 @@
 const std = @import("std");
 const node = @import("../node.zig");
 const Builder = @import("../builder.zig");
-const invoke = @import("invoke.zig");
+const invoke = @import("invoke_seed.zig");
 
 pub fn readBody(builder: Builder) std.mem.Allocator.Error!node.Declaration {
     const alloc = try builder.identifier("allocator");

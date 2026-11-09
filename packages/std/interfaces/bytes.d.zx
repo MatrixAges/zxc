@@ -8,6 +8,12 @@ export declare function repeat(
 
 export declare function fromText(in: string): u8[] concurrent
 
+export declare function join(
+    allocator,
+    separator: u8[],
+    values: u8[][]
+): u8[] throws { OutOfMemory } concurrent
+
 export declare function encodeU64Le(
     allocator,
     in: u64

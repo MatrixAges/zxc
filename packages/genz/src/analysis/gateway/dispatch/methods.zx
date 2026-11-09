@@ -1,0 +1,29 @@
+import bytes from "std:bytes"
+
+import method from "./method"
+
+import type { Group as Input, Group as Output } from "./model"
+
+export default function (in: Input): Output {
+    const routes = in.state.source.routes
+    const path = routes[in.index].path
+
+    return loop({
+        group: in,
+        index: 0
+    }, {
+        while: current =>
+            !current.group.state.invalid_route && current.index < routes.length,
+        next: current => {
+            if (bytes.equals(path, routes[current.index].path)) {
+                current.group = method({
+                    group: current.group,
+                    index: current.index
+                })
+            }
+
+            current.index += 1
+        },
+        return: current => current.group
+    })
+}

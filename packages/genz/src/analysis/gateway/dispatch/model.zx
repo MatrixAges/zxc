@@ -1,0 +1,104 @@
+import type { Input as Bases, State as Context } from "../../../ast/context/model"
+import type { Variables } from "../../../ast/context/model"
+import type { Table as Declarations } from "../../../ast/declarations/table/model"
+import type { Columns as ErrorUnion } from "../../../ast/expressions/error_union"
+import type { Columns as Fields } from "../../../ast/fields/model"
+import type { State as Statements } from "../../../ast/statements/builder/model"
+import type { Columns as StatementColumns } from "../../../ast/statements/model"
+import type { StatementsKind } from "../../../printer/model/statements"
+import type { Types } from "../request_types"
+
+export type Route = {
+    path: u8[],
+    method?: u8[],
+    service: u64
+}
+
+export type Input = {
+    bases: Bases,
+    declaration_base: u32,
+    routes: Route[]
+}
+
+export type Symbols = {
+    scope: u32,
+    io: u32,
+    process: u32,
+    request: u32,
+    respond: u32,
+    target: u32,
+    path: u32,
+    method: u32
+}
+
+export type State = {
+    source: Input,
+    context: Context,
+    statements: Statements,
+    fields: Fields,
+    declarations: Declarations,
+    extra: ErrorUnion,
+    symbols: Symbols,
+    types: Types,
+    unit: u32,
+    byte: u32,
+    root: u32,
+    valid: bool,
+    invalid_route: bool
+}
+
+export type Node = {
+    state: State,
+    id: u32
+}
+
+export type Reply = {
+    state: State,
+    status: string,
+    message: string,
+    headers: u32[]
+}
+
+export type Service = {
+    state: State,
+    index: u64
+}
+
+export type Position = {
+    state: State,
+    index: u64
+}
+
+export type First = {
+    routes: Route[],
+    index: u64
+}
+
+export type Group = {
+    state: State,
+    index: u64,
+    parent_tags: StatementsKind[],
+    parent_offsets: u32[],
+    methods: u8[][]
+}
+
+export type Method = {
+    group: Group,
+    index: u64
+}
+
+export type Output = {
+    context: Context,
+    statements: StatementColumns,
+    variables: Variables,
+    fields: Fields,
+    declarations: Declarations,
+    extra: {
+        error_union_payload: u32[],
+        error_union_errors: u8[][]?[],
+        error_union_inferred: bool[]
+    },
+    root: u32,
+    valid: bool,
+    invalid_route: bool
+}

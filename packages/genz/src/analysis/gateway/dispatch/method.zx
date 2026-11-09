@@ -1,0 +1,68 @@
+import binary from "../../../ast/context/binary"
+import text from "../../../ast/context/text"
+import branch from "../../../ast/statements/builder/branch"
+import open from "../../../ast/statements/builder/open"
+import result from "../../../ast/statements/builder/result"
+import {
+    ExpressionsKind as K,
+    ExpressionsBinaryOperator as B
+} from "../../../printer/model/expressions"
+import service from "./call_service"
+
+import type { Method as Input, Group as Output } from "./model"
+
+export default function (in: Input): Output {
+    const route = in.group.state.source.routes[in.index]
+    const method = route.method
+
+    if (method == null) {
+        return {
+            ...in.group,
+            state: {
+                ...in.group.state,
+                invalid_route: true
+            }
+        }
+    }
+
+    const name = text({
+        state: in.group.state.context,
+        kind: K.EnumLiteral,
+        value: method
+    })
+
+    const condition = binary({
+        state: name.state,
+        operator: B.Equal,
+        left: in.group.state.symbols.method,
+        right: name.id
+    })
+
+    const called = service({
+        state: {
+            ...in.group.state,
+            context: condition.state
+        },
+        index: route.service
+    })
+
+    const scope = open(called.state.statements)
+
+    return {
+        ...in.group,
+        methods: in.group.methods.push(method)[0],
+        state: {
+            ...called.state,
+            statements: branch({
+                scope: {
+                    ...scope,
+                    state: result({
+                        state: scope.state,
+                        value: called.id
+                    })
+                },
+                condition: condition.id
+            })
+        }
+    }
+}

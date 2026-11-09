@@ -1,0 +1,22 @@
+import result from "../../../ast/statements/builder/result"
+import service from "./call_service"
+
+import type { Group as Input, Group as Output } from "./model"
+
+export default function (in: Input): Output {
+    const called = service({
+        state: in.state,
+        index: in.state.source.routes[in.index].service
+    })
+
+    return {
+        ...in,
+        state: {
+            ...called.state,
+            statements: result({
+                state: called.state.statements,
+                value: called.id
+            })
+        }
+    }
+}

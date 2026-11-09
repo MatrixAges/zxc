@@ -1,0 +1,17 @@
+<Module>
+    <Type from="model" as="Dispatch" />
+
+    <Args in={Dispatch.State} out={Dispatch.State} />
+
+    <If on={$in.source.routes.length == 0}>
+        <Call fn="unused" in={$in} />
+
+        <Return value={$ctx.unused} />
+
+        <Else>
+            <Call fn="path" in={$in} />
+
+            <Return value={$ctx.path} />
+        </Else>
+    </If>
+</Module>

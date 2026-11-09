@@ -1,0 +1,88 @@
+import bytes from "std:bytes"
+
+import field from "../../ast/context/field"
+import identifier from "../../ast/context/identifier"
+import pointer from "../../ast/context/pointer"
+import standard from "../../ast/context/standard_field"
+import {
+    state_name,
+    request_type_name,
+    io_type_name,
+    process_type_name,
+    init_type_name,
+    minimal_type_name,
+    http_name,
+    server_name
+} from "./const"
+
+import type { State } from "../../ast/context/model"
+
+export type Input = State
+
+export type Types = {
+    scope: u32,
+    io: u32,
+    process: u32,
+    request: u32
+}
+
+export type Output = {
+    state: State,
+    types: Types
+}
+
+export default function (in: Input): Output {
+    const state = identifier({
+        state: in,
+        name: bytes.fromText(state_name)
+    })
+
+    const request = field({
+        state: state.state,
+        target: state.id,
+        name: bytes.fromText(request_type_name)
+    })
+
+    const scope = pointer({
+        state: request.state,
+        value: request.id
+    })
+
+    const io = standard({
+        state: scope.state,
+        path: [io_type_name]
+    })
+
+    const process = standard({
+        state: io.state,
+        path: [
+            process_type_name,
+            init_type_name,
+            minimal_type_name
+        ]
+    })
+
+    const http = standard({
+        state: process.state,
+        path: [
+            http_name,
+            server_name,
+            request_type_name
+        ]
+    })
+
+    const request_pointer = pointer({
+        state: http.state,
+        value: http.id
+    })
+
+    return {
+        state: request_pointer.state,
+        types: {
+            scope: scope.id,
+            io: io.id,
+            process: process.id,
+            request: request_pointer.id
+        }
+    }
+}

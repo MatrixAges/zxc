@@ -1,0 +1,28 @@
+import first from "./first"
+import group from "./group"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return loop({
+        state: in,
+        index: 0
+    }, {
+        while: current =>
+            !current.state.invalid_route && current.index < in.source.routes.length,
+        next: current => {
+            if (first({
+                routes: in.source.routes,
+                index: current.index
+            })) {
+                current.state = group({
+                    state: current.state,
+                    index: current.index
+                })
+            }
+
+            current.index += 1
+        },
+        return: current => current.state
+    })
+}

@@ -1,0 +1,103 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import functionDeclaration from "../../../ast/declarations/function"
+import append from "../../../ast/declarations/table/function"
+import errorUnion from "../../../ast/expressions/error_union"
+import field from "../../../ast/fields/append"
+import close from "../../../ast/statements/builder/close"
+import { scope_name, io_name, process_name, request_name } from "../const"
+import { dispatch_name } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const body = close(in.statements)
+
+    const names = [
+        scope_name,
+        io_name,
+        process_name,
+        request_name
+    ]
+
+    const types = [
+        in.types.scope,
+        in.types.io,
+        in.types.process,
+        in.types.request
+    ]
+
+    const first = in.source.bases.field_base + integers.narrow(in.fields.name.length)
+
+    const fields = loop({
+        fields: in.fields,
+        index: 0
+    }, {
+        while: current => current.index < names.length,
+        next: current => {
+            current.fields = field({
+                table: current.fields,
+                name: bytes.fromText(names[current.index]),
+                value: types[current.index],
+                comptime_parameter: false
+            })
+            current.index += 1
+        },
+        return: current => current.fields
+    })
+
+    const returned = errorUnion({
+        table: {
+            ...in.extra,
+            ...in.context.expressions.pick([
+                "tags",
+                "offsets"
+            ])
+        },
+        base: in.source.bases.expression_base,
+        payload: in.unit,
+        inferred: true
+    })
+
+    const root =
+        in.source.declaration_base + integers.narrow(in.declarations.tags.length)
+
+    const declaration = functionDeclaration({
+        base: root,
+        name: bytes.fromText(dispatch_name),
+        parameters_start: first,
+        parameters_count: integers.narrow(names.length),
+        return_type: returned.id,
+        body_start: body.first,
+        body_count: body.count,
+        exported: true,
+        abi_export: false,
+        inlined: false
+    })
+
+    const declarations = append({
+        state: in.declarations,
+        value: declaration.table,
+        parameter_base: 0
+    })
+
+    return {
+        ...in,
+        context: {
+            ...in.context,
+            expressions: {
+                ...in.context.expressions,
+                tags: returned.table.tags,
+                offsets: returned.table.offsets
+            },
+            valid: in.context.valid && returned.valid
+        },
+        statements: body.state,
+        fields,
+        declarations: declarations.state,
+        extra: returned.table,
+        root,
+        valid: in.valid && declaration.valid && declarations.valid
+    }
+}

@@ -1,0 +1,50 @@
+import bytes from "std:bytes"
+
+import address from "../../ast/context/address"
+import call from "../../ast/context/call"
+import text from "../../ast/context/text"
+import tuple from "../../ast/context/tuple"
+import { ExpressionsKind as K } from "../../printer/model/expressions"
+
+import type { State, Node } from "../../ast/context/model"
+
+export type Input = {
+    state: State,
+    respond: u32,
+    request: u32,
+    status: string,
+    body: u32,
+    headers: u32[]
+}
+
+export type Output = Node
+
+export default function (in: Input): Output {
+    const status = text({
+        state: in.state,
+        kind: K.EnumLiteral,
+        value: bytes.fromText(in.status)
+    })
+
+    const headers = tuple({
+        state: status.state,
+        values: in.headers
+    })
+
+    const pointer = address({
+        state: headers.state,
+        value: headers.id
+    })
+
+    return call({
+        state: pointer.state,
+        callee: in.respond,
+        arguments: [
+            in.request,
+            status.id,
+            in.body,
+            pointer.id
+        ],
+        fallible: false
+    })
+}

@@ -1,0 +1,76 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import object from "../../../ast/context/object"
+import text from "../../../ast/context/text"
+import append from "../../../ast/fields/append"
+import result from "../../../ast/statements/builder/result"
+import { ExpressionsKind as K } from "../../../printer/model/expressions"
+import { header_name, header_value_name } from "../const"
+import {
+    allow_name,
+    method_separator,
+    method_not_allowed_name,
+    method_not_allowed_message
+} from "./const"
+import reply from "./reply"
+
+import type { Group as Input, Group as Output } from "./model"
+
+export default function (in: Input): Output {
+    const name = text({
+        state: in.state.context,
+        kind: K.String,
+        value: bytes.fromText(allow_name)
+    })
+
+    const value = text({
+        state: name.state,
+        kind: K.String,
+        value: bytes.join(bytes.fromText(method_separator), in.methods)
+    })
+
+    const named = append({
+        table: in.state.fields,
+        name: bytes.fromText(header_name),
+        value: name.id,
+        comptime_parameter: false
+    })
+
+    const fields = append({
+        table: named,
+        name: bytes.fromText(header_value_name),
+        value: value.id,
+        comptime_parameter: false
+    })
+
+    const header = object({
+        state: value.state,
+        first:
+            in.state.source.bases.field_base +
+            integers.narrow(in.state.fields.name.length),
+        count: 2
+    })
+
+    const sent = reply({
+        state: {
+            ...in.state,
+            context: header.state,
+            fields
+        },
+        status: method_not_allowed_name,
+        message: method_not_allowed_message,
+        headers: [header.id]
+    })
+
+    return {
+        ...in,
+        state: {
+            ...sent.state,
+            statements: result({
+                state: sent.state.statements,
+                value: sent.id
+            })
+        }
+    }
+}

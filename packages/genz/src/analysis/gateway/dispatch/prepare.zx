@@ -1,0 +1,44 @@
+import context from "../../../ast/context/initialize"
+import declarations from "../../../ast/declarations/table/create"
+import fields from "../../../ast/fields/empty"
+import statements from "../../../ast/statements/builder/initialize"
+
+import type { Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        source: in,
+        context: context(in.bases),
+        statements: statements(in.bases.statement_base),
+        fields: fields({}),
+        declarations: declarations({}),
+        extra: {
+            tags: [],
+            offsets: [],
+            error_union_payload: [],
+            error_union_errors: [],
+            error_union_inferred: []
+        },
+        symbols: {
+            scope: 0,
+            io: 0,
+            process: 0,
+            request: 0,
+            respond: 0,
+            target: 0,
+            path: 0,
+            method: 0
+        },
+        types: {
+            scope: 0,
+            io: 0,
+            process: 0,
+            request: 0
+        },
+        unit: 0,
+        byte: 0,
+        root: 0,
+        valid: true,
+        invalid_route: false
+    }
+}

@@ -48,21 +48,3 @@ fn failure(err: anyerror) std.mem.Allocator.Error {
         else => @panic("invalid Gateway invocation AST"),
     };
 }
-
-pub fn parameters(builder: Builder) std.mem.Allocator.Error![]const node.Field {
-    return builder.allocator.dupe(node.Field, &.{
-        .{ .name = "scope", .value = try builder.expression(.{ .pointer = try builder.path(&.{ "State", "Request" }) }) },
-        .{ .name = "io", .value = try builder.path(&.{ "std", "Io" }) },
-        .{ .name = "process", .value = try builder.path(&.{ "std", "process", "Init", "Minimal" }) },
-        .{ .name = "request", .value = try builder.expression(.{ .pointer = try builder.path(&.{ "std", "http", "Server", "Request" }) }) },
-    });
-}
-
-pub fn response(builder: Builder, status: []const u8, body: node.ExpressionId, headers: []const node.ExpressionId) std.mem.Allocator.Error!node.ExpressionId {
-    return builder.call(try builder.identifier("respond"), &.{
-        try builder.identifier("request"),
-        try builder.expression(.{ .enum_literal = status }),
-        body,
-        try builder.expression(.{ .address_of = try builder.tuple(headers) }),
-    });
-}

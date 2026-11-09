@@ -1,0 +1,72 @@
+import bytes from "std:bytes"
+
+import field from "../../../ast/context/field"
+import identifier from "../../../ast/context/identifier"
+import { scope_name, io_name, process_name, request_name, respond_name } from "../const"
+import { target_name, path_name, head_name, method_name } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const scope = identifier({
+        state: in.context,
+        name: bytes.fromText(scope_name)
+    })
+
+    const io = identifier({
+        state: scope.state,
+        name: bytes.fromText(io_name)
+    })
+
+    const process = identifier({
+        state: io.state,
+        name: bytes.fromText(process_name)
+    })
+
+    const request = identifier({
+        state: process.state,
+        name: bytes.fromText(request_name)
+    })
+
+    const respond = identifier({
+        state: request.state,
+        name: bytes.fromText(respond_name)
+    })
+
+    const target = identifier({
+        state: respond.state,
+        name: bytes.fromText(target_name)
+    })
+
+    const path = identifier({
+        state: target.state,
+        name: bytes.fromText(path_name)
+    })
+
+    const head = field({
+        state: path.state,
+        target: request.id,
+        name: bytes.fromText(head_name)
+    })
+
+    const method = field({
+        state: head.state,
+        target: head.id,
+        name: bytes.fromText(method_name)
+    })
+
+    return {
+        ...in,
+        context: method.state,
+        symbols: {
+            scope: scope.id,
+            io: io.id,
+            process: process.id,
+            request: request.id,
+            respond: respond.id,
+            target: target.id,
+            path: path.id,
+            method: method.id
+        }
+    }
+}

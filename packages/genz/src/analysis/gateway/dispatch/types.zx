@@ -1,0 +1,27 @@
+import primitive from "../../../ast/context/primitive"
+import { ExpressionsPrimitive as P } from "../../../printer/model/expressions"
+import requestTypes from "../request_types"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const unit = primitive({
+        state: in.context,
+        value: P.Void
+    })
+
+    const byte = primitive({
+        state: unit.state,
+        value: P.U8
+    })
+
+    const parameters = requestTypes(byte.state)
+
+    return {
+        ...in,
+        context: parameters.state,
+        types: parameters.types,
+        unit: unit.id,
+        byte: byte.id
+    }
+}

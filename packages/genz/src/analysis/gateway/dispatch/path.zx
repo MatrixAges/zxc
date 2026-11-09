@@ -1,0 +1,97 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+import { ascii_question } from "core/ascii/const"
+
+import binary from "../../../ast/context/binary"
+import field from "../../../ast/context/field"
+import integer from "../../../ast/context/integer"
+import slice from "../../../ast/context/slice"
+import standard from "../../../ast/context/standard"
+import binding from "../../../ast/statements/builder/binding"
+import { ExpressionsBinaryOperator as B } from "../../../printer/model/expressions"
+import {
+    head_name,
+    target_name,
+    path_name,
+    memory_name,
+    index_name,
+    length_name
+} from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const mark = integer({
+        state: in.context,
+        value: integers.widenByte(ascii_question)
+    })
+
+    const query = standard({
+        state: mark.state,
+        path: [
+            memory_name,
+            index_name
+        ],
+        arguments: [
+            in.byte,
+            in.symbols.target,
+            mark.id
+        ],
+        fallible: false
+    })
+
+    const length = field({
+        state: query.state,
+        target: in.symbols.target,
+        name: bytes.fromText(length_name)
+    })
+
+    const end = binary({
+        state: length.state,
+        operator: B.Coalesce,
+        left: query.id,
+        right: length.id
+    })
+
+    const zero = integer({
+        state: end.state,
+        value: 0
+    })
+
+    const value = slice({
+        state: zero.state,
+        target: in.symbols.target,
+        start: zero.id,
+        end: end.id
+    })
+
+    const head = field({
+        state: value.state,
+        target: in.symbols.request,
+        name: bytes.fromText(head_name)
+    })
+
+    const target = field({
+        state: head.state,
+        target: head.id,
+        name: bytes.fromText(target_name)
+    })
+
+    const statements = binding({
+        state: in.statements,
+        name: bytes.fromText(target_name),
+        value: target.id,
+        mutable: false
+    })
+
+    return {
+        ...in,
+        context: target.state,
+        statements: binding({
+            state: statements,
+            name: bytes.fromText(path_name),
+            value: value.id,
+            mutable: false
+        })
+    }
+}

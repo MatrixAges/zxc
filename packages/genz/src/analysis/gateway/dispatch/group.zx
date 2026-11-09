@@ -1,0 +1,65 @@
+import standard from "../../../ast/context/standard"
+import text from "../../../ast/context/text"
+import branch from "../../../ast/statements/builder/branch"
+import open from "../../../ast/statements/builder/open"
+import { ExpressionsKind as K } from "../../../printer/model/expressions"
+import allowed from "./allowed"
+import { memory_name, equal_name } from "./const"
+import methods from "./methods"
+import wildcard from "./wildcard"
+
+import type { Position as Input, State as Output, Group } from "./model"
+
+export default function (in: Input): Output {
+    const route = in.state.source.routes[in.index]
+    const scope = open(in.state.statements)
+
+    const initial: Group = {
+        state: {
+            ...in.state,
+            statements: scope.state
+        },
+        index: in.index,
+        parent_tags: scope.parent_tags,
+        parent_offsets: scope.parent_offsets,
+        methods: []
+    }
+
+    const matched = match {
+        route.method == null => wildcard(initial),
+        _ => allowed(methods(initial))
+    }
+
+    const path = text({
+        state: matched.state.context,
+        kind: K.String,
+        value: route.path
+    })
+
+    const condition = standard({
+        state: path.state,
+        path: [
+            memory_name,
+            equal_name
+        ],
+        arguments: [
+            in.state.byte,
+            in.state.symbols.path,
+            path.id
+        ],
+        fallible: false
+    })
+
+    return {
+        ...matched.state,
+        context: condition.state,
+        statements: branch({
+            scope: {
+                state: matched.state.statements,
+                parent_tags: matched.parent_tags,
+                parent_offsets: matched.parent_offsets
+            },
+            condition: condition.id
+        })
+    }
+}

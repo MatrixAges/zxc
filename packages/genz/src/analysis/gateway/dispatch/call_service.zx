@@ -1,0 +1,38 @@
+import bytes from "std:bytes"
+
+import call from "../../../ast/context/call"
+import identifier from "../../../ast/context/identifier"
+import integer from "../../../printer/text/integer"
+import { invoke_prefix } from "../const"
+
+import type { Service as Input, Node as Output } from "./model"
+
+export default function (in: Input): Output {
+    const target = identifier({
+        state: in.state.context,
+        name: integer({
+            output: bytes.fromText(invoke_prefix),
+            value: in.index
+        })
+    })
+
+    const value = call({
+        state: target.state,
+        callee: target.id,
+        arguments: [
+            in.state.symbols.scope,
+            in.state.symbols.io,
+            in.state.symbols.process,
+            in.state.symbols.request
+        ],
+        fallible: false
+    })
+
+    return {
+        id: value.id,
+        state: {
+            ...in.state,
+            context: value.state
+        }
+    }
+}
