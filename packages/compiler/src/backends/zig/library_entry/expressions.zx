@@ -1,0 +1,43 @@
+import empty from "core/expression_table/empty"
+import { ExpressionKind } from "core/expression_table/kinds"
+import { scalar_void } from "core/type_table/const"
+
+import type { Expressions as Output } from "core/expression_table/model"
+import type { Invocation as Input } from "./model"
+
+export default function (in: Input): Output {
+    const unit = in.input_type == scalar_void
+    const argument = unit ? ExpressionKind.Unit : ExpressionKind.Reference
+
+    return {
+        ...empty(),
+        kinds: [
+            argument,
+            ExpressionKind.Call
+        ],
+        types: [
+            in.input_type,
+            in.output_type
+        ],
+        span_start: [
+            0,
+            0
+        ],
+        span_end: [
+            0,
+            0
+        ],
+        payloads: [
+            0,
+            0
+        ],
+        references: match {
+            unit => [],
+            _ => [0]
+        },
+        call_functions: [in.function_id],
+        call_arguments: [0],
+        call_store_first: [0],
+        call_store_count: [0]
+    }
+}

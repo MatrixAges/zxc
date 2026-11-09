@@ -1,0 +1,17 @@
+import empty from "core/control_table/empty"
+import { StatementKind } from "core/control_table/model"
+
+import type { Control as Output } from "core/control_table/model"
+
+export type Input = {}
+
+export default function (in: Input): Output {
+    return {
+        ...empty(),
+        statement_kinds: [StatementKind.Result],
+        statement_payloads: [0],
+        results: [1],
+        block_first: [0],
+        block_count: [1]
+    }
+}

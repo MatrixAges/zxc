@@ -1,28 +1,35 @@
 const std = @import("std");
-const ir = @import("zx").ir;
+const zx = @import("zx");
+const ir = zx.ir;
 const Library = @import("../../library/root.zig").Result;
 
 pub fn create(allocator: std.mem.Allocator, library: *const Library, index: usize) (std.mem.Allocator.Error || error{InvalidModule})!ir.Program {
+    if (comptime !@import("parser_options").generated_parser) return @import("library_entry_seed.zig").create(allocator, library, index);
+
     var program = try library.module(index);
-    const function = library.exports[index].function orelse return program;
+    const entry = @import("generated_library_entry");
+    const Input = std.meta.Child(entry.Input);
 
-    if (program.stores.count() != 0) return program;
+    const input: Input = .{
+        .function_id = if (library.exports[index].function) |id| @backingInt(id) else null,
+        .input_type = @backingInt(program.input_type),
+        .output_type = @backingInt(program.output_type),
+        .store_count = program.stores.count(),
+    };
 
-    const span = @import("zx").Span{ .start = 0, .end = 0 };
+    const result = zx.columns.invoke(entry.executeValue, allocator, &input) catch |err| switch (@as(anyerror, err)) {
+        error.OutOfMemory, error.IntegerOverflow, error.Overflow => return error.OutOfMemory,
+        else => unreachable,
+    };
 
-    program.symbols = try ir.SymbolTable.fromValues(allocator, &.{.{ .name = "$in", .type_id = program.input_type, .span = span }});
+    const wrapper = result orelse return program;
+    const control = try allocator.create(ir.ControlTable);
 
-    program.expressions = try ir.ExpressionTable.fromValues(allocator, &.{
-        .{
-            .type_id = program.input_type,
-            .span = span,
-            .value = if (@backingInt(program.input_type) == @backingInt(ir.Scalar.void)) .unit else .{ .reference = @fromBackingInt(0) },
-        },
-        .{ .type_id = program.output_type, .span = span, .value = .{ .call = .{ .function = function, .argument = @fromBackingInt(0) } } },
-    });
-
-    program.body = try ir.ControlBody.fromValues(allocator, &.{.{ .result = @fromBackingInt(1) }});
-    program.contracts = .{};
+    control.* = zx.columns.borrow(ir.ControlTable, &wrapper.control);
+    program.symbols = zx.columns.borrow(ir.SymbolTable, &wrapper.symbols);
+    program.expressions = zx.columns.borrow(ir.ExpressionTable, &wrapper.expressions);
+    program.body = .{ .control = control, .root = @fromBackingInt(wrapper.root) };
+    program.contracts = zx.columns.borrow(ir.ContractTable, &wrapper.contracts);
 
     return program;
 }

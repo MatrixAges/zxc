@@ -1,0 +1,41 @@
+<Module>
+    <Type from="model" as="Entry" />
+
+    <Args in={Entry.Input} out={Entry.Output} />
+
+    <If on={$in.function_id != null}>
+        <If on={$in.store_count == 0}>
+            <Call fn="symbols" in={$in.input_type} />
+
+            <Call
+                fn="expressions"
+                in={{
+                    function_id: $in.function_id,
+                    input_type: $in.input_type,
+                    output_type: $in.output_type
+                }}
+            />
+
+            <Call fn="control" in={{}} />
+
+            <Return
+                value={{
+                    symbols: $ctx.symbols,
+                    expressions: $ctx.expressions,
+                    control: $ctx.control,
+                    root: 0,
+                    contracts: {
+                        kinds: [],
+                        predicates: [],
+                        symbols: [],
+                        expressions: [],
+                        span_start: [],
+                        span_end: []
+                    }
+                }}
+            />
+        </If>
+    </If>
+
+    <Return value={null} />
+</Module>
