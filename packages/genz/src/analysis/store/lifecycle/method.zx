@@ -1,0 +1,112 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import append from "../../../ast/declarations/append_function"
+import fields from "../../../ast/fields/append_values"
+import {
+    Method,
+    initialize_name,
+    commit_name,
+    validate_name,
+    apply_name,
+    self_name,
+    changes_name
+} from "./const"
+
+import type { Columns as Functions } from "../../../ast/declarations/function"
+import type { Columns as Fields } from "../../../ast/fields/model"
+import type { State } from "./model"
+
+export type Input = {
+    source: State,
+    fields: Fields,
+    functions: Functions,
+    method: Method
+}
+
+export type Output = {
+    fields: Fields,
+    functions: Functions,
+    valid: bool
+}
+
+export default function (in: Input): Output {
+    const method = in.method
+    const source = in.source
+
+    const first = match method {
+        Method.Initialize => source.initialize_first,
+        Method.Commit => source.commit_first,
+        Method.Validate => source.validate_first,
+        _ => source.apply_first
+    }
+
+    const count = match method {
+        Method.Initialize => source.initialize_count,
+        Method.Commit => source.commit_count,
+        Method.Validate => source.validate_count,
+        _ => source.apply_count
+    }
+
+    const name = match method {
+        Method.Initialize => bytes.fromText(initialize_name),
+        Method.Commit => bytes.fromText(commit_name),
+        Method.Validate => bytes.fromText(validate_name),
+        _ => bytes.fromText(apply_name)
+    }
+
+    const update = method == Method.Commit || method == Method.Apply
+
+    const names = match {
+        update => [
+            bytes.fromText(self_name),
+            bytes.fromText(changes_name)
+        ],
+        method == Method.Initialize => [bytes.fromText(self_name)],
+        _ => [bytes.fromText(changes_name)]
+    }
+
+    const values = match {
+        update => [
+            source.self_type,
+            source.changes_type
+        ],
+        method == Method.Initialize => [source.self_type],
+        _ => [source.changes_type]
+    }
+
+    const return_type = match method {
+        Method.Validate => source.validation_type,
+        Method.Apply => source.unit,
+        _ => source.fallible
+    }
+
+    const parameters = fields({
+        table: in.fields,
+        names,
+        values
+    })
+
+    const declared = append({
+        table: in.functions,
+        value: {
+            base: integers.narrow(in.functions.tags.length),
+            name,
+            parameters_start:
+                source.source.bases.field_base + integers.narrow(in.fields.name.length),
+            parameters_count: integers.narrow(names.length),
+            return_type,
+            body_start: first,
+            body_count: count,
+            exported: method == Method.Initialize || method == Method.Commit,
+            abi_export: false,
+            inlined: false
+        }
+    })
+
+    return {
+        fields: parameters,
+        functions: declared.table,
+        valid: declared.valid
+    }
+}

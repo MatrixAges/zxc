@@ -1,0 +1,64 @@
+import type { State as Context, Input as Bases } from "../../../ast/context/model"
+import type { Variables } from "../../../ast/context/model"
+import type { Columns as Functions } from "../../../ast/declarations/function"
+import type { Columns as Fields } from "../../../ast/fields/model"
+import type { State as StatementsBuilder } from "../../../ast/statements/builder/model"
+import type { Columns as Statements } from "../../../ast/statements/model"
+
+export type Object = {
+    module_name: u8[],
+    writable: bool,
+    independent: bool
+}
+
+export enum Policy { ReadOnly, Shared, Independent }
+
+export type Input = {
+    objects: Object[],
+    bases: Bases
+}
+
+export type Extra = {
+    error_union_payload: u32[],
+    error_union_errors: u8[][]?[],
+    error_union_inferred: bool[]
+}
+
+export type State = {
+    source: Input,
+    context: Context,
+    extra: Extra,
+    statements: StatementsBuilder,
+    initialize_first: u32,
+    initialize_count: u32,
+    validate_first: u32,
+    validate_count: u32,
+    apply_first: u32,
+    apply_count: u32,
+    commit_first: u32,
+    commit_count: u32,
+    self: u32,
+    changes: u32,
+    self_type: u32,
+    changes_type: u32,
+    unit: u32,
+    fallible: u32,
+    validation_type: u32,
+    policy: Policy
+}
+
+export type Work = {
+    context: Context,
+    statements: StatementsBuilder,
+    index: u64
+}
+
+export type Output = {
+    context: Context,
+    extra: Extra,
+    statements: Statements,
+    variables: Variables,
+    fields: Fields,
+    functions: Functions,
+    valid: bool
+}

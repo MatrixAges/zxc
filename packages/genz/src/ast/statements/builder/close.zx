@@ -1,0 +1,25 @@
+import integers from "std:integer"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = {
+    state: State,
+    first: u32,
+    count: u32
+}
+
+export default function (in: Input): Output {
+    return {
+        state: {
+            ...in,
+            tags: in.tags.concat(in.root_tags)[0],
+            offsets: in.offsets.concat(in.root_offsets)[0],
+            root_tags: [],
+            root_offsets: []
+        },
+        first: in.base + integers.narrow(in.tags.length),
+        count: integers.narrow(in.root_tags.length)
+    }
+}

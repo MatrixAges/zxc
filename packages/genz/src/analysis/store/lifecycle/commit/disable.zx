@@ -1,0 +1,33 @@
+import bytes from "std:bytes"
+
+import boolean from "../../../../ast/context/boolean"
+import field from "../../../../ast/context/field"
+import assignment from "../../../../ast/statements/builder/assignment"
+import { release_disabled_name } from "../const"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const target = field({
+        state: in.context,
+        target: in.self,
+        name: bytes.fromText(release_disabled_name)
+    })
+
+    const value = boolean({
+        state: target.state,
+        value: true
+    })
+
+    const disabled = assignment({
+        state: in.statements,
+        target: target.id,
+        value: value.id
+    })
+
+    return {
+        ...in,
+        context: value.state,
+        statements: disabled
+    }
+}

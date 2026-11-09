@@ -1,0 +1,44 @@
+import evaluate from "../../../ast/statements/builder/evaluate"
+import { Method } from "./const"
+import finish from "./finish"
+import item from "./initialize_item"
+
+import type { State as Input, State as Output, Work } from "./model"
+
+export default function (in: Input): Output {
+    const self = in.self
+    const count = in.source.objects.length
+
+    const prepared = match {
+        count == 0 => evaluate({
+            state: in.statements,
+            value: self,
+            discard: true
+        }),
+        _ => in.statements
+    }
+
+    const work: Work = {
+        context: in.context,
+        statements: prepared,
+        index: 0
+    }
+
+    const result = loop(work, {
+        while: current =>
+            current.index < count && current.context.valid && current.statements.valid,
+        next: current => { current = item({
+            work: current,
+            self
+        }) }
+    })
+
+    return finish({
+        state: {
+            ...in,
+            context: result.context,
+            statements: result.statements
+        },
+        method: Method.Initialize
+    })
+}

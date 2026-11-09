@@ -1,0 +1,38 @@
+import bytes from "std:bytes"
+
+import binary from "../../../ast/context/binary"
+import field from "../../../ast/context/field"
+import nullValue from "../../../ast/context/null_value"
+import { ExpressionsBinaryOperator as Op } from "../../../printer/model/expressions"
+import { store_prefix } from "./const"
+import name from "./name"
+
+import type { State, Node } from "../../../ast/context/model"
+
+export type Input = {
+    context: State,
+    changes: u32,
+    index: u64
+}
+
+export type Output = Node
+
+export default function (in: Input): Output {
+    const source = field({
+        state: in.context,
+        target: in.changes,
+        name: name({
+            prefix: bytes.fromText(store_prefix),
+            index: in.index
+        })
+    })
+
+    const absent = nullValue(source.state)
+
+    return binary({
+        state: absent.state,
+        operator: Op.NotEqual,
+        left: source.id,
+        right: absent.id
+    })
+}

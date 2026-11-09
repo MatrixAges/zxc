@@ -1,0 +1,51 @@
+import bytes from "std:bytes"
+
+import { readonly_error } from "./const"
+import present from "./present"
+import reject from "./reject"
+
+import type { State as Input, State as Output, Work } from "./model"
+
+export default function (in: Input): Output {
+    const objects = in.source.objects
+    const changes = in.changes
+
+    const initial: Work = {
+        context: in.context,
+        statements: in.statements,
+        index: 0
+    }
+
+    const result = loop(initial, {
+        while: current =>
+            current.index < objects.length && current.context.valid &&
+            current.statements.valid,
+        next: current => {
+            if (!objects[current.index].writable) {
+                const condition = present({
+                    context: current.context,
+                    changes,
+                    index: current.index
+                })
+
+                const checked = reject({
+                    context: condition.state,
+                    statements: current.statements,
+                    condition: condition.id,
+                    error: bytes.fromText(readonly_error)
+                })
+
+                current.context = checked.context
+                current.statements = checked.statements
+            }
+
+            current.index += 1
+        }
+    })
+
+    return {
+        ...in,
+        context: result.context,
+        statements: result.statements
+    }
+}

@@ -1,0 +1,44 @@
+import integers from "std:integer"
+
+import { StatementsKind } from "../../../printer/model/statements"
+import header from "./header"
+
+import type { State, Scope } from "./model"
+
+export type Input = {
+    scope: Scope,
+    condition: u32,
+    capture?: u8[]
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const child = in.scope.state
+    const first = child.base + integers.narrow(child.tags.length)
+    const count = integers.narrow(child.root_tags.length)
+
+    const state = header({
+        state: {
+            ...child,
+            tags: child.tags.concat(child.root_tags)[0],
+            offsets: child.offsets.concat(child.root_offsets)[0],
+            root_tags: in.scope.parent_tags,
+            root_offsets: in.scope.parent_offsets
+        },
+        kind: StatementsKind.Branch,
+        offset: child.branch_condition.length
+    })
+
+    return {
+        ...state,
+        branch_condition: state.branch_condition.push(in.condition)[0],
+        branch_yes_start: state.branch_yes_start.push(first)[0],
+        branch_yes_len: state.branch_yes_len.push(count)[0],
+        branch_no_start: state.branch_no_start.push(first + count)[0],
+        branch_no_len: state.branch_no_len.push(0)[0],
+        branch_capture: state.branch_capture.push(in.capture)[0],
+        branch_capture_reference: state.branch_capture_reference.push(false)[0],
+        branch_error_capture: state.branch_error_capture.push(null)[0]
+    }
+}

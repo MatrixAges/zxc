@@ -1,0 +1,102 @@
+import bytes from "std:bytes"
+
+import address from "../../../ast/context/address"
+import call from "../../../ast/context/call"
+import field from "../../../ast/context/field"
+import identifier from "../../../ast/context/identifier"
+import unit from "../../../ast/context/unit"
+import assignment from "../../../ast/statements/builder/assignment"
+import {
+    value_prefix,
+    store_prefix,
+    initial_prefix,
+    arena_name,
+    execute_name
+} from "./const"
+import name from "./name"
+
+import type { Work } from "./model"
+
+export type Input = {
+    work: Work,
+    self: u32
+}
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const index = in.work.index
+
+    const target = field({
+        state: in.work.context,
+        target: in.self,
+        name: name({
+            prefix: bytes.fromText(value_prefix),
+            index
+        })
+    })
+
+    const module = identifier({
+        state: target.state,
+        name: name({
+            prefix: bytes.fromText(initial_prefix),
+            index
+        })
+    })
+
+    const execute = field({
+        state: module.state,
+        target: module.id,
+        name: bytes.fromText(execute_name)
+    })
+
+    const arena = field({
+        state: execute.state,
+        target: in.self,
+        name: bytes.fromText(arena_name)
+    })
+
+    const argument = unit(arena.state)
+
+    const value = call({
+        state: argument.state,
+        callee: execute.id,
+        arguments: [
+            arena.id,
+            argument.id
+        ],
+        fallible: true
+    })
+
+    const initialized = assignment({
+        state: in.work.statements,
+        target: target.id,
+        value: value.id
+    })
+
+    const slot = field({
+        state: value.state,
+        target: in.self,
+        name: name({
+            prefix: bytes.fromText(store_prefix),
+            index
+        })
+    })
+
+    const pointer = address({
+        state: slot.state,
+        value: target.id
+    })
+
+    const linked = assignment({
+        state: initialized,
+        target: slot.id,
+        value: pointer.id
+    })
+
+    return {
+        context: pointer.state,
+        statements: linked,
+        index: index + 1
+    }
+}

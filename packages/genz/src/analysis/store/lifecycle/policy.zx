@@ -1,0 +1,33 @@
+import { Policy } from "./model"
+
+import type { Object } from "./model"
+
+export type Input = {
+    objects: Object[]
+}
+
+export type Output = Policy
+
+export default function (in: Input): Output {
+    const objects = in.objects
+
+    return loop({
+        index: 0,
+        writable: false,
+        shared: false
+    }, {
+        while: current => current.index < objects.length && !current.shared,
+        next: current => {
+            const object = objects[current.index]
+
+            current.shared = object.writable && !object.independent
+            current.writable = current.writable || object.writable
+            current.index += 1
+        },
+        return: current => match {
+            current.shared => Policy.Shared,
+            current.writable => Policy.Independent,
+            _ => Policy.ReadOnly
+        }
+    })
+}

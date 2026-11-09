@@ -1,0 +1,64 @@
+import bytes from "std:bytes"
+
+import integer from "../../../ast/context/integer"
+import primitive from "../../../ast/context/primitive"
+import binding from "../../../ast/statements/builder/binding"
+import evaluate from "../../../ast/statements/builder/evaluate"
+import { ExpressionsPrimitive as Primitive } from "../../../printer/model/expressions"
+import { count_name } from "./const"
+import item from "./count_item"
+
+import type { State as Input, State as Output, Work } from "./model"
+
+export default function (in: Input): Output {
+    const changes = in.changes
+    const count = in.source.objects.length
+
+    const prepared = match {
+        count == 0 => evaluate({
+            state: in.statements,
+            value: changes,
+            discard: true
+        }),
+        _ => in.statements
+    }
+
+    const count_type = primitive({
+        state: in.context,
+        value: Primitive.Usize
+    })
+
+    const zero = integer({
+        state: count_type.state,
+        value: 0
+    })
+
+    const declared = binding({
+        state: prepared,
+        name: bytes.fromText(count_name),
+        type_expr: count_type.id,
+        value: zero.id,
+        mutable: count != 0
+    })
+
+    const work: Work = {
+        context: zero.state,
+        statements: declared,
+        index: 0
+    }
+
+    const result = loop(work, {
+        while: current =>
+            current.index < count && current.context.valid && current.statements.valid,
+        next: current => { current = item({
+            work: current,
+            changes
+        }) }
+    })
+
+    return {
+        ...in,
+        context: result.context,
+        statements: result.statements
+    }
+}

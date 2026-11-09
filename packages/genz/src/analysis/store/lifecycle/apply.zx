@@ -1,0 +1,67 @@
+import evaluate from "../../../ast/statements/builder/evaluate"
+import item from "./apply_item"
+import { Method } from "./const"
+import finish from "./finish"
+import { Policy } from "./model"
+
+import type { State as Input, State as Output, Work } from "./model"
+
+export default function (in: Input): Output {
+    const self = in.self
+    const changes = in.changes
+    const objects = in.source.objects
+
+    if (in.policy == Policy.ReadOnly) {
+        const discarded = evaluate({
+            state: in.statements,
+            value: self,
+            discard: true
+        })
+
+        const result = evaluate({
+            state: discarded,
+            value: changes,
+            discard: true
+        })
+
+        return finish({
+            state: {
+                ...in,
+                statements: result
+            },
+            method: Method.Apply
+        })
+    }
+
+    const work: Work = {
+        context: in.context,
+        statements: in.statements,
+        index: 0
+    }
+
+    const result = loop(work, {
+        while: current =>
+            current.index < objects.length && current.context.valid &&
+            current.statements.valid,
+        next: current => {
+            if (objects[current.index].writable) {
+                current = item({
+                    work: current,
+                    self,
+                    changes
+                })
+            } else {
+                current.index += 1
+            }
+        }
+    })
+
+    return finish({
+        state: {
+            ...in,
+            context: result.context,
+            statements: result.statements
+        },
+        method: Method.Apply
+    })
+}

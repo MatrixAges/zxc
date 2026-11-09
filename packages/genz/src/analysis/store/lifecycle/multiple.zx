@@ -1,0 +1,42 @@
+import bytes from "std:bytes"
+
+import binary from "../../../ast/context/binary"
+import identifier from "../../../ast/context/identifier"
+import integer from "../../../ast/context/integer"
+import { ExpressionsBinaryOperator as Op } from "../../../printer/model/expressions"
+import { count_name, multiple_error, maximum_store_changes } from "./const"
+import reject from "./reject"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const count = identifier({
+        state: in.context,
+        name: bytes.fromText(count_name)
+    })
+
+    const maximum = integer({
+        state: count.state,
+        value: maximum_store_changes
+    })
+
+    const condition = binary({
+        state: maximum.state,
+        operator: Op.Greater,
+        left: count.id,
+        right: maximum.id
+    })
+
+    const checked = reject({
+        context: condition.state,
+        statements: in.statements,
+        condition: condition.id,
+        error: bytes.fromText(multiple_error)
+    })
+
+    return {
+        ...in,
+        context: checked.context,
+        statements: checked.statements
+    }
+}

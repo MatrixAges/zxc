@@ -1,6 +1,6 @@
 const std = @import("std");
 pub const Requirements = struct { io: bool = false, process: bool = false };
-pub const Object = struct { module_name: []const u8, writable: bool, independent: bool = false };
+pub const Object = struct { independent: bool = false, module_name: []const u8, writable: bool };
 
 pub fn render(allocator: std.mem.Allocator, objects: []const Object) std.mem.Allocator.Error![]u8 {
     return renderWithIo(allocator, objects, false);

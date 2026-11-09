@@ -1,0 +1,38 @@
+import { StatementsKind } from "../../../printer/model/statements"
+import header from "./header"
+
+import type { State } from "./model"
+
+export type Input = {
+    state: State,
+    value: u32,
+    discard: bool
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const kind = in.discard ? StatementsKind.Discard : StatementsKind.Expression
+
+    const offset = match {
+        in.discard => in.state.discard.length,
+        _ => in.state.expression.length
+    }
+
+    const state = header({
+        state: in.state,
+        kind,
+        offset
+    })
+
+    return match {
+        in.discard => {
+            ...state,
+            discard: state.discard.push(in.value)[0]
+        },
+        _ => {
+            ...state,
+            expression: state.expression.push(in.value)[0]
+        }
+    }
+}

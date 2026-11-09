@@ -1,0 +1,18 @@
+<Module>
+    <Type from="../model" as="Lifecycle" />
+
+    <Args in={Lifecycle.State} out={Lifecycle.State} />
+
+    <Call fn="checked" in={$in} />
+
+    <If on={$in.policy == Lifecycle.Policy.Independent}>
+        <Call fn="disable" in={$ctx.checked} />
+        <Call fn="applied" in={$ctx.disable} />
+
+        <Return value={$ctx.applied} />
+    </If>
+
+    <Call fn="applied" in={$ctx.checked} />
+
+    <Return value={$ctx.applied} />
+</Module>

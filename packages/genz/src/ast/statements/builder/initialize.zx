@@ -1,0 +1,35 @@
+import type { State as Output } from "./model"
+
+export type Input = u32
+
+export default function (in: Input): Output {
+    return {
+        base: in,
+        tags: [],
+        offsets: [],
+        root_tags: [],
+        root_offsets: [],
+        assignment_target: [],
+        assignment_value: [],
+        branch_condition: [],
+        branch_yes_start: [],
+        branch_yes_len: [],
+        branch_no_start: [],
+        branch_no_len: [],
+        branch_capture: [],
+        branch_capture_reference: [],
+        branch_error_capture: [],
+        constant_name: [],
+        constant_type_expr: [],
+        constant_value: [],
+        constant_exported: [],
+        variable_name: [],
+        variable_type_expr: [],
+        variable_value: [],
+        variable_exported: [],
+        expression: [],
+        discard: [],
+        result: [],
+        valid: true
+    }
+}

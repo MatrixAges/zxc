@@ -1,0 +1,67 @@
+import bytes from "std:bytes"
+
+import binary from "../../../ast/context/binary"
+import identifier from "../../../ast/context/identifier"
+import integer from "../../../ast/context/integer"
+import assignment from "../../../ast/statements/builder/assignment"
+import branch from "../../../ast/statements/builder/branch"
+import open from "../../../ast/statements/builder/open"
+import { ExpressionsBinaryOperator as Op } from "../../../printer/model/expressions"
+import { count_name } from "./const"
+import present from "./present"
+
+import type { Work } from "./model"
+
+export type Input = {
+    work: Work,
+    changes: u32
+}
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const condition = present({
+        context: in.work.context,
+        changes: in.changes,
+        index: in.work.index
+    })
+
+    const count = identifier({
+        state: condition.state,
+        name: bytes.fromText(count_name)
+    })
+
+    const one = integer({
+        state: count.state,
+        value: 1
+    })
+
+    const increment = binary({
+        state: one.state,
+        operator: Op.Add,
+        left: count.id,
+        right: one.id
+    })
+
+    const scope = open(in.work.statements)
+
+    const assigned = assignment({
+        state: scope.state,
+        target: count.id,
+        value: increment.id
+    })
+
+    const appended = branch({
+        scope: {
+            ...scope,
+            state: assigned
+        },
+        condition: condition.id,
+    })
+
+    return {
+        context: increment.state,
+        statements: appended,
+        index: in.work.index + 1
+    }
+}

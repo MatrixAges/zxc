@@ -1,0 +1,43 @@
+import close from "../../../ast/statements/builder/close"
+import { Method } from "./const"
+
+import type { State } from "./model"
+
+export type Input = {
+    state: State,
+    method: Method
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const closed = close(in.state.statements)
+
+    const state = {
+        ...in.state,
+        statements: closed.state
+    }
+
+    return match in.method {
+        Method.Initialize => {
+            ...state,
+            initialize_first: closed.first,
+            initialize_count: closed.count
+        },
+        Method.Commit => {
+            ...state,
+            commit_first: closed.first,
+            commit_count: closed.count
+        },
+        Method.Validate => {
+            ...state,
+            validate_first: closed.first,
+            validate_count: closed.count
+        },
+        _ => {
+            ...state,
+            apply_first: closed.first,
+            apply_count: closed.count
+        }
+    }
+}

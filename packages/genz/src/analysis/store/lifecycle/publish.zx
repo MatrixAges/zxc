@@ -1,0 +1,67 @@
+import fields from "../../../ast/fields/empty"
+import statements from "../../../ast/statements/builder/publish"
+import { Method } from "./const"
+import method from "./method"
+
+import type { Columns as Functions } from "../../../ast/declarations/function"
+import type { State as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const functions: Functions = {
+        tags: [],
+        offsets: [],
+        function_name: [],
+        function_parameters_start: [],
+        function_parameters_len: [],
+        function_return_type: [],
+        function_body_start: [],
+        function_body_len: [],
+        function_exported: [],
+        function_abi_export: [],
+        function_inlined: [],
+        function_calling_convention: []
+    }
+
+    const methods = [
+        Method.Initialize,
+        Method.Commit,
+        Method.Validate,
+        Method.Apply
+    ]
+
+    const output = loop({
+        fields: fields({}),
+        functions,
+        valid: true,
+        index: 0
+    }, {
+        while: current => current.index < methods.length,
+        next: current => {
+            const result = method({
+                source: in,
+                ...current.pick([
+                    "fields",
+                    "functions"
+                ]),
+                method: methods[current.index]
+            })
+
+            current.fields = result.fields
+            current.functions = result.functions
+            current.valid = current.valid && result.valid
+            current.index += 1
+        },
+        return: current => current.omit(["index"])
+    })
+
+    const body = statements(in.statements)
+
+    return {
+        ...output,
+        context: in.context,
+        extra: in.extra,
+        statements: body.statements,
+        variables: body.variables,
+        valid: in.context.valid && body.valid && output.valid
+    }
+}

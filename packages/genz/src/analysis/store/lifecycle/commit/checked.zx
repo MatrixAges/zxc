@@ -1,0 +1,53 @@
+import bytes from "std:bytes"
+
+import call from "../../../../ast/context/call"
+import identifier from "../../../../ast/context/identifier"
+import unary from "../../../../ast/context/unary"
+import branch from "../../../../ast/statements/builder/branch"
+import open from "../../../../ast/statements/builder/open"
+import result from "../../../../ast/statements/builder/result"
+import { ExpressionsUnaryOperator as Op } from "../../../../printer/model/expressions"
+import { validate_name } from "../const"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const validate = identifier({
+        state: in.context,
+        name: bytes.fromText(validate_name)
+    })
+
+    const valid = call({
+        state: validate.state,
+        callee: validate.id,
+        arguments: [in.changes],
+        fallible: true
+    })
+
+    const unchanged = unary({
+        state: valid.state,
+        operator: Op.Not,
+        operand: valid.id
+    })
+
+    const scope = open(in.statements)
+
+    const returned = result({
+        state: scope.state,
+        value: null
+    })
+
+    const checked = branch({
+        scope: {
+            ...scope,
+            state: returned
+        },
+        condition: unchanged.id,
+    })
+
+    return {
+        ...in,
+        context: unchanged.state,
+        statements: checked
+    }
+}

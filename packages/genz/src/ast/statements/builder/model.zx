@@ -1,0 +1,37 @@
+import type { StatementsKind } from "../../../printer/model/statements"
+
+export type State = {
+    base: u32,
+    tags: StatementsKind[],
+    offsets: u32[],
+    root_tags: StatementsKind[],
+    root_offsets: u32[],
+    assignment_target: u32[],
+    assignment_value: u32[],
+    branch_condition: u32[],
+    branch_yes_start: u32[],
+    branch_yes_len: u32[],
+    branch_no_start: u32[],
+    branch_no_len: u32[],
+    branch_capture: u8[]?[],
+    branch_capture_reference: bool[],
+    branch_error_capture: u8[]?[],
+    constant_name: u8[][],
+    constant_type_expr: u32?[],
+    constant_value: u32[],
+    constant_exported: bool[],
+    variable_name: u8[][],
+    variable_type_expr: u32?[],
+    variable_value: u32[],
+    variable_exported: bool[],
+    expression: u32[],
+    discard: u32[],
+    result: u32?[],
+    valid: bool
+}
+
+export type Scope = {
+    state: State,
+    parent_tags: StatementsKind[],
+    parent_offsets: u32[]
+}

@@ -1,0 +1,44 @@
+import bytes from "std:bytes"
+
+import binary from "../../../ast/context/binary"
+import identifier from "../../../ast/context/identifier"
+import integer from "../../../ast/context/integer"
+import result from "../../../ast/statements/builder/result"
+import { ExpressionsBinaryOperator as Op } from "../../../printer/model/expressions"
+import { count_name, Method } from "./const"
+import finish from "./finish"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const count = identifier({
+        state: in.context,
+        name: bytes.fromText(count_name)
+    })
+
+    const zero = integer({
+        state: count.state,
+        value: 0
+    })
+
+    const changed = binary({
+        state: zero.state,
+        operator: Op.NotEqual,
+        left: count.id,
+        right: zero.id
+    })
+
+    const returned = result({
+        state: in.statements,
+        value: changed.id
+    })
+
+    return finish({
+        state: {
+            ...in,
+            context: changed.state,
+            statements: returned
+        },
+        method: Method.Validate
+    })
+}

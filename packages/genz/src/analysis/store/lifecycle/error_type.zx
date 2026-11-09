@@ -1,0 +1,51 @@
+import construct from "../../../ast/expressions/error_union"
+
+import type { State as Context } from "../../../ast/context/model"
+import type { Extra } from "./model"
+
+export type Input = {
+    context: Context,
+    extra: Extra,
+    payload: u32
+}
+
+export type Output = {
+    context: Context,
+    extra: Extra,
+    id: u32
+}
+
+export default function (in: Input): Output {
+    const result = construct({
+        table: {
+            ...in.context.expressions.pick([
+                "tags",
+                "offsets"
+            ]),
+            ...in.extra
+        },
+        base: in.context.source.expression_base,
+        payload: in.payload,
+        errors: null,
+        inferred: true
+    })
+
+    return {
+        context: {
+            ...in.context,
+            expressions: {
+                ...in.context.expressions,
+                ...result.table.pick([
+                    "tags",
+                    "offsets"
+                ])
+            },
+            valid: in.context.valid && result.valid
+        },
+        extra: result.table.omit([
+            "tags",
+            "offsets"
+        ]),
+        id: result.id
+    }
+}

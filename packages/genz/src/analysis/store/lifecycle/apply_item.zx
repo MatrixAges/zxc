@@ -1,0 +1,69 @@
+import bytes from "std:bytes"
+
+import field from "../../../ast/context/field"
+import identifier from "../../../ast/context/identifier"
+import assignment from "../../../ast/statements/builder/assignment"
+import branch from "../../../ast/statements/builder/branch"
+import open from "../../../ast/statements/builder/open"
+import { value_prefix, store_prefix, value_name } from "./const"
+import name from "./name"
+
+import type { Work } from "./model"
+
+export type Input = {
+    work: Work,
+    self: u32,
+    changes: u32
+}
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const index = in.work.index
+
+    const source = field({
+        state: in.work.context,
+        target: in.changes,
+        name: name({
+            prefix: bytes.fromText(store_prefix),
+            index
+        })
+    })
+
+    const target = field({
+        state: source.state,
+        target: in.self,
+        name: name({
+            prefix: bytes.fromText(value_prefix),
+            index
+        })
+    })
+
+    const value = identifier({
+        state: target.state,
+        name: bytes.fromText(value_name)
+    })
+
+    const scope = open(in.work.statements)
+
+    const assigned = assignment({
+        state: scope.state,
+        target: target.id,
+        value: value.id
+    })
+
+    const appended = branch({
+        scope: {
+            ...scope,
+            state: assigned
+        },
+        condition: source.id,
+        capture: bytes.fromText(value_name),
+    })
+
+    return {
+        context: value.state,
+        statements: appended,
+        index: index + 1
+    }
+}

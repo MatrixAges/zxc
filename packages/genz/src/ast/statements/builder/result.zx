@@ -1,0 +1,24 @@
+import { StatementsKind } from "../../../printer/model/statements"
+import header from "./header"
+
+import type { State } from "./model"
+
+export type Input = {
+    state: State,
+    value?: u32
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const state = header({
+        state: in.state,
+        kind: StatementsKind.Result,
+        offset: in.state.result.length
+    })
+
+    return {
+        ...state,
+        result: state.result.push(in.value)[0]
+    }
+}

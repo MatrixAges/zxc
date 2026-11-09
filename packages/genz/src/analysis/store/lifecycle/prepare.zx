@@ -1,0 +1,108 @@
+import bytes from "std:bytes"
+
+import field from "../../../ast/context/field"
+import identifier from "../../../ast/context/identifier"
+import initialize from "../../../ast/context/initialize"
+import pointer from "../../../ast/context/pointer"
+import primitive from "../../../ast/context/primitive"
+import statements from "../../../ast/statements/builder/initialize"
+import { ExpressionsPrimitive as Primitive } from "../../../printer/model/expressions"
+import {
+    self_name,
+    changes_name,
+    self_type_name,
+    application_name,
+    pending_name
+} from "./const"
+import errorType from "./error_type"
+
+import type { Input as Source, Policy, State as Output, Extra } from "./model"
+
+export type Input = {
+    source: Source,
+    policy: Policy
+}
+
+export default function (in: Input): Output {
+    const self = identifier({
+        state: initialize(in.source.bases),
+        name: bytes.fromText(self_name)
+    })
+
+    const changes = identifier({
+        state: self.state,
+        name: bytes.fromText(changes_name)
+    })
+
+    const self_type = identifier({
+        state: changes.state,
+        name: bytes.fromText(self_type_name)
+    })
+
+    const self_pointer = pointer({
+        state: self_type.state,
+        value: self_type.id
+    })
+
+    const application = identifier({
+        state: self_pointer.state,
+        name: bytes.fromText(application_name)
+    })
+
+    const pending = field({
+        state: application.state,
+        target: application.id,
+        name: bytes.fromText(pending_name)
+    })
+
+    const unit = primitive({
+        state: pending.state,
+        value: Primitive.Void
+    })
+
+    const extra: Extra = {
+        error_union_payload: [],
+        error_union_errors: [],
+        error_union_inferred: []
+    }
+
+    const fallible = errorType({
+        context: unit.state,
+        extra,
+        payload: unit.id
+    })
+
+    const boolean = primitive({
+        state: fallible.context,
+        value: Primitive.Bool
+    })
+
+    const validation = errorType({
+        context: boolean.state,
+        extra: fallible.extra,
+        payload: boolean.id
+    })
+
+    return {
+        source: in.source,
+        context: validation.context,
+        extra: validation.extra,
+        statements: statements(in.source.bases.statement_base),
+        initialize_first: 0,
+        initialize_count: 0,
+        validate_first: 0,
+        validate_count: 0,
+        apply_first: 0,
+        apply_count: 0,
+        commit_first: 0,
+        commit_count: 0,
+        self: self.id,
+        changes: changes.id,
+        self_type: self_pointer.id,
+        changes_type: pending.id,
+        unit: unit.id,
+        fallible: fallible.id,
+        validation_type: validation.id,
+        policy: in.policy
+    }
+}

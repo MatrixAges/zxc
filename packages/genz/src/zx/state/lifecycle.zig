@@ -1,82 +1,70 @@
 const std = @import("std");
+const zx = @import("zx");
 const node = @import("../../node.zig");
 const Builder = @import("../../builder.zig");
 const Object = @import("../state.zig").Object;
-const storage = @import("storage.zig");
+const view = @import("../../node/view.zig");
 
 pub fn lower(builder: Builder, declarations: *std.ArrayList(node.Declaration), objects: []const Object) std.mem.Allocator.Error!void {
-    const allocator = builder.allocator;
-    const self = try builder.identifier("self");
-    const changes = try builder.identifier("changes");
-    const self_parameter = node.Field{ .name = "self", .value = try builder.expression(.{ .pointer = try builder.identifier("Self") }) };
-    const changes_parameter = node.Field{ .name = "changes", .value = try builder.path(&.{ "application", "zx_pending" }) };
-    const unit = try builder.expression(.{ .primitive = .void });
-    const fallible = try builder.expression(.{ .error_union = .{ .inferred = true, .payload = unit } });
-    var initialize: std.ArrayList(node.Statement) = .empty;
-    var apply: std.ArrayList(node.Statement) = .empty;
-    var validate: std.ArrayList(node.Statement) = .empty;
-    var commit: std.ArrayList(node.Statement) = .empty;
+    if (!@import("genz_options").generated_analysis) return @import("lifecycle_seed.zig").lower(builder, declarations, objects);
 
-    if (objects.len == 0) {
-        try initialize.append(allocator, .{ .discard = self });
-        try validate.append(allocator, .{ .discard = changes });
-    }
+    const entry = @import("generated_store_lifecycle");
+    const Parameter = @typeInfo(@TypeOf(entry.executeValue)).@"fn".param_types[1].?;
+    const indirect = @typeInfo(Parameter) == .pointer;
+    const Input = if (indirect) std.meta.Child(Parameter) else Parameter;
+    const Bases = std.meta.Child(@FieldType(Input, "bases"));
 
-    const count = node.Constant{ .name = "count", .type_expr = try builder.expression(.{ .primitive = .usize }), .value = try builder.integer(0) };
+    const bases: Bases = .{
+        .capture = null,
+        .expression_base = @intCast(builder.nodes.expressions.tags.items.len),
+        .statement_base = @intCast(builder.nodes.statements.tags.items.len),
+        .field_base = @intCast(builder.nodes.field_columns.count()),
+        .serial = 0,
+    };
 
-    try validate.append(allocator, if (objects.len == 0) .{ .constant = count } else .{ .variable = count });
+    const input: Input = .{
+        .objects = zx.columns.slice(@FieldType(Input, "objects"), objects),
+        .bases = &bases,
+    };
 
-    if (!storage.writable(objects)) {
-        try apply.appendSlice(allocator, &.{ .{ .discard = self }, .{ .discard = changes } });
-    }
+    var scratch = std.heap.ArenaAllocator.init(builder.allocator);
 
-    for (objects, 0..) |object, index| {
-        const value_name = try std.fmt.allocPrint(allocator, "value_{d}", .{index});
-        const store_name = try std.fmt.allocPrint(allocator, "store_{d}", .{index});
-        const module = try builder.identifier(try std.fmt.allocPrint(allocator, "initial_{d}", .{index}));
-        const target = try builder.field(self, value_name);
-        const source = try builder.field(changes, store_name);
-        const execute = try builder.call(try builder.field(module, "execute"), &.{ try builder.field(self, "arena"), try builder.expression(.unit) });
+    defer scratch.deinit();
 
-        try initialize.appendSlice(allocator, &.{
-            .{ .assignment = .{ .target = target, .value = try builder.expression(.{ .try_value = execute }) } },
-            .{ .assignment = .{ .target = try builder.field(self, store_name), .value = try builder.expression(.{ .address_of = target }) } },
-        });
+    const output = entry.executeValue(scratch.allocator(), if (indirect) &input else input) catch |err| return failure(err);
 
-        const present = try builder.expression(.{ .binary = .{ .operator = .not_equal, .left = source, .right = try builder.expression(.null_value) } });
-        const increment = try builder.expression(.{ .binary = .{ .operator = .add, .left = try builder.identifier("count"), .right = try builder.integer(1) } });
+    if (!output.valid) return error.OutOfMemory;
 
-        try validate.append(allocator, .{ .branch = .{ .condition = present, .yes = try builder.statements(&.{.{ .assignment = .{ .target = try builder.identifier("count"), .value = increment } }}), .no = .{} } });
-        if (object.writable) try apply.append(allocator, .{ .branch = .{ .condition = source, .capture = "value", .yes = try builder.statements(&.{.{ .assignment = .{ .target = target, .value = try builder.identifier("value") } }}), .no = .{} } });
-    }
+    const context = output.context;
+    const Output = std.meta.Child(entry.Output);
+    const Context = std.meta.Child(@FieldType(Output, "context"));
+    const expressions_view = zx.columns.view(std.meta.Child(@FieldType(Context, "expressions")), context.expressions);
+    const forms = zx.columns.view(std.meta.Child(@FieldType(Context, "forms")), context.forms);
+    const extra = zx.columns.view(std.meta.Child(@FieldType(Output, "extra")), output.extra);
+    const statement_rows = zx.columns.view(std.meta.Child(@FieldType(Output, "statements")), output.statements);
+    const variables = zx.columns.view(std.meta.Child(@FieldType(Output, "variables")), output.variables);
+    const functions = zx.columns.view(std.meta.Child(@FieldType(Output, "functions")), output.functions);
+    const expressions = view.join(view.join(expressions_view, forms), extra);
+    const statements = view.join(statement_rows, variables);
+    const rows = @import("../../node/import_rows.zig");
 
-    const multiple = try builder.expression(.{ .binary = .{ .operator = .greater, .left = try builder.identifier("count"), .right = try builder.integer(1) } });
+    rows.append(builder.allocator, &builder.nodes.expressions, &expressions) catch |err| return failure(err);
+    rows.append(builder.allocator, &builder.nodes.statements, &statements) catch |err| return failure(err);
 
-    try validate.append(allocator, .{ .branch = .{ .condition = multiple, .yes = try builder.statements(&.{.{ .result = try builder.expression(.{ .error_value = "MultipleStoreObjects" }) }}), .no = .{} } });
+    _ = @import("../../node/import_fields.zig").append(builder.allocator, &builder.nodes.field_columns, output.fields) catch |err| return failure(err);
 
-    for (objects, 0..) |object, index| {
-        if (object.writable) continue;
+    const first = builder.nodes.declaration_rows.tags.items.len;
 
-        const present = try builder.expression(.{ .binary = .{ .operator = .not_equal, .left = try builder.field(changes, try std.fmt.allocPrint(allocator, "store_{d}", .{index})), .right = try builder.expression(.null_value) } });
+    rows.append(builder.allocator, &builder.nodes.declaration_rows, &functions) catch |err| return failure(err);
 
-        try validate.append(allocator, .{ .branch = .{ .condition = present, .yes = try builder.statements(&.{.{ .result = try builder.expression(.{ .error_value = "StoreNotWritable" }) }}), .no = .{} } });
-    }
-
-    try validate.append(allocator, .{ .result = try builder.expression(.{ .binary = .{ .operator = .not_equal, .left = try builder.identifier("count"), .right = try builder.integer(0) } }) });
-
-    const valid = try builder.expression(.{ .try_value = try builder.call(try builder.identifier("validate"), &.{changes}) });
-
-    try commit.append(allocator, .{ .branch = .{ .condition = try builder.expression(.{ .unary = .{ .operator = .not, .operand = valid } }), .yes = try builder.statements(&.{.{ .result = null }}), .no = .{} } });
-    if (storage.reclaimable(objects)) try commit.append(allocator, .{ .assignment = .{ .target = try builder.field(self, "release_disabled"), .value = try builder.expression(.{ .boolean = true }) } });
-    try commit.append(allocator, .{ .expression = try builder.call(try builder.field(self, "apply"), &.{changes}) });
-
-    const self_parameters = try allocator.dupe(node.Field, &.{self_parameter});
-    const update_parameters = try allocator.dupe(node.Field, &.{ self_parameter, changes_parameter });
-
-    try declarations.appendSlice(allocator, &.{
-        .{ .function = .{ .name = "initialize", .parameters = self_parameters, .return_type = fallible, .body = try builder.statements(initialize.items), .exported = true } },
-        .{ .function = .{ .name = "commit", .parameters = update_parameters, .return_type = fallible, .body = try builder.statements(commit.items), .exported = true } },
-        .{ .function = .{ .name = "validate", .parameters = try allocator.dupe(node.Field, &.{changes_parameter}), .return_type = try builder.expression(.{ .error_union = .{ .inferred = true, .payload = try builder.expression(.{ .primitive = .bool }) } }), .body = try builder.statements(validate.items) } },
-        .{ .function = .{ .name = "apply", .parameters = update_parameters, .return_type = unit, .body = try builder.statements(apply.items) } },
+    for (first..builder.nodes.declaration_rows.tags.items.len) |index| try declarations.append(builder.allocator, .{
+        .function = try builder.nodes.materializeFunction(builder.allocator, @intCast(index)),
     });
+}
+
+fn failure(err: anyerror) std.mem.Allocator.Error {
+    return switch (err) {
+        error.OutOfMemory, error.IntegerOverflow, error.Overflow => error.OutOfMemory,
+        else => @panic("invalid Store lifecycle AST"),
+    };
 }

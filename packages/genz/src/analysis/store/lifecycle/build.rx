@@ -1,0 +1,33 @@
+<Module>
+    <Type from="model" as="Lifecycle" />
+
+    <Args in={Lifecycle.Input} out={Lifecycle.Output} />
+
+    <Call
+        fn="policy"
+        in={{
+            objects: $in.objects
+        }}
+    />
+
+    <Call
+        fn="prepare"
+        in={{
+            source: $in,
+            policy: $ctx.policy
+        }}
+    />
+
+    <Call fn="initialize" in={$ctx.prepare} />
+    <Call fn="count" in={$ctx.initialize} />
+    <Call fn="multiple" in={$ctx.count} />
+    <Call fn="permissions" in={$ctx.multiple} />
+    <Call fn="validated" in={$ctx.permissions} />
+    <Call fn="apply" in={$ctx.validated} />
+
+    <Call module="commit/build" in={$ctx.apply} />
+
+    <Call fn="publish" in={$ctx.build} />
+
+    <Return value={$ctx.publish} />
+</Module>

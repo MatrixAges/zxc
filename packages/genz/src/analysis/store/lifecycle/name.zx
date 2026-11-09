@@ -1,0 +1,15 @@
+import integer from "../../../printer/text/integer"
+
+export type Input = {
+    prefix: u8[],
+    index: u64
+}
+
+export type Output = u8[]
+
+export default function (in: Input): Output {
+    return integer({
+        output: in.prefix,
+        value: in.index
+    })
+}

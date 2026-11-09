@@ -1,0 +1,13 @@
+import type { State as Input, Scope as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        state: {
+            ...in,
+            root_tags: [],
+            root_offsets: []
+        },
+        parent_tags: in.root_tags,
+        parent_offsets: in.root_offsets
+    }
+}

@@ -1,0 +1,46 @@
+import text from "../../../ast/context/text"
+import branch from "../../../ast/statements/builder/branch"
+import open from "../../../ast/statements/builder/open"
+import result from "../../../ast/statements/builder/result"
+import { ExpressionsKind } from "../../../printer/model/expressions"
+
+import type { State as Context } from "../../../ast/context/model"
+import type { State as Statements } from "../../../ast/statements/builder/model"
+
+export type Input = {
+    context: Context,
+    statements: Statements,
+    condition: u32,
+    error: u8[]
+}
+
+export type Output = {
+    context: Context,
+    statements: Statements
+}
+
+export default function (in: Input): Output {
+    const failure = text({
+        state: in.context,
+        kind: ExpressionsKind.ErrorValue,
+        value: in.error
+    })
+
+    const scope = open(in.statements)
+
+    const failed = result({
+        state: scope.state,
+        value: failure.id
+    })
+
+    return {
+        context: failure.state,
+        statements: branch({
+            scope: {
+                ...scope,
+                state: failed
+            },
+            condition: in.condition
+        })
+    }
+}

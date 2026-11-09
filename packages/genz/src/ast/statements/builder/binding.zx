@@ -1,0 +1,47 @@
+import { StatementsKind } from "../../../printer/model/statements"
+import header from "./header"
+
+import type { State } from "./model"
+
+export type Input = {
+    state: State,
+    name: u8[],
+    type_expr?: u32,
+    value: u32,
+    mutable: bool
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const kind = in.mutable ? StatementsKind.Variable : StatementsKind.Constant
+
+    const offset = match {
+        in.mutable => in.state.variable_name.length,
+        _ => in.state.constant_name.length
+    }
+
+    const state = header({
+        state: in.state,
+        kind,
+        offset
+    })
+
+    if (in.mutable) {
+        return {
+            ...state,
+            variable_name: state.variable_name.push(in.name)[0],
+            variable_type_expr: state.variable_type_expr.push(in.type_expr)[0],
+            variable_value: state.variable_value.push(in.value)[0],
+            variable_exported: state.variable_exported.push(false)[0]
+        }
+    }
+
+    return {
+        ...state,
+        constant_name: state.constant_name.push(in.name)[0],
+        constant_type_expr: state.constant_type_expr.push(in.type_expr)[0],
+        constant_value: state.constant_value.push(in.value)[0],
+        constant_exported: state.constant_exported.push(false)[0]
+    }
+}

@@ -1,0 +1,39 @@
+import bytes from "std:bytes"
+
+import call from "../../../../ast/context/call"
+import field from "../../../../ast/context/field"
+import evaluate from "../../../../ast/statements/builder/evaluate"
+import { apply_name, Method } from "../const"
+import finish from "../finish"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const target = field({
+        state: in.context,
+        target: in.self,
+        name: bytes.fromText(apply_name)
+    })
+
+    const invoked = call({
+        state: target.state,
+        callee: target.id,
+        arguments: [in.changes],
+        fallible: false
+    })
+
+    const applied = evaluate({
+        state: in.statements,
+        value: invoked.id,
+        discard: false
+    })
+
+    return finish({
+        state: {
+            ...in,
+            context: invoked.state,
+            statements: applied
+        },
+        method: Method.Commit
+    })
+}
