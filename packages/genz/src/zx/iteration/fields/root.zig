@@ -12,15 +12,9 @@ layout: node.ExpressionId,
 seed: node.ExpressionId,
 capacity: ?struct { operation: ir.ExprId, source: u32 } = null,
 pub fn minimum(self: *const Self, lowering: *Lower, operation: ir.ExprId) Lower.Error!?node.ExpressionId {
-    const capacity = self.capacity orelse return null;
+    if (!@import("genz_options").generated_analysis) return @import("projection_seed.zig").minimum(self, lowering, operation);
 
-    if (capacity.operation != operation) return null;
-
-    const member = lowering.program.typeOf(self.type_id).object.at(capacity.source);
-    const source = try lowering.field(self.seed, member.name);
-    const items = try @import("../../state_value/list.zig").items(lowering, member.type_id, source);
-
-    return try lowering.field(items, "len");
+    return @import("projection.zig").minimum(self, lowering, operation);
 }
 
 pub fn expression(self: *const Self, id: ir.ExprId) bool {
@@ -44,37 +38,15 @@ pub fn field(self: *const Self, lowering: *const Lower, target: ir.ExprId, name:
 }
 
 pub fn initial(self: *const Self, lowering: *Lower) Lower.Error!node.ExpressionId {
-    const fields = lowering.program.typeOf(self.type_id).object;
-    const items = try lowering.allocator.alloc(node.Field, fields.len + 1);
+    if (!@import("genz_options").generated_analysis) return @import("projection_seed.zig").initial(self, lowering);
 
-    for (items[0..fields.len], 0..) |*item, index| {
-        const name = fields.at(index).name;
-        const value = try lowering.field(self.seed, name);
-        item.* = .{ .name = name, .value = if (self.borrowed[index]) try lowering.builder.expression(.{ .address_of = value }) else value };
-    }
-
-    const origin = try @import("../../state_value/origin.zig").name(lowering, self.type_id);
-
-    items[fields.len] = .{ .name = origin, .value = try lowering.field(self.seed, origin) };
-
-    return lowering.builder.expression(.{ .object = .{ .type_expr = self.layout, .fields = items } });
+    return @import("projection.zig").initial(self, lowering);
 }
 
 pub fn restore(self: *const Self, lowering: *Lower, state: node.ExpressionId) Lower.Error!node.ExpressionId {
-    const fields = lowering.program.typeOf(self.type_id).object;
-    const items = try lowering.allocator.alloc(node.Field, fields.len + 1);
+    if (!@import("genz_options").generated_analysis) return @import("projection_seed.zig").restore(self, lowering, state);
 
-    for (items[0..fields.len], 0..) |*item, index| {
-        const name = fields.at(index).name;
-        const value = try lowering.field(state, name);
-        item.* = .{ .name = name, .value = if (self.borrowed[index]) try lowering.builder.expression(.{ .dereference = value }) else value };
-    }
-
-    const origin = try @import("../../state_value/origin.zig").name(lowering, self.type_id);
-
-    items[fields.len] = .{ .name = origin, .value = try lowering.field(state, origin) };
-
-    return lowering.builder.expression(.{ .object = .{ .type_expr = try lowering.layoutExpr(self.type_id), .fields = items } });
+    return @import("projection.zig").restore(self, lowering, state);
 }
 
 pub fn maskBorrowed(self: *Self, lowering: *Lower, body: *std.ArrayList(node.Statement)) Lower.Error!void {

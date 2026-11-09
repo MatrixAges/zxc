@@ -220,6 +220,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/iteration/assignment/build.rx", .name = "iteration_assignment", .owner = .genz },
     .{ .path = "genz/analysis/iteration/fields/prepare/plan.rx", .name = "loop_fields_prepare", .owner = .genz },
     .{ .path = "genz/analysis/iteration/fields/layout/build.rx", .name = "loop_fields_layout", .owner = .genz },
+    .{ .path = "genz/analysis/iteration/fields/projection/build.rx", .name = "loop_fields_projection", .owner = .genz },
     .{ .path = "genz/analysis/parallel/emit/label.zx", .name = "parallel_label", .owner = .genz },
     .{ .path = "genz/analysis/parallel/emit/allocator_alias.zx", .name = "parallel_allocator_alias", .owner = .genz },
     .{ .path = "genz/analysis/tasks/worker/reserve.zx", .name = "task_worker_reserve", .owner = .genz },

@@ -1,0 +1,40 @@
+import integers from "std:integer"
+
+import header from "../../../../ast/expressions/header"
+import { ExpressionsKind } from "../../../../printer/model/expressions"
+
+import type { State as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const value = header({
+        ...in.expressions.pick([
+            "tags",
+            "offsets"
+        ]),
+        base: in.source.expression_base,
+        kind: ExpressionsKind.Object,
+        offset: in.expressions.object_type_expr.length
+    })
+
+    return {
+        expressions: {
+            ...in.expressions,
+            tags: value.tags,
+            offsets: value.offsets,
+            object_type_expr:
+                in.expressions.object_type_expr.push(in.source.layout)[0],
+            object_fields_start:
+                in.expressions.object_fields_start.push(in.source.field_base)[0],
+            object_fields_len:
+                in.expressions.object_fields_len.push(
+                    integers.narrow(
+                        in.fields.name.length
+                    )
+                )[0]
+        },
+        fields: in.fields,
+        origin_owned: in.origin_owned,
+        root: value.id,
+        valid: in.valid && value.valid
+    }
+}

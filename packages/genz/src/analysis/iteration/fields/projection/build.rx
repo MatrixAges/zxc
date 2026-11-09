@@ -1,0 +1,32 @@
+<Module>
+    <Type from="model" as="Projection" />
+
+    <Args in={Projection.Input} out={Projection.Output} />
+
+    <If on={$in.mode == Projection.Mode.Minimum}>
+        <If on={$in.capacity != null}>
+            <If on={$in.capacity.operation == $in.operation}>
+                <Call fn="initialize" in={$in} />
+
+                <Call
+                    fn="minimum"
+                    in={{
+                        state: $ctx.initialize,
+                        capacity: $in.capacity
+                    }}
+                />
+
+                <Return value={$ctx.minimum} />
+            </If>
+        </If>
+
+        <Return value={null} />
+    </If>
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="fields" in={$ctx.initialize} />
+    <Call fn="origin" in={$ctx.fields} />
+    <Call fn="finish" in={$ctx.origin} />
+
+    <Return value={$ctx.finish} />
+</Module>

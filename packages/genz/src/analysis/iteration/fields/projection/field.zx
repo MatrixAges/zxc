@@ -1,0 +1,39 @@
+import header from "../../../../ast/expressions/header"
+import { ExpressionsKind } from "../../../../printer/model/expressions"
+
+import type { State, Node as Output } from "./model"
+
+export type Input = {
+    state: State,
+    target: u32,
+    name: u8[]
+}
+
+export default function (in: Input): Output {
+    const state = in.state
+
+    const field = header({
+        ...state.expressions.pick([
+            "tags",
+            "offsets"
+        ]),
+        base: state.source.expression_base,
+        kind: ExpressionsKind.Field,
+        offset: state.expressions.field_target.length
+    })
+
+    return {
+        id: field.id,
+        state: {
+            ...state,
+            expressions: {
+                ...state.expressions,
+                tags: field.tags,
+                offsets: field.offsets,
+                field_target: state.expressions.field_target.push(in.target)[0],
+                field_name: state.expressions.field_name.push(in.name)[0]
+            },
+            valid: state.valid && field.valid
+        }
+    }
+}

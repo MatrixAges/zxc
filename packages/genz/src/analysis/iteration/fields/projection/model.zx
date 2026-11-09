@@ -1,0 +1,56 @@
+import type { Table } from "core/type_table/model"
+import type { Columns as Fields } from "../../../../ast/fields/model"
+import type { ExpressionsKind } from "../../../../printer/model/expressions"
+import type { Capacity } from "../model"
+
+export enum Mode { Initial, Restore, Minimum }
+
+export type Input = {
+    types: Table,
+    type_id: u32,
+    borrowed: bool[],
+    value: u32,
+    layout: u32,
+    mode: Mode,
+    capacity?: Capacity,
+    operation: u32,
+    active: bool,
+    selected: bool[],
+    expression_base: u32,
+    field_base: u32
+}
+
+export type Expressions = {
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    field_target: u32[],
+    field_name: u8[][],
+    address_of: u32[],
+    dereference: u32[],
+    object_type_expr: u32?[],
+    object_fields_start: u32[],
+    object_fields_len: u32[]
+}
+
+export type State = {
+    source: Input,
+    expressions: Expressions,
+    fields: Fields,
+    origin_owned: bool,
+    valid: bool
+}
+
+export type Node = {
+    state: State,
+    id: u32
+}
+
+export type Result = {
+    expressions: Expressions,
+    fields: Fields,
+    origin_owned: bool,
+    root: u32,
+    valid: bool
+}
+
+export type Output = Result?

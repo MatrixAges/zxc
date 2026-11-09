@@ -1,0 +1,68 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import { length_member } from "../../../intrinsics/index/const"
+import selected from "../../../state/list/selected"
+import { items_field } from "../../../types/state/const"
+import field from "./field"
+
+import type { Capacity } from "../model"
+import type { State, Output } from "./model"
+
+export type Input = {
+    state: State,
+    capacity: Capacity
+}
+
+export default function (in: Input): Output {
+    const source = in.state.source
+
+    const type_index = integers.widen(source.type_id)
+    const first = integers.widen(source.types.first[type_index])
+    const index = first + integers.widen(in.capacity.source)
+
+    const member = field({
+        state: in.state,
+        target: source.value,
+        name: bytes.fromText(source.types.field_names[index])
+    })
+
+    const type_id = integers.widen(source.types.field_types[index])
+    const active = source.active
+
+    const chosen = match {
+        active => source.selected[type_id],
+        _ => false
+    }
+
+    const kind = match {
+        active => source.types.kinds[type_id],
+        _ => 0
+    }
+
+    const buffered = selected({
+        active,
+        chosen,
+        kind
+    })
+
+    const items = match {
+        buffered => field({
+            state: member.state,
+            target: member.id,
+            name: bytes.fromText(items_field)
+        }),
+        _ => member
+    }
+
+    const length = field({
+        state: items.state,
+        target: items.id,
+        name: bytes.fromText(length_member)
+    })
+
+    return {
+        ...length.state.omit(["source"]),
+        root: length.id
+    }
+}

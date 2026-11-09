@@ -1,0 +1,63 @@
+import header from "../../../../ast/expressions/header"
+import { ExpressionsKind } from "../../../../printer/model/expressions"
+import { Mode } from "./model"
+
+import type { Node, Node as Output } from "./model"
+
+export type Input = {
+    node: Node,
+    borrowed: bool
+}
+
+export default function (in: Input): Output {
+    if (!in.borrowed) {
+        return in.node
+    }
+
+    const { state, id } = in.node
+
+    const initial = state.source.mode == Mode.Initial
+
+    const kind = initial ? ExpressionsKind.AddressOf : ExpressionsKind.Dereference
+
+    const offset = match {
+        initial => state.expressions.address_of.length,
+        _ => state.expressions.dereference.length
+    }
+
+    const value = header({
+        ...state.expressions.pick([
+            "tags",
+            "offsets"
+        ]),
+        base: state.source.expression_base,
+        kind,
+        offset
+    })
+
+    const expressions = {
+        ...state.expressions,
+        tags: value.tags,
+        offsets: value.offsets
+    }
+
+    const wrapped = match {
+        initial => {
+            ...expressions,
+            address_of: expressions.address_of.push(id)[0]
+        },
+        _ => {
+            ...expressions,
+            dereference: expressions.dereference.push(id)[0]
+        }
+    }
+
+    return {
+        id: value.id,
+        state: {
+            ...state,
+            expressions: wrapped,
+            valid: state.valid && value.valid
+        }
+    }
+}

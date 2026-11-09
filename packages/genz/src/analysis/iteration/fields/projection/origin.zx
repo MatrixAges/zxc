@@ -1,0 +1,30 @@
+import append from "../../../../ast/fields/append"
+import describe from "../../../construction/origin/describe"
+import field from "./field"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const name = describe({
+        types: in.source.types,
+        id: in.source.type_id
+    })
+
+    const value = field({
+        state: in,
+        target: in.source.value,
+        name: name.name
+    })
+
+    return {
+        ...value.state,
+        fields: append({
+            table: value.state.fields,
+            name: name.name,
+            value: value.id,
+            default_value: null,
+            comptime_parameter: false
+        }),
+        origin_owned: name.owned
+    }
+}
