@@ -1,0 +1,53 @@
+import textBytes from "std:bytes"
+import integers from "std:integer"
+
+import makeConstant from "../../../ast/declarations/table/constant"
+import makeAppendField from "../../../ast/fields/append"
+import { capacity_name, committed_name, zx_header_name } from "./const"
+import makeStructure from "./structure"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const capacity_field = makeAppendField({
+        table: in.fields,
+        name: textBytes.fromText(capacity_name),
+        value: in.symbols.size,
+        comptime_parameter: false
+    })
+
+    const committed_field = makeAppendField({
+        table: capacity_field,
+        name: textBytes.fromText(committed_name),
+        value: in.symbols.size,
+        comptime_parameter: false
+    })
+
+    const shape = makeStructure({
+        state: {
+            ...in,
+            fields: committed_field,
+        },
+        first: in.context.source.field_base + integers.narrow(in.fields.name.length),
+        count: 2,
+    })
+
+    const declaration = makeConstant({
+        state: shape.state.declarations,
+        value: {
+            name: textBytes.fromText(zx_header_name),
+            value: shape.id,
+            exported: in.source.exported
+        }
+    })
+
+    return {
+        ...shape.state,
+        declarations: declaration.state,
+        valid: shape.state.valid && declaration.valid,
+    }
+}

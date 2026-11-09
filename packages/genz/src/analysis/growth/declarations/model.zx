@@ -1,0 +1,103 @@
+import type {
+    Input as Bases,
+    State as Context,
+    Variables
+} from "../../../ast/context/model"
+import type { Table as Declarations } from "../../../ast/declarations/table/model"
+import type { Columns as Fields } from "../../../ast/fields/model"
+import type { State as Statements } from "../../../ast/statements/builder/model"
+import type { Columns as Scopes } from "../../../ast/statements/builder/scope"
+import type { Columns as StatementColumns } from "../../../ast/statements/model"
+
+export enum Method { Reserve, Bounded, Allocate, Retract, Renew }
+
+export type Input = {
+    bases: Bases,
+    exported: bool,
+    shared_types: bool
+}
+
+export type Symbols = {
+    element: u32,
+    allocator: u32,
+    items: u32,
+    count: u32,
+    minimum: u32,
+    exact: u32,
+    frontier: u32,
+    size: u32,
+    type_type: u32,
+    boolean: u32,
+    unit: u32,
+    byte_type: u32,
+    zero: u32,
+    one: u32,
+    two: u32,
+    yes: u32,
+    no: u32
+}
+
+export type Extra = {
+    mutable_slice: u32[],
+    many_pointer: u32[],
+    struct_type_start: u32[],
+    struct_type_len: u32[],
+    error_union_payload: u32[],
+    error_union_errors: u8[][]?[],
+    error_union_inferred: bool[],
+    catch_scope_value: u32[],
+    catch_scope_capture: u8[]?[],
+    catch_scope_body_start: u32[],
+    catch_scope_body_len: u32[]
+}
+
+export type State = {
+    source: Input,
+    context: Context,
+    statements: Statements,
+    scopes: Scopes,
+    fields: Fields,
+    declarations: Declarations,
+    extra: Extra,
+    symbols: Symbols,
+    valid: bool
+}
+
+export type Node = {
+    state: State,
+    id: u32
+}
+
+export type Output = {
+    context: Context,
+    statements: StatementColumns,
+    variables: Variables,
+    loops: Scopes,
+    fields: Fields,
+    declarations: Declarations,
+    extra: Extra,
+    valid: bool,
+    uses_allocator: bool
+}
+
+export type Range = {
+    first: u32,
+    count: u32
+}
+
+export type Renewal = {
+    state: State,
+    value: u32,
+    info: u32,
+    path: u32,
+    child: u32,
+    field_name: u32,
+    origin_name: u32,
+    optional: u32,
+    pointer: u32,
+    terminal: u32,
+    optional_body: Range,
+    pointer_body: Range,
+    fields_body: Range,
+    wrapped_body: Range
+}

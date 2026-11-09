@@ -1,0 +1,25 @@
+<Module>
+    <Type from="model" as="Growth" />
+
+    <Args in={Growth.Input} out={Growth.Output} />
+
+    <Call fn="prepare" in={$in} />
+    <Call fn="header" in={$ctx.prepare} />
+    <Call fn="reserve_layout" in={$ctx.header} />
+    <Call fn="reserve" in={$ctx.reserve_layout} />
+    <Call fn="bounded" in={$ctx.reserve} />
+    <Call fn="allocation_layout" in={$ctx.bounded} />
+    <Call fn="allocation_size" in={$ctx.allocation_layout} />
+    <Call fn="allocate" in={$ctx.allocation_size} />
+    <Call fn="allocation_finish" in={$ctx.allocate} />
+    <Call fn="retract" in={$ctx.allocation_finish} />
+    <Call fn="renew_layout" in={$ctx.retract} />
+    <Call fn="renew_optional" in={$ctx.renew_layout} />
+    <Call fn="renew_pointer" in={$ctx.renew_optional} />
+    <Call fn="renew_fields" in={$ctx.renew_pointer} />
+    <Call fn="renew_wrapped" in={$ctx.renew_fields} />
+    <Call fn="renew" in={$ctx.renew_wrapped} />
+    <Call fn="publish" in={$ctx.renew} />
+
+    <Return value={$ctx.publish} />
+</Module>

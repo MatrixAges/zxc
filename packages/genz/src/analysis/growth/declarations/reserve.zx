@@ -1,0 +1,135 @@
+import textBytes from "std:bytes"
+
+import makeBinary from "../../../ast/context/binary"
+import makeCall from "../../../ast/context/call"
+import makeField from "../../../ast/context/field"
+import makeIdentifier from "../../../ast/context/identifier"
+import makePointer from "../../../ast/context/pointer"
+import makeAssignment from "../../../ast/statements/builder/assignment"
+import makeBinding from "../../../ast/statements/builder/binding"
+import makeBranch from "../../../ast/statements/builder/branch"
+import makeOpen from "../../../ast/statements/builder/open"
+import makeResult from "../../../ast/statements/builder/result"
+import makeScope from "../../../ast/statements/builder/scope"
+import { ExpressionsBinaryOperator as B } from "../../../printer/model/expressions"
+import { allocate_name, length_member } from "../const"
+import makeComplete from "./complete"
+import { current_name } from "./const"
+import { Method } from "./model"
+
+import type { State } from "./model"
+import type { Output as Layout } from "./reserve_layout"
+
+export type Input = Layout
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const outer = makeOpen(in.state.statements)
+
+    const inner = makeOpen(outer.state)
+
+    const header_pointer = makePointer({
+        state: in.state.context,
+        value: in.header_type,
+    })
+
+    const statement_current = makeBinding({
+        state: inner.state,
+        name: textBytes.fromText(current_name),
+        value: in.current,
+        mutable: false,
+        type_expr: header_pointer.id,
+    })
+
+    const reusing = makeOpen(statement_current)
+
+    const advanced = makeAssignment({
+        state: reusing.state,
+        target: in.committed,
+        value: in.state.symbols.count,
+    })
+
+    const returned = makeResult({
+        state: advanced,
+        value: in.reused,
+    })
+
+    const has_capacity = makeBranch({
+        scope: {
+            ...reusing,
+            state: returned
+        },
+        condition: in.at_frontier,
+    })
+
+    const in_place = makeScope({
+        scope: {
+            ...inner,
+            state: has_capacity
+        },
+        columns: in.state.scopes
+    })
+
+    const length = makeField({
+        state: header_pointer.state,
+        target: in.state.symbols.items,
+        name: textBytes.fromText(length_member),
+    })
+
+    const nonempty = makeBinary({
+        state: length.state,
+        operator: B.NotEqual,
+        left: length.id,
+        right: in.state.symbols.zero,
+    })
+
+    const frontier = makeBinary({
+        state: nonempty.state,
+        operator: B.LogicalAnd,
+        left: in.state.symbols.frontier,
+        right: nonempty.id,
+    })
+
+    const selected = makeBranch({
+        scope: {
+            ...outer,
+            state: in_place.state
+        },
+        condition: frontier.id,
+    })
+
+    const allocate = makeIdentifier({
+        state: frontier.state,
+        name: textBytes.fromText(allocate_name),
+    })
+
+    const allocated = makeCall({
+        state: allocate.state,
+        callee: allocate.id,
+        arguments: [
+            in.state.symbols.element,
+            in.state.symbols.allocator,
+            in.state.symbols.items,
+            in.state.symbols.count,
+            in.state.symbols.no,
+            in.state.symbols.zero
+        ],
+        fallible: true,
+    })
+
+    const result = makeResult({
+        state: selected,
+        value: allocated.id,
+    })
+
+    return makeComplete({
+        state: {
+            ...in.state,
+            context: allocated.state,
+            statements: result,
+            scopes: in_place.columns,
+        },
+        method: Method.Reserve
+    })
+}

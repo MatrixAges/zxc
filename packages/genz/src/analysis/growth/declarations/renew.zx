@@ -1,0 +1,62 @@
+
+import makeClose from "../../../ast/statements/builder/close"
+import makeOpen from "../../../ast/statements/builder/open"
+import makeSelection from "../../../ast/statements/builder/selection"
+import makeComplete from "./complete"
+import { Method } from "./model"
+
+import type { State } from "./model"
+import type { Renewal } from "./model"
+
+export type Input = Renewal
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const nonoptional = makeOpen(in.state.statements)
+
+    const terminal = makeSelection({
+        state: nonoptional.state,
+        condition: in.terminal,
+        yes_first: in.wrapped_body.first,
+        yes_count: in.wrapped_body.count,
+        no_first: in.fields_body.first,
+        no_count: in.fields_body.count,
+    })
+
+    const terminal_body = makeClose(terminal)
+
+    const pointer = makeSelection({
+        state: terminal_body.state,
+        condition: in.pointer,
+        yes_first: in.pointer_body.first,
+        yes_count: in.pointer_body.count,
+        no_first: terminal_body.first,
+        no_count: terminal_body.count,
+    })
+
+    const nonoptional_body = makeClose(pointer)
+
+    const restored = {
+        ...nonoptional_body.state,
+        root_tags: nonoptional.parent_tags,
+        root_offsets: nonoptional.parent_offsets
+    }
+
+    const optional = makeSelection({
+        state: restored,
+        condition: in.optional,
+        yes_first: in.optional_body.first,
+        yes_count: in.optional_body.count,
+        no_first: nonoptional_body.first,
+        no_count: nonoptional_body.count,
+    })
+
+    return makeComplete({
+        state: {
+            ...in.state,
+            statements: optional,
+        },
+        method: Method.Renew
+    })
+}

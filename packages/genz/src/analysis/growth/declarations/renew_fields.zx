@@ -1,0 +1,131 @@
+import textBytes from "std:bytes"
+
+import makeAddress from "../../../ast/context/address"
+import makeBuiltin from "../../../ast/context/builtin"
+import makeCall from "../../../ast/context/call"
+import makeIdentifier from "../../../ast/context/identifier"
+import makeNullValue from "../../../ast/context/null_value"
+import makeSlice from "../../../ast/context/slice"
+import makeAssignment from "../../../ast/statements/builder/assignment"
+import makeBranch from "../../../ast/statements/builder/branch"
+import makeClose from "../../../ast/statements/builder/close"
+import makeEvaluate from "../../../ast/statements/builder/evaluate"
+import makeOpen from "../../../ast/statements/builder/open"
+import { ExpressionsBuiltinName as F } from "../../../printer/model/expressions"
+import { renew_name } from "../const"
+import { v_name } from "./const"
+
+import type { Renewal } from "./model"
+
+export type Input = Renewal
+
+export type Output = Renewal
+
+export default function (in: Input): Output {
+    const parent = makeOpen(in.state.statements)
+
+    const value_type = makeIdentifier({
+        state: in.state.context,
+        name: textBytes.fromText(v_name),
+    })
+
+    const has_origin = makeBuiltin({
+        state: value_type.state,
+        name: F.HasField,
+        arguments: [
+            value_type.id,
+            in.origin_name
+        ],
+    })
+
+    const clear = makeOpen(parent.state)
+
+    const origin = makeBuiltin({
+        state: has_origin.state,
+        name: F.Field,
+        arguments: [
+            in.value,
+            in.origin_name
+        ],
+    })
+
+    const missing = makeNullValue(origin.state)
+
+    const cleared = makeAssignment({
+        state: clear.state,
+        target: origin.id,
+        value: missing.id,
+    })
+
+    const clear_origin = makeBranch({
+        scope: {
+            ...clear,
+            state: cleared
+        },
+        condition: has_origin.id,
+    })
+
+    const field = makeBuiltin({
+        state: missing.state,
+        name: F.Field,
+        arguments: [
+            in.value,
+            in.field_name
+        ],
+    })
+
+    const child_address = makeAddress({
+        state: field.state,
+        value: field.id,
+    })
+
+    const rest = makeSlice({
+        state: child_address.state,
+        target: in.path,
+        start: in.state.symbols.one,
+    })
+
+    const renew = makeIdentifier({
+        state: rest.state,
+        name: textBytes.fromText(renew_name),
+    })
+
+    const renewed = makeCall({
+        state: renew.state,
+        callee: renew.id,
+        arguments: [
+            in.state.symbols.allocator,
+            child_address.id,
+            rest.id,
+            in.state.symbols.exact
+        ],
+        fallible: true,
+    })
+
+    const recursive = makeEvaluate({
+        state: clear_origin,
+        value: renewed.id,
+        discard: false,
+    })
+
+    const body = makeClose(recursive)
+
+    const restored = {
+        ...body.state,
+        root_tags: parent.parent_tags,
+        root_offsets: parent.parent_offsets
+    }
+
+    return {
+        ...in,
+        state: {
+            ...in.state,
+            context: renewed.state,
+            statements: restored,
+        },
+        fields_body: {
+            first: body.first,
+            count: body.count
+        }
+    }
+}

@@ -1,0 +1,159 @@
+import textBytes from "std:bytes"
+
+import makeBoolean from "../../../ast/context/boolean"
+import makeIdentifier from "../../../ast/context/identifier"
+import makeInitialize from "../../../ast/context/initialize"
+import makeInteger from "../../../ast/context/integer"
+import makePrimitive from "../../../ast/context/primitive"
+import makeDeclarations from "../../../ast/declarations/table/create"
+import makeFields from "../../../ast/fields/empty"
+import makeStatements from "../../../ast/statements/builder/initialize"
+import { ExpressionsPrimitive as P } from "../../../printer/model/expressions"
+import { renewal_pair_size } from "../const"
+import {
+    allocator_name,
+    count_name,
+    exact_name,
+    frontier_name,
+    items_name,
+    minimum_name,
+    t_name
+} from "./const"
+
+import type { State, Input as Source } from "./model"
+
+export type Input = Source
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const element = makeIdentifier({
+        state: makeInitialize(in.bases),
+        name: textBytes.fromText(t_name),
+    })
+
+    const allocator = makeIdentifier({
+        state: element.state,
+        name: textBytes.fromText(allocator_name),
+    })
+
+    const items = makeIdentifier({
+        state: allocator.state,
+        name: textBytes.fromText(items_name),
+    })
+
+    const count = makeIdentifier({
+        state: items.state,
+        name: textBytes.fromText(count_name),
+    })
+
+    const minimum = makeIdentifier({
+        state: count.state,
+        name: textBytes.fromText(minimum_name),
+    })
+
+    const exact = makeIdentifier({
+        state: minimum.state,
+        name: textBytes.fromText(exact_name),
+    })
+
+    const frontier = makeIdentifier({
+        state: exact.state,
+        name: textBytes.fromText(frontier_name),
+    })
+
+    const size = makePrimitive({
+        state: frontier.state,
+        value: P.Usize,
+    })
+
+    const type_type = makePrimitive({
+        state: size.state,
+        value: P.Type,
+    })
+
+    const boolean = makePrimitive({
+        state: type_type.state,
+        value: P.Bool,
+    })
+
+    const unit = makePrimitive({
+        state: boolean.state,
+        value: P.Void,
+    })
+
+    const byte_type = makePrimitive({
+        state: unit.state,
+        value: P.U8,
+    })
+
+    const zero = makeInteger({
+        state: byte_type.state,
+        value: 0,
+    })
+
+    const one = makeInteger({
+        state: zero.state,
+        value: 1,
+    })
+
+    const two = makeInteger({
+        state: one.state,
+        value: renewal_pair_size,
+    })
+
+    const yes = makeBoolean({
+        state: two.state,
+        value: true,
+    })
+
+    const no = makeBoolean({
+        state: yes.state,
+        value: false,
+    })
+
+    return {
+        source: in,
+        context: no.state,
+        statements: makeStatements(in.bases.statement_base),
+        scopes: {
+            scope_start: [],
+            scope_len: []
+        },
+        fields: makeFields({}),
+        declarations: makeDeclarations({}),
+        extra: {
+            mutable_slice: [],
+            many_pointer: [],
+            struct_type_start: [],
+            struct_type_len: [],
+            error_union_payload: [],
+            error_union_errors: [],
+            error_union_inferred: [],
+            catch_scope_value: [],
+            catch_scope_capture: [],
+            catch_scope_body_start: [],
+            catch_scope_body_len: [],
+        },
+        symbols: {
+            element: element.id,
+            allocator: allocator.id,
+            items: items.id,
+            count: count.id,
+            minimum: minimum.id,
+            exact: exact.id,
+            frontier: frontier.id,
+            size: size.id,
+            type_type: type_type.id,
+            boolean: boolean.id,
+            unit: unit.id,
+            byte_type: byte_type.id,
+            zero: zero.id,
+            one: one.id,
+            two: two.id,
+            yes: yes.id,
+            no: no.id,
+        },
+        valid: true
+    }
+}

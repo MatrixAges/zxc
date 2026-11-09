@@ -1,0 +1,130 @@
+import textBytes from "std:bytes"
+
+import makeBinary from "../../../ast/context/binary"
+import makeBuiltin from "../../../ast/context/builtin"
+import makeField from "../../../ast/context/field"
+import makeIdentifier from "../../../ast/context/identifier"
+import makeSlice from "../../../ast/context/slice"
+import {
+    ExpressionsBinaryOperator as B,
+    ExpressionsBuiltinName as F
+} from "../../../printer/model/expressions"
+import { length_member } from "../const"
+import { capacity_name, committed_name, current_name, ptr_name } from "./const"
+import makeHeaderOf from "./header_of"
+import makeHeaderType from "./header_type"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = {
+    state: State,
+    header_type: u32,
+    committed: u32,
+    current: u32,
+    at_frontier: u32,
+    reused: u32
+}
+
+export default function (in: Input): Output {
+    const header = makeHeaderType({
+        state: {
+            ...in,
+        },
+    })
+
+    const header_size = makeBuiltin({
+        state: header.state.context,
+        name: F.SizeOf,
+        arguments: [header.id],
+    })
+
+    const current = makeIdentifier({
+        state: header_size.state,
+        name: textBytes.fromText(current_name),
+    })
+
+    const committed = makeField({
+        state: current.state,
+        target: current.id,
+        name: textBytes.fromText(committed_name),
+    })
+
+    const item_count = makeField({
+        state: committed.state,
+        target: in.symbols.items,
+        name: textBytes.fromText(length_member),
+    })
+
+    const at_end = makeBinary({
+        state: item_count.state,
+        operator: B.Equal,
+        left: committed.id,
+        right: item_count.id,
+    })
+
+    const capacity = makeField({
+        state: at_end.state,
+        target: current.id,
+        name: textBytes.fromText(capacity_name),
+    })
+
+    const has_room = makeBinary({
+        state: capacity.state,
+        operator: B.LessEqual,
+        left: in.symbols.count,
+        right: capacity.id,
+    })
+
+    const at_frontier = makeBinary({
+        state: has_room.state,
+        operator: B.LogicalAnd,
+        left: at_end.id,
+        right: has_room.id,
+    })
+
+    const item_ptr = makeField({
+        state: at_frontier.state,
+        target: in.symbols.items,
+        name: textBytes.fromText(ptr_name),
+    })
+
+    const mutable_ptr = makeBuiltin({
+        state: item_ptr.state,
+        name: F.ConstCast,
+        arguments: [item_ptr.id],
+    })
+
+    const reused = makeSlice({
+        state: mutable_ptr.state,
+        target: mutable_ptr.id,
+        end: in.symbols.count,
+    })
+
+    const raw_ptr = makeBuiltin({
+        state: reused.state,
+        name: F.PtrCast,
+        arguments: [mutable_ptr.id],
+    })
+
+    const address = makeHeaderOf({
+        state: {
+            ...header.state,
+            context: raw_ptr.state,
+        },
+        start: raw_ptr.id,
+        header_size: header_size.id,
+    })
+
+    return {
+        state: {
+            ...address.state,
+        },
+        header_type: header.id,
+        committed: committed.id,
+        current: address.id,
+        at_frontier: at_frontier.id,
+        reused: reused.id
+    }
+}

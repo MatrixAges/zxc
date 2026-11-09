@@ -1,0 +1,81 @@
+import textBytes from "std:bytes"
+
+import makeCall from "../../../ast/context/call"
+import makeIdentifier from "../../../ast/context/identifier"
+import makeBranch from "../../../ast/statements/builder/branch"
+import makeClose from "../../../ast/statements/builder/close"
+import makeEvaluate from "../../../ast/statements/builder/evaluate"
+import makeOpen from "../../../ast/statements/builder/open"
+import { renew_name } from "../const"
+import { inner_name } from "./const"
+
+import type { Renewal } from "./model"
+
+export type Input = Renewal
+
+export type Output = Renewal
+
+export default function (in: Input): Output {
+    const parent = makeOpen(in.state.statements)
+
+    const payload = makeOpen(parent.state)
+
+    const inner = makeIdentifier({
+        state: in.state.context,
+        name: textBytes.fromText(inner_name),
+    })
+
+    const renew = makeIdentifier({
+        state: inner.state,
+        name: textBytes.fromText(renew_name),
+    })
+
+    const renewed = makeCall({
+        state: renew.state,
+        callee: renew.id,
+        arguments: [
+            in.state.symbols.allocator,
+            inner.id,
+            in.path,
+            in.state.symbols.exact
+        ],
+        fallible: true,
+    })
+
+    const invoke = makeEvaluate({
+        state: payload.state,
+        value: renewed.id,
+        discard: false,
+    })
+
+    const optional = makeBranch({
+        scope: {
+            ...payload,
+            state: invoke
+        },
+        condition: in.value,
+        capture: textBytes.fromText(inner_name),
+        capture_reference: true,
+    })
+
+    const body = makeClose(optional)
+
+    const restored = {
+        ...body.state,
+        root_tags: parent.parent_tags,
+        root_offsets: parent.parent_offsets
+    }
+
+    return {
+        ...in,
+        state: {
+            ...in.state,
+            context: renewed.state,
+            statements: restored,
+        },
+        optional_body: {
+            first: body.first,
+            count: body.count
+        }
+    }
+}

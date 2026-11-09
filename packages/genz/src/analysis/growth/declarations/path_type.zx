@@ -1,0 +1,35 @@
+
+import makeConstSlice from "../../../ast/context/const_slice"
+import makeFixedArray from "../../../ast/context/fixed_array"
+
+import type { State, Node } from "./model"
+
+export type Input = State
+
+export type Output = Node
+
+export default function (in: Input): Output {
+    const text_type = makeConstSlice({
+        state: in.context,
+        value: in.symbols.byte_type,
+    })
+
+    const pair = makeFixedArray({
+        state: text_type.state,
+        length: in.symbols.two,
+        element: text_type.id,
+    })
+
+    const path = makeConstSlice({
+        state: pair.state,
+        value: pair.id,
+    })
+
+    return {
+        state: {
+            ...in,
+            context: path.state,
+        },
+        id: path.id
+    }
+}

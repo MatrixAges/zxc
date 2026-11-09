@@ -1,0 +1,123 @@
+import textBytes from "std:bytes"
+import integers from "std:integer"
+
+import makeAppend from "../../../ast/fields/append"
+import {
+    t_name,
+    allocator_name,
+    items_name,
+    count_name,
+    frontier_name,
+    minimum_name,
+    exact_name,
+    length_name,
+    target_name,
+    path_name
+} from "./const"
+import { Method } from "./model"
+import parameterType from "./parameter_type"
+import makeResultType from "./result_type"
+
+import type { State } from "./model"
+
+export type Input = {
+    state: State,
+    method: Method
+}
+
+export type Output = {
+    state: State,
+    first: u32,
+    count: u32,
+    return_type: u32
+}
+
+export default function (in: Input): Output {
+    const source = in.state
+
+    const names = match in.method {
+        Method.Reserve => [
+            t_name,
+            allocator_name,
+            items_name,
+            count_name,
+            frontier_name
+        ],
+        Method.Bounded => [
+            t_name,
+            allocator_name,
+            items_name,
+            count_name,
+            minimum_name
+        ],
+        Method.Allocate => [
+            t_name,
+            allocator_name,
+            items_name,
+            count_name,
+            exact_name,
+            minimum_name
+        ],
+        Method.Retract => [
+            t_name,
+            items_name,
+            length_name
+        ],
+        _ => [
+            allocator_name,
+            target_name,
+            path_name,
+            exact_name
+        ]
+    }
+
+    const state = loop({
+        state: source,
+        index: 0
+    }, {
+        while: current => current.index < names.length,
+        next: current => {
+            const name = names[current.index]
+            const value = parameterType({
+                state: current.state,
+                name
+            })
+
+            const is_comptime = match name {
+                t_name => true,
+                frontier_name => true,
+                exact_name => true,
+                path_name => true,
+                _ => false
+            }
+
+            const fields = makeAppend({
+                table: current.state.fields,
+                name: textBytes.fromText(name),
+                value: value.id,
+                comptime_parameter: is_comptime
+            })
+
+            current.state = {
+                ...value.state,
+                fields
+            }
+            current.index += 1
+        },
+        return: current => current.state
+    })
+
+    const result = makeResultType({
+        state,
+        method: in.method
+    })
+
+    return {
+        state: result.state,
+        first:
+            source.context.source.field_base +
+            integers.narrow(source.fields.name.length),
+        count: integers.narrow(names.length),
+        return_type: result.id
+    }
+}

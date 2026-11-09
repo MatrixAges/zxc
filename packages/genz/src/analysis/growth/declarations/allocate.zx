@@ -1,0 +1,144 @@
+import textBytes from "std:bytes"
+
+import makeBinary from "../../../ast/context/binary"
+import makeBuiltin from "../../../ast/context/builtin"
+import makeCall from "../../../ast/context/call"
+import makeComptime from "../../../ast/context/comptime"
+import makeField from "../../../ast/context/field"
+import makeIdentifier from "../../../ast/context/identifier"
+import makePointer from "../../../ast/context/pointer"
+import makeBinding from "../../../ast/statements/builder/binding"
+import {
+    ExpressionsKind as E,
+    ExpressionsBinaryOperator as B,
+    ExpressionsBuiltinName as F
+} from "../../../printer/model/expressions"
+import {
+    aligned_alloc_name,
+    bytes_name,
+    data_name,
+    fresh_name,
+    offset_name,
+    ptr_name
+} from "./const"
+import makeHeaderOf from "./header_of"
+import makeWrapper from "./wrapper"
+
+import type { Output as Sized } from "./allocation_size"
+import type { State } from "./model"
+
+export type Input = Sized
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const alignment = makeComptime({
+        state: in.state.context,
+        value: in.alignment,
+    })
+
+    const aligned_alloc = makeField({
+        state: alignment.state,
+        target: in.state.symbols.allocator,
+        name: textBytes.fromText(aligned_alloc_name),
+    })
+
+    const allocated = makeCall({
+        state: aligned_alloc.state,
+        callee: aligned_alloc.id,
+        arguments: [
+            in.state.symbols.byte_type,
+            alignment.id,
+            in.length
+        ],
+        fallible: true,
+    })
+
+    const statement_bytes = makeBinding({
+        state: in.state.statements,
+        name: textBytes.fromText(bytes_name),
+        value: allocated.id,
+        mutable: false,
+    })
+
+    const bytes = makeIdentifier({
+        state: allocated.state,
+        name: textBytes.fromText(bytes_name),
+    })
+
+    const bytes_ptr = makeField({
+        state: bytes.state,
+        target: bytes.id,
+        name: textBytes.fromText(ptr_name),
+    })
+
+    const offset = makeIdentifier({
+        state: bytes_ptr.state,
+        name: textBytes.fromText(offset_name),
+    })
+
+    const start = makeBinary({
+        state: offset.state,
+        operator: B.Add,
+        left: bytes_ptr.id,
+        right: offset.id,
+    })
+
+    const aligned_ptr = makeBuiltin({
+        state: start.state,
+        name: F.AlignCast,
+        arguments: [start.id],
+    })
+
+    const data_ptr = makeBuiltin({
+        state: aligned_ptr.state,
+        name: F.PtrCast,
+        arguments: [aligned_ptr.id],
+    })
+
+    const pointer_type = makeWrapper({
+        state: {
+            ...in.state,
+            context: data_ptr.state,
+            statements: statement_bytes,
+        },
+        kind: E.ManyPointer,
+        value: in.state.symbols.element,
+    })
+
+    const statement_data = makeBinding({
+        state: pointer_type.state.statements,
+        name: textBytes.fromText(data_name),
+        value: data_ptr.id,
+        mutable: false,
+        type_expr: pointer_type.id,
+    })
+
+    const header = makeHeaderOf({
+        state: {
+            ...pointer_type.state,
+            statements: statement_data,
+        },
+        start: start.id,
+        header_size: in.header_size,
+    })
+
+    const header_pointer = makePointer({
+        state: header.state.context,
+        value: in.header_type,
+    })
+
+    const statement_fresh = makeBinding({
+        state: header.state.statements,
+        name: textBytes.fromText(fresh_name),
+        value: header.id,
+        mutable: false,
+        type_expr: header_pointer.id,
+    })
+
+    return {
+        ...header.state,
+        context: header_pointer.state,
+        statements: statement_fresh
+    }
+}

@@ -1,0 +1,56 @@
+import makeConstruct from "../../../ast/expressions/catch_scope"
+
+import type { State, Node as Output } from "./model"
+
+export type Input = {
+    state: State,
+    value: u32,
+    first: u32,
+    count: u32
+}
+
+export default function (in: Input): Output {
+    const state = in.state
+
+    const node = makeConstruct({
+        table: {
+            ...state.context.expressions.pick([
+                "tags",
+                "offsets"
+            ]),
+            ...state.extra.pick([
+                "catch_scope_value",
+                "catch_scope_capture",
+                "catch_scope_body_start",
+                "catch_scope_body_len"
+            ])
+        },
+        base: state.context.source.expression_base,
+        value: in.value,
+        start: in.first,
+        count: in.count
+    })
+
+    return {
+        id: node.id,
+        state: {
+            ...state,
+            context: {
+                ...state.context,
+                expressions: {
+                    ...state.context.expressions,
+                    tags: node.table.tags,
+                    offsets: node.table.offsets
+                },
+                valid: state.context.valid && node.valid
+            },
+            extra: {
+                ...state.extra,
+                ...node.table.omit([
+                    "tags",
+                    "offsets"
+                ])
+            }
+        }
+    }
+}

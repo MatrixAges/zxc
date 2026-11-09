@@ -1,0 +1,105 @@
+import textBytes from "std:bytes"
+
+import makeBuiltin from "../../../ast/context/builtin"
+import makeField from "../../../ast/context/field"
+import makeIdentifier from "../../../ast/context/identifier"
+import makePointer from "../../../ast/context/pointer"
+import makeAssignment from "../../../ast/statements/builder/assignment"
+import makeBinding from "../../../ast/statements/builder/binding"
+import { ExpressionsBuiltinName as F } from "../../../printer/model/expressions"
+import makeComplete from "./complete"
+import { committed_name, current_name, length_name, ptr_name } from "./const"
+import makeHeaderOf from "./header_of"
+import makeHeaderType from "./header_type"
+import { Method } from "./model"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const header = makeHeaderType({
+        state: {
+            ...in,
+        },
+    })
+
+    const header_size = makeBuiltin({
+        state: header.state.context,
+        name: F.SizeOf,
+        arguments: [header.id],
+    })
+
+    const item_ptr = makeField({
+        state: header_size.state,
+        target: in.symbols.items,
+        name: textBytes.fromText(ptr_name),
+    })
+
+    const mutable_ptr = makeBuiltin({
+        state: item_ptr.state,
+        name: F.ConstCast,
+        arguments: [item_ptr.id],
+    })
+
+    const raw_ptr = makeBuiltin({
+        state: mutable_ptr.state,
+        name: F.PtrCast,
+        arguments: [mutable_ptr.id],
+    })
+
+    const address = makeHeaderOf({
+        state: {
+            ...header.state,
+            context: raw_ptr.state,
+        },
+        start: raw_ptr.id,
+        header_size: header_size.id,
+    })
+
+    const header_pointer = makePointer({
+        state: address.state.context,
+        value: header.id,
+    })
+
+    const statement_current = makeBinding({
+        state: address.state.statements,
+        name: textBytes.fromText(current_name),
+        value: address.id,
+        mutable: false,
+        type_expr: header_pointer.id,
+    })
+
+    const current = makeIdentifier({
+        state: header_pointer.state,
+        name: textBytes.fromText(current_name),
+    })
+
+    const committed = makeField({
+        state: current.state,
+        target: current.id,
+        name: textBytes.fromText(committed_name),
+    })
+
+    const length = makeIdentifier({
+        state: committed.state,
+        name: textBytes.fromText(length_name),
+    })
+
+    const assigned = makeAssignment({
+        state: statement_current,
+        target: committed.id,
+        value: length.id,
+    })
+
+    return makeComplete({
+        state: {
+            ...address.state,
+            context: length.state,
+            statements: assigned,
+        },
+        method: Method.Retract
+    })
+}

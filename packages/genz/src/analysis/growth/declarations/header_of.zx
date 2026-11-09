@@ -1,0 +1,65 @@
+
+import makeBinary from "../../../ast/context/binary"
+import makeBuiltin from "../../../ast/context/builtin"
+import {
+    ExpressionsKind as E,
+    ExpressionsBinaryOperator as B,
+    ExpressionsBuiltinName as F
+} from "../../../printer/model/expressions"
+import makeWrapper from "./wrapper"
+
+import type { State, Node } from "./model"
+
+export type Input = {
+    state: State,
+    start: u32,
+    header_size: u32
+}
+
+export type Output = Node
+
+export default function (in: Input): Output {
+    const pointer_type = makeWrapper({
+        state: {
+            ...in.state,
+        },
+        kind: E.ManyPointer,
+        value: in.state.symbols.byte_type,
+    })
+
+    const bytes = makeBuiltin({
+        state: pointer_type.state.context,
+        name: F.As,
+        arguments: [
+            pointer_type.id,
+            in.start
+        ],
+    })
+
+    const prior = makeBinary({
+        state: bytes.state,
+        operator: B.Subtract,
+        left: bytes.id,
+        right: in.header_size,
+    })
+
+    const aligned = makeBuiltin({
+        state: prior.state,
+        name: F.AlignCast,
+        arguments: [prior.id],
+    })
+
+    const header = makeBuiltin({
+        state: aligned.state,
+        name: F.PtrCast,
+        arguments: [aligned.id],
+    })
+
+    return {
+        state: {
+            ...pointer_type.state,
+            context: header.state,
+        },
+        id: header.id
+    }
+}

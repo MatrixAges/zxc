@@ -1,0 +1,19 @@
+import makePublish from "../../../ast/statements/builder/publish"
+
+import type { State as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const body = makePublish(in.statements)
+
+    return {
+        context: in.context,
+        statements: body.statements,
+        variables: body.variables,
+        loops: in.scopes,
+        fields: in.fields,
+        declarations: in.declarations,
+        extra: in.extra,
+        valid: in.valid && in.context.valid && body.valid,
+        uses_allocator: true
+    }
+}

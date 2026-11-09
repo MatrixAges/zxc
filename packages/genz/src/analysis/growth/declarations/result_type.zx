@@ -1,0 +1,38 @@
+import { ExpressionsKind } from "../../../printer/model/expressions"
+import fallible from "./fallible"
+import { Method } from "./model"
+import wrapper from "./wrapper"
+
+import type { State, Node as Output } from "./model"
+
+export type Input = {
+    state: State,
+    method: Method
+}
+
+export default function (in: Input): Output {
+    if (in.method == Method.Retract) {
+        return {
+            state: in.state,
+            id: in.state.symbols.unit
+        }
+    }
+
+    if (in.method == Method.Renew) {
+        return fallible({
+            state: in.state,
+            payload: in.state.symbols.unit
+        })
+    }
+
+    const buffer = wrapper({
+        state: in.state,
+        kind: ExpressionsKind.MutableSlice,
+        value: in.state.symbols.element
+    })
+
+    return fallible({
+        state: buffer.state,
+        payload: buffer.id
+    })
+}

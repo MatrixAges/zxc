@@ -1,0 +1,151 @@
+import textBytes from "std:bytes"
+
+import makeBuiltin from "../../../ast/context/builtin"
+import makeCall from "../../../ast/context/call"
+import makeField from "../../../ast/context/field"
+import makeIdentifier from "../../../ast/context/identifier"
+import makeUnary from "../../../ast/context/unary"
+import makeAssignment from "../../../ast/statements/builder/assignment"
+import makeBranch from "../../../ast/statements/builder/branch"
+import makeClose from "../../../ast/statements/builder/close"
+import makeOpen from "../../../ast/statements/builder/open"
+import {
+    ExpressionsBuiltinName as F,
+    ExpressionsUnaryOperator as U
+} from "../../../printer/model/expressions"
+import { Operation, Storage } from "../../state/list/const"
+import makePermission from "../../state/list/permission"
+import makeTag from "../../state/list/tag"
+import { allocate_name, length_member } from "../const"
+import { child_name, items_name, pointer_name, storage_name } from "./const"
+
+import type { Renewal } from "./model"
+
+export type Input = Renewal
+
+export type Output = Renewal
+
+export default function (in: Input): Output {
+    const parent = makeOpen(in.state.statements)
+
+    const exclusive = makePermission({
+        state: in.state.context,
+        value: in.value,
+        operation: Operation.Exclusive
+    })
+
+    const needed = makeUnary({
+        state: exclusive.state,
+        operator: U.Not,
+        operand: exclusive.id,
+    })
+
+    const copy_body = makeOpen(parent.state)
+
+    const items = makeField({
+        state: needed.state,
+        target: in.value,
+        name: textBytes.fromText(items_name),
+    })
+
+    const items_type = makeBuiltin({
+        state: items.state,
+        name: F.TypeOf,
+        arguments: [items.id],
+    })
+
+    const items_info = makeBuiltin({
+        state: items_type.state,
+        name: F.TypeInfo,
+        arguments: [items_type.id],
+    })
+
+    const pointer_info = makeField({
+        state: items_info.state,
+        target: items_info.id,
+        name: textBytes.fromText(pointer_name),
+    })
+
+    const child = makeField({
+        state: pointer_info.state,
+        target: pointer_info.id,
+        name: textBytes.fromText(child_name),
+    })
+
+    const length = makeField({
+        state: child.state,
+        target: items.id,
+        name: textBytes.fromText(length_member),
+    })
+
+    const allocate = makeIdentifier({
+        state: length.state,
+        name: textBytes.fromText(allocate_name),
+    })
+
+    const allocated = makeCall({
+        state: allocate.state,
+        callee: allocate.id,
+        arguments: [
+            child.id,
+            in.state.symbols.allocator,
+            items.id,
+            length.id,
+            in.state.symbols.exact,
+            in.state.symbols.zero
+        ],
+        fallible: true,
+    })
+
+    const copied = makeAssignment({
+        state: copy_body.state,
+        target: items.id,
+        value: allocated.id,
+    })
+
+    const storage = makeField({
+        state: allocated.state,
+        target: in.value,
+        name: textBytes.fromText(storage_name),
+    })
+
+    const exclusive_tag = makeTag({
+        state: storage.state,
+        storage: Storage.Exclusive
+    })
+
+    const marked = makeAssignment({
+        state: copied,
+        target: storage.id,
+        value: exclusive_tag.id,
+    })
+
+    const ensure_exclusive = makeBranch({
+        scope: {
+            ...copy_body,
+            state: marked
+        },
+        condition: needed.id,
+    })
+
+    const body = makeClose(ensure_exclusive)
+
+    const restored = {
+        ...body.state,
+        root_tags: parent.parent_tags,
+        root_offsets: parent.parent_offsets
+    }
+
+    return {
+        ...in,
+        state: {
+            ...in.state,
+            context: exclusive_tag.state,
+            statements: restored,
+        },
+        wrapped_body: {
+            first: body.first,
+            count: body.count
+        }
+    }
+}

@@ -1,0 +1,64 @@
+import textBytes from "std:bytes"
+import integers from "std:integer"
+
+import makeFunction from "../../../ast/declarations/function"
+import makeAppend from "../../../ast/declarations/table/function"
+import makeClose from "../../../ast/statements/builder/close"
+import {
+    reserve_name,
+    bounded_name,
+    allocate_name,
+    retract_name,
+    renew_name
+} from "../const"
+import { Method } from "./model"
+import makeParameters from "./parameters"
+
+import type { State } from "./model"
+
+export type Input = {
+    state: State,
+    method: Method
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const body = makeClose(in.state.statements)
+    const signature = makeParameters(in)
+    const state = signature.state
+
+    const name = match in.method {
+        Method.Reserve => reserve_name,
+        Method.Bounded => bounded_name,
+        Method.Allocate => allocate_name,
+        Method.Retract => retract_name,
+        _ => renew_name
+    }
+
+    const declaration = makeFunction({
+        base: integers.narrow(state.declarations.tags.length),
+        name: textBytes.fromText(name),
+        parameters_start: signature.first,
+        parameters_count: signature.count,
+        return_type: signature.return_type,
+        body_start: body.first,
+        body_count: body.count,
+        exported: state.source.exported,
+        abi_export: false,
+        inlined: in.method == Method.Reserve || in.method == Method.Bounded
+    })
+
+    const appended = makeAppend({
+        state: state.declarations,
+        value: declaration.table,
+        parameter_base: 0
+    })
+
+    return {
+        ...state,
+        statements: body.state,
+        declarations: appended.state,
+        valid: state.valid && declaration.valid && appended.valid
+    }
+}

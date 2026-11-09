@@ -1,0 +1,91 @@
+import { standard_name } from "../../../ast/context/const"
+import constSlice from "../../../ast/context/const_slice"
+import imported from "../../../ast/context/import_path"
+import primitive from "../../../ast/context/primitive"
+import { ExpressionsPrimitive } from "../../../printer/model/expressions"
+import {
+    t_name,
+    allocator_name,
+    items_name,
+    target_name,
+    path_name,
+    frontier_name,
+    exact_name,
+    mem_name,
+    allocator_type_name
+} from "./const"
+import pathType from "./path_type"
+
+import type { State, Node as Output } from "./model"
+
+export type Input = {
+    state: State,
+    name: string
+}
+
+export default function (in: Input): Output {
+    if (in.name == path_name) {
+        return pathType(in.state)
+    }
+
+    if (in.name == allocator_name) {
+        const value = imported({
+            state: in.state.context,
+            module: standard_name,
+            path: [
+                mem_name,
+                allocator_type_name
+            ]
+        })
+
+        return {
+            state: {
+                ...in.state,
+                context: value.state
+            },
+            id: value.id
+        }
+    }
+
+    if (in.name == items_name) {
+        const value = constSlice({
+            state: in.state.context,
+            value: in.state.symbols.element
+        })
+
+        return {
+            state: {
+                ...in.state,
+                context: value.state
+            },
+            id: value.id
+        }
+    }
+
+    if (in.name == target_name) {
+        const value = primitive({
+            state: in.state.context,
+            value: ExpressionsPrimitive.Anytype
+        })
+
+        return {
+            state: {
+                ...in.state,
+                context: value.state
+            },
+            id: value.id
+        }
+    }
+
+    const id = match in.name {
+        t_name => in.state.symbols.type_type,
+        frontier_name => in.state.symbols.boolean,
+        exact_name => in.state.symbols.boolean,
+        _ => in.state.symbols.size
+    }
+
+    return {
+        state: in.state,
+        id
+    }
+}

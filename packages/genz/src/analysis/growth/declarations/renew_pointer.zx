@@ -1,0 +1,190 @@
+import textBytes from "std:bytes"
+
+import makeBinary from "../../../ast/context/binary"
+import makeCall from "../../../ast/context/call"
+import makeDereference from "../../../ast/context/dereference"
+import makeField from "../../../ast/context/field"
+import makeIdentifier from "../../../ast/context/identifier"
+import makeText from "../../../ast/context/text"
+import makeAssignment from "../../../ast/statements/builder/assignment"
+import makeBinding from "../../../ast/statements/builder/binding"
+import makeClose from "../../../ast/statements/builder/close"
+import makeElseBranch from "../../../ast/statements/builder/else_branch"
+import makeEvaluate from "../../../ast/statements/builder/evaluate"
+import makeOpen from "../../../ast/statements/builder/open"
+import {
+    ExpressionsKind as E,
+    ExpressionsBinaryOperator as B
+} from "../../../printer/model/expressions"
+import { renew_name, reserve_name, length_member } from "../const"
+import { create_name, fresh_name, pointer_name, size_name, slice_name } from "./const"
+
+import type { Renewal } from "./model"
+
+export type Input = Renewal
+
+export type Output = Renewal
+
+export default function (in: Input): Output {
+    const parent = makeOpen(in.state.statements)
+
+    const branches = makeOpen(parent.state)
+
+    const reserve = makeIdentifier({
+        state: in.state.context,
+        name: textBytes.fromText(reserve_name),
+    })
+
+    const length = makeField({
+        state: reserve.state,
+        target: in.value,
+        name: textBytes.fromText(length_member),
+    })
+
+    const reserved = makeCall({
+        state: length.state,
+        callee: reserve.id,
+        arguments: [
+            in.child,
+            in.state.symbols.allocator,
+            in.value,
+            length.id,
+            in.state.symbols.no
+        ],
+        fallible: true,
+    })
+
+    const slice_value = makeAssignment({
+        state: branches.state,
+        target: in.value,
+        value: reserved.id,
+    })
+
+    const slice_body = makeClose(slice_value)
+
+    const create = makeField({
+        state: reserved.state,
+        target: in.state.symbols.allocator,
+        name: textBytes.fromText(create_name),
+    })
+
+    const created = makeCall({
+        state: create.state,
+        callee: create.id,
+        arguments: [in.child],
+        fallible: true,
+    })
+
+    const statement_fresh = makeBinding({
+        state: slice_body.state,
+        name: textBytes.fromText(fresh_name),
+        value: created.id,
+        mutable: false,
+    })
+
+    const fresh = makeIdentifier({
+        state: created.state,
+        name: textBytes.fromText(fresh_name),
+    })
+
+    const fresh_target = makeDereference({
+        state: fresh.state,
+        value: fresh.id,
+    })
+
+    const source = makeDereference({
+        state: fresh_target.state,
+        value: in.value,
+    })
+
+    const copied = makeAssignment({
+        state: statement_fresh,
+        target: fresh_target.id,
+        value: source.id,
+    })
+
+    const renew = makeIdentifier({
+        state: source.state,
+        name: textBytes.fromText(renew_name),
+    })
+
+    const renewed = makeCall({
+        state: renew.state,
+        callee: renew.id,
+        arguments: [
+            in.state.symbols.allocator,
+            fresh.id,
+            in.path,
+            in.state.symbols.exact
+        ],
+        fallible: true,
+    })
+
+    const recursive = makeEvaluate({
+        state: copied,
+        value: renewed.id,
+        discard: false,
+    })
+
+    const replaced = makeAssignment({
+        state: recursive,
+        target: in.value,
+        value: fresh.id,
+    })
+
+    const pointer_info = makeField({
+        state: renewed.state,
+        target: in.info,
+        name: textBytes.fromText(pointer_name),
+    })
+
+    const pointer_size = makeField({
+        state: pointer_info.state,
+        target: pointer_info.id,
+        name: textBytes.fromText(size_name),
+    })
+
+    const slice_tag = makeText({
+        state: pointer_size.state,
+        kind: E.EnumLiteral,
+        value: textBytes.fromText(slice_name),
+    })
+
+    const slice = makeBinary({
+        state: slice_tag.state,
+        operator: B.Equal,
+        left: pointer_size.id,
+        right: slice_tag.id,
+    })
+
+    const pointer = makeElseBranch({
+        scope: {
+            ...branches,
+            state: replaced
+        },
+        condition: slice.id,
+        yes_first: slice_body.first,
+        yes_count: slice_body.count,
+    })
+
+    const body = makeClose(pointer)
+
+    const restored = {
+        ...body.state,
+        root_tags: parent.parent_tags,
+        root_offsets: parent.parent_offsets
+    }
+
+    return {
+        ...in,
+        state: {
+            ...in.state,
+            context: slice.state,
+            statements: restored,
+        },
+        pointer_body: {
+            first: body.first,
+            count: body.count
+        }
+    }
+}

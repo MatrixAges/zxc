@@ -1,0 +1,44 @@
+import bytes from "std:bytes"
+
+import { ExpressionsBuiltinName, ExpressionsKind } from "../../printer/model/expressions"
+import builtin from "./builtin"
+import field from "./field"
+import text from "./text"
+
+import type { State, Node as Output } from "./model"
+
+export type Input = {
+    state: State,
+    module: string,
+    path: string[]
+}
+
+export default function (in: Input): Output {
+    const name = text({
+        state: in.state,
+        kind: ExpressionsKind.String,
+        value: bytes.fromText(in.module)
+    })
+
+    const imported = builtin({
+        state: name.state,
+        name: ExpressionsBuiltinName.Import,
+        arguments: [name.id]
+    })
+
+    return loop({
+        node: imported,
+        index: 0
+    }, {
+        while: current => current.index < in.path.length && current.node.state.valid,
+        next: current => {
+            current.node = field({
+                state: current.node.state,
+                target: current.node.id,
+                name: bytes.fromText(in.path[current.index])
+            })
+            current.index += 1
+        },
+        return: current => current.node
+    })
+}

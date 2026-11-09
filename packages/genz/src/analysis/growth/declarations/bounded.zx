@@ -1,0 +1,100 @@
+import textBytes from "std:bytes"
+
+import makeBinary from "../../../ast/context/binary"
+import makeCall from "../../../ast/context/call"
+import makeField from "../../../ast/context/field"
+import makeIdentifier from "../../../ast/context/identifier"
+import makeBranch from "../../../ast/statements/builder/branch"
+import makeOpen from "../../../ast/statements/builder/open"
+import makeResult from "../../../ast/statements/builder/result"
+import { ExpressionsBinaryOperator as B } from "../../../printer/model/expressions"
+import { allocate_name, reserve_name, length_member } from "../const"
+import makeComplete from "./complete"
+import { Method } from "./model"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const length = makeField({
+        state: in.context,
+        target: in.symbols.items,
+        name: textBytes.fromText(length_member),
+    })
+
+    const empty = makeBinary({
+        state: length.state,
+        operator: B.Equal,
+        left: length.id,
+        right: in.symbols.zero,
+    })
+
+    const empty_body = makeOpen(in.statements)
+
+    const allocate = makeIdentifier({
+        state: empty.state,
+        name: textBytes.fromText(allocate_name),
+    })
+
+    const allocated = makeCall({
+        state: allocate.state,
+        callee: allocate.id,
+        arguments: [
+            in.symbols.element,
+            in.symbols.allocator,
+            in.symbols.items,
+            in.symbols.count,
+            in.symbols.yes,
+            in.symbols.minimum
+        ],
+        fallible: true,
+    })
+
+    const empty_result = makeResult({
+        state: empty_body.state,
+        value: allocated.id,
+    })
+
+    const empty_branch = makeBranch({
+        scope: {
+            ...empty_body,
+            state: empty_result
+        },
+        condition: empty.id,
+    })
+
+    const reserve = makeIdentifier({
+        state: allocated.state,
+        name: textBytes.fromText(reserve_name),
+    })
+
+    const reserved = makeCall({
+        state: reserve.state,
+        callee: reserve.id,
+        arguments: [
+            in.symbols.element,
+            in.symbols.allocator,
+            in.symbols.items,
+            in.symbols.count,
+            in.symbols.yes
+        ],
+        fallible: true,
+    })
+
+    const result = makeResult({
+        state: empty_branch,
+        value: reserved.id,
+    })
+
+    return makeComplete({
+        state: {
+            ...in,
+            context: reserved.state,
+            statements: result,
+        },
+        method: Method.Bounded
+    })
+}

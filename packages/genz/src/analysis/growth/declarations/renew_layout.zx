@@ -1,0 +1,187 @@
+import textBytes from "std:bytes"
+
+import makeBinary from "../../../ast/context/binary"
+import makeBuiltin from "../../../ast/context/builtin"
+import makeDereference from "../../../ast/context/dereference"
+import makeField from "../../../ast/context/field"
+import makeIdentifier from "../../../ast/context/identifier"
+import makeIndex from "../../../ast/context/index"
+import makeText from "../../../ast/context/text"
+import makeBinding from "../../../ast/statements/builder/binding"
+import {
+    ExpressionsKind as E,
+    ExpressionsBinaryOperator as B,
+    ExpressionsBuiltinName as F
+} from "../../../printer/model/expressions"
+import { length_member } from "../const"
+import {
+    child_name,
+    info_name,
+    optional_name,
+    path_name,
+    pointer_name,
+    target_name,
+    v_name
+} from "./const"
+
+import type { State } from "./model"
+import type { Renewal } from "./model"
+
+export type Input = State
+
+export type Output = Renewal
+
+export default function (in: Input): Output {
+    const target = makeIdentifier({
+        state: in.context,
+        name: textBytes.fromText(target_name),
+    })
+
+    const value = makeDereference({
+        state: target.state,
+        value: target.id,
+    })
+
+    const info = makeIdentifier({
+        state: value.state,
+        name: textBytes.fromText(info_name),
+    })
+
+    const path = makeIdentifier({
+        state: info.state,
+        name: textBytes.fromText(path_name),
+    })
+
+    const step = makeIndex({
+        state: path.state,
+        target: path.id,
+        index: in.symbols.zero,
+    })
+
+    const field_name = makeIndex({
+        state: step.state,
+        target: step.id,
+        index: in.symbols.zero,
+    })
+
+    const origin_name = makeIndex({
+        state: field_name.state,
+        target: step.id,
+        index: in.symbols.one,
+    })
+
+    const pointer_info = makeField({
+        state: origin_name.state,
+        target: info.id,
+        name: textBytes.fromText(pointer_name),
+    })
+
+    const child = makeField({
+        state: pointer_info.state,
+        target: pointer_info.id,
+        name: textBytes.fromText(child_name),
+    })
+
+    const optional_tag = makeText({
+        state: child.state,
+        kind: E.EnumLiteral,
+        value: textBytes.fromText(optional_name),
+    })
+
+    const optional = makeBinary({
+        state: optional_tag.state,
+        operator: B.Equal,
+        left: info.id,
+        right: optional_tag.id,
+    })
+
+    const pointer_tag = makeText({
+        state: optional.state,
+        kind: E.EnumLiteral,
+        value: textBytes.fromText(pointer_name),
+    })
+
+    const pointer = makeBinary({
+        state: pointer_tag.state,
+        operator: B.Equal,
+        left: info.id,
+        right: pointer_tag.id,
+    })
+
+    const path_length = makeField({
+        state: pointer.state,
+        target: path.id,
+        name: textBytes.fromText(length_member),
+    })
+
+    const terminal = makeBinary({
+        state: path_length.state,
+        operator: B.Equal,
+        left: path_length.id,
+        right: in.symbols.zero,
+    })
+
+    const value_type = makeBuiltin({
+        state: terminal.state,
+        name: F.TypeOf,
+        arguments: [value.id],
+    })
+
+    const type_binding = makeBinding({
+        state: in.statements,
+        name: textBytes.fromText(v_name),
+        value: value_type.id,
+        mutable: false,
+    })
+
+    const type_reference = makeIdentifier({
+        state: value_type.state,
+        name: textBytes.fromText(v_name),
+    })
+
+    const type_info = makeBuiltin({
+        state: type_reference.state,
+        name: F.TypeInfo,
+        arguments: [type_reference.id],
+    })
+
+    const statement_info = makeBinding({
+        state: type_binding,
+        name: textBytes.fromText(info_name),
+        value: type_info.id,
+        mutable: false,
+    })
+
+    return {
+        state: {
+            ...in,
+            context: type_info.state,
+            statements: statement_info,
+        },
+        value: value.id,
+        info: info.id,
+        path: path.id,
+        child: child.id,
+        field_name: field_name.id,
+        origin_name: origin_name.id,
+        optional: optional.id,
+        pointer: pointer.id,
+        terminal: terminal.id,
+        optional_body: {
+            first: 0,
+            count: 0
+        },
+        pointer_body: {
+            first: 0,
+            count: 0
+        },
+        fields_body: {
+            first: 0,
+            count: 0
+        },
+        wrapped_body: {
+            first: 0,
+            count: 0
+        },
+    }
+}

@@ -1,0 +1,47 @@
+import integers from "std:integer"
+
+import { StatementsKind } from "../../../printer/model/statements"
+import header from "./header"
+
+import type { State, Scope } from "./model"
+
+export type Columns = {
+    scope_start: u32[],
+    scope_len: u32[]
+}
+
+export type Input = {
+    scope: Scope,
+    columns: Columns
+}
+
+export type Output = {
+    state: State,
+    columns: Columns
+}
+
+export default function (in: Input): Output {
+    const child = in.scope.state
+    const first = child.base + integers.narrow(child.tags.length)
+    const count = integers.narrow(child.root_tags.length)
+
+    const state = header({
+        state: {
+            ...child,
+            tags: child.tags.concat(child.root_tags)[0],
+            offsets: child.offsets.concat(child.root_offsets)[0],
+            root_tags: in.scope.parent_tags,
+            root_offsets: in.scope.parent_offsets
+        },
+        kind: StatementsKind.Scope,
+        offset: in.columns.scope_start.length
+    })
+
+    return {
+        state,
+        columns: {
+            scope_start: in.columns.scope_start.push(first)[0],
+            scope_len: in.columns.scope_len.push(count)[0]
+        }
+    }
+}

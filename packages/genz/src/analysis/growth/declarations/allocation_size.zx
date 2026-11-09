@@ -1,0 +1,169 @@
+import textBytes from "std:bytes"
+
+import makeBuiltin from "../../../ast/context/builtin"
+import makeCall from "../../../ast/context/call"
+import makeComptime from "../../../ast/context/comptime"
+import { standard_name } from "../../../ast/context/const"
+import makeIdentifier from "../../../ast/context/identifier"
+import makeImportPath from "../../../ast/context/import_path"
+import makeText from "../../../ast/context/text"
+import makeBinding from "../../../ast/statements/builder/binding"
+import makeClose from "../../../ast/statements/builder/close"
+import makeOpen from "../../../ast/statements/builder/open"
+import makeResult from "../../../ast/statements/builder/result"
+import {
+    ExpressionsKind as E,
+    ExpressionsBuiltinName as F
+} from "../../../printer/model/expressions"
+import makeCaught from "./caught"
+import {
+    add_name,
+    capacity_name,
+    math_name,
+    mul_name,
+    offset_name,
+    out_of_memory_name
+} from "./const"
+
+import type { Output as Layout } from "./allocation_layout"
+import type { State } from "./model"
+
+export type Input = Layout
+
+export type Output = {
+    state: State,
+    header_type: u32,
+    header_size: u32,
+    length: u32,
+    alignment: u32
+}
+
+export default function (in: Input): Output {
+    const offset = makeComptime({
+        state: in.state.context,
+        value: in.offset,
+    })
+
+    const statement_offset = makeBinding({
+        state: in.state.statements,
+        name: textBytes.fromText(offset_name),
+        value: offset.id,
+        mutable: false,
+    })
+
+    const statement_capacity = makeBinding({
+        state: statement_offset,
+        name: textBytes.fromText(capacity_name),
+        value: in.capacity,
+        mutable: false,
+        type_expr: in.state.symbols.size,
+    })
+
+    const overflow_scope = makeOpen(statement_capacity)
+
+    const out_of_memory = makeText({
+        state: offset.state,
+        kind: E.ErrorValue,
+        value: textBytes.fromText(out_of_memory_name),
+    })
+
+    const failure = makeResult({
+        state: overflow_scope.state,
+        value: out_of_memory.id,
+    })
+
+    const overflow = makeClose(failure)
+
+    const restored = {
+        ...overflow.state,
+        root_tags: overflow_scope.parent_tags,
+        root_offsets: overflow_scope.parent_offsets
+    }
+
+    const element_size = makeBuiltin({
+        state: out_of_memory.state,
+        name: F.SizeOf,
+        arguments: [in.state.symbols.element],
+    })
+
+    const capacity_ref = makeIdentifier({
+        state: element_size.state,
+        name: textBytes.fromText(capacity_name),
+    })
+
+    const multiply = makeImportPath({
+        state: capacity_ref.state,
+        module: standard_name,
+        path: [
+            math_name,
+            mul_name
+        ],
+    })
+
+    const payload = makeCall({
+        state: multiply.state,
+        callee: multiply.id,
+        arguments: [
+            in.state.symbols.size,
+            capacity_ref.id,
+            element_size.id
+        ],
+        fallible: false,
+    })
+
+    const checked_payload = makeCaught({
+        state: {
+            ...in.state,
+            context: payload.state,
+            statements: restored,
+        },
+        value: payload.id,
+        first: overflow.first,
+        count: overflow.count,
+    })
+
+    const add = makeImportPath({
+        state: checked_payload.state.context,
+        module: standard_name,
+        path: [
+            math_name,
+            add_name
+        ],
+    })
+
+    const offset_ref = makeIdentifier({
+        state: add.state,
+        name: textBytes.fromText(offset_name),
+    })
+
+    const length = makeCall({
+        state: offset_ref.state,
+        callee: add.id,
+        arguments: [
+            in.state.symbols.size,
+            offset_ref.id,
+            checked_payload.id
+        ],
+        fallible: false,
+    })
+
+    const checked_length = makeCaught({
+        state: {
+            ...checked_payload.state,
+            context: length.state,
+        },
+        value: length.id,
+        first: overflow.first,
+        count: overflow.count,
+    })
+
+    return {
+        state: {
+            ...checked_length.state,
+        },
+        header_type: in.header_type,
+        header_size: in.header_size,
+        length: checked_length.id,
+        alignment: in.alignment
+    }
+}

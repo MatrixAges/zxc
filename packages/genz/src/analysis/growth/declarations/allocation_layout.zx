@@ -1,0 +1,178 @@
+import textBytes from "std:bytes"
+
+import makeBinary from "../../../ast/context/binary"
+import makeBuiltin from "../../../ast/context/builtin"
+import makeCall from "../../../ast/context/call"
+import makeConditional from "../../../ast/context/conditional"
+import { standard_name } from "../../../ast/context/const"
+import makeField from "../../../ast/context/field"
+import makeImportPath from "../../../ast/context/import_path"
+import makeInteger from "../../../ast/context/integer"
+import {
+    ExpressionsBinaryOperator as B,
+    ExpressionsBuiltinName as F
+} from "../../../printer/model/expressions"
+import {
+    alignment_name,
+    ceil_power_of_two_assert_name,
+    forward_name,
+    math_name,
+    max_name,
+    mem_name,
+    minimum_capacity,
+    of_name
+} from "./const"
+import makeHeaderType from "./header_type"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = {
+    state: State,
+    alignment: u32,
+    offset: u32,
+    capacity: u32,
+    header_type: u32,
+    header_size: u32
+}
+
+export default function (in: Input): Output {
+    const required = makeBuiltin({
+        state: in.context,
+        name: F.Max,
+        arguments: [
+            in.symbols.count,
+            in.symbols.minimum
+        ],
+    })
+
+    const header = makeHeaderType({
+        state: {
+            ...in,
+            context: required.state,
+        },
+    })
+
+    const header_size = makeBuiltin({
+        state: header.state.context,
+        name: F.SizeOf,
+        arguments: [header.id],
+    })
+
+    const alignment_of = makeImportPath({
+        state: header_size.state,
+        module: standard_name,
+        path: [
+            mem_name,
+            alignment_name,
+            of_name
+        ],
+    })
+
+    const element_alignment = makeCall({
+        state: alignment_of.state,
+        callee: alignment_of.id,
+        arguments: [in.symbols.element],
+        fallible: false,
+    })
+
+    const max_alignment = makeField({
+        state: element_alignment.state,
+        target: element_alignment.id,
+        name: textBytes.fromText(max_name),
+    })
+
+    const header_alignment = makeCall({
+        state: max_alignment.state,
+        callee: alignment_of.id,
+        arguments: [header.id],
+        fallible: false,
+    })
+
+    const alignment = makeCall({
+        state: header_alignment.state,
+        callee: max_alignment.id,
+        arguments: [header_alignment.id],
+        fallible: false,
+    })
+
+    const forward = makeField({
+        state: alignment.state,
+        target: element_alignment.id,
+        name: textBytes.fromText(forward_name),
+    })
+
+    const offset = makeCall({
+        state: forward.state,
+        callee: forward.id,
+        arguments: [header_size.id],
+        fallible: false,
+    })
+
+    const empty = makeBinary({
+        state: offset.state,
+        operator: B.Equal,
+        left: required.id,
+        right: in.symbols.zero,
+    })
+
+    const exact = makeBinary({
+        state: empty.state,
+        operator: B.LogicalOr,
+        left: in.symbols.exact,
+        right: empty.id,
+    })
+
+    const minimum = makeInteger({
+        state: exact.state,
+        value: minimum_capacity,
+    })
+
+    const at_least = makeBuiltin({
+        state: minimum.state,
+        name: F.Max,
+        arguments: [
+            required.id,
+            minimum.id
+        ],
+    })
+
+    const ceil = makeImportPath({
+        state: at_least.state,
+        module: standard_name,
+        path: [
+            math_name,
+            ceil_power_of_two_assert_name
+        ],
+    })
+
+    const rounded = makeCall({
+        state: ceil.state,
+        callee: ceil.id,
+        arguments: [
+            in.symbols.size,
+            at_least.id
+        ],
+        fallible: false,
+    })
+
+    const capacity = makeConditional({
+        state: rounded.state,
+        condition: exact.id,
+        yes: required.id,
+        no: rounded.id,
+    })
+
+    return {
+        state: {
+            ...header.state,
+            context: capacity.state,
+        },
+        alignment: alignment.id,
+        offset: offset.id,
+        capacity: capacity.id,
+        header_type: header.id,
+        header_size: header_size.id
+    }
+}

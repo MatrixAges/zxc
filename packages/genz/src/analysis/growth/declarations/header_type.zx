@@ -1,0 +1,44 @@
+import textBytes from "std:bytes"
+
+import makeField from "../../../ast/context/field"
+import makeIdentifier from "../../../ast/context/identifier"
+import { zx_header_name, zx_abi_name } from "./const"
+
+import type { State, Node as Output } from "./model"
+
+export type Input = {
+    state: State
+}
+
+export default function (in: Input): Output {
+    const root = makeIdentifier({
+        state: in.state.context,
+        name: textBytes.fromText(
+            in.state.source.shared_types ? zx_abi_name : zx_header_name
+        )
+    })
+
+    if (!in.state.source.shared_types) {
+        return {
+            state: {
+                ...in.state,
+                context: root.state
+            },
+            id: root.id
+        }
+    }
+
+    const value = makeField({
+        state: root.state,
+        target: root.id,
+        name: textBytes.fromText(zx_header_name)
+    })
+
+    return {
+        state: {
+            ...in.state,
+            context: value.state
+        },
+        id: value.id
+    }
+}
