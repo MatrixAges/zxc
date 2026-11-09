@@ -1,0 +1,34 @@
+import { DeclarationsKind } from "../../../printer/model/declarations"
+import header from "./header"
+
+import type { State } from "./model"
+
+export type Input = {
+    state: State,
+    name: u8[],
+    value: u32,
+    type_expr?: u32,
+    exported: bool
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const state = header({
+        state: in.state,
+        kind: DeclarationsKind.Constant,
+        offset: in.state.constant_name.length
+    })
+
+    if (!state.valid) {
+        return state
+    }
+
+    return {
+        ...state,
+        constant_name: state.constant_name.push(in.name)[0],
+        constant_type_expr: state.constant_type_expr.push(in.type_expr)[0],
+        constant_value: state.constant_value.push(in.value)[0],
+        constant_exported: state.constant_exported.push(in.exported)[0]
+    }
+}

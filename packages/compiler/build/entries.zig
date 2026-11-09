@@ -231,6 +231,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/collections/finalize/build.rx", .name = "collection_finalize", .owner = .genz },
     .{ .path = "genz/analysis/store/lifecycle/build.rx", .name = "store_lifecycle", .owner = .genz },
     .{ .path = "genz/analysis/store/lifecycle/policy.zx", .name = "store_lifecycle_policy", .owner = .genz },
+    .{ .path = "genz/analysis/store/storage/build.rx", .name = "store_storage", .owner = .genz },
     .{ .path = "genz/analysis/parallel/emit/label.zx", .name = "parallel_label", .owner = .genz },
     .{ .path = "genz/analysis/parallel/emit/allocator_alias.zx", .name = "parallel_allocator_alias", .owner = .genz },
     .{ .path = "genz/analysis/tasks/worker/reserve.zx", .name = "task_worker_reserve", .owner = .genz },

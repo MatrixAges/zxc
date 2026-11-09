@@ -1,0 +1,29 @@
+import type { DeclarationsKind } from "../../../printer/model/declarations"
+
+export type State = {
+    base: u32,
+    tags: DeclarationsKind[],
+    offsets: u32[],
+    constant_name: u8[][],
+    constant_type_expr: u32?[],
+    constant_value: u32[],
+    constant_exported: bool[],
+    field_name: u8[][],
+    field_value: u32[],
+    field_default_value: u32?[],
+    field_comptime_parameter: bool[],
+    valid: bool
+}
+
+export type Columns = {
+    tags: DeclarationsKind[],
+    offsets: u32[],
+    constant_name: u8[][],
+    constant_type_expr: u32?[],
+    constant_value: u32[],
+    constant_exported: bool[],
+    field_name: u8[][],
+    field_value: u32[],
+    field_default_value: u32?[],
+    field_comptime_parameter: bool[]
+}

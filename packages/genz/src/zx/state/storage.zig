@@ -2,6 +2,8 @@ const std = @import("std");
 const node = @import("../../node.zig");
 const Builder = @import("../../builder.zig");
 const Object = @import("../state.zig").Object;
+const zx = @import("zx");
+const view = @import("../../node/view.zig");
 
 pub fn writable(objects: []const Object) bool {
     if (@import("genz_options").generated_analysis) return policy(objects) != .ReadOnly;
@@ -33,36 +35,55 @@ fn policy(objects: []const Object) @typeInfo(@typeInfo(@TypeOf(@import("generate
 }
 
 pub fn lower(builder: Builder, declarations: *std.ArrayList(node.Declaration), objects: []const Object) std.mem.Allocator.Error!void {
-    const allocator = builder.allocator;
+    if (!@import("genz_options").generated_analysis) return @import("storage_seed.zig").lower(builder, declarations, objects);
 
-    for ([_][]const u8{ "std", "application" }) |name| {
-        try declarations.append(allocator, .{ .constant = .{ .name = name, .value = try builder.builtin(.import, &.{try builder.string(name)}) } });
-    }
+    const entry = @import("generated_store_storage");
+    const Parameter = @typeInfo(@TypeOf(entry.executeValue)).@"fn".param_types[1].?;
+    const indirect = @typeInfo(Parameter) == .pointer;
+    const Input = if (indirect) std.meta.Child(Parameter) else Parameter;
+    const Bases = std.meta.Child(@FieldType(Input, "bases"));
+    const first = builder.nodes.declaration_rows.tags.items.len;
 
-    try declarations.append(allocator, .{ .constant = .{ .name = "Self", .value = try builder.builtin(.This, &.{}) } });
+    const bases: Bases = .{
+        .capture = null,
+        .expression_base = @intCast(builder.nodes.expressions.tags.items.len),
+        .statement_base = @intCast(builder.nodes.statements.tags.items.len),
+        .field_base = @intCast(builder.nodes.field_columns.count()),
+        .serial = 0,
+    };
 
-    for (objects, 0..) |object, index| {
-        try declarations.append(allocator, .{ .constant = .{ .name = try std.fmt.allocPrint(allocator, "initial_{d}", .{index}), .value = try builder.builtin(.import, &.{try builder.string(object.module_name)}) } });
-    }
+    const input: Input = .{
+        .objects = zx.columns.slice(@FieldType(Input, "objects"), objects),
+        .bases = &bases,
+        .declaration_base = @intCast(first),
+    };
 
-    const enabled = reclaimable(objects);
+    var scratch = std.heap.ArenaAllocator.init(builder.allocator);
 
-    try declarations.append(allocator, .{ .constant = .{ .name = "can_release_retired", .value = try builder.expression(.{ .boolean = enabled }), .exported = true } });
-    if (enabled) try declarations.append(allocator, .{ .field = .{ .name = "release_disabled", .value = try builder.expression(.{ .primitive = .bool }), .default_value = try builder.expression(.{ .boolean = false }) } });
-    try declarations.append(allocator, .{ .field = .{ .name = "arena", .value = try builder.expression(.{ .pointer = try builder.path(&.{ "std", "heap", "ArenaAllocator" }) }) } });
+    defer scratch.deinit();
 
-    const region = try builder.expression(.{ .optional_type = try builder.expression(.{ .pointer = try builder.identifier("Region") }) });
-    const nil = try builder.expression(.null_value);
+    const output = entry.executeValue(scratch.allocator(), if (indirect) &input else input) catch |err| return failure(err);
 
-    if (writable(objects)) try declarations.append(allocator, .{ .field = .{ .name = "retained", .value = region, .default_value = nil } });
+    if (!output.valid) return error.OutOfMemory;
 
-    for (objects, 0..) |object, index| {
-        if (enabled and object.writable) try declarations.append(allocator, .{ .field = .{ .name = try std.fmt.allocPrint(allocator, "owner_{d}", .{index}), .value = region, .default_value = nil } });
+    const Output = std.meta.Child(entry.Output);
+    const Context = std.meta.Child(@FieldType(Output, "context"));
+    const context = output.context;
+    const expressions = zx.columns.view(std.meta.Child(@FieldType(Context, "expressions")), context.expressions);
+    const forms = zx.columns.view(std.meta.Child(@FieldType(Context, "forms")), context.forms);
+    const extra = zx.columns.view(std.meta.Child(@FieldType(Output, "extra")), output.extra);
+    const columns = zx.columns.view(std.meta.Child(@FieldType(Output, "declarations")), output.declarations);
+    const values = view.join(view.join(expressions, forms), extra);
+    const rows = @import("../../node/import_rows.zig");
 
-        const output = try builder.field(try builder.identifier(try std.fmt.allocPrint(allocator, "initial_{d}", .{index})), "Output");
-        const undefined_value = try builder.expression(.undefined_value);
+    rows.append(builder.allocator, &builder.nodes.expressions, &values) catch |err| return failure(err);
+    rows.append(builder.allocator, &builder.nodes.declaration_rows, &columns) catch |err| return failure(err);
+    for (first..builder.nodes.declaration_rows.tags.items.len) |index| try declarations.append(builder.allocator, try builder.nodes.materializeDeclaration(builder.allocator, @intCast(index)));
+}
 
-        try declarations.append(allocator, .{ .field = .{ .name = try std.fmt.allocPrint(allocator, "value_{d}", .{index}), .value = output, .default_value = undefined_value } });
-        try declarations.append(allocator, .{ .field = .{ .name = try std.fmt.allocPrint(allocator, "store_{d}", .{index}), .value = try builder.expression(.{ .pointer = output }), .default_value = undefined_value } });
-    }
+fn failure(err: anyerror) std.mem.Allocator.Error {
+    return switch (err) {
+        error.OutOfMemory, error.IntegerOverflow, error.Overflow => error.OutOfMemory,
+        else => @panic("invalid Store storage AST"),
+    };
 }

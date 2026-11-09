@@ -1,0 +1,86 @@
+import bytes from "std:bytes"
+
+import field from "../../../ast/context/field"
+import identifier from "../../../ast/context/identifier"
+import pointer from "../../../ast/context/pointer"
+import undefinedValue from "../../../ast/context/undefined"
+import declaration from "../../../ast/declarations/builder/field"
+import { initial_prefix, store_prefix, value_prefix } from "../lifecycle/const"
+import { Policy } from "../lifecycle/model"
+import name from "../lifecycle/name"
+import { output_name, owner_prefix } from "./const"
+
+import type { State } from "./model"
+
+export type Input = {
+    state: State,
+    index: u64
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const owned = in.state.policy == Policy.Independent &&
+        in.state.source.objects[in.index].writable
+
+    const declarations = match {
+        owned => declaration({
+            state: in.state.declarations,
+            name: name({
+                prefix: bytes.fromText(owner_prefix),
+                index: in.index
+            }),
+            value: in.state.region,
+            default_value: in.state.nil,
+            comptime_parameter: false
+        }),
+        _ => in.state.declarations
+    }
+
+    const initial = identifier({
+        state: in.state.context,
+        name: name({
+            prefix: bytes.fromText(initial_prefix),
+            index: in.index
+        })
+    })
+
+    const output = field({
+        state: initial.state,
+        target: initial.id,
+        name: bytes.fromText(output_name)
+    })
+
+    const undefined_value = undefinedValue(output.state)
+
+    const value = declaration({
+        state: declarations,
+        name: name({
+            prefix: bytes.fromText(value_prefix),
+            index: in.index
+        }),
+        value: output.id,
+        default_value: undefined_value.id,
+        comptime_parameter: false
+    })
+
+    const address = pointer({
+        state: undefined_value.state,
+        value: output.id
+    })
+
+    return {
+        ...in.state,
+        context: address.state,
+        declarations: declaration({
+            state: value,
+            name: name({
+                prefix: bytes.fromText(store_prefix),
+                index: in.index
+            }),
+            value: address.id,
+            default_value: undefined_value.id,
+            comptime_parameter: false
+        })
+    }
+}

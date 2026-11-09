@@ -64,6 +64,13 @@ pub fn declarations(self: *Self, allocator: std.mem.Allocator, values: []const n
     return .{ .start = start, .len = @intCast(values.len) };
 }
 
+pub fn materializeDeclaration(self: *const Self, allocator: std.mem.Allocator, index: u32) std.mem.Allocator.Error!node.Declaration {
+    return switch (self.declaration_rows.get(index)) {
+        .function => .{ .function = try self.materializeFunction(allocator, index) },
+        inline else => |payload, tag| @unionInit(node.Declaration, @tagName(tag), payload),
+    };
+}
+
 pub fn materializeFunction(self: *const Self, allocator: std.mem.Allocator, index: u32) std.mem.Allocator.Error!node.Function {
     const value = self.declaration_rows.get(index).function;
     const parameters = try allocator.alloc(node.Field, value.parameters.len);

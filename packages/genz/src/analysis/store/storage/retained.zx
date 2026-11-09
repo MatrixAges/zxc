@@ -1,0 +1,24 @@
+import bytes from "std:bytes"
+
+import field from "../../../ast/declarations/builder/field"
+import { Policy } from "../lifecycle/model"
+import { retained_name } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    if (in.policy == Policy.ReadOnly) {
+        return in
+    }
+
+    return {
+        ...in,
+        declarations: field({
+            state: in.declarations,
+            name: bytes.fromText(retained_name),
+            value: in.region,
+            default_value: in.nil,
+            comptime_parameter: false
+        })
+    }
+}

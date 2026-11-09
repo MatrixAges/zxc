@@ -1,0 +1,83 @@
+import bytes from "std:bytes"
+
+import boolean from "../../../ast/context/boolean"
+import pointer from "../../../ast/context/pointer"
+import primitive from "../../../ast/context/primitive"
+import standardField from "../../../ast/context/standard_field"
+import constant from "../../../ast/declarations/builder/constant"
+import field from "../../../ast/declarations/builder/field"
+import { ExpressionsPrimitive } from "../../../printer/model/expressions"
+import { arena_name, release_disabled_name } from "../lifecycle/const"
+import { Policy } from "../lifecycle/model"
+import { arena_allocator_name, heap_name, reclaimable_name } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const enabled = in.policy == Policy.Independent
+
+    const permission = boolean({
+        state: in.context,
+        value: enabled
+    })
+
+    const declarations = constant({
+        state: in.declarations,
+        name: bytes.fromText(reclaimable_name),
+        value: permission.id,
+        type_expr: null,
+        exported: true
+    })
+
+    const release = match {
+        enabled => primitive({
+            state: permission.state,
+            value: ExpressionsPrimitive.Bool
+        }),
+        _ => permission
+    }
+
+    const disabled = match {
+        enabled => boolean({
+            state: release.state,
+            value: false
+        }),
+        _ => release
+    }
+
+    const guarded = match {
+        enabled => field({
+            state: declarations,
+            name: bytes.fromText(release_disabled_name),
+            value: release.id,
+            default_value: disabled.id,
+            comptime_parameter: false
+        }),
+        _ => declarations
+    }
+
+    const arena = standardField({
+        state: disabled.state,
+        path: [
+            heap_name,
+            arena_allocator_name
+        ]
+    })
+
+    const address = pointer({
+        state: arena.state,
+        value: arena.id
+    })
+
+    return {
+        ...in,
+        context: address.state,
+        declarations: field({
+            state: guarded,
+            name: bytes.fromText(arena_name),
+            value: address.id,
+            default_value: null,
+            comptime_parameter: false
+        })
+    }
+}

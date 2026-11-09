@@ -1,0 +1,8 @@
+import type { State as Input, Columns as Output } from "./model"
+
+export default function (in: Input): Output {
+    return in.omit([
+        "base",
+        "valid"
+    ])
+}

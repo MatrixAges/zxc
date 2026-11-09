@@ -1,0 +1,31 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+
+import type { DeclarationsKind } from "../../../printer/model/declarations"
+import type { State } from "./model"
+
+export type Input = {
+    state: State,
+    kind: DeclarationsKind,
+    offset: u64
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    if (
+        integers.widen(in.state.base) + in.state.tags.length >=
+            integers.widen(max_u32)
+    ) {
+        return {
+            ...in.state,
+            valid: false
+        }
+    }
+
+    return {
+        ...in.state,
+        tags: in.state.tags.push(in.kind)[0],
+        offsets: in.state.offsets.push(integers.narrow(in.offset))[0]
+    }
+}

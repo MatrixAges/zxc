@@ -1,0 +1,53 @@
+import bytes from "std:bytes"
+
+import builtin from "../../../ast/context/builtin"
+import { standard_name } from "../../../ast/context/const"
+import constant from "../../../ast/declarations/builder/constant"
+import { ExpressionsBuiltinName } from "../../../printer/model/expressions"
+import { application_name, self_type_name } from "../lifecycle/const"
+import importModule from "./import_module"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const names = [
+        standard_name,
+        application_name
+    ]
+
+    const result = loop({
+        state: in,
+        index: 0
+    }, {
+        while: current => current.index < names.length,
+        next: current => {
+            const name = bytes.fromText(names[current.index])
+
+            current.state = importModule({
+                state: current.state,
+                name,
+                module_name: name
+            })
+            current.index += 1
+        },
+        return: current => current.state
+    })
+
+    const self = builtin({
+        state: result.context,
+        name: ExpressionsBuiltinName.This,
+        arguments: []
+    })
+
+    return {
+        ...result,
+        context: self.state,
+        declarations: constant({
+            state: result.declarations,
+            name: bytes.fromText(self_type_name),
+            value: self.id,
+            type_expr: null,
+            exported: false
+        })
+    }
+}

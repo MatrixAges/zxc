@@ -1,0 +1,30 @@
+<Module>
+    <Type from="model" as="Storage" />
+
+    <Args in={Storage.Input} out={Storage.Output} />
+
+    <Call
+        fn="../lifecycle/policy"
+        in={{
+            objects: $in.objects
+        }}
+    />
+
+    <Call
+        fn="prepare"
+        in={{
+            source: $in,
+            policy: $ctx.policy
+        }}
+    />
+
+    <Call fn="imports" in={$ctx.prepare} />
+    <Call fn="initials" in={$ctx.imports} />
+    <Call fn="shared" in={$ctx.initials} />
+    <Call fn="region" in={$ctx.shared} />
+    <Call fn="retained" in={$ctx.region} />
+    <Call fn="slots" in={$ctx.retained} />
+    <Call fn="publish" in={$ctx.slots} />
+
+    <Return value={$ctx.publish} />
+</Module>

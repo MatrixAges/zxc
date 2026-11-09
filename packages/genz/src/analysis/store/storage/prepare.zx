@@ -1,0 +1,24 @@
+import context from "../../../ast/context/initialize"
+import declarations from "../../../ast/declarations/builder/initialize"
+
+import type { Policy } from "../lifecycle/model"
+import type { Input as Source, State as Output } from "./model"
+
+export type Input = {
+    source: Source,
+    policy: Policy
+}
+
+export default function (in: Input): Output {
+    return {
+        source: in.source,
+        context: context(in.source.bases),
+        declarations: declarations(in.source.declaration_base),
+        extra: {
+            optional_type: []
+        },
+        policy: in.policy,
+        region: 0,
+        nil: 0
+    }
+}

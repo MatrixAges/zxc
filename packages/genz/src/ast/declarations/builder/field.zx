@@ -1,0 +1,35 @@
+import { DeclarationsKind } from "../../../printer/model/declarations"
+import header from "./header"
+
+import type { State } from "./model"
+
+export type Input = {
+    state: State,
+    name: u8[],
+    value: u32,
+    default_value?: u32,
+    comptime_parameter: bool
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const state = header({
+        state: in.state,
+        kind: DeclarationsKind.Field,
+        offset: in.state.field_name.length
+    })
+
+    if (!state.valid) {
+        return state
+    }
+
+    return {
+        ...state,
+        field_name: state.field_name.push(in.name)[0],
+        field_value: state.field_value.push(in.value)[0],
+        field_default_value: state.field_default_value.push(in.default_value)[0],
+        field_comptime_parameter:
+            state.field_comptime_parameter.push(in.comptime_parameter)[0]
+    }
+}

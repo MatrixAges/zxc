@@ -1,0 +1,33 @@
+import type { Input as Bases, State as Context } from "../../../ast/context/model"
+import type {
+    State as Builder,
+    Columns as Declarations
+} from "../../../ast/declarations/builder/model"
+import type { Object, Policy } from "../lifecycle/model"
+
+export type Input = {
+    objects: Object[],
+    bases: Bases,
+    declaration_base: u32
+}
+
+export type Extra = {
+    optional_type: u32[]
+}
+
+export type State = {
+    source: Input,
+    context: Context,
+    declarations: Builder,
+    extra: Extra,
+    policy: Policy,
+    region: u32,
+    nil: u32
+}
+
+export type Output = {
+    context: Context,
+    declarations: Declarations,
+    extra: Extra,
+    valid: bool
+}

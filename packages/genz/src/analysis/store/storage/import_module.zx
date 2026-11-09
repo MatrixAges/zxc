@@ -1,0 +1,43 @@
+import builtin from "../../../ast/context/builtin"
+import text from "../../../ast/context/text"
+import constant from "../../../ast/declarations/builder/constant"
+import {
+    ExpressionsBuiltinName,
+    ExpressionsKind
+} from "../../../printer/model/expressions"
+
+import type { State } from "./model"
+
+export type Input = {
+    state: State,
+    name: u8[],
+    module_name: u8[]
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const path = text({
+        state: in.state.context,
+        kind: ExpressionsKind.String,
+        value: in.module_name
+    })
+
+    const imported = builtin({
+        state: path.state,
+        name: ExpressionsBuiltinName.Import,
+        arguments: [path.id]
+    })
+
+    return {
+        ...in.state,
+        context: imported.state,
+        declarations: constant({
+            state: in.state.declarations,
+            name: in.name,
+            value: imported.id,
+            type_expr: null,
+            exported: false
+        })
+    }
+}

@@ -1,0 +1,12 @@
+import declarations from "../../../ast/declarations/builder/publish"
+
+import type { State as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        context: in.context,
+        declarations: declarations(in.declarations),
+        extra: in.extra,
+        valid: in.context.valid && in.declarations.valid
+    }
+}

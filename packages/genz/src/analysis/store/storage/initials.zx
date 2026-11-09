@@ -1,0 +1,30 @@
+import bytes from "std:bytes"
+
+import { initial_prefix } from "../lifecycle/const"
+import name from "../lifecycle/name"
+import importModule from "./import_module"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const objects = in.source.objects
+
+    return loop({
+        state: in,
+        index: 0
+    }, {
+        while: current => current.index < objects.length && current.state.context.valid,
+        next: current => {
+            current.state = importModule({
+                state: current.state,
+                name: name({
+                    prefix: bytes.fromText(initial_prefix),
+                    index: current.index
+                }),
+                module_name: objects[current.index].module_name
+            })
+            current.index += 1
+        },
+        return: current => current.state
+    })
+}

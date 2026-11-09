@@ -1,0 +1,56 @@
+import bytes from "std:bytes"
+
+import identifier from "../../../ast/context/identifier"
+import nullValue from "../../../ast/context/null_value"
+import pointer from "../../../ast/context/pointer"
+import optionalType from "../../../ast/expressions/optional_type"
+import { region_name } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const region = identifier({
+        state: in.context,
+        name: bytes.fromText(region_name)
+    })
+
+    const address = pointer({
+        state: region.state,
+        value: region.id
+    })
+
+    const optional = optionalType({
+        table: {
+            ...address.state.expressions.pick([
+                "tags",
+                "offsets"
+            ]),
+            ...in.extra
+        },
+        base: in.source.bases.expression_base,
+        value: address.id
+    })
+
+    const nil = nullValue({
+        ...address.state,
+        expressions: {
+            ...address.state.expressions,
+            ...optional.table.pick([
+                "tags",
+                "offsets"
+            ])
+        },
+        valid: address.state.valid && optional.valid
+    })
+
+    return {
+        ...in,
+        context: nil.state,
+        extra: optional.table.omit([
+            "tags",
+            "offsets"
+        ]),
+        region: optional.id,
+        nil: nil.id
+    }
+}
