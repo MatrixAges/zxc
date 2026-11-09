@@ -1,0 +1,23 @@
+import integers from "std:integer"
+
+import type { State, Input as Bases } from "./model"
+
+export type Input = {
+    context: State,
+    statement_count: u64,
+    field_count: u64
+}
+
+export type Output = Bases
+
+export default function (in: Input): Output {
+    const source = in.context.source
+
+    return {
+        ...source,
+        expression_base: source.expression_base +
+            integers.narrow(in.context.expressions.tags.length),
+        statement_base: source.statement_base + integers.narrow(in.statement_count),
+        field_base: source.field_base + integers.narrow(in.field_count)
+    }
+}

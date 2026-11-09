@@ -1,0 +1,27 @@
+import type { Object } from "../lifecycle/model"
+import type { Output as Lifecycle } from "../lifecycle/model"
+import type { Output as Regions } from "../regions/model"
+import type { Output as Request } from "../request/model"
+import type { Output as Storage } from "../storage/model"
+
+export type Input = {
+    objects: Object[],
+    execute: bool,
+    io: bool,
+    process: bool
+}
+
+export type Parts = [Storage, Lifecycle, Regions, Request]
+
+export type Collected = {
+    storage: Storage,
+    lifecycle: Lifecycle,
+    regions: Regions,
+    request: Request
+}
+
+export type Output = {
+    parts?: Parts,
+    roots: u32[],
+    valid: bool
+}

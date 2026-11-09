@@ -19,6 +19,8 @@ pub fn renderStorage(allocator: std.mem.Allocator, objects: []const Object) std.
 }
 
 fn renderConfigured(allocator: std.mem.Allocator, objects: []const Object, requirements: Requirements, execute: bool) std.mem.Allocator.Error![]u8 {
+    if (@import("genz_options").generated_analysis) return @import("state/module.zig").render(allocator, objects, requirements, execute);
+
     var arena = std.heap.ArenaAllocator.init(allocator);
 
     defer arena.deinit();

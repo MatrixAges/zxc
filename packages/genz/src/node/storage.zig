@@ -64,6 +64,22 @@ pub fn declarations(self: *Self, allocator: std.mem.Allocator, values: []const n
     return .{ .start = start, .len = @intCast(values.len) };
 }
 
+pub fn selectDeclarations(self: *Self, allocator: std.mem.Allocator, indices: []const u32) (std.mem.Allocator.Error || error{InvalidAst})!stored.Declarations {
+    const first = self.declaration_rows.tags.items.len;
+
+    if (indices.len > std.math.maxInt(u32) - first) return error.OutOfMemory;
+    for (indices) |index| if (index >= first) return error.InvalidAst;
+    try self.declaration_rows.tags.ensureUnusedCapacity(allocator, indices.len);
+    try self.declaration_rows.offsets.ensureUnusedCapacity(allocator, indices.len);
+
+    for (indices) |index| {
+        self.declaration_rows.tags.appendAssumeCapacity(self.declaration_rows.tags.items[index]);
+        self.declaration_rows.offsets.appendAssumeCapacity(self.declaration_rows.offsets.items[index]);
+    }
+
+    return .{ .start = @intCast(first), .len = @intCast(indices.len) };
+}
+
 pub fn materializeDeclaration(self: *const Self, allocator: std.mem.Allocator, index: u32) std.mem.Allocator.Error!node.Declaration {
     return switch (self.declaration_rows.get(index)) {
         .function => .{ .function = try self.materializeFunction(allocator, index) },

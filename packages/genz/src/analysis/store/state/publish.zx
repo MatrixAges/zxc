@@ -1,0 +1,33 @@
+import integers from "std:integer"
+
+import type { Collected as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const count = in.storage.declarations.tags.length +
+        in.lifecycle.functions.tags.length + in.regions.declarations.tags.length
+
+    const initial: u32[] = []
+
+    const roots = loop({
+        roots: initial,
+        index: 0
+    }, {
+        while: current => current.index < count,
+        next: current => {
+            current.roots = current.roots.push(integers.narrow(current.index))[0]
+            current.index += 1
+        },
+        return: current => current.roots.concat(in.request.roots)[0]
+    })
+
+    return {
+        parts: [
+            in.storage,
+            in.lifecycle,
+            in.regions,
+            in.request
+        ],
+        roots,
+        valid: true
+    }
+}

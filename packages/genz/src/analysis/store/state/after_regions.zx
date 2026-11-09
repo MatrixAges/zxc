@@ -1,0 +1,33 @@
+import integers from "std:integer"
+
+import advance from "../../../ast/context/advance"
+
+import type { Output as Regions } from "../regions/model"
+import type { Input as Output } from "../request/model"
+import type { Input as Source } from "./model"
+
+export type Input = {
+    source: Source,
+    storage_count: u64,
+    lifecycle_count: u64,
+    regions: Regions
+}
+
+export default function (in: Input): Output {
+    const regions = in.regions
+
+    return {
+        objects: in.source.objects,
+        bases: advance({
+            context: regions.context,
+            statement_count: regions.statements.tags.length,
+            field_count: regions.fields.name.length
+        }),
+        declaration_base: integers.narrow(
+            in.storage_count + in.lifecycle_count + regions.declarations.tags.length
+        ),
+        execute: in.source.execute,
+        io: in.source.io,
+        process: in.source.process
+    }
+}

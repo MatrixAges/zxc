@@ -1,0 +1,86 @@
+<Module>
+    <Type from="model" as="State" />
+
+    <Args in={State.Input} out={State.Output} />
+
+    <Call fn="initialize" in={$in} />
+
+    <Task name="storage" out={$ctx.build}>
+        <Call module="../storage/build" in={$ctx.initialize} />
+    </Task>
+
+    <If on={!$ctx.task.storage.valid}>
+        <Call fn="invalid" in={{}} />
+
+        <Return value={$ctx.invalid} />
+    </If>
+
+    <Call
+        fn="after_storage"
+        in={{
+            source: $in,
+            storage: $ctx.task.storage
+        }}
+    />
+
+    <Task name="lifecycle" out={$ctx.build}>
+        <Call module="../lifecycle/build" in={$ctx.after_storage} />
+    </Task>
+
+    <If on={!$ctx.task.lifecycle.valid}>
+        <Call fn="invalid" in={{}} />
+
+        <Return value={$ctx.invalid} />
+    </If>
+
+    <Call
+        fn="after_lifecycle"
+        in={{
+            source: $in,
+            storage_count: $ctx.task.storage.declarations.tags.length,
+            lifecycle: $ctx.task.lifecycle
+        }}
+    />
+
+    <Task name="regions" out={$ctx.build}>
+        <Call module="../regions/build" in={$ctx.after_lifecycle} />
+    </Task>
+
+    <If on={!$ctx.task.regions.valid}>
+        <Call fn="invalid" in={{}} />
+
+        <Return value={$ctx.invalid} />
+    </If>
+
+    <Call
+        fn="after_regions"
+        in={{
+            source: $in,
+            storage_count: $ctx.task.storage.declarations.tags.length,
+            lifecycle_count: $ctx.task.lifecycle.functions.tags.length,
+            regions: $ctx.task.regions
+        }}
+    />
+
+    <Task name="request" out={$ctx.build}>
+        <Call module="../request/build" in={$ctx.after_regions} />
+    </Task>
+
+    <If on={!$ctx.task.request.valid}>
+        <Call fn="invalid" in={{}} />
+
+        <Return value={$ctx.invalid} />
+    </If>
+
+    <Call
+        fn="publish"
+        in={{
+            storage: $ctx.task.storage,
+            lifecycle: $ctx.task.lifecycle,
+            regions: $ctx.task.regions,
+            request: $ctx.task.request
+        }}
+    />
+
+    <Return value={$ctx.publish} />
+</Module>

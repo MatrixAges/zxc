@@ -1,0 +1,28 @@
+import integers from "std:integer"
+
+import advance from "../../../ast/context/advance"
+
+import type { Output as Lifecycle } from "../lifecycle/model"
+import type { Input as Output } from "../regions/model"
+import type { Input as Source } from "./model"
+
+export type Input = {
+    source: Source,
+    storage_count: u64,
+    lifecycle: Lifecycle
+}
+
+export default function (in: Input): Output {
+    const lifecycle = in.lifecycle
+
+    return {
+        objects: in.source.objects,
+        bases: advance({
+            context: lifecycle.context,
+            statement_count: lifecycle.statements.tags.length,
+            field_count: lifecycle.fields.name.length
+        }),
+        declaration_base:
+            integers.narrow(in.storage_count + lifecycle.functions.tags.length)
+    }
+}

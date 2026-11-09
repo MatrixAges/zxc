@@ -1,0 +1,16 @@
+import type { Input as Output } from "../storage/model"
+import type { Input } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        objects: in.objects,
+        bases: {
+            capture: null,
+            expression_base: 0,
+            statement_base: 0,
+            field_base: 0,
+            serial: 0
+        },
+        declaration_base: 0
+    }
+}
