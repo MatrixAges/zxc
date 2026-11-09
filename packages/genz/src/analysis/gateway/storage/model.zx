@@ -1,0 +1,36 @@
+import type { Input as Bases, State as Context } from "../../../ast/context/model"
+import type { Constant } from "../../../ast/declarations/model"
+import type { Columns as Fields } from "../../../ast/fields/model"
+
+export type Input = {
+    bases: Bases,
+    modules: string[]
+}
+
+export type State = {
+    source: Input,
+    context: Context,
+    field_names: u8[][],
+    field_values: u32[],
+    field_defaults: u32?[],
+    field_comptime: bool[],
+    constants: Constant[],
+    optional_type: u32[]
+}
+
+export type Item = {
+    state: State,
+    index: u64
+}
+
+export type Output = {
+    context: Context,
+    fields: Fields,
+    constants: Constant[],
+    extra: {
+        optional_type: u32[],
+        struct_type_start: u32[],
+        struct_type_len: u32[]
+    },
+    valid: bool
+}

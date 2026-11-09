@@ -1,0 +1,11 @@
+<Module>
+    <Type from="model" as="Storage" />
+
+    <Args in={Storage.Input} out={Storage.Output} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="items" in={$ctx.initialize} />
+    <Call fn="structure" in={$ctx.items} />
+
+    <Return value={$ctx.structure} />
+</Module>

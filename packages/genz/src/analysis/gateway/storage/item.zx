@@ -1,0 +1,75 @@
+import bytes from "std:bytes"
+
+import field from "../../../ast/context/field"
+import identifier from "../../../ast/context/identifier"
+import importPath from "../../../ast/context/import_path"
+import nullValue from "../../../ast/context/null_value"
+import optionalType from "../../../ast/expressions/optional_type"
+import integer from "../../../printer/text/integer"
+import { initial_prefix } from "../../store/lifecycle/const"
+import slotName from "../../store/slot_name"
+import { output_type_name } from "../invoke/const"
+
+import type { Item as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const name = integer({
+        output: bytes.fromText(initial_prefix),
+        value: in.index
+    })
+
+    const imported = importPath({
+        state: in.state.context,
+        module: in.state.source.modules[in.index],
+        path: []
+    })
+
+    const target = identifier({
+        state: imported.state,
+        name
+    })
+
+    const output = field({
+        state: target.state,
+        target: target.id,
+        name: bytes.fromText(output_type_name)
+    })
+
+    const optional = optionalType({
+        table: {
+            ...output.state.expressions.pick([
+                "tags",
+                "offsets"
+            ]),
+            optional_type: in.state.optional_type
+        },
+        base: in.state.source.bases.expression_base,
+        value: output.id
+    })
+
+    const context = nullValue({
+        ...output.state,
+        expressions: {
+            ...output.state.expressions,
+            tags: optional.table.tags,
+            offsets: optional.table.offsets
+        },
+        valid: output.state.valid && optional.valid
+    })
+
+    return {
+        ...in.state,
+        context: context.state,
+        optional_type: optional.table.optional_type,
+        constants: in.state.constants.push({
+            name,
+            value: imported.id,
+            type_expr: null,
+            exported: false
+        })[0],
+        field_names: in.state.field_names.push(slotName(in.index))[0],
+        field_values: in.state.field_values.push(optional.id)[0],
+        field_defaults: in.state.field_defaults.push(context.id)[0],
+        field_comptime: in.state.field_comptime.push(false)[0]
+    }
+}

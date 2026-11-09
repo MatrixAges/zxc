@@ -52,7 +52,7 @@ fn append(allocator: std.mem.Allocator, files: *std.ArrayList(modules.File), obj
 
     const state_imports = try std.mem.concat(allocator, []const u8, &.{ &.{"application=gateway_storage_contract"}, initial_imports });
 
-    try files.append(allocator, .{ .name = "gateway_storage_contract", .source = try generating.gateway.storage.render(allocator, objects), .imports = initial_imports });
+    try files.append(allocator, .{ .name = "gateway_storage_contract", .source = try generating.gateway.storage.render(allocator, initial_imports), .imports = initial_imports });
     try files.append(allocator, .{ .name = "zxc_gateway_state", .source = try generating.zx.state.renderStorage(allocator, objects), .imports = state_imports });
 
     const imports = try allocator.alloc([]const u8, services.len + 1);
