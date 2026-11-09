@@ -1,0 +1,84 @@
+import bytes from "std:bytes"
+
+import text from "../../../ast/context/text"
+import tuple from "../../../ast/context/tuple"
+import result from "../../../ast/statements/builder/result"
+import { ExpressionsKind } from "../../../printer/model/expressions"
+import binding from "./binding"
+import call from "./call"
+import {
+    status_name,
+    response_format,
+    output_name,
+    interface_name,
+    print_name,
+    flush_name
+} from "./const"
+import evaluate from "./evaluate"
+import path from "./path"
+
+import type { Node as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const bound = binding({
+        node: in,
+        name: status_name,
+        type_expr: in.state.types.bytes,
+        mutable: false
+    })
+
+    const format = text({
+        state: bound.context,
+        kind: ExpressionsKind.String,
+        value: bytes.fromText(response_format)
+    })
+
+    const status = path({
+        state: {
+            ...bound,
+            context: format.state
+        },
+        path: [status_name]
+    })
+
+    const arguments = tuple({
+        state: status.state.context,
+        values: [status.id]
+    })
+
+    const printed = evaluate(call({
+        state: {
+            ...status.state,
+            context: arguments.state
+        },
+        path: [
+            output_name,
+            interface_name,
+            print_name
+        ],
+        arguments: [
+            format.id,
+            arguments.id
+        ],
+        fallible: true
+    }))
+
+    const flushed = evaluate(call({
+        state: printed,
+        path: [
+            output_name,
+            interface_name,
+            flush_name
+        ],
+        arguments: [],
+        fallible: true
+    }))
+
+    return {
+        ...flushed,
+        statements: result({
+            state: flushed.statements,
+            value: null
+        })
+    }
+}

@@ -1,0 +1,71 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import construct from "../../../ast/declarations/function"
+import append from "../../../ast/declarations/table/function"
+import field from "../../../ast/fields/append"
+import close from "../../../ast/statements/builder/close"
+
+import type { State } from "./model"
+
+export type Input = {
+    state: State,
+    name: string,
+    names: string[],
+    types: u32[],
+    result: u32,
+    exported: bool
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const body = close(in.state.statements)
+
+    const first = in.state.context.source.field_base +
+        integers.narrow(in.state.fields.name.length)
+
+    const fields = loop({
+        values: in.state.fields,
+        index: 0
+    }, {
+        while: current => current.index < in.names.length,
+        next: current => {
+            current.values = field({
+                table: current.values,
+                name: bytes.fromText(in.names[current.index]),
+                value: in.types[current.index],
+                comptime_parameter: false
+            })
+            current.index += 1
+        },
+        return: current => current.values
+    })
+
+    const declaration = construct({
+        base: integers.narrow(in.state.declarations.tags.length),
+        name: bytes.fromText(in.name),
+        parameters_start: first,
+        parameters_count: integers.narrow(in.names.length),
+        return_type: in.result,
+        body_start: body.first,
+        body_count: body.count,
+        exported: in.exported,
+        abi_export: false,
+        inlined: false
+    })
+
+    const appended = append({
+        state: in.state.declarations,
+        value: declaration.table,
+        parameter_base: 0
+    })
+
+    return {
+        ...in.state,
+        statements: body.state,
+        fields,
+        declarations: appended.state,
+        valid: in.state.valid && declaration.valid && appended.valid
+    }
+}

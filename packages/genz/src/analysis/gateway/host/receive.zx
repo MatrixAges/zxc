@@ -1,0 +1,24 @@
+import binding from "./binding"
+import call from "./call"
+import { server_name, receive_head_name, request_name } from "./const"
+import failure from "./head_failure"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const received = call({
+        state: in,
+        path: [
+            server_name,
+            receive_head_name
+        ],
+        arguments: [],
+        fallible: false
+    })
+
+    return binding({
+        node: failure(received),
+        name: request_name,
+        mutable: true
+    })
+}

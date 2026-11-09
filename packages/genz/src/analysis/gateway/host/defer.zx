@@ -1,0 +1,44 @@
+import header from "../../../ast/statements/builder/header"
+import { StatementsKind } from "../../../printer/model/statements"
+
+import type { State } from "./model"
+
+export type Input = {
+    state: State,
+    value: u32,
+    discard_error: bool
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const values = in.discard_error ? in.state.control.discard_error : in.state.deferred
+
+    const kind = match {
+        in.discard_error => StatementsKind.DiscardError,
+        _ => StatementsKind.DeferExpression
+    }
+
+    const statements = header({
+        state: in.state.statements,
+        kind,
+        offset: values.length
+    })
+
+    if (in.discard_error) {
+        return {
+            ...in.state,
+            statements,
+            control: {
+                ...in.state.control,
+                discard_error: values.push(in.value)[0]
+            }
+        }
+    }
+
+    return {
+        ...in.state,
+        statements,
+        deferred: values.push(in.value)[0]
+    }
+}

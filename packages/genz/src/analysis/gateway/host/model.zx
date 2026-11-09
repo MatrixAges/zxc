@@ -1,0 +1,95 @@
+import type {
+    Input as Bases,
+    State as Context,
+    Variables
+} from "../../../ast/context/model"
+import type { Table as Declarations } from "../../../ast/declarations/table/model"
+import type { Columns as Fields } from "../../../ast/fields/model"
+import type { State as Statements, Scope } from "../../../ast/statements/builder/model"
+import type { Columns as StatementColumns } from "../../../ast/statements/model"
+
+export type Input = Bases
+
+export type Extra = {
+    mutable_slice: u32[],
+    optional_type: u32[],
+    error_union_payload: u32[],
+    error_union_errors: u8[][]?[],
+    error_union_inferred: bool[],
+    catch_scope_value: u32[],
+    catch_scope_capture: u8[]?[],
+    catch_scope_body_start: u32[],
+    catch_scope_body_len: u32[]
+}
+
+export type Control = {
+    discard_error: u32[],
+    defer_scope_start: u32[],
+    defer_scope_len: u32[],
+    while_loop_condition: u32[],
+    while_loop_body_start: u32[],
+    while_loop_body_len: u32[],
+    while_loop_capture: u8[]?[]
+}
+
+export type Symbols = {
+    io: u32,
+    gpa: u32,
+    state: u32,
+    err: u32,
+    output: u32,
+    check: u32,
+    canceled: u32
+}
+
+export type Types = {
+    byte: u32,
+    bytes: u32,
+    unit: u32,
+    anyerror: u32,
+    optional_error: u32,
+    init: u32,
+    state: u32,
+    stream: u32,
+    buffer: u32,
+    result: u32,
+    canceled: u32
+}
+
+export type State = {
+    context: Context,
+    statements: Statements,
+    fields: Fields,
+    declarations: Declarations,
+    extra: Extra,
+    control: Control,
+    deferred: u32[],
+    symbols: Symbols,
+    types: Types,
+    none: u32,
+    yes: u32,
+    undefined: u32,
+    valid: bool
+}
+
+export type Node = {
+    state: State,
+    id: u32
+}
+
+export type Output = {
+    context: Context,
+    statements: StatementColumns,
+    variables: Variables,
+    statement_forms: Control,
+    fields: Fields,
+    declarations: Declarations,
+    extra: Extra,
+    valid: bool
+}
+
+export type Caught = {
+    state: State,
+    value: u32,
+    scope: Scope
+}

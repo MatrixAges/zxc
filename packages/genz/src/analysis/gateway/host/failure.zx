@@ -1,0 +1,110 @@
+import bytes from "std:bytes"
+
+import binary from "../../../ast/context/binary"
+import builtin from "../../../ast/context/builtin"
+import text from "../../../ast/context/text"
+import tuple from "../../../ast/context/tuple"
+import branch from "../../../ast/statements/builder/branch"
+import open from "../../../ast/statements/builder/open"
+import result from "../../../ast/statements/builder/result"
+import {
+    ExpressionsKind as K,
+    ExpressionsBinaryOperator as B,
+    ExpressionsBuiltinName as Builtin
+} from "../../../printer/model/expressions"
+import call from "./call"
+import caught from "./catch"
+import {
+    out_of_memory_name,
+    failure_message,
+    std_name,
+    log_name,
+    err_name
+} from "./const"
+import evaluate from "./evaluate"
+
+import type { Node as Input, Node as Output } from "./model"
+
+export default function (in: Input): Output {
+    const oom = text({
+        state: in.state.context,
+        kind: K.ErrorValue,
+        value: bytes.fromText(out_of_memory_name)
+    })
+
+    const is_oom = binary({
+        state: oom.state,
+        operator: B.Equal,
+        left: in.state.symbols.err,
+        right: oom.id
+    })
+
+    const is_canceled = binary({
+        state: is_oom.state,
+        operator: B.Equal,
+        left: in.state.symbols.err,
+        right: in.state.symbols.canceled
+    })
+
+    const fatal = binary({
+        state: is_canceled.state,
+        operator: B.LogicalOr,
+        left: is_oom.id,
+        right: is_canceled.id
+    })
+
+    const scope = open(in.state.statements)
+    const propagate = open(scope.state)
+
+    const propagated = branch({
+        scope: {
+            ...propagate,
+            state: result({
+                state: propagate.state,
+                value: in.state.symbols.err
+            })
+        },
+        condition: fatal.id
+    })
+
+    const format = text({
+        state: fatal.state,
+        kind: K.String,
+        value: bytes.fromText(failure_message)
+    })
+
+    const name = builtin({
+        state: format.state,
+        name: Builtin.ErrorName,
+        arguments: [in.state.symbols.err]
+    })
+
+    const arguments = tuple({
+        state: name.state,
+        values: [name.id]
+    })
+
+    const logged = evaluate(call({
+        state: {
+            ...in.state,
+            context: arguments.state,
+            statements: propagated
+        },
+        path: [
+            std_name,
+            log_name,
+            err_name
+        ],
+        arguments: [
+            format.id,
+            arguments.id
+        ],
+        fallible: false
+    }))
+
+    return caught({
+        state: logged,
+        value: in.id,
+        scope
+    })
+}

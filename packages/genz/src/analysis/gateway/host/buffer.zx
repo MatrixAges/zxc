@@ -1,0 +1,67 @@
+import binding from "./binding"
+import call from "./call"
+import {
+    application_name,
+    max_header_bytes_name,
+    init_name,
+    gpa_name,
+    alloc_name,
+    head_buffer_name,
+    free_name
+} from "./const"
+import defer from "./defer"
+import path from "./path"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const size = path({
+        state: in,
+        path: [
+            application_name,
+            max_header_bytes_name
+        ]
+    })
+
+    const allocated = call({
+        state: size.state,
+        path: [
+            init_name,
+            gpa_name,
+            alloc_name
+        ],
+        arguments: [
+            in.types.byte,
+            size.id
+        ],
+        fallible: true
+    })
+
+    const bound = binding({
+        node: allocated,
+        name: head_buffer_name,
+        mutable: false
+    })
+
+    const buffer = path({
+        state: bound,
+        path: [head_buffer_name]
+    })
+
+    const release = call({
+        state: buffer.state,
+        path: [
+            init_name,
+            gpa_name,
+            free_name
+        ],
+        arguments: [buffer.id],
+        fallible: false
+    })
+
+    return defer({
+        state: release.state,
+        value: release.id,
+        discard_error: false
+    })
+}

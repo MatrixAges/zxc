@@ -1,57 +1,42 @@
 const std = @import("std");
+const zx = @import("zx");
 const node = @import("../../node.zig");
 const Builder = @import("../../builder.zig");
 
 pub fn render(allocator: std.mem.Allocator) std.mem.Allocator.Error![]u8 {
+    if (comptime !@import("genz_options").generated_analysis) return @import("root_seed.zig").render(allocator);
+
     var arena = std.heap.ArenaAllocator.init(allocator);
 
     defer arena.deinit();
 
     const builder = try Builder.init(arena.allocator());
-    const io = try builder.path(&.{ "init", "io" });
-    const gpa = try builder.path(&.{ "init", "gpa" });
-    const state = try builder.identifier("state");
-    const err = try builder.identifier("err");
-    const address = try builder.call(try builder.path(&.{ "std", "Io", "net", "IpAddress", "parseLiteral" }), &.{try builder.path(&.{ "application", "listen" })});
-    const listen = try builder.call(try builder.path(&.{ "address", "listen" }), &.{ io, try builder.object(&.{.{ .name = "reuse_address", .value = try builder.expression(.{ .boolean = true }) }}) });
-    const handle = try builder.call(try builder.identifier("handle"), &.{ try builder.identifier("init"), try builder.expression(.{ .address_of = state }), try builder.identifier("stream"), try builder.identifier("head_buffer") });
+    const entry = @import("generated_gateway_host");
+    const Input = std.meta.Child(entry.Input);
 
-    const failure = try builder.expression(.{ .catch_scope = .{ .value = handle, .capture = "err", .body = try builder.statements(&.{
-        try builder.branch(try builder.binary(.logical_or, try builder.binary(.equal, err, try builder.expression(.{ .error_value = "OutOfMemory" })), try builder.binary(.equal, err, try builder.expression(.{ .error_value = "Canceled" }))), &.{.{ .result = err }}, &.{}),
-        .{ .expression = try builder.call(try builder.path(&.{ "std", "log", "err" }), &.{ try builder.string("Gateway connection failed: {s}"), try builder.tuple(&.{try builder.builtin(.errorName, &.{err})}) }) },
-    }) } });
+    const input: Input = .{
+        .capture = null,
+        .expression_base = 0,
+        .statement_base = 0,
+        .field_base = 0,
+        .serial = 0,
+    };
 
-    const main: node.Declaration = .{ .function = .{
-        .name = "main",
-        .parameters = try builder.allocator.dupe(node.Field, &.{.{ .name = "init", .value = try builder.path(&.{ "std", "process", "Init" }) }}),
-        .return_type = try builder.expression(.{ .error_union = .{ .inferred = true, .payload = try builder.expression(.{ .primitive = .void }) } }),
-        .body = try builder.statements(&.{
-            .{ .constant = .{ .name = "address", .value = try builder.expression(.{ .try_value = address }) } },
-            .{ .variable = .{ .name = "listener", .value = try builder.expression(.{ .try_value = listen }) } },
-            .{ .defer_expression = try builder.call(try builder.path(&.{ "listener", "deinit" }), &.{io}) },
-            .{ .variable = .{ .name = "state", .value = try builder.expression(.{ .object = .{ .type_expr = try builder.path(&.{ "application", "State" }), .fields = try builder.allocator.dupe(node.Field, &.{.{ .name = "arena", .value = try builder.path(&.{ "init", "arena" }) }}) } }) } },
-            .{ .defer_expression = try builder.call(try builder.path(&.{ "state", "deinit" }), &.{}) },
-            .{ .expression = try builder.expression(.{ .try_value = try builder.call(try builder.path(&.{ "state", "initialize" }), &.{}) }) },
-            .{ .constant = .{ .name = "head_buffer", .value = try builder.expression(.{ .try_value = try builder.call(try builder.field(gpa, "alloc"), &.{ try builder.expression(.{ .primitive = .u8 }), try builder.path(&.{ "application", "max_header_bytes" }) }) }) } },
-            .{ .defer_expression = try builder.call(try builder.field(gpa, "free"), &.{try builder.identifier("head_buffer")}) },
-            .{ .while_loop = .{ .condition = try builder.expression(.{ .boolean = true }), .body = try builder.statements(&.{
-                .{ .constant = .{ .name = "stream", .value = try builder.expression(.{ .try_value = try builder.call(try builder.path(&.{ "listener", "accept" }), &.{io}) }) } },
-                .{ .defer_scope = try builder.statements(&.{
-                    .{ .discard_error = try builder.call(try builder.path(&.{ "stream", "shutdown" }), &.{ io, try builder.expression(.{ .enum_literal = "both" }) }) },
-                    .{ .expression = try builder.call(try builder.path(&.{ "stream", "close" }), &.{io}) },
-                }) },
-                .{ .expression = failure },
-                .{ .expression = try builder.call(try builder.path(&.{ "state", "releaseRetired" }), &.{}) },
-            }) } },
-        }),
-        .exported = true,
-    } };
+    const output = zx.columns.invoke(entry.executeValue, builder.allocator, &input) catch |err| return failure(err);
 
-    return @import("../../render.zig").render(allocator, builder.nodes, &.{
-        .{ .constant = .{ .name = "std", .value = try builder.builtin(.import, &.{try builder.string("std")}) } },
-        .{ .constant = .{ .name = "application", .value = try builder.builtin(.import, &.{try builder.string("application")}) } },
-        main,
-        try @import("connection.zig").lower(builder),
-        try @import("connection.zig").checkCanceled(builder),
-    });
+    if (!output.valid) return error.OutOfMemory;
+
+    @import("../../node/import_module.zig").appendBorrowed(builder.allocator, builder.nodes, std.meta.Child(entry.Output), output) catch |err| return failure(err);
+    const declarations = try builder.allocator.alloc(node.Declaration, builder.nodes.declaration_rows.tags.items.len);
+
+    for (declarations, 0..) |*declaration, index| declaration.* = try builder.nodes.materializeDeclaration(builder.allocator, @intCast(index));
+
+    return @import("../../render.zig").render(allocator, builder.nodes, declarations);
+}
+
+fn failure(err: anyerror) std.mem.Allocator.Error {
+    return switch (err) {
+        error.OutOfMemory, error.IntegerOverflow, error.Overflow => error.OutOfMemory,
+        else => @panic("invalid Gateway host AST"),
+    };
 }

@@ -1,0 +1,97 @@
+import address from "../../../ast/context/address"
+import open from "../../../ast/statements/builder/open"
+import result from "../../../ast/statements/builder/result"
+import call from "./call"
+import caught from "./catch"
+import {
+    scope_name,
+    init_name,
+    minimal_name,
+    request_name,
+    application_name,
+    dispatch_name
+} from "./const"
+import evaluate from "./evaluate"
+import path from "./path"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const scope = path({
+        state: in,
+        path: [scope_name]
+    })
+
+    const scope_ref = address({
+        state: scope.state.context,
+        value: scope.id
+    })
+
+    const minimal = path({
+        state: {
+            ...scope.state,
+            context: scope_ref.state
+        },
+        path: [
+            init_name,
+            minimal_name
+        ]
+    })
+
+    const request = path({
+        state: minimal.state,
+        path: [request_name]
+    })
+
+    const request_ref = address({
+        state: request.state.context,
+        value: request.id
+    })
+
+    const dispatched = call({
+        state: {
+            ...request.state,
+            context: request_ref.state
+        },
+        path: [
+            application_name,
+            dispatch_name
+        ],
+        arguments: [
+            scope_ref.id,
+            in.symbols.io,
+            minimal.id,
+            request_ref.id
+        ],
+        fallible: false
+    })
+
+    const failure_scope = open(dispatched.state.statements)
+
+    const checked = evaluate({
+        state: {
+            ...dispatched.state,
+            statements: failure_scope.state
+        },
+        id: in.symbols.check
+    })
+
+    const propagated = {
+        ...checked,
+        statements: result({
+            state: checked.statements,
+            value: in.symbols.err
+        })
+    }
+
+    const handled = evaluate(caught({
+        state: propagated,
+        value: dispatched.id,
+        scope: failure_scope
+    }))
+
+    return evaluate({
+        state: handled,
+        id: in.symbols.check
+    })
+}

@@ -1,0 +1,31 @@
+import complete from "./complete"
+import {
+    handle_name,
+    init_name,
+    state_name,
+    stream_name,
+    head_buffer_name
+} from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return complete({
+        state: in,
+        name: handle_name,
+        names: [
+            init_name,
+            state_name,
+            stream_name,
+            head_buffer_name
+        ],
+        types: [
+            in.types.init,
+            in.types.state,
+            in.types.stream,
+            in.types.buffer
+        ],
+        result: in.types.result,
+        exported: false
+    })
+}

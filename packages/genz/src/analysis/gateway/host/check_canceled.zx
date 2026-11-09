@@ -1,0 +1,84 @@
+import bytes from "std:bytes"
+
+import binary from "../../../ast/context/binary"
+import branch from "../../../ast/statements/builder/branch"
+import branchRange from "../../../ast/statements/builder/branch_range"
+import close from "../../../ast/statements/builder/close"
+import open from "../../../ast/statements/builder/open"
+import result from "../../../ast/statements/builder/result"
+import { ExpressionsBinaryOperator as B } from "../../../printer/model/expressions"
+import complete from "./complete"
+import { input_name, output_name, err_name, check_canceled_name } from "./const"
+import path from "./path"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const canceled = binary({
+        state: in.context,
+        operator: B.Equal,
+        left: in.symbols.err,
+        right: in.symbols.canceled
+    })
+
+    const scope = open(in.statements)
+
+    const failure = close(branch({
+        scope: {
+            ...scope,
+            state: result({
+                state: scope.state,
+                value: in.symbols.canceled
+            })
+        },
+        condition: canceled.id
+    }))
+
+    const input = path({
+        state: {
+            ...in,
+            context: canceled.state,
+            statements: failure.state
+        },
+        path: [input_name]
+    })
+
+    const output = path({
+        state: input.state,
+        path: [output_name]
+    })
+
+    const input_branch = branchRange({
+        state: output.state.statements,
+        condition: input.id,
+        first: failure.first,
+        count: failure.count,
+        capture: bytes.fromText(err_name)
+    })
+
+    const output_branch = branchRange({
+        state: input_branch,
+        condition: output.id,
+        first: failure.first,
+        count: failure.count,
+        capture: bytes.fromText(err_name)
+    })
+
+    return complete({
+        state: {
+            ...output.state,
+            statements: output_branch
+        },
+        name: check_canceled_name,
+        names: [
+            input_name,
+            output_name
+        ],
+        types: [
+            in.types.optional_error,
+            in.types.optional_error
+        ],
+        result: in.types.canceled,
+        exported: false
+    })
+}

@@ -1,0 +1,23 @@
+import path from "../../../ast/context/path"
+
+import type { State, Node as Output } from "./model"
+
+export type Input = {
+    state: State,
+    path: string[]
+}
+
+export default function (in: Input): Output {
+    const node = path({
+        state: in.state.context,
+        path: in.path
+    })
+
+    return {
+        state: {
+            ...in.state,
+            context: node.state
+        },
+        id: node.id
+    }
+}

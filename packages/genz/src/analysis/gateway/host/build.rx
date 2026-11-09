@@ -1,0 +1,24 @@
+<Module>
+    <Type from="model" as="Host" />
+
+    <Args in={Host.Input} out={Host.Output} />
+
+    <Call fn="prepare" in={$in} />
+    <Call fn="symbols" in={$ctx.prepare} />
+    <Call fn="types" in={$ctx.symbols} />
+    <Call fn="result_types" in={$ctx.types} />
+    <Call fn="imports" in={$ctx.result_types} />
+    <Call fn="listen" in={$ctx.imports} />
+    <Call fn="state" in={$ctx.listen} />
+    <Call fn="buffer" in={$ctx.state} />
+    <Call fn="accept" in={$ctx.buffer} />
+    <Call fn="connection_io" in={$ctx.accept} />
+    <Call fn="receive" in={$ctx.connection_io} />
+    <Call fn="request_scope" in={$ctx.receive} />
+    <Call fn="dispatch" in={$ctx.request_scope} />
+    <Call fn="handle" in={$ctx.dispatch} />
+    <Call fn="check_canceled" in={$ctx.handle} />
+    <Call fn="publish" in={$ctx.check_canceled} />
+
+    <Return value={$ctx.publish} />
+</Module>

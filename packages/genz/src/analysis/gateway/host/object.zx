@@ -1,0 +1,38 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import object from "../../../ast/context/object"
+import field from "../../../ast/fields/append"
+
+import type { State, Node as Output } from "./model"
+
+export type Input = {
+    state: State,
+    name: string,
+    value: u32,
+    type_expr?: u32
+}
+
+export default function (in: Input): Output {
+    const node = object({
+        state: in.state.context,
+        type_expr: in.type_expr,
+        first: in.state.context.source.field_base +
+            integers.narrow(in.state.fields.name.length),
+        count: 1
+    })
+
+    return {
+        id: node.id,
+        state: {
+            ...in.state,
+            context: node.state,
+            fields: field({
+                table: in.state.fields,
+                name: bytes.fromText(in.name),
+                value: in.value,
+                comptime_parameter: false
+            })
+        }
+    }
+}

@@ -1,0 +1,103 @@
+import bytes from "std:bytes"
+
+import binary from "../../../ast/context/binary"
+import conditional from "../../../ast/context/conditional"
+import text from "../../../ast/context/text"
+import branch from "../../../ast/statements/builder/branch"
+import open from "../../../ast/statements/builder/open"
+import result from "../../../ast/statements/builder/result"
+import {
+    ExpressionsKind as K,
+    ExpressionsBinaryOperator as B
+} from "../../../printer/model/expressions"
+import caught from "./catch"
+import { closing_name, oversize_name, large_status, invalid_status } from "./const"
+import evaluate from "./evaluate"
+import reject from "./reject_head"
+
+import type { Node as Input, Node as Output } from "./model"
+
+export default function (in: Input): Output {
+    const scope = open(in.state.statements)
+
+    const checked = evaluate({
+        state: {
+            ...in.state,
+            statements: scope.state
+        },
+        id: in.state.symbols.check
+    })
+
+    const closing = text({
+        state: checked.context,
+        kind: K.ErrorValue,
+        value: bytes.fromText(closing_name)
+    })
+
+    const is_closing = binary({
+        state: closing.state,
+        operator: B.Equal,
+        left: in.state.symbols.err,
+        right: closing.id
+    })
+
+    const closing_scope = open(checked.statements)
+
+    const closed = branch({
+        scope: {
+            ...closing_scope,
+            state: result({
+                state: closing_scope.state,
+                value: null
+            })
+        },
+        condition: is_closing.id
+    })
+
+    const oversize = text({
+        state: is_closing.state,
+        kind: K.ErrorValue,
+        value: bytes.fromText(oversize_name)
+    })
+
+    const is_oversize = binary({
+        state: oversize.state,
+        operator: B.Equal,
+        left: in.state.symbols.err,
+        right: oversize.id
+    })
+
+    const large = text({
+        state: is_oversize.state,
+        kind: K.String,
+        value: bytes.fromText(large_status)
+    })
+
+    const invalid = text({
+        state: large.state,
+        kind: K.String,
+        value: bytes.fromText(invalid_status)
+    })
+
+    const status = conditional({
+        state: invalid.state,
+        condition: is_oversize.id,
+        yes: large.id,
+        no: invalid.id
+    })
+
+    const rejected = reject({
+        state: {
+            ...checked,
+            context: status.state,
+            statements: closed
+        },
+        id: status.id
+    })
+
+    return caught({
+        state: rejected,
+        value: in.id,
+        scope
+    })
+}

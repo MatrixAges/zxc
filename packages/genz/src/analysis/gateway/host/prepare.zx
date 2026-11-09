@@ -1,0 +1,96 @@
+import boolean from "../../../ast/context/boolean"
+import constSlice from "../../../ast/context/const_slice"
+import initialize from "../../../ast/context/initialize"
+import nullValue from "../../../ast/context/null_value"
+import primitive from "../../../ast/context/primitive"
+import undefinedValue from "../../../ast/context/undefined"
+import declarations from "../../../ast/declarations/table/create"
+import fields from "../../../ast/fields/empty"
+import statements from "../../../ast/statements/builder/initialize"
+import { ExpressionsPrimitive as P } from "../../../printer/model/expressions"
+
+import type { Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const yes = boolean({
+        state: initialize(in),
+        value: true
+    })
+
+    const none = nullValue(yes.state)
+    const absent = undefinedValue(none.state)
+
+    const byte = primitive({
+        state: absent.state,
+        value: P.U8
+    })
+
+    const unit = primitive({
+        state: byte.state,
+        value: P.Void
+    })
+
+    const error_type = primitive({
+        state: unit.state,
+        value: P.Anyerror
+    })
+
+    const bytes = constSlice({
+        state: error_type.state,
+        value: byte.id
+    })
+
+    return {
+        context: bytes.state,
+        statements: statements(in.statement_base),
+        fields: fields({}),
+        declarations: declarations({}),
+        extra: {
+            mutable_slice: [],
+            optional_type: [],
+            error_union_payload: [],
+            error_union_errors: [],
+            error_union_inferred: [],
+            catch_scope_value: [],
+            catch_scope_capture: [],
+            catch_scope_body_start: [],
+            catch_scope_body_len: []
+        },
+        control: {
+            discard_error: [],
+            defer_scope_start: [],
+            defer_scope_len: [],
+            while_loop_condition: [],
+            while_loop_body_start: [],
+            while_loop_body_len: [],
+            while_loop_capture: []
+        },
+        deferred: [],
+        symbols: {
+            io: 0,
+            gpa: 0,
+            state: 0,
+            err: 0,
+            output: 0,
+            check: 0,
+            canceled: 0
+        },
+        types: {
+            byte: byte.id,
+            bytes: bytes.id,
+            unit: unit.id,
+            anyerror: error_type.id,
+            optional_error: 0,
+            init: 0,
+            state: 0,
+            stream: 0,
+            buffer: 0,
+            result: 0,
+            canceled: 0
+        },
+        none: none.id,
+        yes: yes.id,
+        undefined: absent.id,
+        valid: true
+    }
+}

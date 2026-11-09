@@ -33,9 +33,10 @@ fn appendModule(allocator: std.mem.Allocator, target: *Storage, comptime Module:
         const statements = zx.columns.view(Descriptor(@FieldType(Module, "statements")), source.statements);
         const commands = if (@hasField(Module, "variables")) view.join(statements, zx.columns.view(std.meta.Child(@FieldType(Module, "variables")), source.variables)) else statements;
 
-        if (@hasField(Module, "loops")) {
-            const loops = zx.columns.view(std.meta.Child(@FieldType(Module, "loops")), source.loops);
-            const complete = view.join(commands, loops);
+        if (@hasField(Module, "statement_forms") or @hasField(Module, "loops")) {
+            const extra_name = if (@hasField(Module, "statement_forms")) "statement_forms" else "loops";
+            const extra = zx.columns.view(Descriptor(@FieldType(Module, extra_name)), @field(source, extra_name));
+            const complete = view.join(commands, extra);
 
             try appendRows(allocator, &target.statements, &complete, mode);
         } else try appendRows(allocator, &target.statements, &commands, mode);

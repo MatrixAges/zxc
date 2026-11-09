@@ -1,0 +1,60 @@
+import bytes from "std:bytes"
+
+import text from "../../../ast/context/text"
+import open from "../../../ast/statements/builder/open"
+import { ExpressionsKind } from "../../../printer/model/expressions"
+import call from "./call"
+import { stream_name, shutdown_name, both_name, close_name } from "./const"
+import defer from "./defer"
+import deferScope from "./defer_scope"
+import evaluate from "./evaluate"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const scope = open(in.statements)
+
+    const both = text({
+        state: in.context,
+        kind: ExpressionsKind.EnumLiteral,
+        value: bytes.fromText(both_name)
+    })
+
+    const shutdown = call({
+        state: {
+            ...in,
+            context: both.state,
+            statements: scope.state
+        },
+        path: [
+            stream_name,
+            shutdown_name
+        ],
+        arguments: [
+            in.symbols.io,
+            both.id
+        ],
+        fallible: false
+    })
+
+    const discarded = defer({
+        state: shutdown.state,
+        value: shutdown.id,
+        discard_error: true
+    })
+
+    const closed = evaluate(call({
+        state: discarded,
+        path: [
+            stream_name,
+            close_name
+        ],
+        arguments: [in.symbols.io],
+        fallible: false
+    }))
+
+    return deferScope({
+        state: closed,
+        scope
+    })
+}

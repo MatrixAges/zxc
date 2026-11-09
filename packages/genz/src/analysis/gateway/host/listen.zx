@@ -1,0 +1,90 @@
+import binding from "./binding"
+import call from "./call"
+import {
+    application_name,
+    listen_name,
+    std_name,
+    io_type_name,
+    net_name,
+    ip_address_name,
+    parse_literal_name,
+    address_name,
+    reuse_address_name,
+    listener_name,
+    deinit_name
+} from "./const"
+import defer from "./defer"
+import object from "./object"
+import path from "./path"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const listen = path({
+        state: in,
+        path: [
+            application_name,
+            listen_name
+        ]
+    })
+
+    const address = call({
+        state: listen.state,
+        path: [
+            std_name,
+            io_type_name,
+            net_name,
+            ip_address_name,
+            parse_literal_name
+        ],
+        arguments: [listen.id],
+        fallible: true
+    })
+
+    const bound = binding({
+        node: address,
+        name: address_name,
+        mutable: false
+    })
+
+    const options = object({
+        state: bound,
+        name: reuse_address_name,
+        value: in.yes
+    })
+
+    const listening = call({
+        state: options.state,
+        path: [
+            address_name,
+            listen_name
+        ],
+        arguments: [
+            in.symbols.io,
+            options.id
+        ],
+        fallible: true
+    })
+
+    const listener = binding({
+        node: listening,
+        name: listener_name,
+        mutable: true
+    })
+
+    const release = call({
+        state: listener,
+        path: [
+            listener_name,
+            deinit_name
+        ],
+        arguments: [in.symbols.io],
+        fallible: false
+    })
+
+    return defer({
+        state: release.state,
+        value: release.id,
+        discard_error: false
+    })
+}

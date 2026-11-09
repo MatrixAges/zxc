@@ -1,0 +1,44 @@
+import bytes from "std:bytes"
+
+import field from "./field"
+import identifier from "./identifier"
+
+import type { State, Node as Output } from "./model"
+
+export type Input = {
+    state: State,
+    path: string[]
+}
+
+export default function (in: Input): Output {
+    if (in.path.length == 0) {
+        return {
+            state: {
+                ...in.state,
+                valid: false
+            },
+            id: 0
+        }
+    }
+
+    const root = identifier({
+        state: in.state,
+        name: bytes.fromText(in.path[0])
+    })
+
+    return loop({
+        node: root,
+        index: 1
+    }, {
+        while: current => current.node.state.valid && current.index < in.path.length,
+        next: current => {
+            current.node = field({
+                state: current.node.state,
+                target: current.node.id,
+                name: bytes.fromText(in.path[current.index])
+            })
+            current.index += 1
+        },
+        return: current => current.node
+    })
+}

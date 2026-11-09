@@ -1,0 +1,73 @@
+import bytes from "std:bytes"
+
+import text from "../../../ast/context/text"
+import { ExpressionsKind } from "../../../printer/model/expressions"
+import {
+    init_name,
+    io_name,
+    gpa_name,
+    state_name,
+    err_name,
+    output_name,
+    interface_name,
+    canceled_name
+} from "./const"
+import path from "./path"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const io = path({
+        state: in,
+        path: [
+            init_name,
+            io_name
+        ]
+    })
+
+    const gpa = path({
+        state: io.state,
+        path: [
+            init_name,
+            gpa_name
+        ]
+    })
+
+    const state = path({
+        state: gpa.state,
+        path: [state_name]
+    })
+
+    const err = path({
+        state: state.state,
+        path: [err_name]
+    })
+
+    const output = path({
+        state: err.state,
+        path: [
+            output_name,
+            interface_name
+        ]
+    })
+
+    const canceled = text({
+        state: output.state.context,
+        kind: ExpressionsKind.ErrorValue,
+        value: bytes.fromText(canceled_name)
+    })
+
+    return {
+        ...output.state,
+        context: canceled.state,
+        symbols: {
+            io: io.id,
+            gpa: gpa.id,
+            state: state.id,
+            err: err.id,
+            output: output.id,
+            check: 0,
+            canceled: canceled.id
+        }
+    }
+}

@@ -1,0 +1,38 @@
+import binding from "./binding"
+import call from "./call"
+import { state_name, request_name, scope_name, deinit_name } from "./const"
+import defer from "./defer"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const scope = binding({
+        node: call({
+            state: in,
+            path: [
+                state_name,
+                request_name
+            ],
+            arguments: [],
+            fallible: false
+        }),
+        name: scope_name,
+        mutable: true
+    })
+
+    const release = call({
+        state: scope,
+        path: [
+            scope_name,
+            deinit_name
+        ],
+        arguments: [],
+        fallible: false
+    })
+
+    return defer({
+        state: release.state,
+        value: release.id,
+        discard_error: false
+    })
+}

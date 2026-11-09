@@ -1,0 +1,77 @@
+import pointer from "../../../ast/context/pointer"
+import { ExpressionsKind } from "../../../printer/model/expressions"
+import {
+    std_name,
+    process_name,
+    init_type_name,
+    application_name,
+    state_type_name,
+    io_type_name,
+    net_name,
+    stream_type_name
+} from "./const"
+import path from "./path"
+import wrapped from "./wrapped"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const init = path({
+        state: in,
+        path: [
+            std_name,
+            process_name,
+            init_type_name
+        ]
+    })
+
+    const state = path({
+        state: init.state,
+        path: [
+            application_name,
+            state_type_name
+        ]
+    })
+
+    const state_pointer = pointer({
+        state: state.state.context,
+        value: state.id
+    })
+
+    const stream = path({
+        state: {
+            ...state.state,
+            context: state_pointer.state
+        },
+        path: [
+            std_name,
+            io_type_name,
+            net_name,
+            stream_type_name
+        ]
+    })
+
+    const buffer = wrapped({
+        state: stream.state,
+        kind: ExpressionsKind.MutableSlice,
+        value: in.types.byte
+    })
+
+    const optional = wrapped({
+        state: buffer.state,
+        kind: ExpressionsKind.OptionalType,
+        value: in.types.anyerror
+    })
+
+    return {
+        ...optional.state,
+        types: {
+            ...in.types,
+            init: init.id,
+            state: state_pointer.id,
+            stream: stream.id,
+            buffer: buffer.id,
+            optional_error: optional.id
+        }
+    }
+}

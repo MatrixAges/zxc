@@ -1,0 +1,25 @@
+import bytes from "std:bytes"
+
+import binding from "../../../ast/statements/builder/binding"
+
+import type { Node, State as Output } from "./model"
+
+export type Input = {
+    node: Node,
+    name: string,
+    mutable: bool,
+    type_expr?: u32
+}
+
+export default function (in: Input): Output {
+    return {
+        ...in.node.state,
+        statements: binding({
+            state: in.node.state.statements,
+            name: bytes.fromText(in.name),
+            value: in.node.id,
+            mutable: in.mutable,
+            type_expr: in.type_expr
+        })
+    }
+}

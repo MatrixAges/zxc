@@ -1,0 +1,43 @@
+import address from "../../../ast/context/address"
+import call from "./call"
+import { init_name, stream_name, head_buffer_name, handle_name } from "./const"
+import path from "./path"
+
+import type { State as Input, Node as Output } from "./model"
+
+export default function (in: Input): Output {
+    const init = path({
+        state: in,
+        path: [init_name]
+    })
+
+    const state = address({
+        state: init.state.context,
+        value: in.symbols.state
+    })
+
+    const stream = path({
+        state: {
+            ...init.state,
+            context: state.state
+        },
+        path: [stream_name]
+    })
+
+    const buffer = path({
+        state: stream.state,
+        path: [head_buffer_name]
+    })
+
+    return call({
+        state: buffer.state,
+        path: [handle_name],
+        arguments: [
+            init.id,
+            state.id,
+            stream.id,
+            buffer.id
+        ],
+        fallible: false
+    })
+}

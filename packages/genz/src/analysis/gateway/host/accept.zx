@@ -1,0 +1,86 @@
+import open from "../../../ast/statements/builder/open"
+import whileLoop from "../../../ast/statements/builder/while_loop"
+import binding from "./binding"
+import call from "./call"
+import complete from "./complete"
+import cleanup from "./connection_cleanup"
+import {
+    listener_name,
+    accept_name,
+    stream_name,
+    state_name,
+    release_retired_name,
+    main_name,
+    init_name
+} from "./const"
+import evaluate from "./evaluate"
+import failure from "./failure"
+import handle from "./invoke_handle"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const scope = open(in.statements)
+
+    const stream = call({
+        state: {
+            ...in,
+            statements: scope.state
+        },
+        path: [
+            listener_name,
+            accept_name
+        ],
+        arguments: [in.symbols.io],
+        fallible: true
+    })
+
+    const bound = binding({
+        node: stream,
+        name: stream_name,
+        mutable: false
+    })
+
+    const cleaned = cleanup(bound)
+    const handled = evaluate(failure(handle(cleaned)))
+
+    const released = evaluate(call({
+        state: handled,
+        path: [
+            state_name,
+            release_retired_name
+        ],
+        arguments: [],
+        fallible: false
+    }))
+
+    const loop = whileLoop({
+        scope: {
+            ...scope,
+            state: released.statements
+        },
+        columns: released.control.pick([
+            "while_loop_condition",
+            "while_loop_body_start",
+            "while_loop_body_len",
+            "while_loop_capture"
+        ]),
+        condition: in.yes
+    })
+
+    return complete({
+        state: {
+            ...released,
+            statements: loop.state,
+            control: {
+                ...released.control,
+                ...loop.columns
+            }
+        },
+        name: main_name,
+        names: [init_name],
+        types: [in.types.init],
+        result: in.types.result,
+        exported: true
+    })
+}

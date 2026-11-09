@@ -1,0 +1,37 @@
+import close from "../../../ast/statements/builder/close"
+import header from "../../../ast/statements/builder/header"
+import { StatementsKind } from "../../../printer/model/statements"
+
+import type { Scope } from "../../../ast/statements/builder/model"
+import type { State } from "./model"
+
+export type Input = {
+    state: State,
+    scope: Scope
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const body = close(in.state.statements)
+
+    const statements = header({
+        state: {
+            ...body.state,
+            root_tags: in.scope.parent_tags,
+            root_offsets: in.scope.parent_offsets
+        },
+        kind: StatementsKind.DeferScope,
+        offset: in.state.control.defer_scope_start.length
+    })
+
+    return {
+        ...in.state,
+        statements,
+        control: {
+            ...in.state.control,
+            defer_scope_start: in.state.control.defer_scope_start.push(body.first)[0],
+            defer_scope_len: in.state.control.defer_scope_len.push(body.count)[0]
+        }
+    }
+}

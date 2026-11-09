@@ -1,0 +1,74 @@
+import binding from "./binding"
+import call from "./call"
+import {
+    init_name,
+    arena_name,
+    application_name,
+    state_type_name,
+    state_name,
+    deinit_name,
+    initialize_name
+} from "./const"
+import defer from "./defer"
+import evaluate from "./evaluate"
+import object from "./object"
+import path from "./path"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const arena = path({
+        state: in,
+        path: [
+            init_name,
+            arena_name
+        ]
+    })
+
+    const state_type = path({
+        state: arena.state,
+        path: [
+            application_name,
+            state_type_name
+        ]
+    })
+
+    const initial = object({
+        state: state_type.state,
+        name: arena_name,
+        value: arena.id,
+        type_expr: state_type.id
+    })
+
+    const state = binding({
+        node: initial,
+        name: state_name,
+        mutable: true
+    })
+
+    const release = call({
+        state,
+        path: [
+            state_name,
+            deinit_name
+        ],
+        arguments: [],
+        fallible: false
+    })
+
+    const deferred = defer({
+        state: release.state,
+        value: release.id,
+        discard_error: false
+    })
+
+    return evaluate(call({
+        state: deferred,
+        path: [
+            state_name,
+            initialize_name
+        ],
+        arguments: [],
+        fallible: true
+    }))
+}

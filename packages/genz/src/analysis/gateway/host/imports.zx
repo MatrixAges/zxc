@@ -1,0 +1,45 @@
+import bytes from "std:bytes"
+
+import importPath from "../../../ast/context/import_path"
+import constant from "../../../ast/declarations/table/constant"
+import { std_name, application_name } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const names = [
+        std_name,
+        application_name
+    ]
+
+    return loop({
+        state: in,
+        index: 0
+    }, {
+        while: current => current.index < names.length,
+        next: current => {
+            const name = names[current.index]
+
+            const imported = importPath({
+                state: current.state.context,
+                module: name,
+                path: []
+            })
+
+            const declaration = constant({
+                state: current.state.declarations,
+                value: {
+                    name: bytes.fromText(name),
+                    value: imported.id,
+                    exported: false
+                }
+            })
+
+            current.state.context = imported.state
+            current.state.declarations = declaration.state
+            current.state.valid = current.state.valid && declaration.valid
+            current.index += 1
+        },
+        return: current => current.state
+    })
+}

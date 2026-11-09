@@ -1,0 +1,59 @@
+import bytes from "std:bytes"
+
+import construct from "../../../ast/expressions/catch_scope"
+import close from "../../../ast/statements/builder/close"
+import { err_name } from "./const"
+
+import type { Caught as Input, Node as Output } from "./model"
+
+export default function (in: Input): Output {
+    const body = close(in.state.statements)
+
+    const node = construct({
+        table: {
+            ...in.state.context.expressions.pick([
+                "tags",
+                "offsets"
+            ]),
+            ...in.state.extra.pick([
+                "catch_scope_value",
+                "catch_scope_capture",
+                "catch_scope_body_start",
+                "catch_scope_body_len"
+            ])
+        },
+        base: in.state.context.source.expression_base,
+        value: in.value,
+        capture: bytes.fromText(err_name),
+        start: body.first,
+        count: body.count
+    })
+
+    return {
+        id: node.id,
+        state: {
+            ...in.state,
+            context: {
+                ...in.state.context,
+                expressions: {
+                    ...in.state.context.expressions,
+                    tags: node.table.tags,
+                    offsets: node.table.offsets
+                },
+                valid: in.state.context.valid && node.valid
+            },
+            extra: {
+                ...in.state.extra,
+                ...node.table.omit([
+                    "tags",
+                    "offsets"
+                ])
+            },
+            statements: {
+                ...body.state,
+                root_tags: in.scope.parent_tags,
+                root_offsets: in.scope.parent_offsets
+            }
+        }
+    }
+}

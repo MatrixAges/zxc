@@ -1,0 +1,28 @@
+import bytes from "std:bytes"
+
+import { canceled_name } from "./const"
+import errorUnion from "./union"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const result = errorUnion({
+        state: in,
+        inferred: true
+    })
+
+    const canceled = errorUnion({
+        state: result.state,
+        errors: [bytes.fromText(canceled_name)],
+        inferred: false
+    })
+
+    return {
+        ...canceled.state,
+        types: {
+            ...in.types,
+            result: result.id,
+            canceled: canceled.id
+        }
+    }
+}

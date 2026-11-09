@@ -1,0 +1,34 @@
+import { StatementsKind } from "../../../printer/model/statements"
+import header from "./header"
+
+import type { State } from "./model"
+
+export type Input = {
+    state: State,
+    condition: u32,
+    first: u32,
+    count: u32,
+    capture?: u8[]
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const state = header({
+        state: in.state,
+        kind: StatementsKind.Branch,
+        offset: in.state.branch_condition.length
+    })
+
+    return {
+        ...state,
+        branch_condition: state.branch_condition.push(in.condition)[0],
+        branch_yes_start: state.branch_yes_start.push(in.first)[0],
+        branch_yes_len: state.branch_yes_len.push(in.count)[0],
+        branch_no_start: state.branch_no_start.push(in.first + in.count)[0],
+        branch_no_len: state.branch_no_len.push(0)[0],
+        branch_capture: state.branch_capture.push(in.capture)[0],
+        branch_capture_reference: state.branch_capture_reference.push(false)[0],
+        branch_error_capture: state.branch_error_capture.push(null)[0]
+    }
+}

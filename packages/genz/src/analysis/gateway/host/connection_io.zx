@@ -1,0 +1,178 @@
+import address from "../../../ast/context/address"
+import fixedArray from "../../../ast/context/fixed_array"
+import integer from "../../../ast/context/integer"
+import binding from "./binding"
+import call from "./call"
+import {
+    output_capacity,
+    output_buffer_name,
+    head_buffer_name,
+    stream_name,
+    reader_name,
+    writer_name,
+    input_name,
+    output_name,
+    interface_name,
+    server_name,
+    std_name,
+    http_name,
+    server_type_name,
+    init_name,
+    err_name,
+    check_canceled_name
+} from "./const"
+import path from "./path"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const size = integer({
+        state: in.context,
+        value: output_capacity
+    })
+
+    const buffer_type = fixedArray({
+        state: size.state,
+        length: size.id,
+        element: in.types.byte
+    })
+
+    const buffer = binding({
+        node: {
+            state: {
+                ...in,
+                context: buffer_type.state
+            },
+            id: in.undefined
+        },
+        name: output_buffer_name,
+        type_expr: buffer_type.id,
+        mutable: true
+    })
+
+    const head = path({
+        state: buffer,
+        path: [head_buffer_name]
+    })
+
+    const reader = binding({
+        node: call({
+            state: head.state,
+            path: [
+                stream_name,
+                reader_name
+            ],
+            arguments: [
+                in.symbols.io,
+                head.id
+            ],
+            fallible: false
+        }),
+        name: input_name,
+        mutable: true
+    })
+
+    const output_buffer = path({
+        state: reader,
+        path: [output_buffer_name]
+    })
+
+    const buffer_ref = address({
+        state: output_buffer.state.context,
+        value: output_buffer.id
+    })
+
+    const writer = binding({
+        node: call({
+            state: {
+                ...output_buffer.state,
+                context: buffer_ref.state
+            },
+            path: [
+                stream_name,
+                writer_name
+            ],
+            arguments: [
+                in.symbols.io,
+                buffer_ref.id
+            ],
+            fallible: false
+        }),
+        name: output_name,
+        mutable: true
+    })
+
+    const input = path({
+        state: writer,
+        path: [
+            input_name,
+            interface_name
+        ]
+    })
+
+    const input_ref = address({
+        state: input.state.context,
+        value: input.id
+    })
+
+    const output_ref = address({
+        state: input_ref.state,
+        value: in.symbols.output
+    })
+
+    const server = binding({
+        node: call({
+            state: {
+                ...input.state,
+                context: output_ref.state
+            },
+            path: [
+                std_name,
+                http_name,
+                server_type_name,
+                init_name
+            ],
+            arguments: [
+                input_ref.id,
+                output_ref.id
+            ],
+            fallible: false
+        }),
+        name: server_name,
+        mutable: true
+    })
+
+    const input_error = path({
+        state: server,
+        path: [
+            input_name,
+            err_name
+        ]
+    })
+
+    const output_error = path({
+        state: input_error.state,
+        path: [
+            output_name,
+            err_name
+        ]
+    })
+
+    const check = call({
+        state: output_error.state,
+        path: [check_canceled_name],
+        arguments: [
+            input_error.id,
+            output_error.id
+        ],
+        fallible: true
+    })
+
+    return {
+        ...check.state,
+        symbols: {
+            ...in.symbols,
+            check: check.id
+        }
+    }
+}
