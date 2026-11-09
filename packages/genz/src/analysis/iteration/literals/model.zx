@@ -1,0 +1,58 @@
+import type { State as Counter } from "core/integer/counter/model"
+import type { Table } from "core/type_table/model"
+import type { Input as Bases, State as Context } from "../../../ast/context/model"
+import type { Columns as Forms } from "../../../ast/expressions/forms/model"
+import type { Columns as Expressions } from "../../../ast/expressions/model"
+import type { Columns as Fields } from "../../../ast/fields/model"
+import type { StatementsKind } from "../../../printer/model/statements"
+
+export enum Mode { Object, Tuple, List }
+
+export type Bindings = {
+    names: u8[][],
+    values: u32[],
+    references: u32[]
+}
+
+export type Input = {
+    mode: Mode,
+    types: Table,
+    type_id: u32,
+    layout: u32,
+    element: u32,
+    bindings: Bindings,
+    field_indices: u32[],
+    field_values: u32[],
+    evaluation: u32[],
+    prior: u64[],
+    reads: Counter,
+    bases: Bases
+}
+
+export type Statements = {
+    tags: StatementsKind[],
+    offsets: u32[],
+    constant_name: u8[][],
+    constant_type_expr: u32?[],
+    constant_value: u32[],
+    constant_exported: bool[],
+    discard: u32[]
+}
+
+export type State = {
+    source: Input,
+    context: Context,
+    statements: Statements,
+    fields: Fields,
+    root: u32
+}
+
+export type Output = {
+    expressions: Expressions,
+    forms: Forms,
+    statements: Statements,
+    fields: Fields,
+    root: u32,
+    uses_allocator: bool,
+    valid: bool
+}

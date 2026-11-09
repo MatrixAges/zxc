@@ -1,0 +1,57 @@
+import header from "../../../ast/statements/header"
+import { StatementsKind } from "../../../printer/model/statements"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const bindings = in.source.bindings
+
+    return loop({
+        tags: in.statements.tags,
+        offsets: in.statements.offsets,
+        constant_name: in.statements.constant_name,
+        constant_type_expr: in.statements.constant_type_expr,
+        constant_value: in.statements.constant_value,
+        constant_exported: in.statements.constant_exported,
+        valid: in.context.valid,
+        index: 0
+    }, {
+        while: current => current.valid && current.index < bindings.names.length,
+        next: current => {
+            const index = current.index
+
+            const value = header({
+                tags: current.tags,
+                offsets: current.offsets,
+                base: 0,
+                kind: StatementsKind.Constant,
+                offset: current.constant_name.length
+            })
+
+            current.tags = value.tags
+            current.offsets = value.offsets
+            current.constant_name =
+                current.constant_name.push(bindings.names[index])[0]
+            current.constant_type_expr = current.constant_type_expr.push(null)[0]
+            current.constant_value =
+                current.constant_value.push(bindings.values[index])[0]
+            current.constant_exported = current.constant_exported.push(false)[0]
+            current.valid = current.valid && value.valid
+            current.index += 1
+        },
+        return: current => {
+            ...in,
+            statements: {
+                ...in.statements,
+                ...current.omit([
+                    "valid",
+                    "index"
+                ])
+            },
+            context: {
+                ...in.context,
+                valid: current.valid
+            }
+        }
+    })
+}

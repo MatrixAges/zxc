@@ -1,0 +1,16 @@
+import { Mode } from "./model"
+
+import type { State as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        expressions: in.context.expressions,
+        forms: in.context.forms,
+        statements: in.statements,
+        fields: in.fields,
+        root: in.root,
+        uses_allocator: in.source.mode == Mode.List &&
+            in.source.bindings.references.length != 0,
+        valid: in.context.valid
+    }
+}

@@ -1,0 +1,16 @@
+import tuple from "../../../ast/context/tuple"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const value = tuple({
+        state: in.context,
+        values: in.source.bindings.references
+    })
+
+    return {
+        ...in,
+        context: value.state,
+        root: value.id
+    }
+}

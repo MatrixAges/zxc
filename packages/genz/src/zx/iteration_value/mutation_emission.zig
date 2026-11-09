@@ -7,13 +7,7 @@ const enabled = @import("genz_options").generated_analysis;
 const entry = if (enabled) @import("generated_iteration_mutation") else struct {};
 const Input = if (enabled) std.meta.Child(entry.Input) else void;
 pub const Mode = if (enabled) @FieldType(Input, "mode") else enum { Push, Pop, Update };
-
-pub const Operand = struct {
-    name: []const u8,
-    value: node.ExpressionId,
-    reference: node.ExpressionId,
-    pub const empty: Operand = .{ .name = &.{}, .value = @fromBackingInt(0), .reference = @fromBackingInt(0) };
-};
+pub const Operand = @import("operand.zig");
 
 pub const Request = struct {
     mode: Mode,

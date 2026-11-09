@@ -1,0 +1,23 @@
+import address from "../../../ast/context/address"
+import array from "../../../ast/context/array"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const literal = array({
+        state: in.context,
+        element: in.source.element,
+        values: in.source.bindings.references
+    })
+
+    const value = address({
+        state: literal.state,
+        value: literal.id
+    })
+
+    return {
+        ...in,
+        context: value.state,
+        root: value.id
+    }
+}

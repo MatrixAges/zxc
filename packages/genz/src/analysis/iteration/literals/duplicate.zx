@@ -1,0 +1,38 @@
+import bytes from "std:bytes"
+
+import call from "../../../ast/context/call"
+import field from "../../../ast/context/field"
+import identifier from "../../../ast/context/identifier"
+import { allocator_name } from "../buffer/const"
+import { duplicate_member } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const allocator = identifier({
+        state: in.context,
+        name: bytes.fromText(allocator_name)
+    })
+
+    const member = field({
+        state: allocator.state,
+        target: allocator.id,
+        name: bytes.fromText(duplicate_member)
+    })
+
+    const value = call({
+        state: member.state,
+        callee: member.id,
+        arguments: [
+            in.source.element,
+            in.root
+        ],
+        fallible: true
+    })
+
+    return {
+        ...in,
+        context: value.state,
+        root: value.id
+    }
+}

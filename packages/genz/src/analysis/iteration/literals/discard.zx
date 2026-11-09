@@ -1,0 +1,62 @@
+import get from "core/integer/counter/get"
+
+import header from "../../../ast/statements/header"
+import { StatementsKind } from "../../../printer/model/statements"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const source = in.source
+
+    return loop({
+        tags: in.statements.tags,
+        offsets: in.statements.offsets,
+        discard: in.statements.discard,
+        valid: in.context.valid,
+        index: 0
+    }, {
+        while: current => current.valid && current.index < source.evaluation.length,
+        next: current => {
+            const index = current.index
+
+            const found = get({
+                state: source.reads,
+                key: source.evaluation[index]
+            })
+
+            const count = found == null ? 0 : found
+
+            if (count == source.prior[index]) {
+                const value = header({
+                    tags: current.tags,
+                    offsets: current.offsets,
+                    base: 0,
+                    kind: StatementsKind.Discard,
+                    offset: current.discard.length
+                })
+
+                current.tags = value.tags
+                current.offsets = value.offsets
+                current.discard =
+                    current.discard.push(source.bindings.references[index])[0]
+                current.valid = current.valid && value.valid
+            }
+
+            current.index += 1
+        },
+        return: current => {
+            ...in,
+            statements: {
+                ...in.statements,
+                ...current.omit([
+                    "valid",
+                    "index"
+                ])
+            },
+            context: {
+                ...in.context,
+                valid: current.valid
+            }
+        }
+    })
+}
