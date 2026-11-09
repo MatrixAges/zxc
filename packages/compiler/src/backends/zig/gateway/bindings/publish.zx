@@ -1,0 +1,12 @@
+import type { State as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    return in.pick([
+        "status",
+        "modules",
+        "writable",
+        "indices",
+        "access",
+        "ends"
+    ])
+}

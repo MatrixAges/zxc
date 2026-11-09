@@ -1,0 +1,73 @@
+import type { Index } from "core/bytes/index/model"
+import type { Stores } from "core/store_table/model"
+import type { Table } from "core/type_table/model"
+
+export enum Status {
+    Valid,
+    InvalidModule,
+    UnsupportedHostReference,
+    ConflictingStore,
+    MissingInitializer,
+    InvalidInitializer
+}
+
+export type Member = {
+    export_name: string,
+    name: string,
+    function_id?: u32,
+    requires_io?: bool
+}
+
+export type Initializer = {
+    identity: string,
+    schema_version: u32,
+    module_name: string,
+    type_name: string
+}
+
+export type Functions = {
+    input_types: u32[],
+    output_types: u32[],
+    stores: Stores[]
+}
+
+export type Input = {
+    types: Table,
+    type_names: string[],
+    functions: Functions,
+    members: Member[],
+    initializers: Initializer[],
+    independent: bool
+}
+
+export type State = {
+    source: Input,
+    status: Status,
+    index: Index,
+    types: u32[],
+    modules: string[],
+    writable: bool[],
+    indices: u64[],
+    access: bool[],
+    ends: u64[]
+}
+
+export type Service = {
+    state: State,
+    member: Member
+}
+
+export type Binding = {
+    state: State,
+    stores: Stores,
+    position: u64
+}
+
+export type Output = {
+    status: Status,
+    modules: string[],
+    writable: bool[],
+    indices: u64[],
+    access: bool[],
+    ends: u64[]
+}

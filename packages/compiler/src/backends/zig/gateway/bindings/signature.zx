@@ -1,0 +1,31 @@
+import integers from "std:integer"
+
+import type { Stores } from "core/store_table/model"
+import type { Functions } from "./model"
+
+export type Input = {
+    functions: Functions,
+    id?: u32
+}
+
+export type Signature = {
+    input_type: u32,
+    output_type: u32,
+    stores: Stores
+}
+
+export type Output = Signature?
+
+export default function (in: Input): Output {
+    if (in.id == null) {
+        return null
+    }
+
+    const index = integers.widen(in.id)
+
+    return {
+        input_type: in.functions.input_types[index],
+        output_type: in.functions.output_types[index],
+        stores: in.functions.stores[index]
+    }
+}

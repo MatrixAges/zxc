@@ -1,0 +1,76 @@
+<Module>
+    <Type from="model" as="Bindings" />
+
+    <Args in={Bindings.Service} out={Bindings.State} />
+
+    <Call fn="identity" in={$in.member} />
+
+    <If on={!$ctx.identity}>
+        <Return
+            value={{
+                ...$in.state,
+                status: Bindings.Status.InvalidModule
+            }}
+        />
+    </If>
+
+    <Call
+        fn="signature"
+        in={{
+            functions: $in.state.source.functions,
+            id: $in.member.function_id
+        }}
+    />
+
+    <If on={$ctx.signature != null}>
+        <Call
+            fn="reference"
+            in={{
+                types: $in.state.source.types,
+                ...$ctx.signature.pick([
+                    "input_type",
+                    "output_type"
+                ])
+            }}
+        />
+
+        <If on={$ctx.reference}>
+            <Return
+                value={{
+                    ...$in.state,
+                    status: Bindings.Status.UnsupportedHostReference
+                }}
+            />
+        </If>
+
+        <Call
+            fn="stores"
+            in={{
+                state: $in.state,
+                stores: $ctx.signature.stores
+            }}
+        />
+
+        <If on={$ctx.stores.status != Bindings.Status.Valid}>
+            <Return value={$ctx.stores} />
+        </If>
+
+        <If on={$in.member.requires_io == null}>
+            <Return
+                value={{
+                    ...$ctx.stores,
+                    status: Bindings.Status.InvalidModule
+                }}
+            />
+        </If>
+
+        <Return value={$ctx.stores} />
+    </If>
+
+    <Return
+        value={{
+            ...$in.state,
+            status: Bindings.Status.InvalidModule
+        }}
+    />
+</Module>

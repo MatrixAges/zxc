@@ -1,6 +1,8 @@
 const Package = @import("generation_manifest.zig").Package;
 
 pub const entries: []const Package = &.{
+    .{ .specifier = "compiler/gateway_state_service", .entry = "backends/zig/gateway/bindings/service.rx" },
+    .{ .specifier = "core/bytes/index/insert", .entry = "core/bytes/index/insert.zx" },
     .{ .specifier = "compiler/bundle_abi_view", .entry = "backends/zig/bundle_abi/view.rx" },
     .{ .specifier = "genz/abi/model", .entry = "genz/analysis/abi/view/model.zx" },
     .{ .specifier = "compiler/compiled_native", .entry = "zx/modules/compiled/loading/native/step.rx" },

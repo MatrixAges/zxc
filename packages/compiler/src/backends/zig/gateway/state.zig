@@ -1,66 +1,119 @@
 const std = @import("std");
-const ir = @import("zx").ir;
+const zx = @import("zx");
 const generating = @import("genz");
 const Library = @import("../../../library/root.zig").Result;
 const Bundle = @import("../library.zig").Bundle;
 const names = @import("../names.zig");
-pub const Result = struct { objects: []const generating.zx.state.Object, services: []const generating.gateway.Service };
-pub const Error = names.Error || error{ UnsupportedHostReference, InvalidModule, ConflictingStore, MissingInitializer, InvalidInitializer };
+pub const Result = @import("state_seed.zig").Result;
+pub const Error = @import("state_seed.zig").Error;
 
 pub fn create(allocator: std.mem.Allocator, library: *const Library, bundle: Bundle) Error!Result {
+    if (comptime !@import("parser_options").generated_parser) return @import("state_seed.zig").create(allocator, library, bundle);
     if (library.exports.len != bundle.public_modules.len) return error.InvalidModule;
 
     const independent = try @import("frontend").storesOwnValues(allocator, library.program);
     const identities = try names.create(allocator, bundle.arena.child_allocator, library.program, library.nominal_types);
-    const services = try allocator.alloc(generating.gateway.Service, library.exports.len);
-    var objects: std.ArrayList(generating.zx.state.Object) = .empty;
-    var slots: std.StringHashMapUnmanaged(struct { index: usize, type_id: ir.TypeId }) = .empty;
+    const entry = @import("generated_gateway_bindings");
+    const Input = std.meta.Child(entry.Input);
+    const MemberRef = std.meta.Child(@FieldType(Input, "members"));
+    const Member = if (@typeInfo(MemberRef) == .pointer) std.meta.Child(MemberRef) else MemberRef;
+    const Types = std.meta.Child(@FieldType(Input, "types"));
+    const Functions = std.meta.Child(@FieldType(Input, "functions"));
+    var scratch = std.heap.ArenaAllocator.init(bundle.arena.child_allocator);
 
-    defer slots.deinit(allocator);
+    defer scratch.deinit();
 
-    for (library.exports, bundle.public_modules, services, 0..) |exported, facade, *service, index| {
-        if (!std.mem.eql(u8, exported.name, facade.name) or exported.function == null) return error.InvalidModule;
+    const temporary = scratch.allocator();
+    const members = try temporary.alloc(MemberRef, library.exports.len);
 
-        const program = try library.module(index);
+    for (library.exports, bundle.public_modules, members) |exported, facade, *member| {
+        const value: Member = .{
+            .export_name = exported.name,
+            .name = facade.name,
+            .function_id = if (exported.function) |id| @backingInt(id) else null,
+            .requires_io = if (facade.requirements) |requirements| requirements.io else null,
+        };
 
-        if (try ir.containsNativeReference(allocator, program.types, program.input_type) or try ir.containsNativeReference(allocator, program.types, program.output_type)) return error.UnsupportedHostReference;
-
-        const bindings = try allocator.alloc(generating.gateway.Slot, program.stores.count());
-
-        for (0..program.stores.count(), bindings) |store_index, *binding| {
-            const slot = program.stores.at(store_index);
-            const entry = try slots.getOrPut(allocator, slot.path);
-
-            if (entry.found_existing) {
-                if (entry.value_ptr.type_id != slot.type_id) return error.ConflictingStore;
-            } else {
-                const initial = for (bundle.store_initializers) |candidate| {
-                    if (std.mem.eql(u8, candidate.identity, slot.path)) break candidate;
-                } else return error.MissingInitializer;
-
-                if (!std.mem.eql(u8, initial.type_name, identities.types[@backingInt(slot.type_id)])) return error.InvalidInitializer;
-
-                entry.value_ptr.* = .{ .index = objects.items.len, .type_id = slot.type_id };
-
-                try objects.append(allocator, .{ .module_name = initial.module_name, .writable = false, .independent = independent });
-            }
-
-            const global = entry.value_ptr.index;
-            objects.items[global].writable = objects.items[global].writable or slot.writable;
-            binding.* = .{ .index = global, .writable = slot.writable };
+        if (comptime @typeInfo(MemberRef) == .pointer) {
+            const borrowed = try temporary.create(Member);
+            borrowed.* = value;
+            member.* = borrowed;
+        } else {
+            member.* = value;
         }
+    }
 
-        const requirements = facade.requirements orelse return error.InvalidModule;
+    const InitialRef = std.meta.Child(@FieldType(Input, "initializers"));
+    const Initial = if (@typeInfo(InitialRef) == .pointer) std.meta.Child(InitialRef) else InitialRef;
+    const initializers = try temporary.alloc(InitialRef, bundle.store_initializers.len);
+
+    for (bundle.store_initializers, initializers) |source, *initial| {
+        const value = zx.columns.storage.view(Initial, source);
+
+        if (comptime @typeInfo(InitialRef) == .pointer) {
+            const borrowed = try temporary.create(Initial);
+            borrowed.* = value;
+            initial.* = borrowed;
+        } else {
+            initial.* = value;
+        }
+    }
+
+    const types = zx.ir.TypeTable.borrow(Types, library.program.types);
+    const functions = zx.columns.borrow(Functions, &library.program.functions);
+
+    const input: Input = .{
+        .types = &types,
+        .type_names = identities.types,
+        .functions = &functions,
+        .members = members,
+        .initializers = initializers,
+        .independent = independent,
+    };
+
+    const output = zx.columns.invoke(entry.executeValue, allocator, &input) catch |err| switch (@as(anyerror, err)) {
+        error.OutOfMemory, error.Overflow, error.IntegerOverflow => return error.OutOfMemory,
+        else => unreachable,
+    };
+
+    switch (output.status) {
+        .Valid => {},
+        .InvalidModule => return error.InvalidModule,
+        .UnsupportedHostReference => return error.UnsupportedHostReference,
+        .ConflictingStore => return error.ConflictingStore,
+        .MissingInitializer => return error.MissingInitializer,
+        .InvalidInitializer => return error.InvalidInitializer,
+    }
+
+    const objects = try allocator.alloc(generating.zx.state.Object, output.modules.len);
+
+    for (output.modules, output.writable, objects) |module_name, writable, *object| {
+        object.* = .{ .independent = independent, .module_name = module_name, .writable = writable };
+    }
+
+    const slots = try allocator.alloc(generating.gateway.Slot, output.indices.len);
+
+    for (output.indices, output.access, slots) |index, writable, *slot| {
+        slot.* = .{ .index = index, .writable = writable };
+    }
+
+    const services = try allocator.alloc(generating.gateway.Service, library.exports.len);
+    var start: usize = 0;
+
+    for (library.exports, bundle.public_modules, output.ends, services) |exported, facade, end, *service| {
+        const id = @backingInt(exported.function.?);
 
         service.* = .{
             .name = facade.name,
             .module_name = facade.file.name,
-            .slots = bindings,
-            .output = .{ .types = program.types, .id = program.output_type },
-            .requires_io = requirements.io,
-            .requires_process = requirements.process,
+            .slots = slots[start..end],
+            .output = .{ .types = library.program.types, .id = @fromBackingInt(library.program.functions.output_types[id]) },
+            .requires_io = facade.requirements.?.io,
+            .requires_process = facade.requirements.?.process,
         };
+
+        start = end;
     }
 
-    return .{ .objects = try objects.toOwnedSlice(allocator), .services = services };
+    return .{ .objects = objects, .services = services };
 }

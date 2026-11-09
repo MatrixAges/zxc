@@ -1,0 +1,36 @@
+import bytes from "std:bytes"
+
+import type { Initializer } from "./model"
+
+export type Input = {
+    initializers: Initializer[],
+    path: string
+}
+
+export type Output = Initializer?
+
+export default function (in: Input): Output {
+    const absent: Output = null
+
+    return loop({
+        index: 0,
+        found: absent
+    }, {
+        while: current => current.found == null && current.index < in.initializers.length,
+        next: current => {
+            const candidate = in.initializers[current.index]
+
+            if (
+                bytes.equals(
+                    bytes.fromText(candidate.identity),
+                    bytes.fromText(in.path)
+                )
+            ) {
+                current.found = candidate
+            }
+
+            current.index += 1
+        },
+        return: current => current.found
+    })
+}

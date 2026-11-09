@@ -1,0 +1,51 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+import insert from "core/bytes/index/insert"
+
+import find from "./find"
+import { Status } from "./model"
+
+import type { Binding as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const path = in.stores.paths[in.position]
+    const type_id = in.stores.types[in.position]
+
+    const initial = find({
+        initializers: in.state.source.initializers,
+        path
+    })
+
+    if (initial == null) {
+        return {
+            ...in.state,
+            status: Status.MissingInitializer
+        }
+    }
+
+    const type_name = in.state.source.type_names[integers.widen(type_id)]
+
+    if (
+        !bytes.equals(
+            bytes.fromText(initial.type_name),
+            bytes.fromText(type_name)
+        )
+    ) {
+        return {
+            ...in.state,
+            status: Status.InvalidInitializer
+        }
+    }
+
+    return {
+        ...in.state,
+        index: insert({
+            index: in.state.index,
+            key: bytes.fromText(path),
+            value: integers.narrow(in.state.modules.length)
+        }),
+        types: in.state.types.push(type_id)[0],
+        modules: in.state.modules.push(initial.module_name)[0],
+        writable: in.state.writable.push(false)[0]
+    }
+}

@@ -1,0 +1,51 @@
+import integers from "std:integer"
+
+import probe from "./probe"
+
+import type { Index } from "./model"
+
+export type Input = {
+    index: Index,
+    capacity: u64
+}
+
+export type Output = Index
+
+export default function (in: Input): Output {
+    const empty: u32?[] = []
+
+    const buckets = loop({
+        values: empty
+    }, {
+        while: state => state.values.length < in.capacity,
+        next: state => {
+            state.values = state.values.push(null)[0]
+        },
+        return: state => state.values
+    })
+
+    const filled = loop({
+        index: {
+            ...in.index,
+            buckets
+        },
+        position: 0
+    }, {
+        while: state => state.position < in.index.keys.length,
+        next: state => {
+            const slot = probe({
+                index: state.index,
+                key: in.index.keys[state.position]
+            })
+
+            state.index.buckets = state.index.buckets.with(
+                slot,
+                integers.narrow(state.position)
+            )
+            state.position += 1
+        },
+        return: state => state.index
+    })
+
+    return filled
+}

@@ -1,0 +1,27 @@
+import contains from "../../../../zx/analysis/semantic/querying/execute"
+
+import type { Table } from "core/type_table/model"
+
+export type Input = {
+    types: Table,
+    input_type: u32,
+    output_type: u32
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    if (contains({
+        table: in.types,
+        id: in.input_type,
+        native_references: true
+    })) {
+        return true
+    }
+
+    return contains({
+        table: in.types,
+        id: in.output_type,
+        native_references: true
+    })
+}

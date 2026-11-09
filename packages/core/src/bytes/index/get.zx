@@ -7,6 +7,10 @@ import type { Input } from "./probe"
 export type Output = u32?
 
 export default function (in: Input): Output {
+    if (in.index.buckets.length == 0) {
+        return null
+    }
+
     const entry = in.index.buckets[probe(in)]
 
     if (entry == null) {

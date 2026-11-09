@@ -1,0 +1,12 @@
+import bytes from "std:bytes"
+
+import type { Member as Input } from "./model"
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    return in.function_id != null && bytes.equals(
+        bytes.fromText(in.export_name),
+        bytes.fromText(in.name)
+    )
+}

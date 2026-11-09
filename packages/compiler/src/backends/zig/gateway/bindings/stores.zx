@@ -1,0 +1,32 @@
+import { Status } from "./model"
+import slot from "./slot"
+
+import type { Stores } from "core/store_table/model"
+import type { State as Output } from "./model"
+
+export type Input = {
+    state: Output,
+    stores: Stores
+}
+
+export default function (in: Input): Output {
+    const result = loop({
+        state: in.state,
+        stores: in.stores,
+        position: 0
+    }, {
+        while: current => current.state.status == Status.Valid &&
+            current.position < current.stores.paths.length,
+        next: current => {
+            const bound = slot(current)
+
+            current.state = bound.state
+            current.position += 1
+        }
+    })
+
+    return {
+        ...result.state,
+        ends: result.state.ends.push(result.state.indices.length)[0]
+    }
+}

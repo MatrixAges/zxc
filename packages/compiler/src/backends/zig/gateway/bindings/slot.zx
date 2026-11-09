@@ -1,0 +1,57 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+import get from "core/bytes/index/get"
+
+import { Status } from "./model"
+import register from "./register"
+
+import type { Binding as Input, Binding as Output } from "./model"
+
+export default function (in: Input): Output {
+    const previous = get({
+        index: in.state.index,
+        key: bytes.fromText(in.stores.paths[in.position])
+    })
+
+    const state = match {
+        previous == null => register(in),
+        _ => in.state
+    }
+
+    if (state.status != Status.Valid) {
+        return {
+            ...in,
+            state
+        }
+    }
+
+    const global = match {
+        previous == null => in.state.modules.length,
+        _ => integers.widen(previous)
+    }
+
+    if (state.types[global] != in.stores.types[in.position]) {
+        return {
+            ...in,
+            state: {
+                ...state,
+                status: Status.ConflictingStore
+            }
+        }
+    }
+
+    const writable = in.stores.writable[in.position]
+
+    return {
+        ...in,
+        state: {
+            ...state,
+            writable: state.writable.with(
+                global,
+                state.writable[global] || writable
+            ),
+            indices: state.indices.push(global)[0],
+            access: state.access.push(writable)[0]
+        }
+    }
+}

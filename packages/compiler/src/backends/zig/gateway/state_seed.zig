@@ -1,0 +1,66 @@
+const std = @import("std");
+const ir = @import("zx").ir;
+const generating = @import("genz");
+const Library = @import("../../../library/root.zig").Result;
+const Bundle = @import("../library.zig").Bundle;
+const names = @import("../names.zig");
+pub const Result = struct { objects: []const generating.zx.state.Object, services: []const generating.gateway.Service };
+pub const Error = names.Error || error{ UnsupportedHostReference, InvalidModule, ConflictingStore, MissingInitializer, InvalidInitializer };
+
+pub fn create(allocator: std.mem.Allocator, library: *const Library, bundle: Bundle) Error!Result {
+    if (library.exports.len != bundle.public_modules.len) return error.InvalidModule;
+
+    const independent = try @import("frontend").storesOwnValues(allocator, library.program);
+    const identities = try names.create(allocator, bundle.arena.child_allocator, library.program, library.nominal_types);
+    const services = try allocator.alloc(generating.gateway.Service, library.exports.len);
+    var objects: std.ArrayList(generating.zx.state.Object) = .empty;
+    var slots: std.StringHashMapUnmanaged(struct { index: usize, type_id: ir.TypeId }) = .empty;
+
+    defer slots.deinit(allocator);
+
+    for (library.exports, bundle.public_modules, services, 0..) |exported, facade, *service, index| {
+        if (!std.mem.eql(u8, exported.name, facade.name) or exported.function == null) return error.InvalidModule;
+
+        const program = try library.module(index);
+
+        if (try ir.containsNativeReference(allocator, program.types, program.input_type) or try ir.containsNativeReference(allocator, program.types, program.output_type)) return error.UnsupportedHostReference;
+
+        const bindings = try allocator.alloc(generating.gateway.Slot, program.stores.count());
+
+        for (0..program.stores.count(), bindings) |store_index, *binding| {
+            const slot = program.stores.at(store_index);
+            const entry = try slots.getOrPut(allocator, slot.path);
+
+            if (entry.found_existing) {
+                if (entry.value_ptr.type_id != slot.type_id) return error.ConflictingStore;
+            } else {
+                const initial = for (bundle.store_initializers) |candidate| {
+                    if (std.mem.eql(u8, candidate.identity, slot.path)) break candidate;
+                } else return error.MissingInitializer;
+
+                if (!std.mem.eql(u8, initial.type_name, identities.types[@backingInt(slot.type_id)])) return error.InvalidInitializer;
+
+                entry.value_ptr.* = .{ .index = objects.items.len, .type_id = slot.type_id };
+
+                try objects.append(allocator, .{ .module_name = initial.module_name, .writable = false, .independent = independent });
+            }
+
+            const global = entry.value_ptr.index;
+            objects.items[global].writable = objects.items[global].writable or slot.writable;
+            binding.* = .{ .index = global, .writable = slot.writable };
+        }
+
+        const requirements = facade.requirements orelse return error.InvalidModule;
+
+        service.* = .{
+            .name = facade.name,
+            .module_name = facade.file.name,
+            .slots = bindings,
+            .output = .{ .types = program.types, .id = program.output_type },
+            .requires_io = requirements.io,
+            .requires_process = requirements.process,
+        };
+    }
+
+    return .{ .objects = try objects.toOwnedSlice(allocator), .services = services };
+}

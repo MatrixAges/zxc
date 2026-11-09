@@ -1,0 +1,21 @@
+import { Status } from "./model"
+
+import type { Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        source: in,
+        status: Status.Valid,
+        index: {
+            keys: [],
+            values: [],
+            buckets: []
+        },
+        types: [],
+        modules: [],
+        writable: [],
+        indices: [],
+        access: [],
+        ends: []
+    }
+}

@@ -1,0 +1,49 @@
+import {
+    initial_capacity,
+    capacity_growth,
+    load_numerator,
+    load_denominator
+} from "./const"
+import get from "./get"
+import grow from "./grow"
+import put from "./put"
+
+import type { Index } from "./model"
+
+export type Input = {
+    index: Index,
+    key: u8[],
+    value: u32
+}
+
+export type Output = Index
+
+export default function (in: Input): Output {
+    const previous = get(in.pick([
+        "index",
+        "key"
+    ]))
+
+    if (previous != null) {
+        return put(in)
+    }
+
+    const count = in.index.keys.length + 1
+    const limit = in.index.buckets.length * load_numerator / load_denominator
+
+    const prepared = match {
+        count > limit => grow({
+            index: in.index,
+            capacity: match {
+                in.index.buckets.length == 0 => initial_capacity,
+                _ => in.index.buckets.length * capacity_growth
+            }
+        }),
+        _ => in.index
+    }
+
+    return put({
+        ...in,
+        index: prepared
+    })
+}

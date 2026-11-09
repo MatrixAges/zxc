@@ -84,6 +84,7 @@ pub const main = [_]Entry{
     .{ .path = "backends/zig/source_abi/select.rx", .name = "source_abi", .owner = .compiler },
     .{ .path = "backends/zig/bundle_abi/build.rx", .name = "bundle_abi", .owner = .compiler },
     .{ .path = "backends/zig/bundle_abi/view.rx", .name = "bundle_abi_view", .owner = .compiler },
+    .{ .path = "backends/zig/gateway/bindings/build.rx", .name = "gateway_bindings", .owner = .compiler },
     .{ .path = "lint/naming/check.rx", .name = "naming", .owner = .lint },
     .{ .path = "lint/length/check.rx", .name = "length", .owner = .lint },
     .{ .path = "lint/indentation/line/line.rx", .name = "indentation_line", .owner = .lint },

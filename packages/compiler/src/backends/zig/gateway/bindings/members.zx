@@ -1,0 +1,23 @@
+import service from "compiler/gateway_state_service"
+
+import { Status } from "./model"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return loop({
+        state: in,
+        position: 0
+    }, {
+        while: current => current.state.status == Status.Valid &&
+            current.position < in.source.members.length,
+        next: current => {
+            current.state = service({
+                state: current.state,
+                member: in.source.members[current.position]
+            })
+            current.position += 1
+        },
+        return: current => current.state
+    })
+}
