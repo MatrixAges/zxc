@@ -11,6 +11,28 @@ pub fn lower(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.TypeId, 
 }
 
 pub fn lowerWithStorage(self: *Lower, borrow_storage: *std.ArrayList(node.Statement), body: *std.ArrayList(node.Statement), id: ir.TypeId, value: node.ExpressionId, mode: Mode) Lower.Error!node.ExpressionId {
+    var scratch = std.heap.ArenaAllocator.init(self.workspace);
+    var buffer: [std.heap.page_size_min]u8 = undefined;
+    var buffered = std.heap.BufferFirstAllocator.init(&buffer, scratch.allocator());
+
+    defer scratch.deinit();
+
+    const temporary = buffered.allocator();
+    var boundary: Capture = undefined;
+
+    const capture = if (self.capture) |captured| capture: {
+        boundary = .{ .name = captured.name, .label = captured.label, .failure = @backingInt(captured.failure) };
+
+        break :capture &boundary;
+    } else null;
+
+    const input = try prepareFor(self, temporary, id, value, mode, capture);
+    const output = @import("generated_state_conversion_emit").executeIn(temporary, &input) catch |err| return failure(err);
+
+    return apply(self, borrow_storage, body, output);
+}
+
+pub fn prepareFor(self: *Lower, temporary: std.mem.Allocator, id: ir.TypeId, value: node.ExpressionId, mode: Mode, capture: ?*const Capture) Lower.Error!Input {
     const planner = @import("generated_state_conversion_plan");
     const PlanInput = std.meta.Child(planner.Input);
     const types = ir.TypeTable.borrow(std.meta.Child(@FieldType(PlanInput, "types")), self.program.types);
@@ -34,31 +56,12 @@ pub fn lowerWithStorage(self: *Lower, borrow_storage: *std.ArrayList(node.Statem
         },
     };
 
-    var scratch = std.heap.ArenaAllocator.init(self.workspace);
-    var buffer: [std.heap.page_size_min]u8 = undefined;
-    var buffered = std.heap.BufferFirstAllocator.init(&buffer, scratch.allocator());
-
-    defer scratch.deinit();
-
-    const temporary = buffered.allocator();
-
     const plan = if (mode == .view_value or mode == .view_layout)
         try @import("view_plan.zig").build(self, temporary, &request)
     else
         planner.executeIn(temporary, &request) catch |err| return failure(err);
 
-    var boundary: Capture = undefined;
-
-    const capture = if (self.capture) |captured| capture: {
-        boundary = .{ .name = captured.name, .label = captured.label, .failure = @backingInt(captured.failure) };
-
-        break :capture &boundary;
-    } else null;
-
-    const input = try prepare(self, temporary, plan, value, capture);
-    const output = @import("generated_state_conversion_emit").executeIn(temporary, &input) catch |err| return failure(err);
-
-    return apply(self, borrow_storage, body, output);
+    return prepare(self, temporary, plan, value, capture);
 }
 
 pub const Input = std.meta.Child(@import("generated_state_conversion_emit").Input);

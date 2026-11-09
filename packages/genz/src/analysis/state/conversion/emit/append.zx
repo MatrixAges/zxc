@@ -1,0 +1,21 @@
+import initialize from "./initialize"
+import walk from "./walk"
+
+import type { Input, Output } from "./walk"
+
+export default function (in: Input): Output {
+    const initial = initialize(in.source)
+
+    return walk({
+        source: in.source,
+        state: {
+            ...initial,
+            context: in.state.context,
+            body: in.state.body,
+            fields: in.state.fields,
+            storage: in.state.storage,
+            borrow_storage: in.state.borrow_storage,
+            uses_allocator: in.state.uses_allocator
+        }
+    })
+}

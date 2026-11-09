@@ -1,0 +1,36 @@
+import tuple from "../../../ast/context/tuple"
+
+import type { State as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const result = tuple({
+        state: in.state.context,
+        values: in.values
+    })
+
+    const state = in.state
+
+    return {
+        expressions: result.state.expressions,
+        forms: result.state.forms,
+        statements: result.state.statements,
+        body: {
+            ...result.state.statements,
+            ...state.body
+        },
+        storage: {
+            ...result.state.statements,
+            ...state.storage
+        },
+        borrow_storage: {
+            ...result.state.statements,
+            ...state.borrow_storage
+        },
+        variables: result.state.variables,
+        fields: state.fields,
+        root: result.id,
+        serial: result.state.serial,
+        uses_allocator: state.uses_allocator,
+        valid: result.state.valid
+    }
+}

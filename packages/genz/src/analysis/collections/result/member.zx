@@ -1,0 +1,47 @@
+import field from "../../../ast/context/field"
+import integer from "../../../printer/text/integer"
+import append from "../../state/conversion/emit/append"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const selected = field({
+        state: in.state.context,
+        target: in.root,
+        name: integer({
+            output: [],
+            value: in.index
+        })
+    })
+
+    const state = {
+        ...in.state,
+        context: selected.state
+    }
+
+    const conversion = in.source.members[in.index]
+
+    if (conversion == null) {
+        return {
+            ...in,
+            state,
+            values: in.values.push(selected.id)[0],
+            index: in.index + 1
+        }
+    }
+
+    const converted = append({
+        source: {
+            ...conversion,
+            value: selected.id
+        },
+        state
+    })
+
+    return {
+        ...in,
+        state: converted,
+        values: in.values.push(converted.nodes[0].result)[0],
+        index: in.index + 1
+    }
+}

@@ -247,13 +247,17 @@ fn lowerMode(self: *Lower, id: ir.ExprId, layout: ?node.ExpressionId, removed_on
     }
 
     if (self.state_active and !self.state_plan.selected[@backingInt(type_id)]) {
-        const tuple = try aggregate.bind(self, &body, result);
-        const members = self.program.typeOf(type_id).tuple;
-        const values = try self.allocator.alloc(node.ExpressionId, members.len);
+        if (@import("genz_options").generated_analysis) {
+            result = try @import("collections/result.zig").lower(self, &body, type_id, result);
+        } else {
+            const tuple = try aggregate.bind(self, &body, result);
+            const members = self.program.typeOf(type_id).tuple;
+            const values = try self.allocator.alloc(node.ExpressionId, members.len);
 
-        for (values, 0..) |*value, index| value.* = try @import("state_value/conversion.zig").convert(self, &body, members.at(index), try self.field(tuple, try std.fmt.allocPrint(self.allocator, "{d}", .{index})), .pointer);
+            for (values, 0..) |*value, index| value.* = try @import("state_value/conversion.zig").convert(self, &body, members.at(index), try self.field(tuple, try std.fmt.allocPrint(self.allocator, "{d}", .{index})), .pointer);
 
-        result = try self.builder.expression(.{ .tuple = values });
+            result = try self.builder.expression(.{ .tuple = values });
+        }
     }
 
     return aggregate.finish(self, &body, if (layout) |target| try self.cast(target, try @import("state_value/origin.zig").tuple(self, type_id, result)) else try self.construct(type_id, result));

@@ -1,5 +1,4 @@
-import initialize from "../conversion/emit/initialize"
-import walk from "../conversion/emit/walk"
+import append from "../conversion/emit/append"
 
 import type { Work as Input, Work as Output } from "./model"
 
@@ -24,19 +23,9 @@ export default function (in: Input): Output {
         value: in.root
     }
 
-    const initial = initialize(source)
-
-    const state = walk({
+    const state = append({
         source,
-        state: {
-            ...initial,
-            context: in.state.context,
-            body: in.state.body,
-            fields: in.state.fields,
-            storage: in.state.storage,
-            borrow_storage: in.state.borrow_storage,
-            uses_allocator: in.state.uses_allocator
-        }
+        state: in.state
     })
 
     return {

@@ -1,0 +1,22 @@
+import type { Input as Bases } from "../../../ast/context/model"
+import type {
+    Input as Conversion,
+    State as ConversionState,
+    Output as Emission
+} from "../../state/conversion/emit/model"
+
+export type Input = {
+    value: u32,
+    members: Conversion?[],
+    bases: Bases
+}
+
+export type State = {
+    source: Input,
+    state: ConversionState,
+    root: u32,
+    values: u32[],
+    index: u64
+}
+
+export type Output = Emission
