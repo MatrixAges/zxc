@@ -71,7 +71,8 @@ fn appendRows(allocator: std.mem.Allocator, target: anytype, source: anytype, co
 
     try reserveCounts(allocator, target, &counts, source.tags.len);
 
-    var prepared = source.*;
+    var storage: if (fields.len == 0) void else View = if (fields.len == 0) {} else source.*;
+    const prepared = if (fields.len == 0) source else &storage;
     var copied: [fields.len]bool = @splat(false);
 
     defer inline for (fields, 0..) |name, index| {
@@ -104,7 +105,7 @@ fn appendRows(allocator: std.mem.Allocator, target: anytype, source: anytype, co
     }
 
     inline for (names, 0..) |name, index| {
-        if (counts[index] != 0) commit(&@field(target.payloads, name), &prepared, name, counts[index]);
+        if (counts[index] != 0) commit(&@field(target.payloads, name), prepared, name, counts[index]);
     }
 }
 

@@ -1,0 +1,21 @@
+import close from "../../../ast/statements/builder/close"
+import publish from "../../../ast/statements/builder/publish"
+
+import type { State as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const closed = close(in.statements)
+    const body = publish(closed.state)
+
+    return {
+        context: in.context,
+        statements: {
+            ...body.statements,
+            ...in.loops
+        },
+        variables: body.variables,
+        first: closed.first,
+        count: closed.count,
+        valid: in.context.valid && body.valid
+    }
+}

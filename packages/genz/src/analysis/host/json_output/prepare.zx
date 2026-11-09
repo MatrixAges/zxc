@@ -1,0 +1,34 @@
+import bytes from "std:bytes"
+
+import identifier from "../../../ast/context/identifier"
+import initialize from "../../../ast/context/initialize"
+import statements from "../../../ast/statements/builder/initialize"
+import { output_name } from "./const"
+
+import type { Input, Visit as Output } from "./model"
+
+export default function (in: Input): Output {
+    const output = identifier({
+        state: initialize(in.bases),
+        name: bytes.fromText(output_name)
+    })
+
+    return {
+        state: {
+            source: in,
+            context: output.state,
+            statements: statements(in.bases.statement_base),
+            loops: {
+                for_loop_iterable: [],
+                for_loop_capture: [],
+                for_loop_body_start: [],
+                for_loop_body_len: [],
+                for_loop_capture_reference: [],
+                for_loop_index_capture: []
+            },
+            sequence: 0
+        },
+        type_id: in.type_id,
+        value: output.id
+    }
+}

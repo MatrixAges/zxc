@@ -1,0 +1,46 @@
+import call from "../../../ast/context/call"
+import standard from "../../../ast/context/standard_field"
+import unary from "../../../ast/context/unary"
+import selection from "../../../ast/statements/builder/selection"
+import { ExpressionsUnaryOperator } from "../../../printer/model/expressions"
+import { finite_name, math_name } from "./const"
+
+import type { Visit as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const source = in.state.source
+
+    const path = standard({
+        state: in.state.context,
+        path: [
+            math_name,
+            finite_name
+        ]
+    })
+
+    const finite = call({
+        state: path.state,
+        callee: path.id,
+        arguments: [in.value],
+        fallible: false
+    })
+
+    const condition = unary({
+        state: finite.state,
+        operator: ExpressionsUnaryOperator.Not,
+        operand: finite.id
+    })
+
+    return {
+        ...in.state,
+        context: condition.state,
+        statements: selection({
+            state: in.state.statements,
+            condition: condition.id,
+            yes_first: source.failure_first,
+            yes_count: source.failure_count,
+            no_first: source.failure_first + source.failure_count,
+            no_count: 0
+        })
+    }
+}

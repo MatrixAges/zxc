@@ -1,0 +1,63 @@
+import integers from "std:integer"
+
+import { StatementsKind } from "../../../printer/model/statements"
+import header from "./header"
+
+import type { State, Scope } from "./model"
+
+export type Columns = {
+    for_loop_iterable: u32[],
+    for_loop_capture: u8[][],
+    for_loop_body_start: u32[],
+    for_loop_body_len: u32[],
+    for_loop_capture_reference: bool[],
+    for_loop_index_capture: u8[]?[]
+}
+
+export type Input = {
+    scope: Scope,
+    columns: Columns,
+    iterable: u32,
+    capture: u8[],
+    capture_reference?: bool,
+    index?: u8[]
+}
+
+export type Output = {
+    state: State,
+    columns: Columns
+}
+
+export default function (in: Input): Output {
+    const child = in.scope.state
+    const first = child.base + integers.narrow(child.tags.length)
+    const count = integers.narrow(child.root_tags.length)
+
+    const state = header({
+        state: {
+            ...child,
+            tags: child.tags.concat(child.root_tags)[0],
+            offsets: child.offsets.concat(child.root_offsets)[0],
+            root_tags: in.scope.parent_tags,
+            root_offsets: in.scope.parent_offsets
+        },
+        kind: StatementsKind.ForLoop,
+        offset: in.columns.for_loop_iterable.length
+    })
+
+    return {
+        state,
+        columns: {
+            for_loop_iterable: in.columns.for_loop_iterable.push(in.iterable)[0],
+            for_loop_capture: in.columns.for_loop_capture.push(in.capture)[0],
+            for_loop_body_start: in.columns.for_loop_body_start.push(first)[0],
+            for_loop_body_len: in.columns.for_loop_body_len.push(count)[0],
+            for_loop_capture_reference:
+                in.columns.for_loop_capture_reference.push(
+                    in.capture_reference ?? false
+                )[0],
+            for_loop_index_capture:
+                in.columns.for_loop_index_capture.push(in.index)[0]
+        }
+    }
+}

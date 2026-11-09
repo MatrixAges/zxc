@@ -1,0 +1,11 @@
+<Module>
+    <Type from="model" as="Json" />
+
+    <Args in={Json.Input} out={Json.Output} />
+
+    <Call fn="prepare" in={$in} />
+    <Call fn="check" in={$ctx.prepare} />
+    <Call fn="publish" in={$ctx.check} />
+
+    <Return value={$ctx.publish} />
+</Module>

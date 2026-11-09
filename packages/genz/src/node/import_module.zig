@@ -25,8 +25,7 @@ fn appendModule(allocator: std.mem.Allocator, target: *Storage, comptime Module:
     const context = source.context;
     const expressions = zx.columns.view(std.meta.Child(@FieldType(Context, "expressions")), context.expressions);
     const forms = zx.columns.view(std.meta.Child(@FieldType(Context, "forms")), context.forms);
-    const extra = zx.columns.view(std.meta.Child(@FieldType(Module, "extra")), source.extra);
-    const values = view.join(view.join(expressions, forms), extra);
+    const values = if (@hasField(Module, "extra")) view.join(view.join(expressions, forms), zx.columns.view(std.meta.Child(@FieldType(Module, "extra")), source.extra)) else view.join(expressions, forms);
 
     try appendRows(allocator, &target.expressions, &values, mode);
 
@@ -48,6 +47,8 @@ fn appendModule(allocator: std.mem.Allocator, target: *Storage, comptime Module:
             _ = try @import("import_fields.zig").appendBorrowingText(allocator, &target.field_columns, source.fields);
         } else try @import("import_fields.zig").append(allocator, &target.field_columns, source.fields);
     }
+
+    if (!@hasField(Module, "declarations") and !@hasField(Module, "functions")) return;
 
     const name = if (@hasField(Module, "declarations")) "declarations" else "functions";
     const declarations = zx.columns.view(std.meta.Child(@FieldType(Module, name)), @field(source, name));

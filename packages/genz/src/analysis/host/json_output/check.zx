@@ -1,0 +1,144 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+import { scalar_f32, scalar_f64 } from "core/type_table/const"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import field from "../../../ast/context/field"
+import identifier from "../../../ast/context/identifier"
+import branch from "../../../ast/statements/builder/branch"
+import forLoop from "../../../ast/statements/builder/for_loop"
+import open from "../../../ast/statements/builder/open"
+import integer from "../../../printer/text/integer"
+import { capture_prefix } from "./const"
+import finite from "./finite"
+
+import type { Visit as Input, State as Output } from "./model"
+
+export default function check(in: Input): Output {
+    const types = in.state.source.types
+    const row = integers.widen(in.type_id)
+    const category = kind(types.kinds[row])
+
+    if (category == Kind.Scalar) {
+        const scalar = types.first[row]
+
+        if (scalar == scalar_f32 || scalar == scalar_f64) {
+            return finite(in)
+        }
+
+        return in.state
+    }
+
+    if (category == Kind.Optional || category == Kind.List) {
+        const name = integer({
+            output: bytes.fromText(capture_prefix),
+            value: in.state.sequence
+        })
+
+        const value = identifier({
+            state: in.state.context,
+            name
+        })
+
+        const scope = open(in.state.statements)
+
+        const nested = check({
+            state: {
+                ...in.state,
+                context: value.state,
+                statements: scope.state,
+                sequence: in.state.sequence + 1
+            },
+            type_id: types.first[row],
+            value: value.id
+        })
+
+        const completed = {
+            ...scope,
+            state: nested.statements
+        }
+
+        if (nested.statements.root_tags.length == 0) {
+            return {
+                ...nested,
+                statements: {
+                    ...nested.statements,
+                    root_tags: scope.parent_tags,
+                    root_offsets: scope.parent_offsets
+                }
+            }
+        }
+
+        if (category == Kind.Optional) {
+            return {
+                ...nested,
+                statements: branch({
+                    scope: completed,
+                    condition: in.value,
+                    capture: name
+                })
+            }
+        }
+
+        const loop_body = forLoop({
+            scope: completed,
+            columns: nested.loops,
+            iterable: in.value,
+            capture: name
+        })
+
+        return {
+            ...nested,
+            statements: loop_body.state,
+            loops: loop_body.columns
+        }
+    }
+
+    if (category != Kind.Object && category != Kind.Tuple) {
+        return in.state
+    }
+
+    const first = integers.widen(types.first[row])
+    const count = integers.widen(types.second[row])
+
+    return loop({
+        state: in.state,
+        index: 0
+    }, {
+        while: current => current.index < count,
+        next: current => {
+            const position = first + current.index
+            const tuple = category == Kind.Tuple
+            const name = match {
+                tuple => integer({
+                    output: [],
+                    value: current.index
+                }),
+                _ => bytes.fromText(types.field_names[position])
+            }
+
+            const value = field({
+                state: current.state.context,
+                target: in.value,
+                name
+            })
+
+            const type_id = match {
+                tuple => types.children[position],
+                _ => types.field_types[position]
+            }
+
+            current.state = check({
+                state: {
+                    ...current.state,
+                    context: value.state
+                },
+                type_id,
+                value: value.id
+            })
+            current.index += 1
+        },
+        return: current => current.state
+    })
+}

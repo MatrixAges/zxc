@@ -1,0 +1,40 @@
+import type { Table } from "core/type_table/model"
+import type {
+    Input as Bases,
+    State as Context,
+    Variables
+} from "../../../ast/context/model"
+import type { Columns as Loops } from "../../../ast/statements/builder/for_loop"
+import type { State as Statements } from "../../../ast/statements/builder/model"
+import type { Columns as StatementColumns } from "../../../ast/statements/model"
+
+export type Input = {
+    bases: Bases,
+    types: Table,
+    type_id: u32,
+    failure_first: u32,
+    failure_count: u32
+}
+
+export type State = {
+    source: Input,
+    context: Context,
+    statements: Statements,
+    loops: Loops,
+    sequence: u64
+}
+
+export type Visit = {
+    state: State,
+    type_id: u32,
+    value: u32
+}
+
+export type Output = {
+    context: Context,
+    statements: StatementColumns,
+    variables: Variables,
+    first: u32,
+    count: u32,
+    valid: bool
+}
