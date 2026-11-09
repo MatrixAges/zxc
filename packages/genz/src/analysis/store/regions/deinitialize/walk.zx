@@ -1,0 +1,97 @@
+import bytes from "std:bytes"
+
+import field from "../../../../ast/context/field"
+import identifier from "../../../../ast/context/identifier"
+import nullValue from "../../../../ast/context/null_value"
+import assignment from "../../../../ast/statements/builder/assignment"
+import binding from "../../../../ast/statements/builder/binding"
+import open from "../../../../ast/statements/builder/open"
+import whileLoop from "../../../../ast/statements/builder/while_loop"
+import { retained_name } from "../../storage/const"
+import { current_name, next_name, region_variable_name } from "../const"
+import destroy from "../destroy"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const head = field({
+        state: in.context,
+        target: in.self,
+        name: bytes.fromText(retained_name)
+    })
+
+    const bound = binding({
+        state: in.statements,
+        name: bytes.fromText(region_variable_name),
+        type_expr: null,
+        value: head.id,
+        mutable: true
+    })
+
+    const region = identifier({
+        state: head.state,
+        name: bytes.fromText(region_variable_name)
+    })
+
+    const current = identifier({
+        state: region.state,
+        name: bytes.fromText(current_name)
+    })
+
+    const next = field({
+        state: current.state,
+        target: current.id,
+        name: bytes.fromText(next_name)
+    })
+
+    const scope = open(bound)
+
+    const saved = binding({
+        state: scope.state,
+        name: bytes.fromText(next_name),
+        type_expr: null,
+        value: next.id,
+        mutable: false
+    })
+
+    const released = destroy({
+        context: next.state,
+        statements: saved,
+        self: in.self,
+        region: current.id
+    })
+
+    const saved_next = identifier({
+        state: released.context,
+        name: bytes.fromText(next_name)
+    })
+
+    const advanced = assignment({
+        state: released.statements,
+        target: region.id,
+        value: saved_next.id
+    })
+
+    const walked = whileLoop({
+        scope: {
+            ...scope,
+            state: advanced
+        },
+        columns: in.loops,
+        condition: region.id,
+        capture: bytes.fromText(current_name)
+    })
+
+    const nil = nullValue(saved_next.state)
+
+    return {
+        ...in,
+        context: nil.state,
+        statements: assignment({
+            state: walked.state,
+            target: head.id,
+            value: nil.id
+        }),
+        loops: walked.columns
+    }
+}

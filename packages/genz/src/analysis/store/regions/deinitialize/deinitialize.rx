@@ -1,0 +1,34 @@
+<Module>
+    <Type from="../model" as="Regions" />
+    <Type from="../../lifecycle/model" as="Lifecycle" />
+    <Type from="../const" as="Methods" />
+
+    <Args in={Regions.State} out={Regions.State} />
+
+    <If on={$in.policy == Lifecycle.Policy.ReadOnly}>
+        <Call fn="../discard" in={$in} />
+
+        <Call
+            fn="../method"
+            in={{
+                state: $ctx.discard,
+                method: Methods.Method.Deinitialize
+            }}
+        />
+
+        <Return value={$ctx.method} />
+    </If>
+
+    <Call fn="structure" in={$in} />
+    <Call fn="walk" in={$ctx.structure} />
+
+    <Call
+        fn="../method"
+        in={{
+            state: $ctx.walk,
+            method: Methods.Method.Deinitialize
+        }}
+    />
+
+    <Return value={$ctx.method} />
+</Module>

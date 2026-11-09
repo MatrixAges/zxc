@@ -15,8 +15,7 @@ pub fn lower(builder: Builder, declarations: *std.ArrayList(node.Declaration), o
     var fields: std.ArrayList(node.Field) = .empty;
     var methods: std.ArrayList(node.Declaration) = .empty;
 
-    try @import("region.zig").lower(builder, declarations, writable);
-    try declarations.append(allocator, try @import("reclaim.zig").lower(builder, objects, storage.reclaimable(objects)));
+    try @import("regions.zig").lower(builder, declarations, objects);
 
     try initial.appendSlice(allocator, &.{
         .{ .name = "parent", .value = self },

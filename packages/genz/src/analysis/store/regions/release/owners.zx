@@ -1,0 +1,53 @@
+import owner from "./owner"
+
+import type { Release as Input, Release as Output } from "../model"
+
+export default function (in: Input): Output {
+    const objects = in.state.source.objects
+    const initial: u32? = null
+
+    const result = loop({
+        context: in.state.context,
+        owned: initial,
+        index: 0
+    }, {
+        while: current => current.index < objects.length && current.context.valid,
+        next: current => {
+            if (objects[current.index].writable) {
+                const condition = owner({
+                    context: current.context,
+                    self: in.state.self,
+                    region: in.region,
+                    index: current.index,
+                    previous: current.owned
+                })
+
+                current.context = condition.state
+                current.owned = condition.id
+            }
+
+            current.index += 1
+        }
+    })
+
+    const owned = result.owned
+
+    if (owned == null) {
+        return {
+            ...in,
+            state: {
+                ...in.state,
+                valid: false
+            }
+        }
+    }
+
+    return {
+        ...in,
+        state: {
+            ...in.state,
+            context: result.context
+        },
+        owned
+    }
+}

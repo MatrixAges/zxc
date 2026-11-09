@@ -1,0 +1,21 @@
+import bytes from "std:bytes"
+
+import whileLoop from "../../../../ast/statements/builder/while_loop"
+import { region_variable_name } from "../const"
+
+import type { Release as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const walked = whileLoop({
+        scope: in.scope,
+        columns: in.state.loops,
+        condition: in.condition,
+        capture: bytes.fromText(region_variable_name)
+    })
+
+    return {
+        ...in.state,
+        statements: walked.state,
+        loops: walked.columns
+    }
+}

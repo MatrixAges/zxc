@@ -1,0 +1,57 @@
+import method from "../../../ast/context/method"
+import evaluate from "../../../ast/statements/builder/evaluate"
+import { arena_name } from "../lifecycle/const"
+import { child_allocator_name, deinit_name, destroy_name } from "./const"
+
+import type { State as Context } from "../../../ast/context/model"
+import type { State as Statements } from "../../../ast/statements/builder/model"
+
+export type Input = {
+    context: Context,
+    statements: Statements,
+    self: u32,
+    region: u32
+}
+
+export type Output = {
+    context: Context,
+    statements: Statements
+}
+
+export default function (in: Input): Output {
+    const arena = method({
+        state: in.context,
+        target: in.region,
+        path: [
+            arena_name,
+            deinit_name
+        ],
+        arguments: []
+    })
+
+    const released = evaluate({
+        state: in.statements,
+        value: arena.id,
+        discard: false
+    })
+
+    const destroyed = method({
+        state: arena.state,
+        target: in.self,
+        path: [
+            arena_name,
+            child_allocator_name,
+            destroy_name
+        ],
+        arguments: [in.region]
+    })
+
+    return {
+        context: destroyed.state,
+        statements: evaluate({
+            state: released,
+            value: destroyed.id,
+            discard: false
+        })
+    }
+}

@@ -1,0 +1,27 @@
+<Module>
+    <Type from="model" as="Regions" />
+
+    <Args in={Regions.Input} out={Regions.Output} />
+
+    <Call
+        fn="../lifecycle/policy"
+        in={{
+            objects: $in.objects
+        }}
+    />
+
+    <Call
+        fn="prepare"
+        in={{
+            source: $in,
+            policy: $ctx.policy
+        }}
+    />
+
+    <Call module="deinitialize/deinitialize" in={$ctx.prepare} />
+    <Call module="release/retired" in={$ctx.deinitialize} />
+
+    <Call fn="publish" in={$ctx.retired} />
+
+    <Return value={$ctx.publish} />
+</Module>

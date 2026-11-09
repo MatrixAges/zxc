@@ -1,0 +1,48 @@
+import bytes from "std:bytes"
+
+import binary from "../../../../ast/context/binary"
+import field from "../../../../ast/context/field"
+import { ExpressionsBinaryOperator as Op } from "../../../../printer/model/expressions"
+import name from "../../lifecycle/name"
+import { owner_prefix } from "../../storage/const"
+
+import type { State as Context, Node as Output } from "../../../../ast/context/model"
+
+export type Input = {
+    context: Context,
+    self: u32,
+    region: u32,
+    index: u64,
+    previous?: u32
+}
+
+export default function (in: Input): Output {
+    const owner = field({
+        state: in.context,
+        target: in.self,
+        name: name({
+            prefix: bytes.fromText(owner_prefix),
+            index: in.index
+        })
+    })
+
+    const condition = binary({
+        state: owner.state,
+        operator: Op.Equal,
+        left: owner.id,
+        right: in.region
+    })
+
+    const previous = in.previous
+
+    if (previous == null) {
+        return condition
+    }
+
+    return binary({
+        state: condition.state,
+        operator: Op.LogicalOr,
+        left: previous,
+        right: condition.id
+    })
+}

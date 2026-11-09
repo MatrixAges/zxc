@@ -1,0 +1,37 @@
+<Module>
+    <Type from="../model" as="Regions" />
+    <Type from="../../lifecycle/model" as="Lifecycle" />
+    <Type from="../const" as="Methods" />
+
+    <Args in={Regions.State} out={Regions.State} />
+
+    <If on={$in.policy != Lifecycle.Policy.Independent}>
+        <Call fn="../discard" in={$in} />
+
+        <Call
+            fn="../method"
+            in={{
+                state: $ctx.discard,
+                method: Methods.Method.ReleaseRetired
+            }}
+        />
+
+        <Return value={$ctx.method} />
+    </If>
+
+    <Call fn="guard" in={$in} />
+    <Call fn="owners" in={$ctx.guard} />
+    <Call fn="keep" in={$ctx.owners} />
+    <Call fn="unlink" in={$ctx.keep} />
+    <Call fn="finish" in={$ctx.unlink} />
+
+    <Call
+        fn="../method"
+        in={{
+            state: $ctx.finish,
+            method: Methods.Method.ReleaseRetired
+        }}
+    />
+
+    <Return value={$ctx.method} />
+</Module>

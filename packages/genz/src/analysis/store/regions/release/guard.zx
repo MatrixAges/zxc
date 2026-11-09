@@ -1,0 +1,84 @@
+import bytes from "std:bytes"
+
+import address from "../../../../ast/context/address"
+import dereference from "../../../../ast/context/dereference"
+import field from "../../../../ast/context/field"
+import identifier from "../../../../ast/context/identifier"
+import binding from "../../../../ast/statements/builder/binding"
+import branch from "../../../../ast/statements/builder/branch"
+import open from "../../../../ast/statements/builder/open"
+import result from "../../../../ast/statements/builder/result"
+import { release_disabled_name } from "../../lifecycle/const"
+import { retained_name } from "../../storage/const"
+import { link_name, region_variable_name } from "../const"
+
+import type { State as Input, Release as Output } from "../model"
+
+export default function (in: Input): Output {
+    const disabled = field({
+        state: in.context,
+        target: in.self,
+        name: bytes.fromText(release_disabled_name)
+    })
+
+    const early = open(in.statements)
+
+    const guarded = branch({
+        scope: {
+            ...early,
+            state: result({
+                state: early.state,
+                value: null
+            })
+        },
+        condition: disabled.id,
+        capture: null
+    })
+
+    const head = field({
+        state: disabled.state,
+        target: in.self,
+        name: bytes.fromText(retained_name)
+    })
+
+    const location = address({
+        state: head.state,
+        value: head.id
+    })
+
+    const bound = binding({
+        state: guarded,
+        name: bytes.fromText(link_name),
+        type_expr: null,
+        value: location.id,
+        mutable: true
+    })
+
+    const region = identifier({
+        state: location.state,
+        name: bytes.fromText(region_variable_name)
+    })
+
+    const link = identifier({
+        state: region.state,
+        name: bytes.fromText(link_name)
+    })
+
+    const condition = dereference({
+        state: link.state,
+        value: link.id
+    })
+
+    return {
+        state: {
+            ...in,
+            context: condition.state,
+            statements: bound
+        },
+        scope: open(bound),
+        region: region.id,
+        link: link.id,
+        condition: condition.id,
+        owned: 0
+    }
+}

@@ -1,0 +1,65 @@
+import bytes from "std:bytes"
+
+import identifier from "../../../ast/context/identifier"
+import context from "../../../ast/context/initialize"
+import pointer from "../../../ast/context/pointer"
+import primitive from "../../../ast/context/primitive"
+import declarations from "../../../ast/declarations/table/create"
+import fields from "../../../ast/fields/empty"
+import statements from "../../../ast/statements/builder/initialize"
+import { ExpressionsPrimitive } from "../../../printer/model/expressions"
+import { self_name, self_type_name } from "../lifecycle/const"
+
+import type { Policy } from "../lifecycle/model"
+import type { Input as Source, State as Output } from "./model"
+
+export type Input = {
+    source: Source,
+    policy: Policy
+}
+
+export default function (in: Input): Output {
+    const self = identifier({
+        state: context(in.source.bases),
+        name: bytes.fromText(self_name)
+    })
+
+    const parent = identifier({
+        state: self.state,
+        name: bytes.fromText(self_type_name)
+    })
+
+    const address = pointer({
+        state: parent.state,
+        value: parent.id
+    })
+
+    const unit = primitive({
+        state: address.state,
+        value: ExpressionsPrimitive.Void
+    })
+
+    return {
+        source: in.source,
+        policy: in.policy,
+        context: unit.state,
+        statements: statements(in.source.bases.statement_base),
+        loops: {
+            while_loop_condition: [],
+            while_loop_body_start: [],
+            while_loop_body_len: [],
+            while_loop_capture: []
+        },
+        fields: fields({}),
+        declarations: declarations({}),
+        extra: {
+            optional_type: [],
+            struct_type_start: [],
+            struct_type_len: []
+        },
+        self: self.id,
+        self_type: address.id,
+        unit: unit.id,
+        valid: true
+    }
+}

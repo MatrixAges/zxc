@@ -1,0 +1,12 @@
+import { StatementsKind } from "../../../printer/model/statements"
+import header from "./header"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return header({
+        state: in,
+        kind: StatementsKind.ContinueLoop,
+        offset: 0
+    })
+}

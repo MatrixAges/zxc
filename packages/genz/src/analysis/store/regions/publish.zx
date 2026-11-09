@@ -1,0 +1,18 @@
+import publish from "../../../ast/statements/builder/publish"
+
+import type { State as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const body = publish(in.statements)
+
+    return {
+        context: in.context,
+        statements: body.statements,
+        variables: body.variables,
+        loops: in.loops,
+        fields: in.fields,
+        declarations: in.declarations,
+        extra: in.extra,
+        valid: in.valid && in.context.valid && body.valid
+    }
+}

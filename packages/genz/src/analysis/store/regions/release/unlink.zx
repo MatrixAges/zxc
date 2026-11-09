@@ -1,0 +1,47 @@
+import bytes from "std:bytes"
+
+import dereference from "../../../../ast/context/dereference"
+import field from "../../../../ast/context/field"
+import assignment from "../../../../ast/statements/builder/assignment"
+import { next_name } from "../const"
+import destroy from "../destroy"
+
+import type { Release as Input, Release as Output } from "../model"
+
+export default function (in: Input): Output {
+    const link = dereference({
+        state: in.state.context,
+        value: in.link
+    })
+
+    const next = field({
+        state: link.state,
+        target: in.region,
+        name: bytes.fromText(next_name)
+    })
+
+    const unlinked = assignment({
+        state: in.scope.state,
+        target: link.id,
+        value: next.id
+    })
+
+    const released = destroy({
+        context: next.state,
+        statements: unlinked,
+        self: in.state.self,
+        region: in.region
+    })
+
+    return {
+        ...in,
+        state: {
+            ...in.state,
+            context: released.context
+        },
+        scope: {
+            ...in.scope,
+            state: released.statements
+        }
+    }
+}

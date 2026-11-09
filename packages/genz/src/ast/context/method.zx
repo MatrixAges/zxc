@@ -1,0 +1,43 @@
+import bytes from "std:bytes"
+
+import call from "./call"
+import field from "./field"
+
+import type { State, Node } from "./model"
+
+export type Input = {
+    state: State,
+    target: u32,
+    path: string[],
+    arguments: u32[]
+}
+
+export type Output = Node
+
+export default function (in: Input): Output {
+    const callee = loop({
+        node: {
+            state: in.state,
+            id: in.target
+        },
+        index: 0
+    }, {
+        while: current => current.index < in.path.length && current.node.state.valid,
+        next: current => {
+            current.node = field({
+                state: current.node.state,
+                target: current.node.id,
+                name: bytes.fromText(in.path[current.index])
+            })
+            current.index += 1
+        },
+        return: current => current.node
+    })
+
+    return call({
+        state: callee.state,
+        callee: callee.id,
+        arguments: in.arguments,
+        fallible: false
+    })
+}

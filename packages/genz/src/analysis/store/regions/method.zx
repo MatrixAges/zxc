@@ -1,0 +1,66 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import functionDeclaration from "../../../ast/declarations/function"
+import append from "../../../ast/declarations/table/function"
+import field from "../../../ast/fields/append"
+import close from "../../../ast/statements/builder/close"
+import { self_name } from "../lifecycle/const"
+import { Method, deinit_name, release_retired_name } from "./const"
+
+import type { State } from "./model"
+
+export type Input = {
+    state: State,
+    method: Method
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const state = in.state
+    const body = close(state.statements)
+
+    const fields = field({
+        table: state.fields,
+        name: bytes.fromText(self_name),
+        value: state.self_type,
+        default_value: null,
+        comptime_parameter: false
+    })
+
+    const name = match in.method {
+        Method.Deinitialize => deinit_name,
+        _ => release_retired_name
+    }
+
+    const function_value = functionDeclaration({
+        base: state.source.declaration_base +
+            integers.narrow(state.declarations.tags.length),
+        name: bytes.fromText(name),
+        parameters_start: state.source.bases.field_base +
+            integers.narrow(state.fields.name.length),
+        parameters_count: 1,
+        return_type: state.unit,
+        body_start: body.first,
+        body_count: body.count,
+        exported: true,
+        abi_export: false,
+        inlined: false,
+        calling_convention: null
+    })
+
+    const declared = append({
+        state: state.declarations,
+        value: function_value.table,
+        parameter_base: 0
+    })
+
+    return {
+        ...state,
+        statements: body.state,
+        fields,
+        declarations: declared.state,
+        valid: state.valid && function_value.valid && declared.valid
+    }
+}

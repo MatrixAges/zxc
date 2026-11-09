@@ -1,0 +1,53 @@
+import bytes from "std:bytes"
+
+import address from "../../../../ast/context/address"
+import field from "../../../../ast/context/field"
+import assignment from "../../../../ast/statements/builder/assignment"
+import branch from "../../../../ast/statements/builder/branch"
+import continueLoop from "../../../../ast/statements/builder/continue_loop"
+import open from "../../../../ast/statements/builder/open"
+import { next_name } from "../const"
+
+import type { Release as Input, Release as Output } from "../model"
+
+export default function (in: Input): Output {
+    const next = field({
+        state: in.state.context,
+        target: in.region,
+        name: bytes.fromText(next_name)
+    })
+
+    const location = address({
+        state: next.state,
+        value: next.id
+    })
+
+    const scope = open(in.scope.state)
+
+    const advanced = assignment({
+        state: scope.state,
+        target: in.link,
+        value: location.id
+    })
+
+    const kept = branch({
+        scope: {
+            ...scope,
+            state: continueLoop(advanced)
+        },
+        condition: in.owned,
+        capture: null
+    })
+
+    return {
+        ...in,
+        state: {
+            ...in.state,
+            context: location.state
+        },
+        scope: {
+            ...in.scope,
+            state: kept
+        }
+    }
+}

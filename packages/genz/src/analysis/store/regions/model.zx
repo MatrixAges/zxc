@@ -1,0 +1,58 @@
+import type {
+    Input as Bases,
+    State as Context,
+    Variables
+} from "../../../ast/context/model"
+import type { Table as Declarations } from "../../../ast/declarations/table/model"
+import type { Columns as Fields } from "../../../ast/fields/model"
+import type { State as Statements, Scope } from "../../../ast/statements/builder/model"
+import type { Columns as Loops } from "../../../ast/statements/builder/while_loop"
+import type { Columns as StatementColumns } from "../../../ast/statements/model"
+import type { Object, Policy } from "../lifecycle/model"
+
+export type Input = {
+    objects: Object[],
+    bases: Bases,
+    declaration_base: u32
+}
+
+export type Extra = {
+    optional_type: u32[],
+    struct_type_start: u32[],
+    struct_type_len: u32[]
+}
+
+export type State = {
+    source: Input,
+    policy: Policy,
+    context: Context,
+    statements: Statements,
+    loops: Loops,
+    fields: Fields,
+    declarations: Declarations,
+    extra: Extra,
+    self: u32,
+    self_type: u32,
+    unit: u32,
+    valid: bool
+}
+
+export type Release = {
+    state: State,
+    scope: Scope,
+    region: u32,
+    link: u32,
+    condition: u32,
+    owned: u32
+}
+
+export type Output = {
+    context: Context,
+    statements: StatementColumns,
+    variables: Variables,
+    loops: Loops,
+    fields: Fields,
+    declarations: Declarations,
+    extra: Extra,
+    valid: bool
+}
