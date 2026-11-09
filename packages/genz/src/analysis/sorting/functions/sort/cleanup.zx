@@ -1,0 +1,50 @@
+import bytes from "std:bytes"
+
+import call from "../../../../ast/context/call"
+import conditional from "../../../../ast/context/conditional"
+import errdefer from "../../../../ast/context/errdefer"
+import field from "../../../../ast/context/field"
+import unit from "../../../../ast/context/unit"
+import { allocator_name, free_name } from "../const"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const allocator = field({
+        state: in.context,
+        target: in.context_id,
+        name: bytes.fromText(allocator_name)
+    })
+
+    const free = field({
+        state: allocator.state,
+        target: allocator.id,
+        name: bytes.fromText(free_name)
+    })
+
+    const release = call({
+        state: free.state,
+        callee: free.id,
+        arguments: [in.items_id],
+        fallible: false
+    })
+
+    const empty = unit(release.state)
+
+    const cleanup = conditional({
+        state: empty.state,
+        condition: in.reuse_id,
+        yes: empty.id,
+        no: release.id,
+        capture: null,
+        error_capture: null
+    })
+
+    return {
+        ...in,
+        context: errdefer({
+            state: cleanup.state,
+            value: cleanup.id
+        })
+    }
+}

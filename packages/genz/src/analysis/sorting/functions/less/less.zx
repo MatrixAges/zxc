@@ -1,0 +1,110 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import identifier from "../../../../ast/context/identifier"
+import primitive from "../../../../ast/context/primitive"
+import result from "../../../../ast/context/result"
+import appendFunction from "../../../../ast/declarations/append_function"
+import appendField from "../../../../ast/fields/append"
+import branch from "../../../../ast/statements/branch"
+import { ExpressionsPrimitive } from "../../../../printer/model/expressions"
+import {
+    context_name,
+    context_type_name,
+    left_name,
+    right_name,
+    less_name
+} from "../const"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const start = integers.narrow(
+        integers.widen(in.source.bases.statement_base) +
+            in.context.statements.tags.length
+    )
+
+    const guard = branch({
+        table: in.context.statements,
+        base: in.source.bases.statement_base,
+        condition: in.guard_id,
+        yes_start: in.guard_start,
+        yes_count: 1,
+        no_start: 0,
+        no_count: 0
+    })
+
+    const body = result({
+        state: {
+            ...in.context,
+            statements: guard.table,
+            valid: in.context.valid && guard.valid
+        },
+        value: in.comparison_id
+    })
+
+    const context_type = identifier({
+        state: body,
+        name: bytes.fromText(context_type_name)
+    })
+
+    const returns = primitive({
+        state: context_type.state,
+        value: ExpressionsPrimitive.Bool
+    })
+
+    const first = integers.narrow(
+        integers.widen(in.source.bases.field_base) + in.fields.name.length
+    )
+
+    const context = appendField({
+        table: in.fields,
+        name: bytes.fromText(context_name),
+        value: context_type.id,
+        default_value: null,
+        comptime_parameter: false
+    })
+
+    const left = appendField({
+        table: context,
+        name: bytes.fromText(left_name),
+        value: in.source.child,
+        default_value: null,
+        comptime_parameter: false
+    })
+
+    const fields = appendField({
+        table: left,
+        name: bytes.fromText(right_name),
+        value: in.source.child,
+        default_value: null,
+        comptime_parameter: false
+    })
+
+    const declaration = appendFunction({
+        table: in.declarations,
+        value: {
+            base: in.source.declaration_base,
+            name: bytes.fromText(less_name),
+            parameters_start: first,
+            parameters_count: 3,
+            return_type: returns.id,
+            body_start: start,
+            body_count: 2,
+            exported: false,
+            abi_export: false,
+            inlined: false,
+            calling_convention: null
+        }
+    })
+
+    return {
+        ...in,
+        context: {
+            ...returns.state,
+            valid: returns.state.valid && declaration.valid
+        },
+        fields,
+        declarations: declaration.table
+    }
+}

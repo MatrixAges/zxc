@@ -1,0 +1,118 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import assignment from "../../../../ast/context/assignment"
+import binary from "../../../../ast/context/binary"
+import call from "../../../../ast/context/call"
+import identifier from "../../../../ast/context/identifier"
+import integer from "../../../../ast/context/integer"
+import result from "../../../../ast/context/result"
+import caught from "../../../../ast/expressions/catch_scope"
+import { ExpressionsBinaryOperator } from "../../../../printer/model/expressions"
+import { compare_name, left_name, right_name, error_name } from "../const"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const compare = identifier({
+        state: in.context,
+        name: bytes.fromText(compare_name)
+    })
+
+    const left = identifier({
+        state: compare.state,
+        name: bytes.fromText(left_name)
+    })
+
+    const right = identifier({
+        state: left.state,
+        name: bytes.fromText(right_name)
+    })
+
+    const compared = call({
+        state: right.state,
+        callee: compare.id,
+        arguments: [
+            in.context_id,
+            left.id,
+            right.id
+        ],
+        fallible: false
+    })
+
+    const error = identifier({
+        state: compared.state,
+        name: bytes.fromText(error_name)
+    })
+
+    const start = integers.narrow(
+        integers.widen(in.source.bases.statement_base) +
+            error.state.statements.tags.length
+    )
+
+    const saved = assignment({
+        state: error.state,
+        target: in.failure_id,
+        value: error.id
+    })
+
+    const stopped = result({
+        state: saved,
+        value: in.false_id
+    })
+
+    const value = caught({
+        table: {
+            ...stopped.expressions.pick([
+                "tags",
+                "offsets"
+            ]),
+            ...in.extra.pick([
+                "catch_scope_value",
+                "catch_scope_capture",
+                "catch_scope_body_start",
+                "catch_scope_body_len"
+            ])
+        },
+        base: in.source.bases.expression_base,
+        value: compared.id,
+        capture: bytes.fromText(error_name),
+        start,
+        count: 2
+    })
+
+    const zero = integer({
+        state: {
+            ...stopped,
+            expressions: {
+                ...stopped.expressions,
+                ...value.table.pick([
+                    "tags",
+                    "offsets"
+                ])
+            },
+            valid: stopped.valid && value.valid
+        },
+        value: 0
+    })
+
+    const comparison = binary({
+        state: zero.state,
+        operator: ExpressionsBinaryOperator.Less,
+        left: value.id,
+        right: zero.id
+    })
+
+    return {
+        ...in,
+        context: comparison.state,
+        extra: {
+            ...in.extra,
+            ...value.table.omit([
+                "tags",
+                "offsets"
+            ])
+        },
+        comparison_id: comparison.id
+    }
+}

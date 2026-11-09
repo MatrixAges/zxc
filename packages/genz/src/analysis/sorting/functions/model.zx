@@ -1,0 +1,58 @@
+import type { Input as Bases, State as Context } from "../../../ast/context/model"
+import type { Columns as Functions } from "../../../ast/declarations/function"
+import type { Columns as Forms } from "../../../ast/expressions/forms/model"
+import type { Columns as Expressions } from "../../../ast/expressions/model"
+import type { Columns as Fields } from "../../../ast/fields/model"
+import type { Columns as Statements } from "../../../ast/statements/model"
+
+export type Input = {
+    child: u32,
+    errors?: u8[][],
+    bases: Bases,
+    declaration_base: u32
+}
+
+export type Extra = {
+    catch_scope_value: u32[],
+    catch_scope_capture: u8[]?[],
+    catch_scope_body_start: u32[],
+    catch_scope_body_len: u32[],
+    mutable_slice: u32[],
+    error_union_payload: u32[],
+    error_union_errors: u8[][]?[],
+    error_union_inferred: bool[],
+    namespace_type_start: u32[],
+    namespace_type_len: u32[]
+}
+
+export type State = {
+    source: Input,
+    context: Context,
+    extra: Extra,
+    fields: Fields,
+    declarations: Functions,
+    context_id: u32,
+    failure_id: u32,
+    false_id: u32,
+    guard_id: u32,
+    guard_start: u32,
+    comparison_id: u32,
+    error_start: u32,
+    body_start: u32,
+    items_id: u32,
+    reuse_id: u32,
+    ordering: u32,
+    sort: u32
+}
+
+export type Output = {
+    expressions: Expressions,
+    forms: Forms,
+    extra: Extra,
+    statements: Statements,
+    fields: Fields,
+    declarations: Functions,
+    ordering: u32,
+    sort: u32,
+    valid: bool
+}

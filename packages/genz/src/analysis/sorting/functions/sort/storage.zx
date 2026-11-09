@@ -1,0 +1,109 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import binding from "../../../../ast/context/binding"
+import builtin from "../../../../ast/context/builtin"
+import call from "../../../../ast/context/call"
+import conditional from "../../../../ast/context/conditional"
+import field from "../../../../ast/context/field"
+import identifier from "../../../../ast/context/identifier"
+import result from "../../../../ast/context/result"
+import { ExpressionsBuiltinName } from "../../../../printer/model/expressions"
+import {
+    allocator_name,
+    items_name,
+    reuse_name,
+    source_name,
+    dupe_name,
+    error_name
+} from "../const"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const allocator = field({
+        state: in.context,
+        target: in.context_id,
+        name: bytes.fromText(allocator_name)
+    })
+
+    const items = identifier({
+        state: allocator.state,
+        name: bytes.fromText(items_name)
+    })
+
+    const reuse = identifier({
+        state: items.state,
+        name: bytes.fromText(reuse_name)
+    })
+
+    const source = identifier({
+        state: reuse.state,
+        name: bytes.fromText(source_name)
+    })
+
+    const dupe = field({
+        state: source.state,
+        target: allocator.id,
+        name: bytes.fromText(dupe_name)
+    })
+
+    const copied = call({
+        state: dupe.state,
+        callee: dupe.id,
+        arguments: [
+            in.source.child,
+            source.id
+        ],
+        fallible: true
+    })
+
+    const borrowed = builtin({
+        state: copied.state,
+        name: ExpressionsBuiltinName.ConstCast,
+        arguments: [source.id]
+    })
+
+    const selected = conditional({
+        state: borrowed.state,
+        condition: reuse.id,
+        yes: borrowed.id,
+        no: copied.id,
+        capture: null,
+        error_capture: null
+    })
+
+    const error = identifier({
+        state: selected.state,
+        name: bytes.fromText(error_name)
+    })
+
+    const error_start = integers.narrow(
+        integers.widen(in.source.bases.statement_base) +
+            error.state.statements.tags.length
+    )
+
+    const failed = result({
+        state: error.state,
+        value: error.id
+    })
+
+    const start = integers.narrow(
+        integers.widen(in.source.bases.statement_base) +
+            failed.statements.tags.length
+    )
+
+    return {
+        ...in,
+        context: binding({
+            state: failed,
+            name: bytes.fromText(items_name),
+            type_expr: null,
+            value: selected.id
+        }),
+        items_id: items.id,
+        reuse_id: reuse.id,
+        error_start,
+        body_start: start
+    }
+}

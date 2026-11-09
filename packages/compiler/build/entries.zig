@@ -210,6 +210,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/allocator/build.rx", .name = "allocator_type", .owner = .genz },
     .{ .path = "genz/analysis/parallel/worker/build.rx", .name = "parallel_worker", .owner = .genz },
     .{ .path = "genz/analysis/parallel/emit/build.rx", .name = "parallel_emit", .owner = .genz },
+    .{ .path = "genz/analysis/sorting/functions/build.rx", .name = "sorting_functions", .owner = .genz },
     .{ .path = "genz/analysis/parallel/emit/label.zx", .name = "parallel_label", .owner = .genz },
     .{ .path = "genz/analysis/parallel/emit/allocator_alias.zx", .name = "parallel_allocator_alias", .owner = .genz },
     .{ .path = "genz/analysis/tasks/worker/reserve.zx", .name = "task_worker_reserve", .owner = .genz },

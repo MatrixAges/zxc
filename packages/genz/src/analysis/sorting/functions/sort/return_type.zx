@@ -1,0 +1,66 @@
+import errorUnion from "../../../../ast/expressions/error_union"
+import header from "../../../../ast/expressions/header"
+import { ExpressionsKind } from "../../../../printer/model/expressions"
+
+import type { State } from "../model"
+
+export type Input = State
+
+export type Output = {
+    state: State,
+    id: u32
+}
+
+export default function (in: Input): Output {
+    const slice = header({
+        ...in.context.expressions.pick([
+            "tags",
+            "offsets"
+        ]),
+        base: in.source.bases.expression_base,
+        kind: ExpressionsKind.MutableSlice,
+        offset: in.extra.mutable_slice.length
+    })
+
+    const returns = errorUnion({
+        table: {
+            tags: slice.tags,
+            offsets: slice.offsets,
+            ...in.extra.pick([
+                "error_union_payload",
+                "error_union_errors",
+                "error_union_inferred"
+            ])
+        },
+        base: in.source.bases.expression_base,
+        payload: slice.id,
+        errors: in.source.errors,
+        inferred: false
+    })
+
+    return {
+        id: returns.id,
+        state: {
+            ...in,
+            context: {
+                ...in.context,
+                expressions: {
+                    ...in.context.expressions,
+                    ...returns.table.pick([
+                        "tags",
+                        "offsets"
+                    ])
+                },
+                valid: in.context.valid && slice.valid && returns.valid
+            },
+            extra: {
+                ...in.extra,
+                mutable_slice: in.extra.mutable_slice.push(in.source.child)[0],
+                ...returns.table.omit([
+                    "tags",
+                    "offsets"
+                ])
+            }
+        }
+    }
+}

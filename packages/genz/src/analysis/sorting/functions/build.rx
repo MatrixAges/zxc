@@ -1,0 +1,19 @@
+<Module>
+    <Type from="model" as="Sorting" />
+
+    <Args in={Sorting.Input} out={Sorting.Output} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="less/guard" in={$ctx.initialize} />
+    <Call fn="less/compare" in={$ctx.guard} />
+    <Call fn="less/less" in={$ctx.compare} />
+    <Call fn="less/ordering" in={$ctx.less} />
+    <Call fn="sort/storage" in={$ctx.ordering} />
+    <Call fn="sort/cleanup" in={$ctx.storage} />
+    <Call fn="sort/execute" in={$ctx.cleanup} />
+    <Call fn="sort/return_type" in={$ctx.execute} />
+    <Call fn="sort/sort" in={$ctx.return_type} />
+    <Call fn="finish" in={$ctx.sort} />
+
+    <Return value={$ctx.finish} />
+</Module>

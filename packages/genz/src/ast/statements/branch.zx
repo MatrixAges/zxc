@@ -10,7 +10,8 @@ export type Input = {
     yes_start: u32,
     yes_count: u32,
     no_start: u32,
-    no_count: u32
+    no_count: u32,
+    capture?: u8[]
 }
 
 export type Output = Result
@@ -44,7 +45,7 @@ export default function (in: Input): Output {
             branch_yes_len: in.table.branch_yes_len.push(in.yes_count)[0],
             branch_no_start: in.table.branch_no_start.push(in.no_start)[0],
             branch_no_len: in.table.branch_no_len.push(in.no_count)[0],
-            branch_capture: in.table.branch_capture.push(null)[0],
+            branch_capture: in.table.branch_capture.push(in.capture)[0],
             branch_capture_reference:
                 in.table.branch_capture_reference.push(false)[0],
             branch_error_capture: in.table.branch_error_capture.push(null)[0]

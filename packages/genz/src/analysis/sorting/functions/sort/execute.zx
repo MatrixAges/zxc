@@ -1,0 +1,103 @@
+import bytes from "std:bytes"
+
+import builtin from "../../../../ast/context/builtin"
+import call from "../../../../ast/context/call"
+import statement from "../../../../ast/context/expression_statement"
+import field from "../../../../ast/context/field"
+import identifier from "../../../../ast/context/identifier"
+import result from "../../../../ast/context/result"
+import branch from "../../../../ast/statements/branch"
+import { ExpressionsBuiltinName } from "../../../../printer/model/expressions"
+import {
+    ordering_name,
+    less_name,
+    std_name,
+    mem_name,
+    unstable_name,
+    error_name
+} from "../const"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const ordering_type = identifier({
+        state: in.context,
+        name: bytes.fromText(ordering_name)
+    })
+
+    const context_type = builtin({
+        state: ordering_type.state,
+        name: ExpressionsBuiltinName.TypeOf,
+        arguments: [in.context_id]
+    })
+
+    const ordering = call({
+        state: context_type.state,
+        callee: ordering_type.id,
+        arguments: [context_type.id],
+        fallible: false
+    })
+
+    const standard = identifier({
+        state: ordering.state,
+        name: bytes.fromText(std_name)
+    })
+
+    const mem = field({
+        state: standard.state,
+        target: standard.id,
+        name: bytes.fromText(mem_name)
+    })
+
+    const sort = field({
+        state: mem.state,
+        target: mem.id,
+        name: bytes.fromText(unstable_name)
+    })
+
+    const less = field({
+        state: sort.state,
+        target: ordering.id,
+        name: bytes.fromText(less_name)
+    })
+
+    const sorted = call({
+        state: less.state,
+        callee: sort.id,
+        arguments: [
+            in.source.child,
+            in.items_id,
+            in.context_id,
+            less.id
+        ],
+        fallible: false
+    })
+
+    const invoked = statement({
+        state: sorted.state,
+        value: sorted.id
+    })
+
+    const failed = branch({
+        table: invoked.statements,
+        base: in.source.bases.statement_base,
+        condition: in.failure_id,
+        yes_start: in.error_start,
+        yes_count: 1,
+        no_start: 0,
+        no_count: 0,
+        capture: bytes.fromText(error_name)
+    })
+
+    return {
+        ...in,
+        context: result({
+            state: {
+                ...invoked,
+                statements: failed.table,
+                valid: invoked.valid && failed.valid
+            },
+            value: in.items_id
+        })
+    }
+}

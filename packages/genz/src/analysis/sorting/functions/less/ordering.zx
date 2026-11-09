@@ -1,0 +1,102 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import primitive from "../../../../ast/context/primitive"
+import result from "../../../../ast/context/result"
+import appendFunction from "../../../../ast/declarations/append_function"
+import namespace from "../../../../ast/expressions/namespace"
+import appendField from "../../../../ast/fields/append"
+import { ExpressionsPrimitive } from "../../../../printer/model/expressions"
+import { context_type_name, ordering_name } from "../const"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const value = namespace({
+        table: {
+            ...in.context.expressions.pick([
+                "tags",
+                "offsets"
+            ]),
+            ...in.extra.pick([
+                "namespace_type_start",
+                "namespace_type_len"
+            ])
+        },
+        base: in.source.bases.expression_base,
+        start: in.source.declaration_base,
+        count: 1
+    })
+
+    const start = integers.narrow(
+        integers.widen(in.source.bases.statement_base) +
+            in.context.statements.tags.length
+    )
+
+    const body = result({
+        state: {
+            ...in.context,
+            expressions: {
+                ...in.context.expressions,
+                ...value.table.pick([
+                    "tags",
+                    "offsets"
+                ])
+            },
+            valid: in.context.valid && value.valid
+        },
+        value: value.id
+    })
+
+    const type_value = primitive({
+        state: body,
+        value: ExpressionsPrimitive.Type
+    })
+
+    const first = integers.narrow(
+        integers.widen(in.source.bases.field_base) + in.fields.name.length
+    )
+
+    const fields = appendField({
+        table: in.fields,
+        name: bytes.fromText(context_type_name),
+        value: type_value.id,
+        default_value: null,
+        comptime_parameter: true
+    })
+
+    const declaration = appendFunction({
+        table: in.declarations,
+        value: {
+            base: in.source.declaration_base,
+            name: bytes.fromText(ordering_name),
+            parameters_start: first,
+            parameters_count: 1,
+            return_type: type_value.id,
+            body_start: start,
+            body_count: 1,
+            exported: false,
+            abi_export: false,
+            inlined: false,
+            calling_convention: null
+        }
+    })
+
+    return {
+        ...in,
+        context: {
+            ...type_value.state,
+            valid: type_value.state.valid && declaration.valid
+        },
+        extra: {
+            ...in.extra,
+            ...value.table.omit([
+                "tags",
+                "offsets"
+            ])
+        },
+        fields,
+        declarations: declaration.table,
+        ordering: in.source.declaration_base + 1
+    }
+}

@@ -1,0 +1,92 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import constSlice from "../../../../ast/context/const_slice"
+import primitive from "../../../../ast/context/primitive"
+import appendFunction from "../../../../ast/declarations/append_function"
+import appendField from "../../../../ast/fields/append"
+import { ExpressionsPrimitive } from "../../../../printer/model/expressions"
+import { context_name, source_name, reuse_name, sort_name } from "../const"
+
+import type { State as Output } from "../model"
+import type { Output as Input } from "./return_type"
+
+export default function (in: Input): Output {
+    const context_type = primitive({
+        state: in.state.context,
+        value: ExpressionsPrimitive.Anytype
+    })
+
+    const source_type = constSlice({
+        state: context_type.state,
+        value: in.state.source.child
+    })
+
+    const reuse_type = primitive({
+        state: source_type.state,
+        value: ExpressionsPrimitive.Bool
+    })
+
+    const first = integers.narrow(
+        integers.widen(in.state.source.bases.field_base) +
+            in.state.fields.name.length
+    )
+
+    const context = appendField({
+        table: in.state.fields,
+        name: bytes.fromText(context_name),
+        value: context_type.id,
+        default_value: null,
+        comptime_parameter: false
+    })
+
+    const source = appendField({
+        table: context,
+        name: bytes.fromText(source_name),
+        value: source_type.id,
+        default_value: null,
+        comptime_parameter: false
+    })
+
+    const fields = appendField({
+        table: source,
+        name: bytes.fromText(reuse_name),
+        value: reuse_type.id,
+        default_value: null,
+        comptime_parameter: false
+    })
+
+    const count = integers.narrow(
+        integers.widen(in.state.source.bases.statement_base) +
+            reuse_type.state.statements.tags.length -
+            integers.widen(in.state.body_start)
+    )
+
+    const declaration = appendFunction({
+        table: in.state.declarations,
+        value: {
+            base: in.state.source.declaration_base,
+            name: bytes.fromText(sort_name),
+            parameters_start: first,
+            parameters_count: 3,
+            return_type: in.id,
+            body_start: in.state.body_start,
+            body_count: count,
+            exported: false,
+            abi_export: false,
+            inlined: false,
+            calling_convention: null
+        }
+    })
+
+    return {
+        ...in.state,
+        context: {
+            ...reuse_type.state,
+            valid: reuse_type.state.valid && declaration.valid
+        },
+        fields,
+        declarations: declaration.table,
+        sort: in.state.source.declaration_base + 2
+    }
+}
