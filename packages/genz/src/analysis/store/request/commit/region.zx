@@ -1,0 +1,134 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import binary from "../../../../ast/context/binary"
+import checked from "../../../../ast/context/checked"
+import dereference from "../../../../ast/context/dereference"
+import field from "../../../../ast/context/field"
+import identifier from "../../../../ast/context/identifier"
+import invoke from "../../../../ast/context/method"
+import nullValue from "../../../../ast/context/null_value"
+import object from "../../../../ast/context/object"
+import appendFields from "../../../../ast/fields/append_values"
+import assignment from "../../../../ast/statements/builder/assignment"
+import binding from "../../../../ast/statements/builder/binding"
+import branch from "../../../../ast/statements/builder/branch"
+import open from "../../../../ast/statements/builder/open"
+import { ExpressionsBinaryOperator } from "../../../../printer/model/expressions"
+import { create_member } from "../../../construction/const"
+import { init_name } from "../../../functions/prelude/const"
+import { arena_name } from "../../lifecycle/const"
+import { next_name, region_variable_name } from "../../regions/const"
+import { region_name, retained_name } from "../../storage/const"
+
+import type { Commit as Input, Commit as Output } from "../model"
+
+export default function (in: Input): Output {
+    const state = in.state
+
+    const arena = invoke({
+        state: state.context,
+        target: state.arena_type,
+        path: [init_name],
+        arguments: [in.child_allocator]
+    })
+
+    const head = field({
+        state: arena.state,
+        target: in.parent,
+        name: bytes.fromText(retained_name)
+    })
+
+    const names = [
+        bytes.fromText(arena_name),
+        bytes.fromText(next_name)
+    ]
+
+    const fields = appendFields({
+        table: state.fields,
+        names,
+        values: [
+            arena.id,
+            head.id
+        ]
+    })
+
+    const initial = object({
+        state: head.state,
+        type_expr: null,
+        first:
+            state.source.bases.field_base + integers.narrow(state.fields.name.length),
+        count: integers.narrow(names.length)
+    })
+
+    const type_value = identifier({
+        state: initial.state,
+        name: bytes.fromText(region_name)
+    })
+
+    const created = checked(invoke({
+        state: type_value.state,
+        target: in.child_allocator,
+        path: [create_member],
+        arguments: [type_value.id]
+    }))
+
+    const scope = open(state.statements)
+
+    const bound = binding({
+        state: scope.state,
+        name: bytes.fromText(region_variable_name),
+        type_expr: null,
+        value: created.id,
+        mutable: false
+    })
+
+    const target = dereference({
+        state: created.state,
+        value: in.region
+    })
+
+    const initialized = assignment({
+        state: bound,
+        target: target.id,
+        value: initial.id
+    })
+
+    const linked = assignment({
+        state: initialized,
+        target: head.id,
+        value: in.region
+    })
+
+    const retained = assignment({
+        state: linked,
+        target: in.retained,
+        value: in.region
+    })
+
+    const nil = nullValue(target.state)
+
+    const absent = binary({
+        state: nil.state,
+        operator: ExpressionsBinaryOperator.Equal,
+        left: in.retained,
+        right: nil.id
+    })
+
+    return {
+        ...in,
+        state: {
+            ...state,
+            context: absent.state,
+            fields,
+            statements: branch({
+                scope: {
+                    ...scope,
+                    state: retained
+                },
+                condition: absent.id,
+                capture: null
+            })
+        }
+    }
+}

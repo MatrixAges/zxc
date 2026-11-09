@@ -1,0 +1,27 @@
+import invoke from "../../../../ast/context/method"
+import evaluate from "../../../../ast/statements/builder/evaluate"
+import { apply_name } from "../../lifecycle/const"
+
+import type { Commit as Input, Commit as Output } from "../model"
+
+export default function (in: Input): Output {
+    const applied = invoke({
+        state: in.state.context,
+        target: in.parent,
+        path: [apply_name],
+        arguments: [in.changes]
+    })
+
+    return {
+        ...in,
+        state: {
+            ...in.state,
+            context: applied.state,
+            statements: evaluate({
+                state: in.state.statements,
+                value: applied.id,
+                discard: false
+            })
+        }
+    }
+}

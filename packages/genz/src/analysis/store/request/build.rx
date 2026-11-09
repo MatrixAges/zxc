@@ -1,0 +1,34 @@
+<Module>
+    <Type from="model" as="Request" />
+
+    <Args in={Request.Input} out={Request.Output} />
+
+    <Call
+        fn="../lifecycle/policy"
+        in={{
+            objects: $in.objects
+        }}
+    />
+
+    <Call
+        fn="prepare"
+        in={{
+            source: $in,
+            policy: $ctx.policy
+        }}
+    />
+
+    <Call fn="factory/shared" in={$ctx.prepare} />
+    <Call fn="factory/retained" in={$ctx.shared} />
+    <Call fn="factory/slots" in={$ctx.retained} />
+    <Call fn="factory/create" in={$ctx.slots} />
+
+    <Call module="execute/execute" in={$ctx.create} />
+    <Call module="deinitialize/deinitialize" in={$ctx.execute} />
+    <Call module="commit/commit" in={$ctx.deinitialize} />
+
+    <Call fn="container" in={$ctx.commit} />
+    <Call fn="publish" in={$ctx.container} />
+
+    <Return value={$ctx.publish} />
+</Module>

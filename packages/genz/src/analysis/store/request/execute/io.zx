@@ -1,0 +1,29 @@
+import bytes from "std:bytes"
+
+import identifier from "../../../../ast/context/identifier"
+import standardField from "../../../../ast/context/standard_field"
+import { io_name, io_type_name } from "../../../functions/signature/const"
+
+import type { Execution as Input, Execution as Output } from "../model"
+
+export default function (in: Input): Output {
+    const type_value = standardField({
+        state: in.state.context,
+        path: [io_type_name]
+    })
+
+    const value = identifier({
+        state: type_value.state,
+        name: bytes.fromText(io_name)
+    })
+
+    return {
+        state: {
+            ...in.state,
+            context: value.state
+        },
+        names: in.names.push(bytes.fromText(io_name))[0],
+        types: in.types.push(type_value.id)[0],
+        arguments: in.arguments.push(value.id)[0]
+    }
+}

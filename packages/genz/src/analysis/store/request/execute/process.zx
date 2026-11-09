@@ -1,0 +1,37 @@
+import bytes from "std:bytes"
+
+import identifier from "../../../../ast/context/identifier"
+import standardField from "../../../../ast/context/standard_field"
+import {
+    process_name,
+    process_init_name,
+    process_minimal_name
+} from "../../../functions/signature/const"
+
+import type { Execution as Input, Execution as Output } from "../model"
+
+export default function (in: Input): Output {
+    const type_value = standardField({
+        state: in.state.context,
+        path: [
+            process_name,
+            process_init_name,
+            process_minimal_name
+        ]
+    })
+
+    const value = identifier({
+        state: type_value.state,
+        name: bytes.fromText(process_name)
+    })
+
+    return {
+        state: {
+            ...in.state,
+            context: value.state
+        },
+        names: in.names.push(bytes.fromText(process_name))[0],
+        types: in.types.push(type_value.id)[0],
+        arguments: in.arguments.push(value.id)[0]
+    }
+}

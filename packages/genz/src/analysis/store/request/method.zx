@@ -1,0 +1,59 @@
+import integers from "std:integer"
+
+import functionDeclaration from "../../../ast/declarations/function"
+import append from "../../../ast/declarations/table/function"
+import fields from "../../../ast/fields/append_values"
+import close from "../../../ast/statements/builder/close"
+
+import type { State } from "./model"
+
+export type Input = {
+    state: State,
+    name: u8[],
+    names: u8[][],
+    types: u32[],
+    return_type: u32
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const state = in.state
+    const body = close(state.statements)
+
+    const parameters = fields({
+        table: state.fields,
+        names: in.names,
+        values: in.types
+    })
+
+    const function_value = functionDeclaration({
+        base: state.source.declaration_base +
+            integers.narrow(state.declarations.tags.length),
+        name: in.name,
+        parameters_start: state.source.bases.field_base +
+            integers.narrow(state.fields.name.length),
+        parameters_count: integers.narrow(in.names.length),
+        return_type: in.return_type,
+        body_start: body.first,
+        body_count: body.count,
+        exported: true,
+        abi_export: false,
+        inlined: false,
+        calling_convention: null
+    })
+
+    const declared = append({
+        state: state.declarations,
+        value: function_value.table,
+        parameter_base: 0
+    })
+
+    return {
+        ...state,
+        statements: body.state,
+        fields: parameters,
+        declarations: declared.state,
+        valid: state.valid && function_value.valid && declared.valid
+    }
+}

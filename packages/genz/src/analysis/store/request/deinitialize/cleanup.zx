@@ -1,0 +1,91 @@
+import bytes from "std:bytes"
+
+import field from "../../../../ast/context/field"
+import identifier from "../../../../ast/context/identifier"
+import invoke from "../../../../ast/context/method"
+import assignment from "../../../../ast/statements/builder/assignment"
+import close from "../../../../ast/statements/builder/close"
+import branch from "../../../../ast/statements/builder/else_branch"
+import evaluate from "../../../../ast/statements/builder/evaluate"
+import open from "../../../../ast/statements/builder/open"
+import { arena_name } from "../../lifecycle/const"
+import { Policy } from "../../lifecycle/model"
+import { deinit_name, region_variable_name } from "../../regions/const"
+import { retained_name } from "../../storage/const"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const arena = field({
+        state: in.context,
+        target: in.self,
+        name: bytes.fromText(arena_name)
+    })
+
+    const release = invoke({
+        state: arena.state,
+        target: arena.id,
+        path: [deinit_name],
+        arguments: []
+    })
+
+    if (in.policy == Policy.ReadOnly) {
+        return {
+            ...in,
+            context: release.state,
+            statements: evaluate({
+                state: in.statements,
+                value: release.id,
+                discard: false
+            })
+        }
+    }
+
+    const retained = field({
+        state: release.state,
+        target: in.self,
+        name: bytes.fromText(retained_name)
+    })
+
+    const region = identifier({
+        state: retained.state,
+        name: bytes.fromText(region_variable_name)
+    })
+
+    const destination = field({
+        state: region.state,
+        target: region.id,
+        name: bytes.fromText(arena_name)
+    })
+
+    const scope = open(in.statements)
+
+    const assigned = assignment({
+        state: scope.state,
+        target: destination.id,
+        value: arena.id
+    })
+
+    const yes = close(assigned)
+
+    const no = evaluate({
+        state: yes.state,
+        value: release.id,
+        discard: false
+    })
+
+    return {
+        ...in,
+        context: destination.state,
+        statements: branch({
+            scope: {
+                ...scope,
+                state: no
+            },
+            condition: retained.id,
+            capture: bytes.fromText(region_variable_name),
+            yes_first: yes.first,
+            yes_count: yes.count
+        })
+    }
+}

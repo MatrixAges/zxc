@@ -1,0 +1,21 @@
+<Module>
+    <Type from="../model" as="Request" />
+    <Type from="../../lifecycle/model" as="Lifecycle" />
+
+    <Args in={Request.State} out={Request.State} />
+
+    <If on={$in.policy == Lifecycle.Policy.ReadOnly}>
+        <Call fn="readonly" in={$in} />
+        <Call fn="finish" in={$ctx.readonly} />
+
+        <Return value={$ctx.finish} />
+    </If>
+
+    <Call fn="checked" in={$in} />
+    <Call fn="region" in={$ctx.checked} />
+    <Call fn="apply" in={$ctx.region} />
+    <Call fn="owners" in={$ctx.apply} />
+    <Call fn="finish" in={$ctx.owners.state} />
+
+    <Return value={$ctx.finish} />
+</Module>

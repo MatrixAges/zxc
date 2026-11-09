@@ -1,0 +1,59 @@
+import bytes from "std:bytes"
+
+import address from "../../../../ast/context/address"
+import field from "../../../../ast/context/field"
+import identifier from "../../../../ast/context/identifier"
+import { input_type_name } from "../../../module/const"
+import { application_name, arena_name, self_name } from "../../lifecycle/const"
+import { input_name } from "../const"
+
+import type { State as Input, Execution as Output } from "../model"
+
+export default function (in: Input): Output {
+    const application = identifier({
+        state: in.context,
+        name: bytes.fromText(application_name)
+    })
+
+    const input_type = field({
+        state: application.state,
+        target: application.id,
+        name: bytes.fromText(input_type_name)
+    })
+
+    const arena = field({
+        state: input_type.state,
+        target: in.self,
+        name: bytes.fromText(arena_name)
+    })
+
+    const location = address({
+        state: arena.state,
+        value: arena.id
+    })
+
+    const input = identifier({
+        state: location.state,
+        name: bytes.fromText(input_name)
+    })
+
+    return {
+        state: {
+            ...in,
+            context: input.state
+        },
+        names: [
+            bytes.fromText(self_name),
+            bytes.fromText(input_name)
+        ],
+        types: [
+            in.request_pointer,
+            input_type.id
+        ],
+        arguments: [
+            location.id,
+            input.id,
+            in.self
+        ]
+    }
+}

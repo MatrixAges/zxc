@@ -1,0 +1,32 @@
+import construct from "../lifecycle/error_type"
+
+import type { State, Node as Output } from "./model"
+
+export type Input = {
+    state: State,
+    payload: u32
+}
+
+export default function (in: Input): Output {
+    const result = construct({
+        context: in.state.context,
+        extra: in.state.extra.pick([
+            "error_union_payload",
+            "error_union_errors",
+            "error_union_inferred"
+        ]),
+        payload: in.payload
+    })
+
+    return {
+        id: result.id,
+        state: {
+            ...in.state,
+            context: result.context,
+            extra: {
+                ...in.state.extra,
+                ...result.extra
+            }
+        }
+    }
+}

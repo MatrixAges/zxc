@@ -1,0 +1,69 @@
+import bytes from "std:bytes"
+
+import field from "../../../../ast/context/field"
+import identifier from "../../../../ast/context/identifier"
+import pointer from "../../../../ast/context/pointer"
+import append from "../../../../ast/fields/append"
+import { initial_prefix, store_prefix } from "../../lifecycle/const"
+import name from "../../lifecycle/name"
+import { output_name } from "../../storage/const"
+
+import type { State } from "../model"
+
+export type Input = {
+    state: State,
+    index: u64
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const slot_name = name({
+        prefix: bytes.fromText(store_prefix),
+        index: in.index
+    })
+
+    const value = field({
+        state: in.state.context,
+        target: in.state.self,
+        name: slot_name
+    })
+
+    const initial = identifier({
+        state: value.state,
+        name: name({
+            prefix: bytes.fromText(initial_prefix),
+            index: in.index
+        })
+    })
+
+    const output = field({
+        state: initial.state,
+        target: initial.id,
+        name: bytes.fromText(output_name)
+    })
+
+    const address = pointer({
+        state: output.state,
+        value: output.id
+    })
+
+    return {
+        ...in.state,
+        context: address.state,
+        initial: append({
+            table: in.state.initial,
+            name: slot_name,
+            value: value.id,
+            default_value: null,
+            comptime_parameter: false
+        }),
+        members: append({
+            table: in.state.members,
+            name: slot_name,
+            value: address.id,
+            default_value: null,
+            comptime_parameter: false
+        })
+    }
+}

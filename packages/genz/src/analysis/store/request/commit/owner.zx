@@ -1,0 +1,61 @@
+import bytes from "std:bytes"
+
+import field from "../../../../ast/context/field"
+import assignment from "../../../../ast/statements/builder/assignment"
+import branch from "../../../../ast/statements/builder/branch"
+import open from "../../../../ast/statements/builder/open"
+import name from "../../lifecycle/name"
+import present from "../../lifecycle/present"
+import { owner_prefix } from "../../storage/const"
+
+import type { Commit } from "../model"
+
+export type Input = {
+    work: Commit,
+    index: u64
+}
+
+export type Output = Commit
+
+export default function (in: Input): Output {
+    const work = in.work
+
+    const condition = present({
+        context: work.state.context,
+        changes: work.changes,
+        index: in.index
+    })
+
+    const target = field({
+        state: condition.state,
+        target: work.parent,
+        name: name({
+            prefix: bytes.fromText(owner_prefix),
+            index: in.index
+        })
+    })
+
+    const scope = open(work.state.statements)
+
+    const assigned = assignment({
+        state: scope.state,
+        target: target.id,
+        value: work.retained
+    })
+
+    return {
+        ...work,
+        state: {
+            ...work.state,
+            context: target.state,
+            statements: branch({
+                scope: {
+                    ...scope,
+                    state: assigned
+                },
+                condition: condition.id,
+                capture: null
+            })
+        }
+    }
+}

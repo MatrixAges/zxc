@@ -1,0 +1,10 @@
+<Module>
+    <Type from="../model" as="Request" />
+
+    <Args in={Request.State} out={Request.State} />
+
+    <Call fn="cleanup" in={$in} />
+    <Call fn="finish" in={$ctx.cleanup} />
+
+    <Return value={$ctx.finish} />
+</Module>

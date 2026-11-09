@@ -1,0 +1,67 @@
+import bytes from "std:bytes"
+
+import identifier from "../../../../ast/context/identifier"
+import nullValue from "../../../../ast/context/null_value"
+import pointer from "../../../../ast/context/pointer"
+import optionalType from "../../../../ast/expressions/optional_type"
+import field from "../../../../ast/fields/append"
+import { Policy } from "../../lifecycle/model"
+import { region_name, retained_name } from "../../storage/const"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    if (in.policy == Policy.ReadOnly) {
+        return in
+    }
+
+    const region = identifier({
+        state: in.context,
+        name: bytes.fromText(region_name)
+    })
+
+    const address = pointer({
+        state: region.state,
+        value: region.id
+    })
+
+    const optional = optionalType({
+        table: {
+            ...address.state.expressions.pick([
+                "tags",
+                "offsets"
+            ]),
+            optional_type: in.extra.optional_type
+        },
+        base: in.source.bases.expression_base,
+        value: address.id
+    })
+
+    const nil = nullValue({
+        ...address.state,
+        expressions: {
+            ...address.state.expressions,
+            ...optional.table.pick([
+                "tags",
+                "offsets"
+            ])
+        },
+        valid: address.state.valid && optional.valid
+    })
+
+    return {
+        ...in,
+        context: nil.state,
+        extra: {
+            ...in.extra,
+            optional_type: optional.table.optional_type
+        },
+        members: field({
+            table: in.members,
+            name: bytes.fromText(retained_name),
+            value: optional.id,
+            default_value: nil.id,
+            comptime_parameter: false
+        })
+    }
+}

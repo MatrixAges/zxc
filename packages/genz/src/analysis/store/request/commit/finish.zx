@@ -1,0 +1,50 @@
+import bytes from "std:bytes"
+
+import field from "../../../../ast/context/field"
+import identifier from "../../../../ast/context/identifier"
+import {
+    application_name,
+    changes_name,
+    commit_name,
+    pending_name,
+    self_name
+} from "../../lifecycle/const"
+import fallible from "../fallible"
+import method from "../method"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const application = identifier({
+        state: in.context,
+        name: bytes.fromText(application_name)
+    })
+
+    const changes_type = field({
+        state: application.state,
+        target: application.id,
+        name: bytes.fromText(pending_name)
+    })
+
+    const return_type = fallible({
+        state: {
+            ...in,
+            context: changes_type.state
+        },
+        payload: in.unit
+    })
+
+    return method({
+        state: return_type.state,
+        name: bytes.fromText(commit_name),
+        names: [
+            bytes.fromText(self_name),
+            bytes.fromText(changes_name)
+        ],
+        types: [
+            in.request_pointer,
+            changes_type.id
+        ],
+        return_type: return_type.id
+    })
+}

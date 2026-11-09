@@ -1,0 +1,37 @@
+import bytes from "std:bytes"
+
+import dereference from "../../../../ast/context/dereference"
+import undefinedValue from "../../../../ast/context/undefined"
+import assignment from "../../../../ast/statements/builder/assignment"
+import { self_name } from "../../lifecycle/const"
+import { deinit_name } from "../../regions/const"
+import method from "../method"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const target = dereference({
+        state: in.context,
+        value: in.self
+    })
+
+    const undefined_value = undefinedValue(target.state)
+
+    const invalidated = assignment({
+        state: in.statements,
+        target: target.id,
+        value: undefined_value.id
+    })
+
+    return method({
+        state: {
+            ...in,
+            context: undefined_value.state,
+            statements: invalidated
+        },
+        name: bytes.fromText(deinit_name),
+        names: [bytes.fromText(self_name)],
+        types: [in.request_pointer],
+        return_type: in.unit
+    })
+}

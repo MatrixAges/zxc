@@ -1,0 +1,55 @@
+import bytes from "std:bytes"
+
+import field from "../../../../ast/context/field"
+import identifier from "../../../../ast/context/identifier"
+import invoke from "../../../../ast/context/method"
+import result from "../../../../ast/statements/builder/result"
+import { output_type_name } from "../../../module/const"
+import { application_name, execute_name } from "../../lifecycle/const"
+import fallible from "../fallible"
+import method from "../method"
+
+import type { Execution as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const application = identifier({
+        state: in.state.context,
+        name: bytes.fromText(application_name)
+    })
+
+    const output = field({
+        state: application.state,
+        target: application.id,
+        name: bytes.fromText(output_type_name)
+    })
+
+    const return_type = fallible({
+        state: {
+            ...in.state,
+            context: output.state
+        },
+        payload: output.id
+    })
+
+    const invoked = invoke({
+        state: return_type.state.context,
+        target: application.id,
+        path: [execute_name],
+        arguments: in.arguments
+    })
+
+    return method({
+        state: {
+            ...return_type.state,
+            context: invoked.state,
+            statements: result({
+                state: in.state.statements,
+                value: invoked.id
+            })
+        },
+        name: bytes.fromText(execute_name),
+        names: in.names,
+        types: in.types,
+        return_type: return_type.id
+    })
+}

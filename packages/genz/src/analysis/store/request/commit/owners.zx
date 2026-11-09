@@ -1,0 +1,31 @@
+import { Policy } from "../../lifecycle/model"
+import owner from "./owner"
+
+import type { Commit as Input, Commit as Output } from "../model"
+
+export default function (in: Input): Output {
+    if (in.state.policy != Policy.Independent) {
+        return in
+    }
+
+    const objects = in.state.source.objects
+
+    return loop({
+        work: in,
+        index: 0
+    }, {
+        while: current =>
+            current.index < objects.length && current.work.state.context.valid,
+        next: current => {
+            if (objects[current.index].writable) {
+                current.work = owner({
+                    work: current.work,
+                    index: current.index
+                })
+            }
+
+            current.index += 1
+        },
+        return: current => current.work
+    })
+}

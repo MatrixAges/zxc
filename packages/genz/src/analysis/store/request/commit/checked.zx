@@ -1,0 +1,93 @@
+import bytes from "std:bytes"
+
+import checked from "../../../../ast/context/checked"
+import field from "../../../../ast/context/field"
+import identifier from "../../../../ast/context/identifier"
+import invoke from "../../../../ast/context/method"
+import unary from "../../../../ast/context/unary"
+import branch from "../../../../ast/statements/builder/branch"
+import open from "../../../../ast/statements/builder/open"
+import result from "../../../../ast/statements/builder/result"
+import { ExpressionsUnaryOperator } from "../../../../printer/model/expressions"
+import { parent_name } from "../../adapter/const"
+import { arena_name, changes_name, validate_name } from "../../lifecycle/const"
+import { child_allocator_name, region_variable_name } from "../../regions/const"
+import { retained_name } from "../../storage/const"
+
+import type { State as Input, Commit as Output } from "../model"
+
+export default function (in: Input): Output {
+    const changes = identifier({
+        state: in.context,
+        name: bytes.fromText(changes_name)
+    })
+
+    const valid = checked(invoke({
+        state: changes.state,
+        target: in.self_namespace,
+        path: [validate_name],
+        arguments: [changes.id]
+    }))
+
+    const rejected = unary({
+        state: valid.state,
+        operator: ExpressionsUnaryOperator.Not,
+        operand: valid.id
+    })
+
+    const scope = open(in.statements)
+
+    const guarded = branch({
+        scope: {
+            ...scope,
+            state: result({
+                state: scope.state,
+                value: null
+            })
+        },
+        condition: rejected.id,
+        capture: null
+    })
+
+    const retained = field({
+        state: rejected.state,
+        target: in.self,
+        name: bytes.fromText(retained_name)
+    })
+
+    const region = identifier({
+        state: retained.state,
+        name: bytes.fromText(region_variable_name)
+    })
+
+    const parent = field({
+        state: region.state,
+        target: in.self,
+        name: bytes.fromText(parent_name)
+    })
+
+    const arena = field({
+        state: parent.state,
+        target: parent.id,
+        name: bytes.fromText(arena_name)
+    })
+
+    const child = field({
+        state: arena.state,
+        target: arena.id,
+        name: bytes.fromText(child_allocator_name)
+    })
+
+    return {
+        state: {
+            ...in,
+            context: child.state,
+            statements: guarded
+        },
+        changes: changes.id,
+        parent: parent.id,
+        retained: retained.id,
+        region: region.id,
+        child_allocator: child.id
+    }
+}

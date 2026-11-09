@@ -1,0 +1,50 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import object from "../../../../ast/context/object"
+import concat from "../../../../ast/fields/concat"
+import result from "../../../../ast/statements/builder/result"
+import { self_name } from "../../lifecycle/const"
+import { request_name } from "../const"
+import method from "../method"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const fields = concat({
+        left: in.fields,
+        right: in.initial
+    })
+
+    const value = object({
+        state: in.context,
+        type_expr: null,
+        first: in.source.bases.field_base + integers.narrow(in.fields.name.length),
+        count: integers.narrow(in.initial.name.length)
+    })
+
+    const root =
+        in.source.declaration_base + integers.narrow(in.declarations.tags.length)
+
+    const declared = method({
+        state: {
+            ...in,
+            context: value.state,
+            fields,
+            statements: result({
+                state: in.statements,
+                value: value.id
+            })
+        },
+        name: bytes.fromText(request_name),
+        names: [bytes.fromText(self_name)],
+        types: [in.parent_pointer],
+        return_type: in.request_type
+    })
+
+    return {
+        ...declared,
+        roots: declared.roots.push(root)[0],
+        methods_first: root + 1
+    }
+}

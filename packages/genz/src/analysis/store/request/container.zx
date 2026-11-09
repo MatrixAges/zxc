@@ -1,0 +1,76 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import constant from "../../../ast/declarations/table/constant"
+import construct from "../../../ast/expressions/container"
+import concat from "../../../ast/fields/concat"
+import { request_type_name } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const end =
+        in.source.declaration_base + integers.narrow(in.declarations.tags.length)
+
+    const fields = concat({
+        left: in.fields,
+        right: in.members
+    })
+
+    const value = construct({
+        table: {
+            ...in.context.expressions.pick([
+                "tags",
+                "offsets"
+            ]),
+            ...in.extra.pick([
+                "container_type_fields_start",
+                "container_type_fields_len",
+                "container_type_declarations_start",
+                "container_type_declarations_len"
+            ])
+        },
+        base: in.source.bases.expression_base,
+        fields_first:
+            in.source.bases.field_base + integers.narrow(in.fields.name.length),
+        fields_count: integers.narrow(in.members.name.length),
+        declarations_first: in.methods_first,
+        declarations_count: end - in.methods_first
+    })
+
+    const declared = constant({
+        state: in.declarations,
+        value: {
+            name: bytes.fromText(request_type_name),
+            value: value.id,
+            type_expr: null,
+            exported: true
+        }
+    })
+
+    return {
+        ...in,
+        context: {
+            ...in.context,
+            expressions: {
+                ...in.context.expressions,
+                ...value.table.pick([
+                    "tags",
+                    "offsets"
+                ])
+            },
+            valid: in.context.valid && value.valid
+        },
+        fields,
+        declarations: declared.state,
+        roots: in.roots.push(end)[0],
+        extra: {
+            ...in.extra,
+            ...value.table.omit([
+                "tags",
+                "offsets"
+            ])
+        },
+        valid: in.valid && declared.valid
+    }
+}

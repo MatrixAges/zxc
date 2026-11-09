@@ -1,0 +1,41 @@
+import bytes from "std:bytes"
+
+import checked from "../../../../ast/context/checked"
+import field from "../../../../ast/context/field"
+import identifier from "../../../../ast/context/identifier"
+import invoke from "../../../../ast/context/method"
+import evaluate from "../../../../ast/statements/builder/evaluate"
+import { parent_name } from "../../adapter/const"
+import { changes_name, commit_name } from "../../lifecycle/const"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const changes = identifier({
+        state: in.context,
+        name: bytes.fromText(changes_name)
+    })
+
+    const parent = field({
+        state: changes.state,
+        target: in.self,
+        name: bytes.fromText(parent_name)
+    })
+
+    const committed = checked(invoke({
+        state: parent.state,
+        target: parent.id,
+        path: [commit_name],
+        arguments: [changes.id]
+    }))
+
+    return {
+        ...in,
+        context: committed.state,
+        statements: evaluate({
+            state: in.statements,
+            value: committed.id,
+            discard: false
+        })
+    }
+}

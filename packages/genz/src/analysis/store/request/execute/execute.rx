@@ -1,0 +1,18 @@
+<Module>
+    <Type from="../model" as="Request" />
+
+    <Args in={Request.State} out={Request.State} />
+
+    <If on={!$in.source.execute}>
+        <Return value={$in} />
+    </If>
+
+    <Call fn="prepare" in={$in} />
+
+    <Call module="io" in={$ctx.prepare} />
+    <Call module="process" in={$ctx.io} />
+
+    <Call fn="finish" in={$ctx.process} />
+
+    <Return value={$ctx.finish} />
+</Module>

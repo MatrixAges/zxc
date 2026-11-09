@@ -1,0 +1,13 @@
+<Module>
+    <Type from="../model" as="Request" />
+
+    <Args in={Request.Execution} out={Request.Execution} />
+
+    <If on={!$in.state.source.io}>
+        <Return value={$in} />
+    </If>
+
+    <Call fn="io" in={$in} />
+
+    <Return value={$ctx.io} />
+</Module>

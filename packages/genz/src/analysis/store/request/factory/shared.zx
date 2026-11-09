@@ -1,0 +1,58 @@
+import bytes from "std:bytes"
+
+import field from "../../../../ast/context/field"
+import method from "../../../../ast/context/method"
+import fields from "../../../../ast/fields/append_values"
+import { init_name } from "../../../functions/prelude/const"
+import { parent_name } from "../../adapter/const"
+import { arena_name } from "../../lifecycle/const"
+import { child_allocator_name } from "../../regions/const"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const arena = field({
+        state: in.context,
+        target: in.self,
+        name: bytes.fromText(arena_name)
+    })
+
+    const child = field({
+        state: arena.state,
+        target: arena.id,
+        name: bytes.fromText(child_allocator_name)
+    })
+
+    const initialized = method({
+        state: child.state,
+        target: in.arena_type,
+        path: [init_name],
+        arguments: [child.id]
+    })
+
+    const names = [
+        bytes.fromText(parent_name),
+        bytes.fromText(arena_name)
+    ]
+
+    return {
+        ...in,
+        context: initialized.state,
+        initial: fields({
+            table: in.initial,
+            names,
+            values: [
+                in.self,
+                initialized.id
+            ]
+        }),
+        members: fields({
+            table: in.members,
+            names,
+            values: [
+                in.parent_pointer,
+                in.arena_type
+            ]
+        })
+    }
+}

@@ -1,0 +1,18 @@
+import type { Columns } from "./model"
+
+export type Input = {
+    left: Columns,
+    right: Columns
+}
+
+export type Output = Columns
+
+export default function (in: Input): Output {
+    return {
+        name: in.left.name.concat(in.right.name)[0],
+        value: in.left.value.concat(in.right.value)[0],
+        default_value: in.left.default_value.concat(in.right.default_value)[0],
+        comptime_parameter:
+            in.left.comptime_parameter.concat(in.right.comptime_parameter)[0]
+    }
+}
