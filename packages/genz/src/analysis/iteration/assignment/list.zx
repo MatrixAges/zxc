@@ -1,0 +1,33 @@
+import bytes from "std:bytes"
+
+import { items_field, storage_field } from "../../types/state/const"
+import fields from "./fields"
+import save from "./save"
+
+import type { Step as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const items = fields({
+        state: in.state,
+        target: in.target,
+        value: in.value,
+        name: {
+            name: bytes.fromText(items_field),
+            owned: false
+        }
+    })
+
+    const saved = save(items)
+
+    const storage = fields({
+        state: saved,
+        target: in.target,
+        value: in.value,
+        name: {
+            name: bytes.fromText(storage_field),
+            owned: false
+        }
+    })
+
+    return save(storage)
+}

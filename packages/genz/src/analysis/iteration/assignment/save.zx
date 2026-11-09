@@ -1,0 +1,35 @@
+import header from "../../../ast/statements/header"
+import { StatementsKind } from "../../../printer/model/statements"
+import snapshot from "./snapshot"
+
+import type { Pair as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const value = snapshot({
+        state: in.state,
+        value: in.value
+    })
+
+    const row = header({
+        ...value.state.assignments.pick([
+            "tags",
+            "offsets"
+        ]),
+        base: 0,
+        kind: StatementsKind.Assignment,
+        offset: value.state.assignments.assignment_target.length
+    })
+
+    return {
+        ...value.state,
+        assignments: {
+            tags: row.tags,
+            offsets: row.offsets,
+            assignment_target:
+                value.state.assignments.assignment_target.push(in.target)[0],
+            assignment_value:
+                value.state.assignments.assignment_value.push(value.id)[0]
+        },
+        valid: value.state.valid && row.valid
+    }
+}

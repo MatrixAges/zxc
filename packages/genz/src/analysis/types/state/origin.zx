@@ -9,7 +9,10 @@ export type Input = {
     count: u64
 }
 
-export type Output = u8[]
+export type Output = {
+    name: u8[],
+    owned: bool
+}
 
 export default function (in: Input): Output {
     return loop({
@@ -50,6 +53,9 @@ export default function (in: Input): Output {
             }
         },
         while: current => !current.found,
-        return: state => state.candidate
+        return: state => {
+            name: state.candidate,
+            owned: state.suffix != 0
+        }
     })
 }

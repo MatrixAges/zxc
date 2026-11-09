@@ -1,0 +1,99 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import integer from "../../../printer/text/integer"
+import origin from "../../construction/origin/describe"
+import fields from "./fields"
+import list from "./list"
+import save from "./save"
+
+import type { Step as Input, State as Output } from "./model"
+
+export default function collect(in: Input): Output {
+    const index = integers.widen(in.type_id)
+
+    if (!in.source.selected[index]) {
+        return save(in.omit([
+            "source",
+            "type_id"
+        ]))
+    }
+
+    const types = in.source.types
+    const category = kind(types.kinds[index])
+
+    if (category == Kind.List) {
+        return list(in)
+    }
+
+    const object = category == Kind.Object
+
+    if (!object && category != Kind.Tuple) {
+        return save(in.omit([
+            "source",
+            "type_id"
+        ]))
+    }
+
+    const first = integers.widen(types.first[index])
+    const count = integers.widen(types.second[index])
+
+    const collected = loop({
+        state: in.state,
+        index: 0
+    }, {
+        while: current => current.index < count,
+        next: current => {
+            const position = first + current.index
+            const child = match {
+                object => types.field_types[position],
+                _ => types.children[position]
+            }
+
+            const name = match {
+                object => {
+                    name: bytes.fromText(types.field_names[position]),
+                    owned: false
+                },
+                _ => {
+                    name: integer({
+                        output: [],
+                        value: current.index
+                    }),
+                    owned: true
+                }
+            }
+
+            const pair = fields({
+                state: current.state,
+                target: in.target,
+                value: in.value,
+                name
+            })
+
+            current.state = collect({
+                source: in.source,
+                state: pair.state,
+                type_id: child,
+                target: pair.target,
+                value: pair.value
+            })
+            current.index += 1
+        },
+        return: current => current.state
+    })
+
+    const name = origin({
+        types,
+        id: in.type_id
+    })
+
+    return save(fields({
+        state: collected,
+        target: in.target,
+        value: in.value,
+        name
+    }))
+}

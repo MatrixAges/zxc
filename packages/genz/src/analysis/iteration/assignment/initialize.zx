@@ -1,0 +1,37 @@
+import integers from "std:integer"
+
+import type { Input, Prepared as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        source: in,
+        split: in.active && in.facts.selected[integers.widen(in.type_id)],
+        state: {
+            expressions: {
+                tags: [],
+                offsets: [],
+                identifier: [],
+                field_target: [],
+                field_name: []
+            },
+            snapshots: {
+                tags: [],
+                offsets: [],
+                constant_name: [],
+                constant_type_expr: [],
+                constant_value: [],
+                constant_exported: []
+            },
+            assignments: {
+                tags: [],
+                offsets: [],
+                assignment_target: [],
+                assignment_value: []
+            },
+            field_name_source: [],
+            serial: in.serial,
+            base: in.base,
+            valid: true
+        }
+    }
+}

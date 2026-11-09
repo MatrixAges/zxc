@@ -1,0 +1,34 @@
+<Module>
+    <Type from="model" as="Assignment" />
+
+    <Args in={Assignment.Input} out={Assignment.Output} />
+
+    <Call fn="initialize" in={$in} />
+
+    <If on={!$ctx.initialize.split}>
+        <Call fn="direct" in={$ctx.initialize} />
+
+        <Return value={$ctx.direct} />
+    </If>
+
+    <Call
+        fn="snapshot"
+        in={{
+            state: $ctx.initialize.state,
+            value: $in.value
+        }}
+    />
+
+    <Call
+        fn="collect"
+        in={{
+            source: $in.facts,
+            state: $ctx.snapshot.state,
+            type_id: $in.type_id,
+            target: $in.target,
+            value: $ctx.snapshot.id
+        }}
+    />
+
+    <Return value={$ctx.collect} />
+</Module>

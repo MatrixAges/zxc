@@ -1,0 +1,57 @@
+import header from "../../../ast/expressions/header"
+import { ExpressionsKind } from "../../../printer/model/expressions"
+
+import type { Field as Input, Pair as Output } from "./model"
+
+export default function (in: Input): Output {
+    const slot = in.state.expressions.field_name.length
+    const owner: u64? = in.name.owned ? slot : null
+
+    const target = header({
+        ...in.state.expressions.pick([
+            "tags",
+            "offsets"
+        ]),
+        base: in.state.base,
+        kind: ExpressionsKind.Field,
+        offset: slot
+    })
+
+    const value = header({
+        tags: target.tags,
+        offsets: target.offsets,
+        base: in.state.base,
+        kind: ExpressionsKind.Field,
+        offset: slot + 1
+    })
+
+    const valid = (
+        - in.state.valid
+        - and target.valid
+        - and value.valid
+    )
+
+    return {
+        target: target.id,
+        value: value.id,
+        state: {
+            ...in.state,
+            expressions: {
+                ...in.state.expressions,
+                tags: value.tags,
+                offsets: value.offsets,
+                field_target:
+                    in.state.expressions.field_target.push(in.target)[0].push(
+                        in.value
+                    )[0],
+                field_name:
+                    in.state.expressions.field_name.push(in.name.name)[0].push(
+                        in.name.name
+                    )[0]
+            },
+            field_name_source:
+                in.state.field_name_source.push(owner)[0].push(owner)[0],
+            valid
+        }
+    }
+}

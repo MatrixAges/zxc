@@ -217,6 +217,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/sorting/publish.zx", .name = "sorting_publish", .owner = .genz },
     .{ .path = "genz/analysis/sorting/reuse.zx", .name = "sorting_reuse", .owner = .genz },
     .{ .path = "genz/analysis/sorting/expression/build.rx", .name = "sorting_expression", .owner = .genz },
+    .{ .path = "genz/analysis/iteration/assignment/build.rx", .name = "iteration_assignment", .owner = .genz },
     .{ .path = "genz/analysis/parallel/emit/label.zx", .name = "parallel_label", .owner = .genz },
     .{ .path = "genz/analysis/parallel/emit/allocator_alias.zx", .name = "parallel_allocator_alias", .owner = .genz },
     .{ .path = "genz/analysis/tasks/worker/reserve.zx", .name = "task_worker_reserve", .owner = .genz },

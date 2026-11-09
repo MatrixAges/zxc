@@ -77,7 +77,7 @@ export default function (in: Input): Output {
                         names: current.source.types.field_names,
                         start: first,
                         count
-                    }),
+                    }).name,
                     _ => current.empty
                 })[0],
                 index: current.index + 1

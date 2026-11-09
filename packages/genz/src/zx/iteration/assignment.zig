@@ -1,58 +1,70 @@
 const std = @import("std");
-const ir = @import("zx").ir;
+const zx = @import("zx");
+const ir = zx.ir;
 const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
-const aggregate = @import("../aggregate.zig");
 
 pub fn append(self: *Lower, body: *std.ArrayList(node.Statement), type_id: ir.TypeId, target: node.ExpressionId, value: node.ExpressionId) Lower.Error!void {
-    if (!self.state_active or !self.state_plan.selected[@backingInt(type_id)]) {
-        return body.append(self.allocator, .{ .assignment = .{ .target = target, .value = value } });
-    }
+    if (!@import("genz_options").generated_analysis) return @import("assignment_seed.zig").append(self, body, type_id, target, value);
 
-    const result = try aggregate.bind(self, body, value);
-    var assignments: std.ArrayList(node.Statement) = .empty;
+    const entry = @import("generated_iteration_assignment");
+    const Input = std.meta.Child(entry.Input);
+    const Facts = std.meta.Child(@FieldType(Input, "facts"));
+    const types = ir.TypeTable.borrow(std.meta.Child(@FieldType(Facts, "types")), self.program.types);
+    const facts: Facts = .{ .types = &types, .selected = self.state_plan.selected };
 
-    try collect(self, body, &assignments, type_id, target, result);
-    try body.appendSlice(self.allocator, assignments.items);
-}
-
-fn collect(self: *Lower, snapshots: *std.ArrayList(node.Statement), assignments: *std.ArrayList(node.Statement), type_id: ir.TypeId, target: node.ExpressionId, value: node.ExpressionId) Lower.Error!void {
-    if (self.state_plan.selected[@backingInt(type_id)]) switch (self.program.typeOf(type_id)) {
-        .object => |fields| {
-            for (0..fields.len) |index| {
-                const field = fields.at(index);
-
-                try collect(self, snapshots, assignments, field.type_id, try self.field(target, field.name), try self.field(value, field.name));
-            }
-
-            const origin = try @import("../state_value/origin.zig").name(self, type_id);
-
-            return save(self, snapshots, assignments, try self.field(target, origin), try self.field(value, origin));
-        },
-        .tuple => |fields| {
-            for (0..fields.len) |index| {
-                const name = try std.fmt.allocPrint(self.allocator, "{d}", .{index});
-
-                try collect(self, snapshots, assignments, fields.at(index), try self.field(target, name), try self.field(value, name));
-            }
-
-            const origin = try @import("../state_value/origin.zig").name(self, type_id);
-
-            return save(self, snapshots, assignments, try self.field(target, origin), try self.field(value, origin));
-        },
-        .list => {
-            try save(self, snapshots, assignments, try self.field(target, "items"), try self.field(value, "items"));
-
-            return save(self, snapshots, assignments, try self.field(target, "storage"), try self.field(value, "storage"));
-        },
-        else => {},
+    const input: Input = .{
+        .facts = &facts,
+        .active = self.state_active,
+        .type_id = @backingInt(type_id),
+        .target = @backingInt(target),
+        .value = @backingInt(value),
+        .base = @intCast(self.builder.nodes.expressions.tags.items.len),
+        .serial = self.serial,
     };
 
-    return save(self, snapshots, assignments, target, value);
+    var scratch = std.heap.ArenaAllocator.init(self.workspace);
+    var buffer: [std.heap.page_size_min]u8 = undefined;
+    var memory = std.heap.BufferFirstAllocator.init(&buffer, scratch.allocator());
+
+    defer scratch.deinit();
+
+    const result = entry.executeIn(memory.allocator(), &input) catch |err| return failure(err);
+
+    if (!result.valid) return error.OutOfMemory;
+
+    var expressions = result.expressions.*;
+    var snapshots = result.snapshots.*;
+    const names = try memory.allocator().alloc([]const u8, expressions.identifier.len);
+
+    for (expressions.identifier, names) |name, *owned| owned.* = try self.allocator.dupe(u8, name);
+
+    expressions.identifier = names;
+    snapshots.constant_name = names;
+
+    const fields = try memory.allocator().dupe([]const u8, expressions.field_name);
+
+    for (result.field_name_source, 0..) |source, index| {
+        if (source) |owner| {
+            const first: usize = @intCast(owner);
+            fields[index] = if (first == index) try self.allocator.dupe(u8, fields[index]) else fields[first];
+        }
+    }
+
+    expressions.field_name = fields;
+
+    @import("../../node/import_rows.zig").appendBorrowed(self.allocator, &self.builder.nodes.expressions, &expressions) catch |err| return failure(err);
+    const statements = @import("../../node/import_statements.zig");
+
+    statements.appendBorrowingText(self.allocator, body, &snapshots) catch |err| return failure(err);
+    statements.appendBorrowingText(self.allocator, body, result.assignments) catch |err| return failure(err);
+
+    self.serial = @intCast(result.serial);
 }
 
-fn save(self: *Lower, snapshots: *std.ArrayList(node.Statement), assignments: *std.ArrayList(node.Statement), target: node.ExpressionId, value: node.ExpressionId) Lower.Error!void {
-    const snapshot = try aggregate.bind(self, snapshots, value);
-
-    try assignments.append(self.allocator, .{ .assignment = .{ .target = target, .value = snapshot } });
+fn failure(err: anyerror) Lower.Error {
+    return switch (err) {
+        error.OutOfMemory, error.IntegerOverflow, error.Overflow => error.OutOfMemory,
+        else => unreachable,
+    };
 }

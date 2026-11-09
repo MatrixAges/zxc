@@ -53,7 +53,7 @@ export default function (in: Input): Output {
     const previous = field({
         state: written,
         target: target.id,
-        name
+        name: name.name
     })
 
     const cleared = nullValue(previous.state)

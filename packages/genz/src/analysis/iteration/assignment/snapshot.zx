@@ -1,0 +1,66 @@
+import { operand_prefix } from "../../../ast/context/const"
+import expression from "../../../ast/expressions/header"
+import fresh from "../../../ast/fresh"
+import statement from "../../../ast/statements/header"
+import { ExpressionsKind } from "../../../printer/model/expressions"
+import { StatementsKind } from "../../../printer/model/statements"
+
+import type { Snapshot as Input, Bound as Output } from "./model"
+
+export default function (in: Input): Output {
+    const name = fresh({
+        serial: in.state.serial,
+        prefix: operand_prefix
+    })
+
+    const value = expression({
+        ...in.state.expressions.pick([
+            "tags",
+            "offsets"
+        ]),
+        base: in.state.base,
+        kind: ExpressionsKind.Identifier,
+        offset: in.state.expressions.identifier.length
+    })
+
+    const binding = statement({
+        ...in.state.snapshots.pick([
+            "tags",
+            "offsets"
+        ]),
+        base: 0,
+        kind: StatementsKind.Constant,
+        offset: in.state.snapshots.constant_name.length
+    })
+
+    const valid = (
+        - in.state.valid
+        - and value.valid
+        - and binding.valid
+    )
+
+    return {
+        id: value.id,
+        state: {
+            ...in.state,
+            expressions: {
+                ...in.state.expressions,
+                tags: value.tags,
+                offsets: value.offsets,
+                identifier: in.state.expressions.identifier.push(name.name)[0]
+            },
+            snapshots: {
+                tags: binding.tags,
+                offsets: binding.offsets,
+                constant_name: in.state.snapshots.constant_name.push(name.name)[0],
+                constant_type_expr:
+                    in.state.snapshots.constant_type_expr.push(null)[0],
+                constant_value: in.state.snapshots.constant_value.push(in.value)[0],
+                constant_exported:
+                    in.state.snapshots.constant_exported.push(false)[0]
+            },
+            serial: name.serial,
+            valid
+        }
+    }
+}
