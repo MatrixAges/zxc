@@ -86,17 +86,19 @@ pub fn validStructure(self: Self) bool {
 pub fn snapshot(self: Self, allocator: std.mem.Allocator) std.mem.Allocator.Error!Self {
     var result: Self = .{};
 
-    errdefer {
-        inline for (@typeInfo(Self).@"struct".field_names) |name| allocator.free(@field(result, name));
+    copy: {
+        inline for (@typeInfo(Self).@"struct".field_names) |name| {
+            const source = @field(self, name);
+
+            @field(result, name) = allocator.dupe(std.meta.Elem(@TypeOf(source)), source) catch break :copy;
+        }
+
+        return result;
     }
 
-    inline for (@typeInfo(Self).@"struct".field_names) |name| {
-        const source = @field(self, name);
+    inline for (@typeInfo(Self).@"struct".field_names) |name| allocator.free(@field(result, name));
 
-        @field(result, name) = try allocator.dupe(std.meta.Elem(@TypeOf(source)), source);
-    }
-
-    return result;
+    return error.OutOfMemory;
 }
 
 pub fn get(self: Self, id: ir.FunctionId) ir.Function {
