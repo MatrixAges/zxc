@@ -260,7 +260,15 @@ fn lowerMode(self: *Lower, id: ir.ExprId, layout: ?node.ExpressionId, removed_on
         }
     }
 
-    return aggregate.finish(self, &body, if (layout) |target| try self.cast(target, try @import("state_value/origin.zig").tuple(self, type_id, result)) else try self.construct(type_id, result));
+    const constructed = if (@import("genz_options").generated_analysis)
+        try @import("collections/finalize.zig").lower(self, type_id, result, layout)
+
+    else if (layout) |target|
+        try self.cast(target, try @import("state_value/origin.zig").tuple(self, type_id, result))
+    else
+        try self.construct(type_id, result);
+
+    return aggregate.finish(self, &body, constructed);
 }
 
 fn slice(self: *Lower, target: node.ExpressionId, start: ?node.ExpressionId, end: ?node.ExpressionId) Lower.Error!node.ExpressionId {

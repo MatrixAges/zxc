@@ -1,0 +1,38 @@
+import builtin from "../../../ast/context/builtin"
+import { ExpressionsBuiltinName } from "../../../printer/model/expressions"
+import origin from "../../construction/origin/tuple"
+
+import type { State } from "../../construction/model"
+
+export type Input = {
+    state: State,
+    target: u32,
+    origin: bool
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const normalized = origin({
+        context: in.state.context,
+        table: in.state.source.ast,
+        value: in.state.root,
+        enabled: in.origin && in.state.source.is_tuple,
+        arity: in.state.source.arity
+    })
+
+    const result = builtin({
+        state: normalized.state,
+        name: ExpressionsBuiltinName.As,
+        arguments: [
+            in.target,
+            normalized.id
+        ]
+    })
+
+    return {
+        ...in.state,
+        context: result.state,
+        root: result.id
+    }
+}

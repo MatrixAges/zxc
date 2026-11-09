@@ -1,0 +1,28 @@
+<Module>
+    <Type from="model" as="Finalize" />
+
+    <Args in={Finalize.Input} out={Finalize.Output} />
+
+    <Call fn="../../construction/initialize" in={$in.construction} />
+
+    <If on={$in.target != null}>
+        <Call
+            fn="layout"
+            in={{
+                state: $ctx.initialize,
+                target: $in.target,
+                origin: $in.origin
+            }}
+        />
+
+        <Call fn="../../construction/publish" in={$ctx.layout} />
+
+        <Return value={$ctx.publish} />
+    </If>
+
+    <Call module="../../construction/apply" in={$ctx.initialize} />
+
+    <Call fn="../../construction/publish" in={$ctx.apply} />
+
+    <Return value={$ctx.publish} />
+</Module>
