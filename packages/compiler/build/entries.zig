@@ -223,6 +223,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/iteration/fields/projection/build.rx", .name = "loop_fields_projection", .owner = .genz },
     .{ .path = "genz/analysis/iteration/mutation/build.rx", .name = "iteration_mutation", .owner = .genz },
     .{ .path = "genz/analysis/iteration/literals/build.rx", .name = "iteration_literals", .owner = .genz },
+    .{ .path = "genz/analysis/collections/splice/build.rx", .name = "collection_splice", .owner = .genz },
     .{ .path = "genz/analysis/parallel/emit/label.zx", .name = "parallel_label", .owner = .genz },
     .{ .path = "genz/analysis/parallel/emit/allocator_alias.zx", .name = "parallel_allocator_alias", .owner = .genz },
     .{ .path = "genz/analysis/tasks/worker/reserve.zx", .name = "task_worker_reserve", .owner = .genz },

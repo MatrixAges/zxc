@@ -1,0 +1,65 @@
+import binary from "../../../ast/context/binary"
+import integer from "../../../ast/context/integer"
+import slice from "../../../ast/context/slice"
+import { ExpressionsBinaryOperator as Op } from "../../../printer/model/expressions"
+import choose from "../../state/list/choose"
+import { Storage } from "../../state/list/const"
+import wrap from "./wrap"
+
+import type { State as Input } from "./model"
+import type { Output } from "./wrap"
+
+export default function (in: Input): Output {
+    const value = slice({
+        state: in.context,
+        target: in.source.source,
+        start: in.begin,
+        end: in.end
+    })
+
+    if (!in.source.selected) {
+        return {
+            state: {
+                ...in,
+                context: value.state
+            },
+            id: value.id
+        }
+    }
+
+    const zero = integer({
+        state: value.state,
+        value: 0
+    })
+
+    const first = binary({
+        state: zero.state,
+        operator: Op.Equal,
+        left: in.begin,
+        right: zero.id
+    })
+
+    const header = binary({
+        state: first.state,
+        operator: Op.LogicalAnd,
+        left: in.source.header,
+        right: first.id
+    })
+
+    const storage = choose({
+        state: header.state,
+        ast: in.source.ast,
+        condition: header.id,
+        yes: Storage.Shared,
+        no: Storage.Plain
+    })
+
+    return wrap({
+        state: {
+            ...in,
+            context: storage.state
+        },
+        value: value.id,
+        storage: storage.id
+    })
+}

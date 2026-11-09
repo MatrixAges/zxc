@@ -1,0 +1,96 @@
+import bytes from "std:bytes"
+
+import binary from "../../../ast/context/binary"
+import field from "../../../ast/context/field"
+import primitive from "../../../ast/context/primitive"
+import standard from "../../../ast/context/standard"
+import {
+    ExpressionsBinaryOperator as Op,
+    ExpressionsPrimitive as Primitive
+} from "../../../printer/model/expressions"
+import { length_member } from "../../intrinsics/index/const"
+import bind from "./bind"
+import cast from "./cast"
+import { math_member, add_member } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const size = primitive({
+        state: in.context,
+        value: Primitive.Usize
+    })
+
+    const start = cast({
+        state: size.state,
+        type: size.id,
+        value: in.source.start
+    })
+
+    const begin = bind({
+        state: {
+            context: start.state,
+            body: in.body
+        },
+        value: start.id
+    })
+
+    const count = cast({
+        state: begin.state.context,
+        type: size.id,
+        value: in.source.count
+    })
+
+    const removed = bind({
+        state: {
+            ...begin.state,
+            context: count.state
+        },
+        value: count.id
+    })
+
+    const end = binary({
+        state: removed.state.context,
+        operator: Op.Add,
+        left: begin.id,
+        right: removed.id
+    })
+
+    const inserted = field({
+        state: end.state,
+        target: in.source.replacement,
+        name: bytes.fromText(length_member)
+    })
+
+    const remaining = binary({
+        state: inserted.state,
+        operator: Op.Subtract,
+        left: in.source.length,
+        right: removed.id
+    })
+
+    const total = standard({
+        state: remaining.state,
+        path: [
+            math_member,
+            add_member
+        ],
+        arguments: [
+            size.id,
+            remaining.id,
+            inserted.id
+        ],
+        fallible: true
+    })
+
+    return {
+        ...in,
+        context: total.state,
+        body: removed.state.body,
+        begin: begin.id,
+        removed: removed.id,
+        end: end.id,
+        inserted: inserted.id,
+        total: total.id
+    }
+}

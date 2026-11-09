@@ -1,0 +1,39 @@
+import tuple from "../../../ast/context/tuple"
+import { Storage } from "../../state/list/const"
+import tag from "../../state/list/tag"
+import removed from "./removed"
+import wrap from "./wrap"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const storage = tag({
+        state: in.context,
+        storage: Storage.Owned
+    })
+
+    const updated = wrap({
+        state: {
+            ...in,
+            context: storage.state
+        },
+        value: in.buffer,
+        storage: storage.id
+    })
+
+    const selected = removed(updated.state)
+
+    const value = tuple({
+        state: selected.state.context,
+        values: [
+            updated.id,
+            selected.id
+        ]
+    })
+
+    return {
+        ...selected.state,
+        context: value.state,
+        root: value.id
+    }
+}

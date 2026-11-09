@@ -1,0 +1,79 @@
+import bytes from "std:bytes"
+
+import branch from "../../../ast/body/branch"
+import evaluate from "../../../ast/body/evaluate"
+import binary from "../../../ast/context/binary"
+import call from "../../../ast/context/call"
+import field from "../../../ast/context/field"
+import identifier from "../../../ast/context/identifier"
+import integer from "../../../ast/context/integer"
+import { ExpressionsBinaryOperator as Op } from "../../../printer/model/expressions"
+import { retract_name } from "../../growth/const"
+import { abi_binding } from "../../types/abi/const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const target = identifier({
+        state: in.context,
+        name: bytes.fromText(in.source.shared ? abi_binding : retract_name)
+    })
+
+    const callee = match {
+        in.source.shared => field({
+            state: target.state,
+            target: target.id,
+            name: bytes.fromText(retract_name)
+        }),
+        _ => target
+    }
+
+    const value = call({
+        state: callee.state,
+        callee: callee.id,
+        arguments: [
+            in.source.element,
+            in.source.source,
+            in.end
+        ],
+        fallible: false
+    })
+
+    const body = evaluate({
+        state: {
+            context: value.state,
+            body: {
+                tags: [],
+                offsets: []
+            }
+        },
+        value: value.id,
+        discard: false
+    })
+
+    const zero = integer({
+        state: body.context,
+        value: 0
+    })
+
+    const condition = binary({
+        state: zero.state,
+        operator: Op.NotEqual,
+        left: in.source.length,
+        right: zero.id
+    })
+
+    const result = branch({
+        state: {
+            context: condition.state,
+            body: in.body
+        },
+        condition: condition.id,
+        yes: body.body
+    })
+
+    return {
+        ...in,
+        ...result
+    }
+}

@@ -1,0 +1,33 @@
+import evaluate from "../../../ast/body/evaluate"
+import builtin from "../../../ast/context/builtin"
+import { ExpressionsBuiltinName as Builtin } from "../../../printer/model/expressions"
+
+import type { StateBody } from "../../../ast/body/model"
+
+export type Input = {
+    state: StateBody,
+    target: u32,
+    source: u32
+}
+
+export type Output = StateBody
+
+export default function (in: Input): Output {
+    const value = builtin({
+        state: in.state.context,
+        name: Builtin.Memcpy,
+        arguments: [
+            in.target,
+            in.source
+        ]
+    })
+
+    return evaluate({
+        state: {
+            context: value.state,
+            body: in.state.body
+        },
+        value: value.id,
+        discard: false
+    })
+}

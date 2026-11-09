@@ -1,0 +1,15 @@
+import type { State as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        state: in.pick([
+            "context",
+            "body"
+        ]),
+        fields: in.fields,
+        root: in.root,
+        serial: in.context.serial,
+        uses_allocator: !in.source.removed_only,
+        valid: in.context.valid
+    }
+}

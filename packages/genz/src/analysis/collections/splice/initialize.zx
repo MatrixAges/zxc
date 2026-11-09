@@ -1,0 +1,24 @@
+import initialize from "../../../ast/context/initialize"
+import empty from "../../../ast/fields/empty"
+
+import type { Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        source: in,
+        context: initialize(in.bases),
+        body: {
+            tags: [],
+            offsets: []
+        },
+        fields: empty({}),
+        begin: 0,
+        removed: 0,
+        end: 0,
+        inserted: 0,
+        total: 0,
+        buffer: 0,
+        tail: 0,
+        root: 0
+    }
+}

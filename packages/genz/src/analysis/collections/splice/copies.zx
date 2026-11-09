@@ -1,0 +1,82 @@
+import binary from "../../../ast/context/binary"
+import slice from "../../../ast/context/slice"
+import { ExpressionsBinaryOperator as Op } from "../../../printer/model/expressions"
+import copy from "./copy"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const destination = slice({
+        state: in.context,
+        target: in.buffer,
+        start: null,
+        end: in.begin
+    })
+
+    const source = slice({
+        state: destination.state,
+        target: in.source.source,
+        start: null,
+        end: in.begin
+    })
+
+    const prefix = copy({
+        state: {
+            context: source.state,
+            body: in.body
+        },
+        target: destination.id,
+        source: source.id
+    })
+
+    const replacement = slice({
+        state: prefix.context,
+        target: in.tail,
+        start: null,
+        end: in.inserted
+    })
+
+    const middle = copy({
+        state: {
+            context: replacement.state,
+            body: prefix.body
+        },
+        target: replacement.id,
+        source: in.source.replacement
+    })
+
+    const offset = binary({
+        state: middle.context,
+        operator: Op.Add,
+        left: in.begin,
+        right: in.inserted
+    })
+
+    const target = slice({
+        state: offset.state,
+        target: in.buffer,
+        start: offset.id,
+        end: null
+    })
+
+    const rest = slice({
+        state: target.state,
+        target: in.source.source,
+        start: in.end,
+        end: null
+    })
+
+    const suffix = copy({
+        state: {
+            context: rest.state,
+            body: middle.body
+        },
+        target: target.id,
+        source: rest.id
+    })
+
+    return {
+        ...in,
+        ...suffix
+    }
+}

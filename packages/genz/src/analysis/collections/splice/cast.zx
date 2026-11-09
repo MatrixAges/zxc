@@ -1,0 +1,29 @@
+import builtin from "../../../ast/context/builtin"
+import { ExpressionsBuiltinName as Builtin } from "../../../printer/model/expressions"
+
+import type { State, Node } from "../../../ast/context/model"
+
+export type Input = {
+    state: State,
+    type: u32,
+    value: u32
+}
+
+export type Output = Node
+
+export default function (in: Input): Output {
+    const converted = builtin({
+        state: in.state,
+        name: Builtin.IntCast,
+        arguments: [in.value]
+    })
+
+    return builtin({
+        state: converted.state,
+        name: Builtin.As,
+        arguments: [
+            in.type,
+            converted.id
+        ]
+    })
+}

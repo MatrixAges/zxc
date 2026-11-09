@@ -1,0 +1,48 @@
+import binding from "../../../ast/body/binding"
+import { operand_prefix } from "../../../ast/context/const"
+import identifier from "../../../ast/context/identifier"
+import fresh from "../../../ast/fresh"
+
+import type { StateBody } from "../../../ast/body/model"
+
+export type Input = {
+    state: StateBody,
+    value: u32
+}
+
+export type Output = {
+    state: StateBody,
+    id: u32
+}
+
+export default function (in: Input): Output {
+    const name = fresh({
+        serial: in.state.context.serial,
+        prefix: operand_prefix
+    })
+
+    const bound = binding({
+        state: {
+            ...in.state,
+            context: {
+                ...in.state.context,
+                serial: name.serial
+            }
+        },
+        name: name.name,
+        value: in.value
+    })
+
+    const value = identifier({
+        state: bound.context,
+        name: name.name
+    })
+
+    return {
+        state: {
+            ...bound,
+            context: value.state
+        },
+        id: value.id
+    }
+}

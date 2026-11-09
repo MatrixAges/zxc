@@ -1,0 +1,25 @@
+<Module>
+    <Type from="model" as="Splice" />
+
+    <Args in={Splice.Input} out={Splice.Output} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="bounds" in={$ctx.initialize} />
+    <Call fn="ranges" in={$ctx.bounds} />
+
+    <Call module="prepare" in={$ctx.ranges} />
+
+    <If on={$in.removed_only}>
+        <Call fn="project" in={$ctx.prepare} />
+        <Call fn="publish" in={$ctx.project} />
+
+        <Return value={$ctx.publish} />
+    </If>
+
+    <Call fn="allocate" in={$ctx.prepare} />
+    <Call fn="copies" in={$ctx.allocate} />
+    <Call fn="result" in={$ctx.copies} />
+    <Call fn="publish" in={$ctx.result} />
+
+    <Return value={$ctx.publish} />
+</Module>

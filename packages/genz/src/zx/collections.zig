@@ -150,41 +150,56 @@ fn lowerMode(self: *Lower, id: ir.ExprId, layout: ?node.ExpressionId, removed_on
             result = try pair(self, updated, unit);
         },
         .splice => {
-            const start = arguments[0];
-            const count = arguments[1];
-            const replacement = arguments[2];
-            const outside = try intrinsic.binary(self, .logical_or, try intrinsic.binary(self, .greater, start, length), try intrinsic.binary(self, .greater, count, try intrinsic.binary(self, .subtract, length, start)));
+            if (@import("genz_options").generated_analysis) {
+                result = try @import("collections/splice.zig").lower(self, &body, .{
+                    .type_id = source_type,
+                    .source = source,
+                    .header = source_headered,
+                    .arguments = arguments,
+                    .element = child_type,
+                    .length = length,
+                    .retract = flags.retract,
+                    .removed_only = removed_only,
+                });
 
-            try intrinsic.failIf(self, &body, outside, "IndexOutOfBounds");
+                if (removed_only) return aggregate.finish(self, &body, result);
+            } else {
+                const start = arguments[0];
+                const count = arguments[1];
+                const replacement = arguments[2];
+                const outside = try intrinsic.binary(self, .logical_or, try intrinsic.binary(self, .greater, start, length), try intrinsic.binary(self, .greater, count, try intrinsic.binary(self, .subtract, length, start)));
 
-            const size_type = try self.builder.expression(.{ .primitive = .usize });
-            const begin = try aggregate.bind(self, &body, try self.cast(size_type, try self.builtin(.intCast, &.{start})));
-            const removed = try aggregate.bind(self, &body, try self.cast(size_type, try self.builtin(.intCast, &.{count})));
-            const end = try intrinsic.binary(self, .add, begin, removed);
-            const inserted = try self.field(replacement, "len");
-            const total = try addLength(self, try intrinsic.binary(self, .subtract, length, removed), inserted);
+                try intrinsic.failIf(self, &body, outside, "IndexOutOfBounds");
 
-            if (flags.retract) {
-                var retract: std.ArrayList(node.Statement) = .empty;
+                const size_type = try self.builder.expression(.{ .primitive = .usize });
+                const begin = try aggregate.bind(self, &body, try self.cast(size_type, try self.builtin(.intCast, &.{start})));
+                const removed = try aggregate.bind(self, &body, try self.cast(size_type, try self.builtin(.intCast, &.{count})));
+                const end = try intrinsic.binary(self, .add, begin, removed);
+                const inserted = try self.field(replacement, "len");
+                const total = try addLength(self, try intrinsic.binary(self, .subtract, length, removed), inserted);
 
-                try growth.retract(self, &retract, child_type, source, end);
-                try body.append(self.allocator, try self.builder.branch(try intrinsic.binary(self, .not_equal, length, try self.builder.integer(0)), retract.items, &.{}));
+                if (flags.retract) {
+                    var retract: std.ArrayList(node.Statement) = .empty;
+
+                    try growth.retract(self, &retract, child_type, source, end);
+                    try body.append(self.allocator, try self.builder.branch(try intrinsic.binary(self, .not_equal, length, try self.builder.integer(0)), retract.items, &.{}));
+                }
+
+                if (removed_only) {
+                    try body.append(self.allocator, .{ .discard = total });
+
+                    return aggregate.finish(self, &body, try listResult(self, source_type, try slice(self, source, begin, end), try intrinsic.binary(self, .logical_and, source_headered, try intrinsic.binary(self, .equal, begin, try self.builder.integer(0)))));
+                }
+
+                const buffer = try allocate(self, &body, child_type, total);
+                const tail = try slice(self, buffer, begin, null);
+
+                try copy(self, &body, try slice(self, buffer, null, begin), try slice(self, source, null, begin));
+                try copy(self, &body, try slice(self, tail, null, inserted), replacement);
+                try copy(self, &body, try slice(self, buffer, try intrinsic.binary(self, .add, begin, inserted), null), try slice(self, source, end, null));
+
+                result = try pair(self, try provenance.owned(self, source_type, buffer, try self.builder.expression(.{ .boolean = false })), try listResult(self, source_type, try slice(self, source, begin, end), try intrinsic.binary(self, .logical_and, source_headered, try intrinsic.binary(self, .equal, begin, try self.builder.integer(0)))));
             }
-
-            if (removed_only) {
-                try body.append(self.allocator, .{ .discard = total });
-
-                return aggregate.finish(self, &body, try listResult(self, source_type, try slice(self, source, begin, end), try intrinsic.binary(self, .logical_and, source_headered, try intrinsic.binary(self, .equal, begin, try self.builder.integer(0)))));
-            }
-
-            const buffer = try allocate(self, &body, child_type, total);
-            const tail = try slice(self, buffer, begin, null);
-
-            try copy(self, &body, try slice(self, buffer, null, begin), try slice(self, source, null, begin));
-            try copy(self, &body, try slice(self, tail, null, inserted), replacement);
-            try copy(self, &body, try slice(self, buffer, try intrinsic.binary(self, .add, begin, inserted), null), try slice(self, source, end, null));
-
-            result = try pair(self, try provenance.owned(self, source_type, buffer, try self.builder.expression(.{ .boolean = false })), try listResult(self, source_type, try slice(self, source, begin, end), try intrinsic.binary(self, .logical_and, source_headered, try intrinsic.binary(self, .equal, begin, try self.builder.integer(0)))));
         },
     }
 

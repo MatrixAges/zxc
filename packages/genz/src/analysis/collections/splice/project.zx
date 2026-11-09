@@ -1,0 +1,25 @@
+import evaluate from "../../../ast/body/evaluate"
+import removed from "./removed"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const discarded = evaluate({
+        state: in.pick([
+            "context",
+            "body"
+        ]),
+        value: in.total,
+        discard: true
+    })
+
+    const value = removed({
+        ...in,
+        ...discarded
+    })
+
+    return {
+        ...value.state,
+        root: value.id
+    }
+}

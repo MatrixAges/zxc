@@ -1,0 +1,13 @@
+<Module>
+    <Type from="model" as="Splice" />
+
+    <Args in={Splice.State} out={Splice.State} />
+
+    <If on={$in.source.retract}>
+        <Call fn="retract" in={$in} />
+
+        <Return value={$ctx.retract} />
+    </If>
+
+    <Return value={$in} />
+</Module>
