@@ -1,0 +1,22 @@
+import type { Check as Input, Borrowed as Output } from "./model"
+
+export default function (in: Input): Output {
+    const values: bool[] = []
+
+    return loop({
+        values,
+        changed: false,
+        index: 0
+    }, {
+        while: current => current.index < in.candidates.length,
+        next: current => {
+            const mutable = in.plan.mutable[current.index]
+            const borrowed = !mutable && in.candidates[current.index]
+
+            current.values = current.values.push(borrowed)[0]
+            current.changed = current.changed || mutable
+            current.index += 1
+        },
+        return: current => current.omit(["index"])
+    })
+}

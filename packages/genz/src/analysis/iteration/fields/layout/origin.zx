@@ -1,0 +1,56 @@
+import header from "../../../../ast/expressions/header"
+import append from "../../../../ast/fields/append"
+import { ExpressionsKind } from "../../../../printer/model/expressions"
+import describe from "../../../construction/origin/describe"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const name = describe({
+        types: in.source.types,
+        id: in.source.type_id
+    })
+
+    const optional = header({
+        ...in.expressions.pick([
+            "tags",
+            "offsets"
+        ]),
+        base: in.source.expression_base,
+        kind: ExpressionsKind.OptionalType,
+        offset: in.expressions.optional_type.length
+    })
+
+    const initial = header({
+        tags: optional.tags,
+        offsets: optional.offsets,
+        base: in.source.expression_base,
+        kind: ExpressionsKind.NullValue,
+        offset: 0
+    })
+
+    const valid = (
+        - in.valid
+        - and optional.valid
+        - and initial.valid
+    )
+
+    return {
+        ...in,
+        expressions: {
+            ...in.expressions,
+            tags: initial.tags,
+            offsets: initial.offsets,
+            optional_type: in.expressions.optional_type.push(in.source.abi_type)[0]
+        },
+        fields: append({
+            table: in.fields,
+            name: name.name,
+            value: optional.id,
+            default_value: initial.id,
+            comptime_parameter: false
+        }),
+        origin_owned: name.owned,
+        valid
+    }
+}

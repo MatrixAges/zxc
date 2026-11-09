@@ -1,0 +1,59 @@
+<Module>
+    <Type from="model" as="Prepare" />
+
+    <Args in={Prepare.Input} out={Prepare.Output} />
+
+    <Call fn="candidates" in={$in} />
+
+    <If on={!$ctx.candidates.any}>
+        <Return
+            value={{
+                states: [],
+                symbols: [],
+                borrowed: [],
+                capacity: null,
+                valid: false
+            }}
+        />
+    </If>
+
+    <Call
+        module="../plan"
+        in={{
+            ...$in.loop,
+            candidates: $ctx.candidates.values
+        }}
+    />
+
+    <If on={!$ctx.plan.valid}>
+        <Return
+            value={{
+                states: [],
+                symbols: [],
+                borrowed: [],
+                capacity: null,
+                valid: false
+            }}
+        />
+    </If>
+
+    <Call
+        fn="borrowed"
+        in={{
+            source: $in,
+            candidates: $ctx.candidates.values,
+            plan: $ctx.plan
+        }}
+    />
+
+    <Call
+        fn="validate"
+        in={{
+            source: $in,
+            plan: $ctx.plan,
+            borrowed: $ctx.borrowed
+        }}
+    />
+
+    <Return value={$ctx.validate} />
+</Module>

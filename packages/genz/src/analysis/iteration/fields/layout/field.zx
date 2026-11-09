@@ -1,0 +1,62 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import header from "../../../../ast/expressions/header"
+import append from "../../../../ast/fields/append"
+import { ExpressionsKind } from "../../../../printer/model/expressions"
+
+import type { State as Output } from "./model"
+
+export type Input = {
+    state: Output,
+    index: u64
+}
+
+export default function (in: Input): Output {
+    const state = in.state
+    const source = state.source
+    const first = integers.widen(source.types.first[integers.widen(source.type_id)])
+    const name = bytes.fromText(source.types.field_names[first + in.index])
+    const value = source.field_types[in.index]
+
+    if (!source.borrowed[in.index]) {
+        return {
+            ...state,
+            fields: append({
+                table: state.fields,
+                name,
+                value,
+                default_value: null,
+                comptime_parameter: false
+            })
+        }
+    }
+
+    const pointer = header({
+        ...state.expressions.pick([
+            "tags",
+            "offsets"
+        ]),
+        base: source.expression_base,
+        kind: ExpressionsKind.ConstPointer,
+        offset: state.expressions.const_pointer.length
+    })
+
+    return {
+        ...state,
+        expressions: {
+            ...state.expressions,
+            tags: pointer.tags,
+            offsets: pointer.offsets,
+            const_pointer: state.expressions.const_pointer.push(value)[0]
+        },
+        fields: append({
+            table: state.fields,
+            name,
+            value: pointer.id,
+            default_value: null,
+            comptime_parameter: false
+        }),
+        valid: state.valid && pointer.valid
+    }
+}

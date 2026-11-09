@@ -1,0 +1,52 @@
+import type { Table } from "core/type_table/model"
+import type { Columns as Fields } from "../../../../ast/fields/model"
+import type { ExpressionsKind } from "../../../../printer/model/expressions"
+import type { StatementsKind } from "../../../../printer/model/statements"
+
+export type Input = {
+    types: Table,
+    type_id: u32,
+    borrowed: bool[],
+    field_types: u32[],
+    abi_type: u32,
+    expression_base: u32,
+    field_base: u32,
+    serial: u64
+}
+
+export type Expressions = {
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    const_pointer: u32[],
+    optional_type: u32[],
+    struct_type_start: u32[],
+    struct_type_len: u32[],
+    identifier: u8[][]
+}
+
+export type State = {
+    source: Input,
+    expressions: Expressions,
+    fields: Fields,
+    origin_owned: bool,
+    valid: bool
+}
+
+export type Output = {
+    expressions: Expressions,
+    fields: Fields,
+    statements: Statements,
+    origin_owned: bool,
+    serial: u64,
+    root: u32,
+    valid: bool
+}
+
+export type Statements = {
+    tags: StatementsKind[],
+    offsets: u32[],
+    constant_name: u8[][],
+    constant_type_expr: u32?[],
+    constant_value: u32[],
+    constant_exported: bool[]
+}

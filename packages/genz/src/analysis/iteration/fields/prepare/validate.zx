@@ -1,0 +1,58 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+import lookup from "core/integer/map/lookup"
+
+import { normalize_flag, renew_flag } from "../../../uniqueness/function/plan/const"
+
+import type { Validate as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const checked = loop({
+        borrowed: in.borrowed.values,
+        valid: true,
+        index: 0
+    }, {
+        while: current => current.valid && current.index < in.plan.states.length,
+        next: current => {
+            const index = current.index
+            const flag = match {
+                index < in.source.flags.length =>
+                    integers.widenByte(in.source.flags[index]),
+                _ => 0
+            }
+            const updated = integers.andBits(flag, normalize_flag + renew_flag) != 0
+
+            if (in.plan.states[index]) {
+                const cached = lookup({
+                    ...in.source.cached.omit(["values"]),
+                    key: integers.narrow(index)
+                }) != null
+
+                if (cached || updated) {
+                    current.valid = false
+                }
+            }
+
+            if (current.valid) {
+                const origin = in.plan.origins[index]
+
+                if (origin != max_u32 && updated) {
+                    current.borrowed[integers.widen(origin)] = false
+                }
+            }
+
+            current.index += 1
+        }
+    })
+
+    const valid = checked.valid && in.borrowed.changed &&
+        checked.borrowed.some(value => value)
+
+    return {
+        states: in.plan.states,
+        symbols: in.plan.symbols,
+        borrowed: checked.borrowed,
+        capacity: in.plan.capacity,
+        valid
+    }
+}

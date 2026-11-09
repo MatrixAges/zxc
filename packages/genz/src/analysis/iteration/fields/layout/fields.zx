@@ -1,0 +1,20 @@
+import field from "./field"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return loop({
+        state: in,
+        index: 0
+    }, {
+        while: current => current.index < in.source.field_types.length,
+        next: current => {
+            current.state = field({
+                state: current.state,
+                index: current.index
+            })
+            current.index += 1
+        },
+        return: current => current.state
+    })
+}

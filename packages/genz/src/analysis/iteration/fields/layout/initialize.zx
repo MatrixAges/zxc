@@ -1,0 +1,21 @@
+import empty from "../../../../ast/fields/empty"
+
+import type { Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        source: in,
+        expressions: {
+            tags: [],
+            offsets: [],
+            const_pointer: [],
+            optional_type: [],
+            struct_type_start: [],
+            struct_type_len: [],
+            identifier: []
+        },
+        fields: empty({}),
+        origin_owned: false,
+        valid: true
+    }
+}

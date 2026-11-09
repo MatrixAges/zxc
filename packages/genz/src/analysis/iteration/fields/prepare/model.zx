@@ -1,0 +1,41 @@
+import type { State as Cache } from "core/integer/map/model"
+import type { Table } from "core/type_table/model"
+import type { Capacity, Input as Loop, Plan } from "../model"
+
+export type Input = {
+    loop: Loop,
+    types: Table,
+    selected: bool[],
+    cached: Cache,
+    flags: u8[]
+}
+
+export type Candidates = {
+    values: bool[],
+    any: bool
+}
+
+export type Check = {
+    source: Input,
+    candidates: bool[],
+    plan: Plan
+}
+
+export type Borrowed = {
+    values: bool[],
+    changed: bool
+}
+
+export type Validate = {
+    source: Input,
+    plan: Plan,
+    borrowed: Borrowed
+}
+
+export type Output = {
+    states: bool[],
+    symbols: bool[],
+    borrowed: bool[],
+    capacity?: Capacity,
+    valid: bool
+}

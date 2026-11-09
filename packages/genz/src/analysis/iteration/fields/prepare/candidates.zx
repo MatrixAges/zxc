@@ -1,0 +1,30 @@
+import integers from "std:integer"
+
+import worthwhile from "./worthwhile"
+
+import type { Input, Candidates as Output } from "./model"
+
+export default function (in: Input): Output {
+    const first = integers.widen(in.types.first[integers.widen(in.loop.state_type)])
+    const values: bool[] = []
+
+    return loop({
+        values,
+        any: false,
+        index: 0
+    }, {
+        while: current => current.index < in.loop.field_count,
+        next: current => {
+            const value = worthwhile({
+                types: in.types,
+                selected: in.selected,
+                id: in.types.field_types[first + current.index]
+            })
+
+            current.values = current.values.push(value)[0]
+            current.any = current.any || value
+            current.index += 1
+        },
+        return: current => current.omit(["index"])
+    })
+}

@@ -1,0 +1,30 @@
+import integers from "std:integer"
+import { scalar_string } from "core/type_table/const"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import type { Table } from "core/type_table/model"
+
+export type Input = {
+    types: Table,
+    selected: bool[],
+    id: u32
+}
+
+export type Output = bool
+
+export default function worthwhile(in: Input): Output {
+    const id = integers.widen(in.id)
+
+    return match kind(in.types.kinds[id]) {
+        Kind.List => true,
+        Kind.Scalar => in.types.first[id] == scalar_string,
+        Kind.Optional => worthwhile({
+            ...in,
+            id: in.types.first[id]
+        }),
+        Kind.Object => in.selected[id] && in.types.second[id] != 0,
+        Kind.Tuple => in.selected[id] && in.types.second[id] != 0,
+        _ => false
+    }
+}

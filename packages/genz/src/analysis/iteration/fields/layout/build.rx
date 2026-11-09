@@ -1,0 +1,12 @@
+<Module>
+    <Type from="model" as="Layout" />
+
+    <Args in={Layout.Input} out={Layout.Output} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="fields" in={$ctx.initialize} />
+    <Call fn="origin" in={$ctx.fields} />
+    <Call fn="finish" in={$ctx.origin} />
+
+    <Return value={$ctx.finish} />
+</Module>

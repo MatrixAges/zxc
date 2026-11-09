@@ -6,6 +6,7 @@ const Lower = @import("../../lower.zig");
 const Context = @import("root.zig");
 
 pub fn prepare(self: *Lower, iteration: ir.Iteration, type_id: ir.TypeId, body: *std.ArrayList(node.Statement), seed: node.ExpressionId) Lower.Error!?Context {
+    if (!@import("genz_options").generated_analysis) return @import("prepare_seed.zig").prepare(self, iteration, type_id, body, seed);
     if (self.loop_fields != null or self.iteration_value != null or self.capture != null) return null;
     if (self.program.typeOf(type_id) != .object) return null;
 
@@ -14,99 +15,71 @@ pub fn prepare(self: *Lower, iteration: ir.Iteration, type_id: ir.TypeId, body: 
     if (fields.len < 2) return null;
 
     var scratch = std.heap.ArenaAllocator.init(self.workspace);
+    var buffer: [std.heap.page_size_min]u8 = undefined;
+    var memory = std.heap.BufferFirstAllocator.init(&buffer, scratch.allocator());
 
     defer scratch.deinit();
 
-    const candidates = try scratch.allocator().alloc(bool, fields.len);
+    const entry = @import("generated_loop_fields_prepare");
+    const Input = std.meta.Child(entry.Input);
+    const Loop = std.meta.Child(@FieldType(Input, "loop"));
+    const types = ir.TypeTable.borrow(std.meta.Child(@FieldType(Input, "types")), self.program.types);
+    const cached = self.cache.view(std.meta.Child(@FieldType(Input, "cached")));
+    const program: *const ir.Program = &self.program;
 
-    for (candidates, 0..) |*candidate, index| candidate.* = worthwhile(self, fields.at(index).type_id);
-    if (std.mem.indexOfScalar(bool, candidates, true) == null) return null;
-
-    const plan = blk: {
-        if (comptime !@import("genz_options").generated_analysis) break :blk try @import("seed.zig").create(scratch.allocator(), self.program, iteration, type_id, candidates);
-
-        const generated = @import("generated_loop_fields");
-        const Input = std.meta.Child(generated.Input);
-
-        const input: Input = .{
-            .expressions = zx.columns.pointer(@FieldType(Input, "expressions"), &@as(*const ir.Program, &self.program).expressions),
-            .symbol_types = zx.columns.slice(@FieldType(Input, "symbol_types"), self.program.symbols.types),
-            .parameter = @backingInt(iteration.parameter),
-            .condition_parameter = @backingInt(iteration.condition_parameter),
-            .initial = @backingInt(iteration.initial),
-            .body = @backingInt(iteration.body),
-            .condition = @backingInt(iteration.condition),
-            .state_type = @backingInt(type_id),
-            .field_count = fields.len,
-            .candidates = candidates,
-        };
-
-        break :blk generated.executeValue(scratch.allocator(), &input) catch |err| switch (err) {
-            error.OutOfMemory => return error.OutOfMemory,
-            else => unreachable,
-        };
+    const loop: Loop = .{
+        .expressions = zx.columns.pointer(@FieldType(Loop, "expressions"), &program.expressions),
+        .symbol_types = zx.columns.slice(@FieldType(Loop, "symbol_types"), program.symbols.types),
+        .parameter = @backingInt(iteration.parameter),
+        .condition_parameter = @backingInt(iteration.condition_parameter),
+        .initial = @backingInt(iteration.initial),
+        .body = @backingInt(iteration.body),
+        .condition = @backingInt(iteration.condition),
+        .state_type = @backingInt(type_id),
+        .field_count = fields.len,
+        .candidates = &.{},
     };
+
+    const input: Input = .{
+        .loop = &loop,
+        .types = &types,
+        .selected = self.state_plan.selected,
+        .cached = &cached,
+        .flags = std.mem.sliceAsBytes(self.plan.flags),
+    };
+
+    const plan = entry.executeIn(memory.allocator(), &input) catch |err| return failure(err);
 
     if (!plan.valid) return null;
 
-    const borrowed = try self.allocator.alloc(bool, fields.len);
-    var changed = false;
+    const field_types = try memory.allocator().alloc(u32, fields.len);
 
-    for (borrowed, 0..) |*value, index| {
-        value.* = !plan.mutable[index] and candidates[index];
-        changed = changed or plan.mutable[index];
-    }
+    for (field_types, 0..) |*value, index| value.* = @backingInt(try self.typeExpr(fields.at(index).type_id));
 
-    for (plan.states, 0..) |selected, index| {
-        const id: ir.ExprId = @fromBackingInt(@intCast(index));
-        const flags = self.plan.get(id);
+    const abi_type = try @import("../../types.zig").get(self, self.abi_types, type_id);
 
-        if (selected and (self.cache.contains(id) or flags.normalize or flags.renew)) return null;
-
-        const origin = plan.origins[index];
-
-        if (origin != std.math.maxInt(u32) and (flags.normalize or flags.renew)) borrowed[origin] = false;
-    }
-
-    if (!changed or std.mem.indexOfScalar(bool, borrowed, true) == null) return null;
-
-    const items = try self.allocator.alloc(node.Field, fields.len + 1);
-
-    for (items[0..fields.len], 0..) |*item, index| {
-        const field = fields.at(index);
-        const field_type = try self.typeExpr(field.type_id);
-
-        item.* = .{ .name = field.name, .value = if (borrowed[index]) try self.builder.expression(.{ .const_pointer = field_type }) else field_type };
-    }
-
-    items[fields.len] = .{
-        .name = try @import("../../state_value/origin.zig").name(self, type_id),
-        .value = try self.builder.expression(.{ .optional_type = try @import("../../types.zig").get(self, self.abi_types, type_id) }),
-        .default_value = try self.builder.expression(.null_value),
-    };
-
-    const name = try self.fresh("loop_fields");
-
-    try body.append(self.allocator, .{ .constant = .{ .name = name, .value = try self.builder.expression(.{ .struct_type = items }) } });
+    const layout = try @import("layout.zig").build(self, body, .{
+        .types = self.program.types,
+        .type_id = type_id,
+        .borrowed = plan.borrowed,
+        .field_types = field_types,
+        .abi_type = abi_type,
+    });
 
     return .{
         .states = try self.allocator.dupe(bool, plan.states),
         .symbols = try self.allocator.dupe(bool, plan.symbols),
-        .borrowed = borrowed,
+        .borrowed = try self.allocator.dupe(bool, plan.borrowed),
         .type_id = type_id,
-        .layout = try self.builder.identifier(name),
+        .layout = layout,
         .seed = seed,
         .capacity = if (!iteration.postcondition) if (plan.capacity) |capacity| .{ .operation = @fromBackingInt(capacity.operation), .source = capacity.source } else null else null,
     };
 }
 
-fn worthwhile(self: *const Lower, id: ir.TypeId) bool {
-    return switch (self.program.typeOf(id)) {
-        .list => true,
-        .scalar => |kind| kind == .string,
-        .optional => |child| worthwhile(self, child),
-        .object => |fields| self.state_plan.selected[@backingInt(id)] and fields.len != 0,
-        .tuple => |fields| self.state_plan.selected[@backingInt(id)] and fields.len != 0,
-        else => false,
+fn failure(err: anyerror) Lower.Error {
+    return switch (err) {
+        error.OutOfMemory, error.IntegerOverflow, error.Overflow => error.OutOfMemory,
+        else => unreachable,
     };
 }
