@@ -239,6 +239,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/host/json_output/build.rx", .name = "json_output", .owner = .genz },
     .{ .path = "genz/analysis/gateway/http/build.rx", .name = "gateway_http", .owner = .genz },
     .{ .path = "genz/analysis/gateway/adapter/build.rx", .name = "gateway_adapter", .owner = .genz },
+    .{ .path = "genz/analysis/gateway/invoke/build.rx", .name = "gateway_invoke", .owner = .genz },
     .{ .path = "genz/analysis/parallel/emit/label.zx", .name = "parallel_label", .owner = .genz },
     .{ .path = "genz/analysis/parallel/emit/allocator_alias.zx", .name = "parallel_allocator_alias", .owner = .genz },
     .{ .path = "genz/analysis/tasks/worker/reserve.zx", .name = "task_worker_reserve", .owner = .genz },

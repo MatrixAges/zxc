@@ -1,0 +1,83 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import object from "../../../../ast/context/object"
+import text from "../../../../ast/context/text"
+import append from "../../../../ast/fields/append"
+import binding from "../../../../ast/statements/builder/binding"
+import result from "../../../../ast/statements/builder/result"
+import { ExpressionsKind as K } from "../../../../printer/model/expressions"
+import {
+    encoded_name,
+    header_name,
+    header_value_name,
+    content_type_name,
+    json_media_type,
+    ok_name
+} from "../const"
+import reply from "../reply"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const declared = binding({
+        state: in.statements,
+        name: bytes.fromText(encoded_name),
+        value: in.encoded,
+        mutable: false
+    })
+
+    const name = text({
+        state: in.context,
+        kind: K.String,
+        value: bytes.fromText(content_type_name)
+    })
+
+    const value = text({
+        state: name.state,
+        kind: K.String,
+        value: bytes.fromText(json_media_type)
+    })
+
+    const first = in.source.bases.field_base + integers.narrow(in.fields.name.length)
+
+    const named = append({
+        table: in.fields,
+        name: bytes.fromText(header_name),
+        value: name.id,
+        comptime_parameter: false
+    })
+
+    const fields = append({
+        table: named,
+        name: bytes.fromText(header_value_name),
+        value: value.id,
+        comptime_parameter: false
+    })
+
+    const header = object({
+        state: value.state,
+        first,
+        count: 2
+    })
+
+    const sent = reply({
+        state: {
+            ...in,
+            context: header.state,
+            fields,
+            statements: declared
+        },
+        status: ok_name,
+        body: in.symbols.encoded,
+        headers: [header.id]
+    })
+
+    return {
+        ...sent.state,
+        statements: result({
+            state: sent.state.statements,
+            value: sent.id
+        })
+    }
+}

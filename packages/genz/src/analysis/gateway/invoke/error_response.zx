@@ -1,0 +1,25 @@
+import bytes from "std:bytes"
+
+import text from "../../../ast/context/text"
+import { ExpressionsKind as K } from "../../../printer/model/expressions"
+import reply from "./reply"
+
+import type { ErrorReply as Input, Node as Output } from "./model"
+
+export default function (in: Input): Output {
+    const message = text({
+        state: in.state.context,
+        kind: K.String,
+        value: bytes.fromText(in.message)
+    })
+
+    return reply({
+        state: {
+            ...in.state,
+            context: message.state
+        },
+        status: in.status,
+        body: message.id,
+        headers: []
+    })
+}

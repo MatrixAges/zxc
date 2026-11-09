@@ -1,0 +1,56 @@
+import bytes from "std:bytes"
+
+import binary from "../../../../ast/context/binary"
+import conditional from "../../../../ast/context/conditional"
+import standard from "../../../../ast/context/standard"
+import text from "../../../../ast/context/text"
+import {
+    ExpressionsBinaryOperator as B,
+    ExpressionsKind as K
+} from "../../../../printer/model/expressions"
+import { json_name, stringify_name, value_alloc_name, null_json } from "../const"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const empty = text({
+        state: in.context,
+        kind: K.String,
+        value: bytes.fromText(null_json)
+    })
+
+    const encoded = standard({
+        state: empty.state,
+        path: [
+            json_name,
+            stringify_name,
+            value_alloc_name
+        ],
+        arguments: [
+            in.symbols.allocator,
+            in.symbols.output,
+            in.symbols.empty
+        ],
+        fallible: true
+    })
+
+    const condition = binary({
+        state: encoded.state,
+        operator: B.Equal,
+        left: in.types.output,
+        right: in.types.unit
+    })
+
+    const value = conditional({
+        state: condition.state,
+        condition: condition.id,
+        yes: empty.id,
+        no: encoded.id
+    })
+
+    return {
+        ...in,
+        context: value.state,
+        encoded: value.id
+    }
+}

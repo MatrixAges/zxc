@@ -1,0 +1,116 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import functionDeclaration from "../../../ast/declarations/function"
+import append from "../../../ast/declarations/table/function"
+import errorUnion from "../../../ast/expressions/error_union"
+import field from "../../../ast/fields/append"
+import close from "../../../ast/statements/builder/close"
+import integer from "../../../printer/text/integer"
+import { invoke_prefix, scope_name, io_name, process_name, request_name } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const body = close(in.statements)
+
+    const names = [
+        scope_name,
+        io_name,
+        process_name,
+        request_name
+    ]
+
+    const types = [
+        in.types.scope,
+        in.types.io,
+        in.types.process,
+        in.types.request
+    ]
+
+    const first = in.source.bases.field_base + integers.narrow(in.fields.name.length)
+
+    const fields = loop({
+        fields: in.fields,
+        index: 0
+    }, {
+        while: current => current.index < names.length,
+        next: current => {
+            current.fields = field({
+                table: current.fields,
+                name: bytes.fromText(names[current.index]),
+                value: types[current.index],
+                comptime_parameter: false
+            })
+            current.index += 1
+        },
+        return: current => current.fields
+    })
+
+    const returned = errorUnion({
+        table: {
+            ...in.context.expressions.pick([
+                "tags",
+                "offsets"
+            ]),
+            ...in.extra.pick([
+                "error_union_payload",
+                "error_union_errors",
+                "error_union_inferred"
+            ])
+        },
+        base: in.source.bases.expression_base,
+        payload: in.types.unit,
+        inferred: true
+    })
+
+    const root =
+        in.source.declaration_base + integers.narrow(in.declarations.tags.length)
+
+    const declaration = functionDeclaration({
+        base: root,
+        name: integer({
+            output: bytes.fromText(invoke_prefix),
+            value: in.source.index
+        }),
+        parameters_start: first,
+        parameters_count: integers.narrow(names.length),
+        return_type: returned.id,
+        body_start: body.first,
+        body_count: body.count,
+        exported: false,
+        abi_export: false,
+        inlined: false
+    })
+
+    const declarations = append({
+        state: in.declarations,
+        value: declaration.table,
+        parameter_base: 0
+    })
+
+    return {
+        ...in,
+        context: {
+            ...in.context,
+            expressions: {
+                ...in.context.expressions,
+                tags: returned.table.tags,
+                offsets: returned.table.offsets
+            },
+            valid: in.context.valid && returned.valid
+        },
+        statements: body.state,
+        fields,
+        declarations: declarations.state,
+        extra: {
+            ...in.extra,
+            ...returned.table.omit([
+                "tags",
+                "offsets"
+            ])
+        },
+        root,
+        valid: in.valid && declaration.valid && declarations.valid
+    }
+}

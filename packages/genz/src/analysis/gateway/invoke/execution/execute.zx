@@ -1,0 +1,121 @@
+import bytes from "std:bytes"
+
+import binary from "../../../../ast/context/binary"
+import builtin from "../../../../ast/context/builtin"
+import method from "../../../../ast/context/method"
+import text from "../../../../ast/context/text"
+import binding from "../../../../ast/statements/builder/binding"
+import branch from "../../../../ast/statements/builder/branch"
+import close from "../../../../ast/statements/builder/close"
+import open from "../../../../ast/statements/builder/open"
+import result from "../../../../ast/statements/builder/result"
+import {
+    ExpressionsBinaryOperator as B,
+    ExpressionsBuiltinName as F,
+    ExpressionsKind as K
+} from "../../../../printer/model/expressions"
+import caught from "../catch"
+import {
+    execute_name,
+    canceled_name,
+    internal_error_name,
+    service_failure_message,
+    output_name
+} from "../const"
+import response from "../error_response"
+import log from "../log_failure"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const execute = method({
+        state: in.context,
+        target: in.symbols.module,
+        path: [execute_name],
+        arguments: in.arguments
+    })
+
+    const canceled = text({
+        state: execute.state,
+        kind: K.ErrorValue,
+        value: bytes.fromText(canceled_name)
+    })
+
+    const is_canceled = binary({
+        state: canceled.state,
+        operator: B.Equal,
+        left: in.symbols.err,
+        right: canceled.id
+    })
+
+    const condition = binary({
+        state: is_canceled.state,
+        operator: B.LogicalOr,
+        left: in.symbols.oom,
+        right: is_canceled.id
+    })
+
+    const outer = open(in.statements)
+    const scope = open(outer.state)
+
+    const checked = branch({
+        scope: {
+            ...scope,
+            state: result({
+                state: scope.state,
+                value: in.symbols.err
+            })
+        },
+        condition: condition.id
+    })
+
+    const error_name = builtin({
+        state: condition.state,
+        name: F.ErrorName,
+        arguments: [in.symbols.err]
+    })
+
+    const logged = log({
+        state: {
+            ...in,
+            context: error_name.state,
+            statements: checked
+        },
+        value: error_name.id
+    })
+
+    const sent = response({
+        state: logged,
+        status: internal_error_name,
+        message: service_failure_message
+    })
+
+    const body = close(result({
+        state: sent.state.statements,
+        value: sent.id
+    }))
+
+    const capture = caught({
+        state: {
+            ...sent.state,
+            statements: {
+                ...body.state,
+                root_tags: outer.parent_tags,
+                root_offsets: outer.parent_offsets
+            }
+        },
+        value: execute.id,
+        first: body.first,
+        count: body.count
+    })
+
+    return {
+        ...capture.state,
+        statements: binding({
+            state: capture.state.statements,
+            name: bytes.fromText(output_name),
+            value: capture.id,
+            mutable: false
+        })
+    }
+}

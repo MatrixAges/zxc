@@ -1,0 +1,53 @@
+import bytes from "std:bytes"
+
+import standard from "../../../ast/context/standard"
+import text from "../../../ast/context/text"
+import tuple from "../../../ast/context/tuple"
+import evaluate from "../../../ast/statements/builder/evaluate"
+import { ExpressionsKind as K } from "../../../printer/model/expressions"
+import { failure_log_message, log_name, log_error_name } from "./const"
+
+import type { State } from "./model"
+
+export type Input = {
+    state: State,
+    value: u32
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const message = text({
+        state: in.state.context,
+        kind: K.String,
+        value: bytes.fromText(failure_log_message)
+    })
+
+    const arguments = tuple({
+        state: message.state,
+        values: [in.value]
+    })
+
+    const call = standard({
+        state: arguments.state,
+        path: [
+            log_name,
+            log_error_name
+        ],
+        arguments: [
+            message.id,
+            arguments.id
+        ],
+        fallible: false
+    })
+
+    return {
+        ...in.state,
+        context: call.state,
+        statements: evaluate({
+            state: in.state.statements,
+            value: call.id,
+            discard: false
+        })
+    }
+}

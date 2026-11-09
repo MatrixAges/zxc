@@ -1,0 +1,15 @@
+<Module>
+    <Type from="../model" as="Invoke" />
+
+    <Args in={Invoke.State} out={Invoke.State} />
+
+    <If on={$in.source.slot_count != 0}>
+        <Call fn="context" in={$in} />
+
+        <Return value={$ctx.context} />
+
+        <Else>
+            <Return value={$in} />
+        </Else>
+    </If>
+</Module>

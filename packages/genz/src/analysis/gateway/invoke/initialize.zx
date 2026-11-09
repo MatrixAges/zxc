@@ -1,0 +1,78 @@
+import context from "../../../ast/context/initialize"
+import declarations from "../../../ast/declarations/table/create"
+import fields from "../../../ast/fields/empty"
+import statements from "../../../ast/statements/builder/initialize"
+
+import type { Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        source: in,
+        context: context(in.bases),
+        statements: statements(in.bases.statement_base),
+        fors: {
+            for_loop_iterable: [],
+            for_loop_capture: [],
+            for_loop_body_start: [],
+            for_loop_body_len: [],
+            for_loop_capture_reference: [],
+            for_loop_index_capture: []
+        },
+        scopes: {
+            scope_start: [],
+            scope_len: []
+        },
+        breaks: {
+            break_value_label: [],
+            break_value_value: []
+        },
+        fields: fields({}),
+        declarations: declarations({}),
+        extra: {
+            return_value: [],
+            error_union_payload: [],
+            error_union_errors: [],
+            error_union_inferred: [],
+            catch_scope_value: [],
+            catch_scope_capture: [],
+            catch_scope_body_start: [],
+            catch_scope_body_len: []
+        },
+        symbols: {
+            module: 0,
+            scope: 0,
+            arena: 0,
+            allocator: 0,
+            input: 0,
+            output: 0,
+            body: 0,
+            err: 0,
+            io: 0,
+            process: 0,
+            request: 0,
+            respond: 0,
+            context: 0,
+            encoded: 0,
+            empty: 0,
+            oom: 0,
+            zero: 0
+        },
+        types: {
+            input: 0,
+            output: 0,
+            unit: 0,
+            scope: 0,
+            io: 0,
+            process: 0,
+            request: 0
+        },
+        arguments: [],
+        empty_input: 0,
+        parsed_input: 0,
+        encoded: 0,
+        failure_first: 0,
+        failure_count: 0,
+        root: 0,
+        valid: true
+    }
+}

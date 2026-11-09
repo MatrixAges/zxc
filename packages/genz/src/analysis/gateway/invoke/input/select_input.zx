@@ -1,0 +1,37 @@
+import bytes from "std:bytes"
+
+import binary from "../../../../ast/context/binary"
+import conditional from "../../../../ast/context/conditional"
+import binding from "../../../../ast/statements/builder/binding"
+import { ExpressionsBinaryOperator as B } from "../../../../printer/model/expressions"
+import { input_name } from "../const"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const condition = binary({
+        state: in.context,
+        operator: B.Equal,
+        left: in.types.input,
+        right: in.types.unit
+    })
+
+    const value = conditional({
+        state: condition.state,
+        condition: condition.id,
+        yes: in.empty_input,
+        no: in.parsed_input
+    })
+
+    return {
+        ...in,
+        context: value.state,
+        statements: binding({
+            state: in.statements,
+            name: bytes.fromText(input_name),
+            type_expr: in.types.input,
+            value: value.id,
+            mutable: false
+        })
+    }
+}

@@ -1,0 +1,121 @@
+import bytes from "std:bytes"
+
+import identifier from "../../../ast/context/identifier"
+import member from "../../../ast/context/member_path"
+import integer from "../../../printer/text/integer"
+import {
+    scope_name,
+    allocator_name,
+    input_name,
+    output_name,
+    body_name,
+    err_name,
+    io_name,
+    process_name,
+    request_name,
+    respond_name,
+    context_name,
+    encoded_name,
+    arena_name,
+    service_prefix
+} from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const scope = identifier({
+        state: in.context,
+        name: bytes.fromText(scope_name)
+    })
+
+    const allocator = identifier({
+        state: scope.state,
+        name: bytes.fromText(allocator_name)
+    })
+
+    const input = identifier({
+        state: allocator.state,
+        name: bytes.fromText(input_name)
+    })
+
+    const output = identifier({
+        state: input.state,
+        name: bytes.fromText(output_name)
+    })
+
+    const body = identifier({
+        state: output.state,
+        name: bytes.fromText(body_name)
+    })
+
+    const err = identifier({
+        state: body.state,
+        name: bytes.fromText(err_name)
+    })
+
+    const io = identifier({
+        state: err.state,
+        name: bytes.fromText(io_name)
+    })
+
+    const process = identifier({
+        state: io.state,
+        name: bytes.fromText(process_name)
+    })
+
+    const request = identifier({
+        state: process.state,
+        name: bytes.fromText(request_name)
+    })
+
+    const respond = identifier({
+        state: request.state,
+        name: bytes.fromText(respond_name)
+    })
+
+    const context = identifier({
+        state: respond.state,
+        name: bytes.fromText(context_name)
+    })
+
+    const encoded = identifier({
+        state: context.state,
+        name: bytes.fromText(encoded_name)
+    })
+
+    const arena = member({
+        state: encoded.state,
+        target: scope.id,
+        path: [arena_name]
+    })
+
+    const module = identifier({
+        state: arena.state,
+        name: integer({
+            output: bytes.fromText(service_prefix),
+            value: in.source.index
+        })
+    })
+
+    return {
+        ...in,
+        context: module.state,
+        symbols: {
+            ...in.symbols,
+            scope: scope.id,
+            allocator: allocator.id,
+            input: input.id,
+            output: output.id,
+            body: body.id,
+            err: err.id,
+            io: io.id,
+            process: process.id,
+            request: request.id,
+            respond: respond.id,
+            context: context.id,
+            encoded: encoded.id,
+            arena: arena.id,
+            module: module.id
+        }
+    }
+}

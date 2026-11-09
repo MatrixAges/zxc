@@ -1,0 +1,90 @@
+import bytes from "std:bytes"
+
+import binary from "../../../../ast/context/binary"
+import field from "../../../../ast/context/field"
+import unit from "../../../../ast/context/unit"
+import block from "../../../../ast/expressions/block"
+import branch from "../../../../ast/statements/builder/branch"
+import breakValue from "../../../../ast/statements/builder/break_value"
+import close from "../../../../ast/statements/builder/close"
+import open from "../../../../ast/statements/builder/open"
+import result from "../../../../ast/statements/builder/result"
+import { ExpressionsBinaryOperator as B } from "../../../../printer/model/expressions"
+import { input_name, length_name, bad_request_name, empty_body_message } from "../const"
+import response from "../error_response"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const outer = open(in.statements)
+
+    const length = field({
+        state: in.context,
+        target: in.symbols.body,
+        name: bytes.fromText(length_name)
+    })
+
+    const condition = binary({
+        state: length.state,
+        operator: B.NotEqual,
+        left: length.id,
+        right: in.symbols.zero
+    })
+
+    const scope = open(outer.state)
+
+    const sent = response({
+        state: {
+            ...in,
+            context: condition.state
+        },
+        status: bad_request_name,
+        message: empty_body_message
+    })
+
+    const checked = branch({
+        scope: {
+            ...scope,
+            state: result({
+                state: scope.state,
+                value: sent.id
+            })
+        },
+        condition: condition.id
+    })
+
+    const value = unit(sent.state.context)
+
+    const exited = breakValue({
+        state: checked,
+        columns: in.breaks,
+        label: bytes.fromText(input_name),
+        value: value.id
+    })
+
+    const closed = close(exited.state)
+
+    const body = block({
+        table: value.state.expressions,
+        base: in.source.bases.expression_base,
+        label: bytes.fromText(input_name),
+        start: closed.first,
+        count: closed.count
+    })
+
+    return {
+        ...sent.state,
+        context: {
+            ...value.state,
+            expressions: body.table,
+            valid: value.state.valid && body.valid
+        },
+        statements: {
+            ...closed.state,
+            root_tags: outer.parent_tags,
+            root_offsets: outer.parent_offsets
+        },
+        breaks: exited.columns,
+        empty_input: body.id
+    }
+}

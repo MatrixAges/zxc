@@ -1,0 +1,134 @@
+import bytes from "std:bytes"
+
+import binary from "../../../ast/context/binary"
+import emptyObject from "../../../ast/context/empty_object"
+import field from "../../../ast/context/field"
+import identifier from "../../../ast/context/identifier"
+import integer from "../../../ast/context/integer"
+import pointer from "../../../ast/context/pointer"
+import primitive from "../../../ast/context/primitive"
+import standard from "../../../ast/context/standard_field"
+import text from "../../../ast/context/text"
+import {
+    ExpressionsBinaryOperator as B,
+    ExpressionsKind as K,
+    ExpressionsPrimitive as P
+} from "../../../printer/model/expressions"
+import {
+    input_type_name,
+    output_type_name,
+    state_name,
+    request_type_name,
+    io_type_name,
+    process_type_name,
+    init_type_name,
+    minimal_type_name,
+    http_name,
+    server_name,
+    out_of_memory_name
+} from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const input = field({
+        state: in.context,
+        target: in.symbols.module,
+        name: bytes.fromText(input_type_name)
+    })
+
+    const output = field({
+        state: input.state,
+        target: in.symbols.module,
+        name: bytes.fromText(output_type_name)
+    })
+
+    const unit = primitive({
+        state: output.state,
+        value: P.Void
+    })
+
+    const state = identifier({
+        state: unit.state,
+        name: bytes.fromText(state_name)
+    })
+
+    const request = field({
+        state: state.state,
+        target: state.id,
+        name: bytes.fromText(request_type_name)
+    })
+
+    const scope = pointer({
+        state: request.state,
+        value: request.id
+    })
+
+    const io = standard({
+        state: scope.state,
+        path: [io_type_name]
+    })
+
+    const process = standard({
+        state: io.state,
+        path: [
+            process_type_name,
+            init_type_name,
+            minimal_type_name
+        ]
+    })
+
+    const http = standard({
+        state: process.state,
+        path: [
+            http_name,
+            server_name,
+            request_type_name
+        ]
+    })
+
+    const request_pointer = pointer({
+        state: http.state,
+        value: http.id
+    })
+
+    const empty = emptyObject(request_pointer.state)
+
+    const zero = integer({
+        state: empty.state,
+        value: 0
+    })
+
+    const error_value = text({
+        state: zero.state,
+        kind: K.ErrorValue,
+        value: bytes.fromText(out_of_memory_name)
+    })
+
+    const oom = binary({
+        state: error_value.state,
+        operator: B.Equal,
+        left: in.symbols.err,
+        right: error_value.id
+    })
+
+    return {
+        ...in,
+        context: oom.state,
+        types: {
+            input: input.id,
+            output: output.id,
+            unit: unit.id,
+            scope: scope.id,
+            io: io.id,
+            process: process.id,
+            request: request_pointer.id
+        },
+        symbols: {
+            ...in.symbols,
+            empty: empty.id,
+            zero: zero.id,
+            oom: oom.id
+        }
+    }
+}

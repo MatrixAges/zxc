@@ -1,0 +1,18 @@
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const with_io = match in.source.requires_io {
+        true => in.arguments.push(in.symbols.io)[0],
+        _ => in.arguments
+    }
+
+    const arguments = match in.source.requires_process {
+        true => with_io.push(in.symbols.process)[0],
+        _ => with_io
+    }
+
+    return {
+        ...in,
+        arguments
+    }
+}

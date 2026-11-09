@@ -1,0 +1,46 @@
+import bytes from "std:bytes"
+
+import address from "../../../../ast/context/address"
+import identifier from "../../../../ast/context/identifier"
+import method from "../../../../ast/context/method"
+import binding from "../../../../ast/statements/builder/binding"
+import integer from "../../../../printer/text/integer"
+import { context_prefix, context_name, init_name } from "../const"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const context_type = identifier({
+        state: in.context,
+        name: integer({
+            output: bytes.fromText(context_prefix),
+            value: in.source.index
+        })
+    })
+
+    const value = method({
+        state: context_type.state,
+        target: context_type.id,
+        path: [init_name],
+        arguments: [in.symbols.scope]
+    })
+
+    const declared = binding({
+        state: in.statements,
+        name: bytes.fromText(context_name),
+        value: value.id,
+        mutable: true
+    })
+
+    const pointer = address({
+        state: value.state,
+        value: in.symbols.context
+    })
+
+    return {
+        ...in,
+        context: pointer.state,
+        statements: declared,
+        arguments: in.arguments.push(pointer.id)[0]
+    }
+}

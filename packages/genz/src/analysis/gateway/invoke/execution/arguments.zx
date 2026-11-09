@@ -1,0 +1,19 @@
+import address from "../../../../ast/context/address"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const arena = address({
+        state: in.context,
+        value: in.symbols.arena
+    })
+
+    return {
+        ...in,
+        context: arena.state,
+        arguments: [
+            arena.id,
+            in.symbols.input
+        ]
+    }
+}

@@ -1,0 +1,57 @@
+<Module>
+    <Type from="model" as="Invoke" />
+
+    <Args in={Invoke.Input} out={Invoke.Output} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="symbols" in={$ctx.initialize} />
+    <Call fn="types" in={$ctx.symbols} />
+    <Call fn="input/read_body" in={$ctx.types} />
+    <Call fn="input/empty_input" in={$ctx.read_body} />
+    <Call fn="input/parse_input" in={$ctx.empty_input} />
+    <Call fn="input/select_input" in={$ctx.parse_input} />
+    <Call fn="execution/arguments" in={$ctx.select_input} />
+
+    <Call module="execution/context_choice" in={$ctx.arguments} />
+
+    <Call fn="execution/runtime_arguments" in={$ctx.context_choice} />
+    <Call fn="execution/execute" in={$ctx.runtime_arguments} />
+    <Call fn="response/encoded" in={$ctx.execute} />
+    <Call fn="response/failure" in={$ctx.encoded} />
+    <Call fn="response/validation" in={$ctx.failure} />
+
+    <Call
+        fn="../../host/json_output/check"
+        in={{
+            state: {
+                source: {
+                    bases: $in.bases,
+                    types: $in.types,
+                    type_id: $in.output_type,
+                    failure_first: $ctx.validation.state.failure_first,
+                    failure_count: $ctx.validation.state.failure_count
+                },
+                context: $ctx.validation.state.context,
+                statements: $ctx.validation.state.statements,
+                loops: $ctx.validation.state.fors,
+                sequence: 0
+            },
+            type_id: $in.output_type,
+            value: $ctx.validation.state.symbols.output
+        }}
+    />
+
+    <Call
+        fn="response/validated"
+        in={{
+            prepared: $ctx.validation,
+            checked: $ctx.check
+        }}
+    />
+
+    <Call fn="response/respond" in={$ctx.validated} />
+    <Call fn="finish" in={$ctx.respond} />
+    <Call fn="publish" in={$ctx.finish} />
+
+    <Return value={$ctx.publish} />
+</Module>

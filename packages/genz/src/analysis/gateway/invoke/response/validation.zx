@@ -1,0 +1,16 @@
+import open from "../../../../ast/statements/builder/open"
+
+import type { State as Input, Validation as Output } from "../model"
+
+export default function (in: Input): Output {
+    const scope = open(in.statements)
+
+    return {
+        state: {
+            ...in,
+            statements: scope.state
+        },
+        parent_tags: scope.parent_tags,
+        parent_offsets: scope.parent_offsets
+    }
+}

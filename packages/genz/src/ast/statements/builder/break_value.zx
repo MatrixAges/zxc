@@ -1,0 +1,35 @@
+import { StatementsKind } from "../../../printer/model/statements"
+import header from "./header"
+
+import type { State } from "./model"
+
+export type Columns = {
+    break_value_label: u8[][],
+    break_value_value: u32[]
+}
+
+export type Input = {
+    state: State,
+    columns: Columns,
+    label: u8[],
+    value: u32
+}
+
+export type Output = {
+    state: State,
+    columns: Columns
+}
+
+export default function (in: Input): Output {
+    return {
+        state: header({
+            state: in.state,
+            kind: StatementsKind.BreakValue,
+            offset: in.columns.break_value_label.length
+        }),
+        columns: {
+            break_value_label: in.columns.break_value_label.push(in.label)[0],
+            break_value_value: in.columns.break_value_value.push(in.value)[0]
+        }
+    }
+}

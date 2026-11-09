@@ -1,0 +1,126 @@
+import type { Table } from "core/type_table/model"
+import type { Input as Bases, State as Context } from "../../../ast/context/model"
+import type { Table as Declarations } from "../../../ast/declarations/table/model"
+import type { Columns as Fields } from "../../../ast/fields/model"
+import type { Columns as Breaks } from "../../../ast/statements/builder/break_value"
+import type { Columns as Fors } from "../../../ast/statements/builder/for_loop"
+import type { State as Statements } from "../../../ast/statements/builder/model"
+import type { Columns as Scopes } from "../../../ast/statements/builder/scope"
+import type {
+    Statements as StatementColumns,
+    StatementsKind
+} from "../../../printer/model/statements"
+import type { State as JsonState } from "../../host/json_output/model"
+
+export type Input = {
+    bases: Bases,
+    declaration_base: u32,
+    index: u64,
+    slot_count: u64,
+    requires_io: bool,
+    requires_process: bool,
+    types: Table,
+    output_type: u32
+}
+
+export type Symbols = {
+    module: u32,
+    scope: u32,
+    arena: u32,
+    allocator: u32,
+    input: u32,
+    output: u32,
+    body: u32,
+    err: u32,
+    io: u32,
+    process: u32,
+    request: u32,
+    respond: u32,
+    context: u32,
+    encoded: u32,
+    empty: u32,
+    oom: u32,
+    zero: u32
+}
+
+export type Types = {
+    input: u32,
+    output: u32,
+    unit: u32,
+    scope: u32,
+    io: u32,
+    process: u32,
+    request: u32
+}
+
+export type Extra = {
+    return_value: u32?[],
+    error_union_payload: u32[],
+    error_union_errors: u8[][]?[],
+    error_union_inferred: bool[],
+    catch_scope_value: u32[],
+    catch_scope_capture: u8[]?[],
+    catch_scope_body_start: u32[],
+    catch_scope_body_len: u32[]
+}
+
+export type State = {
+    source: Input,
+    context: Context,
+    statements: Statements,
+    fors: Fors,
+    scopes: Scopes,
+    breaks: Breaks,
+    fields: Fields,
+    declarations: Declarations,
+    extra: Extra,
+    symbols: Symbols,
+    types: Types,
+    arguments: u32[],
+    empty_input: u32,
+    parsed_input: u32,
+    encoded: u32,
+    failure_first: u32,
+    failure_count: u32,
+    root: u32,
+    valid: bool
+}
+
+export type Node = {
+    state: State,
+    id: u32
+}
+
+export type Reply = {
+    state: State,
+    status: string,
+    body: u32,
+    headers: u32[]
+}
+
+export type ErrorReply = {
+    state: State,
+    status: string,
+    message: string
+}
+
+export type Validation = {
+    state: State,
+    parent_tags: StatementsKind[],
+    parent_offsets: u32[]
+}
+
+export type Validated = {
+    prepared: Validation,
+    checked: JsonState
+}
+
+export type Output = {
+    context: Context,
+    statements: StatementColumns,
+    fields: Fields,
+    declarations: Declarations,
+    extra: Extra,
+    root: u32,
+    valid: bool
+}

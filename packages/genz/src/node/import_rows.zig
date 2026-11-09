@@ -40,15 +40,17 @@ pub fn check(target: anytype, source: anytype) Error!Counts(@TypeOf(target)) {
     }
 
     comptime var column_count: usize = 2;
+    var valid = true;
 
     inline for (names, 0..) |name, index| {
         const Column = @FieldType(Payloads, name);
-        column_count += comptime present(View, Column, name);
 
-        try validateColumn(&@field(target.payloads, name), source, name, counts[index]);
+        column_count += comptime present(View, Column, name);
+        valid = valid and validateColumn(Column, source, name, counts[index]);
     }
 
     if (comptime column_count != fields.len) @compileError("AST import has unknown columns");
+    if (!valid) return error.InvalidAst;
 
     return counts;
 }
@@ -122,24 +124,34 @@ fn present(comptime View: type, comptime Column: type, comptime prefix: []const 
     return count;
 }
 
-fn validateColumn(column: anytype, source: anytype, comptime prefix: []const u8, count: usize) Error!void {
-    const Column = std.meta.Child(@TypeOf(column));
+inline fn validateColumn(comptime Column: type, source: anytype, comptime prefix: []const u8, count: usize) bool {
     const View = std.meta.Child(@TypeOf(source));
 
     if (@hasField(Column, "fields")) {
-        inline for (@typeInfo(@TypeOf(column.fields)).@"struct".field_names) |name| {
-            try validateColumn(&@field(column.fields, name), source, prefix ++ "_" ++ name, count);
-        }
-    } else if (std.meta.Child(@TypeOf(column.values.items)) != void) {
-        if (@hasField(View, prefix)) {
-            comptime view.compatible(std.meta.Child(@TypeOf(column.values.items)), std.meta.Child(@FieldType(View, prefix)));
+        const Fields = @FieldType(Column, "fields");
+        var valid = true;
 
-            if (@field(source, prefix).len != count) return error.InvalidAst;
-        } else if (count != 0) return error.InvalidAst;
+        inline for (@typeInfo(Fields).@"struct".field_names) |name| {
+            valid = valid and validateColumn(@FieldType(Fields, name), source, prefix ++ "_" ++ name, count);
+        }
+
+        return valid;
     }
+
+    const Value = std.meta.Child(@FieldType(@FieldType(Column, "values"), "items"));
+
+    if (Value == void) return true;
+
+    if (@hasField(View, prefix)) {
+        comptime view.compatible(Value, std.meta.Child(@FieldType(View, prefix)));
+
+        return @field(source, prefix).len == count;
+    }
+
+    return count == 0;
 }
 
-fn commit(column: anytype, source: anytype, comptime prefix: []const u8, count: usize) void {
+inline fn commit(column: anytype, source: anytype, comptime prefix: []const u8, count: usize) void {
     const Column = std.meta.Child(@TypeOf(column));
     const View = std.meta.Child(@TypeOf(source));
 
@@ -151,14 +163,22 @@ fn commit(column: anytype, source: anytype, comptime prefix: []const u8, count: 
         const Value = std.meta.Child(@TypeOf(column.values.items));
 
         if (Value == void) {
-            for (0..count) |_| column.append({});
+            commitVoid(column, count);
         } else if (@hasField(View, prefix)) {
             const values = @field(source, prefix);
             const converted = @as([*]const Value, @ptrCast(values.ptr))[0..values.len];
 
-            column.values.appendSliceAssumeCapacity(converted);
+            commitValues(column, converted);
         }
     }
+}
+
+fn commitVoid(column: anytype, count: usize) void {
+    for (0..count) |_| column.append({});
+}
+
+fn commitValues(column: anytype, values: []const std.meta.Child(@TypeOf(column.values.items))) void {
+    column.values.appendSliceAssumeCapacity(values);
 }
 
 fn copiedFields(comptime View: type, comptime copy_payloads: bool, comptime borrow_text: bool) []const []const u8 {

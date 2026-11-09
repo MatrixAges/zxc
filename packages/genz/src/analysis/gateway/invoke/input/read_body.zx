@@ -1,0 +1,106 @@
+import bytes from "std:bytes"
+
+import binary from "../../../../ast/context/binary"
+import call from "../../../../ast/context/call"
+import identifier from "../../../../ast/context/identifier"
+import method from "../../../../ast/context/method"
+import returned from "../../../../ast/expressions/return_value"
+import binding from "../../../../ast/statements/builder/binding"
+import evaluate from "../../../../ast/statements/builder/evaluate"
+import { ExpressionsBinaryOperator as B } from "../../../../printer/model/expressions"
+import { allocator_name, body_name, read_body_name } from "../const"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const discarded_io = match in.source.requires_io {
+        true => in.statements,
+        _ => evaluate({
+            state: in.statements,
+            value: in.symbols.io,
+            discard: true
+        })
+    }
+
+    const discarded_process = match in.source.requires_process {
+        true => discarded_io,
+        _ => evaluate({
+            state: discarded_io,
+            value: in.symbols.process,
+            discard: true
+        })
+    }
+
+    const allocator = method({
+        state: in.context,
+        target: in.symbols.arena,
+        path: [allocator_name],
+        arguments: []
+    })
+
+    const declared = binding({
+        state: discarded_process,
+        name: bytes.fromText(allocator_name),
+        value: allocator.id,
+        mutable: false
+    })
+
+    const read = identifier({
+        state: allocator.state,
+        name: bytes.fromText(read_body_name)
+    })
+
+    const body = call({
+        state: read.state,
+        callee: read.id,
+        arguments: [
+            in.symbols.allocator,
+            in.symbols.request
+        ],
+        fallible: true
+    })
+
+    const stop = returned({
+        table: {
+            ...body.state.expressions.pick([
+                "tags",
+                "offsets"
+            ]),
+            ...in.extra.pick(["return_value"])
+        },
+        base: in.source.bases.expression_base
+    })
+
+    const value = binary({
+        state: {
+            ...body.state,
+            expressions: {
+                ...body.state.expressions,
+                tags: stop.table.tags,
+                offsets: stop.table.offsets
+            },
+            valid: body.state.valid && stop.valid
+        },
+        operator: B.Coalesce,
+        left: body.id,
+        right: stop.id
+    })
+
+    return {
+        ...in,
+        context: value.state,
+        statements: binding({
+            state: declared,
+            name: bytes.fromText(body_name),
+            value: value.id,
+            mutable: false
+        }),
+        extra: {
+            ...in.extra,
+            ...stop.table.omit([
+                "tags",
+                "offsets"
+            ])
+        }
+    }
+}
