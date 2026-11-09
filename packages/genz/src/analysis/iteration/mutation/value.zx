@@ -1,0 +1,19 @@
+import bind from "../../../ast/body/binding"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const bound = bind({
+        state: in.pick([
+            "context",
+            "body"
+        ]),
+        name: in.source.value.name,
+        value: in.source.value.value
+    })
+
+    return {
+        ...in,
+        ...bound
+    }
+}

@@ -4,10 +4,13 @@ export default function (in: Input): Output {
     return {
         expressions: in.context.expressions,
         forms: in.context.forms,
-        statements: in.context.statements,
+        statements: {
+            ...in.context.statements,
+            discard: in.extra.discard
+        },
         variables: in.context.variables,
         fields: in.fields,
-        extra: in.extra,
+        extra: in.extra.omit(["discard"]),
         inner_count: in.inner_count,
         valid: in.context.valid
     }

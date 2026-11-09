@@ -1,0 +1,25 @@
+import object from "../buffer/object"
+
+import type { View as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const value = object({
+        context: in.state.context,
+        layout: in.state.source.list_layout,
+        owner: in.owner,
+        items: in.items,
+        owned: in.owned
+    })
+
+    return {
+        ...in.state,
+        context: {
+            ...in.state.context,
+            expressions: value.expressions,
+            forms: value.forms,
+            valid: value.valid
+        },
+        fields: value.fields,
+        root: value.root
+    }
+}

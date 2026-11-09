@@ -1,0 +1,53 @@
+import { StatementsKind } from "../../printer/model/statements"
+import header from "../statements/header"
+
+import type { StateBody } from "./model"
+
+export type Input = {
+    state: StateBody,
+    value: u32,
+    discard: bool
+}
+
+export type Output = StateBody
+
+export default function (in: Input): Output {
+    const { context, body } = in.state
+
+    const kind = in.discard ? StatementsKind.Discard : StatementsKind.Expression
+
+    const offset = match {
+        in.discard => context.statements.discard.length,
+        _ => context.statements.expression.length
+    }
+
+    const result = header({
+        ...body,
+        base: 0,
+        kind,
+        offset
+    })
+
+    const statements = match {
+        in.discard => {
+            ...context.statements,
+            discard: context.statements.discard.push(in.value)[0]
+        },
+        _ => {
+            ...context.statements,
+            expression: context.statements.expression.push(in.value)[0]
+        }
+    }
+
+    return {
+        context: {
+            ...context,
+            statements,
+            valid: context.valid && result.valid
+        },
+        body: result.pick([
+            "tags",
+            "offsets"
+        ])
+    }
+}

@@ -1,0 +1,53 @@
+import bytes from "std:bytes"
+
+import binary from "../../../ast/context/binary"
+import branch from "../../../ast/statements/branch"
+import { ExpressionsBinaryOperator } from "../../../printer/model/expressions"
+import failure from "../../intrinsics/guard/failure"
+import { bounds_error } from "../../intrinsics/index/const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const condition = binary({
+        state: in.context,
+        operator: ExpressionsBinaryOperator.GreaterEqual,
+        left: in.source.index.reference,
+        right: in.length
+    })
+
+    const failed = failure({
+        context: condition.state,
+        name: bytes.fromText(bounds_error)
+    })
+
+    const selected = branch({
+        table: {
+            ...failed.context.statements,
+            ...in.body
+        },
+        base: 0,
+        condition: condition.id,
+        yes_start: failed.first,
+        yes_count: failed.count,
+        no_start: 0,
+        no_count: 0
+    })
+
+    return {
+        ...in,
+        context: {
+            ...failed.context,
+            statements: {
+                ...selected.table,
+                tags: failed.context.statements.tags,
+                offsets: failed.context.statements.offsets
+            },
+            valid: failed.context.valid && selected.valid
+        },
+        body: selected.table.pick([
+            "tags",
+            "offsets"
+        ])
+    }
+}

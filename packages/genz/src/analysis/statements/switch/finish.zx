@@ -58,12 +58,12 @@ export default function (in: Input): Output {
         extra: in.extra,
         statements: {
             ...subject.table,
+            discard: match {
+                discard => [saved],
+                _ => []
+            },
             tags: outer.tags.concat(in.outer.tags)[0],
             offsets: outer.offsets.concat(in.outer.offsets)[0]
-        },
-        discard: match {
-            discard => [saved],
-            _ => []
         },
         children,
         tail: in.tail,

@@ -1,0 +1,67 @@
+import bytes from "std:bytes"
+
+import evaluate from "../../../ast/body/evaluate"
+import call from "../../../ast/context/call"
+import field from "../../../ast/context/field"
+import identifier from "../../../ast/context/identifier"
+import integer from "../../../ast/context/integer"
+import primitive from "../../../ast/context/primitive"
+import { ExpressionsPrimitive } from "../../../printer/model/expressions"
+import { standard_name } from "../types/const"
+import { math_name, addition_name } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const size_type = primitive({
+        state: in.context,
+        value: ExpressionsPrimitive.Usize
+    })
+
+    const one = integer({
+        state: size_type.state,
+        value: 1
+    })
+
+    const standard = identifier({
+        state: one.state,
+        name: bytes.fromText(standard_name)
+    })
+
+    const math = field({
+        state: standard.state,
+        target: standard.id,
+        name: bytes.fromText(math_name)
+    })
+
+    const addition = field({
+        state: math.state,
+        target: math.id,
+        name: bytes.fromText(addition_name)
+    })
+
+    const sum = call({
+        state: addition.state,
+        callee: addition.id,
+        arguments: [
+            size_type.id,
+            in.length,
+            one.id
+        ],
+        fallible: true
+    })
+
+    const checked = evaluate({
+        state: {
+            context: sum.state,
+            body: in.body
+        },
+        value: sum.id,
+        discard: true
+    })
+
+    return {
+        ...in,
+        ...checked
+    }
+}

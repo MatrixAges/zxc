@@ -44,6 +44,15 @@ pub fn check(target: anytype, source: anytype) Error!Counts(@TypeOf(target)) {
 }
 
 pub fn append(allocator: std.mem.Allocator, target: anytype, source: anytype) Error!void {
+    return appendRows(allocator, target, source, false);
+}
+
+/// Text must outlive every imported row; other nested payloads receive owned storage.
+pub fn appendBorrowingText(allocator: std.mem.Allocator, target: anytype, source: anytype) Error!void {
+    return appendRows(allocator, target, source, true);
+}
+
+fn appendRows(allocator: std.mem.Allocator, target: anytype, source: anytype, comptime borrow_text: bool) Error!void {
     const Tag = std.meta.Child(@TypeOf(target.tags.items));
     const names = @typeInfo(@TypeOf(target.payloads)).@"struct".field_names;
     const counts = try check(target, source);
@@ -63,9 +72,9 @@ pub fn append(allocator: std.mem.Allocator, target: anytype, source: anytype) Er
                 const column = &@field(target.payloads, @tagName(selected));
                 const index = column.count();
 
-                errdefer rollback(allocator, column, index);
+                errdefer rollback(allocator, column, index, borrow_text);
 
-                try commit(allocator, column, source, @tagName(selected), offset);
+                try commit(allocator, column, source, @tagName(selected), offset, borrow_text);
 
                 break :value index;
             },
@@ -76,15 +85,17 @@ pub fn append(allocator: std.mem.Allocator, target: anytype, source: anytype) Er
     }
 }
 
-fn rollback(allocator: std.mem.Allocator, column: anytype, count: usize) void {
+fn rollback(allocator: std.mem.Allocator, column: anytype, count: usize, comptime borrow_text: bool) void {
     const Column = std.meta.Child(@TypeOf(column));
 
     if (@hasField(Column, "fields")) {
         inline for (@typeInfo(@TypeOf(column.fields)).@"struct".field_names) |name| {
-            rollback(allocator, &@field(column.fields, name), count);
+            rollback(allocator, &@field(column.fields, name), count, borrow_text);
         }
     } else {
-        for (column.values.items[count..]) |value| owned.release(allocator, value);
+        for (column.values.items[count..]) |value| {
+            if (comptime borrow_text) owned.releaseBorrowingText(allocator, value) else owned.release(allocator, value);
+        }
 
         column.values.items.len = count;
     }
@@ -123,13 +134,13 @@ fn validate(column: anytype, source: anytype, comptime prefix: []const u8, offse
     }
 }
 
-fn commit(allocator: std.mem.Allocator, column: anytype, source: anytype, comptime prefix: []const u8, offset: u32) Error!void {
+fn commit(allocator: std.mem.Allocator, column: anytype, source: anytype, comptime prefix: []const u8, offset: u32, comptime borrow_text: bool) Error!void {
     const Column = std.meta.Child(@TypeOf(column));
     const View = std.meta.Child(@TypeOf(source));
 
     if (@hasField(Column, "fields")) {
         inline for (@typeInfo(@TypeOf(column.fields)).@"struct".field_names) |name| {
-            try commit(allocator, &@field(column.fields, name), source, prefix ++ "_" ++ name, offset);
+            try commit(allocator, &@field(column.fields, name), source, prefix ++ "_" ++ name, offset, borrow_text);
         }
     } else {
         const Value = std.meta.Child(@TypeOf(column.values.items));
@@ -140,7 +151,7 @@ fn commit(allocator: std.mem.Allocator, column: anytype, source: anytype, compti
             const values = @field(source, prefix);
             const converted = @as([*]const Value, @ptrCast(values.ptr))[offset];
 
-            column.append(try owned.copy(allocator, converted));
+            column.append(if (comptime borrow_text) try owned.copyBorrowingText(allocator, converted) else try owned.copy(allocator, converted));
         } else unreachable;
     }
 }

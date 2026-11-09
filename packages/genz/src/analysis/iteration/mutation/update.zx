@@ -1,0 +1,63 @@
+import bytes from "std:bytes"
+
+import assign from "../../../ast/body/assignment"
+import boolean from "../../../ast/context/boolean"
+import builtin from "../../../ast/context/builtin"
+import field from "../../../ast/context/field"
+import index from "../../../ast/context/index"
+import { ExpressionsBuiltinName } from "../../../printer/model/expressions"
+import { items_field } from "../types/const"
+import view from "./view"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const items = field({
+        state: in.context,
+        target: in.owner,
+        name: bytes.fromText(items_field)
+    })
+
+    const offset = builtin({
+        state: items.state,
+        name: ExpressionsBuiltinName.IntCast,
+        arguments: [in.source.index.reference]
+    })
+
+    const target = index({
+        state: offset.state,
+        target: items.id,
+        index: offset.id
+    })
+
+    const written = assign({
+        state: {
+            context: target.state,
+            body: in.body
+        },
+        target: target.id,
+        value: in.source.value.reference
+    })
+
+    const current = field({
+        state: written.context,
+        target: in.owner,
+        name: bytes.fromText(items_field)
+    })
+
+    const owned = boolean({
+        state: current.state,
+        value: true
+    })
+
+    return view({
+        state: {
+            ...in,
+            context: owned.state,
+            body: written.body
+        },
+        owner: in.owner,
+        items: current.id,
+        owned: owned.id
+    })
+}

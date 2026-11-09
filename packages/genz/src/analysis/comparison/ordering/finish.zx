@@ -67,10 +67,10 @@ export default function (in: Input): Output {
         ]),
         statements: {
             ...boolean.state.statements,
+            discard: in.state.discard,
             tags: boolean.state.statements.tags.concat(body.body.tags)[0],
             offsets: boolean.state.statements.offsets.concat(body.body.offsets)[0]
         },
-        discard: in.state.discard,
         fields: {
             name: parameters,
             value: [

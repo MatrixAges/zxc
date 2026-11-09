@@ -1,0 +1,103 @@
+import bytes from "std:bytes"
+
+import binary from "../../../ast/context/binary"
+import conditional from "../../../ast/context/conditional"
+import field from "../../../ast/context/field"
+import index from "../../../ast/context/index"
+import integer from "../../../ast/context/integer"
+import nullValue from "../../../ast/context/null_value"
+import slice from "../../../ast/context/slice"
+import tuple from "../../../ast/context/tuple"
+import { ExpressionsBinaryOperator } from "../../../printer/model/expressions"
+import { owned_field } from "../types/const"
+import view from "./view"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const one = integer({
+        state: in.context,
+        value: 1
+    })
+
+    const last = binary({
+        state: one.state,
+        operator: ExpressionsBinaryOperator.Subtract,
+        left: in.length,
+        right: one.id
+    })
+
+    const remaining = slice({
+        state: last.state,
+        target: in.items,
+        start: null,
+        end: last.id
+    })
+
+    const item = index({
+        state: remaining.state,
+        target: in.items,
+        index: last.id
+    })
+
+    const owned = field({
+        state: item.state,
+        target: in.source.target.reference,
+        name: bytes.fromText(owned_field)
+    })
+
+    const updated = view({
+        state: {
+            ...in,
+            context: owned.state
+        },
+        owner: in.owner,
+        items: remaining.id,
+        owned: owned.id
+    })
+
+    const zero = integer({
+        state: updated.context,
+        value: 0
+    })
+
+    const empty = binary({
+        state: zero.state,
+        operator: ExpressionsBinaryOperator.Equal,
+        left: in.length,
+        right: zero.id
+    })
+
+    const missing = nullValue(empty.state)
+
+    const yes = tuple({
+        state: missing.state,
+        values: [
+            in.source.target.reference,
+            missing.id
+        ]
+    })
+
+    const no = tuple({
+        state: yes.state,
+        values: [
+            updated.root,
+            item.id
+        ]
+    })
+
+    const result = conditional({
+        state: no.state,
+        condition: empty.id,
+        yes: yes.id,
+        no: no.id,
+        capture: null,
+        error_capture: null
+    })
+
+    return {
+        ...updated,
+        context: result.state,
+        root: result.id
+    }
+}

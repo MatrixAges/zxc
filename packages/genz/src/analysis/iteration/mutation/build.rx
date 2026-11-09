@@ -1,0 +1,39 @@
+<Module>
+    <Type from="model" as="Mutation" />
+
+    <Args in={Mutation.Input} out={Mutation.Output} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="project" in={$ctx.initialize} />
+
+    <Switch on={$in.mode}>
+        <Case value={Mutation.Mode.Update}>
+            <Call fn="bounds" in={$ctx.project} />
+            <Call fn="value" in={$ctx.bounds} />
+            <Call fn="prepare" in={$ctx.value} />
+            <Call fn="update" in={$ctx.prepare} />
+            <Call fn="finish" in={$ctx.update} />
+
+            <Return value={$ctx.finish} />
+        </Case>
+
+        <Case value={Mutation.Mode.Push}>
+            <Call fn="value" in={$ctx.project} />
+            <Call fn="overflow" in={$ctx.value} />
+            <Call fn="prepare" in={$ctx.overflow} />
+            <Call fn="append" in={$ctx.prepare} />
+            <Call fn="cast" in={$ctx.append} />
+            <Call fn="finish" in={$ctx.cast} />
+
+            <Return value={$ctx.finish} />
+        </Case>
+
+        <Case value={Mutation.Mode.Pop}>
+            <Call fn="pop" in={$ctx.project} />
+            <Call fn="cast" in={$ctx.pop} />
+            <Call fn="finish" in={$ctx.cast} />
+
+            <Return value={$ctx.finish} />
+        </Case>
+    </Switch>
+</Module>

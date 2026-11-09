@@ -43,10 +43,9 @@ pub fn lower(self: *Lower, type_id: zx.ir.TypeId) Lower.Error!node.Declaration {
     const forms = zx.columns.view(std.meta.Child(@FieldType(Output, "forms")), output.forms);
     const statements = zx.columns.view(std.meta.Child(@FieldType(Output, "statements")), output.statements);
     const expressions = view.join(expression_rows, forms);
-    const emitted = view.join(statements, .{ .discard = output.discard });
 
     try append(self, &self.builder.nodes.expressions, &expressions);
-    try append(self, &self.builder.nodes.statements, &emitted);
+    try append(self, &self.builder.nodes.statements, &statements);
 
     const parameters = try self.allocator.alloc(node.Field, output.fields.name.len);
 

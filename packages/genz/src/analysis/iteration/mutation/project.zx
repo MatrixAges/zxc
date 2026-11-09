@@ -1,0 +1,35 @@
+import bytes from "std:bytes"
+
+import field from "../../../ast/context/field"
+import { length_member } from "../../intrinsics/index/const"
+import { owner_field, items_field } from "../types/const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const owner = field({
+        state: in.context,
+        target: in.source.target.reference,
+        name: bytes.fromText(owner_field)
+    })
+
+    const items = field({
+        state: owner.state,
+        target: in.source.target.reference,
+        name: bytes.fromText(items_field)
+    })
+
+    const length = field({
+        state: items.state,
+        target: items.id,
+        name: bytes.fromText(length_member)
+    })
+
+    return {
+        ...in,
+        context: length.state,
+        owner: owner.id,
+        items: items.id,
+        length: length.id
+    }
+}

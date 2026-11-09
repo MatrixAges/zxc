@@ -1,67 +1,17 @@
-import bytes from "std:bytes"
-
-import call from "../../../../ast/context/call"
-import field from "../../../../ast/context/field"
-import identifier from "../../../../ast/context/identifier"
 import initialize from "../../../../ast/context/initialize"
-import { owner_field, items_field, owned_field } from "../../types/const"
-import { allocator_name, append_member } from "../const"
+import project from "./project_context"
 
 import type { Prepare as Input, Prepared as Output } from "../model"
 
 export default function (in: Input): Output {
-    const context = initialize({
-        capture: in.capture,
-        expression_base: in.expression_base,
-        statement_base: in.statement_base,
-        field_base: 0,
-        serial: 0
+    return project({
+        context: initialize({
+            capture: in.capture,
+            expression_base: in.expression_base,
+            statement_base: in.statement_base,
+            field_base: 0,
+            serial: 0
+        }),
+        value: in.value
     })
-
-    const owner = field({
-        state: context,
-        target: in.value,
-        name: bytes.fromText(owner_field)
-    })
-
-    const items = field({
-        state: owner.state,
-        target: in.value,
-        name: bytes.fromText(items_field)
-    })
-
-    const target = field({
-        state: items.state,
-        target: owner.id,
-        name: bytes.fromText(append_member)
-    })
-
-    const allocator = identifier({
-        state: target.state,
-        name: bytes.fromText(allocator_name)
-    })
-
-    const copied = call({
-        state: allocator.state,
-        callee: target.id,
-        arguments: [
-            allocator.id,
-            items.id
-        ],
-        fallible: true
-    })
-
-    const owned = field({
-        state: copied.state,
-        target: in.value,
-        name: bytes.fromText(owned_field)
-    })
-
-    return {
-        context: owned.state,
-        owner: owner.id,
-        items: items.id,
-        owned: owned.id,
-        copied: copied.id
-    }
 }

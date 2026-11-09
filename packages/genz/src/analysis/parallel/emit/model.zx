@@ -29,6 +29,11 @@ export type Extra = {
     scope_len: u32[]
 }
 
+export type Scopes = {
+    scope_start: u32[],
+    scope_len: u32[]
+}
+
 export type State = {
     source: Input,
     context: Context,
@@ -52,7 +57,7 @@ export type Output = {
     forms: Forms,
     statements: Statements,
     variables: Variables,
-    extra: Extra,
+    extra: Scopes,
     fields: Fields,
     inner_count: u32,
     valid: bool

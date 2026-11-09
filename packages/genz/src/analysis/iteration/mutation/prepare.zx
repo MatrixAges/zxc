@@ -1,0 +1,49 @@
+import integers from "std:integer"
+
+import branch from "../../../ast/statements/branch"
+import branches from "../buffer/prepare/branches"
+import project from "../buffer/prepare/project_context"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const first = in.context.source.statement_base +
+        integers.narrow(in.context.statements.tags.length)
+
+    const projected = project({
+        context: in.context,
+        value: in.source.target.reference
+    })
+
+    const prepared = branches(projected)
+
+    const selected = branch({
+        table: {
+            ...prepared.context.statements,
+            ...in.body
+        },
+        base: 0,
+        condition: prepared.owned,
+        yes_start: first,
+        yes_count: 1,
+        no_start: first + 1,
+        no_count: 1
+    })
+
+    return {
+        ...in,
+        context: {
+            ...prepared.context,
+            statements: {
+                ...selected.table,
+                tags: prepared.context.statements.tags,
+                offsets: prepared.context.statements.offsets
+            },
+            valid: prepared.context.valid && selected.valid
+        },
+        body: selected.table.pick([
+            "tags",
+            "offsets"
+        ])
+    }
+}

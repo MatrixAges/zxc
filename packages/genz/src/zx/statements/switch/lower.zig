@@ -119,15 +119,14 @@ pub fn lower(self: *Lower, selection: Selection) Lower.Error![]const node.Statem
     rows.appendBorrowingText(self.allocator, &self.builder.nodes.expressions, &expressions) catch |err| return failure(err);
 
     const physical = zx.columns.view(std.meta.Child(@FieldType(Output, "statements")), output.statements);
-    const flat = view.join(physical, .{ .discard = output.discard });
-    var children = flat;
+    var children = physical;
 
     children.tags = output.children.tags;
     children.offsets = output.children.offsets;
     @import("../../../node/import_selected.zig").append(self.allocator, &self.builder.nodes.statements, &children) catch |err| return failure(err);
     var result: std.ArrayList(node.Statement) = .empty;
 
-    statements.appendSelectedBorrowingText(self.allocator, &result, &flat) catch |err| return failure(err);
+    statements.appendSelectedBorrowingText(self.allocator, &result, &physical) catch |err| return failure(err);
     statements.appendBlock(self.allocator, &result, self.builder.nodes, .{ .start = output.tail.start, .len = output.tail.count }) catch |err| return failure(err);
 
     return result.toOwnedSlice(self.allocator);

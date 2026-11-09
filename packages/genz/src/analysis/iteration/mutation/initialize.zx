@@ -1,0 +1,38 @@
+import bind from "../../../ast/body/binding"
+import initialize from "../../../ast/context/initialize"
+import { Mode } from "./model"
+
+import type { Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const target = bind({
+        state: {
+            context: initialize(in.bases),
+            body: {
+                tags: [],
+                offsets: []
+            }
+        },
+        name: in.target.name,
+        value: in.target.value
+    })
+
+    const bound = match {
+        in.mode == Mode.Update => bind({
+            state: target,
+            name: in.index.name,
+            value: in.index.value
+        }),
+        _ => target
+    }
+
+    return {
+        source: in,
+        ...bound,
+        fields: [],
+        owner: 0,
+        items: 0,
+        length: 0,
+        root: in.target.reference
+    }
+}
