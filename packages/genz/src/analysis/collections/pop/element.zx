@@ -1,0 +1,25 @@
+import integers from "std:integer"
+
+import initialize from "../../state/elements/initialize"
+
+import type { Work as Output } from "../../state/elements/model"
+import type { ElementInput as Input } from "./model"
+
+export default function (in: Input): Output {
+    const source = {
+        ...in.element,
+        value: in.source.root,
+        field_base: in.source.source.bases.field_base +
+            integers.narrow(in.source.state.fields.length)
+    }
+
+    const work = initialize(source)
+
+    return {
+        ...work,
+        state: {
+            ...work.state,
+            ...in.source.state
+        }
+    }
+}

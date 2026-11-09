@@ -1,0 +1,20 @@
+import index from "../../../ast/context/index"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const value = index({
+        state: in.state.context,
+        target: in.source.items,
+        index: in.last
+    })
+
+    return {
+        ...in,
+        state: {
+            ...in.state,
+            context: value.state
+        },
+        root: value.id
+    }
+}

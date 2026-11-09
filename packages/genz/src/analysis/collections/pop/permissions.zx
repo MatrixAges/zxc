@@ -1,0 +1,46 @@
+import boolean from "../../../ast/context/boolean"
+import { Operation } from "../../state/list/const"
+import permission from "../../state/list/permission"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    if (!in.source.dynamic) {
+        const value = boolean({
+            state: in.state.context,
+            value: false
+        })
+
+        return {
+            ...in,
+            state: {
+                ...in.state,
+                context: value.state
+            },
+            exclusive: value.id,
+            writable: value.id
+        }
+    }
+
+    const exclusive = permission({
+        state: in.state.context,
+        value: in.source.value,
+        operation: Operation.Exclusive
+    })
+
+    const writable = permission({
+        state: exclusive.state,
+        value: in.source.value,
+        operation: Operation.Writable
+    })
+
+    return {
+        ...in,
+        state: {
+            ...in.state,
+            context: writable.state
+        },
+        exclusive: exclusive.id,
+        writable: writable.id
+    }
+}

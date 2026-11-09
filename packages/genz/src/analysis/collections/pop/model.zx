@@ -1,0 +1,50 @@
+import type { Body } from "../../../ast/body/model"
+import type { Input as Bases } from "../../../ast/context/model"
+import type { Ast as OriginAst } from "../../construction/model"
+import type {
+    State as Converted,
+    Output as Emission
+} from "../../state/conversion/emit/model"
+import type { Input as Element, Work } from "../../state/elements/model"
+import type { Ast } from "../../state/list/model"
+
+export type Input = {
+    items: u32,
+    value: u32,
+    header: u32,
+    element_type: u32,
+    length: u32,
+    dynamic: bool,
+    layout: u32,
+    retract: bool,
+    shared: bool,
+    element?: Element,
+    origin: bool,
+    arity: u64,
+    origin_ast: OriginAst,
+    ast: Ast,
+    bases: Bases
+}
+
+export type State = {
+    source: Input,
+    state: Converted,
+    last: u32,
+    exclusive: u32,
+    writable: u32,
+    remaining: u32,
+    nonempty: u32,
+    root: u32
+}
+
+export type ElementInput = {
+    source: State,
+    element: Element
+}
+
+export type Join = {
+    source: State,
+    element: Work
+}
+
+export type Output = Emission

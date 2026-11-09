@@ -1,0 +1,56 @@
+import block from "../../../ast/body/block"
+import tuple from "../../../ast/context/tuple"
+import origin from "../../construction/origin/tuple"
+
+import type { Body } from "../../../ast/body/model"
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const pair = tuple({
+        state: in.state.context,
+        values: [
+            in.remaining,
+            in.root
+        ]
+    })
+
+    const values = origin({
+        context: pair.state,
+        table: in.source.origin_ast,
+        value: pair.id,
+        enabled: in.source.origin,
+        arity: in.source.arity
+    })
+
+    const body = {
+        tags: in.state.borrow_storage.tags.concat(in.state.body.tags)[0],
+        offsets: in.state.borrow_storage.offsets.concat(in.state.body.offsets)[0]
+    }
+
+    const value = match {
+        body.tags.length == 0 => values,
+        _ => block({
+            state: {
+                context: values.state,
+                body
+            },
+            value: values.id
+        })
+    }
+
+    const empty: Body = {
+        tags: [],
+        offsets: []
+    }
+
+    return {
+        ...in,
+        state: {
+            ...in.state,
+            context: value.state,
+            body: empty,
+            borrow_storage: empty
+        },
+        nonempty: value.id
+    }
+}

@@ -31,7 +31,11 @@ export default function (in: Input): Output {
         state: {
             ...initial,
             context: in.state.context,
-            body: in.state.body
+            body: in.state.body,
+            fields: in.state.fields,
+            storage: in.state.storage,
+            borrow_storage: in.state.borrow_storage,
+            uses_allocator: in.state.uses_allocator
         }
     })
 

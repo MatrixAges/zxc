@@ -5,27 +5,9 @@
 
     <Call fn="initialize" in={$in} />
 
-    <If on={$in.choice.bind || $in.choice.stored}>
-        <Call fn="bind" in={$ctx.initialize} />
+    <Call module="apply" in={$ctx.initialize} />
 
-        <If on={$in.choice.stored}>
-            <Call fn="stored" in={$ctx.bind} />
-            <Call fn="finish" in={$ctx.stored} />
-            <Call fn="publish" in={$ctx.finish} />
-
-            <Return value={$ctx.publish} />
-        </If>
-
-        <Call fn="convert" in={$ctx.bind} />
-        <Call fn="finish" in={$ctx.convert} />
-        <Call fn="publish" in={$ctx.finish} />
-
-        <Return value={$ctx.publish} />
-    </If>
-
-    <Call fn="convert" in={$ctx.initialize} />
-    <Call fn="finish" in={$ctx.convert} />
-    <Call fn="publish" in={$ctx.finish} />
+    <Call fn="publish" in={$ctx.apply} />
 
     <Return value={$ctx.publish} />
 </Module>

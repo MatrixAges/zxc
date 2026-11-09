@@ -1,0 +1,26 @@
+<Module>
+    <Type from="model" as="Elements" />
+
+    <Args in={Elements.Work} out={Elements.Work} />
+
+    <If on={$in.source.choice.bind || $in.source.choice.stored}>
+        <Call fn="bind" in={$in} />
+
+        <If on={$in.source.choice.stored}>
+            <Call fn="stored" in={$ctx.bind} />
+            <Call fn="finish" in={$ctx.stored} />
+
+            <Return value={$ctx.finish} />
+        </If>
+
+        <Call fn="convert" in={$ctx.bind} />
+        <Call fn="finish" in={$ctx.convert} />
+
+        <Return value={$ctx.finish} />
+    </If>
+
+    <Call fn="convert" in={$in} />
+    <Call fn="finish" in={$ctx.convert} />
+
+    <Return value={$ctx.finish} />
+</Module>

@@ -1,0 +1,21 @@
+<Module>
+    <Type from="model" as="Pop" />
+
+    <Args in={Pop.Input} out={Pop.Output} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="last" in={$ctx.initialize} />
+    <Call fn="permissions" in={$ctx.last} />
+    <Call fn="remaining" in={$ctx.permissions} />
+    <Call fn="index" in={$ctx.remaining} />
+
+    <Call module="read" in={$ctx.index} />
+
+    <Call fn="nonempty" in={$ctx.read} />
+
+    <Call module="reclaim" in={$ctx.nonempty} />
+
+    <Call fn="publish" in={$ctx.reclaim} />
+
+    <Return value={$ctx.publish} />
+</Module>

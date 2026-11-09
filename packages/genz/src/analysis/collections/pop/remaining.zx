@@ -1,0 +1,67 @@
+import bytes from "std:bytes"
+
+import object from "../../../ast/context/object"
+import slice from "../../../ast/context/slice"
+import proven from "../../state/list/proven"
+import { items_field, storage_field, list_field_count } from "../../types/state/const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const shortened = slice({
+        state: in.state.context,
+        target: in.source.items,
+        start: null,
+        end: in.last
+    })
+
+    if (!in.source.dynamic) {
+        return {
+            ...in,
+            state: {
+                ...in.state,
+                context: shortened.state
+            },
+            remaining: shortened.id
+        }
+    }
+
+    const storage = proven({
+        state: shortened.state,
+        ast: in.source.ast,
+        header: in.source.header,
+        unique: in.writable
+    })
+
+    const fields = in.state.fields.concat([
+        {
+            name: bytes.fromText(items_field),
+            value: shortened.id,
+            default_value: null,
+            comptime_parameter: false
+        },
+        {
+            name: bytes.fromText(storage_field),
+            value: storage.id,
+            default_value: null,
+            comptime_parameter: false
+        }
+    ])[0]
+
+    const value = object({
+        state: storage.state,
+        type_expr: in.source.layout,
+        first: in.source.bases.field_base,
+        count: list_field_count
+    })
+
+    return {
+        ...in,
+        state: {
+            ...in.state,
+            context: value.state,
+            fields
+        },
+        remaining: value.id
+    }
+}

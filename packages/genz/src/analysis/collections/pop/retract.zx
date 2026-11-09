@@ -1,0 +1,77 @@
+import branch from "../../../ast/body/branch"
+import evaluate from "../../../ast/body/evaluate"
+import binary from "../../../ast/context/binary"
+import call from "../../../ast/context/call"
+import integer from "../../../ast/context/integer"
+import { ExpressionsBinaryOperator as Op } from "../../../printer/model/expressions"
+import { Operation } from "../../growth/const"
+import target from "../../growth/target"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const zero = integer({
+        state: in.state.context,
+        value: 0
+    })
+
+    const nonempty = binary({
+        state: zero.state,
+        operator: Op.NotEqual,
+        left: in.source.length,
+        right: zero.id
+    })
+
+    const permitted = match {
+        in.source.retract => nonempty,
+        _ => binary({
+            state: nonempty.state,
+            operator: Op.LogicalAnd,
+            left: nonempty.id,
+            right: in.exclusive
+        })
+    }
+
+    const callee = target({
+        context: permitted.state,
+        operation: Operation.Retract,
+        shared: in.source.shared
+    })
+
+    const value = call({
+        state: callee.state,
+        callee: callee.id,
+        arguments: [
+            in.source.element_type,
+            in.source.items,
+            in.last
+        ],
+        fallible: false
+    })
+
+    const yes = evaluate({
+        state: {
+            context: value.state,
+            body: in.state.body
+        },
+        value: value.id,
+        discard: false
+    })
+
+    const result = branch({
+        state: {
+            context: yes.context,
+            body: in.state.body
+        },
+        condition: permitted.id,
+        yes: yes.body
+    })
+
+    return {
+        ...in,
+        state: {
+            ...in.state,
+            ...result
+        }
+    }
+}

@@ -61,28 +61,41 @@ fn lowerMode(self: *Lower, id: ir.ExprId, layout: ?node.ExpressionId, removed_on
 
     switch (operation.kind) {
         .pop => {
-            const last = try intrinsic.binary(self, .subtract, length, try self.builder.integer(1));
-            const dynamic = provenance.selected(self, source_type);
-            const exclusive = if (dynamic) try provenance.exclusive(self, source_value) else try self.builder.expression(.{ .boolean = false });
-            const writable = if (dynamic) try provenance.writable(self, source_value) else exclusive;
-            const shortened = try slice(self, source, null, last);
-            const remaining = if (dynamic) try provenance.proven(self, source_type, shortened, source_headered, writable) else shortened;
-            const selected = try self.builder.expression(.{ .index = .{ .target = source, .index = last } });
-            var nonempty_body: std.ArrayList(node.Statement) = .empty;
-            const element = try @import("state_value/elements.zig").read(self, &nonempty_body, source_type, selected);
-            const values = try @import("state_value/origin.zig").tuple(self, type_id, try pair(self, remaining, element));
-            const nonempty = if (nonempty_body.items.len == 0) values else try aggregate.finish(self, &nonempty_body, values);
+            if (@import("genz_options").generated_analysis) {
+                result = try @import("collections/pop.zig").lower(self, &body, .{
+                    .type_id = source_type,
+                    .result_type = type_id,
+                    .items = source,
+                    .value = source_value,
+                    .header = source_headered,
+                    .element = child_type,
+                    .length = length,
+                    .retract = flags.retract,
+                });
+            } else {
+                const last = try intrinsic.binary(self, .subtract, length, try self.builder.integer(1));
+                const dynamic = provenance.selected(self, source_type);
+                const exclusive = if (dynamic) try provenance.exclusive(self, source_value) else try self.builder.expression(.{ .boolean = false });
+                const writable = if (dynamic) try provenance.writable(self, source_value) else exclusive;
+                const shortened = try slice(self, source, null, last);
+                const remaining = if (dynamic) try provenance.proven(self, source_type, shortened, source_headered, writable) else shortened;
+                const selected = try self.builder.expression(.{ .index = .{ .target = source, .index = last } });
+                var nonempty_body: std.ArrayList(node.Statement) = .empty;
+                const element = try @import("state_value/elements.zig").read(self, &nonempty_body, source_type, selected);
+                const values = try @import("state_value/origin.zig").tuple(self, type_id, try pair(self, remaining, element));
+                const nonempty = if (nonempty_body.items.len == 0) values else try aggregate.finish(self, &nonempty_body, values);
 
-            if (flags.retract or dynamic) {
-                var retract: std.ArrayList(node.Statement) = .empty;
-                const nonempty_source = try intrinsic.binary(self, .not_equal, length, try self.builder.integer(0));
-                const permitted = if (flags.retract) nonempty_source else try intrinsic.binary(self, .logical_and, nonempty_source, exclusive);
+                if (flags.retract or dynamic) {
+                    var retract: std.ArrayList(node.Statement) = .empty;
+                    const nonempty_source = try intrinsic.binary(self, .not_equal, length, try self.builder.integer(0));
+                    const permitted = if (flags.retract) nonempty_source else try intrinsic.binary(self, .logical_and, nonempty_source, exclusive);
 
-                try growth.retract(self, &retract, child_type, source, last);
-                try body.append(self.allocator, try self.builder.branch(permitted, retract.items, &.{}));
+                    try growth.retract(self, &retract, child_type, source, last);
+                    try body.append(self.allocator, try self.builder.branch(permitted, retract.items, &.{}));
+                }
+
+                result = try self.builder.expression(.{ .conditional = .{ .condition = try intrinsic.binary(self, .equal, length, try self.builder.integer(0)), .yes = try pair(self, source_value, try self.builder.expression(.null_value)), .no = nonempty } });
             }
-
-            result = try self.builder.expression(.{ .conditional = .{ .condition = try intrinsic.binary(self, .equal, length, try self.builder.integer(0)), .yes = try pair(self, source_value, try self.builder.expression(.null_value)), .no = nonempty } });
         },
         .reverse, .sort => {
             if (@import("genz_options").generated_analysis) {

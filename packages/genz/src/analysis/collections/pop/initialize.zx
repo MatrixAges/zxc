@@ -1,0 +1,31 @@
+import initialize from "../../../ast/context/initialize"
+
+import type { Body } from "../../../ast/body/model"
+import type { Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const body: Body = {
+        tags: [],
+        offsets: []
+    }
+
+    return {
+        source: in,
+        state: {
+            context: initialize(in.bases),
+            body,
+            storage: body,
+            borrow_storage: body,
+            fields: [],
+            nodes: [],
+            index: 0,
+            uses_allocator: false
+        },
+        last: 0,
+        exclusive: 0,
+        writable: 0,
+        remaining: 0,
+        nonempty: 0,
+        root: 0
+    }
+}

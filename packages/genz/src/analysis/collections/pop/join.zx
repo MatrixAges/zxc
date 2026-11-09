@@ -1,0 +1,9 @@
+import type { Join as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        ...in.source,
+        state: in.element.state,
+        root: in.element.root
+    }
+}

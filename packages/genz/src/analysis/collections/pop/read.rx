@@ -1,0 +1,29 @@
+<Module>
+    <Type from="model" as="Pop" />
+
+    <Args in={Pop.State} out={Pop.State} />
+
+    <If on={$in.source.element != null}>
+        <Call
+            fn="element"
+            in={{
+                source: $in,
+                element: $in.source.element
+            }}
+        />
+
+        <Call module="../../state/elements/apply" in={$ctx.element} />
+
+        <Call
+            fn="join"
+            in={{
+                source: $in,
+                element: $ctx.apply
+            }}
+        />
+
+        <Return value={$ctx.join} />
+    </If>
+
+    <Return value={$in} />
+</Module>

@@ -62,7 +62,7 @@ export default function (in: Input): Output {
         state: {
             ...in.state,
             context: result.context,
-            fields: result.fields
+            fields: in.state.fields.concat(result.fields)[0]
         },
         root: result.root
     }

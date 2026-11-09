@@ -52,7 +52,7 @@ pub fn capture(self: *Lower, body: *std.ArrayList(node.Statement), list: ir.Type
     return (try execute(self, body, decision, @fromBackingInt(0), name)).name;
 }
 
-fn choice(self: *const Lower, list: ir.TypeId, operation: Operation, used: bool) Decision {
+pub fn choice(self: *const Lower, list: ir.TypeId, operation: Operation, used: bool) Decision {
     const types = ir.TypeTable.borrow(std.meta.Child(@FieldType(Facts, "types")), self.program.types);
 
     const facts: Facts = .{
@@ -120,7 +120,7 @@ fn execute(self: *Lower, body: *std.ArrayList(node.Statement), decision: Decisio
     return .{ .value = result, .name = if (decision.capture) try self.allocator.dupe(u8, output.name) else name };
 }
 
-fn prepare(self: *Lower, allocator: std.mem.Allocator, decision: Decision, value: node.ExpressionId, capture_value: ?*const conversion.Capture) Lower.Error!conversion.Input {
+pub fn prepare(self: *Lower, allocator: std.mem.Allocator, decision: Decision, value: node.ExpressionId, capture_value: ?*const conversion.Capture) Lower.Error!conversion.Input {
     const entry = @import("generated_state_conversion_plan");
     const Input = std.meta.Child(entry.Input);
     const types = ir.TypeTable.borrow(std.meta.Child(@FieldType(Input, "types")), self.program.types);

@@ -1,0 +1,28 @@
+import binary from "../../../ast/context/binary"
+import integer from "../../../ast/context/integer"
+import { ExpressionsBinaryOperator as Op } from "../../../printer/model/expressions"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const one = integer({
+        state: in.state.context,
+        value: 1
+    })
+
+    const last = binary({
+        state: one.state,
+        operator: Op.Subtract,
+        left: in.source.length,
+        right: one.id
+    })
+
+    return {
+        ...in,
+        state: {
+            ...in.state,
+            context: last.state
+        },
+        last: last.id
+    }
+}
