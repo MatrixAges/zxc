@@ -1,0 +1,21 @@
+<Module>
+    <Type from="model" as="Plan" />
+
+    <Args in={Plan.Availability} out={Plan.Status} />
+
+    <If on={!$in.valid_ir}>
+        <Return value={Plan.Status.InvalidAnalysis} />
+    </If>
+
+    <If on={$in.store_count == 0}>
+        <Return value={Plan.Status.NoChange} />
+    </If>
+
+    <Call fn="existing" in={$in.modules} />
+
+    <If on={$ctx.existing}>
+        <Return value={Plan.Status.DuplicateState} />
+    </If>
+
+    <Return value={Plan.Status.Ready} />
+</Module>

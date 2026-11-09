@@ -1,0 +1,50 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import find from "../store_initializers/find"
+import { Status } from "./model"
+
+import type { Item as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const initial = find({
+        initializers: in.state.source.initializers,
+        path: in.state.source.stores.paths[in.index]
+    })
+
+    if (initial == null) {
+        return {
+            ...in.state,
+            result: {
+                ...in.state.result,
+                status: Status.MissingInitializer
+            }
+        }
+    }
+
+    const type_id = in.state.source.stores.types[in.index]
+    const type_name = in.state.source.type_names[integers.widen(type_id)]
+
+    if (
+        !bytes.equals(
+            bytes.fromText(initial.type_name),
+            bytes.fromText(type_name)
+        )
+    ) {
+        return {
+            ...in.state,
+            result: {
+                ...in.state.result,
+                status: Status.InvalidInitializer
+            }
+        }
+    }
+
+    return {
+        ...in.state,
+        result: {
+            ...in.state.result,
+            imports: in.state.result.imports.push(initial.module_name)[0]
+        }
+    }
+}

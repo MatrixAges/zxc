@@ -7,7 +7,16 @@ const fingerprint = @import("fingerprint.zig");
 pub const Batch = @import("batch.zig");
 const Cache = @import("cache.zig");
 pub const Error = names.Error || generating.Error || error{ InvalidAnalysis, ConflictingFunction };
-pub const File = struct { name: []const u8, source: []const u8, imports: []const []const u8 };
+
+pub const File = struct {
+    imports: []const []const u8,
+    name: []const u8,
+    source: []const u8,
+    pub fn jsonStringify(self: @This(), writer: anytype) !void {
+        try writer.write(.{ .name = self.name, .source = self.source, .imports = self.imports });
+    }
+};
+
 pub const StoreInitializer = struct { identity: []const u8, schema_version: u32, module_name: []const u8, type_name: []const u8 };
 pub const Signature = struct { types: @import("zx").ir.TypeTable, input: @import("zx").ir.TypeId, output: @import("zx").ir.TypeId };
 

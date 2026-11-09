@@ -1,0 +1,19 @@
+import item from "./item"
+import { Status } from "./model"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return loop({
+        state: in,
+        index: 0
+    }, {
+        while: current => current.state.result.status == Status.Ready &&
+            current.index < in.source.stores.paths.length,
+        next: current => {
+            current.state = item(current)
+            current.index += 1
+        },
+        return: current => current.state
+    })
+}

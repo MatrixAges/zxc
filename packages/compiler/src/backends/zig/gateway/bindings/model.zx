@@ -1,6 +1,7 @@
 import type { Index } from "core/bytes/index/model"
 import type { Stores } from "core/store_table/model"
 import type { Table } from "core/type_table/model"
+import type { Initializer } from "../../store_initializers/model"
 
 export enum Status {
     Valid,
@@ -16,13 +17,6 @@ export type Member = {
     name: string,
     function_id?: u32,
     requires_io?: bool
-}
-
-export type Initializer = {
-    identity: string,
-    schema_version: u32,
-    module_name: string,
-    type_name: string
 }
 
 export type Functions = {

@@ -1,0 +1,26 @@
+import bytes from "std:bytes"
+
+import { state_name } from "./const"
+
+import type { Module } from "./model"
+
+export type Input = Module[]
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    return loop({
+        index: 0,
+        found: false
+    }, {
+        while: current => !current.found && current.index < in.length,
+        next: current => {
+            current.found = bytes.equals(
+                in[current.index].name,
+                bytes.fromText(state_name)
+            )
+            current.index += 1
+        },
+        return: current => current.found
+    })
+}

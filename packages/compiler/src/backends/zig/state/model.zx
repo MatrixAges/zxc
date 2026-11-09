@@ -1,0 +1,45 @@
+import type { Stores } from "core/store_table/model"
+import type { Initializer } from "../store_initializers/model"
+
+export enum Status {
+    Ready,
+    NoChange,
+    InvalidAnalysis,
+    DuplicateState,
+    MissingInitializer,
+    InvalidInitializer
+}
+
+export type Module = {
+    imports: u8[][],
+    name: u8[],
+    source: u8[]
+}
+
+export type Availability = {
+    valid_ir: bool,
+    store_count: u64,
+    modules: Module[]
+}
+
+export type Input = {
+    stores: Stores,
+    type_names: string[],
+    initializers: Initializer[],
+    has_requirements: bool
+}
+
+export type Output = {
+    status: Status,
+    imports: string[]
+}
+
+export type State = {
+    source: Input,
+    result: Output
+}
+
+export type Item = {
+    state: State,
+    index: u64
+}

@@ -43,22 +43,7 @@ pub fn create(allocator: std.mem.Allocator, library: *const Library, bundle: Bun
         }
     }
 
-    const InitialRef = std.meta.Child(@FieldType(Input, "initializers"));
-    const Initial = if (@typeInfo(InitialRef) == .pointer) std.meta.Child(InitialRef) else InitialRef;
-    const initializers = try temporary.alloc(InitialRef, bundle.store_initializers.len);
-
-    for (bundle.store_initializers, initializers) |source, *initial| {
-        const value = zx.columns.storage.view(Initial, source);
-
-        if (comptime @typeInfo(InitialRef) == .pointer) {
-            const borrowed = try temporary.create(Initial);
-            borrowed.* = value;
-            initial.* = borrowed;
-        } else {
-            initial.* = value;
-        }
-    }
-
+    const initializers = try zx.columns.pointers(@FieldType(Input, "initializers"), temporary, bundle.store_initializers);
     const types = zx.ir.TypeTable.borrow(Types, library.program.types);
     const functions = zx.columns.borrow(Functions, &library.program.functions);
 

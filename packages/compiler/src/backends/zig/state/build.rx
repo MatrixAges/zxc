@@ -1,0 +1,23 @@
+<Module>
+    <Type from="model" as="Plan" />
+
+    <Args in={Plan.Input} out={Plan.Output} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="bindings" in={$ctx.initialize} />
+
+    <If on={$ctx.bindings.result.status != Plan.Status.Ready}>
+        <Return value={$ctx.bindings.result} />
+    </If>
+
+    <If on={!$in.has_requirements}>
+        <Return
+            value={{
+                ...$ctx.bindings.result,
+                status: Plan.Status.InvalidAnalysis
+            }}
+        />
+    </If>
+
+    <Return value={$ctx.bindings.result} />
+</Module>

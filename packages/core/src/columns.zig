@@ -43,6 +43,24 @@ pub fn pointer(comptime Target: type, source: anytype) Target {
     return @ptrCast(source);
 }
 
+/// The source rows outlive the pointer table and every value borrowed through it.
+pub fn pointers(comptime Target: type, allocator: std.mem.Allocator, source: anytype) std.mem.Allocator.Error!Target {
+    const target = @typeInfo(Target);
+
+    if (target != .pointer or target.pointer.size != .slice or !target.pointer.attrs.@"const") @compileError("Borrowed row pointers require a read-only slice");
+
+    const Element = target.pointer.child;
+    const element = @typeInfo(Element);
+
+    if (element != .pointer or element.pointer.size != .one or !element.pointer.attrs.@"const") @compileError("Borrowed rows require read-only pointers");
+
+    const result = try allocator.alloc(Element, source.len);
+
+    for (source, result) |*row, *value| value.* = pointer(Element, row);
+
+    return result;
+}
+
 pub fn view(comptime Target: type, value: anytype) Target {
     return viewMode(Target, value, false);
 }

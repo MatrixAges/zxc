@@ -1,0 +1,14 @@
+import { application_name } from "./const"
+import { Status } from "./model"
+
+import type { Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        source: in,
+        result: {
+            status: Status.Ready,
+            imports: [application_name]
+        }
+    }
+}

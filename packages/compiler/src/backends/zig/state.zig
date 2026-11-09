@@ -1,5 +1,6 @@
 const std = @import("std");
 const frontend = @import("frontend");
+const zx = @import("zx");
 const generating = @import("genz").zx.state;
 const modules = @import("modules.zig");
 const names = @import("names.zig");
@@ -9,35 +10,51 @@ pub const Options = struct { analysis: *const frontend.AnalysisResult, cache: ?*
 pub const Error = names.Error || error{ InvalidAnalysis, MissingInitializer, InvalidInitializer, DuplicateState };
 
 pub fn append(bundle: *modules.Bundle, options: Options) Error!void {
-    if (options.analysis.value != .ir) return error.InvalidAnalysis;
+    if (comptime !@import("parser_options").generated_parser) return @import("state_seed.zig").append(bundle, .{ .analysis = options.analysis, .cache = options.cache });
+
+    var scratch = std.heap.ArenaAllocator.init(bundle.arena.child_allocator);
+
+    defer scratch.deinit();
+
+    const temporary = scratch.allocator();
+
+    if (!try available(temporary, bundle, options.analysis)) return;
 
     const program = options.analysis.value.ir;
-
-    if (program.stores.count() == 0) return;
-    for (bundle.modules) |file| if (std.mem.eql(u8, file.name, "zxc_state")) return error.DuplicateState;
-
     const allocator = bundle.arena.allocator();
     const shared = try names.create(allocator, bundle.arena.child_allocator, program, options.analysis.nominal_types);
-    const objects = try allocator.alloc(generating.Object, program.stores.count());
-    const imports = try allocator.alloc([]const u8, objects.len + 1);
-    imports[0] = "application";
-
     const independent = try frontend.storesOwnValues(allocator, program);
+    const entry = @import("generated_state_bindings");
+    const Input = std.meta.Child(entry.Input);
+    const Stores = std.meta.Child(@FieldType(Input, "stores"));
+    const stores = zx.columns.borrow(Stores, &program.stores);
+    const initializers = try zx.columns.pointers(@FieldType(Input, "initializers"), temporary, bundle.store_initializers);
 
-    for (objects, 0..) |*object, index| {
-        const slot = program.stores.at(index);
+    const input: Input = .{
+        .stores = &stores,
+        .type_names = shared.types,
+        .initializers = initializers,
+        .has_requirements = bundle.requirements != null,
+    };
 
-        const initial = for (bundle.store_initializers) |candidate| {
-            if (std.mem.eql(u8, candidate.identity, slot.path)) break candidate;
-        } else return error.MissingInitializer;
+    const plan = zx.columns.invoke(entry.executeValue, allocator, &input) catch |err| return failure(err);
 
-        if (!std.mem.eql(u8, initial.type_name, shared.types[@backingInt(slot.type_id)])) return error.InvalidInitializer;
-
-        object.* = .{ .module_name = initial.module_name, .writable = slot.writable, .independent = independent };
-        imports[index + 1] = initial.module_name;
+    switch (plan.status) {
+        .Ready => {},
+        .MissingInitializer => return error.MissingInitializer,
+        .InvalidInitializer => return error.InvalidInitializer,
+        .InvalidAnalysis => return error.InvalidAnalysis,
+        else => unreachable,
     }
 
-    const requirements = bundle.requirements orelse return error.InvalidAnalysis;
+    const objects = try allocator.alloc(generating.Object, program.stores.count());
+
+    for (plan.imports[1..], program.stores.writable, objects) |module_name, writable, *object| {
+        object.* = .{ .module_name = module_name, .writable = writable, .independent = independent };
+    }
+
+    const imports = plan.imports;
+    const requirements = bundle.requirements.?;
     const source = try emit(allocator, objects, requirements, options.cache);
     const files = try allocator.alloc(modules.File, bundle.modules.len + 1);
 
@@ -46,6 +63,37 @@ pub fn append(bundle: *modules.Bundle, options: Options) Error!void {
     files[bundle.modules.len] = .{ .name = "zxc_state", .source = source, .imports = imports };
     bundle.modules = files;
     bundle.state_module = "zxc_state";
+}
+
+fn available(allocator: std.mem.Allocator, bundle: *const modules.Bundle, analysis: *const frontend.AnalysisResult) Error!bool {
+    const entry = @import("generated_state_available");
+    const valid_ir = analysis.value == .ir;
+    const count = if (valid_ir) analysis.value.ir.stores.count() else 0;
+    const Parameter = @typeInfo(@TypeOf(entry.executeValue)).@"fn".param_types[1].?;
+    const Input = if (@typeInfo(Parameter) == .pointer) std.meta.Child(Parameter) else Parameter;
+
+    const input: Input = .{
+        .valid_ir = valid_ir,
+        .store_count = count,
+        .modules = zx.columns.slice(@FieldType(Input, "modules"), bundle.modules),
+    };
+
+    const status = entry.executeValue(allocator, if (comptime @typeInfo(Parameter) == .pointer) &input else input) catch |err| return failure(err);
+
+    return switch (status) {
+        .Ready => true,
+        .NoChange => false,
+        .InvalidAnalysis => error.InvalidAnalysis,
+        .DuplicateState => error.DuplicateState,
+        else => unreachable,
+    };
+}
+
+fn failure(err: anyerror) std.mem.Allocator.Error {
+    return switch (err) {
+        error.OutOfMemory, error.Overflow, error.IntegerOverflow => error.OutOfMemory,
+        else => unreachable,
+    };
 }
 
 fn emit(allocator: std.mem.Allocator, objects: []const generating.Object, requirements: generating.Requirements, cache: ?*Cache) std.mem.Allocator.Error![]const u8 {
