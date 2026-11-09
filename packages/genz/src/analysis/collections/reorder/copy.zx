@@ -1,0 +1,19 @@
+import copy from "../../../ast/body/copy"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const state = copy({
+        state: in.pick([
+            "context",
+            "body"
+        ]),
+        target: in.root,
+        source: in.source.source
+    })
+
+    return {
+        ...in,
+        ...state
+    }
+}

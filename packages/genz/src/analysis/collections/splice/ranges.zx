@@ -1,5 +1,6 @@
 import bytes from "std:bytes"
 
+import bind from "../../../ast/body/bind"
 import binary from "../../../ast/context/binary"
 import field from "../../../ast/context/field"
 import primitive from "../../../ast/context/primitive"
@@ -9,7 +10,6 @@ import {
     ExpressionsPrimitive as Primitive
 } from "../../../printer/model/expressions"
 import { length_member } from "../../intrinsics/index/const"
-import bind from "./bind"
 import cast from "./cast"
 import { math_member, add_member } from "./const"
 

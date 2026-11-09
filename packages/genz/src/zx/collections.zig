@@ -85,33 +85,47 @@ fn lowerMode(self: *Lower, id: ir.ExprId, layout: ?node.ExpressionId, removed_on
             result = try self.builder.expression(.{ .conditional = .{ .condition = try intrinsic.binary(self, .equal, length, try self.builder.integer(0)), .yes = try pair(self, source_value, try self.builder.expression(.null_value)), .no = nonempty } });
         },
         .reverse, .sort => {
-            const mutable = if (flags.in_place)
-                try self.builtin(.constCast, &.{source})
+            if (@import("genz_options").generated_analysis) {
+                result = try @import("collections/reorder.zig").lower(self, &body, .{
+                    .type_id = source_type,
+                    .source = source,
+                    .header = source_headered,
+                    .element = child_type,
+                    .length = length,
+                    .unit = unit,
+                    .in_place = flags.in_place,
+                    .grow = flags.grow,
+                    .sort = operation.kind == .sort,
+                });
+            } else {
+                const mutable = if (flags.in_place)
+                    try self.builtin(.constCast, &.{source})
 
-            else if (flags.grow)
-                try growth.reserve(self, &body, child_type, source, length, false)
-            else
-                try allocate(self, &body, child_type, length);
+                else if (flags.grow)
+                    try growth.reserve(self, &body, child_type, source, length, false)
+                else
+                    try allocate(self, &body, child_type, length);
 
-            if (!flags.in_place and !flags.grow) try copy(self, &body, mutable, source);
+                if (!flags.in_place and !flags.grow) try copy(self, &body, mutable, source);
 
-            const call = if (operation.kind == .reverse) try intrinsic.standard(self, &.{ "mem", "reverse" }, &.{ child_type, mutable }, false) else blk: {
-                var found = false;
+                const call = if (operation.kind == .reverse) try intrinsic.standard(self, &.{ "mem", "reverse" }, &.{ child_type, mutable }, false) else blk: {
+                    var found = false;
 
-                for (self.comparisons.items) |previous| {
-                    if (previous == child) found = true;
-                }
+                    for (self.comparisons.items) |previous| {
+                        if (previous == child) found = true;
+                    }
 
-                if (!found) try self.comparisons.append(self.allocator, child);
+                    if (!found) try self.comparisons.append(self.allocator, child);
 
-                const compare = try self.builder.identifier(try @import("comparison.zig").name(self, child));
+                    const compare = try self.builder.identifier(try @import("comparison.zig").name(self, child));
 
-                break :blk try intrinsic.standard(self, &.{ "mem", "sortUnstable" }, &.{ child_type, mutable, unit, compare }, false);
-            };
+                    break :blk try intrinsic.standard(self, &.{ "mem", "sortUnstable" }, &.{ child_type, mutable, unit, compare }, false);
+                };
 
-            try body.append(self.allocator, .{ .expression = call });
+                try body.append(self.allocator, .{ .expression = call });
 
-            result = try pair(self, try provenance.owned(self, source_type, mutable, if (flags.in_place) source_headered else try self.builder.expression(.{ .boolean = flags.grow })), unit);
+                result = try pair(self, try provenance.owned(self, source_type, mutable, if (flags.in_place) source_headered else try self.builder.expression(.{ .boolean = flags.grow })), unit);
+            }
         },
         .push, .concat => {
             const added = if (operation.kind == .push) try self.builder.integer(1) else try self.field(arguments[0], "len");

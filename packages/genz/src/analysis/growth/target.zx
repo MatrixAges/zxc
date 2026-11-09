@@ -1,0 +1,60 @@
+import bytes from "std:bytes"
+
+import field from "../../ast/context/field"
+import identifier from "../../ast/context/identifier"
+import { abi_binding } from "../types/abi/const"
+import {
+    Operation,
+    reserve_name,
+    bounded_name,
+    allocate_name,
+    retract_name,
+    renew_name
+} from "./const"
+
+import type { State, Node } from "../../ast/context/model"
+import type { Operation as Mode } from "./const"
+
+export type Input = {
+    context: State,
+    operation: Mode,
+    shared: bool
+}
+
+export type Output = Node
+
+export default function (in: Input): Output {
+    const context = in.context
+
+    const name = bytes.fromText(
+        match in.operation {
+            Operation.Reserve => reserve_name,
+            Operation.Bounded => bounded_name,
+            Operation.Copy => allocate_name,
+            Operation.Renew => renew_name,
+            _ => retract_name
+        }
+    )
+
+    if (in.shared) {
+        const owner = identifier({
+            state: context,
+            name: bytes.fromText(abi_binding)
+        })
+
+        const target = field({
+            state: owner.state,
+            target: owner.id,
+            name
+        })
+
+        return target
+    }
+
+    const target = identifier({
+        state: context,
+        name
+    })
+
+    return target
+}

@@ -1,0 +1,15 @@
+<Module>
+    <Type from="model" as="Reorder" />
+
+    <Args in={Reorder.Input} out={Reorder.Output} />
+
+    <Call fn="initialize" in={$in} />
+
+    <Call module="memory" in={$ctx.initialize} />
+
+    <Call fn="mutate" in={$ctx.memory} />
+    <Call fn="owned" in={$ctx.mutate} />
+    <Call fn="publish" in={$ctx.owned} />
+
+    <Return value={$ctx.publish} />
+</Module>

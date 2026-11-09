@@ -1,12 +1,12 @@
 import bytes from "std:bytes"
 
+import bind from "../../../ast/body/bind"
 import call from "../../../ast/context/call"
 import field from "../../../ast/context/field"
 import identifier from "../../../ast/context/identifier"
 import slice from "../../../ast/context/slice"
 import { allocator_name } from "../../construction/const"
-import bind from "./bind"
-import { allocate_member } from "./const"
+import { allocate_member } from "../const"
 
 import type { State as Input, State as Output } from "./model"
 

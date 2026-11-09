@@ -1,0 +1,47 @@
+import bytes from "std:bytes"
+
+import bind from "../../../ast/body/bind"
+import call from "../../../ast/context/call"
+import field from "../../../ast/context/field"
+import identifier from "../../../ast/context/identifier"
+import { allocator_name } from "../../construction/const"
+import { allocate_member } from "../const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const allocator = identifier({
+        state: in.context,
+        name: bytes.fromText(allocator_name)
+    })
+
+    const target = field({
+        state: allocator.state,
+        target: allocator.id,
+        name: bytes.fromText(allocate_member)
+    })
+
+    const allocated = call({
+        state: target.state,
+        callee: target.id,
+        arguments: [
+            in.source.element,
+            in.source.length
+        ],
+        fallible: true
+    })
+
+    const buffer = bind({
+        state: {
+            context: allocated.state,
+            body: in.body
+        },
+        value: allocated.id
+    })
+
+    return {
+        ...in,
+        ...buffer.state,
+        root: buffer.id
+    }
+}

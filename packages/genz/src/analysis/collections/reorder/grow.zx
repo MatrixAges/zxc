@@ -1,0 +1,56 @@
+import bytes from "std:bytes"
+
+import bind from "../../../ast/body/bind"
+import boolean from "../../../ast/context/boolean"
+import call from "../../../ast/context/call"
+import identifier from "../../../ast/context/identifier"
+import { allocator_name } from "../../construction/const"
+import { Operation } from "../../growth/const"
+import target from "../../growth/target"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const allocator = identifier({
+        state: in.context,
+        name: bytes.fromText(allocator_name)
+    })
+
+    const frontier = boolean({
+        state: allocator.state,
+        value: false
+    })
+
+    const callee = target({
+        context: frontier.state,
+        operation: Operation.Reserve,
+        shared: in.source.shared
+    })
+
+    const value = call({
+        state: callee.state,
+        callee: callee.id,
+        arguments: [
+            in.source.element,
+            allocator.id,
+            in.source.source,
+            in.source.length,
+            frontier.id
+        ],
+        fallible: true
+    })
+
+    const buffer = bind({
+        state: {
+            context: value.state,
+            body: in.body
+        },
+        value: value.id
+    })
+
+    return {
+        ...in,
+        ...buffer.state,
+        root: buffer.id
+    }
+}

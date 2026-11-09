@@ -1,0 +1,11 @@
+import type { StateBody } from "../../ast/body/model"
+import type { Columns as Fields } from "../../ast/fields/model"
+
+export type Output = {
+    state: StateBody,
+    fields: Fields,
+    root: u32,
+    serial: u64,
+    uses_allocator: bool,
+    valid: bool
+}

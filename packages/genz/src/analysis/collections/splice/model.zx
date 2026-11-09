@@ -1,7 +1,8 @@
-import type { Body, StateBody } from "../../../ast/body/model"
+import type { Body } from "../../../ast/body/model"
 import type { Input as Bases, State as Context } from "../../../ast/context/model"
 import type { Columns as Fields } from "../../../ast/fields/model"
 import type { Ast } from "../../state/list/model"
+import type { Output as Emission } from "../model"
 
 export type Input = {
     source: u32,
@@ -35,11 +36,4 @@ export type State = {
     root: u32
 }
 
-export type Output = {
-    state: StateBody,
-    fields: Fields,
-    root: u32,
-    serial: u64,
-    uses_allocator: bool,
-    valid: bool
-}
+export type Output = Emission

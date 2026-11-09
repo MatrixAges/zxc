@@ -1,8 +1,8 @@
-import evaluate from "../../../ast/body/evaluate"
-import builtin from "../../../ast/context/builtin"
-import { ExpressionsBuiltinName as Builtin } from "../../../printer/model/expressions"
+import { ExpressionsBuiltinName as Builtin } from "../../printer/model/expressions"
+import builtin from "../context/builtin"
+import evaluate from "./evaluate"
 
-import type { StateBody } from "../../../ast/body/model"
+import type { StateBody } from "./model"
 
 export type Input = {
     state: StateBody,

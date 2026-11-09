@@ -1,0 +1,56 @@
+import evaluate from "../../../ast/body/evaluate"
+import identifier from "../../../ast/context/identifier"
+import standard from "../../../ast/context/standard"
+import { memory_member, reverse_member, sort_member } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const compare = match {
+        in.source.sort => identifier({
+            state: in.context,
+            name: in.source.compare
+        }),
+        _ => {
+            state: in.context,
+            id: 0
+        }
+    }
+
+    const values = match {
+        in.source.sort => [
+            in.source.element,
+            in.root,
+            in.source.unit,
+            compare.id
+        ],
+        _ => [
+            in.source.element,
+            in.root
+        ]
+    }
+
+    const call = standard({
+        state: compare.state,
+        path: [
+            memory_member,
+            in.source.sort ? sort_member : reverse_member
+        ],
+        arguments: values,
+        fallible: false
+    })
+
+    const state = evaluate({
+        state: {
+            context: call.state,
+            body: in.body
+        },
+        value: call.id,
+        discard: false
+    })
+
+    return {
+        ...in,
+        ...state
+    }
+}

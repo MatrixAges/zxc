@@ -1,0 +1,32 @@
+import type { Body } from "../../../ast/body/model"
+import type { Input as Bases, State as Context } from "../../../ast/context/model"
+import type { Columns as Fields } from "../../../ast/fields/model"
+import type { Ast } from "../../state/list/model"
+import type { Output as Emission } from "../model"
+
+export type Input = {
+    source: u32,
+    header: u32,
+    element: u32,
+    length: u32,
+    unit: u32,
+    in_place: bool,
+    grow: bool,
+    sort: bool,
+    compare: u8[],
+    selected: bool,
+    layout: u32,
+    shared: bool,
+    ast: Ast,
+    bases: Bases
+}
+
+export type State = {
+    source: Input,
+    context: Context,
+    body: Body,
+    fields: Fields,
+    root: u32
+}
+
+export type Output = Emission

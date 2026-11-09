@@ -1,0 +1,68 @@
+import bytes from "std:bytes"
+
+import boolean from "../../../ast/context/boolean"
+import object from "../../../ast/context/object"
+import append from "../../../ast/fields/append"
+import proven from "../../state/list/proven"
+import { items_field, storage_field, list_field_count } from "../../types/state/const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    if (!in.source.selected) {
+        return in
+    }
+
+    const header = match {
+        in.source.in_place => {
+            state: in.context,
+            id: in.source.header
+        },
+        _ => boolean({
+            state: in.context,
+            value: in.source.grow
+        })
+    }
+
+    const unique = boolean({
+        state: header.state,
+        value: true
+    })
+
+    const storage = proven({
+        state: unique.state,
+        ast: in.source.ast,
+        header: header.id,
+        unique: unique.id
+    })
+
+    const first = append({
+        table: in.fields,
+        name: bytes.fromText(items_field),
+        value: in.root,
+        default_value: null,
+        comptime_parameter: false
+    })
+
+    const fields = append({
+        table: first,
+        name: bytes.fromText(storage_field),
+        value: storage.id,
+        default_value: null,
+        comptime_parameter: false
+    })
+
+    const value = object({
+        state: storage.state,
+        type_expr: in.source.layout,
+        first: in.source.bases.field_base,
+        count: list_field_count
+    })
+
+    return {
+        ...in,
+        context: value.state,
+        fields,
+        root: value.id
+    }
+}

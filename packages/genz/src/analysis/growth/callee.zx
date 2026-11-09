@@ -1,59 +1,17 @@
-import bytes from "std:bytes"
-
-import field from "../../ast/context/field"
-import identifier from "../../ast/context/identifier"
-import { abi_binding } from "../types/abi/const"
-import {
-    Operation,
-    reserve_name,
-    bounded_name,
-    allocate_name,
-    retract_name,
-    renew_name
-} from "./const"
+import target from "./target"
 
 import type { State as Input, State as Output } from "./model"
 
 export default function (in: Input): Output {
-    const { source, context } = in
-
-    const name = bytes.fromText(
-        match source.operation {
-            Operation.Reserve => reserve_name,
-            Operation.Bounded => bounded_name,
-            Operation.Copy => allocate_name,
-            Operation.Renew => renew_name,
-            _ => retract_name
-        }
-    )
-
-    if (source.shared) {
-        const owner = identifier({
-            state: context,
-            name: bytes.fromText(abi_binding)
-        })
-
-        const target = field({
-            state: owner.state,
-            target: owner.id,
-            name
-        })
-
-        return {
-            ...in,
-            context: target.state,
-            callee: target.id
-        }
-    }
-
-    const target = identifier({
-        state: context,
-        name
+    const value = target({
+        context: in.context,
+        operation: in.source.operation,
+        shared: in.source.shared
     })
 
     return {
         ...in,
-        context: target.state,
-        callee: target.id
+        context: value.state,
+        callee: value.id
     }
 }

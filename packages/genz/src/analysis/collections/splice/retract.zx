@@ -1,32 +1,20 @@
-import bytes from "std:bytes"
-
 import branch from "../../../ast/body/branch"
 import evaluate from "../../../ast/body/evaluate"
 import binary from "../../../ast/context/binary"
 import call from "../../../ast/context/call"
-import field from "../../../ast/context/field"
-import identifier from "../../../ast/context/identifier"
 import integer from "../../../ast/context/integer"
 import { ExpressionsBinaryOperator as Op } from "../../../printer/model/expressions"
-import { retract_name } from "../../growth/const"
-import { abi_binding } from "../../types/abi/const"
+import { Operation } from "../../growth/const"
+import target from "../../growth/target"
 
 import type { State as Input, State as Output } from "./model"
 
 export default function (in: Input): Output {
-    const target = identifier({
-        state: in.context,
-        name: bytes.fromText(in.source.shared ? abi_binding : retract_name)
+    const callee = target({
+        context: in.context,
+        operation: Operation.Retract,
+        shared: in.source.shared
     })
-
-    const callee = match {
-        in.source.shared => field({
-            state: target.state,
-            target: target.id,
-            name: bytes.fromText(retract_name)
-        }),
-        _ => target
-    }
 
     const value = call({
         state: callee.state,

@@ -1,0 +1,18 @@
+import builtin from "../../../ast/context/builtin"
+import { ExpressionsBuiltinName as Builtin } from "../../../printer/model/expressions"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const value = builtin({
+        state: in.context,
+        name: Builtin.ConstCast,
+        arguments: [in.source.source]
+    })
+
+    return {
+        ...in,
+        context: value.state,
+        root: value.id
+    }
+}

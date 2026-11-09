@@ -1,0 +1,22 @@
+<Module>
+    <Type from="model" as="Reorder" />
+
+    <Args in={Reorder.State} out={Reorder.State} />
+
+    <If on={$in.source.in_place}>
+        <Call fn="in_place" in={$in} />
+
+        <Return value={$ctx.in_place} />
+    </If>
+
+    <If on={$in.source.grow}>
+        <Call fn="grow" in={$in} />
+
+        <Return value={$ctx.grow} />
+    </If>
+
+    <Call fn="allocate" in={$in} />
+    <Call fn="copy" in={$ctx.allocate} />
+
+    <Return value={$ctx.copy} />
+</Module>
