@@ -1,0 +1,41 @@
+import binding from "../../../ast/context/binding"
+import changed from "./changed"
+import valueName from "./value_name"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const changes = in.source.changes
+
+    if (changes == null) {
+        return in
+    }
+
+    return loop({
+        context: in.context,
+        index: 0
+    }, {
+        while: current => current.index < changes.values.length,
+        next: current => {
+            if (changed({
+                source: in.source,
+                index: current.index
+            })) {
+                current.context = binding({
+                    state: current.context,
+                    name: valueName({
+                        target_name: in.source.target_name,
+                        index: current.index
+                    }),
+                    value: changes.values[current.index]
+                })
+            }
+
+            current.index += 1
+        },
+        return: current => {
+            ...in,
+            context: current.context
+        }
+    })
+}

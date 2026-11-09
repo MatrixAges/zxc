@@ -1,0 +1,53 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import plain from "./plain"
+import samePath from "./same_path"
+
+import type { Expressions } from "core/expression_table/model"
+
+export type Input = {
+    expressions: Expressions,
+    flags: u8[],
+    reference: u32,
+    field_index: u32,
+    value: u32
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const expressions = in.expressions
+    const flags = in.flags
+    const id = in.value
+    const node = integers.widen(id)
+
+    if (expressions.kinds[node] != ExpressionKind.Field) {
+        return false
+    }
+
+    const payload = integers.widen(expressions.payloads[node])
+
+    if (
+        expressions.projection_indices[payload] !=
+            in.field_index
+    ) {
+        return false
+    }
+
+    if (!plain({
+        flags,
+        id
+    })) {
+        return false
+    }
+
+    const target_id = expressions.projection_targets[payload]
+
+    return samePath({
+        expressions,
+        flags,
+        left: target_id,
+        right: in.reference
+    })
+}

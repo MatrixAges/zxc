@@ -16,6 +16,7 @@ export type Input = {
     state_active: bool,
     iteration: bool,
     loop_fields: bool,
+    evaluated: bool,
     cache: Cache
 }
 
@@ -38,7 +39,8 @@ export type Change = {
     reference: u32,
     field_index: u32,
     field_value: u32,
-    type_id: u32
+    type_id: u32,
+    multiple: bool
 }
 
 export type Output = Change?

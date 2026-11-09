@@ -1,0 +1,77 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import assignment from "../../../ast/context/assignment"
+import field from "../../../ast/context/field"
+import identifier from "../../../ast/context/identifier"
+import changed from "./changed"
+import clearOrigin from "./clear_origin"
+import valueName from "./value_name"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const changes = in.source.changes
+
+    if (changes == null) {
+        return in
+    }
+
+    const target = identifier({
+        state: in.context,
+        name: in.source.target_name
+    })
+
+    const expressions = changes.expressions
+    const node = integers.widen(changes.object)
+    const payload = integers.widen(expressions.payloads[node])
+    const first = integers.widen(expressions.object_first[payload])
+    const type_id = integers.widen(in.source.type_id)
+    const fields = integers.widen(in.source.types.first[type_id])
+
+    return loop({
+        context: target.state,
+        index: 0
+    }, {
+        while: current => current.index < changes.values.length,
+        next: current => {
+            if (changed({
+                source: in.source,
+                index: current.index
+            })) {
+                const value = identifier({
+                    state: current.context,
+                    name: valueName({
+                        target_name: in.source.target_name,
+                        index: current.index
+                    })
+                })
+
+                const index = fields +
+                    integers.widen(
+                        expressions.object_field_indices[first +
+                            current.index]
+                    )
+
+                const member = field({
+                    state: value.state,
+                    target: target.id,
+                    name: bytes.fromText(in.source.types.field_names[index])
+                })
+
+                current.context = assignment({
+                    state: member.state,
+                    target: member.id,
+                    value: value.id
+                })
+            }
+
+            current.index += 1
+        },
+        return: current => clearOrigin({
+            ...in,
+            context: current.context,
+            target: target.id
+        })
+    })
+}

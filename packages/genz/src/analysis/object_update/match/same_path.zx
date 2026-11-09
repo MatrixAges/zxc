@@ -1,0 +1,68 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import plain from "./plain"
+
+import type { Expressions } from "core/expression_table/model"
+
+export type Input = {
+    expressions: Expressions,
+    flags: u8[],
+    left: u32,
+    right: u32
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const expressions = in.expressions
+
+    return loop({
+        left: in.left,
+        right: in.right,
+        valid: true,
+        done: false
+    }, {
+        while: state => state.valid && !state.done,
+        next: state => {
+            const left = integers.widen(state.left)
+            const right = integers.widen(state.right)
+
+            const left_plain = plain({
+                flags: in.flags,
+                id: state.left
+            })
+
+            const right_plain = plain({
+                flags: in.flags,
+                id: state.right
+            })
+
+            if (!left_plain || !right_plain) {
+                state.valid = false
+            } else if (expressions.kinds[left] != expressions.kinds[right]) {
+                state.valid = false
+            } else {
+                const a = integers.widen(expressions.payloads[left])
+                const b = integers.widen(expressions.payloads[right])
+
+                switch (expressions.kinds[left]) {
+                    case ExpressionKind.Field:
+                        state.valid = expressions.projection_indices[a] ==
+                            expressions.projection_indices[b]
+                        state.left = expressions.projection_targets[a]
+                        state.right = expressions.projection_targets[b]
+
+                    case ExpressionKind.Reference:
+                        state.valid = expressions.references[a] ==
+                            expressions.references[b]
+                        state.done = true
+
+                    default:
+                        state.valid = false
+                }
+            }
+        },
+        return: state => state.valid
+    })
+}

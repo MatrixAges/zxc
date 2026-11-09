@@ -1,5 +1,6 @@
 import integers from "std:integer"
 import { ExpressionKind } from "core/expression_table/kinds"
+import lookup from "core/integer/map/lookup"
 
 import type { Root } from "./model"
 
@@ -31,11 +32,26 @@ export default function (in: Input): Output {
     const target_id = expressions.projection_targets[projection]
     const target = integers.widen(target_id)
 
-    if (
-        expressions.kinds[target] != ExpressionKind.Reference ||
-            expressions.types[target] != in.root.type_id
-    ) {
+    if (expressions.types[target] != in.root.type_id) {
         return null
+    }
+
+    const kind = expressions.kinds[target]
+    const member = in.root.source.evaluated && kind == ExpressionKind.Field
+
+    if (kind != ExpressionKind.Reference && !member) {
+        return null
+    }
+
+    if (member) {
+        const cached = lookup({
+            ...in.root.source.cache.omit(["values"]),
+            key: target_id
+        })
+
+        if (cached == null) {
+            return null
+        }
     }
 
     return target_id

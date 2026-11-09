@@ -1,0 +1,128 @@
+import bytes from "std:bytes"
+
+import builtin from "../../../ast/context/builtin"
+import field from "../../../ast/context/field"
+import identifier from "../../../ast/context/identifier"
+import initialize from "../../../ast/context/initialize"
+import nullValue from "../../../ast/context/null_value"
+import pointer from "../../../ast/context/pointer"
+import primitive from "../../../ast/context/primitive"
+import text from "../../../ast/context/text"
+import declarations from "../../../ast/declarations/table/create"
+import appendField from "../../../ast/fields/append"
+import emptyFields from "../../../ast/fields/empty"
+import statements from "../../../ast/statements/builder/initialize"
+import {
+    ExpressionsBuiltinName as F,
+    ExpressionsKind as K,
+    ExpressionsPrimitive as P
+} from "../../../printer/model/expressions"
+import {
+    state_name,
+    request_type_name,
+    request_name,
+    changes_name,
+    self_name,
+    not_writable_name
+} from "./const"
+
+import type { Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const state = identifier({
+        state: initialize(in.bases),
+        name: bytes.fromText(state_name)
+    })
+
+    const request_type = field({
+        state: state.state,
+        target: state.id,
+        name: bytes.fromText(request_type_name)
+    })
+
+    const request_pointer = pointer({
+        state: request_type.state,
+        value: request_type.id
+    })
+
+    const this_type = builtin({
+        state: request_pointer.state,
+        name: F.This,
+        arguments: []
+    })
+
+    const request = identifier({
+        state: this_type.state,
+        name: bytes.fromText(request_name)
+    })
+
+    const changes = identifier({
+        state: request.state,
+        name: bytes.fromText(changes_name)
+    })
+
+    const self = identifier({
+        state: changes.state,
+        name: bytes.fromText(self_name)
+    })
+
+    const none = nullValue(self.state)
+
+    const unit = primitive({
+        state: none.state,
+        value: P.Void
+    })
+
+    const error = text({
+        state: unit.state,
+        kind: K.ErrorValue,
+        value: bytes.fromText(not_writable_name)
+    })
+
+    const members = appendField({
+        table: emptyFields({}),
+        name: bytes.fromText(request_name),
+        value: request_pointer.id,
+        comptime_parameter: false
+    })
+
+    const initial = appendField({
+        table: emptyFields({}),
+        name: bytes.fromText(request_name),
+        value: request.id,
+        comptime_parameter: false
+    })
+
+    return {
+        source: in,
+        context: error.state,
+        statements: statements(in.bases.statement_base),
+        fields: emptyFields({}),
+        members,
+        initial,
+        pending: emptyFields({}),
+        declarations: declarations({}),
+        extra: {
+            container_type_fields_start: [],
+            container_type_fields_len: [],
+            container_type_declarations_start: [],
+            container_type_declarations_len: [],
+            error_union_payload: [],
+            error_union_errors: [],
+            error_union_inferred: []
+        },
+        symbols: {
+            request_type: request_type.id,
+            request_pointer: request_pointer.id,
+            this_type: this_type.id,
+            request: request.id,
+            changes: changes.id,
+            self: self.id,
+            none: none.id,
+            unit: unit.id,
+            not_writable: error.id
+        },
+        root: 0,
+        valid: true
+    }
+}

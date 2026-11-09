@@ -4,6 +4,7 @@ export type Input = {
     candidate: Candidate,
     field_index?: u32,
     field_value: u32,
+    changed_count: u64,
     valid: bool
 }
 
@@ -17,6 +18,7 @@ export default function (in: Input): Output {
         reference: in.candidate.reference,
         field_index: in.field_index,
         field_value: in.field_value,
-        type_id: in.candidate.root.type_id
+        type_id: in.candidate.root.type_id,
+        multiple: in.changed_count > 1
     }
 }

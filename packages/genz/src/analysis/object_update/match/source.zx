@@ -1,6 +1,4 @@
-import integers from "std:integer"
-
-import plain from "./plain"
+import owner from "./owner"
 import reference from "./reference"
 
 import type { Root as Input, Candidate } from "./model"
@@ -29,18 +27,13 @@ export default function (in: Input): Output {
         return null
     }
 
-    if (!plain({
+    const previous = owner({
+        expressions: in.source.expressions,
         flags: in.source.flags,
         id: found
-    })) {
-        return null
-    }
+    })
 
-    const expressions = in.source.expressions
-    const payload = integers.widen(expressions.payloads[integers.widen(found)])
-    const previous = expressions.references[payload]
-
-    if (in.source.symbol_types[integers.widen(previous)] != in.type_id) {
+    if (previous == null) {
         return null
     }
 

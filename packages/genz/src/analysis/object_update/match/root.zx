@@ -40,7 +40,9 @@ export default function (in: Input): Output {
         _ => false
     }
 
-    if (!in.selected[type_index] || borrowed) {
+    const available = in.selected[type_index] || in.evaluated
+
+    if (borrowed || !available) {
         return null
     }
 

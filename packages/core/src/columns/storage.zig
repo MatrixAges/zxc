@@ -29,6 +29,7 @@ pub fn view(comptime Target: type, source: anytype) Target {
     }
 
     if (@typeInfo(Source) == .@"enum") return @backingInt(source);
+    if (target == .int and @typeInfo(Source) == .int) return @intCast(source);
 
     return @as(@typeInfo(Source).@"struct".backing_integer.?, @bitCast(source));
 }
@@ -39,6 +40,8 @@ fn compatible(comptime Target: type, comptime Source: type) void {
 
     const target = @typeInfo(Target);
     const source = @typeInfo(Source);
+
+    if (target == .int and source == .int and target.int.bits == source.int.bits and target.int.signedness == source.int.signedness) return;
 
     if (target == .pointer and source == .pointer) {
         const left = target.pointer;

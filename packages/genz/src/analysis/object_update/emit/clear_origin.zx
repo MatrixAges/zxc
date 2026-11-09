@@ -1,0 +1,39 @@
+import integers from "std:integer"
+
+import assignment from "../../../ast/context/assignment"
+import field from "../../../ast/context/field"
+import nullValue from "../../../ast/context/null_value"
+import origin from "../../types/state/origin"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    if (!in.source.clear_origin) {
+        return in
+    }
+
+    const type_id = integers.widen(in.source.type_id)
+
+    const name = origin({
+        names: in.source.types.field_names,
+        start: integers.widen(in.source.types.first[type_id]),
+        count: integers.widen(in.source.types.second[type_id])
+    })
+
+    const previous = field({
+        state: in.context,
+        target: in.target,
+        name: name.name
+    })
+
+    const cleared = nullValue(previous.state)
+
+    return {
+        ...in,
+        context: assignment({
+            state: cleared.state,
+            target: previous.id,
+            value: cleared.id
+        })
+    }
+}

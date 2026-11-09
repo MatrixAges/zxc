@@ -1,0 +1,78 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import constant from "../../../ast/declarations/table/constant"
+import construct from "../../../ast/expressions/container"
+import concat from "../../../ast/fields/concat"
+import integer from "../../../printer/text/integer"
+import { context_prefix } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const value = construct({
+        table: {
+            ...in.context.expressions.pick([
+                "tags",
+                "offsets"
+            ]),
+            ...in.extra.pick([
+                "container_type_fields_start",
+                "container_type_fields_len",
+                "container_type_declarations_start",
+                "container_type_declarations_len"
+            ])
+        },
+        base: in.source.bases.expression_base,
+        fields_first:
+            in.source.bases.field_base + integers.narrow(in.fields.name.length),
+        fields_count: integers.narrow(in.members.name.length),
+        declarations_first: in.source.declaration_base,
+        declarations_count: integers.narrow(in.declarations.tags.length)
+    })
+
+    const fields = concat({
+        left: in.fields,
+        right: in.members
+    })
+
+    const root =
+        in.source.declaration_base + integers.narrow(in.declarations.tags.length)
+
+    const declaration = constant({
+        state: in.declarations,
+        value: {
+            name: integer({
+                output: bytes.fromText(context_prefix),
+                value: in.source.service_index
+            }),
+            type_expr: null,
+            value: value.id,
+            exported: false
+        }
+    })
+
+    return {
+        ...in,
+        context: {
+            ...in.context,
+            expressions: {
+                ...in.context.expressions,
+                tags: value.table.tags,
+                offsets: value.table.offsets
+            },
+            valid: in.context.valid && value.valid
+        },
+        fields,
+        declarations: declaration.state,
+        extra: {
+            ...in.extra,
+            ...value.table.omit([
+                "tags",
+                "offsets"
+            ])
+        },
+        root,
+        valid: in.valid && declaration.valid
+    }
+}

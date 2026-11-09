@@ -5,8 +5,7 @@ import assignment from "../../../ast/context/assignment"
 import binding from "../../../ast/context/binding"
 import field from "../../../ast/context/field"
 import identifier from "../../../ast/context/identifier"
-import nullValue from "../../../ast/context/null_value"
-import origin from "../../types/state/origin"
+import clearOrigin from "./clear_origin"
 
 import type { State as Input, State as Output } from "./model"
 
@@ -29,7 +28,6 @@ export default function (in: Input): Output {
 
     const type_id = integers.widen(in.source.type_id)
     const first = integers.widen(in.source.types.first[type_id])
-    const count = integers.widen(in.source.types.second[type_id])
     const index = first + integers.widen(in.source.field)
 
     const updated = field({
@@ -44,27 +42,9 @@ export default function (in: Input): Output {
         value: value.id
     })
 
-    const name = origin({
-        names: in.source.types.field_names,
-        start: first,
-        count
-    })
-
-    const previous = field({
-        state: written,
-        target: target.id,
-        name: name.name
-    })
-
-    const cleared = nullValue(previous.state)
-
-    return {
+    return clearOrigin({
         ...in,
         target: target.id,
-        context: assignment({
-            state: cleared.state,
-            target: previous.id,
-            value: cleared.id
-        })
-    }
+        context: written
+    })
 }

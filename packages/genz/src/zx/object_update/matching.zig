@@ -4,7 +4,7 @@ const ir = zx.ir;
 const Lower = @import("../lower.zig");
 const Change = @import("../object_update.zig").Change;
 
-pub fn match(lowering: *const Lower, id: ir.ExprId) ?Change {
+pub fn match(lowering: *const Lower, id: ir.ExprId, evaluated: bool) ?Change {
     const generated = @import("generated_object_update_candidate");
     const Input = std.meta.Child(generated.Input);
     const program: *const ir.Program = &lowering.program;
@@ -30,6 +30,7 @@ pub fn match(lowering: *const Lower, id: ir.ExprId) ?Change {
         .state_active = lowering.state_active,
         .iteration = lowering.iteration_value != null,
         .loop_fields = lowering.loop_fields != null,
+        .evaluated = evaluated,
         .cache = &cache,
     };
 
@@ -42,5 +43,28 @@ pub fn match(lowering: *const Lower, id: ir.ExprId) ?Change {
         .reference = @fromBackingInt(output.reference),
         .field = .{ .index = output.field_index, .value = @fromBackingInt(output.field_value) },
         .type_id = @fromBackingInt(output.type_id),
+        .object = id,
+        .multiple = output.multiple,
     };
+}
+
+pub fn unchanged(lowering: *const Lower, reference: ir.ExprId, field: ir.ObjectField) bool {
+    const generated = @import("generated_object_update_unchanged");
+    const Input = std.meta.Child(generated.Input);
+    const program: *const ir.Program = &lowering.program;
+    const flags = lowering.plan.flags;
+
+    comptime std.debug.assert(@sizeOf(std.meta.Child(@TypeOf(flags))) == @sizeOf(u8));
+
+    const input: Input = .{
+        .expressions = zx.columns.pointer(@FieldType(Input, "expressions"), &program.expressions),
+        .flags = @as([*]const u8, @ptrCast(flags.ptr))[0..flags.len],
+        .reference = @backingInt(reference),
+        .field_index = field.index,
+        .value = @backingInt(field.value),
+    };
+
+    var fixed = std.heap.FixedBufferAllocator.init(&.{});
+
+    return zx.columns.invoke(generated.executeValue, fixed.allocator(), &input) catch unreachable;
 }

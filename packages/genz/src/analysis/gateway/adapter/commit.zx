@@ -1,0 +1,139 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import call from "../../../ast/context/call"
+import field from "../../../ast/context/field"
+import identifier from "../../../ast/context/identifier"
+import object from "../../../ast/context/object"
+import pointer from "../../../ast/context/pointer"
+import construct from "../../../ast/expressions/error_union"
+import concat from "../../../ast/fields/concat"
+import close from "../../../ast/statements/builder/close"
+import evaluate from "../../../ast/statements/builder/evaluate"
+import integer from "../../../printer/text/integer"
+import {
+    commit_name,
+    request_name,
+    self_name,
+    changes_name,
+    service_prefix,
+    pending_name
+} from "./const"
+import method from "./method"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const request = field({
+        state: in.context,
+        target: in.symbols.self,
+        name: bytes.fromText(request_name)
+    })
+
+    const member = field({
+        state: request.state,
+        target: request.id,
+        name: bytes.fromText(commit_name)
+    })
+
+    const changes = object({
+        state: member.state,
+        first: in.source.bases.field_base + integers.narrow(in.fields.name.length),
+        count: integers.narrow(in.pending.name.length)
+    })
+
+    const invoked = call({
+        state: changes.state,
+        callee: member.id,
+        arguments: [changes.id],
+        fallible: true
+    })
+
+    const fields = concat({
+        left: in.fields,
+        right: in.pending
+    })
+
+    const evaluated = evaluate({
+        state: in.statements,
+        value: invoked.id,
+        discard: false
+    })
+
+    const body = close(evaluated)
+
+    const self_type = pointer({
+        state: invoked.state,
+        value: in.symbols.this_type
+    })
+
+    const service = identifier({
+        state: self_type.state,
+        name: integer({
+            output: bytes.fromText(service_prefix),
+            value: in.source.service_index
+        })
+    })
+
+    const pending_type = field({
+        state: service.state,
+        target: service.id,
+        name: bytes.fromText(pending_name)
+    })
+
+    const fallible = construct({
+        table: {
+            ...pending_type.state.expressions.pick([
+                "tags",
+                "offsets"
+            ]),
+            ...in.extra.pick([
+                "error_union_payload",
+                "error_union_errors",
+                "error_union_inferred"
+            ])
+        },
+        base: in.source.bases.expression_base,
+        payload: in.symbols.unit,
+        inferred: true
+    })
+
+    const state = method({
+        state: {
+            ...in,
+            context: {
+                ...pending_type.state,
+                expressions: {
+                    ...pending_type.state.expressions,
+                    tags: fallible.table.tags,
+                    offsets: fallible.table.offsets
+                },
+                valid: pending_type.state.valid && fallible.valid
+            },
+            extra: {
+                ...in.extra,
+                ...fallible.table.omit([
+                    "tags",
+                    "offsets"
+                ])
+            },
+            fields,
+            statements: body.state
+        },
+        name: commit_name,
+        names: [
+            self_name,
+            changes_name
+        ],
+        types: [
+            self_type.id,
+            pending_type.id
+        ],
+        result: fallible.id,
+        first: body.first,
+        count: body.count,
+        exported: true
+    })
+
+    return state
+}

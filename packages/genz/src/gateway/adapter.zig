@@ -1,68 +1,52 @@
 const std = @import("std");
+const zx = @import("zx");
 const node = @import("../node.zig");
 const Builder = @import("../builder.zig");
 const Service = @import("root.zig").Service;
 
 pub fn lower(builder: Builder, service: Service, index: usize) std.mem.Allocator.Error!?node.Declaration {
-    if (service.slots.len == 0) return null;
+    if (comptime !@import("genz_options").generated_analysis) return @import("adapter_seed.zig").lower(builder, service, index);
 
-    const allocator = builder.allocator;
-    const request_type = try builder.field(try builder.identifier("State"), "Request");
-    const request_pointer = try builder.expression(.{ .pointer = request_type });
-    const this = try builder.builtin(.This, &.{});
-    const request = try builder.identifier("request");
-    const changes = try builder.identifier("changes");
-    var fields: std.ArrayList(node.Field) = .empty;
-    var initial: std.ArrayList(node.Field) = .empty;
-    var pending: std.ArrayList(node.Field) = .empty;
-    var body: std.ArrayList(node.Statement) = .empty;
+    const entry = @import("generated_gateway_adapter");
+    const Parameter = @typeInfo(@TypeOf(entry.executeValue)).@"fn".param_types[1].?;
+    const indirect = @typeInfo(Parameter) == .pointer;
+    const Input = if (indirect) std.meta.Child(Parameter) else Parameter;
+    const Bases = std.meta.Child(@FieldType(Input, "bases"));
+    const Slots = @FieldType(Input, "slots");
+    const framed = @typeInfo(Slots) == .@"struct";
+    const Slice = if (framed) @FieldType(Slots, "items") else Slots;
+    const slots = zx.columns.storage.view(Slice, service.slots);
 
-    try fields.append(allocator, .{ .name = "request", .value = request_pointer });
-    try initial.append(allocator, .{ .name = "request", .value = request });
+    const bases: Bases = .{
+        .capture = null,
+        .expression_base = @intCast(builder.nodes.expressions.tags.items.len),
+        .statement_base = @intCast(builder.nodes.statements.tags.items.len),
+        .field_base = @intCast(builder.nodes.field_columns.count()),
+        .serial = 0,
+    };
 
-    for (service.slots, 0..) |slot, local| {
-        const name = try std.fmt.allocPrint(allocator, "store_{d}", .{local});
-        const target = try std.fmt.allocPrint(allocator, "store_{d}", .{slot.index});
-        const change = try builder.field(changes, name);
+    const input: Input = .{
+        .bases = &bases,
+        .slots = if (framed) .{ .items = slots, .storage = .plain } else slots,
+        .service_index = index,
+        .declaration_base = @intCast(builder.nodes.declaration_rows.tags.items.len),
+    };
 
-        try fields.append(allocator, .{ .name = name, .value = try builder.builtin(.FieldType, &.{ request_type, try builder.string(target) }) });
-        try initial.append(allocator, .{ .name = name, .value = try builder.field(request, target) });
-        try pending.append(allocator, .{ .name = target, .value = change });
+    const result = entry.executeValue(builder.allocator, if (indirect) &input else input) catch |err| return failure(err);
+    const output = result orelse return null;
 
-        if (!slot.writable) {
-            const failure = try allocator.dupe(node.Statement, &.{.{ .result = try builder.expression(.{ .error_value = "StoreNotWritable" }) }});
-            const condition = try builder.expression(.{ .binary = .{ .operator = .not_equal, .left = change, .right = try builder.expression(.null_value) } });
+    if (!output.valid) return error.OutOfMemory;
 
-            try body.append(allocator, .{ .branch = .{ .condition = condition, .yes = try builder.statements(failure), .no = .{} } });
-        }
-    }
+    const Output = @TypeOf(output);
+    const Module = if (@typeInfo(Output) == .pointer) std.meta.Child(Output) else Output;
+    @import("../node/import_module.zig").appendBorrowed(builder.allocator, builder.nodes, Module, output) catch |err| return failure(err);
 
-    const context_request = try builder.field(try builder.identifier("self"), "request");
-    const commit = try builder.call(try builder.field(context_request, "commit"), &.{try builder.expression(.{ .object = .{ .fields = try pending.toOwnedSlice(allocator) } })});
+    return try builder.nodes.materializeDeclaration(builder.allocator, output.root);
+}
 
-    try body.append(allocator, .{ .expression = try builder.expression(.{ .try_value = commit }) });
-
-    const declarations = try allocator.dupe(node.Declaration, &.{
-        .{ .function = .{
-            .name = "init",
-            .parameters = try allocator.dupe(node.Field, &.{.{ .name = "request", .value = request_pointer }}),
-            .return_type = this,
-            .body = try builder.statements(&.{.{ .result = try builder.expression(.{ .object = .{ .fields = try initial.toOwnedSlice(allocator) } }) }}),
-        } },
-        .{ .function = .{
-            .name = "commit",
-            .parameters = try allocator.dupe(node.Field, &.{
-                .{ .name = "self", .value = try builder.expression(.{ .pointer = this }) },
-                .{ .name = "changes", .value = try builder.field(try builder.identifier(try std.fmt.allocPrint(allocator, "service_{d}", .{index})), "zx_pending") },
-            }),
-            .return_type = try builder.expression(.{ .error_union = .{ .inferred = true, .payload = try builder.expression(.{ .primitive = .void }) } }),
-            .body = try builder.statements(body.items),
-            .exported = true,
-        } },
-    });
-
-    return .{ .constant = .{
-        .name = try std.fmt.allocPrint(allocator, "Context_{d}", .{index}),
-        .value = try builder.expression(.{ .container_type = .{ .fields = try fields.toOwnedSlice(allocator), .declarations = declarations } }),
-    } };
+fn failure(err: anyerror) std.mem.Allocator.Error {
+    return switch (err) {
+        error.OutOfMemory, error.IntegerOverflow, error.Overflow => error.OutOfMemory,
+        else => @panic("invalid Gateway adapter AST"),
+    };
 }

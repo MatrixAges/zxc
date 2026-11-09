@@ -1,3 +1,4 @@
+import type { Expressions as IRExpressions } from "core/expression_table/model"
 import type { Table } from "core/type_table/model"
 import type { State as Context, Variables } from "../../../ast/context/model"
 import type { Columns as Forms } from "../../../ast/expressions/forms/model"
@@ -12,7 +13,17 @@ export type Write = {
     value_name: u8[],
     value: u32,
     expression_base: u32,
-    statement_base: u32
+    statement_base: u32,
+    clear_origin: bool,
+    changes?: Changes
+}
+
+export type Changes = {
+    expressions: IRExpressions,
+    flags: u8[],
+    reference: u32,
+    object: u32,
+    values: u32[]
 }
 
 export type Expression = {

@@ -8,6 +8,10 @@ import type { Candidate as Input } from "./model"
 export type Output = bool
 
 export default function (in: Input): Output {
+    if (in.root.source.evaluated) {
+        return true
+    }
+
     const expressions = in.root.source.expressions
     const first = integers.widen(expressions.object_evaluation_first[in.root.payload])
     const count = integers.widen(expressions.object_evaluation_count[in.root.payload])

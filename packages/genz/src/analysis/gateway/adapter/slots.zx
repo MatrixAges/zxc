@@ -1,0 +1,113 @@
+import bytes from "std:bytes"
+
+import binary from "../../../ast/context/binary"
+import builtin from "../../../ast/context/builtin"
+import field from "../../../ast/context/field"
+import text from "../../../ast/context/text"
+import appendField from "../../../ast/fields/append"
+import branch from "../../../ast/statements/builder/branch"
+import open from "../../../ast/statements/builder/open"
+import result from "../../../ast/statements/builder/result"
+import {
+    ExpressionsBinaryOperator as B,
+    ExpressionsBuiltinName as F,
+    ExpressionsKind as K
+} from "../../../printer/model/expressions"
+import slotName from "../../store/slot_name"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const slots = in.source.slots
+
+    return loop({
+        state: in,
+        index: 0
+    }, {
+        while: current => current.index < slots.length,
+        next: current => {
+            const slot = slots[current.index]
+            const local = slotName(current.index)
+            const global = slotName(slot.index)
+            const change = field({
+                state: current.state.context,
+                target: in.symbols.changes,
+                name: local
+            })
+            const target_name = text({
+                state: change.state,
+                kind: K.String,
+                value: global
+            })
+            const field_type = builtin({
+                state: target_name.state,
+                name: F.FieldType,
+                arguments: [
+                    in.symbols.request_type,
+                    target_name.id
+                ]
+            })
+            const value = field({
+                state: field_type.state,
+                target: in.symbols.request,
+                name: global
+            })
+            const members = appendField({
+                table: current.state.members,
+                name: local,
+                value: field_type.id,
+                comptime_parameter: false
+            })
+            const initial = appendField({
+                table: current.state.initial,
+                name: local,
+                value: value.id,
+                comptime_parameter: false
+            })
+            const pending = appendField({
+                table: current.state.pending,
+                name: global,
+                value: change.id,
+                comptime_parameter: false
+            })
+
+            current.state = {
+                ...current.state,
+                context: value.state,
+                members,
+                initial,
+                pending
+            }
+
+            if (!slot.writable) {
+                const condition = binary({
+                    state: current.state.context,
+                    operator: B.NotEqual,
+                    left: change.id,
+                    right: in.symbols.none
+                })
+                const scope = open(current.state.statements)
+                const returned = result({
+                    state: scope.state,
+                    value: in.symbols.not_writable
+                })
+                const rejected = branch({
+                    scope: {
+                        ...scope,
+                        state: returned
+                    },
+                    condition: condition.id
+                })
+
+                current.state = {
+                    ...current.state,
+                    context: condition.state,
+                    statements: rejected
+                }
+            }
+
+            current.index += 1
+        },
+        return: current => current.state
+    })
+}

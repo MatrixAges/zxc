@@ -1,0 +1,18 @@
+<Module>
+    <Type from="model" as="Update" />
+
+    <Args in={Update.State} out={Update.State} />
+
+    <If on={$in.source.changes != null}>
+        <Call fn="bind_changes" in={$in} />
+        <Call fn="write_changes" in={$ctx.bind_changes} />
+
+        <Return value={$ctx.write_changes} />
+
+        <Else>
+            <Call fn="write" in={$in} />
+
+            <Return value={$ctx.write} />
+        </Else>
+    </If>
+</Module>

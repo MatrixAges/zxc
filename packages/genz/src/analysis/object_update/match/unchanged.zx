@@ -1,7 +1,4 @@
-import integers from "std:integer"
-import { ExpressionKind } from "core/expression_table/kinds"
-
-import plain from "./plain"
+import fieldUnchanged from "./field_unchanged"
 
 import type { Candidate } from "./model"
 
@@ -14,43 +11,13 @@ export type Output = bool
 
 export default function (in: Input): Output {
     const expressions = in.candidate.root.source.expressions
-    const flags = in.candidate.root.source.flags
     const field = in.candidate.root.first + in.index
-    const id = expressions.object_field_values[field]
-    const node = integers.widen(id)
 
-    if (expressions.kinds[node] != ExpressionKind.Field) {
-        return false
-    }
-
-    const payload = integers.widen(expressions.payloads[node])
-
-    if (
-        expressions.projection_indices[payload] !=
-            expressions.object_field_indices[field]
-    ) {
-        return false
-    }
-
-    if (!plain({
-        flags,
-        id
-    })) {
-        return false
-    }
-
-    const target_id = expressions.projection_targets[payload]
-    const target = integers.widen(target_id)
-
-    if (expressions.kinds[target] != ExpressionKind.Reference) {
-        return false
-    }
-
-    const reference = integers.widen(expressions.payloads[target])
-
-    return expressions.references[reference] == in.candidate.previous &&
-        plain({
-            flags,
-            id: target_id
-        })
+    return fieldUnchanged({
+        expressions,
+        flags: in.candidate.root.source.flags,
+        reference: in.candidate.reference,
+        field_index: expressions.object_field_indices[field],
+        value: expressions.object_field_values[field]
+    })
 }

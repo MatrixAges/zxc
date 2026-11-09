@@ -25,7 +25,7 @@ fn appendModule(allocator: std.mem.Allocator, target: *Storage, comptime Module:
     const context = source.context;
     const expressions = zx.columns.view(std.meta.Child(@FieldType(Context, "expressions")), context.expressions);
     const forms = zx.columns.view(std.meta.Child(@FieldType(Context, "forms")), context.forms);
-    const values = if (@hasField(Module, "extra")) view.join(view.join(expressions, forms), zx.columns.view(std.meta.Child(@FieldType(Module, "extra")), source.extra)) else view.join(expressions, forms);
+    const values = if (@hasField(Module, "extra")) view.join(view.join(expressions, forms), zx.columns.view(Descriptor(@FieldType(Module, "extra")), source.extra)) else view.join(expressions, forms);
 
     try appendRows(allocator, &target.expressions, &values, mode);
 
@@ -54,6 +54,13 @@ fn appendModule(allocator: std.mem.Allocator, target: *Storage, comptime Module:
     const declarations = zx.columns.view(std.meta.Child(@FieldType(Module, name)), @field(source, name));
 
     try appendRows(allocator, &target.declaration_rows, &declarations, mode);
+}
+
+fn Descriptor(comptime Value: type) type {
+    if (@typeInfo(Value) == .pointer) return std.meta.Child(Value);
+    if (@hasField(Value, "zx_origin")) return std.meta.Child(std.meta.Child(@FieldType(Value, "zx_origin")));
+
+    return Value;
 }
 
 fn appendRows(allocator: std.mem.Allocator, target: anytype, source: anytype, comptime mode: Mode) Error!void {

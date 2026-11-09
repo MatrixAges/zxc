@@ -1,0 +1,18 @@
+import bytes from "std:bytes"
+
+import integer from "../../../printer/text/integer"
+import { value_name_suffix } from "./const"
+
+export type Input = {
+    target_name: u8[],
+    index: u64
+}
+
+export type Output = u8[]
+
+export default function (in: Input): Output {
+    return integer({
+        output: in.target_name.concat(bytes.fromText(value_name_suffix))[0],
+        value: in.index
+    })
+}

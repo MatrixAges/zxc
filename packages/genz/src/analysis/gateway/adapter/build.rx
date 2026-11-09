@@ -1,0 +1,20 @@
+<Module>
+    <Type from="model" as="Adapter" />
+
+    <Args in={Adapter.Input} out={Adapter.Output} />
+
+    <If on={$in.slots.length == 0}>
+        <Return value={null} />
+
+        <Else>
+            <Call fn="prepare" in={$in} />
+            <Call fn="slots" in={$ctx.prepare} />
+            <Call fn="initialize" in={$ctx.slots} />
+            <Call fn="commit" in={$ctx.initialize} />
+            <Call fn="container" in={$ctx.commit} />
+            <Call fn="publish" in={$ctx.container} />
+
+            <Return value={$ctx.publish} />
+        </Else>
+    </If>
+</Module>

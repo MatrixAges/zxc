@@ -1,0 +1,71 @@
+import type {
+    Input as Bases,
+    State as Context,
+    Variables
+} from "../../../ast/context/model"
+import type { Table as Declarations } from "../../../ast/declarations/table/model"
+import type { Columns as Fields } from "../../../ast/fields/model"
+import type { State as Statements } from "../../../ast/statements/builder/model"
+import type { Columns as StatementColumns } from "../../../ast/statements/model"
+
+export type Slot = {
+    index: u64,
+    writable: bool
+}
+
+export type Input = {
+    slots: Slot[],
+    service_index: u64,
+    bases: Bases,
+    declaration_base: u32
+}
+
+export type Extra = {
+    container_type_fields_start: u32[],
+    container_type_fields_len: u32[],
+    container_type_declarations_start: u32[],
+    container_type_declarations_len: u32[],
+    error_union_payload: u32[],
+    error_union_errors: u8[][]?[],
+    error_union_inferred: bool[]
+}
+
+export type Symbols = {
+    request_type: u32,
+    request_pointer: u32,
+    this_type: u32,
+    request: u32,
+    changes: u32,
+    self: u32,
+    none: u32,
+    unit: u32,
+    not_writable: u32
+}
+
+export type State = {
+    source: Input,
+    context: Context,
+    statements: Statements,
+    fields: Fields,
+    members: Fields,
+    initial: Fields,
+    pending: Fields,
+    declarations: Declarations,
+    extra: Extra,
+    symbols: Symbols,
+    root: u32,
+    valid: bool
+}
+
+export type Fragment = {
+    context: Context,
+    statements: StatementColumns,
+    variables: Variables,
+    fields: Fields,
+    declarations: Declarations,
+    extra: Extra,
+    root: u32,
+    valid: bool
+}
+
+export type Output = Fragment?

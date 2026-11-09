@@ -11,6 +11,7 @@ export default function (in: Input): Output {
         index: 0,
         field_index: empty,
         field_value: initial,
+        changed_count: 0,
         valid: true
     }, {
         while: state => state.valid && state.index < in.root.count,
@@ -19,9 +20,11 @@ export default function (in: Input): Output {
                 candidate: in,
                 index: state.index
             })) {
-                if (state.field_index != null) {
+                state.changed_count += 1
+
+                if (state.field_index != null && !in.root.source.evaluated) {
                     state.valid = false
-                } else {
+                } else if (state.field_index == null) {
                     const expressions = in.root.source.expressions
                     const field = in.root.first + state.index
 
@@ -37,6 +40,7 @@ export default function (in: Input): Output {
             ...state.pick([
                 "field_index",
                 "field_value",
+                "changed_count",
                 "valid"
             ])
         })

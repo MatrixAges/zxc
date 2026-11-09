@@ -1,0 +1,57 @@
+import integers from "std:integer"
+
+import object from "../../../ast/context/object"
+import concat from "../../../ast/fields/concat"
+import close from "../../../ast/statements/builder/close"
+import open from "../../../ast/statements/builder/open"
+import result from "../../../ast/statements/builder/result"
+import { initialize_name, request_name } from "./const"
+import method from "./method"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const value = object({
+        state: in.context,
+        first: in.source.bases.field_base + integers.narrow(in.fields.name.length),
+        count: integers.narrow(in.initial.name.length)
+    })
+
+    const fields = concat({
+        left: in.fields,
+        right: in.initial
+    })
+
+    const scope = open(in.statements)
+
+    const returned = result({
+        state: scope.state,
+        value: value.id
+    })
+
+    const body = close(returned)
+
+    const state = method({
+        state: {
+            ...in,
+            context: value.state,
+            fields
+        },
+        name: initialize_name,
+        names: [request_name],
+        types: [in.symbols.request_pointer],
+        result: in.symbols.this_type,
+        first: body.first,
+        count: body.count,
+        exported: false
+    })
+
+    return {
+        ...state,
+        statements: {
+            ...body.state,
+            root_tags: scope.parent_tags,
+            root_offsets: scope.parent_offsets
+        }
+    }
+}

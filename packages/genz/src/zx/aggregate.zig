@@ -12,8 +12,6 @@ pub fn objectValue(self: *Lower, id: ir.ExprId) Lower.Error!node.ExpressionId {
 }
 
 fn objectMode(self: *Lower, id: ir.ExprId, value: @FieldType(@FieldType(ir.ExpressionRow, "value"), "object"), layout: bool) Lower.Error!node.ExpressionId {
-    if (try @import("object_update.zig").lower(self, id)) |updated| return updated;
-
     const saved = try self.allocator.alloc(?node.ExpressionId, value.evaluation.len);
 
     for (value.evaluation, 0..) |item, index| saved[index] = self.cache.get(item);
@@ -38,6 +36,16 @@ fn objectMode(self: *Lower, id: ir.ExprId, value: @FieldType(@FieldType(ir.Expre
         counts[index] = self.cache_reads[@backingInt(item)];
 
         try self.cache.put(self.allocator, item, try self.builder.identifier(name));
+    }
+
+    if (try @import("object_update.zig").lower(self, id, &body)) |updated| {
+        for (value.evaluation, 0..) |item, index| {
+            if (counts[index] == self.cache_reads[@backingInt(item)]) try body.append(self.allocator, .{ .discard = try self.builder.identifier(names[index]) });
+        }
+
+        const selected = self.state_plan.selected[@backingInt(self.program.expression(id).type_id)];
+
+        return finish(self, &body, if (layout or selected) updated else try self.construct(self.program.expression(id).type_id, updated));
     }
 
     const type_id = self.program.expression(id).type_id;

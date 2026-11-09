@@ -1,0 +1,51 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import plain from "./plain"
+
+import type { Expressions } from "core/expression_table/model"
+
+export type Input = {
+    expressions: Expressions,
+    flags: u8[],
+    id: u32
+}
+
+export type Output = u32?
+
+export default function (in: Input): Output {
+    const expressions = in.expressions
+
+    const root = loop({
+        id: in.id,
+        valid: true,
+        done: false
+    }, {
+        while: state => state.valid && !state.done,
+        next: state => {
+            const node = integers.widen(state.id)
+
+            if (!plain({
+                flags: in.flags,
+                id: state.id
+            })) {
+                state.valid = false
+            } else if (expressions.kinds[node] == ExpressionKind.Field) {
+                const payload = integers.widen(expressions.payloads[node])
+
+                state.id = expressions.projection_targets[payload]
+            } else {
+                state.valid = expressions.kinds[node] == ExpressionKind.Reference
+                state.done = true
+            }
+        }
+    })
+
+    if (!root.valid) {
+        return null
+    }
+
+    const payload = integers.widen(expressions.payloads[integers.widen(root.id)])
+
+    return expressions.references[payload]
+}

@@ -14,12 +14,12 @@
         }}
     />
 
-    <Call fn="write" in={$ctx.variable} />
+    <Call module="updates" in={$ctx.variable} />
 
     <Call
         fn="finish"
         in={{
-            state: $ctx.write,
+            state: $ctx.updates,
             label: $in.label
         }}
     />
