@@ -1,0 +1,190 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+import { ascii_space, ascii_tab } from "core/ascii/const"
+
+import binary from "../../../ast/context/binary"
+import call from "../../../ast/context/call"
+import integer from "../../../ast/context/integer"
+import standard from "../../../ast/context/standard_field"
+import text from "../../../ast/context/text"
+import unary from "../../../ast/context/unary"
+import {
+    ExpressionsBinaryOperator as B,
+    ExpressionsKind as K,
+    ExpressionsUnaryOperator as U
+} from "../../../printer/model/expressions"
+import {
+    ascii_delete,
+    ascii_name,
+    alphanumeric_name,
+    mem_name,
+    index_name,
+    index_scalar_name,
+    crlf,
+    header_punctuation
+} from "./const"
+import returnExpression from "./return_expression"
+
+import type { State as Input, Head as Output } from "./model"
+
+export default function (in: Input): Output {
+    const missing = returnExpression({
+        state: in,
+        value: in.values.no
+    })
+
+    const separator = text({
+        state: missing.state.context,
+        kind: K.String,
+        value: bytes.fromText(crlf)
+    })
+
+    const index_of = standard({
+        state: separator.state,
+        path: [
+            mem_name,
+            index_name
+        ]
+    })
+
+    const index_scalar = standard({
+        state: index_of.state,
+        path: [
+            mem_name,
+            index_scalar_name
+        ]
+    })
+
+    const space = integer({
+        state: index_scalar.state,
+        value: integers.widenByte(ascii_space)
+    })
+
+    const control = binary({
+        state: space.state,
+        operator: B.Less,
+        left: in.symbols.byte,
+        right: space.id
+    })
+
+    const delete_code = integer({
+        state: control.state,
+        value: ascii_delete
+    })
+
+    const delete = binary({
+        state: delete_code.state,
+        operator: B.Equal,
+        left: in.symbols.byte,
+        right: delete_code.id
+    })
+
+    const invalid_byte = binary({
+        state: delete.state,
+        operator: B.LogicalOr,
+        left: control.id,
+        right: delete.id
+    })
+
+    const alphanumeric = standard({
+        state: invalid_byte.state,
+        path: [
+            ascii_name,
+            alphanumeric_name
+        ]
+    })
+
+    const valid_name = call({
+        state: alphanumeric.state,
+        callee: alphanumeric.id,
+        arguments: [in.symbols.byte],
+        fallible: false
+    })
+
+    const punctuation = text({
+        state: valid_name.state,
+        kind: K.String,
+        value: bytes.fromText(header_punctuation)
+    })
+
+    const included = call({
+        state: punctuation.state,
+        callee: index_scalar.id,
+        arguments: [
+            in.types.byte,
+            punctuation.id,
+            in.symbols.byte
+        ],
+        fallible: false
+    })
+
+    const absent = binary({
+        state: included.state,
+        operator: B.Equal,
+        left: included.id,
+        right: in.values.none
+    })
+
+    const not_alphanumeric = unary({
+        state: absent.state,
+        operator: U.Not,
+        operand: valid_name.id
+    })
+
+    const invalid_name = binary({
+        state: not_alphanumeric.state,
+        operator: B.LogicalAnd,
+        left: not_alphanumeric.id,
+        right: absent.id
+    })
+
+    const tab = integer({
+        state: invalid_name.state,
+        value: integers.widenByte(ascii_tab)
+    })
+
+    const not_tab = binary({
+        state: tab.state,
+        operator: B.NotEqual,
+        left: in.symbols.byte,
+        right: tab.id
+    })
+
+    const invalid_control = binary({
+        state: not_tab.state,
+        operator: B.LogicalAnd,
+        left: control.id,
+        right: not_tab.id
+    })
+
+    const invalid_value = binary({
+        state: invalid_control.state,
+        operator: B.LogicalOr,
+        left: invalid_control.id,
+        right: delete.id
+    })
+
+    return {
+        state: {
+            ...missing.state,
+            context: invalid_value.state
+        },
+        missing: missing.id,
+        index_of: index_of.id,
+        index_scalar: index_scalar.id,
+        crlf: separator.id,
+        invalid_byte: invalid_byte.id,
+        invalid_name: invalid_name.id,
+        invalid_value: invalid_value.id,
+        while_condition: 0,
+        length_value: 0,
+        line_value: 0,
+        advance: 0,
+        empty_line: 0,
+        at_end: 0,
+        colon_value: 0,
+        colon_empty: 0,
+        names: 0,
+        values: 0
+    }
+}

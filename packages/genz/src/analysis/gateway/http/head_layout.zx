@@ -1,0 +1,162 @@
+import integers from "std:integer"
+import { ascii_colon } from "core/ascii/const"
+
+import binary from "../../../ast/context/binary"
+import call from "../../../ast/context/call"
+import integer from "../../../ast/context/integer"
+import path from "../../../ast/context/member_path"
+import slice from "../../../ast/context/slice"
+import { ExpressionsBinaryOperator as B } from "../../../printer/model/expressions"
+import { len_name } from "./const"
+
+import type { Head as Input, Head as Output } from "./model"
+
+export default function (in: Input): Output {
+    const state = in.state
+
+    const total = path({
+        state: state.context,
+        target: state.symbols.bytes,
+        path: [len_name]
+    })
+
+    const ongoing = binary({
+        state: total.state,
+        operator: B.Less,
+        left: state.symbols.offset,
+        right: total.id
+    })
+
+    const remaining = slice({
+        state: ongoing.state,
+        target: state.symbols.bytes,
+        start: state.symbols.offset
+    })
+
+    const index = call({
+        state: remaining.state,
+        callee: in.index_of,
+        arguments: [
+            state.types.byte,
+            remaining.id,
+            in.crlf
+        ],
+        fallible: false
+    })
+
+    const length = binary({
+        state: index.state,
+        operator: B.Coalesce,
+        left: index.id,
+        right: in.missing
+    })
+
+    const line = slice({
+        state: length.state,
+        target: remaining.id,
+        start: state.values.zero,
+        end: state.symbols.length
+    })
+
+    const line_size = binary({
+        state: line.state,
+        operator: B.Add,
+        left: state.symbols.length,
+        right: state.values.two
+    })
+
+    const advanced = binary({
+        state: line_size.state,
+        operator: B.Add,
+        left: state.symbols.offset,
+        right: line_size.id
+    })
+
+    const line_length = path({
+        state: advanced.state,
+        target: state.symbols.line,
+        path: [len_name]
+    })
+
+    const empty = binary({
+        state: line_length.state,
+        operator: B.Equal,
+        left: line_length.id,
+        right: state.values.zero
+    })
+
+    const at_end = binary({
+        state: empty.state,
+        operator: B.Equal,
+        left: state.symbols.offset,
+        right: total.id
+    })
+
+    const colon_byte = integer({
+        state: at_end.state,
+        value: integers.widenByte(ascii_colon)
+    })
+
+    const colon_index = call({
+        state: colon_byte.state,
+        callee: in.index_scalar,
+        arguments: [
+            state.types.byte,
+            state.symbols.line,
+            colon_byte.id
+        ],
+        fallible: false
+    })
+
+    const colon = binary({
+        state: colon_index.state,
+        operator: B.Coalesce,
+        left: colon_index.id,
+        right: in.missing
+    })
+
+    const no_name = binary({
+        state: colon.state,
+        operator: B.Equal,
+        left: state.symbols.colon,
+        right: state.values.zero
+    })
+
+    const names = slice({
+        state: no_name.state,
+        target: state.symbols.line,
+        start: state.values.zero,
+        end: state.symbols.colon
+    })
+
+    const value_start = binary({
+        state: names.state,
+        operator: B.Add,
+        left: state.symbols.colon,
+        right: state.values.one
+    })
+
+    const values = slice({
+        state: value_start.state,
+        target: state.symbols.line,
+        start: value_start.id
+    })
+
+    return {
+        ...in,
+        state: {
+            ...state,
+            context: values.state
+        },
+        while_condition: ongoing.id,
+        length_value: length.id,
+        line_value: line.id,
+        advance: advanced.id,
+        empty_line: empty.id,
+        at_end: at_end.id,
+        colon_value: colon.id,
+        colon_empty: no_name.id,
+        names: names.id,
+        values: values.id
+    }
+}

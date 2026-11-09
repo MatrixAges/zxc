@@ -1,0 +1,43 @@
+import branch from "../../../ast/statements/builder/branch"
+import evaluate from "../../../ast/statements/builder/evaluate"
+import open from "../../../ast/statements/builder/open"
+import result from "../../../ast/statements/builder/result"
+import reply from "./reply"
+
+import type { State } from "./model"
+
+export type Input = {
+    state: State,
+    condition: u32,
+    status: string,
+    message: string
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const scope = open(in.state.statements)
+    const response = reply(in.omit(["condition"]))
+
+    const sent = evaluate({
+        state: scope.state,
+        value: response.id,
+        discard: false
+    })
+
+    const returned = result({
+        state: sent,
+        value: in.state.values.none
+    })
+
+    return {
+        ...response.state,
+        statements: branch({
+            scope: {
+                ...scope,
+                state: returned
+            },
+            condition: in.condition
+        })
+    }
+}

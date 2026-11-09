@@ -1,0 +1,167 @@
+import bytes from "std:bytes"
+
+import binary from "../../../ast/context/binary"
+import text from "../../../ast/context/text"
+import construct from "../../../ast/expressions/catch_scope"
+import branch from "../../../ast/statements/builder/branch"
+import close from "../../../ast/statements/builder/close"
+import elseBranch from "../../../ast/statements/builder/else_branch"
+import evaluate from "../../../ast/statements/builder/evaluate"
+import open from "../../../ast/statements/builder/open"
+import result from "../../../ast/statements/builder/result"
+import {
+    ExpressionsBinaryOperator as B,
+    ExpressionsKind as K
+} from "../../../printer/model/expressions"
+import {
+    out_of_memory_name,
+    stream_too_long_name,
+    err_name,
+    payload_too_large_name,
+    large_body_message,
+    bad_request_name,
+    invalid_body_message
+} from "./const"
+import reply from "./reply"
+
+import type { Read as Input, Read as Output } from "./model"
+
+export default function (in: Input): Output {
+    const oom = text({
+        state: in.state.context,
+        kind: K.ErrorValue,
+        value: bytes.fromText(out_of_memory_name)
+    })
+
+    const is_oom = binary({
+        state: oom.state,
+        operator: B.Equal,
+        left: in.state.symbols.err,
+        right: oom.id
+    })
+
+    const long = text({
+        state: is_oom.state,
+        kind: K.ErrorValue,
+        value: bytes.fromText(stream_too_long_name)
+    })
+
+    const is_long = binary({
+        state: long.state,
+        operator: B.Equal,
+        left: in.state.symbols.err,
+        right: long.id
+    })
+
+    const outer = open(in.state.statements)
+    const propagate = open(outer.state)
+
+    const returned = result({
+        state: propagate.state,
+        value: in.state.symbols.err
+    })
+
+    const checked = branch({
+        scope: {
+            ...propagate,
+            state: returned
+        },
+        condition: is_oom.id
+    })
+
+    const yes_scope = open(checked)
+
+    const too_large = reply({
+        state: {
+            ...in.state,
+            context: is_long.state
+        },
+        status: payload_too_large_name,
+        message: large_body_message
+    })
+
+    const yes = close(evaluate({
+        state: yes_scope.state,
+        value: too_large.id,
+        discard: false
+    }))
+
+    const invalid = reply({
+        state: too_large.state,
+        status: bad_request_name,
+        message: invalid_body_message
+    })
+
+    const no = evaluate({
+        state: yes.state,
+        value: invalid.id,
+        discard: false
+    })
+
+    const selected = elseBranch({
+        scope: {
+            ...yes_scope,
+            state: no
+        },
+        condition: is_long.id,
+        yes_first: yes.first,
+        yes_count: yes.count
+    })
+
+    const finish = result({
+        state: selected,
+        value: in.state.values.none
+    })
+
+    const body = close(finish)
+    const state = invalid.state
+
+    const caught = construct({
+        table: {
+            ...state.context.expressions.pick([
+                "tags",
+                "offsets"
+            ]),
+            ...state.extra.pick([
+                "catch_scope_value",
+                "catch_scope_capture",
+                "catch_scope_body_start",
+                "catch_scope_body_len"
+            ])
+        },
+        base: state.context.source.expression_base,
+        value: in.read,
+        capture: bytes.fromText(err_name),
+        start: body.first,
+        count: body.count
+    })
+
+    return {
+        ...in,
+        caught: caught.id,
+        state: {
+            ...state,
+            context: {
+                ...state.context,
+                expressions: {
+                    ...state.context.expressions,
+                    tags: caught.table.tags,
+                    offsets: caught.table.offsets
+                },
+                valid: state.context.valid && caught.valid
+            },
+            extra: {
+                ...state.extra,
+                ...caught.table.omit([
+                    "tags",
+                    "offsets"
+                ])
+            },
+            statements: {
+                ...body.state,
+                root_tags: outer.parent_tags,
+                root_offsets: outer.parent_offsets
+            }
+        }
+    }
+}

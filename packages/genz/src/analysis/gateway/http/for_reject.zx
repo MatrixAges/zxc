@@ -1,0 +1,51 @@
+import bytes from "std:bytes"
+
+import branch from "../../../ast/statements/builder/branch"
+import forLoop from "../../../ast/statements/builder/for_loop"
+import open from "../../../ast/statements/builder/open"
+import result from "../../../ast/statements/builder/result"
+import { byte_name } from "./const"
+
+import type { State } from "./model"
+
+export type Input = {
+    state: State,
+    iterable: u32,
+    condition: u32
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const outer = open(in.state.statements)
+    const inner = open(outer.state)
+
+    const returned = result({
+        state: inner.state,
+        value: in.state.values.no
+    })
+
+    const rejected = branch({
+        scope: {
+            ...inner,
+            state: returned
+        },
+        condition: in.condition
+    })
+
+    const loop_body = forLoop({
+        scope: {
+            ...outer,
+            state: rejected
+        },
+        columns: in.state.fors,
+        iterable: in.iterable,
+        capture: bytes.fromText(byte_name)
+    })
+
+    return {
+        ...in.state,
+        statements: loop_body.state,
+        fors: loop_body.columns
+    }
+}

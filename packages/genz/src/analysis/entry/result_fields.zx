@@ -1,0 +1,68 @@
+import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import type { Table } from "core/type_table/model"
+
+export type Input = {
+    types: Table,
+    type_id: u32,
+    limit: u64
+}
+
+export type Output = u64
+
+export default function fields(in: Input): Output {
+    const row = integers.widen(in.type_id)
+    const category = kind(in.types.kinds[row])
+
+    if (category == Kind.Optional) {
+        if (in.limit == 0) {
+            return 1
+        }
+
+        return 1 + fields({
+            ...in,
+            type_id: in.types.first[row],
+            limit: in.limit - 1
+        })
+    }
+
+    if (category != Kind.Object && category != Kind.Tuple) {
+        return 0
+    }
+
+    const first = integers.widen(in.types.first[row])
+    const count = integers.widen(in.types.second[row])
+    const types = in.types
+
+    if (count > in.limit) {
+        return in.limit + 1
+    }
+
+    return loop({
+        index: 0,
+        count: 0
+    }, {
+        while: current => current.index < count && current.count <= in.limit,
+        next: current => {
+            const position = first + current.index
+            const child = match {
+                category == Kind.Object => types.field_types[position],
+                _ => types.children[position]
+            }
+
+            current.count += 1
+
+            if (current.count <= in.limit) {
+                current.count += fields({
+                    types,
+                    type_id: child,
+                    limit: in.limit - current.count
+                })
+            }
+            current.index += 1
+        },
+        return: current => current.count
+    })
+}

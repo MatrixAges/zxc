@@ -1,0 +1,32 @@
+import bytes from "std:bytes"
+
+import field from "./field"
+
+import type { State, Node as Output } from "./model"
+
+export type Input = {
+    state: State,
+    target: u32,
+    path: string[]
+}
+
+export default function (in: Input): Output {
+    return loop({
+        node: {
+            state: in.state,
+            id: in.target
+        },
+        index: 0
+    }, {
+        while: current => current.node.state.valid && current.index < in.path.length,
+        next: current => {
+            current.node = field({
+                state: current.node.state,
+                target: current.node.id,
+                name: bytes.fromText(in.path[current.index])
+            })
+            current.index += 1
+        },
+        return: current => current.node
+    })
+}

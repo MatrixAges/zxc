@@ -1,0 +1,116 @@
+import bytes from "std:bytes"
+
+import assignment from "../../../ast/statements/builder/assignment"
+import binding from "../../../ast/statements/builder/binding"
+import branch from "../../../ast/statements/builder/branch"
+import open from "../../../ast/statements/builder/open"
+import result from "../../../ast/statements/builder/result"
+import whileLoop from "../../../ast/statements/builder/while_loop"
+import complete from "./complete"
+import { length_name, line_name, colon_name, valid_head_name, bytes_name } from "./const"
+import forReject from "./for_reject"
+
+import type { Head as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const state = in.state
+    const outer = open(state.statements)
+
+    const length = binding({
+        state: outer.state,
+        name: bytes.fromText(length_name),
+        value: in.length_value,
+        mutable: false
+    })
+
+    const line = binding({
+        state: length,
+        name: bytes.fromText(line_name),
+        value: in.line_value,
+        mutable: false
+    })
+
+    const advanced = assignment({
+        state: line,
+        target: state.symbols.offset,
+        value: in.advance
+    })
+
+    const empty = open(advanced)
+
+    const at_end = result({
+        state: empty.state,
+        value: in.at_end
+    })
+
+    const end = branch({
+        scope: {
+            ...empty,
+            state: at_end
+        },
+        condition: in.empty_line
+    })
+
+    const colon = binding({
+        state: end,
+        name: bytes.fromText(colon_name),
+        value: in.colon_value,
+        mutable: false
+    })
+
+    const unnamed = open(colon)
+
+    const no_name = result({
+        state: unnamed.state,
+        value: state.values.no
+    })
+
+    const named = branch({
+        scope: {
+            ...unnamed,
+            state: no_name
+        },
+        condition: in.colon_empty
+    })
+
+    const valid_names = forReject({
+        state: {
+            ...state,
+            statements: named
+        },
+        iterable: in.names,
+        condition: in.invalid_name
+    })
+
+    const valid_values = forReject({
+        state: valid_names,
+        iterable: in.values,
+        condition: in.invalid_value
+    })
+
+    const headers = whileLoop({
+        scope: {
+            ...outer,
+            state: valid_values.statements
+        },
+        columns: state.whiles,
+        condition: in.while_condition
+    })
+
+    const returned = result({
+        state: headers.state,
+        value: state.values.no
+    })
+
+    return complete({
+        state: {
+            ...valid_values,
+            statements: returned,
+            whiles: headers.columns
+        },
+        name: valid_head_name,
+        names: [bytes_name],
+        types: [state.types.bytes],
+        result: state.types.boolean
+    })
+}

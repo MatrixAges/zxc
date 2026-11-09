@@ -1,0 +1,114 @@
+import bytes from "std:bytes"
+
+import binary from "../../../ast/context/binary"
+import call from "../../../ast/context/call"
+import path from "../../../ast/context/member_path"
+import text from "../../../ast/context/text"
+import {
+    ExpressionsBinaryOperator as B,
+    ExpressionsKind as K
+} from "../../../printer/model/expressions"
+import {
+    head_name,
+    expect_member,
+    transfer_encoding_name,
+    content_length_name,
+    server_name,
+    reader_name,
+    allocate_remaining_name,
+    limited_name
+} from "./const"
+
+import type { State as Input, Read as Output } from "./model"
+
+export default function (in: Input): Output {
+    const head = path({
+        state: in.context,
+        target: in.symbols.request,
+        path: [head_name]
+    })
+
+    const expect = path({
+        state: head.state,
+        target: head.id,
+        path: [expect_member]
+    })
+
+    const encoding = path({
+        state: expect.state,
+        target: head.id,
+        path: [transfer_encoding_name]
+    })
+
+    const content_length = path({
+        state: encoding.state,
+        target: head.id,
+        path: [content_length_name]
+    })
+
+    const length = binary({
+        state: content_length.state,
+        operator: B.Coalesce,
+        left: content_length.id,
+        right: in.values.zero
+    })
+
+    const reader = path({
+        state: length.state,
+        target: in.symbols.request,
+        path: [
+            server_name,
+            reader_name
+        ]
+    })
+
+    const allocate = path({
+        state: reader.state,
+        target: in.symbols.reader,
+        path: [allocate_remaining_name]
+    })
+
+    const limit = binary({
+        state: allocate.state,
+        operator: B.SaturatingAdd,
+        left: in.symbols.max_body_bytes,
+        right: in.values.one
+    })
+
+    const limited = text({
+        state: limit.state,
+        kind: K.EnumLiteral,
+        value: bytes.fromText(limited_name)
+    })
+
+    const bounded = call({
+        state: limited.state,
+        callee: limited.id,
+        arguments: [limit.id],
+        fallible: false
+    })
+
+    const read = call({
+        state: bounded.state,
+        callee: allocate.id,
+        arguments: [
+            in.symbols.allocator,
+            bounded.id
+        ],
+        fallible: false
+    })
+
+    return {
+        state: {
+            ...in,
+            context: read.state
+        },
+        head: head.id,
+        expect: expect.id,
+        encoding: encoding.id,
+        length: length.id,
+        raw_reader: reader.id,
+        read: read.id,
+        caught: 0
+    }
+}

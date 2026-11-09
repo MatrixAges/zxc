@@ -36,11 +36,7 @@ pub fn render(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.
         try declarations.append(builder.allocator, try invoke.lower(builder, service, index));
     }
 
-    try declarations.appendSlice(builder.allocator, &.{
-        try @import("http.zig").readBody(builder),
-        try @import("http.zig").respond(builder),
-        try @import("head.zig").lower(builder),
-    });
+    try declarations.appendSlice(builder.allocator, &try @import("boundary.zig").lower(builder));
 
     return @import("../render.zig").render(allocator, builder.nodes, declarations.items);
 }

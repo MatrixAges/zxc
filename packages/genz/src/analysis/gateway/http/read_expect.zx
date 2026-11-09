@@ -1,0 +1,90 @@
+import bytes from "std:bytes"
+
+import call from "../../../ast/context/call"
+import standard from "../../../ast/context/standard_field"
+import text from "../../../ast/context/text"
+import unary from "../../../ast/context/unary"
+import assignment from "../../../ast/statements/builder/assignment"
+import branch from "../../../ast/statements/builder/branch"
+import open from "../../../ast/statements/builder/open"
+import {
+    ExpressionsKind as K,
+    ExpressionsUnaryOperator as U
+} from "../../../printer/model/expressions"
+import {
+    ascii_name,
+    ignore_case_name,
+    continue_value,
+    expectation_failed_name,
+    unsupported_expectation,
+    expect_name
+} from "./const"
+import reject from "./reject"
+
+import type { Read as Input, Read as Output } from "./model"
+
+export default function (in: Input): Output {
+    const path = standard({
+        state: in.state.context,
+        path: [
+            ascii_name,
+            ignore_case_name
+        ]
+    })
+
+    const expected = text({
+        state: path.state,
+        kind: K.String,
+        value: bytes.fromText(continue_value)
+    })
+
+    const matches = call({
+        state: expected.state,
+        callee: path.id,
+        arguments: [
+            in.state.symbols.expect,
+            expected.id
+        ],
+        fallible: false
+    })
+
+    const invalid = unary({
+        state: matches.state,
+        operator: U.Not,
+        operand: matches.id
+    })
+
+    const scope = open(in.state.statements)
+
+    const rejected = reject({
+        state: {
+            ...in.state,
+            context: invalid.state,
+            statements: scope.state
+        },
+        condition: invalid.id,
+        status: expectation_failed_name,
+        message: unsupported_expectation
+    })
+
+    const assigned = assignment({
+        state: rejected.statements,
+        target: in.expect,
+        value: expected.id
+    })
+
+    return {
+        ...in,
+        state: {
+            ...rejected,
+            statements: branch({
+                scope: {
+                    ...scope,
+                    state: assigned
+                },
+                condition: in.expect,
+                capture: bytes.fromText(expect_name)
+            })
+        }
+    }
+}

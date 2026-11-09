@@ -1,0 +1,47 @@
+import construct from "../../../ast/expressions/optional_type"
+
+import type { State, Node as Output } from "./model"
+
+export type Input = {
+    state: State,
+    value: u32
+}
+
+export default function (in: Input): Output {
+    const state = in.state
+
+    const node = construct({
+        table: {
+            ...state.context.expressions.pick([
+                "tags",
+                "offsets"
+            ]),
+            ...state.extra.pick(["optional_type"])
+        },
+        base: state.context.source.expression_base,
+        value: in.value
+    })
+
+    return {
+        id: node.id,
+        state: {
+            ...state,
+            context: {
+                ...state.context,
+                expressions: {
+                    ...state.context.expressions,
+                    tags: node.table.tags,
+                    offsets: node.table.offsets
+                },
+                valid: state.context.valid && node.valid
+            },
+            extra: {
+                ...state.extra,
+                ...node.table.omit([
+                    "tags",
+                    "offsets"
+                ])
+            }
+        }
+    }
+}

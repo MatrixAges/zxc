@@ -1,0 +1,102 @@
+import bytes from "std:bytes"
+
+import binary from "../../../ast/context/binary"
+import path from "../../../ast/context/member_path"
+import text from "../../../ast/context/text"
+import result from "../../../ast/statements/builder/result"
+import {
+    ExpressionsBinaryOperator as B,
+    ExpressionsKind as K
+} from "../../../printer/model/expressions"
+import complete from "./complete"
+import {
+    len_name,
+    state_name,
+    ready_name,
+    payload_too_large_name,
+    large_body_message,
+    bad_request_name,
+    truncated_body_message,
+    read_body_name,
+    allocator_name,
+    request_name
+} from "./const"
+import reject from "./reject"
+
+import type { Read as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const length = path({
+        state: in.state.context,
+        target: in.state.symbols.body,
+        path: [len_name]
+    })
+
+    const too_large = binary({
+        state: length.state,
+        operator: B.Greater,
+        left: length.id,
+        right: in.state.symbols.max_body_bytes
+    })
+
+    const bounded = reject({
+        state: {
+            ...in.state,
+            context: too_large.state
+        },
+        condition: too_large.id,
+        status: payload_too_large_name,
+        message: large_body_message
+    })
+
+    const reader_state = path({
+        state: bounded.context,
+        target: in.raw_reader,
+        path: [state_name]
+    })
+
+    const ready = text({
+        state: reader_state.state,
+        kind: K.EnumLiteral,
+        value: bytes.fromText(ready_name)
+    })
+
+    const invalid = binary({
+        state: ready.state,
+        operator: B.NotEqual,
+        left: reader_state.id,
+        right: ready.id
+    })
+
+    const checked = reject({
+        state: {
+            ...bounded,
+            context: invalid.state
+        },
+        condition: invalid.id,
+        status: bad_request_name,
+        message: truncated_body_message
+    })
+
+    const returned = result({
+        state: checked.statements,
+        value: in.state.symbols.body
+    })
+
+    return complete({
+        state: {
+            ...checked,
+            statements: returned
+        },
+        name: read_body_name,
+        names: [
+            allocator_name,
+            request_name
+        ],
+        types: [
+            in.state.types.allocator,
+            in.state.types.request
+        ],
+        result: in.state.types.read_result
+    })
+}

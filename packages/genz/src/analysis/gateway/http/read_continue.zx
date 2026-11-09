@@ -1,0 +1,88 @@
+import bytes from "std:bytes"
+
+import binary from "../../../ast/context/binary"
+import call from "../../../ast/context/call"
+import path from "../../../ast/context/member_path"
+import binding from "../../../ast/statements/builder/binding"
+import branch from "../../../ast/statements/builder/branch"
+import evaluate from "../../../ast/statements/builder/evaluate"
+import open from "../../../ast/statements/builder/open"
+import { ExpressionsBinaryOperator as B } from "../../../printer/model/expressions"
+import { flush_name, server_name, out_name, write_continue_name } from "./const"
+
+import type { Read as Input, Read as Output } from "./model"
+
+export default function (in: Input): Output {
+    const flush = binary({
+        state: in.state.context,
+        operator: B.NotEqual,
+        left: in.expect,
+        right: in.state.values.none
+    })
+
+    const captured = binding({
+        state: in.state.statements,
+        name: bytes.fromText(flush_name),
+        value: flush.id,
+        mutable: false
+    })
+
+    const write = path({
+        state: flush.state,
+        target: in.state.symbols.request,
+        path: [write_continue_name]
+    })
+
+    const continued = call({
+        state: write.state,
+        callee: write.id,
+        arguments: [],
+        fallible: true
+    })
+
+    const written = evaluate({
+        state: captured,
+        value: continued.id,
+        discard: false
+    })
+
+    const flush_method = path({
+        state: continued.state,
+        target: in.state.symbols.request,
+        path: [
+            server_name,
+            out_name,
+            flush_name
+        ]
+    })
+
+    const flushed = call({
+        state: flush_method.state,
+        callee: flush_method.id,
+        arguments: [],
+        fallible: true
+    })
+
+    const scope = open(written)
+
+    const sent = evaluate({
+        state: scope.state,
+        value: flushed.id,
+        discard: false
+    })
+
+    return {
+        ...in,
+        state: {
+            ...in.state,
+            context: flushed.state,
+            statements: branch({
+                scope: {
+                    ...scope,
+                    state: sent
+                },
+                condition: in.state.symbols.flush
+            })
+        }
+    }
+}

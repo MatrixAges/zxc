@@ -1,0 +1,92 @@
+import constSlice from "../../../ast/context/const_slice"
+import pointer from "../../../ast/context/pointer"
+import standard from "../../../ast/context/standard_field"
+import {
+    mem_name,
+    allocator_type_name,
+    http_name,
+    server_type_name,
+    request_type_name,
+    status_type_name,
+    header_type_name
+} from "./const"
+import fallible from "./fallible"
+import optional from "./optional"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const allocator = standard({
+        state: in.context,
+        path: [
+            mem_name,
+            allocator_type_name
+        ]
+    })
+
+    const request = standard({
+        state: allocator.state,
+        path: [
+            http_name,
+            server_type_name,
+            request_type_name
+        ]
+    })
+
+    const address = pointer({
+        state: request.state,
+        value: request.id
+    })
+
+    const status = standard({
+        state: address.state,
+        path: [
+            http_name,
+            status_type_name
+        ]
+    })
+
+    const header = standard({
+        state: status.state,
+        path: [
+            http_name,
+            header_type_name
+        ]
+    })
+
+    const headers = constSlice({
+        state: header.state,
+        value: header.id
+    })
+
+    const nullable = optional({
+        state: {
+            ...in,
+            context: headers.state
+        },
+        value: in.types.bytes
+    })
+
+    const read = fallible({
+        state: nullable.state,
+        value: nullable.id
+    })
+
+    const response = fallible({
+        state: read.state,
+        value: in.types.unit
+    })
+
+    return {
+        ...response.state,
+        types: {
+            ...in.types,
+            allocator: allocator.id,
+            request: address.id,
+            status: status.id,
+            headers: headers.id,
+            read_result: read.id,
+            void_result: response.id
+        }
+    }
+}

@@ -1,0 +1,119 @@
+import bytes from "std:bytes"
+
+import address from "../../../ast/context/address"
+import binary from "../../../ast/context/binary"
+import call from "../../../ast/context/call"
+import conditional from "../../../ast/context/conditional"
+import fixedArray from "../../../ast/context/fixed_array"
+import integer from "../../../ast/context/integer"
+import path from "../../../ast/context/member_path"
+import text from "../../../ast/context/text"
+import binding from "../../../ast/statements/builder/binding"
+import {
+    ExpressionsBinaryOperator as B,
+    ExpressionsKind as K
+} from "../../../printer/model/expressions"
+import {
+    body_buffer_size,
+    buffer_name,
+    length_name,
+    reader_name,
+    body_name,
+    none_name,
+    body_reader_name
+} from "./const"
+
+import type { Read as Input, Read as Output } from "./model"
+
+export default function (in: Input): Output {
+    const size = integer({
+        state: in.state.context,
+        value: body_buffer_size
+    })
+
+    const buffer_type = fixedArray({
+        state: size.state,
+        length: size.id,
+        element: in.state.types.byte
+    })
+
+    const buffer = binding({
+        state: in.state.statements,
+        name: bytes.fromText(buffer_name),
+        type_expr: buffer_type.id,
+        value: in.state.values.undefined,
+        mutable: true
+    })
+
+    const none = text({
+        state: buffer_type.state,
+        kind: K.EnumLiteral,
+        value: bytes.fromText(none_name)
+    })
+
+    const plain = binary({
+        state: none.state,
+        operator: B.Equal,
+        left: in.encoding,
+        right: none.id
+    })
+
+    const length = conditional({
+        state: plain.state,
+        condition: plain.id,
+        yes: in.length,
+        no: in.state.values.none
+    })
+
+    const length_binding = binding({
+        state: buffer,
+        name: bytes.fromText(length_name),
+        value: length.id,
+        mutable: false
+    })
+
+    const pointer = address({
+        state: length.state,
+        value: in.state.symbols.buffer
+    })
+
+    const body_reader = path({
+        state: pointer.state,
+        target: in.raw_reader,
+        path: [body_reader_name]
+    })
+
+    const reader = call({
+        state: body_reader.state,
+        callee: body_reader.id,
+        arguments: [
+            pointer.id,
+            in.encoding,
+            in.state.symbols.length
+        ],
+        fallible: false
+    })
+
+    const captured = binding({
+        state: length_binding,
+        name: bytes.fromText(reader_name),
+        value: reader.id,
+        mutable: false
+    })
+
+    const read = binding({
+        state: captured,
+        name: bytes.fromText(body_name),
+        value: in.caught,
+        mutable: false
+    })
+
+    return {
+        ...in,
+        state: {
+            ...in.state,
+            context: reader.state,
+            statements: read
+        }
+    }
+}

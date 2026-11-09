@@ -1,0 +1,131 @@
+import type {
+    Input as Bases,
+    State as Context,
+    Variables
+} from "../../../ast/context/model"
+import type { Table as Declarations } from "../../../ast/declarations/table/model"
+import type { Columns as Fields } from "../../../ast/fields/model"
+import type { Columns as Fors } from "../../../ast/statements/builder/for_loop"
+import type { State as Statements } from "../../../ast/statements/builder/model"
+import type { Columns as Whiles } from "../../../ast/statements/builder/while_loop"
+import type { Columns as StatementColumns } from "../../../ast/statements/model"
+
+export type Symbols = {
+    bytes: u32,
+    byte: u32,
+    offset: u32,
+    first_end: u32,
+    length: u32,
+    line: u32,
+    colon: u32,
+    allocator: u32,
+    request: u32,
+    max_body_bytes: u32,
+    body: u32,
+    err: u32,
+    reader: u32,
+    buffer: u32,
+    status: u32,
+    headers: u32,
+    expect: u32,
+    flush: u32,
+    respond: u32
+}
+
+export type Input = Bases
+
+export type Types = {
+    byte: u32,
+    bytes: u32,
+    unit: u32,
+    boolean: u32,
+    allocator: u32,
+    request: u32,
+    status: u32,
+    headers: u32,
+    read_result: u32,
+    void_result: u32
+}
+
+export type Values = {
+    zero: u32,
+    one: u32,
+    two: u32,
+    no: u32,
+    none: u32,
+    undefined: u32
+}
+
+export type Extra = {
+    optional_type: u32[],
+    return_value: u32?[],
+    error_union_payload: u32[],
+    error_union_errors: u8[][]?[],
+    error_union_inferred: bool[],
+    catch_scope_value: u32[],
+    catch_scope_capture: u8[]?[],
+    catch_scope_body_start: u32[],
+    catch_scope_body_len: u32[]
+}
+
+export type State = {
+    context: Context,
+    statements: Statements,
+    fors: Fors,
+    whiles: Whiles,
+    fields: Fields,
+    declarations: Declarations,
+    extra: Extra,
+    symbols: Symbols,
+    types: Types,
+    values: Values,
+    valid: bool
+}
+
+export type Node = {
+    state: State,
+    id: u32
+}
+
+export type Read = {
+    state: State,
+    head: u32,
+    expect: u32,
+    encoding: u32,
+    length: u32,
+    raw_reader: u32,
+    read: u32,
+    caught: u32
+}
+
+export type Head = {
+    state: State,
+    missing: u32,
+    index_of: u32,
+    index_scalar: u32,
+    crlf: u32,
+    invalid_byte: u32,
+    invalid_name: u32,
+    invalid_value: u32,
+    while_condition: u32,
+    length_value: u32,
+    line_value: u32,
+    advance: u32,
+    empty_line: u32,
+    at_end: u32,
+    colon_value: u32,
+    colon_empty: u32,
+    names: u32,
+    values: u32
+}
+
+export type Output = {
+    context: Context,
+    statements: StatementColumns,
+    variables: Variables,
+    loops: Whiles,
+    fields: Fields,
+    declarations: Declarations,
+    extra: Extra,
+    valid: bool
+}

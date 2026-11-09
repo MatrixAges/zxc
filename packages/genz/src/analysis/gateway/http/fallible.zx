@@ -1,0 +1,52 @@
+import construct from "../../../ast/expressions/error_union"
+
+import type { State, Node as Output } from "./model"
+
+export type Input = {
+    state: State,
+    value: u32
+}
+
+export default function (in: Input): Output {
+    const state = in.state
+
+    const node = construct({
+        table: {
+            ...state.context.expressions.pick([
+                "tags",
+                "offsets"
+            ]),
+            ...state.extra.pick([
+                "error_union_payload",
+                "error_union_errors",
+                "error_union_inferred"
+            ])
+        },
+        base: state.context.source.expression_base,
+        payload: in.value,
+        inferred: true
+    })
+
+    return {
+        id: node.id,
+        state: {
+            ...state,
+            context: {
+                ...state.context,
+                expressions: {
+                    ...state.context.expressions,
+                    tags: node.table.tags,
+                    offsets: node.table.offsets
+                },
+                valid: state.context.valid && node.valid
+            },
+            extra: {
+                ...state.extra,
+                ...node.table.omit([
+                    "tags",
+                    "offsets"
+                ])
+            }
+        }
+    }
+}

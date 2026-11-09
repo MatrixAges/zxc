@@ -46,7 +46,7 @@ fn inlined(program: ir.Program, owner: ?ir.FunctionId, pure: []const bool) bool 
     if (primitive) {
         if (input.object.len > maximum_routing_fields or program.expressions.count() > maximum_scalar_expressions) return false;
     } else if (input.object.len >= minimum_record_fields) {
-        if (output != .object or output.object.len > maximum_result_fields) return false;
+        if (output != .object or resultFields(program.types, program.output_type, maximum_result_fields) > maximum_result_fields) return false;
     } else {
         if (input.object.len > maximum_routing_fields or result != .object or result.object.len > maximum_result_fields) return false;
 
@@ -73,6 +73,33 @@ fn inlined(program: ir.Program, owner: ?ir.FunctionId, pure: []const bool) bool 
     };
 
     return calls(program.expressions, program.contracts, pure[0..@backingInt(function)]);
+}
+
+fn resultFields(types: ir.TypeTable, id: ir.TypeId, limit: usize) usize {
+    const value = types.get(id);
+
+    if (value == .optional) return if (limit == 0) 1 else 1 + resultFields(types, value.optional, limit - 1);
+    if (value != .object and value != .tuple) return 0;
+
+    const count = if (value == .object) value.object.len else value.tuple.len;
+
+    if (count > limit) return limit + 1;
+
+    var cost: usize = 0;
+
+    for (0..count) |index| {
+        cost += 1;
+
+        if (cost <= limit) {
+            const child = if (value == .object) value.object.at(index).type_id else value.tuple.at(index);
+
+            cost += resultFields(types, child, limit - cost);
+        }
+
+        if (cost > limit) break;
+    }
+
+    return cost;
 }
 
 pub fn scalarLocals(program: ir.Program, local: []const bool) bool {

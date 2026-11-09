@@ -1,0 +1,115 @@
+import boolean from "../../../ast/context/boolean"
+import constSlice from "../../../ast/context/const_slice"
+import initialize from "../../../ast/context/initialize"
+import integer from "../../../ast/context/integer"
+import nullValue from "../../../ast/context/null_value"
+import primitive from "../../../ast/context/primitive"
+import undefinedValue from "../../../ast/context/undefined"
+import declarations from "../../../ast/declarations/table/create"
+import fields from "../../../ast/fields/empty"
+import statements from "../../../ast/statements/builder/initialize"
+import { ExpressionsPrimitive as P } from "../../../printer/model/expressions"
+import symbols from "./symbols"
+
+import type { Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const names = symbols(initialize(in))
+
+    const zero = integer({
+        state: names.context,
+        value: 0
+    })
+
+    const one = integer({
+        state: zero.state,
+        value: 1
+    })
+
+    const two = integer({
+        state: one.state,
+        value: 2
+    })
+
+    const no = boolean({
+        state: two.state,
+        value: false
+    })
+
+    const none = nullValue(no.state)
+    const absent = undefinedValue(none.state)
+
+    const byte = primitive({
+        state: absent.state,
+        value: P.U8
+    })
+
+    const unit = primitive({
+        state: byte.state,
+        value: P.Void
+    })
+
+    const truth = primitive({
+        state: unit.state,
+        value: P.Bool
+    })
+
+    const slice = constSlice({
+        state: truth.state,
+        value: byte.id
+    })
+
+    return {
+        context: slice.state,
+        statements: statements(in.statement_base),
+        fors: {
+            for_loop_iterable: [],
+            for_loop_capture: [],
+            for_loop_body_start: [],
+            for_loop_body_len: [],
+            for_loop_capture_reference: [],
+            for_loop_index_capture: []
+        },
+        whiles: {
+            while_loop_condition: [],
+            while_loop_body_start: [],
+            while_loop_body_len: [],
+            while_loop_capture: []
+        },
+        fields: fields({}),
+        declarations: declarations({}),
+        extra: {
+            optional_type: [],
+            return_value: [],
+            error_union_payload: [],
+            error_union_errors: [],
+            error_union_inferred: [],
+            catch_scope_value: [],
+            catch_scope_capture: [],
+            catch_scope_body_start: [],
+            catch_scope_body_len: []
+        },
+        symbols: names.symbols,
+        types: {
+            byte: byte.id,
+            bytes: slice.id,
+            unit: unit.id,
+            boolean: truth.id,
+            allocator: 0,
+            request: 0,
+            status: 0,
+            headers: 0,
+            read_result: 0,
+            void_result: 0
+        },
+        values: {
+            zero: zero.id,
+            one: one.id,
+            two: two.id,
+            no: no.id,
+            none: none.id,
+            undefined: absent.id
+        },
+        valid: true
+    }
+}

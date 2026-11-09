@@ -1,0 +1,114 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import call from "../../../ast/context/call"
+import path from "../../../ast/context/member_path"
+import object from "../../../ast/context/object"
+import field from "../../../ast/fields/append"
+import assignment from "../../../ast/statements/builder/assignment"
+import evaluate from "../../../ast/statements/builder/evaluate"
+import complete from "./complete"
+import {
+    head_name,
+    expect_member,
+    respond_name,
+    status_name,
+    body_name,
+    headers_name,
+    request_name,
+    keep_alive_name,
+    extra_headers_name
+} from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const first = in.context.source.field_base + integers.narrow(in.fields.name.length)
+
+    const status = field({
+        table: in.fields,
+        name: bytes.fromText(status_name),
+        value: in.symbols.status,
+        comptime_parameter: false
+    })
+
+    const alive = field({
+        table: status,
+        name: bytes.fromText(keep_alive_name),
+        value: in.values.no,
+        comptime_parameter: false
+    })
+
+    const fields = field({
+        table: alive,
+        name: bytes.fromText(extra_headers_name),
+        value: in.symbols.headers,
+        comptime_parameter: false
+    })
+
+    const options = object({
+        state: in.context,
+        first,
+        count: 3
+    })
+
+    const expect = path({
+        state: options.state,
+        target: in.symbols.request,
+        path: [
+            head_name,
+            expect_member
+        ]
+    })
+
+    const cleared = assignment({
+        state: in.statements,
+        target: expect.id,
+        value: in.values.none
+    })
+
+    const method = path({
+        state: expect.state,
+        target: in.symbols.request,
+        path: [respond_name]
+    })
+
+    const response = call({
+        state: method.state,
+        callee: method.id,
+        arguments: [
+            in.symbols.body,
+            options.id
+        ],
+        fallible: true
+    })
+
+    const sent = evaluate({
+        state: cleared,
+        value: response.id,
+        discard: false
+    })
+
+    return complete({
+        state: {
+            ...in,
+            context: response.state,
+            fields,
+            statements: sent
+        },
+        name: respond_name,
+        names: [
+            request_name,
+            status_name,
+            body_name,
+            headers_name
+        ],
+        types: [
+            in.types.request,
+            in.types.status,
+            in.types.bytes,
+            in.types.headers
+        ],
+        result: in.types.void_result
+    })
+}

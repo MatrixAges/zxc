@@ -1,0 +1,122 @@
+import bytes from "std:bytes"
+
+import identifier from "../../../ast/context/identifier"
+import {
+    bytes_index,
+    byte_index,
+    offset_index,
+    first_end_index,
+    length_index,
+    line_index,
+    colon_index,
+    allocator_index,
+    request_index,
+    max_body_bytes_index,
+    body_index,
+    err_index,
+    reader_index,
+    buffer_index,
+    status_index,
+    headers_index,
+    expect_index,
+    flush_index,
+    respond_index,
+    bytes_name,
+    byte_name,
+    offset_name,
+    first_end_name,
+    length_name,
+    line_name,
+    colon_name,
+    allocator_name,
+    request_name,
+    max_body_bytes_name,
+    body_name,
+    err_name,
+    reader_name,
+    buffer_name,
+    status_name,
+    headers_name,
+    expect_name,
+    flush_name,
+    respond_name,
+} from "./const"
+
+import type { State as Context } from "../../../ast/context/model"
+import type { Symbols } from "./model"
+
+export type Input = Context
+
+export type Output = {
+    context: Context,
+    symbols: Symbols
+}
+
+export default function (in: Input): Output {
+    const identifier_names: string[] = [
+        bytes_name,
+        byte_name,
+        offset_name,
+        first_end_name,
+        length_name,
+        line_name,
+        colon_name,
+        allocator_name,
+        request_name,
+        max_body_bytes_name,
+        body_name,
+        err_name,
+        reader_name,
+        buffer_name,
+        status_name,
+        headers_name,
+        expect_name,
+        flush_name,
+        respond_name
+    ]
+
+    const values: u32[] = []
+
+    const names = loop({
+        context: in,
+        values,
+        index: 0
+    }, {
+        while: current => current.index < identifier_names.length,
+        next: current => {
+            const node = identifier({
+                state: current.context,
+                name: bytes.fromText(identifier_names[current.index])
+            })
+
+            current.context = node.state
+            current.values = current.values.push(node.id)[0]
+            current.index += 1
+        }
+    })
+
+    return {
+        context: names.context,
+        symbols: {
+            bytes: names.values[bytes_index],
+            byte: names.values[byte_index],
+            offset: names.values[offset_index],
+            first_end: names.values[first_end_index],
+            length: names.values[length_index],
+            line: names.values[line_index],
+            colon: names.values[colon_index],
+            allocator: names.values[allocator_index],
+            request: names.values[request_index],
+            max_body_bytes: names.values[max_body_bytes_index],
+            body: names.values[body_index],
+            err: names.values[err_index],
+            reader: names.values[reader_index],
+            buffer: names.values[buffer_index],
+            status: names.values[status_index],
+            headers: names.values[headers_index],
+            expect: names.values[expect_index],
+            flush: names.values[flush_index],
+            respond: names.values[respond_index]
+        }
+    }
+}

@@ -1,0 +1,80 @@
+import bytes from "std:bytes"
+
+import binary from "../../../ast/context/binary"
+import call from "../../../ast/context/call"
+import slice from "../../../ast/context/slice"
+import binding from "../../../ast/statements/builder/binding"
+import { ExpressionsBinaryOperator as B } from "../../../printer/model/expressions"
+import { first_end_name, offset_name } from "./const"
+import forReject from "./for_reject"
+
+import type { Head as Input, Head as Output } from "./model"
+
+export default function (in: Input): Output {
+    const state = in.state
+
+    const index = call({
+        state: state.context,
+        callee: in.index_of,
+        arguments: [
+            state.types.byte,
+            state.symbols.bytes,
+            in.crlf
+        ],
+        fallible: false
+    })
+
+    const first_end = binary({
+        state: index.state,
+        operator: B.Coalesce,
+        left: index.id,
+        right: in.missing
+    })
+
+    const captured = binding({
+        state: state.statements,
+        name: bytes.fromText(first_end_name),
+        value: first_end.id,
+        mutable: false
+    })
+
+    const prefix = slice({
+        state: first_end.state,
+        target: state.symbols.bytes,
+        start: state.values.zero,
+        end: state.symbols.first_end
+    })
+
+    const rejected = forReject({
+        state: {
+            ...state,
+            context: prefix.state,
+            statements: captured
+        },
+        iterable: prefix.id,
+        condition: in.invalid_byte
+    })
+
+    const start = binary({
+        state: rejected.context,
+        operator: B.Add,
+        left: state.symbols.first_end,
+        right: state.values.two
+    })
+
+    const offset = binding({
+        state: rejected.statements,
+        name: bytes.fromText(offset_name),
+        value: start.id,
+        mutable: true
+    })
+
+    return {
+        ...in,
+        state: {
+            ...rejected,
+            context: start.state,
+            statements: offset
+        }
+    }
+}

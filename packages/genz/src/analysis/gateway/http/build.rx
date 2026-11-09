@@ -1,0 +1,23 @@
+<Module>
+    <Type from="model" as="Http" />
+
+    <Args in={Http.Input} out={Http.Output} />
+
+    <Call fn="prepare" in={$in} />
+    <Call fn="types" in={$ctx.prepare} />
+    <Call fn="read_layout" in={$ctx.types} />
+    <Call fn="read_catch" in={$ctx.read_layout} />
+    <Call fn="read_expect" in={$ctx.read_catch} />
+    <Call fn="read_limits" in={$ctx.read_expect} />
+    <Call fn="read_continue" in={$ctx.read_limits} />
+    <Call fn="read_stream" in={$ctx.read_continue} />
+    <Call fn="read_finish" in={$ctx.read_stream} />
+    <Call fn="respond" in={$ctx.read_finish} />
+    <Call fn="head_classify" in={$ctx.respond} />
+    <Call fn="head_request" in={$ctx.head_classify} />
+    <Call fn="head_layout" in={$ctx.head_request} />
+    <Call fn="head_headers" in={$ctx.head_layout} />
+    <Call fn="publish" in={$ctx.head_headers} />
+
+    <Return value={$ctx.publish} />
+</Module>

@@ -1,0 +1,73 @@
+import bytes from "std:bytes"
+
+import binary from "../../../ast/context/binary"
+import path from "../../../ast/context/member_path"
+import text from "../../../ast/context/text"
+import {
+    ExpressionsBinaryOperator as B,
+    ExpressionsKind as K
+} from "../../../printer/model/expressions"
+import {
+    transfer_compression_name,
+    identity_name,
+    unsupported_media_type_name,
+    unsupported_compression,
+    payload_too_large_name,
+    large_body_message
+} from "./const"
+import reject from "./reject"
+
+import type { Read as Input, Read as Output } from "./model"
+
+export default function (in: Input): Output {
+    const compression = path({
+        state: in.state.context,
+        target: in.head,
+        path: [transfer_compression_name]
+    })
+
+    const identity = text({
+        state: compression.state,
+        kind: K.EnumLiteral,
+        value: bytes.fromText(identity_name)
+    })
+
+    const compressed = binary({
+        state: identity.state,
+        operator: B.NotEqual,
+        left: compression.id,
+        right: identity.id
+    })
+
+    const rejected = reject({
+        state: {
+            ...in.state,
+            context: compressed.state
+        },
+        condition: compressed.id,
+        status: unsupported_media_type_name,
+        message: unsupported_compression
+    })
+
+    const large = binary({
+        state: rejected.context,
+        operator: B.Greater,
+        left: in.length,
+        right: in.state.symbols.max_body_bytes
+    })
+
+    const bounded = reject({
+        state: {
+            ...rejected,
+            context: large.state
+        },
+        condition: large.id,
+        status: payload_too_large_name,
+        message: large_body_message
+    })
+
+    return {
+        ...in,
+        state: bounded
+    }
+}

@@ -13,6 +13,7 @@ import {
     maximum_scalar_expressions
 } from "./const"
 import recordResult from "./record_result"
+import resultFields from "./result_fields"
 
 import type { Input } from "./model"
 
@@ -54,10 +55,17 @@ export default function (in: Input): Output {
             return false
         }
     } else if (wide) {
-        if (
-            kind(in.types.kinds[output]) != Kind.Object ||
-                in.types.second[output] > maximum_result_fields
-        ) {
+        if (kind(in.types.kinds[output]) != Kind.Object) {
+            return false
+        }
+
+        const fields = resultFields({
+            types: in.types,
+            type_id: in.output_type,
+            limit: integers.widen(maximum_result_fields)
+        })
+
+        if (fields > integers.widen(maximum_result_fields)) {
             return false
         }
     } else if (
