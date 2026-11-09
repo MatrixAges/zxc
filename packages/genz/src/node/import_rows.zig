@@ -81,17 +81,30 @@ fn appendRows(allocator: std.mem.Allocator, target: anytype, source: anytype, co
         if (copied[index]) allocator.free(@field(prepared, name));
     };
 
-    errdefer inline for (fields, 0..) |name, index| {
-        if (copied[index]) for (@field(prepared, name)) |value| {
-            if (comptime borrow_text) owned.releaseBorrowingText(allocator, value) else owned.release(allocator, value);
+    if (comptime fields.len != 0) {
+        const failure: ?Error = copying: {
+            inline for (fields, 0..) |name, index| {
+                if (@field(source, name).len != 0) {
+                    @field(prepared, name) = if (comptime borrow_text)
+                        owned.copyBorrowingText(allocator, @field(source, name)) catch |err| break :copying err
+                    else
+                        owned.copy(allocator, @field(source, name)) catch |err| break :copying err;
+
+                    copied[index] = true;
+                }
+            }
+
+            break :copying null;
         };
-    };
 
-    inline for (fields, 0..) |name, index| {
-        if (@field(source, name).len != 0) {
-            @field(prepared, name) = if (comptime borrow_text) try owned.copyBorrowingText(allocator, @field(source, name)) else try owned.copy(allocator, @field(source, name));
+        if (failure) |err| {
+            inline for (fields, 0..) |name, index| {
+                if (copied[index]) for (@field(prepared, name)) |value| {
+                    if (comptime borrow_text) owned.releaseBorrowingText(allocator, value) else owned.release(allocator, value);
+                };
+            }
 
-            copied[index] = true;
+            return err;
         }
     }
 
