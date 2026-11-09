@@ -1,0 +1,46 @@
+import { max_u32 } from "core/const"
+
+import { ExpressionsKind } from "../../printer/model/expressions"
+
+export type Input = {
+    in_place: bool,
+    selected: bool,
+    base: u32
+}
+
+export type Output = {
+    writable: bool,
+    root: u32,
+    expressions: {
+        tags: ExpressionsKind[],
+        offsets: u32[],
+        boolean: bool[]
+    },
+    valid: bool
+}
+
+export default function (in: Input): Output {
+    if (!in.in_place && in.selected) {
+        return {
+            writable: true,
+            root: 0,
+            expressions: {
+                tags: [],
+                offsets: [],
+                boolean: []
+            },
+            valid: true
+        }
+    }
+
+    return {
+        writable: false,
+        root: in.base,
+        expressions: {
+            tags: [ExpressionsKind.Boolean],
+            offsets: [0],
+            boolean: [in.in_place]
+        },
+        valid: in.base < max_u32
+    }
+}

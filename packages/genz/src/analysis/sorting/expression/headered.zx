@@ -1,0 +1,33 @@
+import binary from "../../../ast/context/binary"
+import boolean from "../../../ast/context/boolean"
+import { ExpressionsBinaryOperator } from "../../../printer/model/expressions"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    if (in.source.selected) {
+        const value = binary({
+            state: in.context,
+            operator: ExpressionsBinaryOperator.LogicalAnd,
+            left: in.source.reuse,
+            right: in.source.headered
+        })
+
+        return {
+            ...in,
+            context: value.state,
+            headered: value.id
+        }
+    }
+
+    const value = boolean({
+        state: in.context,
+        value: false
+    })
+
+    return {
+        ...in,
+        context: value.state,
+        headered: value.id
+    }
+}

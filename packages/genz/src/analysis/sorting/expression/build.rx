@@ -1,0 +1,16 @@
+<Module>
+    <Type from="model" as="Sorting" />
+
+    <Args in={Sorting.Input} out={Sorting.Output} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="errors" in={$ctx.initialize} />
+    <Call fn="failure" in={$ctx.errors} />
+    <Call fn="values" in={$ctx.failure} />
+    <Call fn="context" in={$ctx.values} />
+    <Call fn="invoke" in={$ctx.context} />
+    <Call fn="headered" in={$ctx.invoke} />
+    <Call fn="finish" in={$ctx.headered} />
+
+    <Return value={$ctx.finish} />
+</Module>

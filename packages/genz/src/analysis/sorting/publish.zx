@@ -1,0 +1,48 @@
+import constants from "../../ast/declarations/constants"
+import namespace from "../../ast/expressions/namespace"
+
+import type { Columns as Declarations } from "../../ast/declarations/model"
+import type { Columns as Expressions } from "../../ast/expressions/namespace"
+
+export type Input = {
+    name: u8[],
+    expression_base: u32,
+    first: u32,
+    count: u32
+}
+
+export type Output = {
+    expressions: Expressions,
+    declarations: Declarations,
+    valid: bool
+}
+
+export default function (in: Input): Output {
+    const value = namespace({
+        table: {
+            tags: [],
+            offsets: [],
+            namespace_type_start: [],
+            namespace_type_len: []
+        },
+        base: in.expression_base,
+        start: in.first,
+        count: in.count
+    })
+
+    const declarations = constants({
+        base: 0,
+        values: [{
+            name: in.name,
+            type_expr: null,
+            value: value.id,
+            exported: false
+        }]
+    })
+
+    return {
+        expressions: value.table,
+        declarations: declarations.table,
+        valid: value.valid && declarations.valid
+    }
+}

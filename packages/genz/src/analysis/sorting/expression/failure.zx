@@ -1,0 +1,50 @@
+import builtin from "../../../ast/context/builtin"
+import nullValue from "../../../ast/context/null_value"
+import header from "../../../ast/expressions/header"
+import {
+    ExpressionsKind,
+    ExpressionsBuiltinName
+} from "../../../printer/model/expressions"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const optional = header({
+        ...in.context.expressions.pick([
+            "tags",
+            "offsets"
+        ]),
+        base: in.source.bases.expression_base,
+        kind: ExpressionsKind.OptionalType,
+        offset: in.extra.optional_type.length
+    })
+
+    const empty = nullValue({
+        ...in.context,
+        expressions: {
+            ...in.context.expressions,
+            tags: optional.tags,
+            offsets: optional.offsets
+        },
+        valid: in.context.valid && optional.valid
+    })
+
+    const value = builtin({
+        state: empty.state,
+        name: ExpressionsBuiltinName.As,
+        arguments: [
+            optional.id,
+            empty.id
+        ]
+    })
+
+    return {
+        ...in,
+        context: value.state,
+        extra: {
+            ...in.extra,
+            optional_type: in.extra.optional_type.push(in.failure_type)[0]
+        },
+        failure: value.id
+    }
+}

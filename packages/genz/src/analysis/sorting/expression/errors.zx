@@ -1,0 +1,53 @@
+import primitive from "../../../ast/context/primitive"
+import header from "../../../ast/expressions/header"
+import {
+    ExpressionsKind,
+    ExpressionsPrimitive
+} from "../../../printer/model/expressions"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const errors = in.source.errors
+
+    if (errors == null) {
+        const value = primitive({
+            state: in.context,
+            value: ExpressionsPrimitive.Anyerror
+        })
+
+        return {
+            ...in,
+            context: value.state,
+            failure_type: value.id
+        }
+    }
+
+    const value = header({
+        ...in.context.expressions.pick([
+            "tags",
+            "offsets"
+        ]),
+        base: in.source.bases.expression_base,
+        kind: ExpressionsKind.ErrorSet,
+        offset: in.extra.error_set.length
+    })
+
+    return {
+        ...in,
+        context: {
+            ...in.context,
+            expressions: {
+                ...in.context.expressions,
+                tags: value.tags,
+                offsets: value.offsets
+            },
+            valid: in.context.valid && value.valid
+        },
+        extra: {
+            ...in.extra,
+            error_set: in.extra.error_set.push(errors)[0]
+        },
+        failure_type: value.id
+    }
+}

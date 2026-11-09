@@ -1,0 +1,52 @@
+import bytes from "std:bytes"
+
+import address from "../../../ast/context/address"
+import call from "../../../ast/context/call"
+import field from "../../../ast/context/field"
+import identifier from "../../../ast/context/identifier"
+import { sort_name } from "../functions/const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const worker = identifier({
+        state: in.context,
+        name: in.source.name
+    })
+
+    const method = field({
+        state: worker.state,
+        target: worker.id,
+        name: bytes.fromText(sort_name)
+    })
+
+    const slot = method.state.expressions.identifier.length
+
+    const context = identifier({
+        state: method.state,
+        name: in.name
+    })
+
+    const pointer = address({
+        state: context.state,
+        value: context.id
+    })
+
+    const value = call({
+        state: pointer.state,
+        callee: method.id,
+        arguments: [
+            pointer.id,
+            in.source.source,
+            in.source.reuse
+        ],
+        fallible: true
+    })
+
+    return {
+        ...in,
+        context: value.state,
+        name_slot: slot,
+        root: value.id
+    }
+}

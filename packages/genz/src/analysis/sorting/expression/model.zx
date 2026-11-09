@@ -1,0 +1,58 @@
+import type {
+    Input as Bases,
+    State as Context,
+    Variables
+} from "../../../ast/context/model"
+import type { Columns as Forms } from "../../../ast/expressions/forms/model"
+import type { Columns as Expressions } from "../../../ast/expressions/model"
+import type { Columns as Fields } from "../../../ast/fields/model"
+import type { Columns as Statements } from "../../../ast/statements/model"
+
+export type Input = {
+    name: u8[],
+    source: u32,
+    reuse: u32,
+    environment: u32,
+    errors?: u8[][],
+    io: bool,
+    process: bool,
+    selected: bool,
+    headered: u32,
+    bases: Bases
+}
+
+export type Extra = {
+    error_set: u8[][][],
+    optional_type: u32[],
+    struct_type_start: u32[],
+    struct_type_len: u32[]
+}
+
+export type State = {
+    source: Input,
+    context: Context,
+    extra: Extra,
+    fields: Fields,
+    values_count: u32,
+    failure_type: u32,
+    failure: u32,
+    name: u8[],
+    name_slot: u64,
+    root: u32,
+    headered: u32
+}
+
+export type Output = {
+    expressions: Expressions,
+    forms: Forms,
+    extra: Extra,
+    statements: Statements,
+    variables: Variables,
+    fields: Fields,
+    name: u8[],
+    name_slot: u64,
+    serial: u64,
+    root: u32,
+    headered: u32,
+    valid: bool
+}

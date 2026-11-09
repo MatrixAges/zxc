@@ -1,0 +1,79 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import identifier from "../../../ast/context/identifier"
+import appendField from "../../../ast/fields/append"
+import appendValues from "../../../ast/fields/append_values"
+import { io_name, process_name } from "../../functions/signature/const"
+import { allocator_name, failure_name } from "../functions/const"
+import { environment_name } from "../worker/const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const allocator = identifier({
+        state: in.context,
+        name: bytes.fromText(allocator_name)
+    })
+
+    const initial = appendValues({
+        table: in.fields,
+        names: [
+            bytes.fromText(allocator_name),
+            bytes.fromText(environment_name),
+            bytes.fromText(failure_name)
+        ],
+        values: [
+            allocator.id,
+            in.source.environment,
+            in.failure
+        ]
+    })
+
+    const names = [
+        io_name,
+        process_name
+    ]
+
+    const used = [
+        in.source.io,
+        in.source.process
+    ]
+
+    const result = loop({
+        context: allocator.state,
+        fields: initial,
+        index: 0
+    }, {
+        while: current => current.index < names.length,
+        next: current => {
+            if (used[current.index]) {
+                const name = bytes.fromText(names[current.index])
+                const value = identifier({
+                    state: current.context,
+                    name
+                })
+
+                current.fields = appendField({
+                    table: current.fields,
+                    name,
+                    value: value.id,
+                    default_value: null,
+                    comptime_parameter: false
+                })
+
+                current.context = value.state
+            }
+
+            current.index += 1
+        },
+        return: current => current
+    })
+
+    return {
+        ...in,
+        context: result.context,
+        fields: result.fields,
+        values_count: integers.narrow(result.fields.name.length)
+    }
+}

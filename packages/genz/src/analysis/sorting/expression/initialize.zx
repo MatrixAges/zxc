@@ -1,0 +1,25 @@
+import context from "../../../ast/context/initialize"
+import fields from "../../../ast/fields/empty"
+
+import type { Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        source: in,
+        context: context(in.bases),
+        extra: {
+            error_set: [],
+            optional_type: [],
+            struct_type_start: [],
+            struct_type_len: []
+        },
+        fields: fields({}),
+        values_count: 0,
+        failure_type: 0,
+        failure: 0,
+        name: [],
+        name_slot: 0,
+        root: 0,
+        headered: 0
+    }
+}

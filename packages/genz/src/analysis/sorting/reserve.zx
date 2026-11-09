@@ -1,0 +1,57 @@
+import bytes from "std:bytes"
+
+import constants from "../../ast/declarations/constants"
+import header from "../../ast/expressions/header"
+import { ExpressionsKind } from "../../printer/model/expressions"
+import integer from "../../printer/text/integer"
+import { worker_prefix } from "./const"
+
+import type { Columns as Declarations } from "../../ast/declarations/model"
+
+export type Input = {
+    index: u64,
+    expression_base: u32
+}
+
+export type Output = {
+    expressions: {
+        tags: ExpressionsKind[],
+        offsets: u32[]
+    },
+    declarations: Declarations,
+    valid: bool
+}
+
+export default function (in: Input): Output {
+    const name = integer({
+        output: bytes.fromText(worker_prefix),
+        value: in.index
+    })
+
+    const value = header({
+        tags: [],
+        offsets: [],
+        base: in.expression_base,
+        kind: ExpressionsKind.UndefinedValue,
+        offset: 0
+    })
+
+    const declarations = constants({
+        base: 0,
+        values: [{
+            name,
+            type_expr: null,
+            value: value.id,
+            exported: false
+        }]
+    })
+
+    return {
+        expressions: {
+            tags: value.tags,
+            offsets: value.offsets
+        },
+        declarations: declarations.table,
+        valid: value.valid && declarations.valid
+    }
+}

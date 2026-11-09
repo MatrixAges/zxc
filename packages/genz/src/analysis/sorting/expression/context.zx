@@ -1,0 +1,99 @@
+import integers from "std:integer"
+
+import builtin from "../../../ast/context/builtin"
+import object from "../../../ast/context/object"
+import variable from "../../../ast/context/variable"
+import header from "../../../ast/expressions/header"
+import appendField from "../../../ast/fields/append"
+import fresh from "../../../ast/fresh"
+import {
+    ExpressionsKind,
+    ExpressionsBuiltinName
+} from "../../../printer/model/expressions"
+import { context_prefix } from "../const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const fields = loop({
+        context: in.context,
+        fields: in.fields,
+        index: 0
+    }, {
+        while: current => current.index < integers.widen(in.values_count),
+        next: current => {
+            const type_value = builtin({
+                state: current.context,
+                name: ExpressionsBuiltinName.TypeOf,
+                arguments: [in.fields.value[current.index]]
+            })
+
+            current.fields = appendField({
+                table: current.fields,
+                name: in.fields.name[current.index],
+                value: type_value.id,
+                default_value: null,
+                comptime_parameter: false
+            })
+
+            current.context = type_value.state
+            current.index += 1
+        },
+        return: current => current
+    })
+
+    const type_value = header({
+        ...fields.context.expressions.pick([
+            "tags",
+            "offsets"
+        ]),
+        base: in.source.bases.expression_base,
+        kind: ExpressionsKind.StructType,
+        offset: in.extra.struct_type_start.length
+    })
+
+    const value = object({
+        state: {
+            ...fields.context,
+            expressions: {
+                ...fields.context.expressions,
+                tags: type_value.tags,
+                offsets: type_value.offsets
+            },
+            valid: fields.context.valid && type_value.valid
+        },
+        type_expr: null,
+        first: in.source.bases.field_base,
+        count: in.values_count
+    })
+
+    const name = fresh({
+        serial: value.state.serial,
+        prefix: context_prefix
+    })
+
+    const context = variable({
+        state: {
+            ...value.state,
+            serial: name.serial
+        },
+        name: name.name,
+        type_expr: type_value.id,
+        value: value.id
+    })
+
+    return {
+        ...in,
+        context,
+        fields: fields.fields,
+        extra: {
+            ...in.extra,
+            struct_type_start:
+                in.extra.struct_type_start.push(
+                    in.source.bases.field_base + in.values_count
+                )[0],
+            struct_type_len: in.extra.struct_type_len.push(in.values_count)[0]
+        },
+        name: name.name
+    }
+}
