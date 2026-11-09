@@ -1,0 +1,57 @@
+import type { Body } from "../../../ast/body/model"
+import type { Input as Bases, State as Context } from "../../../ast/context/model"
+import type { Columns as Fields } from "../../../ast/fields/model"
+import type { Columns as Statements } from "../../../ast/statements/model"
+import type { Operation } from "../../growth/const"
+import type { Ast } from "../../state/list/model"
+import type { Output as Emission } from "../model"
+
+export type Input = {
+    items: u32,
+    value: u32,
+    argument: u32,
+    element: u32,
+    length: u32,
+    unit: u32,
+    push: bool,
+    frontier: bool,
+    lazy: bool,
+    minimum?: u32,
+    selected: bool,
+    layout: u32,
+    shared: bool,
+    ast: Ast,
+    bases: Bases
+}
+
+export type State = {
+    source: Input,
+    context: Context,
+    body: Body,
+    outer: Body,
+    fields: Fields,
+    added: u32,
+    count: u32,
+    root: u32
+}
+
+export type Qualified = {
+    state: State,
+    exclusive: u32
+}
+
+export type Request = {
+    state: State,
+    operation: Operation,
+    value: u32,
+    frontier: bool
+}
+
+export type Merge = {
+    state: State,
+    context: Context,
+    body: Statements,
+    root: u32
+}
+
+export type Output = Emission

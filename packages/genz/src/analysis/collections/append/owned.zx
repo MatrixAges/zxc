@@ -1,0 +1,55 @@
+import bytes from "std:bytes"
+
+import boolean from "../../../ast/context/boolean"
+import object from "../../../ast/context/object"
+import append from "../../../ast/fields/append"
+import proven from "../../state/list/proven"
+import { items_field, storage_field, list_field_count } from "../../types/state/const"
+
+import type { Qualified as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const state = in.state
+
+    const header = boolean({
+        state: state.context,
+        value: true
+    })
+
+    const storage = proven({
+        state: header.state,
+        ast: state.source.ast,
+        header: header.id,
+        unique: in.exclusive
+    })
+
+    const first = append({
+        table: state.fields,
+        name: bytes.fromText(items_field),
+        value: state.root,
+        default_value: null,
+        comptime_parameter: false
+    })
+
+    const fields = append({
+        table: first,
+        name: bytes.fromText(storage_field),
+        value: storage.id,
+        default_value: null,
+        comptime_parameter: false
+    })
+
+    const value = object({
+        state: storage.state,
+        type_expr: state.source.layout,
+        first: state.source.bases.field_base,
+        count: list_field_count
+    })
+
+    return {
+        ...state,
+        context: value.state,
+        fields,
+        root: value.id
+    }
+}

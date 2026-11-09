@@ -1,0 +1,15 @@
+<Module>
+    <Type from="model" as="Append" />
+
+    <Args in={Append.State} out={Append.State} />
+
+    <If on={$in.source.push}>
+        <Call fn="push" in={$in} />
+
+        <Return value={$ctx.push} />
+    </If>
+
+    <Call fn="concat" in={$in} />
+
+    <Return value={$ctx.concat} />
+</Module>

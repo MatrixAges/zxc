@@ -1,0 +1,32 @@
+import binding from "../../../ast/body/binding"
+
+import type { Merge as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return loop({
+        context: in.context,
+        body: in.state.body,
+        index: 0
+    }, {
+        while: current => current.index < in.body.constant_name.length,
+        next: current => {
+            const value = binding({
+                state: current.pick([
+                    "context",
+                    "body"
+                ]),
+                name: in.body.constant_name[current.index],
+                value: in.body.constant_value[current.index]
+            })
+
+            current.context = value.context
+            current.body = value.body
+            current.index += 1
+        },
+        return: current => {
+            ...in.state,
+            ...current.omit(["index"]),
+            root: in.root
+        }
+    })
+}

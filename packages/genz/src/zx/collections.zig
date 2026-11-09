@@ -128,40 +128,56 @@ fn lowerMode(self: *Lower, id: ir.ExprId, layout: ?node.ExpressionId, removed_on
             }
         },
         .push, .concat => {
-            const added = if (operation.kind == .push) try self.builder.integer(1) else try self.field(arguments[0], "len");
-            const count = try aggregate.bind(self, &body, try addLength(self, length, added));
-            var append: std.ArrayList(node.Statement) = .empty;
-            const minimum = if (self.loop_fields) |context| try context.minimum(self, id) else null;
+            if (@import("genz_options").generated_analysis) {
+                result = try @import("collections/append.zig").lower(self, &body, .{
+                    .operation = id,
+                    .type_id = source_type,
+                    .items = source,
+                    .value = source_value,
+                    .argument = arguments[0],
+                    .element = child_type,
+                    .length = length,
+                    .unit = unit,
+                    .push = operation.kind == .push,
+                    .frontier = flags.frontier,
+                    .lazy = flags.lazy,
+                });
+            } else {
+                const added = if (operation.kind == .push) try self.builder.integer(1) else try self.field(arguments[0], "len");
+                const count = try aggregate.bind(self, &body, try addLength(self, length, added));
+                var append: std.ArrayList(node.Statement) = .empty;
+                const minimum = if (self.loop_fields) |context| try context.minimum(self, id) else null;
 
-            const buffer = if (minimum != null and flags.frontier)
-                try growth.reserveBounded(self, &append, child_type, source, count, minimum.?)
+                const buffer = if (minimum != null and flags.frontier)
+                    try growth.reserveBounded(self, &append, child_type, source, count, minimum.?)
 
-            else if (provenance.selected(self, source_type) and (flags.lazy or !flags.frontier))
-                try provenance.reserve(self, &append, source_type, source_value, count, true)
-            else
-                try growth.reserve(self, &append, child_type, source, count, flags.frontier);
+                else if (provenance.selected(self, source_type) and (flags.lazy or !flags.frontier))
+                    try provenance.reserve(self, &append, source_type, source_value, count, true)
+                else
+                    try growth.reserve(self, &append, child_type, source, count, flags.frontier);
 
-            if (operation.kind == .push) {
-                try append.append(self.allocator, .{ .assignment = .{ .target = try self.builder.expression(.{ .index = .{ .target = buffer, .index = length } }), .value = arguments[0] } });
-            } else try copy(self, &append, try slice(self, buffer, length, null), arguments[0]);
+                if (operation.kind == .push) {
+                    try append.append(self.allocator, .{ .assignment = .{ .target = try self.builder.expression(.{ .index = .{ .target = buffer, .index = length } }), .value = arguments[0] } });
+                } else try copy(self, &append, try slice(self, buffer, length, null), arguments[0]);
 
-            const wrapped = if (provenance.selected(self, source_type)) wrapped: {
-                const allocated = try intrinsic.binary(self, .not_equal, try self.field(buffer, "ptr"), try self.field(source, "ptr"));
-                const fresh = try intrinsic.binary(self, .logical_or, try intrinsic.binary(self, .equal, length, try self.builder.integer(0)), allocated);
-                const exclusive = try intrinsic.binary(self, .logical_or, fresh, try provenance.exclusive(self, source_value));
+                const wrapped = if (provenance.selected(self, source_type)) wrapped: {
+                    const allocated = try intrinsic.binary(self, .not_equal, try self.field(buffer, "ptr"), try self.field(source, "ptr"));
+                    const fresh = try intrinsic.binary(self, .logical_or, try intrinsic.binary(self, .equal, length, try self.builder.integer(0)), allocated);
+                    const exclusive = try intrinsic.binary(self, .logical_or, fresh, try provenance.exclusive(self, source_value));
 
-                break :wrapped try provenance.proven(self, source_type, buffer, try self.builder.expression(.{ .boolean = true }), exclusive);
-            } else buffer;
+                    break :wrapped try provenance.proven(self, source_type, buffer, try self.builder.expression(.{ .boolean = true }), exclusive);
+                } else buffer;
 
-            const appended = try aggregate.finish(self, &append, wrapped);
+                const appended = try aggregate.finish(self, &append, wrapped);
 
-            const updated = if (operation.kind == .concat) try self.builder.expression(.{ .conditional = .{
-                .condition = try intrinsic.binary(self, .equal, added, try self.builder.integer(0)),
-                .yes = source_value,
-                .no = appended,
-            } }) else appended;
+                const updated = if (operation.kind == .concat) try self.builder.expression(.{ .conditional = .{
+                    .condition = try intrinsic.binary(self, .equal, added, try self.builder.integer(0)),
+                    .yes = source_value,
+                    .no = appended,
+                } }) else appended;
 
-            result = try pair(self, updated, unit);
+                result = try pair(self, updated, unit);
+            }
         },
         .splice => {
             if (@import("genz_options").generated_analysis) {

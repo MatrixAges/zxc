@@ -1,0 +1,72 @@
+import bytes from "std:bytes"
+
+import binary from "../../../ast/context/binary"
+import field from "../../../ast/context/field"
+import integer from "../../../ast/context/integer"
+import { ExpressionsBinaryOperator as Op } from "../../../printer/model/expressions"
+import { Operation } from "../../state/list/const"
+import permission from "../../state/list/permission"
+import { pointer_member } from "./const"
+
+import type { State as Input, Qualified as Output } from "./model"
+
+export default function (in: Input): Output {
+    const target = field({
+        state: in.context,
+        target: in.root,
+        name: bytes.fromText(pointer_member)
+    })
+
+    const source = field({
+        state: target.state,
+        target: in.source.items,
+        name: bytes.fromText(pointer_member)
+    })
+
+    const allocated = binary({
+        state: source.state,
+        operator: Op.NotEqual,
+        left: target.id,
+        right: source.id
+    })
+
+    const zero = integer({
+        state: allocated.state,
+        value: 0
+    })
+
+    const empty = binary({
+        state: zero.state,
+        operator: Op.Equal,
+        left: in.source.length,
+        right: zero.id
+    })
+
+    const fresh = binary({
+        state: empty.state,
+        operator: Op.LogicalOr,
+        left: empty.id,
+        right: allocated.id
+    })
+
+    const previous = permission({
+        state: fresh.state,
+        value: in.source.value,
+        operation: Operation.Exclusive
+    })
+
+    const exclusive = binary({
+        state: previous.state,
+        operator: Op.LogicalOr,
+        left: fresh.id,
+        right: previous.id
+    })
+
+    return {
+        state: {
+            ...in,
+            context: exclusive.state
+        },
+        exclusive: exclusive.id
+    }
+}

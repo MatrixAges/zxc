@@ -1,0 +1,26 @@
+import assignment from "../../../ast/body/assignment"
+import index from "../../../ast/context/index"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const target = index({
+        state: in.context,
+        target: in.root,
+        index: in.source.length
+    })
+
+    const state = assignment({
+        state: {
+            context: target.state,
+            body: in.body
+        },
+        target: target.id,
+        value: in.source.argument
+    })
+
+    return {
+        ...in,
+        ...state
+    }
+}

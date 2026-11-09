@@ -1,0 +1,95 @@
+<Module>
+    <Type from="model" as="Append" />
+    <Type from="../../growth/const" as="Growth" />
+
+    <Args in={Append.State} out={Append.State} />
+
+    <If on={$in.source.minimum != null && $in.source.frontier}>
+        <Call
+            fn="request"
+            in={{
+                state: $in,
+                operation: Growth.Operation.Bounded,
+                value: $in.source.items,
+                frontier: false
+            }}
+        />
+
+        <Call module="../../growth/apply" in={$ctx.request} />
+
+        <Call
+            fn="merge"
+            in={{
+                state: $in,
+                context: $ctx.apply.context,
+                body: $ctx.apply.body,
+                root: $ctx.apply.root
+            }}
+        />
+
+        <Return value={$ctx.merge} />
+    </If>
+
+    <If on={$in.source.selected}>
+        <If on={$in.source.lazy || !$in.source.frontier}>
+            <Call
+                fn="request"
+                in={{
+                    state: $in,
+                    operation: Growth.Operation.Reserve,
+                    value: $in.source.value,
+                    frontier: true
+                }}
+            />
+
+            <Call fn="../../growth/reserve/state" in={$ctx.request} />
+
+            <Call module="../../growth/reserve/apply" in={$ctx.state} />
+
+            <Call
+                fn="../../growth/bind"
+                in={{
+                    state: $ctx.apply.context,
+                    body: $ctx.apply.body,
+                    value: $ctx.apply.root
+                }}
+            />
+
+            <Call
+                fn="merge"
+                in={{
+                    state: $in,
+                    context: $ctx.bind.state,
+                    body: $ctx.bind.body,
+                    root: $ctx.bind.id
+                }}
+            />
+
+            <Return value={$ctx.merge} />
+        </If>
+    </If>
+
+    <Call
+        fn="request"
+        in={{
+            state: $in,
+            operation: Growth.Operation.Reserve,
+            value: $in.source.items,
+            frontier: $in.source.frontier
+        }}
+    />
+
+    <Call module="../../growth/apply" in={$ctx.request} />
+
+    <Call
+        fn="merge"
+        in={{
+            state: $in,
+            context: $ctx.apply.context,
+            body: $ctx.apply.body,
+            root: $ctx.apply.root
+        }}
+    />
+
+    <Return value={$ctx.merge} />
+</Module>

@@ -1,0 +1,21 @@
+import type { State as Input } from "../model"
+import type { State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        source: in.source,
+        context: in.context,
+        body: in.body,
+        value: in.root,
+        items: 0,
+        no: {
+            body: in.body,
+            value: 0
+        },
+        yes: {
+            body: in.body,
+            value: 0
+        },
+        root: in.root
+    }
+}

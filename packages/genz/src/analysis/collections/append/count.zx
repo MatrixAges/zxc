@@ -1,0 +1,61 @@
+import bytes from "std:bytes"
+
+import bind from "../../../ast/body/bind"
+import field from "../../../ast/context/field"
+import integer from "../../../ast/context/integer"
+import primitive from "../../../ast/context/primitive"
+import standard from "../../../ast/context/standard"
+import { ExpressionsPrimitive as Primitive } from "../../../printer/model/expressions"
+import { length_member } from "../../intrinsics/index/const"
+import { math_member, add_member } from "../const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const added = match {
+        in.source.push => integer({
+            state: in.context,
+            value: 1
+        }),
+        _ => field({
+            state: in.context,
+            target: in.source.argument,
+            name: bytes.fromText(length_member)
+        })
+    }
+
+    const size = primitive({
+        state: added.state,
+        value: Primitive.Usize
+    })
+
+    const sum = standard({
+        state: size.state,
+        path: [
+            math_member,
+            add_member
+        ],
+        arguments: [
+            size.id,
+            in.source.length,
+            added.id
+        ],
+        fallible: true
+    })
+
+    const count = bind({
+        state: {
+            context: sum.state,
+            body: in.body
+        },
+        value: sum.id
+    })
+
+    return {
+        ...in,
+        context: count.state.context,
+        outer: count.state.body,
+        added: added.id,
+        count: count.id
+    }
+}

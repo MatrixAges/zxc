@@ -1,0 +1,19 @@
+<Module>
+    <Type from="model" as="Reserve" />
+
+    <Args in={Reserve.State} out={Reserve.State} />
+
+    <Call fn="prepare" in={$in} />
+    <Call fn="copy" in={$ctx.prepare} />
+
+    <If on={$in.source.flag}>
+        <Call fn="extend" in={$ctx.copy} />
+        <Call fn="select" in={$ctx.extend} />
+
+        <Return value={$ctx.select} />
+    </If>
+
+    <Call fn="copied" in={$ctx.copy} />
+
+    <Return value={$ctx.copied} />
+</Module>

@@ -1,0 +1,14 @@
+<Module>
+    <Type from="model" as="Append" />
+
+    <Args in={Append.State} out={Append.State} />
+
+    <If on={$in.source.selected}>
+        <Call fn="exclusive" in={$in} />
+        <Call fn="owned" in={$ctx.exclusive} />
+
+        <Return value={$ctx.owned} />
+    </If>
+
+    <Return value={$in} />
+</Module>

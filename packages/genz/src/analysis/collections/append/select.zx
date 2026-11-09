@@ -1,0 +1,37 @@
+import binary from "../../../ast/context/binary"
+import conditional from "../../../ast/context/conditional"
+import integer from "../../../ast/context/integer"
+import { ExpressionsBinaryOperator as Op } from "../../../printer/model/expressions"
+
+import type { Node as Output } from "../../../ast/context/model"
+import type { State } from "./model"
+
+export type Input = {
+    source: State,
+    value: Output
+}
+
+export default function (in: Input): Output {
+    if (in.source.source.push) {
+        return in.value
+    }
+
+    const zero = integer({
+        state: in.value.state,
+        value: 0
+    })
+
+    const empty = binary({
+        state: zero.state,
+        operator: Op.Equal,
+        left: in.source.added,
+        right: zero.id
+    })
+
+    return conditional({
+        state: empty.state,
+        condition: empty.id,
+        yes: in.source.source.value,
+        no: in.value.id
+    })
+}

@@ -1,0 +1,29 @@
+import empty from "../../../ast/statements/empty"
+
+import type { State as Output } from "../../growth/model"
+import type { Request as Input } from "./model"
+
+export default function (in: Input): Output {
+    const { source, context } = in.state
+
+    return {
+        source: {
+            operation: in.operation,
+            element: source.element,
+            value: in.value,
+            count: in.state.count,
+            minimum: source.minimum ?? 0,
+            flag: in.frontier,
+            shared: source.shared,
+            capture: context.source.capture,
+            expression_base: context.source.expression_base,
+            statement_base: context.source.statement_base,
+            serial: context.serial
+        },
+        context,
+        body: empty({}),
+        arguments: [],
+        callee: 0,
+        root: in.value
+    }
+}

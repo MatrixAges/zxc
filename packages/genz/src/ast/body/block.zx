@@ -1,0 +1,39 @@
+import block from "../context/block"
+import { block_prefix } from "../context/const"
+import fresh from "../fresh"
+
+import type { Node } from "../context/model"
+import type { StateBody } from "./model"
+
+export type Input = {
+    state: StateBody,
+    value: u32
+}
+
+export type Output = Node
+
+export default function (in: Input): Output {
+    const context = in.state.context
+
+    const label = fresh({
+        serial: context.serial,
+        prefix: block_prefix
+    })
+
+    const first = context.statements.tags.length
+
+    return block({
+        state: {
+            ...context,
+            serial: label.serial,
+            statements: {
+                ...context.statements,
+                tags: context.statements.tags.concat(in.state.body.tags)[0],
+                offsets: context.statements.offsets.concat(in.state.body.offsets)[0]
+            }
+        },
+        label: label.name,
+        first,
+        value: in.value
+    })
+}

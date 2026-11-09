@@ -1,0 +1,27 @@
+import copy from "../../../ast/body/copy"
+import slice from "../../../ast/context/slice"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const tail = slice({
+        state: in.context,
+        target: in.root,
+        start: in.source.length,
+        end: null
+    })
+
+    const state = copy({
+        state: {
+            context: tail.state,
+            body: in.body
+        },
+        target: tail.id,
+        source: in.source.argument
+    })
+
+    return {
+        ...in,
+        ...state
+    }
+}

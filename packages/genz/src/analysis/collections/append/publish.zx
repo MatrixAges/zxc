@@ -1,0 +1,40 @@
+import block from "../../../ast/body/block"
+import tuple from "../../../ast/context/tuple"
+import select from "./select"
+
+import type { State as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const appended = block({
+        state: in.pick([
+            "context",
+            "body"
+        ]),
+        value: in.root
+    })
+
+    const value = select({
+        source: in,
+        value: appended
+    })
+
+    const result = tuple({
+        state: value.state,
+        values: [
+            value.id,
+            in.source.unit
+        ]
+    })
+
+    return {
+        state: {
+            context: result.state,
+            body: in.outer
+        },
+        fields: in.fields,
+        root: result.id,
+        serial: result.state.serial,
+        uses_allocator: true,
+        valid: result.state.valid
+    }
+}
