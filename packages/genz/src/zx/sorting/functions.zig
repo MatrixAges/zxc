@@ -56,21 +56,7 @@ pub fn build(self: *Lower, child: node.ExpressionId, errors: ?[]const []const u8
 }
 
 fn declaration(self: *Lower, index: u32) Lower.Error!node.Declaration {
-    const value = self.builder.nodes.declaration_rows.get(index).function;
-    const parameters = try self.allocator.alloc(node.Field, value.parameters.len);
-
-    for (parameters, 0..) |*parameter, offset| parameter.* = self.builder.nodes.field_columns.get(value.parameters.start + offset);
-
-    return .{ .function = .{
-        .name = value.name,
-        .parameters = parameters,
-        .return_type = value.return_type,
-        .body = value.body,
-        .exported = value.exported,
-        .abi_export = value.abi_export,
-        .inlined = value.inlined,
-        .calling_convention = value.calling_convention,
-    } };
+    return .{ .function = try self.builder.nodes.materializeFunction(self.allocator, index) };
 }
 
 fn append(self: *Lower, target: anytype, source: anytype) Lower.Error!void {

@@ -1,0 +1,64 @@
+import type { Input as Bases, State as Context } from "../../../ast/context/model"
+import type { Columns as Functions } from "../../../ast/declarations/function"
+import type { Columns as Forms } from "../../../ast/expressions/forms/model"
+import type { Columns as Expressions } from "../../../ast/expressions/model"
+import type { Columns as Fields } from "../../../ast/fields/model"
+import type { Columns as Statements } from "../../../ast/statements/model"
+import type { StatementsKind } from "../../../printer/model/statements"
+
+export type Input = {
+    child: u32,
+    output_type: u32,
+    errors?: u8[][],
+    value: u32,
+    raw: u32[],
+    elements: u32[],
+    used: bool[],
+    uses_allocator: bool,
+    uses_io: bool,
+    uses_process: bool,
+    uses_environment: bool,
+    reference_count: u64,
+    helper_count: u64,
+    bases: Bases,
+    declaration_base: u32
+}
+
+export type Bindings = {
+    tags: StatementsKind[],
+    offsets: u32[],
+    constant_name: u8[][],
+    constant_type_expr: u32?[],
+    constant_value: u32[],
+    constant_exported: bool[],
+    discard: u32[]
+}
+
+export type Extra = {
+    error_union_payload: u32[],
+    error_union_errors: u8[][]?[],
+    error_union_inferred: bool[]
+}
+
+export type State = {
+    source: Input,
+    context: Context,
+    discard: u32[],
+    bindings: Bindings,
+    prefix: Bindings,
+    context_count: u64,
+    extra: Extra,
+    fields: Fields
+}
+
+export type Output = {
+    expressions: Expressions,
+    forms: Forms,
+    extra: Extra,
+    prefix: Bindings,
+    bindings: Bindings,
+    ending: Statements,
+    fields: Fields,
+    declarations: Functions,
+    valid: bool
+}

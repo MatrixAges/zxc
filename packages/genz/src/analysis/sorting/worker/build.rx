@@ -1,0 +1,12 @@
+<Module>
+    <Type from="model" as="Worker" />
+
+    <Args in={Worker.Input} out={Worker.Output} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="context" in={$ctx.initialize} />
+    <Call fn="bindings" in={$ctx.context} />
+    <Call fn="method" in={$ctx.bindings} />
+
+    <Return value={$ctx.method} />
+</Module>

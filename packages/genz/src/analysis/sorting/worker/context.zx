@@ -1,0 +1,92 @@
+import bytes from "std:bytes"
+
+import binding from "../../../ast/context/binding"
+import discard from "../../../ast/context/discard"
+import field from "../../../ast/context/field"
+import identifier from "../../../ast/context/identifier"
+import empty from "../../../ast/statements/empty"
+import { io_name, process_name } from "../../functions/signature/const"
+import { context_name, allocator_name } from "../functions/const"
+import { environment_name } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const context = identifier({
+        state: in.context,
+        name: bytes.fromText(context_name)
+    })
+
+    const names = [
+        allocator_name,
+        io_name,
+        process_name,
+        environment_name
+    ]
+
+    const used = [
+        in.source.uses_allocator,
+        in.source.uses_io,
+        in.source.uses_process,
+        in.source.uses_environment
+    ]
+
+    const unpacked = loop({
+        context: context.state,
+        index: 0
+    }, {
+        while: current => current.index < names.length,
+        next: current => {
+            if (used[current.index]) {
+                const name = bytes.fromText(names[current.index])
+                const value = field({
+                    state: current.context,
+                    target: context.id,
+                    name
+                })
+
+                current.context = binding({
+                    state: value.state,
+                    name,
+                    type_expr: null,
+                    value: value.id
+                })
+            }
+
+            current.index += 1
+        },
+        return: current => current.context
+    })
+
+    const selected = match {
+        unpacked.statements.tags.length == 0 => discard({
+            state: unpacked,
+            values: in.discard,
+            name: bytes.fromText(context_name)
+        }),
+        _ => {
+            state: unpacked,
+            values: in.discard
+        }
+    }
+
+    return {
+        ...in,
+        context: {
+            ...selected.state,
+            statements: empty({})
+        },
+        prefix: {
+            ...selected.state.statements.pick([
+                "tags",
+                "offsets",
+                "constant_name",
+                "constant_type_expr",
+                "constant_value",
+                "constant_exported"
+            ]),
+            discard: selected.values
+        },
+        context_count: selected.state.statements.tags.length
+    }
+}

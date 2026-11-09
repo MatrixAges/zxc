@@ -1,0 +1,56 @@
+import bytes from "std:bytes"
+import { max_u32 } from "core/const"
+
+import { ExpressionsKind } from "../../../printer/model/expressions"
+import { left_name, right_name } from "../functions/const"
+import {
+    environment_name,
+    left_element_name,
+    right_element_name
+} from "./const"
+
+export type Input = {
+    base: u32
+}
+
+export type Output = {
+    left_name: u8[],
+    right_name: u8[],
+    environment_name: u8[],
+    left: u32,
+    right: u32,
+    expressions: {
+        tags: ExpressionsKind[],
+        offsets: u32[],
+        identifier: u8[][]
+    },
+    valid: bool
+}
+
+export default function (in: Input): Output {
+    const valid = in.base <= max_u32 - 2
+    const base = valid ? in.base : 0
+
+    return {
+        left_name: bytes.fromText(left_name),
+        right_name: bytes.fromText(right_name),
+        environment_name: bytes.fromText(environment_name),
+        left: base,
+        right: base + 1,
+        expressions: {
+            tags: [
+                ExpressionsKind.Identifier,
+                ExpressionsKind.Identifier
+            ],
+            offsets: [
+                0,
+                1
+            ],
+            identifier: [
+                bytes.fromText(left_element_name),
+                bytes.fromText(right_element_name)
+            ]
+        },
+        valid
+    }
+}

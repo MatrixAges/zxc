@@ -1,0 +1,80 @@
+import bytes from "std:bytes"
+
+import header from "../../../ast/statements/header"
+import { StatementsKind } from "../../../printer/model/statements"
+import { left_name, right_name } from "../functions/const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const names = [
+        left_name,
+        right_name
+    ]
+
+    const result = loop({
+        table: in.bindings,
+        valid: in.context.valid,
+        index: 0
+    }, {
+        while: current => current.index < names.length,
+        next: current => {
+            const used = in.source.used[current.index]
+            const kind = used ? StatementsKind.Constant : StatementsKind.Discard
+            const count = current.table.constant_name.length
+            const discarded = current.table.discard.length
+            const offset = used ? count : discarded
+            const row = header({
+                tags: current.table.tags,
+                offsets: current.table.offsets,
+                base: in.source.bases.statement_base,
+                kind,
+                offset
+            })
+
+            current.table = {
+                ...current.table,
+                tags: row.tags,
+                offsets: row.offsets
+            }
+
+            if (used) {
+                current.table = {
+                    ...current.table,
+                    constant_name:
+                        current.table.constant_name.push(
+                            bytes.fromText(
+                                names[current.index]
+                            )
+                        )[0],
+                    constant_type_expr:
+                        current.table.constant_type_expr.push(null)[0],
+                    constant_value:
+                        current.table.constant_value.push(
+                            in.source.elements[current.index]
+                        )[0],
+                    constant_exported: current.table.constant_exported.push(false)[0]
+                }
+            } else {
+                current.table = {
+                    ...current.table,
+                    discard:
+                        current.table.discard.push(in.source.raw[current.index])[0]
+                }
+            }
+
+            current.valid = current.valid && row.valid
+            current.index += 1
+        },
+        return: current => current
+    })
+
+    return {
+        ...in,
+        bindings: result.table,
+        context: {
+            ...in.context,
+            valid: result.valid
+        }
+    }
+}

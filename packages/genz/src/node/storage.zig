@@ -63,3 +63,21 @@ pub fn declarations(self: *Self, allocator: std.mem.Allocator, values: []const n
 
     return .{ .start = start, .len = @intCast(values.len) };
 }
+
+pub fn materializeFunction(self: *const Self, allocator: std.mem.Allocator, index: u32) std.mem.Allocator.Error!node.Function {
+    const value = self.declaration_rows.get(index).function;
+    const parameters = try allocator.alloc(node.Field, value.parameters.len);
+
+    for (parameters, 0..) |*parameter, offset| parameter.* = self.field_columns.get(value.parameters.start + offset);
+
+    return .{
+        .name = value.name,
+        .parameters = parameters,
+        .return_type = value.return_type,
+        .body = value.body,
+        .exported = value.exported,
+        .abi_export = value.abi_export,
+        .inlined = value.inlined,
+        .calling_convention = value.calling_convention,
+    };
+}
