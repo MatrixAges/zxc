@@ -113,11 +113,11 @@ Call 使用 in 传参；读取输入写 `in={$in}`，字符串写 `in="$in"`；�
 </Module>
 ```
 
-父模块再用 `<Call module="checkout" in={$in} />` 调用整个组合模块。Call 的 fn 用于本地 ZX 函数，module 用于本地 RX 模块或依赖包的公开编译模块，两者必须且只能提供一个目标。
+父模块再用 `<Call module="checkout" in={$in} />` 调用整个组合模块。Call 的 fn 用于本地 ZX 函数，module 用于本地 RX 模块或依赖包的公开模块，两者必须且只能提供一个目标。
 
 Call.fn 相对当前 RX 文件目录解析，省略后缀时补 `.zx`，目标是该文件的默认导出。例如 `fn="load_user"` 指向 `load_user.zx`，也可写相对目录和显式 `.zx` 后缀。入口检查会读取函数及其 ZX 导入闭包，执行现有命名、类型和依赖检查，并拒绝纯类型文件作为函数目标。可使用 `check-rx --entry <file.rx> --project <pkg.yaml>` 指定包与原生接口配置。
 
-Call.module 先匹配当前 RX 文件所属包中已声明的公开模块引用；命中时解析统一库产物，否则按当前文件目录解析本地 RX（可省略 .rx）。本地引用与包引用同名时显式加 ./。`Call.module="package/public-module"` 通过依赖和公开导出解析，不读取库原始 ZX/RX 源码。例如：
+Call.module 先匹配当前 RX 文件所属包中已声明的公开模块引用；源码导出进入统一 RX/ZX 源码依赖图，编译库导出按实例装载统一库产物；未命中包引用时按当前文件目录解析本地 RX（可省略 .rx）。本地引用与包引用同名时显式加 ./。`Call.module="package/public-module"` 始终通过依赖和公开导出解析，不能穿透私有源码路径；编译库消费不要求原始源码。例如：
 
 ```xml
 <Module>
