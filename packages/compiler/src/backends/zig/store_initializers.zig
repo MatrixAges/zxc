@@ -3,11 +3,12 @@ const ir = @import("zx").ir;
 const frontend = @import("frontend");
 const modules = @import("modules.zig");
 const names = @import("names.zig");
-pub const Initializer = struct { identity: []const u8, schema_version: u32, program: ir.Program };
+pub const Initializer = @import("store_initializers_seed.zig").Initializer;
 pub const Options = struct { analysis: *const frontend.AnalysisResult, initializers: []const Initializer, cache: ?*@import("cache.zig") = null };
 pub const Error = modules.Error || error{ InvalidInitializer, DuplicateInitializer, MissingInitializer };
 
 pub fn append(bundle: *modules.Bundle, options: Options) Error!void {
+    if (comptime !@import("parser_options").generated_parser) return @import("store_initializers_seed.zig").append(bundle, .{ .analysis = options.analysis, .initializers = options.initializers, .cache = options.cache });
     if (options.analysis.value != .ir or bundle.store_initializers.len != 0) return error.InvalidInitializer;
 
     const allocator = bundle.arena.allocator();
@@ -23,19 +24,32 @@ pub fn append(bundle: *modules.Bundle, options: Options) Error!void {
 
     try initializers.appendSlice(allocator, options.initializers);
 
-    for (options.analysis.store_initializers) |initial| {
-        const needed = for (0..application.stores.count()) |store_index| {
-            const slot = application.stores.at(store_index);
+    var scratch = std.heap.ArenaAllocator.init(bundle.arena.child_allocator);
 
-            if (std.mem.eql(u8, slot.path, initial.identity)) break true;
-        } else false;
+    defer scratch.deinit();
 
-        if (!needed) continue;
-        if (@backingInt(initial.function) >= application.functions.count()) return error.InvalidInitializer;
+    const entry = @import("generated_store_initializer_selection");
+    const zx = @import("zx");
+    const Input = @typeInfo(@TypeOf(entry.executeValue)).@"fn".param_types[1].?;
 
+    const input: Input = .{
+        .initializers = zx.columns.storage.view(@FieldType(Input, "initializers"), options.analysis.store_initializers),
+        .paths = application.stores.paths,
+        .function_count = application.functions.count(),
+        .native_modules = application.functions.native_modules,
+        .zx_origin = null,
+    };
+
+    const selection = entry.executeValue(scratch.allocator(), input) catch |err| switch (err) {
+        error.OutOfMemory, error.Overflow => return error.OutOfMemory,
+        else => unreachable,
+    };
+
+    if (!selection.valid) return error.InvalidInitializer;
+
+    for (selection.indices) |index| {
+        const initial = options.analysis.store_initializers[index];
         const function = application.functions.at(@backingInt(initial.function));
-
-        if (function.external != null) return error.InvalidInitializer;
 
         try initializers.append(allocator, .{
             .identity = initial.identity,

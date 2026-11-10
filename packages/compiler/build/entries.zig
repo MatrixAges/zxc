@@ -86,6 +86,7 @@ pub const main = [_]Entry{
     .{ .path = "backends/zig/bundle_abi/view.rx", .name = "bundle_abi_view", .owner = .compiler },
     .{ .path = "backends/zig/gateway/bindings/build.rx", .name = "gateway_bindings", .owner = .compiler },
     .{ .path = "backends/zig/library_entry/build.rx", .name = "library_entry", .owner = .compiler },
+    .{ .path = "backends/zig/store_initializers/selection/build.rx", .name = "store_initializer_selection", .owner = .compiler },
     .{ .path = "backends/zig/state/available.rx", .name = "state_available", .owner = .compiler },
     .{ .path = "backends/zig/state/build.rx", .name = "state_bindings", .owner = .compiler },
     .{ .path = "lint/naming/check.rx", .name = "naming", .owner = .lint },

@@ -1,0 +1,18 @@
+<Module>
+    <Type from="model" as="Selection" />
+
+    <Args in={Selection.Input} out={Selection.Output} />
+
+    <Call
+        fn="select"
+        in={{
+            source: $in,
+            result: {
+                valid: true,
+                indices: []
+            }
+        }}
+    />
+
+    <Return value={$ctx.select} />
+</Module>

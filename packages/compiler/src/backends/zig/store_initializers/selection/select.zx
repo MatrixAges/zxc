@@ -1,0 +1,39 @@
+import integers from "std:integer"
+
+import needed from "./needed"
+
+import type { State as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    return loop({
+        index: 0,
+        result: in.result
+    }, {
+        while: current => current.result.valid &&
+            current.index < in.source.initializers.length,
+        next: current => {
+            const initial = in.source.initializers[current.index]
+
+            if (needed({
+                paths: in.source.paths,
+                identity: initial.identity
+            })) {
+                const function_index = integers.widen(initial.function)
+
+                if (function_index >= in.source.function_count) {
+                    current.result.valid = false
+                } else {
+                    if (in.source.native_modules[function_index] != null) {
+                        current.result.valid = false
+                    } else {
+                        current.result.indices =
+                            current.result.indices.push(current.index)[0]
+                    }
+                }
+            }
+
+            current.index += 1
+        },
+        return: current => current.result
+    })
+}

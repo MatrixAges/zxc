@@ -1,0 +1,20 @@
+import bytes from "std:bytes"
+
+import type { Candidate as Input, Needed as Output } from "./model"
+
+export default function (in: Input): Output {
+    return loop({
+        index: 0,
+        found: false
+    }, {
+        while: current => !current.found && current.index < in.paths.length,
+        next: current => {
+            current.found = bytes.equals(
+                in.paths[current.index],
+                in.identity
+            )
+            current.index += 1
+        },
+        return: current => current.found
+    })
+}

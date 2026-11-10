@@ -3,7 +3,16 @@ const std = @import("std");
 const Origins = @import("nominal_origins.zig");
 pub const Target = struct { instance: []const u8, artifact: []const u8, name: []const u8 };
 pub const Export = struct { name: []const u8, path: []const u8, function: ?ir.FunctionId, types: []const ir.Export, constants: []const ir.Constant = &.{}, members: []const @import("function_import.zig") = &.{} };
-pub const StoreInitializer = struct { identity: []const u8, schema_version: u32, function: ir.FunctionId };
+
+pub const StoreInitializer = struct {
+    function: ir.FunctionId,
+    identity: []const u8,
+    schema_version: u32,
+    pub fn jsonStringify(self: @This(), writer: anytype) !void {
+        try writer.write(.{ .identity = self.identity, .schema_version = self.schema_version, .function = self.function });
+    }
+};
+
 pub const Graph = struct { program: ir.Program, exports: []const Export, nominal_types: Origins.Table, store_initializers: []const StoreInitializer = &.{} };
 
 pub const Library = struct {

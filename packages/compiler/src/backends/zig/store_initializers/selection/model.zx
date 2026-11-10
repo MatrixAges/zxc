@@ -1,0 +1,29 @@
+export type Initializer = {
+    function: u32,
+    identity: u8[],
+    schema_version: u32
+}
+
+export type Input = {
+    initializers: Initializer[],
+    paths: u8[][],
+    function_count: u64,
+    native_modules: u32?[]
+}
+
+export type Output = {
+    valid: bool,
+    indices: u64[]
+}
+
+export type State = {
+    source: Input,
+    result: Output
+}
+
+export type Candidate = {
+    paths: u8[][],
+    identity: u8[]
+}
+
+export type Needed = bool
