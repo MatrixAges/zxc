@@ -1,0 +1,18 @@
+import declarations from "../../../ast/declarations/builder/initialize"
+import expressions from "../../../ast/expressions/builder/initialize"
+
+import type { Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        source: in,
+        expressions: expressions(0),
+        declarations: declarations(0),
+        tags: [],
+        offsets: [],
+        values: [],
+        functions: 0,
+        exporter: 0,
+        valid: true
+    }
+}

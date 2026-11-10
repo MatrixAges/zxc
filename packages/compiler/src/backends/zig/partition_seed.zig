@@ -47,3 +47,27 @@ pub fn stub(allocator: std.mem.Allocator, file: []const u8, variants: []const []
 fn symbol(allocator: std.mem.Allocator, file: []const u8, variant: []const u8) ![]const u8 {
     return std.fmt.allocPrint(allocator, "{s}_{s}", .{ std.fs.path.stem(file), variant });
 }
+
+pub fn exports(allocator: std.mem.Allocator, entries: []const @import("partition.zig").Export) ![]const u8 {
+    const builder = try genz.Builder.init(allocator);
+    const bridge = try builder.identifier("bridge");
+    const functions = try builder.identifier("functions");
+    var statements: std.ArrayList(node.Statement) = .empty;
+
+    for (entries) |entry| {
+        const imported = try builder.field(functions, std.fs.path.stem(entry.file));
+        const symbol_name = try symbol(allocator, entry.file, entry.variant);
+
+        try statements.append(allocator, .{ .expression = try builder.call(try builder.field(bridge, "exportAs"), &.{
+            try builder.field(imported, entry.variant),
+            try builder.string(symbol_name),
+        }) });
+    }
+
+    return genz.render(allocator, builder.nodes, &.{
+        .{ .constant = .{ .name = "bridge", .value = try builder.builtin(.import, &.{try builder.string("zxc_bridge")}) } },
+        .{ .constant = .{ .name = "functions", .value = try builder.builtin(.import, &.{try builder.string("zxc_functions")}) } },
+        .{ .constant = .{ .name = "panic", .exported = true, .value = try builder.field(bridge, "Panic") } },
+        .{ .comptime_scope = try builder.statements(statements.items) },
+    });
+}

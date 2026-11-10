@@ -1,0 +1,73 @@
+import bytes from "std:bytes"
+
+import constant from "../../../ast/declarations/builder/constant"
+import field from "../../../ast/expressions/builder/field"
+import named from "../../../ast/expressions/builder/named"
+import { bridge_name, bridge_module } from "../stub/const"
+import {
+    functions_name,
+    functions_module,
+    panic_name,
+    panic_member,
+    export_method
+} from "./const"
+import imported from "./import"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const bridge = named({
+        state: in.expressions,
+        name: bytes.fromText(bridge_name),
+        text: false
+    })
+
+    const functions = named({
+        state: bridge.state,
+        name: bytes.fromText(functions_name),
+        text: false
+    })
+
+    const with_bridge = imported({
+        state: {
+            ...in,
+            expressions: functions.state,
+            functions: functions.id
+        },
+        name: bytes.fromText(bridge_name),
+        file: bytes.fromText(bridge_module)
+    })
+
+    const with_functions = imported({
+        state: with_bridge,
+        name: bytes.fromText(functions_name),
+        file: bytes.fromText(functions_module)
+    })
+
+    const panic = field({
+        state: with_functions.expressions,
+        target: bridge.id,
+        name: bytes.fromText(panic_member)
+    })
+
+    const declarations = constant({
+        state: with_functions.declarations,
+        name: bytes.fromText(panic_name),
+        value: panic.id,
+        type_expr: null,
+        exported: true
+    })
+
+    const exporter = field({
+        state: panic.state,
+        target: bridge.id,
+        name: bytes.fromText(export_method)
+    })
+
+    return {
+        ...with_functions,
+        expressions: exporter.state,
+        declarations,
+        exporter: exporter.id
+    }
+}

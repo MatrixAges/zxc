@@ -50,27 +50,35 @@ fn failure(err: anyerror) std.mem.Allocator.Error {
 }
 
 pub fn exports(allocator: std.mem.Allocator, entries: []const Export) ![]const u8 {
-    const builder = try genz.Builder.init(allocator);
-    const bridge = try builder.identifier("bridge");
-    const functions = try builder.identifier("functions");
-    var statements: std.ArrayList(node.Statement) = .empty;
+    if (comptime !@import("parser_options").generated_parser) return @import("partition_seed.zig").exports(allocator, entries);
 
-    for (entries) |entry| {
-        const imported = try builder.field(functions, std.fs.path.stem(entry.file));
-        const symbol_name = try symbol(allocator, entry.file, entry.variant);
+    var arena = std.heap.ArenaAllocator.init(allocator);
 
-        try statements.append(allocator, .{ .expression = try builder.call(try builder.field(bridge, "exportAs"), &.{
-            try builder.field(imported, entry.variant),
-            try builder.string(symbol_name),
-        }) });
-    }
+    defer arena.deinit();
 
-    return genz.render(allocator, builder.nodes, &.{
-        .{ .constant = .{ .name = "bridge", .value = try builder.builtin(.import, &.{try builder.string("zxc_bridge")}) } },
-        .{ .constant = .{ .name = "functions", .value = try builder.builtin(.import, &.{try builder.string("zxc_functions")}) } },
-        .{ .constant = .{ .name = "panic", .exported = true, .value = try builder.field(bridge, "Panic") } },
-        .{ .comptime_scope = try builder.statements(statements.items) },
-    });
+    const builder = try genz.Builder.init(arena.allocator());
+    const entry = @import("generated_partition_exports");
+    const Input = @typeInfo(@TypeOf(entry.executeValue)).@"fn".param_types[1].?;
+    const Row = std.meta.Child(std.meta.Child(Input));
+    const rows = try builder.allocator.alloc(Row, entries.len);
+
+    for (rows, entries) |*row, item| row.* = .{
+        .function_name = std.fs.path.stem(item.file),
+        .variant = item.variant,
+    };
+
+    const input = try @import("zx").columns.pointers(Input, builder.allocator, @as([]const Row, rows));
+    const output = entry.executeValue(builder.allocator, input) catch |err| return failure(err);
+
+    if (!output.valid) return error.OutOfMemory;
+
+    genz.import_module.appendBorrowed(builder.allocator, builder.nodes, std.meta.Child(entry.Output), output) catch |err| return failure(err);
+
+    const declarations = try builder.allocator.alloc(node.Declaration, builder.nodes.declaration_rows.tags.items.len);
+
+    for (declarations, 0..) |*declaration, index| declaration.* = try builder.nodes.materializeDeclaration(builder.allocator, @intCast(index));
+
+    return genz.render(allocator, builder.nodes, declarations);
 }
 
 pub fn stub(allocator: std.mem.Allocator, file: []const u8, variants: []const []const u8, comptime_entry: bool) ![]const u8 {
@@ -101,8 +109,4 @@ pub fn stub(allocator: std.mem.Allocator, file: []const u8, variants: []const []
     for (declarations, 0..) |*declaration, index| declaration.* = try builder.nodes.materializeDeclaration(builder.allocator, @intCast(index));
 
     return genz.render(allocator, builder.nodes, declarations);
-}
-
-fn symbol(allocator: std.mem.Allocator, file: []const u8, variant: []const u8) ![]const u8 {
-    return std.fmt.allocPrint(allocator, "{s}_{s}", .{ std.fs.path.stem(file), variant });
 }

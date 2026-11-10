@@ -1,0 +1,53 @@
+import integers from "std:integer"
+
+import context from "../../../ast/context/initialize"
+import scope from "../../../ast/declarations/builder/comptime_scope"
+import declarations from "../../../ast/declarations/builder/publish"
+
+import type { Output } from "../root/model"
+import type { State as Input } from "./model"
+
+export default function (in: Input): Output {
+    const initial = context({
+        capture: null,
+        expression_base: 0,
+        statement_base: 0,
+        field_base: 0,
+        serial: 0
+    })
+
+    const statements = {
+        ...initial.statements,
+        tags: in.tags,
+        offsets: in.offsets,
+        expression: in.values
+    }
+
+    const scoped = scope({
+        state: in.declarations,
+        start: 0,
+        count: integers.narrow(in.values.length)
+    })
+
+    return {
+        context: {
+            ...initial,
+            expressions: {
+                ...initial.expressions,
+                ...in.expressions.omit([
+                    "base",
+                    "string",
+                    "valid"
+                ])
+            },
+            forms: {
+                ...initial.forms,
+                string: in.expressions.string
+            },
+            statements
+        },
+        statements,
+        declarations: declarations(scoped),
+        valid: in.valid && in.expressions.valid && scoped.valid
+    }
+}

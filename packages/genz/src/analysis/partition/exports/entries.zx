@@ -1,0 +1,19 @@
+import item from "./item"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return loop({
+        state: in,
+        index: 0
+    }, {
+        while: current => current.state.valid &&
+            current.state.expressions.valid &&
+            current.index < in.source.length,
+        next: current => {
+            current.state = item(current)
+            current.index += 1
+        },
+        return: current => current.state
+    })
+}

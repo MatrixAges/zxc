@@ -1,0 +1,13 @@
+<Module>
+    <Type from="model" as="Exports" />
+    <Type from="../root/model" as="Root" />
+
+    <Args in={Exports.Input} out={Root.Output} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="bindings" in={$ctx.initialize} />
+    <Call fn="entries" in={$ctx.bindings} />
+    <Call fn="publish" in={$ctx.entries} />
+
+    <Return value={$ctx.publish} />
+</Module>

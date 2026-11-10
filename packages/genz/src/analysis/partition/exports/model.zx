@@ -1,0 +1,27 @@
+import type { State as Declarations } from "../../../ast/declarations/builder/model"
+import type { State as Expressions } from "../../../ast/expressions/builder/model"
+import type { StatementsKind } from "../../../printer/model/statements"
+
+export type Entry = {
+    function_name: string,
+    variant: string
+}
+
+export type Input = Entry[]
+
+export type State = {
+    source: Input,
+    expressions: Expressions,
+    declarations: Declarations,
+    tags: StatementsKind[],
+    offsets: u32[],
+    values: u32[],
+    functions: u32,
+    exporter: u32,
+    valid: bool
+}
+
+export type Item = {
+    state: State,
+    index: u64
+}

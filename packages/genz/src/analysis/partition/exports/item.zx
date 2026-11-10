@@ -1,0 +1,60 @@
+import bytes from "std:bytes"
+
+import call from "../../../ast/expressions/builder/call"
+import field from "../../../ast/expressions/builder/field"
+import named from "../../../ast/expressions/builder/named"
+import header from "../../../ast/statements/header"
+import { StatementsKind } from "../../../printer/model/statements"
+import { symbol_separator } from "../stub/const"
+
+import type { Item as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const { function_name, variant } = in.state.source[in.index]
+
+    const imported = field({
+        state: in.state.expressions,
+        target: in.state.functions,
+        name: bytes.fromText(function_name)
+    })
+
+    const target = field({
+        state: imported.state,
+        target: imported.id,
+        name: bytes.fromText(variant)
+    })
+
+    const symbol = `${function_name}${symbol_separator}${variant}`
+
+    const text = named({
+        state: target.state,
+        name: bytes.fromText(symbol),
+        text: true
+    })
+
+    const value = call({
+        state: text.state,
+        callee: in.state.exporter,
+        arguments: [
+            target.id,
+            text.id
+        ]
+    })
+
+    const statement = header({
+        tags: in.state.tags,
+        offsets: in.state.offsets,
+        base: 0,
+        kind: StatementsKind.Expression,
+        offset: in.state.values.length
+    })
+
+    return {
+        ...in.state,
+        expressions: value.state,
+        tags: statement.tags,
+        offsets: statement.offsets,
+        values: in.state.values.push(value.id)[0],
+        valid: in.state.valid && statement.valid
+    }
+}
