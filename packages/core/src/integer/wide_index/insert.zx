@@ -1,0 +1,62 @@
+import integers from "std:integer"
+
+import {
+    initial_capacity,
+    capacity_growth,
+    load_numerator,
+    load_denominator
+} from "../index/const"
+import get from "./get"
+import grow from "./grow"
+import probe from "./probe"
+
+import type { Inserted as Output } from "./model"
+import type { Key as Input } from "./model"
+
+export default function (in: Input): Output {
+    const previous = get(in)
+
+    if (previous != null) {
+        return {
+            index: in.index,
+            position: previous,
+            found: true
+        }
+    }
+
+    const count = in.index.count + 1
+    const position = integers.narrow(count) - 1
+    const limit = in.index.buckets.length * load_numerator / load_denominator
+
+    const prepared = match {
+        count > limit => grow({
+            index: in.index,
+            capacity: match {
+                in.index.buckets.length == 0 => initial_capacity,
+                _ => in.index.buckets.length * capacity_growth
+            }
+        }),
+        _ => in.index
+    }
+
+    const slot = probe({
+        ...prepared.omit(["count"]),
+        key: in.key
+    })
+
+    const keys = match {
+        prepared.count < prepared.keys.length =>
+            prepared.keys.with(prepared.count, in.key),
+        _ => prepared.keys.push(in.key)[0]
+    }
+
+    return {
+        index: {
+            count,
+            keys,
+            buckets: prepared.buckets.with(slot, position)
+        },
+        position: integers.widen(position),
+        found: false
+    }
+}

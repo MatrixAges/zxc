@@ -1,0 +1,85 @@
+import integers from "std:integer"
+
+import { scope_scale } from "./const"
+
+export type Input = {
+    keys: u64[],
+    scopes: u64
+}
+
+export type Output = {
+    starts: u64[],
+    order: u64[]
+}
+
+export default function (in: Input): Output {
+    const empty: u64[] = []
+
+    const counts = loop({
+        values: empty
+    }, {
+        while: current => current.values.length < in.scopes,
+        next: current => {
+            current.values = current.values.push(0)[0]
+        },
+        return: current => current.values
+    })
+
+    const sizes = loop({
+        counts,
+        position: 0
+    }, {
+        while: current => current.position < in.keys.length,
+        next: current => {
+            const scope = in.keys[current.position] / scope_scale
+
+            current.counts = current.counts.with(scope, current.counts[scope] + 1)
+            current.position += 1
+        },
+        return: current => current.counts
+    })
+
+    const starts = loop({
+        values: empty,
+        total: 0,
+        scope: 0
+    }, {
+        while: current => current.scope < in.scopes,
+        next: current => {
+            current.values = current.values.push(current.total)[0]
+            current.total += sizes[current.scope]
+            current.scope += 1
+        },
+        return: current => current.values.push(current.total)[0]
+    })
+
+    const order = loop({
+        values: empty
+    }, {
+        while: current => current.values.length < in.keys.length,
+        next: current => {
+            current.values = current.values.push(0)[0]
+        },
+        return: current => current.values
+    })
+
+    return loop({
+        order,
+        cursors: starts,
+        position: 0
+    }, {
+        while: current => current.position < in.keys.length,
+        next: current => {
+            const scope = in.keys[current.position] / scope_scale
+            const target = current.cursors[scope]
+
+            current.order = current.order.with(target, current.position)
+            current.cursors = current.cursors.with(scope, target + 1)
+            current.position += 1
+        },
+        return: current => ({
+            starts,
+            order: current.order
+        })
+    })
+}

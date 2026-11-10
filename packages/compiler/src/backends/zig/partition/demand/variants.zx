@@ -1,0 +1,29 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+
+import type { Demand } from "./model"
+
+export type Input = {
+    demand: Demand,
+    position: u64
+}
+
+export type Output = u8[][]
+
+export default function (in: Input): Output {
+    const names: u8[][] = []
+
+    return loop({
+        names,
+        node: in.demand.first[in.position]
+    }, {
+        while: current => current.node != max_u32,
+        next: current => {
+            const index = integers.widen(current.node)
+
+            current.names = current.names.push(in.demand.names[index])[0]
+            current.node = in.demand.next[index]
+        },
+        return: current => current.names
+    })
+}

@@ -1,0 +1,16 @@
+import integers from "std:integer"
+
+import { scope_shift } from "./const"
+
+export type Input = {
+    scope: u32,
+    callee: u32
+}
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    const high = integers.shiftLeft(integers.widen(in.scope), scope_shift)
+
+    return integers.orBits(high, integers.widen(in.callee))
+}

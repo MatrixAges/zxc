@@ -1,0 +1,68 @@
+import type { Index } from "core/integer/wide_index/model"
+
+export type Demand = {
+    index: Index,
+    first: u32[],
+    last: u32[],
+    names: u8[][],
+    next: u32[]
+}
+
+export type Input = {
+    owners: u32[],
+    callees: u32[][],
+    variants: u8[][][],
+    inline_names: u8[][][],
+    top_callees: u32[][],
+    top_variants: u8[][][],
+    count: u32,
+    seed: bool
+}
+
+export type State = {
+    copies_count: u64,
+    copies_keys: u64[],
+    copies_buckets: u32[],
+    stubs_count: u64,
+    stubs_keys: u64[],
+    stubs_buckets: u32[],
+    stubs_first: u32[],
+    stubs_last: u32[],
+    stubs_names: u8[][],
+    stubs_next: u32[],
+    exports_count: u64,
+    exports_keys: u64[],
+    exports_buckets: u32[],
+    exports_first: u32[],
+    exports_last: u32[],
+    exports_names: u8[][],
+    exports_next: u32[]
+}
+
+export type Walk = {
+    source: Input,
+    state: State,
+    scope: u32,
+    callees: u32[],
+    variants: u8[][]
+}
+
+export type Prepared = {
+    source: Input,
+    state: State
+}
+
+export type Demands = {
+    callees: u32[],
+    variants: u8[][][]
+}
+
+export type Scope = {
+    copies: u32[],
+    stubs: Demands
+}
+
+export type Output = {
+    scopes: Scope[],
+    exports: Demands
+}

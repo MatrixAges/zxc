@@ -1,0 +1,54 @@
+import integers from "std:integer"
+
+import { max_u32 } from "../../const"
+import probe from "./probe"
+
+import type { Index } from "./model"
+
+export type Input = {
+    index: Index,
+    capacity: u64
+}
+
+export type Output = Index
+
+export default function (in: Input): Output {
+    const empty: u32[] = []
+
+    const buckets = loop({
+        values: empty
+    }, {
+        while: state => state.values.length < in.capacity,
+        next: state => {
+            state.values = state.values.push(max_u32)[0]
+        },
+        return: state => state.values
+    })
+
+    const filled = loop({
+        buckets,
+        position: 0
+    }, {
+        while: state => state.position < in.index.count,
+        next: state => {
+            const slot = probe({
+                keys: in.index.keys,
+                buckets: state.buckets,
+                key: in.index.keys[state.position]
+            })
+
+            state.buckets = state.buckets.with(
+                slot,
+                integers.narrow(state.position)
+            )
+            state.position += 1
+        },
+        return: state => state.buckets
+    })
+
+    return {
+        count: in.index.count,
+        keys: in.index.keys,
+        buckets: filled
+    }
+}

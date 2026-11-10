@@ -1,0 +1,64 @@
+import integers from "std:integer"
+
+import add from "./add"
+
+import type { State, State as Output } from "./model"
+
+export type Input = {
+    state: State,
+    key: u64,
+    callee: u32,
+    value: u8[]
+}
+
+export default function (in: Input): Output {
+    const stubs = add({
+        state: {
+            index: {
+                count: in.state.stubs_count,
+                keys: in.state.stubs_keys,
+                buckets: in.state.stubs_buckets
+            },
+            first: in.state.stubs_first,
+            last: in.state.stubs_last,
+            names: in.state.stubs_names,
+            next: in.state.stubs_next
+        },
+        key: in.key,
+        value: in.value
+    })
+
+    const exports = add({
+        state: {
+            index: {
+                count: in.state.exports_count,
+                keys: in.state.exports_keys,
+                buckets: in.state.exports_buckets
+            },
+            first: in.state.exports_first,
+            last: in.state.exports_last,
+            names: in.state.exports_names,
+            next: in.state.exports_next
+        },
+        key: integers.widen(in.callee),
+        value: in.value
+    })
+
+    return {
+        ...in.state,
+        stubs_count: stubs.index.count,
+        stubs_keys: stubs.index.keys,
+        stubs_buckets: stubs.index.buckets,
+        stubs_first: stubs.first,
+        stubs_last: stubs.last,
+        stubs_names: stubs.names,
+        stubs_next: stubs.next,
+        exports_count: exports.index.count,
+        exports_keys: exports.index.keys,
+        exports_buckets: exports.index.buckets,
+        exports_first: exports.first,
+        exports_last: exports.last,
+        exports_names: exports.names,
+        exports_next: exports.next
+    }
+}

@@ -1,0 +1,72 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+import insert from "core/integer/wide_index/insert"
+
+import type { Demand as Output, Demand } from "./model"
+
+export type Input = {
+    state: Demand,
+    key: u64,
+    value: u8[]
+}
+
+export default function (in: Input): Output {
+    const inserted = insert({
+        index: in.state.index,
+        key: in.key
+    })
+
+    const prepared = match {
+        inserted.found => in.state,
+        _ => {
+            ...in.state,
+            first: in.state.first.push(max_u32)[0],
+            last: in.state.last.push(max_u32)[0]
+        }
+    }
+
+    const state = {
+        ...prepared,
+        index: inserted.index
+    }
+
+    const found = loop({
+        node: state.first[inserted.position],
+        found: false
+    }, {
+        while: current => current.node != max_u32 && !current.found,
+        next: current => {
+            const position = integers.widen(current.node)
+
+            current.found = bytes.equals(state.names[position], in.value)
+            current.node = state.next[position]
+        },
+        return: current => current.found
+    })
+
+    if (found) {
+        return state
+    }
+
+    const node = integers.narrow(state.names.length + 1) - 1
+    const previous = state.last[inserted.position]
+
+    const first = match {
+        previous == max_u32 => state.first.with(inserted.position, node),
+        _ => state.first
+    }
+
+    const linked = match {
+        previous == max_u32 => state.next,
+        _ => state.next.with(integers.widen(previous), node)
+    }
+
+    return {
+        ...state,
+        first,
+        last: state.last.with(inserted.position, node),
+        names: state.names.push(in.value)[0],
+        next: linked.push(max_u32)[0]
+    }
+}

@@ -1,6 +1,10 @@
 const Package = @import("generation_manifest.zig").Package;
 
 pub const entries: []const Package = &.{
+    .{ .specifier = "core/integer/wide_index/model", .entry = "core/integer/wide_index/model.zx" },
+    .{ .specifier = "core/integer/wide_index/empty", .entry = "core/integer/wide_index/empty.zx" },
+    .{ .specifier = "core/integer/wide_index/get", .entry = "core/integer/wide_index/get.zx" },
+    .{ .specifier = "core/integer/wide_index/insert", .entry = "core/integer/wide_index/insert.zx" },
     .{ .specifier = "compiler/gateway_state_service", .entry = "backends/zig/gateway/bindings/service.rx" },
     .{ .specifier = "core/bytes/index/const", .entry = "core/bytes/index/const.zx" },
     .{ .specifier = "core/bytes/index/grow", .entry = "core/bytes/index/grow.zx" },

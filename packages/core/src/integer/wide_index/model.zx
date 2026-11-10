@@ -1,0 +1,16 @@
+export type Index = {
+    count: u64,
+    keys: u64[],
+    buckets: u32[]
+}
+
+export type Inserted = {
+    index: Index,
+    position: u64,
+    found: bool
+}
+
+export type Key = {
+    index: Index,
+    key: u64
+}

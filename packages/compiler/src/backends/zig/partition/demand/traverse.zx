@@ -1,0 +1,47 @@
+import walk from "./walk"
+
+import type { Prepared as Input, Prepared as Output } from "./model"
+
+export default function (in: Input): Output {
+    const functions = loop({
+        state: in.state,
+        position: 0
+    }, {
+        while: current => in.source.seed &&
+            current.position < in.source.owners.length,
+        next: current => {
+            current.state = walk({
+                source: in.source,
+                state: current.state,
+                scope: in.source.owners[current.position],
+                callees: in.source.callees[current.position],
+                variants: in.source.variants[current.position]
+            })
+            current.position += 1
+        },
+        return: current => current.state
+    })
+
+    const state = loop({
+        state: functions,
+        position: 0
+    }, {
+        while: current => current.position < in.source.top_callees.length,
+        next: current => {
+            current.state = walk({
+                source: in.source,
+                state: current.state,
+                scope: in.source.count,
+                callees: in.source.top_callees[current.position],
+                variants: in.source.top_variants[current.position]
+            })
+            current.position += 1
+        },
+        return: current => current.state
+    })
+
+    return {
+        source: in.source,
+        state
+    }
+}

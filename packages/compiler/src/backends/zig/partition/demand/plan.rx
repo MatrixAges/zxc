@@ -1,0 +1,11 @@
+<Module>
+    <Type from="model" as="Demand" />
+
+    <Args in={Demand.Input} out={Demand.Output} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="traverse" in={$ctx.initialize} />
+    <Call fn="publish" in={$ctx.traverse} />
+
+    <Return value={$ctx.publish} />
+</Module>

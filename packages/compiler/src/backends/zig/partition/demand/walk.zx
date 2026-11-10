@@ -1,0 +1,102 @@
+import integers from "std:integer"
+import insert from "core/integer/wide_index/insert"
+
+import contains from "./contains"
+import key from "./key"
+import record from "./record"
+
+import type { Walk as Input, State as Output } from "./model"
+
+export default function walk(in: Input): Output {
+    return loop({
+        ...in.state,
+        position: 0
+    }, {
+        while: current => current.position < in.callees.length,
+        next: current => {
+            const callee = in.callees[current.position]
+            const index = integers.widen(callee)
+            const variant = in.variants[current.position]
+
+            if (in.source.owners[index] != in.scope) {
+                const seed = in.source.seed && in.source.callees[index].length <= 1
+                const inline = seed || contains({
+                    names: in.source.inline_names[index],
+                    value: variant
+                })
+                const encoded = key({
+                    scope: in.scope,
+                    callee
+                })
+
+                if (inline) {
+                    const inserted = insert({
+                        index: {
+                            count: current.copies_count,
+                            keys: current.copies_keys,
+                            buckets: current.copies_buckets
+                        },
+                        key: encoded
+                    })
+
+                    current.copies_count = inserted.index.count
+                    current.copies_keys = inserted.index.keys
+                    current.copies_buckets = inserted.index.buckets
+
+                    if (!inserted.found) {
+                        const state = walk({
+                            source: in.source,
+                            state: current.omit(["position"]),
+                            scope: in.scope,
+                            callees: in.source.callees[index],
+                            variants: in.source.variants[index]
+                        })
+
+                        current.copies_count = state.copies_count
+                        current.copies_keys = state.copies_keys
+                        current.copies_buckets = state.copies_buckets
+                        current.stubs_count = state.stubs_count
+                        current.stubs_keys = state.stubs_keys
+                        current.stubs_buckets = state.stubs_buckets
+                        current.stubs_first = state.stubs_first
+                        current.stubs_last = state.stubs_last
+                        current.stubs_names = state.stubs_names
+                        current.stubs_next = state.stubs_next
+                        current.exports_count = state.exports_count
+                        current.exports_keys = state.exports_keys
+                        current.exports_buckets = state.exports_buckets
+                        current.exports_first = state.exports_first
+                        current.exports_last = state.exports_last
+                        current.exports_names = state.exports_names
+                        current.exports_next = state.exports_next
+                    }
+                } else {
+                    const state = record({
+                        state: current.omit(["position"]),
+                        key: encoded,
+                        callee,
+                        value: variant
+                    })
+
+                    current.stubs_count = state.stubs_count
+                    current.stubs_keys = state.stubs_keys
+                    current.stubs_buckets = state.stubs_buckets
+                    current.stubs_first = state.stubs_first
+                    current.stubs_last = state.stubs_last
+                    current.stubs_names = state.stubs_names
+                    current.stubs_next = state.stubs_next
+                    current.exports_count = state.exports_count
+                    current.exports_keys = state.exports_keys
+                    current.exports_buckets = state.exports_buckets
+                    current.exports_first = state.exports_first
+                    current.exports_last = state.exports_last
+                    current.exports_names = state.exports_names
+                    current.exports_next = state.exports_next
+                }
+            }
+
+            current.position += 1
+        },
+        return: current => current.omit(["position"])
+    })
+}

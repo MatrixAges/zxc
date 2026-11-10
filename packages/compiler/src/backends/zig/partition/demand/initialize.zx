@@ -1,0 +1,26 @@
+import type { Input, Prepared as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        source: in,
+        state: {
+            copies_count: 0,
+            copies_keys: [],
+            copies_buckets: [],
+            stubs_count: 0,
+            stubs_keys: [],
+            stubs_buckets: [],
+            stubs_first: [],
+            stubs_last: [],
+            stubs_names: [],
+            stubs_next: [],
+            exports_count: 0,
+            exports_keys: [],
+            exports_buckets: [],
+            exports_first: [],
+            exports_last: [],
+            exports_names: [],
+            exports_next: []
+        }
+    }
+}

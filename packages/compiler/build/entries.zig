@@ -90,6 +90,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/partition/exports/build.rx", .name = "partition_exports", .owner = .compiler },
     .{ .path = "genz/analysis/partition/stub/build.rx", .name = "partition_stub", .owner = .compiler },
     .{ .path = "genz/analysis/partition/root/build.rx", .name = "partition_root", .owner = .compiler },
+    .{ .path = "backends/zig/partition/demand/plan.rx", .name = "partition_demand", .owner = .compiler },
     .{ .path = "backends/zig/partition/scanning/index.zx", .name = "partition_scan_index", .owner = .compiler },
     .{ .path = "backends/zig/partition/scanning/references.zx", .name = "partition_references", .owner = .compiler },
     .{ .path = "backends/zig/partition/scanning/scan.rx", .name = "partition_scan", .owner = .compiler },

@@ -1,0 +1,53 @@
+import integers from "std:integer"
+import get from "core/integer/wide_index/get"
+
+import { scope_scale } from "./const"
+import variants from "./variants"
+
+import type { Index } from "core/integer/wide_index/model"
+import type { Demand, Demands as Output } from "./model"
+
+export type Input = {
+    demand: Demand,
+    copies: Index,
+    filter: bool,
+    order: u64[],
+    start: u64,
+    end: u64
+}
+
+export default function (in: Input): Output {
+    const initial: Output = {
+        callees: [],
+        variants: []
+    }
+
+    return loop({
+        result: initial,
+        position: in.start
+    }, {
+        while: current => current.position < in.end,
+        next: current => {
+            const index = in.order[current.position]
+            const key = in.demand.index.keys[index]
+            const copied = in.filter && get({
+                index: in.copies,
+                key
+            }) != null
+
+            if (!copied) {
+                const callee = integers.narrow(key % scope_scale)
+                const names = variants({
+                    demand: in.demand,
+                    position: index
+                })
+
+                current.result.callees = current.result.callees.push(callee)[0]
+                current.result.variants = current.result.variants.push(names)[0]
+            }
+
+            current.position += 1
+        },
+        return: current => current.result
+    })
+}

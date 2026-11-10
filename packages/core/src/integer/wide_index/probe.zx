@@ -1,0 +1,32 @@
+import integers from "std:integer"
+
+import { max_u32 } from "../../const"
+
+export type Input = {
+    keys: u64[],
+    buckets: u32[],
+    key: u64
+}
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    return loop({
+        slot: integers.hash(in.key) % in.buckets.length,
+        found: false
+    }, {
+        while: state => !state.found,
+        next: state => {
+            const entry = in.buckets[state.slot]
+
+            if (entry == max_u32) {
+                state.found = true
+            } else if (in.keys[integers.widen(entry)] == in.key) {
+                state.found = true
+            } else {
+                state.slot = (state.slot + 1) % in.buckets.length
+            }
+        },
+        return: state => state.slot
+    })
+}

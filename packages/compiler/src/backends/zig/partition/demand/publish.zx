@@ -1,0 +1,111 @@
+import integers from "std:integer"
+
+import { scope_scale } from "./const"
+import group from "./group"
+import publish from "./publish_values"
+
+import type { Prepared as Input, Output, Scope } from "./model"
+
+export default function (in: Input): Output {
+    const count = integers.widen(in.source.count) + 1
+
+    const stubs = group({
+        keys: in.state.stubs_keys,
+        scopes: count
+    })
+
+    const copies = group({
+        keys: in.state.copies_keys,
+        scopes: count
+    })
+
+    const all_exports = group({
+        keys: in.state.exports_keys,
+        scopes: 1
+    })
+
+    const empty: Scope[] = []
+
+    const scopes = loop({
+        result: empty,
+        scope: 0
+    }, {
+        while: current => current.scope < count,
+        next: current => {
+            const start = copies.starts[current.scope]
+            const end = copies.starts[current.scope + 1]
+            const values: u32[] = []
+            const selected = loop({
+                values,
+                position: start
+            }, {
+                while: item => item.position < end,
+                next: item => {
+                    const index = copies.order[item.position]
+                    const callee = integers.narrow(
+                        in.state.copies_keys[index] % scope_scale
+                    )
+
+                    item.values = item.values.push(callee)[0]
+                    item.position += 1
+                },
+                return: item => item.values
+            })
+            const demands = publish({
+                demand: {
+                    index: {
+                        count: in.state.stubs_count,
+                        keys: in.state.stubs_keys,
+                        buckets: in.state.stubs_buckets
+                    },
+                    first: in.state.stubs_first,
+                    last: in.state.stubs_last,
+                    names: in.state.stubs_names,
+                    next: in.state.stubs_next
+                },
+                copies: {
+                    count: in.state.copies_count,
+                    keys: in.state.copies_keys,
+                    buckets: in.state.copies_buckets
+                },
+                filter: true,
+                order: stubs.order,
+                start: stubs.starts[current.scope],
+                end: stubs.starts[current.scope + 1]
+            })
+
+            current.result = current.result.push({
+                copies: selected,
+                stubs: demands
+            })[0]
+            current.scope += 1
+        },
+        return: current => current.result
+    })
+
+    return {
+        scopes,
+        exports: publish({
+            demand: {
+                index: {
+                    count: in.state.exports_count,
+                    keys: in.state.exports_keys,
+                    buckets: in.state.exports_buckets
+                },
+                first: in.state.exports_first,
+                last: in.state.exports_last,
+                names: in.state.exports_names,
+                next: in.state.exports_next
+            },
+            copies: {
+                count: in.state.copies_count,
+                keys: in.state.copies_keys,
+                buckets: in.state.copies_buckets
+            },
+            filter: false,
+            order: all_exports.order,
+            start: 0,
+            end: all_exports.order.length
+        })
+    }
+}
