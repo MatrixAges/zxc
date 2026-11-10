@@ -1,0 +1,10 @@
+<Module>
+    <Type from="model" as="Reexports" />
+
+    <Args in={Reexports.Input} out={Reexports.Output} />
+
+    <Call fn="entry" in={$in} />
+    <Call fn="members" in={$ctx.entry} />
+
+    <Return value={$ctx.members} />
+</Module>

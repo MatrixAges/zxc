@@ -26,7 +26,6 @@ pub fn rootBacked(allocator: std.mem.Allocator, workspace: std.mem.Allocator, mo
 
     defer arena.deinit();
 
-    const builder = try genz.Builder.init(arena.allocator());
     const entry = @import("generated_partition_root");
     const zx = @import("zx");
     const Input = @typeInfo(@TypeOf(entry.executeValue)).@"fn".param_types[1].?;
@@ -36,17 +35,11 @@ pub fn rootBacked(allocator: std.mem.Allocator, workspace: std.mem.Allocator, mo
         .panic_handler = panic_handler,
     };
 
-    const output = entry.executeValue(builder.allocator, input) catch |err| return failure(err);
+    const output = entry.executeValue(arena.allocator(), input) catch |err| return failure(err);
 
     if (!output.valid) return error.OutOfMemory;
 
-    genz.import_module.appendBorrowed(builder.allocator, builder.nodes, std.meta.Child(entry.Output), output) catch |err| return failure(err);
-
-    const declarations = try builder.allocator.alloc(node.Declaration, builder.nodes.declaration_rows.tags.items.len);
-
-    for (declarations, 0..) |*declaration, index| declaration.* = try builder.nodes.materializeDeclaration(builder.allocator, @intCast(index));
-
-    return genz.render(allocator, builder.nodes, declarations);
+    return render(allocator, arena.allocator(), std.meta.Child(entry.Output), output);
 }
 
 fn failure(err: anyerror) std.mem.Allocator.Error {
@@ -67,29 +60,22 @@ pub fn exportsBacked(allocator: std.mem.Allocator, workspace: std.mem.Allocator,
 
     defer arena.deinit();
 
-    const builder = try genz.Builder.init(arena.allocator());
     const entry = @import("generated_partition_exports");
     const Input = @typeInfo(@TypeOf(entry.executeValue)).@"fn".param_types[1].?;
     const Row = std.meta.Child(std.meta.Child(Input));
-    const rows = try builder.allocator.alloc(Row, entries.len);
+    const rows = try arena.allocator().alloc(Row, entries.len);
 
     for (rows, entries) |*row, item| row.* = .{
         .function_name = std.fs.path.stem(item.file),
         .variant = item.variant,
     };
 
-    const input = try @import("zx").columns.pointers(Input, builder.allocator, @as([]const Row, rows));
-    const output = entry.executeValue(builder.allocator, input) catch |err| return failure(err);
+    const input = try @import("zx").columns.pointers(Input, arena.allocator(), @as([]const Row, rows));
+    const output = entry.executeValue(arena.allocator(), input) catch |err| return failure(err);
 
     if (!output.valid) return error.OutOfMemory;
 
-    genz.import_module.appendBorrowed(builder.allocator, builder.nodes, std.meta.Child(entry.Output), output) catch |err| return failure(err);
-
-    const declarations = try builder.allocator.alloc(node.Declaration, builder.nodes.declaration_rows.tags.items.len);
-
-    for (declarations, 0..) |*declaration, index| declaration.* = try builder.nodes.materializeDeclaration(builder.allocator, @intCast(index));
-
-    return genz.render(allocator, builder.nodes, declarations);
+    return render(allocator, arena.allocator(), std.meta.Child(entry.Output), output);
 }
 
 pub fn stub(allocator: std.mem.Allocator, file: []const u8, variants: []const []const u8, comptime_entry: bool) ![]const u8 {
@@ -103,7 +89,6 @@ pub fn stubBacked(allocator: std.mem.Allocator, workspace: std.mem.Allocator, fi
 
     defer arena.deinit();
 
-    const builder = try genz.Builder.init(arena.allocator());
     const entry = @import("generated_partition_stub");
     const Input = @typeInfo(@TypeOf(entry.executeValue)).@"fn".param_types[1].?;
 
@@ -113,15 +98,23 @@ pub fn stubBacked(allocator: std.mem.Allocator, workspace: std.mem.Allocator, fi
         .comptime_entry = comptime_entry,
     };
 
-    const output = entry.executeValue(builder.allocator, input) catch |err| return failure(err);
+    const output = entry.executeValue(arena.allocator(), input) catch |err| return failure(err);
 
     if (!output.valid) return error.OutOfMemory;
 
-    genz.import_module.appendBorrowed(builder.allocator, builder.nodes, std.meta.Child(entry.Output), output) catch |err| return failure(err);
+    return render(allocator, arena.allocator(), std.meta.Child(entry.Output), output);
+}
 
-    const declarations = try builder.allocator.alloc(node.Declaration, builder.nodes.declaration_rows.tags.items.len);
+fn render(allocator: std.mem.Allocator, workspace: std.mem.Allocator, comptime ModuleType: type, output: anytype) std.mem.Allocator.Error![]u8 {
+    if (comptime genz.render_module.available) return genz.render_module.render(allocator, workspace, ModuleType, output);
 
-    for (declarations, 0..) |*declaration, index| declaration.* = try builder.nodes.materializeDeclaration(builder.allocator, @intCast(index));
+    const builder = try genz.Builder.init(workspace);
+
+    genz.import_module.appendBorrowed(workspace, builder.nodes, ModuleType, output) catch |err| return failure(err);
+
+    const declarations = try workspace.alloc(node.Declaration, builder.nodes.declaration_rows.tags.items.len);
+
+    for (declarations, 0..) |*declaration, index| declaration.* = try builder.nodes.materializeDeclaration(workspace, @intCast(index));
 
     return genz.render(allocator, builder.nodes, declarations);
 }

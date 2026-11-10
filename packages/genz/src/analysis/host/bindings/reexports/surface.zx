@@ -1,0 +1,60 @@
+import {
+    generated_module,
+    input_name,
+    output_name,
+    execute_name,
+    io_name,
+    process_name,
+    input_shape_name,
+    output_shape_name,
+    value_name,
+    state_name,
+    allocator_name
+} from "../const"
+
+import type { Bootstrap as Input, Input as Output } from "./model"
+
+export default function (in: Input): Output {
+    const required = [
+        input_name,
+        output_name,
+        execute_name,
+        io_name,
+        process_name,
+        input_shape_name,
+        output_shape_name
+    ]
+
+    const enabled = [
+        in.value_entry,
+        in.state_entry,
+        in.allocator_entry
+    ]
+
+    const optional = [
+        value_name,
+        state_name,
+        allocator_name
+    ]
+
+    const names = loop({
+        names: required,
+        index: 0
+    }, {
+        while: current => current.index < enabled.length,
+        next: current => {
+            if (enabled[current.index]) {
+                current.names = current.names.push(optional[current.index])[0]
+            }
+
+            current.index += 1
+        },
+        return: current => current.names
+    })
+
+    return {
+        module: generated_module,
+        member: in.member,
+        names
+    }
+}

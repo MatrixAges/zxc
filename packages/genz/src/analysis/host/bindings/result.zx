@@ -1,0 +1,34 @@
+import { ExpressionsKind } from "../../../printer/model/expressions"
+import { result_name } from "./const"
+import declare from "./declare"
+
+import type { PublishedDeclarations } from "./model"
+
+export type Input = {
+    emit: bool
+}
+
+export type Output = {
+    expressions: {
+        tags: ExpressionsKind[],
+        offsets: u32[],
+        boolean: bool[]
+    },
+    declarations: PublishedDeclarations,
+    valid: bool
+}
+
+export default function (in: Input): Output {
+    return {
+        expressions: {
+            tags: [ExpressionsKind.Boolean],
+            offsets: [0],
+            boolean: [in.emit]
+        },
+        declarations: declare({
+            name: result_name,
+            value: 0
+        }),
+        valid: true
+    }
+}

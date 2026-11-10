@@ -26,14 +26,12 @@ pub fn write(io: std.Io, allocator: std.mem.Allocator, workspace: std.mem.Alloca
         try top.append(allocator, .{ .path = name, .source = module.file.source });
         try modules.append(allocator, .{ .name = module.name, .file = name });
 
-        var declarations: std.ArrayList([]const u8) = .empty;
-
-        try declarations.appendSlice(allocator, &.{ "Input", "Output", "execute", "requires_io", "requires_process", "input_shape", "output_shape" });
-        if (module.value_entry) try declarations.append(allocator, "executeValue");
-        if (module.state_entry) try declarations.append(allocator, "executeState");
-        if (module.allocator_entry) try declarations.append(allocator, "executeIn");
-
-        const adapter = try compiler.zig.host.reexports(allocator, "generated", module.name, declarations.items);
+        const adapter = try compiler.zig.host.bootstrapReexports(allocator, workspace, .{
+            .member = module.name,
+            .value_entry = module.value_entry,
+            .state_entry = module.state_entry,
+            .allocator_entry = module.allocator_entry,
+        });
 
         try files.append(allocator, .{ .path = try std.fmt.allocPrint(allocator, "{s}.zig", .{module.name}), .source = adapter });
     }

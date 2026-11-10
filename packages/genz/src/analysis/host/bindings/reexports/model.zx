@@ -1,0 +1,34 @@
+import type {
+    State as Declarations,
+    Columns as DeclarationColumns
+} from "../../../../ast/declarations/builder/model"
+import type {
+    State as Expressions,
+    Columns as ExpressionColumns
+} from "../../../../ast/expressions/builder/model"
+
+export type Input = {
+    module: string,
+    member: string,
+    names: string[]
+}
+
+export type Bootstrap = {
+    member: string,
+    value_entry: bool,
+    state_entry: bool,
+    allocator_entry: bool
+}
+
+export type State = {
+    names: string[],
+    expressions: Expressions,
+    declarations: Declarations,
+    binding: u32
+}
+
+export type Output = {
+    expressions: ExpressionColumns,
+    declarations: DeclarationColumns,
+    valid: bool
+}

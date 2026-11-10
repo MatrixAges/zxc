@@ -1,0 +1,16 @@
+import bytes from "std:bytes"
+
+import { DeclarationsKind } from "../../../printer/model/declarations"
+
+import type { Declaration as Input, PublishedDeclarations as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        tags: [DeclarationsKind.Constant],
+        offsets: [0],
+        constant_name: [bytes.fromText(in.name)],
+        constant_type_expr: [null],
+        constant_value: [in.value],
+        constant_exported: [true]
+    }
+}

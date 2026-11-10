@@ -445,11 +445,18 @@ pub const ordered = [_]Entry{
     .{ .path = "genz/analysis/uniqueness/replay/ordered/planned.rx", .name = "uniqueness_replay_planned", .owner = .genz },
 };
 
+const host_bindings = [_]Entry{
+    .{ .path = "genz/analysis/host/bindings/result.zx", .name = "host_result", .owner = .genz },
+    .{ .path = "genz/analysis/host/bindings/c_adapter.zx", .name = "host_c_adapter", .owner = .genz },
+    .{ .path = "genz/analysis/host/bindings/reexports/build.rx", .name = "host_reexports", .owner = .genz },
+    .{ .path = "genz/analysis/host/bindings/reexports/bootstrap.rx", .name = "host_bootstrap_reexports", .owner = .genz },
+};
+
 pub const host = [_]Entry{
     .{ .path = "genz/analysis/host/metadata/catalog/build.rx", .name = "host_catalog", .owner = .genz },
     .{ .path = "genz/analysis/host/metadata/resources/build.rx", .name = "host_resources", .owner = .genz },
     .{ .path = "genz/printer/render.rx", .name = "printer", .owner = .genz },
-};
+} ++ host_bindings;
 
 /// Individual checkers that zxc reaches through the unified IR validation instead; only test builds import them.
 pub const checks = [_]Entry{
@@ -493,11 +500,11 @@ pub const ModuleEntry = struct {
 pub const module_entries = block: {
     @setEvalBranchQuota(10_000);
 
-    const sets = .{ Set.main, Set.ordered, Set.collections, Set.growth };
+    const sets = .{ Set.main, Set.ordered, Set.collections, Set.growth, Set.host };
     var count: usize = 0;
 
     for (sets) |set| {
-        for (of(set)) |entry| {
+        for (if (set == .host) &host_bindings else of(set)) |entry| {
             if (entry.owner == .frontend or entry.owner == .compiler or entry.owner == .genz) count += 1;
         }
     }
@@ -506,7 +513,7 @@ pub const module_entries = block: {
     var index: usize = 0;
 
     for (sets) |set| {
-        for (of(set)) |entry| {
+        for (if (set == .host) &host_bindings else of(set)) |entry| {
             if (entry.owner != .frontend and entry.owner != .compiler and entry.owner != .genz) continue;
 
             result[index] = .{ .set = set, .entry = entry, .file = entry.name ++ ".zig", .import_name = entry.importName() };

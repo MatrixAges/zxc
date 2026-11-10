@@ -1,0 +1,47 @@
+import bytes from "std:bytes"
+
+import {
+    ExpressionsKind,
+    ExpressionsBuiltinName
+} from "../../../printer/model/expressions"
+import { c_name, c_module } from "./const"
+import declare from "./declare"
+
+import type { PublishedDeclarations } from "./model"
+
+export type Input = {}
+
+export type Output = {
+    expressions: {
+        tags: ExpressionsKind[],
+        offsets: u32[],
+        string: u8[][],
+        builtin_name: ExpressionsBuiltinName[],
+        builtin_arguments: u32[][]
+    },
+    declarations: PublishedDeclarations,
+    valid: bool
+}
+
+export default function (in: Input): Output {
+    return {
+        expressions: {
+            tags: [
+                ExpressionsKind.String,
+                ExpressionsKind.Builtin
+            ],
+            offsets: [
+                0,
+                0
+            ],
+            string: [bytes.fromText(c_module)],
+            builtin_name: [ExpressionsBuiltinName.Import],
+            builtin_arguments: [[0]]
+        },
+        declarations: declare({
+            name: c_name,
+            value: 1
+        }),
+        valid: true
+    }
+}

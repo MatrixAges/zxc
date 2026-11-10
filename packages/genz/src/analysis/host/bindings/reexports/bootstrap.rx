@@ -1,0 +1,11 @@
+<Module>
+    <Type from="model" as="Reexports" />
+
+    <Args in={Reexports.Bootstrap} out={Reexports.Output} />
+
+    <Call fn="surface" in={$in} />
+
+    <Call module="build" in={$ctx.surface} />
+
+    <Return value={$ctx.build} />
+</Module>

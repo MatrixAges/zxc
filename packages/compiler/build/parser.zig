@@ -387,6 +387,7 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
     const type_views = @import("compiler.zig").typeViews(b, target, optimize);
     const nominal_data = @import("compiler.zig").nominalData(b, target, optimize);
     const bindings = b.allocator.alloc(@import("compiler.zig").ModuleBinding, entries.module_entries.len) catch @panic("out of memory");
+    const host = @import("host_metadata.zig").generated(b, source.host, target, optimize, strip, natives.generated.import_table.get("zxc_standard").?);
 
     for (entries.module_entries, bindings) |metadata, *binding| {
         const directory = switch (metadata.set) {
@@ -394,6 +395,7 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
             .ordered => source.ordered,
             .collections => source.collections,
             .growth => source.growth,
+            .host => source.host,
             else => unreachable,
         };
 
@@ -402,6 +404,7 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
             .ordered => natives.ordered,
             .collections => natives.collections,
             .growth => natives.growth,
+            .host => host,
             else => unreachable,
         };
 

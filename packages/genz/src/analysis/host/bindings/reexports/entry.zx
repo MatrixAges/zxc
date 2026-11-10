@@ -1,0 +1,53 @@
+import bytes from "std:bytes"
+
+import constant from "../../../../ast/declarations/builder/constant"
+import declarations from "../../../../ast/declarations/builder/initialize"
+import builtin from "../../../../ast/expressions/builder/builtin"
+import field from "../../../../ast/expressions/builder/field"
+import expression from "../../../../ast/expressions/builder/initialize"
+import named from "../../../../ast/expressions/builder/named"
+import { ExpressionsBuiltinName } from "../../../../printer/model/expressions"
+import { entry_name } from "../const"
+
+import type { Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const path = named({
+        state: expression(0),
+        name: bytes.fromText(in.module),
+        text: true
+    })
+
+    const imported = builtin({
+        state: path.state,
+        name: ExpressionsBuiltinName.Import,
+        arguments: [path.id]
+    })
+
+    const member = field({
+        state: imported.state,
+        target: imported.id,
+        name: bytes.fromText(in.member)
+    })
+
+    const name = bytes.fromText(entry_name)
+
+    const binding = named({
+        state: member.state,
+        name,
+        text: false
+    })
+
+    return {
+        names: in.names,
+        expressions: binding.state,
+        declarations: constant({
+            state: declarations(0),
+            name,
+            value: member.id,
+            type_expr: null,
+            exported: false
+        }),
+        binding: binding.id
+    }
+}

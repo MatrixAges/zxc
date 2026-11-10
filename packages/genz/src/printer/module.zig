@@ -1,4 +1,5 @@
 const std = @import("std");
+pub const available = @import("genz_options").generated;
 const zx = @import("zx");
 const generated = @import("generated_printer");
 const Input = std.meta.Child(generated.Input);
@@ -27,13 +28,11 @@ pub fn render(allocator: std.mem.Allocator, workspace: std.mem.Allocator, compti
             .{ expressions, forms };
     } else .{zx.columns.view(std.meta.Child(@FieldType(Module, "expressions")), module.expressions)};
 
-    const statements = zx.columns.view(std.meta.Child(@FieldType(Module, "statements")), module.statements);
     const declarations = zx.columns.view(std.meta.Child(@FieldType(Module, "declarations")), module.declarations);
-    const fields = zx.columns.view(std.meta.Child(@FieldType(Module, "fields")), module.fields);
     const expression_columns = project(std.meta.Child(@FieldType(Source, "expressions")), expression_views);
-    const statement_columns = project(std.meta.Child(@FieldType(Source, "statements")), .{statements});
+    const statement_columns = project(std.meta.Child(@FieldType(Source, "statements")), if (@hasField(Module, "statements")) .{zx.columns.view(std.meta.Child(@FieldType(Module, "statements")), module.statements)} else .{});
     const declaration_columns = project(std.meta.Child(@FieldType(Source, "declarations")), .{declarations});
-    const field_columns = project(std.meta.Child(@FieldType(Source, "fields")), .{fields});
+    const field_columns = project(std.meta.Child(@FieldType(Source, "fields")), if (@hasField(Module, "fields")) .{zx.columns.view(std.meta.Child(@FieldType(Module, "fields")), module.fields)} else .{});
     const arm_columns = project(std.meta.Child(@FieldType(Source, "arms")), if (@hasField(Module, "arms")) .{zx.columns.view(std.meta.Child(@FieldType(Module, "arms")), module.arms)} else .{});
     const first = if (@hasField(Module, "first")) module.first else 0;
     const end = std.math.cast(u32, declarations.tags.len) orelse return error.OutOfMemory;
