@@ -1,0 +1,191 @@
+import address from "../../../../../ast/context/address"
+import constSlice from "../../../../../ast/context/const_slice"
+import integer from "../../../../../ast/context/integer"
+import path from "../../../../../ast/context/path"
+import primitive from "../../../../../ast/context/primitive"
+import slice from "../../../../../ast/context/slice"
+import result from "../../../../../ast/statements/builder/result"
+import { ExpressionsPrimitive as P } from "../../../../../printer/model/expressions"
+import { std_name, api_name, env_name, env_type } from "../../context/const"
+import {
+    len_name,
+    ptr_name,
+    value_type,
+    allocator_name,
+    value_name
+} from "../../task/const"
+import errorUnion from "../../task/error_union"
+import method from "../../task/method"
+import check from "./check_call"
+import {
+    string_name,
+    size_name,
+    bytes_name,
+    get_string,
+    mem_name,
+    allocator_type
+} from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const env = path({
+        state: in.tree.ast.context,
+        path: [env_name]
+    })
+
+    const value = path({
+        state: env.state,
+        path: [value_name]
+    })
+
+    const pointer = path({
+        state: value.state,
+        path: [
+            bytes_name,
+            ptr_name
+        ]
+    })
+
+    const length = path({
+        state: pointer.state,
+        path: [
+            bytes_name,
+            len_name
+        ]
+    })
+
+    const size = path({
+        state: length.state,
+        path: [size_name]
+    })
+
+    const address = address({
+        state: size.state,
+        value: size.id
+    })
+
+    const read = check({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: address.state
+            }
+        },
+        name: get_string,
+        arguments: [
+            env.id,
+            value.id,
+            pointer.id,
+            length.id,
+            address.id
+        ]
+    })
+
+    const buffer = path({
+        state: read.ast.context,
+        path: [bytes_name]
+    })
+
+    const zero = integer({
+        state: buffer.state,
+        value: 0
+    })
+
+    const slice = slice({
+        state: zero.state,
+        target: buffer.id,
+        start: zero.id,
+        end: size.id
+    })
+
+    const returned = result({
+        state: read.ast.statements,
+        value: slice.id
+    })
+
+    const allocator_type_node = path({
+        state: slice.state,
+        path: [
+            std_name,
+            mem_name,
+            allocator_type
+        ]
+    })
+
+    const env_type_node = path({
+        state: allocator_type_node.state,
+        path: [
+            api_name,
+            env_type
+        ]
+    })
+
+    const value_type_node = path({
+        state: env_type_node.state,
+        path: [
+            api_name,
+            value_type
+        ]
+    })
+
+    const byte = primitive({
+        state: value_type_node.state,
+        value: P.U8
+    })
+
+    const bytes_type = constSlice({
+        state: byte.state,
+        value: byte.id
+    })
+
+    const return_type = errorUnion({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: bytes_type.state,
+                statements: returned
+            },
+            extra: read.extra
+        },
+        payload: bytes_type.id,
+        inferred: false
+    })
+
+    const tree = method({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: return_type.state.ast.context,
+                statements: returned
+            },
+            extra: return_type.state.extra
+        },
+        name: string_name,
+        parameters: [
+            {
+                name: allocator_name,
+                value: allocator_type_node.id
+            },
+            {
+                name: env_name,
+                value: env_type_node.id
+            },
+            {
+                name: value_name,
+                value: value_type_node.id
+            }
+        ],
+        return_type: return_type.id,
+        exported: false,
+        abi_export: false
+    })
+
+    return {
+        ...in,
+        tree
+    }
+}

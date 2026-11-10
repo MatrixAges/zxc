@@ -1,0 +1,89 @@
+import bytes from "std:bytes"
+
+import address from "../../../../../ast/context/address"
+import integer from "../../../../../ast/context/integer"
+import nullValue from "../../../../../ast/context/null_value"
+import path from "../../../../../ast/context/path"
+import primitive from "../../../../../ast/context/primitive"
+import binding from "../../../../../ast/statements/builder/binding"
+import { ExpressionsPrimitive as P } from "../../../../../printer/model/expressions"
+import { env_name } from "../../context/const"
+import { value_name } from "../../task/const"
+import check from "./check_call"
+import { size_name, get_string } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const zero = integer({
+        state: in.tree.ast.context,
+        value: 0
+    })
+
+    const size_type = primitive({
+        state: zero.state,
+        value: P.Usize
+    })
+
+    const declared = binding({
+        state: in.tree.ast.statements,
+        name: bytes.fromText(size_name),
+        value: zero.id,
+        mutable: true,
+        type_expr: size_type.id
+    })
+
+    const env = path({
+        state: size_type.state,
+        path: [env_name]
+    })
+
+    const value = path({
+        state: env.state,
+        path: [value_name]
+    })
+
+    const nil = nullValue(value.state)
+
+    const size = path({
+        state: nil.state,
+        path: [size_name]
+    })
+
+    const pointer = address({
+        state: size.state,
+        value: size.id
+    })
+
+    const queried = check({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: pointer.state,
+                statements: declared
+            }
+        },
+        name: get_string,
+        arguments: [
+            env.id,
+            value.id,
+            nil.id,
+            zero.id,
+            pointer.id
+        ]
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: queried.ast.context,
+                statements: queried.ast.statements
+            },
+            extra: queried.extra
+        }
+    }
+}

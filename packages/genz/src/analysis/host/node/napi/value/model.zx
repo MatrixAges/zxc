@@ -1,0 +1,11 @@
+
+import type { Input as Bases } from "../../../../../ast/context/model"
+import type { State as Tree, Output as Published } from "../../task/model"
+
+export type Input = Bases
+
+export type State = {
+    tree: Tree
+}
+
+export type Output = Published

@@ -23,7 +23,7 @@ export default function (in: Input): Output {
                 "error_union_inferred"
             ])
         },
-        base: 0,
+        base: state.ast.context.source.expression_base,
         payload: in.payload,
         inferred: in.inferred
     })

@@ -1,0 +1,23 @@
+
+import context from "../../../../../ast/context/initialize"
+import statements from "../../../../../ast/statements/builder/initialize"
+import initialize from "../../task/initialize"
+
+import type { Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const tree = initialize({
+        stateful: false
+    })
+
+    return {
+        tree: {
+            ...tree,
+            ast: {
+                ...tree.ast,
+                context: context(in),
+                statements: statements(in.statement_base)
+            }
+        }
+    }
+}

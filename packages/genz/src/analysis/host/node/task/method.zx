@@ -35,7 +35,9 @@ export default function (in: Input): Output {
     const definition = defineFunction({
         base: integers.narrow(state.ast.declarations.tags.length),
         name: bytes.fromText(in.name),
-        parameters_start: integers.narrow(state.ast.fields.name.length),
+        parameters_start:
+            state.ast.context.source.field_base +
+            integers.narrow(state.ast.fields.name.length),
         parameters_count: integers.narrow(in.parameters.length),
         return_type: in.return_type,
         body_start: body.first,

@@ -1,0 +1,31 @@
+import { api_name } from "../../context/const"
+import { check_name } from "../../task/const"
+import evaluate from "../../task/evaluate"
+import invoke from "../../task/invoke"
+
+import type { State, State as Output } from "../../task/model"
+
+export type Input = {
+    state: State,
+    name: string,
+    arguments: u32[]
+}
+
+export default function (in: Input): Output {
+    const called = invoke({
+        state: in.state,
+        path: [
+            api_name,
+            in.name
+        ],
+        arguments: in.arguments,
+        fallible: false
+    })
+
+    return evaluate(invoke({
+        state: called.state,
+        path: [check_name],
+        arguments: [called.id],
+        fallible: true
+    }))
+}

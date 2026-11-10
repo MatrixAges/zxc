@@ -1,0 +1,17 @@
+<Module>
+    <Type from="model" as="Value" />
+
+    <Args in={Value.Input} out={Value.Output} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="check" in={$ctx.initialize} />
+    <Call fn="fail" in={$ctx.check} />
+    <Call fn="kind" in={$ctx.fail} />
+    <Call fn="length" in={$ctx.kind} />
+    <Call fn="size" in={$ctx.length} />
+    <Call fn="allocate" in={$ctx.size} />
+    <Call fn="string" in={$ctx.allocate} />
+    <Call fn="publish" in={$ctx.string} />
+
+    <Return value={$ctx.publish} />
+</Module>

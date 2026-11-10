@@ -1,0 +1,134 @@
+import bytes from "std:bytes"
+
+import binary from "../../../../../ast/context/binary"
+import path from "../../../../../ast/context/path"
+import primitive from "../../../../../ast/context/primitive"
+import text from "../../../../../ast/context/text"
+import {
+    ExpressionsPrimitive as P,
+    ExpressionsBinaryOperator as B,
+    ExpressionsKind as K
+} from "../../../../../printer/model/expressions"
+import { api_name } from "../../context/const"
+import { ok_tag, status_type, status_name, check_name } from "../../task/const"
+import errorUnion from "../../task/error_union"
+import method from "../../task/method"
+import { pending_tag, pending_exception, invalid_node_value } from "./const"
+import guard from "./guard"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const status = path({
+        state: in.tree.ast.context,
+        path: [status_name]
+    })
+
+    const pending = text({
+        state: status.state,
+        kind: K.EnumLiteral,
+        value: bytes.fromText(pending_tag)
+    })
+
+    const pending_status = binary({
+        state: pending.state,
+        operator: B.Equal,
+        left: status.id,
+        right: pending.id
+    })
+
+    const pending_guard = guard({
+        state: {
+            ...in,
+            tree: {
+                ...in.tree,
+                ast: {
+                    ...in.tree.ast,
+                    context: pending_status.state
+                }
+            }
+        },
+        condition: pending_status.id,
+        error: pending_exception
+    })
+
+    const ok = text({
+        state: pending_guard.tree.ast.context,
+        kind: K.EnumLiteral,
+        value: bytes.fromText(ok_tag)
+    })
+
+    const bad = binary({
+        state: ok.state,
+        operator: B.NotEqual,
+        left: status.id,
+        right: ok.id
+    })
+
+    const invalid_guard = guard({
+        state: {
+            ...in,
+            tree: {
+                ...in.tree,
+                ast: {
+                    ...in.tree.ast,
+                    context: bad.state,
+                    statements: pending_guard.tree.ast.statements
+                }
+            }
+        },
+        condition: bad.id,
+        error: invalid_node_value
+    })
+
+    const status_type_node = path({
+        state: invalid_guard.tree.ast.context,
+        path: [
+            api_name,
+            status_type
+        ]
+    })
+
+    const unit = primitive({
+        state: status_type_node.state,
+        value: P.Void
+    })
+
+    const return_type = errorUnion({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: unit.state,
+                statements: invalid_guard.tree.ast.statements
+            }
+        },
+        payload: unit.id,
+        inferred: true
+    })
+
+    const tree = method({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: return_type.state.ast.context,
+                statements: invalid_guard.tree.ast.statements
+            },
+            extra: return_type.state.extra
+        },
+        name: check_name,
+        parameters: [{
+            name: status_name,
+            value: status_type_node.id
+        }],
+        return_type: return_type.id,
+        exported: true,
+        abi_export: false
+    })
+
+    return {
+        ...in,
+        tree
+    }
+}

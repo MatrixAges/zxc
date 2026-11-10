@@ -1,0 +1,215 @@
+import bytes from "std:bytes"
+
+import address from "../../../../../ast/context/address"
+import boolean from "../../../../../ast/context/boolean"
+import integer from "../../../../../ast/context/integer"
+import path from "../../../../../ast/context/path"
+import primitive from "../../../../../ast/context/primitive"
+import unary from "../../../../../ast/context/unary"
+import binding from "../../../../../ast/statements/builder/binding"
+import result from "../../../../../ast/statements/builder/result"
+import {
+    ExpressionsPrimitive as P,
+    ExpressionsUnaryOperator as U
+} from "../../../../../printer/model/expressions"
+import { api_name, env_name, env_type } from "../../context/const"
+import { result_name, value_type, value_name } from "../../task/const"
+import errorUnion from "../../task/error_union"
+import method from "../../task/method"
+import check from "./check_call"
+import {
+    length_name,
+    is_array_name,
+    array_length,
+    is_array,
+    expected_array
+} from "./const"
+import guard from "./guard"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const no = boolean({
+        state: in.tree.ast.context,
+        value: false
+    })
+
+    const declared = binding({
+        state: in.tree.ast.statements,
+        name: bytes.fromText(is_array_name),
+        value: no.id,
+        mutable: true
+    })
+
+    const env = path({
+        state: no.state,
+        path: [env_name]
+    })
+
+    const value = path({
+        state: env.state,
+        path: [value_name]
+    })
+
+    const array = path({
+        state: value.state,
+        path: [is_array_name]
+    })
+
+    const array_pointer = address({
+        state: array.state,
+        value: array.id
+    })
+
+    const checked = check({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: array_pointer.state,
+                statements: declared
+            }
+        },
+        name: is_array,
+        arguments: [
+            env.id,
+            value.id,
+            array_pointer.id
+        ]
+    })
+
+    const bad = unary({
+        state: checked.ast.context,
+        operator: U.Not,
+        operand: array.id
+    })
+
+    const array_guard = guard({
+        state: {
+            ...in,
+            tree: {
+                ...in.tree,
+                ast: {
+                    ...in.tree.ast,
+                    context: bad.state,
+                    statements: checked.ast.statements
+                },
+                extra: checked.extra
+            }
+        },
+        condition: bad.id,
+        error: expected_array
+    })
+
+    const zero = integer({
+        state: array_guard.tree.ast.context,
+        value: 0
+    })
+
+    const size_type = primitive({
+        state: zero.state,
+        value: P.U32
+    })
+
+    const result_variable = binding({
+        state: array_guard.tree.ast.statements,
+        name: bytes.fromText(result_name),
+        value: zero.id,
+        mutable: true,
+        type_expr: size_type.id
+    })
+
+    const result_value = path({
+        state: size_type.state,
+        path: [result_name]
+    })
+
+    const result_pointer = address({
+        state: result_value.state,
+        value: result_value.id
+    })
+
+    const counted = check({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: result_pointer.state,
+                statements: result_variable
+            },
+            extra: checked.extra
+        },
+        name: array_length,
+        arguments: [
+            env.id,
+            value.id,
+            result_pointer.id
+        ]
+    })
+
+    const returned = result({
+        state: counted.ast.statements,
+        value: result_value.id
+    })
+
+    const env_type_node = path({
+        state: counted.ast.context,
+        path: [
+            api_name,
+            env_type
+        ]
+    })
+
+    const value_type_node = path({
+        state: env_type_node.state,
+        path: [
+            api_name,
+            value_type
+        ]
+    })
+
+    const return_type = errorUnion({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: value_type_node.state,
+                statements: returned
+            },
+            extra: counted.extra
+        },
+        payload: size_type.id,
+        inferred: false
+    })
+
+    const tree = method({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: return_type.state.ast.context,
+                statements: returned
+            },
+            extra: return_type.state.extra
+        },
+        name: length_name,
+        parameters: [
+            {
+                name: env_name,
+                value: env_type_node.id
+            },
+            {
+                name: value_name,
+                value: value_type_node.id
+            }
+        ],
+        return_type: return_type.id,
+        exported: false,
+        abi_export: false
+    })
+
+    return {
+        ...in,
+        tree
+    }
+}

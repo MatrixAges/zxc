@@ -1,0 +1,94 @@
+import bytes from "std:bytes"
+
+import integer from "../../../../../ast/context/integer"
+import path from "../../../../../ast/context/path"
+import primitive from "../../../../../ast/context/primitive"
+import binding from "../../../../../ast/statements/builder/binding"
+import { ExpressionsPrimitive as P } from "../../../../../printer/model/expressions"
+import { std_name } from "../../context/const"
+import { allocator_name } from "../../task/const"
+import invoke from "../../task/invoke"
+import { size_name, bytes_name, allocate_name, add_name, math_name } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const byte = primitive({
+        state: in.tree.ast.context,
+        value: P.U8
+    })
+
+    const size_type = primitive({
+        state: byte.state,
+        value: P.Usize
+    })
+
+    const size = path({
+        state: size_type.state,
+        path: [size_name]
+    })
+
+    const one = integer({
+        state: size.state,
+        value: 1
+    })
+
+    const count = invoke({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: one.state
+            }
+        },
+        path: [
+            std_name,
+            math_name,
+            add_name
+        ],
+        arguments: [
+            size_type.id,
+            size.id,
+            one.id
+        ],
+        fallible: true
+    })
+
+    const buffer = invoke({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: count.state.ast.context
+            }
+        },
+        path: [
+            allocator_name,
+            allocate_name
+        ],
+        arguments: [
+            byte.id,
+            count.id
+        ],
+        fallible: true
+    })
+
+    const declared = binding({
+        state: in.tree.ast.statements,
+        name: bytes.fromText(bytes_name),
+        value: buffer.id,
+        mutable: false
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: buffer.state.ast.context,
+                statements: declared
+            }
+        }
+    }
+}

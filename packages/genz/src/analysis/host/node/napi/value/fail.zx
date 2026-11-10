@@ -1,0 +1,218 @@
+import bytes from "std:bytes"
+
+import address from "../../../../../ast/context/address"
+import binary from "../../../../../ast/context/binary"
+import boolean from "../../../../../ast/context/boolean"
+import builtin from "../../../../../ast/context/builtin"
+import nullValue from "../../../../../ast/context/null_value"
+import path from "../../../../../ast/context/path"
+import primitive from "../../../../../ast/context/primitive"
+import text from "../../../../../ast/context/text"
+import unary from "../../../../../ast/context/unary"
+import binding from "../../../../../ast/statements/builder/binding"
+import branch from "../../../../../ast/statements/builder/branch"
+import evaluate from "../../../../../ast/statements/builder/evaluate"
+import open from "../../../../../ast/statements/builder/open"
+import result from "../../../../../ast/statements/builder/result"
+import {
+    ExpressionsPrimitive as P,
+    ExpressionsBinaryOperator as B,
+    ExpressionsBuiltinName as Builtin,
+    ExpressionsKind as K,
+    ExpressionsUnaryOperator as U
+} from "../../../../../printer/model/expressions"
+import { api_name, env_name, env_type } from "../../context/const"
+import { fail_name } from "../../enqueue/const"
+import {
+    exception_pending,
+    pending_name,
+    ok_tag,
+    value_type,
+    error_capture
+} from "../../task/const"
+import invoke from "../../task/invoke"
+import method from "../../task/method"
+import { throw_error } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const no = boolean({
+        state: in.tree.ast.context,
+        value: false
+    })
+
+    const declared = binding({
+        state: in.tree.ast.statements,
+        name: bytes.fromText(pending_name),
+        value: no.id,
+        mutable: true
+    })
+
+    const env = path({
+        state: no.state,
+        path: [env_name]
+    })
+
+    const pending = path({
+        state: env.state,
+        path: [pending_name]
+    })
+
+    const pending_pointer = address({
+        state: pending.state,
+        value: pending.id
+    })
+
+    const queried = invoke({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: pending_pointer.state,
+                statements: declared
+            }
+        },
+        path: [
+            api_name,
+            exception_pending
+        ],
+        arguments: [
+            env.id,
+            pending_pointer.id
+        ],
+        fallible: false
+    })
+
+    const ok = text({
+        state: queried.state.ast.context,
+        kind: K.EnumLiteral,
+        value: bytes.fromText(ok_tag)
+    })
+
+    const success = binary({
+        state: ok.state,
+        operator: B.Equal,
+        left: queried.id,
+        right: ok.id
+    })
+
+    const clear = unary({
+        state: success.state,
+        operator: U.Not,
+        operand: pending.id
+    })
+
+    const condition = binary({
+        state: clear.state,
+        operator: B.LogicalAnd,
+        left: success.id,
+        right: clear.id
+    })
+
+    const scope = open(declared)
+
+    const nil = nullValue(condition.state)
+
+    const error = path({
+        state: nil.state,
+        path: [error_capture]
+    })
+
+    const message = builtin({
+        state: error.state,
+        name: Builtin.ErrorName,
+        arguments: [error.id]
+    })
+
+    const thrown = invoke({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: message.state,
+                statements: scope.state
+            }
+        },
+        path: [
+            api_name,
+            throw_error
+        ],
+        arguments: [
+            env.id,
+            nil.id,
+            message.id
+        ],
+        fallible: false
+    })
+
+    const discarded = evaluate({
+        state: scope.state,
+        value: thrown.id,
+        discard: true
+    })
+
+    const branched = branch({
+        scope: {
+            ...scope,
+            state: discarded
+        },
+        condition: condition.id
+    })
+
+    const returned = result({
+        state: branched,
+        value: nil.id
+    })
+
+    const env_type_node = path({
+        state: thrown.state.ast.context,
+        path: [
+            api_name,
+            env_type
+        ]
+    })
+
+    const error_type = primitive({
+        state: env_type_node.state,
+        value: P.Anyerror
+    })
+
+    const return_type = path({
+        state: error_type.state,
+        path: [
+            api_name,
+            value_type
+        ]
+    })
+
+    const tree = method({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: return_type.state,
+                statements: returned
+            }
+        },
+        name: fail_name,
+        parameters: [
+            {
+                name: env_name,
+                value: env_type_node.id
+            },
+            {
+                name: error_capture,
+                value: error_type.id
+            }
+        ],
+        return_type: return_type.id,
+        exported: true,
+        abi_export: false
+    })
+
+    return {
+        ...in,
+        tree
+    }
+}
