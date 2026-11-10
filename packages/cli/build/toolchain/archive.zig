@@ -16,12 +16,14 @@ pub fn find(allocator: std.mem.Allocator, host: []const u8) !struct { version: [
     return error.UnsupportedZigHost;
 }
 
-pub fn prepare(io: std.Io, allocator: std.mem.Allocator, release: Release, local: []const u8, destination: []const u8) !void {
+pub fn prepare(comptime local_archive: bool, io: std.Io, allocator: std.mem.Allocator, release: Release, local: []const u8, destination: []const u8) !void {
+    if (local_archive) return transfer(local_archive, io, allocator, release, local, destination);
+
     var attempt: u32 = 1;
 
     while (true) : (attempt += 1) {
-        transfer(io, allocator, release, local, destination) catch |err| {
-            if (local.len != 0 or attempt == maximum_attempts or !retryable(err)) return err;
+        transfer(local_archive, io, allocator, release, local, destination) catch |err| {
+            if (attempt == maximum_attempts or !retryable(err)) return err;
 
             std.log.warn("Zig download attempt {d}/{d} failed: {t}; retrying", .{ attempt, maximum_attempts, err });
 
@@ -34,7 +36,7 @@ pub fn prepare(io: std.Io, allocator: std.mem.Allocator, release: Release, local
     }
 }
 
-fn transfer(io: std.Io, allocator: std.mem.Allocator, release: Release, local: []const u8, destination: []const u8) !void {
+fn transfer(comptime local_archive: bool, io: std.Io, allocator: std.mem.Allocator, release: Release, local: []const u8, destination: []const u8) !void {
     const file = try std.Io.Dir.cwd().createFile(io, destination, .{});
 
     errdefer std.Io.Dir.cwd().deleteFile(io, destination) catch {};
@@ -46,7 +48,7 @@ fn transfer(io: std.Io, allocator: std.mem.Allocator, release: Release, local: [
     var output = file.writer(io, &output_buffer);
     var hashed = std.Io.Writer.Hashed(Sha256).initHasher(&output.interface, .init(.{}), &hash_buffer);
 
-    if (local.len != 0) {
+    if (local_archive) {
         const input = try std.Io.Dir.cwd().openFile(io, local, .{});
 
         defer input.close(io);

@@ -1,5 +1,7 @@
 const std = @import("std");
+const archive_source = @import("archive.zig");
 const model = @import("manifest.zig");
+const local_archive = @import("pack_options").local_archive;
 
 pub fn main(init: std.process.Init) !void {
     const allocator = init.arena.allocator();
@@ -9,12 +11,12 @@ pub fn main(init: std.process.Init) !void {
 
     const source = try std.Io.Dir.cwd().readFileAlloc(init.io, args[1], allocator, .unlimited);
     const manifest = try std.json.parseFromSliceLeaky(model.Manifest, allocator, source, .{});
-    const official = try @import("archive.zig").find(allocator, manifest.host);
+    const official = try archive_source.find(allocator, manifest.host);
     const release = official.release;
     const output_directory = args[4];
 
     try std.Io.Dir.cwd().createDirPath(init.io, output_directory);
-    try @import("archive.zig").prepare(init.io, allocator, release, args[3], try std.fs.path.join(allocator, &.{ output_directory, "zig.archive" }));
+    try archive_source.prepare(local_archive, init.io, allocator, release, args[3], try std.fs.path.join(allocator, &.{ output_directory, "zig.archive" }));
 
     const archive_path = try std.fs.path.join(allocator, &.{ output_directory, "resources.tar.gz" });
     const file = try std.Io.Dir.cwd().createFile(init.io, archive_path, .{});

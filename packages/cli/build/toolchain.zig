@@ -8,7 +8,7 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, index: std.Build.
 }
 
 fn generate(b: *std.Build, target: std.Build.ResolvedTarget, index: std.Build.LazyPath, standard_source: std.Build.Cache.Path, metadata_tool: std.Build.LazyPath) !Bundle {
-    const archive = b.option([]const u8, "zig-archive", "Official Zig archive for the zxc host; otherwise downloaded at build time");
+    const archive = b.option([]const u8, "zig-archive", "Official Zig archive for the zxc host; otherwise downloaded at build time") orelse "";
     var files: std.ArrayList(model.File) = .empty;
 
     b.addNamedLazyPath("zig_license", b.path("build/toolchain/license.txt"));
@@ -25,6 +25,11 @@ fn generate(b: *std.Build, target: std.Build.ResolvedTarget, index: std.Build.La
         .imports = &.{.{ .name = "genz", .module = b.dependency("genz", .{ .target = b.graph.host, .optimize = .fast }).module("genz") }},
     }) });
 
+    const pack_options = b.addOptions();
+
+    pack_options.addOption(bool, "local_archive", archive.len != 0);
+    tool.root_module.addOptions("pack_options", pack_options);
+
     const manifest = model.Manifest{
         .host = b.fmt("{s}-{s}", .{ @tagName(target.result.cpu.arch), @tagName(target.result.os.tag) }),
         .files = files.items,
@@ -36,7 +41,7 @@ fn generate(b: *std.Build, target: std.Build.ResolvedTarget, index: std.Build.La
     run.addFileArg(generated.add("bundle_manifest.json", try std.json.Stringify.valueAlloc(b.allocator, manifest, .{})));
     run.addFileArg(index);
 
-    if (archive) |path| run.addFileArg(.{ .cwd_relative = path }) else run.addArg("");
+    if (archive.len != 0) run.addFileArg(.{ .cwd_relative = archive }) else run.addArg("");
     for (files.items) |file| run.addFileInput(.{ .cwd_relative = file.source });
 
     const output = run.addOutputDirectoryArg("bundle");
